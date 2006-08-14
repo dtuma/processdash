@@ -62,7 +62,7 @@ var SILENT;
 var ieVersion = 0;
 var nsVersion = 0;
 
-var AppletName = "DataApplet161";   // VERSION
+var AppletName = "DataApplet17b";   // VERSION
 
 
 
@@ -90,18 +90,37 @@ function elementIterate(funcObj) {
   numForms = document.forms.length;
   for (formNum = 0; formNum < numForms; formNum++) {
     form = document.forms[formNum];
-    numElements = document.forms[formNum].elements.length;
-    for (elemNum = 0; elemNum < numElements; elemNum++) {
-      funcObj.func(document.forms[formNum].elements[elemNum]);
-    } // for elemNum...
+    if (shouldIgnore(form) == false) {
+      numElements = document.forms[formNum].elements.length;
+      for (elemNum = 0; elemNum < numElements; elemNum++) {
+        funcObj.func(document.forms[formNum].elements[elemNum]);
+      } // for elemNum...
+    } // if shouldIgnore...
   } // for formNum...
 }
+
+function shouldIgnore(elem) {
+  return shouldIgnoreStr(elem.name)
+    || shouldIgnoreStr(elem.id)
+    || shouldIgnoreStr(elem.className);
+}
+
+function shouldIgnoreStr(str) {
+  if (str && str.indexOf("NOT_DATA") != -1)
+    return true;
+  else if (str && str.indexOf("notData") != -1)
+    return true;
+  else
+    return false;
+}
+
 
 /*
  * escape backslashes and tabs.
  */
 
 function escStr(s) { return s.replace(/\\/g,"\\\\").replace(/\t/g, "\\t"); }
+
 
 /*
  * escape HTML entities.
@@ -110,6 +129,52 @@ function escStr(s) { return s.replace(/\\/g,"\\\\").replace(/\t/g, "\\t"); }
 function textToHTML(text) {
     return text.replace(/&/, "&amp;").replace(/</, "&lt;")
         .replace(/>/, "&gt;").replace(/"/, "&quot;"); //")
+}
+
+
+/*
+ * URL-encode strings in UTF-8 format
+ */
+
+var HEXDIGITS = "0123456789ABCDEF";
+function toHex(b) {
+    return "%" + HEXDIGITS.charAt(b >> 4) + HEXDIGITS.charAt(b & 0xF);
+}
+
+var SAFE_URI_CHARS =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-";
+
+function urlEncode(text) {
+    var c, s;
+    var result = "";
+    var i = 0;
+    while (i < text.length) {
+        c = text.charCodeAt(i++);
+
+        // handle UTF-16 surrogates
+        if (c >= 0xDC00 && c < 0xE000) continue;
+        if (c >= 0xD800 && c < 0xDC00) {
+            if (i >= text.length) continue;
+            s = text.charCodeAt(i++);
+            if (s < 0xDC00 || c >= 0xDE00) continue;
+            c = ((c - 0xD800) << 10) + (s - 0xDC00) + 0x10000;
+        }
+
+        if (SAFE_URI_CHARS.indexOf(String.fromCharCode(c)) != -1) {
+            result += String.fromCharCode(c);
+        } else if (c < 0x80) {
+            result += toHex(c);
+        } else if (c < 0x800) {
+            result += (toHex(0xC0+(c>>6)) + toHex(0x80+(c&0x3F)));
+        } else if (c<0x10000) {
+            result += (toHex(0xE0+(c>>12)) + toHex(0x80+(c>>6&0x3F)) +
+                       toHex(0x80+(c&0x3F)));
+        } else {
+            result += (toHex(0xF0+(c>>18)) + toHex(0x80+(c>>12&0x3F)) +
+                       toHex(0x80+(c>>6&0x3F)) + toHex(0x80+(c&0x3F)));
+        }
+    }
+    return result;
 }
 
 
@@ -124,7 +189,8 @@ if (unlocked) {
   unlockURL = window.location.href.replace(/unlock/, "")
               .replace(/([?&])&/, "$1").replace(/[?&]$/, "");
   unlockHTML =
-    '<br><A HREF="javascript:gotoUnLockURL();"><!--#echo Lock_Message --></A>';
+        '<br><A HREF="javascript:gotoUnLockURL();">' +
+        '<!--#echo Lock_Message --></A>';
 } else {
   if (window.location.search == "") {
     unlockURL = window.location.href + "?unlock";
@@ -132,7 +198,8 @@ if (unlocked) {
     unlockURL = window.location.href + "&unlock";
   }
   unlockHTML = 
-    '<br><A HREF="javascript:displayUnlockWarning();"><!--#echo Unlock_Message --></A>';
+        '<br><A HREF="javascript:displayUnlockWarning();">' +
+        '<!--#echo Unlock_Message --></A>';
 }
 
 
@@ -141,13 +208,14 @@ if (unlocked) {
  */
 
 function displayUnlockWarning() {
-if (window.confirm("<!--#echo var="Unlock_Warning" encoding="javaStr" -->"))
-  displayDefaultMessage();
+    var msg = "<!--#echo var='Unlock_Warning' encoding='javaStr' -->";
+    if (window.confirm(msg))
+        displayDefaultMessage();
 }
 
 function displayDefaultMessage() {
-  window.alert("<!--#echo var="DEFAULT_Message" encoding="javaStr" -->");
-  gotoUnLockURL();
+    window.alert("<!--#echo var='DEFAULT_Message' encoding='javaStr' -->");
+    gotoUnLockURL();
 }
 function gotoUnLockURL() {
   window.location.replace(unlockURL);
@@ -157,39 +225,52 @@ function gotoUnLockURL() {
  * Functions used for exporting
  */
 
-function eesc(str) {
-    str = escape(str);
-    str = str.replace(/\//g, "%2F");
-    str = str.replace(/\./g, "%2E");
-    str = str.replace(/\+/g, "%2B");
-    return str;
-}
-
 function writeExportHTML() {
-    document.writeln("&nbsp; &nbsp; &nbsp; &nbsp;<!--#echo Export_To --> ");
-    document.writeln("<A HREF='/reports/form2html.class'><!--#echo Export_To_HTML --></A>");
-    var url = eesc(window.location.pathname +
-		   window.location.hash +
-		   window.location.search);
+    document.writeln("<!--#echo Export_To --> ");
+    document.writeln("<A HREF='/reports/form2html.class'>" +
+                     "<!--#echo Export_To_HTML --></A>");
+    var url = urlEncode(window.location.pathname +
+                        window.location.hash +
+                        window.location.search);
     url = "/reports/form2html.class?uri=" + url;
-    url = eesc(url);
-	
-    document.writeln("<A HREF='/reports/excel.iqy?uri=" +url+ 
-		     "&fullPage'><!--#echo Export_To_Excel --></A>");
+    url = urlEncode(url);
+
+    document.writeln("<A HREF='/reports/excel.iqy?uri=" +url+
+                     "&fullPage'><!--#echo Export_To_Excel --></A>");
 }
 
 function writeHelpLink() {
-  document.writeln("&nbsp; &nbsp; &nbsp; &nbsp;<A HREF='/help/Topics/Planning/EnteringData.html' TARGET='_blank'><I><!--#echo Help_Dots --></I></A>");
+    document.writeln("&nbsp; &nbsp; &nbsp; &nbsp;" +
+                     "<A HREF='/help/Topics/Planning/EnteringData.html' " +
+                     "TARGET='_blank'><I><!--#echo Help_Dots --></I></A>");
 }
 
 function writeFooter() {
     if (!SILENT) {
 	document.write('<span class=doNotPrint>');
-	document.write(unlockHTML);
-	writeExportHTML();
+	<!--#if !READ_ONLY -->
+        document.write(unlockHTML);
+	document.write("&nbsp; &nbsp; &nbsp; &nbsp;");
+	<!--#endif-->
+        writeExportHTML();
 	writeHelpLink();
 	document.write('</span>');
     }
+}
+
+function writeExcelOnlyFooter() {
+    document.write('<span class=doNotPrint>');
+
+    var url = urlEncode(window.location.pathname +
+                        window.location.hash +
+                        window.location.search);
+    url = "/reports/form2html.class?uri=" + url;
+    url = urlEncode(url);
+
+    document.writeln("<A HREF='/reports/excel.iqy?uri=" +url+
+                     "&fullPage'><!--#echo Export_to_Excel --></A>");
+
+    document.write('</span>');
 }
 
 
@@ -272,8 +353,7 @@ function IEregisterElement(elem) {
     if (elem.name.toLowerCase() == "requiredtag") // <INPUT> element, save the
       requiredTag = elem.value;                   // requiredTag value.
 
-    else if (elem.name &&
-	     elem.name.indexOf("NOT_DATA") == -1 &&
+    else if (!shouldIgnore(elem) &&
              elem.dataSrc == "") {         // if elem isn't already bound,
       elem.dataSrc = "#IEDataAppl";        // bind it to the IEDataApplet
       elem.dataFld = "field" + IEfieldNum; // with a new, unique dataFld value,
@@ -337,6 +417,11 @@ function IEsetup() {
     IEDataAppl.ondatasetcomplete = IEscanForReadOnly;
     IEDataAppl.ondatasetchanged  = IEscanForReadOnly;
     IEDataAppl.oncellchange      = IEresetReadOnly;
+
+<!--#if showExcelLink -->
+  } else {
+    writeExcelOnlyFooter();
+<!--#endif-->
   }
 }
 
@@ -426,7 +511,7 @@ function NSregisterElement(elem) {
   if (elem.name.toLowerCase() == "requiredtag")
     requiredTag = elem.value;
 
-  else if (elem.name && elem.name.indexOf("NOT_DATA") == -1) {
+  else if (shouldIgnore(elem) == false) {
     NSelementList.push(elem);
     switch (elem.type.toLowerCase()) {
 
@@ -578,6 +663,11 @@ function NSSetup() {
     writeFooter();
 
     self.setTimeout("updateFields()", 300);
+
+<!--#if showExcelLink -->
+  } else {
+    writeExcelOnlyFooter();
+<!--#endif-->
   }
 }
 
@@ -620,6 +710,11 @@ function ForcePlugInSetup() {
     writeFooter();
 
     self.setTimeout("updateFields()", 300);
+
+<!--#if showExcelLink -->
+  } else {
+    writeExcelOnlyFooter();
+<!--#endif-->
   }
 }
 

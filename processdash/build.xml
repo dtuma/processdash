@@ -403,8 +403,6 @@ Authors:
           excludesfile="${lib}/fileset-template-ignore.txt"/>
 
       <!-- rename certain template files -->
-      <zipfileset dir="." includes="Templates/data2.js"
-               fullpath="Templates/data.js"/>
       <zipfileset dir="." includes="Templates/help/style-prod.css"
                fullpath="Templates/help/style.css"/>
 

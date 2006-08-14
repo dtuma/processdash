@@ -8,7 +8,6 @@
 **/.xvpics/
 **/Thumbs.db
 **/SCR-*.htm
-Templates/data.js
 Templates/DCR.template
 Templates/help/createBroker.class.link
 Templates/help/help.config
