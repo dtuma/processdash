@@ -239,6 +239,9 @@ public class HTMLArchiver {
                             // special handling for excel export links
                             safeURL = writeExcelPart(uri, html, contentType);
                             extra = " target='_blank'";
+                        } else if (subURI.equalsIgnoreCase("about:blank")) {
+                            // no need to alter about:blank references
+                            continue;
                         } else {
                             URL u = new URL(baseURL, subURI);
                             String absoluteURI = u.getFile();
