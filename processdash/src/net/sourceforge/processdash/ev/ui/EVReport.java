@@ -853,8 +853,6 @@ public class EVReport extends CGIChartBase {
         out.print("<p class='doNotPrint'>");
         if (!isSnippet)
             interpOutLink(EXPORT_TEXT_LINK);
-        else
-            out.print(FORCE_EXCEL_EXPORT_SCRIPT);
 
         if (!parameters.containsKey("EXPORT")) {
             interpOutLink(EXPORT_CHARTS_LINK);
@@ -1080,8 +1078,6 @@ public class EVReport extends CGIChartBase {
             + "${Report.Export_Archive}</i></a>&nbsp; &nbsp; &nbsp; &nbsp;";
     static final String SHOW_WEEK_LINK ="<a href='@@@week.class'><i>"
             + "${Report.Show_Weekly_View}</i></a>";
-    static final String FORCE_EXCEL_EXPORT_SCRIPT = "<script "
-            + "type='text/javascript'>var SHOW_EXCEL_EXPORT = true;</script>\n";
     static final String EXCEL_TIME_TD = "<td class='timeFmt'>";
 
 

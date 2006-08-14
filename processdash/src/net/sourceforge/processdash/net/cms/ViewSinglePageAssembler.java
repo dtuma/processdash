@@ -51,7 +51,7 @@ public class ViewSinglePageAssembler extends AbstractViewPageAssembler {
 
         out.write("</form></div>\n\n");
         out.write("<hr>\n");
-        out.write("<script src='/data.js' type='text/javascript'> </script>\n");
+        out.write("<script src='/data.js?showExcelLink' type='text/javascript'> </script>\n");
         out.write("</body>\n");
         out.write("</html>\n");
     }
