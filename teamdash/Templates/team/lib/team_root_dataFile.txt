@@ -8,6 +8,7 @@
 #include <<!--#echo Process_ID -->/root_data.txt>
 undefine([Simple Project Tag]);
 [<!--#echo Process_ID --> Team Root Tag] = tag;
+[EV Project Tag] = tag;
 
 [EXPORT_FILE] = 
     iff([Team_Data_Directory] == "", "",
