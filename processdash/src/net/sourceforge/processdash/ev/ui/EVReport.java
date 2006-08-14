@@ -98,6 +98,7 @@ public class EVReport extends CGIChartBase {
     public static final String FAKE_MODEL_NAME = "/  ";
     private static final String CUSTOMIZE_PARAM = "customize";
     private static final String LABEL_FILTER_PARAM = "labelFilter";
+    private static final String LABEL_FILTER_AUTO_PARAM = "labelFilterAuto";
     static final String TASKLIST_PARAM = "tl";
     static final String CUSTOMIZE_HIDE_PLAN_LINE = "hidePlanLine";
     static final String CUSTOMIZE_HIDE_FORECAST_LINE = "hideForecastLine";
@@ -764,7 +765,7 @@ public class EVReport extends CGIChartBase {
     }
     private boolean usingCustomizationSettings;
     private void loadCustomizationSettings() {
-        if (parameters.containsKey("labelFilterAuto"))
+        if (parameters.containsKey(LABEL_FILTER_AUTO_PARAM))
             lookupLabelFilter();
         usingCustomizationSettings = isTimestampRecent();
     }
@@ -946,7 +947,6 @@ public class EVReport extends CGIChartBase {
     private void printTaskStyleLink() {
         if (!exportingToExcel()) {
             boolean isFlat = isFlatView();
-            String filter = getParameter(LABEL_FILTER_PARAM);
             out.print("&nbsp;&nbsp;<span " + HEADER_LINK_STYLE + ">"
                     + "<span class='doNotPrint'><a href=\"");
 
@@ -966,7 +966,11 @@ public class EVReport extends CGIChartBase {
                 href.append(isSnippet ? "$$$_flat=t" : "flat=t");
             }
 
-            HTMLUtils.appendQuery(href, LABEL_FILTER_PARAM, filter);
+            if (!parameters.containsKey(LABEL_FILTER_AUTO_PARAM)) {
+                String filter = getParameter(LABEL_FILTER_PARAM);
+                HTMLUtils.appendQuery(href, LABEL_FILTER_PARAM, filter);
+            }
+
             out.print(href.toString());
 
             out.print("#$$$_tasks\">");
