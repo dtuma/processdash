@@ -116,7 +116,7 @@ public abstract class AbstractPageAssembler implements PageAssembler,
         Set headerItems = new LinkedHashSet();
         addPageSpecificHeaderItems(headerItems);
 
-        maybeAddHeaderSnippet(page);
+        maybeAddHeaderSnippet(page, invoker);
 
         int num = 0;
         for (Iterator i = page.getSnippets().iterator(); i.hasNext();) {
@@ -149,8 +149,9 @@ public abstract class AbstractPageAssembler implements PageAssembler,
         writePage(out, headerItems, page);
     }
 
-    protected void maybeAddHeaderSnippet(PageContentTO page) {
-        if (!containsHeaderSnippet(page)) {
+    protected void maybeAddHeaderSnippet(PageContentTO page,
+            SnippetInvoker invoker) {
+        if (!containsHeaderSnippet(page, invoker)) {
             SnippetInstanceTO headerSnip = getDefaultHeaderSnippet();
             headerSnip.setInstanceID(AUTO_HEADER_INSTANCE_ID);
             List snippets = page.getSnippets();
@@ -159,7 +160,8 @@ public abstract class AbstractPageAssembler implements PageAssembler,
             snippets.add(0, headerSnip);
         }
     }
-    private boolean containsHeaderSnippet(PageContentTO page) {
+    private boolean containsHeaderSnippet(PageContentTO page,
+            SnippetInvoker invoker) {
         Iterator i = page.getHeaderSnippets();
         while (i.hasNext()) {
             SnippetInstanceTO snip = (SnippetInstanceTO) i.next();
@@ -167,7 +169,8 @@ public abstract class AbstractPageAssembler implements PageAssembler,
                 String mode = (String) parameters.get("mode");
                 if (mode == null || "view".equals(mode)
                         || snip.getDefinition().getModes().contains(mode))
-                    return true;
+                    if (invoker.test(snip))
+                        return true;
             }
         }
         return false;
