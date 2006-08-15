@@ -3,8 +3,7 @@
 //
 
 #include <<!--#echo Process_ID -->/indiv_empty_dataFile.txt> exclude (
-    [<!--#echo Process_ID -->/IndivEmptyNode Tag],
-    [Process_ID]
+    [<!--#echo Process_ID -->/IndivEmptyNode Tag]
 )
 #include <<!--#echo Process_ID -->/root_data.txt>
 

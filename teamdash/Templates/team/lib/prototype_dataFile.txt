@@ -9,6 +9,8 @@ undefine([Use_Rollup]);
 [/PSP/Project List] = search("/", "PSP Rollup Eligible");
 [/PID/Full Project List] = setUnion([/PID/Project List], [/PSP/Project List]);
 <!--#endif-->
+[Process_ID] = "PID";
+[Has Compile Phase] = TAG;
 
 /*
  * Define the relationship between inspected size metrics and base
@@ -217,9 +219,13 @@ undefine([Use_Rollup]);
 [DLDR_vs_UT/Estimated_Defect Ratio] =
       sumFor("Estimated_Defects Removed", [/PID/DLDR_Phase_List]) / 
       sumFor("Estimated_Defects Removed", [/PID/UT_Phase_List]);
+[Design Review vs Test/Estimated_Defect Ratio] =
+      [DLDR_vs_UT/Estimated_Defect Ratio];
 [CR_vs_COMP/Estimated_Defect Ratio] =
       sumFor("Estimated_Defects Removed", [/PID/CR_Phase_List]) / 
       sumFor("Estimated_Defects Removed", [/PID/COMP_Phase_List]);
+[Code Review vs Compile/Estimated_Defect Ratio] =
+      [CR_vs_COMP/Estimated_Defect Ratio];
 <!--#endfor-->
 
 
@@ -251,12 +257,20 @@ undefine([Use_Rollup]);
 [DLD_vs_CODE/Estimated_Time Ratio] =
       sumFor("Estimated_Time", [/PID/DLD_Phase_List]) / 
       sumFor("Estimated_Time", [/PID/CODE_Phase_List]);
+[Design vs Code/Estimated_Time Ratio] =
+      [DLD_vs_CODE/Estimated_Time Ratio];
+
 [DLDR_vs_DLD/Estimated_Time Ratio] =
       sumFor("Estimated_Time", [/PID/DLDR_Phase_List]) / 
       sumFor("Estimated_Time", [/PID/DLD_Phase_List]);
+[Design Review vs Design/Estimated_Time Ratio] =
+      [DLDR_vs_DLD/Estimated_Time Ratio];
+
 [CR_vs_CODE/Estimated_Time Ratio] =
       sumFor("Estimated_Time", [/PID/CR_Phase_List]) / 
       sumFor("Estimated_Time", [/PID/CODE_Phase_List]);
+[Code Review vs Code/Estimated_Time Ratio] =
+      [CR_vs_CODE/Estimated_Time Ratio];
 <!--#endfor-->
 
 [/PID/DRP_Phase_List] = "<!--#foreach name=Phase list=Phase_List --><!--#if Phase_Is_Quality --><!--#if not Phase_Size_Metric || Phase_Size_Metric =~ ' (LOC|Lines)$' --><!--#echo Phase_Name --><!--#endif--><!--#endif--><!--#endfor-->";
@@ -313,6 +327,14 @@ undefine([Use_Rollup]);
     ([QP_Estimated_DLD_Time] * inherit("Target Design Review/Design Ratio")),
     1);
 
+<!--#endfor-->
+
+/*
+ * Store the full names of the phases for reference.
+ */
+<!--#foreach name=PHASE list=Phase_List #-->
+[/PID/<!--#echo PHASE_Name -->/Phase_Long_Name] =
+    "<!--#echo PHASE_Long_Name -->";
 <!--#endfor-->
 
 /*
