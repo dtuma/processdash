@@ -28,9 +28,11 @@ package net.sourceforge.processdash.ui.web.reports;
 
 import net.sourceforge.processdash.data.DoubleData;
 import net.sourceforge.processdash.data.NumberData;
+import net.sourceforge.processdash.data.SaveableData;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.ui.web.CGIChartBase;
 import net.sourceforge.processdash.util.FormatUtil;
+import net.sourceforge.processdash.util.StringUtils;
 
 import org.jfree.chart.JFreeChart;
 import org.jfree.data.CategoryDataset;
@@ -73,13 +75,26 @@ public class RadarChart extends CGIChartBase {
     private void maybeScaleDataAxes() {
         for (int i = 0;  i < data.numCols();  i++) {
             int n = i+1;
+
+            String target = getParameter("t" + n);
+            if (!StringUtils.hasValue(target))
+                continue;
+
             double targetVal = 0;
             try {
-                String target = getParameter("t" + n);
                 targetVal = FormatUtil.parseNumber(target);
             } catch (Exception e) {
+                SaveableData val = getDataRepository().getInheritableValue(
+                        getPrefix(), target);
+                if (val != null) {
+                    SimpleData sVal = val.getSimpleValue();
+                    if (sVal instanceof NumberData)
+                        targetVal = ((NumberData) sVal).getDouble();
+                }
+            }
+            if (targetVal == 0)
                 continue;
-            };
+
             boolean reverse = parameters.containsKey("r" + n);
 
             SimpleData d = data.getData(1, n);
