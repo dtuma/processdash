@@ -1,5 +1,5 @@
+// Copyright (C) 2003-2006 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -74,7 +74,7 @@ public class PlanAnalysisPage extends AnalysisPage {
 
     private static final String SIZE_CHART = "Size";
     public void writeSizeArgs() {
-        String sizeMetric = getProcessString("SIZE_METRIC_NAME");
+        String sizeMetric = getSizeMetric();
         String displayName = Translator.translate(sizeMetric);
         writeSimpleChartArgs
             ("${Plan.Size_Title}", displayName, null, sizeMetric);
@@ -86,8 +86,7 @@ public class PlanAnalysisPage extends AnalysisPage {
         String dataElem = "Size Estimating Error";
         String dataName = DataRepository.createDataName(getPrefix(), dataElem);
         if (getDataRepository().getSimpleValue(dataName) == null)
-            dataElem =
-                getProcessString("SIZE_METRIC_NAME") + " Estimating Error";
+            dataElem = getSizeMetric() + " Estimating Error";
 
         writeSimpleChartArgs
             ("${Plan.Size_Estimating_Error_Title}", "${Plan.Percent_Error}",

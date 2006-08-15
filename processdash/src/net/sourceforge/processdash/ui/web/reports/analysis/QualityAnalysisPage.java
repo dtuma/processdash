@@ -1,5 +1,5 @@
+// Copyright (C) 2003-2006 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -132,7 +132,7 @@ public class QualityAnalysisPage extends AnalysisPage {
     private ListData getMainAppraisalPhases() {
         ListData appraisalPhases = getProcessList("Appraisal_Phase_List");
         ListData mainAppraisalPhases = findPhasesForSizeMetric
-            (appraisalPhases, getProcessString("SIZE_METRIC_NAME"));
+            (appraisalPhases, getSizeMetric());
         return mainAppraisalPhases;
     }
 
@@ -153,7 +153,7 @@ public class QualityAnalysisPage extends AnalysisPage {
 
     private void writeCombinedReviewRateEqn(ListData phases) {
         out.print("[");
-        out.print(escData(getProcessString("SIZE_METRIC_NAME")));
+        out.print(escData(getSizeMetric()));
         out.print("] * 60 / ");
         out.println(getCumPhaseSum(phases, null, "Time"));
     }

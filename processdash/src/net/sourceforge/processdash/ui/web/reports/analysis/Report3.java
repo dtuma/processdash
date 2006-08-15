@@ -113,7 +113,7 @@ public class Report3 extends AnalysisPage implements DefectAnalyzer.Task {
 
     private void initValues() {
         failurePhases = getProcessListPlain("Failure_Phase_List");
-        sizeMetric = getProcessString("SIZE_METRIC_NAME");
+        sizeMetric = getSizeMetric();
 
         injectionCategories = getProcessListPlain("Development_Phase_List");
         injectionCategories.add(TOTAL_CATEGORY_KEY);

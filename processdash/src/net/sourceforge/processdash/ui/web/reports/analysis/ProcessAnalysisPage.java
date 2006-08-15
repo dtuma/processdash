@@ -1,5 +1,5 @@
+// Copyright (C) 2003-2006 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -109,8 +109,7 @@ public class ProcessAnalysisPage extends AnalysisPage {
     public void writeDefVsAFRArgs() {
         String phaseName = getParameter("phase");
         String displayName = Translator.translate(phaseName);
-        String aggrSize = Translator.translate
-            (getProcessString("AGGR_SIZE_METRIC_NAME_ABBR"));
+        String aggrSize = getAggrSizeLabel();
         String title = resources.format
             ("Process.Defects_Vs_AFR_Title_FMT", displayName);
         String densityLabel = resources.format
@@ -126,8 +125,7 @@ public class ProcessAnalysisPage extends AnalysisPage {
     public void writeDefVsYieldArgs() {
         String phaseName = getParameter("phase");
         String displayName = Translator.translate(phaseName);
-        String aggrSize = Translator.translate
-            (getProcessString("AGGR_SIZE_METRIC_NAME_ABBR"));
+        String aggrSize = getAggrSizeLabel();
         String title = resources.format
             ("Process.Defects_Vs_Yield_Title_FMT", displayName);
         String densityLabel = resources.format

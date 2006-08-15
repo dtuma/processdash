@@ -1,5 +1,5 @@
+// Copyright (C) 2003-2006 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -26,19 +26,19 @@
 package net.sourceforge.processdash.ui.web.reports.analysis;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.lang.reflect.Method;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
 import net.sourceforge.processdash.data.ListData;
-import net.sourceforge.processdash.data.SimpleData;
-import net.sourceforge.processdash.data.StringData;
 import net.sourceforge.processdash.data.compiler.Compiler;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.i18n.Translator;
+import net.sourceforge.processdash.process.ProcessUtil;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.StringMapper;
@@ -68,8 +68,14 @@ public abstract class AnalysisPage extends TinyCGIBase implements StringMapper {
 
 
     protected Map argGeneratorMap = new HashMap();
+    private ProcessUtil processUtil = null;
 
 
+    public void service(InputStream in, OutputStream out, Map env)
+            throws IOException {
+        processUtil = null;
+        super.service(in, out, env);
+    }
 
     protected void writeHeader() {
         if (parameters.containsKey("type")) {
@@ -131,6 +137,12 @@ public abstract class AnalysisPage extends TinyCGIBase implements StringMapper {
         return Compiler.escapeLiteral(str);
     }
 
+    protected ProcessUtil getProcessUtil() {
+        if (processUtil == null)
+            processUtil = new ProcessUtil(getDataContext());
+        return processUtil;
+    }
+
     protected String getDefectLogParam() {
         String defectLogParam = (String) env.get("QUERY_STRING");
         if (defectLogParam == null)
@@ -144,28 +156,15 @@ public abstract class AnalysisPage extends TinyCGIBase implements StringMapper {
     }
 
     protected ListData getProcessList(String listName) {
-        String dataName = DataRepository.createDataName(getPrefix(), listName);
-        SimpleData val = getDataRepository().getSimpleValue(dataName);
-        if (val instanceof ListData)
-            return (ListData) val;
-        else if (val instanceof StringData)
-            return ((StringData) val).asList();
-        else
-            return new ListData();
+        return getProcessUtil().getProcessList(listName);
     }
 
     protected List getProcessListPlain(String name) {
-        ListData list = getProcessList(name);
-        List result = new LinkedList();
-        for (int i = 0;  i < list.size();   i++)
-            result.add(list.get(i));
-        return result;
+        return getProcessUtil().getProcessListPlain(name);
     }
 
     protected String getProcessString(String stringName) {
-        String dataName = DataRepository.createDataName(getPrefix(), stringName);
-        SimpleData val = getDataRepository().getSimpleValue(dataName);
-        return val == null ? "" : val.format();
+        return getProcessUtil().getProcessString(stringName);
     }
 
     protected boolean metricIsDefined(String name) {
@@ -283,10 +282,12 @@ public abstract class AnalysisPage extends TinyCGIBase implements StringMapper {
         }
     }
 
+    protected String getSizeMetric() {
+        return getProcessUtil().getSizeMetric();
+    }
+
     protected String getSizeAbbrLabel() {
-        String sizeMetric = getProcessString("SIZE_METRIC_NAME_ABBR");
-        String displayName = Translator.translate(sizeMetric);
-        return displayName;
+        return getProcessUtil().getSizeAbbrLabel();
     }
 
     protected String getCumPhaseSum(ListData phases, String thruPhase, String dataElem) {
@@ -310,8 +311,7 @@ public abstract class AnalysisPage extends TinyCGIBase implements StringMapper {
     }
 
     protected String getAggrSizeLabel() {
-        return Translator.translate
-            (getProcessString("AGGR_SIZE_METRIC_NAME_ABBR"));
+        return getProcessUtil().getAggrSizeLabel();
     }
 
 
