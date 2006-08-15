@@ -1,5 +1,5 @@
+// Copyright (C) 2003-2006 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -25,9 +25,9 @@
 
 package net.sourceforge.processdash.process;
 
-import java.util.LinkedList;
 import java.util.List;
 
+import net.sourceforge.processdash.data.DataContext;
 import net.sourceforge.processdash.data.ListData;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.StringData;
@@ -41,43 +41,51 @@ public class ProcessUtil {
 
     static Resources resources = Resources.getGlobalBundle();
 
-    DataRepository data;
-    String prefix;
+    private DataContext data;
+    private String processID = null;
 
     public ProcessUtil(DataRepository data, String prefix) {
-        this.data = data;
-        this.prefix = prefix;
+        this(data.getSubcontext(prefix));
     }
 
-    private String getPrefix() {
-        return prefix;
+    public ProcessUtil(DataContext data) {
+        this.data = data;
     }
-    private DataRepository getDataRepository() {
-        return data;
+
+    private SimpleData getValue(String dataName) {
+        return data.getSimpleValue(dataName);
+    }
+
+    private String getGlobalName(String dataName) {
+        return "/" + getProcessID() + "/" + dataName;
     }
 
     public ListData getProcessList(String listName) {
-        String dataName = DataRepository.createDataName(getPrefix(), listName);
-        SimpleData val = getDataRepository().getSimpleValue(dataName);
+        SimpleData val = getValue(listName);
+        if (val == null)
+            val = getValue(getGlobalName(listName));
+
         if (val instanceof ListData)
             return (ListData) val;
         else if (val instanceof StringData)
             return ((StringData) val).asList();
         else
-            return new ListData();
+            return ListData.EMPTY_LIST;
     }
 
     public List getProcessListPlain(String name) {
-        ListData list = getProcessList(name);
-        List result = new LinkedList();
-        for (int i = 0;  i < list.size();   i++)
-            result.add(list.get(i));
-        return result;
+        return getProcessList(name).asList();
     }
 
     public String getProcessString(String stringName) {
-        String dataName = DataRepository.createDataName(getPrefix(), stringName);
-        SimpleData val = getDataRepository().getSimpleValue(dataName);
+        return getProcessString(stringName, true);
+    }
+
+    private String getProcessString(String stringName, boolean tryGlobal) {
+        SimpleData val = getValue(stringName);
+        if (val == null && tryGlobal)
+            val = getValue(getGlobalName(stringName));
+
         return val == null ? "" : val.format();
     }
 
@@ -86,7 +94,7 @@ public class ProcessUtil {
     }
 
     public String getAggrSizeMetric() {
-        return getProcessString("SIZE_METRIC_NAME");
+        return getProcessString("AGGR_SIZE_METRIC_NAME");
     }
 
 
@@ -126,12 +134,14 @@ public class ProcessUtil {
     public String getRollupID() {
         String result = getProcessString("Use_Rollup");
         if (result == null)
-            result = getProcessString("Process_ID");
+            result = getProcessString("Process_ID", false);
         return result;
     }
 
     public String getProcessID() {
-        return getProcessString("Process_ID");
+        if (processID == null)
+            processID = getProcessString("Process_ID", false);
+        return processID;
     }
 
 }

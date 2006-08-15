@@ -28,19 +28,16 @@ package net.sourceforge.processdash.ui.web.reports.snippets;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
 import net.sourceforge.processdash.data.DataContext;
-import net.sourceforge.processdash.data.ListData;
-import net.sourceforge.processdash.data.SimpleData;
-import net.sourceforge.processdash.data.StringData;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.i18n.Translator;
 import net.sourceforge.processdash.net.cms.SnippetDataEnumerator;
 import net.sourceforge.processdash.net.cms.TranslatingAutocompleter;
+import net.sourceforge.processdash.process.ProcessUtil;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.StringUtils;
@@ -82,18 +79,20 @@ public class TableOfPhaseMetrics extends TinyCGIBase {
             return;
         }
 
+        ProcessUtil procUtil = new ProcessUtil(getDataContext());
+
         // retrieve the list of phases the user wants to display
         String phaseList = getSelectedPhaseList();
         List phases = null;
         for (int i = 0; i < PHASES.length; i++) {
             if (PHASES[i][0].equals(phaseList)) {
-                phases = getList(PHASES[i][1]);
+                phases = procUtil.getProcessListPlain(PHASES[i][1]);
                 break;
             }
         }
         if (phases == null)
             // default to all phases
-            phases = getList(PHASES[0][1]);
+            phases = procUtil.getProcessListPlain(PHASES[0][1]);
 
         // retrieve the list of metrics the user wants to display
         Map[] metrics = SnippetDataEnumerator.getEnumeratedValues(parameters,
@@ -146,23 +145,23 @@ public class TableOfPhaseMetrics extends TinyCGIBase {
         // write a table row for each process phase
         for (Iterator i = phases.iterator(); i.hasNext();) {
             String phase = (String) i.next();
-            writeTableRow(phase, metrics, columns, dataContext);
+            writeTableRow(phase, metrics, columns, dataContext, procUtil);
         }
 
         if (parameters.containsKey("ShowTotalRow")
                 && ALL_PHASES.equals(phaseList))
-            writeTableRow(null, metrics, columns, dataContext);
+            writeTableRow(null, metrics, columns, dataContext, procUtil);
 
         out.write("</table></p>\n\n");
     }
 
     private void writeTableRow(String phase, Map[] metrics, List columns,
-            DataContext data) throws IOException {
+            DataContext data, ProcessUtil procUtil) throws IOException {
         out.write("<tr><td>");
         if (phase == null)
             out.write(resources.getHTML("Total"));
         else
-            out.write(esc(Translator.translate(phase)));
+            out.write(esc(getPhaseDisplayName(procUtil, phase)));
         out.write("</td>\n");
 
         String[] extraAttrs = new String[columns.size()];
@@ -179,11 +178,25 @@ public class TableOfPhaseMetrics extends TinyCGIBase {
             boolean pad = true;
             for (Iterator i = columns.iterator(); i.hasNext();) {
                 MetricsTableColumn col = (MetricsTableColumn) i.next();
-                col.writeCell(out, data, dataName, pad);
+                if (phase == null
+                    && (col == MetricsTableColumn.ACTUAL_PCT
+                            || col == MetricsTableColumn.TO_DATE_PCT))
+                    // don't write "%" columns on the total row.
+                    out.write("<td></td>\n");
+                else
+                    col.writeCell(out, data, dataName, pad);
                 pad = false;
             }
         }
         out.write("</tr>\n");
+    }
+
+    private String getPhaseDisplayName(ProcessUtil procUtil, String phase) {
+        String phaseName = procUtil.getProcessString(phase + "/Phase_Long_Name");
+        if (StringUtils.hasValue(phaseName))
+            return phaseName;
+        else
+            return Translator.translate(phase);
     }
 
     private String getSelectedPhaseList() {
@@ -195,16 +208,6 @@ public class TableOfPhaseMetrics extends TinyCGIBase {
 
     private String esc(String s) {
         return HTMLUtils.escapeEntities(s);
-    }
-
-    private List getList(String name) {
-        DataContext data = getDataContext();
-        SimpleData phaseDataElem = data.getSimpleValue(name);
-        if (phaseDataElem instanceof ListData)
-            return ((ListData) phaseDataElem).asList();
-        else if (phaseDataElem instanceof StringData)
-            return ((StringData) phaseDataElem).asList().asList();
-        return Collections.EMPTY_LIST;
     }
 
     private static final MetricsTableColumn[] COLUMNS = {
