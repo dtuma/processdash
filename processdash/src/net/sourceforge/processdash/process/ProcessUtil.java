@@ -25,6 +25,7 @@
 
 package net.sourceforge.processdash.process;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import net.sourceforge.processdash.data.DataContext;
@@ -74,7 +75,7 @@ public class ProcessUtil {
     }
 
     public List getProcessListPlain(String name) {
-        return getProcessList(name).asList();
+        return new ArrayList(getProcessList(name).asList());
     }
 
     public String getProcessString(String stringName) {
