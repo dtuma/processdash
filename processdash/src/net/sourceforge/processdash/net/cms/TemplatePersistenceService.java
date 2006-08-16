@@ -41,8 +41,12 @@ public class TemplatePersistenceService implements PersistenceService {
         URL url = TemplateLoader.resolveURL("cms/" + filename);
         if (url != null)
             return url.openStream();
-        else
-            return null;
+
+        url = TemplateLoader.resolveURL(filename);
+        if (url != null)
+            return url.openStream();
+
+        return null;
     }
 
     public OutputStream save(String filename) throws IOException {
