@@ -52,10 +52,12 @@ public class ScriptNameResolver implements ScriptID.NameResolver {
             String text = web.getRequestAsString("/"+scriptFile);
 
             int beg = text.indexOf("<TITLE>");
+            if (beg == -1) beg = text.indexOf("<title>");
             if (beg == -1) return null;
             beg += 7;
 
             int end = text.indexOf("</TITLE>", beg);
+            if (end == -1) end = text.indexOf("</title>", beg);
             if (end == -1) return null;
 
             result = text.substring(beg, end).trim();
