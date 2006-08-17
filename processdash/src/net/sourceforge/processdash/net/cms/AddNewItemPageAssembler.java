@@ -62,24 +62,37 @@ public class AddNewItemPageAssembler extends EditSinglePageAssembler {
         super.service(out, page);
     }
 
+    /** This value is hardcoded to false.  As such, it will cause the compiler
+     * to generate no bytecode for several code branches below - but not until
+     * after the compiler ensures that the branches are valid code.  This
+     * effectively ensures that the signatures of the methods we are overriding
+     * don't change underneath us without triggering a compilation error. */
+    private static final boolean FALSE_VALUE_TO_ASSERT_OVERRIDE = false;
 
     protected void addPageSpecificParameters(Map params, PageContentTO page) {
+        if (FALSE_VALUE_TO_ASSERT_OVERRIDE)
+            super.addPageSpecificParameters(params, page);
         // add nothing
     }
-
 
     protected void addPageSpecificHeaderItems(Set headerItems) {
+        if (FALSE_VALUE_TO_ASSERT_OVERRIDE)
+            super.addPageSpecificHeaderItems(headerItems);
         // add nothing
     }
 
-
-    protected void maybeAddHeaderSnippet(PageContentTO page) {
+    protected void maybeAddHeaderSnippet(PageContentTO page,
+            SnippetInvoker invoker) {
+        if (FALSE_VALUE_TO_ASSERT_OVERRIDE)
+            super.maybeAddHeaderSnippet(page, invoker);
         // add nothing
     }
-
 
     protected void setSnippetNamespace(SnippetInstanceTO snippet,
             String namespace) {
+        if (FALSE_VALUE_TO_ASSERT_OVERRIDE)
+            super.setSnippetNamespace(snippet, namespace);
+
         // ignore the namespace parameter passed in, and read from the
         // parameter instead.
         snippet.setNamespace((String) parameters.get("ns"));
