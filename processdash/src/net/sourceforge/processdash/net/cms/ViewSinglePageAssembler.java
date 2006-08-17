@@ -56,4 +56,10 @@ public class ViewSinglePageAssembler extends AbstractViewPageAssembler {
         out.write("</html>\n");
     }
 
+    protected void addPageSpecificHeaderItems(Set headerItems) {
+        super.addPageSpecificHeaderItems(headerItems);
+        addScript(headerItems, "/lib/fixSlash.js");
+    }
+
+
 }

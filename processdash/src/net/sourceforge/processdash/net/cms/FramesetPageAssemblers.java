@@ -28,6 +28,7 @@ package net.sourceforge.processdash.net.cms;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
@@ -135,7 +136,9 @@ public class FramesetPageAssemblers {
         protected void writePage(Writer out, Set headerItems, PageContentTO page)
                 throws IOException {
             out.write("<html>\n");
-            writeHead(out, Collections.EMPTY_SET, page);
+            Set customHeaderItems = new HashSet();
+            addScript(customHeaderItems, "/lib/fixSlash.js");
+            writeHead(out, customHeaderItems, page);
 
             out.write("<frameset cols=\"1,*\" frameborder=\"0\" border=\"0\" "
                     + "framespacing=\"0\">\n");
