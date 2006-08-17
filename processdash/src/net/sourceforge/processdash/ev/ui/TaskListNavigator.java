@@ -38,6 +38,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.Vector;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
@@ -83,6 +85,9 @@ public class TaskListNavigator implements TaskNavigationSelector.NavMenuUI,
 
     private static Resources resources = Resources.getDashBundle("EV");
 
+    private static Logger logger = Logger.getLogger(TaskListNavigator.class
+            .getName());
+
 
     public TaskListNavigator(JMenuBar menuBar, DashboardContext context,
             ActiveTaskModel activeTaskModel, String taskListName)
@@ -109,22 +114,32 @@ public class TaskListNavigator implements TaskNavigationSelector.NavMenuUI,
 
             String displayName = EVTaskList.cleanupName(taskListName);
 
-            EVTaskList tl = EVTaskList.openExisting(taskListName, context
-                    .getData(), context.getHierarchy(), context.getCache(),
-                    false);
-            if (tl == null)
-                return resources.format("Navigator.Errors.Not_Found_FMT",
-                        displayName);
+            for (int i = 5;   i-- > 0; ) {
+                try {
+                    EVTaskList tl = EVTaskList.openExisting(taskListName,
+                            context.getData(), context.getHierarchy(),
+                            context.getCache(), false);
+                    if (tl == null)
+                        return resources.format(
+                                "Navigator.Errors.Not_Found_FMT", displayName);
 
-            if (!(tl instanceof EVTaskListData))
-                return resources.format("Navigator.Errors.Invalid_FMT",
-                        displayName);
+                    if (!(tl instanceof EVTaskListData))
+                        return resources.format("Navigator.Errors.Invalid_FMT",
+                                displayName);
 
-            ((EVTaskListData) tl).recalcLeavesOnly();
-            tl.recalc();
-            menuBar.setCursor(null);
+                    ((EVTaskListData) tl).recalcLeavesOnly();
+                    tl.recalc();
+                    menuBar.setCursor(null);
 
-            return tl;
+                    return tl;
+                } catch (Exception e) {
+                    logger.log(Level.WARNING,
+                            "When opening task list, caught exception:", e);
+                }
+            }
+
+            return resources.format("Navigator.Errors.Unexpected_FMT",
+                    displayName);
         }
 
         public void finished() {
