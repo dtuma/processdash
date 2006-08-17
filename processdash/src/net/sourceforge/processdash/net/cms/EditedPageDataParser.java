@@ -35,6 +35,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import net.sourceforge.processdash.data.DataContext;
+import net.sourceforge.processdash.util.StringUtils;
 import net.sourceforge.processdash.util.XMLUtils;
 
 /** Parses data posted by an editing page, and constructs the page content
@@ -118,7 +119,7 @@ public class EditedPageDataParser implements EditPageParameters,
     }
 
     private SnippetInstanceTO parseSnippet(String ns) {
-        if ("t".equals(getParameter(SNIPPET_DISCARDED_ + ns)))
+        if (StringUtils.hasValue(getParameter(SNIPPET_DISCARDED_ + ns)))
             return null;
 
         SnippetInstanceTO snip = new SnippetInstanceTO();
