@@ -1008,7 +1008,16 @@ public class DashHierarchy extends Hashtable implements ItemSelectable,
 
     // Listener support
 
-    public class Event extends EventObject { Event(Object o) { super(o); } }
+    public class Event extends EventObject {
+        boolean adjusting;
+        Event(Object o, boolean adjusting) {
+            super(o);
+            this.adjusting = adjusting;
+        }
+        public boolean isAdjusting() {
+            return adjusting;
+        }
+    }
     public interface Listener {
         public void hierarchyChanged(Event e);
     }
@@ -1023,8 +1032,11 @@ public class DashHierarchy extends Hashtable implements ItemSelectable,
         if (listeners != null) listeners.remove(l);
     }
     public void fireHierarchyChanged() {
+        fireHierarchyChanged(false);
+    }
+    protected void fireHierarchyChanged(boolean isAdjusting) {
         if (listeners != null  && !listeners.isEmpty()) {
-            Event e = new Event(this);
+            Event e = new Event(this, isAdjusting);
             Iterator i;
             synchronized (listeners) {
                 i = new ArrayList(listeners).iterator();

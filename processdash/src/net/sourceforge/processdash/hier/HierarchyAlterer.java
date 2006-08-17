@@ -172,12 +172,12 @@ public class HierarchyAlterer implements ItemListener {
     }
 
     /** Changes the template ID of a node in the hierarchy.
-     * 
+     *
      * Currently does not alter anything else about the node.  The caller
      * should make certain that the existing template ID and the new template
      * ID are compatible with each other (same children, same datafile, same
      * defect logging enablement, etc.)
-     * 
+     *
      * @param nodePath the path to an existing node in the hierarchy
      * @param templateID the new template ID to assign to the node
      * @throws HierarchyAlterationException
@@ -250,7 +250,7 @@ public class HierarchyAlterer implements ItemListener {
 
 
     /** Move and/or rename a node within the hierarchy.
-     * 
+     *
      * Missing parent nodes at newPath will be created automatically.
      *
      * WARNING: hierarchy constraints are ignored by this
@@ -294,11 +294,11 @@ public class HierarchyAlterer implements ItemListener {
 
     /** Rearrange the children of the given parent, so they appear in an
      * order most closely matching the given list.
-     * 
+     *
      * If the parent has children whose names do not appear in the given list,
      * their order (relative to their recognized siblings) will be disturbed
      * as little as possible.
-     * 
+     *
      * @param parentPath the path to the parent node whose children should
      *     be reordered.  If no such parent exists, nothing will be done.
      * @param childNames a list of child names, in the order they should
@@ -512,15 +512,19 @@ public class HierarchyAlterer implements ItemListener {
     private void dispatchOrScheduleHierarchyChangedEvent() {
         if (++eventDispatchChangeCount >= EVENT_COUNT_THRESHHOLD) {
             eventDispatchTimer.stop();
-            dispatchHierarchyChangedEvent();
-        } else {
-            eventDispatchTimer.restart();
+            dispatchHierarchyChangedEvent(true);
         }
+
+        eventDispatchTimer.restart();
     }
 
     public void dispatchHierarchyChangedEvent() {
+        dispatchHierarchyChangedEvent(false);
+    }
+
+    private void dispatchHierarchyChangedEvent(boolean isAdjusting) {
         eventDispatchChangeCount = 0;
-        dashboard.getHierarchy().fireHierarchyChanged();
+        dashboard.getHierarchy().fireHierarchyChanged(isAdjusting);
     }
 
 }

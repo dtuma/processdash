@@ -375,7 +375,7 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
         props.addHierarchyListener(new DashHierarchy.Listener() {
                 public void hierarchyChanged(Event e) {
                     saveHierarchy();
-                    refreshHierarchy();
+                    refreshHierarchy(e.isAdjusting());
                 }});
 
         brokenData.done();
@@ -556,15 +556,15 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
         return true;
     }
 
-    private void refreshHierarchy() {
+    private void refreshHierarchy(final boolean isAdjusting) {
         if (SwingUtilities.isEventDispatchThread())
-            refreshHierarchyImpl();
+            refreshHierarchyImpl(isAdjusting);
         else try {
             SwingUtilities.invokeAndWait(new Runnable() {
-                    public void run() { refreshHierarchyImpl(); }});
+                    public void run() { refreshHierarchyImpl(isAdjusting); }});
         } catch (Exception e) { }
     }
-    private void refreshHierarchyImpl() {
+    private void refreshHierarchyImpl(boolean isAdjusting) {
         logger.finer("ProcessDashboard.refreshHierarchyImpl starting");
         taskNav.hierarchyChanged();
         logger.finer("ProcessDashboard.refreshHierarchyImpl finished");
