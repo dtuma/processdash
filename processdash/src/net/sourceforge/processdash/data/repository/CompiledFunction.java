@@ -149,6 +149,12 @@ public class CompiledFunction implements SaveableData, AliasedData,
                 logger.finer("Retrying calculating " + name);
         }
 
+        if (context == null)
+            // apparently, some other thread beat us to the recalc operation,
+            // and it was complete before we even performed a single iteration
+            // of the loop above.  Nothing needs to be done.
+            return;
+
         if (retryCount <= 0)
             logger.warning("Ran out of retries while calculating " + name);
 
