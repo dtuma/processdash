@@ -168,7 +168,7 @@ public class FileBackupManager {
                     // directory.  Compare the two versions and back up the
                     // file appropriately.
                     backupFile(oldEntry, oldBackupIn, oldBackupOut,
-                               newBackupOut, file);
+                               newBackupOut, file, filename);
                 } else {
                     // this file is in the old backup, but is no longer present
                     // in the backup directory.  Copy it over to the new version
@@ -199,7 +199,7 @@ public class FileBackupManager {
         for (Iterator iter = dataFiles.iterator(); iter.hasNext();) {
             String filename = (String) iter.next();
             File file = new File(dataDir, filename);
-            backupFile(null, null, null, newBackupOut, file);
+            backupFile(null, null, null, newBackupOut, file, filename);
         }
 
         // finalize the new backup, and give it its final name.
@@ -235,15 +235,30 @@ public class FileBackupManager {
 
 
     private static List getDataFiles(File dataDir) {
+        List result = new ArrayList();
         String[] files = dataDir.list(new FilenameFilter() {
             public boolean accept(File dir, String name) {
                 return inBackupSet(dir, name);
             }});
-        if (files == null)
-            return null;
-        else {
-            Arrays.sort(files);
-            return new ArrayList(Arrays.asList(files));
+        if (files != null)
+            result.addAll(Arrays.asList(files));
+
+        File cmsDir = new File(dataDir, "cms");
+        if (cmsDir.isDirectory())
+            getCmsFiles(result, cmsDir, "cms");
+
+        Arrays.sort(files);
+        return result;
+    }
+
+    private static void getCmsFiles(List dest, File dir, String prefix) {
+        File[] files = dir.listFiles();
+        for (int i = 0; i < files.length; i++) {
+            String filename = prefix + "/" + files[i].getName();
+            if (files[i].isDirectory())
+                getCmsFiles(dest, files[i], filename);
+            else if (filename.toLowerCase().endsWith(".xml"))
+                dest.add(filename);
         }
     }
 
@@ -273,7 +288,7 @@ public class FileBackupManager {
                                    ZipInputStream oldBackupIn,
                                    ZipOutputStream oldBackupOut,
                                    ZipOutputStream newBackupOut,
-                                   File file)
+                                   File file, String filename)
         throws IOException
     {
         ByteArrayOutputStream bytesSeen = null;
@@ -287,7 +302,7 @@ public class FileBackupManager {
         }
 
         // create an entry in the new backup archive for this file
-        ZipEntry e = new ZipEntry(file.getName());
+        ZipEntry e = new ZipEntry(filename);
         e.setTime(file.lastModified());
         e.setSize(file.length());
         newBackupOut.putNextEntry(e);
