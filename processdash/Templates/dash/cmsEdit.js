@@ -117,8 +117,8 @@ var DashCMS = {
   showAddItemDescr:
   function(elem) {
     var li = Event.findElement({target:elem}, "li");
-    var ul = li.parentNode;
-    var lis = $A(ul.getElementsByTagName("li"));
+    var td = Event.findElement({target:li}, "td");
+    var lis = $A(td.getElementsByTagName("li"));
     lis.each(function(item, i) { item.className = ""; });
 
     li.className = "cmsNewItemDescription";
@@ -127,7 +127,7 @@ var DashCMS = {
     var descrs = $A(descr.parentNode.getElementsByTagName("div"));
     descrs.each(function(e, i) { if (e != descr) Element.hide(e); } );
 
-    li = ul = lis = descr = descrs = null;
+    li = td = lis = descr = descrs = null;
   },
 
   hideAddItemDescr:

@@ -52,6 +52,8 @@ public class SnippetDefinition {
 
     private String version;
 
+    private String category;
+
     private boolean hide;
 
     private boolean autoParsePersistedText;
@@ -88,6 +90,12 @@ public class SnippetDefinition {
             version = "1.0";
 
         hide = "true".equals(xml.getAttribute("hide"));
+        if (hide)
+            category = "hidden";
+        else {
+            category = xml.getAttribute("category");
+            if ("hidden".equals(category)) hide = true;
+        }
 
         autoParsePersistedText = !"false".equals(xml.getAttribute("parseText"));
 
@@ -142,6 +150,11 @@ public class SnippetDefinition {
     /** Returns the version number of this snippet */
     public String getVersion() {
         return version;
+    }
+
+    /** Return the category to which this snippet belongs */
+    public String getCategory() {
+        return category;
     }
 
     /** Returns a list of aliases by which this snippet is known */

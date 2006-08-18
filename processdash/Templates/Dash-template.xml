@@ -54,21 +54,21 @@ E-Mail POC:  processdash-devel@lists.sourceforge.net
 
   <!-- definitions for snippets that are provided by the dashboard -->
 
-  <snippet id="pdash.addNew" version="1.0" hide="true">
+  <snippet id="pdash.addNew" version="1.0" category="hidden">
     <resources>CMS.Snippet.AddNew</resources>
     <context>*</context>
     <mode>edit</mode>
     <uri>/dash/snippets/addNew</uri>
   </snippet>
 
-  <snippet id="pdash.editHelp" version="1.0" hide="true">
+  <snippet id="pdash.editHelp" version="1.0" category="hidden">
     <resources>CMS.Snippet.EditHelp</resources>
     <context>*</context>
     <mode>edit</mode>
     <uri>/dash/snippets/editHelp.shtm</uri>
   </snippet>
 
-  <snippet id="pdash.pageHeading" version="1.0" hide="true">
+  <snippet id="pdash.pageHeading" version="1.0" category="hidden">
     <resources>CMS.Snippet.PageHeading</resources>
     <context>*</context>
     <mode>toc</mode>
@@ -78,7 +78,7 @@ E-Mail POC:  processdash-devel@lists.sourceforge.net
     <uri mode="edit">/dash/snippets/pageHeadingEdit.shtm</uri>
   </snippet>
 
-  <snippet id="pdash.sectionHeading" version="1.0">
+  <snippet id="pdash.sectionHeading" version="1.0" category="general">
     <resources>CMS.Snippet.SectionHeading</resources>
     <context>*</context>
     <mode>toc</mode>
@@ -88,13 +88,13 @@ E-Mail POC:  processdash-devel@lists.sourceforge.net
     <uri mode="edit">/dash/snippets/sectionHeadingEdit.shtm</uri>
   </snippet>
 
-  <snippet id="pdash.simpleProjectSettings" version="1.0">
+  <snippet id="pdash.simpleProjectSettings" version="1.0" category="forms">
     <resources>CMS.Snippet.ProjectSettings</resources>
     <context>Simple Project Tag</context>
     <uri>/dash/snippets/projectSettings.shtm</uri>
   </snippet>
 
-  <snippet id="pdash.metricsTable" version="1.0">
+  <snippet id="pdash.metricsTable" version="1.0" category="forms">
     <resources>Analysis.MetricsTable</resources>
     <context>Simple Project Tag</context>
     <context>Rollup Tag</context>
@@ -103,7 +103,7 @@ E-Mail POC:  processdash-devel@lists.sourceforge.net
     <uri mode="edit">/dash/snippets/metricsTableEdit.shtm</uri>
   </snippet>
 
-  <snippet id="pdash.metricsPhaseTable" version="1.0">
+  <snippet id="pdash.metricsPhaseTable" version="1.0" category="forms">
     <resources>Analysis.MetricsPhaseTable</resources>
     <context>Simple Project Tag</context>
     <context>Rollup Tag</context>
@@ -112,7 +112,7 @@ E-Mail POC:  processdash-devel@lists.sourceforge.net
     <uri mode="edit">/dash/snippets/metricsPhaseTableEdit.shtm</uri>
   </snippet>
 
-  <snippet id="pdash.phaseChart" version="1.0">
+  <snippet id="pdash.phaseChart" version="1.0" category="charts">
     <resources>Analysis.PhaseChart</resources>
     <context>Simple Project Tag</context>
     <context>Rollup Tag</context>
@@ -121,7 +121,7 @@ E-Mail POC:  processdash-devel@lists.sourceforge.net
     <uri mode="edit">/dash/snippets/phaseChartEdit.shtm</uri>
   </snippet>
 
-  <snippet id="pdash.radarChart" version="1.0">
+  <snippet id="pdash.radarChart" version="1.0" category="charts">
     <resources>Analysis.RadarChart</resources>
     <context>Simple Project Tag</context>
     <context>Rollup Tag</context>
@@ -130,7 +130,7 @@ E-Mail POC:  processdash-devel@lists.sourceforge.net
     <uri mode="edit">/dash/snippets/radarChartEdit.shtm</uri>
   </snippet>
 
-  <snippet id="pdash.histXYChart" version="1.0">
+  <snippet id="pdash.histXYChart" version="1.0" category="charts">
     <resources>Analysis.HistXYChart</resources>
     <context>Historical Data Tag</context>
     <mode>edit</mode>
@@ -138,7 +138,7 @@ E-Mail POC:  processdash-devel@lists.sourceforge.net
     <uri mode="edit">/dash/snippets/histXYChartEdit.shtm</uri>
   </snippet>
 
-  <snippet id="pdash.defectDensity" version="1.0">
+  <snippet id="pdash.defectDensity" version="1.0" category="reports">
     <resources>Analysis.DefectDensity</resources>
     <context>Historical Data Tag</context>
     <mode>edit</mode>
@@ -146,7 +146,7 @@ E-Mail POC:  processdash-devel@lists.sourceforge.net
     <uri mode="edit">/dash/snippets/heading.shtm</uri>
   </snippet>
 
-  <snippet id="pdash.defectFixTimes" version="1.0">
+  <snippet id="pdash.defectFixTimes" version="1.0" category="reports">
     <resources>Analysis.DefectFixTimes</resources>
     <context>*</context>
     <mode>edit</mode>
@@ -154,7 +154,7 @@ E-Mail POC:  processdash-devel@lists.sourceforge.net
     <uri mode="edit">/dash/snippets/heading.shtm</uri>
   </snippet>
 
-  <snippet id="pdash.defectsByPhaseAndType" version="1.0">
+  <snippet id="pdash.defectsByPhaseAndType" version="1.0" category="reports">
     <resources>Analysis.DefectsByPhaseAndType</resources>
     <context>*</context>
     <mode>edit</mode>
@@ -162,7 +162,7 @@ E-Mail POC:  processdash-devel@lists.sourceforge.net
     <uri mode="edit">/dash/snippets/r4edit.shtm</uri>
   </snippet>
 
-  <snippet id="pdash.defectsByCompiler" version="1.0">
+  <snippet id="pdash.defectsByCompiler" version="1.0" category="reports">
     <resources>Analysis.DefectsByCompiler</resources>
     <context>Has Compile Phase</context>
     <mode>edit</mode>
@@ -170,7 +170,7 @@ E-Mail POC:  processdash-devel@lists.sourceforge.net
     <uri mode="edit">/dash/snippets/r4edit.shtm</uri>
   </snippet>
 
-  <snippet id="pdash.defectsPareto" version="1.0">
+  <snippet id="pdash.defectsPareto" version="1.0" category="charts">
     <resources>Analysis.DefectsPareto</resources>
     <context>*</context>
     <mode>edit</mode>
@@ -178,13 +178,13 @@ E-Mail POC:  processdash-devel@lists.sourceforge.net
     <uri mode="edit">/dash/snippets/defectsParetoEdit.shtm</uri>
   </snippet>
 
-  <snippet id="pdash.defectLog" version="1.0">
+  <snippet id="pdash.defectLog" version="1.0" category="reports">
     <resources>Defects.Report</resources>
     <context>*</context>
     <uri>/reports/defectlog.class?for=auto&amp;noDisclaimer</uri>
   </snippet>
 
-  <snippet id="pdash.evReport" version="1.0">
+  <snippet id="pdash.evReport" version="1.0" category="reports">
     <resources>EV.Report.Snippet</resources>
     <context>EV Project Tag</context>
     <uri>/reports/ev.class?tl=auto&amp;labelFilterAuto</uri>

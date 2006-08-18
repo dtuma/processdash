@@ -44,6 +44,9 @@ public class AddNewSnippet extends TinyCGIBase {
     private static final Resources resources = Resources
             .getDashBundle("CMS.Snippet.AddNew");
 
+    private static final String[] CATEGORIES = { "General", "Forms", "Charts",
+        "Reports" };
+
     protected void writeContents() throws IOException {
 
         out.write("<table border='0' cellpadding='0' cellspacing='0' " +
@@ -55,10 +58,26 @@ public class AddNewSnippet extends TinyCGIBase {
 
         TreeSet snippets = getSortedSnippets();
 
-        for (Iterator i = snippets.iterator(); i.hasNext();) {
-            SnipData d = (SnipData) i.next();
-            d.writeLink(out);
+        TreeSet snipsToWrite = new TreeSet(snippets);
+
+        // write out the general-purpose snips first, with no category heading.
+        TreeSet generalSnips = extractSnipsForCategory(snipsToWrite,
+                CATEGORIES[0]);
+        writeSnipLinks(generalSnips);
+
+        // write out the snips for each known category.
+        for (int i = 1; i < CATEGORIES.length; i++) {
+            String catKey = CATEGORIES[i];
+            TreeSet snipsForCategory = extractSnipsForCategory(snipsToWrite,
+                    catKey);
+            if (!snipsForCategory.isEmpty())
+                writeSnipCategory(catKey, snipsForCategory);
         }
+
+        // if any snips didn't name a category (or named an unrecognized
+        // category) write them out under an "Other" heading.
+        if (!snipsToWrite.isEmpty())
+            writeSnipCategory("Other", snipsToWrite);
 
         out.write("</ul>\n\n");
 
@@ -106,6 +125,34 @@ public class AddNewSnippet extends TinyCGIBase {
         return false;
     }
 
+    private TreeSet extractSnipsForCategory(Set snips, String category) {
+        TreeSet result = new TreeSet();
+        for (Iterator i = snips.iterator(); i.hasNext();) {
+            SnipData d = (SnipData) i.next();
+            if (d.matchesCategory(category)) {
+                result.add(d);
+                i.remove();
+            }
+        }
+        return result;
+    }
+
+    private void writeSnipCategory(String catKey, TreeSet snipsForCategory) {
+        String catName = resources.getHTML("Snippet.Categories."+catKey);
+        out.print("<li>");
+        out.print(catName);
+        out.print("</li>\n<ul>\n");
+        writeSnipLinks(snipsForCategory);
+        out.print("</ul>\n");
+    }
+
+    private void writeSnipLinks(TreeSet snippets) {
+        for (Iterator i = snippets.iterator(); i.hasNext();) {
+            SnipData d = (SnipData) i.next();
+            d.writeLink(out);
+        }
+    }
+
     private static class SnipData implements Comparable {
         SnippetDefinition defn;
         String name;
@@ -113,6 +160,10 @@ public class AddNewSnippet extends TinyCGIBase {
         public SnipData(SnippetDefinition defn) {
             this.defn = defn;
             this.name = defn.getNameHtml();
+        }
+
+        public boolean matchesCategory(String category) {
+            return category.equalsIgnoreCase(defn.getCategory());
         }
 
         public void writeLink(PrintWriter out) {
