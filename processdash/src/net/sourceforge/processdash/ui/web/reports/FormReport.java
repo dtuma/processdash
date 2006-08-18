@@ -42,10 +42,8 @@ public class FormReport extends TinyCGIBase {
         String uri = getURI();
         uri = HTMLUtils.appendQuery(uri, "EXPORT", getParameter("EXPORT"));
 
-        String prefix = "";
-        int slashPos = uri.indexOf("//");
-        if (slashPos != -1)
-            prefix = HTMLUtils.urlDecode(uri.substring(0, slashPos));
+        String prefix = getPrefix();
+        if (prefix == null) prefix = "";
 
         String contents = getTinyWebServer().getRequestAsString(uri);
         StringBuffer results = new StringBuffer(contents);

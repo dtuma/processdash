@@ -59,6 +59,7 @@ public class RepositoryClient extends Thread implements Repository {
             setName(getName() + "(RepositoryClient)");
             String ID, urlFile = url.getFile();
             int pos = urlFile.indexOf("//");
+            if (pos == -1) pos = urlFile.indexOf("/+/");
             if (pos == -1)
                 ID = (new StringTokenizer(urlFile, "/")).nextToken();
             else

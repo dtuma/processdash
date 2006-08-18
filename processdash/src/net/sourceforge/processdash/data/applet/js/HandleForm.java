@@ -205,6 +205,7 @@ public class HandleForm extends TinyCGIBase implements TinyCGIStreaming {
     protected String getDataPrefix() {
         String uri = getParameter("uri");
         int pos = uri.indexOf("//");
+        if (pos == -1) pos = uri.indexOf("/+/");
         String prefix = "";
         if (pos != -1)
             prefix = uri.substring(0, pos);
