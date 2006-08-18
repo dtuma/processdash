@@ -40,3 +40,12 @@ Phase_Size_Metric=Inspected <!--#echo Phase_Size_Metric -->
 Phase_Size_Metric=Inspected New & Changed LOC
 <!--#endif--><!--#endif--><!--#endfor-->
 
+
+# Record the filename of the team project plan summary
+
+<!--#if Old_Style_Plan_Summary || VVIS -->
+Team_Plan_Summary=<!--#echo Process_ID -->/team_summary.shtm
+<!--#else-->
+Team_Plan_Summary=cms/<!--#echo Process_ID -->/rollup_plan_summary
+<!--#endif-->
+

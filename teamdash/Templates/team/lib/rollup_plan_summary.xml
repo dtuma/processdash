@@ -1,0 +1,25 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<pdashCmsPage>
+
+<pageTitle><!--#echo Full_Name --> Rollup Plan Summary</pageTitle>
+
+<pageHeading>
+
+<snippet instanceId="1" type="<!--#echo Process_ID -->.teamSummaryPageHeader" version="1.0" />
+
+</pageHeading>
+
+
+<snippet instanceId="100" type="pdash.sectionHeading" version="1.0" persister="xml.v1"><![CDATA[<parameters>
+  <param name="Name">Earned Value</param>
+</parameters>]]></snippet>
+
+<snippet instanceId="101" type="pdash.evReport" version="1.0" />
+
+<snippet instanceId="102" type="pdash.sectionHeading" version="1.0" persister="xml.v1"><![CDATA[<parameters>
+  <param name="Name">Add Your Own Sections Here</param>
+</parameters>]]></snippet>
+
+<snippet instanceId="103" type="pdash.editHelp" version="1.0" />
+
+</pdashCmsPage>

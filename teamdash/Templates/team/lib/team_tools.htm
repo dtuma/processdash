@@ -19,17 +19,11 @@
 
     
     function getExtURL(file) {
-	var url = window.location.href;
-	if (window.location.search == "?")
-	    url = url.substring(0, url.length - 1);
-	url = url.replace(/localhost/,
-	                  "[!--#include file='/dash/serverName.class' --]");
-	url = url.replace(/team_tools.shtm/, file);
-	var dblSlashPos = url.lastIndexOf("//");
-	if (dblSlashPos != -1) {
-            url = url.substring(0, dblSlashPos) + "/+/" + url.substring(dblSlashPos+2);
-        }
-	return url;
+        var url = "http://[!--#include file='/dash/serverName.class' --]:"
+            + window.location.port
+            + "[!--#echo var=PATH_TRANSLATED encoding=url --]/+/"
+            + file;
+        return url;
     }
 
     function writeHrefLink(file) {
@@ -37,14 +31,20 @@
 	document.write("<a href='" + url + "'>" + textToHTML(url) + "</a>");
     }
 
-    function writeToolsLink() { writeHrefLink("team_tools.shtm"); }
+    function writeToolsLink() {
+        writeHrefLink("<!--#echo Process_ID -->/team_tools.shtm");
+    }
 
-    function writePlanLink() { writeHrefLink("team_summary.shtm"); }
+    function writePlanLink() {
+        writeHrefLink("<!--#echo Team_Plan_Summary -->");
+    }
 
-    function writeJoinLink() { writeHrefLink("setup/join.shtm");   }
+    function writeJoinLink() {
+        writeHrefLink("<!--#echo Process_ID -->/setup/join.shtm");
+    }
 
     function writeMailtoLink() {
-	var url = getExtURL("setup/join.shtm");
+	var url = getExtURL("<!--#echo Process_ID -->/setup/join.shtm");
         document.write("<a href='mailto:?subject=Join%20Team%20Project&body=A%20new%20team%20project%20has%20been%20created%3b%20please%20visit%0d%0a%20%20%20%20"+eesc(url)+"%0d%0ato%20join%20this%20project%2e'>click on this link</a>");
     }
 
@@ -68,7 +68,7 @@
 <p><form action="/dash/archive.class" method="POST">
 <input type=hidden name="filename"
        value="<!--#echo Process_ID -->_Summary-PREFIX">
-<input type=hidden name="uri" value="[!--#echo var=PATH_TRANSLATED encoding=url --]//<!--#echo Process_ID -->/team_summary.shtm">
+<input type=hidden name="uri" value="[!--#echo var=PATH_TRANSLATED encoding=url --]//<!--#echo Team_Plan_Summary -->">
 <input type=submit name="submit" value="Save Snapshot of Project Plan">
 </form>
 

@@ -47,8 +47,7 @@
 
        <!--#endbreak comment-->
 
-    <html ID="sum" href="PID/team_summary.shtm"
-        title="<!--#echo Full_Name --> Project Summary"/>
+    <html ID="sum" href="<!--#echo Team_Plan_Summary -->"/>
     <html ID="team" href="PID/master_tools.shtm"
         title="Master Project Tools and Settings"/>
 
@@ -119,8 +118,7 @@
 
        <!--#endbreak comment-->
 
-    <html ID="sum" href="PID/team_summary.shtm"
-        title="<!--#echo Full_Name --> Project Summary"/>
+    <html ID="sum" href="<!--#echo Team_Plan_Summary -->"/>
     <html ID="team" href="PID/team_tools.shtm"
         title="Team Project Tools and Settings"/>
 
@@ -406,7 +404,7 @@
     Snippets used by the team process.
   =======================================================================-->
 
-  <snippet id="PID.teamSummaryPageHeader" version="1.0">
+  <snippet id="PID.teamSummaryPageHeader" version="1.0" hide="true">
     <resources>CMS.Snippet.Anonymous</resources>
     <context>PID Team Root Tag</context>
     <context>PID Team Node Tag</context>

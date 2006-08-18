@@ -19,17 +19,11 @@
 
     
     function getExtURL(file) {
-	var url = window.location.href;
-	if (window.location.search == "?")
-	    url = url.substring(0, url.length - 1);
-	url = url.replace(/localhost/,
-	                  "[!--#include file='/dash/serverName.class' --]");
-	url = url.replace(/master_tools.shtm/, file);
-	var dblSlashPos = url.lastIndexOf("//");
-	if (dblSlashPos != -1) {
-            url = url.substring(0, dblSlashPos) + "/+/" + url.substring(dblSlashPos+2);
-        }
-	return url;
+        var url = "http://[!--#include file='/dash/serverName.class' --]:"
+            + window.location.port
+            + "[!--#echo var=PATH_TRANSLATED encoding=url --]/+/"
+            + file;
+        return url;
     }
 
     function writeHrefLink(file) {
@@ -37,9 +31,13 @@
 	document.write("<a href='" + url + "'>" + textToHTML(url) + "</a>");
     }
 
-    function writeToolsLink() { writeHrefLink("master_tools.shtm"); }
+    function writeToolsLink() {
+        writeHrefLink("<!--#echo Process_ID -->/master_tools.shtm");
+    }
 
-    function writePlanLink() { writeHrefLink("team_summary.shtm"); }
+    function writePlanLink() {
+        writeHrefLink("<!--#echo Team_Plan_Summary -->");
+    }
 
 </script>
 
@@ -61,7 +59,7 @@
 <p><form action="/dash/archive.class" method="POST">
 <input type=hidden name="filename"
        value="<!--#echo Process_ID -->_Summary-PREFIX">
-<input type=hidden name="uri" value="[!--#echo var=PATH_TRANSLATED encoding=url --]//<!--#echo Process_ID -->/team_summary.shtm">
+<input type=hidden name="uri" value="[!--#echo var=PATH_TRANSLATED encoding=url --]//<!--#echo Team_Plan_Summary -->">
 <input type=submit name="submit" value="Save Snapshot of Project Plan">
 </form>
 
