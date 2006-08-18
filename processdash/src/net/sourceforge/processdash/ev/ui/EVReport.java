@@ -756,13 +756,23 @@ public class EVReport extends CGIChartBase {
         setValue("settings//timestamp", new DateData());
     }
     private SimpleData getValue(String name) {
-        String dataName = DataRepository.createDataName("/" + taskListName, name);
+        String dataName = getSettingDataName(name);
         return getDataRepository().getSimpleValue(dataName);
     }
     private void setValue(String name, SimpleData val) {
-        String dataName = DataRepository.createDataName("/" + taskListName, name);
+        String dataName = getSettingDataName(name);
         getDataRepository().putValue(dataName, val);
     }
+    private String getSettingDataName(String name) {
+        String prefix;
+        if (parameters.containsKey(TASKLIST_PARAM))
+            prefix = "/" + taskListName;
+        else
+            prefix = getPrefix();
+
+        return DataRepository.createDataName(prefix, name);
+    }
+
     private boolean usingCustomizationSettings;
     private void loadCustomizationSettings() {
         if (parameters.containsKey(LABEL_FILTER_AUTO_PARAM))
