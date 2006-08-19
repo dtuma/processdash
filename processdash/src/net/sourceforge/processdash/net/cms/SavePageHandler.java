@@ -29,11 +29,19 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.Writer;
 
+import net.sourceforge.processdash.Settings;
+
 /** Handle a user request to save changes to a page.
  */
 public class SavePageHandler extends EditedPageDataParser implements ActionHandler {
 
     public String service(Writer out, String pageName) throws IOException {
+        if (Settings.isReadOnly()) {
+            out.write("Location: /dash/snippets/saveError.shtm?err=Read_Only"
+                    + "\r\n\r\n");
+            return null;
+        }
+
         // read the description of the page from posted form data
         PageContentTO page = parsePostedPageContent();
 

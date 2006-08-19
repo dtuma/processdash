@@ -29,6 +29,7 @@ import java.io.IOException;
 import java.io.Writer;
 import java.util.Map;
 
+import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.StringUtils;
 
@@ -38,7 +39,8 @@ public abstract class AbstractViewPageAssembler extends AbstractPageAssembler {
 
     protected String insertEditLink(String html) {
         if (html == null || html.length() == 0) return "";
-        if (parameters.containsKey("EXPORT")) return html;
+        if (parameters.containsKey("EXPORT") || Settings.isReadOnly())
+            return html;
 
         int pos = html.indexOf("<!-- editLink");
         if (pos == -1) return html;

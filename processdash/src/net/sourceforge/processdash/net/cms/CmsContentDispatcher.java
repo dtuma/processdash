@@ -33,6 +33,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.net.http.TinyCGIException;
 import net.sourceforge.processdash.net.http.WebServer;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
@@ -124,6 +125,9 @@ public class CmsContentDispatcher extends TinyCGIBase {
             throws IOException {
         String mode = getParameter("mode");
         PageAssembler result = null;
+
+        if (Settings.isReadOnly() && "edit".equals(mode))
+            parameters.put("mode", mode = null);
 
         if (mode == null || "view".equals(mode)) {
             result = FramesetPageAssemblers.getViewAssembler(page, parameters);
