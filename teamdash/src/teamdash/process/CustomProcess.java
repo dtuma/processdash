@@ -31,11 +31,6 @@ public class CustomProcess {
 
 
 
-    public static String[] PHASE_TYPES = {
-        "MGMT", "STRAT", "PLAN", "REQ", "STP", "REQINSP", "HLD", "ITP",
-        "HLDRINSP", "DLD", "DLDR", "TD", "DLDINSP", "CODE", "CR", "COMP",
-        "CODEINSP", "UT", "PM", "IT", "ST", "DOC", "AT", "PL" };
-
     public class Item {
 
         private String itemName;
@@ -103,6 +98,8 @@ public class CustomProcess {
             phase.putAttr(NAME, defaultPhases[i][1]);
             phase.putAttr(TYPE, defaultPhases[i][2]);
             if (defaultPhases[i][3] != null)
+                phase.putAttr(SIZE_METRIC, defaultPhases[i][3]);
+            if (defaultPhases[i][4] != null)
                 phase.putAttr(READ_ONLY, "true");
 
             phaseList.add(phase);
@@ -134,36 +131,21 @@ public class CustomProcess {
         }
     }
 
-//  private static String RO = "t"; // uncomment to make PSP phases read-only
-    private static String RO = null; // uncomment to make PSP phases editable
-    public static String[][] defaultPhases = {
-        { "Management and Miscellaneous", "Misc",          "MGMT",     null },
-        { "Launch and Strategy",          "Strategy",      "STRAT",    null },
-        { "Planning",                     "Planning",      "PLAN",     RO   },
-        { "Requirements",                 "Reqts",         "REQ",      null },
-        { "System Test Plan",             "Sys Test Plan", "STP",      null },
-        { "Requirements Review",          "Reqts Review",  "REQINSP",  null },
-        { "Requirements Inspection",      "Reqts Inspect", "REQINSP",  null },
-        { "High-Level Design",            "HLD",           "HLD",      RO   },
-        { "Integration Test Plan",        "Int Test Plan", "ITP",      null },
-        { "HLD Review",                   "HLD Review",    "HLDRINSP", RO   },
-        { "HLD Inspection",               "HLD Inspect",   "HLDRINSP", null },
-        { "Detailed Design",              "Design",        "DLD",      RO   },
-        { "Detailed Design Review",       "Design Review", "DLDR",     RO   },
-        { "Test Development",             "Test Devel",    "TD",       null },
-        { "Detailed Design Inspection",   "Design Inspect", "DLDINSP", null },
-        { "Code",                         "Code",          "CODE",     RO   },
-        { "Code Review",                  "Code Review",   "CR",       RO   },
-        { "Compile",                      "Compile",       "COMP",     RO   },
-        { "Code Inspection",              "Code Inspect",  "CODEINSP", null },
-        { "Unit Test",                    "Test",          "UT",       RO   },
-        { "Build and Integration Test",   "Int Test",      "IT",       null },
-        { "System Test",                  "Sys Test",      "ST",       null },
-        { "Documentation",                "Documentation", "DOC",      null },
-        { "Acceptance Test",              "Accept Test",   "AT",       null },
-        { "Postmortem",                   "Postmortem",    "PM",       RO   },
-        { "Product Life",                 "Product Life",  "PL",       null }
+    private static final String DLD_LINES = "DLD Lines";
+    private static final String RO = "t"; // uncomment to make PSP phases read-only
+    // private static String RO = null;   // uncomment to make PSP phases editable
+    private static String[][] defaultPhases = {
+     // { "Add your own phases",    "Short Name",    "develop", null,    null },
+        { "Planning",               "Planning",      "PLAN",    null,      RO },
+        { "Detailed Design",        "Design",        "DLD",     DLD_LINES, RO },
+        { "Detailed Design Review", "Design Review", "DLDR",    DLD_LINES, RO },
+        { "Code",                   "Code",          "CODE",    null,      RO },
+        { "Code Review",            "Code Review",   "CR",      null,      RO },
+        { "Compile",                "Compile",       "COMP",    null,      RO },
+        { "Unit Test",              "Test",          "UT",      null,      RO },
+        { "Postmortem",             "Postmortem",    "PM",      null,      RO },
     };
+
 
     // Utility methods
 

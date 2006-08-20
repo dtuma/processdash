@@ -4,7 +4,6 @@ package teamdash.process;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
-import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusAdapter;
@@ -20,9 +19,7 @@ import java.util.Collection;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
-import javax.swing.DefaultCellEditor;
 import javax.swing.JButton;
-import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -38,8 +35,6 @@ import javax.swing.WindowConstants;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.filechooser.FileFilter;
-import javax.swing.table.DefaultTableCellRenderer;
-import javax.swing.table.TableColumn;
 
 import net.sourceforge.processdash.DashController;
 import net.sourceforge.processdash.net.http.WebServer;
@@ -49,13 +44,13 @@ import net.sourceforge.processdash.ui.web.TinyCGIBase;
 
 public class CustomProcessEditor extends TinyCGIBase {
 
-        public static void main(String[] args) {
+    public static void main(String[] args) {
         try {
-                        new CustomProcessEditor(null, GenerateProcess.getTinyWebServer());
-                } catch (IOException e) {
-                        e.printStackTrace();
-                }
+            new CustomProcessEditor(null, GenerateProcess.getTinyWebServer());
+        } catch (IOException e) {
+            e.printStackTrace();
         }
+    }
 
     public CustomProcessEditor() { super(); }
 
@@ -71,7 +66,7 @@ public class CustomProcessEditor extends TinyCGIBase {
     JTextField processName, processVersion;
     String origProcessName = null, origProcessVersion = null;
     CustomProcess process;
-    CustomProcessPhaseTableModel tableModel;
+    ProcessPhaseTableModel tableModel;
     JTable table;
     JButton insertButton, deleteButton, upButton, downButton;
     JMenuItem newMenuItem, openMenuItem, saveMenuItem, closeMenuItem;
@@ -97,7 +92,7 @@ public class CustomProcessEditor extends TinyCGIBase {
                     confirmClose(true); }});
         frame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
 
-        frame.setSize(new Dimension(400, 500));
+        frame.setSize(new Dimension(600, 600));
         frame.setVisible(true);
     }
 
@@ -130,23 +125,9 @@ public class CustomProcessEditor extends TinyCGIBase {
     }
 
     private Component buildTable() {
-        tableModel = new CustomProcessPhaseTableModel(process);
-        table = new JTable(tableModel);
-
-        // adjust column widths
-        table.getColumnModel().getColumn(0).setPreferredWidth(200);
-        table.getColumnModel().getColumn(1).setPreferredWidth(100);
-        table.getColumnModel().getColumn(2).setPreferredWidth(75);
-
-        // draw read-only phases with a different appearance
-        table.setDefaultRenderer(String.class, new PhaseTableCellRenderer());
-
-        // install a combo box as the editor for the "phase type" column
-        TableColumn typeColumn = table.getColumnModel().getColumn(2);
-        JComboBox phaseTypeEditor = new JComboBox(CustomProcess.PHASE_TYPES);
-        phaseTypeEditor.setFont
-            (phaseTypeEditor.getFont().deriveFont(Font.PLAIN));
-        typeColumn.setCellEditor(new DefaultCellEditor(phaseTypeEditor));
+        tableModel = new ProcessPhaseTableModel(process);
+        tableModel.insertItem(0);
+        table = tableModel.createJTable();
 
         // listen to changes in the row selection, and enable/disable
         // buttons accordingly
@@ -160,26 +141,6 @@ public class CustomProcessEditor extends TinyCGIBase {
                      (BorderFactory.createLoweredBevelBorder(),
                       "List of Process Phases"));
         return sp;
-    }
-
-    private class PhaseTableCellRenderer extends DefaultTableCellRenderer {
-        private Font regular, bold;
-        public PhaseTableCellRenderer() {
-            Font f = getFont();
-            regular = f.deriveFont(Font.PLAIN);
-            bold    = f.deriveFont(Font.BOLD);
-        }
-
-        public Component getTableCellRendererComponent
-            (JTable table, Object value, boolean isSelected,
-             boolean hasFocus, int row, int col)
-        {
-            Component result = super.getTableCellRendererComponent
-                (table, value, isSelected, hasFocus, row, col);
-            result.setFont
-                (table.getModel().isCellEditable(row, col) ? regular : bold );
-            return result;
-        }
     }
 
 
@@ -238,21 +199,21 @@ public class CustomProcessEditor extends TinyCGIBase {
     protected void insert() {
         int row = getSelectedRow();
         if (row < 0) row = 0;
-        tableModel.insertPhase(row);
+        tableModel.insertItem(row);
         selectRow(row);
     }
     protected void delete() {
         int row = getSelectedRow();
-        if (row >= 0) tableModel.deletePhase(row);
+        if (row >= 0) tableModel.deleteItem(row);
     }
     protected void moveUp()   {
         int row = getSelectedRow();
-        tableModel.movePhaseUp(row--);
+        tableModel.moveItemUp(row--);
         selectRow(row);
     }
     protected void moveDown() {
         int row = getSelectedRow()+1;
-        tableModel.movePhaseUp(row);
+        tableModel.moveItemUp(row);
         selectRow(row);
     }
     /*
@@ -272,7 +233,7 @@ public class CustomProcessEditor extends TinyCGIBase {
         process = proc;
         processName.setText(origProcessName = process.getName());
         processVersion.setText(origProcessVersion = process.getVersion());
-        tableModel = new CustomProcessPhaseTableModel(process);
+        tableModel = new ProcessPhaseTableModel(process);
 
         // remember the current widths of each table column.
         int[] width = new int[table.getColumnCount()];
