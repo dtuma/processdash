@@ -2,6 +2,8 @@
 
 <langpack>
 
+    <str id="application.name">Process Dashboard</str>
+
     <str id="pack.pdash.name">Process Dashboard</str>
     <str id="pack.pdash.description">The core Process Dashboard application.
 

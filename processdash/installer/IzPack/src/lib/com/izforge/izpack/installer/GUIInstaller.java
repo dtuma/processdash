@@ -349,6 +349,11 @@ public class GUIInstaller extends InstallerBase
      */
     private void loadGUI() throws Exception
     {
+        try {
+            this.installdata.info.setAppName(ResourceManager.getInstance()
+                        .getTextResource("application.name"));
+        } catch (Exception e) {}
+
         UIManager.put("OptionPane.yesButtonText", installdata.langpack.getString("installer.yes"));
         UIManager.put("OptionPane.noButtonText", installdata.langpack.getString("installer.no"));
         UIManager.put("OptionPane.cancelButtonText", installdata.langpack.getString("installer.cancel"));

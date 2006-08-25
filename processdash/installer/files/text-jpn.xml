@@ -6,6 +6,7 @@
 
 出版社は、ダウンロードもしくはインストールする前に以下の使用許諾契約に同意することを条件に、{0,choice,1#このモジュール|2#これらのモジュール}の使用を認めています:</str>
     <str id="CondHTMLLicencePanel1.header">Sun Microsystems社のソフトウェアJavaHelp(TM)のインストールが選択されました。この追加モジュールをダウンロードしインストールするには、以下の使用許諾契約に同意する必要があります。</str>
+    <str id="application.name">Process Dashboard</str>
     <str id="pack.javaHelp.description">Sun Microsystems社製のヘルプブラウザ。
 
 このモジュールはProcess Dashboardの機能上特に必要とされるものではありません。このモジュールをインストールすることで、全文検索などが利用できるようになり、よりヘルプを読みやすくすることができます。

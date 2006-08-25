@@ -25,6 +25,8 @@
         <res src="files/install.png" id="installer.langsel.img"/>
         <res src="files/DashInfo.html" id="HTMLInfoPanel.info"/>
         <res src="files/DashLicense.html" id="HTMLLicencePanel.licence"/>
+        <res src="files/DashLicense-jpn.html" id="HTMLLicencePanel.licence_jpn"/>
+        <res src="files/DashLicense-chn.html" id="HTMLLicencePanel.licence_chn"/>
         <res src="files/DataDir-windows.txt" id="DataDirPanel.dir.windows"/>
         <res src="files/WebInstallers.txt" id="WebInstallers.url"/>
         <res src="files/shortcutSpec.xml" id="shortcutSpec.xml"/>

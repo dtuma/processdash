@@ -6,6 +6,7 @@
 
 The publisher has granted this permission on the condition that users consent to the following license agreement before downloading or installing {0,choice,1#this module|2#these modules}:</str>
     <str id="CondHTMLLicencePanel1.header">You have chosen to install the JavaHelp(TM) software, written by Sun Microsystems.  To download and install this optional module, you must consent to the following license agreement.</str>
+    <str id="application.name">Process Dashboard</str>
     <str id="pack.javaHelp.description">Help browser from Sun Microsystems.
 
 This module is not required for full functionality of the Process Dashboard.  However, installing this module will provide enhanced browsing of the Process Dashboard help documentation, including full-text search capabilities.
