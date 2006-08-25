@@ -3,6 +3,7 @@ package teamdash.process;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
+import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -17,9 +18,7 @@ import java.text.NumberFormat;
 import java.text.ParsePosition;
 import java.util.Collection;
 
-import javax.swing.BorderFactory;
 import javax.swing.Box;
-import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -28,12 +27,10 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
-import javax.swing.JScrollPane;
+import javax.swing.JTabbedPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.WindowConstants;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
 import javax.swing.filechooser.FileFilter;
 
 import net.sourceforge.processdash.DashController;
@@ -66,11 +63,9 @@ public class CustomProcessEditor extends TinyCGIBase {
     JTextField processName, processVersion;
     String origProcessName = null, origProcessVersion = null;
     CustomProcess process;
-    ProcessPhaseTableModel tableModel;
-    JTable table;
-    JButton insertButton, deleteButton, upButton, downButton;
+    ProcessPhaseTableModel phaseModel;
+    SizeMetricsTableModel sizeModel;
     JMenuItem newMenuItem, openMenuItem, saveMenuItem, closeMenuItem;
-    boolean isDirty = false;
     WebServer webServer;
     File openedFileDir = null;
 
@@ -84,16 +79,24 @@ public class CustomProcessEditor extends TinyCGIBase {
         frame = new JFrame("Custom Process Editor");
         frame.setJMenuBar(buildMenuBar());
         frame.getContentPane().add(buildHeader(), BorderLayout.NORTH);
-        frame.getContentPane().add(buildTable(), BorderLayout.CENTER);
-        frame.getContentPane().add(buildButtons(), BorderLayout.SOUTH);
+        frame.getContentPane().add(buildTabPanel(), BorderLayout.CENTER);
 
         frame.addWindowListener( new WindowAdapter() {
                 public void windowClosing(WindowEvent e) {
                     confirmClose(true); }});
         frame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
 
+        initNewProcess();
+
         frame.setSize(new Dimension(600, 600));
         frame.setVisible(true);
+    }
+
+    public boolean isStructureChanged() {
+        return sizeModel.isStructureChanged() || phaseModel.isStructureChanged();
+    }
+    public boolean isDirty() {
+        return sizeModel.isDirty() || phaseModel.isDirty();
     }
 
     private Component buildHeader() {
@@ -124,131 +127,51 @@ public class CustomProcessEditor extends TinyCGIBase {
         return result;
     }
 
-    private Component buildTable() {
-        tableModel = new ProcessPhaseTableModel(process);
-        tableModel.insertItem(0);
-        table = tableModel.createJTable();
-
-        // listen to changes in the row selection, and enable/disable
-        // buttons accordingly
-        table.getSelectionModel().addListSelectionListener
-            (new ListSelectionListener() {
-                    public void valueChanged(ListSelectionEvent e) {
-                        enableButtons(); }});
-
-        JScrollPane sp = new JScrollPane(table);
-        sp.setBorder(BorderFactory.createTitledBorder
-                     (BorderFactory.createLoweredBevelBorder(),
-                      "List of Process Phases"));
-        return sp;
+    private Component buildTabPanel() {
+        JTabbedPane tabPane = new JTabbedPane();
+        tabPane.addTab("Size Metrics", buildSizeTable());
+        tabPane.addTab("Process Phases", buildPhaseTable());
+        return tabPane;
     }
 
 
-    private Component buildButtons() {
-        Box buttons = Box.createHorizontalBox();
-        buttons.add(Box.createHorizontalGlue());
-        buttons.add(insertButton = new JButton("Insert"));
-        insertButton.addActionListener(new ActionListener() {
-                public void actionPerformed(ActionEvent e) {
-                    insert(); }});
 
-        buttons.add(Box.createHorizontalGlue());
-        buttons.add(deleteButton = new JButton("Delete"));
-        deleteButton.addActionListener(new ActionListener() {
-                public void actionPerformed(ActionEvent e) {
-                    delete(); }});
+    private Component buildSizeTable() {
+        sizeModel = new SizeMetricsTableModel(process);
+        return new ItemListEditor(sizeModel, "List of Process Size Metrics");
 
-        buttons.add(Box.createHorizontalGlue());
-        buttons.add(upButton = new JButton("Move Up"));
-        upButton.addActionListener(new ActionListener() {
-                public void actionPerformed(ActionEvent e) {
-                    moveUp(); }});
-
-        buttons.add(Box.createHorizontalGlue());
-        buttons.add(downButton = new JButton("Move Down"));
-        downButton.addActionListener(new ActionListener() {
-                public void actionPerformed(ActionEvent e) {
-                    moveDown(); }});
-        buttons.add(Box.createHorizontalGlue());
-
-        enableButtons();
-
-        Box result = Box.createVerticalBox();
-        result.add(Box.createVerticalStrut(2));
-        result.add(buttons);
-        result.add(Box.createVerticalStrut(2));
-        return result;
     }
 
-    private int getSelectedRow() {
-        return table.getSelectionModel().getMinSelectionIndex();
-    }
-    private void selectRow(int row) {
-        table.getSelectionModel().setSelectionInterval(row, row);
+    private Component buildPhaseTable() {
+        phaseModel = new ProcessPhaseTableModel(process);
+        return new ItemListEditor(phaseModel, "List of Process Phases");
     }
 
-    private void enableButtons() {
-        int row = getSelectedRow();
-        boolean editable = ((row >= 0) && (tableModel.isCellEditable(row, 0)));
-        deleteButton.setEnabled(editable && row >= 0);
-        upButton    .setEnabled(editable && row > 0);
-        downButton  .setEnabled(editable &&
-                              row >= 0 && row+1 < table.getRowCount());
-    }
-
-    protected void insert() {
-        int row = getSelectedRow();
-        if (row < 0) row = 0;
-        tableModel.insertItem(row);
-        selectRow(row);
-    }
-    protected void delete() {
-        int row = getSelectedRow();
-        if (row >= 0) tableModel.deleteItem(row);
-    }
-    protected void moveUp()   {
-        int row = getSelectedRow();
-        tableModel.moveItemUp(row--);
-        selectRow(row);
-    }
-    protected void moveDown() {
-        int row = getSelectedRow()+1;
-        tableModel.moveItemUp(row);
-        selectRow(row);
-    }
-    /*
-    private class RowSelectionTask implements Runnable {
-        private int row;
-        public RowSelectionTask(int row) { this.row = row; }
-        public void run() {
-            if (row != -1) {
-                treeTable.getSelectionModel().setSelectionInterval(row, row);
-                enableTaskButtons();
-            }
-        }
-    }
-    */
 
     protected void setProcess(CustomProcess proc) {
         process = proc;
         processName.setText(origProcessName = process.getName());
         processVersion.setText(origProcessVersion = process.getVersion());
-        tableModel = new ProcessPhaseTableModel(process);
+        phaseModel.setProcess(process);
+        sizeModel.setProcess(process);
+    }
 
-        // remember the current widths of each table column.
-        int[] width = new int[table.getColumnCount()];
-        for (int i = width.length;   i-- > 0; )
-            width[i] = table.getColumnModel().getColumn(i).getWidth();
-        table.setModel(tableModel);
-        for (int i = width.length;   i-- > 0; )
-            table.getColumnModel().getColumn(i).setPreferredWidth(width[i]);
+    protected void initNewProcess() {
+        sizeModel.insertItem(0);
+        sizeModel.setValueAt("Add your own size metrics", 0,
+                SizeMetricsTableModel.NAME_COL);
+        sizeModel.clearDirty();
 
-        enableButtons();
+        phaseModel.insertItem(0);
+        phaseModel.setValueAt("Add your own phases", 0,
+                ProcessPhaseTableModel.LONG_NAME_COL);
+        phaseModel.clearDirty();
     }
 
     protected void newProcess() {
         if (saveOrCancel(true)) {
             setProcess(new CustomProcess());
+            initNewProcess();
             openedFileDir = null;
         }
     }
@@ -270,6 +193,18 @@ public class CustomProcessEditor extends TinyCGIBase {
         else {
             openedFileDir = f.getParentFile();
             setProcess(newProcess);
+        }
+    }
+
+    private void stopEditing(Component c) {
+        if (c instanceof JTable) {
+            JTable table = (JTable) c;
+            if (table.getCellEditor() != null)
+                table.getCellEditor().stopCellEditing();
+        } else if (c instanceof Container) {
+            Container parent = (Container) c;
+            for (int i = parent.getComponentCount();  i-- > 0; )
+                stopEditing(parent.getComponent(i));
         }
     }
 
@@ -336,7 +271,8 @@ public class CustomProcessEditor extends TinyCGIBase {
 
             File file = new File(dir, process.getJarName());
             CustomProcessPublisher.publish(process, file, webServer);
-            isDirty = process.isDirty = false;
+            sizeModel.clearDirty();
+            phaseModel.clearDirty();
             openedFileDir = dir;
 
         } catch (IOException ioe) {
@@ -359,7 +295,7 @@ public class CustomProcessEditor extends TinyCGIBase {
         }
 
                 // if the structure of the process has changed,
-        if (process.structureChanged &&
+        if (isStructureChanged() &&
                 // and it had a real name when it was opened,
             origProcessName != null && origProcessName.length() != 0 &&
                 // and the name has not been changed,
@@ -385,6 +321,7 @@ public class CustomProcessEditor extends TinyCGIBase {
             }
         return true;
     }
+
     private static final String[] STRUCTURE_CHANGED_MESSAGE = {
         "You have made structural changes to this process.  If",
         "you have ever used this process in the past, saving",
@@ -406,7 +343,7 @@ public class CustomProcessEditor extends TinyCGIBase {
             close();
     }
     public boolean saveOrCancel(boolean showCancel) {
-        if (isDirty || process.isDirty)
+        if (isDirty())
             switch (JOptionPane.showConfirmDialog
                     (frame, CONFIRM_CLOSE_MSG, "Save Changes?",
                      showCancel ? JOptionPane.YES_NO_CANCEL_OPTION
@@ -438,21 +375,25 @@ public class CustomProcessEditor extends TinyCGIBase {
         menu.add(newMenuItem = new JMenuItem("New"));
         newMenuItem.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
+                    stopEditing(frame);
                     newProcess(); }});
 
         menu.add(openMenuItem = new JMenuItem("Open..."));
         openMenuItem.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
+                    stopEditing(frame);
                     openProcess(); }});
 
         menu.add(saveMenuItem = new JMenuItem("Save..."));
         saveMenuItem.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
+                    stopEditing(frame);
                     save(); }});
 
         menu.add(closeMenuItem = new JMenuItem("Close"));
         closeMenuItem.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
+                    stopEditing(frame);
                     confirmClose(true); }});
 
         return menuBar;

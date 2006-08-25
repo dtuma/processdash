@@ -15,18 +15,35 @@ import teamdash.process.CustomProcess.Item;
 
 public abstract class ItemListTableModel extends AbstractTableModel {
 
+    private CustomProcess process;
+    private String itemType;
     private List itemList;
     private Set insertedItems;
     private boolean isDirty = false;
     private boolean structureChanged = false;
 
     public ItemListTableModel(CustomProcess p, String itemType) {
+        this.itemType = itemType;
+        setProcess(p);
+    }
+
+    public void setProcess(CustomProcess p) {
+        this.process = p;
         this.itemList = p.getItemList(itemType);
         this.insertedItems = new HashSet();
+        isDirty = false;
+        fireTableDataChanged();
     }
+
+    public CustomProcess getProcess() {
+        return process;
+    }
+
+    public abstract void insertItem(int pos);
 
     protected void insertItem(Item newPhase, int pos) {
         insertedItems.add(newPhase);
+        pos = Math.min(pos, itemList.size());
         itemList.add(pos, newPhase);
         isDirty = true;
         fireTableRowsInserted(pos, pos);
@@ -58,9 +75,14 @@ public abstract class ItemListTableModel extends AbstractTableModel {
     public boolean isDirty() {
         return isDirty;
     }
+    public void clearDirty() {
+        this.isDirty = false;
+    }
     public boolean isStructureChanged() {
         return structureChanged;
     }
+    public abstract JTable createJTable();
+
 
     // TableModel interface methods
 
@@ -68,6 +90,7 @@ public abstract class ItemListTableModel extends AbstractTableModel {
     protected abstract boolean isStructuralColumn(int column);
 
     public int getRowCount() { return itemList.size(); }
+    public int getRealRowCount() { return itemList.size(); }
     public int getColumnCount() { return getColumnAttrs().length; }
     public Class getColumnClass(int columnIndex) { return String.class; }
     public Object getValueAt(int row, int column) {
@@ -79,18 +102,29 @@ public abstract class ItemListTableModel extends AbstractTableModel {
         return !get(rowIndex).getAttributes().containsKey("readOnly");
     }
     public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
-        Item item = get(rowIndex);
-        if (item.getAttributes().containsKey("readOnly")) return;
+        if (!isCellEditable(rowIndex, columnIndex)) return;
 
-        String value = CustomProcess.makeSafe(String.valueOf(aValue));
-        if (value.indexOf('/') != -1) return;
+        Item item = get(rowIndex);
+
+        String value = null;
+        if (aValue != null) {
+            value = CustomProcess.makeSafe(String.valueOf(aValue));
+            if (value.indexOf('/') != -1) return;
+        }
 
         if (isStructuralColumn(columnIndex) && !insertedItems.contains(item))
             structureChanged = true;
 
         String attrName = getColumnAttrs()[columnIndex];
-        item.putAttr(attrName, value);
-        isDirty = true;
+        if (!eq(item.getAttr(attrName), value)) {
+            item.putAttr(attrName, value);
+            isDirty = true;
+        }
+    }
+    private boolean eq(Object a, Object b) {
+        if (a == b) return true;
+        if (a == null || b == null) return false;
+        return a.equals(b);
     }
 
     protected boolean isStructuralCell(int row, int col) {

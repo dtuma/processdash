@@ -26,9 +26,14 @@ public class CustomProcess {
     public static final String LONG_NAME = "longName";
     public static final String NAME = "name";
     public static final String TYPE = "type";
-    public static final String READ_ONLY = "readOnly";
-    public static final String SIZE_METRIC = "sizeMetric";
 
+    public static final String SIZE_METRIC = "sizeMetric";
+    public static final String PRODUCT_NAME = "productName";
+    public static final String UNITS = "units";
+    public static final String ICON_STYLE = "iconStyle";
+
+    public static final String READ_ONLY = "readOnly";
+    public static final String IMAGINARY = "imaginary";
 
 
     public class Item {
@@ -67,27 +72,30 @@ public class CustomProcess {
         protected void writeXMLAttrs(Writer out) throws IOException {
             for (Iterator iter = attrs.entrySet().iterator(); iter.hasNext();) {
                 Map.Entry e = (Map.Entry) iter.next();
-                out.write((String) e.getKey());
-                out.write("='");
-                out.write(XMLUtils.escapeAttribute((String) e.getValue()));
-                out.write("' ");
+                String value = (String) e.getValue();
+                if (value != null && value.length() > 0) {
+                    out.write((String) e.getKey());
+                    out.write("='");
+                    out.write(XMLUtils.escapeAttribute(value));
+                    out.write("' ");
+                }
             }
         }
 
         protected void writeXMLSettings(Writer out) throws IOException {
-            out.write("    <");
-            out.write(itemName);
-            out.write(" ");
-            writeXMLAttrs(out);
-            out.write("/>\n");
+            if (!attrs.containsKey(IMAGINARY)) {
+                out.write("    <");
+                out.write(itemName);
+                out.write(" ");
+                writeXMLAttrs(out);
+                out.write("/>\n");
+            }
         }
     }
 
 
     protected String processName, processVersion, generatorScript;
     Map itemLists = new TreeMap();
-    boolean isDirty = false;
-    boolean structureChanged = false;
 
     /** Create a default custom process. */
     public CustomProcess() {
@@ -135,7 +143,6 @@ public class CustomProcess {
     private static final String RO = "t"; // uncomment to make PSP phases read-only
     // private static String RO = null;   // uncomment to make PSP phases editable
     private static String[][] defaultPhases = {
-     // { "Add your own phases",    "Short Name",    "develop", null,    null },
         { "Planning",               "Planning",      "PLAN",    null,      RO },
         { "Detailed Design",        "Design",        "DLD",     DLD_LINES, RO },
         { "Detailed Design Review", "Design Review", "DLDR",    DLD_LINES, RO },

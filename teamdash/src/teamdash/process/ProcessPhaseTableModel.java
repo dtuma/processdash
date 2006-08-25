@@ -3,6 +3,8 @@ package teamdash.process;
 import java.awt.Component;
 import java.awt.Font;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 import javax.swing.DefaultCellEditor;
@@ -26,16 +28,15 @@ public class ProcessPhaseTableModel extends ItemListTableModel {
     static final int TYPE_COL = 2;
     static final int SIZE_METRIC_COL = 3;
 
-    private CustomProcess customProcess;
 
     public ProcessPhaseTableModel(CustomProcess p) {
         super(p, PHASE_ITEM);
-        this.customProcess = p;
     }
 
 
+
     public void insertItem(int pos) {
-        Item newPhase = customProcess.new Item(PHASE_ITEM);
+        Item newPhase = getProcess().new Item(PHASE_ITEM);
         newPhase.putAttr(LONG_NAME, "Enter Phase Name");
         newPhase.putAttr(NAME, "Short Name");
         newPhase.putAttr(TYPE, "develop");
@@ -59,7 +60,10 @@ public class ProcessPhaseTableModel extends ItemListTableModel {
         return column == SHORT_NAME_COL;
     }
 
-
+    public boolean isCellEditable(int rowIndex, int columnIndex) {
+        return columnIndex == LONG_NAME_COL
+                || super.isCellEditable(rowIndex, columnIndex);
+    }
 
     protected Object getItemDisplay(int column, Object value) {
         if (column == TYPE_COL) {
@@ -86,15 +90,27 @@ public class ProcessPhaseTableModel extends ItemListTableModel {
         table.setDefaultRenderer(String.class, new ItemTableCellRenderer());
 
         // install a combo box as the editor for the "phase type" column
-        TableColumn typeColumn = table.getColumnModel().getColumn(2);
+        TableColumn column = table.getColumnModel().getColumn(TYPE_COL);
+        column.setCellEditor(createPhaseTypeEditor());
+
+        // install a combo box as the editor for the "size metric" column
+        column = table.getColumnModel().getColumn(SIZE_METRIC_COL);
+        column.setCellEditor(new SizeCellEditor());
+
+        return table;
+    }
+
+
+    private DefaultCellEditor createPhaseTypeEditor() {
         JComboBox phaseTypeEditor = new JComboBox(PHASE_TYPES);
         phaseTypeEditor.setRenderer(new PhaseListCellRenderer());
         phaseTypeEditor.setFont
             (phaseTypeEditor.getFont().deriveFont(Font.PLAIN));
-        typeColumn.setCellEditor(new DefaultCellEditor(phaseTypeEditor));
-
-        return table;
+        return new DefaultCellEditor(phaseTypeEditor);
     }
+
+    private static final String[] PHASE_TYPES = { "overhead", "develop",
+        "appraisal", "review", "insp", "failure" };
 
     private class PhaseListCellRenderer extends DefaultListCellRenderer {
 
@@ -107,11 +123,51 @@ public class ProcessPhaseTableModel extends ItemListTableModel {
 
     }
 
+    private class SizeCellEditor extends DefaultCellEditor {
 
-    private static final String[] PHASE_TYPES = { "overhead", "develop",
-        "appraisal", "review", "insp", "failure" };
+        private JComboBox comboBox;
+
+        public SizeCellEditor() {
+            super(new JComboBox());
+            comboBox = (JComboBox) getComponent();
+            comboBox.setFont(comboBox.getFont().deriveFont(Font.PLAIN));
+        }
+
+        public Component getTableCellEditorComponent(JTable table,
+                Object value, boolean isSelected, int row, int column) {
+
+            comboBox.removeAllItems();
+            comboBox.addItem(null);
+            List sizes = getProcess().getItemList(CustomProcess.SIZE_METRIC);
+            for (Iterator i = sizes.iterator(); i.hasNext();) {
+                Item sizeMetric = (Item) i.next();
+                String name = sizeMetric.getAttr(NAME);
+                if (name != null && name.length() > 0)
+                    comboBox.addItem(name);
+            }
+            comboBox.addItem("DLD Lines");
+
+            return super.getTableCellEditorComponent(table, value, isSelected,
+                    row, column);
+        }
+
+    }
+
+
+    private static final String OVERHEAD = "Overhead";
+    private static final String DEVELOP = "Development";
+    private static final String APPRAISAL = "Appraisal";
+    private static final String REVIEW = "Review";
+    private static final String INSPECT = "Inspection";
+    private static final String FAILURE = "Failure";
+
 
     private static final Map PHASE_DISPLAY_NAMES = new HashMap();
+
+    private static void addPhaseName(String[] type, String displayName) {
+        for (int i = 0; i < type.length; i++)
+            addPhaseName(type[i], displayName);
+    }
     private static void addPhaseName(String type, String displayName) {
         PHASE_DISPLAY_NAMES.put(type,  displayName);
         PHASE_DISPLAY_NAMES.put(type.toLowerCase(),  displayName);
@@ -119,22 +175,22 @@ public class ProcessPhaseTableModel extends ItemListTableModel {
     }
     static {
         // standard entries first
-        addPhaseName("overhead", "Overhead");
-        addPhaseName("develop",   "Development");
-        addPhaseName("appraisal", "Appraisal");
-        addPhaseName("review",    "   Review");
-        addPhaseName("insp",      "   Inspection");
-        addPhaseName("failure",   "Failure");
+        addPhaseName("overhead", OVERHEAD);
+        addPhaseName("develop",   DEVELOP);
+        addPhaseName("appraisal", APPRAISAL);
+        addPhaseName("review",    "   " + REVIEW);
+        addPhaseName("insp",      "   " + INSPECT);
+        addPhaseName("failure",   FAILURE);
 
-        // now entries for the PSP specific phases
-        addPhaseName("plan", "Overhead");
-        addPhaseName("dld",  "Development");
-        addPhaseName("dldr", "Review");
-        addPhaseName("code", "Development");
-        addPhaseName("cr",   "Review");
-        addPhaseName("comp", "Failure");
-        addPhaseName("ut",   "Failure");
-        addPhaseName("pm",   "Overhead");
+        // now entries for other recognized phase types
+        addPhaseName(new String[] { "mgmt", "strat", "plan", "pm" }, OVERHEAD);
+        addPhaseName(new String[] { "req", "stp", "hld", "itp", "td", "dld",
+                "code", "doc" }, DEVELOP);
+        addPhaseName(new String[] { "reqinsp", "hldrinsp", "dldinsp",
+                "codeinsp" }, INSPECT);
+        addPhaseName(new String[] { "dldr", "cr" }, REVIEW);
+        addPhaseName(new String[] { "comp", "ut", "it", "st", "at", "pl" },
+                FAILURE);
     }
 
     public static String getPhaseDisplay(String phaseName) {
