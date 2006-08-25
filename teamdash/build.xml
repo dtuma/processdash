@@ -11,6 +11,11 @@
     <property name="teamProcess.zip" value="TSP-v1.zip"/>
   </target>
 
+  <target name="abc">
+    <property name="teamProcess.xml" value="abc.xml"/>
+    <property name="teamProcess.zip" value="ABC-v1.zip"/>
+  </target>
+
   <target name="vvis">
     <property name="teamProcess.xml" value="vvis.xml"/>
     <property name="teamProcess.zip" value="VVGDP-v2.zip"/>
