@@ -26,7 +26,7 @@
     <property name="teamProcess.zip" value="VVGDP-v1.zip"/>
   </target>
 
-  <target name="filelist.txt">
+  <target name="filelist.txt" unless="noBuild">
     <pathconvert property=".filelistbasedir" pathsep="," dirsep="/">
       <path id=".jhbasedir.path" path="Templates/team/setup"/>
     </pathconvert>
@@ -40,7 +40,7 @@
     <replace file="${filelist}" token="${.filelistbasedir}/" value=""/>
   </target>
 
-  <target name="TeamProcessCGI">
+  <target name="TeamProcessCGI" unless="noBuild">
     <!-- Create a signed jarfile of cgi scripts -->  
     <jar destfile="${TeamProcessCGI.jar}" duplicate="fail">
       <fileset dir="bin" includes="teamdash/templates/setup/"/>
@@ -50,7 +50,7 @@
 	storepass="${env.TDKSPW}"/>
   </target>
 
-  <target name="jar" depends="filelist.txt,TeamProcessCGI">
+  <target name="jar" depends="filelist.txt,TeamProcessCGI" unless="noBuild">
     <jar destfile="TeamTools.jar" duplicate="fail">
       <!-- specify the manifest file contents -->
       <manifest>
@@ -87,7 +87,7 @@
 	storepass="${env.TDKSPW}"/>
   </target>
 
-  <target name="TeamProcess" depends="-defaultValues,jar">
+  <target name="TeamProcess" depends="-defaultValues,jar" unless="noBuild">
     <java classname="teamdash.process.GenerateProcess" fork="true">
       <classpath>
         <pathelement location="TeamTools.jar"/>	
