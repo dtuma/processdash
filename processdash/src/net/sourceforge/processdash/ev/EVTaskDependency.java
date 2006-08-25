@@ -293,8 +293,23 @@ public class EVTaskDependency {
         boolean madeChange = false;
         List list = getDependencies(data, taskPath);
         if (list == null || list.isEmpty()) {
+            // there are currently no dependencies for the given node.  Adopt
+            // the incoming dependencies as the definitive list.
             list = dependencies;
             madeChange = (dependencies != null && !dependencies.isEmpty());
+
+        } else if ((dependencies == null || dependencies.isEmpty())
+                && StringUtils.hasValue(source)) {
+            // the caller is asking us to clear the list of dependencies for
+            // a given source.
+            for (Iterator i = list.iterator(); i.hasNext();) {
+                EVTaskDependency d = (EVTaskDependency) i.next();
+                if (source.equals(d.getSource())) {
+                    i.remove();
+                    madeChange = true;
+                }
+            }
+
         } else {
             // keep track of the sources that are adding these dependencies.
             Set incomingSources = new HashSet();
