@@ -216,7 +216,7 @@ public class ConfigureButton extends JMenuBar implements ActionListener, Hierarc
     }
 
     private void addToolExtensions(JMenu toolMenu) {
-        List items = ExtensionManager.getExecutableExtensions("toolMenuItem",
+        List items = ExtensionManager.getExecutableExtensions("toolsMenuItem",
                 parent);
         for (Iterator i = items.iterator(); i.hasNext();) {
             Object item = (Object) i.next();
