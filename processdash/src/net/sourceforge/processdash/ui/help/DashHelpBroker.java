@@ -44,6 +44,7 @@ import org.w3c.dom.Element;
 
 import net.sourceforge.processdash.net.http.WebServer;
 import net.sourceforge.processdash.templates.DashPackage;
+import net.sourceforge.processdash.templates.ExtensionManager;
 import net.sourceforge.processdash.templates.TemplateLoader;
 import net.sourceforge.processdash.ui.DashboardIconFactory;
 
@@ -92,7 +93,7 @@ public class DashHelpBroker implements DashHelpProvider {
         Object rootHelpSet = cstr.newInstance(args);
 
         // find and append help sets contributed by add-ons
-        List ce = TemplateLoader.getXmlConfigurationElements(HELPSET_TAG);
+        List ce = ExtensionManager.getXmlConfigurationElements(HELPSET_TAG);
         for (Iterator i = ce.iterator(); i.hasNext();) {
             Element config = (Element) i.next();
             String href = config.getAttribute(HREF_ATTR);

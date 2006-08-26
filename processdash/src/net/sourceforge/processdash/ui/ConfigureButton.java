@@ -31,8 +31,11 @@ import java.awt.event.ActionListener;
 import java.io.File;
 import java.lang.reflect.Constructor;
 import java.util.Comparator;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Locale;
 import java.util.Properties;
+import java.util.logging.Logger;
 
 import javax.swing.Action;
 import javax.swing.JMenu;
@@ -53,6 +56,7 @@ import net.sourceforge.processdash.log.time.DashboardTimeLog;
 import net.sourceforge.processdash.log.time.TimeLoggingApprover;
 import net.sourceforge.processdash.log.ui.DefectLogEditor;
 import net.sourceforge.processdash.log.ui.TimeLogEditor;
+import net.sourceforge.processdash.templates.ExtensionManager;
 import net.sourceforge.processdash.tool.export.ui.wizard.ShowExportWizardAction;
 import net.sourceforge.processdash.tool.export.ui.wizard.ShowImportWizardAction;
 import net.sourceforge.processdash.tool.probe.ProbeDialog;
@@ -81,6 +85,7 @@ public class ConfigureButton extends JMenuBar implements ActionListener, Hierarc
         "http://sourceforge.net/forum/forum.php?forum_id=30753";
 
     Resources resources = Resources.getDashBundle("ProcessDashboard.Menu");
+    Logger logger = Logger.getLogger(ConfigureButton.class.getName());
 
                                   // menu labels
     static final String HIERARCHY_FRAME  = "Hierarchy";
@@ -176,6 +181,7 @@ public class ConfigureButton extends JMenuBar implements ActionListener, Hierarc
             toolMenu.add(new ShowExportWizardAction(resources.getString(EXPORT)));
         }
         maybeAddTranslationTool(toolMenu);
+        addToolExtensions(toolMenu);
     }
 
     private void maybeAddTranslationTool(JMenu toolMenu) {
@@ -207,6 +213,21 @@ public class ConfigureButton extends JMenuBar implements ActionListener, Hierarc
             toolMenu.add(a);
 
         } catch (Throwable t) {}
+    }
+
+    private void addToolExtensions(JMenu toolMenu) {
+        List items = ExtensionManager.getExecutableExtensions("toolMenuItem",
+                parent);
+        for (Iterator i = items.iterator(); i.hasNext();) {
+            Object item = (Object) i.next();
+            if (item instanceof Action)
+                toolMenu.add((Action) item);
+            else if (item instanceof JMenuItem)
+                toolMenu.add((JMenuItem) item);
+            else
+                logger.warning("Could not add item to tools menu - "
+                        + "unrecognized class " + item.getClass().getName());
+        }
     }
 
     private String getDashboardJarFileName() {

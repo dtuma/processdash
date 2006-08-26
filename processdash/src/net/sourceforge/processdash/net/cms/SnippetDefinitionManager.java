@@ -35,7 +35,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import net.sourceforge.processdash.templates.DashPackage;
-import net.sourceforge.processdash.templates.TemplateLoader;
+import net.sourceforge.processdash.templates.ExtensionManager;
 import net.sourceforge.processdash.util.XMLUtils;
 
 import org.w3c.dom.Element;
@@ -67,7 +67,7 @@ public class SnippetDefinitionManager {
         if (!SNIPPETS.isEmpty() && force == false)
             return;
 
-        List config = TemplateLoader
+        List config = ExtensionManager
                 .getXmlConfigurationElements(SnippetDefinition.SNIPPET_TAG);
         for (Iterator i = config.iterator(); i.hasNext();) {
             Element e = (Element) i.next();

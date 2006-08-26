@@ -42,7 +42,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -58,7 +57,6 @@ import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.Prop;
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.i18n.Resources;
-import net.sourceforge.processdash.net.http.WebServer;
 import net.sourceforge.processdash.process.AutoData;
 import net.sourceforge.processdash.process.ScriptID;
 import net.sourceforge.processdash.process.ScriptNameResolver;
@@ -93,7 +91,6 @@ public class TemplateLoader {
         new DashboardPermission("templateLoader.getTemplateURLs");
 
     private static long templateTimestamp = 0;
-    private static List templateXmlDocuments = new LinkedList();
 
     public static DashHierarchy loadTemplates(DataRepository data) {
         LOAD_TEMPLATES_PERMISSION.checkPermission();
@@ -207,7 +204,7 @@ public class TemplateLoader {
         try {
             ByteArrayInputStream in =
                 new ByteArrayInputStream(rollupXML.getBytes("UTF-8"));
-            loadXMLProcessTemplate(templates, data, null, in, true);
+            loadXMLProcessTemplate(templates, data, null, null, in, true);
         } catch (IOException ioe) {}
     }
 
@@ -248,8 +245,9 @@ public class TemplateLoader {
         try {
             debug("searching for templates in " + jarURL);
 
+            URL jarFileUrl = new URL(jarURL);
             JarInputStream jarFile =
-                new JarInputStream((new URL(jarURL)).openStream());
+                new JarInputStream((jarFileUrl).openStream());
 
             ZipEntry file;
             String filename;
@@ -262,7 +260,8 @@ public class TemplateLoader {
                 if (filename.endsWith(XML_TEMPLATE_SUFFIX)) {
                     debug("loading template: " + filename);
                     String n = file.getName() + " (in " + jarURL + ")";
-                    loadXMLProcessTemplate(templates, data, n, jarFile, false);
+                    loadXMLProcessTemplate(templates, data, n, jarFileUrl,
+                            jarFile, false);
                     foundTemplates = true;
                 } else if (filename.endsWith(TEMPLATE_SUFFIX)) {
                     debug("loading template: " + filename);
@@ -309,7 +308,7 @@ public class TemplateLoader {
                 try {
                     debug("loading template: " + f);
                     loadXMLProcessTemplate
-                        (templates, data, f.getPath(),
+                        (templates, data, f.getPath(), null,
                          new FileInputStream(f), true);
                     processTimestamp(f);
                     foundTemplates = true;
@@ -370,6 +369,7 @@ public class TemplateLoader {
     private static void loadXMLProcessTemplate(DashHierarchy templates,
                                                DataRepository data,
                                                String filename,
+                                               URL baseUrl,
                                                InputStream in, boolean close)
         throws IOException
     {
@@ -381,8 +381,8 @@ public class TemplateLoader {
 
             // this closes the file without our permission.
             Document doc = XMLUtils.parse(in);
+            ExtensionManager.addXmlDoc(doc, filename, baseUrl);
             root = doc.getDocumentElement();
-            templateXmlDocuments.add(root);
         } catch (SAXException se) {
             String message = XMLUtils.exceptionMessage(se);
             Resources r = Resources.getDashBundle("Templates");
@@ -474,7 +474,7 @@ public class TemplateLoader {
         return result;
     }
     private static URL[] template_url_list = null;
-    private static final String JARFILE_NAME = "pspdash.jar";
+    //private static final String JARFILE_NAME = "pspdash.jar";
     private static final String TEMPLATE_DIRNAME = "Templates";
     private static final String SEP_TEMPL_DIR =
         Settings.sep + TEMPLATE_DIRNAME.toLowerCase();
@@ -571,6 +571,14 @@ public class TemplateLoader {
                 return classDir.getParent();
         } catch (Exception e) {}
         return null;
+    }
+
+    public static File getDefaultTemplatesDir() {
+        String baseDir = getBaseDir();
+        if (baseDir == null)
+            return null;
+        else
+            return new File(baseDir, "Templates");
     }
 
     private static boolean isDashboardJarfile(File f) {
@@ -718,29 +726,6 @@ public class TemplateLoader {
         }
 
         return null;
-    }
-
-
-    /** Returns a list of all xml Elements with the given tag name found
-     * in the <tt>*-template.xml</tt> files loaded by the dashboard.
-     * 
-     * This is used by various extensible dashboard features to discover
-     * contributions made by add-ons.
-     *
-     * @param tagName the tag name of an xml document element
-     * @return a list of all Elements with that tag name found in
-     *     the <tt>*-template.xml</tt> files loaded by the dashboard.
-     */
-    public static List getXmlConfigurationElements(String tagName) {
-        List result = new LinkedList();
-        for (Iterator iter = templateXmlDocuments.iterator(); iter.hasNext();) {
-            Element doc = (Element) iter.next();
-            NodeList configElements = doc.getElementsByTagName(tagName);
-            int length = configElements.getLength();
-            for (int i = 0;   i < length;   i++)
-                result.add(configElements.item(i));
-        }
-        return result;
     }
 
 
