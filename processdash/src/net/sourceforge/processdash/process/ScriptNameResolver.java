@@ -27,11 +27,16 @@
 package net.sourceforge.processdash.process;
 
 import java.util.Hashtable;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import net.sourceforge.processdash.net.http.WebServer;
 
 
 public class ScriptNameResolver implements ScriptID.NameResolver {
+
+    private static final Logger logger = Logger
+            .getLogger(ScriptNameResolver.class.getName());
 
     WebServer web;
 
@@ -62,7 +67,8 @@ public class ScriptNameResolver implements ScriptID.NameResolver {
 
             result = text.substring(beg, end).trim();
         } catch (Exception e) {
-            // Do nothing.
+            logger.log(Level.WARNING, "Unable to retrieve name for '"
+                    + scriptFile + "'", e);
         }
 
         displayNameCache.put(scriptFile, (result == null ? "" : result));
