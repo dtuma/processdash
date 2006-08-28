@@ -126,7 +126,8 @@ public abstract class AnalysisPage extends TinyCGIBase implements StringMapper {
 
 
     public static String localizePrefix(String prefix) {
-        if (prefix.startsWith("/To Date/") && prefix.endsWith("/All")) {
+        if (prefix != null && prefix.startsWith("/To Date/")
+                && prefix.endsWith("/All")) {
             prefix = prefix.substring(9, prefix.length() - 4);
             return resources.format("To_Date_Prefix_FMT", prefix);
         } else
