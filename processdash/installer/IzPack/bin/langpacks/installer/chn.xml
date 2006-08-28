@@ -120,43 +120,24 @@
 	<!-- Add your own panels specific strings here if you need -->
     <!-- Process Dashboard strings -->
 
-    <str id="DataDirPanel.empty_datadir">You must select a data directory.</str>
-    <str id="DataDirPanel.info">Select a directory for your personal metrics data :</str>
-    <str id="LicencePanel.deselect.message1">You have indicated that you do not consent to this license
-agreement.  Would you like to remove the module(s)</str>
-    <str id="LicencePanel.deselect.message2">from the installation list?</str>
-    <str id="LicencePanel.deselect.title">Deselect Packages?</str>
-    <str id="PackageDownloader.error.info1">The package:</str>
-    <str id="PackageDownloader.error.info2">could not be downloaded, and was not installed.  This can occur if you are
-not connected to the Internet, or if you are behind a firewall.  To resolve
-this problem, please download and run the offline installer instead.</str>
-    <str id="PackageDownloader.error.title">Installation Warning</str>
-    <str id="PackageDownloader.info1">Downloading &quot;</str>
+    <str id="DataDirPanel.empty_datadir">你必须选择一个数据目录。</str>
+    <str id="DataDirPanel.info">选择一个保存你个人的度量数据的目录： </str>
+    <str id="LicencePanel.deselect.message1">你表明了你并不统一此许可协议。 你是否愿意从安装列表中删除这些模块</str>
+    <str id="LicencePanel.deselect.message2">呢？</str>
+    <str id="LicencePanel.deselect.title">取消包的选择？</str>
+    <str id="PackageDownloader.error.info1">此包： </str>
+    <str id="PackageDownloader.error.info2">不能被下载，并且尚未安装。 发生此问题的原因可能是因为你没有连接到因特网，或者你在防火墙后面。 为了解决此问题， 请另行下载并运行离线安装程序。</str>
+    <str id="PackageDownloader.error.title">安装警告</str>
+    <str id="PackageDownloader.info1">正在下载 &quot;</str>
     <str id="PackageDownloader.info2">&quot;...</str>
-    <str id="PackageDownloader.title">Downloading...</str>
-    <str id="ShutdownDashboardPanel.error.info">This installer has detected that an instance
-of the Process Dashboard is currently running
-on this machine.  You must shut it down before
-you can proceed.</str>
-    <str id="ShutdownDashboardPanel.error.title">Process Dashboard Running</str>
-    <str id="ShutdownDashboardPanel.info">If you are running the Process Dashboard right now,
-installing new files can cause unpredictable errors.  It is
-therefore imperative that you shut down the Dashboard if it
-is currently running.
-
-If you are installing the Process Dashboard for the first
-time, or if you are not currently running the Process
-Dashboard, you can ignore this warning.
-
-Otherwise, shut down any currently running instances of the
-Process Dashboard before you click the &quot;Next&quot; button.</str>
-    <str id="installer.javaversion.info">You need to upgrade your Java Runtime Environment!
-{0} {1} requires version {2} or
-higher of the Java Runtime Environment.  You are currently
-running Java Runtime Environment version {3}.
-       To download an updated version of the Java Runtime
-Environment, visit   {4}
-Then run this installer program again.</str>
-    <str id="installer.javaversion.title">Can&apos;t Install {0}</str>
+    <str id="PackageDownloader.title">下载中...</str>
+    <str id="ShutdownDashboardPanel.error.info">本安装程序检测到一个Process Dashboard的实例正在本机运行。在继续之前，你必须将其关闭。</str>
+    <str id="ShutdownDashboardPanel.error.title">Process Dashboard正在运行中</str>
+    <str id="ShutdownDashboardPanel.info">如果你目前正在运行Process Dashboard， 安装新文件可能导致无法预料的错误。 因此，强烈建议你关闭Process Dashboard，如果它现在正在运行的话。</str>
+    <str id="installer.javaversion.info">你需要升级你的Java运行环境！ 
+{0} {1} 要求版本{2}或者更高的Java运行环境。 你目前运行的Java运行环境的版本为{3}.
+       要下载一个更新版本的Java运行环境， 请访问   {4}
+然后再运行本安装程序。</str>
+    <str id="installer.javaversion.title">不能安装{0}</str>
 
 </langpack>
