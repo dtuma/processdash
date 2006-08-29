@@ -14,6 +14,7 @@
         iff([//Export_Manager/Supports_pdash_format], ".pdash", ".txt"));
 [EXPORT_FILE/Instructions] = 
     "file:/<!--#echo Process_ID -->/metricsExportFilter.xml";
+[EXPORT_FILE/Disabled] = [Project_Is_Done];
 
 [Sync_Full_WBS] = 0;
 
