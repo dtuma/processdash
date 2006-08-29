@@ -876,8 +876,44 @@ public class HierarchyEditor extends Object implements TreeModelListener, TreeSe
                  resource.getStrings("HierarchyUnicodeError"),
                  resource.getString("InvalidName"), JOptionPane.ERROR_MESSAGE);
             return false;
+        } else if (isReservedChildName(useProps.pget(parent), newName)) {
+            JOptionPane.showMessageDialog
+                (frame,
+                 resource.format("HierarchyReservedNameError_FMT", newName, parent.path()),
+                 resource.getString("InvalidName"), JOptionPane.ERROR_MESSAGE);
+                return false;
         } else
             return true;
+    }
+
+
+    private boolean isReservedChildName(Prop parent, String newName) {
+        String status = parent.getStatus();
+        if (status == null) return false;
+
+        int parseIndex = status.indexOf (ALLOWED_CHILD);
+        if (parseIndex == -1) return false;
+
+        int lastChar = status.indexOf (REQUIRED_PARENT);
+        if (lastChar == -1)
+            lastChar = status.length();
+        if (lastChar <= parseIndex + 1) return false;
+
+        status = status.substring (parseIndex + 1, lastChar);
+        StringTokenizer st = new StringTokenizer(status,
+                String.valueOf (ALLOWED_CHILD));
+        while (st.hasMoreElements()) {
+            String childID = st.nextToken();
+            int endIndex = childID.indexOf ("(");
+            if (endIndex != -1) childID = childID.substring(0, endIndex);
+            PropertyKey childKey = templates.getByID(childID);
+            if (childKey == null) continue;
+            if (!templateIsMalleable(childKey)
+                    && newName.equals(Prop.unqualifiedName(childKey.name())))
+                return true;
+        }
+
+        return false;
     }
 
 
