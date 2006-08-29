@@ -61,6 +61,7 @@ public class ExportManager extends AbstractManager {
     public static final String EXPORT_TIMES_SETTING = "export.timesOfDay";
 
     private static final String EXPORT_INSTRUCTIONS_SUFFIX = "/Instructions";
+    private static final String EXPORT_DISABLED_SUFFIX = "/Disabled";
 
     private static ExportManager INSTANCE = null;
 
@@ -196,8 +197,10 @@ public class ExportManager extends AbstractManager {
 
         for (Iterator iter = tasks.iterator(); iter.hasNext();) {
             AbstractInstruction instr = (AbstractInstruction) iter.next();
-            Runnable exporter = getExporter(instr);
-            p.addTask(exporter);
+            if (instr.isEnabled()) {
+                Runnable exporter = getExporter(instr);
+                p.addTask(exporter);
+            }
         }
 
         p.run();
@@ -243,6 +246,11 @@ public class ExportManager extends AbstractManager {
         SimpleData instrVal = data.getSimpleValue(instrDataname);
         if (instrVal != null && instrVal.test())
             addXmlDataToInstruction(instr, instrVal.format());
+
+        String disableDataname = name + EXPORT_DISABLED_SUFFIX;
+        SimpleData disableVal = data.getSimpleValue(disableDataname);
+        if (disableVal != null && disableVal.test())
+            instr.setEnabled(false);
 
         return instr;
     }
