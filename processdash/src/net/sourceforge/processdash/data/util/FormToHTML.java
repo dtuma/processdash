@@ -48,6 +48,7 @@ public class FormToHTML {
     public static void translate(StringBuffer text, DataRepository data,
             String prefix) {
         int beg, end, end2;
+        data.waitForCalculations();
 
         // dashboard forms have clearly delineated table cells because
         // of the squares drawn around <INPUT> tags.  When those

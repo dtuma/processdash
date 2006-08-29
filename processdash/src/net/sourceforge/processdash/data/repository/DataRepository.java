@@ -2246,7 +2246,7 @@ public class DataRepository implements Repository, DataContext,
             putValue(aliasName, value, IS_NOT_DEFAULT_VAL);
         }
 
-        private void waitForCalculations() {
+        public void waitForCalculations() {
             while (dataFreezer.flush() || dataNotifier.flush()) {
                 // do nothing.
             }
