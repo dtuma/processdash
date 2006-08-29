@@ -16,7 +16,8 @@ import java.io.File;
 import java.io.IOException;
 import java.text.NumberFormat;
 import java.text.ParsePosition;
-import java.util.Collection;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 import javax.swing.Box;
 import javax.swing.JFileChooser;
@@ -67,6 +68,7 @@ public class CustomProcessEditor extends TinyCGIBase {
     SizeMetricsTableModel sizeModel;
     JMenuItem newMenuItem, openMenuItem, saveMenuItem, closeMenuItem;
     WebServer webServer;
+    File defaultDir = null;
     File openedFileDir = null;
 
     public CustomProcessEditor(String prefix, WebServer webServer) {
@@ -76,7 +78,7 @@ public class CustomProcessEditor extends TinyCGIBase {
         origProcessName = process.getName();
         origProcessVersion = process.getVersion();
 
-        frame = new JFrame("Custom Process Editor");
+        frame = new JFrame("Custom Team Metrics Framework Editor");
         frame.setJMenuBar(buildMenuBar());
         frame.getContentPane().add(buildHeader(), BorderLayout.NORTH);
         frame.getContentPane().add(buildTabPanel(), BorderLayout.CENTER);
@@ -92,6 +94,10 @@ public class CustomProcessEditor extends TinyCGIBase {
         frame.setVisible(true);
     }
 
+    public void setDefaultDirectory(File dir) {
+        defaultDir = dir;
+    }
+
     public boolean isStructureChanged() {
         return sizeModel.isStructureChanged() || phaseModel.isStructureChanged();
     }
@@ -102,10 +108,10 @@ public class CustomProcessEditor extends TinyCGIBase {
     private Component buildHeader() {
         Box header = Box.createHorizontalBox();
         header.add(Box.createHorizontalStrut(2));
-        header.add(new JLabel("Process Name: "));
+        header.add(new JLabel("Framework Name: "));
         header.add(processName = new JTextField(20));
         header.add(Box.createHorizontalStrut(10));
-        header.add(new JLabel("Process Version: "));
+        header.add(new JLabel("Framework Version: "));
         header.add(processVersion = new JTextField(5));
         header.add(Box.createHorizontalStrut(2));
 
@@ -157,22 +163,15 @@ public class CustomProcessEditor extends TinyCGIBase {
     }
 
     protected void initNewProcess() {
-        sizeModel.insertItem(0);
-        sizeModel.setValueAt("Add your own size metrics", 0,
-                SizeMetricsTableModel.NAME_COL);
-        sizeModel.clearDirty();
-
-        phaseModel.insertItem(0);
-        phaseModel.setValueAt("Add your own phases", 0,
-                ProcessPhaseTableModel.LONG_NAME_COL);
-        phaseModel.clearDirty();
+        sizeModel.initNewProcess();
+        phaseModel.initNewProcess();
     }
 
     protected void newProcess() {
         if (saveOrCancel(true)) {
             setProcess(new CustomProcess());
             initNewProcess();
-            openedFileDir = null;
+            openedFileDir = defaultDir;
         }
     }
     protected void openProcess() {
@@ -188,7 +187,7 @@ public class CustomProcessEditor extends TinyCGIBase {
         if (newProcess == null)
             JOptionPane.showMessageDialog
                 (frame,
-                 "The file '" + f + "' is not a valid Custom Process file.",
+                 "The file '" + f + "' is not a valid Custom Metrics Framework file.",
                  "Invalid File", JOptionPane.ERROR_MESSAGE);
         else {
             openedFileDir = f.getParentFile();
@@ -223,10 +222,12 @@ public class CustomProcessEditor extends TinyCGIBase {
             fileChooser = new JFileChooser();
             fileChooser.setFileFilter(new TemplateFileFilter());
             fileChooser.setAcceptAllFileFilterUsed(false);
+            if (defaultDir != null)
+                fileChooser.setCurrentDirectory(defaultDir);
         }
 
         if (open) {
-            fileChooser.setDialogTitle("Open Custom Process");
+            fileChooser.setDialogTitle("Open Custom Metrics Framework");
             fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
             fileChooser.setApproveButtonText("Open");
             fileChooser.setApproveButtonToolTipText("Open selected file");
@@ -284,12 +285,15 @@ public class CustomProcessEditor extends TinyCGIBase {
     }
 
     protected boolean validate() {
-        Collection errors = process.getErrors();
+        Set errors = new LinkedHashSet();
+        process.checkForErrors(errors);
+        sizeModel.checkForErrors(errors);
+        phaseModel.checkForErrors(errors);
         if (errors != null && errors.size() > 0) {
             JList message = new JList(errors.toArray());
             JOptionPane.showMessageDialog(frame,
                                           message,
-                                          "Invalid Process",
+                                          "Invalid Metrics Framework",
                                           JOptionPane.ERROR_MESSAGE);
             return false;
         }
@@ -305,7 +309,7 @@ public class CustomProcessEditor extends TinyCGIBase {
                 // warn the user that they may invalidate historical data.
             switch (JOptionPane.showConfirmDialog
                     (frame, STRUCTURE_CHANGED_MESSAGE,
-                     "Process Structure Changed",
+                     "Metrics Framework Structure Has Changed",
                      JOptionPane.YES_NO_CANCEL_OPTION,
                      JOptionPane.WARNING_MESSAGE)) {
             case JOptionPane.CLOSED_OPTION:
@@ -323,18 +327,18 @@ public class CustomProcessEditor extends TinyCGIBase {
     }
 
     private static final String[] STRUCTURE_CHANGED_MESSAGE = {
-        "You have made structural changes to this process.  If",
-        "you have ever used this process in the past, saving",
+        "You have made structural changes to this metrics framework.",
+        "If you have ever used this framework in the past, saving",
         "these changes will render your historical data unusable.",
         "Would you like to increment the version number, saving",
-        "this as a newer version of the process?",
-        "- Choosing Yes will increment the process version number.",
-        "- Choosing No will overwrite the existing process.  This",
-        "   choice is recommended only if the process has never",
+        "this as a newer version of the framework?",
+        "- Choosing Yes will increment the framework version number.",
+        "- Choosing No will overwrite the existing framework.  This",
+        "   choice is recommended only if the framework has never",
         "   been used before.",
         "- Choosing Cancel will abort (not saving changes), and",
         "    return you to the editor to make additional changes",
-        "    (such as choosing a new process name)." };
+        "    (such as choosing a new framework name)." };
 
     public void close() { frame.dispose(); }
 
@@ -362,7 +366,7 @@ public class CustomProcessEditor extends TinyCGIBase {
     }
     private static final Object CONFIRM_CLOSE_MSG =
         "Do you want to save the changes you made to this " +
-        "custom process?";
+        "custom metrics collection framework?";
 
 
 

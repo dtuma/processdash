@@ -4,8 +4,6 @@ package teamdash.process;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -154,41 +152,14 @@ public class CustomProcess {
     };
 
 
+
     // Utility methods
 
-    public Collection getErrors() {
-        Set errors = new HashSet();
-
+    public void checkForErrors(Set errors) {
         if (processName == null || processName.length() == 0)
-            errors.add("You must specify a name for the process.");
-
-        Set s = new HashSet();
-        Item phase;
-        List phaseList = getItemList(PHASE_ITEM);
-        Iterator i = phaseList.iterator();
-        while (i.hasNext()) {
-            phase = (Item) i.next();
-
-            String longName = phase.getAttr(LONG_NAME);
-            if (longName == null || longName.length() == 0)
-                errors.add("Every phase must have a descriptive name.");
-            else if (s.contains(longName))
-                errors.add("There is more than one phase named \"" +
-                           longName + "\". Phase names must be unique.");
-
-            String name = phase.getAttr(NAME);
-            if (name == null || name.length() == 0)
-                errors.add("Every phase must have a short name.");
-            else if (s.contains(name))
-                errors.add("There is more than one phase named \"" +
-                           name + "\". Phase names must be unique.");
-
-            s.add(longName);
-            s.add(name);
-        }
-
-        return errors;
+            errors.add("You must specify a name for the metrics framework.");
     }
+
 
     // Mutator methods
 

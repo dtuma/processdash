@@ -2,6 +2,9 @@ package teamdash.process;
 
 import java.awt.Component;
 import java.awt.Font;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Set;
 
 import javax.swing.DefaultCellEditor;
 import javax.swing.DefaultListCellRenderer;
@@ -38,6 +41,8 @@ public class SizeMetricsTableModel extends ItemListTableModel {
                         "Detailed Design Document", "Objects"),
                 makeImpliedSizeMetric(p, "LOC", "Software Component", "Objects")
                 };
+
+        pasteComparisonColumns = new int[] { NAME_COL, PRODUCT_NAME_COL };
     }
 
 
@@ -53,15 +58,21 @@ public class SizeMetricsTableModel extends ItemListTableModel {
         return newMetric;
     }
 
+    public void initNewProcess() {
+        insertItem(0);
+        setValueAt(NEW_PROCESS_LONG_NAME, 0, NAME_COL);
+        clearDirty();
+    }
 
-    public void insertItem(int pos) {
+
+    public int insertItem(int pos) {
         Item newMetric = getProcess().new Item(SIZE_ITEM);
-        newMetric.putAttr(LONG_NAME, "Enter Metric Name");
-        newMetric.putAttr(NAME, "Enter Metric Name");
-        newMetric.putAttr(PRODUCT_NAME, "Enter Product Name");
+        newMetric.putAttr(LONG_NAME, DEFAULT_METRIC_NAME);
+        newMetric.putAttr(NAME, DEFAULT_METRIC_NAME);
+        newMetric.putAttr(PRODUCT_NAME, DEFAULT_PRODUCT_NAME);
         newMetric.putAttr(UNITS, "Pages");
         newMetric.putAttr(ICON_STYLE, "document");
-        super.insertItem(newMetric, pos);
+        return super.insertItem(newMetric, pos);
     }
 
     public int getRowCount() {
@@ -101,19 +112,20 @@ public class SizeMetricsTableModel extends ItemListTableModel {
 
 
 
-
     public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
-        super.setValueAt(aValue, rowIndex, columnIndex);
-
         if (columnIndex == NAME_COL)
+            // copy value into short name column, too.
             super.setValueAt(aValue, rowIndex, SHORT_NAME_COL);
 
         else if (columnIndex == UNITS_COL) {
+            aValue = undoUnitsDisplay((String) aValue);
             if ("Pages".equalsIgnoreCase((String) aValue))
                 super.setValueAt("document", rowIndex, ICON_STYLE_COL);
             else
                 super.setValueAt(null, rowIndex, ICON_STYLE_COL);
         }
+
+        super.setValueAt(aValue, rowIndex, columnIndex);
     }
 
 
@@ -127,8 +139,19 @@ public class SizeMetricsTableModel extends ItemListTableModel {
     }
 
 
+    public void checkForErrors(Set errors) {
+        checkForMissingField(errors, NAME_COL, DISCARDABLE_VALUES,
+                "Every size metric must have a name.");
+        checkForMissingField(errors, PRODUCT_NAME_COL, DISCARDABLE_VALUES,
+                "Every size metric must have a work product name.");
+        checkForDuplicateFields(errors, new int[] { NAME_COL, PRODUCT_NAME_COL },
+                "There is more than one size metric named \"{0}\". "
+                        + "Metric names must be unique.");
+    }
+
+
     public JTable createJTable() {
-        JTable table = new JTable(this);
+        JTable table = new ItemListJTable(this);
 
         // adjust column widths
         table.getColumnModel().getColumn(0).setPreferredWidth(100);
@@ -163,6 +186,26 @@ public class SizeMetricsTableModel extends ItemListTableModel {
     }
 
 
+
+    private static final String DEFAULT_PRODUCT_NAME = "Enter Product Name";
+    private static final String DEFAULT_METRIC_NAME = "Enter Metric Name";
+    private static final String NEW_PROCESS_LONG_NAME = "Add your own size metrics";
+
+    private static final List DISCARDABLE_VALUES = Arrays.asList(new String[] {
+            DEFAULT_METRIC_NAME, DEFAULT_PRODUCT_NAME, NEW_PROCESS_LONG_NAME,
+            null, "" });
+
+    protected boolean rowIsDiscardable(int row) {
+        if (row >= 0 && row < getRealRowCount()) {
+            Item item = get(row);
+            return (DISCARDABLE_VALUES.contains(item.getAttr(LONG_NAME))
+                    && DISCARDABLE_VALUES.contains(item.getAttr(PRODUCT_NAME)));
+        } else
+            return super.rowIsDiscardable(row);
+    }
+
+
+
     private static final String[] UNITS_TYPES = { "Pages", "Objects" };
 
 
@@ -171,6 +214,14 @@ public class SizeMetricsTableModel extends ItemListTableModel {
             return "Document";
         else
             return "Other";
+    }
+    public static String undoUnitsDisplay(String aValue) {
+        if ("document".equalsIgnoreCase(aValue))
+            return "Pages";
+        else if ("other".equalsIgnoreCase(aValue))
+            return "Objects";
+        else
+            return aValue;
     }
 
 

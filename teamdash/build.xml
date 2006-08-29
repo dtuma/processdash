@@ -73,6 +73,7 @@
 
       <!-- include the templates -->
       <fileset dir=".">
+        <include name="Templates/TeamTools-template.xml" />
         <include name="Templates/team/lib/" />
         <exclude name="Templates/team/lib/todo.txt" />
         <include name="Templates/team/tools/*.link" />

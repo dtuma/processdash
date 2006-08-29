@@ -1,0 +1,7 @@
+<?xml version='1.0'?>
+
+<dashboard-process-template>
+
+    <toolsMenuItem class="teamdash.process.CustomProcessEditorAction"/>
+
+</dashboard-process-template>

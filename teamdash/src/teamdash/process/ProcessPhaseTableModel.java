@@ -2,10 +2,14 @@ package teamdash.process;
 
 import java.awt.Component;
 import java.awt.Font;
+import java.text.MessageFormat;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.swing.DefaultCellEditor;
 import javax.swing.DefaultListCellRenderer;
@@ -17,6 +21,7 @@ import javax.swing.table.TableColumn;
 import teamdash.process.CustomProcess.Item;
 
 public class ProcessPhaseTableModel extends ItemListTableModel {
+
 
     private static final String PHASE_ITEM = CustomProcess.PHASE_ITEM;
     private static final String LONG_NAME = CustomProcess.LONG_NAME;
@@ -31,18 +36,23 @@ public class ProcessPhaseTableModel extends ItemListTableModel {
 
     public ProcessPhaseTableModel(CustomProcess p) {
         super(p, PHASE_ITEM);
+
+        pasteComparisonColumns = new int[] { SHORT_NAME_COL };
     }
 
+    public void initNewProcess() {
+        insertItem(0);
+        setValueAt(NEW_PROCESS_LONG_NAME, 0, LONG_NAME_COL);
+        clearDirty();
+    }
 
-
-    public void insertItem(int pos) {
+    public int insertItem(int pos) {
         Item newPhase = getProcess().new Item(PHASE_ITEM);
-        newPhase.putAttr(LONG_NAME, "Enter Phase Name");
-        newPhase.putAttr(NAME, "Short Name");
+        newPhase.putAttr(LONG_NAME, DEFAULT_LONG_NAME);
+        newPhase.putAttr(NAME, DEFAULT_SHORT_NAME);
         newPhase.putAttr(TYPE, "develop");
-        super.insertItem(newPhase, pos);
+        return super.insertItem(newPhase, pos);
     }
-
 
     private static final String[] columnNames = {
         "Descriptive Name", "Short Name", "Type", "Size Metric" };
@@ -74,9 +84,59 @@ public class ProcessPhaseTableModel extends ItemListTableModel {
         }
     }
 
+    protected Object filterValidValue(Object aValue, int row, int col) {
+        if (col == TYPE_COL) {
+            String type = ((String) aValue).toLowerCase();
+            if (PHASE_DISPLAY_NAMES.containsKey(type))
+                return type;
+            else
+                return INVALID_VALUE;
+        } else
+            return super.filterValidValue(aValue, row, col);
+    }
+
+
+
+    public void checkForErrors(Set errors) {
+        checkForMissingField(errors, LONG_NAME_COL, DISCARDABLE_VALUES,
+                "Every phase must have a descriptive name.");
+        checkForMissingField(errors, SHORT_NAME_COL, DISCARDABLE_VALUES,
+                "Every phase must have a short name.");
+        checkForDuplicateFields(errors, new int[] { LONG_NAME_COL, SHORT_NAME_COL },
+                "There is more than one phase named \"{0}\". "
+                        + "Phase names must be unique.");
+        checkForSizeMetricsErrors(errors);
+    }
+
+    private void checkForSizeMetricsErrors(Set errors) {
+        Set validSizeValues = new HashSet();
+        List sizeList = getProcess().getItemList(CustomProcess.SIZE_METRIC);
+        for (Iterator i = sizeList.iterator(); i.hasNext();) {
+            Item sizeMetric = (Item) i.next();
+            String name = sizeMetric.getAttr(NAME);
+            validSizeValues.add(name.toLowerCase());
+        }
+        validSizeValues.add("DLD Lines".toLowerCase());
+        validSizeValues.add("LOC".toLowerCase());
+        validSizeValues.add("");
+
+        for (int row = 0;   row < getRowCount();  row++) {
+            String phaseSize = (String) getValueAt(row, SIZE_METRIC_COL);
+            if (phaseSize != null
+                    && !validSizeValues.contains(phaseSize.toLowerCase())) {
+                String phaseName = (String) getValueAt(row, LONG_NAME_COL);
+                String errMsg = MessageFormat.format("Phase \"{0}\" is using "
+                        + "size metric \"{1}\", but there is no size metric "
+                        + "with that name.",
+                      new Object[] { phaseName, phaseSize });
+                errors.add(errMsg);
+            }
+        }
+    }
+
 
     public JTable createJTable() {
-        JTable table = new JTable(this);
+        JTable table = new ItemListJTable(this);
 
         // adjust column widths
         table.getColumnModel().getColumn(0).setPreferredWidth(200);
@@ -154,6 +214,26 @@ public class ProcessPhaseTableModel extends ItemListTableModel {
     }
 
 
+
+    private static final String NEW_PROCESS_LONG_NAME = "Add your own phases";
+    private static final String DEFAULT_LONG_NAME = "Enter Phase Name";
+    private static final String DEFAULT_SHORT_NAME = "Short Name";
+
+    private static final List DISCARDABLE_VALUES = Arrays.asList(new String[] {
+        DEFAULT_LONG_NAME, DEFAULT_SHORT_NAME, NEW_PROCESS_LONG_NAME, null, "" });
+
+
+    protected boolean rowIsDiscardable(int row) {
+        if (row >= 0 && row < getRealRowCount()) {
+            Item item = get(row);
+            return (DISCARDABLE_VALUES.contains(item.getAttr(LONG_NAME))
+                    && DISCARDABLE_VALUES.contains(item.getAttr(NAME)));
+        } else
+            return super.rowIsDiscardable(row);
+    }
+
+
+
     private static final String OVERHEAD = "Overhead";
     private static final String DEVELOP = "Development";
     private static final String APPRAISAL = "Appraisal";
@@ -204,5 +284,6 @@ public class ProcessPhaseTableModel extends ItemListTableModel {
 
         return phaseName;
     }
+
 
 }
