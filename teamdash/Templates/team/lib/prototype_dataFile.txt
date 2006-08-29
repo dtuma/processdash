@@ -13,11 +13,20 @@ undefine([Use_Rollup]);
 [Has Compile Phase] = TAG;
 
 /*
- * Define the relationship between inspected size metrics and base
- * size metrics: you typically inspect what was produced.
+ * Explicitly define each size metric, in case we have size metrics that
+ * are "orphaned" (not associated with any phase).  Also, define the
+ * relationship between inspected size metrics and base size metrics: you
+ * typically inspect what was produced.
  */
 
 <!--#foreach name=Metric list=Size_Metric_Data_Names -->
+[Estimated Metric] = ?0;
+[Metric] = ?0;
+[Metric Estimating Error] = 
+    ([Metric] - [Estimated Metric]) / [Estimated Metric];
+[Estimated Aggregate Metric] = [Estimated Metric];
+[Aggregate Metric] = [Metric];
+
 [Estimated Inspected Metric] = iff([Metric], [Metric], [Estimated Metric]) + 0;
 [Inspected Metric] = [Metric] + 0;
 <!--#endfor-->
