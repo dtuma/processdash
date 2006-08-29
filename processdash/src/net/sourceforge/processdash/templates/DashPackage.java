@@ -1,5 +1,5 @@
+// Copyright (C) 2003-206 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -27,20 +27,22 @@
 package net.sourceforge.processdash.templates;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.List;
 import java.util.Properties;
-import java.util.StringTokenizer;
+import java.util.Stack;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.jar.JarInputStream;
 import java.util.jar.Manifest;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 
 import net.sourceforge.processdash.InternalSettings;
 import net.sourceforge.processdash.Settings;
-import net.sourceforge.processdash.util.*;
+import net.sourceforge.processdash.util.XMLUtils;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -285,34 +287,46 @@ public class DashPackage {
     public static int compareVersions(String version1, String version2) {
         if (version1.equals(version2)) return 0;
 
-        StringTokenizer v1 = new StringTokenizer(version1, ".+");
-        StringTokenizer v2 = new StringTokenizer(version2, ".+");
+        List v1 = getVersionComponents(version1);
+        List v2 = getVersionComponents(version2);
 
         while (true) {
-            if (!v1.hasMoreTokens() && !v2.hasMoreTokens()) return 0;
+            if (v1.isEmpty() && v2.isEmpty()) return 0;
 
             double result = vNum(v1) - vNum(v2);
             if (result > 0) return 1;
             if (result < 0) return -1;
         }
     }
-    private static double vNum(StringTokenizer tok) {
-        if (!tok.hasMoreTokens()) return 0;
-        String num = tok.nextToken();
-        double result = 0;
-        if (num.indexOf('b') != -1) {
-            for (int i = 0;   i < num.length();   i++) {
-                if ("0123456789".indexOf(num.charAt(i)) == -1) {
-                    num = num.substring(0, i);
-                    break;
-                }
+    private static List getVersionComponents(String version) {
+        Stack result = new Stack();
+        Matcher m = VERSION_COMPONENT.matcher(version);
+        while (m.find()) {
+            if (m.group(1) != null)
+                result.push(new Double(m.group(1)));
+            else {
+                double lastDigit = 0;
+                if (!result.isEmpty())
+                    lastDigit = ((Double) result.pop()).doubleValue();
+                if (m.group(2) != null)
+                    lastDigit = lastDigit - 0.3;
+                else if (m.group(4) != null)
+                    lastDigit = lastDigit - 0.2;
+                else if (m.group(6) != null)
+                    lastDigit = lastDigit - 0.1;
+                result.push(new Double(lastDigit));
             }
-            result = -0.1;
         }
-        try {
-            result += Long.parseLong(num);
-        } catch (NumberFormatException nfe) {}
         return result;
+    }
+    private static final Pattern VERSION_COMPONENT = Pattern.compile(
+            "(\\d+)|(a(lpha)?)|(b(eta)?)|(rc)",
+            Pattern.CASE_INSENSITIVE);
+
+    private static double vNum(List components) {
+        if (components.isEmpty()) return 0;
+        Double d = (Double) components.remove(0);
+        return d.doubleValue();
     }
 
     private static final String COMMENT_START =
