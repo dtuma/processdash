@@ -8,7 +8,7 @@
      desktop="yes"
      applications="no"
      startMenu="no"
-     startup="yes"
+     startup="no"
      target="javaw"
      commandLine="-jar &quot;$INSTALL_PATH\pspdash.jar&quot; &quot;Team Dashboard&quot;"
      workingDirectory="$DATA_PATH\teaminstance"
