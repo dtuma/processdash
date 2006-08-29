@@ -53,6 +53,7 @@ import net.sourceforge.processdash.templates.DashPackage.InvalidDashPackage;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.NetworkDriveList;
+import net.sourceforge.processdash.util.StringUtils;
 import net.sourceforge.processdash.util.XMLUtils;
 
 import org.w3c.dom.Document;
@@ -335,6 +336,7 @@ public class TeamStartBootstrap extends TinyCGIBase {
         teamURL = teamURL.trim();
         if (!teamURL.startsWith("http://"))
             return resources.getHTML("Errors.Invalid_Team_URL");
+        teamURL = StringUtils.findAndReplace(teamURL, "/+/", "//");
         int pos = teamURL.indexOf("//", 7);
         if (pos != -1) pos = teamURL.indexOf('/', pos+2);
         if (pos == -1)
