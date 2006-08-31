@@ -113,6 +113,7 @@ Authors:
   <property name="jcommon.jar"    value="${lib}/jcommon-0.9.0.jar"/>
   <property name="kxml.jar"       value="${lib}/kxml-2.2.1-mod.jar"/>
   <property name="json.jar"       value="${lib}/json_simple.jar"/>
+  <property name="svg.jar"        value="${lib}/svgSalamander.jar"/>
   <property name="l10n-tool.jar"  value="l10n-tool/dist/jrc-editor.jar"/>
 
   <property name="cvsroot"
@@ -361,11 +362,11 @@ Authors:
 
   <target name="ant-tasks">
     <javac srcdir="${libsrc}" destdir="${libsrc}" debug="true"
-           includeAntRuntime="yes">
+           includeAntRuntime="yes" classpath="${svg.jar}">
       <exclude name="net/sourceforge/processdash/ExtractAllBackups.java"/>
     </javac>
     <taskdef file="${libsrc}/net/sourceforge/processdash/taskdef.properties"
-             classpath="${libsrc}"/>
+             classpath="${libsrc};${svg.jar}"/>
   </target>
 
 
