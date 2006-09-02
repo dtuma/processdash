@@ -13,6 +13,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EventObject;
 import java.util.HashSet;
@@ -772,6 +773,7 @@ public class WBSJTable extends JTable {
                 return;
 
             UndoList.stopCellEditing(WBSJTable.this);
+            editor.stopCellEditing();
 
             // get the name of the workflow to insert.
             String workflowName = e.getActionCommand();
@@ -780,13 +782,21 @@ public class WBSJTable extends JTable {
             // get a list of the currently selected rows.
             int[] rows = getSelectedRows();
             if (rows == null || rows.length == 0) return;
-            int destRow = rows[0];
 
             // make the change
-            int[] newRowsToSelect =
-                wbsModel.insertWorkflow(destRow, workflowName, workflows);
-            if (newRowsToSelect != null) {
-                editor.stopCellEditing();
+            List insertedNodes = new ArrayList();
+            Arrays.sort(rows);
+            for (int i = rows.length; i-- > 0; ) {
+                int[] insertedRows = wbsModel.insertWorkflow(rows[i],
+                        workflowName, workflows);
+                if (insertedRows != null && insertedRows.length > 0)
+                    insertedNodes.addAll(wbsModel.getNodesForRows(insertedRows,
+                            true));
+            }
+
+            if (!insertedNodes.isEmpty()) {
+                int[] newRowsToSelect = wbsModel.getRowsForNodes(insertedNodes);
+                Arrays.sort(newRowsToSelect);
                 selectRows(newRowsToSelect);
                 UndoList.madeChange(WBSJTable.this, "Insert workflow");
             }
