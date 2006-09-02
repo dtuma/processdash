@@ -41,11 +41,13 @@ import net.sourceforge.processdash.ev.EVTaskListData;
 import net.sourceforge.processdash.hier.Filter;
 import net.sourceforge.processdash.log.time.TimeLog;
 import net.sourceforge.processdash.log.time.TimeLogEntry;
+import net.sourceforge.processdash.tool.export.mgr.CompletionStatus;
 import net.sourceforge.processdash.tool.export.mgr.ExportManager;
 import net.sourceforge.processdash.util.FormatUtil;
 import net.sourceforge.processdash.util.RobustFileWriter;
 
-public class TextMetricsFileExporter implements Runnable {
+public class TextMetricsFileExporter implements Runnable,
+        CompletionStatus.Capable {
 
     private DashboardContext ctx;
 
@@ -53,11 +55,17 @@ public class TextMetricsFileExporter implements Runnable {
 
     private Collection filter;
 
+    private CompletionStatus completionStatus = CompletionStatus.NOT_RUN_STATUS;
+
     public TextMetricsFileExporter(DashboardContext ctx, File dest,
             Collection filter) {
         this.ctx = ctx;
         this.dest = dest;
         this.filter = filter;
+    }
+
+    public CompletionStatus getCompletionStatus() {
+        return completionStatus;
     }
 
     public void run() {
@@ -109,8 +117,13 @@ public class TextMetricsFileExporter implements Runnable {
             DefectExporterXMLv1 exp = new DefectExporterXMLv1();
             exp.dumpDefects(ctx.getHierarchy(), filter, out);
 
+            completionStatus = new CompletionStatus(CompletionStatus.SUCCESS,
+                    dest, null);
+
         } catch (IOException ioe) {
             fail = true;
+            completionStatus = new CompletionStatus(CompletionStatus.ERROR,
+                    dest, ioe);
             System.out.println("IOException: " + ioe);
         }
         out.close();

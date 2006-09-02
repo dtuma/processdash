@@ -33,6 +33,8 @@ import java.net.ServerSocket;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.swing.SwingUtilities;
 
@@ -47,6 +49,7 @@ import net.sourceforge.processdash.net.http.WebServer;
 import net.sourceforge.processdash.security.DashboardPermission;
 import net.sourceforge.processdash.templates.ui.ImportTemplatePermissionDialog;
 import net.sourceforge.processdash.tool.export.mgr.AbstractInstruction;
+import net.sourceforge.processdash.tool.export.mgr.CompletionStatus;
 import net.sourceforge.processdash.tool.export.mgr.ExportManager;
 import net.sourceforge.processdash.tool.export.mgr.ImportDirectoryInstruction;
 import net.sourceforge.processdash.tool.export.mgr.ImportManager;
@@ -58,6 +61,8 @@ public class DashController {
     private static String localAddress = "127.0.0.1";
     private static DashboardPermission PERMISSION =
         new DashboardPermission("dashController");
+    private static final Logger logger = Logger.getLogger(DashController.class
+            .getName());
 
     public static void setDashboard(ProcessDashboard dashboard) {
         dash = dashboard;
@@ -110,15 +115,32 @@ public class DashController {
     }
 
     public static void exportData(String prefix) {
+        exportDataForPrefix(prefix);
+    }
+    public static CompletionStatus exportDataForPrefix(String prefix) {
         String dataName = DataRepository.createDataName
             (prefix, ExportManager.EXPORT_DATANAME);
         AbstractInstruction instr = ExportManager.getInstance()
                 .getExportInstructionFromData(dataName);
-        if (instr != null) {
-            Runnable task = ExportManager.getInstance().getExporter(instr);
-            if (task != null)
-                task.run();
+        Runnable task = null;
+        if (instr != null)
+            task = ExportManager.getInstance().getExporter(instr);
+        if (task == null)
+            return new CompletionStatus(CompletionStatus.NO_WORK_NEEDED,
+                    null, null);
+
+        task.run();
+
+        if (task instanceof CompletionStatus.Capable) {
+            CompletionStatus result = ((CompletionStatus.Capable) task)
+                    .getCompletionStatus();
+            if (result != null && result.getException() != null)
+                logger.log(Level.WARNING, "Error exporting data for '" + prefix
+                        + "'", result.getException());
+            return result;
         }
+
+        return new CompletionStatus(CompletionStatus.SUCCESS, null, null);
     }
 
 

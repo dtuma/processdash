@@ -1,5 +1,5 @@
+// Copyright (C) 2003-2006 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003-2006 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -32,6 +32,7 @@ import java.util.Date;
 
 import net.sourceforge.processdash.DashController;
 import net.sourceforge.processdash.i18n.Resources;
+import net.sourceforge.processdash.tool.export.mgr.CompletionStatus;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.HTMLUtils;
 
@@ -44,9 +45,9 @@ public class ExportNow extends TinyCGIBase {
     /** Generate CGI script output. */
     protected void writeContents() throws IOException {
         if (parameters.containsKey("run"))
-                run();
+            run();
         else
-                printWaitPage();
+            printWaitPage();
     }
 
 
@@ -57,33 +58,60 @@ public class ExportNow extends TinyCGIBase {
         String uri = (String) env.get("REQUEST_URI");
         uri = uri + (uri.indexOf('?') == -1 ? "?run" : "&run");
         interpOut("<html><head>\n"
-                        + "<title>${ExportExportingDataDots}</title>\n"
-                        + "<meta http-equiv='Refresh' content='1;URL=" + uri + "'>\n"
-                        + "</head>\n"
-                        + "<body><h1>${ExportExportingDataDots}</h1>\n"
-                        + "${ExportExportingMessage}\n"
-                        + "</body></html>");
+                + "<title>${ExportExportingDataDots}</title>\n"
+                + "<meta http-equiv='Refresh' content='1;URL=" + uri + "'>\n"
+                + "</head>\n"
+                + "<body><h1>${ExportExportingDataDots}</h1>\n"
+                + "${ExportExportingMessage}\n"
+                + "</body></html>");
     }
 
 
     /** Export the data, and tell the user the results.
      */
-        private void run() {
-                DashController.exportData(getPrefix());
+    private void run() {
+        CompletionStatus result = DashController.exportDataForPrefix(getPrefix());
 
-        interpOut("<HTML><HEAD><TITLE>${ExportComplete}</TITLE></HEAD>\n"
-                        + "<BODY><H1>${ExportComplete}</H1>\n");
-        out.println(HTMLUtils.escapeEntities(resources.format(
-                        "ExportDataComplete_FMT", new Date())));
-        out.println("</BODY></HTML>");
+        if (result == null || CompletionStatus.SUCCESS.equals(result.getStatus())) {
+            interpOut("<HTML><HEAD><TITLE>${ExportComplete}</TITLE></HEAD>\n"
+                    + "<BODY><H1>${ExportComplete}</H1>\n");
+            out.println(HTMLUtils.escapeEntities(resources.format(
+                    "ExportDataComplete_FMT", new Date())));
+            out.println("</BODY></HTML>");
+
+        } else if (CompletionStatus.NO_WORK_NEEDED.equals(result.getStatus())) {
+            interpOut("<HTML><HEAD><TITLE>${ExportNotNeeded.Title}</TITLE></HEAD>\n"
+                    + "<BODY><H1>${ExportNotNeeded.Title}</H1>\n"
+                    + "${ExportNotNeeded.Message}"
+                    + "</BODY></HTML>");
+
+        } else {
+            interpOut("<HTML><HEAD><TITLE>${ExportError.Title}</TITLE></HEAD>\n"
+                    + "<BODY><H1>${ExportError.Title}</H1>\n");
+
+            if (result != null && result.getTarget() != null
+                    && result.getException() instanceof IOException)
+                out.println(HTMLUtils.escapeEntities(resources.format(
+                        "ExportError.IO_FMT", result.getTarget().toString())));
+            else {
+                out.println(resources.getHTML("ExportError.Message"));
+                if (result != null && result.getException() != null) {
+                    out.print("<PRE>");
+                    result.getException().printStackTrace(out);
+                    out.print("</PRE>");
+                }
+            }
+
+            out.println("</BODY></HTML>");
         }
+    }
 
 
-        private void interpOut(String htmlTemplate) {
-                out.print(resources.interpolate(htmlTemplate, HTMLUtils.ESC_ENTITIES));
-        }
+    private void interpOut(String htmlTemplate) {
+        out.print(resources.interpolate(htmlTemplate, HTMLUtils.ESC_ENTITIES));
+    }
 
-        private static final Resources resources = Resources
-                        .getDashBundle("ImportExport");
+    private static final Resources resources = Resources
+            .getDashBundle("ImportExport");
 
 }

@@ -43,6 +43,7 @@ import net.sourceforge.processdash.ev.EVTaskList;
 import net.sourceforge.processdash.ev.EVTaskListMerged;
 import net.sourceforge.processdash.templates.DashPackage;
 import net.sourceforge.processdash.templates.TemplateLoader;
+import net.sourceforge.processdash.tool.export.mgr.CompletionStatus;
 import net.sourceforge.processdash.util.RobustFileOutputStream;
 import net.sourceforge.processdash.util.XMLUtils;
 
@@ -51,7 +52,7 @@ import org.xmlpull.v1.XmlPullParserFactory;
 import org.xmlpull.v1.XmlSerializer;
 
 public class ArchiveMetricsFileExporter implements Runnable,
-        ArchiveMetricsXmlConstants {
+        ArchiveMetricsXmlConstants, CompletionStatus.Capable {
 
     private static final String MERGED_PREFIX = "MERGED:";
 
@@ -71,6 +72,8 @@ public class ArchiveMetricsFileExporter implements Runnable,
 
     private List metricsExcludes;
 
+    private CompletionStatus completionStatus = CompletionStatus.NOT_RUN_STATUS;
+
     public ArchiveMetricsFileExporter(DashboardContext ctx, File dest,
             Collection filter) {
         this(ctx, dest, filter, null, null);
@@ -85,10 +88,18 @@ public class ArchiveMetricsFileExporter implements Runnable,
         this.metricsExcludes = metricsExcludes;
     }
 
+    public CompletionStatus getCompletionStatus() {
+        return completionStatus;
+    }
+
     public void run() {
         try {
             doExport();
+            completionStatus = new CompletionStatus(CompletionStatus.SUCCESS,
+                    dest, null);
         } catch (Exception ioe) {
+            completionStatus = new CompletionStatus(CompletionStatus.ERROR,
+                    dest, ioe);
             ioe.printStackTrace();
             dest.delete();
         }
