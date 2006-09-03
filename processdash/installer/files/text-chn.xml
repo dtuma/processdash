@@ -7,7 +7,7 @@
 
 出版商授权使用的条件是： 用户必须同意下面的许可证协议，才可以下载或安装{0,choice,1#this module|2#these modules}:</str>
     <str id="CondHTMLLicencePanel1.header">你已经选择了安装由Sun Microsystems编写的JavaHelp(TM)软件。 要下载并安装此可选模块， 你必须同意下面的许可证协议。</str>
-    <str id="application.name">Process Dashboard</str>
+    <str id="application.name">过程度量板</str>
     <str id="pack.javaHelp.description">来自Sun Microsystems的帮助浏览器
 
 此模块并非Process Dashboard的全部功能所要求的。当然，安装此模块能够有效地浏览Process Dashboard的帮助文档，包括进行全文检索。
