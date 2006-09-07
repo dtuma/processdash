@@ -1,5 +1,5 @@
+// Copyright (C) 2003-2006 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -57,6 +57,8 @@ import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
 
 import net.sourceforge.processdash.DashboardContext;
+import net.sourceforge.processdash.InternalSettings;
+import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.StringData;
 import net.sourceforge.processdash.data.repository.DataRepository;
@@ -166,11 +168,22 @@ public class TaskScheduleCollaborationWizard {
     }
 
     private void showPublishScreen() {
-        setPanel(new PasswordScreen(PUBLISH));
+        showConnectivityOrPasswordScreen(PUBLISH);
     }
 
     private void showShareScreen() {
-        setPanel(new PasswordScreen(SHARE));
+        showConnectivityOrPasswordScreen(SHARE);
+    }
+
+    private void showConnectivityOrPasswordScreen(int action) {
+        if (isRemoteAccessBlocked())
+            setPanel(new ConnectivityScreen(action));
+        else
+            showPasswordScreen(action);
+    }
+
+    private void showPasswordScreen(int action) {
+        setPanel(new PasswordScreen(action));
     }
 
     private void showResultsScreen(int action, String password) {
@@ -410,10 +423,10 @@ public class TaskScheduleCollaborationWizard {
             PCSH.enableHelpKey(this, "TaskScheduleCollaboration");
         }
 
-                private ImageIcon getTemplateImage(String image) {
-                        URL imageURL = TemplateLoader.resolveURL("/Images/" + image);
-                        return new ImageIcon(imageURL);
-                }
+        private ImageIcon getTemplateImage(String image) {
+            URL imageURL = TemplateLoader.resolveURL("/Images/" + image);
+            return new ImageIcon(imageURL);
+        }
 
 
         private JButton newJButton() {
@@ -447,11 +460,6 @@ public class TaskScheduleCollaborationWizard {
             button.setBackground(button == target ? Color.yellow : null);
         }
         public void mouseExited(MouseEvent e) { }
-        private void ignored(MouseEvent e) {
-            Object o = e.getSource();
-            if (o instanceof JButton)
-                ((JButton) o).setBackground(null);
-        }
         private void showInfo(int which) {
             image.setIcon(images[which]);
             explanation.setText(TEXT[which]);
@@ -476,6 +484,126 @@ public class TaskScheduleCollaborationWizard {
         }
 
     }
+
+    private class ConnectivityScreen extends JPanel implements ActionListener {
+        public JLabel taskListName;
+
+        public JEditorPane resultsMessage;
+
+        public JButton backButton, nextButton, cancelButton;
+
+        public JLabel filler;
+
+        public int action;
+
+        public JPanel BuildbuttonBox() {
+            JPanel buttonBox = new JPanel();
+            buttonBox.setBackground(backgroundColor);
+            FlowLayout oLayout = new FlowLayout(FlowLayout.RIGHT, 0, 0);
+            buttonBox.setLayout(oLayout);
+
+            backButton = new JButton(resources.getString("Back_Button"));
+            backButton.addActionListener(this);
+            buttonBox.add(backButton);
+
+            nextButton = new JButton(resources.getString("Next_Button"));
+            nextButton.addActionListener(this);
+            buttonBox.add(nextButton);
+
+            JLabel filler = new JLabel("  ");
+            buttonBox.add(filler);
+
+            cancelButton = new JButton(resources.getString("Cancel"));
+            cancelButton.addActionListener(this);
+            buttonBox.add(cancelButton);
+
+            return buttonBox;
+        }
+
+        void BuildFrame() {
+            Container oPanel = this;
+            GridBagLayout oLayout = new GridBagLayout();
+            oPanel.setLayout(oLayout);
+            GridBagConstraints oConst;
+            taskListName = new JLabel();
+            taskListName.setText(getTaskNameText(action));
+            oPanel.add(taskListName);
+            oConst = new GridBagConstraints();
+            oConst.gridx = 0;
+            oConst.gridy = 0;
+            oConst.weightx = 1.0;
+            oConst.gridwidth = 2;
+            oConst.fill = GridBagConstraints.HORIZONTAL;
+            oConst.anchor = GridBagConstraints.WEST;
+            oConst.insets.top = 10;
+            oConst.insets.left = 10;
+            oConst.insets.right = 10;
+            oLayout.setConstraints(taskListName, oConst);
+
+            resultsMessage = new JEditorPane();
+            resultsMessage.setContentType("text/html");
+            resultsMessage.setEditable(false);
+            resultsMessage.setBackground(null);
+            resultsMessage.setText("<html><head><style>"
+                    + "ul { margin-top: 0px; margin-bottom: 0px; }"
+                    + "</style></head><body>"
+                    + resources.getString("Connectivity.Message_HTML")
+                    + "</body></html>");
+            resultsMessage.setCaretPosition(0);
+
+            JScrollPane sp = new JScrollPane(resultsMessage);
+            sp.setVerticalScrollBarPolicy(
+                    JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+            oPanel.add(sp);
+            oConst = new GridBagConstraints();
+            oConst.gridx = 0;
+            oConst.gridy = 1;
+            oConst.weightx = 1.0;
+            oConst.weighty = 1.0;
+            oConst.gridwidth = 2;
+            oConst.fill = GridBagConstraints.BOTH;
+            oConst.insets.top = 10;
+            oConst.insets.left = 10;
+            oConst.insets.right = 10;
+            oLayout.setConstraints(sp, oConst);
+
+            JPanel buttonBox = BuildbuttonBox();
+            oPanel.add(buttonBox);
+            oConst = new GridBagConstraints();
+            oConst.gridx = 0;
+            oConst.gridy = 2;
+            oConst.gridwidth = 2;
+            oConst.anchor = GridBagConstraints.EAST;
+            oConst.insets.top = 20;
+            oConst.insets.bottom = 10;
+            oConst.insets.left = 10;
+            oConst.insets.right = 10;
+            oLayout.setConstraints(buttonBox, oConst);
+
+        }
+
+        public ConnectivityScreen(int action) {
+            this.action = action;
+            BuildFrame();
+            this.setBackground(backgroundColor);
+            PCSH.enableHelpKey(this, "TaskScheduleCollaboration.limitations");
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            Object source = e.getSource();
+            if (source == cancelButton) {
+                closeWizard();
+            } else if (source == backButton) {
+                backPanel();
+            } else if (source == nextButton) {
+                InternalSettings.set(WebServer.HTTP_ALLOWREMOTE_SETTING,
+                        "false");
+                showPasswordScreen(action);
+            }
+        }
+    }
+
+
 
     private String getPrefix(int action) {
         return (action == PUBLISH ? "/ev /" : "/evr /") + taskListName;
@@ -1109,6 +1237,12 @@ public class TaskScheduleCollaborationWizard {
         str = HTMLUtils.urlEncode(str);
         str = StringUtils.findAndReplace(str, "+", "%20");
         return str;
+    }
+
+    private static boolean isRemoteAccessBlocked() {
+        String remoteSetting =
+            Settings.getVal(WebServer.HTTP_ALLOWREMOTE_SETTING);
+        return "never".equals(remoteSetting);
     }
 
 }
