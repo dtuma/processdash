@@ -588,7 +588,7 @@ public class EVTaskList extends AbstractTreeTableModel
 
     private static final String[] COLUMN_KEYS = {
         "Task", "PT", "PDT", "Time", "DTime", "PV", "CPT", "CPV", "Who",
-        "Plan_Date", "Forecast_Date", "Date", "Depn", "PctC", "PctS", "EV" };
+        "Plan_Date", /*"Forecast_Date",*/ "Date", "Depn", "PctC", "PctS", "EV" };
 
     /** Names of the columns in the TreeTableModel. */
     protected static String[] colNames =
@@ -608,12 +608,12 @@ public class EVTaskList extends AbstractTreeTableModel
     public static final int PLAN_CUM_VALUE_COLUMN = 7;
     public static final int ASSIGNED_TO_COLUMN    = 8;
     public static final int PLAN_DATE_COLUMN      = 9;
-    public static final int FORECAST_DATE_COLUMN  = 10;
-    public static final int DATE_COMPLETE_COLUMN  = 11;
-    public static final int DEPENDENCIES_COLUMN   = 12;
-    public static final int PCT_COMPLETE_COLUMN   = 13;
-    public static final int PCT_SPENT_COLUMN      = 14;
-    public static final int VALUE_EARNED_COLUMN   = 15;
+    // public static final int FORECAST_DATE_COLUMN  = 10;
+    public static final int DATE_COMPLETE_COLUMN  = 10;
+    public static final int DEPENDENCIES_COLUMN   = 11;
+    public static final int PCT_COMPLETE_COLUMN   = 12;
+    public static final int PCT_SPENT_COLUMN      = 13;
+    public static final int VALUE_EARNED_COLUMN   = 14;
 
     public static final int[] DIRECT_COLUMN_LIST = {
         PLAN_DTIME_COLUMN, ACT_DTIME_COLUMN };
@@ -631,7 +631,7 @@ public class EVTaskList extends AbstractTreeTableModel
         String.class,           // planned cumulative value
         String.class,           // assigned to
         Date.class,             // planned date
-        Date.class,             // forecast date
+        //Date.class,           // forecast date
         Date.class,             // date
         Collection.class,       // task dependencies
         String.class,           // percent complete
@@ -726,7 +726,7 @@ public class EVTaskList extends AbstractTreeTableModel
         case PLAN_CUM_VALUE_COLUMN: return n.getCumPlanValue(totalPlanValue);
         case ASSIGNED_TO_COLUMN:    return n.getAssignedToText();
         case PLAN_DATE_COLUMN:      return n.getPlanDate();
-        case FORECAST_DATE_COLUMN:  return n.getPlanDate(); // FIXME
+        // case FORECAST_DATE_COLUMN:  return n.getForecastDate();
         case DATE_COMPLETE_COLUMN:  return n.getActualDate();
         case DEPENDENCIES_COLUMN:   return n.getDependencies();
         case PCT_COMPLETE_COLUMN:   return n.getPercentComplete();
