@@ -1111,6 +1111,8 @@ public class EVReport extends CGIChartBase {
         TreeTableModel tree = taskList.getMergedModel(true, filter);
         HTMLTreeTableWriter writer = new HTMLTreeTableWriter();
         customizeTaskTableWriter(writer, taskList, null);
+        writer.setSkipColumn(EVTaskList.PLAN_CUM_TIME_COLUMN, true);
+        writer.setSkipColumn(EVTaskList.PLAN_CUM_VALUE_COLUMN, true);
         writer.setTreeName("$$$_t");
         writer.writeTree(out, tree);
 
