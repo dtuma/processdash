@@ -2,6 +2,7 @@ package teamdash.templates.setup;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -38,6 +39,10 @@ public class EditSubprojectList extends TinyCGIBase implements TeamDataConstants
     private static final String CANCEL_ACTION = "cancel";
 
     private static final String JOIN_MASTER_ACTION = "joinMaster";
+
+    private static final String LEAVE_MASTER_ACTION = "leaveMaster";
+
+    private static final String NO_RECURSIVE_NOTIFICATION = "doNotNotify";
 
 
     private static final String DO_PARAM = "do";
@@ -95,6 +100,8 @@ public class EditSubprojectList extends TinyCGIBase implements TeamDataConstants
                 doRemove();
             else if (JOIN_MASTER_ACTION.equals(handleAction))
                 doJoinMasterProject();
+            else if (LEAVE_MASTER_ACTION.equals(handleAction))
+                doLeaveMasterProject();
             else
                 writeCloseWindow(false);
         }
@@ -113,6 +120,7 @@ public class EditSubprojectList extends TinyCGIBase implements TeamDataConstants
 
     private void showProjectList() {
         Map subprojects = getSubprojects();
+        ListData validSubprojects = findValidSubprojectNames();
 
         if (subprojects.isEmpty()) {
             out.println("<tr>");
@@ -128,8 +136,17 @@ public class EditSubprojectList extends TinyCGIBase implements TeamDataConstants
             out.print("<td>");
             out.print(HTMLUtils.escapeEntities(proj.shortName));
             out.println("</td>");
+
+            String pathError = validatePath("", proj.path,
+                    Collections.EMPTY_MAP, validSubprojects);
+
             out.print("<td>");
             out.print(HTMLUtils.escapeEntities(proj.path));
+            if (pathError != null) {
+                out.print("<br><span class='error'>");
+                out.print(HTMLUtils.escapeEntities(pathError));
+                out.print("</span>");
+            }
             out.println("</td>");
             out.print("<td><form action='subprojectEdit' method='GET' "
                     + "target='popup'><input type='submit' name='edit' "
@@ -316,11 +333,13 @@ public class EditSubprojectList extends TinyCGIBase implements TeamDataConstants
 
     private void doAdd() {
         Map subprojects = getSubprojects();
+        ListData validSubprojects = findValidSubprojectNames();
         String shortName = getParameter(SHORT_NAME);
         String path = getParameter(PATH);
 
         String shortNameError = validateShortName(null, shortName, subprojects);
-        String pathError = validatePath(null, path, subprojects);
+        String pathError = validatePath(null, path, subprojects,
+                validSubprojects);
         if (shortNameError != null || pathError != null) {
             // there are problems with the values entered.  Send the user
             // back to the add page to try again.
@@ -333,6 +352,9 @@ public class EditSubprojectList extends TinyCGIBase implements TeamDataConstants
             i++;
         String num = getNum(i);
 
+        logger.log(Level.FINE,
+                "Master project {0} adding subproject [{1} => {2}]",
+                new Object[] { getPrefix(), shortName, path });
         putValue(num, SHORT_NAME, shortName.trim());
         putValue(num, PATH, path);
         recalcDependentData();
@@ -347,18 +369,23 @@ public class EditSubprojectList extends TinyCGIBase implements TeamDataConstants
         }
 
         Map subprojects = getSubprojects();
+        ListData validSubprojects = findValidSubprojectNames();
         String shortName = getParameter(SHORT_NAME);
         String path = getParameter(PATH);
 
         String shortNameError = validateShortName(num, shortName, subprojects);
-        String pathError = validatePath(num, path, subprojects);
+        String pathError = validatePath(num, path, subprojects,
+                validSubprojects);
         if (shortNameError != null || pathError != null) {
             // there are problems with the values entered.  Send the user
-            // back to the add page to try again.
+            // back to the edit page to try again.
             showEditPage(num, shortName, shortNameError, path, pathError);
             return;
         }
 
+        logger.log(Level.FINE,
+                "Master project {0} updating subproject [{1} => {2}]",
+                new Object[] { getPrefix(), shortName, path });
         putValue(num, SHORT_NAME, shortName);
         putValue(num, PATH, path);
         recalcDependentData();
@@ -366,10 +393,34 @@ public class EditSubprojectList extends TinyCGIBase implements TeamDataConstants
     }
 
     private void doRemove() {
+        Map subprojects = getSubprojects();
+        Subproject projToRemove = null;
+
         String numToDelete = getParameter(NUMBER);
-        if (hasValue(numToDelete)) {
-            Map subprojects = getSubprojects();
-            subprojects.remove(numToDelete);
+        if (hasValue(numToDelete))
+            projToRemove = (Subproject) subprojects.remove(numToDelete);
+        else {
+            String pathToDelete = getParameter(PATH);
+            if (hasValue(pathToDelete)) {
+                for (Iterator i = subprojects.values().iterator(); i.hasNext();) {
+                    Subproject proj = (Subproject) i.next();
+                    if (pathToDelete.equals(proj.path)) {
+                        projToRemove = proj;
+                        i.remove();
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (projToRemove != null) {
+            logger.log(Level.FINE,
+                    "Master project {0} removing subproject [{1} => {2}]",
+                    new Object[] { getPrefix(), projToRemove.shortName,
+                            projToRemove.path });
+
+            if (!parameters.containsKey(NO_RECURSIVE_NOTIFICATION))
+                notifySubproject(projToRemove, LEAVE_MASTER_ACTION);
 
             int n = 0;
             for (Iterator i = subprojects.values().iterator(); i.hasNext();) {
@@ -387,6 +438,7 @@ public class EditSubprojectList extends TinyCGIBase implements TeamDataConstants
 
             recalcDependentData();
         }
+
         writeCloseWindow(true);
     }
 
@@ -395,27 +447,79 @@ public class EditSubprojectList extends TinyCGIBase implements TeamDataConstants
      */
 
     private void doJoinMasterProject() throws IOException {
+        updateLinksToMasterProject(true);
+    }
+
+    private void doLeaveMasterProject() throws IOException {
+        updateLinksToMasterProject(false);
+    }
+
+    private void updateLinksToMasterProject(boolean joining) throws IOException {
         try {
-            putValue(MASTER_PROJECT_PATH, getParameter(PATH));
+            TeamSettingsFile.RelatedProject masterProj = null;
+            String masterProjectPath = getParameter(PATH);
 
-            TeamSettingsFile.RelatedProject masterProj =
-                new TeamSettingsFile.RelatedProject();
-            masterProj.projectID = getParameter(PROJECT_ID);
-            masterProj.teamDirectory = getParameter(TEAM_DIRECTORY);
-            masterProj.teamDirectoryUNC = getParameter(TEAM_DIRECTORY_UNC);
+            if (joining) {
+                String oldMasterProject = getValue(MASTER_PROJECT_PATH);
 
+                if (hasValue(oldMasterProject)
+                        && !oldMasterProject.equals(masterProjectPath))
+                    removeSubprojectFromMaster(oldMasterProject, getPrefix());
+
+                logger.log(Level.FINE,
+                        "Subproject {0} (re)linking to master {1}",
+                        new Object[] { getPrefix(), masterProjectPath });
+                putValue(MASTER_PROJECT_PATH, masterProjectPath);
+
+                masterProj = new TeamSettingsFile.RelatedProject();
+                masterProj.projectID = getParameter(PROJECT_ID);
+                masterProj.teamDirectory = getParameter(TEAM_DIRECTORY);
+                masterProj.teamDirectoryUNC = getParameter(TEAM_DIRECTORY_UNC);
+            } else {
+                logger.log(Level.FINE,
+                        "Subproject {0} unlinking from master {1}",
+                        new Object[] { getPrefix(), masterProjectPath });
+                putValue(MASTER_PROJECT_PATH, (String) null);
+            }
+
+            logger.log(Level.FINE, "Subproject {0} saving settings file",
+                    getPrefix());
             TeamSettingsFile tsf = getTeamSettingsFile();
             tsf.read();
             tsf.getMasterProjects().clear();
-            tsf.getMasterProjects().add(masterProj);
+            if (joining)
+                tsf.getMasterProjects().add(masterProj);
             tsf.write();
 
         } catch (Exception e) {
-            IOException ioe = new IOException("Could not join master project");
+            IOException ioe = new IOException("Could not "
+                    + (joining ? "join" : "leave") + " master project");
             ioe.initCause(e);
             throw ioe;
         }
     }
+
+    private void removeSubprojectFromMaster(String masterProjectPath,
+            String subprojectPath) {
+        logger.log(Level.FINE,
+                "Subproject {0} requesting removal from master project {1}",
+                new Object[] { subprojectPath, masterProjectPath });
+
+        StringBuffer uri = new StringBuffer();
+        uri.append(WebServer.urlEncodePath(masterProjectPath));
+        uri.append("/").append(env.get("SCRIPT_NAME"));
+        uri.append("?").append(DO_PARAM).append("=").append(REMOVE_ACTION);
+        uri.append("&").append(NO_RECURSIVE_NOTIFICATION);
+        appendParam(uri, PATH, subprojectPath);
+
+        try {
+            getTinyWebServer().getRequest(uri.toString(), false);
+        } catch (IOException e) {
+            logger.log(Level.WARNING, "unable to remove subproject from master", e);
+        }
+    }
+
+
 
     /*
      * Methods for validating user input
@@ -440,9 +544,20 @@ public class EditSubprojectList extends TinyCGIBase implements TeamDataConstants
 
     Pattern OK_NAME_CHARS = Pattern.compile("[a-zA-Z ]+");
 
-    private String validatePath(String num, String path, Map subprojects) {
+    private String validatePath(String num, String path, Map subprojects,
+            ListData validSubprojectPaths) {
         if (path == null || path.trim().length() == 0)
             return "You must choose a subproject.";
+
+        boolean pathIsValid = false;
+        for (int i = 0;  i < validSubprojectPaths.size();  i++) {
+            if (path.equals(validSubprojectPaths.get(i))) {
+                pathIsValid = true;
+                break;
+            }
+        }
+        if (!pathIsValid)
+            return "This path does not point to a compatible team project";
 
         for (Iterator i = subprojects.values().iterator(); i.hasNext();) {
             Subproject proj = (Subproject) i.next();
@@ -459,6 +574,8 @@ public class EditSubprojectList extends TinyCGIBase implements TeamDataConstants
      */
 
     private void recalcDependentData() {
+        logger.log(Level.FINE, "Master project {0} recalculating data",
+                getPrefix());
         Map subprojects = getSubprojects();
 
         saveSubprojectList(subprojects);
@@ -478,8 +595,9 @@ public class EditSubprojectList extends TinyCGIBase implements TeamDataConstants
 
     private void updateEVSchedule(Map subprojects) {
         String teamScheduleName = getValue("Project_Schedule_Name");
-        logger.log(Level.FINE, "Updating master schedule \"{0}\"",
-                teamScheduleName);
+        logger.log(Level.FINE,
+                "Master project {0} updating master schedule \"{1}\"",
+                new Object[] { getPrefix(), teamScheduleName });
 
         // open the master schedule
         EVTaskList schedule = EVTaskList.openExisting(teamScheduleName,
@@ -563,15 +681,19 @@ public class EditSubprojectList extends TinyCGIBase implements TeamDataConstants
     private void notifySubprojects(Map subprojects) {
         for (Iterator i = subprojects.values().iterator(); i.hasNext();) {
             Subproject proj = (Subproject) i.next();
-            notifySubproject(proj);
+            notifySubproject(proj, JOIN_MASTER_ACTION);
         }
     }
 
-    private void notifySubproject(Subproject proj) {
+    private void notifySubproject(Subproject proj, String actionCommand) {
+        logger.log(Level.FINE,
+                "Master project {0} notifying subproject {1}",
+                new Object[] { getPrefix(), proj.path});
+
         StringBuffer uri = new StringBuffer();
         uri.append(WebServer.urlEncodePath(proj.path));
         uri.append("/").append(env.get("SCRIPT_NAME"));
-        uri.append("?").append(DO_PARAM).append("=").append(JOIN_MASTER_ACTION);
+        uri.append("?").append(DO_PARAM).append("=").append(actionCommand);
         appendParam(uri, PROJECT_ID, getValue(PROJECT_ID));
         appendParam(uri, TEAM_DIRECTORY, getValue(TEAM_DIRECTORY));
         appendParam(uri, TEAM_DIRECTORY_UNC, getValue(TEAM_DIRECTORY_UNC));
