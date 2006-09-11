@@ -34,13 +34,11 @@ import javax.swing.JTextField;
 import javax.swing.WindowConstants;
 import javax.swing.filechooser.FileFilter;
 
-import net.sourceforge.processdash.DashController;
 import net.sourceforge.processdash.net.http.WebServer;
-import net.sourceforge.processdash.ui.web.TinyCGIBase;
 
 
 
-public class CustomProcessEditor extends TinyCGIBase {
+public class CustomProcessEditor {
 
     public static void main(String[] args) {
         try {
@@ -48,15 +46,6 @@ public class CustomProcessEditor extends TinyCGIBase {
         } catch (IOException e) {
             e.printStackTrace();
         }
-    }
-
-    public CustomProcessEditor() { super(); }
-
-    /** Generate CGI script output. */
-    protected void writeContents() throws IOException {
-        DashController.checkIP(env.get("REMOTE_ADDR"));
-        new CustomProcessEditor(getPrefix(), getTinyWebServer());
-        DashController.printNullDocument(out);
     }
 
 
