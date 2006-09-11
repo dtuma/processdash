@@ -75,7 +75,8 @@ public class GenerateProcess {
 
     static WebServer getTinyWebServer() throws IOException {
         URL[] roots = getRoots();
-        WebServer result = new WebServer(0, roots);
+        WebServer result = new WebServer();
+        result.setRoots(roots);
         return result;
     }
 
