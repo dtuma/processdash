@@ -1,5 +1,5 @@
+// Copyright (C) 2003-2006 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -29,11 +29,13 @@ package net.sourceforge.processdash.ev;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Vector;
 
-import net.sourceforge.processdash.ev.ci.*;
+import net.sourceforge.processdash.ev.ci.ConfidenceInterval;
+import net.sourceforge.processdash.ev.ci.ConfidenceIntervalSum;
+import net.sourceforge.processdash.ev.ci.EVScheduleConfidenceIntervals;
+import net.sourceforge.processdash.ev.ci.EVTimeErrConfidenceInterval;
 
 public class EVCalculatorRollup extends EVCalculator {
 
@@ -78,7 +80,7 @@ public class EVCalculatorRollup extends EVCalculator {
 
         // check for duplicate schedules.
         taskRoot.checkForNodeErrors(schedule.getMetrics(), 0,
-                new LinkedList(), new LinkedList(), true);
+                new ArrayList(), new ArrayList(), true);
     }
 
     /** If this node is the root node of an EVTaskList rollup, this will
@@ -164,7 +166,7 @@ public class EVCalculatorRollup extends EVCalculator {
             while (i.hasNext()) {
                 EVTaskList taskList = (EVTaskList) i.next();
                 if (taskList != null && taskList.calculator != null)
-                        evLeaves.addAll(taskList.calculator.getEVLeaves());
+                    evLeaves.addAll(taskList.calculator.getEVLeaves());
             }
         }
 

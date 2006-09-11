@@ -1228,11 +1228,16 @@ public class EVTask implements Cloneable, DataListener {
     }
 
     static int indexOfNode(List list, EVTask node) {
-        int i;
-        if (node != null && list != null && (i = list.size()) > 0)
-            while (i-- > 0)
-                if (node.sameNode((EVTask) list.get(i)))
+        if (node != null && list != null && list.size() > 0) {
+            int i = 0;
+            for (Iterator j = list.iterator(); j.hasNext();) {
+                EVTask oneNode = (EVTask) j.next();
+                if (node.sameNode(oneNode))
                     return i;
+                i++;
+            }
+        }
+
         return -1;
     }
     static boolean containsNode(List list, EVTask node) {

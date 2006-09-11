@@ -1,5 +1,5 @@
+// Copyright (C) 2003-2006 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -25,7 +25,7 @@
 
 package net.sourceforge.processdash.ev;
 
-import java.util.Date;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -65,13 +65,12 @@ public class EVCalculatorXML extends EVCalculator {
 
         // check for errors in the task list
         taskRoot.checkForNodeErrors(schedule.getMetrics(), 0,
-                                    new LinkedList(), new LinkedList(), false);
+                                    new ArrayList(), new ArrayList(), false);
     }
 
 
     private double calcTaskValues(List evLeaves) {
         double cumPlanValue = 0;
-        Date startDate = scheduleStartDate;
         Iterator i = evLeaves.iterator();
         while (i.hasNext()) {
             EVTask task = (EVTask) i.next();
