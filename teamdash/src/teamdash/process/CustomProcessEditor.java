@@ -172,7 +172,7 @@ public class CustomProcessEditor {
             return;
 
         File f = fileChooser.getSelectedFile();
-        CustomProcess newProcess = CustomProcessPublisher.open(f);
+        CustomProcess newProcess = CustomProcess.open(f);
         if (newProcess == null)
             JOptionPane.showMessageDialog
                 (frame,

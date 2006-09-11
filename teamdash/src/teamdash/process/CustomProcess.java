@@ -1,6 +1,7 @@
 
 package teamdash.process;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.ArrayList;
@@ -9,6 +10,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -94,6 +97,7 @@ public class CustomProcess {
 
     protected String processName, processVersion, generatorScript;
     Map itemLists = new TreeMap();
+    public static final String SETTINGS_FILENAME = "settings.xml";
 
     /** Create a default custom process. */
     public CustomProcess() {
@@ -136,6 +140,19 @@ public class CustomProcess {
             }
         }
     }
+
+    public static CustomProcess open(File openFile) {
+        try {
+            ZipFile zip = new ZipFile(openFile);
+            ZipEntry entry = zip.getEntry(SETTINGS_FILENAME);
+            if (entry == null) return null;
+            Document doc = XMLUtils.parse(zip.getInputStream(entry));
+            return new CustomProcess(doc);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
 
     private static final String DLD_LINES = "DLD Lines";
     private static final String RO = "t"; // uncomment to make PSP phases read-only

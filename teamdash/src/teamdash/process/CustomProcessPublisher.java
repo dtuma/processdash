@@ -22,7 +22,6 @@ import java.util.jar.Manifest;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
 
 import net.sourceforge.processdash.net.http.HTMLPreprocessor;
 import net.sourceforge.processdash.net.http.WebServer;
@@ -41,22 +40,9 @@ import org.xml.sax.SAXException;
 
 public class CustomProcessPublisher {
 
-    private static final String SETTINGS_FILENAME = "settings.xml";
     private static final String EXT_FILE_PREFIX = "extfile:";
     private static final String PARAM_ITEM = "param";
     private static final String VALUE = "value";
-
-    public static CustomProcess open(File openFile) {
-        try {
-            ZipFile zip = new ZipFile(openFile);
-            ZipEntry entry = zip.getEntry(SETTINGS_FILENAME);
-            if (entry == null) return null;
-            Document doc = XMLUtils.parse(zip.getInputStream(entry));
-            return new CustomProcess(doc);
-        } catch (Exception e) {
-            return null;
-        }
-    }
 
     public static void publish(CustomProcess process, File destFile,
                                WebServer webServer)
@@ -84,6 +70,7 @@ public class CustomProcessPublisher {
     HTMLPreprocessor processor;
     HashMap customParams, parameters;
     URL extBase;
+    boolean headless;
 
 
 
@@ -98,6 +85,14 @@ public class CustomProcessPublisher {
         customParams = new HashMap();
         processor = new HTMLPreprocessor(webServer, null, null, "",
                                          customParams, parameters);
+    }
+
+    public boolean isHeadless() {
+        return headless;
+    }
+
+    public void setHeadless(boolean headless) {
+        this.headless = headless;
     }
 
     protected synchronized void publish(CustomProcess process)
@@ -353,7 +348,7 @@ public class CustomProcessPublisher {
     }
 
     protected void writeXMLSettings(CustomProcess process) throws IOException {
-        startFile(SETTINGS_FILENAME);
+        startFile(CustomProcess.SETTINGS_FILENAME);
         process.writeXMLSettings(out);
     }
 
@@ -398,14 +393,20 @@ public class CustomProcessPublisher {
             script.getDocumentElement().getAttribute("inDirectory");
         String defaultOutDir =
             script.getDocumentElement().getAttribute("outDirectory");
-        ProgressDialog progressDialog =
-            new ProgressDialog((java.awt.Frame) null, "Saving",
-                               "Saving Custom Process...");
-        for (int i=0;   i < files.getLength();   i++)
-            progressDialog.addTask(new FileGenerator((Element) files.item(i),
-                                                     defaultInDir,
-                                                     defaultOutDir));
-        progressDialog.run();
+        ProgressDialog progressDialog = null;
+        if (!headless)
+            progressDialog = new ProgressDialog((java.awt.Frame) null,
+                    "Saving", "Saving Custom Process...");
+        for (int i=0;   i < files.getLength();   i++) {
+            FileGenerator task = new FileGenerator((Element) files.item(i),
+                    defaultInDir, defaultOutDir);
+            if (headless)
+                task.run();
+            else
+                progressDialog.addTask(task);
+        }
+        if (!headless)
+            progressDialog.run();
     }
 
     private class FileGenerator implements Runnable {
