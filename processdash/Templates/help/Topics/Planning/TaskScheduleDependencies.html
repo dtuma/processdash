@@ -1,0 +1,84 @@
+<HTML>
+<head>
+<TITLE>Tracking Task Dependencies</TITLE>
+<link rel=stylesheet type="text/css" href="../../style.css">
+</head>
+
+<BODY>
+
+<h1>Tracking Task Dependencies</h1>
+
+<p>Creating a schedule with the <a href="UsingTaskSchedule.html">Task and
+Schedule</a> tool, and tracking your progress with earned value, is an
+excellent way to stay on track and deliver your work on time.  But when you
+are working as part of a team, it is also important to coordinate with your
+team members.  This is especially true if your team member needs to use
+something that you are producing (or vice versa).  To facilitate this type of
+coordination, the dashboard will allow you to define and track task
+dependencies.  <i><b>Note:</b> if you are not working as a member of a team,
+you probably don't need to declare task dependencies.</i></p>
+
+<p>Task dependencies are a way of stating, &quot;<i>this</i> task cannot start
+until <i>those</i> tasks are finished.&quot; You can define dependencies
+between tasks that appear in earned value schedules.  Once defined, the
+dashboard will help you to track the status of these dependencies, as
+described below. However, the presence of dependencies does not currently
+alter the earned value calculations in any way.  In particular, <b>the
+dashboard does not use these dependencies to perform any sort of critical path
+analysis</b>.  If you use "Flat View" to specify task order, the dashboard
+does not prevent you from reordering tasks before their predecessors.  These
+capabilities may be added in the future.  But at the current time, task
+dependencies are simply a way of showing you the information you need in order
+to coordinate with your teammates more effectively.</p>
+
+<p>There are two different ways you can define task dependencies:<ul>
+
+<li>When your team is planning a team project, you can define dependencies
+in the Work Breakdown Struture Editor.</li>
+
+<li>When you view an earned value schedule in the
+<a href="UsingTaskSchedule.html">Task and Schedule</a> window, you can
+define dependencies by double-clicking on a cell in the "Dep" column.</li></ul>
+
+Most teams will use the first approach almost exclusively.</p>
+
+<p>Once you've defined a task dependency, the dashboard will display icons to
+indicate the presence and status of dependent tasks.  If a task has a
+dependency, one of the following icons will be displayed:</p>
+
+
+<table style="margin-left: 1cm; margin-right: 1cm">
+
+<tr><td nowrap><b style="color:red">???</a></td>
+    <td>This depends on at least one other task, but status information
+        for that task is not available.</td></tr>
+
+<tr><td><img src="../../../Images/stop.gif"></td>
+    <td>This depends on at least one other task that still has not been
+        completed.</td></tr>
+
+<tr><td><img src="../../../Images/check.gif"></td>
+    <td>All of the dependencies for this task have been completed.</td></tr>
+
+<tr><td><img src="../../../Images/group.gif"></td>
+    <td>Other people are waiting for you to complete this task.</td></tr>
+
+</table>
+
+
+<p>These icons are displayed in the "Dep" column of the task list when it
+appears in the Task and Schedule window, the earned value report, or the
+earned value weekly view.  In addition, the icon will be displayed on the main
+dashboard window when you select a task that has a related dependency:</p>
+
+<p align="center"><img src="../../Images/MainWindowDependencyIndicator.png"></p>
+
+<p>You can place your mouse over these icons for detailed status information.
+(When you see a dependency icon in your web browser, you'll need to click as
+well.)  The detailed status will show you all the dependent tasks (if there is
+more than one), the completion status of each, the names of the individuals
+assigned to the task, the planned completion date, and the task's percentage
+complete.</p>
+
+</body>
+</html>

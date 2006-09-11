@@ -130,7 +130,7 @@ public class DashHelpBroker implements DashHelpProvider {
             t.printStackTrace();
         }
 
-        invoke(broker, "setSize", new Dimension(645,495));
+        invoke(broker, "setSize", new Dimension(800,500));
     }
 
 

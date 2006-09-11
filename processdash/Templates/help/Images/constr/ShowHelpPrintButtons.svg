@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://web.resource.org/cc/"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="236"
+   height="242"
+   id="svg1903"
+   sodipodi:version="0.32"
+   inkscape:version="0.44"
+   version="1.0"
+   sodipodi:docbase="c:\Tuma\projects\processdash\Templates\help\Images\constr"
+   sodipodi:docname="ShowHelpPrintButtons.svg">
+  <defs
+     id="defs1905" />
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     gridtolerance="10000"
+     guidetolerance="10"
+     objecttolerance="10"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="1.8086124"
+     inkscape:cx="125.7143"
+     inkscape:cy="115.44912"
+     inkscape:document-units="px"
+     inkscape:current-layer="layer1"
+     height="242px"
+     width="236px"
+     inkscape:window-width="1084"
+     inkscape:window-height="912"
+     inkscape:window-x="354"
+     inkscape:window-y="77" />
+  <metadata
+     id="metadata1908">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <image
+       y="31"
+       x="2"
+       id="image4742"
+       height="209"
+       width="232"
+       sodipodi:absref="c:\Tuma\projects\processdash\Templates\help\Images\constr\ShowHelpTOC.png"
+       xlink:href="ShowHelpTOC.png" />
+    <text
+       xml:space="preserve"
+       style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
+       x="99.523811"
+       y="16.208744"
+       id="text1972"
+       sodipodi:linespacing="125%"><tspan
+         sodipodi:role="line"
+         id="tspan1974"
+         x="99.523811"
+         y="16.208744">Print buttons</tspan></text>
+    <path
+       sodipodi:nodetypes="ccc"
+       id="path5634"
+       d="M 100.62963,59.539678 L 124.40476,20.835974 L 148.73281,61.198409"
+       style="fill:none;fill-rule:evenodd;stroke:white;stroke-width:4;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
+    <path
+       style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:2;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="M 100.62963,59.539678 L 124.40476,20.835974 L 148.73281,61.198409"
+       id="path4745"
+       sodipodi:nodetypes="ccc" />
+  </g>
+</svg>

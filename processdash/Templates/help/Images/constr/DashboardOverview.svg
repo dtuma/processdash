@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://web.resource.org/cc/"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="535"
+   height="250"
+   id="svg2"
+   sodipodi:version="0.32"
+   inkscape:version="0.44"
+   version="1.0"
+   sodipodi:docbase="C:\Tuma\projects\processdash\Templates\help\Images\constr"
+   sodipodi:docname="DashboardOverview.svg">
+  <defs
+     id="defs4" />
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     gridtolerance="10000"
+     guidetolerance="10"
+     objecttolerance="10"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="1.3865922"
+     inkscape:cx="282.85714"
+     inkscape:cy="72.033501"
+     inkscape:document-units="px"
+     inkscape:current-layer="layer1"
+     height="250px"
+     width="535px"
+     inkscape:window-width="1339"
+     inkscape:window-height="993"
+     inkscape:window-x="217"
+     inkscape:window-y="64" />
+  <metadata
+     id="metadata7">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <image
+       y="2"
+       x="2"
+       id="image1930"
+       height="54"
+       width="530"
+       sodipodi:absref="C:\Tuma\projects\processdash\Templates\help\Images\constr\MainDashboardWindow.png"
+       xlink:href="MainDashboardWindow.png" />
+    <text
+       xml:space="preserve"
+       style="font-size:15;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
+       x="64.215141"
+       y="244.09482"
+       id="text1941"
+       sodipodi:linespacing="125%"><tspan
+         sodipodi:role="line"
+         id="tspan1943"
+         x="64.215141"
+         y="244.09482">&quot;Configuration&quot; menu - special features</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:15;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
+       x="87.163345"
+       y="217.40691"
+       id="text1945"
+       sodipodi:linespacing="125%"><tspan
+         sodipodi:role="line"
+         id="tspan1947"
+         x="87.163345"
+         y="217.40691">Time entry via &quot;Play / Pause&quot; button</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:15;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
+       x="117.76095"
+       y="190.71898"
+       id="text1949"
+       sodipodi:linespacing="125%"><tspan
+         sodipodi:role="line"
+         id="tspan1951"
+         x="117.76095"
+         y="190.71898">Defect entry</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:15;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
+       x="137.13942"
+       y="164.03107"
+       id="text1953"
+       sodipodi:linespacing="125%"><tspan
+         sodipodi:role="line"
+         id="tspan1955"
+         x="137.13942"
+         y="164.03107">Process scripts/summary forms button</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:15;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
+       x="332.16168"
+       y="110.65522"
+       id="text1957"
+       sodipodi:linespacing="125%"><tspan
+         sodipodi:role="line"
+         id="tspan1959"
+         x="332.16168"
+         y="110.65522">&quot;Phase complete&quot; checkbox</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:15;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
+       x="163.65736"
+       y="137.34315"
+       id="text1961"
+       sodipodi:linespacing="125%"><tspan
+         sodipodi:role="line"
+         id="tspan1963"
+         x="163.65736"
+         y="137.34315">Task navigation style selector</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:15;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
+       x="191.85541"
+       y="85.9673"
+       id="text1965"
+       sodipodi:linespacing="125%"><tspan
+         sodipodi:role="line"
+         id="tspan1967"
+         x="191.85541"
+         y="85.9673">Project hierarchy menus - select active task</tspan></text>
+    <path
+       style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="M 516.5498,45.170494 L 502.26601,98.478323"
+       id="path2883" />
+    <path
+       style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="M 144.27888,48.230255 L 164.47298,123.59565"
+       id="path2895" />
+    <path
+       style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="M 110.62151,47.210334 L 138.415,150.93703"
+       id="path2897" />
+    <path
+       style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="M 83.083665,47.720294 L 117.95072,177.84592"
+       id="path2901" />
+    <path
+       style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="M 45.856574,48.230255 L 87.371422,203.16577"
+       id="path2903" />
+    <path
+       style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="M 17.808765,47.720294 L 66.704634,230.20215"
+       id="path2905" />
+    <path
+       style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:1.15014756px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="M 162.9686,51.676846 C 168.93736,59.368256 173.95483,65.128066 183.62556,65.128066 C 210.76437,65.128066 266.42448,65.081215 323.85268,65.03233 C 326.62609,65.02997 333.24028,70.698781 333.67902,70.407387 C 336.231,68.712438 340.52295,65.018142 343.80714,65.015357 C 399.85482,64.967816 454.64178,64.923269 483.36449,64.923269 C 493.43355,64.923269 494.3968,58.726547 499.80737,51.754424"
+       id="path5711"
+       sodipodi:nodetypes="csscssc" />
+  </g>
+</svg>

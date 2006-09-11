@@ -10,7 +10,7 @@
   <mapID target="HowToInstall" url="Topics/Overview/HowToInstall.html" />
   <mapID target="GoalsOfPSPAndDashboard" url="Topics/Overview/GoalsOfPSPAndDashboard.html" />
 
-  <mapID target="QuickStartPSP1" url="Topics/Overview/QuickStartPSP1.html" />
+  <mapID target="QuickStart" url="Topics/Overview/QuickStart.html" />
   <mapID target="QSCreatingTheProject" url="Topics/Overview/QSCreatingTheProject.html" />
   <mapID target="QSPlanningTheProject" url="Topics/Overview/QSPlanningTheProject.html" />
   <mapID target="QSDesigningTheProgram" url="Topics/Overview/QSDesigningTheProgram.html" />
@@ -25,7 +25,6 @@
   <mapID target="GPL" url="Topics/Overview/gpl.html" />
   <mapID target="LGPL" url="Topics/Overview/lgpl.html" />
   <mapID target="MIT" url="Topics/Overview/License-MIT.html" />
-  <mapID target="JRegex" url="Topics/Overview/License-jregex.html" />
   <mapID target="SunBerkeley" url="Topics/Overview/License-SunBerkeley.html" />
   <mapID target="VisualNumerics" url="Topics/Overview/License-Sfun.html" />
   <mapID target="JpegEncoder" url="Topics/Overview/License-Weeks.html" />
@@ -116,6 +115,7 @@
   <mapID target="UsingTaskSchedule" url="Topics/Planning/UsingTaskSchedule.html" />
   <mapID target="TaskScheduleSteps" url="Topics/Planning/TaskScheduleSteps.html" />
   <mapID target="TaskScheduleSteps.loe" url="Topics/Planning/TaskScheduleSteps.html#loe" />
+  <mapID target="TaskScheduleDependencies" url="Topics/Planning/TaskScheduleDependencies.html" />
   <mapID target="TaskScheduleCollaboration" url="Topics/Planning/TaskScheduleCollaboration.html" />
   <mapID target="TaskScheduleCollaboration.publishPassword" url="Topics/Planning/TaskScheduleCollaboration.html#publishPassword" />
   <mapID target="TaskScheduleCollaboration.publishFinish" url="Topics/Planning/TaskScheduleCollaboration.html#publishFinish" />

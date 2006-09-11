@@ -1,72 +1,102 @@
 <HTML>
 <head>
-<TITLE>Exporting your data</TITLE>
+<TITLE>Importing and Export Data</TITLE>
 <link rel=stylesheet type="text/css" href="../../style.css">
 </head>
 <BODY>
 
 <H1>Exporting your data</H1>
-<P>Presently the dashboard provides two methods of exporting data to other 
-applications.</p>
 
-<h2>Creating an ASCII flat file</h2>
-<P>You can create an ASCII file of your data by choosing Export from the "C" 
-menu.  Doing so will bring up the following tool:</p>
+<p>The Data Export Wizard can save dashboard metrics data in a
+compressed, structured file format.  To open the Data Export Wizard,
+choose &quot;Tools&nbsp;<img src="../../Images/rarrow.png">&nbsp;Export&quot;
+from the <a href="../Execution/ConfigureMenu.html">configuration menu</a>.</p>
 
-<P><center><img src="../../Images/ExportTool-Data.png"></center></p>
+<P><center><img src="../../Images/ExportWizardStart.png"></center></p>
 
-<P><B><EM>NOTE: This tool will be replaced by a much more robust 
-import/export capability in a future version of the dashboard and is to be 
-considered a deprecated feature.</EM></B></P>
+<p>To export data, choose the "Export Project Metrics" option. The
+following page will be displayed:</p>
 
-<P>The Export tool presents the project hierarchy in a pane on the left, and 
-options to export either your process data or the hierarchy list.  The tool 
-also provides a filtering capability via the checkboxes shown to the left of 
-each of the nodes in the tree.  Nodes marked with an X will be included in 
-the export.</p>
+<P><center><img src="../../Images/ExportWizardMetrics.png"></center></p>
 
-<h3>Exporting data</h3>
-<P>If you choose to export your data, only the process nodes that have 
-actually measured data will be written to a file in the following format:</p>
+<p>This screen allows you to choose the file where data will be exported,
+and the projects in your hierarchy that should be included in the export.
+When you click "Next", data for the selected projects will be exported to
+the designated file.  This will include metrics data (e.g. the data visible
+on the plan summary form), defect data (e.g. the data visible in the defect
+log), and earned value data (if any of the selected projects are contained
+in any earned value task lists).</p>
 
-<pre>
-/complete/path/to/data/item,&lt;value&gt;
-  ...
-!Date &amp; Time!,&lt;number of minutes recorded&gt;
-  ...
-</pre>
+<p>If you would like this data to be exported automatically each time
+the dashboard shuts down, choose "Yes" on the final checkbox.  This
+will add this export operation to a permanent list of automatic
+exports.  You can view that list, and alter its contents, by choosing
+the "Manage Automatic Exports" option on the initial page of the Data
+Export Wizard.</p>
 
-<P>The data elements themselves will not be in any particular order, but the 
-time data will be in chronological order.  This format was originally 
-implemented to allow earned value tracking in an external tool and does not 
-really provide a complete dump of the data in the dashboard repository.</p>
+<P><center><img src="../../Images/ExportWizardManage.png"></center></p>
 
-<h3>Exporting the Hierarchy list</h3>
-<P>If you choose to export the hierarchy list, the entire hierarchy tree will 
-be written to a file.  The file will have the form of one entry per line in 
-the following format:</p>
+<p><b>Advanced:</b> Individuals who are interested in viewing/reusing
+the data in these exported files are free to do so; the export file is
+a simple ZIP archive with XML files inside.  Keep in mind, however,
+that this file format is subject to change in future versions of the
+dashboard.</p>
 
-<pre>/complete/path/to/data/item</pre>
+<H1>Importing data</H1>
 
-<a name="excel"></a><h2>Exporting data to Excel (PC only)</h2>
+<p>Files that have been exported by the dashboard (as described above)
+can be imported by the Data Import Wizard.  To open the Data Import Wizard,
+choose &quot;Tools&nbsp;<img src="../../Images/rarrow.png">&nbsp;Import&quot;
+from the <a href="../Execution/ConfigureMenu.html">configuration menu</a>.</p>
+
+<P><center><img src="../../Images/ImportWizardStart.png"></center></p>
+
+<p>To import data, choose the "Import Project Metrics" option.</p>
+
+<P><center><img src="../../Images/ImportWizardMetrics.png"></center></p>
+
+<p>This screen allows you to choose a directory containing files that
+should be imported.  The directory will be scanned for files previously
+exported by the dashboard (such files should have the ".pdash" suffix).
+The data in the files will be imported into the dashboard's data repository
+with the prefix chosen.</p>
+
+<p>Metrics data imported in this way will be visible to tools like
+<a href="../Planning/UsingProbeWizard.html">PROBE</a>, the
+<a href="DataChartsAndReports.html#charts">Data Analysis Center</a>, and
+<a href="../AdvancedTopics/MultipleToDateData.html">data rollup templates</a>.
+Earned value data imported in this way can be added to 
+<a href="../Planning/UsingTaskSchedule.html#createNew">earned value
+roll-ups</a>.  This provides many possibilities for rolling up data to the
+team level, and for analyzing data trends across projects.</p>
+
+<p>If you would like the data to be imported the next time the dashboard
+starts, select Yes on the final checkbox.  This will add the import
+operation to a permanent list of automatic imports. You can view that list,
+and alter its contents, by choosing the "Manage Automatic Imports" option
+on the initial page of the Data Import Wizard.</p>
+
+<P><center><img src="../../Images/ImportWizardManage.png"></center></p>
+
+<h1><a name="excel"></a>Exporting data to Excel (PC only)</h1>
 <p>Many of the reporting forms in the dashboard have links that say "Export 
 to Excel...".  When this link is clicked, an Excel sheet will come up that 
 contains the data from that form.</p>
 
 <P>There is a subtle difference between the way that this export is handled 
-in Netscape versus the way it is handled in Internet Explorer.</p>
+in Internet Explorer versus the way it is handled in other browsers.</p>
 
 <ul>
- <li><B><A NAME="static">Static export</A>:</B> In Netscape, the sheet will have static data elements that contain the 
-   values of the process variables at the instant that the export was 
-   done.</li>
- <li><B>Dynamic export:</B> In Internet Explorer, the sheet will be a linked spreadsheet.  Excel 
-   will connect to the dashboard and retrieve the data items.  Excel will 
-   typically also display a floating "External data" toolbar, which can be 
-   used to refresh the data (as long as the dashboard is still running).  By 
-   clicking the "Data Range Properties" button on this floating toolbar, 
-   Excel can be configured to refresh the data automatically whenever the 
-   spreadsheet is opened.</li>
+ <li><B><A NAME="static">Static export</A>:</B> In other browsers, the
+   sheet will have static data elements that contain the values of the
+   process variables at the instant that the export was done.</li>
+ <li><B>Dynamic export:</B> In Internet Explorer, the sheet will be a
+   linked spreadsheet.  Excel will connect to the dashboard and retrieve
+   the data items.  Excel will typically also display a floating "External
+   data" toolbar, which can be used to refresh the data (as long as the
+   dashboard is still running).  By clicking the "Data Range Properties"
+   button on this floating toolbar, Excel can be configured to refresh the
+   data automatically whenever the spreadsheet is opened.</li>
 </ul>
 
 <P>If this feature doesn't seem to be working for you, see the <A

@@ -96,6 +96,8 @@ Authors:
   <property name="resources"  value="${templates}/resources"/>
   <property name="help"       value="${templates}/help"/>
   <property name="helpsearch" value="${help}/JavaHelpSearch"/>
+  <property name="helpimgsrc" value="${help}/Images/constr"/>
+  <property name="helpimages" value="${help}/Images"/>
   <property name="libsrc"     value="${lib}/src"/>
   <property name="testsrc"    value="test/src"/>
   <property name="installer"  value="installer"/>
@@ -425,7 +427,7 @@ Authors:
   <!-- Update the JavaHelp                                                 -->
   <!-- =================================================================== -->
   <target name="javahelp"
-          depends="init,-javahelp-depend,-javahelp-index,-javahelp-book"/>
+          depends="init,-javahelp-depend,-javahelp-index,-javahelp-book,-javahelp-images"/>
 
   <!-- invoke the jhindexer -->
   <target name="-javahelp-index" depends="init,-javahelp-depend"
@@ -479,12 +481,21 @@ Authors:
     <delete file="${help}/Skeleton.html"/>
   </target>
 
+  <target name="-javahelp-images" depends="ant-tasks"
+          unless="javahelp.upToDate">
+    <svgToImage maxWidth="540" destdir="${helpimages}" verbose="true">
+      <fileset dir="${helpimgsrc}" includes="*.svg"/>
+    </svgToImage>
+  </target>
+
   <!-- check to see if help needs updating -->
   <target name="-javahelp-depend">
     <uptodate property="javahelp.upToDate" targetfile="${helpsearch}/TMAP">
       <srcfiles dir="${help}">
         <include name="**/*.html"/>
         <include name="**/*.htm"/>
+        <include name="**/*.svg"/>
+        <include name="**/constr/*.png"/>
         <include name="*.xml"/>
         <include name="PSPDash.hs"/>
         <exclude name="TOC.html"/>

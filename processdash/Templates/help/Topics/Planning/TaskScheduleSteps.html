@@ -40,7 +40,7 @@ task list.</p>
 schedule, because the schedule is basically a listing of the tasks/projects 
 in the dashboard.  However, if you remove a task in the Task &amp; Schedule 
 tool, it does <i>NOT</i> get deleted from the task hierarchy of the process 
-dashboard (as defined using the <a href="UsingHierarchyEditor">Hierarchy 
+dashboard (as defined using the <a href="UsingHierarchyEditor.html">Hierarchy 
 Editor</a>).  All you will have done is removed the task from the schedule, 
 not deleted it entirely from the dashboard.  Deletion of tasks or projects 
 from the dashboard itself must be done from the 
@@ -59,19 +59,19 @@ its children.  You can highlight any pruned task (including children
 of a pruned task) and click the Restore Task button to add it back to
 the task list.</p>
 
-<p>The planned completion dates displayed in the task list are based
-upon the order you plan to complete the tasks.  It is unlikely that
-you plan to complete the tasks in the order they appear in the
-hierarchy.  Therefore, there are two ways to indicate the planned
-order of tasks.  First, you can change the relative order of top-level
-tasks by highlighting them and using the Move Task Up/Down buttons.
-For more fine-grained control, check the Flat View checkbox.  This
-will replace the hierarchical view of the task list with a flat view
-of the &quot;leaf&quot; tasks that have not yet been completed.  You
-can then use the Move Task Up/Down buttons to reorder these tasks.
-You should generally try to put the tasks in chronological order (the
-first task in the list should be the one you plan to work on first,
-and so on).</p>
+<p><A NAME="flatView"></A>The planned completion dates displayed in
+the task list are based upon the order you plan to complete the tasks.
+It is unlikely that you plan to complete the tasks in the order they
+appear in the hierarchy.  Therefore, there are two ways to indicate
+the planned order of tasks.  First, you can change the relative order
+of top-level tasks by highlighting them and using the Move Task
+Up/Down buttons.  For more fine-grained control, check the Flat View
+checkbox.  This will replace the hierarchical view of the task list
+with a flat view of the &quot;leaf&quot; tasks that have not yet been
+completed.  You can then use the Move Task Up/Down buttons to reorder
+these tasks.  You should generally try to put the tasks in
+chronological order (the first task in the list should be the one you
+plan to work on first, and so on).</p>
 
 <H2>Step 2: Estimate task time </H2>
 
@@ -147,17 +147,6 @@ template are rows that you have manually created/edited, and the gray rows
 are the ones which have been automatically added to meet the time 
 requirements.</p>
 
-<p>If you have any &quot;level of effort&quot; tasks in your task
-list, you'll notice that there are two planned time columns - one for
-total planned time, and one for planned &quot;direct&quot time.  Once
-you enter how much total time you plan to spend in a period, it will
-automatically subtract out time for the level of effort tasks, and
-display the remaining time in the &quot;PDT&quot; column.  As your
-schedule progresses, you'll also be able to see how much time you're
-spending on these &quot;indirect&quot; tasks by looking in the
-&quot;%I&quot; column.</p>
-
-
 <p><center><img src="../../Images/TaskScheduleTimes.png"></center></p>
 
 <p><A NAME="shortSchedule"></A>You can disable this automatic schedule 
@@ -186,6 +175,16 @@ period with the one that follows it. Note that it isn't possible to delete
 an automatically generated row. If you want to to force your schedule to 
 end early, you should do so by entering 0 planned hours for the final time 
 period, as described <A HREF="#shortSchedule">above</A>.</P> 
+
+<p>If you have any &quot;level of effort&quot; tasks in your task
+list, you'll notice that there are two planned time columns - one for
+total planned time, and one for planned &quot;direct&quot time.  Once
+you enter how much total time you plan to spend in a period, it will
+automatically subtract out time for the level of effort tasks, and
+display the remaining time in the &quot;PDT&quot; column.  As your
+schedule progresses, you'll also be able to see how much time you're
+spending on these &quot;indirect&quot; tasks by looking in the
+&quot;%I&quot; column.</p>
 
 <a name="progress"></a><H2>Step 4: Track your progress</H2>
 

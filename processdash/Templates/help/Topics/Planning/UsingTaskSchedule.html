@@ -19,21 +19,33 @@ value. You can open the task and schedule tool by selecting the
 help topic.</p>
 
 <P>If you haven't created any schedules, the dashboard will immediately
-jump to the Create New Schedule dialog which will allow you to create one. 
-If you have already created at least one schedule, a Task &amp; Schedule
-chooser window will appear.</P>
+jump to the <a href="#createNew">Create New Schedule</a> dialog which will
+allow you to create one.  If you have already created at least one
+schedule, a Task &amp; Schedule chooser window will appear.</P>
 
 <p><center><img src="../../Images/TaskScheduleChooser.png"></center></p>
 
 <p>This window displays all the schedules you have created. After you click
 on a schedule to highlight it, you can use the buttons along the bottom to
-open it, rename it, or delete it. The Cancel button will close this window.</p>
+rename it, delete it, or open it for editing.  The Report button will show
+you the detailed status for the schedule in your web browser.</p>
 
-<p>Clicking the New button will create a new schedule. The dashboard will ask 
-you to enter a name for the new schedule.  This allows you to track different 
-schedules from within the dashboard. When a new schedule is first created, an 
-empty Task &amp; Schedule window will appear prompting you for the first task 
-you want to add to the schedule.</p> 
+<p><a name="createNew"></a>Clicking the New button will create a new
+schedule. The dashboard will ask you to enter a name for the new schedule.
+This allows you to track different schedules from within the dashboard;
+each schedule must have a unique name.</p>
+
+<p><center><img src="../../Images/NewTaskSchedulePrompt.png"></center></p>
+
+<p>In addition to choosing a schedule name, you can indicate whether you
+want to create a regular schedule (for tracking your own work), or an EV
+Roll-up (for combining data from several schedules into a single report).
+Most of the time, you will just want to create a regular schedule, so
+you can just keep the default selection for this item and click OK.</p>
+
+<p>When a new schedule is first created, an empty Task &amp; Schedule
+window will appear prompting you for the first task you want to add to the
+schedule.</p>
 
 <p><center><img src="../../Images/AddTaskToSchedule.png"></center></p>
 
@@ -60,6 +72,11 @@ with the various columns in the task and schedule planning templates, you can
 hover the pointer over the column headings and a tool tip will tell you what 
 the abbreviated heading stands for.</p>
 
+<p>If you edit the schedule or the list of tasks, you will need to click the 
+Save button to save your changes. If you edit yellow-background values in the 
+task list, however, those changes will be saved transparently; pressing the 
+save button is not necessary.</p>
+
 <h2>Columns in the Task List</h2>
 
 <P>While this help topic won't get into all the details of earned value 
@@ -84,6 +101,25 @@ half of the Task &amp; Schedule tool to determine an ending date.</p>
 <p><b>Date:</b> This is the actual completion date.  It will be filled in 
 automatically when you mark the task complete via the <a 
 href="../Execution/CompletionButton.html">Completion Button</a>.</p>
+
+<p><b>Dep:</b> This column displays information about 
+<a href="TaskScheduleDependencies.html">task dependencies</a>.
+If a task has no dependencies, nothing will be displayed.  If the task
+depends on at least one other task which has not yet been completed, a
+"stop sign" icon will be displayed, indicating that work cannot proceed
+until the predecessor has been completed.  Once all predecessors have been
+marked complete, the icon will change to a green checkmark.</p>
+
+<p>To edit the list of dependencies for a task, double-click on a cell in
+this column, and follow the instructions.  Generally, this approach is
+unnecessary, because most projects will choose to define dependencies at
+the team level.  In that scenario, the dependency information will be
+copied from the team plan automatically, and you won't need to edit the
+information here.</p>
+
+<p>This column will also display an icon for "reverse dependencies."  If
+other individuals are waiting for you to complete a task, this column
+will display an indicator to that effect.</p>
 
 <p><b>Percent Complete (%C):</b> This is the percent complete for the
 current task.  Many people are accustomed to informally estimating
@@ -229,21 +265,6 @@ spent on &quot;level of effort&quot; tasks to show how much time you
 spent on tasks that earn value.</p>
 
 </td></tr></table>
-
-<H2>The Save Button</H2>
-
-<p>If you edit the schedule or the list of tasks, you will need to click the 
-Save button to save your changes. If you edit yellow-background values in the 
-task list, however, those changes will be saved transparently; pressing the 
-save button is not necessary.</p>
-
-<H2>The Collaborate Button</H2>
-
-<p>The Collaborate button provides access to the 
-<a href="TaskScheduleCollaboration.html">task &amp; schedule collaboration
-features</a> of the dashboard.
-
-<HR>
 
 <H2>Potential mistakes</H2>
 

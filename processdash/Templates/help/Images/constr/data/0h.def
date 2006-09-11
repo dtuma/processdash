@@ -1,0 +1,5 @@
+1	Syntax	Code	Compile	1.0	 	missing semicolon	04/23/2003	
+2	Syntax	Code	Compile	1.0	 	missing semicolon	01/01/2003
+3	Syntax	Code	Compile	1.0	 	missing semicolon	01/01/2003
+4	Syntax	Code	Compile	1.0	 	missing semicolon	01/01/2003
+5	Interface	Design	Test	5.0	 	The implementation of the float_io package I am using requires that numbers I type on the input stream include decimal points (e.g. 0.0 not 0)	01/01/2003

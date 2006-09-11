@@ -9,20 +9,22 @@
 
 <P>Now that the project exists, we can start the planning of our work.  The 
 PSP provides scripts for planning, development, postmortem work, etc., so 
-let's go look at the planning script for our new PSP1.1 project.  This is done 
-by selecting our newly created project via the hierarchy menus (the dashboard 
+let's go look at the planning script for our new PSP2.1 project.  This is done 
+by selecting our newly created project via the 
+<a href="../Execution/HierarchyMenus.html">hierarchy menus</a> (the dashboard 
 will automatically select the planning phase -- the first development phase 
-of a PSP1.1 project), then clicking the scripts button.  We should also click 
-the play button on the dashboard to start timing our planning activities.  
-When the play button is pressed, a quiet "clicking" sound will be heard.  
-This sound will be heard anytime the dashboard switches phases of activity 
-while the clock is running.</p>
+of a PSP2.1 project), then clicking the scripts button.  We should also click 
+the <a href="../Execution/PlayPause.html">play button</a> on the dashboard to
+start timing our planning activities.  When the play button is
+pressed, a quiet "clicking" sound will be heard.  This sound will be
+heard anytime the dashboard switches phases of activity while the
+clock is running.</p>
 
 <P align="center"><img src="../../Images/QSChoosingPlanning.png"></p>
 
-<P>The dashboard responds by bringing up the PSP1.1 planning script in a web 
+<P>The dashboard responds by bringing up the PSP2.1 planning script in a web 
 browser.  Reading through the script, we see that once we understand the 
-requirements for program 5A, we need to do a size estimate.  To guide our 
+requirements for this program, we need to do a size estimate.  To guide our 
 estimation, we can use the PROBE method.  Following the <U>PROBE method</u> 
 link on the planning script brings up the PROBE Estimating Script.</p>
 
@@ -42,25 +44,26 @@ Template</a> help topic.</p>
 
 <P>The Size Estimating Template Instructions direct us to count the base LOC 
 and enter it at entry B if this is an enhancement of a previous program.  
-Program 5A is a new program, so the whole base program LOC and base additions 
-sections don't apply.  We will leave those entries with their default values 
-of 0.</p>
+We're modifying an existing program, so we use the
+<a href="../PostmortemAnalysis/LOCCounter.html">LOC counter</a> to measure
+the size of the components we plan to modify, and enter that number in this
+field.</p>
 
-<P>New objects will be a place for most of our estimating.  The student who 
-produced the data used for this example estimated that 5 new objects would be 
-created.  Their types, number of methods, and LOC estimates are entered under 
-the new objects section of the form.  The "add more rows for new objects" 
+<P>Base Additions and New objects will be the places for most of our
+estimating.  Based on our conceptual design, we enter several lines
+describing the work we plan to do.  For each item, we estimate the type,
+number of methods, and LOC estimates.  The "add more rows for new objects"
 link will expand the form with more entries if chosen.</p>
 
-<P>The student who worked this problem did not have any entries for the 
-reused objects section of the form, so we will skip that section as well.</P>
+<P>We don't anticipate reusing any code, so we will skip that section.</P>
 
 <P>Moving on to the size calculation, we need to calculate the estimated new 
 &amp; changed LOC using PROBE. There are at least two ways to do this: with
 the PROBE Wizard or with the PROBE tool. (The PROBE Wizard automates
 the standard PSP PROBE process, and is simpler to use; the PROBE tool is
 more complex to use but provides more power for custom statistical
-analyses). For this example, we will use the PROBE Wizard. After you
+analyses.)  Most people will want to use the PROBE Wizard for all their
+planning needs, so we will use the wizard for this example.  After you
 complete the top portion of the Size Estimating Template, you can launch
 the PROBE wizard by clicking on the hyperlink halfway down the page.</P>
 
@@ -98,7 +101,7 @@ assures us that the timer is still running.</p>
 <P>Next step: <a href="QSDesigningTheProgram.html">Designing the program</A></P>
 
 <P>Jump to step:<BR>
- &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="QuickStartPSP1.html">START</a><BR>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="QuickStart.html">START</a><BR>
  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="QSCreatingTheProject.html">1. Creating the project</a><BR>
  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="QSPlanningTheProject.html">2. Planning the project</a><BR>
  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="QSDesigningTheProgram.html">3. Designing the program</a><BR>

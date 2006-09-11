@@ -1,0 +1,110 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<timeLogEntries>
+  <time id="1" path="/Non Project/Historical Data/Program 1/Planning" start="@1041447601000" delta="20" />
+  <time id="2" path="/Non Project/Historical Data/Program 1/Design" start="@1041447602000" delta="25" />
+  <time id="3" path="/Non Project/Historical Data/Program 1/Code" start="@1041447603000" delta="265" />
+  <time id="4" path="/Non Project/Historical Data/Program 1/Compile" start="@1041447604000" delta="30" />
+  <time id="5" path="/Non Project/Historical Data/Program 1/Test" start="@1041447605000" delta="75" />
+  <time id="6" path="/Non Project/Historical Data/Program 1/Postmortem" start="@1041447606000" delta="40" />
+  <time id="7" path="/Non Project/Historical Data/Program 2/Planning" start="@1041447607000" delta="5" />
+  <time id="8" path="/Non Project/Historical Data/Program 2/Design" start="@1041447608000" delta="10" />
+  <time id="9" path="/Non Project/Historical Data/Program 2/Code" start="@1041447609000" delta="130" />
+  <time id="10" path="/Non Project/Historical Data/Program 2/Compile" start="@1041447610000" delta="5" />
+  <time id="11" path="/Non Project/Historical Data/Program 2/Test" start="@1041447611000" delta="25" />
+  <time id="12" path="/Non Project/Historical Data/Program 2/Postmortem" start="@1041447612000" delta="45" />
+  <time id="13" path="/Non Project/Historical Data/Program 3/Planning" start="@1041447613000" delta="20" />
+  <time id="14" path="/Non Project/Historical Data/Program 3/Design" start="@1041447614000" delta="15" />
+  <time id="15" path="/Non Project/Historical Data/Program 3/Code" start="@1041447615000" delta="185" />
+  <time id="16" path="/Non Project/Historical Data/Program 3/Compile" start="@1041447616000" delta="15" />
+  <time id="17" path="/Non Project/Historical Data/Program 3/Test" start="@1041447617000" delta="50" />
+  <time id="18" path="/Non Project/Historical Data/Program 3/Postmortem" start="@1041447618000" delta="35" />
+  <time id="19" path="/Non Project/Historical Data/Program 4/Planning" start="@1041447619000" delta="90" />
+  <time id="20" path="/Non Project/Historical Data/Program 4/Design" start="@1041447620000" />
+  <time id="21" path="/Non Project/Historical Data/Program 4/Code" start="@1041447621000" delta="130" />
+  <time id="22" path="/Non Project/Historical Data/Program 4/Compile" start="@1041447622000" delta="30" />
+  <time id="23" path="/Non Project/Historical Data/Program 4/Test" start="@1041447623000" delta="115" />
+  <time id="24" path="/Non Project/Historical Data/Program 4/Postmortem" start="@1041447624000" delta="35" />
+  <time id="25" path="/Non Project/Historical Data/Program 5/Planning" start="@1041447625000" delta="55" />
+  <time id="26" path="/Non Project/Historical Data/Program 5/Design" start="@1041447626000" delta="15" />
+  <time id="27" path="/Non Project/Historical Data/Program 5/Code" start="@1041447627000" delta="160" />
+  <time id="28" path="/Non Project/Historical Data/Program 5/Compile" start="@1041447628000" delta="35" />
+  <time id="29" path="/Non Project/Historical Data/Program 5/Test" start="@1041447629000" delta="20" />
+  <time id="30" path="/Non Project/Historical Data/Program 5/Postmortem" start="@1041447630000" delta="30" />
+  <time id="31" path="/Non Project/Historical Data/Program 6/Planning" start="@1041447631000" delta="120" />
+  <time id="32" path="/Non Project/Historical Data/Program 6/Design" start="@1041447632000" delta="15" />
+  <time id="33" path="/Non Project/Historical Data/Program 6/Code" start="@1041447633000" delta="350" />
+  <time id="34" path="/Non Project/Historical Data/Program 6/Compile" start="@1041447634000" delta="45" />
+  <time id="35" path="/Non Project/Historical Data/Program 6/Test" start="@1041447635000" delta="110" />
+  <time id="36" path="/Non Project/Historical Data/Program 6/Postmortem" start="@1041447636000" delta="45" />
+  <time id="37" path="/Non Project/Historical Data/Program 7/Planning" start="@1041447637000" delta="250" />
+  <time id="38" path="/Non Project/Historical Data/Program 7/Design" start="@1041447638000" delta="55" />
+  <time id="39" path="/Non Project/Historical Data/Program 7/Design Review" start="@1041447639000" delta="10" />
+  <time id="40" path="/Non Project/Historical Data/Program 7/Code" start="@1041447640000" delta="140" />
+  <time id="41" path="/Non Project/Historical Data/Program 7/Code" start="@1041447641000" delta="140" />
+  <time id="42" path="/Non Project/Historical Data/Program 7/Code Review" start="@1041447642000" delta="105" />
+  <time id="43" path="/Non Project/Historical Data/Program 7/Compile" start="@1041447643000" delta="45" />
+  <time id="44" path="/Non Project/Historical Data/Program 7/Test" start="@1041447644000" delta="65" />
+  <time id="45" path="/Non Project/Historical Data/Program 7/Postmortem" start="@1041447645000" delta="65" />
+  <time id="46" path="/Non Project/Historical Data/Program 8/Planning" start="@1041447646000" delta="175" />
+  <time id="47" path="/Non Project/Historical Data/Program 8/Design" start="@1041447647000" delta="60" />
+  <time id="48" path="/Non Project/Historical Data/Program 8/Design Review" start="@1041447648000" delta="5" />
+  <time id="49" path="/Non Project/Historical Data/Program 8/Code" start="@1041447649000" delta="170" />
+  <time id="50" path="/Non Project/Historical Data/Program 8/Code Review" start="@1041447650000" delta="40" />
+  <time id="51" path="/Non Project/Historical Data/Program 8/Compile" start="@1041447651000" delta="15" />
+  <time id="52" path="/Non Project/Historical Data/Program 8/Test" start="@1041447652000" delta="60" />
+  <time id="53" path="/Non Project/Historical Data/Program 8/Postmortem" start="@1041447653000" delta="55" />
+  <time id="54" path="/Non Project/Historical Data/Program 9/Planning" start="@1041447654000" delta="80" />
+  <time id="55" path="/Non Project/Historical Data/Program 9/Design" start="@1041447655000" delta="95" />
+  <time id="56" path="/Non Project/Historical Data/Program 9/Design Review" start="@1041447656000" delta="25" />
+  <time id="57" path="/Non Project/Historical Data/Program 9/Code" start="@1041447657000" delta="245" />
+  <time id="58" path="/Non Project/Historical Data/Program 9/Code Review" start="@1041447658000" delta="65" />
+  <time id="59" path="/Non Project/Historical Data/Program 9/Compile" start="@1041447659000" delta="10" />
+  <time id="60" path="/Non Project/Historical Data/Program 9/Test" start="@1041447661000" delta="350" />
+  <time id="61" path="/Non Project/Historical Data/Program 9/Postmortem" start="@1041447662000" delta="30" />
+  <time id="62" path="/Non Project/Historical Data/Program 10/Planning" start="@1041447663000" delta="365" />
+  <time id="63" path="/Non Project/Historical Data/Program 10/Design" start="@1041447664000" delta="125" />
+  <time id="64" path="/Non Project/Historical Data/Program 10/Design Review" start="@1041447665000" delta="5" />
+  <time id="65" path="/Non Project/Historical Data/Program 10/Design" start="@1041447666000" delta="25" />
+  <time id="66" path="/Non Project/Historical Data/Program 10/Design Review" start="@1041447667000" delta="10" />
+  <time id="67" path="/Non Project/Historical Data/Program 10/Code" start="@1041447668000" delta="235" />
+  <time id="68" path="/Non Project/Historical Data/Program 10/Compile" start="@1041447669000" delta="150" />
+  <time id="69" path="/Non Project/Historical Data/Program 10/Test" start="@1041447670000" delta="75" />
+  <time id="70" path="/Non Project/Historical Data/Program 10/Code Review" start="@1041447671000" delta="30" />
+  <time id="71" path="/Non Project/Historical Data/Program 10/Design" start="@1041447672000" delta="5" />
+  <time id="72" path="/Non Project/Historical Data/Program 10/Design Review" start="@1041447673000" delta="5" />
+  <time id="73" path="/Non Project/Historical Data/Program 10/Code" start="@1041447674000" delta="145" />
+  <time id="74" path="/Non Project/Historical Data/Program 10/Compile" start="@1041447675000" delta="15" />
+  <time id="75" path="/Non Project/Historical Data/Program 10/Code" start="@1041447676000" delta="150" />
+  <time id="76" path="/Non Project/Historical Data/Program 10/Code Review" start="@1041447677000" delta="5" />
+  <time id="77" path="/Non Project/Historical Data/Program 10/Compile" start="@1041447678000" delta="10" />
+  <time id="78" path="/Non Project/Historical Data/Program 10/Code" start="@1041447679000" delta="65" />
+  <time id="79" path="/Non Project/Historical Data/Program 10/Code Review" start="@1041447680000" delta="5" />
+  <time id="80" path="/Non Project/Historical Data/Program 10/Compile" start="@1041447681000" delta="10" />
+  <time id="81" path="/Non Project/Historical Data/Program 10/Test" start="@1041447682000" delta="155" />
+  <time id="82" path="/Non Project/Historical Data/Program 10/Postmortem" start="@1041447683000" delta="40" />
+  <time id="83" path="/Project/My Project/Planning" start="@1136473200000" delta="492" />
+  <time id="84" path="/Project/My Project/Requirements/Component A" start="@1136594815000" delta="313" />
+  <time id="85" path="/Project/My Project/Requirements/Component A" start="@1136854015000" delta="421" />
+  <time id="86" path="/Project/My Project/Requirements/Component B" start="@1136940415000" delta="180" />
+  <time id="87" path="/Project/My Project/Requirements/Component B" start="@1137458815000" delta="180" />
+  <time id="88" path="/Project/My Project/Requirements/Component C" start="@1137545215000" delta="480" />
+  <time id="89" path="/Project/My Project/Requirements/Component C" start="@1138063615000" delta="480" />
+  <time id="90" path="/Project/My Project/Requirements/Component D" start="@1138150015000" delta="480" />
+  <time id="91" path="/Project/My Project/Requirements/Component D" start="@1138668415000" delta="60" />
+  <time id="92" path="/Project/My Project/Architectural Design/Draft" start="@1138843128000" delta="492" />
+  <time id="93" path="/Project/My Project/Prototype/Component A" start="@1139016119000" delta="252" />
+  <time id="94" path="/Project/My Project/Prototype/Component A" start="@1139275319000" delta="281" />
+  <time id="95" path="/Project/My Project/Prototype/Component B" start="@1139361719000" delta="521" />
+  <time id="96" path="/Project/My Project/Prototype/Component B" start="@1139880119000" delta="71" />
+  <time id="97" path="/Project/My Project/Prototype/Component C" start="@1139966519000" delta="433" />
+  <time id="98" path="/Project/Legacy/Product 1/SCR 42/Planning" start="@1157820815625" delta="121" />
+  <time id="99" path="/Project/Legacy/Product 1/SCR 42/Design" start="@1157821289156" delta="191" />
+  <time id="100" path="/Project/Legacy/Product 1/SCR 42/Design Review" start="@1157821655562" delta="91" />
+  <time id="102" path="/Project/Legacy/Product 1/SCR 42/Code" start="@1157825543781" delta="361" />
+  <time id="103" path="/Project/Legacy/Product 1/SCR 42/Code Review" start="@1157825554718" delta="120" />
+  <time id="104" path="/Project/Legacy/Product 1/SCR 42/Compile" start="@1157825564062" delta="37" />
+  <time id="105" path="/Project/Legacy/Product 1/SCR 42/Test" start="@1157825578718" delta="201" />
+  <time id="106" path="/Project/Legacy/Product 1/SCR 42/Postmortem" start="@1157825606484" delta="23" />
+  <time id="107" path="/Project/Web Project/new" start="@1157935950703" delta="3252" />
+  <time id="108" path="/Project/SOA Project/new" start="@1157935962218" delta="2239" />
+</timeLogEntries>

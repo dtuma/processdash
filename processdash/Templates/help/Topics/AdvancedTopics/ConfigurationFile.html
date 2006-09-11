@@ -28,27 +28,6 @@ the # character.</p>
 <P>The settings available in this file and their usage are listed below:</P>
 
 <ul>
- <li><a name="autoRealization"></a><strong>autoRealization</strong><br>
-   Policy for auto-realization of data. To save time and memory, formulas are 
-   not immediately calculated when the dashboard opens.  Instead, they are 
-   calculated (realized) at some later time.  This realization always occurs 
-   automatically when their value must be displayed for the first time on a 
-   chart, form, or report.  In addition, a background process runs when the 
-   the dashboard starts, and slowly calculates formulas.  If this setting has 
-   the value "full", all data will be automatically realized by this 
-   background process.  If this setting has the value "min", only global 
-   (e.g. "To Date") data is auto-realized. If this setting has the value 
-   "none", no data will be auto-realized.  If you are on a slow computer, and 
-   you notice irritating delays the first time you view a chart, form, or 
-   report, try using the "full" option.  If you experience irritating delays 
-   when saving edits to the hierarchy, try using the "min" or "none" options.<br>
-   <table border=0>
-    <tr valign="top"><td NOWRAP>Format:</td><td><i>full</i>, <i>min</i>, or <i>none</i></td></tr>
-    <tr valign="top"><td NOWRAP>Default:</td><td><i>min</i></td></tr>
-    <tr valign="top"><td NOWRAP>Example:</td><td>autoRealization=full</td></tr>
-   </table>
- </li>
- <br>
 
  <li><a name="autoUpdate"></a><strong>autoUpdate.disabled</strong><br>
    If this property is set to "true", the dashboard will not automatically 
@@ -109,18 +88,6 @@ the # character.</p>
     <tr valign="top"><td NOWRAP>Examples:</td><td>browser.command=/usr/bin/netscape<br>
       browser.command=C:\\Program Files\\Netscape\\Communicator\\Program\\netscape.exe<br>
       browser.command=C:\\Program Files\\Internet Explorer\\iexplore.exe</td></tr>
-   </table>
- </li>
- <br>
-
- <li><strong>browser.readonly.color</strong><br>
-   In Internet Explorer, read-only data elements on forms will be flagged 
-   with this background color.<br>
-   <table border=0>
-    <tr valign="top"><td NOWRAP>Format:</td><td>text</td></tr>
-    <tr valign="top"><td NOWRAP>Default:</td><td>grey</td></tr>
-    <tr valign="top"><td NOWRAP>Examples:</td><td>browser.readonly.color=blue<br>
-          browser.readonly.color=#ffff00</td></tr>
    </table>
  </li>
  <br>

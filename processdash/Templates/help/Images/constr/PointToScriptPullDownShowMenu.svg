@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://web.resource.org/cc/"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="514"
+   height="254"
+   id="svg15504"
+   sodipodi:version="0.32"
+   inkscape:version="0.44"
+   version="1.0"
+   sodipodi:docbase="C:\Tuma\projects\processdash\Templates\help\Images\constr"
+   sodipodi:docname="PointToScriptPullDownShowMenu.svg">
+  <defs
+     id="defs15506" />
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     gridtolerance="10000"
+     guidetolerance="10"
+     objecttolerance="10"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="1.507412"
+     inkscape:cx="257"
+     inkscape:cy="124.61954"
+     inkscape:document-units="px"
+     inkscape:current-layer="layer1"
+     height="254px"
+     width="514px"
+     inkscape:window-width="853"
+     inkscape:window-height="573"
+     inkscape:window-x="463"
+     inkscape:window-y="377" />
+  <metadata
+     id="metadata15509">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <image
+       y="2"
+       x="2"
+       id="image15552"
+       height="226"
+       width="510"
+       sodipodi:absref="c:\Tuma\projects\processdash\Templates\help\Images\constr\PointToScriptPullDownShowMenu.png"
+       xlink:href="PointToScriptPullDownShowMenu.png" />
+    <text
+       xml:space="preserve"
+       style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
+       x="15.999999"
+       y="248.13995"
+       id="text15555"
+       sodipodi:linespacing="125%"><tspan
+         sodipodi:role="line"
+         id="tspan15557"
+         x="15.999999"
+         y="248.13995">Scripts button pull-down tab</tspan></text>
+    <path
+       id="path16482"
+       d="M 123.33333,43.473294 L 33.333333,235.69552"
+       style="fill:none;fill-rule:evenodd;stroke:white;stroke-width:4;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
+    <path
+       style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:2;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="M 123.33333,43.473294 L 33.333333,235.69552"
+       id="path15559" />
+  </g>
+</svg>
