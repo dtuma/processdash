@@ -146,13 +146,14 @@ public class WBSClipSelection implements Transferable, ClipboardOwner {
                 WBSNode node = (WBSNode) prototype.clone();
                 node.setReadOnly(false);
                 node.setName(m.group(2));
+                node.setType(WBSNode.UNKNOWN_TYPE);
+                int indent = Math.max(1, node.getIndentLevel());
                 if (m.group(1) != null && m.group(1).length() > 0) {
                     Matcher mi = INDENT_PATTERN.matcher(m.group(1));
-                    int indent = node.getIndentLevel();
                     while (mi.find())
                         indent++;
-                    node.setIndentLevel(indent);
                 }
+                node.setIndentLevel(indent);
                 result.add(node);
             }
             return result;
