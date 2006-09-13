@@ -53,14 +53,21 @@
 BODY { color: black; background-color: white }
 .hideInBook { display: none }
 .sepnotice { display: none }
+@media print {
+  h1, h2, h3, h4, h5, h6 { page-break-after: avoid }
+  h1, h2 { page-break-before: always }
+  p { text-align: justify }
+  .doNotPrint { display: none }
+}
 </STYLE>
 </HEAD>
 <BODY>
-<H1 NO_NUMBER="true">Process Dashboard Users Manual</H1>
+<H1 NO_NUMBER="true" style="page-break-before:avoid">Process Dashboard
+     Users Manual</H1>
 <p align="center" class="unlesspsp">
 <a href="Topics/Overview/Separation.html"><img src="Images/PSPDisclaimer.png" border="0" /></a>
 </p>
-<H2 NO_NUMBER="true">Table of Contents</H2>
+<H2 NO_NUMBER="true" style="page-break-before:avoid">Table of Contents</H2>
 TABLE_OF_CONTENTS
 
 <xsl:apply-templates select="toc/tocitem/tocitem" />
@@ -81,7 +88,7 @@ TABLE_OF_CONTENTS
 
 
 <xsl:if test="$depth = 1">
-    <HR />
+    <hr class="doNotPrint" />
 </xsl:if>
 <A demoteTo="{$depth}" HREF="{$targetHref}" CLASS="includeDoc">
 <xsl:value-of select="@text"/>

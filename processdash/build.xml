@@ -483,7 +483,8 @@ Authors:
 
   <target name="-javahelp-images" depends="ant-tasks"
           unless="javahelp.upToDate">
-    <svgToImage maxWidth="540" destdir="${helpimages}" verbose="true">
+    <svgToImage maxWidth="540" bg="#ffffff" verbose="true"
+                destdir="${helpimages}">
       <fileset dir="${helpimgsrc}" includes="*.svg"/>
     </svgToImage>
   </target>
