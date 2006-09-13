@@ -8,20 +8,20 @@
             <file targetdir="$INSTALL_PATH" override="true" 
 	          src="${teamdash.dir}/TeamTools.jar"/>
 
-            <file targetdir="$DATA_PATH/teaminstance" override="true"
+            <file targetdir="$TEAM_DATA_PATH" override="true"
                   src="${teamdash.dir}/install/teamicon.ico"/>
-            <file targetdir="$DATA_PATH/teaminstance" override="true"
+            <file targetdir="$TEAM_DATA_PATH" override="true"
                   src="${teamdash.dir}/install/icon32.gif"/>
 
-            <file targetdir="$DATA_PATH/teaminstance" override="false"
+            <file targetdir="$TEAM_DATA_PATH" override="false"
                   src="${teamdash.dir}/install/pspdash.ini" os="windows"/>
-            <file targetdir="$DATA_PATH/teaminstance" override="false"
+            <file targetdir="$TEAM_DATA_PATH" override="false"
                   src="${teamdash.dir}/install/.pspdash" os="unix"/>
 
-            <file targetdir="$DATA_PATH/teaminstance" override="false"
+            <file targetdir="$TEAM_DATA_PATH" override="false"
                   src="${teamdash.dir}/install/run-dash.sh"/>
-            <parsable targetfile="$DATA_PATH/teaminstance/run-dash.sh"/>
-            <executable targetfile="$DATA_PATH/teaminstance/run-dash.sh"
+            <parsable targetfile="$TEAM_DATA_PATH/run-dash.sh"/>
+            <executable targetfile="$TEAM_DATA_PATH/run-dash.sh"
 	          stage="never">
 	        <os family="unix"/>
 	    </executable>
