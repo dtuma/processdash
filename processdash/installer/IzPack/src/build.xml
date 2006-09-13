@@ -459,6 +459,10 @@
             <param name="panel-dir" value="DataDirPanel"/>
         </antcall>
         <antcall target="compile.panel.simple">
+            <param name="panel" value="TeamDataDirPanel"/>
+            <param name="panel-dir" value="TeamDataDirPanel"/>
+        </antcall>
+        <antcall target="compile.panel.simple">
             <param name="panel" value="ShutdownDashboardPanel"/>
             <param name="panel-dir" value="ShutdownDashboardPanel"/>
         </antcall>

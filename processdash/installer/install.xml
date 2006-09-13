@@ -48,8 +48,9 @@
         <panel classname="HTMLInfoPanel"/>
         <panel classname="HTMLLicencePanel"/>
         <panel classname="TargetPanel"/>
-        <panel classname="DataDirPanel"/>
         <panel classname="PacksPanel"/>
+        <panel classname="DataDirPanel"/>
+        <panel classname="TeamDataDirPanel"/>
         <panel classname="CondHTMLLicencePanel"/>
         <panel classname="CondHTMLLicencePanel"/>
         <panel classname="ShutdownDashboardPanel"/>
