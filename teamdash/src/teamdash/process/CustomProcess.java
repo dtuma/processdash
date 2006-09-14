@@ -95,7 +95,7 @@ public class CustomProcess {
     }
 
 
-    protected String processName, processVersion, generatorScript;
+    protected String processName, processAbbr, processVersion, generatorScript;
     Map itemLists = new TreeMap();
     public static final String SETTINGS_FILENAME = "settings.xml";
 
@@ -126,6 +126,7 @@ public class CustomProcess {
     /** Load a custom process from an xml settings file */
     public CustomProcess(Element root) throws IOException {
         processName = root.getAttribute(NAME);
+        processAbbr = root.getAttribute("abbr");
         processVersion = root.getAttribute("version");
         generatorScript = root.getAttribute("generator");
         if (!XMLUtils.hasValue(processName) ||
@@ -206,7 +207,10 @@ public class CustomProcess {
 
     String getProcessID() {
         StringBuffer result = new StringBuffer();
-        result.append(makeUltraSafe(processName));
+        if (XMLUtils.hasValue(processAbbr))
+            result.append(makeUltraSafe(processAbbr));
+        else
+            result.append(makeUltraSafe(processName));
         if (processVersion.length() > 0)
             result.append("-v").append(makeUltraSafe(processVersion));
         return result.toString();
@@ -220,6 +224,10 @@ public class CustomProcess {
         out.write("<?xml version='1.0' encoding='UTF-8'?>\n");
         out.write("<custom-process name='");
         out.write(XMLUtils.escapeAttribute(processName));
+        if (XMLUtils.hasValue(processAbbr)) {
+            out.write("' abbr='");
+            out.write(XMLUtils.escapeAttribute(processAbbr));
+        }
         out.write("' version='");
         out.write(XMLUtils.escapeAttribute(processVersion));
         out.write("' generator='");
