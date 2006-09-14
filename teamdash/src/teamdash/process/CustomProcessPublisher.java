@@ -72,6 +72,7 @@ public class CustomProcessPublisher {
 
         CustomProcessPublisher pub = new CustomProcessPublisher(webServer,
                 extBase);
+        pub.setHeadless(true);
         pub.publish(process, output);
         pub.close();
     }
