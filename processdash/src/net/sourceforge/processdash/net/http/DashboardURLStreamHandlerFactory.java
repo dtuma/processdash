@@ -36,16 +36,22 @@ public class DashboardURLStreamHandlerFactory extends URLStreamHandler
     implements URLStreamHandlerFactory
 {
     private static DashboardURLStreamHandlerFactory INSTANCE = null;
+    private static boolean disabled = false;
 
-    public static void initialize(WebServer webServer) {
-        if (INSTANCE == null) {
-            INSTANCE = new DashboardURLStreamHandlerFactory(webServer);
-            URL.setURLStreamHandlerFactory(INSTANCE);
-        } else {
-            INSTANCE.setWebServer(webServer);
-        }
+    public static void disable() {
+        disabled = true;
     }
 
+    public static void initialize(WebServer webServer) {
+        if (!disabled) {
+            if (INSTANCE == null) {
+                INSTANCE = new DashboardURLStreamHandlerFactory(webServer);
+                URL.setURLStreamHandlerFactory(INSTANCE);
+            } else {
+                INSTANCE.setWebServer(webServer);
+            }
+        }
+    }
 
 
     private WebServer webServer;
