@@ -1,4 +1,3 @@
-
 package teamdash.process;
 
 import java.awt.BorderLayout;
@@ -34,35 +33,28 @@ import javax.swing.JTextField;
 import javax.swing.WindowConstants;
 import javax.swing.filechooser.FileFilter;
 
-import net.sourceforge.processdash.net.http.WebServer;
-
-
-
-public class CustomProcessEditor {
-
-    public static void main(String[] args) {
-        try {
-            new CustomProcessEditor(null, GenerateProcess.getTinyWebServer());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
+public abstract class AbstractCustomProcessEditor {
 
     JFrame frame;
+
     JTextField processName, processVersion;
+
     String origProcessName = null, origProcessVersion = null;
+
     CustomProcess process;
+
     ProcessPhaseTableModel phaseModel;
+
     SizeMetricsTableModel sizeModel;
+
     JMenuItem newMenuItem, openMenuItem, saveMenuItem, closeMenuItem;
-    WebServer webServer;
+
     File defaultDir = null;
+
     File openedFileDir = null;
 
-    public CustomProcessEditor(String prefix, WebServer webServer) {
+    public AbstractCustomProcessEditor(String prefix) {
         // ignore the prefix for now.
-        this.webServer = webServer;
         process = new CustomProcess();
         origProcessName = process.getName();
         origProcessVersion = process.getVersion();
@@ -72,9 +64,11 @@ public class CustomProcessEditor {
         frame.getContentPane().add(buildHeader(), BorderLayout.NORTH);
         frame.getContentPane().add(buildTabPanel(), BorderLayout.CENTER);
 
-        frame.addWindowListener( new WindowAdapter() {
-                public void windowClosing(WindowEvent e) {
-                    confirmClose(true); }});
+        frame.addWindowListener(new WindowAdapter() {
+            public void windowClosing(WindowEvent e) {
+                confirmClose(true);
+            }
+        });
         frame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
 
         initNewProcess();
@@ -88,8 +82,10 @@ public class CustomProcessEditor {
     }
 
     public boolean isStructureChanged() {
-        return sizeModel.isStructureChanged() || phaseModel.isStructureChanged();
+        return sizeModel.isStructureChanged()
+                || phaseModel.isStructureChanged();
     }
+
     public boolean isDirty() {
         return sizeModel.isDirty() || phaseModel.isDirty();
     }
@@ -106,12 +102,13 @@ public class CustomProcessEditor {
 
         // Notify the process of changes to the name and version
         FocusListener l = new FocusAdapter() {
-                public void focusLost(FocusEvent e) {
-                    process.setName(processName.getText());
-                    processName.setText(process.getName());
-                    process.setVersion(processVersion.getText());
-                    processVersion.setText(process.getVersion());
-                } };
+            public void focusLost(FocusEvent e) {
+                process.setName(processName.getText());
+                processName.setText(process.getName());
+                process.setVersion(processVersion.getText());
+                processVersion.setText(process.getVersion());
+            }
+        };
         processName.addFocusListener(l);
         processVersion.addFocusListener(l);
 
@@ -129,8 +126,6 @@ public class CustomProcessEditor {
         return tabPane;
     }
 
-
-
     private Component buildSizeTable() {
         sizeModel = new SizeMetricsTableModel(process);
         return new ItemListEditor(sizeModel, "List of Process Size Metrics");
@@ -141,7 +136,6 @@ public class CustomProcessEditor {
         phaseModel = new ProcessPhaseTableModel(process);
         return new ItemListEditor(phaseModel, "List of Process Phases");
     }
-
 
     protected void setProcess(CustomProcess proc) {
         process = proc;
@@ -163,21 +157,20 @@ public class CustomProcessEditor {
             openedFileDir = defaultDir;
         }
     }
+
     protected void openProcess() {
         if (!saveOrCancel(true))
             return;
 
-        if (getFileChooser(true).showOpenDialog(frame) !=
-            JFileChooser.APPROVE_OPTION)
+        if (getFileChooser(true).showOpenDialog(frame) != JFileChooser.APPROVE_OPTION)
             return;
 
         File f = fileChooser.getSelectedFile();
         CustomProcess newProcess = CustomProcess.open(f);
         if (newProcess == null)
-            JOptionPane.showMessageDialog
-                (frame,
-                 "The file '" + f + "' is not a valid Custom Metrics Framework file.",
-                 "Invalid File", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(frame, "The file '" + f
+                    + "' is not a valid Custom Metrics Framework file.",
+                    "Invalid File", JOptionPane.ERROR_MESSAGE);
         else {
             openedFileDir = f.getParentFile();
             setProcess(newProcess);
@@ -191,21 +184,26 @@ public class CustomProcessEditor {
                 table.getCellEditor().stopCellEditing();
         } else if (c instanceof Container) {
             Container parent = (Container) c;
-            for (int i = parent.getComponentCount();  i-- > 0; )
+            for (int i = parent.getComponentCount(); i-- > 0;)
                 stopEditing(parent.getComponent(i));
         }
     }
 
     private class TemplateFileFilter extends FileFilter {
         public String getDescription() {
-            return "Template files (*.jar, *.zip)"; }
+            return "Template files (*.jar, *.zip)";
+        }
+
         public boolean accept(File f) {
-            if (f.isDirectory()) return true;
+            if (f.isDirectory())
+                return true;
             String name = f.getName().toLowerCase();
             return (name.endsWith(".zip") || name.endsWith(".jar"));
         }
     }
+
     private JFileChooser fileChooser = null;
+
     private JFileChooser getFileChooser(boolean open) {
         if (fileChooser == null) {
             fileChooser = new JFileChooser();
@@ -226,8 +224,8 @@ public class CustomProcessEditor {
             if (openedFileDir != null)
                 fileChooser.setSelectedFile(openedFileDir);
             fileChooser.setApproveButtonText("Save");
-            fileChooser.setApproveButtonToolTipText
-                ("Save to selected directory");
+            fileChooser
+                    .setApproveButtonToolTipText("Save to selected directory");
         }
 
         return fileChooser;
@@ -246,25 +244,23 @@ public class CustomProcessEditor {
         process.setVersion(version);
     }
 
-
     /** save the process */
     public boolean save() {
-        if (!validate()) return false;
+        if (!validate())
+            return false;
 
         try {
             // ask the user for the destination directory.
-            if (getFileChooser(false).showOpenDialog(frame) !=
-                JFileChooser.APPROVE_OPTION)
+            if (getFileChooser(false).showOpenDialog(frame) != JFileChooser.APPROVE_OPTION)
                 return false;
 
             File dir = fileChooser.getSelectedFile();
 
             File file = new File(dir, process.getJarName());
-            CustomProcessPublisher.publish(process, file, webServer);
+            publishProcess(process, file);
             sizeModel.clearDirty();
             phaseModel.clearDirty();
             openedFileDir = dir;
-
         } catch (IOException ioe) {
             System.out.println("Caught " + ioe);
             ioe.printStackTrace();
@@ -280,30 +276,28 @@ public class CustomProcessEditor {
         phaseModel.checkForErrors(errors);
         if (errors != null && errors.size() > 0) {
             JList message = new JList(errors.toArray());
-            JOptionPane.showMessageDialog(frame,
-                                          message,
-                                          "Invalid Metrics Framework",
-                                          JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(frame, message,
+                    "Invalid Metrics Framework", JOptionPane.ERROR_MESSAGE);
             return false;
         }
 
-                // if the structure of the process has changed,
+        // if the structure of the process has changed,
         if (isStructureChanged() &&
-                // and it had a real name when it was opened,
-            origProcessName != null && origProcessName.length() != 0 &&
+        // and it had a real name when it was opened,
+                origProcessName != null && origProcessName.length() != 0 &&
                 // and the name has not been changed,
-            process.getName().equalsIgnoreCase(origProcessName) &&
+                process.getName().equalsIgnoreCase(origProcessName) &&
                 // and the version number has not been changed,
-            process.getVersion().equalsIgnoreCase(origProcessVersion))
-                // warn the user that they may invalidate historical data.
-            switch (JOptionPane.showConfirmDialog
-                    (frame, STRUCTURE_CHANGED_MESSAGE,
-                     "Metrics Framework Structure Has Changed",
-                     JOptionPane.YES_NO_CANCEL_OPTION,
-                     JOptionPane.WARNING_MESSAGE)) {
+                process.getVersion().equalsIgnoreCase(origProcessVersion))
+            // warn the user that they may invalidate historical data.
+            switch (JOptionPane.showConfirmDialog(frame,
+                    STRUCTURE_CHANGED_MESSAGE,
+                    "Metrics Framework Structure Has Changed",
+                    JOptionPane.YES_NO_CANCEL_OPTION,
+                    JOptionPane.WARNING_MESSAGE)) {
             case JOptionPane.CLOSED_OPTION:
             case JOptionPane.CANCEL_OPTION:
-                return false;                 // do nothing and abort.
+                return false; // do nothing and abort.
 
             case JOptionPane.NO_OPTION:
                 return true;
@@ -316,48 +310,49 @@ public class CustomProcessEditor {
     }
 
     private static final String[] STRUCTURE_CHANGED_MESSAGE = {
-        "You have made structural changes to this metrics framework.",
-        "If you have ever used this framework in the past, saving",
-        "these changes will render your historical data unusable.",
-        "Would you like to increment the version number, saving",
-        "this as a newer version of the framework?",
-        "- Choosing Yes will increment the framework version number.",
-        "- Choosing No will overwrite the existing framework.  This",
-        "   choice is recommended only if the framework has never",
-        "   been used before.",
-        "- Choosing Cancel will abort (not saving changes), and",
-        "    return you to the editor to make additional changes",
-        "    (such as choosing a new framework name)." };
+            "You have made structural changes to this metrics framework.",
+            "If you have ever used this framework in the past, saving",
+            "these changes will render your historical data unusable.",
+            "Would you like to increment the version number, saving",
+            "this as a newer version of the framework?",
+            "- Choosing Yes will increment the framework version number.",
+            "- Choosing No will overwrite the existing framework.  This",
+            "   choice is recommended only if the framework has never",
+            "   been used before.",
+            "- Choosing Cancel will abort (not saving changes), and",
+            "    return you to the editor to make additional changes",
+            "    (such as choosing a new framework name)." };
 
-    public void close() { frame.dispose(); }
+    public void close() {
+        frame.dispose();
+    }
 
     public void confirmClose(boolean showCancel) {
         if (saveOrCancel(showCancel))
             close();
     }
+
     public boolean saveOrCancel(boolean showCancel) {
         if (isDirty())
-            switch (JOptionPane.showConfirmDialog
-                    (frame, CONFIRM_CLOSE_MSG, "Save Changes?",
-                     showCancel ? JOptionPane.YES_NO_CANCEL_OPTION
-                                : JOptionPane.YES_NO_OPTION)) {
+            switch (JOptionPane.showConfirmDialog(frame, CONFIRM_CLOSE_MSG,
+                    "Save Changes?",
+                    showCancel ? JOptionPane.YES_NO_CANCEL_OPTION
+                            : JOptionPane.YES_NO_OPTION)) {
             case JOptionPane.CLOSED_OPTION:
             case JOptionPane.CANCEL_OPTION:
-                return false;                 // do nothing and abort.
+                return false; // do nothing and abort.
 
             case JOptionPane.NO_OPTION:
                 return true;
 
             case JOptionPane.YES_OPTION:
-                return save();                 // save changes.
+                return save(); // save changes.
             }
         return true;
     }
-    private static final Object CONFIRM_CLOSE_MSG =
-        "Do you want to save the changes you made to this " +
-        "custom metrics collection framework?";
 
-
+    private static final Object CONFIRM_CLOSE_MSG = "Do you want to save the changes you made to this "
+            + "custom metrics collection framework?";
 
     private JMenuBar buildMenuBar() {
         JMenuBar menuBar = new JMenuBar();
@@ -367,29 +362,39 @@ public class CustomProcessEditor {
 
         menu.add(newMenuItem = new JMenuItem("New"));
         newMenuItem.addActionListener(new ActionListener() {
-                public void actionPerformed(ActionEvent e) {
-                    stopEditing(frame);
-                    newProcess(); }});
+            public void actionPerformed(ActionEvent e) {
+                stopEditing(frame);
+                newProcess();
+            }
+        });
 
         menu.add(openMenuItem = new JMenuItem("Open..."));
         openMenuItem.addActionListener(new ActionListener() {
-                public void actionPerformed(ActionEvent e) {
-                    stopEditing(frame);
-                    openProcess(); }});
+            public void actionPerformed(ActionEvent e) {
+                stopEditing(frame);
+                openProcess();
+            }
+        });
 
         menu.add(saveMenuItem = new JMenuItem("Save..."));
         saveMenuItem.addActionListener(new ActionListener() {
-                public void actionPerformed(ActionEvent e) {
-                    stopEditing(frame);
-                    save(); }});
+            public void actionPerformed(ActionEvent e) {
+                stopEditing(frame);
+                save();
+            }
+        });
 
         menu.add(closeMenuItem = new JMenuItem("Close"));
         closeMenuItem.addActionListener(new ActionListener() {
-                public void actionPerformed(ActionEvent e) {
-                    stopEditing(frame);
-                    confirmClose(true); }});
+            public void actionPerformed(ActionEvent e) {
+                stopEditing(frame);
+                confirmClose(true);
+            }
+        });
 
         return menuBar;
     }
 
+    protected abstract void publishProcess(CustomProcess process, File destFile)
+            throws IOException;
 }

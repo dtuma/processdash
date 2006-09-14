@@ -10,6 +10,7 @@ import org.w3c.dom.Document;
 
 import teamdash.XMLUtils;
 
+import net.sourceforge.processdash.net.http.DashboardURLStreamHandlerFactory;
 import net.sourceforge.processdash.net.http.WebServer;
 
 public class GenerateProcess {
@@ -43,8 +44,8 @@ public class GenerateProcess {
                 System.exit(1);
             }
 
-            GenerateProcess instance = new GenerateProcess(destDir,
-                    settings, settingsFile.toURL());
+            GenerateProcess instance = new GenerateProcess(destDir, settings,
+                    settingsFile.toURL());
             instance.run();
             System.exit(0);
         } catch (Exception e) {
@@ -75,6 +76,9 @@ public class GenerateProcess {
 
     static WebServer getTinyWebServer() throws IOException {
         URL[] roots = getRoots();
+
+        // do not reinitialize factory
+        DashboardURLStreamHandlerFactory.disable();
         WebServer result = new WebServer();
         result.setRoots(roots);
         return result;

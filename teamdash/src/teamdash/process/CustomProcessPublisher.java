@@ -1,4 +1,3 @@
-
 package teamdash.process;
 
 import java.io.ByteArrayInputStream;
@@ -6,6 +5,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.net.URL;
@@ -37,54 +37,67 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
-
 public class CustomProcessPublisher {
 
     private static final String EXT_FILE_PREFIX = "extfile:";
+
     private static final String PARAM_ITEM = "param";
+
     private static final String VALUE = "value";
 
     public static void publish(CustomProcess process, File destFile,
-                               WebServer webServer)
-        throws IOException {
+            WebServer webServer) throws IOException {
 
         publish(process, destFile, webServer, null);
     }
 
-    public static void publish(CustomProcess process, File destFile,
-                               WebServer webServer, URL extBase)
-        throws IOException {
+    public static void publish(CustomProcess process, OutputStream output,
+            WebServer webServer) throws IOException {
 
-        CustomProcessPublisher pub =
-            new CustomProcessPublisher(destFile, webServer, extBase);
-        pub.publish(process);
+        publish(process, output, webServer, null);
+    }
+
+    public static void publish(CustomProcess process, File destFile,
+            WebServer webServer, URL extBase) throws IOException {
+
+        CustomProcessPublisher pub = new CustomProcessPublisher(webServer,
+                extBase);
+        FileOutputStream fos = new FileOutputStream(destFile);
+        pub.publish(process, fos);
         pub.close();
     }
 
+    public static void publish(CustomProcess process, OutputStream output,
+            WebServer webServer, URL extBase) throws IOException {
 
-    File destFile;
+        CustomProcessPublisher pub = new CustomProcessPublisher(webServer,
+                extBase);
+        pub.publish(process, output);
+        pub.close();
+    }
+
     JarOutputStream zip;
+
     Writer out;
 
     WebServer webServer;
+
     HTMLPreprocessor processor;
+
     HashMap customParams, parameters;
+
     URL extBase;
+
     boolean headless;
 
-
-
-    protected CustomProcessPublisher(File destFile, WebServer webServer,
-            URL extBase)
-        throws IOException
-    {
-        this.destFile = destFile;
+    protected CustomProcessPublisher(WebServer webServer, URL extBase)
+            throws IOException {
         this.webServer = webServer;
         this.extBase = extBase;
         parameters = new HashMap();
         customParams = new HashMap();
         processor = new HTMLPreprocessor(webServer, null, null, "",
-                                         customParams, parameters);
+                customParams, parameters);
     }
 
     public boolean isHeadless() {
@@ -95,12 +108,12 @@ public class CustomProcessPublisher {
         this.headless = headless;
     }
 
-    protected synchronized void publish(CustomProcess process)
-        throws IOException {
+    protected synchronized void publish(CustomProcess process,
+            OutputStream output) throws IOException {
         initProcess(process);
 
         Document script = loadScript(process.getGeneratorScript());
-        openStreams(process, script);
+        openStreams(process, script, output);
 
         writeXMLSettings(process);
         runGenerationScript(script);
@@ -116,15 +129,14 @@ public class CustomProcessPublisher {
         }
     }
 
-    protected void openStreams(CustomProcess process, Document script)
-        throws IOException {
+    protected void openStreams(CustomProcess process, Document script,
+            OutputStream output) throws IOException {
 
-        String scriptVers =
-            script.getDocumentElement().getAttribute("version");
-        String scriptReqt =
-            script.getDocumentElement().getAttribute("requiresDashboard");
-        String scriptStartingJar =
-            script.getDocumentElement().getAttribute("startingJar");
+        String scriptVers = script.getDocumentElement().getAttribute("version");
+        String scriptReqt = script.getDocumentElement().getAttribute(
+                "requiresDashboard");
+        String scriptStartingJar = script.getDocumentElement().getAttribute(
+                "startingJar");
 
         Manifest mf = new Manifest();
         JarInputStream startingJarIn = null;
@@ -136,16 +148,15 @@ public class CustomProcessPublisher {
 
         Attributes attrs = mf.getMainAttributes();
         attrs.putValue("Manifest-Version", "1.0");
-        attrs.putValue(DashPackage.NAME_ATTRIBUTE,
-                       (String) parameters.get("Full_Name"));
+        attrs.putValue(DashPackage.NAME_ATTRIBUTE, (String) parameters
+                .get("Full_Name"));
         attrs.putValue(DashPackage.ID_ATTRIBUTE, process.getProcessID());
-        attrs.putValue(DashPackage.VERSION_ATTRIBUTE,
-                       scriptVers + "." + System.currentTimeMillis());
+        attrs.putValue(DashPackage.VERSION_ATTRIBUTE, scriptVers + "."
+                + System.currentTimeMillis());
         if (scriptReqt != null)
             attrs.putValue(DashPackage.REQUIRE_ATTRIBUTE, scriptReqt);
 
-        FileOutputStream fos = new FileOutputStream(destFile);
-        zip = new JarOutputStream(fos, mf);
+        zip = new JarOutputStream(output, mf);
         out = new OutputStreamWriter(zip);
 
         if (startingJarIn != null)
@@ -158,24 +169,27 @@ public class CustomProcessPublisher {
         zip.close();
     }
 
-    private JarInputStream openStartingJar(String scriptStartingJar) throws IOException {
+    private JarInputStream openStartingJar(String scriptStartingJar)
+            throws IOException {
         byte[] contents = getRawFileBytes(scriptStartingJar);
-        if (contents == null) return null;
+        if (contents == null)
+            return null;
 
         ByteArrayInputStream bytesIn = new ByteArrayInputStream(contents);
         return new JarInputStream(bytesIn);
     }
 
-    private void copyFilesFromStartingJar(JarInputStream startingJarIn) throws IOException {
+    private void copyFilesFromStartingJar(JarInputStream startingJarIn)
+            throws IOException {
         ZipEntry entry;
         byte[] buffer = new byte[1024];
         int bytesRead;
 
         while ((entry = startingJarIn.getNextEntry()) != null) {
             ZipEntry outEntry = cloneZipEntry(entry);
-        zip.putNextEntry(outEntry);
-        while ((bytesRead = startingJarIn.read(buffer)) != -1)
-            zip.write(buffer, 0, bytesRead);
+            zip.putNextEntry(outEntry);
+            while ((bytesRead = startingJarIn.read(buffer)) != -1)
+                zip.write(buffer, 0, bytesRead);
             zip.closeEntry();
         }
     }
@@ -204,11 +218,11 @@ public class CustomProcessPublisher {
             versionString = " (v" + versionNum + ")";
         fullName = processName + versionString;
 
-        setParam("Process_ID",     process.getProcessID());
-        setParam("Process_Name",   processName);
-        setParam("Version_Num",    versionNum);
+        setParam("Process_ID", process.getProcessID());
+        setParam("Process_Name", processName);
+        setParam("Version_Num", versionNum);
         setParam("Version_String", versionString);
-        setParam("Full_Name",      fullName);
+        setParam("Full_Name", fullName);
 
         for (Iterator iter = process.getItemTypes().iterator(); iter.hasNext();) {
             String type = (String) iter.next();
@@ -249,7 +263,8 @@ public class CustomProcessPublisher {
 
     private String getItemID(String itemPrefix, int pos) {
         String phasePos = "" + pos;
-        while (phasePos.length() < 3) phasePos = "0" + phasePos;
+        while (phasePos.length() < 3)
+            phasePos = "0" + phasePos;
         String id = itemPrefix + phasePos;
         setParam(id + "_Pos", phasePos);
         return id;
@@ -259,8 +274,8 @@ public class CustomProcessPublisher {
         Iterator iter = phase.getAttributes().entrySet().iterator();
         while (iter.hasNext()) {
             Map.Entry e = (Map.Entry) iter.next();
-            String attrName = CustomProcess.bouncyCapsToUnderlines(
-                    (String) e.getKey());
+            String attrName = CustomProcess.bouncyCapsToUnderlines((String) e
+                    .getKey());
             String attrValue = (String) e.getValue();
 
             if (attrName.startsWith("Is_")) {
@@ -274,8 +289,7 @@ public class CustomProcessPublisher {
 
             setParam(id + "_" + attrName, attrValue);
 
-            if (attrName.endsWith("Filename")
-                    || attrName.endsWith("File_Name")) {
+            if (attrName.endsWith("Filename") || attrName.endsWith("File_Name")) {
                 enhanceFilenameAttribute(id + "_" + attrName, attrValue);
             }
         }
@@ -299,8 +313,9 @@ public class CustomProcessPublisher {
         setParam(attrName + "_Directory", directory);
         setParam(attrName + "_Basename", baseName);
     }
-    private static Pattern FILENAME_PATTERN = Pattern.compile(
-            "(.*[/\\\\]|)([^/\\\\]+)");
+
+    private static Pattern FILENAME_PATTERN = Pattern
+            .compile("(.*[/\\\\]|)([^/\\\\]+)");
 
     protected void initPhase(CustomProcess.Item phase, String id) {
         String phaseName = phase.getAttr(CustomProcess.NAME);
@@ -331,7 +346,8 @@ public class CustomProcessPublisher {
             setParam(id + "_Is_Defect_Injection", "t");
             setParam(id + "_Is_Defect_Removal", "t");
         }
-        if ("at".equalsIgnoreCase(phaseType) || "pl".equalsIgnoreCase(phaseType))
+        if ("at".equalsIgnoreCase(phaseType)
+                || "pl".equalsIgnoreCase(phaseType))
             setParam(id + "_Is_After_Development", "t");
     }
 
@@ -354,25 +370,30 @@ public class CustomProcessPublisher {
 
     protected void startFile(String filename) throws IOException {
         out.flush();
-        if (filename.startsWith("/")) filename = filename.substring(1);
+        if (filename.startsWith("/"))
+            filename = filename.substring(1);
         zip.putNextEntry(new ZipEntry(filename));
     }
 
     protected String getFile(String filename) throws IOException {
         return processContent(getRawFile(filename));
     }
+
     protected String getRawFile(String filename) throws IOException {
         byte[] rawContent = getRawFileBytes(filename);
-        if (rawContent == null) return null;
+        if (rawContent == null)
+            return null;
         return new String(rawContent);
     }
+
     protected byte[] getRawFileBytes(String filename) throws IOException {
         if (filename != null && filename.startsWith(EXT_FILE_PREFIX))
-            return getRawBytesFromExternalFile(
-                    filename.substring(EXT_FILE_PREFIX.length()));
+            return getRawBytesFromExternalFile(filename
+                    .substring(EXT_FILE_PREFIX.length()));
         else
             return webServer.getRawRequest(filename);
     }
+
     private byte[] getRawBytesFromExternalFile(String filename)
             throws IOException {
         if (extBase == null)
@@ -383,21 +404,22 @@ public class CustomProcessPublisher {
     }
 
     protected String processContent(String content) throws IOException {
-        if (content == null) return null;
+        if (content == null)
+            return null;
         return processor.preprocess(content);
     }
 
     protected void runGenerationScript(Document script) throws IOException {
         NodeList files = script.getElementsByTagName("file");
-        String defaultInDir =
-            script.getDocumentElement().getAttribute("inDirectory");
-        String defaultOutDir =
-            script.getDocumentElement().getAttribute("outDirectory");
+        String defaultInDir = script.getDocumentElement().getAttribute(
+                "inDirectory");
+        String defaultOutDir = script.getDocumentElement().getAttribute(
+                "outDirectory");
         ProgressDialog progressDialog = null;
         if (!headless)
             progressDialog = new ProgressDialog((java.awt.Frame) null,
                     "Saving", "Saving Custom Process...");
-        for (int i=0;   i < files.getLength();   i++) {
+        for (int i = 0; i < files.getLength(); i++) {
             FileGenerator task = new FileGenerator((Element) files.item(i),
                     defaultInDir, defaultOutDir);
             if (headless)
@@ -411,10 +433,15 @@ public class CustomProcessPublisher {
 
     private class FileGenerator implements Runnable {
         Element file;
+
         String defaultInDir, defaultOutDir;
+
         public FileGenerator(Element f, String inDir, String outDir) {
-            file = f; defaultInDir = inDir; defaultOutDir = outDir;
+            file = f;
+            defaultInDir = inDir;
+            defaultOutDir = outDir;
         }
+
         public void run() {
             try {
                 generateFile(file, defaultInDir, defaultOutDir);
@@ -422,26 +449,28 @@ public class CustomProcessPublisher {
                 System.err.println("Warning: could not find file "
                         + fnfe.getMessage() + " - skipping");
             } catch (IOException ioe) {
-                System.err.println("While processing " + file.getAttribute("in")
+                System.err
+                        .println("While processing " + file.getAttribute("in")
                                 + ", caught exception " + ioe);
             }
         }
     }
 
     private String maybeDefaultDir(String file, String dir) {
-        if (file == null
-                || file.startsWith("/")
+        if (file == null || file.startsWith("/")
                 || file.startsWith(EXT_FILE_PREFIX))
             return file;
         return dir + "/" + file;
     }
 
     protected void generateFile(Element file, String defaultInDir,
-                                String defaultOutDir) throws IOException {
+            String defaultOutDir) throws IOException {
         String inputFile = file.getAttribute("in");
         String outputFile = file.getAttribute("out");
-        if (!XMLUtils.hasValue(inputFile)) return;
-        if (!XMLUtils.hasValue(outputFile)) outputFile = inputFile;
+        if (!XMLUtils.hasValue(inputFile))
+            return;
+        if (!XMLUtils.hasValue(outputFile))
+            outputFile = inputFile;
         inputFile = maybeDefaultDir(inputFile, defaultInDir);
         outputFile = maybeDefaultDir(outputFile, defaultOutDir);
 
@@ -449,7 +478,8 @@ public class CustomProcessPublisher {
 
         if ("binary".equals(encoding)) {
             byte[] contents = getRawFileBytes(inputFile);
-            if (contents == null) throw new FileNotFoundException(inputFile);
+            if (contents == null)
+                throw new FileNotFoundException(inputFile);
             startFile(outputFile);
             zip.write(contents);
             return;
@@ -458,23 +488,24 @@ public class CustomProcessPublisher {
         processor.setDefaultEchoEncoding(encoding);
 
         String contents = getRawFile(inputFile);
-        if (contents == null) throw new FileNotFoundException(inputFile);
+        if (contents == null)
+            throw new FileNotFoundException(inputFile);
 
         customParams.clear();
         NodeList params = file.getElementsByTagName("param");
         String name, val;
         if (params != null)
-            for (int i=0;   i<params.getLength();   i++) {
+            for (int i = 0; i < params.getLength(); i++) {
                 Element param = (Element) params.item(i);
-                customParams.put(name = param.getAttribute("name"),
-                                 val = param.getAttribute("value"));
+                customParams.put(name = param.getAttribute("name"), val = param
+                        .getAttribute("value"));
                 if (XMLUtils.hasValue(param.getAttribute("replace")))
                     contents = StringUtils.findAndReplace(contents, name, val);
             }
 
         contents = processContent(contents);
         contents = StringUtils.findAndReplace(contents, "[!--#", "<!--#");
-        contents = StringUtils.findAndReplace(contents,   "--]",   "-->");
+        contents = StringUtils.findAndReplace(contents, "--]", "-->");
 
         if (outputFile.endsWith("#properties")) {
             Properties p = new Properties();
