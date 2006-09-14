@@ -1,5 +1,5 @@
+// Copyright (C) 2004-2006 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2004 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -26,21 +26,18 @@
 package net.sourceforge.processdash.security;
 
 import java.net.URL;
-import java.security.AccessController;
-
-import net.sourceforge.processdash.ProcessDashboard;
 
 
 public class DashboardSecurity {
 
     private static final String DISABLE_SECURITY_MANAGER_PROPERTY =
         "net.sourceforge.processdash.disableSecurityManager";
+    private static final DashboardPermission SETUP_SECURITY_MANAGER_PERMISSION =
+        new DashboardPermission("setupSecurityManager");
 
 
     public static void setupSecurityManager() {
-        if  (System.getSecurityManager() != null)
-            AccessController.checkPermission
-                (new DashboardPermission("setupSecurityManager"));
+        SETUP_SECURITY_MANAGER_PERMISSION.checkPermission();
 
         if (Boolean.getBoolean(DISABLE_SECURITY_MANAGER_PROPERTY)) {
             System.out.println("Security Manager disabled / not installed.");
@@ -61,7 +58,7 @@ public class DashboardSecurity {
         if (baseURLPos != -1)
             baseURLStr = policyURLStr.substring(0, baseURLPos+1);
         if (baseURLStr.startsWith("jar:") && baseURLStr.indexOf("!/") != -1)
-                baseURLStr = baseURLStr.substring(4, baseURLStr.indexOf("!/"));
+            baseURLStr = baseURLStr.substring(4, baseURLStr.indexOf("!/"));
 
         try {
             System.setProperty("process.dashboard.codebase.url", baseURLStr);

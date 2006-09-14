@@ -25,7 +25,6 @@
 
 package net.sourceforge.processdash;
 
-import java.security.AccessController;
 import java.util.Enumeration;
 import java.util.Properties;
 import java.util.StringTokenizer;
@@ -162,7 +161,7 @@ public class Settings {
     protected static void checkPermission(String action) {
         if (System.getSecurityManager() != null) {
             DashboardPermission p = new DashboardPermission("settings."+action);
-            AccessController.checkPermission(p);
+            p.checkPermission();
         }
     }
 
