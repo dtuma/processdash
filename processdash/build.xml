@@ -71,7 +71,7 @@ Authors:
 
   <property environment="env"/>
 
-  <property name="build"      value="bin"/>
+  <property name="build"      value="antbin"/>
   <property name="dist"       value="dist"/>
   <property name="lib"        value="lib"/>
 
@@ -140,7 +140,7 @@ Authors:
   <target name="init">
     <!-- Create the time stamp -->
     <tstamp/>
-    <property name="version" value="${dashboard.version}.${DSTAMP}"/>
+    <property name="version" value="${dashboard.version}"/>
     <!-- Create the build directory structure used by compile -->
     <mkdir dir="${dist}"/>
     <mkdir dir="${build}"/>
@@ -520,7 +520,7 @@ Authors:
   </target>
 
   <target name="installer-mergeJar" depends="compile">
-    <classfileset id="installer-mergeJar-classes" dir="bin2"
+    <classfileset id="installer-mergeJar-classes" dir="${build}"
       rootclass="net.sourceforge.processdash.InternalSettings"/>
     <jar destfile="${installer}/files/mergeSettings.jar" duplicate="fail">
       <manifest>
@@ -617,7 +617,7 @@ Authors:
   </target>
 
   <target name="p4diff">
-    <classfileset id="p4locClasses" dir="bin2"
+    <classfileset id="p4locClasses" dir="${build}"
       rootclass="net.sourceforge.processdash.tool.diff.impl.PerforceLOCDiff"/>
     <jar destfile="${dist}/p4diff.jar" duplicate="fail">
       <manifest>
