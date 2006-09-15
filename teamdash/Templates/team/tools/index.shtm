@@ -1,14 +1,6 @@
 <html>
 <body>
 
-<!--#break thisDoesntGoHere -->
-
-<p><form action="/team/tools/CustomProcessEditor.class" method="POST">
-<input type=submit name="submit" value="Custom Process Editor">
-</form>
-
-<!--#endbreak thisDoesntGoHere -->
-
 <!--#if not master -->
 
 <p><form action="/team/tools/OpenWBSEditor.class" method="POST">

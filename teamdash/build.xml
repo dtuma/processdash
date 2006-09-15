@@ -5,6 +5,8 @@
   <property name="pspdash.jar" value="${processdash.dir}/dist/pspdash.jar"/>
   <property name="TeamProcessCGI.jar"
       value="Templates/team/lib/TeamProcessCGI.jar"/>
+  <property name="server.jar" value="generateProcess.jar"/>
+  <property name="jnlp.jar" value="FrameworkEditorJNLP.jar"/>
 
   <target name="-defaultValues">
     <property name="teamProcess.xml" value="PDSSD.xml"/>
@@ -26,6 +28,8 @@
     <property name="teamProcess.zip" value="VVGDP-v1.zip"/>
   </target>
 
+
+
   <target name="filelist.txt" unless="noBuild">
     <pathconvert property=".filelistbasedir" pathsep="," dirsep="/">
       <path id=".jhbasedir.path" path="Templates/team/setup"/>
@@ -40,6 +44,7 @@
     <replace file="${filelist}" token="${.filelistbasedir}/" value=""/>
   </target>
 
+
   <target name="TeamProcessCGI" unless="noBuild">
     <!-- Create a signed jarfile of cgi scripts -->  
     <jar destfile="${TeamProcessCGI.jar}" duplicate="fail">
@@ -50,7 +55,57 @@
 	storepass="${env.TDKSPW}"/>
   </target>
 
-  <target name="jar" depends="filelist.txt,TeamProcessCGI" unless="noBuild">
+
+  <target name="server" depends="TeamProcessCGI"
+      description="Build a JAR file to deploy to the server, where the custom process generator will run">
+    <jar destfile="${server.jar}" duplicate="fail">
+      <!-- include the compiled files -->
+      <fileset dir="bin">
+        <include name="teamdash/**/*.class"/>
+        <include name="teamdash/**/*.png"/>
+        <include name="teamdash/**/*.gif"/>
+        <exclude name="teamdash/templates/setup/"/>
+      </fileset>
+
+      <!-- include the templates -->
+      <fileset dir=".">
+        <include name="Templates/team/lib/" />
+        <exclude name="Templates/team/lib/todo.txt" />
+        <include name="Templates/team/tools/*.link" />
+        <include name="Templates/team/tools/*.shtm" />
+        <include name="Templates/team/setup/*.link" />
+        <include name="Templates/team/setup/*.shtm" />
+        <include name="Templates/team/setup/filelist.txt" />
+      </fileset>
+    </jar>
+  </target>
+
+
+  <target name="jnlp-jar" 
+       description="Build the JAR file for the JNLP framework editor app">
+    <classfileset id="jnlpClasses" dir="bin"
+      rootclass="teamdash.process.CustomProcessEditorJNLP"/>
+    <jar destfile="${jnlp.jar}" duplicate="fail">
+      <!-- specify the manifest file contents -->
+      <manifest>
+        <attribute name="Main-Class" 
+              value="teamdash.process.CustomProcessEditorJNLP"/>
+      </manifest>
+      <fileset refid="jnlpClasses"/>
+    </jar>
+    <property environment="env"/>
+    <signjar jar="${jnlp.jar}" alias="tuma-solutions"
+	storepass="${env.TDKSPW}"/>
+  </target>
+
+
+
+  <target name="TeamTools" unless="noBuild">
+    <classfileset id="teamToolsClasses" dir="bin">
+      <root classname="teamdash.wbs.WBSEditor"/>
+      <root classname="teamdash.templates.tools.OpenWBSEditor"/>
+    </classfileset>
+
     <jar destfile="TeamTools.jar" duplicate="fail">
       <!-- specify the manifest file contents -->
       <manifest>
@@ -64,34 +119,29 @@
       </manifest>
 
       <!-- include the compiled files -->
+      <fileset refid="teamToolsClasses"/>
       <fileset dir="bin">
-        <include name="teamdash/**/*.class"/>
         <include name="teamdash/**/*.png"/>
         <include name="teamdash/**/*.gif"/>
-        <exclude name="teamdash/templates/setup/"/>
       </fileset>
 
-      <!-- include the templates -->
+      <!-- include the wbs-editor-related templates -->
       <fileset dir=".">
-        <include name="Templates/TeamTools-template.xml" />
-        <include name="Templates/team/lib/" />
-        <exclude name="Templates/team/lib/todo.txt" />
-        <include name="Templates/team/tools/*.link" />
-        <include name="Templates/team/tools/*.shtm" />
-        <include name="Templates/team/setup/*.link" />
-        <include name="Templates/team/setup/*.shtm" />
-        <include name="Templates/team/setup/filelist.txt" />
+        <include name="Templates/team/tools/index.shtm" />
+        <include name="Templates/team/tools/OpenWBSEditor.class.link" />
+        <include name="Templates/team/tools/TeamTools.jar.link" />
       </fileset>
     </jar>
 
+    <property environment="env"/>
     <signjar jar="TeamTools.jar" alias="tuma-solutions"
 	storepass="${env.TDKSPW}"/>
   </target>
 
-  <target name="TeamProcess" depends="-defaultValues,jar" unless="noBuild">
+  <target name="TeamProcess" depends="-defaultValues,server" unless="noBuild">
     <java classname="teamdash.process.GenerateProcess" fork="true">
       <classpath>
-        <pathelement location="TeamTools.jar"/>	
+        <pathelement location="${server.jar}"/>	
         <pathelement location="${pspdash.jar}"/>
       </classpath>
       <arg value="${teamProcess.xml}"/>
@@ -99,7 +149,7 @@
     </java>
   </target>
 
-  <target name="installer" depends="jar,TeamProcess">
+  <target name="installer" depends="TeamTools,TeamProcess">
     <pathconvert property="teamdash.dir" dirSep="/">
       <path><pathelement location="."/></path>
     </pathconvert>
