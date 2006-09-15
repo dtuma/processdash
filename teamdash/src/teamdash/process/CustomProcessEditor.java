@@ -20,6 +20,7 @@ public class CustomProcessEditor extends AbstractCustomProcessEditor {
     public CustomProcessEditor(String prefix, WebServer webServer) {
         super(prefix);
         this.webServer = webServer;
+        frame.setVisible(true);
     }
 
     protected void publishProcess(CustomProcess process, File destFile)

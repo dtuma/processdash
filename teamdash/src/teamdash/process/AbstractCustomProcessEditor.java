@@ -74,7 +74,6 @@ public abstract class AbstractCustomProcessEditor {
         initNewProcess();
 
         frame.setSize(new Dimension(600, 600));
-        frame.setVisible(true);
     }
 
     public void setDefaultDirectory(File dir) {
@@ -264,6 +263,7 @@ public abstract class AbstractCustomProcessEditor {
         } catch (IOException ioe) {
             System.out.println("Caught " + ioe);
             ioe.printStackTrace();
+            return false;
         }
 
         return true;
