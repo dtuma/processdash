@@ -6,20 +6,6 @@
 
 <frameset cols="1,*" border=0>
     <frame name="empty" src="about:blank" scrolling="no">
-
-    <!--#break comment-->
-        The new "master project" functionality requires certain changes
-        in the process dashboard.  Test to see if this is a master project
-        (it doesn't use the TeamRoot or TeamNode tags), and if so, ensure
-        that the dashboard version is adequate for the functionality.
-    <!--#endbreak comment-->
-
-    [!--#if [<!--#echo Process_ID -->/TeamRoot Tag] || 
-	    [<!--#echo Process_ID -->/TeamNode Tag] || 
-	    Dash_Package_pspdash ge 'version 1.7b.20060218' --]
-        <frame name="topFrame" src="summary_frame.shtm">
-    [!--#else--]
-        <frame name="topFrame" src="version_error.shtm?Title=Master+Project+Plan+Summary&Feature_Name=the+master+project+plan+summary&Required_Version=1.7b.20060218">
-    [!--#endif--]
+    <frame name="topFrame" src="summary_frame.shtm">
 </frameset>
 </html>

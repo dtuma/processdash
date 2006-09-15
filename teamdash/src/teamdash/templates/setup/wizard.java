@@ -18,7 +18,6 @@ import net.sourceforge.processdash.data.ImmutableDoubleData;
 import net.sourceforge.processdash.data.ImmutableStringData;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.StringData;
-import net.sourceforge.processdash.data.repository.DataImporter;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.ev.EVTaskList;
 import net.sourceforge.processdash.ev.EVTaskListData;
@@ -29,8 +28,10 @@ import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.net.http.WebServer;
 import net.sourceforge.processdash.process.ScriptID;
 import net.sourceforge.processdash.templates.TemplateLoader;
-import net.sourceforge.processdash.tool.export.ImportExport;
+import net.sourceforge.processdash.tool.export.DataImporter;
+import net.sourceforge.processdash.tool.export.mgr.ExportManager;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
+import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.NetworkDriveList;
 import net.sourceforge.processdash.util.StringUtils;
@@ -721,7 +722,7 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
         logger.fine("addIndivScheduleToTeamSchedule:"
                 + "  teamScheduleName=" + teamScheduleName
                 + "  indivExportedName=" + indivExportedName
-            + "  indivFileName=" + indivFileName);
+                + "  indivFileName=" + indivFileName);
 
         String indivSchedPath = getSchedulePath
             (indivExportedName, indivScheduleID, indivFileName);
@@ -1200,13 +1201,13 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
 
         // Try to find the data directory using the UNC path.
         if (teamDirectoryUNC != null) {
-                NetworkDriveList networkDriveList = new NetworkDriveList();
-                String altTeamDirectory =
-                    networkDriveList.fromUNCName(teamDirectoryUNC);
-                if (altTeamDirectory != null) {
-                        File f2 = new File(altTeamDirectory, dataSubdir);
-                        if (f2.isDirectory()) return altTeamDirectory;
-                }
+            NetworkDriveList networkDriveList = new NetworkDriveList();
+            String altTeamDirectory =
+                networkDriveList.fromUNCName(teamDirectoryUNC);
+            if (altTeamDirectory != null) {
+                File f2 = new File(altTeamDirectory, dataSubdir);
+                if (f2.isDirectory()) return altTeamDirectory;
+            }
         }
 
         putValue(DATA_DIR, f.getPath());
@@ -1259,8 +1260,8 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
 
     protected boolean joinTeamSchedule(String teamURL, String scheduleName,
                                        String scheduleID) {
-        String exportedScheduleName = ImportExport.exportedScheduleName
-            (getDataRepository(), scheduleName);
+        String exportedScheduleName = ExportManager.exportedScheduleDataPrefix(
+                getOwner(), scheduleName);
         String exportFileName = getValue("EXPORT_FILE");
 
         String urlStr = "setup/wizard.class?"+PAGE+"="+JOIN_TEAM_SCHED_PAGE+
@@ -1274,7 +1275,7 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
             conn.setUseCaches(false);
             conn.connect();
             int status = ((HttpURLConnection) conn).getResponseCode();
-            WebServer.slurpContents(conn.getInputStream(), true);
+            FileUtils.slurpContents(conn.getInputStream(), true);
             return (status == 200);
         } catch (Exception e) {}
         return false;

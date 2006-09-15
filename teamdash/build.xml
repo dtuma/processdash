@@ -16,11 +16,6 @@
     <property name="teamProcess.zip" value="TSP-v1.zip"/>
   </target>
 
-  <target name="abc">
-    <property name="teamProcess.xml" value="abc.xml"/>
-    <property name="teamProcess.zip" value="ABC-v1.zip"/>
-  </target>
-
   <target name="vvis">
     <property name="teamProcess.xml" value="vvis.xml"/>
     <property name="teamProcess.zip" value="VVGDP-v2.zip"/>
@@ -61,8 +56,8 @@
       <manifest>
         <attribute name="Main-Class" value="teamdash.wbs.WBSEditor"/>
 	<attribute name="Dash-Pkg-ID" value="teamTools"/>
-	<attribute name="Dash-Pkg-Version" value="2.3.0"/>
-	<attribute name="Dash-Pkg-Requires-Version" value="1.7b.20060325+"/>
+	<attribute name="Dash-Pkg-Version" value="2.4.0"/>
+	<attribute name="Dash-Pkg-Requires-Version" value="1.7.rc1+"/>
 	<attribute name="Dash-Pkg-Name" value="Advanced Team Tools"/>
 	<attribute name="Dash-Pkg-URL"
 	           value="http://processdash.sourceforge.net/cgi-bin/update"/>
