@@ -7,6 +7,11 @@
       value="Templates/team/lib/TeamProcessCGI.jar"/>
 
   <target name="-defaultValues">
+    <property name="teamProcess.xml" value="PDSSD.xml"/>
+    <property name="teamProcess.zip" value="PDSSD.zip"/>
+  </target>
+
+  <target name="tsp">
     <property name="teamProcess.xml" value="tsp/settings.xml"/>
     <property name="teamProcess.zip" value="TSP-v1.zip"/>
   </target>
