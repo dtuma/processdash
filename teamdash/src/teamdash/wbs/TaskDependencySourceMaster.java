@@ -66,7 +66,7 @@ public class TaskDependencySourceMaster extends TaskDependencySourceAbstract
     public void updateTaskTree() {
         if (maybeReloadMaster() || liveWbsHasChanged) {
             getTaskTree().copyFrom(bottomUpMaster.getWBS());
-            MasterWBSUtil.mergeFromSubproject(liveWbs, getProjectID(), "",
+            MasterWBSUtil.mergeFromSubproject(liveWbs, getProjectID(), "", "",
                     Collections.EMPTY_LIST, false, getTaskTree());
             liveWbsHasChanged = false;
         }

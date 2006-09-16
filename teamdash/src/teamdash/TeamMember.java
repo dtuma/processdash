@@ -68,7 +68,7 @@ public class TeamMember implements Cloneable {
 
     /** Convenience method - trim whitespace from the ends of a string.
      * if the result would be an empty string, this will return null. */
-    private String trim(String str) {
+    private static String trim(String str) {
         if (str == null) return null;
         str = str.trim();
         if (str.length() == 0) return null;
@@ -82,11 +82,16 @@ public class TeamMember implements Cloneable {
     // getter/setter for the initials property.
     public String getInitials() { return initials; }
     public void setInitials(String initials) {
+        this.initials = convertToInitials(initials);
+    }
+
+    public static String convertToInitials(String initials) {
         Matcher m = LETTERS.matcher(initials);
         StringBuffer result = new StringBuffer();
         while (m.find())
             result.append(m.group());
-        this.initials = trim(result.toString());
+        String theAnswer = trim(result.toString());
+        return theAnswer;
     }
     private static final Pattern LETTERS = Pattern.compile("[a-zA-Z]+");
 

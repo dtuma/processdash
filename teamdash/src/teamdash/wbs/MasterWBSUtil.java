@@ -99,18 +99,22 @@ public class MasterWBSUtil {
     }
 
     public static int[] mergeFromSubproject(WBSModel subproject,
-            String subprojectID, String shortName, List teamMemberInitials,
-            boolean useShortNamesInRollup, WBSModel dest) {
+            String subprojectID, String shortName, String subprojectInitials,
+            List teamMemberInitials, boolean useShortNamesInRollup,
+            WBSModel dest) {
         WBSModel working = new WBSModel();
         working.copyFrom(subproject);
         SubprojectNodeTweaker worker = new SubprojectNodeTweaker(shortName,
-                subprojectID, teamMemberInitials, useShortNamesInRollup);
+                subprojectID, subprojectInitials, teamMemberInitials,
+                useShortNamesInRollup);
         visitWBS(working, worker);
         return dest.mergeWBSModel(working, worker, MASTER_NODE_COMPARATOR);
     }
 
     private static class SubprojectNodeTweaker implements WBSNodeVisitor, WBSNodeMerger {
         String shortName;
+
+        String projectInitials;
 
         String projectID;
 
@@ -119,9 +123,11 @@ public class MasterWBSUtil {
         boolean useShortNamesInRollup;
 
         public SubprojectNodeTweaker(String shortName, String projectID,
-                List memberInitials, boolean useShortNamesInRollup) {
+                String projectInitials, List memberInitials,
+                boolean useShortNamesInRollup) {
             this.shortName = shortName;
             this.projectID = projectID;
+            this.projectInitials = projectInitials;
             this.memberInitials = memberInitials;
             this.useShortNamesInRollup = useShortNamesInRollup;
         }
@@ -150,7 +156,7 @@ public class MasterWBSUtil {
                 }
             }
             if (assignedTime > 0)
-                node.setNumericAttribute(shortName + "-Time (Top Down)",
+                node.setNumericAttribute(projectInitials + "-Time (Top Down)",
                         assignedTime);
         }
 

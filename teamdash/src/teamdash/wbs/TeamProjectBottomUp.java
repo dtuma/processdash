@@ -145,8 +145,9 @@ public class TeamProjectBottomUp extends TeamProject {
             String shortName = (String) e.getKey();
             TeamProject subproject = (TeamProject) e.getValue();
 
-            addWBSItems(newWbs, shortName, subproject);
-            double totalSubprojectTime = sumUpTime(newWbs, shortName);
+            String subprojInitials = TeamMember.convertToInitials(shortName);
+            addWBSItems(newWbs, shortName, subproject, subprojInitials);
+            double totalSubprojectTime = sumUpTime(newWbs, subprojInitials);
             addTeamMember(newTeam, shortName, subproject, totalSubprojectTime);
         }
 
@@ -217,13 +218,14 @@ public class TeamProjectBottomUp extends TeamProject {
     }
 
     private void addWBSItems(WBSModel newWbs, String shortName,
-            TeamProject subproject) {
+            TeamProject subproject, String subprojInitials) {
         List teamMemberInitials = getTeamMemberInitials(subproject);
         String projectID = subproject.getProjectID();
         WBSModel subprojectWBS = subproject.getWBS();
 
         MasterWBSUtil.mergeFromSubproject(subprojectWBS, projectID, shortName,
-                teamMemberInitials, mergeSimilarNodes == false, newWbs);
+                subprojInitials, teamMemberInitials,
+                mergeSimilarNodes == false, newWbs);
     }
 
     private List getTeamMemberInitials(TeamProject proj) {
