@@ -72,11 +72,11 @@
       <tocitem image="PageIcon" target="MultipleToDateData" text="Using multiple sets of To Date data"/>
       <tocitem image="PageIcon" target="DashboardFindsFiles" text="Making changes to the process scripts"/>
       <tocitem image="PageIcon" target="DefiningOwnProcesses" text="Defining your own custom processes"/>
-      <tocitem image="BookIcon" target="TeamUse" text="Team Use">
+      <!-- tocitem image="BookIcon" target="TeamUse" text="Team Use">
         <tocitem image="PageIcon" target="TeamUseEV" text="Earned Value Only"/>
         <tocitem image="PageIcon" target="TeamUsePSPEV" text="PSP Data and Earned Value"/>
         <tocitem image="PageIcon" target="TeamUseCustomProcess" text="Custom Process Data and Earned Value"/>
-      </tocitem>
+      </tocitem -->
       <tocitem image="PageIcon" target="LocalizationTool" text="Localization Tool"/>
 
       <!-- tocitem image="PageIcon" target="MinorProcessChanges" text="Making minor changes to the built-in processes"/ -->
