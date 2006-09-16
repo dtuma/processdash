@@ -4,38 +4,37 @@
     <phase longName='Project Planning and Oversight' name='Oversight' type='overhead' />
     <phase longName='Software Development Environment' name='Development Env' type='overhead' />
     <phase longName='Detailed Planning' name='Planning' readOnly='true' type='PLAN' />
-    <phase longName='System Requirements Analysis' name='Sys Reqts' sizeMetric='SSS Pages' type='develop' />
+    <phase longName='System Requirements Analysis' name='Sys Reqts' sizeMetric='SSS Pages' type='develop' estDefectInjRate='0.25' />
     <phase longName='System Requirements Review' name='Sys Reqts Review' sizeMetric='SSS Pages' type='review' />
     <phase longName='System Requirements Inspection' name='Sys Reqts Inspect' sizeMetric='SSS Pages' type='insp' />
     <phase longName='System Test Preparation' name='Sys Test Prep' sizeMetric='Text Pages' type='develop' />
-    <phase longName='System Design' name='Sys Design' sizeMetric='SSDD Pages' type='develop' />
+    <phase longName='System Design' name='Sys Design' sizeMetric='SSDD Pages' type='develop' estDefectInjRate='0.25' />
     <phase longName='System Design Review' name='Sys Design Review' sizeMetric='SSDD Pages' type='review' />
     <phase longName='System Design Inspection' name='Sys Design Inspect' sizeMetric='SSDD Pages' type='insp' />
-    <phase longName='Software Requirements Analysis' name='SW Reqts' sizeMetric='SRS Pages' type='develop' />
+    <phase longName='Software Requirements Analysis' name='SW Reqts' sizeMetric='SRS Pages' type='develop' estDefectInjRate='0.25' />
     <phase longName='Software Requirements Review' name='SW Reqts Review' sizeMetric='SRS Pages' type='review' />
     <phase longName='Software Requirements Inspection' name='SW Reqts Inspect' sizeMetric='SRS Pages' type='insp' />
     <phase longName='Software Test Preparation' name='SW Test Prep' sizeMetric='Test Cases' type='develop' />
-    <phase longName='Software Design' name='SW Design' sizeMetric='SDD Pages' type='develop' />
+    <phase longName='Software Design' name='SW Design' sizeMetric='SDD Pages' type='develop' estDefectInjRate='0.25' />
     <phase longName='Software Design Review' name='SW Design Review' sizeMetric='SDD Pages' type='review' />
     <phase longName='Software Design Inspection' name='SW Design Inspect' sizeMetric='SDD Pages' type='insp' />
-    <phase longName='Detailed Design' name='Design' readOnly='true' sizeMetric='DLD Lines' type='DLD' />
+    <phase longName='Detailed Design' name='Design' readOnly='true' sizeMetric='DLD Lines' type='DLD' estDefectInjRate='2' />
     <phase longName='Detailed Design Review' name='Design Review' readOnly='true' sizeMetric='DLD Lines' type='DLDR' />
     <phase longName='Detailed Design Inspection' name='Design Inspect' sizeMetric='DLD Lines' type='insp' />
-    <phase longName='Code' name='Code' readOnly='true' type='CODE' />
+    <phase longName='Code' name='Code' readOnly='true' type='CODE' estDefectInjRate='4' />
     <phase longName='Code Review' name='Code Review' readOnly='true' type='CR' />
-    <phase longName='Compile' name='Compile' readOnly='true' type='COMP' />
+    <phase longName='Compile' name='Compile' readOnly='true' type='COMP' estDefectInjRate='0.3' />
     <phase longName='Code Inspection' name='Code Inspect' type='insp' />
-    <phase longName='Unit Test' name='Test' readOnly='true' type='UT' />
+    <phase longName='Unit Test' name='Test' readOnly='true' type='UT' estDefectInjRate='0.2' />
     <phase longName='Unit Integration' name='SW Int Test' type='failure' />
-    <phase longName='Test Readiness Review' name='TRR' type='failure' />
+    <phase longName='Test Readiness Review' name='TRR' type='insp' estYield='0' />
     <phase longName='Software Qualification Testing' name='SW Qual Test' type='failure' />
     <phase longName='System Integration' name='Sys Int Test' type='failure' />
     <phase longName='System Qualification Testing' name='Sys Qual Test' type='failure' />
-    <phase longName='Software Use and Transition Prep' name='SW Prep' sizeMetric='Text Pages' type='develop' />
-    <phase longName='Software Transition' name='SW Trans' type='failure' />
+    <phase longName='Software Use and Transition Prep' name='SW Use Prep' sizeMetric='Text Pages' type='develop' />
     <phase longName='Miscellaneous' name='Misc' type='overhead' />
     <phase longName='Postmortem' name='Postmortem' readOnly='true' type='PM' />
-    <phase longName='Software Use' name='SW Use' type='failure' />
+    <phase longName='Software Use and Transition' name='SW Use' type='failure' estYield='1' />
 
     <sizeMetric iconStyle='document' longName='SSS Pages' name='SSS Pages' productName='System-Subsystem Specification' units='Pages' />
     <sizeMetric iconStyle='document' longName='SSDD Pages' name='SSDD Pages' productName='System-Subsystem Design Description' units='Pages' />

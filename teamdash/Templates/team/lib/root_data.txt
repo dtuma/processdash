@@ -42,7 +42,7 @@
 [<!--#echo PHASE_Name -->/Estimated % Phase Yield] =
     <!--#if PHASE_Est_Yield --> <!--#echo PHASE_Est_Yield -->;
     <!--#elif PHASE_Is_After_Development --> 0;
-    <!--#elif PHASE_Is_Appraisal --> 0.80;
+    <!--#elif PHASE_Is_Appraisal --> 0.70;
     <!--#elif PHASE_Is_Failure --> 0.50;
     <!--#else--> 0;
     <!--#endif-->
