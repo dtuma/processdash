@@ -24,6 +24,7 @@
     <resources>
         <res src="files/install.png" id="installer.langsel.img"/>
         <res src="files/DashInfo.html" id="HTMLInfoPanel.info"/>
+        <res src="files/DashInfo-jpn.html" id="HTMLInfoPanel.info_jpn"/>
         <res src="files/DashInfo-chn.html" id="HTMLInfoPanel.info_chn"/>
         <res src="files/DashLicense.html" id="HTMLLicencePanel.licence"/>
         <res src="files/DashLicense-jpn.html" id="HTMLLicencePanel.licence_jpn"/>
