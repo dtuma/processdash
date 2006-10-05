@@ -35,6 +35,8 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.StringTokenizer;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.swing.Timer;
 
@@ -57,6 +59,9 @@ public class HierarchyAlterer implements ItemListener {
     private DashHierarchy origHierarchy;
     private Timer eventDispatchTimer;
     private int eventDispatchChangeCount;
+
+    private static final Logger logger = Logger
+            .getLogger(HierarchyAlterer.class.getName());
 
     public HierarchyAlterer(ProcessDashboard dashboard) {
         this.dashboard = dashboard;
@@ -103,11 +108,12 @@ public class HierarchyAlterer implements ItemListener {
      * illegally created. (e.g. adding new phases underneath a
      * structured process)
      */
-    public void addNode(ProcessDashboard dash, String path)
+    public synchronized void addNode(ProcessDashboard dash, String path)
         throws HierarchyAlterationException
     {
         beginChanges();
         try {
+            logger.log(Level.FINE, "addNode({0})", path);
             doAddNode(dash.getHierarchy(), path);
         } finally {
             endChanges();
@@ -152,7 +158,7 @@ public class HierarchyAlterer implements ItemListener {
      * WARNING: if something already exists at the given path, it will
      * be clobbered by the copied template!
      */
-    public void addTemplate(String path, String templateID)
+    public synchronized void addTemplate(String path, String templateID)
         throws HierarchyAlterationException
     {
         DashHierarchy templates = dashboard.getTemplateProperties();
@@ -164,6 +170,8 @@ public class HierarchyAlterer implements ItemListener {
 
         beginChanges();
         try {
+            logger.log(Level.FINE, "addTemplate({0} => {1})", new Object[] {
+                    path, templateID });
             PropertyKey newNode = doAddNode(dashboard.getHierarchy(), path);
             dashboard.getHierarchy().copyFrom (templates, templateKey, newNode);
         } finally {
@@ -182,7 +190,7 @@ public class HierarchyAlterer implements ItemListener {
      * @param templateID the new template ID to assign to the node
      * @throws HierarchyAlterationException
      */
-    public void setTemplateId(String nodePath, String templateID)
+    public synchronized void setTemplateId(String nodePath, String templateID)
             throws HierarchyAlterationException {
         DashHierarchy templates = dashboard.getTemplateProperties();
         PropertyKey templateKey = templates.getByID(templateID);
@@ -195,6 +203,8 @@ public class HierarchyAlterer implements ItemListener {
 
         beginChanges();
         try {
+            logger.log(Level.FINE, "setTemplateId({0} => {1})", new Object[] {
+                    nodePath, templateID});
             doSetTemplateId(dashboard.getHierarchy(), nodePath, templateID,
                     constraints);
         } finally {
@@ -221,12 +231,14 @@ public class HierarchyAlterer implements ItemListener {
      * structured process).  However, this <b>will</b> refuse to
      * delete the root node of the hierarchy.
      */
-    public void deleteNode(String path) throws HierarchyAlterationException {
+    public synchronized void deleteNode(String path)
+            throws HierarchyAlterationException {
         if (path == null || path.length() < 2)
             throw new HierarchyAlterationException("Illegal to delete node");
 
         beginChanges();
         try {
+            logger.log(Level.FINE, "deleteNode({0})", path);
             doDeleteNode(dashboard.getHierarchy(), path);
         } finally {
             endChanges();
@@ -262,7 +274,7 @@ public class HierarchyAlterer implements ItemListener {
      * WARNING: if something already exists at the given path, it will
      * be clobbered by the moved node!
      */
-    public void renameNode(String oldPath, String newPath)
+    public synchronized void renameNode(String oldPath, String newPath)
         throws HierarchyAlterationException
     {
         if (oldPath == null || oldPath.length() < 2
@@ -271,6 +283,8 @@ public class HierarchyAlterer implements ItemListener {
 
         beginChanges();
         try {
+            logger.log(Level.FINE, "renameNode({0} => {1})", new Object[] {
+                    oldPath, newPath});
             doRenameNode(dashboard.getHierarchy(), oldPath, newPath);
         } finally {
             endChanges();
@@ -305,12 +319,19 @@ public class HierarchyAlterer implements ItemListener {
      *     appear after the reordering
      * @throws HierarchyAlterationException
      */
-    public boolean reorderChildren(String parentPath, List childNames)
-            throws HierarchyAlterationException {
+    public synchronized boolean reorderChildren(String parentPath,
+            List childNames) throws HierarchyAlterationException {
+        // run the reorder in "what-if" mode.  If no change is needed, do
+        // nothing and return false.
+        if (doReorderChildren(dashboard.getHierarchy(), parentPath, childNames,
+                true) == false)
+            return false;
+
         beginChanges();
         try {
+            logger.log(Level.FINE, "reorderChildren({0})", parentPath);
             return doReorderChildren(dashboard.getHierarchy(), parentPath,
-                    childNames);
+                    childNames, false);
         } finally {
             endChanges();
         }
@@ -318,6 +339,11 @@ public class HierarchyAlterer implements ItemListener {
 
     public static boolean doReorderChildren(DashHierarchy hier, String parentPath,
             List childNames) {
+        return doReorderChildren(hier, parentPath, childNames, false);
+    }
+
+    private static boolean doReorderChildren(DashHierarchy hier,
+            String parentPath, List childNames, boolean whatIf) {
         PropertyKey parent = hier.findExistingKey(parentPath);
         if (parent == null) return false;
         Prop prop = hier.pget(parent);
@@ -349,10 +375,11 @@ public class HierarchyAlterer implements ItemListener {
         for (int i = 0; i < children.length; i++) {
             PropertyKey child = (PropertyKey) children[i].getValue();
             if (prop.getChild(i) != child) {
-                prop.setChild(child, i);
+                if (whatIf == false)
+                    prop.setChild(child, i);
                 madeChange = true;
             }
-            if (children[i] == selectedChild)
+            if (children[i] == selectedChild && whatIf == false)
                 prop.setSelectedChild(i);
         }
         return madeChange;
@@ -522,7 +549,7 @@ public class HierarchyAlterer implements ItemListener {
         dispatchHierarchyChangedEvent(false);
     }
 
-    private void dispatchHierarchyChangedEvent(boolean isAdjusting) {
+    private synchronized void dispatchHierarchyChangedEvent(boolean isAdjusting) {
         eventDispatchChangeCount = 0;
         dashboard.getHierarchy().fireHierarchyChanged(isAdjusting);
     }
