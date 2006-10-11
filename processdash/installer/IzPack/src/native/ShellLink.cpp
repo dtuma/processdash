@@ -23,6 +23,11 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+#ifdef _WINDOWS
+#define WINVER 0x0400
+#define _WIN32_WINNT 0x0400
+#endif	/*	_WINDOWS	*/
+
 #include "com_izforge_izpack_util_os_ShellLink.h"
 #include <winerror.h>
 #include <objbase.h>
@@ -31,6 +36,15 @@
 #include <objidl.h>
 #include <windows.h>
 #include <tchar.h>
+
+#ifdef	UNICODE
+#define NewStringUTF(a)						NewString((const jchar *)a, _tcslen(a))
+#define GetStringUTFChars(a, isCopy)		GetStringChars(a, isCopy)
+#define ReleaseStringUTFChars(str, chars)	ReleaseStringChars(str, (const jchar *)chars)
+#define	TO_TCHARS(a)			( (TCHAR *)(a) )
+#else
+#define	TO_TCHARS(a)
+#endif
 
 // --------------------------------------------------------------------------
 // Gound rules used for the implementation of this native interface
@@ -382,7 +396,7 @@ JNIEXPORT void JNICALL Java_com_izforge_izpack_util_os_ShellLink_FreeLibrary (JN
                                                                               jstring name)
 {
   // convert the name from Java string type
-  const char *libraryName = (env)->GetStringUTFChars (name, 0);
+  const TCHAR *libraryName = TO_TCHARS( (env)->GetStringUTFChars (name, 0) );
 
   // get a module handle 
   HMODULE handle = GetModuleHandle (libraryName);
@@ -429,7 +443,7 @@ JNIEXPORT jint JNICALL Java_com_izforge_izpack_util_os_ShellLink_releaseInterfac
 JNIEXPORT jint JNICALL Java_com_izforge_izpack_util_os_ShellLink_GetArguments (JNIEnv  *env,
                                                                                jobject  obj)
 {
-  char    arguments [MAX_TEXT_LENGTH];
+  TCHAR    arguments [MAX_TEXT_LENGTH];
   HRESULT hres;
 
   // Get the handle from the Java side
@@ -465,7 +479,7 @@ JNIEXPORT jint JNICALL Java_com_izforge_izpack_util_os_ShellLink_GetArguments (J
 JNIEXPORT jint JNICALL Java_com_izforge_izpack_util_os_ShellLink_GetDescription (JNIEnv  *env,
                                                                                  jobject  obj)
 {
-  char description [MAX_TEXT_LENGTH];
+  TCHAR description [MAX_TEXT_LENGTH];
   HRESULT hres;
 
   // Get the handle from the Java side
@@ -531,7 +545,7 @@ JNIEXPORT jint JNICALL Java_com_izforge_izpack_util_os_ShellLink_GetIconLocation
                                                                                    jobject  obj)
 {
   HRESULT hres;
-  char    iconPath [MAX_PATH];
+  TCHAR    iconPath [MAX_PATH];
   int     iconIndex;
 
   // Get the handle from the Java side
@@ -571,7 +585,7 @@ JNIEXPORT jint JNICALL Java_com_izforge_izpack_util_os_ShellLink_GetPath (JNIEnv
                                                                           jobject  obj)
 {
   WIN32_FIND_DATA findData;
-  char            targetPath [MAX_PATH];
+  TCHAR            targetPath [MAX_PATH];
   HRESULT hres;
 
   // Get the handle from the Java side
@@ -644,7 +658,7 @@ JNIEXPORT jint JNICALL Java_com_izforge_izpack_util_os_ShellLink_GetWorkingDirec
                                                                                        jobject  obj)
 {
   HRESULT hres;
-  char workingDirectory [MAX_PATH];
+  TCHAR workingDirectory [MAX_PATH];
 
   // Get the handle from the Java side
   jclass      cls       = (env)->GetObjectClass  (obj);
@@ -724,7 +738,7 @@ JNIEXPORT jint JNICALL Java_com_izforge_izpack_util_os_ShellLink_SetArguments (J
   // ------------------------------------------------------
   jfieldID    argumentsID = (env)->GetFieldID               (cls, "arguments", "Ljava/lang/String;");
   jstring     j_arguments = (jstring)(env)->GetObjectField  (obj, argumentsID);
-  const char *arguments   = (env)->GetStringUTFChars        (j_arguments, 0);
+  const TCHAR *arguments   = TO_TCHARS( (env)->GetStringUTFChars(j_arguments, 0) );
 
   hres = p_shellLink [handle]->SetArguments (arguments);
 
@@ -760,7 +774,7 @@ JNIEXPORT jint JNICALL Java_com_izforge_izpack_util_os_ShellLink_SetDescription 
   // ------------------------------------------------------
   jfieldID    descriptionID = (env)->GetFieldID               (cls, "description", "Ljava/lang/String;");
   jstring     j_description = (jstring)(env)->GetObjectField  (obj, descriptionID);
-  const char *description   = (env)->GetStringUTFChars        (j_description, 0);
+  const TCHAR *description   = TO_TCHARS( (env)->GetStringUTFChars(j_description, 0) );
 
   hres = p_shellLink [handle]->SetDescription (description);
 
@@ -829,7 +843,7 @@ JNIEXPORT jint JNICALL Java_com_izforge_izpack_util_os_ShellLink_SetIconLocation
   // ------------------------------------------------------
   jfieldID    pathID        = (env)->GetFieldID               (cls, "iconPath", "Ljava/lang/String;");
   jstring     j_iconPath    = (jstring)(env)->GetObjectField  (obj, pathID);
-  const char *iconPath      = (env)->GetStringUTFChars        (j_iconPath, 0);
+  const TCHAR *iconPath      = TO_TCHARS( (env)->GetStringUTFChars(j_iconPath, 0) );
 
   jfieldID    indexID       = (env)->GetFieldID               (cls, "iconIndex", "I");
   jint        iconIndex     = (env)->GetIntField              (obj, indexID);
@@ -869,7 +883,7 @@ JNIEXPORT jint JNICALL Java_com_izforge_izpack_util_os_ShellLink_SetPath	(JNIEnv
   // ------------------------------------------------------
   jfieldID    pathID        = (env)->GetFieldID               (cls, "targetPath", "Ljava/lang/String;");
   jstring     j_targetPath  = (jstring)(env)->GetObjectField  (obj, pathID);
-  const char *targetPath    = (env)->GetStringUTFChars        (j_targetPath, 0);
+  const TCHAR *targetPath    = TO_TCHARS( (env)->GetStringUTFChars(j_targetPath, 0) );
 
   hres = p_shellLink [handle]->SetPath (targetPath);
 
@@ -937,7 +951,7 @@ JNIEXPORT jint JNICALL Java_com_izforge_izpack_util_os_ShellLink_SetWorkingDirec
   // ------------------------------------------------------
   jfieldID    pathID              = (env)->GetFieldID               (cls, "workingDirectory", "Ljava/lang/String;");
   jstring     j_workingDirectory  = (jstring)(env)->GetObjectField  (obj, pathID);
-  const char *workingDirectory    = (env)->GetStringUTFChars        (j_workingDirectory, 0);
+  const TCHAR *workingDirectory    = TO_TCHARS( (env)->GetStringUTFChars(j_workingDirectory, 0) );
 
   hres = p_shellLink [handle]->SetWorkingDirectory (workingDirectory);
 
@@ -1268,4 +1282,5 @@ JNIEXPORT jint JNICALL Java_com_izforge_izpack_util_os_ShellLink_GetFullLinkPath
 
   return SL_CAN_NOT_READ_PATH;
 }
+
 

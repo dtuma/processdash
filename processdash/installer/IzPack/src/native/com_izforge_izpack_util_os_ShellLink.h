@@ -215,11 +215,11 @@ JNIEXPORT jint JNICALL Java_com_izforge_izpack_util_os_ShellLink_loadLink
 
 /*
  * Class:     com_izforge_izpack_util_os_ShellLink
- * Method:    GetLinkPath
- * Signature: (I)I
+ * Method:    GetFullLinkPath
+ * Signature: (II)I
  */
-JNIEXPORT jint JNICALL Java_com_izforge_izpack_util_os_ShellLink_GetLinkPath
-  (JNIEnv *, jobject, jint);
+JNIEXPORT jint JNICALL Java_com_izforge_izpack_util_os_ShellLink_GetFullLinkPath
+  (JNIEnv *, jobject, jint, jint);
 
 /*
  * Class:     com_izforge_izpack_util_os_ShellLink
@@ -233,3 +233,4 @@ JNIEXPORT void JNICALL Java_com_izforge_izpack_util_os_ShellLink_FreeLibrary
 }
 #endif
 #endif
+
