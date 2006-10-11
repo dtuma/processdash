@@ -1,5 +1,5 @@
+// Copyright (C) 2006 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -25,22 +25,11 @@
 
 package net.sourceforge.processdash.ev;
 
-import net.sourceforge.processdash.ev.ci.EVScheduleConfidenceIntervals;
-import DistLib.uniform;
+import java.util.List;
 
-public class EVScheduleRandom extends EVScheduleSplit
-    implements EVScheduleConfidenceIntervals.Randomizable
-{
+public interface EVForecastDateCalculator {
 
-    public EVScheduleRandom(EVSchedule s) {
-        super(s);
-        this.metrics = new EVMetricsRandom(s.getMetrics());
-    }
-
-    public void randomize(uniform random) {
-        addAllPeriods(origPeriods, periods);
-        currentMultiplier = 1.0;
-        ((EVMetricsRandom) metrics).randomize(this, random);
-    }
+    public void calculateForecastDates(EVTask taskRoot,
+            EVSchedule schedule, EVMetrics metrics, List evLeaves);
 
 }

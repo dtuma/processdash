@@ -68,7 +68,7 @@ public class EVTaskDependency {
 
     private double percentComplete;
 
-    private Date plannedDate;
+    private Date projectedDate;
 
     public EVTaskDependency(String taskID, String displayName) {
         this.taskID = taskID;
@@ -82,7 +82,7 @@ public class EVTaskDependency {
         this.source = getAttr(e, SOURCE_ATTR);
         this.assignedTo = getAttr(e, ASSIGNED_TO_ATTR);
         this.percentComplete = XMLUtils.getXMLNum(e, PERCENT_COMPLETE_ATTR);
-        this.plannedDate = XMLUtils.getXMLDate(e, PLAN_DATE_ATTR);
+        this.projectedDate = XMLUtils.getXMLDate(e, PROJ_DATE_ATTR);
     }
 
     public EVTaskDependency(Set waitingIndividuals) {
@@ -90,7 +90,7 @@ public class EVTaskDependency {
         this.displayName = this.taskListName = null;
         this.assignedTo = StringUtils.join(waitingIndividuals, ", ");
         this.percentComplete = 0;
-        this.plannedDate = null;
+        this.projectedDate = null;
         this.unresolvable = false;
     }
 
@@ -134,8 +134,8 @@ public class EVTaskDependency {
         return percentComplete;
     }
 
-    public Date getPlannedDate() {
-        return plannedDate;
+    public Date getProjectedDate() {
+        return projectedDate;
     }
 
     public boolean isUnresolvable() {
@@ -147,11 +147,11 @@ public class EVTaskDependency {
     }
 
     public void setResolvedDetails(boolean unresolvable, String assignedTo,
-            double percentComplete, Date planDate, String displayName) {
+            double percentComplete, Date projectedDate, String displayName) {
         this.unresolvable = unresolvable;
         this.assignedTo = assignedTo;
         this.percentComplete = percentComplete;
-        this.plannedDate = planDate;
+        this.projectedDate = projectedDate;
         if (!unresolvable && displayName != null && displayName.length() > 1)
             this.displayName = displayName;
     }
@@ -187,8 +187,8 @@ public class EVTaskDependency {
             if (percentComplete > 0)
                 addAttr(out, PERCENT_COMPLETE_ATTR, Double
                         .toString(percentComplete));
-            if (plannedDate != null)
-                addAttr(out, PLAN_DATE_ATTR, XMLUtils.saveDate(plannedDate));
+            if (projectedDate != null)
+                addAttr(out, PROJ_DATE_ATTR, XMLUtils.saveDate(projectedDate));
         }
         out.append("/>");
         if (indent != null)
@@ -457,7 +457,10 @@ public class EVTaskDependency {
 
     private static final String PERCENT_COMPLETE_ATTR = "pctComplete";
 
-    private static final String PLAN_DATE_ATTR = "planDate";
+    // the string on the next line is not a typo.  It was originally
+    // created as "planDate", and altering this text would break backward
+    // compatibility of data imported/exported by older dashboards.
+    private static final String PROJ_DATE_ATTR = "planDate";
 
     public static final String REVERSE_PSEUDO_TASK = "REVERSE";
 

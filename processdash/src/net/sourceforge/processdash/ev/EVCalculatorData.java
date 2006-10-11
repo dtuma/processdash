@@ -51,11 +51,13 @@ public class EVCalculatorData extends EVCalculator {
     private EVSchedule schedule;
     private TimeLog timeLog;
     private Date effectiveDate, completionDate;
+    private EVForecastDateCalculator forecastDateCalculator;
 
     public EVCalculatorData(EVTask root, EVSchedule schedule) {
         this.taskRoot = root;
         this.schedule = schedule;
         this.timeLog = DashboardTimeLog.getDefault();
+        this.forecastDateCalculator = createForecastCalculator();
     }
 
     public void recalculate() {
@@ -118,6 +120,10 @@ public class EVCalculatorData extends EVCalculator {
         taskRoot.checkForNodeErrors(schedule.getMetrics(), 0,
                                     new ArrayList(), new ArrayList(), false);
         recalcMetrics(taskRoot, schedule.getMetrics());
+
+        schedule.getMetrics().recalcScheduleTime(schedule);
+        forecastDateCalculator.calculateForecastDates(taskRoot, schedule,
+                schedule.getMetrics(), evLeaves);
 
         recalculateTaskHierarchy(taskRoot);
 
@@ -353,7 +359,7 @@ public class EVCalculatorData extends EVCalculator {
 
         sumUpNodeData(task);
 
-        if (EVTask.containsNode(evLeaves, task) && !task.isLeaf())
+        if (EVTask.containsNode(evLeaves, task) && !task.isLeaf())  //FIXME: this may be the line to fix, to avoid the problem Dan saw.
             updateBumChildrenOfEVLeaf(task);
     }
 
@@ -361,6 +367,7 @@ public class EVCalculatorData extends EVCalculator {
         for (int i = task.getNumChildren();   i-- > 0;   ) {
             EVTask child = task.getChild(i);
             child.planDate = task.planDate;
+            child.forecastDate = task.forecastDate;
             child.planStartDate = task.planStartDate;
             child.cumPlanValue = task.cumPlanValue;
 
@@ -483,5 +490,19 @@ Value to recalculate
             System.out.println("Error calculating schedule interval:");
             e.printStackTrace();
         }
+    }
+
+    private EVForecastDateCalculator createForecastCalculator() {
+        String method = Settings.getVal("ev.forecast.method");
+        if ("simple".equalsIgnoreCase(method)
+                || Settings.getBool("ev.simpleForecastDate", false))
+            return EVForecastDateCalculators.SIMPLE_EXTRAPOLATION;
+        if ("schedule".equalsIgnoreCase(method))
+            return EVForecastDateCalculators.SCHEDULE_EXTRAPOLATION;
+        if ("evRate".equalsIgnoreCase(method))
+            return new EVForecastDateCalculators.HourlyEVRateExtrapolation();
+
+        // default approach, also specified as "task"
+        return new EVForecastDateCalculators.ScheduleTaskExtrapolation();
     }
 }

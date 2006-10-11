@@ -854,9 +854,9 @@ public class EVReport extends CGIChartBase {
         EVTaskFilter taskFilter = printFilterInfo();
         out.print("</h2>\n");
         if (isFlatView())
-            writeTaskTable(evModel, taskFilter);
+            writeTaskTable(evModel, taskFilter, hidePlan, hideForecast);
         else
-            writeTaskTree(evModel, taskFilter);
+            writeTaskTree(evModel, taskFilter, hidePlan, hideForecast);
 
         out.print("<h2>"+getResource("Schedule.Title")+"</h2>\n");
         writeScheduleTable(s);
@@ -1095,10 +1095,11 @@ public class EVReport extends CGIChartBase {
     static final String EXCEL_TIME_TD = "<td class='timeFmt'>";
 
 
-    void writeTaskTable(EVTaskList taskList, EVTaskFilter filter)
-            throws IOException {
+    void writeTaskTable(EVTaskList taskList, EVTaskFilter filter,
+            boolean hidePlan, boolean hideForecast) throws IOException {
         HTMLTableWriter writer = new HTMLTableWriter();
-        TableModel table = customizeTaskTableWriter(writer, taskList, filter);
+        TableModel table = customizeTaskTableWriter(writer, taskList, filter,
+                hidePlan, hideForecast);
         if (taskList instanceof EVTaskListData
                 && parameters.get("EXPORT") == null)
             writer.setCellRenderer(EVTaskList.TASK_COLUMN,
@@ -1106,11 +1107,11 @@ public class EVReport extends CGIChartBase {
         writer.writeTable(out, table);
     }
 
-    void writeTaskTree(EVTaskList taskList, EVTaskFilter filter)
-            throws IOException {
+    void writeTaskTree(EVTaskList taskList, EVTaskFilter filter,
+            boolean hidePlan, boolean hideForecast) throws IOException {
         TreeTableModel tree = taskList.getMergedModel(true, filter);
         HTMLTreeTableWriter writer = new HTMLTreeTableWriter();
-        customizeTaskTableWriter(writer, taskList, null);
+        customizeTaskTableWriter(writer, taskList, null, hidePlan, hideForecast);
         writer.setSkipColumn(EVTaskList.PLAN_CUM_TIME_COLUMN, true);
         writer.setSkipColumn(EVTaskList.PLAN_CUM_VALUE_COLUMN, true);
         writer.setTreeName("$$$_t");
@@ -1128,7 +1129,8 @@ public class EVReport extends CGIChartBase {
     }
 
     private TableModel customizeTaskTableWriter(HTMLTableWriter writer,
-            EVTaskList taskList, EVTaskFilter filter) {
+            EVTaskList taskList, EVTaskFilter filter, boolean hidePlan,
+            boolean hideForecast) {
         TableModel table = taskList.getSimpleTableModel(filter);
         customizeTableWriter(writer, table, EVTaskList.toolTips);
         writer.setTableName("TASK");
@@ -1137,6 +1139,10 @@ public class EVReport extends CGIChartBase {
         if (!(taskList instanceof EVTaskListRollup)
                 || getSettingVal(CUSTOMIZE_HIDE_ASSIGN_TO))
             writer.setSkipColumn(EVTaskList.ASSIGNED_TO_COLUMN, true);
+        if (hidePlan)
+            writer.setSkipColumn(EVTaskList.PLAN_DATE_COLUMN, true);
+        if (hideForecast)
+            writer.setSkipColumn(EVTaskList.FORECAST_DATE_COLUMN, true);
         return table;
     }
 

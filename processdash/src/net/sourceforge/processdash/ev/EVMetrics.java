@@ -127,9 +127,10 @@ public class EVMetrics implements TableModel {
     public void reset(Date start, Date current,
                       Date periodStart, Date periodEnd) {
         totalPlanTime = earnedValueTime = actualTime = planTime =
-            indirectTime = 0.0;
+            indirectTime = totalScheduleActualTime = totalSchedulePlanTime = 0.0;
         startDate = start;
         currentDate = current;
+        forecastDate = null;
         this.periodEnd = periodEnd;
         errors = null;
         if (periodStart != null && periodEnd != null) {
@@ -174,7 +175,6 @@ public class EVMetrics implements TableModel {
     public String getErrorQualifier() { return errorQualifier; }
 
     public void recalcComplete(EVSchedule s) {
-        recalcScheduleTime(s);
         recalcForecastDate(s);
         recalcViability(s);
         recalcMetricsFormatters();
@@ -243,28 +243,16 @@ public class EVMetrics implements TableModel {
         totalSchedulePlanTime = s.getScheduledPlanTime(currentDate);
         totalScheduleActualTime = s.getScheduledActualTime(currentDate);
     }
-    protected boolean useSimpleForecastDateFormula = false;
     protected Date forecastDate = null;
+    public void setForecastDate(Date d) {
+        if (d == EVSchedule.NEVER)
+            forecastDate = null;
+        else
+            forecastDate = d;
+    }
     protected void recalcForecastDate(EVSchedule s) {
-        // check to see whether the user doesn't want us to perform the
-        // nonstandard calculations.
-        useSimpleForecastDateFormula =
-            Settings.getBool("ev.simpleForecastDate", false);
-        if (useSimpleForecastDateFormula) {
-            forecastDate = null;
-            return;
-        }
-
-        // perform the nonstandard calculations for forecast date.
-        forecastDate = s.getHypotheticalDate(independentForecastCost(), true);
-        if (forecastDate == EVSchedule.NEVER)
-            forecastDate = null;
-
-        // if the nonstandard calculations failed or produced nonsense,
-        // fall back to using the standard calculations.
-        if (forecastDate == null ||
-            (earnedValue() < totalPlan() && forecastDate.before(currentDate)))
-            useSimpleForecastDateFormula = true;
+        // Do nothing by default; our calculator will normally handle this.
+        // Subclasses may override if a particular technique is required.
     }
     public void setCostConfidenceInterval(ConfidenceInterval incompleteTaskCost) {
         costInterval = incompleteTaskCost;
@@ -366,20 +354,10 @@ public class EVMetrics implements TableModel {
         return scheduleVariance() * elapsed() / earnedValue();
     }
     public double independentForecastDuration() {
-        if (useSimpleForecastDateFormula)
-            return elapsed() / percentComplete();
-        else
-            return calcDuration(startDate(), forecastDate);
+        return calcDuration(startDate(), forecastDate);
     }
     public Date independentForecastDate() {
-        if (useSimpleForecastDateFormula) {
-            Date s;
-            if ((s = startDate()) == null) return null;
-            double duration = independentForecastDuration();
-            if (badDouble(duration)) return null;
-            return new Date(s.getTime() + (long) (duration * MINUTE_MILLIS));
-        } else
-            return forecastDate;
+        return forecastDate;
     }
     public Date independentForecastDateLPI() {
         if (completionDateInterval == null)

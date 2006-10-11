@@ -168,6 +168,8 @@ public class EVTask implements Cloneable, DataListener {
     Date actualStartDate;
     /** The date we plan to complete this task */
     Date planDate;
+    /** The date this task is forecast to be completed */
+    Date forecastDate;
     /** The date this task was actually completed */
     Date dateCompleted;
     /** True if the user can edit the completion date for this task */
@@ -333,6 +335,7 @@ public class EVTask implements Cloneable, DataListener {
         planStartDate = EVSchedule.getXMLDate(e, "psd");
         actualStartDate = EVSchedule.getXMLDate(e, "asd");
         planDate = EVSchedule.getXMLDate(e, "pd");
+        forecastDate = EVSchedule.getXMLDate(e, "fd");
         dateCompleted = EVSchedule.getXMLDate(e, "cd");
         if (e.hasAttribute("loe"))
             planLevelOfEffort = EVSchedule.getXMLNum(e, "loe");
@@ -756,6 +759,11 @@ public class EVTask implements Cloneable, DataListener {
     public Date getPlanDate() {
         if (isValuePruned()) return null;
         return planDate;
+    }
+    public Date getForecastDate() {
+        if (isValuePruned()) return null;
+        if (dateCompleted != null) return dateCompleted;
+        return forecastDate;
     }
     public Date getActualDate() {
         if (isLevelOfEffortTask() || isTotallyPruned() ||
@@ -1192,6 +1200,8 @@ public class EVTask implements Cloneable, DataListener {
             result.append("' asd='").append(EVSchedule.saveDate(actualStartDate));
         if (planDate != null)
             result.append("' pd='").append(EVSchedule.saveDate(planDate));
+        if (forecastDate != null)
+            result.append("' fd='").append(EVSchedule.saveDate(forecastDate));
         if (dateCompleted != null)
             result.append("' cd='").append(EVSchedule.saveDate(dateCompleted));
         if (isLevelOfEffortTask())

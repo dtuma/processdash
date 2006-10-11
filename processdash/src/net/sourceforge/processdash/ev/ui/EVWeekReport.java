@@ -565,7 +565,7 @@ public class EVWeekReport extends TinyCGIBase {
         interpOut("<b>${Columns.Percent_Complete_Tooltip}:</b> ");
         out.println(formatPercent(d.getPercentComplete()));
         interpOut("<br><b>${Columns.Planned_Date}:</b> ");
-        out.println(encodeHTML(d.getPlannedDate()));
+        out.println(encodeHTML(d.getProjectedDate()));
         interpOut("<br><b>${Columns.Assigned_To}:</b> ");
         out.println(encodeHTML(d.getAssignedTo()));
 

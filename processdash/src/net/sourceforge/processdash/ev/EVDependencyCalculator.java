@@ -132,7 +132,7 @@ public class EVDependencyCalculator {
     private void updateDependency(Map taskLists, EVTaskDependency d) {
         String assignedTo = d.getAssignedTo();
         double percentComplete = d.getPercentComplete();
-        Date planDate = d.getPlannedDate();
+        Date projectedDate = d.getProjectedDate();
         boolean unresolvable = (assignedTo == null && percentComplete == 0);
         String displayName = d.getDisplayName();
 
@@ -147,14 +147,14 @@ public class EVDependencyCalculator {
                     unresolvable = false;
                     assignedTo = c.getAssignedTo();
                     percentComplete = c.getPercentComplete();
-                    planDate = c.getPlannedDate();
+                    projectedDate = c.getProjectedDate();
                     displayName = c.getTaskDisplayName();
                 }
             }
         }
 
         d.setResolvedDetails(unresolvable, assignedTo, percentComplete,
-                planDate, displayName);
+                projectedDate, displayName);
     }
 
     public void addReverseDependency(EVTask t) {
@@ -253,7 +253,7 @@ public class EVDependencyCalculator {
 
         double completedValue;
 
-        Date plannedDate;
+        Date projectedDate;
 
         private String rootDisplayName;
 
@@ -275,7 +275,7 @@ public class EVDependencyCalculator {
             this.taskDisplayName = null;
             this.people = new TreeSet();
             this.planValue = this.completedValue = 0;
-            this.plannedDate = null;
+            this.projectedDate = null;
             this.canonicalTaskRoots = new LinkedList();
         }
 
@@ -328,8 +328,13 @@ public class EVDependencyCalculator {
             if (collecting && !t.isTotallyPruned()) {
                 if (hasValue(t.getAssignedTo()))
                     people.addAll(t.getAssignedTo());
-                plannedDate = EVCalculator.maxPlanDate(plannedDate,
-                        t.getPlanDate());
+
+                Date taskDate = t.getForecastDate();
+                if (taskDate == null)
+                    taskDate = t.getPlanDate();
+                projectedDate = EVCalculator.maxPlanDate(projectedDate,
+                        taskDate);
+
                 taskCount++;
                 if (t.getActualDate() != null)
                     completedTaskCount++;
@@ -381,8 +386,8 @@ public class EVDependencyCalculator {
                 return StringUtils.join(people, ", ");
         }
 
-        public Date getPlannedDate() {
-            return plannedDate;
+        public Date getProjectedDate() {
+            return projectedDate;
         }
 
         public String getTaskDisplayName() {

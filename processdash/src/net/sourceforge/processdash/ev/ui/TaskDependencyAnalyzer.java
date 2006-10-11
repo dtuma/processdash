@@ -166,7 +166,7 @@ public class TaskDependencyAnalyzer {
 
         StringBuffer result = new StringBuffer();
         result.append(sep).append(nvl(d.getAssignedTo()));
-        Date pd = d.getPlannedDate();
+        Date pd = d.getProjectedDate();
         if (pd != null && d.getPercentComplete() < 1)
             result.append(sep).append(DATE_FORMAT.format(pd));
         if (!d.isReverse())

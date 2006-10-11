@@ -432,7 +432,6 @@ public class EVSchedule implements TableModel {
         recalcCumActualTimes();
         setEffectiveDate(getXMLDate(e, "eff"));
         setLevelOfEffort(getXMLNum(e, "loe"));
-        metrics.recalcComplete(this);
     }
 
     protected synchronized void add(Period p) {
@@ -1044,15 +1043,15 @@ public class EVSchedule implements TableModel {
     public static String formatPercent(double p) {
         return EVTask.formatPercent(p); }
     public static String formatDate(Date d) {
-        if (d == null)
+        if (d == null || d == A_LONG_TIME_AGO)
             return "";
         else if (d == NEVER)
             return NEVER_STRING;
         else
-            return dateFormatter.format(d);
+            return DATE_FORMATTER.format(d);
     }
-    private static DateFormat dateFormatter =
-        DateFormat.getDateInstance(DateFormat.MEDIUM);
+    private static DateFormat DATE_FORMATTER =
+        DateFormat.getDateInstance(DateFormat.SHORT);
     private static final String NEVER_STRING =
         resources.getString("Schedule.Date_Never");
 

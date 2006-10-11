@@ -113,7 +113,8 @@ public abstract class EVCalculator {
     }
 
     protected static void resetNodeData(EVTask task) {
-        task.planDate = task.planStartDate = task.actualStartDate = null;
+        task.planDate = task.planStartDate = task.actualStartDate =
+            task.forecastDate = null;
 
         task.planTime = task.planValue = task.cumPlanValue =
             task.actualPreTime = task.actualNodeTime = task.actualDirectTime =
@@ -127,6 +128,8 @@ public abstract class EVCalculator {
 
         task.actualTime = task.actualNodeTime + task.actualPreTime;
         task.actualCurrentTime = task.actualNodeTime;
+
+        Date forecastDate = EVSchedule.A_LONG_TIME_AGO;
 
         for (int i = task.getNumChildren();   i-- > 0;   ) {
             EVTask child = task.getChild(i);
@@ -146,7 +149,14 @@ public abstract class EVCalculator {
                 minStartDate(task.actualStartDate, child.actualStartDate);
 
             task.planDate = maxPlanDate(task.planDate, child.planDate);
+
+            if (child.planValue > 0)
+                forecastDate = maxForecastDate(forecastDate, child.forecastDate);
         }
+
+        if (task.forecastDate == null
+                && forecastDate != EVSchedule.A_LONG_TIME_AGO)
+            task.forecastDate = forecastDate;
     }
 
 
@@ -161,6 +171,13 @@ public abstract class EVCalculator {
     protected static Date maxPlanDate(Date a, Date b) {
         if (a == null) return b;
         if (b == null) return a;
+        if (a.compareTo(b) > 0) return a;
+        return b;
+    }
+
+
+    protected static Date maxForecastDate(Date a, Date b) {
+        if (a == null || b == null) return null;
         if (a.compareTo(b) > 0) return a;
         return b;
     }

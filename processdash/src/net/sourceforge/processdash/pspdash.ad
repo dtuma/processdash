@@ -145,6 +145,11 @@ autoRealization=min
 timelog.updateInterval=1
 ev.enableRollup=true
 
+ev.forecast.method=task
+ev.forecast.task.almostDonePct=90
+ev.forecast.task.maxCpiCorrectionPct=20
+
+
 
 #
 # Default settings for charts

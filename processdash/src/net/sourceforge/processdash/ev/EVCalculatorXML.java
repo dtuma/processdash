@@ -62,6 +62,10 @@ public class EVCalculatorXML extends EVCalculator {
         // calculate cumulative plan value and value earned
         calcTaskValues(evLeaves);
         recalcValueEarned(taskRoot);
+        schedule.getMetrics().recalcScheduleTime(schedule);
+        EVForecastDateCalculators.XML_FORECAST.calculateForecastDates(taskRoot,
+                schedule, schedule.getMetrics(), evLeaves);
+        schedule.getMetrics().recalcComplete(schedule);
 
         // check for errors in the task list
         taskRoot.checkForNodeErrors(schedule.getMetrics(), 0,
