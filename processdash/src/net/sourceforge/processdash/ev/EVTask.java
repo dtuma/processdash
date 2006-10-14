@@ -246,7 +246,8 @@ public class EVTask implements Cloneable, DataListener {
     public boolean sameNode(EVTask that) {
         if ("".equals(this.fullName))
             // compare root nodes by examining their node name.
-            return cmpStrings(this.name, that.name);
+            return ("".equals(that.fullName)
+                    && cmpStrings(this.name, that.name));
         else
             // compare regular nodes by examining their full name.
             return cmpStrings(this.fullName, that.fullName);

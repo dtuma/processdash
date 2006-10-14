@@ -359,7 +359,7 @@ public class EVCalculatorData extends EVCalculator {
 
         sumUpNodeData(task);
 
-        if (EVTask.containsNode(evLeaves, task) && !task.isLeaf())  //FIXME: this may be the line to fix, to avoid the problem Dan saw.
+        if (EVTask.containsNode(evLeaves, task) && !task.isLeaf())
             updateBumChildrenOfEVLeaf(task);
     }
 
