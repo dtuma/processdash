@@ -37,11 +37,14 @@ import net.sourceforge.processdash.ev.ci.TargetedConfidenceInterval;
 
 public class EVMetricsRollup extends EVMetrics {
 
-    /** The date the project is forecast to complete */
-    Date independentForecastDate = null;
-
     /** The forecast total cost of the project */
     double independentForecastCost;
+
+    /** The optimized date the project is planned to complete */
+    protected Date optimizedPlanDate = null;
+
+    /** The optimized date the project is forecast to complete */
+    protected Date optimizedForecastDate;
 
     /** A confidence interval predicting the optimized forecast
      * completion date. */
@@ -51,6 +54,11 @@ public class EVMetricsRollup extends EVMetrics {
      * other EVMetricsRollup objects. */
     protected boolean isRollupOfRollups = false;
 
+    /** For a rollup of rollups, the chronologically latest opt plan date. */
+    protected Date rollupOfOptimizedPlanDates;
+
+    /** For a rollup of rollups, the chronologically latest opt fcst date. */
+    protected Date rollupOfOptimizedForecastDates;
 
 
     public EVMetricsRollup() {
@@ -66,7 +74,9 @@ public class EVMetricsRollup extends EVMetrics {
         totalSchedulePlanTime = totalScheduleActualTime = 0.0;
         independentForecastCost = 0;
         currentDate = effectiveDate;
-        startDate = independentForecastDate = null;
+        startDate = planDate = forecastDate = null;
+        rollupOfOptimizedPlanDates = null;
+        rollupOfOptimizedForecastDates = EVSchedule.A_LONG_TIME_AGO;
         errors = null;
         isRollupOfRollups = false;
     }
@@ -81,12 +91,33 @@ public class EVMetricsRollup extends EVMetrics {
         this.independentForecastCost += that.independentForecastCost();
         this.startDate =
             EVScheduleRollup.minDate(this.startDate, that.startDate);
-        this.independentForecastDate =
-            EVScheduleRollup.maxDate(this.independentForecastDate,
+        this.planDate =
+            EVCalculator.maxPlanDate(this.planDate, that.planDate());
+        this.forecastDate =
+            EVScheduleRollup.maxDate(this.forecastDate,
                                      that.independentForecastDate());
 
-        if (that instanceof EVMetricsRollup)
+        if (that instanceof EVMetricsRollup) {
             this.isRollupOfRollups = true;
+
+            EVMetricsRollup thatRollUp = (EVMetricsRollup) that;
+
+            Date thatDate = thatRollUp.optimizedPlanDate();
+            if (thatDate == null) thatDate = that.planDate();
+            this.rollupOfOptimizedPlanDates = EVCalculator.maxPlanDate(
+                    this.rollupOfOptimizedPlanDates, thatDate);
+
+            thatDate = thatRollUp.optimizedForecastDate();
+            if (thatDate == null) thatDate = that.independentForecastDate();
+            this.rollupOfOptimizedForecastDates = EVCalculator.maxForecastDate(
+                    this.rollupOfOptimizedForecastDates, thatDate);
+        } else {
+            this.rollupOfOptimizedPlanDates = EVCalculator.maxPlanDate(
+                    this.rollupOfOptimizedPlanDates, that.planDate());
+            this.rollupOfOptimizedForecastDates = EVCalculator.maxForecastDate(
+                    this.rollupOfOptimizedForecastDates,
+                    that.independentForecastDate());
+        }
 
         if (that.errors != null) {
             if (this.errors == null)
@@ -104,6 +135,7 @@ public class EVMetricsRollup extends EVMetrics {
             }
         }
     }
+
     protected void recalcViability(EVSchedule s) {
         super.recalcViability(s);
         if (costInterval == null)
@@ -125,9 +157,12 @@ public class EVMetricsRollup extends EVMetrics {
     }
     protected void recalcForecastDate(EVSchedule s) {
         if (isRollupOfRollups) {
-            optimizedPlanDate = null;
-            // for a rollup, this field holds the optimized forecast date.
-            forecastDate = null;
+            optimizedPlanDate = filterNonUniqueDate(rollupOfOptimizedPlanDates,
+                    planDate);
+            optimizedForecastDate = filterNonUniqueDate(
+                    rollupOfOptimizedForecastDates, forecastDate);
+            if (optimizedForecastDate == EVSchedule.A_LONG_TIME_AGO)
+                optimizedForecastDate = null;
         } else {
             optimizedPlanDate = s.getHypotheticalDate(totalPlan(), false);
             if (optimizedPlanDate == EVSchedule.NEVER)
@@ -135,9 +170,24 @@ public class EVMetricsRollup extends EVMetrics {
 
             // recalculate the optimized forecast date using a balanced
             // schedule extrapolation.
-            EVForecastDateCalculators.SCHEDULE_EXTRAPOLATION
+            //
+            // The forecast calculator will write its calculation into the
+            // forecastDate field, rather than into the optimized forecast date
+            // field where we want the data to go.  So we need to do a few
+            // gyrations to preserve the current forecast date and get the
+            // optimized calculation moved into the right field.
+            Date savedForecastDate = forecastDate;
+            EVForecastDateCalculators.SCHEDULE_EXTRAPOLATION_2
                     .calculateForecastDates(null, s, this, null);
+            optimizedForecastDate = forecastDate;
+            forecastDate = savedForecastDate;
         }
+    }
+    private Date filterNonUniqueDate(Date a, Date b) {
+        if (a == null || a.equals(b))
+            return null;
+        else
+            return a;
     }
 
     public void setOptimizedDateConfidenceInterval
@@ -152,19 +202,12 @@ public class EVMetricsRollup extends EVMetrics {
     }
 
 
-    public double independentForecastDuration() {
-        return calcDuration(startDate(), independentForecastDate());
-    }
-    public Date independentForecastDate() {
-        return independentForecastDate;
-    }
-
     public double optimizedForecastDuration() {
-        return calcDuration(startDate(), optimizedForecastDate());
+        return calcDuration(startDate(), optimizedForecastDate);
     }
 
     public Date optimizedForecastDate() {
-        return super.independentForecastDate();
+        return optimizedForecastDate;
     }
     public Date optimizedForecastDateLPI() {
         if (optCompletionDateInterval == null)
@@ -183,8 +226,6 @@ public class EVMetricsRollup extends EVMetrics {
     public Date optimizedPlanDate() {
         return optimizedPlanDate;
     }
-    private Date optimizedPlanDate = null;
-    void setOptimizedPlanDate(Date d) { optimizedPlanDate = d; }
 
     public boolean isRollupOfRollups() {
         return isRollupOfRollups;
@@ -203,7 +244,7 @@ public class EVMetricsRollup extends EVMetrics {
             ("Optimized_Forecast_Date_Range") {
                 Date lpi() { return optimizedForecastDateLPI(); }
                 Date upi() { return optimizedForecastDateUPI(); } } );
-        result.add(new DateMetricFormatter("Optimized_Plan_Date") {
+        result.add(1, new DateMetricFormatter("Optimized_Plan_Date") {
                 Date val() { return optimizedPlanDate(); } } );
         return result;
     }

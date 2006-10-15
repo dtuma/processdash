@@ -88,19 +88,22 @@ public class EVForecastDateCalculators {
      * @param forecastDate a tentatively calculated forecast date for the
      *     schedule, might be null
      * @param metrics a metrics object associated with the schedule
-     * @return if forecastDate is not null and is not nonsensical, returns
-     *     forecastDate.  Otherwise, performs a simple extrapolation and
-     *     returns that result date (which also could be null).
+     * @return true if forecastDate is null or is nonsensical.
      */
-    protected static Date scrubForecast(Date forecastDate,
+    private static boolean isForecastInvalid(Date forecastDate,
             EVMetrics metrics) {
-        if (forecastDate == null
-                || (metrics.earnedValue() < metrics.totalPlan()
-                        && forecastDate.before(metrics.currentDate())))
-            return getSimpleExtrapolatedForecast(metrics);
+        // is the date one of a number of known invalid values?
+        if (forecastDate == null || forecastDate == EVSchedule.A_LONG_TIME_AGO)
+            return true;
 
-        else
-            return forecastDate;
+        // if the schedule is not 100% complete, does the forecast date
+        // precede the current date?
+        if (metrics.earnedValue() < metrics.totalPlan()
+                && forecastDate.before(metrics.currentDate()))
+            return true;
+
+        // forecast date seems OK
+        return false;
     }
 
 
@@ -123,6 +126,12 @@ public class EVForecastDateCalculators {
         private static final Logger logger = Logger
                 .getLogger(ScheduleExtrapolation.class.getName());
 
+        private boolean shouldFallbackToExtrapolation;
+
+        public ScheduleExtrapolation(boolean shouldFallbackToExtrapolation) {
+            this.shouldFallbackToExtrapolation = shouldFallbackToExtrapolation;
+        }
+
         public void calculateForecastDates(EVTask taskRoot,
                 EVSchedule schedule, EVMetrics metrics, List evLeaves) {
 
@@ -134,12 +143,21 @@ public class EVForecastDateCalculators {
             logger.log(Level.FINEST, "Schedule extrapolation = {0}",
                     forecastDate);
 
-            metrics.setForecastDate(scrubForecast(forecastDate, metrics));
+            if (isForecastInvalid(forecastDate, metrics)) {
+                if (shouldFallbackToExtrapolation)
+                    forecastDate = getSimpleExtrapolatedForecast(metrics);
+                else
+                    forecastDate = null;
+            }
+
+            metrics.setForecastDate(forecastDate);
         }
 
     }
     public static final EVForecastDateCalculator SCHEDULE_EXTRAPOLATION =
-        new ScheduleExtrapolation();
+        new ScheduleExtrapolation(true);
+    public static final EVForecastDateCalculator SCHEDULE_EXTRAPOLATION_2 =
+        new ScheduleExtrapolation(false);
 
 
 

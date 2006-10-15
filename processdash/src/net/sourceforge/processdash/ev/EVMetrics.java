@@ -76,6 +76,12 @@ public class EVMetrics implements TableModel {
     /** The current date (or effective date) */
     protected Date currentDate = null;
 
+    /** The planned completion date */
+    protected Date planDate = null;
+
+    /** The forecast completion date. */
+    protected Date forecastDate = null;
+
     /** What % complete is the current period, in terms of elapsed time? */
     double periodPercent = 0.0;
 
@@ -130,7 +136,7 @@ public class EVMetrics implements TableModel {
             indirectTime = totalScheduleActualTime = totalSchedulePlanTime = 0.0;
         startDate = start;
         currentDate = current;
-        forecastDate = null;
+        planDate = forecastDate = null;
         this.periodEnd = periodEnd;
         errors = null;
         if (periodStart != null && periodEnd != null) {
@@ -161,6 +167,8 @@ public class EVMetrics implements TableModel {
             else if (!periodEnd.before(planDate))
                 this.planTime += planTime * periodPercent;
         }
+
+        this.planDate = EVCalculator.maxPlanDate(this.planDate, planDate);
     }
     public void addIndirectTime(double indirectTime) {
         this.indirectTime += indirectTime;
@@ -243,7 +251,6 @@ public class EVMetrics implements TableModel {
         totalSchedulePlanTime = s.getScheduledPlanTime(currentDate);
         totalScheduleActualTime = s.getScheduledActualTime(currentDate);
     }
-    protected Date forecastDate = null;
     public void setForecastDate(Date d) {
         if (d == EVSchedule.NEVER)
             forecastDate = null;
@@ -281,6 +288,7 @@ public class EVMetrics implements TableModel {
     public double totalPlan()   { return totalPlanTime;   }
     public Date startDate()     { return startDate;       }
     public Date currentDate()   { return currentDate;     }
+    public Date planDate()      { return planDate;        }
 
 
 
@@ -590,6 +598,8 @@ public class EVMetrics implements TableModel {
 
     protected List buildFormatters() {
         ArrayList result = new ArrayList();
+        result.add(new DateMetricFormatter("Plan_Date") {
+            Date val() { return planDate(); } } );
         result.add(new CostMetricFormatter("Cost_Variance") {
                 double val() { return costVariance(); } } );
         result.add(new AbsMetricFormatter("Cost_Variance_Percent") {

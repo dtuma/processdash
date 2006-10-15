@@ -65,6 +65,7 @@ public class EVCalculatorXML extends EVCalculator {
         schedule.getMetrics().recalcScheduleTime(schedule);
         EVForecastDateCalculators.XML_FORECAST.calculateForecastDates(taskRoot,
                 schedule, schedule.getMetrics(), evLeaves);
+        schedule.getMetrics().planDate = taskRoot.getPlanDate();
         schedule.getMetrics().recalcComplete(schedule);
 
         // check for errors in the task list
