@@ -242,6 +242,10 @@ public class HierarchySynchronizer {
             // node isn't prunable.
             prunable = DONT_PRUNE;
 
+        // Look for children with duplicate names, and rename them if they
+        // exist.
+        renameDuplicateChildren(e);
+
         // Look at each child and see if it is prunable.
         List children = XMLUtils.getChildElements(e);
         for (Iterator i = children.iterator(); i.hasNext();) {
@@ -270,6 +274,28 @@ public class HierarchySynchronizer {
             e.setAttribute(PRUNED_ATTR, "true");
 
         return prunable;
+    }
+
+    /** Ensure that the children of the given element have unique names, by
+     * renaming children with duplicate names.
+     */
+    private void renameDuplicateChildren(Element e) {
+        Set childNames = new HashSet();
+        List children = XMLUtils.getChildElements(e);
+        for (Iterator i = children.iterator(); i.hasNext();) {
+            Element child = (Element) i.next();
+            String name = child.getAttribute(NAME_ATTR);
+            if (childNames.contains(name)) {
+                String newName;
+                int j = 2;
+                do {
+                    newName = name + " (duplicate " + (j++) + ")";
+                } while (childNames.contains(newName));
+                child.setAttribute(NAME_ATTR, newName);
+                name = newName;
+            }
+            childNames.add(name);
+        }
     }
 
     private Set getNonprunableIDs() {
