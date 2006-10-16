@@ -100,6 +100,9 @@ public class EVSchedule implements TableModel {
         double cumActualDirectTime;
         /** The actual value the user has earned by the end of this period */
         double cumEarnedValue;
+        /** The actual cost of tasks completed in or before this period.
+         * Also known as ACWP (actual cost of work performed) */
+        double cumActualCost;
 
         boolean automatic = false;
 
@@ -108,7 +111,8 @@ public class EVSchedule implements TableModel {
             this.planTotalTime = planTotalTime;
             this.planDirectTime = planTotalTime * directPercentage;
             this.cumPlanDirectTime = this.planDirectTime;
-            cumPlanValue = actualDirectTime = actualIndirectTime = cumActualDirectTime = cumEarnedValue = 0;
+            cumPlanValue = actualDirectTime = actualIndirectTime =
+                cumActualDirectTime = cumEarnedValue = cumActualCost = 0;
             previous = null;
         }
 
@@ -209,6 +213,7 @@ public class EVSchedule implements TableModel {
                             actualIndirectTime  += next.actualIndirectTime;
                             cumActualDirectTime  = next.cumActualDirectTime;
                             cumEarnedValue       = next.cumEarnedValue;
+                            cumActualCost        = next.cumActualCost;
                             remove(pos+1);
                         }
                         clearAutomaticFlag();
@@ -312,7 +317,8 @@ public class EVSchedule implements TableModel {
                 .append("' pt='").append(planDirectTime)
                 .append("' at='").append(actualDirectTime)
                 .append("' cpv='").append(cumPlanValue)
-                .append("' cev='").append(cumEarnedValue);
+                .append("' cev='").append(cumEarnedValue)
+                .append("' cac='").append(cumActualCost);
             if (planTotalTime != planDirectTime)
                 result.append("' ptt='").append(planTotalTime);
             if (actualIndirectTime > 0)
@@ -328,13 +334,14 @@ public class EVSchedule implements TableModel {
             actualIndirectTime = getXMLNum(e, "ait");
             cumPlanValue = getXMLNum(e, "cpv");
             cumEarnedValue = getXMLNum(e, "cev");
+            cumActualCost = getXMLNum(e, "cac");
             automatic = "true".equals(e.getAttribute("auto"));
         }
 
         /** Warning - these fields are typically unused, so they
          * rarely contain any real data. Don't expect them to contain
          * anything useful unless you put it there. */
-        double planValue = 0, earnedValue = 0;
+        double planValue = 0, earnedValue = 0, actualCost = 0;
         public String getPlanValue(double totalPlanTime) {
             return formatPercent(planValue/totalPlanTime); }
         public String getEarnedValue(double totalPlanTime) {
@@ -690,17 +697,22 @@ public class EVSchedule implements TableModel {
 
     public synchronized void saveCompletedTask(Date dateCompleted,
                                                double planValue) {
-        saveActualTaskInfo(dateCompleted, planValue, 0, true);
+        saveActualTaskInfo(dateCompleted, planValue, 0, 0, true);
+    }
+    public synchronized void saveCompletedTaskCost(Date dateCompleted,
+            double actualCost) {
+        saveActualTaskInfo(dateCompleted, 0, 0, actualCost, true);
     }
     public synchronized void saveActualTime(Date when, double actualTime) {
-        saveActualTaskInfo(when, 0, actualTime, true);
+        saveActualTaskInfo(when, 0, actualTime, 0, true);
     }
     public synchronized void saveActualIndirectTime(Date when, double actualTime) {
-        saveActualTaskInfo(when, 0, actualTime, false);
+        saveActualTaskInfo(when, 0, actualTime, 0, false);
     }
-    public synchronized void saveActualTaskInfo(Date when,
+    protected synchronized void saveActualTaskInfo(Date when,
                                                 double planValue,
                                                 double actualTime,
+                                                double actualCost,
                                                 boolean direct) {
         //System.out.println("saveActualTaskInfo("+when+","+planValue+")");
         if (when == null || when == NEVER) return;
@@ -716,6 +728,7 @@ public class EVSchedule implements TableModel {
                 if (direct) {
                     p.cumEarnedValue += planValue;
                     p.cumActualDirectTime += actualTime;
+                    p.cumActualCost += actualCost;
                 }
                 if (when.compareTo(p.getBeginDate()) >= 0) {
                     if (direct)
@@ -738,6 +751,7 @@ public class EVSchedule implements TableModel {
                 if (direct) {
                     p.cumEarnedValue += planValue;
                     p.cumActualDirectTime  += actualTime;
+                    p.cumActualCost += actualCost;
                 }
                 if (when.compareTo(p.getBeginDate()) >= 0) {
                     if (direct)
@@ -848,6 +862,7 @@ public class EVSchedule implements TableModel {
         z.cumPlanDirectTime = y.cumPlanDirectTime;
         z.cumPlanValue = y.cumPlanValue;
         z.cumEarnedValue = y.cumEarnedValue;
+        z.cumActualCost = y.cumActualCost;
         z.automatic = automatic;
 
         add(z);
@@ -952,7 +967,7 @@ public class EVSchedule implements TableModel {
         for (i = 0;  i < periods.size();  i++) {
             p = get(i);
             p.planDirectTime = directPercentage * p.planTotalTime;
-            p.cumPlanValue = p.cumEarnedValue = 0;
+            p.cumPlanValue = p.cumEarnedValue = p.cumActualCost = 0;
             p.actualDirectTime = p.actualIndirectTime = p.cumActualDirectTime = 0;
             if (p.automatic)
                 break;
@@ -997,10 +1012,12 @@ public class EVSchedule implements TableModel {
         Period p = (Period) i.next();
         p.planValue = p.cumPlanValue;
         p.earnedValue = p.cumEarnedValue;
+        p.actualCost = p.cumActualCost;
         while (i.hasNext()) {
             p = (Period) i.next();
             p.planValue   = p.cumPlanValue   - p.previous.cumPlanValue;
             p.earnedValue = p.cumEarnedValue - p.previous.cumEarnedValue;
+            p.actualCost  = p.cumActualCost  - p.previous.cumActualCost;
         }
     }
 
@@ -1397,6 +1414,9 @@ public class EVSchedule implements TableModel {
     private class ActualTimeSeries extends ActualChartSeries {
         public Number getYValue(int itemIndex) {
             return new Double(get(itemIndex).cumActualDirectTime / 60.0); } }
+    private class ActualCostSeries extends ActualChartSeries {
+        public Number getYValue(int itemIndex) {
+            return new Double(get(itemIndex).cumActualCost / 60.0); } }
 
     /** XYDataSource for charting plan vs actual direct hours.
      */
@@ -1492,8 +1512,8 @@ public class EVSchedule implements TableModel {
         resources.getString("Schedule.Plan_Value_Label");
     private static final String ACTUAL_VALUE_LABEL =
         resources.getString("Schedule.Actual_Value_Label");
-    private static final String ACTUAL_TIME_LABEL =
-        resources.getString("Schedule.Actual_Time_Label");
+    private static final String ACTUAL_COST_LABEL =
+        resources.getString("Schedule.Actual_Cost_Label");
 
 
     /** XYDataSource for charting cost and schedule on one chart.
@@ -1507,9 +1527,9 @@ public class EVSchedule implements TableModel {
             series[1] = new ActualValueSeries(1.0 / 60.0) {
                     public String getSeriesName() {
                         return ACTUAL_VALUE_LABEL; } };
-            series[2] = new ActualTimeSeries() {
+            series[2] = new ActualCostSeries() {
                     public String getSeriesName() {
-                        return ACTUAL_TIME_LABEL; } };
+                        return ACTUAL_COST_LABEL; } };
         }
     }
     public XYDataset getCombinedChartData() {

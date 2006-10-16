@@ -1,5 +1,5 @@
+// Copyright (C) 2003-2006 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -136,6 +136,7 @@ public class EVScheduleSplit extends EVSchedule {
         // allocate actual data to the left period
         l.cumActualDirectTime = r.cumActualDirectTime;
         l.cumEarnedValue = r.cumEarnedValue;
+        l.cumActualCost = r.cumActualCost;
     }
 
     protected void rewriteHistory(Date effDate, List histPeriods) {

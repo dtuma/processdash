@@ -127,6 +127,8 @@ public class EVCalculatorData extends EVCalculator {
 
         recalculateTaskHierarchy(taskRoot);
 
+        saveCompletedTaskCosts(evLeaves);
+
         // create confidence intervals for cost, time, and schedule
         createCostConfidenceInterval();
         createTimeErrConfidenceInterval();
@@ -290,6 +292,15 @@ public class EVCalculatorData extends EVCalculator {
             if (task.valueEarned > 0)
                 schedule.saveCompletedTask
                     (task.dateCompleted, task.valueEarned);
+        }
+    }
+
+    private void saveCompletedTaskCosts(List evLeaves) {
+        for (Iterator i = evLeaves.iterator(); i.hasNext();) {
+            EVTask task = (EVTask) i.next();
+            if (task.dateCompleted != null)
+                schedule.saveCompletedTaskCost(task.dateCompleted,
+                        task.actualNodeTime);
         }
     }
 

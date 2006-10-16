@@ -1,5 +1,5 @@
+// Copyright (C) 2003-2006 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -30,9 +30,8 @@ import java.util.*;
 import org.jfree.data.XYDataset;
 
 /** This class represents a schedule that has been rolled up from
- *  several subschedules. (Note: at this time it only supports the
- *  rollup of plain schedules - rollup of rollup schedules is
- * forbidden.)
+ *  several subschedules.  The subschedules can be plain schedules OR
+ *  other rollup schedules.
  */
 public class EVScheduleRollup extends EVSchedule {
 
@@ -267,6 +266,7 @@ public class EVScheduleRollup extends EVSchedule {
         dest.actualDirectTime   += percent * src.actualDirectTime;
         dest.actualIndirectTime += percent * src.actualIndirectTime;
         dest.earnedValue        += percent * src.earnedValue;
+        dest.actualCost         += percent * src.actualCost;
     }
 
 
@@ -276,7 +276,7 @@ public class EVScheduleRollup extends EVSchedule {
     private void calculateCumValues() {
         Iterator i = periods.iterator();
         double cumPlanTime = 0, cumPlanValue = 0,
-            cumActualTime = 0, cumEarnedValue = 0;
+            cumActualTime = 0, cumEarnedValue = 0, cumActualCost = 0;
         Period p;
         while (i.hasNext()) {
             p = (Period) i.next();
@@ -284,6 +284,7 @@ public class EVScheduleRollup extends EVSchedule {
             p.cumPlanValue        = (cumPlanValue   += p.planValue);
             p.cumActualDirectTime = (cumActualTime  += p.actualDirectTime);
             p.cumEarnedValue      = (cumEarnedValue += p.earnedValue);
+            p.cumActualCost       = (cumActualCost  += p.actualCost);
         }
     }
 
@@ -336,6 +337,7 @@ public class EVScheduleRollup extends EVSchedule {
             result.cumPlanValue        = p.cumPlanValue;
             result.cumActualDirectTime = p.cumActualDirectTime;
             result.cumEarnedValue      = p.cumEarnedValue;
+            result.cumActualCost       = p.cumActualCost;
         }
         return result;
     }
