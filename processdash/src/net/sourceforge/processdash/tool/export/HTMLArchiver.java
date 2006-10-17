@@ -158,7 +158,8 @@ public class HTMLArchiver {
             if (item.getContents() == null)
                 return;
 
-            if (item.getContentType().startsWith("text/html"))
+            if (item.getContentType().startsWith("text/html")
+                    || item.getContentType().startsWith("text/css"))
                 handleHTML(uri, item.getContentType(),
                            item.getContents(),
                            item.getHeaderLength());
@@ -176,7 +177,7 @@ public class HTMLArchiver {
         postponeWritingAdditionalItems = false;
     }
 
-    /** Add an item to the archive if it is not HTML content.
+    /** Add an item to the archive if it is not HTML/CSS content.
      * 
      * While an HTML page is being processed for archival, it is necessary to
      * load the items it refers to, to determine their mime type.  If the items
@@ -193,7 +194,8 @@ public class HTMLArchiver {
 
         try {
             RequestResult item = openURI(uri);
-            if (!item.getContentType().startsWith("text/html")) {
+            if (!item.getContentType().startsWith("text/html")
+                    && !item.getContentType().startsWith("text/css")) {
                 seenURIs.add(uri);
                 itemsToWrite.remove(uri);
                 logger.log(Level.FINER, "writing item ''{0}''", uri);
@@ -481,10 +483,11 @@ public class HTMLArchiver {
 
         Set result = new HashSet();
 
-        getForAttr(normalizedHTML, "HREF", result);
-        getForAttr(normalizedHTML, "href", result);
-        getForAttr(normalizedHTML, "SRC", result);
-        getForAttr(normalizedHTML, "src", result);
+        getForAttr(normalizedHTML, "HREF=", result);
+        getForAttr(normalizedHTML, "href=", result);
+        getForAttr(normalizedHTML, "SRC=", result);
+        getForAttr(normalizedHTML, "src=", result);
+        getForAttr(normalizedHTML, "url(", result);
 
         // if any HREF atributes are just anchor jumps, remove them.
         for (Iterator i = result.iterator(); i.hasNext();) {
@@ -530,7 +533,6 @@ public class HTMLArchiver {
         int end;
         int nextSpace;
         int tagEnd;
-        attr = attr + "=";
 
         while (true) {
             pos = text.indexOf(attr, pos);
