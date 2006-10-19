@@ -105,8 +105,9 @@ public class EVWeekReport extends TinyCGIBase {
         EVSchedule schedule = evModel.getSchedule();
         EVMetrics  metrics = schedule.getMetrics();
         double totalPlanTime = metrics.totalPlan();
+        boolean hideNames = settings.getBool(EVReport.CUSTOMIZE_HIDE_NAMES);
         boolean showAssignedTo = (evModel instanceof EVTaskListRollup)
-                && !settings.getBool(EVReport.CUSTOMIZE_HIDE_ASSIGN_TO);
+                && !hideNames;
         boolean showTimingIcons = (evModel instanceof EVTaskListData
                 && getParameter("EXPORT") == null);
 
@@ -337,7 +338,8 @@ public class EVWeekReport extends TinyCGIBase {
                       "</tr>\n");
 
             EVReport.DependencyCellRenderer rend =
-                new EVReport.DependencyCellRenderer(exportingToExcel());
+                new EVReport.DependencyCellRenderer(exportingToExcel(),
+                        hideNames);
             double timeRemaining = 0;
             for (int i = 0;   i < taskListLen;   i++)
                 if (dueThroughNextWeek[i])
@@ -361,7 +363,7 @@ public class EVWeekReport extends TinyCGIBase {
                 EVTaskDependency d = (EVTaskDependency) e.getKey();
                 List dependentTasks = (List) e.getValue();
                 printUpcomingDependencies(d, dependentTasks, tasks,
-                        showAssignedTo);
+                        showAssignedTo, hideNames);
             }
         }
 
@@ -539,7 +541,8 @@ public class EVWeekReport extends TinyCGIBase {
     }
 
     protected void printUpcomingDependencies(EVTaskDependency d,
-            List dependentTasks, TableModel tasks, boolean showAssignedTo) {
+            List dependentTasks, TableModel tasks, boolean showAssignedTo,
+            boolean hideNames) {
 
         boolean isExcel = exportingToExcel();
 
@@ -555,7 +558,7 @@ public class EVWeekReport extends TinyCGIBase {
         if (!isExcel) {
             out.print("<span style='display:none'>");
             out.print(TaskDependencyAnalyzer.getBriefDetails(d,
-                    TaskDependencyAnalyzer.HTML_SEP));
+                    TaskDependencyAnalyzer.HTML_SEP, hideNames));
             out.println("</span>");
         }
 
@@ -564,8 +567,10 @@ public class EVWeekReport extends TinyCGIBase {
         out.println(formatPercent(d.getPercentComplete()));
         interpOut("<br><b>${Columns.Planned_Date}:</b> ");
         out.println(encodeHTML(d.getProjectedDate()));
-        interpOut("<br><b>${Columns.Assigned_To}:</b> ");
-        out.println(encodeHTML(d.getAssignedTo()));
+        if (!hideNames) {
+            interpOut("<br><b>${Columns.Assigned_To}:</b> ");
+            out.println(encodeHTML(d.getAssignedTo()));
+        }
 
         // Now, print a table of the dependent tasks.
         interpOut("<table border=1 class='dependList'><tr>"

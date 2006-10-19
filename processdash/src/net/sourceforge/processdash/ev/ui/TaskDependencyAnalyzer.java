@@ -54,6 +54,8 @@ public class TaskDependencyAnalyzer {
 
     private Collection dependencies;
 
+    private boolean hideNames;
+
     public boolean hasDependency;
 
     public boolean hasError;
@@ -69,6 +71,7 @@ public class TaskDependencyAnalyzer {
             this.dependencies = (Collection) dependencies;
         else
             this.dependencies = null;
+        hideNames = false;
 
         scanDependencies();
     }
@@ -91,6 +94,10 @@ public class TaskDependencyAnalyzer {
                     hasIncomplete = true;
                 }
             }
+    }
+
+    public void setHideNames(boolean hideNames) {
+        this.hideNames = hideNames;
     }
 
     public int getStatus() {
@@ -151,7 +158,7 @@ public class TaskDependencyAnalyzer {
                 descr.append(resources.getHTML("Dependency.Reverse.Display"));
             else
                 descr.append(nvl(d.getDisplayName()));
-            descr.append(getBriefDetails(d, sep));
+            descr.append(getBriefDetails(d, sep, hideNames));
             descr.append("</td></tr>");
         }
         descr.append("</table>");
@@ -160,12 +167,14 @@ public class TaskDependencyAnalyzer {
         return descr.toString();
     }
 
-    public static String getBriefDetails(EVTaskDependency d, String sep) {
+    public static String getBriefDetails(EVTaskDependency d, String sep,
+            boolean hideNames) {
         if (d.isUnresolvable())
             return "";
 
         StringBuffer result = new StringBuffer();
-        result.append(sep).append(nvl(d.getAssignedTo()));
+        if (hideNames == false)
+            result.append(sep).append(nvl(d.getAssignedTo()));
         Date pd = d.getProjectedDate();
         if (pd != null && d.getPercentComplete() < 1)
             result.append(sep).append(DATE_FORMAT.format(pd));
@@ -255,8 +264,9 @@ public class TaskDependencyAnalyzer {
 
     public static class HTML extends TaskDependencyAnalyzer {
 
-        public HTML(Object dependencies) {
+        public HTML(Object dependencies, boolean hideNames) {
             super(dependencies);
+            setHideNames(hideNames);
         }
 
         public String getHtmlTable(String tableAttrs) {

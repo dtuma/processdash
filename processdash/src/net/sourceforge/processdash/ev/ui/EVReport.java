@@ -95,7 +95,7 @@ public class EVReport extends CGIChartBase {
     private static final String CUSTOMIZE_PARAM = "customize";
     static final String CUSTOMIZE_HIDE_PLAN_LINE = "hidePlanLine";
     static final String CUSTOMIZE_HIDE_FORECAST_LINE = "hideForecastLine";
-    static final String CUSTOMIZE_HIDE_ASSIGN_TO = "hideAssignedTo";
+    static final String CUSTOMIZE_HIDE_NAMES = "hideAssignedTo";
     static final String CUSTOMIZE_LABEL_FILTER =
         EVReportSettings.LABEL_FILTER_PARAM;
 
@@ -685,7 +685,7 @@ public class EVReport extends CGIChartBase {
         if (parameters.containsKey("OK")) {
             settings.store(CUSTOMIZE_HIDE_PLAN_LINE, true);
             settings.store(CUSTOMIZE_HIDE_FORECAST_LINE, true);
-            settings.store(CUSTOMIZE_HIDE_ASSIGN_TO, true);
+            settings.store(CUSTOMIZE_HIDE_NAMES, true);
             settings.store(CUSTOMIZE_LABEL_FILTER, false);
             out.println("window.opener.location.reload();");
         }
@@ -1046,10 +1046,10 @@ public class EVReport extends CGIChartBase {
         TableModel table = taskList.getSimpleTableModel(filter);
         customizeTableWriter(writer, table, EVTaskList.toolTips);
         writer.setTableName("TASK");
+        boolean hideNames = settings.getBool(CUSTOMIZE_HIDE_NAMES);
         writer.setCellRenderer(EVTaskList.DEPENDENCIES_COLUMN,
-                new DependencyCellRenderer(exportingToExcel()));
-        if (!(taskList instanceof EVTaskListRollup)
-                || settings.getBool(CUSTOMIZE_HIDE_ASSIGN_TO))
+                new DependencyCellRenderer(exportingToExcel(), hideNames));
+        if (!(taskList instanceof EVTaskListRollup) || hideNames)
             writer.setSkipColumn(EVTaskList.ASSIGNED_TO_COLUMN, true);
         if (hidePlan)
             writer.setSkipColumn(EVTaskList.PLAN_DATE_COLUMN, true);
@@ -1295,14 +1295,16 @@ public class EVReport extends CGIChartBase {
     static class DependencyCellRenderer implements HTMLTableWriter.CellRenderer {
 
         boolean plainText;
+        boolean hideNames;
 
-        public DependencyCellRenderer(boolean plainText) {
+        public DependencyCellRenderer(boolean plainText, boolean hideNames) {
             this.plainText = plainText;
+            this.hideNames = hideNames;
         }
 
         public String getInnerHtml(Object value, int row, int column) {
             TaskDependencyAnalyzer.HTML analyzer =
-                new TaskDependencyAnalyzer.HTML(value);
+                new TaskDependencyAnalyzer.HTML(value, hideNames);
             int status = analyzer.getStatus();
             if (status == TaskDependencyAnalyzer.NO_DEPENDENCIES)
                 return null;
