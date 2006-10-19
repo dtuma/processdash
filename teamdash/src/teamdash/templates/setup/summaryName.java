@@ -5,6 +5,7 @@ import java.io.IOException;
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.net.http.WebServer;
 import net.sourceforge.processdash.util.HTMLUtils;
+import net.sourceforge.processdash.util.StringUtils;
 
 
 public class summaryName extends selectWBS {
@@ -21,9 +22,13 @@ public class summaryName extends selectWBS {
         String prefix = getPrefix();
         PropertyKey projectRootKey = getStartingKey();
         String projectRoot = projectRootKey.path();
+        String currentFilter = selectLabelFilter.getCurrentFilter(
+                getDataRepository(), projectRoot);
 
         out.println("<html><head>");
         out.println("<link rel=stylesheet type='text/css' href='/style.css'>");
+        if (StringUtils.hasValue(currentFilter))
+            out.println("<link rel=stylesheet type='text/css' href='/reports/filter-style.css'>");
         out.println("<style>");
         out.println(" body { margin: 0pt; padding: 2px }");
         out.println(" h1   { margin: 0pt; padding: 0pt }");
@@ -34,7 +39,7 @@ public class summaryName extends selectWBS {
         out.println("</h1>");
         out.print("<h2>");
 
-        writeFilterIcon(projectRoot);
+        writeFilterIcon(projectRoot, currentFilter);
         writeHierarchyIcon(prefix, projectRoot);
 
         out.println("</h2>");
@@ -49,10 +54,8 @@ public class summaryName extends selectWBS {
 
     /** Print the icon and text for choosing a filter
      */
-    private void writeFilterIcon(String projectRoot) {
+    private void writeFilterIcon(String projectRoot, String currentFilter) {
         boolean exporting = parameters.containsKey("EXPORT");
-        String currentFilter = selectLabelFilter.getCurrentFilter(
-                getDataRepository(), projectRoot);
         if (currentFilter == null
                 || (exporting && currentFilter.length() == 0))
             // if filtering doesn't make sense, or if we're exporting and no
