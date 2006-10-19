@@ -300,7 +300,7 @@ public class EVCalculatorData extends EVCalculator {
             EVTask task = (EVTask) i.next();
             if (task.dateCompleted != null)
                 schedule.saveCompletedTaskCost(task.dateCompleted,
-                        task.actualNodeTime);
+                        task.actualCurrentTime);
         }
     }
 
@@ -357,9 +357,12 @@ public class EVCalculatorData extends EVCalculator {
             // imaginary task with no planned time, which should have
             // been completed instantaneously when the schedule started
             if (task.actualNodeTime > 0 &&
-                !task.isLevelOfEffortTask() && !task.isUserPruned())
+                !task.isLevelOfEffortTask() && !task.isUserPruned()) {
                 metrics.addTask(0, task.actualNodeTime, null,
                                 metrics.startDate());
+                schedule.saveCompletedTaskCost(metrics.startDate(),
+                        task.actualNodeTime);
+            }
         }
     }
 

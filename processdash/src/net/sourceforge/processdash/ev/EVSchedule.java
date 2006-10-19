@@ -696,21 +696,22 @@ public class EVSchedule implements TableModel {
 
 
     public synchronized void saveCompletedTask(Date dateCompleted,
-                                               double planValue) {
-        saveActualTaskInfo(dateCompleted, planValue, 0, 0, true);
+                                               double earnedValue) {
+        saveActualTaskInfo(dateCompleted, 0, earnedValue, 0, 0, true);
     }
     public synchronized void saveCompletedTaskCost(Date dateCompleted,
             double actualCost) {
-        saveActualTaskInfo(dateCompleted, 0, 0, actualCost, true);
+        saveActualTaskInfo(dateCompleted, 0, 0, 0, actualCost, true);
     }
     public synchronized void saveActualTime(Date when, double actualTime) {
-        saveActualTaskInfo(when, 0, actualTime, 0, true);
+        saveActualTaskInfo(when, 0, 0, actualTime, 0, true);
     }
     public synchronized void saveActualIndirectTime(Date when, double actualTime) {
-        saveActualTaskInfo(when, 0, actualTime, 0, false);
+        saveActualTaskInfo(when, 0, 0, actualTime, 0, false);
     }
     protected synchronized void saveActualTaskInfo(Date when,
                                                 double planValue,
+                                                double earnedValue,
                                                 double actualTime,
                                                 double actualCost,
                                                 boolean direct) {
@@ -726,7 +727,8 @@ public class EVSchedule implements TableModel {
             if (when.compareTo(p.endDate) < 0) {
                 foundDate = true;
                 if (direct) {
-                    p.cumEarnedValue += planValue;
+                    p.cumPlanValue += planValue;
+                    p.cumEarnedValue += earnedValue;
                     p.cumActualDirectTime += actualTime;
                     p.cumActualCost += actualCost;
                 }
@@ -749,7 +751,8 @@ public class EVSchedule implements TableModel {
             p = getLast();      // get the last period in the list.
             if (when.compareTo(p.endDate) < 0) {
                 if (direct) {
-                    p.cumEarnedValue += planValue;
+                    p.cumPlanValue += planValue;
+                    p.cumEarnedValue += earnedValue;
                     p.cumActualDirectTime  += actualTime;
                     p.cumActualCost += actualCost;
                 }
@@ -1168,7 +1171,7 @@ public class EVSchedule implements TableModel {
         }
         return null;
     }
-    private double totalPlan() { return metrics.totalPlan(); }
+    protected double totalPlan() { return metrics.totalPlan(); }
 
     public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
         Period p = get(rowIndex+1);

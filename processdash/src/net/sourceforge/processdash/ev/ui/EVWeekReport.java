@@ -39,14 +39,13 @@ import java.util.Map;
 import javax.swing.table.TableModel;
 
 import net.sourceforge.processdash.Settings;
-import net.sourceforge.processdash.data.DateData;
-import net.sourceforge.processdash.data.SimpleData;
-import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.ev.EVDependencyCalculator;
 import net.sourceforge.processdash.ev.EVMetrics;
 import net.sourceforge.processdash.ev.EVSchedule;
+import net.sourceforge.processdash.ev.EVScheduleFiltered;
 import net.sourceforge.processdash.ev.EVScheduleRollup;
 import net.sourceforge.processdash.ev.EVTaskDependency;
+import net.sourceforge.processdash.ev.EVTaskFilter;
 import net.sourceforge.processdash.ev.EVTaskList;
 import net.sourceforge.processdash.ev.EVTaskListData;
 import net.sourceforge.processdash.ev.EVTaskListRollup;
@@ -67,18 +66,20 @@ public class EVWeekReport extends TinyCGIBase {
 
     private static final String EFF_DATE_PARAM = "eff";
 
+
+
     private static final long MILLIS_PER_WEEK = 7L /*days*/ * 24 /*hours*/
             * 60 /*minutes*/ * 60 /*seconds*/ * 1000 /*millis*/;
-
-    private double totalPlanTime;
 
     private static Resources resources = Resources.getDashBundle("EV.Week");
 
     /** Generate CGI output. */
     protected void writeContents() throws IOException {
+        EVReportSettings settings = new EVReportSettings(getDataRepository(),
+                parameters, getPrefix());
 
         // Get the name of the earned value model to report on.
-        String taskListName = getTaskListName();
+        String taskListName = settings.getTaskListName();
         if (taskListName == null)
             throw new IOException("No EV task list specified.");
 
@@ -93,7 +94,8 @@ public class EVWeekReport extends TinyCGIBase {
         if (evModel == null)
             throw new TinyCGIException(404, "Not Found",
                                        "No such task/schedule");
-        loadCustomizationSettings();
+
+        EVTaskFilter taskFilter = settings.getEffectiveFilter(evModel);
 
         EVDependencyCalculator depCalc = new EVDependencyCalculator(
                 getDataRepository(), getPSPProperties(), getObjectCache());
@@ -102,9 +104,9 @@ public class EVWeekReport extends TinyCGIBase {
         evModel.recalc();
         EVSchedule schedule = evModel.getSchedule();
         EVMetrics  metrics = schedule.getMetrics();
-        totalPlanTime = metrics.totalPlan();
+        double totalPlanTime = metrics.totalPlan();
         boolean showAssignedTo = (evModel instanceof EVTaskListRollup)
-                && (getSettingVal(EVReport.CUSTOMIZE_HIDE_ASSIGN_TO) == false);
+                && !settings.getBool(EVReport.CUSTOMIZE_HIDE_ASSIGN_TO);
         boolean showTimingIcons = (evModel instanceof EVTaskListData
                 && getParameter("EXPORT") == null);
 
@@ -140,11 +142,11 @@ public class EVWeekReport extends TinyCGIBase {
                 * EVSchedule.WEEK_MILLIS);
 
         // Get a slice of the schedule representing the previous week.
-        EVSchedule.Period weekSlice =
-            EVScheduleRollup.getSlice(schedule, lastWeek, effDate);
+        EVSchedule.Period weekSlice = EVScheduleRollup.getSlice(
+                getEvSchedule(evModel, taskFilter), lastWeek, effDate);
 
         // Now scan the task list looking for information we need.
-        TableModel tasks = evModel.getSimpleTableModel();
+        TableModel tasks = evModel.getSimpleTableModel(taskFilter);
         int taskListLen = tasks.getRowCount();
 
         // keep track of tasks that should be displayed in the three lists.
@@ -195,17 +197,22 @@ public class EVWeekReport extends TinyCGIBase {
 
         String titleHTML = resources.format("Title_FMT", taskListName);
         titleHTML = HTMLUtils.escapeEntities(titleHTML);
-        out.print(StringUtils.findAndReplace
-                  (HEADER_HTML, TITLE_VAR, titleHTML));
+        StringBuffer header = new StringBuffer(HEADER_HTML);
+        StringUtils.findAndReplace(header, TITLE_VAR, titleHTML);
+        if (taskFilter != null)
+            header.insert(header.indexOf("</head>"), FILTER_HEADER_HTML);
+        out.print(header);
 
         out.print("<h2>");
         String endDateStr = encodeHTML(new Date(effDate.getTime() - 1000));
         out.print(resources.format("Header_HTML_FMT", endDateStr));
         if (!parameters.containsKey("EXPORT")) {
-            printNavLink(lastWeek, effDate, schedule, "Previous");
-            printNavLink(nextWeek, effDate, schedule, "Next");
+            printNavLink(lastWeek, effDate, schedule, "Previous", settings);
+            printNavLink(nextWeek, effDate, schedule, "Next", settings);
         }
         out.print("</h2>\n");
+
+        EVReport.printFilterInfo(out, taskFilter);
 
         Map errors = metrics.getErrors();
         if (errors != null && errors.size() > 0) {
@@ -224,30 +231,37 @@ public class EVWeekReport extends TinyCGIBase {
         }
 
         interpOut("<h3>${Summary.Header}</h3>" +
-                "<table border=1 name='summary'><tr>" +
-                "<td></td><td></td>"+
-                "<td class=header colspan=3>${Summary.Direct_Hours}</td><td></td>" +
-                "<td class=header colspan=3>${Summary.Earned_Value}</td></tr>\n" +
-                "<tr><td></td><td></td>" +
-                "<td class=header>${Summary.Plan}</td>"+
-                "<td class=header>${Summary.Actual}</td>"+
-                "<td class=header>${Summary.Ratio}</td><td></td>" +
-                "<td class=header>${Summary.Plan}</td>"+
-                "<td class=header>${Summary.Actual}</td>"+
-                "<td class=header>${Summary.Ratio}</td></tr>\n");
+                "<table border=1 name='summary'><tr><td></td><td></td>");
+        if (taskFilter == null)
+            interpOut("<td class=header colspan=3>${Summary.Direct_Hours}"
+                    + "</td><td></td>");
+        interpOut("<td class=header colspan=3>${Summary.Earned_Value}"
+                + "</td></tr>\n" //
+                + "<tr><td></td><td></td>");
+        if (taskFilter == null)
+            interpOut("<td class=header>${Summary.Plan}</td>"
+                    + "<td class=header>${Summary.Actual}</td>"
+                    + "<td class=header>${Summary.Ratio}</td><td></td>");
+        interpOut("<td class=header>${Summary.Plan}</td>"
+                + "<td class=header>${Summary.Actual}</td>"
+                + "<td class=header>${Summary.Ratio}</td></tr>\n");
 
         interpOut("<tr><td class=left>${Summary.This_Week}</td><td></td>");
-        printTimeData(weekSlice.getPlanDirectTime(),
-                weekSlice.getActualDirectTime());
-        out.print("<td></td>");
+        if (taskFilter == null) {
+            printTimeData(weekSlice.getPlanDirectTime(),
+                    weekSlice.getActualDirectTime());
+            out.print("<td></td>");
+        }
         printPctData(weekSlice.getPlanValue(totalPlanTime),
                      weekSlice.getEarnedValue(totalPlanTime));
         out.print("</tr>\n");
 
         interpOut("<tr><td class=left>${Summary.To_Date}</td><td></td>");
-        printTimeData(weekSlice.getCumPlanTime(),
-                      weekSlice.getCumActualTime());
-        out.print("<td></td>");
+        if (taskFilter == null) {
+            printTimeData(weekSlice.getCumPlanTime(),
+                          weekSlice.getCumActualTime());
+            out.print("<td></td>");
+        }
         printPctData(weekSlice.getCumPlanValue(totalPlanTime),
                      weekSlice.getCumEarnedValue(totalPlanTime));
         out.print("</tr>\n");
@@ -258,13 +272,15 @@ public class EVWeekReport extends TinyCGIBase {
                     / (double) MILLIS_PER_WEEK;
         interpOut("<tr><td class=left>${Summary.Average_per_Week}" +
                 "</td><td></td>");
-        double planTimePerWeek =
-            parseTime(weekSlice.getCumPlanTime()) / numWeeks;
-        double actualTimePerWeek =
-            parseTime(weekSlice.getCumActualTime()) / numWeeks;
-        printTimeData(formatTime(planTimePerWeek),
-                      formatTime(actualTimePerWeek));
-        out.print("<td></td>");
+        if (taskFilter == null) {
+            double planTimePerWeek =
+                parseTime(weekSlice.getCumPlanTime()) / numWeeks;
+            double actualTimePerWeek =
+                parseTime(weekSlice.getCumActualTime()) / numWeeks;
+            printTimeData(formatTime(planTimePerWeek),
+                          formatTime(actualTimePerWeek));
+            out.print("<td></td>");
+        }
         double planEVPerWeek =
             parsePercent(weekSlice.getCumPlanValue(totalPlanTime)) / numWeeks;
         double actualEVPerWeek =
@@ -273,12 +289,14 @@ public class EVWeekReport extends TinyCGIBase {
                      formatPercent(actualEVPerWeek));
         out.print("</tr>\n");
 
-        interpOut("<tr><td class=left>${Summary.Completed_Tasks_To_Date}" +
-                "</td><td></td>");
-        printData(formatTime(completedTasksTotalPlanTime),
-                  formatTime(completedTasksTotalActualTime),
-                  1.0 / cpi, "timeFmt");
-        out.print("<td></td><td></td><td></td><td></td></tr>\n");
+        if (taskFilter == null) {
+            interpOut("<tr><td class=left>${Summary.Completed_Tasks_To_Date}" +
+                    "</td><td></td>");
+            printData(formatTime(completedTasksTotalPlanTime),
+                      formatTime(completedTasksTotalActualTime),
+                      1.0 / cpi, "timeFmt");
+            out.print("<td></td><td></td><td></td><td></td></tr>\n");
+        }
 
         interpOut("</table>\n<h3>${Completed_Tasks.Header}</h3>\n");
         if (!oneCompletedLastWeek)
@@ -354,29 +372,6 @@ public class EVWeekReport extends TinyCGIBase {
     }
 
 
-    private String getTaskListName() {
-        String result = getParameter(EVReport.TASKLIST_PARAM);
-        if ("auto".equals(result))
-            return EVReport.getAutoTaskList(getDataRepository(), getPrefix());
-        else if (result != null && result.length() > 0)
-            return result;
-        else {
-            result = getPrefix();
-            if (result == null || result.length() < 2)
-                return null;
-
-            // strip the initial slash
-            result = result.substring(1);
-
-            // strip the "publishing prefix" if it is present.
-            if (result.startsWith("ev /"))
-                result = result.substring(4);
-            else if (result.startsWith("evr /"))
-                result = result.substring(5);
-            return result;
-        }
-    }
-
 
     private void findUpcomingDependencies(TableModel tasks,
             Map upcomingDependencies, int i) {
@@ -400,15 +395,18 @@ public class EVWeekReport extends TinyCGIBase {
 
 
     private void printNavLink(Date weekStart, Date effDate, EVSchedule schedule,
-            String resKey) {
+            String resKey, EVReportSettings settings) {
         long effTime = weekStart.getTime() + 1000;
         Date newEffDate = schedule.getPeriodStart(new Date(effTime));
         if (newEffDate.equals(effDate))
             return;
 
-        out.print("&nbsp;&nbsp;<span class='nav'><a href='week.class?"
-                + EFF_DATE_PARAM + "=");
-        out.print(effTime);
+        StringBuffer href = new StringBuffer("week.class");
+        HTMLUtils.appendQuery(href, EFF_DATE_PARAM, Long.toString(effTime));
+        HTMLUtils.appendQuery(href, settings.getQueryString(EVReportSettings.PURPOSE_NAV_LINK));
+
+        out.print("&nbsp;&nbsp;<span class='nav'><a href='");
+        out.print(href);
         out.print("'>");
         out.print(resources.getHTML(resKey));
         out.print("</a></span>");
@@ -595,41 +593,13 @@ public class EVWeekReport extends TinyCGIBase {
         out.println("<br>");
     }
 
-    private boolean usingCustomizationSettings;
-    private void loadCustomizationSettings() {
-        usingCustomizationSettings = isTimestampRecent();
+    private EVSchedule getEvSchedule(EVTaskList evModel,
+            EVTaskFilter taskFilter) {
+        if (taskFilter == null)
+            return evModel.getSchedule();
+        else
+            return new EVScheduleFiltered(evModel, taskFilter);
     }
-    private boolean isTimestampRecent() {
-        DateData settingsTimestamp = (DateData) getValue("settings//timestamp");
-        if (settingsTimestamp == null)
-            return false;
-        long when = settingsTimestamp.getValue().getTime();
-        long delta = System.currentTimeMillis() - when;
-        if (10000 < delta && delta < MAX_SETTINGS_AGE)
-            touchSettingsTimestamp();
-        return (delta < MAX_SETTINGS_AGE);
-    }
-    private static final long MAX_SETTINGS_AGE =
-            60 /*mins*/* 60 /*sec*/* 1000 /*millis*/;
-    boolean getSettingVal(String name) {
-        boolean defaultVal = Settings.getBool("ev."+name, false);
-        if (!usingCustomizationSettings)
-            return defaultVal;
-        SimpleData val = getValue("settings//" + name);
-        return (val != null ? val.test() : defaultVal);
-    }
-    private void touchSettingsTimestamp() {
-        setValue("settings//timestamp", new DateData());
-    }
-    private SimpleData getValue(String name) {
-        String dataName = DataRepository.createDataName(getPrefix(), name);
-        return getDataRepository().getSimpleValue(dataName);
-    }
-    private void setValue(String name, SimpleData val) {
-        String dataName = DataRepository.createDataName(getPrefix(), name);
-        getDataRepository().putValue(dataName, val);
-    }
-
 
 
     static final String TITLE_VAR = "%title%";
@@ -665,6 +635,7 @@ public class EVWeekReport extends TinyCGIBase {
         "</script>\n" +
         EVReport.POPUP_HEADER +
         "</head><body><h1>%title%</h1>\n";
+    static final String FILTER_HEADER_HTML = EVReport.FILTER_HEADER_HTML;
 
     static final String EXPORT_HTML =
         "<p class='doNotPrint'>" +

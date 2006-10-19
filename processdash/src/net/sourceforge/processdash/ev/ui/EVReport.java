@@ -45,15 +45,11 @@ import java.util.regex.Pattern;
 import javax.swing.table.TableModel;
 
 import net.sourceforge.processdash.Settings;
-import net.sourceforge.processdash.data.DateData;
-import net.sourceforge.processdash.data.ImmutableDoubleData;
-import net.sourceforge.processdash.data.SimpleData;
-import net.sourceforge.processdash.data.StringData;
-import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.ev.EVDependencyCalculator;
 import net.sourceforge.processdash.ev.EVLabelFilter;
 import net.sourceforge.processdash.ev.EVMetrics;
 import net.sourceforge.processdash.ev.EVSchedule;
+import net.sourceforge.processdash.ev.EVScheduleFiltered;
 import net.sourceforge.processdash.ev.EVScheduleRollup;
 import net.sourceforge.processdash.ev.EVTask;
 import net.sourceforge.processdash.ev.EVTaskDependency;
@@ -97,13 +93,11 @@ public class EVReport extends CGIChartBase {
     public static final String COMBINED_CHART = "combined";
     public static final String FAKE_MODEL_NAME = "/  ";
     private static final String CUSTOMIZE_PARAM = "customize";
-    private static final String LABEL_FILTER_PARAM = "labelFilter";
-    private static final String LABEL_FILTER_AUTO_PARAM = "labelFilterAuto";
-    static final String TASKLIST_PARAM = "tl";
     static final String CUSTOMIZE_HIDE_PLAN_LINE = "hidePlanLine";
     static final String CUSTOMIZE_HIDE_FORECAST_LINE = "hideForecastLine";
     static final String CUSTOMIZE_HIDE_ASSIGN_TO = "hideAssignedTo";
-    static final String CUSTOMIZE_LABEL_FILTER = LABEL_FILTER_PARAM;
+    static final String CUSTOMIZE_LABEL_FILTER =
+        EVReportSettings.LABEL_FILTER_PARAM;
 
 
     private static Resources resources = Resources.getDashBundle("EV");
@@ -148,6 +142,8 @@ public class EVReport extends CGIChartBase {
      */
     public static final long MAX_DELAY = 10000L;
 
+    /** Settings information to use for generating the report */
+    EVReportSettings settings;
     /** The earned value model we are currently drawing */
     EVTaskList evModel = null;
     /** The name of the task list that creates that earned value model */
@@ -157,9 +153,17 @@ public class EVReport extends CGIChartBase {
 
     /** Generate CGI output. */
     protected void writeContents() throws IOException {
+        // load settings information for the report
+        settings = new EVReportSettings(getDataRepository(), parameters,
+                getPrefix());
+        // possibly store settings data if requested.
+        if (parameters.get(CUSTOMIZE_PARAM) != null) {
+            storeCustomizationSettings();
+            return;
+        }
+
         // load the user requested earned value model.
         getEVModel();
-        loadCustomizationSettings();
 
         String chartType = getParameter(CHART_PARAM);
         if (chartType == null) {
@@ -171,8 +175,6 @@ public class EVReport extends CGIChartBase {
                     writeXls();
                 else if (parameters.get(CSV_PARAM) != null)
                     writeCsv();
-                else if (parameters.get(CUSTOMIZE_PARAM) != null)
-                    storeCustomizationSettings();
                 else
                     writeHTML();
             } else if (TIME_CHART.equals(tableType))
@@ -200,7 +202,7 @@ public class EVReport extends CGIChartBase {
 
 
     private void getEVModel() throws TinyCGIException {
-        taskListName = getTaskListName();
+        taskListName = settings.getTaskListName();
         if (taskListName == null)
             throw new TinyCGIException(400, "schedule name missing");
         else if (FAKE_MODEL_NAME.equals(taskListName)) {
@@ -243,56 +245,8 @@ public class EVReport extends CGIChartBase {
     }
 
 
-    private String getTaskListName() {
-        String result = getParameter(TASKLIST_PARAM);
-        if ("auto".equals(result))
-            return getAutoTaskList(getDataRepository(), getPrefix());
-        else if (result != null && result.length() > 0)
-            return result;
-        else {
-            result = getPrefix();
-            if (result == null || result.length() < 2)
-                return null;
-
-            // strip the initial slash
-            result = result.substring(1);
-
-            // strip the "publishing prefix" if it is present.
-            if (result.startsWith("ev /"))
-                result = result.substring(4);
-            else if (result.startsWith("evr /"))
-                result = result.substring(5);
-            return result;
-        }
-    }
 
 
-    /** Attempt to automatically determine the task list to use for a
-     * particular project.
-     * 
-     * @param data the data repository
-     * @param prefix the prefix of the project in question
-     * @return the name of a task list, if a suitable one was found; otherwise,
-     *     null.
-     */
-    public static String getAutoTaskList(DataRepository data, String prefix) {
-        // check and see whether this prefix names a project which has
-        // explicitly specified a schedule (typical for team projects)
-        String dataName = DataRepository.createDataName(prefix,
-                "Project_Schedule_Name");
-        SimpleData val = data.getSimpleValue(dataName);
-        if (val != null && val.test())
-            return val.format();
-
-        // check and see whether there is exactly one task list that contains
-        // the prefix in question.
-        List taskLists = EVTaskList.getTaskListNamesForPath(data, prefix);
-        if (taskLists != null && taskLists.size() == 1)
-            return (String) taskLists.get(0);
-
-        // we can't guess.  Give up.
-        return null;
-    }
 
 
     /** Generate a page of XML data for the Task and Schedule templates.
@@ -729,11 +683,10 @@ public class EVReport extends CGIChartBase {
     public void storeCustomizationSettings() throws IOException {
         out.println("<html><head><script>");
         if (parameters.containsKey("OK")) {
-            storeCustomizationSetting(CUSTOMIZE_HIDE_PLAN_LINE, true);
-            storeCustomizationSetting(CUSTOMIZE_HIDE_FORECAST_LINE, true);
-            storeCustomizationSetting(CUSTOMIZE_HIDE_ASSIGN_TO, true);
-            storeCustomizationSetting(CUSTOMIZE_LABEL_FILTER, false);
-            touchSettingsTimestamp();
+            settings.store(CUSTOMIZE_HIDE_PLAN_LINE, true);
+            settings.store(CUSTOMIZE_HIDE_FORECAST_LINE, true);
+            settings.store(CUSTOMIZE_HIDE_ASSIGN_TO, true);
+            settings.store(CUSTOMIZE_LABEL_FILTER, false);
             out.println("window.opener.location.reload();");
         }
         out.println("window.close();");
@@ -741,66 +694,6 @@ public class EVReport extends CGIChartBase {
         // the text below generally will never appear to the user (the
         // javascript should close this window immediately)
         out.println("<body>Changes saved.</body></html>");
-    }
-    private void storeCustomizationSetting(String setting, boolean isBool) {
-        SimpleData val = null;
-        if (isBool)
-            val = (parameters.containsKey(setting) ? ImmutableDoubleData.TRUE
-                    : ImmutableDoubleData.FALSE);
-        else if (parameters.get(setting) instanceof String)
-            val = StringData.create(getParameter(setting));
-
-        setValue("settings//" + setting, val);
-    }
-    private void touchSettingsTimestamp() {
-        setValue("settings//timestamp", new DateData());
-    }
-    private SimpleData getValue(String name) {
-        String dataName = getSettingDataName(name);
-        return getDataRepository().getSimpleValue(dataName);
-    }
-    private void setValue(String name, SimpleData val) {
-        String dataName = getSettingDataName(name);
-        getDataRepository().putValue(dataName, val);
-    }
-    private String getSettingDataName(String name) {
-        String prefix;
-        if (parameters.containsKey(TASKLIST_PARAM))
-            prefix = "/" + taskListName;
-        else
-            prefix = getPrefix();
-
-        return DataRepository.createDataName(prefix, name);
-    }
-
-    private boolean usingCustomizationSettings;
-    private void loadCustomizationSettings() {
-        if (parameters.containsKey(LABEL_FILTER_AUTO_PARAM))
-            lookupLabelFilter();
-        usingCustomizationSettings = isTimestampRecent();
-    }
-    private void lookupLabelFilter() {
-        SimpleData val = getDataContext().getSimpleValue("Label//Filter");
-        parameters.put(LABEL_FILTER_PARAM, val == null ? "" : val.format());
-    }
-    private boolean isTimestampRecent() {
-        DateData settingsTimestamp = (DateData) getValue("settings//timestamp");
-        if (settingsTimestamp == null)
-            return false;
-        long when = settingsTimestamp.getValue().getTime();
-        long delta = System.currentTimeMillis() - when;
-        if (10000 < delta && delta < MAX_SETTINGS_AGE)
-            touchSettingsTimestamp();
-        return (delta < MAX_SETTINGS_AGE);
-    }
-    private static final long MAX_SETTINGS_AGE =
-            60 /*mins*/* 60 /*sec*/* 1000 /*millis*/;
-    boolean getSettingVal(String name) {
-        boolean defaultVal = Settings.getBool("ev."+name, false);
-        if (!usingCustomizationSettings)
-            return defaultVal;
-        SimpleData val = getValue("settings//" + name);
-        return (val != null ? val.test() : defaultVal);
     }
 
     /** Generate a page of HTML displaying the Task and Schedule templates,
@@ -811,20 +704,32 @@ public class EVReport extends CGIChartBase {
         String taskListHTML = WebServer.encodeHtmlEntities(taskListName);
         String title = resources.format("Report.Title_FMT", taskListHTML);
 
-        out.print(StringUtils.findAndReplace(HEADER_HTML, TITLE_VAR,
-                title));
+        EVTaskFilter taskFilter = settings.getEffectiveFilter(evModel);
+
+        StringBuffer header = new StringBuffer(HEADER_HTML);
+        StringUtils.findAndReplace(header, TITLE_VAR, title);
+        if (taskFilter != null && isSnippet == false)
+            header.insert(header.indexOf("</head>"), FILTER_HEADER_HTML);
+        out.print(header);
+
         out.print(isSnippet ? "<h2>" : "<h1>");
         out.print(title);
         printCustomizationLink();
         out.print(isSnippet ? "</h2>" : "</h1>");
 
+        if (!isSnippet)
+            printFilterInfo(out, taskFilter);
+
         if (!exportingToExcel()) {
-            interpOutLink(SEPARATE_CHARTS_HTML);
+            String imgHtml = (taskFilter == null
+                    ? SEPARATE_CHARTS_HTML
+                    : COMBINED_CHARTS_HTML);
+            interpOutLink(imgHtml, EVReportSettings.PURPOSE_IMAGE);
             out.print(HTMLTreeTableWriter.TREE_ICON_HEADER);
         }
 
-        EVSchedule s = evModel.getSchedule();
-        EVMetrics  m = s.getMetrics();
+        EVSchedule s = getEvSchedule(taskFilter);
+        EVMetrics m = s.getMetrics();
 
         Map errors = m.getErrors();
         if (errors != null && errors.size() > 0) {
@@ -842,8 +747,8 @@ public class EVReport extends CGIChartBase {
             out.print("</b></td></tr></table>\n");
         }
 
-        boolean hidePlan = getSettingVal(CUSTOMIZE_HIDE_PLAN_LINE);
-        boolean hideForecast = getSettingVal(CUSTOMIZE_HIDE_FORECAST_LINE);
+        boolean hidePlan = settings.getBool(CUSTOMIZE_HIDE_PLAN_LINE);
+        boolean hideForecast = settings.getBool(CUSTOMIZE_HIDE_FORECAST_LINE);
         out.print("<table name='STATS'>");
         for (int i = 0;   i < m.getRowCount();   i++)
             writeMetric(m, i, hidePlan, hideForecast);
@@ -851,7 +756,6 @@ public class EVReport extends CGIChartBase {
 
         out.print("<h2><a name='$$$_tasks'></a>"+getResource("TaskList.Title"));
         printTaskStyleLink();
-        EVTaskFilter taskFilter = printFilterInfo();
         out.print("</h2>\n");
         if (isFlatView())
             writeTaskTable(evModel, taskFilter, hidePlan, hideForecast);
@@ -866,8 +770,10 @@ public class EVReport extends CGIChartBase {
             interpOutLink(EXPORT_TEXT_LINK);
 
         if (!parameters.containsKey("EXPORT")) {
-            interpOutLink(EXPORT_CHARTS_LINK);
-            interpOutLink(EXPORT_MSPROJ_LINK);
+            if (taskFilter == null) {
+                interpOutLink(EXPORT_CHARTS_LINK);
+                interpOutLink(EXPORT_MSPROJ_LINK);
+            }
             if (!isSnippet) {
                 String link = EXPORT_ARCHIVE_LINK;
                 String filenamePat = HTMLUtils.urlEncode(
@@ -877,52 +783,53 @@ public class EVReport extends CGIChartBase {
             }
         }
 
-        interpOutLink(SHOW_WEEK_LINK);
+        interpOutLink(SHOW_WEEK_LINK, EVReportSettings.PURPOSE_WEEK);
 
         out.print("</p>");
         out.print("</body></html>");
     }
 
+
+    private EVSchedule getEvSchedule(EVTaskFilter taskFilter) {
+        if (taskFilter == null)
+            return evModel.getSchedule();
+        else
+            return new EVScheduleFiltered(evModel, taskFilter);
+    }
+
+
     private void interpOutLink(String html) {
-        html = StringUtils.findAndReplace(html, "@@@", getEffectivePrefix());
+        interpOutLink(html, EVReportSettings.PURPOSE_OTHER);
+    }
+    private void interpOutLink(String html, int purpose) {
+        html = StringUtils.findAndReplace(html, "@@@", settings.getEffectivePrefix());
+        String query = settings.getQueryString(purpose);
+        html = StringUtils.findAndReplace(html, "???", query);
+        if (StringUtils.hasValue(query))
+            html = StringUtils.findAndReplace(html, "??&", query + "&");
+        else
+            html = StringUtils.findAndReplace(html, "??&", "?");
         html = resources.interpolate(html, HTMLUtils.ESC_ENTITIES);
         out.print(html);
     }
 
 
-    private String getEffectivePrefix() {
-        if (parameters.containsKey(TASKLIST_PARAM))
-            return "/" + HTMLUtils.urlEncode(taskListName) + "//reports/";
-        else
-            return "";
-    }
 
 
-    private EVTaskFilter printFilterInfo() {
-        String filter = null;
-        if (parameters.containsKey(LABEL_FILTER_PARAM))
-            filter = getParameter(LABEL_FILTER_PARAM);
-        else if (usingCustomizationSettings) {
-            SimpleData val = getValue("settings//" + CUSTOMIZE_LABEL_FILTER);
-            filter = (val == null ? null : val.format());
-        }
-        if (!StringUtils.hasValue(filter))
-            return null;
 
-        try {
-            EVTaskFilter result = new EVLabelFilter(evModel, filter,
-                    getDataRepository());
+    static void printFilterInfo(PrintWriter out, EVTaskFilter filter) {
+        if (filter == null)
+            return;
 
-            out.print("<img border=0 src='/Images/filter.png' "
-                + "style='margin-left:1cm; margin-right:2px' "
+        String labelFilter = filter.getAttribute(EVLabelFilter.FILTER_ATTR);
+        if (labelFilter != null) {
+            out.print("<h2><img border=0 src='/Images/filter.png' "
+                + "style='margin-right:2px' "
                 + "width='16' height='23' title=\"");
             out.print(resources.getHTML("Report.Filter_Tooltip"));
             out.print("\">");
-            out.print(HTMLUtils.escapeEntities(filter));
-
-            return result;
-        } catch (Exception e) {
-            return null;
+            out.print(HTMLUtils.escapeEntities(labelFilter));
+            out.println("</h2>");
         }
     }
 
@@ -931,11 +838,11 @@ public class EVReport extends CGIChartBase {
         if (!parameters.containsKey("EXPORT")) {
             out.print("&nbsp;&nbsp;<span " + HEADER_LINK_STYLE + ">"
                     + "<span class='doNotPrint'><a href='");
-            out.print(getEffectivePrefix());
+            out.print(settings.getEffectivePrefix());
             out.print("ev-customize.shtm?a");
             if ((evModel instanceof EVTaskListRollup))
                 out.print("&isRollup");
-            if (!parameters.containsKey(LABEL_FILTER_PARAM)
+            if (!parameters.containsKey(EVReportSettings.LABEL_FILTER_PARAM)
                     && EVLabelFilter.taskListContainsLabelData(evModel,
                             getDataRepository()))
                 out.print("&showLabelFilter");
@@ -976,10 +883,8 @@ public class EVReport extends CGIChartBase {
                 href.append(isSnippet ? "$$$_flat=t" : "flat=t");
             }
 
-            if (!parameters.containsKey(LABEL_FILTER_AUTO_PARAM)) {
-                String filter = getParameter(LABEL_FILTER_PARAM);
-                HTMLUtils.appendQuery(href, LABEL_FILTER_PARAM, filter);
-            }
+            HTMLUtils.appendQuery(href, settings
+                    .getQueryString(EVReportSettings.PURPOSE_TASK_STYLE));
 
             out.print(href.toString());
 
@@ -1069,17 +974,20 @@ public class EVReport extends CGIChartBase {
         HTMLTreeTableWriter.TREE_HEADER_ITEMS +
         POPUP_HEADER +
         "</head><body>";
+    static final String FILTER_HEADER_HTML =
+        "<link rel=stylesheet type='text/css' href='/reports/filter-style.css'>\n";
     static final String HEADER_LINK_STYLE = " style='font-size: medium; " +
         "font-style: italic; font-weight: normal' ";
     static final String COLOR_PARAMS =
         "&initGradColor=%23bebdff&finalGradColor=%23bebdff";
     static final String SEPARATE_CHARTS_HTML =
         "<pre>"+
-        "<img src='@@@ev.class?"+CHART_PARAM+"="+VALUE_CHART+COLOR_PARAMS+"'>" +
-        "<img src='@@@ev.class?"+CHART_PARAM+"="+TIME_CHART+COLOR_PARAMS+
+        "<img src='ev.class??&"+CHART_PARAM+"="+VALUE_CHART+COLOR_PARAMS+"'>" +
+        "<img src='ev.class??&"+CHART_PARAM+"="+TIME_CHART+COLOR_PARAMS+
         "&width=320&hideLegend'></pre>\n";
     static final String COMBINED_CHARTS_HTML =
-        "<img src='@@@ev.class?"+CHART_PARAM+"="+COMBINED_CHART+"'><br>\n";
+        "<img src='ev.class??&"+CHART_PARAM+"="+COMBINED_CHART+COLOR_PARAMS+
+        "&width=720'><br>\n";
     static final String EXPORT_TEXT_LINK = "<a href=\"@@@excel.iqy\"><i>"
             + "${Report.Export_Text}</i></a>&nbsp; &nbsp; &nbsp; &nbsp;";
     static final String EXPORT_CHARTS_LINK = "<a href='@@@ev.xls'><i>"
@@ -1090,7 +998,7 @@ public class EVReport extends CGIChartBase {
     static final String EXPORT_ARCHIVE_LINK =
             "<a href='../dash/archive.class?filename=FILENAME'><i>"
             + "${Report.Export_Archive}</i></a>&nbsp; &nbsp; &nbsp; &nbsp;";
-    static final String SHOW_WEEK_LINK ="<a href='@@@week.class'><i>"
+    static final String SHOW_WEEK_LINK ="<a href='week.class???'><i>"
             + "${Report.Show_Weekly_View}</i></a>";
     static final String EXCEL_TIME_TD = "<td class='timeFmt'>";
 
@@ -1104,6 +1012,10 @@ public class EVReport extends CGIChartBase {
                 && parameters.get("EXPORT") == null)
             writer.setCellRenderer(EVTaskList.TASK_COLUMN,
                     new TaskNameWithTimingIconRenderer());
+        if (filter != null) {
+            writer.setSkipColumn(EVTaskList.PLAN_CUM_TIME_COLUMN, true);
+            writer.setSkipColumn(EVTaskList.PLAN_CUM_VALUE_COLUMN, true);
+        }
         writer.writeTable(out, table);
     }
 
@@ -1137,7 +1049,7 @@ public class EVReport extends CGIChartBase {
         writer.setCellRenderer(EVTaskList.DEPENDENCIES_COLUMN,
                 new DependencyCellRenderer(exportingToExcel()));
         if (!(taskList instanceof EVTaskListRollup)
-                || getSettingVal(CUSTOMIZE_HIDE_ASSIGN_TO))
+                || settings.getBool(CUSTOMIZE_HIDE_ASSIGN_TO))
             writer.setSkipColumn(EVTaskList.ASSIGNED_TO_COLUMN, true);
         if (hidePlan)
             writer.setSkipColumn(EVTaskList.PLAN_DATE_COLUMN, true);
@@ -1177,8 +1089,8 @@ public class EVReport extends CGIChartBase {
         xydata = evModel.getSchedule().getTimeChartData();
 
         // possibly hide lines on the chart, at user request.
-        boolean hidePlan = getSettingVal(CUSTOMIZE_HIDE_PLAN_LINE);
-        boolean hideForecast = getSettingVal(CUSTOMIZE_HIDE_FORECAST_LINE);
+        boolean hidePlan = settings.getBool(CUSTOMIZE_HIDE_PLAN_LINE);
+        boolean hideForecast = settings.getBool(CUSTOMIZE_HIDE_FORECAST_LINE);
         if (hidePlan || hideForecast)
             xydata = new EVDatasetFilter(xydata, hidePlan, hideForecast, 2);
 
@@ -1195,8 +1107,8 @@ public class EVReport extends CGIChartBase {
         xydata = evModel.getSchedule().getValueChartData();
 
         // possibly hide lines on the chart, at user request.
-        boolean hidePlan = getSettingVal(CUSTOMIZE_HIDE_PLAN_LINE);
-        boolean hideForecast = getSettingVal(CUSTOMIZE_HIDE_FORECAST_LINE);
+        boolean hidePlan = settings.getBool(CUSTOMIZE_HIDE_PLAN_LINE);
+        boolean hideForecast = settings.getBool(CUSTOMIZE_HIDE_FORECAST_LINE);
         if (hidePlan || hideForecast)
             xydata = new EVDatasetFilter(xydata, hidePlan, hideForecast, 2);
 
@@ -1208,11 +1120,12 @@ public class EVReport extends CGIChartBase {
 
     public void writeCombinedChart() throws IOException {
         // Create the data for the chart to draw.
-        xydata = evModel.getSchedule().getCombinedChartData();
+        EVSchedule s = getEvSchedule(settings.getEffectiveFilter(evModel));
+        xydata = s.getCombinedChartData();
 
         // possibly hide lines on the chart, at user request.
-        boolean hidePlan = getSettingVal(CUSTOMIZE_HIDE_PLAN_LINE);
-        boolean hideForecast = getSettingVal(CUSTOMIZE_HIDE_FORECAST_LINE);
+        boolean hidePlan = settings.getBool(CUSTOMIZE_HIDE_PLAN_LINE);
+        boolean hideForecast = settings.getBool(CUSTOMIZE_HIDE_FORECAST_LINE);
         if (hidePlan || hideForecast)
             xydata = new EVDatasetFilter(xydata, hidePlan, hideForecast, 3);
 
@@ -1431,7 +1344,7 @@ public class EVReport extends CGIChartBase {
 
         return "&nbsp;<a class=doNotPrint href=\""
                 + WebServer.urlEncodePath(path)
-                + "//control/setPath.class?start\"><img border=\"0\" alt=\""
+                + "//control/setPath.class?start\"><img border=\"0\" title=\""
                 + resources.getHTML("Start_timing")
                 + "\" src=\"/control/startTiming.png\"></A>";
     }

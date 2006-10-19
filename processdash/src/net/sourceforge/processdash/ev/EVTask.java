@@ -33,7 +33,6 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.Vector;
@@ -368,7 +367,7 @@ public class EVTask implements Cloneable, DataListener {
         if (!XMLUtils.hasValue(value))
             return null;
         String[] items = value.split(",");
-        return new LinkedList(Arrays.asList(items));
+        return new ArrayList(Arrays.asList(items));
     }
     protected boolean hasValue(Collection c) {
         return (c != null && c.isEmpty() == false);
@@ -683,11 +682,11 @@ public class EVTask implements Cloneable, DataListener {
     public List getDependencies() { return getDependencies(false); }
     public List getDependencies(boolean create) {
         if (dependencies == null && create)
-            dependencies = new LinkedList();
+            dependencies = new ArrayList();
         return dependencies;
     }
     public void setDependencies(Collection dependencies) {
-        this.dependencies = new LinkedList(dependencies);
+        this.dependencies = new ArrayList(dependencies);
     }
     public String getFullName() { return fullName; }
     public String getPlanTime() {

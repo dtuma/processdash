@@ -256,6 +256,8 @@ public class EVTaskDependency {
         SimpleData currentValue = data.getSimpleValue(dataName);
         ListData list = null;
 
+        if (currentValue == null || currentValue.test() == false)
+            return null;
         if (currentValue instanceof ListData)
             list = (ListData) currentValue;
         else if (currentValue instanceof StringData)

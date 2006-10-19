@@ -29,4 +29,6 @@ public interface EVTaskFilter {
 
     public boolean include(EVTask t);
 
+    public String getAttribute(String name);
+
 }

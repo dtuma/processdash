@@ -41,15 +41,21 @@ import net.sourceforge.processdash.util.glob.GlobEngine;
 
 public class EVLabelFilter implements EVTaskFilter {
 
+    public static final String FILTER_ATTR = "filter";
+
     public static final String LABEL_TAG = "label:";
 
     public static final String TASK_LABELS_DATANAME = "Task_Labels";
+
+    private String filter;
 
     private Set matchingTaskIDs;
 
     private Set matchingTasks;
 
     public EVLabelFilter(EVTaskList taskList, String filter, DataRepository data) {
+        this.filter = filter;
+
         boolean isLocal = (taskList instanceof EVTaskListData);
 
         Set labelPaths = new HashSet();
@@ -168,5 +174,12 @@ public class EVLabelFilter implements EVTaskFilter {
         }
 
         return false;
+    }
+
+    public String getAttribute(String name) {
+        if (FILTER_ATTR.equals(name))
+            return filter;
+        else
+            return null;
     }
 }

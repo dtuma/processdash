@@ -47,6 +47,7 @@ import net.sourceforge.processdash.ev.ci.ConfidenceInterval;
 import net.sourceforge.processdash.ev.ci.TargetedConfidenceInterval;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.util.FormatUtil;
+import net.sourceforge.processdash.util.PatternList;
 
 import org.w3c.dom.Element;
 
@@ -146,7 +147,7 @@ public class EVMetrics implements TableModel {
             if (periodPercent < 0.0) periodPercent = 0.0;
             if (periodPercent > 1.0) periodPercent = 1.0;
         } else {
-            periodEnd = current;
+            this.periodEnd = current;
             periodPercent = 0.0;
         }
     }
@@ -182,6 +183,16 @@ public class EVMetrics implements TableModel {
     }
     public String getErrorQualifier() { return errorQualifier; }
 
+    protected void recalcScheduleTime(EVSchedule s) {
+        totalSchedulePlanTime = s.getScheduledPlanTime(currentDate);
+        totalScheduleActualTime = s.getScheduledActualTime(currentDate);
+    }
+    public void setForecastDate(Date d) {
+        if (d == EVSchedule.NEVER)
+            forecastDate = null;
+        else
+            forecastDate = d;
+    }
     public void recalcComplete(EVSchedule s) {
         recalcForecastDate(s);
         recalcViability(s);
@@ -246,16 +257,6 @@ public class EVMetrics implements TableModel {
                 validMetrics.add(f);
         }
         fireTableChanged(new TableModelEvent(this));
-    }
-    protected void recalcScheduleTime(EVSchedule s) {
-        totalSchedulePlanTime = s.getScheduledPlanTime(currentDate);
-        totalScheduleActualTime = s.getScheduledActualTime(currentDate);
-    }
-    public void setForecastDate(Date d) {
-        if (d == EVSchedule.NEVER)
-            forecastDate = null;
-        else
-            forecastDate = d;
     }
     protected void recalcForecastDate(EVSchedule s) {
         // Do nothing by default; our calculator will normally handle this.
@@ -636,6 +637,16 @@ public class EVMetrics implements TableModel {
                 Date lpi() { return independentForecastDateLPI(); }
                 Date upi() { return independentForecastDateUPI(); } } );
         return result;
+    }
+
+    public void discardMetrics(PatternList patterns) {
+        for (Iterator i = metrics.iterator(); i.hasNext();) {
+            MetricFormatter fmt = (MetricFormatter) i.next();
+            if (patterns.matches(fmt.key)) {
+                i.remove();
+                validMetrics.remove(fmt);
+            }
+        }
     }
 
     private static String ONE_YEAR = resources.getString("Metrics.One_Year");
