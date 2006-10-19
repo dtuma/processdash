@@ -894,7 +894,7 @@ public class EVSchedule implements TableModel {
      * standard time, returns a positive number indicating the
      * number of additional milliseconds that were gained.
      */
-    private static long dstDifference(long first, long second) {
+    public static long dstDifference(long first, long second) {
         Calendar calendar = Calendar.getInstance();
 
         long firstDSTOffset, secondDSTOffset;

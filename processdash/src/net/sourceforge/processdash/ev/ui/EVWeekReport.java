@@ -112,28 +112,36 @@ public class EVWeekReport extends TinyCGIBase {
                 && getParameter("EXPORT") == null);
 
         String effDateParam = getParameter(EFF_DATE_PARAM);
-        Date effDateTime = null;
+        Date effDate = null;
         if (effDateParam != null) try {
-            effDateTime = new Date(Long.parseLong(effDateParam));
+            effDate = new Date(Long.parseLong(effDateParam));
         } catch (Exception e) {}
-        if (effDateTime == null)
+
+        if (effDate == null) {
             // if the user hasn't specified an effective date, then use the
             // current time to round the effective date to the nearest week.
             // With a Sunday - Saturday schedule, the following line will show
             // the report for the previous week through Tuesday, and will
             // start showing the next week's report on Wednesday.
-            effDateTime = new Date(System.currentTimeMillis()
+            Date effDateTime = new Date(System.currentTimeMillis()
                     + EVSchedule.WEEK_MILLIS * 3 / 7);
 
-        // by default, look at the EV model and find the start of the current
-        // period; use that as the effective date.
-        Date effDate = schedule.getPeriodStart(effDateTime);
-        if (effDate == null)
-            effDate = new Date();
+            // now, identify the schedule boundary that precedes the effective
+            // date and time; use that as the effective date.
+            Date scheduleEnd = schedule.getLast().getEndDate();
+            if (effDateTime.compareTo(scheduleEnd) >= 0)
+                effDate = scheduleEnd;
+            else
+                effDate = schedule.getPeriodStart(effDateTime);
+
+            // make certain we have an effective date to proceed with.
+            if (effDate == null)
+                effDate = new Date();
+        }
 
         // Calculate the dates one week before and after the effective date.
-        Date lastWeek = new Date(effDate.getTime() - EVSchedule.WEEK_MILLIS);
-        Date nextWeek = new Date(effDate.getTime() + EVSchedule.WEEK_MILLIS);
+        Date lastWeek = adjustDate(effDate, -EVSchedule.WEEK_MILLIS);
+        Date nextWeek = adjustDate(effDate, EVSchedule.WEEK_MILLIS);
         Date startDate = schedule.getStartDate();
         if (lastWeek.before(startDate)) lastWeek = startDate;
 
@@ -208,8 +216,9 @@ public class EVWeekReport extends TinyCGIBase {
         String endDateStr = encodeHTML(new Date(effDate.getTime() - 1000));
         out.print(resources.format("Header_HTML_FMT", endDateStr));
         if (!parameters.containsKey("EXPORT")) {
-            printNavLink(lastWeek, effDate, schedule, "Previous", settings);
-            printNavLink(nextWeek, effDate, schedule, "Next", settings);
+            if (lastWeek.compareTo(startDate) > 0)
+                printNavLink(lastWeek, "Previous", settings);
+            printNavLink(nextWeek, "Next", settings);
         }
         out.print("</h2>\n");
 
@@ -375,6 +384,15 @@ public class EVWeekReport extends TinyCGIBase {
 
 
 
+    private Date adjustDate(Date effDate, long delta) {
+        long baseTime = effDate.getTime();
+        long adjustedTime = baseTime + delta;
+        adjustedTime += EVSchedule.dstDifference(baseTime, adjustedTime);
+        return new Date(adjustedTime);
+    }
+
+
+
     private void findUpcomingDependencies(TableModel tasks,
             Map upcomingDependencies, int i) {
         Collection deps = (Collection) tasks.getValueAt(i,
@@ -396,16 +414,13 @@ public class EVWeekReport extends TinyCGIBase {
     }
 
 
-    private void printNavLink(Date weekStart, Date effDate, EVSchedule schedule,
-            String resKey, EVReportSettings settings) {
-        long effTime = weekStart.getTime() + 1000;
-        Date newEffDate = schedule.getPeriodStart(new Date(effTime));
-        if (newEffDate.equals(effDate))
-            return;
-
+    private void printNavLink(Date effDate, String resKey,
+            EVReportSettings settings) {
         StringBuffer href = new StringBuffer("week.class");
-        HTMLUtils.appendQuery(href, EFF_DATE_PARAM, Long.toString(effTime));
-        HTMLUtils.appendQuery(href, settings.getQueryString(EVReportSettings.PURPOSE_NAV_LINK));
+        HTMLUtils.appendQuery(href, EFF_DATE_PARAM,
+                Long.toString(effDate.getTime()));
+        HTMLUtils.appendQuery(href,
+                settings.getQueryString(EVReportSettings.PURPOSE_NAV_LINK));
 
         out.print("&nbsp;&nbsp;<span class='nav'><a href='");
         out.print(href);
