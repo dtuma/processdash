@@ -204,6 +204,10 @@ public class HierarchySynchronizer {
             in = new BufferedInputStream(new FileInputStream(wbsFile));
             Document doc = XMLUtils.parse(in);
             projectXML = doc.getDocumentElement();
+
+            String projectTaskID = projectXML.getAttribute(TASK_ID_ATTR);
+            projectTaskID = cleanupProjectIDs(projectTaskID);
+            projectXML.setAttribute(TASK_ID_ATTR, projectTaskID);
         } catch (Exception e) {
             throw new IOException
                 ("The dashboard could not read the file containing the work " +
