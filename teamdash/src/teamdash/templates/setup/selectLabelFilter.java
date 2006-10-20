@@ -1,9 +1,12 @@
 package teamdash.templates.setup;
 
 import java.io.IOException;
+import java.util.Vector;
 
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.StringData;
+import net.sourceforge.processdash.data.repository.DataEvent;
+import net.sourceforge.processdash.data.repository.DataListener;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.util.HTMLUtils;
@@ -88,15 +91,35 @@ public class selectLabelFilter extends selectWBS {
         if (newFilter == null || newFilter.trim().length() == 0
                 || parameters.containsKey("remove"))
             getDataRepository().putValue(dataName, null);
-        else
+        else {
             getDataRepository().putValue(dataName,
                     StringData.create(newFilter.trim()));
+            getDataRepository().addDataListener(dataName,
+                    LABEL_FILTER_KEEPER, false);
+        }
 
         String destUri = getParameter("destUri");
         if (destUri == null)
             destUri = "../summary_frame.shtm";
         out.write("Location: " + destUri + "\r\n\r\n");
     }
+
+    /** Object to pin label filter data elements in the repository, and prevent
+     * them from being disposed.
+     * 
+     * Label filters are stored with an anonymous data name.  This prevents
+     * them from being saved to any datafile, so they won't survive a
+     * shutdown/restart of the dashboard (the desired behavior).  Unfortunately,
+     * that also means that if an equation references one of these elements,
+     * and is then disposed, the label would get disposed too.
+     * 
+     * This do-nothing DataListener is used to register "interest" in the
+     * element, to prevent it from being discarded.
+     */
+    private static DataListener LABEL_FILTER_KEEPER = new DataListener() {
+        public void dataValueChanged(DataEvent e) {}
+        public void dataValuesChanged(Vector v) {}
+    };
 
 
     /** If a filter is in effect for the given project, return its text.  If a
