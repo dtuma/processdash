@@ -718,7 +718,7 @@ public class EVReport extends CGIChartBase {
         out.print(isSnippet ? "</h2>" : "</h1>");
 
         if (!isSnippet)
-            printFilterInfo(out, taskFilter);
+            printFilterInfo(out, taskFilter, exportingToExcel());
 
         if (!exportingToExcel()) {
             String imgHtml = (taskFilter == null
@@ -817,17 +817,20 @@ public class EVReport extends CGIChartBase {
 
 
 
-    static void printFilterInfo(PrintWriter out, EVTaskFilter filter) {
+    static void printFilterInfo(PrintWriter out, EVTaskFilter filter,
+            boolean textOnly) {
         if (filter == null)
             return;
 
         String labelFilter = filter.getAttribute(EVLabelFilter.FILTER_ATTR);
         if (labelFilter != null) {
-            out.print("<h2><img border=0 src='/Images/filter.png' "
-                + "style='margin-right:2px' "
-                + "width='16' height='23' title=\"");
+            out.print("<h2>");
+            if (!textOnly)
+                out.print("<img border=0 src='/Images/filter.png' "
+                        + "style='margin-right:2px' "
+                        + "width='16' height='23' title=\"");
             out.print(resources.getHTML("Report.Filter_Tooltip"));
-            out.print("\">");
+            out.print(textOnly ? " - " : "\">");
             out.print(HTMLUtils.escapeEntities(labelFilter));
             out.println("</h2>");
         }

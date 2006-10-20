@@ -222,7 +222,7 @@ public class EVWeekReport extends TinyCGIBase {
         }
         out.print("</h2>\n");
 
-        EVReport.printFilterInfo(out, taskFilter);
+        EVReport.printFilterInfo(out, taskFilter, exportingToExcel());
 
         Map errors = metrics.getErrors();
         if (errors != null && errors.size() > 0) {
