@@ -16,6 +16,7 @@
   <target name="tsp">
     <property name="teamProcess.xml" value="tsp/settings.xml"/>
     <property name="teamProcess.zip" value="TSP-v1.zip"/>
+    <property name="cd-qualifier" value="tsp"/>
   </target>
 
   <target name="vvis">
@@ -149,7 +150,7 @@
     </java>
   </target>
 
-  <target name="installer" depends="TeamTools,TeamProcess">
+  <target name="-installer-props">
     <pathconvert property="teamdash.dir" dirSep="/">
       <path><pathelement location="."/></path>
     </pathconvert>
@@ -163,7 +164,35 @@
       <filterchain><expandproperties/></filterchain>
     </loadfile>
     <property name="extraCoreFiles" value=""/>
+    <property name="cd-qualifier" value="team"/>
+  </target>
 
+  <target name="installer" depends="TeamTools,TeamProcess,-installer-props">
+
+    <ant antfile="${processdash.dir}/installer/build.xml" inheritAll="false"
+         target="web">
+      <property name="alreadyRebuilt" value="true"/>
+      <property name="dontCleanDist" value="true"/>
+      <property name="dist" value="${teamdash.dir}"/>
+      <property name="additional.resources" value="${extraResources}"/>
+      <property name="additional.packs" value="${extraPacks}"/>
+      <property name="custom-install.extra" value="${extraIni}"/>
+      <property name="additional.core.files" value="${extraCoreFiles}"/>
+    </ant>
+
+    <ant antfile="${processdash.dir}/installer/build.xml" inheritAll="false"
+         target="offline">
+      <property name="alreadyRebuilt" value="true"/>
+      <property name="dontCleanDist" value="true"/>
+      <property name="dist" value="${teamdash.dir}"/>
+      <property name="additional.resources" value="${extraResources}"/>
+      <property name="additional.packs" value="${extraPacks}"/>
+      <property name="custom-install.extra" value="${extraIni}"/>
+      <property name="additional.core.files" value="${extraCoreFiles}"/>
+    </ant>
+  </target>
+
+  <target name="installer-cd" depends="TeamTools,TeamProcess,-installer-props">
     <ant antfile="${processdash.dir}/installer/build.xml" inheritAll="false"
          target="dist-CD">
       <property name="alreadyRebuilt" value="true"/>
@@ -173,7 +202,7 @@
       <property name="additional.packs" value="${extraPacks}"/>
       <property name="custom-install.extra" value="${extraIni}"/>
       <property name="additional.core.files" value="${extraCoreFiles}"/>
-      <property name="qualifier" value="team"/>
+      <property name="qualifier" value="${cd-qualifier}"/>
     </ant>
   </target>
 
@@ -191,13 +220,14 @@
     <!-- build version 2 of the VVGDP, and the installer -->
     <property name="teamProcess.xml" value="vvis.xml"/>
     <property name="teamProcess.zip" value="VVGDP-v2.zip"/>
+    <property name="cd-qualifier" value="vvis"/>
     <pathconvert property="teamdash.dir" dirSep="/">
       <path><pathelement location="."/></path>
     </pathconvert>
     <loadfile property="extraCoreFiles" srcFile="install/vvisCore.xml">
       <filterchain><expandproperties/></filterchain>
     </loadfile>
-    <antcall target="installer"/>
+    <antcall target="installer-cd"/>
   </target>
 
   <target name="dist" depends="installer"/>
