@@ -3,6 +3,7 @@ package teamdash.templates.setup;
 import java.io.IOException;
 
 import net.sourceforge.processdash.hier.PropertyKey;
+import net.sourceforge.processdash.net.cms.SnippetEnvironment;
 import net.sourceforge.processdash.net.http.WebServer;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.StringUtils;
@@ -24,10 +25,11 @@ public class summaryName extends selectWBS {
         String projectRoot = projectRootKey.path();
         String currentFilter = selectLabelFilter.getCurrentFilter(
                 getDataRepository(), projectRoot);
+        boolean  isSnippet = (env.containsKey(SnippetEnvironment.SNIPPET_ID));
 
         out.println("<html><head>");
         out.println("<link rel=stylesheet type='text/css' href='/style.css'>");
-        if (StringUtils.hasValue(currentFilter))
+        if (isSnippet && StringUtils.hasValue(currentFilter))
             out.println("<link rel=stylesheet type='text/css' href='/reports/filter-style.css'>");
         out.println("<style>");
         out.println(" body { margin: 0pt; padding: 2px }");
