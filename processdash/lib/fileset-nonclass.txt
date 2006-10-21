@@ -30,5 +30,6 @@ net/sourceforge/processdash/tool/export/jarsurf/classes.txt
 net/sourceforge/processdash/ui/icon32.gif
 net/sourceforge/processdash/ui/icon32.png
 net/sourceforge/processdash/ui/splash.png
+net/sourceforge/processdash/ui/splash.html
 net/sourceforge/processdash/util/glob/lexer/lexer.dat
 net/sourceforge/processdash/util/glob/parser/parser.dat

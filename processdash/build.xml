@@ -387,6 +387,8 @@ Authors:
         <attribute name="Dash-Pkg-URL"
                    value="http://processdash.sourceforge.net/cgi-bin/update"/>
         <attribute name="Dash-Svn-Revision" value="${svnRevision}"/>
+
+	<attribute name="Implementation-Version" value="${version}"/>
       </manifest>
 
       <!-- include the compiled files and cgi scripts -->

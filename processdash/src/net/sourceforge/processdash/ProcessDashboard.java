@@ -842,7 +842,7 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
 
     public static String getVersionNumber() { return versionNumber; }
 
-    static SplashScreen ss = null;
+    static DashboardSplashScreen ss = null;
 
     public static void dropSplashScreen() {
         if (ss != null) ss.okayToDispose();
@@ -856,7 +856,7 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
     public static void main(String args[]) {
         DashboardSecurity.setupSecurityManager();
 
-        ss = new SplashScreen(ProcessDashboard.class.getResource("ui/splash.png"));
+        ss = new DashboardSplashScreen();
         ss.displayFor(3000);      // show for at least 3 seconds.
 
         ensureJRE13();
