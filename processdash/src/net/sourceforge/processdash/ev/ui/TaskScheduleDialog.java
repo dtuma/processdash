@@ -135,6 +135,8 @@ public class TaskScheduleDialog
 
     private EVTaskList.FlatTreeModel flatModel = null;
     private TreeTableModel mergedModel = null;
+    private TableColumnModel treeColumnModel;
+    private TableColumnModel flatColumnModel = null;
 
     protected JButton addTaskButton, deleteTaskButton, moveUpButton,
         moveDownButton, addPeriodButton, insertPeriodButton,
@@ -205,14 +207,15 @@ public class TaskScheduleDialog
             hiddenCols.add(new Integer(EVTaskList.ASSIGNED_TO_COLUMN));
 
         int totalWidth = 0;
+        treeColumnModel = treeTable.getColumnModel();
         for (int i = 0;  i < EVTaskList.colWidths.length;  i++) {
             int width = EVTaskList.colWidths[i];
             if (hiddenCols.contains(new Integer(i))) {
                 width = 0;
-                treeTable.getColumnModel().getColumn(i).setMinWidth(0);
-                treeTable.getColumnModel().getColumn(i).setMaxWidth(0);
+                treeColumnModel.getColumn(i).setMinWidth(0);
+                treeColumnModel.getColumn(i).setMaxWidth(0);
             }
-            treeTable.getColumnModel().getColumn(i).setPreferredWidth(width);
+            treeColumnModel.getColumn(i).setPreferredWidth(width);
             totalWidth += width;
         }
         configureEditor(treeTable);
@@ -714,7 +717,8 @@ public class TaskScheduleDialog
                 boolean isEditable = false;
                 TreePath path = getTree().getPathForRow(row);
                 if (path != null &&
-                    model.isCellEditable(path.getLastPathComponent(), column))
+                    model.isCellEditable(path.getLastPathComponent(),
+                            table.convertColumnIndexToModel(column)))
                     isEditable = true;
 
                 setBackground(colors[(isSelected ? 0:1) + (isEditable ? 0:2)]);
@@ -1678,39 +1682,83 @@ public class TaskScheduleDialog
 
     protected void toggleFlatView() {
         if (!isFlatView())
-            changeTreeTableModel(model);
+            changeTreeTableModel(model, treeColumnModel);
         else {
-            if (flatModel == null)
+            if (flatModel == null) {
                 flatModel = model.getFlatModel();
-            changeTreeTableModel(flatModel);
+                flatColumnModel = createFlatColumnModel();
+            }
+            changeTreeTableModel(flatModel, flatColumnModel);
         }
 
         enableTaskButtons();
     }
+
+    private TableColumnModel createFlatColumnModel() {
+        DefaultTableColumnModel result = new DefaultTableColumnModel();
+
+        int extraWidth = 0;
+        for (int i = 0;   i < treeColumnModel.getColumnCount();  i++) {
+            TableColumn c = treeColumnModel.getColumn(i);
+            switch (c.getModelIndex()) {
+            case EVTaskList.TASK_COLUMN:
+            case EVTaskList.PLAN_TIME_COLUMN:
+            case EVTaskList.PLAN_DTIME_COLUMN:
+            //case EVTaskList.ACT_TIME_COLUMN:
+            //case EVTaskList.ACT_DTIME_COLUMN:
+            case EVTaskList.PLAN_DATE_COLUMN:
+            case EVTaskList.FORECAST_DATE_COLUMN:
+            case EVTaskList.DEPENDENCIES_COLUMN:
+                result.addColumn(cloneTableColumn(c));
+                break;
+
+            default:
+                extraWidth += c.getPreferredWidth();
+                break;
+            }
+        }
+
+        TableColumn c = result.getColumn(0);
+        c.setPreferredWidth(c.getWidth() + extraWidth);
+
+        return result;
+    }
+    private TableColumn cloneTableColumn(TableColumn c) {
+        TableColumn result = new TableColumn(c.getModelIndex(),
+                c.getPreferredWidth(), c.getCellRenderer(),
+                c.getCellEditor());
+        result.setMaxWidth(c.getMaxWidth());
+        result.setMinWidth(c.getMinWidth());
+        result.setResizable(c.getResizable());
+        result.setHeaderValue(c.getHeaderValue());
+        result.setHeaderRenderer(c.getHeaderRenderer());
+        return result;
+    }
+
 
     protected void toggleMergedView() {
         if (!isMergedView())
-            changeTreeTableModel(model);
+            changeTreeTableModel(model, treeColumnModel);
         else {
             if (mergedModel == null)
                 mergedModel = model.getMergedModel();
-            changeTreeTableModel(mergedModel);
+            changeTreeTableModel(mergedModel, treeColumnModel);
         }
 
         enableTaskButtons();
     }
 
-    protected void changeTreeTableModel(TreeTableModel m) {
+    protected void changeTreeTableModel(TreeTableModel m,
+            TableColumnModel columnModel) {
         // changing the TreeTableModel below causes our column model to
         // be completely recreated from scratch.  Unfortunately, this
         // loses all information about column width, tooltips, etc.  To
         // avoid this, we temporarily install a discardable column model.
         // The disruptive changes will be made to it, then we reinstall
-        // our original column model when we're done.
+        // the desired column model when we're done.
         //    Note that we can do this only because we know that we'll
         // be replacing the TreeTableModel with another one that is
         // exactly compatible.
-        TableColumnModel columnModel = treeTable.getColumnModel();
         treeTable.setColumnModel(new DefaultTableColumnModel());
         treeTable.setTreeTableModel(m);
         treeTable.setColumnModel(columnModel);
