@@ -53,6 +53,7 @@
  <LI><a href="FAQ.html#HideFinished">Can I hide my finished projects from the hierarchy browser (and other screens)?  They are starting to pile up and are taking up a lot of space.</a></li>
  <LI><a href="FAQ.html#OutlierProject">I have a project in my hierarchy that doesn't have much to do with my current development habits.  Can I mark it as an "outlier" so that it doesn't corrupt the Planning and PROBE estimates?</a></li>
  <LI><a href="FAQ.html#WebServerWorms">Since the dashboard has a web server in it, do I have to worry about internet worms and viruses attacking my machine?</a></LI>
+ <LI><A HREF="#AutoUpdate">When the dashboard starts up, it's attempting to make a connection to the internet.  Why is it doing this?</A></LI>
  <LI><a href="FAQ.html#DCRSCR">What happened to the DCR and SCR processes?</A></LI>
  <LI><a href="FAQ.html#Auto">I would like to integrate the dashboard more closely with my IDE. Is it possible to programatically start/stop the timer, and change the active hierarchy path?</A></LI>
  <LI><A HREF="#TeamSupport">Does the Process Dashboard support teams?</A></LI>
@@ -566,6 +567,42 @@ computers to connect to the dashboard (this is the default). See the
 file</a> help topic for more information.</P>
 
 
+<P><HR><A NAME="AutoUpdate"></A><b>When the dashboard starts up, it's
+attempting to make a connection to the internet.  Why is it doing
+this?</b>
+
+<p>Like many modern software programs, the dashboard provides an
+"update notification" feature.  Once a month, this feature checks to
+see if an updated version of the dashboard is available.  If you have
+installed add-on process sets, it also checks to see if updated
+versions of these are available.</p>
+
+<p>If new versions are available, the dashboard will display an alert,
+listing the items which have been updated.  This alert has a checkbox
+which reads "Don't perform a monthly check for new releases."  If you
+check this box, the dashboard will never perform this check again.
+You can also disable this check manually by adding the following line
+to your <a href="../AdvancedTopics/ConfigurationFile.html#autoUpdate">configuration
+file</a>:</p>
+
+<pre>autoUpdate.disabled=true</pre>
+
+<p>In the normal case, this "update check" will succeed, and the
+dashboard will make a note not to check for another 30 days.  However,
+the update check might fail if no network is available (for example,
+because you are running the dashboard on a laptop that isn't connected
+to the network).  As a result, if the update check fails for any
+reason, the update checking logic will try again the next time you
+start the dashboard.</p>
+
+<p>If you see the dashboard attempt to check every time it starts up,
+this means that the update check is never completing successfully.
+This could occur if your personal firewall is blocking the connection,
+or if you are behind a password-protected corporate firewall.  In
+either case, you can turn off this feature entirely as described
+above.</p>
+
+
 <P><HR><a name="DCRSCR"></a><b>What happened to the DCR and SCR processes?</b>
 
 <P>The DCR and SCR processes were shipped with version 1.1 of the
@@ -605,15 +642,14 @@ to change the current hierarchy path <b>and</b> start the timer, use
 request originates from the same machine where the dashboard is
 running.
 
+
 <P><HR><A NAME="TeamSupport"></A><b>Does the Process Dashboard support
 teams?</b>
 
-<P>The current version of the dashboard <I>does</I> contain features that
-make it possible to roll up individual data to the team level. This "team
-roll-up" capability should be considered "beta" functionality.  If your TSP
-team is using the dashboard, and would like to evaluate these features,
-please send email to <I>processdash-devel@lists.sourceforge.net</I> for
-assistance.</p>
+<P>Yes, the dashboard <I>does</I> contain powerful features that make
+it possible to roll up individual data to the team level.  See the
+<a href="../AdvancedTopics/TeamUse.html">Team Use</a> help topic for
+more information.</p>
 
 <P><HR><a name="Website"></a><b>Where can I get the latest information about 
 the Process Dashboard?</b>
