@@ -985,6 +985,16 @@ public class EVTaskList extends AbstractTreeTableModel
                 }
                 fireTreeNodesInserted(this, ((EVTask) root).getPath(),
                                       childIndices, children);
+                // the next line shouldn't be necessary - but the JTreeTable
+                // seems to have a bug.  When it handles the treeNodesInserted
+                // event above, it seems to call the toString() method on
+                // each child, and allocate screen real estate for each tree
+                // node based on an assumption that the toString() value is
+                // what will be displayed.  That assumption is not correct -
+                // we display a full path instead.  Somehow, the line below
+                // helps the JTreeTable to recover and paint correctly.
+                fireTreeNodesChanged(this, ((EVTask) root).getPath(),
+                                     childIndices, children);
 
             } else if (oldLen > newLen) {
                 int deletedRows = oldLen-newLen;
