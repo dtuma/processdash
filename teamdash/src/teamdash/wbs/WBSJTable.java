@@ -239,6 +239,7 @@ public class WBSJTable extends JTable {
      * other component). */
     void installTableActions() {
         InputMap inputMap = getInputMap();
+        InputMap inputMap2 = getInputMap(WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
         ActionMap actionMap = getActionMap();
 
         inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_X, CTRL), "Cut");
@@ -248,6 +249,7 @@ public class WBSJTable extends JTable {
         actionMap.put("Copy", COPY_ACTION);
 
         inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_V, CTRL), "Paste");
+        inputMap2.put(KeyStroke.getKeyStroke(KeyEvent.VK_V, CTRL), "Paste");
         actionMap.put("Paste", PASTE_ACTION);
 
         inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), "Delete");
@@ -589,6 +591,12 @@ public class WBSJTable extends JTable {
 
             WBSNode beforeNode = getLocation();
             if (beforeNode == null) return;
+
+            // stop the current editing session.
+            editor.stopCellEditing();
+            UndoList.stopCellEditing(WBSJTable.this);
+
+            // paste the nodes.
             insertCopiedNodes(beforeNode);
         }
 

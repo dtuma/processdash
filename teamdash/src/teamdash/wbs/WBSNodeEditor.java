@@ -8,17 +8,23 @@ import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.Toolkit;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.DataFlavor;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.beans.PropertyChangeListener;
 import java.util.EventObject;
 import java.util.Iterator;
 import java.util.Map;
 
 import javax.swing.AbstractAction;
 import javax.swing.AbstractCellEditor;
+import javax.swing.Action;
+import javax.swing.ActionMap;
 import javax.swing.BorderFactory;
 import javax.swing.Icon;
 import javax.swing.JComponent;
@@ -34,6 +40,7 @@ import javax.swing.border.Border;
 import javax.swing.table.TableCellEditor;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
+import javax.swing.text.DefaultEditorKit;
 import javax.swing.text.PlainDocument;
 
 
@@ -428,6 +435,7 @@ public class WBSNodeEditor extends AbstractCellEditor
             // don't display a border around the text field.
             textField.setBorder(BorderFactory.createEmptyBorder());
             textField.setDisabledTextColor(Color.gray);
+            new ConditionalPasteAction(textField);
             this.add(textField);
 
             // create the menu bar containing the icon menu.
@@ -665,6 +673,64 @@ public class WBSNodeEditor extends AbstractCellEditor
             }
             //public void run() { textField.grabFocus(); }
             public void run() { textField.requestFocus(); }
+        }
+
+        private class ConditionalPasteAction implements Action {
+
+            private Action realPasteAction;
+
+            public ConditionalPasteAction(JTextField textField) {
+                ActionMap am = textField.getActionMap();
+                realPasteAction = am.get(DefaultEditorKit.pasteAction);
+                am.put(DefaultEditorKit.pasteAction, this);
+            }
+
+            public boolean isEnabled() {
+                try {
+                    Clipboard clipboard = Toolkit.getDefaultToolkit()
+                            .getSystemClipboard();
+                    String data = (String) (clipboard.getContents(this)
+                            .getTransferData(DataFlavor.stringFlavor));
+
+                    if (containsTabularDataCharacter(data))
+                        return false;
+                    else
+                        return realPasteAction.isEnabled();
+                } catch (Exception e) {
+                    return false;
+                }
+            }
+            private boolean containsTabularDataCharacter(String data) {
+                if (data == null) return false;
+                if (data.indexOf('\t') != -1) return true;
+                if (data.indexOf('\n') != -1) return true;
+                if (data.indexOf('\r') != -1) return true;
+                return false;
+            }
+
+            public void actionPerformed(ActionEvent e) {
+                realPasteAction.actionPerformed(e);
+            }
+
+            public void addPropertyChangeListener(PropertyChangeListener listener) {
+                realPasteAction.addPropertyChangeListener(listener);
+            }
+
+            public Object getValue(String key) {
+                return realPasteAction.getValue(key);
+            }
+
+            public void putValue(String key, Object value) {
+                realPasteAction.putValue(key, value);
+            }
+
+            public void removePropertyChangeListener(PropertyChangeListener listener) {
+                realPasteAction.removePropertyChangeListener(listener);
+            }
+
+            public void setEnabled(boolean b) {
+                realPasteAction.setEnabled(b);
+            }
         }
     }
 
