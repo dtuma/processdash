@@ -124,16 +124,14 @@ public class TaskDependencyColumn extends AbstractDataColumn implements
         boolean result = needsRecalc;
         needsRecalc = false;
         WBSModel wbs = dataModel.getWBSModel();
-        WBSNode[] allNodes = wbs.getDescendants(wbs.getRoot());
-        for (int i = 0; i < allNodes.length; i++) {
-            if (recalculate(allNodes[i]))
-                result = true;
-        }
+        if (recalculate(wbs, wbs.getRoot()))
+            result = true;
         return result;
     }
 
-    /** Recalculate data for one node. Return true if changes were made. */
-    private boolean recalculate(WBSNode n) {
+    /** Recalculate data for a node and its descendants. Return true if changes
+     * were made. */
+    private boolean recalculate(WBSModel wbs, WBSNode n) {
         boolean result = false;
         // retrieve the list of TaskDependencies for this node.
         TaskDependencyList list = (TaskDependencyList) n
@@ -151,6 +149,12 @@ public class TaskDependencyColumn extends AbstractDataColumn implements
                 n.setAttribute(TASK_LIST_ATTR, list);
                 result = true;
             }
+        }
+
+        WBSNode[] children = wbs.getChildren(n);
+        for (int i = 0; i < children.length; i++) {
+            if (recalculate(wbs, children[i]))
+                result = true;
         }
 
         return result;

@@ -175,19 +175,31 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
     }
 
     public WBSNode[] getChildren(Object n) {
+        if (!(n instanceof WBSNode)) return EMPTY_NODE_LIST;
+
+        WBSNode node = (WBSNode) n;
+        WBSNode[] result = (WBSNode[]) node.getAttribute(CACHED_CHILDREN);
+        if (result != null) return result;
+
         IntList childIndexes = getChildIndexes(n);
         if (childIndexes == null || childIndexes.size() == 0)
-            return EMPTY_NODE_LIST;
+            result = EMPTY_NODE_LIST;
+        else {
+            result = new WBSNode[childIndexes.size()];
+            for (int i = 0;   i < childIndexes.size();   i++)
+                result[i] = (WBSNode) wbsNodes.get(childIndexes.get(i));
+        }
 
-        WBSNode[] result = new WBSNode[childIndexes.size()];
-        for (int i = 0;   i < childIndexes.size();   i++)
-            result[i] = (WBSNode) wbsNodes.get(childIndexes.get(i));
-
+        if (CACHE) node.setAttribute(CACHED_CHILDREN, result);
         return result;
     }
     private static final WBSNode[] EMPTY_NODE_LIST = new WBSNode[0];
 
     public WBSNode getParent(WBSNode n) {
+        if (n == null) return null;
+        WBSNode result = (WBSNode) n.getAttribute(CACHED_PARENT);
+        if (result != null) return result;
+
         int pos = wbsNodes.indexOf(n);
         if (pos == -1) return null;
 
@@ -195,8 +207,10 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
         WBSNode possibleParent;
         while (pos-- > 0) {
             possibleParent = (WBSNode) wbsNodes.get(pos);
-            if (possibleParent.getIndentLevel() < nodeIndentLevel)
+            if (possibleParent.getIndentLevel() < nodeIndentLevel) {
+                if (CACHE) n.setAttribute(CACHED_PARENT, possibleParent);
                 return possibleParent;
+            }
         }
 
         return null;
@@ -214,6 +228,13 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
     }
 
     public IntList getChildIndexes(Object n) {
+        if (!(n instanceof WBSNode))
+            return null;
+
+        WBSNode node = (WBSNode) n;
+        IntList result = (IntList) node.getAttribute(CACHED_CHILD_INDEXES);
+        if (result != null) return result;
+
         int pos = wbsNodes.indexOf(n);
         if (pos == -1) return null;
         return getChildIndexes((WBSNode) n, pos);
@@ -225,14 +246,11 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
         int parentIndentLevel = node.getIndentLevel();
         int minChildIndentLevel = Integer.MAX_VALUE;
 
-        WBSNode possibleChildNode;
-        int nodeIndentLevel;
-
         IntList result = new IntList(wbsNodes.size() - pos);
 
         while (++pos < wbsNodes.size()) {
-            possibleChildNode = (WBSNode) wbsNodes.get(pos);
-            nodeIndentLevel = possibleChildNode.getIndentLevel();
+            WBSNode possibleChildNode = (WBSNode) wbsNodes.get(pos);
+            int nodeIndentLevel = possibleChildNode.getIndentLevel();
 
             // if this node is at the same indentation level as the
             // parent, or if it is further left than the parent, then
@@ -251,6 +269,8 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
             result.add(pos);
             minChildIndentLevel = nodeIndentLevel;
         }
+
+        if (CACHE) node.setAttribute(CACHED_CHILD_INDEXES, result);
         return result;
     }
 
@@ -349,6 +369,8 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
 
     void recalcRows() { recalcRows(true); }
     void recalcRows(boolean notify) {
+        clearCachedNodeData();
+
         IntList resultList = new IntList(wbsNodes.size());
         recalcRows(resultList, 0);
         int[] oldRows = rows;
@@ -358,6 +380,15 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
                 //System.out.println("firing table data changed");
                 fireTableDataChanged();
             }
+    }
+
+    private void clearCachedNodeData() {
+        for (Iterator i = wbsNodes.iterator(); i.hasNext();) {
+            WBSNode node = (WBSNode) i.next();
+            for (int j = 0; j < CACHING_ATTRS.length; j++) {
+                node.setAttribute(CACHING_ATTRS[j], null);
+            }
+        }
     }
 
     private void recalcRows(IntList resultList, int nodePos) {
@@ -844,4 +875,11 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
         }
     }
 
+    private static final String CACHED_CHILDREN = "_cached_child_list_";
+    private static final String CACHED_CHILD_INDEXES = "_cached_child_ind_";
+    private static final String CACHED_PARENT = "_cached_parent_node_";
+    private static final String[] CACHING_ATTRS = {
+        CACHED_CHILDREN, CACHED_CHILD_INDEXES, CACHED_PARENT
+    };
+    private static final boolean CACHE = true;
 }

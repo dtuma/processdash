@@ -286,12 +286,22 @@ public class WBSJTable extends JTable {
                 continue;
             if (node.isReadOnly())
                 return true;
-            if (node.isExpanded() == false) {
-                WBSNode[] descendants = wbsModel.getDescendants(node);
-                if (containsReadOnlyNode(Arrays.asList(descendants)))
-                    return true;
-            }
+            if (node.isExpanded() == false && containsReadOnlyNode(node))
+                return true;
         }
+        return false;
+    }
+
+    private boolean containsReadOnlyNode(WBSNode node) {
+        if (node.isReadOnly())
+            return true;
+
+        WBSNode[] children = wbsModel.getChildren(node);
+        for (int i = 0; i < children.length; i++) {
+            if (containsReadOnlyNode(children[i]))
+                return true;
+        }
+
         return false;
     }
 
