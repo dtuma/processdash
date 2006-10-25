@@ -53,10 +53,15 @@ import org.apache.tools.ant.taskdefs.MatchingTask;
  */
 public class AddTranslations extends MatchingTask {
 
+    private boolean verbose = false;
     private File dir;
 
     public void setDir(File d) {
         dir = d;
+    }
+
+    public void setVerbose(boolean verbose) {
+        this.verbose = verbose;
     }
 
     public void execute() throws BuildException {
@@ -66,6 +71,8 @@ public class AddTranslations extends MatchingTask {
             try {
                 addTranslationsFromFile(new File(dir, srcFiles[i]));
             } catch (IOException ioe) {
+                if (verbose)
+                    ioe.printStackTrace(System.out);
                 System.out.println("'" + srcFiles[i] + "' does not appear to "
                         + "be a valid translations zipfile - skipping.");
             }
@@ -73,13 +80,15 @@ public class AddTranslations extends MatchingTask {
     }
 
     private void addTranslationsFromFile(File file) throws IOException {
+        if (verbose)
+            System.out.println("Looking for translations in " + file);
+
         ZipInputStream zipIn = new ZipInputStream(new BufferedInputStream(
                 new FileInputStream(file)));
 
-        String jFreeOutFile = "lib/jfreechart" + localeId(file.getName())
-                + ".zip";
-        ZipOutputStream jFreeOut = new ZipOutputStream(new FileOutputStream(
-                new File(dir, jFreeOutFile)));
+        ZipOutputStream jFreeOut = null;
+        File jFreeOutFile = new File(dir, ("lib/jfreechart"
+                + localeId(file.getName()) + ".zip"));
 
         ZipEntry entry;
         while ((entry = zipIn.getNextEntry()) != null) {
@@ -93,6 +102,10 @@ public class AddTranslations extends MatchingTask {
                         "l10n-tool/src/" + terminalName(filename));
 
             } else if (filename.indexOf("jfree") != -1) {
+                if (jFreeOut == null)
+                    jFreeOut = new ZipOutputStream(new FileOutputStream(
+                            jFreeOutFile));
+
                 jFreeOut.putNextEntry(new ZipEntry(filename));
                 copyFile(zipIn, jFreeOut);
                 jFreeOut.closeEntry();
@@ -108,7 +121,8 @@ public class AddTranslations extends MatchingTask {
             }
         }
 
-        jFreeOut.close();
+        if (jFreeOut != null)
+            jFreeOut.close();
         zipIn.close();
     }
 
@@ -148,9 +162,13 @@ public class AddTranslations extends MatchingTask {
         merged.putAll(original);
         merged.putAll(incoming);
 
-        if (original.equals(merged))
+        if (original.equals(merged)) {
+            if (verbose)
+                System.out.println("    No new properties in '" + filename + "'");
             return;
+        }
 
+        if (verbose) System.out.print("    ");
         System.out.println("Updating '" + filename + "'");
         FileOutputStream out = new FileOutputStream(destFile);
         merged.store(out, PROP_FILE_HEADER);
