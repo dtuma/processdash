@@ -556,7 +556,7 @@ Authors:
   </target>
 
   <target name="add-trans" depends="ant-tasks">
-    <i18n-addTranslations dir="." includes="pspdash_*.jar"/>
+    <i18n-addTranslations dir="." includes="pspdash_*.zip pspdash_*.jar"/>
   </target>
 
 
