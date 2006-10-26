@@ -62,7 +62,6 @@ import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 
 import net.sourceforge.processdash.DashboardContext;
-import net.sourceforge.processdash.ev.EVDependencyCalculator;
 import net.sourceforge.processdash.ev.EVTask;
 import net.sourceforge.processdash.ev.EVTaskDependency;
 import net.sourceforge.processdash.ev.EVTaskDependencyResolver;
@@ -128,6 +127,11 @@ public class TaskDependencyCellEditor extends AbstractCellEditor implements
             button.setIcon(((JLabel) rend).getIcon());
         else
             button.setIcon(null);
+
+        SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+                button.doClick();
+            }});
 
         return button;
     }

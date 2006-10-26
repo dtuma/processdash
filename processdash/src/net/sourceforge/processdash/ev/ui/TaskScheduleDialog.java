@@ -62,8 +62,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import javax.swing.AbstractAction;
-import javax.swing.ActionMap;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.Icon;
@@ -87,6 +85,7 @@ import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.ToolTipManager;
+import javax.swing.TransferHandler;
 import javax.swing.WindowConstants;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
@@ -125,8 +124,8 @@ import net.sourceforge.processdash.ui.lib.JTreeTable;
 import net.sourceforge.processdash.ui.lib.ToolTipTableCellRendererProxy;
 import net.sourceforge.processdash.ui.lib.ToolTipTimingCustomizer;
 import net.sourceforge.processdash.ui.lib.TreeTableModel;
-import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.BooleanArray;
+import net.sourceforge.processdash.util.HTMLUtils;
 
 
 public class TaskScheduleDialog
@@ -636,17 +635,8 @@ public class TaskScheduleDialog
             getTree().setCellRenderer(r);
             ToolTipManager.sharedInstance().registerComponent(getTree());
             new ToolTipTimingCustomizer().install(this);
-
-            InputMap inputMap = getInputMap();
-            ActionMap actionMap = getActionMap();
-            inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_X, Event.CTRL_MASK),
-                    "CutCopyNodes");
-            inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_C, Event.CTRL_MASK),
-                    "CutCopyNodes");
-            actionMap.put("CutCopyNodes", new CopyNodeNamesAction());
-            inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_V, Event.CTRL_MASK),
-                    "PasteNodes");
-            actionMap.put("PasteNodes", new PasteNodeNamesAction());
+            setTransferHandler(new TransferSupport());
+            setAutoscrolls(true);
         }
 
         public TableCellRenderer getCellRenderer(int row, int column) {
@@ -799,17 +789,56 @@ public class TaskScheduleDialog
                         treeTable.getRowCount()-1));
         }
 
-
-        private class CopyNodeNamesAction extends AbstractAction implements
+        private class TransferSupport extends TransferHandler implements
                 ClipboardOwner {
 
-            public void actionPerformed(ActionEvent e) {
+            public TransferSupport() {
+                InputMap inputMap = getInputMap();
+
+                inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_X,
+                        Event.CTRL_MASK), "CutCopyNodes");
+                inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_C,
+                        Event.CTRL_MASK), "CutCopyNodes");
+                getActionMap().put("CutCopyNodes", getCopyAction());
+
+                inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_V,
+                        Event.CTRL_MASK), "PasteNodes");
+                getActionMap().put("PasteNodes", getPasteAction());
+            }
+
+            public int getSourceActions(JComponent c) {
+                return COPY_OR_MOVE;
+            }
+
+            public boolean canImport(JComponent comp, DataFlavor[] flavors) {
+                for (int i = 0; i < flavors.length; i++) {
+                    if (flavors[i] == DataFlavor.stringFlavor)
+                        return true;
+                }
+                return false;
+            }
+
+            public void exportToClipboard(JComponent comp, Clipboard clip,
+                    int action) {
+                // we have to override this method, because we need to register
+                // a ClipboardOwner when we set the clipboard contents.
+                Transferable t = createTransferable(comp);
+                if (t != null) {
+                    clip.setContents(t, this);
+                    exportDone(comp, t, action);
+                } else {
+                    exportDone(comp, null, NONE);
+                }
+            }
+
+            protected Transferable createTransferable(JComponent c) {
                 if (!isFlatView())
-                    return;
+                    return null;
 
                 int[] rows = treeTable.getSelectedRows();
-                if (rows == null || rows.length == 0)
-                    return;
+                if (rows == null || rows.length == 0
+                        || (rows.length == 1 && rows[0] == 0))
+                    return null;
 
                 StringBuffer data = new StringBuffer();
                 for (int i = 0; i < rows.length; i++) {
@@ -817,48 +846,43 @@ public class TaskScheduleDialog
                             EVTaskList.TASK_COLUMN);
                     data.append(taskName).append('\n');
                 }
+
+                if (isEditing())
+                    removeEditor();
                 setCutList(rows);
 
-                Clipboard clipboard = Toolkit.getDefaultToolkit()
-                        .getSystemClipboard();
-                StringSelection selection = new StringSelection(data.toString());
-                clipboard.setContents(selection, this);
+                return new StringSelection(data.toString());
             }
 
             public void lostOwnership(Clipboard clipboard, Transferable t) {
                 setCutList(null);
             }
 
-        }
-
-        private class PasteNodeNamesAction extends AbstractAction {
-
-            public void actionPerformed(ActionEvent e) {
+            public boolean importData(JComponent comp, Transferable t) {
                 if (!isFlatView())
-                    return;
+                    return false;
 
                 int insertionRow = treeTable.getSelectedRow();
-                if (insertionRow == -1) return;
+                if (insertionRow == -1) return false;
                 if (insertionRow == 0) insertionRow = 1;
 
                 String tasks;
                 try {
-                    Clipboard clipboard = Toolkit.getDefaultToolkit()
-                            .getSystemClipboard();
-                    tasks = (String) (clipboard.getContents(this)
-                            .getTransferData(DataFlavor.stringFlavor));
+                    tasks = (String) t.getTransferData(DataFlavor.stringFlavor);
                 } catch (Exception ex) {
-                    return;
+                    return false;
                 }
 
                 cutList.clear();
 
                 int[] newSelection = flatModel.insertTasks(tasks, insertionRow-1);
-                if (newSelection != null) {
-                    setDirty(true);
-                    SwingUtilities.invokeLater(new RowSelectionTask(
-                            newSelection[0]+1, newSelection[1]+1, false));
-                }
+                if (newSelection == null)
+                    return false;
+
+                setDirty(true);
+                SwingUtilities.invokeLater(new RowSelectionTask(
+                        newSelection[0]+1, newSelection[1]+1, false));
+                return true;
             }
 
         }
@@ -1826,14 +1850,16 @@ public class TaskScheduleDialog
     }
 
     protected void toggleFlatView() {
-        if (!isFlatView())
+        if (!isFlatView()) {
             changeTreeTableModel(model, treeColumnModel);
-        else {
+            treeTable.setDragEnabled(false);
+        } else {
             if (flatModel == null) {
                 flatModel = model.getFlatModel();
                 flatColumnModel = createFlatColumnModel();
             }
             changeTreeTableModel(flatModel, flatColumnModel);
+            treeTable.setDragEnabled(true);
         }
 
         enableTaskButtons();
