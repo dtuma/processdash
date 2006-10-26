@@ -30,14 +30,21 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.Event;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.Toolkit;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.ClipboardOwner;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.StringSelection;
+import java.awt.datatransfer.Transferable;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
@@ -55,9 +62,12 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import javax.swing.AbstractAction;
+import javax.swing.ActionMap;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.Icon;
+import javax.swing.InputMap;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
@@ -72,6 +82,7 @@ import javax.swing.JSplitPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.JTree;
+import javax.swing.KeyStroke;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
@@ -115,6 +126,7 @@ import net.sourceforge.processdash.ui.lib.ToolTipTableCellRendererProxy;
 import net.sourceforge.processdash.ui.lib.ToolTipTimingCustomizer;
 import net.sourceforge.processdash.ui.lib.TreeTableModel;
 import net.sourceforge.processdash.util.HTMLUtils;
+import net.sourceforge.processdash.util.BooleanArray;
 
 
 public class TaskScheduleDialog
@@ -587,10 +599,12 @@ public class TaskScheduleDialog
         DefaultTableCellRenderer editable, readOnly, dependencies;
         TaskDependencyCellEditor dependencyEditor;
         TreeTableModel model;
+        BooleanArray cutList;
 
         public TaskJTreeTable(TreeTableModel m) {
             super(m);
             model = m;
+            cutList = new BooleanArray();
 
             editableColor =
                 mixColors(getBackground(), Color.yellow, 0.6f);
@@ -617,10 +631,22 @@ public class TaskScheduleDialog
                     .setCellEditor(dependencyEditor);
 
             TaskJTreeTableCellRenderer r =
-                new TaskJTreeTableCellRenderer(getTree().getCellRenderer());
+                new TaskJTreeTableCellRenderer(getTree().getCellRenderer(),
+                        cutList);
             getTree().setCellRenderer(r);
             ToolTipManager.sharedInstance().registerComponent(getTree());
             new ToolTipTimingCustomizer().install(this);
+
+            InputMap inputMap = getInputMap();
+            ActionMap actionMap = getActionMap();
+            inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_X, Event.CTRL_MASK),
+                    "CutCopyNodes");
+            inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_C, Event.CTRL_MASK),
+                    "CutCopyNodes");
+            actionMap.put("CutCopyNodes", new CopyNodeNamesAction());
+            inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_V, Event.CTRL_MASK),
+                    "PasteNodes");
+            actionMap.put("PasteNodes", new PasteNodeNamesAction());
         }
 
         public TableCellRenderer getCellRenderer(int row, int column) {
@@ -752,6 +778,7 @@ public class TaskScheduleDialog
         }
 
         public void setTreeTableModel(TreeTableModel treeTableModel) {
+            cutList.clear();
 
             TreeCellRenderer r = getTree().getCellRenderer();
 
@@ -761,15 +788,90 @@ public class TaskScheduleDialog
             ToolTipManager.sharedInstance().registerComponent(getTree());
         }
 
+
+        private void setCutList(int[] rows) {
+            cutList.clear();
+            if (rows != null)
+                for (int i = rows.length; i-- > 0; )
+                    cutList.set(rows[i], true);
+            if (treeTable != null)
+                tableChanged(new TableModelEvent(treeTable.getModel(), 1,
+                        treeTable.getRowCount()-1));
+        }
+
+
+        private class CopyNodeNamesAction extends AbstractAction implements
+                ClipboardOwner {
+
+            public void actionPerformed(ActionEvent e) {
+                if (!isFlatView())
+                    return;
+
+                int[] rows = treeTable.getSelectedRows();
+                if (rows == null || rows.length == 0)
+                    return;
+
+                StringBuffer data = new StringBuffer();
+                for (int i = 0; i < rows.length; i++) {
+                    Object taskName = treeTable.getValueAt(rows[i],
+                            EVTaskList.TASK_COLUMN);
+                    data.append(taskName).append('\n');
+                }
+                setCutList(rows);
+
+                Clipboard clipboard = Toolkit.getDefaultToolkit()
+                        .getSystemClipboard();
+                StringSelection selection = new StringSelection(data.toString());
+                clipboard.setContents(selection, this);
+            }
+
+            public void lostOwnership(Clipboard clipboard, Transferable t) {
+                setCutList(null);
+            }
+
+        }
+
+        private class PasteNodeNamesAction extends AbstractAction {
+
+            public void actionPerformed(ActionEvent e) {
+                if (!isFlatView())
+                    return;
+
+                int insertionRow = treeTable.getSelectedRow();
+                if (insertionRow == -1) return;
+                if (insertionRow == 0) insertionRow = 1;
+
+                String tasks;
+                try {
+                    Clipboard clipboard = Toolkit.getDefaultToolkit()
+                            .getSystemClipboard();
+                    tasks = (String) (clipboard.getContents(this)
+                            .getTransferData(DataFlavor.stringFlavor));
+                } catch (Exception ex) {
+                    return;
+                }
+
+                cutList.clear();
+
+                int[] newSelection = flatModel.insertTasks(tasks, insertionRow-1);
+                if (newSelection != null)
+                    SwingUtilities.invokeLater(new RowSelectionTask(
+                            newSelection[0]+1, newSelection[1]+1, false));
+            }
+
+        }
     }
 
     class TaskJTreeTableCellRenderer
         extends javax.swing.tree.DefaultTreeCellRenderer {
 
         private Font regular = null, bold = null;
+        private BooleanArray cutList;
 
-        public TaskJTreeTableCellRenderer(TreeCellRenderer r) {
+        public TaskJTreeTableCellRenderer(TreeCellRenderer r,
+                BooleanArray cutList) {
             super();
+            this.cutList = cutList;
         }
         private Font getFont(boolean bold, Component c) {
             if (this.regular == null) {
@@ -859,6 +961,16 @@ public class TaskScheduleDialog
                          ("Task.Previously_Completed_Tooltip"));
                 if (result instanceof JLabel)
                     ((JLabel) result).setIcon(getChronIcon(expanded, leaf));
+
+            // give cut nodes a special appearance
+            } else if (row > 0 && cutList.get(row)) {
+                if (result instanceof JLabel)
+                    ((JLabel) result).setIcon(getCutLeafIcon());
+                if (errorStr == null && result instanceof JComponent) {
+                    ((JComponent) result).setToolTipText
+                        (resources.getString("Task.Copied_Tooltip"));
+                    result.setForeground(Color.BLUE);
+                }
             }
 
             return result;
@@ -870,6 +982,8 @@ public class TaskScheduleDialog
         private Icon chronOpenIcon = null;
         private Icon chronClosedIcon = null;
         private Icon chronLeafIcon = null;
+
+        private Icon cutLeafIcon = null;
 
         private Icon getPrunedIcon(boolean expanded, boolean leaf) {
             if (leaf) {
@@ -916,6 +1030,17 @@ public class TaskScheduleDialog
             BufferedIcon result = new BufferedIcon(this, icon);
             result.applyFilter(SEPIA_FILTER);
             return result;
+        }
+        private Icon getCutLeafIcon() {
+            if (cutLeafIcon == null) {
+                Icon icon = getLeafIcon();
+                if (icon == null) icon = getDefaultLeafIcon();
+                BufferedIcon buf = new BufferedIcon(this, icon);
+                buf.applyFilter(new CutItemFilter(
+                        getBackgroundSelectionColor()));
+                cutLeafIcon = buf;
+            }
+            return cutLeafIcon;
         }
     }
 
@@ -1009,6 +1134,24 @@ public class TaskScheduleDialog
         }
         private int linear(int zero, int one, double g) {
             return 0xff & ((int) (zero + g * (one - zero)));
+        }
+    }
+
+    private static class CutItemFilter extends RGBImageFilter {
+        private int replacementRgb;
+        public CutItemFilter(Color whiteReplacement) {
+            canFilterIndexColorModel = true;
+            replacementRgb = whiteReplacement.getRGB();
+        }
+
+        public int filterRGB(int x, int y, int rgb) {
+            int gray = (int)(0.30 * ((rgb >> 16) & 0xff) +
+                    0.59 * ((rgb >> 8) & 0xff) +
+                    0.11 * (rgb & 0xff));
+            if (gray > 200)
+                return (rgb & 0xff000000) | replacementRgb;
+            else
+                return rgb;
         }
     }
 

@@ -36,6 +36,7 @@ import java.util.Date;
 import java.util.EventObject;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
@@ -1066,6 +1067,66 @@ public class EVTaskList extends AbstractTreeTableModel
             if (recalcTimer != null) recalcTimer.restart();
 
             return true;
+        }
+
+        /** Extract and reorder one or more tasks from the list, and reinsert
+         * them at a particular location.
+         * 
+         * @param tasks a list of task full names, separated by tabs/newlines.
+         *      If a sequence of non-whitespace characters does not name any
+         *      ev leaf in this flat model, it will be ignored.
+         * @param beforePos the position in the task list where the tasks
+         *      should be reinserted
+         * @return if the <tt>tasks</tt> parameter did not name any tasks in
+         *      this flat model, returns null.  Otherwise, returns an array
+         *      of two integers, indicating the first and last indices of the
+         *      reinserted nodes.
+         */
+        public int[] insertTasks(String tasks, int beforePos) {
+            if (tasks == null || tasks.trim().length() == 0)
+                return null;
+
+            List newLeaves = new LinkedList(evLeaves);
+            Object insertionMarker = new Object();
+            newLeaves.add(beforePos, insertionMarker);
+
+            String[] nodeNames = tasks.split("[\t\f\r\n]+",0);
+            List tasksToInsert = new ArrayList(nodeNames.length);
+            for (int i = 0; i < nodeNames.length; i++)
+                extractNamedTask(newLeaves, tasksToInsert, nodeNames[i]);
+            if (tasksToInsert.isEmpty())
+                return null;
+
+            int insertionPos = newLeaves.indexOf(insertionMarker);
+            newLeaves.remove(insertionPos);
+            newLeaves.addAll(insertionPos, tasksToInsert);
+
+            evLeaves = new ArrayList(newLeaves);
+            enumerateOrdinals();
+
+            int[] changedNodes = new int[evLeaves.size()];
+            for (int i = 0; i < changedNodes.length; i++)
+                changedNodes[i] = i;
+            fireTreeNodesChanged(this, ((EVTask) root).getPath(),
+                    changedNodes, evLeaves.toArray());
+
+            if (recalcTimer != null) recalcTimer.restart();
+
+            return new int[] { insertionPos,
+                    insertionPos + tasksToInsert.size() - 1 };
+        }
+        private void extractNamedTask(List src, List dest, String fullname) {
+            for (Iterator i = src.iterator(); i.hasNext();) {
+                Object obj = i.next();
+                if (obj instanceof EVTask) {
+                    EVTask task = (EVTask) obj;
+                    if (fullname.equalsIgnoreCase(task.getFullName())) {
+                        i.remove();
+                        dest.add(task);
+                        break;
+                    }
+                }
+            }
         }
 
     }
