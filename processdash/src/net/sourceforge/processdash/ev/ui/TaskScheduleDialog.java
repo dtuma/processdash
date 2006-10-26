@@ -854,9 +854,11 @@ public class TaskScheduleDialog
                 cutList.clear();
 
                 int[] newSelection = flatModel.insertTasks(tasks, insertionRow-1);
-                if (newSelection != null)
+                if (newSelection != null) {
+                    setDirty(true);
                     SwingUtilities.invokeLater(new RowSelectionTask(
                             newSelection[0]+1, newSelection[1]+1, false));
+                }
             }
 
         }
@@ -1875,6 +1877,7 @@ public class TaskScheduleDialog
         result.setResizable(c.getResizable());
         result.setHeaderValue(c.getHeaderValue());
         result.setHeaderRenderer(c.getHeaderRenderer());
+        result.setIdentifier(c.getIdentifier());
         return result;
     }
 
@@ -1930,7 +1933,7 @@ public class TaskScheduleDialog
         // update the task table
         for (int j = EVTaskList.DIRECT_COLUMN_LIST.length;   j-- > 0; ) {
             int i = EVTaskList.DIRECT_COLUMN_LIST[j];
-            showHideColumn(treeTable.getColumnModel().getColumn(i),
+            showHideColumn(treeColumnModel.getColumn(i),
                            model.getColumnName(i),
                            EVTaskList.colWidths[i]);
         }
