@@ -376,6 +376,30 @@ public class TeamProcess {
         return nodeTypeMenu;
     }
 
+    /** Return a list of node types that the user can choose from when selecting
+     * the type of a node.
+     * 
+     * This mirrors the node types presented in the icon menu, but is returned
+     * as a simple list of strings instead of a JMenu.
+     */
+    public List getChoosableNodeTypes() {
+        List result = new ArrayList();
+
+        result.add(COMPONENT_TYPE);
+        result.add(SOFTWARE_COMPONENT_TYPE);
+        for (Iterator i = sizeMetricsItems.iterator(); i.hasNext();) {
+            CustomProcess.Item item = (CustomProcess.Item) i.next();
+            result.add(item.getAttr("productName"));
+        }
+
+        result.add(PSP_TASK_TYPE);
+        Iterator i = phases.iterator();
+        while (i.hasNext())
+            result.add(i.next() + " Task");
+
+        return result;
+    }
+
 
     private static final String PROJECT_TYPE = "Project";
     static final String COMPONENT_TYPE = "Component";

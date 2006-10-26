@@ -257,7 +257,7 @@ public class DataTableModel extends AbstractTableModel {
                                     TaskDependencySource dependencySource)
     {
         SizeTypeColumn.createSizeColumns(this, teamProcess);
-        addDataColumn(new PhaseColumn());
+        addDataColumn(new PhaseColumn(this, teamProcess));
         addDataColumn(new TaskSizeColumn(this, teamProcess));
         addDataColumn(new TaskSizeUnitsColumn(this, teamProcess));
         addDataColumn(new TeamTimeColumn(this));

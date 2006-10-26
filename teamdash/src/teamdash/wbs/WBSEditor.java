@@ -103,7 +103,7 @@ public class WBSEditor implements WindowListener, SaveListener,
                         ifMode(MODE_PLAIN, "# People"),
                         (isMode(MODE_MASTER) ? "TimeNoErr" : "Time"),
                         ifNotMode(MODE_MASTER, "Assigned To") },
-                new String[] { "Phase", "Task Size", "Units", "Rate",
+                new String[] { "Phase/Type", "Task Size", "Units", "Rate",
                         "Hrs/Indiv", "# People", "Time", "Assigned To" });
 
         tabPanel.addTab("Task Details",
