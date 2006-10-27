@@ -9,6 +9,8 @@ import java.util.Iterator;
 import java.util.List;
 
 import teamdash.RobustFileWriter;
+import teamdash.TeamMember;
+import teamdash.TeamMemberList;
 import teamdash.XMLUtils;
 import teamdash.wbs.columns.DirectSizeTypeColumn;
 import teamdash.wbs.columns.SizeAccountingColumnSet;
@@ -37,6 +39,8 @@ public class WBSDataWriter {
     private TeamProcess process;
     /** The ID of the team project */
     private String projectID;
+    /** The team member list for the project */
+    private TeamMemberList teamList;
     /** The list of column numbers for each team member time column */
     private IntList teamMemberColumns;
     /** The list of column numbers for each top-level size accounting column */
@@ -59,11 +63,13 @@ public class WBSDataWriter {
     /** Create a new WBSDataWriter.
      */
     public WBSDataWriter(WBSModel wbsModel, DataTableModel dataModel,
-                         TeamProcess process, String projectID) {
+                         TeamProcess process, String projectID,
+                         TeamMemberList teamList) {
         this.wbsModel = wbsModel;
         this.dataModel = dataModel;
         this.process = process;
         this.projectID = projectID;
+        this.teamList = teamList;
 
         for (int i = 0;   i < SIZE_COLUMN_IDS.length;   i++)
             sizeAccountingColumns[i] =
@@ -132,13 +138,16 @@ public class WBSDataWriter {
                 .unwrap(dataModel.getValueAt(node, dependencyColumn));
 
         if ((children == null || children.length == 0)
-                && (dependencies == null || dependencies.isEmpty())) {
+                && (dependencies == null || dependencies.isEmpty())
+                && (depth > 0)) {
             // if this node has no children and no dependencies, just close
             // the XML tag.
             out.write("/>\n");
         } else {
             // if this node has children, print them recursively.
             out.write(">\n");
+            if (depth == 0)
+                writeTeamMembers(out);
             writeDependencies(out, dependencies, depth+1);
             if (children != null)
                 for (int i = 0;   i < children.length;   i++)
@@ -160,6 +169,27 @@ public class WBSDataWriter {
             result = NO_LABELS_VAL;
 
         return result;
+    }
+
+
+
+    private void writeTeamMembers(Writer out) throws IOException {
+        List members = teamList.getTeamMembers();
+        for (Iterator i = members.iterator(); i.hasNext();) {
+            TeamMember t = (TeamMember) i.next();
+            if (t == null || t.isEmpty())
+                continue;
+            writeIndent(out, 1);
+            out.write("<" + TEAM_MEMBER_TAG);
+            writeAttr(out, INITIALS_ATTR, t.getInitials());
+            if (t.getStartDate() != null)
+                writeAttr(out, START_DATE_ATTR,
+                        XMLUtils.saveDate(t.getStartDate()));
+            writeAttr(out, HOURS_PER_WEEK_ATTR,
+                    formatNumber(t.getHoursPerWeek()));
+            out.write("/>\n");
+        }
+
     }
 
 
@@ -388,6 +418,7 @@ public class WBSDataWriter {
     private static final String DOCUMENT_TAG = "document";
     private static final String PSP_TAG = "psp";
     private static final String TASK_TAG = "task";
+    private static final String TEAM_MEMBER_TAG = "teamMember";
     private static final String DEPENDENCY_TAG = "dependency";
 
     /** A list of column IDs for the top-level size accounting columns */
@@ -404,6 +435,9 @@ public class WBSDataWriter {
     private static final String TASK_ID_ATTR = "tid";
     private static final String LABELS_ATTR = "labels";
     private static final String NO_LABELS_VAL = "none";
+    private static final String INITIALS_ATTR = "initials";
+    private static final String START_DATE_ATTR = "startDate";
+    private static final String HOURS_PER_WEEK_ATTR = "hoursPerWeek";
     private static final String DEP_SRC_ATTR = "source";
     private static final String PHASE_NAME_ATTR = "phaseName";
     private static final String PHASE_TYPE_ATTR = "phaseType";

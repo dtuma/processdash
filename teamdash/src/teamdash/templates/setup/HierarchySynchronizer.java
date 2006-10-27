@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -23,13 +24,17 @@ import java.util.TreeSet;
 
 import net.sourceforge.processdash.DashController;
 import net.sourceforge.processdash.data.DataContext;
+import net.sourceforge.processdash.data.DateData;
 import net.sourceforge.processdash.data.DoubleData;
 import net.sourceforge.processdash.data.ListData;
 import net.sourceforge.processdash.data.NumberData;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.StringData;
 import net.sourceforge.processdash.data.repository.DataRepository;
+import net.sourceforge.processdash.ev.EVSchedule;
 import net.sourceforge.processdash.ev.EVTaskDependency;
+import net.sourceforge.processdash.ev.EVTaskListData;
+import net.sourceforge.processdash.ev.EVSchedule.Period;
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.Filter;
 import net.sourceforge.processdash.hier.PropertyKey;
@@ -57,6 +62,8 @@ public class HierarchySynchronizer {
     private String processID;
     private String initials, initialsPattern;
     private Element projectXML;
+    private Date startDate;
+    private double hoursPerWeek;
     private ArrayList changes;
 
     private String readOnlyNodeID;
@@ -382,10 +389,12 @@ public class HierarchySynchronizer {
             // we prune the non-team nodes
             labelData = getLabelData(projectXML);
         pruneWBS(projectXML, fullCopyMode, getNonprunableIDs());
-        if (!isTeam())
+        if (!isTeam()) {
             // for an individual, collect label data after pruning so we
             // only see labels that are relevant to our tasks.
             labelData = getLabelData(projectXML);
+            getScheduleData(projectXML);
+        }
 
         changes = new ArrayList();
         syncActions = buildSyncActions();
@@ -404,6 +413,9 @@ public class HierarchySynchronizer {
         this.data = syncWorker;
 
         putData(projectPath, LABEL_LIST_DATA_NAME, labelData);
+
+        if (!isTeam())
+            syncSchedule();
 
         sync(syncWorker, projectPath, projectXML);
 
@@ -450,6 +462,99 @@ public class HierarchySynchronizer {
         for (Iterator i = children.iterator(); i.hasNext();)
             collectLabelData((Element) i.next(), dest);
     }
+
+
+    private void getScheduleData(Element projectXML) {
+        startDate = null;
+        hoursPerWeek = 0;
+        List children = XMLUtils.getChildElements(projectXML);
+        for (Iterator i = children.iterator(); i.hasNext();) {
+            Element e = (Element) i.next();
+            if (TEAM_MEMBER_TYPE.equals(e.getTagName())
+                    && initials.equalsIgnoreCase(e.getAttribute(INITIALS_ATTR))) {
+                startDate = XMLUtils.getXMLDate(e, START_DATE_ATTR);
+                hoursPerWeek = XMLUtils.getXMLNum(e, HOURS_PER_WEEK_ATTR);
+                return;
+            }
+        }
+    }
+
+
+    /** If we are synchronizing a project for an individual, and that
+     * individual has not edited their earned value schedule yet, sync
+     * the initial period in their earned value schedule to reflect the
+     * information entered in the team plan.
+     */
+    private void syncSchedule() {
+        // only operate on individual schedules.
+        if (isTeam()) return;
+        // if no schedule information was found, there is nothing to do.
+        if (startDate == null && hoursPerWeek == 0) return;
+
+        // look up the name of the EV schedule for the individual. If we
+        // don't find a valid/existing schedule name, abort.
+        String taskListName = getStringData(getData(projectPath,
+                TeamDataConstants.PROJECT_SCHEDULE_NAME));
+        if (!EVTaskListData.validName(taskListName)) return;
+        if (!EVTaskListData.exists(dataRepository, taskListName)) return;
+
+        // open the schedule.
+        EVTaskListData tl = new EVTaskListData(taskListName, dataRepository,
+                hierarchy, false);
+        EVSchedule schedule = tl.getSchedule();
+
+        // if the schedule has more than one non-automatic row, the user MUST
+        // have manually edited it.  Don't make any changes.
+        if (schedule.getRowCount() > 1 && !schedule.get(2).isAutomatic())
+            return;
+
+        // The schedule only has one explicit row.  Compare that row to the
+        // last synced values for the schedule.  If they don't match, don't
+        // make any changes.
+        Period p = schedule.get(1);
+        double syncPdt = getDoubleData(getData(projectPath,
+                TeamDataConstants.PROJECT_SCHEDULE_SYNC_PDT));
+        if (p.planDirectTime() != syncPdt)
+            return;
+        Date syncDate = getDateData(getData(projectPath,
+                TeamDataConstants.PROJECT_SCHEDULE_SYNC_DATE));
+        if (!p.getBeginDate().equals(syncDate))
+            return;
+
+        boolean madeChange = false;
+
+        // if we have hours per week information, and it differs from the
+        // data in the schedule, update the schedule.
+        int pdt = (int) (hoursPerWeek * 60);
+        if (pdt != 0 && Math.abs(p.planDirectTime() - pdt) > 0.01) {
+            p.setPlanDirectTime(Integer.toString(pdt));
+            if (!whatIfMode)
+                dataRepository.putValue(DataRepository.createDataName(
+                        projectPath,
+                        TeamDataConstants.PROJECT_SCHEDULE_SYNC_PDT),
+                        new DoubleData(pdt, false));
+            madeChange = true;
+        }
+
+        // if we have a start date, and it differs from the data in the
+        // schedule, update the schedule.
+        if (startDate != null && !startDate.equals(p.getBeginDate())) {
+            p.setBeginDate(startDate);
+            if (!whatIfMode)
+                dataRepository.putValue(DataRepository.createDataName(
+                        projectPath,
+                        TeamDataConstants.PROJECT_SCHEDULE_SYNC_DATE),
+                        new DateData(startDate, false));
+            madeChange = true;
+        }
+
+        if (madeChange)
+            changes.add("Updated the earned value schedule");
+
+        if (!whatIfMode)
+            tl.save();
+    }
+
 
     private void processDeferredDeletions(SyncWorker worker)
             throws HierarchyAlterationException {
@@ -576,6 +681,11 @@ public class HierarchySynchronizer {
     private static final String DEPENDENCY_TYPE = "dependency";
     private static final List NODE_TYPES = Arrays.asList(new String[] {
         PROJECT_TYPE, SOFTWARE_TYPE, DOCUMENT_TYPE, PSP_TYPE, TASK_TYPE });
+
+    private static final String TEAM_MEMBER_TYPE = "teamMember";
+    private static final String INITIALS_ATTR = "initials";
+    private static final String START_DATE_ATTR = "startDate";
+    private static final String HOURS_PER_WEEK_ATTR = "hoursPerWeek";
 
     private static final String WBS_ID_DATA_NAME = "WBS_Unique_ID";
     private static final String EST_TIME_DATA_NAME = "Estimated Time";
@@ -954,6 +1064,20 @@ public class HierarchySynchronizer {
 
     private String getStringData(SimpleData val) {
         return (val == null ? null : val.format());
+    }
+
+    private Date getDateData(SimpleData val) {
+        if (val instanceof DateData)
+            return ((DateData) val).getValue();
+        else
+            return null;
+    }
+
+    private double getDoubleData(SimpleData val) {
+        if (val instanceof NumberData)
+            return ((NumberData) val).getDouble();
+        else
+            return 0;
     }
 
     private boolean isZero(SimpleData d) {

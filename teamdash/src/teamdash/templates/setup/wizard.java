@@ -14,6 +14,8 @@ import java.util.Vector;
 import java.util.logging.Logger;
 
 import net.sourceforge.processdash.DashController;
+import net.sourceforge.processdash.data.DateData;
+import net.sourceforge.processdash.data.DoubleData;
 import net.sourceforge.processdash.data.ImmutableDoubleData;
 import net.sourceforge.processdash.data.ImmutableStringData;
 import net.sourceforge.processdash.data.SimpleData;
@@ -23,6 +25,7 @@ import net.sourceforge.processdash.ev.EVTaskList;
 import net.sourceforge.processdash.ev.EVTaskListData;
 import net.sourceforge.processdash.ev.EVTaskListRollup;
 import net.sourceforge.processdash.ev.EVTaskListXML;
+import net.sourceforge.processdash.ev.EVSchedule.Period;
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.net.http.WebServer;
@@ -1251,6 +1254,13 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
         schedule.addTask(getPrefix(), getDataRepository(),
                          getPSPProperties(), null, false);
         schedule.save();
+
+        Period p = schedule.getSchedule().get(1);
+        putValue(PROJECT_SCHEDULE_SYNC_PDT,
+                new DoubleData(p.planDirectTime(), false));
+        putValue(PROJECT_SCHEDULE_SYNC_DATE,
+                new DateData(p.getBeginDate(), false));
+
         return schedule.getID();
     }
 
