@@ -28,6 +28,9 @@ package net.sourceforge.processdash.ev;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Vector;
@@ -168,6 +171,7 @@ public class EVCalculatorRollup extends EVCalculator {
                 if (taskList != null && taskList.calculator != null)
                     evLeaves.addAll(taskList.calculator.getEVLeaves());
             }
+            Collections.sort(evLeaves, EV_LEAF_DATE_COMPARATOR);
         }
 
         return evLeaves;
@@ -281,4 +285,29 @@ public class EVCalculatorRollup extends EVCalculator {
     }
 
 
+    private static class EVLeafDateComparator implements Comparator {
+        public int compare(Object o1, Object o2) {
+            EVTask t1 = (EVTask) o1;
+            EVTask t2 = (EVTask) o2;
+
+            // put completed tasks at the front of the list, in order of
+            // completion
+            int result = compareDates(t1.dateCompleted, t2.dateCompleted);
+            if (result != 0) return result;
+
+            // next, sort tasks by planned completion date.
+            return compareDates(t1.planDate, t2.planDate);
+        }
+        private int compareDates(Date a, Date b) {
+            if (a == b) return 0;
+            if (a == null) return 1;
+            if (b == null) return -1;
+            return a.compareTo(b);
+        }
+        public boolean equals(Object obj) {
+            return this == obj;
+        }
+    }
+    private static final Comparator EV_LEAF_DATE_COMPARATOR =
+        new EVLeafDateComparator();
 }

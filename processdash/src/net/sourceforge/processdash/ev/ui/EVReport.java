@@ -1015,7 +1015,7 @@ public class EVReport extends CGIChartBase {
                 && parameters.get("EXPORT") == null)
             writer.setCellRenderer(EVTaskList.TASK_COLUMN,
                     new TaskNameWithTimingIconRenderer());
-        if (filter != null) {
+        if (filter != null || taskList instanceof EVTaskListRollup) {
             writer.setSkipColumn(EVTaskList.PLAN_CUM_TIME_COLUMN, true);
             writer.setSkipColumn(EVTaskList.PLAN_CUM_VALUE_COLUMN, true);
         }
