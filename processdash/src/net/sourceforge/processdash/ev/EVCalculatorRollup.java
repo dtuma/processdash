@@ -295,14 +295,19 @@ public class EVCalculatorRollup extends EVCalculator {
             int result = compareDates(t1.dateCompleted, t2.dateCompleted);
             if (result != 0) return result;
 
-            // next, sort tasks by planned completion date.
-            return compareDates(t1.planDate, t2.planDate);
+            // next, sort tasks by forecast/planned completion date.
+            return compareDates(getProjectedDate(t1), getProjectedDate(t2));
         }
         private int compareDates(Date a, Date b) {
             if (a == b) return 0;
             if (a == null) return 1;
             if (b == null) return -1;
             return a.compareTo(b);
+        }
+        private Date getProjectedDate(EVTask t) {
+            Date result = t.getForecastDate();
+            if (result == null) result = t.planDate;
+            return result;
         }
         public boolean equals(Object obj) {
             return this == obj;
