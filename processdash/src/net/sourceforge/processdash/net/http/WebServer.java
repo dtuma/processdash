@@ -1040,7 +1040,7 @@ public class WebServer {
             if (path.indexOf('/') == -1
                     || path.startsWith("Images/")
                     || path.startsWith("help/")
-                    || path.startsWith("js/")) return;
+                    || path.startsWith("lib/")) return;
 
             // unconditionally serve requests that originate from the
             // local host.
@@ -1130,7 +1130,7 @@ public class WebServer {
             StringTokenizer tok = new StringTokenizer(credentials);
             try {
                 tok.nextToken(); // "Basic"
-                credentials = Base64.decode(tok.nextToken());
+                credentials = new String(Base64.decode(tok.nextToken()));
             } catch (Exception e) { return; }
             int colonPos = credentials.indexOf(':');
             if (colonPos == -1) return;
@@ -1371,7 +1371,10 @@ public class WebServer {
      * Authorization field.
      */
     public static String calcCredential(String user, String password) {
-        return "Basic " + Base64.encode(user + ":" + password);
+        String credential = user + ":" + password;
+        credential = Base64.encodeBytes(credential.getBytes(),
+                Base64.DONT_BREAK_LINES);
+        return "Basic " + credential;
     }
 
 

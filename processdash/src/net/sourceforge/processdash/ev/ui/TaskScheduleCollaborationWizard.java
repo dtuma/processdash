@@ -633,7 +633,7 @@ public class TaskScheduleCollaborationWizard {
             if (val == null) return null;
             String str = val.format();
             if (NO_PASSWORD.equals(str)) return NO_PASSWORD;
-            return Base64.decode(str);
+            return new String(Base64.decode(str));
         }
 
         void setPassword(String password) {
@@ -642,7 +642,7 @@ public class TaskScheduleCollaborationWizard {
             String dataName = passwordRecallName();
             String recallVal = password;
             if (!NO_PASSWORD.equals(recallVal))
-                recallVal = Base64.encode(recallVal);
+                recallVal = Base64.encodeBytes(recallVal.getBytes());
             data.putValue(dataName, StringData.create(recallVal));
 
             // actually set the password in the TinyWebServer

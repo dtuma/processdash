@@ -1,5 +1,5 @@
+// Copyright (C) 2003-2006 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -44,6 +44,12 @@ import net.sourceforge.processdash.util.*;
 
 /** Utility class for verifying that a Jar file was signed by the
  * Process Dashboard development team.
+ * 
+ * <b>NOTE:</b>  This class is not currently used by the Process Dashboard.
+ * Instead, the dashboard uses the Java security framework to verify JAR file
+ * signatures, and to restrict code in untrusted add-ons to a sandbox.
+ * 
+ * @deprecated
  */
 public class JarVerifier {
 
@@ -178,8 +184,8 @@ public class JarVerifier {
             System.out.println
                 ("        // public key string to enable validation:");
 
-            byte[] encoded = Base64.encode(bytesOut.toByteArray());
-            String s = new String(encoded, "US-ASCII");
+            String s = Base64.encodeBytes(bytesOut.toByteArray(),
+                    Base64.DONT_BREAK_LINES);
             while (s.length() > 65) {
                 System.out.print("        \"");
                 System.out.print(s.substring(0, 65));
