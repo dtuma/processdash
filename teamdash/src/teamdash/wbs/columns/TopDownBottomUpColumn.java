@@ -126,7 +126,7 @@ public class TopDownBottomUpColumn extends AbstractNumericColumn
     protected double recalc(WBSNode node) {
         double topDownValue = node.getNumericAttribute(topDownAttrName);
 
-        WBSNode[] children = wbsModel.getChildren(node);
+        WBSNode[] children = wbsModel.getReorderableChildren(node);
         int numToInclude = filterChildren(children);
 
         double result;
@@ -266,7 +266,7 @@ public class TopDownBottomUpColumn extends AbstractNumericColumn
             return null;
     }
     private void getLeavesForNode(WBSNode node, boolean withValue, ArrayList result) {
-        WBSNode[] children = wbsModel.getChildren(node);
+        WBSNode[] children = wbsModel.getReorderableChildren(node);
         int numToInclude = filterChildren(children);
 
         if (numToInclude == 0) {  // this is a leaf.
