@@ -555,9 +555,11 @@ Authors:
     <i18n-orphans dir="Templates" includes="**/*.properties"/>
   </target>
 
-  <target name="add-trans" depends="ant-tasks">
+  <target name="-add-trans" depends="ant-tasks">
     <i18n-addTranslations dir="." includes="pspdash_*.zip pspdash_*.jar"/>
   </target>
+
+  <target name="add-trans" depends="-add-trans,installer-langpacks"/>
 
 
   <!-- =================================================================== -->

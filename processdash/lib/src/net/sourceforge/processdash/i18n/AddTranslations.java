@@ -30,10 +30,11 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.Collections;
 import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.Properties;
 import java.util.TreeSet;
 import java.util.zip.ZipEntry;
@@ -46,10 +47,6 @@ import org.apache.tools.ant.taskdefs.MatchingTask;
 
 /** Loads translations from a user-contributed zipfile, and merges them with
  * translations that are already present in the dashboard source tree.
- * 
- * Future enhancement:  Right now, the jFree translations are not being
- * merged - the existing translations are being overwritten with the incoming
- * ones.
  */
 public class AddTranslations extends MatchingTask {
 
@@ -86,9 +83,10 @@ public class AddTranslations extends MatchingTask {
         ZipInputStream zipIn = new ZipInputStream(new BufferedInputStream(
                 new FileInputStream(file)));
 
-        ZipOutputStream jFreeOut = null;
-        File jFreeOutFile = new File(dir, ("lib/jfreechart"
+        File jFreeFile = new File(dir, ("lib/jfreechart"
                 + localeId(file.getName()) + ".zip"));
+        Map jFreeRes = loadJFreeResources(jFreeFile);
+        boolean jFreeModified = false;
 
         ZipEntry entry;
         while ((entry = zipIn.getNextEntry()) != null) {
@@ -102,13 +100,8 @@ public class AddTranslations extends MatchingTask {
                         "l10n-tool/src/" + terminalName(filename));
 
             } else if (filename.indexOf("jfree") != -1) {
-                if (jFreeOut == null)
-                    jFreeOut = new ZipOutputStream(new FileOutputStream(
-                            jFreeOutFile));
-
-                jFreeOut.putNextEntry(new ZipEntry(filename));
-                copyFile(zipIn, jFreeOut);
-                jFreeOut.closeEntry();
+                if (mergeJFreeProperties(jFreeRes, zipIn, filename))
+                    jFreeModified = true;
 
             } else if (filename.startsWith("Templates")
                     && filename.endsWith(".properties")) {
@@ -121,8 +114,9 @@ public class AddTranslations extends MatchingTask {
             }
         }
 
-        if (jFreeOut != null)
-            jFreeOut.close();
+        if (jFreeModified)
+            saveJFreeResources(jFreeFile, jFreeRes);
+
         zipIn.close();
     }
 
@@ -142,10 +136,68 @@ public class AddTranslations extends MatchingTask {
             return entryName.substring(slashPos + 1);
     }
 
-    private void copyFile(InputStream in, OutputStream out) throws IOException {
-        int numRead;
-        while ((numRead = in.read(buf)) != -1)
-            out.write(buf, 0, numRead);
+    private Map loadJFreeResources(File jFreeFile) throws IOException {
+        Map result = new HashMap();
+        if (jFreeFile.exists()) {
+            ZipInputStream zipIn = new ZipInputStream(new FileInputStream(
+                    jFreeFile));
+            ZipEntry entry;
+            while ((entry = zipIn.getNextEntry()) != null) {
+                String filename = entry.getName();
+                if (filename.toLowerCase().endsWith(".properties")) {
+                    Properties p = new SortedProperties();
+                    p.load(zipIn);
+                    if (!p.isEmpty())
+                        result.put(filename, p);
+                }
+            }
+            zipIn.close();
+        }
+        return result;
+    }
+
+    private boolean mergeJFreeProperties(Map jFreeRes, ZipInputStream zipIn,
+            String filename) throws IOException {
+        Properties incoming = new Properties();
+        incoming.load(zipIn);
+
+        Properties original = (Properties) jFreeRes.get(filename);
+        if (original == null) original = new Properties();
+
+        Properties merged = new SortedProperties();
+        merged.putAll(original);
+        merged.putAll(incoming);
+
+        if (original.equals(merged)) {
+            if (verbose)
+                System.out.println("    No new properties in '" + filename + "'");
+            return false;
+
+        } else {
+            if (verbose) System.out.print("    ");
+            System.out.println("Updating '" + filename + "'");
+            jFreeRes.put(filename, merged);
+            return true;
+        }
+    }
+
+    private void saveJFreeResources(File jFreeFile, Map jFreeRes) throws IOException {
+        if (jFreeRes.isEmpty())
+            return;
+
+        ZipOutputStream zipOut = new ZipOutputStream(new FileOutputStream(
+                jFreeFile));
+
+        for (Iterator i = jFreeRes.entrySet().iterator(); i.hasNext();) {
+            Map.Entry e = (Map.Entry) i.next();
+            String filename = (String) e.getKey();
+            Properties p = (Properties) e.getValue();
+            zipOut.putNextEntry(new ZipEntry(filename));
+            p.store(zipOut, PROP_FILE_HEADER);
+            zipOut.closeEntry();
+        }
+
+        zipOut.close();
     }
 
     private void mergePropertiesFile(ZipInputStream zipIn, String filename)
@@ -177,8 +229,6 @@ public class AddTranslations extends MatchingTask {
 
     private static final String PROP_FILE_HEADER =
         "Process Dashboard Resource Bundle";
-
-    private byte[] buf = new byte[4096];
 
     private class SortedProperties extends Properties {
 
