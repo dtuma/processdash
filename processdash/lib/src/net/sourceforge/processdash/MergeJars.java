@@ -27,7 +27,6 @@ package net.sourceforge.processdash;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -51,7 +50,6 @@ import org.apache.tools.ant.DirectoryScanner;
 import org.apache.tools.ant.Task;
 import org.apache.tools.ant.types.FileSet;
 import org.apache.tools.ant.types.Path;
-import org.apache.tools.ant.types.PatternSet;
 import org.apache.tools.ant.types.ZipFileSet;
 
 

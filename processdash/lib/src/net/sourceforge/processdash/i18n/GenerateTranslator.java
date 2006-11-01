@@ -64,7 +64,6 @@ public class GenerateTranslator extends MatchingTask {
     private boolean keepLexerFile = false;
     private File outputDir = null;
     private Properties dictionary;
-    private File searchDir;
 
 
     public GenerateTranslator() {}
