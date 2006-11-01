@@ -92,15 +92,31 @@ task.</p>
 <p><b>Time</b> This is the actual amount of time spent on a given task.</p>
 
 <p><b>Planned Value (PV):</b> This is the amount of earned value that will be 
-earned by the given task based on the planned numbers.</p>
+earned by the given task based on the planned numbers.  It is calculated as
+a percentage of the total planned work.</p>
 
-<p><b>Plan Date:</b> This is the date that the Task &amp; Schedule tool thinks 
-you will finish the given task.  This number uses the data from the lower 
-half of the Task &amp; Schedule tool to determine an ending date.</p>
+<p><b>Plan Date:</b> This is the date the task is planned to complete. The
+Task &amp; Schedule tool computes this by assuming that the planned time
+for each task, the planned task order, and the planned hours per time
+period will be 100% accurate.  Then, it determines when your schedule will
+have enough planned hours to complete the first task, the second task, and
+so on.</p>
 
-<p><b>Date:</b> This is the actual completion date.  It will be filled in 
-automatically when you mark the task complete via the <a 
-href="../Execution/CompletionButton.html">Completion Button</a>.</p>
+<p><b>Forecast:</b> This is the date that the Task &amp; Schedule tool
+thinks you might actually finish the given task.  After you have completed
+at least one task in your plan and at least one time period in your
+schedule, the Task &amp; Schedule tool will compare your actual performance
+to your planned performance.  (For example, are tasks taking twice as long
+as expected?  Are you spending as much time per period as you thought you
+would?)  Then, it assumes that these plan-to-actual relationships will hold
+true for the rest of the tasks in your plan, and recomputes completion
+dates accordingly.</p>
+
+<p><b>Date:</b> This is the actual completion date.  It will be filled in
+automatically when you mark the task complete via the <a
+href="../Execution/CompletionButton.html">Completion
+Button</a>. Alternately, you can edit completion dates here (for example,
+if you need to back-date the completion of an item).</p>
 
 <p><b>Dep:</b> This column displays information about 
 <a href="TaskScheduleDependencies.html">task dependencies</a>.
