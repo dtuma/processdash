@@ -1,5 +1,5 @@
+// Copyright (C) 2003-2006 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -65,7 +65,8 @@ public class DumpDataElements extends TinyCGIBase implements TinyCGIHighVolume {
     }
 
     private void dumpXml(Vector filter) throws IOException {
-        Iterator iter = new ExportedDataValueIterator(getDataRepository(), filter);
+        Iterator iter = new ExportedDataValueIterator(getDataRepository(),
+                filter, null, null);
 
         DefaultDataExportFilter ddef = new DefaultDataExportFilter(iter);
         if (parameters.containsKey("showToDate"))
@@ -79,13 +80,13 @@ public class DumpDataElements extends TinyCGIBase implements TinyCGIHighVolume {
         DataExporter exp = new DataExporterXMLv1();
         exp.export(outStream, ddef);
     }
-    private boolean getBool(String name, boolean defaultVal) {
-        String strVal = getParameter(name);
-        if (strVal == null || strVal.length() == 0)
-            return defaultVal;
-        else
-            return "true".equalsIgnoreCase(strVal);
-    }
+//    private boolean getBool(String name, boolean defaultVal) {
+//        String strVal = getParameter(name);
+//        if (strVal == null || strVal.length() == 0)
+//            return defaultVal;
+//        else
+//            return "true".equalsIgnoreCase(strVal);
+//    }
 
     private void dumpText(Vector filter) {
         getDataRepository().dumpRepository(out, filter, true);

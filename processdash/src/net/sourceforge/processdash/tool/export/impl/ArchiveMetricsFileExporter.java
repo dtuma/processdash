@@ -194,7 +194,8 @@ public class ArchiveMetricsFileExporter implements Runnable,
     private Collection writeData(ZipOutputStream zipOut) throws IOException {
         zipOut.putNextEntry(new ZipEntry(DATA_FILE_NAME));
 
-        Iterator iter = new ExportedDataValueIterator(ctx.getData(), filter);
+        Iterator iter = new ExportedDataValueIterator(ctx.getData(), filter,
+                metricsIncludes, metricsExcludes);
         TaskListDataWatcher taskListWatcher = new TaskListDataWatcher(iter);
         DefaultDataExportFilter ddef = new DefaultDataExportFilter(
                 taskListWatcher);

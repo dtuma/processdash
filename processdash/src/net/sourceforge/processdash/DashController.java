@@ -143,6 +143,10 @@ public class DashController {
         return new CompletionStatus(CompletionStatus.SUCCESS, null, null);
     }
 
+    public static void exportAllData() {
+        ExportManager.getInstance().exportAll(dash, dash);
+    }
+
 
     public static void startTiming() {
         SwingUtilities.invokeLater(new Runnable() {

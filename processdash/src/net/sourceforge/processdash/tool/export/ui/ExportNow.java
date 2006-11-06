@@ -70,7 +70,11 @@ public class ExportNow extends TinyCGIBase {
     /** Export the data, and tell the user the results.
      */
     private void run() {
-        CompletionStatus result = DashController.exportDataForPrefix(getPrefix());
+        CompletionStatus result = null;
+        if (parameters.containsKey("all"))
+            DashController.exportAllData();
+        else
+            result = DashController.exportDataForPrefix(getPrefix());
 
         if (result == null || CompletionStatus.SUCCESS.equals(result.getStatus())) {
             interpOut("<HTML><HEAD><TITLE>${ExportComplete}</TITLE></HEAD>\n"

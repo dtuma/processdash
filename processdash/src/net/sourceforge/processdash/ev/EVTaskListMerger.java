@@ -25,6 +25,7 @@
 
 package net.sourceforge.processdash.ev;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -40,6 +41,8 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.logging.Logger;
+
+import net.sourceforge.processdash.util.LightweightSet;
 
 /** This class produces a merged view of a rolled-up earned value schedule
  * for a project.
@@ -311,7 +314,7 @@ public class EVTaskListMerger {
     private void mergeSimilarlyNamedChildren(Map allTaskKeys, TaskKey parent) {
         List mergedChildren = new LinkedList();
 
-        List childKeys = findChildrenOfKey(allTaskKeys, parent);
+        List childKeys = new LinkedList(findChildrenOfKey(allTaskKeys, parent));
         while (!childKeys.isEmpty()) {
             // select a child from the list.
             TaskKey oneKey = (TaskKey) childKeys.remove(0);
@@ -335,34 +338,26 @@ public class EVTaskListMerger {
     }
 
     /** Merge two TaskKeys that are siblings of each other
-     * 
-     * This is a bit more complicated than just using the TaskKey.merge()
-     * function, because parents have already been set.  Thus, the TaskKey
-     * that is going away needs to have all of its children reparented.
      */
     private void mergeSiblings(Map allTaskKeys, TaskKey key, TaskKey sibling) {
         key.merge(sibling);
-
-        // reparent the newly orphaned children.
-        List siblingKids = findChildrenOfKey(allTaskKeys, sibling);
-        for (Iterator i = siblingKids.iterator(); i.hasNext();) {
-            TaskKey child = (TaskKey) i.next();
-            child.setParent(key);
-        }
-
         // reregister the merged TaskKey.
         registerTaskKey(allTaskKeys, key);
     }
 
     /** Find all of the TaskKeys that have a given parent */
     private List findChildrenOfKey(Map allTaskKeys, TaskKey parent) {
-        List result = new LinkedList();
-        for (Iterator i = allTaskKeys.values().iterator(); i.hasNext();) {
-            TaskKey key = (TaskKey) i.next();
-            if (key.getParent() == parent && !result.contains(key))
-                result.add(key);
+        if (parent != null)
+            return parent.getChildren();
+        else {
+            Set result = new HashSet();
+            for (Iterator i = allTaskKeys.values().iterator(); i.hasNext();) {
+                TaskKey key = (TaskKey) i.next();
+                if (key.getParent() == null)
+                    result.add(key);
+            }
+            return new ArrayList(result);
         }
-        return result;
     }
 
     /** Filter a collection of EVTask objects to find only the leaf nodes. */
@@ -839,6 +834,8 @@ public class EVTaskListMerger {
         /** The TaskKey which represents the parent of this node */
         private TaskKey parent;
 
+        private LightweightSet children = new LightweightSet();
+
         public Set getEvNodes() {
             return evNodes;
         }
@@ -851,12 +848,20 @@ public class EVTaskListMerger {
             return namesUsed;
         }
 
-        public void setParent(TaskKey parent) {
-            this.parent = parent;
+        public void setParent(TaskKey newParent) {
+            if (parent != null)
+                parent.children.remove(this);
+            parent = newParent;
+            if (newParent != null)
+                newParent.children.add(this);
         }
 
         public TaskKey getParent() {
             return parent;
+        }
+
+        public List getChildren() {
+            return children;
         }
 
         /** Add data from the given EVTask to this object */
@@ -872,6 +877,11 @@ public class EVTaskListMerger {
             this.evNodes.addAll(that.evNodes);
             this.taskIDs.addAll(that.taskIDs);
             this.namesUsed.addAll(that.namesUsed);
+            this.children.addAll(that.children);
+            for (Iterator i = that.children.iterator(); i.hasNext();)
+                ((TaskKey) i.next()).parent = this;
+            that.children.clear();
+            that.setParent(null);
         }
 
     }

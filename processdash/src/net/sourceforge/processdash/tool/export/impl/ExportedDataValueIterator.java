@@ -28,6 +28,7 @@ package net.sourceforge.processdash.tool.export.impl;
 import java.util.Collection;
 
 import net.sourceforge.processdash.data.SimpleData;
+import net.sourceforge.processdash.data.repository.DataNameFilter;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.hier.Filter;
 import net.sourceforge.processdash.util.IteratorFilter;
@@ -38,13 +39,16 @@ public class ExportedDataValueIterator extends IteratorFilter {
 
     Collection prefixes;
 
-    public ExportedDataValueIterator(DataRepository data, Collection prefixes) {
-        this(data, prefixes, true);
+    public ExportedDataValueIterator(DataRepository data, Collection prefixes,
+            Collection metricsIncludes, Collection metricsExcludes) {
+        this(data, prefixes, metricsIncludes, metricsExcludes, true);
     }
 
     protected ExportedDataValueIterator(DataRepository data,
-            Collection prefixes, boolean init) {
-        super(data.getKeys(prefixes, null));
+            Collection prefixes, Collection metricsIncludes,
+            Collection metricsExcludes, boolean init) {
+        super(data.getKeys(prefixes, getDataNameHints(metricsIncludes,
+                metricsExcludes)));
         this.data = data;
         this.prefixes = prefixes;
         if (init)
@@ -76,6 +80,26 @@ public class ExportedDataValueIterator extends IteratorFilter {
             return data.getSimpleValue(name);
         }
 
+    }
+
+    private static Object getDataNameHints(Collection includes,
+            Collection excludes) {
+
+        // For the moment, only optimize a single use case: when the caller
+        // doesn't want ANY data to be exported, they have a "." exclude
+        // pattern. (This commonly occurs at the team level.) In this case,
+        // skip every data element unless it is related to task list exports.
+        if (excludes != null && excludes.contains("."))
+            return new DataNameFilter.PrefixLocal() {
+                public boolean acceptPrefixLocalName(String prefix,
+                        String localName) {
+                    return TaskListDataWatcher.PATTERNS_OF_INTEREST
+                            .matches(localName);
+                }
+            };
+
+        else
+            return null;
     }
 
 }

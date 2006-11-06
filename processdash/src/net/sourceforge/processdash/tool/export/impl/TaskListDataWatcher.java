@@ -1,5 +1,5 @@
+// Copyright (C) 2005-2006 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2005 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -34,6 +34,7 @@ import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.StringData;
 import net.sourceforge.processdash.ev.EVTaskListData;
 import net.sourceforge.processdash.util.IteratorFilter;
+import net.sourceforge.processdash.util.PatternList;
 
 public class TaskListDataWatcher extends IteratorFilter {
 
@@ -83,5 +84,8 @@ public class TaskListDataWatcher extends IteratorFilter {
     private static String TASK_ORD_PREF = "/"
             + EVTaskListData.TASK_ORDINAL_PREFIX;
     private static String RELATED_SCHEDULE_DATA_PREFIX = "/Related_EV_Schedule";
+    static final PatternList PATTERNS_OF_INTEREST = new PatternList()
+            .addRegexp(TASK_ORD_PREF.substring(1))
+            .addRegexp(RELATED_SCHEDULE_DATA_PREFIX.substring(1));
 
 }
