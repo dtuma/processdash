@@ -90,13 +90,25 @@ public class selectLabelFilter extends selectWBS {
         String newFilter = getParameter("filter");
         if (newFilter == null || newFilter.trim().length() == 0
                 || parameters.containsKey("remove"))
+            // remove the label filter
             getDataRepository().putValue(dataName, null);
         else {
+            // save the value of the new label filter
             getDataRepository().putValue(dataName,
                     StringData.create(newFilter.trim()));
+            // add a listener to prevent the filter data element
+            // from being disposed
             getDataRepository().addDataListener(dataName,
                     LABEL_FILTER_KEEPER, false);
         }
+        // The changed filter may affect many other calculations, and those
+        // values may take a moment or two to recalculate. In the next step when
+        // we redirect to the destUri, it will be typical for that page to use
+        // the results of those calculations, potentially in charts or tables.
+        // If we redirect immediately, those charts/tables could be generated
+        // from unrecalculated values. To avoid this, we intentionally wait for
+        // the recalculations to finish before we redirect to the target page.
+        getDataRepository().waitForCalculations();
 
         String destUri = getParameter("destUri");
         if (destUri == null)
