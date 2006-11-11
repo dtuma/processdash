@@ -74,9 +74,8 @@ public class EVMetricsRollup extends EVMetrics {
         totalSchedulePlanTime = totalScheduleActualTime = 0.0;
         independentForecastCost = 0;
         currentDate = effectiveDate;
-        startDate = planDate = forecastDate = null;
-        rollupOfOptimizedPlanDates = null;
-        rollupOfOptimizedForecastDates = EVSchedule.A_LONG_TIME_AGO;
+        startDate = planDate = rollupOfOptimizedPlanDates = null;
+        forecastDate = rollupOfOptimizedForecastDates = EVSchedule.A_LONG_TIME_AGO;
         errors = null;
         isRollupOfRollups = false;
     }
@@ -94,8 +93,8 @@ public class EVMetricsRollup extends EVMetrics {
         this.planDate =
             EVCalculator.maxPlanDate(this.planDate, that.planDate());
         this.forecastDate =
-            EVScheduleRollup.maxDate(this.forecastDate,
-                                     that.independentForecastDate());
+            EVCalculator.maxForecastDate(this.forecastDate,
+                                         that.independentForecastDate());
 
         if (that instanceof EVMetricsRollup) {
             this.isRollupOfRollups = true;
@@ -156,6 +155,10 @@ public class EVMetricsRollup extends EVMetrics {
         // do nothing - it is already calculated.
     }
     protected void recalcForecastDate(EVSchedule s) {
+        if (forecastDate == EVSchedule.A_LONG_TIME_AGO
+                || forecastDate == EVSchedule.NEVER)
+            forecastDate = null;
+
         if (isRollupOfRollups) {
             optimizedPlanDate = filterNonUniqueDate(rollupOfOptimizedPlanDates,
                     planDate);
