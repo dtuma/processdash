@@ -251,7 +251,8 @@ public class EVForecastDateCalculators {
 
         private Date getFinalDate(EVSchedule schedule, EVMetrics metrics, List evLeaves) {
             double cpi = metrics.costPerformanceIndex();
-            if (Double.isInfinite(cpi) || Double.isNaN(cpi) || cpi <= 0)
+            double dtpi = metrics.directTimePerformanceIndex();
+            if (isBadRatio(cpi) || isBadRatio(dtpi))
                 return null;
 
             underspentTime = overspentTime = 0;
@@ -291,6 +292,11 @@ public class EVForecastDateCalculators {
                 finalDate = null;
 
             return finalDate;
+        }
+
+        private boolean isBadRatio(double ratio) {
+            return Double.isInfinite(ratio) || Double.isNaN(ratio)
+                    || ratio <= 0;
         }
 
         private class TaskData {
