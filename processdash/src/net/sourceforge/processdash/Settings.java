@@ -33,6 +33,7 @@ import net.sourceforge.processdash.security.DashboardPermission;
 
 public class Settings {
 
+    public static final String SYS_PROP_PREFIX = Settings.class.getName() + ".";
     public static final String READ_ONLY = "READ_ONLY";
     protected static Properties settings = null;
     protected static Properties serializable = null, defaults = null;
@@ -66,6 +67,10 @@ public class Settings {
     }
 
     public static String getVal(String name) {
+        String result = System.getProperty(SYS_PROP_PREFIX + name);
+        if (result != null)
+            return result;
+
         if (settings == null)
             return null;
         else
