@@ -38,6 +38,8 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.io.*;
+import java.net.InetAddress;
+import java.net.Socket;
 import java.net.URL;
 import javax.swing.*;
 import javax.swing.Timer;
@@ -78,6 +80,12 @@ import net.sourceforge.processdash.util.StringUtils;
 public class ProcessDashboard extends JFrame implements WindowListener, DashboardContext {
 
     public static final String HTTP_PORT_SETTING = "http.port";
+    private static final String DISABLE_AUTO_EXPORT_SETTING =
+        "export.disableAutoExport";
+    public static final String NOTIFY_ON_OPEN_PORT_PROPERTY =
+        ProcessDashboard.class.getName() + ".notifyOnOpen.port";
+    public static final String NOTIFY_ON_OPEN_ID_PROPERTY =
+        ProcessDashboard.class.getName() + ".notifyOnOpen.id";
 
     ConfigureButton configure_button = null;
     PauseButton pause_button = null;
@@ -682,8 +690,10 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
             return false;
         }
 
-        logger.fine("Performing auto exports");
-        ExportManager.getInstance().exportAll(this, this);
+        if (!Settings.getBool(DISABLE_AUTO_EXPORT_SETTING, false)) {
+            logger.fine("Performing auto exports");
+            ExportManager.getInstance().exportAll(this, this);
+        }
         if (webServer != null) {
             logger.fine("Shutting down web server");
             webServer.quit();
@@ -799,8 +809,10 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
 
     public void startPeriodicTasks() {
         int currentHourOfDay = Calendar.getInstance().get(Calendar.HOUR_OF_DAY);
-        final boolean doExport = hourMatchesSetting(currentHourOfDay,
-                ExportManager.EXPORT_TIMES_SETTING);
+        final boolean doExport =
+            !Settings.getBool(DISABLE_AUTO_EXPORT_SETTING, false) &&
+            hourMatchesSetting(currentHourOfDay,
+                    ExportManager.EXPORT_TIMES_SETTING);
         final boolean doBackup = hourMatchesSetting(currentHourOfDay,
                 FileBackupManager.BACKUP_TIMES_SETTING);
         if (doExport == false && doBackup == false)
@@ -849,6 +861,22 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
         ss = null;
     }
 
+    private static void maybeNotifyOpened() {
+        Integer portToNotify = Integer.getInteger(NOTIFY_ON_OPEN_PORT_PROPERTY);
+        if (portToNotify != null) {
+            try {
+                Socket s = new Socket(InetAddress.getLocalHost(), portToNotify
+                        .intValue());
+                Writer out = new OutputStreamWriter(s.getOutputStream(),
+                        "UTF-8");
+                out.write(System.getProperty(NOTIFY_ON_OPEN_ID_PROPERTY));
+                out.write("\n");
+                out.close();
+                s.close();
+            } catch (Exception e) {}
+        }
+    }
+
     private static void logErr(String msg, Throwable t) {
         logger.log(Level.SEVERE, msg, t);
     }
@@ -878,9 +906,9 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
         dash.show();
 
         dropSplashScreen();
+        maybeNotifyOpened();
         dash.aum.maybePerformCheck(dash);
     }
-
     public DashHierarchy getHierarchy() { return props; }
     public DataRepository getData() { return data; }
     public ObjectCache getCache() { return objectCache; }

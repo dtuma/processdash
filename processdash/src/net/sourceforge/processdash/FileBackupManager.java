@@ -424,7 +424,7 @@ public class FileBackupManager {
         "-startup", "-checkpoint", "-shutdown"
     };
 
-    private static boolean inBackupSet(File dir, String name) {
+    public static boolean inBackupSet(File dir, String name) {
         if (name.equalsIgnoreCase(LOG_FILE_NAME)
                 && (new File(dir, name)).length() > 0)
             // backup the log file if it contains anything.

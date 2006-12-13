@@ -1,5 +1,5 @@
+// Copyright (C) 2005-2006 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2005 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -92,6 +92,11 @@ public class FileUtils {
     }
 
     public static void deleteDirectory(File dir) throws IOException {
+        deleteDirectory(dir, false);
+    }
+
+    public static void deleteDirectory(File dir, boolean recurse)
+            throws IOException {
         if (!dir.isDirectory())
             return;
 
@@ -99,8 +104,8 @@ public class FileUtils {
         for (int i = 0; i < files.length; i++) {
             if (files[i].getName().equals(".") || files[i].getName().equals(".."))
                 continue;
-            else if (files[i].isDirectory())
-                ; // no recursion supported for now // deleteDirectory(files[i]);
+            else if (files[i].isDirectory() && recurse)
+                deleteDirectory(files[i], recurse);
             else
                 files[i].delete();
         }
