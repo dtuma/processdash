@@ -30,21 +30,38 @@ import java.util.Collections;
 
 import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.i18n.Resources;
+import net.sourceforge.processdash.util.XMLUtils;
 
-abstract class InstanceLauncher implements Runnable {
+import org.w3c.dom.Element;
+
+abstract class DashboardInstance {
+
+    public static final int NONE = -1;
+    public static final int LAUNCHING = 0;
+    public static final int RUNNING = 1;
+
+    private static final String[] STATUS_KEYS = { "Launching", "Running" };
+
+    private static final String[] STATUS_NAMES = QuickLauncher.resources
+            .getStrings("Status.", STATUS_KEYS);
 
     /** The name of a file that will ALWAYS exist in a data directory */
     protected static final String DATA_DIR_FILE_ITEM = "global.dat";
 
     static final Resources resources = QuickLauncher.resources;
 
-    protected DashboardProcessFactory processFactory;
 
     protected int id;
+
+    protected int status = NONE;
+
+    protected int port = -1;
 
     protected String display;
 
     protected Process process;
+
+    protected InstanceList observer;
 
     public int getId() {
         return id;
@@ -54,20 +71,50 @@ abstract class InstanceLauncher implements Runnable {
         this.id = id;
     }
 
+    public int getStatus() {
+        return status;
+    }
+
+    public void setStatus(int status) {
+        this.status = status;
+        fireInstanceChanged();
+    }
+
+    public String getStatusDisplay() {
+        if (status == NONE)
+            return "";
+        else
+            return STATUS_NAMES[status];
+    }
+
+    public int getPort() {
+        return port;
+    }
+
     public String getDisplay() {
         return display;
     }
 
     public void setDisplay(String d) {
         this.display = d;
+        fireInstanceChanged();
     }
 
-    public void setProcessFactory(DashboardProcessFactory processFactory) {
-        this.processFactory = processFactory;
+    protected void fireInstanceChanged() {
+        if (observer != null)
+            observer.instanceChanged(this);
     }
 
-    protected void launchApp(File pspdataDir) throws LaunchException {
+    public void setObserver(InstanceList o) {
+        this.observer = o;
+    }
+
+    public abstract void launch(DashboardProcessFactory processFactory);
+
+    protected void launchApp(DashboardProcessFactory processFactory,
+            File pspdataDir) throws LaunchException {
         try {
+            setStatus(LAUNCHING);
             String notifyArg = "-D"
                     + ProcessDashboard.NOTIFY_ON_OPEN_ID_PROPERTY + "=" + id;
             String windowTitle = getDisplay();
@@ -84,6 +131,7 @@ abstract class InstanceLauncher implements Runnable {
 
     protected void waitForCompletion() throws InterruptedException {
         process.waitFor();
+        setStatus(NONE);
     }
 
     protected boolean eq(Object a, Object b) {
@@ -91,4 +139,12 @@ abstract class InstanceLauncher implements Runnable {
             return true;
         return (a != null && a.equals(b));
     }
+
+    public void handleNotification(Element notification) {
+        setStatus(RUNNING);
+        this.port = XMLUtils.getXMLInt(notification, "httpPort");
+    }
+
+
+
 }

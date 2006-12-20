@@ -30,7 +30,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-class DirectoryInstanceLauncher extends InstanceLauncher {
+class DirectoryInstanceLauncher extends DashboardInstance {
 
     protected File pspdataDir;
 
@@ -46,8 +46,8 @@ class DirectoryInstanceLauncher extends InstanceLauncher {
             setDisplay(pspdataDir.getAbsolutePath());
     }
 
-    public void run() {
-        launchApp(pspdataDir);
+    public void launch(DashboardProcessFactory processFactory) {
+        launchApp(processFactory, pspdataDir);
     }
 
     public boolean equals(Object obj) {

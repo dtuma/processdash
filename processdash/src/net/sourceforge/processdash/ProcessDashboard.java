@@ -861,7 +861,7 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
         ss = null;
     }
 
-    private static void maybeNotifyOpened() {
+    private void maybeNotifyOpened() {
         Integer portToNotify = Integer.getInteger(NOTIFY_ON_OPEN_PORT_PROPERTY);
         if (portToNotify != null) {
             try {
@@ -869,8 +869,15 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
                         .intValue());
                 Writer out = new OutputStreamWriter(s.getOutputStream(),
                         "UTF-8");
-                out.write(System.getProperty(NOTIFY_ON_OPEN_ID_PROPERTY));
-                out.write("\n");
+                out.write("<?xml version='1.0' encoding='UTF-8'?>");
+                out.write("<pdashNotification");
+                out.write(" instanceId='"
+                        + System.getProperty(NOTIFY_ON_OPEN_ID_PROPERTY));
+                out.write("' httpPort='"
+                        + Integer.toString(webServer.getPort()));
+                out.write("'>");
+                out.write("<event type='opened'/>");
+                out.write("</pdashNotification>");
                 out.close();
                 s.close();
             } catch (Exception e) {}
@@ -906,7 +913,7 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
         dash.show();
 
         dropSplashScreen();
-        maybeNotifyOpened();
+        dash.maybeNotifyOpened();
         dash.aum.maybePerformCheck(dash);
     }
     public DashHierarchy getHierarchy() { return props; }

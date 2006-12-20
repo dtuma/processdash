@@ -36,7 +36,7 @@ import java.util.zip.ZipInputStream;
 
 import net.sourceforge.processdash.util.FileUtils;
 
-class CompressedInstanceLauncher extends InstanceLauncher {
+class CompressedInstanceLauncher extends DashboardInstance {
 
     private File compressedData;
 
@@ -48,7 +48,7 @@ class CompressedInstanceLauncher extends InstanceLauncher {
         setDisplay(compressedData.getAbsolutePath());
     }
 
-    public void run() {
+    public void launch(DashboardProcessFactory processFactory) {
         File pspdataDir;
 
         try {
@@ -61,7 +61,7 @@ class CompressedInstanceLauncher extends InstanceLauncher {
             throw new LaunchException(message, e);
         }
 
-        launchApp(pspdataDir);
+        launchApp(processFactory, pspdataDir);
 
         try {
             process.waitFor();

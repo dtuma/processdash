@@ -25,68 +25,27 @@
 
 package net.sourceforge.processdash.tool.quicklauncher;
 
-import java.awt.datatransfer.DataFlavor;
-import java.awt.datatransfer.Transferable;
+import java.awt.Component;
 import java.io.File;
 import java.io.IOException;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 
-import javax.swing.JComponent;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.ListSelectionModel;
-import javax.swing.TransferHandler;
 
 import net.sourceforge.processdash.FileBackupManager;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.ui.lib.JOptionPaneClickHandler;
-import net.sourceforge.processdash.util.LightweightSet;
 
 
-public class LaunchDropZone extends TransferHandler {
-
-    QuickLauncher launcher;
+public class InstanceLauncherFactory {
 
     private static final Resources resources = QuickLauncher.resources;
 
-    public LaunchDropZone(QuickLauncher launcher) {
-        this.launcher = launcher;
-    }
 
-    public boolean canImport(JComponent comp, DataFlavor[] flavors) {
-        for (int i = 0; i < flavors.length; i++) {
-            if (DataFlavor.javaFileListFlavor.equals(flavors[i]))
-                return true;
-        }
-        return false;
-    }
-
-    public boolean importData(JComponent comp, Transferable t) {
-        List files = null;
-        try {
-            files = (List) t.getTransferData(DataFlavor.javaFileListFlavor);
-        } catch (Exception ex) {}
-        if (files == null || files.isEmpty())
-            return false;
-
-        Set targets = new LightweightSet();
-        for (Iterator i = files.iterator(); i.hasNext();) {
-            File f = (File) i.next();
-            InstanceLauncher l = getLauncher(comp, f);
-            if (l != null)
-                targets.add(l);
-        }
-
-        launcher.launchInstances(targets);
-
-        return true;
-    }
-
-
-    private InstanceLauncher getLauncher(JComponent comp, File f) {
+    public DashboardInstance getLauncher(Component comp, File f) {
         String basename = f.getName().toLowerCase();
 
         if (f.isDirectory()) {
@@ -107,8 +66,8 @@ public class LaunchDropZone extends TransferHandler {
         return null;
     }
 
-    private InstanceLauncher getDirLauncher(JComponent comp, File dir) {
-        File testFile = new File(dir, InstanceLauncher.DATA_DIR_FILE_ITEM);
+    private DashboardInstance getDirLauncher(Component comp, File dir) {
+        File testFile = new File(dir, DashboardInstance.DATA_DIR_FILE_ITEM);
         if (testFile.isFile())
             return new DirectoryInstanceLauncher(dir);
 
@@ -155,7 +114,7 @@ public class LaunchDropZone extends TransferHandler {
             return new DirectoryInstanceLauncher(dir);
     }
 
-    private InstanceLauncher getZipLauncher(JComponent comp, File f) {
+    private DashboardInstance getZipLauncher(Component comp, File f) {
         List prefixes;
         try {
             prefixes = CompressedInstanceLauncher
@@ -196,7 +155,7 @@ public class LaunchDropZone extends TransferHandler {
         if (prefix == null)
             return null;
         else {
-            InstanceLauncher result = new CompressedInstanceLauncher(f, prefix);
+            DashboardInstance result = new CompressedInstanceLauncher(f, prefix);
             result.setDisplay(resources.format("Launcher.Zip_Display_FMT",
                     prefix, result.getDisplay()));
             return result;

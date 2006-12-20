@@ -121,9 +121,23 @@ class DashboardProcessFactory {
 
         String selfUrlStr = selfUrl.toString();
         if (selfUrlStr.startsWith("jar:file:"))
-            selfUrlStr = selfUrlStr.substring(9, selfUrlStr.indexOf("!/net/"));
+            return getJarBasedClasspath(selfUrlStr);
+        else if (selfUrlStr.startsWith("file:"))
+            return getDirBasedClasspath(selfUrlStr);
         else
             return null;
+    }
+
+    /** Return a classpath for use with the packaged JAR file containing the
+     * compiled classes used by the dashboard.
+     * 
+     * @param selfUrlStr the URL of the class file for this class; must be a
+     *    jar:file: URL.
+     * @return the JAR-based classpath in effect
+     */
+    private String getJarBasedClasspath(String selfUrlStr) {
+        // remove initial "jar:file:" and trailing "!/net/..." information
+        selfUrlStr = selfUrlStr.substring(9, selfUrlStr.indexOf("!/net/"));
 
         String jarFileName;
         try {
@@ -134,6 +148,47 @@ class DashboardProcessFactory {
         }
         File classpathItem = new File(jarFileName);
         return classpathItem.getAbsolutePath();
+    }
+
+    /** Return a classpath for use with the unpackaged class files in a
+     * compiled dashboard project directory.
+     * 
+     * @param selfUrlStr the URL of the class file for this class; must be a
+     *    file: URL pointing to a .class file in the "bin" directory of a
+     *    process dashboard project directory
+     * @return the classpath that can be used to launch a dashboard instance.
+     *    This classpath will include the effective "bin" directory that
+     *    contains this class, and will also include the JAR files in the
+     *    "lib" directory of the process dashboard project directory.
+     */
+
+    private String getDirBasedClasspath(String selfUrlStr) {
+        // remove initial "file:" and trailing "/net/..." information
+        selfUrlStr = selfUrlStr.substring(5, selfUrlStr.indexOf("/net/"));
+
+        File binDir;
+        try {
+            String path = URLDecoder.decode(selfUrlStr, "UTF-8");
+            binDir = new File(path).getAbsoluteFile();
+        } catch (Exception e) {
+            return null;
+        }
+
+        File parentDir = binDir.getParentFile();
+        File libDir = new File(parentDir, "lib");
+        File[] libFiles = libDir.listFiles();
+        if (libFiles == null)
+            return null;
+
+        StringBuffer result = new StringBuffer();
+        result.append(binDir.toString());
+        String sep = System.getProperty("path.separator");
+        for (int i = 0; i < libFiles.length; i++) {
+            if (libFiles[i].getName().toLowerCase().endsWith(".jar"))
+                result.append(sep).append(libFiles[i].toString());
+        }
+
+        return result.toString();
     }
 
 }

@@ -25,24 +25,35 @@
 
 package net.sourceforge.processdash.tool.quicklauncher;
 
+import java.awt.Color;
 import java.awt.Cursor;
+import java.awt.Dimension;
+import java.awt.Frame;
 import java.beans.EventHandler;
+import java.io.File;
+import java.io.IOException;
+import java.net.InetAddress;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 
 import javax.swing.BoxLayout;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
-import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.event.ListDataListener;
+import javax.swing.JTable;
+import javax.swing.ListSelectionModel;
+import javax.swing.SwingUtilities;
+import javax.swing.event.TableModelListener;
+import javax.swing.table.TableColumnModel;
 
 import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.ui.DashboardIconFactory;
+import net.sourceforge.processdash.util.ConcurrencyLock;
 
 
 public class QuickLauncher {
@@ -50,30 +61,67 @@ public class QuickLauncher {
     static Resources resources = Resources.getDashBundle("QuickLauncher");
 
     public static void main(String[] args) {
-        new QuickLauncher();
+        String fileToLaunch = null;
+        if (args.length > 0)
+            fileToLaunch = args[0];
+
+        new QuickLauncher(fileToLaunch);
     }
+
+    ConcurrencyLock lock;
 
     DashboardProcessFactory processFactory;
 
-    StatusObserver statusObserver;
+    InstanceLauncherFactory launcherFactory;
+
+    InstanceList instanceList;
+
+    InstanceActionHandler actionHandler;
 
     JFrame frame;
 
-    public QuickLauncher() {
+    public QuickLauncher(String fileToLaunch) {
+        try {
+            getLock(fileToLaunch);
+        } catch (ConcurrencyLock.SentMessageException clsme) {
+            System.exit(0);
+        } catch (Exception e) {
+        }
+
         try {
             processFactory = new DashboardProcessFactory();
 
             processFactory.addVmArg("-Dbackup.enabled=false");
 
-            statusObserver = new StatusObserver();
+            instanceList = new InstanceList();
             processFactory.addVmArg("-D"
                     + ProcessDashboard.NOTIFY_ON_OPEN_PORT_PROPERTY + "="
-                    + statusObserver.getPort());
+                    + instanceList.getNotificationPort());
 
             buildUI();
+
+            if (fileToLaunch != null)
+                launchFilename(fileToLaunch);
+
         } catch (Exception e) {
             abortWithError(e.getMessage());
         }
+    }
+
+    private void getLock(String fileToLaunch) throws IOException,
+            ConcurrencyLock.FailureException {
+        File tempFile = File.createTempFile("foo", "bar");
+        tempFile.delete();
+        File tempDir = tempFile.getParentFile();
+        String lockFileName = "pdash-quicklaunch-lock-"
+                + System.getProperty("user.name") + "-"
+                + InetAddress.getLocalHost().getHostAddress().replace('.', '-');
+        File lockFile = new File(tempDir, lockFileName);
+
+        LockListener listener = new LockListener();
+
+        lock = new ConcurrencyLock(lockFile,
+                listener.getStartupCommand(fileToLaunch), listener);
     }
 
     private void buildUI() throws Exception {
@@ -82,7 +130,8 @@ public class QuickLauncher {
 
         JPanel contents = new JPanel();
         contents.setLayout(new BoxLayout(contents, BoxLayout.Y_AXIS));
-        LaunchDropZone th = new LaunchDropZone(this);
+        launcherFactory = new InstanceLauncherFactory();
+        DropTransferHandler th = new DropTransferHandler(this, launcherFactory);
         contents.setTransferHandler(th);
 
         contents.add(new JLabel(resources.getString("Window_Prompt")));
@@ -93,13 +142,24 @@ public class QuickLauncher {
                 + Settings.SYS_PROP_PREFIX + "export.disableAutoExport=true",
                 null, processFactory, true));
 
-        JList list = new JList(statusObserver);
-        list.setVisibleRowCount(4);
-        list.setTransferHandler(th);
-        contents.add(new JScrollPane(list));
+        JTable table = new JTable(instanceList);
+        TableColumnModel cols = table.getColumnModel();
+        for (int i = 0;  i < InstanceList.COLUMN_WIDTHS.length;  i++) {
+            int width = InstanceList.COLUMN_WIDTHS[i];
+            cols.getColumn(i).setPreferredWidth(width);
+        }
+        table.getSelectionModel().setSelectionMode(
+                ListSelectionModel.SINGLE_SELECTION);
+        table.setTransferHandler(th);
+        table.setPreferredScrollableViewportSize(new Dimension(380, 100));
+        JScrollPane scrollPane = new JScrollPane(table);
+        scrollPane.setBackground(Color.WHITE);
+        contents.add(scrollPane);
 
-        statusObserver.addListDataListener((ListDataListener) EventHandler
-                .create(ListDataListener.class, this, "updateCursor"));
+        actionHandler = new InstanceActionHandler(table, instanceList);
+
+        instanceList.addTableModelListener((TableModelListener) EventHandler
+                .create(TableModelListener.class, this, "updateCursor"));
 
         frame.getContentPane().add(contents);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -108,8 +168,8 @@ public class QuickLauncher {
     }
 
     public void updateCursor() {
-        frame.setCursor(statusObserver.isEmpty() ? null : Cursor
-                .getPredefinedCursor(Cursor.WAIT_CURSOR));
+        frame.setCursor(instanceList.hasLaunching()
+                ? Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR) : null);
     }
 
     static void showError(Object message) {
@@ -124,39 +184,90 @@ public class QuickLauncher {
 
     public void launchInstances(Collection launchers) {
         for (Iterator i = launchers.iterator(); i.hasNext();) {
-            InstanceLauncher l = (InstanceLauncher) i.next();
-            if (!statusObserver.containsEntry(l))
-                new LaunchThread(l).start();
+            DashboardInstance inst = (DashboardInstance) i.next();
+            int pos = instanceList.indexOfSimilar(inst);
+            if (pos == -1)
+                new LaunchThread(inst).start();
+            else
+                actionHandler.bringToFront(pos);
         }
     }
 
+    private void launchFilename(String filename) {
+        File f = new File(filename);
+        DashboardInstance inst = launcherFactory.getLauncher(
+                frame.getContentPane(), f);
+        if (inst != null)
+            launchInstances(Collections.singleton(inst));
+    }
+
+
     private class LaunchThread extends Thread {
 
-        InstanceLauncher launcher;
+        DashboardInstance instance;
 
-        public LaunchThread(InstanceLauncher launcher) {
-            super(launcher);
-            this.launcher = launcher;
-            launcher.setProcessFactory(processFactory);
+        public LaunchThread(DashboardInstance instance) {
+            super();
+            this.instance = instance;
         }
 
         public void run() {
             try {
-                String display = launcher.getDisplay();
+                String display = instance.getDisplay();
                 if (display == null)
-                    launcher.setDisplay(resources.getString("Launcher.Display"));
+                    instance.setDisplay(resources.getString("Launcher.Display"));
 
-                statusObserver.addEntry(launcher);
-
-                super.run();
-
-                launcher.waitForCompletion();
+                instanceList.addInstance(instance);
+                instance.launch(processFactory);
+                instance.waitForCompletion();
             } catch (LaunchException le) {
                 showError(le.getMessage());
             } catch (InterruptedException ie) {
             } finally {
-                statusObserver.removeEntry(launcher);
+                instanceList.removeInstance(instance);
             }
+        }
+
+    }
+
+    private class LockListener implements ConcurrencyLock.Listener {
+
+        private static final String COMMAND_OPEN = "OPEN:";
+        private static final String COMMAND_RAISE = "RAISE";
+
+        public String handleMessage(String message) throws Exception {
+            if (COMMAND_RAISE.equals(message)) {
+                raiseWindow();
+                return "OK";
+
+            } else if (message != null && message.startsWith(COMMAND_OPEN)) {
+                String filename = message.substring(COMMAND_OPEN.length());
+                raiseWindow();
+                launchFilename(filename);
+                return "OK";
+
+            } else {
+                return "ERROR";
+            }
+        }
+
+        private void raiseWindow() {
+            SwingUtilities.invokeLater(new Runnable() {
+                public void run() { raiseWindowImpl(); } } );
+        }
+
+        private void raiseWindowImpl() {
+            if (frame.getState() == Frame.ICONIFIED)
+                frame.setState(Frame.NORMAL);
+            frame.show();
+            frame.toFront();
+        }
+
+        public String getStartupCommand(String filename) {
+            if (filename == null)
+                return COMMAND_RAISE;
+            else
+                return COMMAND_OPEN + filename;
         }
 
     }
