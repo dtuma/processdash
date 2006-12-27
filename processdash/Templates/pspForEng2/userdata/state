@@ -38,7 +38,7 @@
         <node name="Test"/>
         <node name="Postmortem"/>
       </node>
-      <node name="Interim Report" templateID="Generic-PFE-RI" dataFile="4.dat" defectLog="4.def">
+      <node name="Interim Report" templateID="Generic" dataFile="4.dat" defectLog="4.def">
         <node name="Planning" selected="true"/>
         <node name="Postmortem"/>
       </node>
@@ -82,7 +82,7 @@
         <node name="Test"/>
         <node name="Postmortem"/>
       </node>
-      <node name="Final Report" templateID="Generic-PFE-RF" dataFile="9.dat" defectLog="9.def">
+      <node name="Final Report" templateID="Generic" dataFile="9.dat" defectLog="9.def">
         <node name="Planning" selected="true"/>
         <node name="Postmortem"/>
       </node>
