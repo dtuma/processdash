@@ -79,6 +79,7 @@ Authors:
 
   <property name="eng.version"     value="2.0"/><!-- VERSION -->
   <property name="eng.requires"    value="1.6.1.1+"/><!-- VERSION -->
+  <property name="instr.requires"  value="1.7.1b.4+"/><!-- VERSION -->
 
 
   <property name="applet.file" value="DataApplet${dashboardVersion}"/>
@@ -214,7 +215,7 @@ Authors:
 
 
   <target name="pspForEng-addon" depends="compile">
-    <!-- build the jarfile -->
+    <!-- build the jarfile for students -->
     <jar destfile="${dist}/pspForEng.jar" duplicate="fail">
       <manifest>
         <attribute name="Dash-Pkg-ID" value="pspForEng"/>
@@ -233,8 +234,25 @@ Authors:
 	<exclude name="Templates/pspForEng/userdata/"/>
 	<exclude name="Templates/pspForEng2/userdata/"/>
 	<exclude name="Templates/pspForEng/repair.*"/>
+	<exclude name="Templates/pspForEng-instr*"/>
       </fileset>
       <fileset dir="${build}" includes="net/**/PspForEngFilter.class"/>
+    </jar>
+    <!-- build the jarfile for instructors -->
+    <jar destfile="${dist}/pspForEng-instr.jar" duplicate="fail">
+      <manifest>
+        <attribute name="Dash-Pkg-ID" value="pspForEng-instr"/>
+        <attribute name="Dash-Pkg-Version" value="${eng.version}"/>
+        <attribute name="Dash-Pkg-Requires-Version" value="${instr.requires}"/>
+        <attribute name="Dash-Pkg-Name"
+                   value="PSP for Engineers Instructor Tools"/>
+        <attribute name="Dash-Pkg-URL"
+                   value="http://processdash.sourceforge.net/cgi-bin/update"/>
+      </manifest>
+
+      <fileset dir=".">
+	<include name="Templates/pspForEng-instr*"/>
+      </fileset>
     </jar>
   </target>
 
