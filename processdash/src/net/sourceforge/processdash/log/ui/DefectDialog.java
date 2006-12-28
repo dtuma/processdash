@@ -573,6 +573,7 @@ public class DefectDialog extends JDialog
         }
         DefectDialog d = new DefectDialog(parent, defectFilename, defectPath);
         d.fix_defect.setText(defectNumber);
+        comboSelect(d.phase_injected, (String)phase_removed.getSelectedItem());
         d.setDirty(false);
     }
 
