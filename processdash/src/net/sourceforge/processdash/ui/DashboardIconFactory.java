@@ -1,5 +1,5 @@
+// Copyright (C) 2003-2007 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -37,10 +37,20 @@ public class DashboardIconFactory {
 
     private static Image windowIconImage = null;
     public static Image getWindowIconImage() {
-        if (windowIconImage == null)
-            windowIconImage = Toolkit.getDefaultToolkit().createImage
-                (DashboardIconFactory.class.getResource("icon32.png"));
-        return windowIconImage;
+        return windowIconImage = loadImage("icon32.png", windowIconImage);
+    }
+
+    private static Image launcherWindowIconImage = null;
+    public static Image getLauncherWindowIconImage() {
+        return launcherWindowIconImage = loadImage("launcher32.png",
+                launcherWindowIconImage);
+    }
+
+    private static Image loadImage(String resourceName, Image current) {
+        if (current != null)
+            return current;
+        return Toolkit.getDefaultToolkit().createImage(
+                DashboardIconFactory.class.getResource(resourceName));
     }
 
     public static Icon getContinueIcon() {

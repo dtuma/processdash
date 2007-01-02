@@ -126,7 +126,7 @@ public class QuickLauncher {
 
     private void buildUI() throws Exception {
         frame = new JFrame(resources.getString("Window_Title"));
-        frame.setIconImage(DashboardIconFactory.getWindowIconImage());
+        frame.setIconImage(DashboardIconFactory.getLauncherWindowIconImage());
 
         JPanel contents = new JPanel();
         contents.setLayout(new BoxLayout(contents, BoxLayout.Y_AXIS));

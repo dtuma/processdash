@@ -73,6 +73,8 @@
             <file targetdir="$INSTALL_PATH" override="true"
 	          src="../src/net/sourceforge/processdash/ui/icon32.ico"/>
             <file targetdir="$INSTALL_PATH" override="true"
+	          src="../src/net/sourceforge/processdash/ui/launcher.ico"/>
+            <file targetdir="$INSTALL_PATH" override="true"
 	          src="files/mergeSettings.jar"/>
             <file targetdir="$INSTALL_PATH/Uninstaller" override="true"
 	          src="files/regInst.exe" os="windows"/>
