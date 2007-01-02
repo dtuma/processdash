@@ -18,5 +18,22 @@
      initialState="minimized">
        <createForPack id="teamTools"/>
   </shortcut>
+
+  <shortcut
+     name="Quick Launcher for Process Dashboard"
+     programGroup="yes"
+     desktop="yes"
+     applications="no"
+     startMenu="no"
+     startup="no"
+     target="javaw"
+     commandLine="-cp &quot;$INSTALL_PATH\pspdash.jar&quot; net.sourceforge.processdash.tool.quicklauncher.QuickLauncher"
+     workingDirectory="$DATA_PATH"
+     description="Launch Process Dashboard instances for data in ZIP files or arbitrary directories"
+     iconFile="$INSTALL_PATH\launcher.ico"
+     iconIndex="0"
+     initialState="minimized">
+       <createForPack id="teamTools"/>
+  </shortcut>
    
 </shortcuts>
