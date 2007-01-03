@@ -1,4 +1,4 @@
-// Copyright (C) 2005-2006 Tuma Solutions, LLC
+// Copyright (C) 2005-2007 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -110,8 +110,10 @@ public class TimeLogModifications implements CommittableModifiableTimeLog {
         synchronized (this) {
             modifications.clear();
             batchRenames.clear();
-            if (saveFile == null || saveFile.delete())
+            if (saveFile == null)
                 dirty = false;
+            else
+                save();
         }
 
         fireTimeLogChanged();
@@ -125,8 +127,10 @@ public class TimeLogModifications implements CommittableModifiableTimeLog {
             synchronized (this) {
                 modifications.clear();
                 batchRenames.clear();
-                if (saveFile == null || saveFile.delete())
+                if (saveFile == null)
                     dirty = false;
+                else
+                    save();
             }
 
             ((ModifiableTimeLog) parent).addModifications(mods.iterator());

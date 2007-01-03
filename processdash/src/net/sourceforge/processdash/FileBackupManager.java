@@ -119,6 +119,8 @@ public class FileBackupManager {
 
 
     private static boolean oldBackupIsEmpty;
+    private static boolean oldBackupContainsTimeLogFile;
+    private static boolean oldBackupContainsTimeLogModFile;
 
 
     // Find the most recent backup in the directory.  Open it for input.
@@ -159,6 +161,8 @@ public class FileBackupManager {
                             oldBackupTempFile)));
             oldBackupOut.setLevel(9);
             oldBackupIsEmpty = true;
+            oldBackupContainsTimeLogFile = false;
+            oldBackupContainsTimeLogModFile = false;
 
             // iterate over all the entries in the old backup
             ZipEntry oldEntry;
@@ -176,9 +180,26 @@ public class FileBackupManager {
                     // this file is in the old backup, but is no longer present
                     // in the backup directory.  Copy it over to the new version
                     // of the old backup
-                    oldBackupIsEmpty = false;
                     copyZipEntry(oldBackupIn, oldBackupOut, oldEntry, null);
+                    wroteEntryToOldBackup(filename);
                 }
+            }
+
+            // The two files that make up the time log must always be backed
+            // up and restored as an atomic pair - otherwise, Bad Things can
+            // happen.  If one of these files (but not the other) was written
+            // to the incremental old backup, add its partner (which presumably
+            // must be identical to the file in the dataDir).
+            if (oldBackupContainsTimeLogFile
+                    && !oldBackupContainsTimeLogModFile) {
+                String filename = WorkingTimeLog.TIME_LOG_MOD_FILENAME;
+                File file = new File(dataDir, filename);
+                backupFile(null, null, null, oldBackupOut, file, filename);
+            } else if (oldBackupContainsTimeLogModFile
+                    && !oldBackupContainsTimeLogFile) {
+                String filename = WorkingTimeLog.TIME_LOG_FILENAME;
+                File file = new File(dataDir, filename);
+                backupFile(null, null, null, oldBackupOut, file, filename);
             }
 
             oldBackupIn.close();
@@ -334,7 +355,7 @@ public class FileBackupManager {
                     bytesSeen = null;
                     oldBackupIn = null;
                     oldBackupOut = null;
-                    oldBackupIsEmpty = false;
+                    wroteEntryToOldBackup(filename);
                 }
             }
         }
@@ -348,13 +369,21 @@ public class FileBackupManager {
                 bytesSeen.write(d);
                 copyZipEntry(oldIn, oldBackupOut, oldEntry, bytesSeen.
                              toByteArray());
-                oldBackupIsEmpty = false;
+                wroteEntryToOldBackup(filename);
             }
         }
 
         // finish writing the file to the new backup archive.
         fileOut.flush();
         newBackupOut.closeEntry();
+    }
+
+    private static void wroteEntryToOldBackup(String filename) {
+        oldBackupIsEmpty = false;
+        if (filename.equalsIgnoreCase(WorkingTimeLog.TIME_LOG_FILENAME))
+            oldBackupContainsTimeLogFile = true;
+        if (filename.equalsIgnoreCase(WorkingTimeLog.TIME_LOG_MOD_FILENAME))
+            oldBackupContainsTimeLogModFile = true;
     }
 
 

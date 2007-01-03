@@ -1,4 +1,4 @@
-// Copyright (C) 2005-2006 Tuma Solutions, LLC
+// Copyright (C) 2005-2007 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -32,6 +32,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.util.Collections;
 import java.util.Date;
 import java.util.Iterator;
 
@@ -64,12 +65,24 @@ public class WorkingTimeLog implements ModifiableTimeLog, IDSource,
     public WorkingTimeLog(File directory) throws IOException {
         this.directory = directory;
 
-        File histFile = getFile(TIME_LOG_FILENAME);
+        File histFile = ensureTimeLogFileExists(getFile(TIME_LOG_FILENAME));
         this.historicalTimeLog = new BaseTimeLog(histFile);
+
+        File modFile = ensureTimeLogFileExists(getFile(TIME_LOG_MOD_FILENAME));
         this.realTimeMods = new TimeLogModifications(historicalTimeLog,
-                getFile(TIME_LOG_MOD_FILENAME), this);
+                modFile, this);
 
         maybeCleanup();
+    }
+
+    private File ensureTimeLogFileExists(File file) throws IOException {
+        if (!file.exists()) {
+            RobustFileWriter rout = new RobustFileWriter(file,
+                    TIME_LOG_ENCODING);
+            BufferedWriter out = new BufferedWriter(rout);
+            TimeLogWriter.write(out, Collections.EMPTY_LIST.iterator());
+        }
+        return file;
     }
 
     public EnumerIterator filter(String path, Date from, Date to)
