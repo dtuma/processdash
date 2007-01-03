@@ -69,6 +69,7 @@
 
     <tocitem image="BookIcon" target="AdvancedTopics" text="Advanced Topics">
       <tocitem image="PageIcon" target="TeamUse" text="Team Use"/>
+      <tocitem image="PageIcon" target="BackupData" text="Backing up Dashboard Data"/>
       <tocitem image="PageIcon" target="LocalizationTool" text="Localization Tool"/>
       <tocitem image="PageIcon" target="ConfigurationFile" text="The configuration file"/>
       <tocitem image="PageIcon" target="MultipleToDateData" text="Using multiple sets of To Date data"/>

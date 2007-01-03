@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2006 Tuma Solutions, LLC
+// Copyright (C) 2003-2007 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -26,6 +26,7 @@
 package net.sourceforge.processdash;
 
 import java.awt.Frame;
+import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.InetAddress;
@@ -147,6 +148,14 @@ public class DashController {
         ExportManager.getInstance().exportAll(dash, dash);
     }
 
+    public static File backupData() {
+        List unsavedData = dash.saveAllData();
+        if (!unsavedData.isEmpty())
+            return null;
+
+        return FileBackupManager.run(dash.property_directory,
+                FileBackupManager.RUNNING, null);
+    }
 
     public static void startTiming() {
         SwingUtilities.invokeLater(new Runnable() {

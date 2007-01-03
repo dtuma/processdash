@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2006 Tuma Solutions, LLC
+// Copyright (C) 2003-2007 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -94,24 +94,27 @@ public class FileBackupManager {
     }
 
 
-    public synchronized static void run(String dataDirName, int when, String who) {
+    public synchronized static File run(String dataDirName, int when, String who) {
         File dataDir = new File(dataDirName);
         File backupDir = new File(dataDir, "backup");
         if (!backupDir.exists()) backupDir.mkdir();
-        if (!backupDir.exists()) return;
+        if (!backupDir.exists()) return null;
         boolean loggingEnabled = Settings.getBool("logging.enabled", false);
 
         if (loggingEnabled)
             stopLogging();
 
+        File result = null;
         try {
-            backupFiles(dataDir, backupDir, when, who);
+            result = backupFiles(dataDir, backupDir, when, who);
         } catch (Exception e) {
             printError(e);
         }
 
         if (loggingEnabled && when != SHUTDOWN)
             startLogging(dataDir);
+
+        return result;
     }
 
 
@@ -130,12 +133,12 @@ public class FileBackupManager {
     // Close all files.
     // Rename the output files appropriately.
     // Delete old/outdated backup files.
-    private static void backupFiles(File dataDir, File backupDir, int when,
+    private static File backupFiles(File dataDir, File backupDir, int when,
             String who) throws IOException
     {
         List dataFiles = getDataFiles(dataDir);
         if (dataFiles == null || dataFiles.size() == 0)
-            return;        // nothing to do
+            return null;        // nothing to do
 
         File[] backupFiles = getBackupFiles(backupDir);
         File mostRecentBackupFile = findMostRecentBackupFile(backupFiles);
@@ -210,6 +213,7 @@ public class FileBackupManager {
 
         makeExtraBackupCopies(newBackupFile, who);
         cleanupOldBackupFiles(backupFiles);
+        return newBackupFile;
     }
 
 
