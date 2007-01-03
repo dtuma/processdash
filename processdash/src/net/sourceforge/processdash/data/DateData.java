@@ -1,5 +1,5 @@
+// Copyright (C) 2003-2007 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -119,5 +119,18 @@ public class DateData implements SimpleData {
         SimpleData result = getSimpleValue();
         result.setEditable(editable);
         return result;
+    }
+
+    public static Date valueOf(SaveableData value) {
+        SimpleData sd = null;
+        if (value instanceof SimpleData)
+            sd = (SimpleData) value;
+        else if (value != null)
+            sd = value.getSimpleValue();
+
+        if (sd instanceof DateData)
+            return ((DateData) sd).getValue();
+        else
+            return null;
     }
 }

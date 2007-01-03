@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2006 Tuma Solutions, LLC
+// Copyright (C) 2003-2007 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -197,6 +197,18 @@ public class ResultSet {
         if (col < 1 || col > numCols())
             throw new ArrayIndexOutOfBoundsException();
         Arrays.sort(data, 1, numRows()+1, new RowComparator(col, descending));
+    }
+
+    /** Remove a row from the data set.
+     * @param row The row to remove
+     */
+    public void removeRow(int row) {
+        if (row < 1 || row > numRows())
+            throw new ArrayIndexOutOfBoundsException();
+
+        List newData = new ArrayList(Arrays.asList(data));
+        newData.remove(row);
+        data = (Object[][]) newData.toArray(new Object[numRows()][0]);
     }
 
     private static class NullDataListener implements DataListener {

@@ -1,5 +1,5 @@
+// Copyright (C) 2003-2007 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -25,6 +25,9 @@
 
 package net.sourceforge.processdash.tool.probe.wizard;
 
+import java.util.Date;
+
+import net.sourceforge.processdash.data.DateData;
 import net.sourceforge.processdash.data.ListData;
 import net.sourceforge.processdash.data.util.ResultSet;
 import net.sourceforge.processdash.i18n.Translator;
@@ -73,6 +76,11 @@ public class HistDataPage extends WizardPage {
     public boolean writeReportSection() {
         writeSectionTitle(resources.getString("HistData.Short_Title"));
         ProbeData histData = new ProbeData(data, prefix, null);
+        Date cutoffDate = DateData.valueOf(getValue("Planning/Completed"));
+        if (cutoffDate == null)
+            cutoffDate = DateData.valueOf(getValue("Completed"));
+        if (cutoffDate != null)
+            histData.discardExcludedProjectsOnOrAfter(cutoffDate);
         printDataTable(histData, false);
         return true;
     }
@@ -98,7 +106,7 @@ public class HistDataPage extends WizardPage {
 
         out.print("<table border style='margin-left:1cm'><tr><th>");
         out.print(resources.getHTML("Project_Task"));
-        for (int c = 1;  c <= resultSet.numCols();   c++) {
+        for (int c = 1;  c <= ProbeData.EXCLUDE;   c++) {
             out.print("</th><th>");
             String colName = resultSet.getColName(c);
             String displayName;
@@ -117,14 +125,14 @@ public class HistDataPage extends WizardPage {
             out.print("<tr>");
             out.print("<td nowrap>");
             out.print(esc(resultSet.getRowName(r)));
-            for (int c = 1;   c < resultSet.numCols();   c++) {
+            for (int c = 1;   c < ProbeData.EXCLUDE;   c++) {
                 out.print("</td><td align=center>");
                 out.print(resultSet.format(r, c));
             }
             out.println("<td align=center>");
             printField(TASK_FIELD+r, resultSet.getRowName(r));
             out.println("<input type=checkbox name='"+EXCLUDE_FIELD+r+"'");
-            if (resultSet.getData(r, resultSet.numCols()) != null)
+            if (resultSet.getData(r, ProbeData.EXCLUDE) != null)
                 out.print(" checked");
             out.println("></td></tr>");
         }

@@ -1,5 +1,5 @@
+// Copyright (C) 2003-2007 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -26,9 +26,11 @@
 package net.sourceforge.processdash.tool.probe.wizard;
 
 
+import java.util.Date;
 import java.util.Iterator;
 import java.util.Vector;
 
+import net.sourceforge.processdash.data.DateData;
 import net.sourceforge.processdash.data.ListData;
 import net.sourceforge.processdash.data.NumberData;
 import net.sourceforge.processdash.data.SimpleData;
@@ -52,6 +54,8 @@ public class ProbeData {
     public static final int EST_TIME        = 4;
     public static final int ACT_TIME        = 5;
     public static final int EXCLUDE         = 6;
+    public static final int COMPLETED_DATE  = 7;
+    private static final int LAST_COL = COMPLETED_DATE;
     /*
      *
     public static final int INPUT_SIZE_EST  = 1;
@@ -141,6 +145,25 @@ public class ProbeData {
     public ProcessUtil getProcessUtil() { return processUtil; }
     public ResultSet getResultSet() { return resultSet; }
 
+    public void discardExcludedProjectsOnOrAfter(Date cutoff) {
+        for (int row = resultSet.numRows();  row > 0;  row--) {
+            // if this row represents data for a project that was NOT excluded,
+            // don't even think about deleting it.
+            if (resultSet.getData(row, EXCLUDE) == null)
+                continue;
+
+            // get the completion date for the project represented by the
+            // current row
+            Date completed = DateData.valueOf(resultSet.getData(row,
+                    COMPLETED_DATE));
+
+            // if this row is for a project that was completed on or after
+            // the given date, discard it.
+            if (completed != null && completed.compareTo(cutoff) >= 0)
+                resultSet.removeRow(row);
+        }
+    }
+
     private void markExclusions(DataRepository data, String prefix,
                                 boolean clearOutlierMarks) {
         SimpleData d = null;
@@ -168,7 +191,7 @@ public class ProbeData {
 
     private String[] getDataNames() {
         if (dataNames == null) {
-            String[] result = new String[EXCLUDE];
+            String[] result = new String[LAST_COL];
             result[EST_OBJ_LOC - 1] =
                 processUtil.getProcessString(PROBE_INPUT_METRIC);
             result[EST_NC_LOC - 1] =
@@ -177,8 +200,9 @@ public class ProbeData {
             result[EST_TIME - 1] = "[Estimated Time] / 60";
             result[ACT_TIME - 1] = "[Time] / 60";
 
-            // dummy - generate an extra column.
+            // dummy - generate an empty column for exclusion data.
             result[EXCLUDE - 1] = "null///null";
+            result[COMPLETED_DATE - 1] = "Completed";
             dataNames = result;
         }
         return dataNames;
