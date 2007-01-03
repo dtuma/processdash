@@ -1,5 +1,5 @@
+// Copyright (C) 2003-2007 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -27,6 +27,7 @@ package net.sourceforge.processdash.tool.probe.wizard;
 
 import net.sourceforge.processdash.process.ProcessUtil;
 import net.sourceforge.processdash.util.FormatUtil;
+import net.sourceforge.processdash.util.StringUtils;
 
 
 public class CheckPage extends WizardPage {
@@ -42,6 +43,8 @@ public class CheckPage extends WizardPage {
         "Check.Productivity.Comparable_HTML_FMT",
         "Check.Productivity.High_HTML_FMT",
     };
+    private static final String CLOSE_WINDOW_HYPERLINK =
+        "<a href='#' onClick='window.close(); return false;'>";
 
     protected ProbeData histData;
     protected ProcessUtil processUtil;
@@ -75,7 +78,8 @@ public class CheckPage extends WizardPage {
             setNextPage("Size");
         }
         out.print("<p>");
-        out.print(resources.getString(resKey));
+        out.print(StringUtils.findAndReplace(resources.getString(resKey),
+                "<a>", CLOSE_WINDOW_HYPERLINK));
         out.println("</p>");
     }
 
@@ -106,7 +110,6 @@ public class CheckPage extends WizardPage {
         // point, by assuming a 30% variation in productivity.
         if (histDev == 0 || Double.isInfinite(histDev)|| Double.isNaN(histDev))
             histDev = histProductivity * 0.30;
-        double delta = estProductivity - histProductivity;
 
         if (Double.isNaN(histProductivity) ||
             Double.isInfinite(histProductivity))
