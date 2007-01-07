@@ -26,7 +26,10 @@
 package net.sourceforge.processdash.tool.quicklauncher;
 
 import java.io.File;
+import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 
 import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.i18n.Resources;
@@ -112,16 +115,24 @@ abstract class DashboardInstance {
     public abstract void launch(DashboardProcessFactory processFactory);
 
     protected void launchApp(DashboardProcessFactory processFactory,
-            File pspdataDir) throws LaunchException {
+            List vmArgs, File pspdataDir) throws LaunchException {
         try {
             setStatus(LAUNCHING);
+
+            List extraVmArgs = new ArrayList();
+            if (vmArgs != null)
+                extraVmArgs.addAll(vmArgs);
             String notifyArg = "-D"
-                    + ProcessDashboard.NOTIFY_ON_OPEN_ID_PROPERTY + "=" + id;
+                + ProcessDashboard.NOTIFY_ON_OPEN_ID_PROPERTY + "=" + id;
+            extraVmArgs.add(notifyArg);
+
+            List programArgs = null;
             String windowTitle = getDisplay();
-            process = processFactory.launchDashboard(pspdataDir,
-                    Collections.singletonList(notifyArg),
-                    windowTitle == null ? null : Collections
-                            .singletonList(windowTitle));
+            if (windowTitle != null)
+                programArgs = Collections.singletonList(windowTitle);
+
+            process = processFactory.launchDashboard(pspdataDir, extraVmArgs,
+                    programArgs);
         } catch (Exception e) {
             String message = resources.format("Errors.Cant_Launch", e
                     .getLocalizedMessage());
@@ -130,8 +141,59 @@ abstract class DashboardInstance {
     }
 
     protected void waitForCompletion() throws InterruptedException {
-        process.waitFor();
+        doWaitFor(process);
         setStatus(NONE);
+    }
+
+    /**
+     * Method to perform a "wait" for a process and return its exit value. This
+     * is a workaround for <CODE>process.waitFor()</CODE> never returning.
+     */
+    protected static int doWaitFor(Process p) {
+
+        int exitValue = -1; // returned to caller when p is finished
+
+        try {
+
+            InputStream in = p.getInputStream();
+            InputStream err = p.getErrorStream();
+
+            boolean finished = false; // Set to true when p is finished
+
+            while (!finished) {
+                try {
+
+                    while (in.available() > 0)
+                        in.read();
+
+                    while (err.available() > 0)
+                        err.read();
+
+                    // Ask the process for its exitValue. If the process
+                    // is not finished, an IllegalThreadStateException
+                    // is thrown. If it is finished, we fall through and
+                    // the variable finished is set to true.
+
+                    exitValue = p.exitValue();
+                    finished = true;
+
+                } catch (IllegalThreadStateException e) {
+
+                    // Process is not finished yet;
+                    // Sleep a little to save on CPU cycles
+                    Thread.sleep(500);
+                }
+            }
+
+
+        } catch (Exception e) {
+            // unexpected exception! print it out for debugging...
+            System.err.println("doWaitFor(): unexpected exception - "
+                    + e.getMessage());
+        }
+
+        // return completion status to caller
+        return exitValue;
     }
 
     protected boolean eq(Object a, Object b) {

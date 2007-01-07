@@ -28,6 +28,7 @@ package net.sourceforge.processdash.tool.quicklauncher;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 class DirectoryInstanceLauncher extends DashboardInstance {
@@ -47,7 +48,8 @@ class DirectoryInstanceLauncher extends DashboardInstance {
     }
 
     public void launch(DashboardProcessFactory processFactory) {
-        launchApp(processFactory, pspdataDir);
+        launchApp(processFactory, Collections.EMPTY_LIST,
+                pspdataDir);
     }
 
     public boolean equals(Object obj) {

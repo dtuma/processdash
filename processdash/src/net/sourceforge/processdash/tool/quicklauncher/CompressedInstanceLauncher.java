@@ -30,6 +30,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -61,10 +62,11 @@ class CompressedInstanceLauncher extends DashboardInstance {
             throw new LaunchException(message, e);
         }
 
-        launchApp(processFactory, pspdataDir);
+        launchApp(processFactory, Collections.EMPTY_LIST,
+                pspdataDir);
 
         try {
-            process.waitFor();
+            waitForCompletion();
         } catch (Exception e) {
             e.printStackTrace();
         }
