@@ -1,5 +1,5 @@
+// Copyright (C) 2005-2007 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2005 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -29,7 +29,6 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.IOException;
 import java.io.PrintStream;
 import java.util.Collections;
 import java.util.Date;
@@ -37,12 +36,8 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
-import sun.misc.Compare;
-
 import net.sourceforge.processdash.log.ChangeFlagged;
-import net.sourceforge.processdash.util.EnumerIterator;
 import net.sourceforge.processdash.util.FileUtils;
-import junit.framework.TestCase;
 
 public class TimeLogModificationsTest extends AbstractTimeLogTest implements TimeLogListener, PropertyChangeListener {
 
@@ -352,12 +347,13 @@ public class TimeLogModificationsTest extends AbstractTimeLogTest implements Tim
 
         timeLogMods.clear();
         assertFalse(timeLogMods.isDirty());
-        assertFalse(modificationsFile.exists());
+        assertTrue(modificationsFile.exists());
+        assertIsEmptyTimeLogFile(modificationsFile);
         assertTimeLogContents(TIMELOG3_CONTENTS, timeLogMods);
 
         // create a directory where the file should appear.  This will cause
         // subsequent save operations to fail.
-        assertTrue(modificationsFile.mkdir());
+        assertTrue(modificationsFile.delete() && modificationsFile.mkdir());
         PrintStream origErr = System.err;
         ByteArrayOutputStream err = new ByteArrayOutputStream();
         System.setErr(new PrintStream(err));
@@ -478,7 +474,7 @@ public class TimeLogModificationsTest extends AbstractTimeLogTest implements Tim
         MockBaseTimeLog base = new MockBaseTimeLog();
         TimeLogModifications timeLogMods = new TimeLogModifications(base, null, null);
         try {
-            long id = timeLogMods.getNextID();
+            timeLogMods.getNextID();
             fail("Expected IllegalStateException");
         } catch (IllegalStateException ise) {}
 

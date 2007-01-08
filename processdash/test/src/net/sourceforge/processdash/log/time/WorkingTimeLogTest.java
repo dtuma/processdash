@@ -1,5 +1,5 @@
+// Copyright (C) 2005-2007 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2005 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -55,7 +55,8 @@ public class WorkingTimeLogTest extends AbstractTimeLogTest implements TimeLogLi
         WorkingTimeLog tl = new WorkingTimeLog(tempDir);
 
         assertTrue(baseFile.isFile());
-        assertFalse(modFile.isFile());
+        assertTrue(modFile.isFile());
+        assertIsEmptyTimeLogFile(modFile);
         assertFalse(oldFile.isFile());
         assertTrue(compareFile(openFile(TIMELOG3_XML), baseFile));
 
@@ -70,7 +71,8 @@ public class WorkingTimeLogTest extends AbstractTimeLogTest implements TimeLogLi
         WorkingTimeLog tl = new WorkingTimeLog(tempDir);
 
         assertTrue(baseFile.isFile());
-        assertFalse(modFile.isFile());
+        assertTrue(modFile.isFile());
+        assertIsEmptyTimeLogFile(modFile);
         assertFalse(oldFile.isFile());
 
         assertTimeLogContents(TIMELOG3_MOD_CONTENTS, tl);
@@ -82,7 +84,8 @@ public class WorkingTimeLogTest extends AbstractTimeLogTest implements TimeLogLi
         WorkingTimeLog tl = new WorkingTimeLog(tempDir);
 
         assertTrue(baseFile.isFile());
-        assertFalse(modFile.isFile());
+        assertTrue(modFile.isFile());
+        assertIsEmptyTimeLogFile(modFile);
         assertFalse(oldFile.isFile());
 
         Iterator entries = tl.filter(null, null, null);
@@ -103,7 +106,8 @@ public class WorkingTimeLogTest extends AbstractTimeLogTest implements TimeLogLi
         WorkingTimeLog tl = new WorkingTimeLog(tempDir);
 
         assertTrue(baseFile.isFile());
-        assertFalse(modFile.isFile());
+        assertTrue(modFile.isFile());
+        assertIsEmptyTimeLogFile(modFile);
         assertFalse(oldFile.isFile());
 
         Iterator entries = tl.filter(null, null, null);
@@ -131,7 +135,8 @@ public class WorkingTimeLogTest extends AbstractTimeLogTest implements TimeLogLi
         tl.addTimeLogListener(this);
 
         assertTrue(baseFile.isFile());
-        assertFalse(modFile.isFile());
+        assertTrue(modFile.isFile());
+        assertIsEmptyTimeLogFile(modFile);
         assertFalse(oldFile.isFile());
 
         assertTimeLogContents(TIMELOG3_CONTENTS, tl);

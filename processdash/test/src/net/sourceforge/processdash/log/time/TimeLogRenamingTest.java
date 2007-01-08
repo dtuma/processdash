@@ -1,4 +1,4 @@
-// Copyright (C) 2005-2006 Tuma Solutions, LLC
+// Copyright (C) 2005-2007 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -219,13 +219,17 @@ public class TimeLogRenamingTest extends AbstractTimeLogTest {
         assertTimeLogContents(expectedContents, timeLog);
         // changes should have gotten saved into the modifications file
         assertTrue(new File(tempDir, WorkingTimeLog.TIME_LOG_FILENAME).exists());
-        assertTrue(new File(tempDir, WorkingTimeLog.TIME_LOG_MOD_FILENAME).exists());
+        File modFile = new File(tempDir, WorkingTimeLog.TIME_LOG_MOD_FILENAME);
+        assertTrue(modFile.exists());
+        long modSizeBeforeCleanup = modFile.length();
 
         // now get the working time log to clean up and reread itself (by
         // creating a new one)
         timeLog = new WorkingTimeLog(tempDir);
         assertTrue(new File(tempDir, WorkingTimeLog.TIME_LOG_FILENAME).exists());
-        assertFalse(new File(tempDir, WorkingTimeLog.TIME_LOG_MOD_FILENAME).exists());
+        assertTrue(modFile.exists());
+        assertIsEmptyTimeLogFile(modFile);
+        assertTrue(modFile.length() < modSizeBeforeCleanup);
 
         // after the cleanup, contents should still match our expectations.
         assertTimeLogContents(expectedContents, timeLog);

@@ -1,5 +1,5 @@
+// Copyright (C) 2005-2007 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2005 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -35,7 +35,6 @@ import net.sourceforge.processdash.data.DoubleData;
 import net.sourceforge.processdash.data.NumberFunction;
 import net.sourceforge.processdash.data.StringData;
 import net.sourceforge.processdash.data.repository.DataRepository;
-import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.util.FileUtils;
 
 public class DashboardTimeLogTest extends DefaultTimeLoggingModelTest {
@@ -114,6 +113,7 @@ public class DashboardTimeLogTest extends DefaultTimeLoggingModelTest {
         // create a bogus directory in the way of the time log mods file, so
         // that attempts to save it will fail.
         File modFile = new File(tempDir, WorkingTimeLog.TIME_LOG_MOD_FILENAME);
+        modFile.delete();
         modFile.mkdir();
 
         // add some entries.  The contents should appear correct, but the
