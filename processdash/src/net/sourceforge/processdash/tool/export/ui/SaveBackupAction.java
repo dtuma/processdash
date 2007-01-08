@@ -28,12 +28,16 @@ package net.sourceforge.processdash.tool.export.ui;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import javax.swing.AbstractAction;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 
 import net.sourceforge.processdash.DashController;
+import net.sourceforge.processdash.ProcessDashboard;
+import net.sourceforge.processdash.data.DataContext;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.ui.lib.ExampleFileFilter;
 import net.sourceforge.processdash.ui.lib.SwingWorker;
@@ -41,11 +45,14 @@ import net.sourceforge.processdash.util.FileUtils;
 
 public class SaveBackupAction extends AbstractAction {
 
+    private DataContext dataContext;
+
     private static final Resources resources = Resources
             .getDashBundle("ProcessDashboard");
 
-    public SaveBackupAction() {
+    public SaveBackupAction(DataContext dataContext) {
         super(resources.getString("Menu.Save_Backup"));
+        this.dataContext = dataContext;
     }
 
     public void actionPerformed(ActionEvent e) {
@@ -59,6 +66,17 @@ public class SaveBackupAction extends AbstractAction {
                 JOptionPane.ERROR_MESSAGE);
     }
 
+    public String getDefaultFilename() {
+        String owner = ProcessDashboard.getOwnerName(dataContext);
+        if (owner == null)
+            owner = "";
+        else
+            owner = FileUtils.makeSafe(owner) + "-";
+
+        SimpleDateFormat fmt = new SimpleDateFormat("yyyy-MM-dd");
+        return "pdash-" + owner + fmt.format(new Date()) + ".zip";
+    }
+
     private class Worker extends SwingWorker {
 
         File backupFile;
@@ -69,6 +87,8 @@ public class SaveBackupAction extends AbstractAction {
             backupFile = DashController.backupData();
 
             fc = new JFileChooser();
+            fc.setSelectedFile(new File(fc.getCurrentDirectory(),
+                    getDefaultFilename()));
             fc.setDialogTitle(resources.getString("Save_Backup.Window_Title"));
             fc.setFileFilter(new ExampleFileFilter("zip", resources
                     .getString("Save_Backup.Zip_File_Description")));

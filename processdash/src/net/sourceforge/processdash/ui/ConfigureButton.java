@@ -181,7 +181,7 @@ public class ConfigureButton extends JMenuBar implements ActionListener, Hierarc
             toolMenu.add(new ShowImportWizardAction(resources.getString(IMPORT)));
             toolMenu.add(new ShowExportWizardAction(resources.getString(EXPORT)));
         }
-        toolMenu.add(new SaveBackupAction());
+        toolMenu.add(new SaveBackupAction(parent.getData()));
         maybeAddTranslationTool(toolMenu);
         addToolExtensions(toolMenu);
     }
