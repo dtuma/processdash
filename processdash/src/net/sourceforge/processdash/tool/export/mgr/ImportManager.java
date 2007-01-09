@@ -1,5 +1,5 @@
+// Copyright (C) 2005-2007 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2005 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -26,6 +26,8 @@
 package net.sourceforge.processdash.tool.export.mgr;
 
 import java.io.File;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.repository.DataRepository;
@@ -35,25 +37,27 @@ import org.w3c.dom.Element;
 
 public class ImportManager extends AbstractManager {
 
+    private static final Logger logger = Logger.getLogger(ImportManager.class
+            .getName());
+
     private static ImportManager INSTANCE = null;
 
-    public static ImportManager getInstance() {
+    public synchronized static ImportManager getInstance() {
+        if (INSTANCE == null)
+            INSTANCE = new ImportManager();
         return INSTANCE;
     }
 
     public static void init(DataRepository dataRepository) {
-        INSTANCE = new ImportManager(dataRepository);
+        getInstance().setData(dataRepository, true);
     }
 
-    private ImportManager(DataRepository data) {
-        super(data);
+    private ImportManager() {
+        super();
         initialize();
 
-        //        System.out.println("ImportManager contents:");
-        //        for (Iterator iter = instructions.iterator(); iter.hasNext();) {
-        //            AbstractInstruction instr = (AbstractInstruction) iter.next();
-        //            System.out.println(instr);
-        //        }
+        if (logger.isLoggable(Level.CONFIG))
+            logger.config("ImportManager contents:\n" + getDebugContents());
     }
 
     protected String getTextSettingName() {
@@ -102,8 +106,11 @@ public class ImportManager extends AbstractManager {
     private class InstructionAdder implements ImportInstructionDispatcher {
 
         public Object dispatch(ImportDirectoryInstruction instr) {
-            DataImporter.addImport(data, instr.getPrefix(), instr
-                    .getDirectory());
+            String prefix = instr.getPrefix();
+            String origDir = instr.getDirectory();
+            String remappedDir = ExternalResourceManager.getInstance()
+                    .remapFilename(origDir);
+            DataImporter.addImport(data, prefix, remappedDir);
             return null;
         }
 
@@ -114,7 +121,11 @@ public class ImportManager extends AbstractManager {
     private class InstructionRemover implements ImportInstructionDispatcher {
 
         public Object dispatch(ImportDirectoryInstruction instr) {
-            DataImporter.removeImport(instr.getPrefix(), instr.getDirectory());
+            String prefix = instr.getPrefix();
+            String origDir = instr.getDirectory();
+            String remappedDir = ExternalResourceManager.getInstance()
+                    .remapFilename(origDir);
+            DataImporter.removeImport(prefix, remappedDir);
             return null;
         }
 

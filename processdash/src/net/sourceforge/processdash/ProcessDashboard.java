@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2006 Tuma Solutions, LLC
+// Copyright (C) 2003-2007 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -67,6 +67,7 @@ import net.sourceforge.processdash.security.DashboardPermission;
 import net.sourceforge.processdash.security.DashboardSecurity;
 import net.sourceforge.processdash.templates.*;
 import net.sourceforge.processdash.tool.export.mgr.ExportManager;
+import net.sourceforge.processdash.tool.export.mgr.ExternalResourceManager;
 import net.sourceforge.processdash.tool.export.mgr.ImportManager;
 import net.sourceforge.processdash.ui.*;
 import net.sourceforge.processdash.ui.help.*;
@@ -149,6 +150,8 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
         property_directory = prop_file.getParent() + Settings.sep;
         DefectAnalyzer.setDataDirectory(property_directory);
         CmsDefaultConfig.setPersistenceDirectory(prop_file.getParentFile());
+        ExternalResourceManager.getInstance().initializeMappings(
+                prop_file.getParentFile());
         try {
             default_directory = prop_file.getParentFile().getCanonicalPath();
         } catch (IOException ioe) {
@@ -389,6 +392,8 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
         brokenData.done();
         TemplateLoader.showTemplateErrors();
         addComponentListener(new ResizeWatcher());
+        ExternalResourceManager.getInstance().cleanupBogusExtResDirectory(
+                prop_file.getParentFile());
     }
     private Component addToMainWindow(Component component, double weight) {
         GridBagConstraints g = new GridBagConstraints();

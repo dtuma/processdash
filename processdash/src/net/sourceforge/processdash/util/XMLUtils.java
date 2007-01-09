@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2006 Tuma Solutions, LLC
+// Copyright (C) 2003-2007 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -49,6 +49,8 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
+import org.xmlpull.v1.XmlPullParserFactory;
+import org.xmlpull.v1.XmlSerializer;
 
 
 
@@ -58,6 +60,7 @@ public class XMLUtils {
     private static DocumentBuilderFactory factory = null;
     private static ResourcePool saxParserPool;
     private static SAXParserFactory saxFactory = null;
+    private static XmlPullParserFactory xmlPullParserFactory = null;
 
     static {
         try {
@@ -85,6 +88,13 @@ public class XMLUtils {
                     return createNewSAXParser();
                 }
             };
+
+        try {
+            xmlPullParserFactory = XmlPullParserFactory.newInstance();
+        } catch (Exception e) {
+            System.err.println("Unable to create an XmlPullParserFactory: " +
+                    e);
+        }
     }
 
     private static Object createNewDocumentBuilder() {
@@ -165,6 +175,33 @@ public class XMLUtils {
         } finally {
             if (parser != null) saxParserPool.release(parser);
         }
+    }
+
+    /// methods for XML Pull parsing / serialization
+
+    public static XmlSerializer getXmlSerializer(boolean whitespace)
+            throws IOException {
+        XmlSerializer result;
+        try {
+            result = xmlPullParserFactory.newSerializer();
+        } catch (Exception e) {
+            IOException ioe = new IOException("Couldn't obtain xml serializer");
+            ioe.initCause(e);
+            throw ioe;
+        }
+
+        if (whitespace)
+            try {
+                result.setFeature(
+                        "http://xmlpull.org/v1/doc/features.html#indent-output",
+                        true);
+            } catch (Exception e) {
+                // pretty whitespace output is a preference, but rarely a
+                // requirement.  If the current XmlPull implementation doesn't
+                // support it, just ignore the limitation and move on.
+            }
+
+        return result;
     }
 
     public static StringMapper ESCAPE_ATTRIBUTE = new StringMapper() {

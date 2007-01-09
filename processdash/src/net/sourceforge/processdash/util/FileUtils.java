@@ -1,4 +1,4 @@
-// Copyright (C) 2005-2006 Tuma Solutions, LLC
+// Copyright (C) 2005-2007 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -69,17 +69,21 @@ public class FileUtils {
     }
 
     public static void copyFile(File src, File dest) throws IOException {
-        InputStream inputStream = new BufferedInputStream(new FileInputStream(
-                src));
+        InputStream inputStream = new FileInputStream(src);
         copyFile(inputStream, dest);
         inputStream.close();
     }
 
     public static void copyFile(InputStream src, File dest) throws IOException {
-        OutputStream outputStream = new BufferedOutputStream(
-                new FileOutputStream(dest));
+        OutputStream outputStream = new FileOutputStream(dest);
         copyFile(src, outputStream);
         outputStream.close();
+    }
+
+    public static void copyFile(File src, OutputStream dest) throws IOException {
+        InputStream inputStream = new FileInputStream(src);
+        copyFile(inputStream, dest);
+        inputStream.close();
     }
 
     public static void copyFile(InputStream src, OutputStream dest) throws IOException {

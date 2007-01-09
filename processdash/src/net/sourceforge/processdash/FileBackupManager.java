@@ -48,6 +48,7 @@ import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
 import net.sourceforge.processdash.log.time.WorkingTimeLog;
+import net.sourceforge.processdash.tool.export.mgr.ExternalResourceManager;
 import net.sourceforge.processdash.ui.ConsoleWindow;
 import net.sourceforge.processdash.util.FileUtils;
 
@@ -142,6 +143,9 @@ public class FileBackupManager {
         if (dataFiles == null || dataFiles.size() == 0)
             return null;        // nothing to do
 
+        ExternalResourceManager extResourceMgr = ExternalResourceManager
+                .getInstance();
+
         File[] backupFiles = getBackupFiles(backupDir);
         File mostRecentBackupFile = findMostRecentBackupFile(backupFiles);
         File oldBackupTempFile = new File(backupDir, OLD_BACKUP_TEMP_FILENAME);
@@ -168,6 +172,8 @@ public class FileBackupManager {
             ZipEntry oldEntry;
             while ((oldEntry = oldBackupIn.getNextEntry()) != null) {
                 String filename = oldEntry.getName();
+                if (extResourceMgr.isArchivedItem(filename))
+                    continue;
                 File file = new File(dataDir, filename);
 
                 if (dataFiles.remove(filename)) {
@@ -225,6 +231,9 @@ public class FileBackupManager {
             File file = new File(dataDir, filename);
             backupFile(null, null, null, newBackupOut, file, filename);
         }
+
+        // Allow the external resource manager to save any items of interest.
+        extResourceMgr.addExternalResourcesToBackup(newBackupOut);
 
         // finalize the new backup, and give it its final name.
         newBackupOut.close();

@@ -1,4 +1,4 @@
-// Copyright (C) 2006 Tuma Solutions, LLC
+// Copyright (C) 2006-2007 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -35,9 +35,14 @@ import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+import net.sourceforge.processdash.tool.export.mgr.ExternalResourceManager;
 import net.sourceforge.processdash.util.FileUtils;
 
 class CompressedInstanceLauncher extends DashboardInstance {
+
+    private static final String EXT_RES_MGR_ARG = "-D"
+            + ExternalResourceManager.INITIALIZATION_MODE_PROPERTY_NAME + "="
+            + ExternalResourceManager.INITIALIZATION_MODE_ARCHIVE;
 
     private File compressedData;
 
@@ -62,7 +67,7 @@ class CompressedInstanceLauncher extends DashboardInstance {
             throw new LaunchException(message, e);
         }
 
-        launchApp(processFactory, Collections.EMPTY_LIST,
+        launchApp(processFactory, Collections.singletonList(EXT_RES_MGR_ARG),
                 pspdataDir);
 
         try {
@@ -117,6 +122,8 @@ class CompressedInstanceLauncher extends DashboardInstance {
                 if (filename.indexOf('/') != -1)
                     destFile.getParentFile().mkdirs();
                 FileUtils.copyFile(in, destFile);
+                if (e.getTime() != -1)
+                    destFile.setLastModified(e.getTime());
             }
         }
     }

@@ -1,4 +1,4 @@
-// Copyright (C) 2005-2006 Tuma Solutions, LLC
+// Copyright (C) 2005-2007 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -68,31 +68,30 @@ public class ExportManager extends AbstractManager {
     private static Logger logger = Logger.getLogger(ExportManager.class
             .getName());
 
-    public static ExportManager getInstance() {
+    public synchronized static ExportManager getInstance() {
+        if (INSTANCE == null)
+            INSTANCE = new ExportManager();
         return INSTANCE;
     }
 
     public static void init(DataRepository dataRepository,
             ProcessDashboard dashboard) {
-        INSTANCE = new ExportManager(dataRepository, dashboard);
+        getInstance().setup(dataRepository, dashboard);
     }
 
     private ProcessDashboard dashboard;
 
-    private boolean initializing;
-
-    private ExportManager(DataRepository data, ProcessDashboard dashboard) {
-        super(data);
-        this.dashboard = dashboard;
-        initializing = true;
+    private ExportManager() {
+        super();
         initialize();
-        initializing = false;
 
-        // System.out.println("ExportManager contents:");
-        // for (Iterator iter = instructions.iterator(); iter.hasNext();) {
-        // AbstractInstruction instr = (AbstractInstruction) iter.next();
-        // System.out.println(instr);
-        // }
+        if (logger.isLoggable(Level.CONFIG))
+            logger.config("ExportManager contents:\n" + getDebugContents());
+    }
+
+    private void setup(DataRepository data, ProcessDashboard dashboard) {
+        this.dashboard = dashboard;
+        setData(data, false);
 
         storeCapabilityData(data);
     }
@@ -121,7 +120,7 @@ public class ExportManager extends AbstractManager {
     }
 
     public void handleAddedInstruction(AbstractInstruction instr) {
-        if (!initializing && instr.isEnabled()) {
+        if (instr.isEnabled()) {
             // use the visitor pattern to invoke the correct handler method
             instr.dispatch(instructionAdder);
         }
@@ -162,6 +161,7 @@ public class ExportManager extends AbstractManager {
 
         public Object dispatch(ExportMetricsFileInstruction instr) {
             String dest = instr.getFile();
+            dest = ExternalResourceManager.getInstance().remapFilename(dest);
             Vector paths = instr.getPaths();
 
             if (dest.toLowerCase().endsWith(".txt"))

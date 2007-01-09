@@ -1,4 +1,4 @@
-// Copyright (C) 2005-2006 Tuma Solutions, LLC
+// Copyright (C) 2005-2007 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -58,8 +58,7 @@ public abstract class AbstractManager {
 
     private ManagerTableModel tableModel;
 
-    AbstractManager(DataRepository data) {
-        this.data = data;
+    AbstractManager() {
         this.instructions = new ArrayList();
     }
 
@@ -71,6 +70,8 @@ public abstract class AbstractManager {
 
     protected abstract void parseTextInstruction(String left, String right);
 
+    /** Read the settings for this manager, and possibly normalize them.
+     */
     protected void initialize() {
         boolean foundTextSetting = false;
 
@@ -98,6 +99,26 @@ public abstract class AbstractManager {
         if (foundTextSetting) {
             saveSetting();
             InternalSettings.set(getTextSettingName(), null);
+        }
+    }
+
+    /** Save a reference to the data repository.
+     * 
+     * @param data the data repository.
+     * @param handleExisting if true, handleAddedInstruction will be run
+     *     on all instructions currently in the list.
+     */
+    protected void setData(DataRepository data, boolean handleExisting) {
+        if (this.data != null)
+            throw new IllegalStateException();
+
+        this.data = data;
+
+        if (handleExisting) {
+            for (Iterator i = instructions.iterator(); i.hasNext();) {
+                AbstractInstruction instr = (AbstractInstruction) i.next();
+                handleAddedInstruction(instr);
+            }
         }
     }
 
@@ -168,7 +189,8 @@ public abstract class AbstractManager {
             instructions.add(instr);
             int pos = instructions.indexOf(instr);
             fireInstructionAdded(pos);
-            handleAddedInstruction(instr);
+            if (data != null)
+                handleAddedInstruction(instr);
         }
     }
 
@@ -190,8 +212,10 @@ public abstract class AbstractManager {
         } else {
             instructions.set(pos, newInstr);
             fireInstructionChanged(pos);
-            handleRemovedInstruction(oldInstr);
-            handleAddedInstruction(newInstr);
+            if (data != null) {
+                handleRemovedInstruction(oldInstr);
+                handleAddedInstruction(newInstr);
+            }
         }
     }
 
@@ -206,7 +230,8 @@ public abstract class AbstractManager {
         int pos = instructions.indexOf(instr);
         instructions.remove(instr);
         fireInstructionRemoved(pos);
-        handleRemovedInstruction(instr);
+        if (data != null)
+            handleRemovedInstruction(instr);
     }
 
     protected abstract void handleRemovedInstruction(AbstractInstruction instr);
@@ -310,5 +335,17 @@ public abstract class AbstractManager {
             if (listeners == null || listeners.length == 0)
                 tableModel = null;
         }
+    }
+
+    protected String getDebugContents() {
+        if (instructions.isEmpty())
+            return "-EMPTY-";
+
+        StringBuffer msg = new StringBuffer();
+        for (Iterator i = instructions.iterator(); i.hasNext();) {
+            AbstractInstruction instr = (AbstractInstruction) i.next();
+            msg.append("\n").append(instr);
+        }
+        return msg.substring(1);
     }
 }

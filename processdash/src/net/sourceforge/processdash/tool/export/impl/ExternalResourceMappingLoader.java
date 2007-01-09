@@ -1,5 +1,5 @@
+// Copyright (C) 2007 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2006 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -23,21 +23,18 @@
 //
 // E-Mail POC:  processdash-devel@lists.sourceforge.net
 
-package net.sourceforge.processdash.tool.export.mgr;
+package net.sourceforge.processdash.tool.export.impl;
 
-import junit.framework.Test;
-import junit.framework.TestSuite;
+import java.io.File;
+import java.util.Map;
 
-public class AllExportMgrTests {
+public interface ExternalResourceMappingLoader {
 
-    public static Test suite() {
-        TestSuite suite = new TestSuite(
-                "Test for net.sourceforge.processdash.tool.export.mgr");
-        //$JUnit-BEGIN$
-        suite.addTestSuite(ExportMetricsFileInstructionTest.class);
-        suite.addTestSuite(ExternalResourceManagerTest.class);
-        //$JUnit-END$
-        return suite;
-    }
-
+    /** Load a collection of directory path remappings for external resources.
+     * 
+     * @param directory the directory where dashboard data is located (i.e.,
+     *     where the state file, global.dat file, etc are stored)
+     * @return a collection of directory path remappings to use
+     */
+    public Map load(File directory);
 }
