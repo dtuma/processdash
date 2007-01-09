@@ -15,6 +15,7 @@ import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.net.http.WebServer;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.HTMLUtils;
+import teamdash.FilenameMapper;
 import teamdash.XMLUtils;
 import teamdash.wbs.WBSEditor;
 
@@ -48,6 +49,7 @@ public class OpenWBSEditor extends TinyCGIBase {
 
         parseFormData();
         String directory = getParameter("directory");
+        directory = FilenameMapper.remap(directory);
         boolean bottomUp = parameters.containsKey("bottomUp");
         boolean showTeam = parameters.containsKey("team");
 

@@ -5,6 +5,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import teamdash.FilenameMapper;
+
 import net.sourceforge.processdash.DashController;
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.ListData;
@@ -170,6 +172,7 @@ public class sync extends TinyCGIBase {
         if (d == null || !d.test() ||
             "Enter network directory path".equals(teamDirectory = d.format()))
             signalError(TEAM_DIR_MISSING);
+        teamDirectory = FilenameMapper.remap(teamDirectory);
         File teamDir = new File(teamDirectory);
         if (!teamDir.isDirectory())
             signalError(TEAM_DIR_MISSING);
