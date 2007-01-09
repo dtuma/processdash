@@ -35,10 +35,13 @@ import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+import net.sourceforge.processdash.ConcurrencyLock;
 import net.sourceforge.processdash.tool.export.mgr.ExternalResourceManager;
 import net.sourceforge.processdash.util.FileUtils;
 
 class CompressedInstanceLauncher extends DashboardInstance {
+
+    private static final String TEMP_DIR_PREFIX = "pdash-quicklaunch-";
 
     private static final String EXT_RES_MGR_ARG = "-D"
             + ExternalResourceManager.INITIALIZATION_MODE_PROPERTY_NAME + "="
@@ -84,7 +87,7 @@ class CompressedInstanceLauncher extends DashboardInstance {
     }
 
     private File uncompressData() throws IOException {
-        File tempDir = File.createTempFile("pdash-quicklaunch-", "");
+        File tempDir = File.createTempFile(TEMP_DIR_PREFIX, "");
         tempDir.delete();
         tempDir.mkdir();
 
@@ -166,5 +169,27 @@ class CompressedInstanceLauncher extends DashboardInstance {
 
     /** A string that will be used to separate the names of nested zip files */
     private static final String SUBZIP_SEPARATOR = " -> ";
+
+    public static void cleanupOldDirectories() {
+        try {
+            File tempFile = File.createTempFile("foo", "");
+            File tempDirectory = tempFile.getParentFile();
+            tempFile.delete();
+
+            File[] files = tempDirectory.listFiles();
+            for (int i = 0; i < files.length; i++) {
+                if (files[i].isDirectory()
+                        && files[i].getName().startsWith(TEMP_DIR_PREFIX)) {
+                    File lockFile = new File(files[i],
+                            ConcurrencyLock.LOCK_FILE_NAME);
+                    File lockFile2 = new File(files[i],
+                            ConcurrencyLock.INFO_FILE_NAME);
+                    if (!lockFile.exists() && !lockFile2.exists())
+                        FileUtils.deleteDirectory(files[i], true);
+                }
+            }
+
+        } catch (IOException ioe) {}
+    }
 
 }

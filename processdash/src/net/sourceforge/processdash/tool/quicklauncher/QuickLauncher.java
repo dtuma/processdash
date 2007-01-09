@@ -88,6 +88,8 @@ public class QuickLauncher {
         } catch (Exception e) {
         }
 
+        CompressedInstanceLauncher.cleanupOldDirectories();
+
         try {
             processFactory = new DashboardProcessFactory();
 
