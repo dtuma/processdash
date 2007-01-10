@@ -5,6 +5,7 @@ import java.awt.Color;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -233,7 +234,7 @@ public class TeamMemberList extends AbstractTableModel {
     }
 
     /** Find the earliest date when any team members is starting.  If no team
-     * members have start dates, use the current time. */
+     * members have start dates, use "next Sunday". */
     private Date getDefaultStartDate() {
         long result = Long.MAX_VALUE;
         for (Iterator i = teamMembers.iterator(); i.hasNext();) {
@@ -242,9 +243,14 @@ public class TeamMemberList extends AbstractTableModel {
                     && m.getStartDate() != null)
                 result = Math.min(result, m.getStartDate().getTime());
         }
-        if (result == Long.MAX_VALUE)
-            return new Date();
-        else
+        if (result == Long.MAX_VALUE) {
+            Calendar c = Calendar.getInstance();
+            c.add(Calendar.DATE, 7);
+            c.set(Calendar.DAY_OF_WEEK, Calendar.SUNDAY);
+            c.set(Calendar.HOUR_OF_DAY, 0); c.set(Calendar.MINUTE, 0);
+            c.set(Calendar.SECOND, 0); c.set(Calendar.MILLISECOND, 0);
+            return c.getTime();
+        } else
             return new Date(result);
     }
 
