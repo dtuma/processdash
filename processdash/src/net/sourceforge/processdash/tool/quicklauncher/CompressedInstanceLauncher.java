@@ -28,7 +28,9 @@ package net.sourceforge.processdash.tool.quicklauncher;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -38,8 +40,12 @@ import java.util.zip.ZipInputStream;
 import net.sourceforge.processdash.ConcurrencyLock;
 import net.sourceforge.processdash.tool.export.mgr.ExternalResourceManager;
 import net.sourceforge.processdash.util.FileUtils;
+import net.sourceforge.processdash.util.XorInputStream;
 
-class CompressedInstanceLauncher extends DashboardInstance {
+public class CompressedInstanceLauncher extends DashboardInstance {
+
+    public static final String PDASH_BACKUP_EXTENSION = "pdbk";
+    public static final int PDASH_BACKUP_XOR_BITS = 0x55;
 
     private static final String TEMP_DIR_PREFIX = "pdash-quicklaunch-";
 
@@ -91,12 +97,22 @@ class CompressedInstanceLauncher extends DashboardInstance {
         tempDir.delete();
         tempDir.mkdir();
 
-        ZipInputStream in = new ZipInputStream(new BufferedInputStream(
-                new FileInputStream(compressedData)));
+        ZipInputStream in = openZipStream(compressedData);
         uncompressData(tempDir, in, prefix);
         in.close();
 
         return tempDir;
+    }
+
+    private static ZipInputStream openZipStream(File f)
+            throws FileNotFoundException {
+        InputStream compressedIn = new BufferedInputStream(new FileInputStream(
+                f));
+        if (f.getName().toLowerCase().endsWith(PDASH_BACKUP_EXTENSION))
+            compressedIn = new XorInputStream(compressedIn,
+                    PDASH_BACKUP_XOR_BITS);
+
+        return new ZipInputStream(compressedIn);
     }
 
     private void uncompressData(File tempDir, ZipInputStream in,
@@ -141,10 +157,15 @@ class CompressedInstanceLauncher extends DashboardInstance {
         return false;
     }
 
+    static boolean isCompressedInstanceFilename(String basename) {
+        basename = basename.toLowerCase();
+        return basename.endsWith(".zip")
+                || basename.endsWith(PDASH_BACKUP_EXTENSION);
+    }
+
     static List getDataDirectoriesWithinZip(File zipfile) throws IOException {
         List result = new ArrayList();
-        ZipInputStream in = new ZipInputStream(new BufferedInputStream(
-                new FileInputStream(zipfile)));
+        ZipInputStream in = openZipStream(zipfile);
         collectDataDirectoryPrefixes(result, "", in);
         return result;
     }

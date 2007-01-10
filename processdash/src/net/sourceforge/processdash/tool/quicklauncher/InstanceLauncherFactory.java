@@ -60,7 +60,7 @@ public class InstanceLauncherFactory {
         if (FileBackupManager.inBackupSet(f.getParentFile(), basename))
             return getDirLauncher(comp, f.getParentFile());
 
-        if (basename.endsWith(".zip"))
+        if (CompressedInstanceLauncher.isCompressedInstanceFilename(basename))
             return getZipLauncher(comp, f);
 
         return null;

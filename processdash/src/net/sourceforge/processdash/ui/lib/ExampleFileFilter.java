@@ -41,10 +41,11 @@
 package net.sourceforge.processdash.ui.lib;
 
 import java.io.File;
-import java.util.Hashtable;
-import java.util.Enumeration;
-import javax.swing.*;
-import javax.swing.filechooser.*;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.Set;
+
+import javax.swing.filechooser.FileFilter;
 
 /**
  * A convenience implementation of FileFilter that filters out
@@ -67,10 +68,7 @@ import javax.swing.filechooser.*;
  */
 public class ExampleFileFilter extends FileFilter {
 
-    private static String TYPE_UNKNOWN = "Type Unknown";
-    private static String HIDDEN_FILE = "Hidden File";
-
-    private Hashtable filters = null;
+    private Set filters = null;
     private String description = null;
     private String fullDescription = null;
     private boolean useExtensionsInDescription = true;
@@ -82,7 +80,7 @@ public class ExampleFileFilter extends FileFilter {
      * @see #addExtension
      */
     public ExampleFileFilter() {
-        this.filters = new Hashtable();
+        this.filters = new LinkedHashSet();
     }
 
     /**
@@ -155,11 +153,21 @@ public class ExampleFileFilter extends FileFilter {
                 return true;
             }
             String extension = getExtension(f);
-            if(extension != null && filters.get(getExtension(f)) != null) {
-                return true;
-            };
+            return (extension != null && filters.contains(extension));
         }
         return false;
+    }
+
+    /**
+     * Return the extension portion of the file's name .
+     * 
+     * @see #getExtension
+     * @see FileFilter#accept
+     */
+    public String getExtension(File f) {
+        if (f != null)
+            return getExtension(f.getName());
+        return null;
     }
 
     /**
@@ -168,14 +176,10 @@ public class ExampleFileFilter extends FileFilter {
      * @see #getExtension
      * @see FileFilter#accept
      */
-     public String getExtension(File f) {
-        if(f != null) {
-            String filename = f.getName();
-            int i = filename.lastIndexOf('.');
-            if(i>0 && i<filename.length()-1) {
-                return filename.substring(i+1).toLowerCase();
-            };
-        }
+    public String getExtension(String filename) {
+        int i = filename.lastIndexOf('.');
+        if(i>0 && i<filename.length()-1)
+            return filename.substring(i+1).toLowerCase();
         return null;
     }
 
@@ -192,11 +196,10 @@ public class ExampleFileFilter extends FileFilter {
      * Note that the "." before the extension is not needed and will be ignored.
      */
     public void addExtension(String extension) {
-        if(filters == null) {
-            filters = new Hashtable(5);
-        }
-        filters.put(extension.toLowerCase(), this);
-        fullDescription = null;
+        if(filters == null)
+             filters = new LinkedHashSet(5);
+         filters.add(extension.toLowerCase());
+         fullDescription = null;
     }
 
 
@@ -214,12 +217,11 @@ public class ExampleFileFilter extends FileFilter {
             if(description == null || isExtensionListInDescription()) {
                 fullDescription = description==null ? "(" : description + " (";
                 // build the description from the extension list
-                Enumeration extensions = filters.keys();
-                if(extensions != null) {
-                    fullDescription += "." + (String) extensions.nextElement();
-                    while (extensions.hasMoreElements()) {
-                        fullDescription += ", ." + (String) extensions.nextElement();
-                    }
+                Iterator i = filters.iterator();
+                if (i.hasNext()) {
+                    fullDescription += "." + (String) i.next();
+                    while (i.hasNext())
+                        fullDescription += ", ." + (String) i.next();
                 }
                 fullDescription += ")";
             } else {
@@ -271,5 +273,42 @@ public class ExampleFileFilter extends FileFilter {
      */
     public boolean isExtensionListInDescription() {
         return useExtensionsInDescription;
+    }
+
+    /** If the given file has no extension, nominally append one of the
+     * extensions recognized by this filter.
+     * 
+     * When a user manually types a new filename into the text selection box
+     * of a JFileChooser and does not specify an extension, they generally
+     * expect an appropriate extension to be appended.  This method performs
+     * that task.
+     * 
+     * @param f a File, can be null
+     */
+    public File maybeAppendExtension(File f) {
+        if (f != null && !filters.isEmpty()) {
+            String currentExtension = getExtension(f);
+            if (currentExtension == null) {
+                String filename = f.getName();
+                if (!filename.endsWith("."))
+                    filename = filename + ".";
+                filename = filename + filters.iterator().next();
+                f = new File(f.getParentFile(), filename);
+            }
+        }
+        return f;
+    }
+
+
+    public String maybeAppendExtension(String filename) {
+        if (filename != null && filename.length() > 0) {
+            String currentExtension = getExtension(filename);
+            if (currentExtension == null) {
+                if (!filename.endsWith("."))
+                    filename = filename + ".";
+                filename = filename + filters.iterator().next();
+            }
+        }
+        return filename;
     }
 }

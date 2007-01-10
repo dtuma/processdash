@@ -26,22 +26,30 @@
 package net.sourceforge.processdash.tool.export.ui;
 
 import java.awt.event.ActionEvent;
+import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import javax.swing.AbstractAction;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
+import javax.swing.SwingUtilities;
+import javax.swing.filechooser.FileFilter;
+import javax.swing.plaf.basic.BasicFileChooserUI;
 
 import net.sourceforge.processdash.DashController;
 import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.data.DataContext;
 import net.sourceforge.processdash.i18n.Resources;
+import net.sourceforge.processdash.tool.quicklauncher.CompressedInstanceLauncher;
 import net.sourceforge.processdash.ui.lib.ExampleFileFilter;
 import net.sourceforge.processdash.ui.lib.SwingWorker;
 import net.sourceforge.processdash.util.FileUtils;
+import net.sourceforge.processdash.util.XorOutputStream;
 
 public class SaveBackupAction extends AbstractAction {
 
@@ -86,14 +94,21 @@ public class SaveBackupAction extends AbstractAction {
         public Object construct() {
             backupFile = DashController.backupData();
 
-            fc = new JFileChooser();
+            fc = new MyJFileChooser();
+            fc.setAcceptAllFileFilterUsed(false);
             fc.setSelectedFile(new File(fc.getCurrentDirectory(),
                     getDefaultFilename()));
             fc.setDialogTitle(resources.getString("Save_Backup.Window_Title"));
-            fc.setFileFilter(new ExampleFileFilter("zip", resources
-                    .getString("Save_Backup.Zip_File_Description")));
+            fc.addChoosableFileFilter(makeFilter(PDBK));
+            fc.addChoosableFileFilter(makeFilter("zip"));
 
             return null;
+        }
+
+        private ExampleFileFilter makeFilter(String ext) {
+            String descr = resources.getString("Save_Backup." + ext
+                    + ".File_Description");
+            return new ExampleFileFilter(ext, descr);
         }
 
         public void finished() {
@@ -108,11 +123,19 @@ public class SaveBackupAction extends AbstractAction {
             File dest = fc.getSelectedFile();
             if (dest == null)
                 return;
-            if (dest.getName().indexOf('.') == -1)
-                dest = new File(dest.getParent(), dest.getName() + ".zip");
+
+            ExampleFileFilter ff = (ExampleFileFilter) fc.getFileFilter();
+            dest = ff.maybeAppendExtension(dest);
 
             try {
-                FileUtils.copyFile(backupFile, dest);
+                OutputStream out = new BufferedOutputStream(
+                        new FileOutputStream(dest));
+                if (dest.getName().toLowerCase().endsWith(PDBK))
+                    out = new XorOutputStream(out,
+                            CompressedInstanceLauncher.PDASH_BACKUP_XOR_BITS);
+
+                FileUtils.copyFile(backupFile, out);
+                out.close();
             } catch (IOException ioe) {
                 ioe.printStackTrace();
                 showErrorMessage();
@@ -121,5 +144,43 @@ public class SaveBackupAction extends AbstractAction {
 
 
     }
+
+    private class MyJFileChooser extends JFileChooser {
+
+        public void setFileFilter(FileFilter filter) {
+            super.setFileFilter(filter);
+
+            if (!(getUI() instanceof BasicFileChooserUI))
+                return;
+
+            final BasicFileChooserUI ui = (BasicFileChooserUI) getUI();
+            String name = ui.getFileName().trim();
+
+            if ((name == null) || (name.length() == 0))
+                return;
+
+            int dotPos = name.lastIndexOf('.');
+            if (dotPos != -1)
+                name = name.substring(0, dotPos);
+
+            if (filter instanceof ExampleFileFilter) {
+                ExampleFileFilter eff = (ExampleFileFilter) filter;
+                name = eff.maybeAppendExtension(name);
+            }
+
+            final String nameToUse = name;
+            SwingUtilities.invokeLater(new Runnable() {
+                public void run() {
+                    String currentName = ui.getFileName();
+                    if ((currentName == null) || (currentName.length() == 0)) {
+                        ui.setFileName(nameToUse);
+                    }
+                }
+            });
+        }
+
+    }
+
+    private static final String PDBK = CompressedInstanceLauncher.PDASH_BACKUP_EXTENSION;
 
 }
