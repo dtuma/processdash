@@ -16,12 +16,14 @@
   <target name="tsp">
     <property name="teamProcess.xml" value="tsp/settings.xml"/>
     <property name="teamProcess.zip" value="TSP-v1.zip"/>
+    <property name="install-flags" value="pspForEng"/>
     <property name="cd-qualifier" value="tsp"/>
   </target>
 
   <target name="vvis">
     <property name="teamProcess.xml" value="vvis.xml"/>
     <property name="teamProcess.zip" value="VVGDP-v2.zip"/>
+    <property name="install-flags" value="pspForEng"/>
   </target>
 
   <target name="vvis1">
@@ -168,6 +170,7 @@
       <filterchain><expandproperties/></filterchain>
     </loadfile>
     <property name="extraCoreFiles" value=""/>
+    <property name="install-flags" value=""/>
     <property name="cd-qualifier" value="team"/>
   </target>
 
@@ -178,6 +181,7 @@
       <property name="alreadyRebuilt" value="true"/>
       <property name="dontCleanDist" value="true"/>
       <property name="dist" value="${teamdash.dir}"/>
+      <property name="install.flags" value="${install-flags}"/>
       <property name="additional.resources" value="${extraResources}"/>
       <property name="additional.packs" value="${extraPacks}"/>
       <property name="custom-install.extra" value="${extraIni}"/>
@@ -189,6 +193,7 @@
       <property name="alreadyRebuilt" value="true"/>
       <property name="dontCleanDist" value="true"/>
       <property name="dist" value="${teamdash.dir}"/>
+      <property name="install.flags" value="${install-flags}"/>
       <property name="additional.resources" value="${extraResources}"/>
       <property name="additional.packs" value="${extraPacks}"/>
       <property name="custom-install.extra" value="${extraIni}"/>
@@ -202,6 +207,7 @@
       <property name="alreadyRebuilt" value="true"/>
       <property name="dontCleanDist" value="true"/>
       <property name="dist" value="${teamdash.dir}"/>
+      <property name="install.flags" value="${install-flags}"/>
       <property name="additional.resources" value="${extraResources}"/>
       <property name="additional.packs" value="${extraPacks}"/>
       <property name="custom-install.extra" value="${extraIni}"/>
@@ -224,6 +230,7 @@
     <!-- build version 2 of the VVGDP, and the installer -->
     <property name="teamProcess.xml" value="vvis.xml"/>
     <property name="teamProcess.zip" value="VVGDP-v2.zip"/>
+    <property name="install-flags" value="pspForEng"/>
     <property name="cd-qualifier" value="vvis"/>
     <pathconvert property="teamdash.dir" dirSep="/">
       <path><pathelement location="."/></path>
