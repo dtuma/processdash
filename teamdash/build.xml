@@ -49,7 +49,10 @@
   <target name="TeamProcessCGI" unless="noBuild">
     <!-- Create a signed jarfile of cgi scripts -->  
     <jar destfile="${TeamProcessCGI.jar}" duplicate="fail">
-      <fileset dir="bin" includes="teamdash/templates/setup/"/>
+      <fileset dir="bin">
+        <include name="teamdash/templates/setup/"/>
+        <include name="teamdash/FilenameMapper*"/>
+      </fileset>
     </jar>
     <property environment="env"/>
     <signjar jar="${TeamProcessCGI.jar}" alias="processdash-full-permissions"
@@ -105,6 +108,7 @@
     <classfileset id="teamToolsClasses" dir="bin">
       <root classname="teamdash.wbs.WBSEditor"/>
       <root classname="teamdash.templates.tools.OpenWBSEditor"/>
+      <root classname="teamdash.FilenameMapperExtResMgr"/>
     </classfileset>
 
     <jar destfile="TeamTools.jar" duplicate="fail">
