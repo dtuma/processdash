@@ -162,9 +162,12 @@ Authors:
 
     <target name="instructor" depends="init"
             description="Create an installation CD for PSP instructors">
+        <loadfile property="custom-inst-instr"
+		  srcFile="files/custom-install-instr.ini"/>
         <antcall target="install-CD">
             <param name="install.flags" value="pspForEng,noProc"/>
 	    <param name="qualifier" value="instr"/>
+	    <param name="custom-install.extra" value="${custom-inst-instr}"/>
 	</antcall>
     </target>
 
