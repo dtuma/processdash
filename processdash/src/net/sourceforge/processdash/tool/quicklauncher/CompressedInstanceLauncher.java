@@ -32,12 +32,12 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 import net.sourceforge.processdash.ConcurrencyLock;
+import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.tool.export.mgr.ExternalResourceManager;
 import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.XorInputStream;
@@ -56,6 +56,8 @@ public class CompressedInstanceLauncher extends DashboardInstance {
     private File compressedData;
 
     private String prefix;
+
+    private long dataTimeStamp;
 
     public CompressedInstanceLauncher(File compressedData, String prefix) {
         this.compressedData = compressedData;
@@ -76,8 +78,13 @@ public class CompressedInstanceLauncher extends DashboardInstance {
             throw new LaunchException(message, e);
         }
 
-        launchApp(processFactory, Collections.singletonList(EXT_RES_MGR_ARG),
-                pspdataDir);
+        List vmArgs = new ArrayList();
+        vmArgs.add(EXT_RES_MGR_ARG);
+        if (dataTimeStamp > 0)
+            vmArgs.add("-D" + Settings.SYS_PROP_PREFIX + "ev.effectiveDate="
+                    + dataTimeStamp);
+
+        launchApp(processFactory, vmArgs, pspdataDir);
 
         try {
             waitForCompletion();
@@ -96,6 +103,7 @@ public class CompressedInstanceLauncher extends DashboardInstance {
         File tempDir = File.createTempFile(TEMP_DIR_PREFIX, "");
         tempDir.delete();
         tempDir.mkdir();
+        dataTimeStamp = 0;
 
         ZipInputStream in = openZipStream(compressedData);
         uncompressData(tempDir, in, prefix);
@@ -108,11 +116,14 @@ public class CompressedInstanceLauncher extends DashboardInstance {
             throws FileNotFoundException {
         InputStream compressedIn = new BufferedInputStream(new FileInputStream(
                 f));
-        if (f.getName().toLowerCase().endsWith(PDASH_BACKUP_EXTENSION))
-            compressedIn = new XorInputStream(compressedIn,
-                    PDASH_BACKUP_XOR_BITS);
+        return openZipStream(compressedIn, f.getName());
+    }
 
-        return new ZipInputStream(compressedIn);
+    private static ZipInputStream openZipStream(InputStream in, String filename) {
+        if (filename.toLowerCase().endsWith(PDASH_BACKUP_EXTENSION))
+            in = new XorInputStream(in, PDASH_BACKUP_XOR_BITS);
+
+        return new ZipInputStream(in);
     }
 
     private void uncompressData(File tempDir, ZipInputStream in,
@@ -131,7 +142,7 @@ public class CompressedInstanceLauncher extends DashboardInstance {
             String filename = e.getName().replace('\\', '/');
             if (remainingPrefix != null) {
                 if (filename.equals(prefix)) {
-                    ZipInputStream subZip = new ZipInputStream(in);
+                    ZipInputStream subZip = openZipStream(in, filename);
                     uncompressData(tempDir, subZip, remainingPrefix);
                 }
 
@@ -141,8 +152,10 @@ public class CompressedInstanceLauncher extends DashboardInstance {
                 if (filename.indexOf('/') != -1)
                     destFile.getParentFile().mkdirs();
                 FileUtils.copyFile(in, destFile);
-                if (e.getTime() != -1)
+                if (e.getTime() != -1) {
                     destFile.setLastModified(e.getTime());
+                    dataTimeStamp = Math.max(dataTimeStamp, e.getTime());
+                }
             }
         }
     }
@@ -179,9 +192,9 @@ public class CompressedInstanceLauncher extends DashboardInstance {
                 int prefixLen = filename.length() - DATA_DIR_FILE_ITEM.length();
                 String prefix = filename.substring(0, prefixLen);
                 result.add(prepend + prefix);
-            } else if (filename.toLowerCase().endsWith(".zip")
+            } else if (isCompressedInstanceFilename(filename)
                     && filename.toLowerCase().indexOf("backup") == -1) {
-                ZipInputStream subIn = new ZipInputStream(in);
+                ZipInputStream subIn = openZipStream(in, filename);
                 collectDataDirectoryPrefixes(result, prepend + filename
                         + SUBZIP_SEPARATOR, subIn);
             }
