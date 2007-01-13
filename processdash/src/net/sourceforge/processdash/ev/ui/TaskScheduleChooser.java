@@ -27,10 +27,12 @@
 package net.sourceforge.processdash.ev.ui;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.FlowLayout;
 import java.awt.Frame;
+import java.awt.Graphics;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
@@ -38,12 +40,16 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
@@ -58,6 +64,7 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
 import net.sourceforge.processdash.DashboardContext;
+import net.sourceforge.processdash.InternalSettings;
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.ev.EVTaskList;
@@ -75,8 +82,10 @@ public class TaskScheduleChooser
     protected JList list = null;
     protected JButton newButton, renameButton, deleteButton,
         reportButton, cancelButton, okayButton;
+    protected boolean keepDialogOpen = Settings.getBool(KEEP_OPEN, false);
 
     static Resources resources = Resources.getDashBundle("EV.Chooser");
+    private static final String KEEP_OPEN = "taskChooser.keepOpen";
 
     public TaskScheduleChooser(DashboardContext dash) {
         this(dash, EVTaskList.findTaskLists(dash.getData()));
@@ -104,7 +113,7 @@ public class TaskScheduleChooser
 
         this.dash = dash;
 
-        if (dialog != null) dialog.dispose();
+        if (dialog != null && !keepDialogOpen) dialog.dispose();
 
         String taskName = getTemplateName
             (dash, resources.getString("New_Schedule_Window.Title"),
@@ -203,9 +212,14 @@ public class TaskScheduleChooser
             dialog = new JDialog();
         PCSH.enableHelpKey(dialog, "UsingTaskSchedule.chooser");
         dialog.setTitle(resources.getString("Choose_Window.Title"));
-        dialog.getContentPane().add
-            (new JLabel(resources.getString("Choose_Window.Prompt")),
-             BorderLayout.NORTH);
+
+        Box promptBox = Box.createHorizontalBox();
+        promptBox.setBorder(BorderFactory.createEmptyBorder(1, 2, 1, 2));
+        promptBox.add(new JLabel(resources.getString("Choose_Window.Prompt")));
+        promptBox.add(Box.createHorizontalGlue());
+        promptBox.add(new MultiLabel());
+
+        dialog.getContentPane().add(promptBox, BorderLayout.NORTH);
 
         list = new JList(taskLists);
         list.addMouseListener(new MouseAdapter() {
@@ -312,7 +326,10 @@ public class TaskScheduleChooser
                         Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
                 open(dash, taskListName);
                 if (dialog != null)
-                    dialog.dispose();
+                    if (keepDialogOpen)
+                        dialog.getContentPane().setCursor(null);
+                    else
+                        dialog.dispose();
             } catch (Exception e) {
                 dialog.getContentPane().setCursor(null);
                 JOptionPane.showMessageDialog(list,
@@ -334,7 +351,7 @@ public class TaskScheduleChooser
             taskListName = getItemAtPoint(list, e.getPoint());
         if (taskListName != null) {
             TaskScheduleDialog.showReport(taskListName);
-            if (dialog != null) dialog.dispose();
+            if (dialog != null && !keepDialogOpen) dialog.dispose();
         }
     }
 
@@ -396,5 +413,63 @@ public class TaskScheduleChooser
         Iterator i = s.iterator();
         while (i.hasNext())
             ((TaskScheduleDialog) i.next()).confirmClose(false);
+    }
+
+    private class MultiLabel extends JLabel implements MouseListener {
+        public MultiLabel() {
+            super(new MultiIcon());
+            setToolTipText(resources.getString("Keep_Window_Open_Option"));
+            addMouseListener(this);
+        }
+
+        public void mouseClicked(MouseEvent e) {
+            keepDialogOpen = !keepDialogOpen;
+            repaint();
+            InternalSettings.set(KEEP_OPEN, keepDialogOpen ? "true" : "false");
+        }
+
+        public void mouseEntered(MouseEvent e) {}
+        public void mouseExited(MouseEvent e) {}
+        public void mousePressed(MouseEvent e) {}
+        public void mouseReleased(MouseEvent e) {}
+    }
+
+    private class MultiIcon implements Icon {
+
+        private Color checkColor = Color.black;
+        private Color boxColor = Color.gray;
+        private Color frameColor = Color.black;
+        private Color titleBarColor = Color.blue.darker();
+        private Color windowColor = Color.white;
+
+        public int getIconHeight() {
+            return 11;
+        }
+
+        public int getIconWidth() {
+            return 25;
+        }
+
+        public void paintIcon(Component c, Graphics g, int x, int y) {
+            g.setColor(boxColor);
+            g.drawRect(x+0, y+1, 8, 8);
+            paintFrame(g, x+12, y);
+            paintFrame(g, x+16, y+3);
+
+            if (keepDialogOpen) {
+                g.setColor(checkColor);
+                for (int i=-1;  i < 4;  i++)
+                    g.drawLine(x+3+i, y+6-Math.abs(i), x+3+i, y+7-Math.abs(i));
+            }
+        }
+        private void paintFrame(Graphics g, int x, int y) {
+            g.setColor(frameColor);
+            g.drawRect(x, y, 8, 7);
+            g.setColor(windowColor);
+            g.fillRect(x+1, y+1, 7, 6);
+            g.setColor(titleBarColor);
+            g.drawLine(x+1, y+1, x+7, y+1);
+        }
+
     }
 }
