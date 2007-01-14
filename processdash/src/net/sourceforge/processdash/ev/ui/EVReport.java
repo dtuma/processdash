@@ -714,6 +714,7 @@ public class EVReport extends CGIChartBase {
 
         out.print(isSnippet ? "<h2>" : "<h1>");
         out.print(title);
+        interpOutLink(SHOW_WEEK_LINK, EVReportSettings.PURPOSE_WEEK);
         printCustomizationLink();
         out.print(isSnippet ? "</h2>" : "</h1>");
 
@@ -783,8 +784,6 @@ public class EVReport extends CGIChartBase {
             }
         }
 
-        interpOutLink(SHOW_WEEK_LINK, EVReportSettings.PURPOSE_WEEK);
-
         out.print("</p>");
         out.print("</body></html>");
     }
@@ -839,7 +838,7 @@ public class EVReport extends CGIChartBase {
 
     private void printCustomizationLink() {
         if (!parameters.containsKey("EXPORT")) {
-            out.print("&nbsp;&nbsp;<span " + HEADER_LINK_STYLE + ">"
+            out.print("<span " + HEADER_LINK_STYLE + ">"
                     + "<span class='doNotPrint'><a href='");
             out.print(settings.getEffectivePrefix());
             out.print("ev-customize.shtm?a");
@@ -867,7 +866,7 @@ public class EVReport extends CGIChartBase {
     private void printTaskStyleLink() {
         if (!exportingToExcel()) {
             boolean isFlat = isFlatView();
-            out.print("&nbsp;&nbsp;<span " + HEADER_LINK_STYLE + ">"
+            out.print("<span " + HEADER_LINK_STYLE + ">"
                     + "<span class='doNotPrint'><a href=\"");
 
             StringBuffer href = new StringBuffer();
@@ -980,7 +979,7 @@ public class EVReport extends CGIChartBase {
     static final String FILTER_HEADER_HTML =
         "<link rel=stylesheet type='text/css' href='/reports/filter-style.css'>\n";
     static final String HEADER_LINK_STYLE = " style='font-size: medium; " +
-        "font-style: italic; font-weight: normal' ";
+        "font-style: italic; font-weight: normal; margin-left: 0.5cm' ";
     static final String COLOR_PARAMS =
         "&initGradColor=%23bebdff&finalGradColor=%23bebdff";
     static final String SEPARATE_CHARTS_HTML =
@@ -1001,8 +1000,9 @@ public class EVReport extends CGIChartBase {
     static final String EXPORT_ARCHIVE_LINK =
             "<a href='../dash/archive.class?filename=FILENAME'><i>"
             + "${Report.Export_Archive}</i></a>&nbsp; &nbsp; &nbsp; &nbsp;";
-    static final String SHOW_WEEK_LINK ="<a href='week.class???'><i>"
-            + "${Report.Show_Weekly_View}</i></a>";
+    static final String SHOW_WEEK_LINK = "<span " + HEADER_LINK_STYLE + ">"
+            + "<span class='doNotPrint'><a href='week.class???'>"
+            + "${Report.Show_Weekly_View}</a></span></span>";
     static final String EXCEL_TIME_TD = "<td class='timeFmt'>";
 
 
