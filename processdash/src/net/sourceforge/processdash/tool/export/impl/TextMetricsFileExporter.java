@@ -1,4 +1,4 @@
-// Copyright (C) 2005-2006 Tuma Solutions, LLC
+// Copyright (C) 2005-2007 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -36,6 +36,7 @@ import java.util.Set;
 import net.sourceforge.processdash.DashboardContext;
 import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.data.StringData;
+import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.ev.EVTaskList;
 import net.sourceforge.processdash.ev.EVTaskListData;
 import net.sourceforge.processdash.hier.Filter;
@@ -103,7 +104,8 @@ public class TextMetricsFileExporter implements Runnable,
                 out.println();
             }
 
-            ctx.getData().dumpRepository(out, filter);
+            ctx.getData().dumpRepository(out, filter,
+                    DataRepository.DUMP_STYLE_TEXT);
 
             TimeLog tl = ctx.getTimeLog();
             Iterator keys = tl.filter(null, null, null);

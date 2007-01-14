@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2006 Tuma Solutions, LLC
+// Copyright (C) 2003-2007 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -31,6 +31,7 @@ import java.util.Iterator;
 import java.util.Vector;
 
 import net.sourceforge.processdash.DashController;
+import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.net.http.TinyCGIHighVolume;
 import net.sourceforge.processdash.tool.export.impl.DataExporter;
 import net.sourceforge.processdash.tool.export.impl.DataExporterXMLv1;
@@ -60,7 +61,7 @@ public class DumpDataElements extends TinyCGIBase implements TinyCGIHighVolume {
         if ("xml".equalsIgnoreCase(format))
             dumpXml(filter);
         else
-            dumpText(filter);
+            dumpText(filter, "calc".equalsIgnoreCase(format));
         Runtime.getRuntime().gc();
     }
 
@@ -80,16 +81,12 @@ public class DumpDataElements extends TinyCGIBase implements TinyCGIHighVolume {
         DataExporter exp = new DataExporterXMLv1();
         exp.export(outStream, ddef);
     }
-//    private boolean getBool(String name, boolean defaultVal) {
-//        String strVal = getParameter(name);
-//        if (strVal == null || strVal.length() == 0)
-//            return defaultVal;
-//        else
-//            return "true".equalsIgnoreCase(strVal);
-//    }
 
-    private void dumpText(Vector filter) {
-        getDataRepository().dumpRepository(out, filter, true);
+    private void dumpText(Vector filter, boolean calcStyle) {
+        int style = (calcStyle
+                ? DataRepository.DUMP_STYLE_CALC
+                : DataRepository.DUMP_STYLE_DATA);
+        getDataRepository().dumpRepository(out, filter, style);
     }
 
 }

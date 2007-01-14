@@ -1,4 +1,4 @@
-// Copyright (C) 1998-2006 Tuma Solutions, LLC
+// Copyright (C) 1998-2007 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -1633,63 +1633,68 @@ public class DataRepository implements Repository, DataContext,
         }
 
 
-        public void dumpRepository(PrintWriter out, Vector filt) {
-            dumpRepository(out, (Collection) filt, false);
-        }
+        /** Dump data in the legacy text format, that was originally used for
+         * import/export operations. */
+        public static final int DUMP_STYLE_TEXT = 0;
+        /** Dump data in datafile format, so it could be pasted into a file
+         * like global.dat. */
+        public static final int DUMP_STYLE_DATA = 1;
+        /** Dump data in a verbose format, suitable for debugging the actual
+         * calculations that are being performed. */
+        public static final int DUMP_STYLE_CALC = 2;
 
-        public void dumpRepository(PrintWriter out, Collection filt) {
-            dumpRepository(out, filt, false);
-        }
-
-        public void dumpRepository(PrintWriter out, Vector filt,
-                boolean dataStyle) {
-            dumpRepository(out, (Collection) filt, dataStyle);
-        }
-
-        public void dumpRepository(PrintWriter out, Collection filt,
-                boolean dataStyle) {
+        /** Print textual information about the data elements in the repostory.
+         * 
+         * @param out a stream to write the information to
+         * @param filt a collection of prefixes that should be exported
+         * @param style the style of information to print, should be one of
+         *     DUMP_STYLE_TEXT, DUMP_STYLE_DATA, or DUMP_STYLE_CALC.
+         */
+        public void dumpRepository(PrintWriter out, Collection filt, int style) {
             gc(null);
 
-            Iterator k = getKeys();
-            String name, value;
-            DataElement  de;
-            SimpleData sd;
+            Iterator k = getKeys(filt, null);
 
-                                      // print out all element values.
+            // print out all element values.
             while (k.hasNext()) {
-                name = (String) k.next();
-                if (net.sourceforge.processdash.hier.Filter.matchesFilter(filt, name)) {
+                String name = (String) k.next();
+                if (Filter.matchesFilter(filt, name)) {
                     try {
-                        de = getOrCreateDefaultDataElement(name);
-                        if (de != null && de.datafile != null) {
-                            value = null;
+                        DataElement de = getOrCreateDefaultDataElement(name);
+                        if (de == null || de.datafile == null)
+                            continue;
+
+                        SaveableData sd;
+                        if (style == DUMP_STYLE_CALC)
+                            sd = de.getValue();
+                        else
                             sd = de.getSimpleValue();
-                            if (sd == null) continue;
+                        if (sd == null)
+                            continue;
 
-                            if (dataStyle) {
-                                value = sd.saveString();
-                            } else if (sd instanceof DateData) {
-                                value = ((DateData)sd).formatDate();
-                            } else if (sd instanceof StringData) {
-                                value = StringData.escapeString(((StringData)sd).getString());
-                                // } else if (sd instanceof DoubleData) {
-                                // value = ((DoubleData)sd).formatNumber(3);
-                            } else
-                                value = sd.toString();
+                        String value = null;
+                        if (style != DUMP_STYLE_TEXT) {
+                            value = sd.saveString();
+                        } else if (sd instanceof DateData) {
+                            value = ((DateData) sd).formatDate();
+                        } else if (sd instanceof StringData) {
+                            value = StringData.escapeString(((StringData) sd)
+                                    .getString());
+                        } else
+                            value = sd.toString();
 
-                            if (dataStyle) {
-                                out.println(name.substring(1) + "==" + value);
-                            } else {
-                                if (name.indexOf(',') != -1)
-                                    name = EscapeString.escape(name, '\\', ",", "c");
-                                out.println(name + "," + value);
-                            }
+                        if (style == DUMP_STYLE_TEXT) {
+                            if (name.indexOf(',') != -1)
+                                name = EscapeString.escape(name, '\\', ",", "c");
+                            out.println(name + "," + value);
+                        } else {
+                            out.println(name.substring(1) + "==" + value);
                         }
                     } catch (Exception e) {
-//          System.err.println("Data error:"+e.toString()+" for:"+name);
+                        // System.err.println("Data error:"+e.toString()+"
+                        // for:"+name);
                     }
                 }
-
                 Thread.yield();
             }
         }
