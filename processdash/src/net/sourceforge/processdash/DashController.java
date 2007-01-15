@@ -76,7 +76,7 @@ public class DashController {
         PERMISSION.checkPermission();
         if (!"127.0.0.1".equals(remoteAddress) &&
             !localAddress.equals(remoteAddress))
-            throw new IOException();
+            throw new IOException("Connection not accepted from: " + remoteAddress);
     }
 
     public static void raiseWindow() {
