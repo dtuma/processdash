@@ -1,4 +1,4 @@
-// Copyright (C) 2006 Tuma Solutions, LLC
+// Copyright (C) 2006-2007 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -70,6 +70,8 @@ public class QuickLauncher {
 
     ConcurrencyLock lock;
 
+    boolean launchInSameVm;
+
     DashboardProcessFactory processFactory;
 
     InstanceLauncherFactory launcherFactory;
@@ -81,17 +83,23 @@ public class QuickLauncher {
     JFrame frame;
 
     public QuickLauncher(String fileToLaunch) {
-        try {
-            getLock(fileToLaunch);
-        } catch (ConcurrencyLock.SentMessageException clsme) {
-            System.exit(0);
-        } catch (Exception e) {
-        }
+        launchInSameVm = Boolean.getBoolean("quickLauncher.sameJVM");
+
+        if (!launchInSameVm)
+            try {
+                getLock(fileToLaunch);
+            } catch (ConcurrencyLock.SentMessageException clsme) {
+                System.exit(0);
+            } catch (Exception e) {
+            }
 
         CompressedInstanceLauncher.cleanupOldDirectories();
 
         try {
-            processFactory = new DashboardProcessFactory();
+            if (launchInSameVm)
+                processFactory = new DashboardProcessFactorySameJVM();
+            else
+                processFactory = new DashboardProcessFactoryForking();
 
             processFactory.addVmArg("-Dbackup.enabled=false");
 
@@ -221,10 +229,13 @@ public class QuickLauncher {
 
                 instanceList.addInstance(instance);
                 instance.launch(processFactory);
-                instance.waitForCompletion();
+
+                if (launchInSameVm)
+                    frame.dispose();
+                else
+                    instance.waitForCompletion();
             } catch (LaunchException le) {
                 showError(le.getMessage());
-            } catch (InterruptedException ie) {
             } finally {
                 instanceList.removeInstance(instance);
             }

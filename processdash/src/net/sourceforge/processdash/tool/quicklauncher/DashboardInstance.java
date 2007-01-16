@@ -1,4 +1,4 @@
-// Copyright (C) 2006 Tuma Solutions, LLC
+// Copyright (C) 2006-2007 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -140,9 +140,11 @@ abstract class DashboardInstance {
         }
     }
 
-    protected void waitForCompletion() throws InterruptedException {
-        doWaitFor(process);
-        setStatus(NONE);
+    protected void waitForCompletion() {
+        if (process != null) {
+            doWaitFor(process);
+            setStatus(NONE);
+        }
     }
 
     /**

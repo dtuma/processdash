@@ -86,16 +86,9 @@ public class CompressedInstanceLauncher extends DashboardInstance {
 
         launchApp(processFactory, vmArgs, pspdataDir);
 
-        try {
+        if (process != null) {
             waitForCompletion();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        try {
-            FileUtils.deleteDirectory(pspdataDir, true);
-        } catch (IOException e) {
-            e.printStackTrace();
+            cleanupDataDir(pspdataDir);
         }
     }
 
@@ -110,20 +103,6 @@ public class CompressedInstanceLauncher extends DashboardInstance {
         in.close();
 
         return tempDir;
-    }
-
-    private static ZipInputStream openZipStream(File f)
-            throws FileNotFoundException {
-        InputStream compressedIn = new BufferedInputStream(new FileInputStream(
-                f));
-        return openZipStream(compressedIn, f.getName());
-    }
-
-    private static ZipInputStream openZipStream(InputStream in, String filename) {
-        if (filename.toLowerCase().endsWith(PDASH_BACKUP_EXTENSION))
-            in = new XorInputStream(in, PDASH_BACKUP_XOR_BITS);
-
-        return new ZipInputStream(in);
     }
 
     private void uncompressData(File tempDir, ZipInputStream in,
@@ -157,6 +136,14 @@ public class CompressedInstanceLauncher extends DashboardInstance {
                     dataTimeStamp = Math.max(dataTimeStamp, e.getTime());
                 }
             }
+        }
+    }
+
+    private void cleanupDataDir(File pspdataDir) {
+        try {
+            FileUtils.deleteDirectory(pspdataDir, true);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
@@ -199,6 +186,20 @@ public class CompressedInstanceLauncher extends DashboardInstance {
                         + SUBZIP_SEPARATOR, subIn);
             }
         }
+    }
+
+    private static ZipInputStream openZipStream(File f)
+            throws FileNotFoundException {
+        InputStream compressedIn = new BufferedInputStream(new FileInputStream(
+                f));
+        return openZipStream(compressedIn, f.getName());
+    }
+
+    private static ZipInputStream openZipStream(InputStream in, String filename) {
+        if (filename.toLowerCase().endsWith(PDASH_BACKUP_EXTENSION))
+            in = new XorInputStream(in, PDASH_BACKUP_XOR_BITS);
+
+        return new ZipInputStream(in);
     }
 
     /** A string that will be used to separate the names of nested zip files */
