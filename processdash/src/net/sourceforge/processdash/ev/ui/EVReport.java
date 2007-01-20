@@ -970,11 +970,14 @@ public class EVReport extends CGIChartBase {
     static final String POPUP_HEADER =
         "<link rel=stylesheet type='text/css' href='/lib/popup.css'>\n" +
         "<script type='text/javascript' src='/lib/popup.js'></script>\n";
+    static final String SORTTABLE_HEADER =
+        "<script type='text/javascript' src='/lib/sorttable.js'></script>\n";
     static final String HEADER_HTML =
         "<html><head><title>%title%</title>\n" +
         "<link rel=stylesheet type='text/css' href='/style.css'>\n" +
         HTMLTreeTableWriter.TREE_HEADER_ITEMS +
         POPUP_HEADER +
+        SORTTABLE_HEADER +
         "</head><body>";
     static final String FILTER_HEADER_HTML =
         "<link rel=stylesheet type='text/css' href='/reports/filter-style.css'>\n";
@@ -1011,6 +1014,7 @@ public class EVReport extends CGIChartBase {
         HTMLTableWriter writer = new HTMLTableWriter();
         TableModel table = customizeTaskTableWriter(writer, taskList, filter,
                 hidePlan, hideForecast);
+        writer.setCellRenderer(new EVSortableCellRenderer());
         if (taskList instanceof EVTaskListData
                 && parameters.get("EXPORT") == null)
             writer.setCellRenderer(EVTaskList.TASK_COLUMN,
@@ -1019,6 +1023,7 @@ public class EVReport extends CGIChartBase {
             writer.setSkipColumn(EVTaskList.PLAN_CUM_TIME_COLUMN, true);
             writer.setSkipColumn(EVTaskList.PLAN_CUM_VALUE_COLUMN, true);
         }
+        writer.setTableAttributes("class='sortable' id='$$$_task' border='1'");
         writer.writeTable(out, table);
     }
 
@@ -1283,7 +1288,41 @@ public class EVReport extends CGIChartBase {
 
     }
     Pattern HOURS_MINUTES_PATTERN = Pattern.compile("\\d+:\\d\\d");
+    Pattern PERCENT_PATTERN = Pattern.compile("[\\d\\.]*%");
 
+    private class EVSortableCellRenderer extends EVCellRenderer {
+
+        private static final String SORTKEY_ATTRIBUTE = "sortkey";
+
+        public String getAttributes(Object value, int row, int column) {
+            String attributes = super.getAttributes(value, row, column);
+            String sortAttributes = null;
+
+            if (value instanceof Date) {
+                sortAttributes = SORTKEY_ATTRIBUTE + "='" + ((Date) value).getTime() + "'";
+            } else {
+                if (value instanceof String) {
+                    String stringValue = (String) value;
+                    if (HOURS_MINUTES_PATTERN.matcher((String) value).matches())
+                        sortAttributes = SORTKEY_ATTRIBUTE + "='" + stringValue.replace(':', '.') + "'";
+                    else {
+                        if (PERCENT_PATTERN.matcher((String) value).matches())
+                            sortAttributes = SORTKEY_ATTRIBUTE + "='" + stringValue.replaceAll("%", "") + "'";
+                    }
+                }
+            }
+
+            if (null != sortAttributes) {
+                if (null == attributes) {
+                    return sortAttributes;
+                } else {
+                    return attributes + " " + sortAttributes;
+                }
+            }
+
+            return null;
+        }
+    }
 
     static class TaskNameWithTimingIconRenderer extends
             HTMLTableWriter.DefaultHTMLTableCellRenderer {

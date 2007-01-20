@@ -1,3 +1,26 @@
+/*
+ * Originally obtained from: http://kryogenix.org/code/browser/sorttable/sorttable.js
+ *
+ * The MIT Licence, for code from kryogenix.org
+ *
+ * Code downloaded from the Browser Experiments section of kryogenix.org is licenced 
+ * under the so-called MIT licence. The licence is below.
+ *
+ * Copyright (c) 1997-date Stuart Langridge
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of 
+ * this software and associated documentation files (the "Software"), to deal in the 
+ * Software without restriction, including without limitation the rights to use, copy, 
+ * modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, 
+ * and to permit persons to whom the Software is furnished to do so, subject to the 
+ * following conditions:
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, 
+ * INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR 
+ * PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE 
+ * FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR 
+ * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * DEALINGS IN THE SOFTWARE.
+/*--------------------------------------------------------------------------*/
+
 addEvent(window, "load", sortables_init);
 
 var SORT_COLUMN_INDEX;
@@ -27,13 +50,18 @@ function ts_makeSortable(table) {
         var txt = ts_getInnerText(cell);
         cell.innerHTML = '<a href="#" class="sortheader" '+ 
         'onclick="ts_resortTable(this, '+i+');return false;">' + 
-        txt+'<span class="sortarrow">&nbsp;&nbsp;&nbsp;</span></a>';
+        txt+'<span class="sortarrow"></span></a>';
     }
 }
 
 function ts_getInnerText(el) {
 	if (typeof el == "string") return el;
 	if (typeof el == "undefined") { return el };
+	
+	// check for sortkey stored in abbr attribute
+	var sortkey = el.getAttribute("sortkey");
+	if (sortkey) return sortkey;
+	
 	if (el.innerText) return el.innerText;	//Not needed but it is faster
 	var str = "";
 	
@@ -80,11 +108,11 @@ function ts_resortTable(lnk,clid) {
     newRows.sort(sortfn);
 
     if (span.getAttribute("sortdir") == 'down') {
-        ARROW = '&nbsp;&nbsp;&uarr;';
+        ARROW = '&nbsp;&uarr;';
         newRows.reverse();
         span.setAttribute('sortdir','up');
     } else {
-        ARROW = '&nbsp;&nbsp;&darr;';
+        ARROW = '&nbsp;&darr;';
         span.setAttribute('sortdir','down');
     }
     
@@ -99,7 +127,7 @@ function ts_resortTable(lnk,clid) {
     for (var ci=0;ci<allspans.length;ci++) {
         if (allspans[ci].className == 'sortarrow') {
             if (getParent(allspans[ci],"table") == getParent(lnk,"table")) { // in the same table as us?
-                allspans[ci].innerHTML = '&nbsp;&nbsp;&nbsp;';
+                allspans[ci].innerHTML = '';
             }
         }
     }
