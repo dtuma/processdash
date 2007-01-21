@@ -869,7 +869,8 @@ public class EVReport extends CGIChartBase {
         if (!exportingToExcel()) {
             boolean isFlat = isFlatView();
             out.print("<span " + HEADER_LINK_STYLE + ">"
-                    + "<span class='doNotPrint'><a href=\"");
+                    + "<span class='doNotPrint'>"
+                    + "<a id=\"$$$_taskstylelink\" href=\"");
 
             StringBuffer href = new StringBuffer();
 
@@ -977,6 +978,8 @@ public class EVReport extends CGIChartBase {
     static final String SORTTABLE_HEADER =
         "<link rel=stylesheet type='text/css' href='/lib/sorttable.css'>\n" +
         "<script type='text/javascript' src='/lib/sorttable.js'></script>\n";
+    static final String SORTTREE_HEADER =
+        "<script type='text/javascript' src='/reports/evTreeSort.js'></script>\n";
     static final String HEADER_HTML =
         "<html><head><title>%title%</title>\n" +
         "<link rel=stylesheet type='text/css' href='/style.css'>\n" +
@@ -984,6 +987,7 @@ public class EVReport extends CGIChartBase {
         REDUNDANT_EXCEL_HEADER +
         POPUP_HEADER +
         SORTTABLE_HEADER +
+        SORTTREE_HEADER +
         "</head><body>";
     static final String FILTER_HEADER_HTML =
         "<link rel=stylesheet type='text/css' href='/reports/filter-style.css'>\n";
@@ -1022,10 +1026,6 @@ public class EVReport extends CGIChartBase {
                 && parameters.get("EXPORT") == null;
         TableModel table = customizeTaskTableWriter(writer, taskList, filter,
                 hidePlan, hideForecast, showTimingIcons);
-        if (filter != null || taskList instanceof EVTaskListRollup) {
-            writer.setSkipColumn(EVTaskList.PLAN_CUM_TIME_COLUMN, true);
-            writer.setSkipColumn(EVTaskList.PLAN_CUM_VALUE_COLUMN, true);
-        }
         writer.setTableAttributes("class='sortable' id='$$$_task' border='1'");
         writer.writeTable(out, table);
     }
@@ -1036,9 +1036,9 @@ public class EVReport extends CGIChartBase {
         HTMLTreeTableWriter writer = new HTMLTreeTableWriter();
         customizeTaskTableWriter(writer, taskList, null, hidePlan,
                 hideForecast, false);
-        writer.setSkipColumn(EVTaskList.PLAN_CUM_TIME_COLUMN, true);
-        writer.setSkipColumn(EVTaskList.PLAN_CUM_VALUE_COLUMN, true);
         writer.setTreeName("$$$_t");
+        writer.setTableAttributes(
+                "class='needsTreeSortLinks' id='$$$_task' border='1'");
         writer.writeTree(out, tree);
 
         int depth = Settings.getInt("ev.showHierarchicalDepth", 3);
@@ -1059,6 +1059,8 @@ public class EVReport extends CGIChartBase {
         TableModel table = taskList.getSimpleTableModel(filter);
         customizeTableWriter(writer, table, EVTaskList.toolTips);
         writer.setTableName("TASK");
+        writer.setSkipColumn(EVTaskList.PLAN_CUM_TIME_COLUMN, true);
+        writer.setSkipColumn(EVTaskList.PLAN_CUM_VALUE_COLUMN, true);
         boolean hideNames = settings.getBool(CUSTOMIZE_HIDE_NAMES);
         setupTaskTableRenderers(writer, showTimingIcons, exportingToExcel(),
                 hideNames);

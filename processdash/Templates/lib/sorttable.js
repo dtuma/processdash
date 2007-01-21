@@ -43,6 +43,10 @@ function ts_makeSortable(table) {
         var firstRow = table.rows[0];
     }
     if (!firstRow) return;
+
+    // check to see if immediate sorting was requested on this table
+    var isCol = ts_getInitialSortCol(table);
+    var isLink = null;
     
     // We have a first row: assume it's the header, and make its contents clickable links
     for (var i=0;i<firstRow.cells.length;i++) {
@@ -51,7 +55,23 @@ function ts_makeSortable(table) {
         cell.innerHTML = '<a href="#" class="sortheader" '+ 
         'onclick="ts_resortTable(this, '+i+');return false;">' + 
         txt+'<span class="sortarrow"></span></a>';
+
+        if (isCol == i) {
+            isLink = cell.getElementsByTagName("a")[0];
+        }
     }
+
+    if (isLink) {
+        ts_resortTable(isLink, isCol);
+    }
+}
+
+function ts_getInitialSortCol(table) {
+    if (!window.location.search) return -1;
+    var isParam = table.id + '_initialSort=';
+    var pos = window.location.search.indexOf(isParam);
+    if (pos == -1) { return -1; }
+    return parseInt(window.location.search.substr(pos+isParam.length));
 }
 
 function ts_getInnerText(el) {
