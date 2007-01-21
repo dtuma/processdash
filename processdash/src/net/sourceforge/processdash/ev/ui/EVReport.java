@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2006 Tuma Solutions, LLC
+// Copyright (C) 2003-2007 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -33,6 +33,7 @@ import java.io.PrintWriter;
 import java.text.DateFormat;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -714,7 +715,8 @@ public class EVReport extends CGIChartBase {
 
         out.print(isSnippet ? "<h2>" : "<h1>");
         out.print(title);
-        interpOutLink(SHOW_WEEK_LINK, EVReportSettings.PURPOSE_WEEK);
+        if (!exportingToExcel())
+            interpOutLink(SHOW_WEEK_LINK, EVReportSettings.PURPOSE_WEEK);
         printCustomizationLink();
         out.print(isSnippet ? "</h2>" : "</h1>");
 
@@ -767,7 +769,7 @@ public class EVReport extends CGIChartBase {
         writeScheduleTable(s);
 
         out.print("<p class='doNotPrint'>");
-        if (!isSnippet)
+        if (!isSnippet && !exportingToExcel())
             interpOutLink(EXPORT_TEXT_LINK);
 
         if (!parameters.containsKey("EXPORT")) {
@@ -967,15 +969,19 @@ public class EVReport extends CGIChartBase {
 
 
     static final String TITLE_VAR = "%title%";
+    static final String REDUNDANT_EXCEL_HEADER =
+        "<style>.timeFmt { vnd.ms-excel.numberformat: [h]\\:mm }</style>\n";
     static final String POPUP_HEADER =
         "<link rel=stylesheet type='text/css' href='/lib/popup.css'>\n" +
         "<script type='text/javascript' src='/lib/popup.js'></script>\n";
     static final String SORTTABLE_HEADER =
+        "<link rel=stylesheet type='text/css' href='/lib/sorttable.css'>\n" +
         "<script type='text/javascript' src='/lib/sorttable.js'></script>\n";
     static final String HEADER_HTML =
         "<html><head><title>%title%</title>\n" +
         "<link rel=stylesheet type='text/css' href='/style.css'>\n" +
         HTMLTreeTableWriter.TREE_HEADER_ITEMS +
+        REDUNDANT_EXCEL_HEADER +
         POPUP_HEADER +
         SORTTABLE_HEADER +
         "</head><body>";
@@ -1012,13 +1018,10 @@ public class EVReport extends CGIChartBase {
     void writeTaskTable(EVTaskList taskList, EVTaskFilter filter,
             boolean hidePlan, boolean hideForecast) throws IOException {
         HTMLTableWriter writer = new HTMLTableWriter();
+        boolean showTimingIcons = taskList instanceof EVTaskListData
+                && parameters.get("EXPORT") == null;
         TableModel table = customizeTaskTableWriter(writer, taskList, filter,
-                hidePlan, hideForecast);
-        writer.setCellRenderer(new EVSortableCellRenderer());
-        if (taskList instanceof EVTaskListData
-                && parameters.get("EXPORT") == null)
-            writer.setCellRenderer(EVTaskList.TASK_COLUMN,
-                    new TaskNameWithTimingIconRenderer());
+                hidePlan, hideForecast, showTimingIcons);
         if (filter != null || taskList instanceof EVTaskListRollup) {
             writer.setSkipColumn(EVTaskList.PLAN_CUM_TIME_COLUMN, true);
             writer.setSkipColumn(EVTaskList.PLAN_CUM_VALUE_COLUMN, true);
@@ -1031,7 +1034,8 @@ public class EVReport extends CGIChartBase {
             boolean hidePlan, boolean hideForecast) throws IOException {
         TreeTableModel tree = taskList.getMergedModel(true, filter);
         HTMLTreeTableWriter writer = new HTMLTreeTableWriter();
-        customizeTaskTableWriter(writer, taskList, null, hidePlan, hideForecast);
+        customizeTaskTableWriter(writer, taskList, null, hidePlan,
+                hideForecast, false);
         writer.setSkipColumn(EVTaskList.PLAN_CUM_TIME_COLUMN, true);
         writer.setSkipColumn(EVTaskList.PLAN_CUM_VALUE_COLUMN, true);
         writer.setTreeName("$$$_t");
@@ -1044,19 +1048,20 @@ public class EVReport extends CGIChartBase {
     void writeScheduleTable(EVSchedule s) throws IOException {
         HTMLTableWriter writer = new HTMLTableWriter();
         customizeTableWriter(writer, s, s.getColumnTooltips());
+        setupRenderers(writer, EVSchedule.COLUMN_FORMATS);
         writer.setTableName("SCHEDULE");
         writer.writeTable(out, s);
     }
 
     private TableModel customizeTaskTableWriter(HTMLTableWriter writer,
             EVTaskList taskList, EVTaskFilter filter, boolean hidePlan,
-            boolean hideForecast) {
+            boolean hideForecast, boolean showTimingIcons) {
         TableModel table = taskList.getSimpleTableModel(filter);
         customizeTableWriter(writer, table, EVTaskList.toolTips);
         writer.setTableName("TASK");
         boolean hideNames = settings.getBool(CUSTOMIZE_HIDE_NAMES);
-        writer.setCellRenderer(EVTaskList.DEPENDENCIES_COLUMN,
-                new DependencyCellRenderer(exportingToExcel(), hideNames));
+        setupTaskTableRenderers(writer, showTimingIcons, exportingToExcel(),
+                hideNames);
         if (!(taskList instanceof EVTaskListRollup) || hideNames)
             writer.setSkipColumn(EVTaskList.ASSIGNED_TO_COLUMN, true);
         if (hidePlan)
@@ -1066,12 +1071,34 @@ public class EVReport extends CGIChartBase {
         return table;
     }
 
+
+    /** Install renderers that are appropriate for a task table. */
+    static HTMLTableWriter setupTaskTableRenderers(HTMLTableWriter writer,
+            boolean showTimingIcons, boolean exportingToExcel, boolean hideNames) {
+        setupRenderers(writer, EVTaskList.COLUMN_FORMATS);
+        writer.setCellRenderer(EVTaskList.DEPENDENCIES_COLUMN,
+                new DependencyCellRenderer(exportingToExcel, hideNames));
+        if (showTimingIcons)
+            writer.setCellRenderer(EVTaskList.TASK_COLUMN,
+                    new TaskNameWithTimingIconRenderer());
+        return writer;
+    }
+
+    private static void setupRenderers(HTMLTableWriter w, Object[] formats) {
+        w.setCellRenderer(EV_CELL_RENDERER);
+        for (int col = 0; col < formats.length; col++) {
+            Object cellRenderer = RENDERERS.get(formats[col]);
+            if (cellRenderer == null)
+                cellRenderer = EV_CELL_RENDERER;
+            w.setCellRenderer(col, (HTMLTableWriter.CellRenderer) cellRenderer);
+        }
+    }
+
     private void customizeTableWriter(HTMLTableWriter writer, TableModel t,
             String[] toolTips) {
         writer.setTableAttributes("border='1'");
         writer.setHeaderRenderer(
                 new HTMLTableWriter.DefaultHTMLHeaderCellRenderer(toolTips));
-        writer.setCellRenderer(new EVCellRenderer());
 
         for (int i = t.getColumnCount();  i-- > 0; )
             if (t.getColumnName(i).endsWith(" "))
@@ -1268,7 +1295,7 @@ public class EVReport extends CGIChartBase {
         return percent;
     }
 
-    private class EVCellRenderer extends
+    private static class EVCellRenderer extends
             HTMLTableWriter.DefaultHTMLTableCellRenderer {
 
         public String getInnerHtml(Object value, int row, int column) {
@@ -1278,50 +1305,65 @@ public class EVReport extends CGIChartBase {
             return super.getInnerHtml(value, row, column);
         }
 
+        protected String getSortKey(Object value) {
+            return null;
+        }
+
         public String getAttributes(Object value, int row, int column) {
-            if (value instanceof String
-                    && HOURS_MINUTES_PATTERN.matcher((String) value).matches())
-                return "class='timeFmt'";
-            else
-                return null;
+            return getSortAttribute(getSortKey(value));
         }
 
     }
-    Pattern HOURS_MINUTES_PATTERN = Pattern.compile("\\d+:\\d\\d");
-    Pattern PERCENT_PATTERN = Pattern.compile("[\\d\\.]*%");
 
-    private class EVSortableCellRenderer extends EVCellRenderer {
+    private static class EVDateCellRenderer extends EVCellRenderer {
 
-        private static final String SORTKEY_ATTRIBUTE = "sortkey";
-
-        public String getAttributes(Object value, int row, int column) {
-            String attributes = super.getAttributes(value, row, column);
-            String sortAttributes = null;
-
-            if (value instanceof Date) {
-                sortAttributes = SORTKEY_ATTRIBUTE + "='" + ((Date) value).getTime() + "'";
-            } else {
-                if (value instanceof String) {
-                    String stringValue = (String) value;
-                    if (HOURS_MINUTES_PATTERN.matcher((String) value).matches())
-                        sortAttributes = SORTKEY_ATTRIBUTE + "='" + stringValue.replace(':', '.') + "'";
-                    else {
-                        if (PERCENT_PATTERN.matcher((String) value).matches())
-                            sortAttributes = SORTKEY_ATTRIBUTE + "='" + stringValue.replaceAll("%", "") + "'";
-                    }
-                }
-            }
-
-            if (null != sortAttributes) {
-                if (null == attributes) {
-                    return sortAttributes;
-                } else {
-                    return attributes + " " + sortAttributes;
-                }
-            }
-
-            return null;
+        protected String getSortKey(Object value) {
+            if (value instanceof Date)
+                return Long.toString(((Date) value).getTime());
+            else
+                // The dates we display are typically completion dates.
+                // if a date is missing, that implies not yet completed;
+                // such dates should sort after all reasonable date values
+                return "9999999999999";
         }
+
+    }
+
+    private static class EVPercentCellRenderer extends EVCellRenderer {
+
+        protected String getSortKey(Object value) {
+            if (value == null || "".equals(value))
+                return "0";
+            else
+                return StringUtils.findAndReplace(value.toString(), "%", "");
+        }
+
+    }
+
+    private static class EVTimeCellRenderer extends EVCellRenderer {
+        public String getAttributes(Object value, int r, int c) {
+            return "class='timeFmt' " + super.getAttributes(value, r, c);
+        }
+
+        protected String getSortKey(Object value) {
+            if (value == null || "".equals(value))
+                return "0";
+            else
+                return value.toString().replace(':', '.');
+        }
+
+    }
+
+    static final EVCellRenderer EV_CELL_RENDERER = new EVCellRenderer();
+    static final EVTimeCellRenderer TIME_CELL_RENDERER = new EVTimeCellRenderer();
+    private static Map RENDERERS;
+    static {
+        Map r = new HashMap();
+        r.put(EVTaskList.COLUMN_FMT_OTHER, EV_CELL_RENDERER);
+        r.put(EVTaskList.COLUMN_FMT_TIME, TIME_CELL_RENDERER);
+        r.put(EVTaskList.COLUMN_FMT_DATE, new EVDateCellRenderer());
+        r.put(EVTaskList.COLUMN_FMT_PERCENT, new EVPercentCellRenderer());
+        RENDERERS = Collections.unmodifiableMap(r);
     }
 
     static class TaskNameWithTimingIconRenderer extends
@@ -1365,10 +1407,23 @@ public class EVReport extends CGIChartBase {
         }
 
         public String getAttributes(Object value, int row, int column) {
-            return "style='text-align:center'";
+            TaskDependencyAnalyzer.HTML analyzer =
+                new TaskDependencyAnalyzer.HTML(value, hideNames);
+            return "style='text-align:center' "
+                    + getSortAttribute(analyzer.getSortKey());
         }
 
     }
+
+    static String getSortAttribute(String sortKey) {
+        if (sortKey == null)
+            return null;
+        else
+            return SORTKEY_ATTRIBUTE + "='" + HTMLUtils.escapeEntities(sortKey)
+                    + "'";
+    }
+    private static final String SORTKEY_ATTRIBUTE = "sortkey";
+
 
     /** encode a snippet of text with appropriate HTML entities */
     final static String encodeHTML(String text) {

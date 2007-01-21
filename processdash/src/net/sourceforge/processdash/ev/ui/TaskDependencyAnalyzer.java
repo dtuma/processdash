@@ -1,5 +1,5 @@
+// Copyright (C) 2006-2007 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2006 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -111,6 +111,17 @@ public class TaskDependencyAnalyzer {
             return ALL_COMPLETE;
         else
             return NO_DEPENDENCIES;
+    }
+
+    public String getSortKey() {
+        switch (getStatus()) {
+        case HAS_ERROR:       return "0";
+        case HAS_REVERSE:     return "1";
+        case ALL_COMPLETE:    return "2";
+        case NO_DEPENDENCIES: return "3";
+        case HAS_INCOMPLETE:  return "4";
+        }
+        return "0";
     }
 
     public String getHtmlTable(String tableAttrs, String stopUrl,

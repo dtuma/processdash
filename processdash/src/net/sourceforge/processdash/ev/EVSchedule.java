@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2006 Tuma Solutions, LLC
+// Copyright (C) 2003-2007 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -135,8 +135,10 @@ public class EVSchedule implements TableModel {
         public String getPlanDirectTime() { return formatTime(planDirectTime); }
         public double planDirectTime() { return planDirectTime; }
         public String getCumPlanTime() { return formatTime(cumPlanDirectTime); }
+        public double cumPlanDirectTime() { return cumPlanDirectTime; }
         public String getCumPlanValue(double totalPlanTime) {
             return formatPercent(cumPlanValue/totalPlanTime); }
+        public double cumPlanValue() { return cumPlanValue; }
         public String getActualTime() {
             return formatTime(actualDirectTime + actualIndirectTime);
         }
@@ -154,9 +156,11 @@ public class EVSchedule implements TableModel {
         public String getCumActualTime() {
             return formatTime(cumActualDirectTime);
         }
+        public double cumActualDirectTime() { return cumActualDirectTime; }
         public String getCumEarnedValue(double totalPlanTime) {
             return formatPercent(cumEarnedValue/totalPlanTime);
         }
+        public double cumEarnedValue() { return cumEarnedValue; }
 
         public void setBeginDate(Object value) {
             if (previous != null && !previous.endDate.equals(value)) {
@@ -344,8 +348,10 @@ public class EVSchedule implements TableModel {
         double planValue = 0, earnedValue = 0, actualCost = 0;
         public String getPlanValue(double totalPlanTime) {
             return formatPercent(planValue/totalPlanTime); }
+        public double planValue() { return planValue; }
         public String getEarnedValue(double totalPlanTime) {
             return formatPercent(earnedValue/totalPlanTime); }
+        public double earnedValue() { return earnedValue; }
     }
 
     Vector periods = new Vector();
@@ -1122,6 +1128,20 @@ public class EVSchedule implements TableModel {
         String.class,           // actual direct time
         String.class,           // actual cumulative time
         String.class };         // cumulative earned value
+
+    public static final Object[] COLUMN_FORMATS = {
+        EVTaskList.COLUMN_FMT_DATE,           // From
+        EVTaskList.COLUMN_FMT_DATE,           // To
+        EVTaskList.COLUMN_FMT_TIME,           // planned time
+        EVTaskList.COLUMN_FMT_TIME,           // planned direct time
+        EVTaskList.COLUMN_FMT_TIME,           // planned cumulative time
+        EVTaskList.COLUMN_FMT_PERCENT,        // planned cumulative value
+        EVTaskList.COLUMN_FMT_TIME,           // actual time
+        EVTaskList.COLUMN_FMT_PERCENT,        // percent indirect time
+        EVTaskList.COLUMN_FMT_TIME,           // actual direct time
+        EVTaskList.COLUMN_FMT_TIME,           // actual cumulative time
+        EVTaskList.COLUMN_FMT_PERCENT,        // cumulative earned
+    };
 
 
     public int getRowCount() { return periods.size() - 1; }

@@ -98,7 +98,7 @@ function ts_resortTable(lnk,clid) {
     if (itm.match(/^\d\d[\/-]\d\d[\/-]\d\d\d\d$/)) sortfn = ts_sort_date;
     if (itm.match(/^\d\d[\/-]\d\d[\/-]\d\d$/)) sortfn = ts_sort_date;
     if (itm.match(/^[?$]/)) sortfn = ts_sort_currency;
-    if (itm.match(/^[\d\.]+$/)) sortfn = ts_sort_numeric;
+    if (itm.match(/^[-\d\.]+$/)) sortfn = ts_sort_numeric;
     SORT_COLUMN_INDEX = column;
     var firstRow = new Array();
     var newRows = new Array();
@@ -180,11 +180,16 @@ function ts_sort_numeric(a,b) {
 }
 
 function ts_sort_caseinsensitive(a,b) {
-    aa = ts_getInnerText(a.cells[SORT_COLUMN_INDEX]).toLowerCase();
-    bb = ts_getInnerText(b.cells[SORT_COLUMN_INDEX]).toLowerCase();
+    aa = ts_toLowerCase(ts_getInnerText(a.cells[SORT_COLUMN_INDEX]));
+    bb = ts_toLowerCase(ts_getInnerText(b.cells[SORT_COLUMN_INDEX]));
     if (aa==bb) return 0;
     if (aa<bb) return -1;
     return 1;
+}
+
+function ts_toLowerCase(txt) {
+    if (typeof txt == "undefined") { return txt };
+    return txt.toLowerCase();
 }
 
 function ts_sort_default(a,b) {

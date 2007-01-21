@@ -3,8 +3,8 @@
 
 BODY { color: black; background-color: silver; ignore:"#d6d3ce" }
 
-A.plain:link    { color:"#000080"; text-decoration:none }
-A.plain:visited { color:"#000080"; text-decoration:none }
+A.plain:link    { color:#000080; text-decoration:none }
+A.plain:visited { color:#000080; text-decoration:none }
 A.plain:hover   { color:blue; text-decoration:underline }
 
 /* Remove the annoying space that appears above and below lists */

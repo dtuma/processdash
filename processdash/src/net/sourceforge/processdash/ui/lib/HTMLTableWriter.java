@@ -41,6 +41,8 @@ public class HTMLTableWriter {
 
     private Map specialCellRenderers;
 
+    private Map extraColumnAttributes;
+
     public CellRenderer getCellRenderer() {
         return cellRenderer;
     }
@@ -63,6 +65,19 @@ public class HTMLTableWriter {
         if (specialCellRenderers == null)
             specialCellRenderers = new HashMap();
         specialCellRenderers.put(new Integer(col), cellRenderer);
+    }
+
+    public String getExtraColumnAttributes(int col) {
+        if (extraColumnAttributes == null)
+            return null;
+        else
+            return (String) extraColumnAttributes.get(new Integer(col));
+    }
+
+    public void setExtraColumnAttributes(int col, String attrs) {
+        if (extraColumnAttributes == null)
+            extraColumnAttributes = new HashMap();
+        extraColumnAttributes.put(new Integer(col), attrs);
     }
 
     public CellRenderer getHeaderRenderer() {
@@ -133,7 +148,7 @@ public class HTMLTableWriter {
                 continue;
 
             String columnName = t.getColumnName(c);
-            printCell(out, "th", headerRenderer, columnName, -1, c);
+            printCell(out, "th", headerRenderer, null, columnName, -1, c);
             out.write(cellNewline);
         }
         out.write("</tr>");
@@ -149,8 +164,7 @@ public class HTMLTableWriter {
                 if (getSkipColumn(c) == true)
                     continue;
 
-                Object value = t.getValueAt(r, c);
-                printCell(out, "td", getCellRenderer(c), value, r, c);
+                writeCell(out, t, r, c);
                 out.write(cellNewline);
             }
             out.write("</tr>");
@@ -162,7 +176,19 @@ public class HTMLTableWriter {
 
     }
 
-    private void printAttr(Writer out, String attr) throws IOException {
+    public void writeCell(Writer out, TableModel t, int r, int c) throws IOException {
+        CellRenderer rend = getCellRenderer(c);
+        String extraAttrs = getExtraColumnAttributes(c);
+        Object value = t.getValueAt(r, c);
+        printCell(out, "td", rend, extraAttrs, value, r, c);
+    }
+
+    public static void writeCell(Writer out, CellRenderer rend, Object value,
+            int r, int c) throws IOException {
+        printCell(out, "td", rend, null, value, r, c);
+    }
+
+    private static void printAttr(Writer out, String attr) throws IOException {
         if (attr != null) {
             out.write(" ");
             out.write(attr);
@@ -180,11 +206,12 @@ public class HTMLTableWriter {
         }
     }
 
-    private void printCell(Writer out, String tag, CellRenderer renderer,
-            Object value, int row, int col) throws IOException {
+    private static void printCell(Writer out, String tag, CellRenderer renderer,
+            String extraAttrs, Object value, int row, int col) throws IOException {
         out.write("<");
         out.write(tag);
         printAttr(out, renderer.getAttributes(value, row, col));
+        printAttr(out, extraAttrs);
         out.write(">");
         String text = renderer.getInnerHtml(value, row, col);
         if (text != null)

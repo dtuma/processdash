@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2006 Tuma Solutions, LLC
+// Copyright (C) 2003-2007 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -640,6 +640,31 @@ public class EVTaskList extends AbstractTreeTableModel
         String.class };         // earned value
 
 
+    public static final Object COLUMN_FMT_OTHER = "other";
+    public static final Object COLUMN_FMT_TIME = "time";
+    public static final Object COLUMN_FMT_DATE = "date";
+    public static final Object COLUMN_FMT_PERCENT = "percent";
+
+    public static final Object[] COLUMN_FORMATS = {
+        COLUMN_FMT_OTHER,     // project/task
+        COLUMN_FMT_TIME,      // planned time
+        COLUMN_FMT_TIME,      // planned direct time
+        COLUMN_FMT_TIME,      // actual time
+        COLUMN_FMT_TIME,      // actual direct time
+        COLUMN_FMT_PERCENT,   // planned value
+        COLUMN_FMT_TIME,      // planned cumulative time
+        COLUMN_FMT_PERCENT,   // planned cumulative value
+        COLUMN_FMT_OTHER,     // assigned to
+        COLUMN_FMT_DATE,      // planned date
+        COLUMN_FMT_DATE,      // forecast date
+        COLUMN_FMT_DATE,      // date
+        COLUMN_FMT_OTHER,     // task dependencies
+        COLUMN_FMT_PERCENT,   // percent complete
+        COLUMN_FMT_PERCENT,   // percent spent
+        COLUMN_FMT_PERCENT,   // earned value
+    };
+
+
     //
     // The TreeModel interface
     //
@@ -719,9 +744,13 @@ public class EVTaskList extends AbstractTreeTableModel
         switch (column) {
         case TASK_COLUMN:           return n.getName();
         case PLAN_TIME_COLUMN:      return n.getPlanTime();
+        case -PLAN_TIME_COLUMN:     return new Double(n.planTime);
         case PLAN_DTIME_COLUMN:     return n.getPlanDirectTime();
+        case -PLAN_DTIME_COLUMN:    return new Double(n.planValue);
         case ACT_TIME_COLUMN:       return n.getActualTime(totalActualTime);
+        case -ACT_TIME_COLUMN:      return new Double(n.actualTime);
         case ACT_DTIME_COLUMN:      return n.getActualDirectTime(totalActualTime);
+        case -ACT_DTIME_COLUMN:     return new Double(n.actualDirectTime);
         case PLAN_VALUE_COLUMN:     return n.getPlanValue(totalPlanValue);
         case PLAN_CUM_TIME_COLUMN:  return n.getCumPlanTime();
         case PLAN_CUM_VALUE_COLUMN: return n.getCumPlanValue(totalPlanValue);
