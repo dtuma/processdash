@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2006 Tuma Solutions, LLC
+// Copyright (C) 2003-2007 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -25,6 +25,8 @@
 
 package net.sourceforge.processdash.hier.ui;
 
+import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
@@ -36,9 +38,15 @@ import javax.swing.ImageIcon;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JScrollPane;
+import javax.swing.JTree;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
+import javax.swing.tree.TreePath;
 
+import net.sourceforge.processdash.DashboardContext;
+import net.sourceforge.processdash.InternalSettings;
 import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.repository.DataEvent;
@@ -47,10 +55,13 @@ import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.hier.ActiveTaskModel;
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.PropertyKey;
+import net.sourceforge.processdash.hier.ui.HierarchyTreeModel.HierarchyTreeNode;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.ui.DashboardIconFactory;
 import net.sourceforge.processdash.ui.TaskNavigationSelector;
 import net.sourceforge.processdash.ui.help.PCSH;
+import net.sourceforge.processdash.ui.lib.JOptionPaneClickHandler;
+import net.sourceforge.processdash.ui.lib.JOptionPaneTweaker;
 import net.sourceforge.processdash.ui.lib.NarrowJMenu;
 
 public class HierarchyMenu implements ActionListener, PropertyChangeListener,
@@ -65,8 +76,8 @@ public class HierarchyMenu implements ActionListener, PropertyChangeListener,
     boolean isFirstMenu;
 
     public HierarchyMenu(ProcessDashboard dash, JMenuBar menuBar,
-            ActiveTaskModel model, PropertyKey useSelf) {
-        this(dash, menuBar, model, useSelf, true);
+            ActiveTaskModel model) {
+        this(dash, menuBar, model, getRootKeyFromSetting(dash), true);
     }
 
     private HierarchyMenu(ProcessDashboard dash, JMenuBar menuBar,
@@ -287,6 +298,69 @@ public class HierarchyMenu implements ActionListener, PropertyChangeListener,
             child.propertyChange(evt);
     }
 
+    public static boolean chooseHierarchyNavigator(Component parent,
+            DashboardContext context, Resources resources) {
+        HierarchyTreeModel model = new HierarchyTreeModel(context.getHierarchy());
+        model.setRootName(resources.getString("Hierarchy.Root_Node_Name"));
+        JTree tree = new JTree(model);
+        tree.setRootVisible(true);
+        tree.setSelectionInterval(0, 0);
+        tree.setToggleClickCount(4);
+        new JOptionPaneClickHandler().install(tree);
+
+        JScrollPane sp = new JScrollPane(tree);
+        sp.setPreferredSize(new Dimension(200, 200));
+
+        String title = resources.getString("Hierarchy.Dialog.Title");
+        Object[] message = new Object[] {
+                resources.getStrings("Hierarchy.Dialog.Prompt"), sp,
+                new JOptionPaneTweaker.MakeResizable() };
+        String path = null;
+        if (JOptionPane.showConfirmDialog(parent, message, title,
+                JOptionPane.OK_CANCEL_OPTION) == JOptionPane.OK_OPTION)
+            path = getSelectedPathForHierarchyNavigator(tree);
+        tree.setModel(null);
+
+        if (path != null) {
+            InternalSettings.set(HIERARCHY_ROOT_PATH_SETTING, path);
+            return true;
+        }
+        return false;
+    }
+
+    private static String getSelectedPathForHierarchyNavigator(JTree tree) {
+        TreePath selectedPath = tree.getSelectionPath();
+        if (selectedPath == null)
+            // no node was selected
+            return null;
+
+        HierarchyTreeNode node = (HierarchyTreeNode) selectedPath
+                .getLastPathComponent();
+        if (node == null)
+            // not sure if this can happen, but be safe.
+            return null;
+
+        if (node.getChildCount() == 0)
+            // don't allow the user to select leaf nodes.  The HierarchyMenu
+            // class can't handle that very well.
+            node = (HierarchyTreeNode) node.getParent();
+
+        if (node == null)
+            return null;
+        else
+            return node.getPath();
+    }
+
+    private static PropertyKey getRootKeyFromSetting(ProcessDashboard dash) {
+        String path = Settings.getVal(HIERARCHY_ROOT_PATH_SETTING, "/");
+        PropertyKey key = dash.getProperties().findExistingKey(path);
+        if (key == null)
+            key = PropertyKey.ROOT;
+        return key;
+    }
+
     public static final Icon HIER_ICON = new ImageIcon(HierarchyMenu.class
             .getResource("hier.gif"));
+    private static final String HIERARCHY_ROOT_PATH_SETTING =
+            "navigator.hierarchyPath";
 }
