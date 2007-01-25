@@ -57,10 +57,13 @@ import java.net.URL;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.EventObject;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.prefs.Preferences;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -126,6 +129,7 @@ import net.sourceforge.processdash.ui.lib.ToolTipTimingCustomizer;
 import net.sourceforge.processdash.ui.lib.TreeTableModel;
 import net.sourceforge.processdash.util.BooleanArray;
 import net.sourceforge.processdash.util.HTMLUtils;
+import net.sourceforge.processdash.util.StringUtils;
 
 
 public class TaskScheduleDialog
@@ -163,6 +167,9 @@ public class TaskScheduleDialog
 
     protected Resources resources = Resources.getDashBundle("EV");
 
+    private static Preferences preferences = Preferences.userNodeForPackage(TaskScheduleDialog.class);
+    private static final String EXPANDED_NODES_KEY_SUFFIX = "_EXPANDEDNODES";
+    private static final String EXPANDED_NODES_DELIMITER = Character.toString('\u0001');
 
     public TaskScheduleDialog(DashboardContext dash, String taskListName,
                               boolean createRollup) {
@@ -251,6 +258,8 @@ public class TaskScheduleDialog
         boolean isRollup = isRollup();
         if (isRollup)
             frame.setTitle(resources.getString("Window_Rollup_Title"));
+        else
+            readExpandedNodesPref(model.getID());
 
         JScrollPane sp;
         sp = new JScrollPane(treeTable,
@@ -1912,9 +1921,14 @@ public class TaskScheduleDialog
         if (!isMergedView())
             changeTreeTableModel(model, treeColumnModel);
         else {
-            if (mergedModel == null)
+            boolean needsExpansionSetup = false;
+            if (mergedModel == null) {
                 mergedModel = model.getMergedModel();
+                needsExpansionSetup = true;
+            }
             changeTreeTableModel(mergedModel, treeColumnModel);
+            if (needsExpansionSetup)
+                readExpandedNodesPref(model.getID());
         }
 
         enableTaskButtons();
@@ -2006,6 +2020,11 @@ public class TaskScheduleDialog
     protected void close() {
         TaskScheduleChooser.close(taskListName);
         frame.dispose();
+
+        if ((!isRollup() && !isFlatView()) ||
+            (isRollup() && isMergedView())) {
+            saveExpandedNodesPref(model.getID());
+        }
         model.setNodeListener(null);
         model.removeRecalcListener(this);
         model.getSchedule().setListener(null);
@@ -2092,4 +2111,59 @@ public class TaskScheduleDialog
         return true;
     }
 
+    private String getExpandedNodesKey(String taskListId) {
+        return taskListId + EXPANDED_NODES_KEY_SUFFIX;
+    }
+
+    private Set getExpandedNodesPref(String taskListId) {
+        String value = preferences.get(getExpandedNodesKey(taskListId), "");
+        String[] nodesArray = value.split(EXPANDED_NODES_DELIMITER);
+        Set nodesToExpand = new HashSet(Arrays.asList(nodesArray));
+
+        return nodesToExpand;
+    }
+
+    private void setExpandedNodesPref(String taskListId, Set value) {
+        preferences.put(getExpandedNodesKey(taskListId),
+                StringUtils.join(value, EXPANDED_NODES_DELIMITER));
+    }
+
+    private void saveExpandedNodesPref(String taskListId) {
+        Set expandedNodes = new HashSet();
+        getExpandedNodes(expandedNodes, (EVTask) treeTable.getTree().getModel().getRoot());
+        setExpandedNodesPref(taskListId, expandedNodes);
+    }
+
+    private void getExpandedNodes(Set expandedNodes, EVTask taskNode) {
+        boolean isVisible = treeTable.getTree().isVisible(new TreePath(taskNode.getPath()));
+        boolean isExpanded = treeTable.getTree().isExpanded(new TreePath(taskNode.getPath()));
+
+        if (isVisible && isExpanded) {
+            List ids = taskNode.getTaskIDs();
+            if (null == ids || ids.isEmpty())
+                expandedNodes.add(taskNode.getFullName());
+            else
+                expandedNodes.addAll(ids);
+
+            for (int i = 0; i < taskNode.getNumChildren(); i++)
+                getExpandedNodes(expandedNodes, taskNode.getChild(i));
+        }
+    }
+
+    private void readExpandedNodesPref(String taskListId) {
+        Set nodesToExpand = getExpandedNodesPref(taskListId);
+        expandNodes(nodesToExpand, (EVTask) treeTable.getTree().getModel().getRoot());
+    }
+
+    private void expandNodes(Set nodesToExpand, EVTask taskNode) {
+        List ids = taskNode.getTaskIDs();
+        if ((null != ids && nodesToExpand.removeAll(ids)) ||
+                nodesToExpand.remove(taskNode.getFullName())) {
+            treeTable.getTree().makeVisible(new TreePath(taskNode.getPath()));
+            treeTable.getTree().expandPath(new TreePath(taskNode.getPath()));
+        }
+        for (int i = 0; i < taskNode.getNumChildren(); i++) {
+            expandNodes(nodesToExpand, taskNode.getChild(i));
+        }
+    }
 }
