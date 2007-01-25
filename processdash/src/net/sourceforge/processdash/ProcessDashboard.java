@@ -34,6 +34,7 @@ import java.awt.event.*;
 import java.beans.EventHandler;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.text.MessageFormat;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -468,6 +469,27 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
             return;
         }
 
+        if (someDashboardFilesAreReadOnly()) {
+            // the user does not have write access to all of the files in
+            // the data directory.  They either need to open the dashboard
+            // in read only mode, or exit.
+            ResourceBundle res = ResourceBundle
+                    .getBundle("Templates.resources.ProcessDashboard");
+            String title = res.getString("ReadOnly.File_Permissions.Title");
+            Object message = MessageFormat.format(
+                    res.getString("ReadOnly.File_Permissions.Message_FMT"),
+                    new Object[] { property_directory }).split("\n");
+            int userResponse = JOptionPane.showConfirmDialog(null, message,
+                    title, JOptionPane.OK_CANCEL_OPTION,
+                    JOptionPane.ERROR_MESSAGE);
+            if (userResponse == JOptionPane.OK_OPTION) {
+                InternalSettings.setReadOnly(true);
+                return;
+            } else {
+                System.exit(1);
+            }
+        }
+
         String setting = Settings.getVal("readOnly");
         if (setting == null) return;
         if (setting.toLowerCase().startsWith("recommend")) {
@@ -492,6 +514,17 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
             if (readOnlyOption.isSelected())
                 InternalSettings.setReadOnly(true);
         }
+    }
+    private boolean someDashboardFilesAreReadOnly() {
+        File dataDir = new File(property_directory);
+        File[] files = dataDir.listFiles();
+        for (int i = 0; i < files.length; i++) {
+            if (FileBackupManager.inBackupSet(dataDir, files[i].getName())) {
+                if (!files[i].canWrite())
+                    return true;
+            }
+        }
+        return false;
     }
 
     private void displayStartupIOError(String resourceKey, String filename) {
