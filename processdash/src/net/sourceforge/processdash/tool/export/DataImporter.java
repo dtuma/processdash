@@ -1,5 +1,5 @@
+// Copyright (C) 2003-2007 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -25,31 +25,23 @@
 
 package net.sourceforge.processdash.tool.export;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.StringTokenizer;
-import java.util.Vector;
 
-import net.sourceforge.processdash.data.*;
 import net.sourceforge.processdash.data.repository.DataRepository;
-import net.sourceforge.processdash.data.repository.InvalidDatafileFormat;
 import net.sourceforge.processdash.log.ImportedDefectManager;
 import net.sourceforge.processdash.tool.export.impl.ArchiveMetricsFileImporter;
 import net.sourceforge.processdash.tool.export.impl.TextMetricsFileImporter;
 import net.sourceforge.processdash.util.FileAgeComparator;
-import net.sourceforge.processdash.util.EscapeString;
 import net.sourceforge.processdash.util.RobustFileOutputStream;
 
 
@@ -95,6 +87,10 @@ public class DataImporter extends Thread {
     }
 
     public static void refreshPrefix(String prefix) {
+        refreshPrefixWithFeedback(prefix);
+    }
+    public static List refreshPrefixWithFeedback(String prefix) {
+        List result = new ArrayList();
         prefix = massagePrefix(prefix);
         Iterator i = importers.values().iterator();
         DataImporter importer;
@@ -104,9 +100,10 @@ public class DataImporter extends Thread {
                 importer.importPrefix.startsWith(prefix)) {
                 System.out.println("checking "+importer.importPrefix+
                                    "=>"+importer.directory);
-                importer.checkFiles();
+                importer.checkFiles(result);
             }
         }
+        return result;
     }
 
     public DataImporter(DataRepository data, String prefix, File directory) {
@@ -116,7 +113,7 @@ public class DataImporter extends Thread {
         this.importPrefix = prefix;
         this.directory = directory;
 
-        checkFiles();
+        checkFiles(null);
         this.setDaemon(true);
         this.start();
     }
@@ -130,11 +127,11 @@ public class DataImporter extends Thread {
     public void run() {
         while (isRunning) try {
             sleep(TIME_DELAY);
-            checkFiles();
+            checkFiles(null);
         } catch (InterruptedException e) {}
     }
 
-    private void checkFiles() {
+    private void checkFiles(List feedback) {
         try {
             Set currentFiles = new HashSet(modTimes.keySet());
 
@@ -143,7 +140,9 @@ public class DataImporter extends Thread {
 
             // check them all to see if they need importing.
             for (int i = files.length;  i-- > 0;  ) {
-                checkFile(files[i]);
+                if (checkFile(files[i]))
+                    if (feedback != null)
+                        feedback.add(files[i]);
                 currentFiles.remove(files[i]);
             }
 
@@ -214,7 +213,7 @@ public class DataImporter extends Thread {
     }
 
 
-    private void checkFile(File f) throws IOException {
+    private boolean checkFile(File f) throws IOException {
         Long prevModTime = (Long) modTimes.get(f);
         long modTime = f.lastModified();
 
@@ -223,7 +222,10 @@ public class DataImporter extends Thread {
         if (prevModTime == null || prevModTime.longValue() < modTime) {
             importData(f, data);                   // import it, and
             modTimes.put(f, new Long(modTime));    // save its mod time
+            return true;
         }
+
+        return false;
     }
 
     private void closeFile(File f) {
