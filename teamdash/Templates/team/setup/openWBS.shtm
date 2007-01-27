@@ -1,0 +1,36 @@
+<!--#if ![Team_Directory] -->
+  <html><head>
+  <title>Team Directory Missing</title>
+  </head><body>
+  <h1>Team Directory Missing</h1>
+  <p>The Work Breakdown Structure Editor cannot be used until you
+  specify a team data directory on the Project Parameters and Settings
+  page.</p>
+  </body></html>
+<!--#elif ![Project_ID] -->
+  <html><head>
+  <title>Team Project ID Missing</title>
+  </head><body>
+  <h1>Team Project ID Missing</h1>
+  <p>The Work Breakdown Structure Editor cannot be used because the
+  Project ID for this team project is missing.  The Project ID is
+  displayed on the Project Parameters and Settings page.</p>
+  </body></html>
+<!--#else-->
+
+<!--#set var="directory" inline="true" #-->
+    <!--#if [Team_Directory_UNC] #-->
+        <!--#echo [Team_Directory_UNC] #-->
+    <!--#else#-->
+        <!--#echo [Team_Directory] #-->
+    <!--#endif#-->
+    <!--#echo [file_sep] -->data<!--#echo [file_sep] #-->
+    <!--#echo [Project_ID] #-->
+<!--#endset-->
+
+<!--#include file="/team/tools/OpenWBSEditor.class" -->
+    <!--#parameter name="QUERY_STRING" -->
+    <!--#parameter name="syncURL" encoding="relUri" value="sync.class?run" -->
+    <!--#parameter name="directory" var="directory" -->
+
+<!--#endif-->
