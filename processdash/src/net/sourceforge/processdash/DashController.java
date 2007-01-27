@@ -47,6 +47,7 @@ import net.sourceforge.processdash.hier.Prop;
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.log.time.DashboardTimeLog;
 import net.sourceforge.processdash.net.http.WebServer;
+import net.sourceforge.processdash.process.ui.TriggerURI;
 import net.sourceforge.processdash.security.DashboardPermission;
 import net.sourceforge.processdash.templates.ui.ImportTemplatePermissionDialog;
 import net.sourceforge.processdash.tool.export.mgr.AbstractInstruction;
@@ -209,6 +210,7 @@ public class DashController {
     }
 
     public static void printNullDocument(PrintWriter out) {
+        out.println(TriggerURI.NULL_DOCUMENT_MARKER);
         out.println("<HTML><HEAD><SCRIPT>");
         out.println("history.back();");
         out.println("</SCRIPT></HEAD><BODY></BODY></HTML>");
