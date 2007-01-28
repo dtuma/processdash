@@ -29,6 +29,7 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Window;
 
+import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.SwingUtilities;
 
@@ -65,6 +66,18 @@ public class JOptionPaneTweaker extends Component {
             dialog.setResizable(true);
         }
 
+    }
+
+    public static class GrabFocus extends JOptionPaneTweaker {
+        private JComponent c;
+
+        public GrabFocus(JComponent c) {
+            this.c = c;
+        }
+
+        public void doTweak(JDialog dialog) {
+            c.requestFocus();
+        }
     }
 
 }

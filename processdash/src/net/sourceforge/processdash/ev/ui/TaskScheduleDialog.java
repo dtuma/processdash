@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2006 Tuma Solutions, LLC
+// Copyright (C) 2003-2007 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -121,6 +121,7 @@ import net.sourceforge.processdash.ui.Browser;
 import net.sourceforge.processdash.ui.DashboardIconFactory;
 import net.sourceforge.processdash.ui.NodeSelectionDialog;
 import net.sourceforge.processdash.ui.help.PCSH;
+import net.sourceforge.processdash.ui.lib.PaintUtils;
 import net.sourceforge.processdash.ui.lib.DeferredSelectAllExecutor;
 import net.sourceforge.processdash.ui.lib.ErrorReporter;
 import net.sourceforge.processdash.ui.lib.JTreeTable;
@@ -593,12 +594,6 @@ public class TaskScheduleDialog
     }
 
 
-    private Color mixColors(Color a, Color b, float r) {
-        float s = 1.0f - r;
-        return new Color((a.getRed()   * r + b.getRed()   * s) / 255f,
-                         (a.getGreen() * r + b.getGreen() * s) / 255f,
-                         (a.getBlue()  * r + b.getBlue()  * s) / 255f);
-    }
     Color editableColor, selectedEditableColor;
     Color expandedColor, automaticColor;
 
@@ -615,11 +610,11 @@ public class TaskScheduleDialog
             cutList = new BooleanArray();
 
             editableColor =
-                mixColors(getBackground(), Color.yellow, 0.6f);
+                PaintUtils.mixColors(getBackground(), Color.yellow, 0.6);
             selectedEditableColor =
-                mixColors(getSelectionBackground(), editableColor, 0.4f);
+                PaintUtils.mixColors(getSelectionBackground(), editableColor, 0.4);
             expandedColor =
-                mixColors(getBackground(), getForeground(), 0.8f);
+                PaintUtils.mixColors(getBackground(), getForeground(), 0.8);
 
             editable = new TaskTableRenderer(selectedEditableColor,
                                              editableColor,

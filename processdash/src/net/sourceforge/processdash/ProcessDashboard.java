@@ -91,6 +91,7 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
 
     ConfigureButton configure_button = null;
     PauseButton pause_button = null;
+    PercentSpentIndicator pct_spent_indicator = null;
     ScriptButton script_button = null;
     DefectButton defect_button = null;
     TaskNavigationSelector taskNav = null;
@@ -342,6 +343,8 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
         pause_button = new PauseButton(timeLog.getTimeLoggingModel());
         if (Settings.isReadWrite())
             addToMainWindow(pause_button, 0);
+        pct_spent_indicator = new PercentSpentIndicator(this, activeTaskModel);
+        addToMainWindow(pct_spent_indicator, 0);
         defect_button = new DefectButton(this);
         if (Settings.isReadWrite())
             addToMainWindow(defect_button, 0);
