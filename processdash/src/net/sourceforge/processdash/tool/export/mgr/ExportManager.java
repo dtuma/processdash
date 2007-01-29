@@ -182,10 +182,6 @@ public class ExportManager extends AbstractManager {
     }
 
     public void exportAll(Object window, DashboardContext parent) {
-        ProgressDialog p = ProgressDialog.create(window, resource
-                .getString("ExportAutoExporting"), resource
-                .getString("ExportExportingDataDots"));
-
         // start with the export instructions registered with this manager
         List tasks = new LinkedList(instructions);
         // Look for data export instructions in the data repository.
@@ -195,15 +191,26 @@ public class ExportManager extends AbstractManager {
         if (tasks.isEmpty())
             return;
 
+        ProgressDialog p = null;
+        if (window != null)
+            p = ProgressDialog.create(window, resource
+                    .getString("ExportAutoExporting"), resource
+                    .getString("ExportExportingDataDots"));
+
         for (Iterator iter = tasks.iterator(); iter.hasNext();) {
             AbstractInstruction instr = (AbstractInstruction) iter.next();
             if (instr.isEnabled()) {
                 Runnable exporter = getExporter(instr);
-                p.addTask(exporter);
+                if (p != null)
+                    p.addTask(exporter);
+                else
+                    exporter.run();
             }
         }
 
-        p.run();
+        if (p != null)
+            p.run();
+
         System.out.println("Completed user-scheduled data export.");
         Runtime.getRuntime().gc();
     }
@@ -314,5 +321,24 @@ public class ExportManager extends AbstractManager {
         } catch (InvalidDatafileFormat e) {
             logger.log(Level.WARNING, "Unexpected error", e);
         }
+    }
+
+    public static class BGTask implements Runnable {
+
+        private DashboardContext context;
+
+        public void setDashboardContext(DashboardContext context) {
+            this.context = context;
+        }
+
+        public void run() {
+            try {
+                ExportManager.getInstance().exportAll(null, context);
+            } catch (Exception e) {
+                logger.log(Level.SEVERE,
+                        "Encountered exception when performing auto export", e);
+            }
+        }
+
     }
 }

@@ -42,6 +42,8 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -78,6 +80,8 @@ public class FileBackupManager {
         new SimpleDateFormat("yyyyMMddHHmmss");
     private static final long DAY_MILLIS = 24L /*hours*/ * 60 /*minutes*/
         * 60 /*seconds*/ * 1000 /*millis*/;
+    private static final Logger logger = Logger
+            .getLogger(FileBackupManager.class.getName());
 
 
     public static void maybeRun(String dataDirName, int when, String who) {
@@ -495,5 +499,29 @@ public class FileBackupManager {
         t.printStackTrace();
     }
 
+
+    public static class BGTask implements Runnable {
+
+        private DashboardContext context;
+
+        public void setDashboardContext(DashboardContext context) {
+            this.context = context;
+        }
+
+        public void run() {
+            try {
+                ProcessDashboard dash = (ProcessDashboard) context;
+                String property_directory = dash.property_directory;
+                String ownerName = ProcessDashboard.getOwnerName(context
+                        .getData());
+                FileBackupManager.maybeRun(property_directory,
+                        FileBackupManager.RUNNING, ownerName);
+            } catch (Exception e) {
+                logger.log(Level.SEVERE,
+                        "Encountered exception when performing auto backup", e);
+            }
+        }
+
+    }
 
 }

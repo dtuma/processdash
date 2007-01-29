@@ -31,7 +31,6 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.*;
-import java.beans.EventHandler;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.text.MessageFormat;
@@ -43,7 +42,6 @@ import java.net.InetAddress;
 import java.net.Socket;
 import java.net.URL;
 import javax.swing.*;
-import javax.swing.Timer;
 
 import net.sourceforge.processdash.data.DataContext;
 import net.sourceforge.processdash.data.SimpleData;
@@ -366,7 +364,6 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
         } catch (Exception e) {
             e.printStackTrace();
         }
-        startAutoExporter();
         LegacySupport.configureRemoteListeningCapability(data);
         timeLog.refreshMetrics();
 
@@ -398,6 +395,7 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
         addComponentListener(new ResizeWatcher());
         ExternalResourceManager.getInstance().cleanupBogusExtResDirectory(
                 prop_file.getParentFile());
+        BackgroundTaskManager.initialize(this);
     }
     private Component addToMainWindow(Component component, double weight) {
         GridBagConstraints g = new GridBagConstraints();
@@ -837,61 +835,6 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
         return InternalSettings.isDirty() == false;
     }
 
-
-    private void startAutoExporter() {
-        int millisPerHour = 60 /*minutes*/ * 60 /*seconds*/ * 1000 /*milliseconds*/;
-
-        ActionListener periodicTaskInitiator = (ActionListener) EventHandler
-                .create(ActionListener.class, this, "startPeriodicTasks");
-        Timer t = new Timer(millisPerHour, periodicTaskInitiator);
-        t.start();
-    }
-
-
-    public void startPeriodicTasks() {
-        int currentHourOfDay = Calendar.getInstance().get(Calendar.HOUR_OF_DAY);
-        final boolean doExport =
-            !Settings.getBool(DISABLE_AUTO_EXPORT_SETTING, false) &&
-            hourMatchesSetting(currentHourOfDay,
-                    ExportManager.EXPORT_TIMES_SETTING);
-        final boolean doBackup = hourMatchesSetting(currentHourOfDay,
-                FileBackupManager.BACKUP_TIMES_SETTING);
-        if (doExport == false && doBackup == false)
-            // nothing to do
-            return;
-
-        Thread t = new Thread("Process Dashboard Periodic Task Executor") {
-            public void run() {
-                performPeriodicTasks(doExport, doBackup);
-            }
-        };
-        t.start();
-    }
-
-    private boolean hourMatchesSetting(int hour, String settingName) {
-        String settingVal = Settings.getVal(settingName);
-        if (settingVal == null || settingVal.trim().length() == 0)
-            return false;
-        if ("*".equals(settingVal.trim()))
-            return true;
-
-        String[] times = settingVal.split("\\D+");  // split on non-digits
-        for (int i = 0; i < times.length; i++)
-            try {
-                if (hour == Integer.parseInt(times[i]))
-                    return true;
-            } catch (NumberFormatException nfe) {}
-
-        return false;
-    }
-
-    private void performPeriodicTasks(boolean doExport, boolean doBackup) {
-        if (doExport)
-            ExportManager.getInstance().exportAll(this, this);
-        if (doBackup)
-            FileBackupManager.maybeRun(property_directory,
-                    FileBackupManager.RUNNING, getOwnerName(data));
-    }
 
     public static String getVersionNumber() { return versionNumber; }
 

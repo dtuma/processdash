@@ -52,6 +52,17 @@ E-Mail POC:  processdash-devel@lists.sourceforge.net
             dataFile="generic/phaseData.txt" constraints="{}Generic" />
 
 
+  <!-- definitions for background tasks that are provided by the dashboard -->
+
+  <background-task 
+     class="net.sourceforge.processdash.tool.export.mgr.ExportManager$BGTask"
+     settingPrefix="export" disabledWith="export.disableAutoExport"/>
+
+  <background-task 
+     class="net.sourceforge.processdash.FileBackupManager$BGTask"
+     settingPrefix="backup" enabledWith="backup.enabled"/>
+
+
   <!-- definitions for snippets that are provided by the dashboard -->
 
   <snippet id="pdash.addNew" version="1.0" category="hidden">

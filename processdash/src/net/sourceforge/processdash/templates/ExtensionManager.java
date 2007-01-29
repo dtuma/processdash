@@ -1,4 +1,4 @@
-// Copyright (C) 2006 Tuma Solutions, LLC
+// Copyright (C) 2006-2007 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -58,6 +58,16 @@ public class ExtensionManager {
         public ExtensionData(String filename, URL baseUrl) {
             this.filename = filename;
             this.baseUrl = baseUrl;
+        }
+
+        public String getDescription() {
+            StringBuffer result = new StringBuffer().append("[");
+            if (filename != null)
+                result.append("filename=").append(filename);
+            else if (baseUrl != null)
+                result.append("baseUrl=").append(baseUrl);
+            result.append("]");
+            return result.toString();
         }
     }
 
@@ -158,6 +168,19 @@ public class ExtensionManager {
             throw re;
         }
     }
+
+
+    public static String getDebugDescriptionOfSource(Element configElement) {
+        if (configElement == null) return null;
+        Document configDoc = configElement.getOwnerDocument();
+        ExtensionData metaData = (ExtensionData) extensionXmlDocs
+                .get(configDoc);
+        if (metaData == null)
+            return null;
+        else
+            return metaData.getDescription();
+    }
+
 
     private static Map CLASSLOADERS = new Hashtable();
 
