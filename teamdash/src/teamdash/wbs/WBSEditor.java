@@ -10,7 +10,12 @@ import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Set;
+import java.util.prefs.Preferences;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -57,6 +62,10 @@ public class WBSEditor implements WindowListener, SaveListener,
     private static final int MODE_MASTER = 4;
     private static final int MODE_BOTTOM_UP = 8;
 
+    private static Preferences preferences = Preferences.userNodeForPackage(WBSEditor.class);
+    private static final String EXPANDED_NODES_KEY_SUFFIX = "_EXPANDEDNODES";
+    private static final String EXPANDED_NODES_DELIMITER = Character.toString('\u0001');
+
     public WBSEditor(TeamProject teamProject, File dumpFile, String intent)
             throws ConcurrencyLock.FailureException {
 
@@ -69,6 +78,13 @@ public class WBSEditor implements WindowListener, SaveListener,
         setMode(teamProject);
 
         WBSModel model = teamProject.getWBS();
+
+        // set expanded nodes on model based on saved user preferences
+        Set expandedNodes = getExpandedNodesPref(teamProject.getProjectID());
+        if (expandedNodes != null) {
+            model.setExpandedNodeIDs(expandedNodes);
+        }
+
         TaskDependencySource taskDependencySource = getTaskDependencySource();
         DataTableModel data = new DataTableModel
             (model, teamProject.getTeamMemberList(),
@@ -399,6 +415,10 @@ public class WBSEditor implements WindowListener, SaveListener,
     protected void maybeClose() {
         tabPanel.stopCellEditing();
         if (maybeSave(true)) {
+            // Set expanded nodes preference
+            Set expandedNodes = teamProject.getWBS().getExpandedNodeIDs();
+            setExpandedNodesPref(teamProject.getProjectID(), expandedNodes);
+
             if (exitOnClose)
                 System.exit(0);
             else {
@@ -449,6 +469,38 @@ public class WBSEditor implements WindowListener, SaveListener,
         } catch (ConcurrencyLock.FailureException e) {
             return null;
         }
+    }
+
+    private String getExpandedNodesKey(String projectId) {
+        return projectId + EXPANDED_NODES_KEY_SUFFIX;
+    }
+
+    private Set getExpandedNodesPref(String projectId) {
+        String value = preferences.get(getExpandedNodesKey(projectId), null);
+        if (value == null)
+            return null;
+
+        String[] nodesArray = value.split(EXPANDED_NODES_DELIMITER);
+        Set nodesToExpand = new HashSet(Arrays.asList(nodesArray));
+
+        return nodesToExpand;
+    }
+
+    private void setExpandedNodesPref(String projectId, Set value) {
+        preferences.put(getExpandedNodesKey(projectId),
+                joinDelimitedString(value, EXPANDED_NODES_DELIMITER));
+    }
+
+    private String joinDelimitedString(Collection c, String delim) {
+        if (c == null || c.isEmpty())
+            return "";
+        else if (c.size() == 1)
+            return String.valueOf(c.iterator().next());
+
+        StringBuffer result = new StringBuffer();
+        for (Iterator i = c.iterator(); i.hasNext();)
+            result.append(delim).append(i.next());
+        return result.substring(delim.length());
     }
 
     public static void main(String args[]) {

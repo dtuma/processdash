@@ -5,9 +5,11 @@ import java.io.IOException;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
+import java.util.Set;
 
 import javax.swing.table.AbstractTableModel;
 
@@ -888,6 +890,27 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
                 }
             }
         }
+    }
+
+    public Set getExpandedNodeIDs() {
+        Set expandedNodes = new HashSet();
+        for (int i = 1;  i < wbsNodes.size(); i++) {
+            WBSNode node = (WBSNode) wbsNodes.get(i);
+            if (node.isExpanded()) {
+                expandedNodes.add(Integer.toString(node.getUniqueID()));
+            }
+        }
+
+        return expandedNodes;
+    }
+
+    public void setExpandedNodeIDs(Set expandedNodes) {
+        for (int i = 1;  i < wbsNodes.size(); i++) {
+            WBSNode node = (WBSNode) wbsNodes.get(i);
+            String nodeID = Integer.toString(node.getUniqueID());
+            node.setExpanded(expandedNodes.contains(nodeID));
+        }
+        recalcRows(true);
     }
 
     private static final String CACHED_CHILDREN = "_cached_child_list_";
