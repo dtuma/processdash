@@ -88,11 +88,6 @@
 	 uneditable.  We also change the 'required parent' list to '}',
 	 which makes it impossible for users to instantiate this
 	 node into their hierarchy manually.
-
-	 The old value for constraints was:
-
-      constraints="{PID/TeamNode{PID/TeamTask{PID/Rollup<!--#foreach name=Phase list=Phase_List -->{PID/PHASE/<!--#echo Phase_ID --><!--#endfor-->}PID/TeamRoot}PID/TeamNode"
-
        <!--#endbreak comment-->
 
     <!--#if enableSubcomponentForms -->
@@ -173,11 +168,6 @@
 	 uneditable.  We also change the 'required parent' list to '}',
 	 which makes it impossible for users to instantiate this
 	 node into their hierarchy manually.
-
-	 The old value for constraints was:
-
-      constraints="{PID/TeamNode{PID/TeamTask{PID/Rollup<!--#foreach name=Phase list=Phase_List -->{PID/PHASE/<!--#echo Phase_ID --><!--#endfor-->}PID/TeamRoot}PID/TeamNode"
-
        <!--#endbreak comment-->
 
     <!--#if enableSubcomponentForms -->
@@ -215,6 +205,44 @@
 
 
 <!--======================================================================
+    Templates for use on the individual side.
+ =======================================================================-->
+
+<!--#break comment-->
+
+  First, define a few common values that we will use repeatedly below.
+
+  creatable_indiv_nodes is a constraint value, listing the IDs of nodes
+  that the user can create within the boundaries of a team project in their
+  personal dashboard.  In addition, it lists all of the process phase
+  templates.  Strictly speaking, the user can no longer add those process
+  phase templates to their hierarchy (because the phase templates use the
+  "required parent" constraint to forbid their instantiation). But it is
+  important to list them anyway, because the hierarchy editor uses their
+  presence in this list to constrain the set of allowable child names.
+
+  parentable_indiv_nodes is a constraint value, listing the IDs of nodes
+  that can exist within the boundaries of a team project in a personal
+  dashboard, that a user can create children underneath.
+
+<!--#endbreak comment-->
+
+
+<!--#set var="creatable_indiv_nodes" inline="true" #-->
+    <!--#echo PSP_Children #-->
+    <!--#foreach name=Phase list=Phase_List #-->
+        {PID/PHASE/<!--#echo Phase_ID #-->
+        {PID/IndivTask/<!--#echo Phase_ID --><!--#endfor#-->
+    {PID/IndivEmptyNode{PID/Rollup<!--#endset-->
+
+<!--#set var="parentable_indiv_nodes" inline="true" #-->
+    <!--#foreach name=Phase list=Phase_List #-->
+        }PID/IndivTask/<!--#echo Phase_ID --><!--#endfor#-->
+    }PID/IndivRoot}PID/IndivReadOnlyNode<!--#echo null #-->
+    }PID/IndivFullNode}PID/IndivEmptyNode<!--#endset-->
+
+
+<!--======================================================================
     The template for a root project node on the individual side.
  =======================================================================-->
 
@@ -224,7 +252,7 @@
       defineRollup="no"
       defectLog="true"
       dataFile="PID/indiv_root_dataFile.txt"
-      constraints="<!--#echo PSP_Children -->{PID/IndivFullNode{PID/IndivEmptyNode{PID/Rollup<!--#foreach name=Phase list=Phase_List -->{PID/PHASE/<!--#echo Phase_ID --><!--#endfor-->}"
+      constraints="<!--#echo creatable_indiv_nodes -->}"
       ><!--#break comment-->
            This node cannot be directly instantiated by the user. They
 	   must instead use the team setup wizard to join a team project.
@@ -268,8 +296,14 @@
       dataFile="PID/indiv_full_dataFile.txt"
       size="New &amp; Changed LOC"
       href="none"
-      constraints="<!--#echo PSP_Children -->{PID/IndivFullNode{PID/IndivEmptyNode{PID/Rollup<!--#foreach name=Phase list=Phase_List -->{PID/PHASE/<!--#echo Phase_ID --><!--#endfor-->}PID/IndivRoot}PID/IndivReadOnlyNode}PID/IndivFullNode}PID/IndivEmptyNode"
-      >
+      constraints="<!--#echo creatable_indiv_nodes -->}"
+      ><!--#break comment-->
+         In production use, this template is virtually never used,
+         and just causes confusion for users.  Therefore, I'm changing
+         the 'required parent' list to '}', so users won't see this
+         template as an option.  (I don't delete the template itself 
+	 for legacy purposes.)
+       <!--#endbreak comment-->
 
     <!--#if enableSubcomponentForms -->
     <html ID="sump" href="PID/plan_summary.shtm"
@@ -301,20 +335,21 @@
 
 
 <!--======================================================================
-    The template for a "simple" node/task on the individual side.  A
-    simple node initially contains no phases; they must be added
-    individually.
+    The template for a "summary" node/task on the individual side.  A
+    summary node is designed to hold subtasks, which must be added
+    separately.  No metrics can be recorded against a summary task.
  =======================================================================-->
 
   <template
-      name="PID-Indiv:!*!:Simple Subtask"
+      name="PID-Indiv:!*!:Summary-Outline Task"
       ID="PID/IndivEmptyNode"
       defineRollup="no"
       defectLog="true"
       dataFile="PID/indiv_empty_dataFile.txt"
       size="New &amp; Changed LOC"
       href="none"
-      constraints="<!--#echo PSP_Children -->{PID/IndivFullNode{PID/IndivEmptyNode{PID/Rollup<!--#foreach name=Phase list=Phase_List -->{PID/PHASE/<!--#echo Phase_ID --><!--#endfor-->}PID/IndivRoot}PID/IndivReadOnlyNode}PID/IndivFullNode}PID/IndivEmptyNode"
+      constraints="<!--#echo creatable_indiv_nodes #-->
+                   <!--#echo parentable_indiv_nodes -->"
       >
 
     <!--#if enableSubcomponentForms -->
@@ -343,7 +378,7 @@
       dataFile="PID/indiv_empty_dataFile.txt"
       size="New &amp; Changed LOC"
       href="none"
-      constraints="MED<!--#echo PSP_Children -->{PID/IndivFullNode{PID/IndivEmptyNode{PID/Rollup<!--#foreach name=Phase list=Phase_List -->{PID/PHASE/<!--#echo Phase_ID --><!--#endfor-->}"
+      constraints="MED<!--#echo creatable_indiv_nodes -->}"
       ><!--#break comment-->
          We alter the constraints to make this node immovable and
 	 uneditable.  We also change the 'required parent' list to '}',
@@ -375,7 +410,23 @@
       ID="PID/PHASE/<!--#echo Phase_ID -->"
       dataFile="none"
       href="PID/<!--#echo Phase_ID -->_script.htm"
-      constraints="ED{}PID/TeamRoot}PID/TeamNode}PID/TeamTask}PID/IndivRoot}PID/IndivFullNode}PID/IndivEmptyNode}PID/IndivReadOnlyNode" />
+      constraints="ME{}" />
+
+  <template
+      name="PID-phase<!--#echo Phase_Pos -->:!*!:<!--#echo Phase_Name --> Task"
+      ID="PID/IndivTask/<!--#echo Phase_ID -->"
+      defineRollup="no"
+      defectLog="true"
+      dataFile="PID/indiv_empty_dataFile.txt"
+      size="New &amp; Changed LOC"
+      href="none"
+      constraints="<!--#echo creatable_indiv_nodes #-->
+                   <!--#echo parentable_indiv_nodes -->"
+      >
+    <phase name="<!--#echo Phase_Name -->"
+           ID="PID/PHASE/<!--#echo Phase_ID -->"
+           href="PID/<!--#echo Phase_ID -->_script.htm"/>
+  </template>
 
 <!--#endfor-->
 
@@ -419,7 +470,7 @@
       ID="PID/Rollup"
       dataFile="PID/rollup_dataFile.txt"
       defineRollup="no"
-      constraints="{}PID/TeamRoot}PID/TeamNode}PID/TeamTask}PID/IndivRoot}PID/IndivFullNode}PID/IndivEmptyNode}PID/IndivReadOnlyNode"
+      constraints="{}PID/TeamRoot}PID/TeamNode}PID/TeamTask<!--#echo parentable_indiv_nodes -->"
       >
 
     <html ID="sump" href="PID/rollup_plan_summary.shtm"
