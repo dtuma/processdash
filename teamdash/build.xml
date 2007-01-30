@@ -62,7 +62,7 @@
   </target>
 
 
-  <target name="server" depends="TeamProcessCGI"
+  <target name="server" depends="TeamProcessCGI,filelist.txt"
       description="Build a JAR file to deploy to the server, where the custom process generator will run">
     <jar destfile="${server.jar}" duplicate="fail">
       <!-- include the compiled files -->

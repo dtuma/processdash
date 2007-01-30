@@ -270,6 +270,7 @@ public class sync extends TinyCGIBase {
      * @param taskCompletions a list of tasks we would like to mark complete
      */
     private void printPermissionsPage(List taskDeletions, List taskCompletions) {
+        out.print("<!-- SYNC-IS-NEEDED -->\n");
         out.print("<html><head>\n");
         out.print("<title>Synchronizing Work Breakdown Structure</title>\n");
         out.print("<style> .important { color: #800; font-weight: bold; }</style>\n");
@@ -376,6 +377,7 @@ public class sync extends TinyCGIBase {
      * operation.
      */
     private void printWaitPage() {
+        out.print("<!-- SYNC-IS-NEEDED -->\n");
         out.print("<html><head>");
         out.print("<title>Synchronizing Work Breakdown Structure</title>");
         out.print("<meta http-equiv='Refresh' content='1;URL=sync.class?run'>");
