@@ -694,8 +694,11 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
     public void windowClosed(WindowEvent w) {}
     public void windowIconified(WindowEvent w) {}
     public void windowDeiconified(WindowEvent w) {}
-    public void windowActivated(WindowEvent w) {}
     public void windowDeactivated(WindowEvent w) {}
+
+    public void windowActivated(WindowEvent w) {
+        UserNotificationManager.getInstance().maybeShowNotifications(this);
+    }
 
     public void windowClosing(WindowEvent w) {
         exitProgram();
