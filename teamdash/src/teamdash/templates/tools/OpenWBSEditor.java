@@ -66,6 +66,8 @@ public class OpenWBSEditor extends TinyCGIBase {
         String syncURI = getParameter("syncURL");
         if (syncURI == null || syncURI.length() == 0)
             return null;
+        if (syncURI.startsWith("http"))
+            return syncURI;
         WebServer ws = getTinyWebServer();
         return "http://" + ws.getHostName(true) + ":" + ws.getPort() + syncURI;
     }
