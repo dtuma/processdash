@@ -46,27 +46,38 @@ public class OpenWBSEditor extends TinyCGIBase {
         } catch (IOException ioe) {
             useJNLP = true;
         }
+        if (parameters.containsKey("isTriggering"))
+            useJNLP = false;
 
         parseFormData();
         String directory = getParameter("directory");
         directory = FilenameMapper.remap(directory);
         boolean bottomUp = parameters.containsKey("bottomUp");
         boolean showTeam = parameters.containsKey("team");
+        String syncURL = getSyncURL();
 
         if (useJNLP)
-            writeJnlpFile(directory, bottomUp, showTeam);
+            writeJnlpFile(directory, bottomUp, showTeam, syncURL);
         else
-            openInternally(directory, bottomUp, showTeam);
+            openInternally(directory, bottomUp, showTeam, syncURL);
+    }
+
+    private String getSyncURL() {
+        String syncURI = getParameter("syncURL");
+        if (syncURI == null || syncURI.length() == 0)
+            return null;
+        WebServer ws = getTinyWebServer();
+        return "http://" + ws.getHostName(true) + ":" + ws.getPort() + syncURI;
     }
 
     private void openInternally(String directory, boolean bottomUp,
-            boolean showTeam) {
+            boolean showTeam, String syncURL) {
         if (!checkEntryCriteria(directory))
             return;
 
         writeHtmlHeader();
         DashController.printNullDocument(out);
-        showEditor(directory, bottomUp, showTeam);
+        showEditor(directory, bottomUp, showTeam, syncURL);
     }
 
     private boolean checkEntryCriteria(String directory) {
@@ -90,7 +101,8 @@ public class OpenWBSEditor extends TinyCGIBase {
 
     private static Hashtable editors = new Hashtable();
 
-    private void showEditor(String directory, boolean bottomUp, boolean showTeam) {
+    private void showEditor(String directory, boolean bottomUp,
+            boolean showTeam, String syncURL) {
         String key = directory;
         if (bottomUp)
             key = "bottomUp:" + key;
@@ -104,7 +116,8 @@ public class OpenWBSEditor extends TinyCGIBase {
 
         } else {
             editor = WBSEditor.createAndShowEditor(directory, bottomUp,
-                    showTeam, false, Settings.getBool("READ_ONLY", false));
+                    showTeam, syncURL, false, Settings.getBool("READ_ONLY",
+                            false));
             if (editor != null)
                 editors.put(key, editor);
             else
@@ -112,7 +125,8 @@ public class OpenWBSEditor extends TinyCGIBase {
         }
     }
 
-    private void writeJnlpFile(String directory, boolean bottomUp, boolean showTeam) {
+    private void writeJnlpFile(String directory, boolean bottomUp,
+            boolean showTeam, String syncURL) {
         out.print("Content-type: application/x-java-jnlp-file\r\n\r\n");
 
         WebServer ws = getTinyWebServer();
@@ -149,6 +163,10 @@ public class OpenWBSEditor extends TinyCGIBase {
         if (Settings.getBool("READ_ONLY", false))
             out.print("<property name='teamdash.wbs.readOnly' " +
                         "value='true'/>\n");
+
+        if (syncURL != null)
+            out.print("<property name='teamdash.wbs.syncURL' value='"
+                    + XMLUtils.escapeAttribute(syncURL) + "'/>\n");
 
         out.print("</resources>\n");
 

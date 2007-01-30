@@ -4,7 +4,11 @@ import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
+import java.io.BufferedInputStream;
 import java.io.File;
+import java.io.InputStream;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Iterator;
 
@@ -42,6 +46,7 @@ public class WBSEditor implements WindowListener, SaveListener,
     private int mode;
     boolean readOnly = false;
     boolean exitOnClose = false;
+    String syncURL = null;
     boolean disposed = false;
 
     private TeamMemberListEditor teamListEditor = null;
@@ -189,6 +194,10 @@ public class WBSEditor implements WindowListener, SaveListener,
         this.exitOnClose = exitOnClose;
     }
 
+    private void setSyncURL(String syncURL) {
+        this.syncURL = syncURL;
+    }
+
     public boolean isDisposed() {
         return disposed;
     }
@@ -304,6 +313,7 @@ public class WBSEditor implements WindowListener, SaveListener,
                 showSaveErrorMessage();
                 return false;
             }
+            maybeTriggerSyncOperation();
         }
         return true;
     }
@@ -320,7 +330,7 @@ public class WBSEditor implements WindowListener, SaveListener,
     }
 
     private void showSaveErrorMessage() {
-        SAVE_ERROR_MSG[6] = "      "
+        SAVE_ERROR_MSG[4] = "      "
                 + teamProject.getLockFile().getParentFile().getAbsolutePath();
         JOptionPane.showMessageDialog(frame, SAVE_ERROR_MSG,
                 "Unable to Save", JOptionPane.ERROR_MESSAGE);
@@ -337,6 +347,25 @@ public class WBSEditor implements WindowListener, SaveListener,
         "Editor without resolving this problem, any changes you have made will",
         "be lost."
     };
+
+    private void maybeTriggerSyncOperation() {
+        if (syncURL != null)
+            new SyncTriggerThread().start();
+    }
+
+    private class SyncTriggerThread extends Thread {
+        public void run() {
+            try {
+                URL u = new URL(syncURL);
+                URLConnection conn = u.openConnection();
+                InputStream in = new BufferedInputStream(conn
+                        .getInputStream());
+                while (in.read() != -1)
+                    ;
+                in.close();
+            } catch (Exception e) {}
+        }
+    }
 
     /** Give the user a chance to save data before the window closes.
      * 
@@ -394,8 +423,8 @@ public class WBSEditor implements WindowListener, SaveListener,
     public void windowDeactivated(WindowEvent e) {}
 
     public static WBSEditor createAndShowEditor(String directory,
-            boolean bottomUp, boolean showTeamList, boolean exitOnClose,
-            boolean forceReadOnly) {
+            boolean bottomUp, boolean showTeamList, String syncURL,
+            boolean exitOnClose, boolean forceReadOnly) {
         File dir = new File(directory);
         File dumpFile = new File(dir, "projDump.xml");
         TeamProject proj;
@@ -410,6 +439,7 @@ public class WBSEditor implements WindowListener, SaveListener,
         try {
             WBSEditor w = new WBSEditor(proj, dumpFile, intent);
             w.setExitOnClose(exitOnClose);
+            w.setSyncURL(syncURL);
             if (showTeamList)
                 w.showTeamListEditor();
             else
@@ -434,7 +464,9 @@ public class WBSEditor implements WindowListener, SaveListener,
         boolean bottomUp = Boolean.getBoolean("teamdash.wbs.bottomUp");
         boolean showTeam = Boolean.getBoolean("teamdash.wbs.showTeamMemberList");
         boolean readOnly = Boolean.getBoolean("teamdash.wbs.readOnly");
-        createAndShowEditor(filename, bottomUp, showTeam, true, readOnly);
+        String syncURL = System.getProperty("teamdash.wbs.syncURL");
+        createAndShowEditor(filename, bottomUp, showTeam, syncURL, true,
+                readOnly);
     }
 
     private static void showBadFilenameError(String filename) {

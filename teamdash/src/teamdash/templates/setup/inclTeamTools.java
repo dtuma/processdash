@@ -4,7 +4,6 @@ import java.io.IOException;
 
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.repository.DataRepository;
-import net.sourceforge.processdash.net.http.WebServer;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.HTMLUtils;
 
@@ -36,9 +35,7 @@ public class inclTeamTools extends TinyCGIBase {
                 uri = uri + MASTER_PARAM;
 
             String syncURI = resolveRelativeURI(scriptPath, SYNC_URL);
-            String syncURL = "http://" + WebServer.getHostName() +
-                ":" + getTinyWebServer().getPort() + syncURI;
-            uri = uri + SYNC_PARAM + HTMLUtils.urlEncode(syncURL);
+            uri = uri + SYNC_PARAM + HTMLUtils.urlEncode(syncURI);
 
             outStream.write(getRequest(uri, true));
         } catch (Exception e) {

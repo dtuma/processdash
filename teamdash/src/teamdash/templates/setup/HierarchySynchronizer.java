@@ -383,6 +383,14 @@ public class HierarchySynchronizer {
     }
 
     public void sync() throws HierarchyAlterationException {
+        try {
+            if (!whatIfMode) getProjectSyncLock();
+            doSync();
+        } finally {
+            releaseProjectSyncLock();
+        }
+    }
+    private void doSync() throws HierarchyAlterationException {
         ListData labelData = null;
         if (isTeam())
             // for a team, get label data for all nodes in a project before
@@ -1389,6 +1397,35 @@ public class HierarchySynchronizer {
 
     private boolean madeMiscChange() {
         return changes.add(null);
+    }
+
+
+    private static Set SYNC_LOCKS = Collections.synchronizedSet(new HashSet());
+
+    private Object projectSyncLock = null;
+
+    private void getProjectSyncLock() {
+         while (true) {
+             synchronized (SYNC_LOCKS) {
+                 if (SYNC_LOCKS.contains(projectPath)) {
+                     try {
+                         SYNC_LOCKS.wait();
+                     } catch (InterruptedException e) {}
+                 } else {
+                     SYNC_LOCKS.add(projectPath);
+                     projectSyncLock = projectPath;
+                     return;
+                 }
+             }
+         }
+    }
+    private void releaseProjectSyncLock() {
+        if (projectSyncLock != null) {
+            synchronized (SYNC_LOCKS) {
+                SYNC_LOCKS.remove(projectSyncLock);
+                SYNC_LOCKS.notifyAll();
+            }
+        }
     }
 
 }
