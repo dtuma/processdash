@@ -105,6 +105,7 @@ import net.sourceforge.processdash.hier.Filter;
 import net.sourceforge.processdash.templates.TemplateLoader;
 import net.sourceforge.processdash.util.CppFilterReader;
 import net.sourceforge.processdash.util.EscapeString;
+import net.sourceforge.processdash.util.PatternList;
 import net.sourceforge.processdash.util.RobustFileWriter;
 
 public class DataRepository implements Repository, DataContext,
@@ -3227,6 +3228,10 @@ public class DataRepository implements Repository, DataContext,
                         i.remove();
                 }
 
+                if (hints instanceof String)
+                    hints = new PatternList().addRegexp((String) hints);
+                if (hints instanceof PatternList)
+                    hints = new SimplePrefixLocalDataNameFilter((PatternList)hints);
                 if (hints instanceof DataNameFilter.PrefixLocal)
                     prefixLocalFilter = (DataNameFilter.PrefixLocal) hints;
 

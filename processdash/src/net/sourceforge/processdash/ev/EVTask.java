@@ -842,6 +842,29 @@ public class EVTask implements Cloneable, DataListener {
     }
 
 
+    /** Finds one or more tasks with the given full name
+     * 
+     * @return a list of tasks (either equal to or descending from this task)
+     *    that have the given full name.
+     */
+    public List findByFullName(String fullName) {
+        if (!StringUtils.hasValue(fullName))
+            return null;
+
+        ArrayList result = new ArrayList(1);
+        findByFullName(result, fullName);
+        return result;
+    }
+    protected void findByFullName(List result, String fullName) {
+        if (fullName.equals(this.fullName))
+            result.add(this);
+        else {
+            for (int i = getNumChildren(); i-- > 0;)
+                getChild(i).findByFullName(result, fullName);
+        }
+    }
+
+
 /*
     public void recalc(EVSchedule schedule, TimeLog log) {
         resetRootValues();

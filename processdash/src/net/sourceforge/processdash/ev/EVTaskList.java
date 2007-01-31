@@ -261,7 +261,7 @@ public class EVTaskList extends AbstractTreeTableModel
         // Search the data repository for elements that begin with any of
         // the prefixes we just contructed.
         String dataName, prefix, ord_pref = "/"+EVTaskListData.TASK_ORDINAL_PREFIX;
-        Iterator i = data.getKeys();
+        Iterator i = data.getKeys(null, ord_pref);
         ArrayList taskLists = new ArrayList();
 
     DATA_ELEMENT_SEARCH:
@@ -578,6 +578,10 @@ public class EVTaskList extends AbstractTreeTableModel
 
     public void setDependencyCalculator(EVDependencyCalculator d) {
         this.dependencyCalculator = d;
+    }
+
+    public List findTasksByFullName(String fullName) {
+        return ((EVTask) root).findByFullName(fullName);
     }
 
 

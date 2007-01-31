@@ -1,4 +1,4 @@
-// Copyright (C) 2006 Tuma Solutions, LLC
+// Copyright (C) 2006-2007 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -27,11 +27,14 @@ package net.sourceforge.processdash.ev;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import net.sourceforge.processdash.DashboardContext;
 import net.sourceforge.processdash.Settings;
 
 public class EVForecastDateCalculators {
@@ -432,4 +435,51 @@ public class EVForecastDateCalculators {
     }
 
 
+    /**
+     * Convenience method to retrieve the known forecast dates for a task.
+     * 
+     * @param ctx the dashboard context
+     * @param taskPath the full path to a project/task in the dashboard
+     * @return null if no task lists contain the given task. Otherwise, returns
+     *         a map whose keys are task list names containing the task, and
+     *         whose values are the forecast date for the task in that schedule.
+     *         If a particular schedule does not calculate a forecast date for
+     *         the task, it will not be included in the result. Hence, the Map
+     *         could be empty.
+     */
+    public static Map getForecastDates(DashboardContext ctx, String taskPath) {
+        List taskLists = EVTaskList.getTaskListNamesForPath(
+                ctx.getData(), taskPath);
+        if (taskLists == null || taskLists.isEmpty())
+            return null;
+
+        Map result = new HashMap();
+        for (Iterator i = taskLists.iterator(); i.hasNext();) {
+            String taskListName = (String) i.next();
+            Date forecast = getForecastForSchedule(ctx, taskListName, taskPath);
+            if (forecast != null)
+                result.put(taskListName, forecast);
+        }
+        return result;
+
+    }
+    private static Date getForecastForSchedule(DashboardContext ctx,
+            String taskListName, String taskPath) {
+        EVTaskList tl = EVTaskList.openExisting(taskListName, ctx.getData(),
+                ctx.getHierarchy(), ctx.getCache(), false);
+        if (tl == null)
+            return null;
+        tl.recalc();
+        List tasks = tl.findTasksByFullName(taskPath);
+        if (tasks == null || tasks.isEmpty())
+            return null;
+
+        Iterator i = tasks.iterator();
+        Date result = ((EVTask) i.next()).getForecastDate();
+        while (i.hasNext()) {
+            Date oneDate = ((EVTask) i.next()).getForecastDate();
+            result = EVCalculator.maxPlanDate(result, oneDate);
+        }
+        return result;
+    }
 }
