@@ -552,9 +552,6 @@ public class WBSJTable extends JTable {
             enablementCalculations.add(this);
         }
         public void actionPerformed(ActionEvent e) {
-            if (disableEditing)
-                return;
-
             // get a list of the currently selected rows.
             int[] rows = getSelectedRows();
             if (rows == null || rows.length == 0) return;
