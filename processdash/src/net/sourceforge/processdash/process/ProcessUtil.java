@@ -78,6 +78,16 @@ public class ProcessUtil {
         return new ArrayList(getProcessList(name).asList());
     }
 
+    public List filterPhaseList(List phases) {
+        List filter = getProcessListPlain("Phase_Display_Filter_List");
+        if (filter.isEmpty())
+            return phases;
+
+        List result = new ArrayList(phases);
+        result.retainAll(filter);
+        return result;
+    }
+
     public String getProcessString(String stringName) {
         return getProcessString(stringName, true);
     }

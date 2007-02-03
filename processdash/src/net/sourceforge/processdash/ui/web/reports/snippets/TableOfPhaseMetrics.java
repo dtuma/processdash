@@ -94,6 +94,13 @@ public class TableOfPhaseMetrics extends TinyCGIBase {
             // default to all phases
             phases = procUtil.getProcessListPlain(PHASES[0][1]);
 
+        // filter the list of phases, if applicable
+        phases = procUtil.filterPhaseList(phases);
+        if (phases.isEmpty()) {
+            out.write("<!-- no phases selected;  no table to display -->\n\n");
+            return;
+        }
+
         // retrieve the list of metrics the user wants to display
         Map[] metrics = SnippetDataEnumerator.getEnumeratedValues(parameters,
                 ITEM_TYPE);
@@ -118,29 +125,32 @@ public class TableOfPhaseMetrics extends TinyCGIBase {
         if (metrics.length > 1) {
             for (int i = 0; i < metrics.length; i++) {
                 out.write("<th");
-                if (i == 0) out.write(MetricsTableColumn.PADDING_LEFT);
+                out.write(MetricsTableColumn.PADDING_LEFT);
                 out.write(" colspan=\"");
                 out.write(Integer.toString(columns.size()));
-                out.write("\">");
+                out.write("\">"); //<span style='margin-left:5px; margin-right:5px'>");
                 String metricName = (String) metrics[i].get(DISPLAY_NAME_ATTR);
                 if (metricName == null || metricName.trim().length() == 0) {
                     String dataName = (String) metrics[i].get(DATA_NAME_ATTR);
                     metricName = TranslatingAutocompleter.translateDataName(dataName);
                 }
                 out.write(esc(metricName));
-                out.write("</th>\n");
+                out.write(/*"</span>*/"</th>\n");
             }
-            out.write("</tr>\n<tr><th></th>");
+            out.write("</tr>\n");
         }
-        for (int j = 0; j < metrics.length; j++) {
-            boolean pad = true;
-            for (Iterator i = columns.iterator(); i.hasNext();) {
-                MetricsTableColumn col = (MetricsTableColumn) i.next();
-                col.writeHeader(out, resources, pad);
-                pad = false;
+        if (columns.size() > 1) {
+            out.write("<tr><th></th>");
+            for (int j = 0; j < metrics.length; j++) {
+                boolean pad = true;
+                for (Iterator i = columns.iterator(); i.hasNext();) {
+                    MetricsTableColumn col = (MetricsTableColumn) i.next();
+                    col.writeHeader(out, resources, pad);
+                    pad = false;
+                }
             }
+            out.write("</tr>\n");
         }
-        out.write("</tr>\n");
 
         // write a table row for each process phase
         for (Iterator i = phases.iterator(); i.hasNext();) {

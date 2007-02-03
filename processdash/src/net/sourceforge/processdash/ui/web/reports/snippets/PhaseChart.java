@@ -27,6 +27,8 @@ package net.sourceforge.processdash.ui.web.reports.snippets;
 
 import java.io.IOException;
 
+import net.sourceforge.processdash.data.compiler.Compiler;
+
 public class PhaseChart extends AbstractChartSnippet {
 
     protected void writeContents() throws IOException {
@@ -40,13 +42,24 @@ public class PhaseChart extends AbstractChartSnippet {
             phases = "[Phase_List]";
         else
             phases = "[" + phases + "_Phase_List]";
+
+
         appendParam(args, "for", phases);
         appendParam(args, "h0", "Phase");
         appendParam(args, "units", getParameter("YAxisLabel"));
+        if (getDataContext().getSimpleValue("Phase_Display_Filter_List") != null) {
+            String whereCond = "intersects(["
+                    + Compiler.escapeLiteral(getPrefix())
+                    + "/Phase_Display_Filter_List], [^])";
+            appendParam(args, "where", whereCond);
+        }
+        String smallArgs = "";
+        if ("pie".equals(chartType))
+            smallArgs = "&hideLegend";
 
         String query = args.toString();
 
-        writeSmallChart(chartType, query);
+        writeSmallChart(chartType, query, smallArgs);
     }
 
 }
