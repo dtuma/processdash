@@ -1,5 +1,5 @@
+//Copyright (C) 2003-2007 Tuma Solutions, LLC
 //Process Dashboard - Data Automation Tool for high-maturity processes
-//Copyright (C) 2003 Software Process Dashboard Initiative
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU General Public License
@@ -114,7 +114,7 @@ public abstract class EVCalculator {
 
     protected static void resetNodeData(EVTask task) {
         task.planDate = task.planStartDate = task.actualStartDate =
-            task.forecastDate = null;
+            task.replanDate = task.forecastDate = null;
 
         task.planTime = task.planValue = task.cumPlanValue =
             task.actualPreTime = task.actualNodeTime = task.actualDirectTime =
@@ -129,6 +129,7 @@ public abstract class EVCalculator {
         task.actualTime = task.actualNodeTime + task.actualPreTime;
         task.actualCurrentTime = task.actualNodeTime;
 
+        Date replanDate = EVSchedule.A_LONG_TIME_AGO;
         Date forecastDate = EVSchedule.A_LONG_TIME_AGO;
 
         for (int i = task.getNumChildren();   i-- > 0;   ) {
@@ -150,10 +151,14 @@ public abstract class EVCalculator {
 
             task.planDate = maxPlanDate(task.planDate, child.planDate);
 
-            if (child.planValue > 0)
+            if (child.planValue > 0) {
+                replanDate = maxForecastDate(replanDate, child.replanDate);
                 forecastDate = maxForecastDate(forecastDate, child.forecastDate);
+            }
         }
 
+        if (task.replanDate == null && replanDate != EVSchedule.A_LONG_TIME_AGO)
+            task.replanDate = replanDate;
         if (task.forecastDate == null
                 && forecastDate != EVSchedule.A_LONG_TIME_AGO)
             task.forecastDate = forecastDate;

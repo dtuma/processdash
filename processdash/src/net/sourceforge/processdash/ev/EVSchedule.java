@@ -42,6 +42,7 @@ import javax.swing.table.TableModel;
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.ListData;
 import net.sourceforge.processdash.i18n.Resources;
+import net.sourceforge.processdash.ui.lib.IDSeriesDataset;
 import net.sourceforge.processdash.util.FormatUtil;
 
 import org.jfree.data.AbstractDataset;
@@ -1271,6 +1272,8 @@ public class EVSchedule implements TableModel {
     protected interface ChartSeries {
         /** Returns the name of the specified series (zero-based). */
         String getSeriesName();
+        /** Returns the ID of the specified series (zero-based). */
+        String getSeriesID();
         /** Returns the number of items in the specified series */
         int getItemCount();
         /** Returns the x-value for the specified series and item */
@@ -1283,6 +1286,7 @@ public class EVSchedule implements TableModel {
         ("Schedule.Plan_Label");
     private abstract class PlanChartSeries implements ChartSeries {
         public String getSeriesName() { return PLAN_LABEL; }
+        public String getSeriesID()  { return "Plan"; }
         public int getItemCount() {
             return findIndexOfFinalPlannedPeriod()+1;
         }
@@ -1294,6 +1298,7 @@ public class EVSchedule implements TableModel {
         resources.getString("Schedule.Actual_Label");
     private abstract class ActualChartSeries implements ChartSeries {
         public String getSeriesName() { return ACTUAL_LABEL; }
+        public String getSeriesID()  { return "Actual"; }
         public int getItemCount() {
             int result = getRowCount()+1;
             if (effectivePeriod < result) result = effectivePeriod+1;
@@ -1316,6 +1321,7 @@ public class EVSchedule implements TableModel {
         Number currentXVal, forecastXVal;
         int itemCount = 2;
         public String getSeriesName() { return FORECAST_LABEL; }
+        public String getSeriesID()  { return "Forecast"; }
         public int getItemCount() { return itemCount; }
         public Number getXValue(int itemIndex) {
             return (itemIndex == 0 ? currentXVal : forecastXVal);
@@ -1372,7 +1378,7 @@ public class EVSchedule implements TableModel {
     /** Base class for implementing XYDataSource funtionality.
      */
     private class ChartData extends AbstractDataset
-        implements XYDataset, TableModelListener
+        implements XYDataset, TableModelListener, IDSeriesDataset
     {
         ChartSeries [] series;
         boolean needsRecalc = true;
@@ -1384,6 +1390,8 @@ public class EVSchedule implements TableModel {
         /** Returns the name of the specified series (zero-based). */
         public String getSeriesName(int seriesIndex) { maybeRecalc();
             return series[seriesIndex].getSeriesName(); }
+        public String getSeriesID(int seriesIndex) { maybeRecalc();
+            return series[seriesIndex].getSeriesID(); }
         /** Returns the number of items in the specified series */
         public int getItemCount(int seriesIndex) { maybeRecalc();
             return series[seriesIndex].getItemCount(); }
@@ -1545,12 +1553,15 @@ public class EVSchedule implements TableModel {
         public CombinedChartData() {
             series = new ChartSeries[3];
             series[0] = new PlanValueSeries(1.0 / 60.0) {
+                    public String getSeriesID()  { return "Plan_Value"; }
                     public String getSeriesName() {
                         return PLAN_VALUE_LABEL; } };
             series[1] = new ActualValueSeries(1.0 / 60.0) {
+                    public String getSeriesID()  { return "Actual_Value"; }
                     public String getSeriesName() {
                         return ACTUAL_VALUE_LABEL; } };
             series[2] = new ActualCostSeries() {
+                    public String getSeriesID()  { return "Actual_Cost"; }
                     public String getSeriesName() {
                         return ACTUAL_COST_LABEL; } };
         }

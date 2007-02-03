@@ -63,6 +63,7 @@ import net.sourceforge.processdash.net.cache.CachedURLObject;
 import net.sourceforge.processdash.net.cms.SnippetEnvironment;
 import net.sourceforge.processdash.net.http.TinyCGIException;
 import net.sourceforge.processdash.net.http.WebServer;
+import net.sourceforge.processdash.ui.lib.EVDatasetFilter;
 import net.sourceforge.processdash.ui.lib.HTMLTableWriter;
 import net.sourceforge.processdash.ui.lib.HTMLTreeTableWriter;
 import net.sourceforge.processdash.ui.lib.TreeTableModel;
@@ -905,7 +906,8 @@ public class EVReport extends CGIChartBase {
     protected void writeMetric(EVMetrics m, int i, boolean hidePlan,
             boolean hideForecast) {
         String metricID = (String) m.getValueAt(i, EVMetrics.METRIC_ID);
-        if (hidePlan && metricID.indexOf("Plan_") != -1) return;
+        if (hidePlan && (metricID.indexOf("Plan_") != -1
+                || metricID.indexOf("Replan_") != -1)) return;
         if (hideForecast && metricID.indexOf("Forecast_") != -1) return;
 
         String name = (String) m.getValueAt(i, EVMetrics.NAME);
@@ -1066,8 +1068,10 @@ public class EVReport extends CGIChartBase {
                 hideNames);
         if (!(taskList instanceof EVTaskListRollup) || hideNames)
             writer.setSkipColumn(EVTaskList.ASSIGNED_TO_COLUMN, true);
-        if (hidePlan)
+        if (hidePlan) {
             writer.setSkipColumn(EVTaskList.PLAN_DATE_COLUMN, true);
+            writer.setSkipColumn(EVTaskList.REPLAN_DATE_COLUMN, true);
+        }
         if (hideForecast)
             writer.setSkipColumn(EVTaskList.FORECAST_DATE_COLUMN, true);
         return table;
@@ -1129,7 +1133,10 @@ public class EVReport extends CGIChartBase {
         boolean hidePlan = settings.getBool(CUSTOMIZE_HIDE_PLAN_LINE);
         boolean hideForecast = settings.getBool(CUSTOMIZE_HIDE_FORECAST_LINE);
         if (hidePlan || hideForecast)
-            xydata = new EVDatasetFilter(xydata, hidePlan, hideForecast, 2);
+            xydata = new EVDatasetFilter(xydata)
+                .setSeriesHidden("Plan", hidePlan)
+                .setSeriesHidden("Forecast", hideForecast)
+                .setSeriesHidden("Optimized_Forecast", hideForecast);
 
         // Alter the appearance of the chart.
         maybeWriteParam
@@ -1147,7 +1154,10 @@ public class EVReport extends CGIChartBase {
         boolean hidePlan = settings.getBool(CUSTOMIZE_HIDE_PLAN_LINE);
         boolean hideForecast = settings.getBool(CUSTOMIZE_HIDE_FORECAST_LINE);
         if (hidePlan || hideForecast)
-            xydata = new EVDatasetFilter(xydata, hidePlan, hideForecast, 2);
+            xydata = new EVDatasetFilter(xydata)
+                .setSeriesHidden("Plan", hidePlan)
+                .setSeriesHidden("Forecast", hideForecast)
+                .setSeriesHidden("Optimized_Forecast", hideForecast);
 
         // Alter the appearance of the chart.
         maybeWriteParam("title", resources.getString("Report.EV_Chart_Title"));
@@ -1162,9 +1172,9 @@ public class EVReport extends CGIChartBase {
 
         // possibly hide lines on the chart, at user request.
         boolean hidePlan = settings.getBool(CUSTOMIZE_HIDE_PLAN_LINE);
-        boolean hideForecast = settings.getBool(CUSTOMIZE_HIDE_FORECAST_LINE);
-        if (hidePlan || hideForecast)
-            xydata = new EVDatasetFilter(xydata, hidePlan, hideForecast, 3);
+        if (hidePlan)
+            xydata = new EVDatasetFilter(xydata)
+                .setSeriesHidden("Plan_Value", hidePlan);
 
         // Alter the appearance of the chart.
         maybeWriteParam("title", "Cost & Schedule");

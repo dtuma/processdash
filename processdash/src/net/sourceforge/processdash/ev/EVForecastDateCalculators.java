@@ -243,7 +243,7 @@ public class EVForecastDateCalculators {
             logger.log(Level.FINEST, "Schedule task extrapolation = {0}",
                     finalDate);
 
-            metrics.setForecastDate(finalDate);
+            setFinalDate(metrics, finalDate);
         }
 
         private double underspentTime;
@@ -253,8 +253,11 @@ public class EVForecastDateCalculators {
         private double maxAdjustmentRatio;
 
         private Date getFinalDate(EVSchedule schedule, EVMetrics metrics, List evLeaves) {
-            double cpi = metrics.costPerformanceIndex();
-            double dtpi = metrics.directTimePerformanceIndex();
+            boolean usePerformanceIndexes = usePerformanceIndexes();
+            double cpi = (usePerformanceIndexes
+                    ? metrics.costPerformanceIndex() : 1.0);
+            double dtpi = (usePerformanceIndexes
+                    ? metrics.directTimePerformanceIndex() : 1.0);
             if (isBadRatio(cpi) || isBadRatio(dtpi))
                 return null;
 
@@ -264,12 +267,12 @@ public class EVForecastDateCalculators {
             List tasks = new ArrayList(evLeaves.size());
             for (Iterator i = evLeaves.iterator(); i.hasNext();) {
                 EVTask task = (EVTask) i.next();
-                task.forecastDate = task.getActualDate();
-                if (task.forecastDate == null)
+                Date actualDate = task.getActualDate();
+                setProjectedDate(task, actualDate);
+                if (actualDate == null)
                     tasks.add(new TaskData(task, cpi));
                 else
-                    finalDate = EVCalculator.maxPlanDate(finalDate,
-                            task.forecastDate);
+                    finalDate = EVCalculator.maxPlanDate(finalDate, actualDate);
             }
 
             double adjustmentRatio = - overspentTime / underspentTime;
@@ -286,15 +289,28 @@ public class EVForecastDateCalculators {
                 TaskData td = (TaskData) i.next();
                 EVTask task = td.task;
                 cumForecastTime += td.getTimeRemaining(adjustmentRatio);
-                task.forecastDate = s.getHypotheticalDate(cumForecastTime, true);
-                finalDate = EVCalculator.maxForecastDate(finalDate,
-                        task.forecastDate);
+                Date projDate = s.getHypotheticalDate(cumForecastTime,
+                        usePerformanceIndexes);
+                setProjectedDate(task, projDate);
+                finalDate = EVCalculator.maxForecastDate(finalDate, projDate);
             }
 
             if (finalDate == EVSchedule.A_LONG_TIME_AGO)
                 finalDate = null;
 
             return finalDate;
+        }
+
+        protected boolean usePerformanceIndexes() {
+            return true;
+        }
+
+        protected void setProjectedDate(EVTask task, Date date) {
+            task.forecastDate = date;
+        }
+
+        protected void setFinalDate(EVMetrics metrics, Date finalDate) {
+            metrics.setForecastDate(finalDate);
         }
 
         private boolean isBadRatio(double ratio) {
@@ -337,6 +353,27 @@ public class EVForecastDateCalculators {
 
     }
 
+    /** This calculator performs a calculation similar to the
+     * ScheduleForecastTaskExtrapolation, but does not use CPI or DTPI, and
+     * stores values into the "replanDate" fields instead of "forecastDate"
+     */
+    public static class ScheduleTaskReplanner extends
+            ScheduleTaskExtrapolation {
+
+        protected void setFinalDate(EVMetrics metrics, Date finalDate) {
+            metrics.setReplanDate(finalDate);
+        }
+
+        protected void setProjectedDate(EVTask task, Date date) {
+            task.replanDate = date;
+        }
+
+        protected boolean usePerformanceIndexes() {
+            return false;
+        }
+
+    }
+
 
 
 
@@ -353,6 +390,8 @@ public class EVForecastDateCalculators {
 
         public void calculateForecastDates(EVTask taskRoot,
                 EVSchedule schedule, EVMetrics metrics, List evLeaves) {
+            metrics.setReplanDate(taskRoot.getReplanDate());
+
             Date forecastDate = taskRoot.getForecastDate();
             if (forecastDate != null)
                 metrics.setForecastDate(forecastDate);

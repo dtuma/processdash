@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2006 Tuma Solutions, LLC
+// Copyright (C) 2003-2007 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -379,6 +379,7 @@ public class EVScheduleRollup extends EVSchedule {
         resources.getString("Schedule.Optimized_Label");
     private class OptForecastChartSeries extends ForecastChartSeries {
         public String getSeriesName() { return OPTIMIZED_LABEL; }
+        public String getSeriesID()  { return "Optimized_Forecast"; }
         protected Date getForecastDate() {
             return ((EVMetricsRollup) metrics).optimizedForecastDate();
         }

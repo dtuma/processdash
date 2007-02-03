@@ -79,6 +79,7 @@ public class EVScheduleSplit extends EVSchedule {
         splitAt(effDate);
         rewriteHistory(effDate, histPeriods);
         recalcCumPlanTimes();
+        lastPeriodCumPlanTime = p.cumPlanDirectTime;
         simplifyPeriods(effDate);
         addAllPeriods(periods, origPeriods);
     }
@@ -179,7 +180,7 @@ public class EVScheduleSplit extends EVSchedule {
         if (!aIsPast) {
             double aSpeed = calcPeriodSpeed(a);
             double bSpeed = calcPeriodSpeed(b);
-            if (aSpeed != bSpeed) return;
+            if (Math.abs(aSpeed - bSpeed) > 1e-4) return;
         }
 
         b.planTotalTime += a.planTotalTime;
@@ -191,9 +192,9 @@ public class EVScheduleSplit extends EVSchedule {
     private double calcPeriodSpeed(Period b) {
         long start = b.getBeginDate().getTime();
         long end = b.endDate.getTime();
-        double duration = end - start;
+        double duration = (end - start) / (60.0*60*1000);  // units = hours
 
-        return b.planDirectTime / duration;
+        return b.planDirectTime / duration;  // direct time (minutes) per hour
     }
 
     protected void rewriteFuture(double timeErrRatio) {

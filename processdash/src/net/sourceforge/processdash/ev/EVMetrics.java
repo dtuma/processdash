@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2006 Tuma Solutions, LLC
+// Copyright (C) 2003-2007 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -80,6 +80,9 @@ public class EVMetrics implements TableModel {
     /** The planned completion date */
     protected Date planDate = null;
 
+    /** The slip-driven, replan date */
+    protected Date replanDate = null;
+
     /** The forecast completion date. */
     protected Date forecastDate = null;
 
@@ -137,7 +140,7 @@ public class EVMetrics implements TableModel {
             indirectTime = totalScheduleActualTime = totalSchedulePlanTime = 0.0;
         startDate = start;
         currentDate = current;
-        planDate = forecastDate = null;
+        planDate = replanDate = forecastDate = null;
         this.periodEnd = periodEnd;
         errors = null;
         if (periodStart != null && periodEnd != null) {
@@ -186,6 +189,12 @@ public class EVMetrics implements TableModel {
     protected void recalcScheduleTime(EVSchedule s) {
         totalSchedulePlanTime = s.getScheduledPlanTime(currentDate);
         totalScheduleActualTime = s.getScheduledActualTime(currentDate);
+    }
+    public void setReplanDate(Date d) {
+        if (d == EVSchedule.NEVER)
+            replanDate = null;
+        else
+            replanDate = d;
     }
     public void setForecastDate(Date d) {
         if (d == EVSchedule.NEVER)
@@ -364,6 +373,9 @@ public class EVMetrics implements TableModel {
     }
     public double independentForecastDuration() {
         return calcDuration(startDate(), forecastDate);
+    }
+    public Date replanDate() {
+        return replanDate;
     }
     public Date independentForecastDate() {
         return forecastDate;
@@ -600,7 +612,9 @@ public class EVMetrics implements TableModel {
     protected List buildFormatters() {
         ArrayList result = new ArrayList();
         result.add(new DateMetricFormatter("Plan_Date") {
-            Date val() { return planDate(); } } );
+                Date val() { return planDate(); } } );
+        result.add(new DateMetricFormatter("Replan_Date") {
+                Date val() { return replanDate(); } } );
         result.add(new CostMetricFormatter("Cost_Variance") {
                 double val() { return costVariance(); } } );
         result.add(new AbsMetricFormatter("Cost_Variance_Percent") {

@@ -167,6 +167,8 @@ public class EVTask implements Cloneable, DataListener {
     Date actualStartDate;
     /** The date we plan to complete this task */
     Date planDate;
+    /** The date the task could complete, based on current schedule slip */
+    Date replanDate;
     /** The date this task is forecast to be completed */
     Date forecastDate;
     /** The date this task was actually completed */
@@ -335,6 +337,7 @@ public class EVTask implements Cloneable, DataListener {
         planStartDate = EVSchedule.getXMLDate(e, "psd");
         actualStartDate = EVSchedule.getXMLDate(e, "asd");
         planDate = EVSchedule.getXMLDate(e, "pd");
+        replanDate = EVSchedule.getXMLDate(e, "rpd");
         forecastDate = EVSchedule.getXMLDate(e, "fd");
         dateCompleted = EVSchedule.getXMLDate(e, "cd");
         if (e.hasAttribute("loe"))
@@ -759,6 +762,11 @@ public class EVTask implements Cloneable, DataListener {
     public Date getPlanDate() {
         if (isValuePruned()) return null;
         return planDate;
+    }
+    public Date getReplanDate() {
+        if (isValuePruned()) return null;
+        if (dateCompleted != null) return dateCompleted;
+        return replanDate;
     }
     public Date getForecastDate() {
         if (isValuePruned()) return null;
@@ -1223,6 +1231,8 @@ public class EVTask implements Cloneable, DataListener {
             result.append("' asd='").append(EVSchedule.saveDate(actualStartDate));
         if (planDate != null)
             result.append("' pd='").append(EVSchedule.saveDate(planDate));
+        if (replanDate != null)
+            result.append("' rpd='").append(EVSchedule.saveDate(replanDate));
         if (forecastDate != null)
             result.append("' fd='").append(EVSchedule.saveDate(forecastDate));
         if (dateCompleted != null)

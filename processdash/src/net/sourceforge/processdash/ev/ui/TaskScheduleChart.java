@@ -1,5 +1,5 @@
+// Copyright (C) 2003-2007 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -26,15 +26,21 @@
 
 package net.sourceforge.processdash.ev.ui;
 
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.Paint;
+import java.awt.Stroke;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.text.DecimalFormatSymbols;
 import java.util.EventObject;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
 import javax.swing.Box;
 import javax.swing.JCheckBoxMenuItem;
@@ -56,6 +62,8 @@ import net.sourceforge.processdash.ev.EVTaskList;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.ui.DashboardIconFactory;
 import net.sourceforge.processdash.ui.help.PCSH;
+import net.sourceforge.processdash.ui.lib.EVDatasetFilter;
+import net.sourceforge.processdash.ui.lib.IDSeriesDataset;
 
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
@@ -116,8 +124,7 @@ public class TaskScheduleChart extends JFrame
     }
 
     private ChartPanel buildChart(XYDataset data, String units) {
-        EVDatasetFilter filteredData = new EVDatasetFilter(
-                data, false, false, 0);
+        EVDatasetFilter filteredData = new EVDatasetFilter(data);
         JFreeChart chart = createChart(filteredData);
         if (units != null && units.length() != 0)
             chart.getXYPlot().getRangeAxis().setLabel(units);
@@ -130,9 +137,51 @@ public class TaskScheduleChart extends JFrame
         JFreeChart chart = ChartFactory.createTimeSeriesChart
                     (null, null, null, data, true, true, false);
         RangeXYItemRenderer renderer = new RangeXYItemRenderer();
-        renderer.setSeriesPaint(3, Color.orange);
+        configureRenderer(data, renderer);
         chart.getXYPlot().setRenderer(renderer);
         return chart;
+    }
+    private static void configureRenderer(XYDataset xyData,
+            RangeXYItemRenderer renderer) {
+        if (xyData instanceof IDSeriesDataset) {
+            IDSeriesDataset data = (IDSeriesDataset) xyData;
+            for (int i = 0;  i < data.getSeriesCount();  i++) {
+                String seriesID = data.getSeriesID(i);
+                Paint p = (Paint) getPrefForSeries(SERIES_PAINTS, seriesID);
+                if (p != null) renderer.setSeriesPaint(i, p);
+                Stroke s = (Stroke) getPrefForSeries(SERIES_STROKES, seriesID);
+                if (s != null) renderer.setSeriesStroke(i, s);
+            }
+        }
+    }
+
+    private static final Map SERIES_PAINTS = new HashMap();
+    private static final Map SERIES_STROKES = new HashMap();
+    static {
+        SERIES_PAINTS.put("Plan", Color.red);
+        SERIES_PAINTS.put("Replan", Color.red);
+        SERIES_PAINTS.put("Actual", Color.blue);
+        SERIES_PAINTS.put("Forecast", Color.green);
+        SERIES_PAINTS.put("Optimized_Forecast", Color.orange);
+
+        SERIES_PAINTS.put("Plan_Value", Color.red);
+        SERIES_PAINTS.put("Actual_Value", Color.blue);
+        SERIES_PAINTS.put("Actual_Cost", Color.green);
+        SERIES_PAINTS.put("Actual_Time", Color.orange);
+
+        BasicStroke dashed = new BasicStroke(1.0f, BasicStroke.CAP_SQUARE,
+                BasicStroke.JOIN_MITER, 10.0f, new float[] { 10.0f, 5.0f },
+                0.0f);
+        SERIES_STROKES.put("Schedule.Replan_Label", dashed);
+    }
+    private static Object getPrefForSeries(Map prefs, String seriesID) {
+        for (Iterator i = prefs.entrySet().iterator(); i.hasNext();) {
+            Map.Entry e = (Map.Entry) i.next();
+            String id = (String) e.getKey();
+            if (id.equals(seriesID))
+                return e.getValue();
+        }
+        return null;
     }
 
     JFreeChart charts[] = new JFreeChart[3];
@@ -250,16 +299,22 @@ public class TaskScheduleChart extends JFrame
             while (menu.getComponent(0) instanceof ShowChartLineMenuItem)
                 menu.remove(0);
             XYDataset data = filteredData.getSourceDataset();
+            RangeXYItemRenderer renderer = (RangeXYItemRenderer) getChart()
+                    .getXYPlot().getRenderer();
             for (int i = data.getSeriesCount();   i-- > 0; )
-                menu.insert(new ShowChartLineMenuItem(filteredData, i), 0);
+                menu.insert(new ShowChartLineMenuItem(filteredData, renderer,
+                        i), 0);
         }
     }
     private class ShowChartLineMenuItem extends JCheckBoxMenuItem implements
             ActionListener {
         private EVDatasetFilter data;
+        private RangeXYItemRenderer renderer;
         private int seriesNum;
-        public ShowChartLineMenuItem(EVDatasetFilter data, int seriesNum) {
+        public ShowChartLineMenuItem(EVDatasetFilter data,
+                RangeXYItemRenderer renderer, int seriesNum) {
             this.data = data;
+            this.renderer = renderer;
             this.seriesNum = seriesNum;
             String seriesName = data.getSourceDataset().getSeriesName(seriesNum);
             setText(resources.format("Show_Line_FMT", seriesName));
@@ -268,6 +323,7 @@ public class TaskScheduleChart extends JFrame
         }
         public void actionPerformed(ActionEvent e) {
             data.setSeriesHidden(seriesNum, isSelected() == false);
+            configureRenderer(data, renderer);
         }
     }
 

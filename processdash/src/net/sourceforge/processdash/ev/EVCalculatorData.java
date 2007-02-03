@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2006 Tuma Solutions, LLC
+// Copyright (C) 2003-2007 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -51,12 +51,15 @@ public class EVCalculatorData extends EVCalculator {
     private EVSchedule schedule;
     private TimeLog timeLog;
     private Date effectiveDate, completionDate;
+    private EVForecastDateCalculator replanDateCalculator;
     private EVForecastDateCalculator forecastDateCalculator;
 
     public EVCalculatorData(EVTask root, EVSchedule schedule) {
         this.taskRoot = root;
         this.schedule = schedule;
         this.timeLog = DashboardTimeLog.getDefault();
+        this.replanDateCalculator =
+            new EVForecastDateCalculators.ScheduleTaskReplanner();
         this.forecastDateCalculator = createForecastCalculator();
     }
 
@@ -122,6 +125,8 @@ public class EVCalculatorData extends EVCalculator {
         recalcMetrics(taskRoot, schedule.getMetrics());
 
         schedule.getMetrics().recalcScheduleTime(schedule);
+        replanDateCalculator.calculateForecastDates(taskRoot, schedule,
+                schedule.getMetrics(), evLeaves);
         forecastDateCalculator.calculateForecastDates(taskRoot, schedule,
                 schedule.getMetrics(), evLeaves);
 
@@ -381,6 +386,7 @@ public class EVCalculatorData extends EVCalculator {
         for (int i = task.getNumChildren();   i-- > 0;   ) {
             EVTask child = task.getChild(i);
             child.planDate = task.planDate;
+            child.replanDate = task.replanDate;
             child.forecastDate = task.forecastDate;
             child.planStartDate = task.planStartDate;
             child.cumPlanValue = task.cumPlanValue;

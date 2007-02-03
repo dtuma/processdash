@@ -1966,8 +1966,8 @@ public class TaskScheduleDialog
 
     protected void showHideDirectColumns() {
         // update the task table
-        for (int j = EVTaskList.DIRECT_COLUMN_LIST.length;   j-- > 0; ) {
-            int i = EVTaskList.DIRECT_COLUMN_LIST[j];
+        for (int j = EVTaskList.HIDABLE_COLUMN_LIST.length;   j-- > 0; ) {
+            int i = EVTaskList.HIDABLE_COLUMN_LIST[j];
             showHideColumn(treeColumnModel.getColumn(i),
                            model.getColumnName(i),
                            EVTaskList.colWidths[i]);

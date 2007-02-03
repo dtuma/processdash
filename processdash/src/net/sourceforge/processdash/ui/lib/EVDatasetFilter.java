@@ -23,19 +23,20 @@
 //
 // E-Mail POC:  processdash-devel@lists.sourceforge.net
 
-package net.sourceforge.processdash.ev.ui;
+package net.sourceforge.processdash.ui.lib;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
+
 import org.jfree.data.DatasetChangeEvent;
 import org.jfree.data.DatasetChangeListener;
 import org.jfree.data.DatasetGroup;
 import org.jfree.data.XYDataset;
 
-public class EVDatasetFilter implements XYDataset {
+public class EVDatasetFilter implements XYDataset, IDSeriesDataset {
 
     private XYDataset source;
     private boolean[] hideSeries;
@@ -44,24 +45,13 @@ public class EVDatasetFilter implements XYDataset {
     /** Create a dataset to filter one or more series out of another earned
      * value dataset.
      * 
-     * Note: this is not a general purpose filter - it relies upon the known
-     * positions of certain series within an earned value dataset.
-     * 
      * @param source the XYDataset that should be filtered
-     * @param hidePlan should the plan line be hidden?
-     * @param hideForecast should the forecast line be hidden?
-     * @param forecastIndex the series number of the first forecast series
      */
-    public EVDatasetFilter(XYDataset source, boolean hidePlan,
-            boolean hideForecast, int forecastIndex) {
+    public EVDatasetFilter(XYDataset source) {
         this.source = source;
 
         this.hideSeries = new boolean[source.getSeriesCount() + 5];
         Arrays.fill(hideSeries, false);
-        if (hidePlan)
-            hideSeries[0] = true;
-        if (hideForecast)
-            Arrays.fill(hideSeries, forecastIndex, hideSeries.length, true);
 
         this.listeners = new ArrayList();
     }
@@ -89,6 +79,14 @@ public class EVDatasetFilter implements XYDataset {
         return source.getSeriesName(mapSeries(series));
     }
 
+    public String getSeriesID(int series) {
+        if (source instanceof IDSeriesDataset) {
+            IDSeriesDataset idSeriesDataset = (IDSeriesDataset) source;
+            return idSeriesDataset.getSeriesID(mapSeries(series));
+        }
+        return null;
+    }
+
     public int getItemCount(int series) {
         return source.getItemCount(mapSeries(series));
     }
@@ -105,11 +103,22 @@ public class EVDatasetFilter implements XYDataset {
         return hideSeries[series];
     }
 
-    public void setSeriesHidden(int series, boolean hidden) {
+    public EVDatasetFilter setSeriesHidden(int series, boolean hidden) {
         if (hideSeries[series] != hidden) {
             hideSeries[series] = hidden;
             fireDatasetChanged();
         }
+        return this;
+    }
+
+    public EVDatasetFilter setSeriesHidden(String seriesID, boolean hidden) {
+        if (source instanceof IDSeriesDataset) {
+            IDSeriesDataset idSource = (IDSeriesDataset) source;
+            for (int i = idSource.getSeriesCount();  i-- > 0; )
+                if (seriesID.equals(idSource.getSeriesID(i)))
+                    setSeriesHidden(i, hidden);
+        }
+        return this;
     }
 
     public XYDataset getSourceDataset() {

@@ -1,5 +1,5 @@
+// Copyright (C) 2003-2007 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -75,7 +75,8 @@ public class EVMetricsRollup extends EVMetrics {
         independentForecastCost = 0;
         currentDate = effectiveDate;
         startDate = planDate = rollupOfOptimizedPlanDates = null;
-        forecastDate = rollupOfOptimizedForecastDates = EVSchedule.A_LONG_TIME_AGO;
+        replanDate = forecastDate = rollupOfOptimizedForecastDates =
+            EVSchedule.A_LONG_TIME_AGO;
         errors = null;
         isRollupOfRollups = false;
     }
@@ -92,6 +93,8 @@ public class EVMetricsRollup extends EVMetrics {
             EVScheduleRollup.minDate(this.startDate, that.startDate);
         this.planDate =
             EVCalculator.maxPlanDate(this.planDate, that.planDate());
+        this.replanDate =
+            EVCalculator.maxForecastDate(this.replanDate, that.replanDate());
         this.forecastDate =
             EVCalculator.maxForecastDate(this.forecastDate,
                                          that.independentForecastDate());
@@ -155,6 +158,9 @@ public class EVMetricsRollup extends EVMetrics {
         // do nothing - it is already calculated.
     }
     protected void recalcForecastDate(EVSchedule s) {
+        if (replanDate == EVSchedule.A_LONG_TIME_AGO
+                || replanDate == EVSchedule.NEVER)
+            replanDate = null;
         if (forecastDate == EVSchedule.A_LONG_TIME_AGO
                 || forecastDate == EVSchedule.NEVER)
             forecastDate = null;

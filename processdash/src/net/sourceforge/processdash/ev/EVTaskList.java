@@ -82,6 +82,8 @@ public class EVTaskList extends AbstractTreeTableModel
     protected double totalPlanValue;
     protected double totalActualTime;
     protected boolean showDirectTimeColumns;
+    protected boolean showReplanColumn = Settings.getBool(
+            "ev.showReplanColumn", true);
 
 
     protected EVTaskList(String taskListName,
@@ -593,7 +595,8 @@ public class EVTaskList extends AbstractTreeTableModel
 
     private static final String[] COLUMN_KEYS = {
         "Task", "PT", "PDT", "Time", "DTime", "PV", "CPT", "CPV", "Who",
-        "Plan_Date", "Forecast_Date", "Date", "Depn", "PctC", "PctS", "EV" };
+        "Plan_Date", "Replan_Date", "Forecast_Date", "Date", "Depn", "PctC",
+        "PctS", "EV" };
 
     /** Names of the columns in the TreeTableModel. */
     protected static String[] colNames =
@@ -613,15 +616,16 @@ public class EVTaskList extends AbstractTreeTableModel
     public static final int PLAN_CUM_VALUE_COLUMN = 7;
     public static final int ASSIGNED_TO_COLUMN    = 8;
     public static final int PLAN_DATE_COLUMN      = 9;
-    public static final int FORECAST_DATE_COLUMN  = 10;
-    public static final int DATE_COMPLETE_COLUMN  = 11;
-    public static final int DEPENDENCIES_COLUMN   = 12;
-    public static final int PCT_COMPLETE_COLUMN   = 13;
-    public static final int PCT_SPENT_COLUMN      = 14;
-    public static final int VALUE_EARNED_COLUMN   = 15;
+    public static final int REPLAN_DATE_COLUMN    = 10;
+    public static final int FORECAST_DATE_COLUMN  = 11;
+    public static final int DATE_COMPLETE_COLUMN  = 12;
+    public static final int DEPENDENCIES_COLUMN   = 13;
+    public static final int PCT_COMPLETE_COLUMN   = 14;
+    public static final int PCT_SPENT_COLUMN      = 15;
+    public static final int VALUE_EARNED_COLUMN   = 16;
 
-    public static final int[] DIRECT_COLUMN_LIST = {
-        PLAN_DTIME_COLUMN, ACT_DTIME_COLUMN };
+    public static final int[] HIDABLE_COLUMN_LIST = {
+        PLAN_DTIME_COLUMN, ACT_DTIME_COLUMN, REPLAN_DATE_COLUMN };
     public static final String ID_DATA_NAME = "Task List ID";
 
     /** Types of the columns in the TreeTableModel. */
@@ -636,6 +640,7 @@ public class EVTaskList extends AbstractTreeTableModel
         String.class,           // planned cumulative value
         String.class,           // assigned to
         Date.class,             // planned date
+        Date.class,             // replanned date
         Date.class,             // forecast date
         Date.class,             // date
         Collection.class,       // task dependencies
@@ -660,6 +665,7 @@ public class EVTaskList extends AbstractTreeTableModel
         COLUMN_FMT_PERCENT,   // planned cumulative value
         COLUMN_FMT_OTHER,     // assigned to
         COLUMN_FMT_DATE,      // planned date
+        COLUMN_FMT_DATE,      // replanned date
         COLUMN_FMT_DATE,      // forecast date
         COLUMN_FMT_DATE,      // date
         COLUMN_FMT_OTHER,     // task dependencies
@@ -732,10 +738,16 @@ public class EVTaskList extends AbstractTreeTableModel
 
     /** Returns the name for a particular column. */
     public String getColumnName(int column) {
-        if (!showDirectTimeColumns &&
-            (column == PLAN_DTIME_COLUMN || column == ACT_DTIME_COLUMN))
+        boolean showColumn = true;
+        if (column == PLAN_DTIME_COLUMN || column == ACT_DTIME_COLUMN)
+            showColumn = showDirectTimeColumns;
+        else if (column == REPLAN_DATE_COLUMN)
+            showColumn = showReplanColumn;
+
+        if (showColumn)
+            return colNames[column];
+        else
             return " " + colNames[column] + " ";
-        return colNames[column];
     }
 
     /** Returns the class for the particular column. */
@@ -760,6 +772,7 @@ public class EVTaskList extends AbstractTreeTableModel
         case PLAN_CUM_VALUE_COLUMN: return n.getCumPlanValue(totalPlanValue);
         case ASSIGNED_TO_COLUMN:    return n.getAssignedToText();
         case PLAN_DATE_COLUMN:      return n.getPlanDate();
+        case REPLAN_DATE_COLUMN:    return n.getReplanDate();
         case FORECAST_DATE_COLUMN:  return n.getForecastDate();
         case DATE_COMPLETE_COLUMN:  return n.getActualDate();
         case DEPENDENCIES_COLUMN:   return n.getDependencies();
