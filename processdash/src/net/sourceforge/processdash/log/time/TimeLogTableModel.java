@@ -1,4 +1,4 @@
-// Copyright (C) 2005-2006 Tuma Solutions, LLC
+// Copyright (C) 2005-2007 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -214,9 +214,13 @@ public class TimeLogTableModel extends AbstractTableModel implements
             long newInterrupt = FormatUtil.parseTime(newValue);
             if (newInterrupt != -1) {
                 long interruptDiff = newInterrupt - tle.getInterruptTime();
-                if (interruptDiff != 0)
-                    diff = new TimeLogEntryVO(tle.getID(), null, null, 0,
-                            interruptDiff, null, ChangeFlagged.MODIFIED);
+                if (interruptDiff != 0) {
+                    long elapsedDiff = Math.min(interruptDiff,
+                            tle.getElapsedTime());
+                    diff = new TimeLogEntryVO(tle.getID(), null, null,
+                            -elapsedDiff, interruptDiff, null,
+                            ChangeFlagged.MODIFIED);
+                }
             }
             break;
 
