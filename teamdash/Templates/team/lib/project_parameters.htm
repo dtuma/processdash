@@ -81,20 +81,6 @@
 </tr>
 <!--#endif-->
 
-<!--#if VVIS --><!--#if not indiv -->
-
-<tr>
-<td COLSPAN=2>On summary form, display phases for
-<select name="Phase_Display_Filter	s">
-<option value="All">All disciplines
-<!--#foreach name=Group list=Group_List #-->
-<option><!--#echo Group_Name -->
-<!--#endfor-->
-</select></td>
-</tr>
-
-<!--#endif--><!--#endif-->
-
 </table>
 
 
@@ -133,7 +119,7 @@
 
 </table>
 
-<!--#endif -->
+<!--#endif Quality_Profile -->
 
 <h2>Estimated Phase Yields</h2>
 
@@ -170,6 +156,24 @@
 
 </table>
 
+
+<!--#endif not VVIS -->
+
+
+<!--#if not indiv -->
+
+<h2>Phase Display List</h2>
+
+<p>In forms and charts that display phase data, only include the phases
+checked below:</p>
+
+<div style="margin-left:1cm">
+<!--#foreach name=PHASE list=Phase_List -->
+    <input type="checkbox"
+        name="[Phase_Display_Filter_Include/<!--#echo PHASE_Name -->]">
+        <!--#echo PHASE_Long_Name --><br>
+<!--#endfor-->
+</div>
 
 <!--#endif-->
 

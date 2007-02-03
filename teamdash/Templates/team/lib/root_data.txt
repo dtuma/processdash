@@ -82,8 +82,11 @@
 [Export_Max_Node_Depth] = 2;
 
 
-<!--#if VVIS -->
-
-[Phase_Display_Filter] = "All";
-
-<!--#endif-->
+/*
+ * Calculate the list of phases to show on forms/charts/reports.
+ */
+<!--#foreach name=PHASE list=Phase_List -->
+[Phase_Display_Filter_Include/<!--#echo PHASE_Name -->] = 1;
+<!--#endfor-->
+[Phase_Display_Filter_List] =
+    filter(indirect("Phase_Display_Filter_Include/" & [_]), [Phase_List]);

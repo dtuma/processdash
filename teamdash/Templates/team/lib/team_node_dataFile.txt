@@ -11,6 +11,7 @@ undefine([Simple Project Tag]);
 [Project_Path_Prefix] = [../Project_Path_Prefix];
 [Project_WBS_ID] = [../Project_WBS_ID] &/ pathTail([^]);
 [Filtered_Task_Labels] = [../Filtered_Task_Labels];
+[Phase_Display_Filter_List] = [../Phase_Display_Filter_List];
 
 
 /*
@@ -22,9 +23,3 @@ undefine([Simple Project Tag]);
         || intersects([{Filtered_Task_Labels}], [EV_Task_IDs])) \
      && ([Project_WBS_ID] == [{Project_WBS_ID}] \
         || startsWith([{Project_WBS_ID}] & \"/\", [Project_WBS_ID]))";
-
-<!--#if VVIS -->
-
-[Phase_Display_Filter] = [../Phase_Display_Filter];
-
-<!--#endif-->
