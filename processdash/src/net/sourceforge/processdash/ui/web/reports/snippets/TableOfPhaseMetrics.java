@@ -1,4 +1,4 @@
-// Copyright (C) 2006 Tuma Solutions, LLC
+// Copyright (C) 2006-2007 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -128,14 +128,14 @@ public class TableOfPhaseMetrics extends TinyCGIBase {
                 out.write(MetricsTableColumn.PADDING_LEFT);
                 out.write(" colspan=\"");
                 out.write(Integer.toString(columns.size()));
-                out.write("\">"); //<span style='margin-left:5px; margin-right:5px'>");
+                out.write("\">");
                 String metricName = (String) metrics[i].get(DISPLAY_NAME_ATTR);
                 if (metricName == null || metricName.trim().length() == 0) {
                     String dataName = (String) metrics[i].get(DATA_NAME_ATTR);
                     metricName = TranslatingAutocompleter.translateDataName(dataName);
                 }
                 out.write(esc(metricName));
-                out.write(/*"</span>*/"</th>\n");
+                out.write("</th>\n");
             }
             out.write("</tr>\n");
         }
