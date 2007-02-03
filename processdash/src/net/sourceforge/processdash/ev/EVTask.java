@@ -395,7 +395,7 @@ public class EVTask implements Cloneable, DataListener {
                 (planLevelOfEffort != ANCESTOR_LEVEL_OF_EFFORT));
     }
     public boolean completionDateIsEditable() {
-        return isLeaf() && dateCompletedEditable &&
+        return dateCompletedEditable &&
             !isLevelOfEffortTask() && !isUserPruned();
     }
 
@@ -619,7 +619,10 @@ public class EVTask implements Cloneable, DataListener {
     }
 
     public void userSetActualDate(Object aValue) {
-        if (completionDateIsEditable()) {
+        if (!completionDateIsEditable())
+            return;
+
+        if (isLeaf()) {
             String dataName = DataRepository.createDataName
                 (fullName, DATE_COMPLETED_DATA_NAME);
 
@@ -631,6 +634,10 @@ public class EVTask implements Cloneable, DataListener {
                 dateCompleted = null;
                 data.userPutValue(dataName, null);
             }
+        } else if (getNumChildren() == 1) {
+            getChild(0).userSetActualDate(aValue);
+            recalcDateCompleted();
+            notifyListener();
         }
     }
 
@@ -1010,15 +1017,22 @@ public class EVTask implements Cloneable, DataListener {
 
     void recalcParentDateCompleted() {
         Date d, result = COMPLETION_DATE_NA;
+        boolean childEditable = true;
         for (int i = 0;   i < getNumChildren();   i++) {
-            if (getChild(i).isTotallyPruned()) continue;
-            d = getChild(i).dateCompleted;
+            EVTask child = getChild(i);
+            if (child.isTotallyPruned()) {
+                childEditable = false;
+                continue;
+            }
+            if (!child.dateCompletedEditable)
+                childEditable = false;
+            d = child.dateCompleted;
             if (d == null)
                 result = null;
             else if (result != null && result.compareTo(d) < 0)
                 result = d;
         }
-        dateCompletedEditable = false;
+        dateCompletedEditable = (getNumChildren() == 1 && childEditable);
         dateCompleted = result;
     }
 
