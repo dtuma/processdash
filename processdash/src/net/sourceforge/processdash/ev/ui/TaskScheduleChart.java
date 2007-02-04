@@ -28,7 +28,6 @@ package net.sourceforge.processdash.ev.ui;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Paint;
 import java.awt.Stroke;
@@ -44,6 +43,7 @@ import java.util.Map;
 
 import javax.swing.Box;
 import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
@@ -58,6 +58,8 @@ import javax.swing.event.TableModelListener;
 
 import net.sourceforge.processdash.ev.EVMetrics;
 import net.sourceforge.processdash.ev.EVSchedule;
+import net.sourceforge.processdash.ev.EVScheduleFiltered;
+import net.sourceforge.processdash.ev.EVTaskFilter;
 import net.sourceforge.processdash.ev.EVTaskList;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.ui.DashboardIconFactory;
@@ -78,26 +80,34 @@ import org.jfree.data.XYDataset;
 public class TaskScheduleChart extends JFrame
     implements EVTaskList.RecalcListener, ComponentListener {
 
+    static final String FILTER_DISPLAY_NAME = "filtDisplay";
+    static final String IS_INVALID = "isInvalid";
+    static final Object NAME_POS_KEY = "namePos";
+
     EVTaskList taskList;
     EVSchedule schedule;
     JTabbedPane tabPane;
 
     static Resources resources = Resources.getDashBundle("EV.Chart");
 
-    public TaskScheduleChart(EVTaskList tl) {
-        super(resources.format("Window_Title_FMT", tl.getDisplayName()));
+    public TaskScheduleChart(EVTaskList tl, EVTaskFilter filter) {
+        super(formatWindowTitle(tl, filter));
         PCSH.enableHelpKey(this, "UsingTaskSchedule.chart");
         setIconImage(DashboardIconFactory.getWindowIconImage());
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         taskList = tl;
         taskList.addRecalcListener(this);
-        schedule = taskList.getSchedule();
+        if (filter == null)
+            schedule = taskList.getSchedule();
+        else
+            schedule = new EVScheduleFiltered(tl, filter);
 
         tabPane = new JTabbedPane();
-        tabPane.addTab(TAB_NAMES[FULL][0], buildValueChart());
-        tabPane.addTab(TAB_NAMES[FULL][1], buildTimeChart());
-        tabPane.addTab(TAB_NAMES[FULL][2], buildCombinedChart());
-        tabPane.addTab(TAB_NAMES[FULL][3], buildStatsTable());
+        addTab(0, buildValueChart());
+        if (filter == null)
+            addTab(1, buildTimeChart());
+        addTab(2, buildCombinedChart());
+        addTab(3, buildStatsTable());
         tabPane.addComponentListener(this);
 
         getContentPane().add(tabPane);
@@ -105,11 +115,40 @@ public class TaskScheduleChart extends JFrame
         adjustTabNames(getWidth());
         show();
     }
+
+    private static String formatWindowTitle(EVTaskList tl, EVTaskFilter filter) {
+        if (filter == null)
+            return resources.format("Window_Title_FMT", tl.getDisplayName());
+
+        String filterDescription = filter.getAttribute(FILTER_DISPLAY_NAME);
+        if (filterDescription == null)
+            return resources.format("Window_Title_Filtered", tl.getDisplayName());
+        else
+            return resources.format("Window_Title_Filtered_FMT",
+                    tl.getDisplayName(), filterDescription);
+    }
+
+    private void addTab(int namePos, JComponent tabContent) {
+        tabPane.addTab(TAB_NAMES[FULL][namePos], tabContent);
+        tabContent.putClientProperty(NAME_POS_KEY, new Integer(namePos));
+    }
+
     public void dispose() {
         super.dispose();
         taskList.removeRecalcListener(this);
     }
-    public void evRecalculated(EventObject e) {}
+
+    public void evRecalculated(EventObject e) {
+        if (schedule instanceof EVScheduleFiltered) {
+            EVScheduleFiltered filtSched = (EVScheduleFiltered) schedule;
+            EVTaskFilter filter = filtSched.getFilter();
+            String valid = filter.getAttribute(IS_INVALID);
+            if (valid == null)
+                filtSched.recalculate();
+            else
+                dispose();
+        }
+    }
 
     private ChartPanel buildTimeChart() {
         return buildChart(schedule.getTimeChartData(), UNITS[1]);
@@ -188,7 +227,7 @@ public class TaskScheduleChart extends JFrame
     Legend legends[] = new Legend[3];
     int numCharts = 0;
 
-    private Component buildStatsTable() {
+    private JComponent buildStatsTable() {
         EVMetrics m = schedule.getMetrics();
 
         JTable table = new JTable(m);
@@ -262,9 +301,13 @@ public class TaskScheduleChart extends JFrame
             currentStyle = style;
         }
 
-        for (int i=TAB_NAMES[style].length;   i-- > 0; )
-            tabPane.setTitleAt(i, TAB_NAMES[style][i]);
+        for (int i=tabPane.getTabCount();  i-- > 0; ) {
+            JComponent c = (JComponent) tabPane.getComponentAt(i);
+            Integer namePos = (Integer) c.getClientProperty(NAME_POS_KEY);
+            tabPane.setTitleAt(i, TAB_NAMES[style][namePos.intValue()]);
+        }
         for (int i=0;   i < charts.length;   i++) {
+            if (charts[i] == null) continue;
             charts[i].setLegend(style != FULL ? null : legends[i]);
             adjustAxis(charts[i].getXYPlot().getRangeAxis(),
                        style != FULL, UNITS[i]);

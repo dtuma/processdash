@@ -537,7 +537,7 @@ public class EVTaskList extends AbstractTreeTableModel
     protected void fireEvRecalculated() {
         if (someoneCares()) {
             EventObject e = new EventObject(this);
-            Iterator i = recalcListeners.iterator();
+            Iterator i = new ArrayList(recalcListeners).iterator();
             while (i.hasNext())
                 ((RecalcListener) i.next()).evRecalculated(e);
         }
@@ -1226,7 +1226,10 @@ public class EVTaskList extends AbstractTreeTableModel
         }
 
         public Object getValueAt(Object node, int column) {
-            return EVTaskList.this.getValueAt(node, column);
+            if (column == MERGED_DESCENDANT_NODES)
+                return merger.getTasksMergedBeneath((EVTask) node);
+            else
+                return EVTaskList.this.getValueAt(node, column);
         }
 
         public boolean isCellEditable(Object node, int column) {
@@ -1244,4 +1247,5 @@ public class EVTaskList extends AbstractTreeTableModel
         }
 
     }
+    public static final int MERGED_DESCENDANT_NODES = -100;
 }

@@ -45,9 +45,13 @@ public class EVScheduleFiltered extends EVSchedule {
         recalculate();
     }
 
+    public EVTaskFilter getFilter() {
+        return filter;
+    }
+
     private Date forecastDate;
 
-    private void recalculate() {
+    public void recalculate() {
         addAllPeriods(taskList.schedule.periods, this.periods);
 
         Date effectiveDate = taskList.getSchedule().getEffectiveDate();
@@ -72,6 +76,7 @@ public class EVScheduleFiltered extends EVSchedule {
         metrics.recalcComplete(this);
 
         setEffectiveDate(effectiveDate);
+        fireTableChanged(null);
     }
 
     private void calculateActualNodeTimes(EVTask task) {

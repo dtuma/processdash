@@ -110,6 +110,7 @@ import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.ev.EVDependencyCalculator;
 import net.sourceforge.processdash.ev.EVSchedule;
 import net.sourceforge.processdash.ev.EVTask;
+import net.sourceforge.processdash.ev.EVTaskFilter;
 import net.sourceforge.processdash.ev.EVTaskList;
 import net.sourceforge.processdash.ev.EVTaskListCached;
 import net.sourceforge.processdash.ev.EVTaskListData;
@@ -157,7 +158,7 @@ public class TaskScheduleDialog
     protected JButton addTaskButton, deleteTaskButton, moveUpButton,
         moveDownButton, addPeriodButton, insertPeriodButton,
         deletePeriodButton, chartButton, reportButton, closeButton,
-        saveButton, recalcButton, errorButton, indivChartButton,
+        saveButton, recalcButton, errorButton, filteredChartButton,
         collaborateButton;
     protected JCheckBox flatViewCheckbox;
     protected JCheckBox mergedViewCheckbox;
@@ -497,16 +498,14 @@ public class TaskScheduleDialog
         box.add(errorButton);
         box.add(Box.createHorizontalStrut(2));
 
-        if (isRollup) {
-            indivChartButton = new JButton
-                (resources.getString("Buttons.Indiv_Chart"));
-            indivChartButton.setEnabled(false);
-            indivChartButton.addActionListener(new ActionListener() {
-                    public void actionPerformed(ActionEvent e) {
-                        showIndivChart(); }});
-            box.add(indivChartButton);
-            box.add(Box.createHorizontalStrut(2));
-        }
+        filteredChartButton = new JButton
+            (resources.getString("Buttons.Filtered_Chart"));
+        filteredChartButton.setEnabled(false);
+        filteredChartButton.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e) {
+                    showFilteredChart(); }});
+        box.add(filteredChartButton);
+        box.add(Box.createHorizontalStrut(2));
 
         chartButton = new JButton(resources.getString("Buttons.Chart"));
         chartButton.addActionListener(new ActionListener() {
@@ -1807,6 +1806,7 @@ public class TaskScheduleDialog
         deleteTaskButton .setText(resources.getString("Buttons.Remove_Task"));
         moveUpButton     .setEnabled(enableUp);
         moveDownButton   .setEnabled(enableDown);
+        filteredChartButton.setEnabled(false);
     }
 
     private void enableTaskButtonsMergedView() {
@@ -1814,13 +1814,16 @@ public class TaskScheduleDialog
         deleteTaskButton .setEnabled(false);
         moveUpButton     .setEnabled(false);
         moveDownButton   .setEnabled(false);
-        indivChartButton .setEnabled(false);
+
+        int firstRowNum = treeTable.getSelectionModel().getMinSelectionIndex();
+        int lastRowNum = treeTable.getSelectionModel().getMaxSelectionIndex();
+        filteredChartButton.setEnabled(firstRowNum > 0 && firstRowNum == lastRowNum);
     }
 
 
     private void enableTaskButtonsTreeView() {
         TreePath selectionPath = treeTable.getTree().getSelectionPath();
-        boolean enableDelete = false, enableIndiv = false,
+        boolean enableDelete = false,
             enableUp = false, enableDown = false, isPruned = false;
         int pos = selectedTaskPos(selectionPath, model);
         if (pos != -1) {
@@ -1828,7 +1831,6 @@ public class TaskScheduleDialog
 
             isPruned = false;
             enableDelete = true;
-            enableIndiv  = true;
             enableUp     = (pos > 0);
             enableDown   = (pos < numKids-1);
 
@@ -1849,8 +1851,9 @@ public class TaskScheduleDialog
         moveUpButton     .setEnabled(enableUp);
         moveDownButton   .setEnabled(enableDown);
 
-        if (indivChartButton != null)
-            indivChartButton.setEnabled(enableIndiv);
+        int firstRowNum = treeTable.getSelectionModel().getMinSelectionIndex();
+        int lastRowNum = treeTable.getSelectionModel().getMaxSelectionIndex();
+        filteredChartButton.setEnabled(firstRowNum > 0 && firstRowNum == lastRowNum);
     }
 
     protected void toggleFlatView() {
@@ -2055,17 +2058,105 @@ public class TaskScheduleDialog
             chartDialog.show();
             chartDialog.toFront();
         } else
-            chartDialog = new TaskScheduleChart(model);
+            chartDialog = new TaskScheduleChart(model, null);
     }
 
-    public void showIndivChart() {
+    public void showFilteredChart() {
         TreePath selectionPath = treeTable.getTree().getSelectionPath();
         if (selectionPath == null) return;
-        int pos = selectedTaskPos(selectionPath, model);
-        if (pos == -1) return;
-        EVTaskList indivSchedule =
-            ((EVTaskListRollup) model).getSubSchedule(pos);
-        new TaskScheduleChart(indivSchedule);
+
+        // If the user has selected a node in the tree that has no siblings,
+        // we can move up a generation and start the filtering there.
+        EVTask task = (EVTask) selectionPath.getLastPathComponent();
+        EVTask parent = task.getParent();
+        while (parent != null && parent.getNumChildren() == 1) {
+            task = parent;
+            parent = task.getParent();
+        }
+
+        // The "filtered" node selected was really a sole descendant of the
+        // main task list.  We can just display the regular, unfiltered chart.
+        if (parent == null) {
+            showChart();
+            return;
+        }
+
+        // The selected node happens to be the root of some subschedule. No
+        // filtering is needed;  just display the chart for that schedule.
+        EVTaskList subSchedule = findTaskListWithRoot(model, task);
+        if (subSchedule != null) {
+            new TaskScheduleChart(subSchedule, null);
+            return;
+        }
+
+        // Construct a string describing the filtered path
+        StringBuffer filteredPath = new StringBuffer();
+        for (int i = 1;  i < selectionPath.getPathCount();  i++) {
+            EVTask t = (EVTask) selectionPath.getPathComponent(i);
+            filteredPath.append("/").append(t.getName());
+            if (t == task) break;
+        }
+
+        // Build an appropriate filter, and use it to launch a chart window
+        TaskFilter filter = new TaskFilter(filteredPath.substring(1),
+                getTaskFilterSet(task));
+        new TaskScheduleChart(model, filter);
+    }
+
+    private EVTaskList findTaskListWithRoot(EVTaskList tl, EVTask possibleRoot) {
+        if (tl.getRoot() == possibleRoot)
+            return tl;
+        if (tl instanceof EVTaskListRollup) {
+            EVTaskListRollup rtl = (EVTaskListRollup) tl;
+            for (int i = ((EVTask) rtl.getRoot()).getNumChildren(); i-- > 0; ) {
+                EVTaskList result = findTaskListWithRoot(rtl.getSubSchedule(i),
+                        possibleRoot);
+                if (result != null)
+                    return result;
+            }
+        }
+        return null;
+    }
+
+    private Set getTaskFilterSet(EVTask task) {
+        if (isMergedView())
+            return (Set) mergedModel.getValueAt(task,
+                    EVTaskList.MERGED_DESCENDANT_NODES);
+
+        HashSet result = new HashSet();
+        result.add(task);
+        result.addAll(task.getDescendants());
+        return result;
+    }
+
+    private class TaskFilter implements EVTaskFilter {
+        private String displayName;
+        private Set includedTasks;
+
+        public TaskFilter(String displayName, Set includedTasks) {
+            this.displayName = displayName;
+            this.includedTasks = includedTasks;
+        }
+
+        public boolean include(EVTask t) {
+            return includedTasks.contains(t);
+        }
+
+        public String getAttribute(String name) {
+            if (TaskScheduleChart.FILTER_DISPLAY_NAME.equals(name))
+                return displayName;
+
+            if (TaskScheduleChart.IS_INVALID.equals(name)) {
+                Set tasks = new HashSet(includedTasks);
+                Set currentTasks = ((EVTask) model.getRoot()).getDescendants();
+                tasks.retainAll(currentTasks);
+                if (tasks.isEmpty())
+                    return "invalid";
+            }
+
+            return null;
+        }
+
     }
 
     public static final String CHART_URL = "//reports/ev.class";

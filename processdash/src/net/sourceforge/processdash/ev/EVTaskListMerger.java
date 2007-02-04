@@ -70,6 +70,8 @@ public class EVTaskListMerger {
 
     private EVTask mergedRoot;
 
+    private Map nodesMerged;
+
     /** Create and calculate a merged task model for the given task list.
      */
     public EVTaskListMerger(EVTaskList taskList, boolean simplify,
@@ -120,6 +122,23 @@ public class EVTaskListMerger {
 
         if (simplify)
             simplifyNodes(mergedRoot);
+    }
+
+    /** Get the set of all EVTask objects from the original EVTaskList that
+     * were merged to create the given task and its descendants.
+     */
+    public Set getTasksMergedBeneath(EVTask t) {
+        HashSet result = new HashSet();
+        getTasksMergedBeneath(result, t);
+        return result;
+    }
+    private void getTasksMergedBeneath(Set result, EVTask t) {
+        Set s = (Set) nodesMerged.get(t);
+        if (s == null)
+            return;
+        result.addAll(s);
+        for (int i = t.getNumChildren();  i-- > 0; )
+            getTasksMergedBeneath(result, t.getChild(i));
     }
 
     /** Collect all the nodes that we want to include in our merged model,
@@ -376,6 +395,9 @@ public class EVTaskListMerger {
      * Calculate all rollup data along the way.
      */
     private void createMergedNodes(Map allTaskKeys) {
+        nodesMerged = new HashMap();
+        nodesMerged.put(mergedRoot, new HashSet());
+
         // find the TaskKeys which should be direct children of our merged
         // root.  These are the TaskKeys whose parent is null.
         List rootChildren = findChildrenOfKey(allTaskKeys, null);
@@ -427,6 +449,7 @@ public class EVTaskListMerger {
         EVTask newNode = new EVTask(name);
         newNode.fullName = pathConcat(parent.fullName, name);
         parent.add(newNode);
+        nodesMerged.put(newNode, key.getEvNodes());
 
         // collect information about the descendants of this node.
         List childKeys = findChildrenOfKey(allTaskKeys, key);
@@ -726,6 +749,11 @@ public class EVTaskListMerger {
             task.dependencies = mergeLists(task.dependencies, child.dependencies);
             task.taskIDs = mergeLists(task.taskIDs, child.taskIDs);
             task.name = pathConcat(task.name, child.name);
+
+            Set nm = new HashSet((Set) nodesMerged.get(task));
+            nm.addAll((Set) nodesMerged.get(child));
+            nodesMerged.put(task, nm);
+
             task.remove(child);
             for (int i = 0;  i < child.getNumChildren();  i++)
                 task.add(child.getChild(i));

@@ -880,6 +880,20 @@ public class EVTask implements Cloneable, DataListener {
     }
 
 
+    /** Return a collection of all the descendants of this task */
+    public Set getDescendants() {
+        HashSet result = new HashSet();
+        addSelfAndDescendants(result);
+        result.remove(this);
+        return result;
+    }
+    protected void addSelfAndDescendants(Set dest) {
+        dest.add(this);
+        for (int i = getNumChildren(); i-- > 0;)
+            getChild(i).addSelfAndDescendants(dest);
+    }
+
+
 /*
     public void recalc(EVSchedule schedule, TimeLog log) {
         resetRootValues();
