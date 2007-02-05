@@ -924,7 +924,7 @@ public class WBSJTable extends JTable {
             if (rows == null || rows.length == 0) return;
 
             // expand selected nodes and all descendants
-            List selectedNodes = wbsModel.getNodesForRows(rows, true);
+            List selectedNodes = wbsModel.getNodesForRows(rows, false);
             List nodesToExpand = new ArrayList(selectedNodes);
             for (Iterator i = selectedNodes.iterator(); i.hasNext();) {
                 WBSNode node = (WBSNode) i.next();
@@ -941,7 +941,7 @@ public class WBSJTable extends JTable {
             selectRows(wbsModel.getRowsForNodes(nodesToExpand));
         }
         public void recalculateEnablement(int[] selectedRows) {
-            setEnabled(notJustRoot(selectedRows));
+            setEnabled(notEmpty(selectedRows));
         }
     }
     final ExpandAllAction EXPAND_ALL_ACTION = new ExpandAllAction();
