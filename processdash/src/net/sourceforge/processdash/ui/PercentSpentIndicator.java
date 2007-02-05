@@ -104,10 +104,12 @@ public class PercentSpentIndicator extends JPanel implements DataListener,
     private static final Resources resources = Resources
             .getDashBundle("ProcessDashboard.PctSpent");
 
-    private static final Color GREEN_BAR = new Color(0, 200, 0);
-    private static final Color GREEN_HIGHLIGHT = new Color(128, 255, 128);
-    private static final Color RED_BAR = new Color(200, 0, 0);
-    private static final Color RED_HIGHLIGHT = new Color(255, 60, 60);
+    // private static final Color[] UNDERSPENT = { new Color(0, 200, 0),
+    //     new Color(128, 255, 128) }; // this creates a green bar
+    private static final Color[] UNDERSPENT = { new Color(32, 180, 226),
+        new Color(194, 224, 237) }; // this is an aqua-blue bar
+    private static final Color[] OVERSPENT = { new Color(200, 0, 0),
+        new Color(255, 60, 60) }; // this is a red bar
 
     private static final String LEVEL_INDICATOR_KEY = "level";
     private static final String MISSING_ESTIMATE_KEY = "noEst";
@@ -191,10 +193,12 @@ public class PercentSpentIndicator extends JPanel implements DataListener,
         if (estTime > 0) {
             if (pctSpent <= 1.0) {
                 levelIndicator.setLevel(1 - pctSpent);
-                levelIndicator.setBarColors(GREEN_BAR, GREEN_HIGHLIGHT);
+                levelIndicator.setBarColors(UNDERSPENT[0], UNDERSPENT[1]);
             } else {
-                levelIndicator.setLevel(pctSpent - 1);
-                levelIndicator.setBarColors(RED_BAR, RED_HIGHLIGHT);
+                double maxPct =
+                    Settings.getInt("pctSpent.maxOverPct", 200) / 100.0;
+                levelIndicator.setLevel((pctSpent - 1) / (maxPct - 1));
+                levelIndicator.setBarColors(OVERSPENT[0], OVERSPENT[1]);
             }
             layout.show(this, LEVEL_INDICATOR_KEY);
             tip.append(FormatUtil.formatTime(estTime, true));
