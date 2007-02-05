@@ -158,7 +158,8 @@ public class WBSJTable extends JTable {
     /** Return a list of actions useful for editing the wbs */
     public Action[] getEditingActions() {
         return new Action[] { CUT_ACTION, COPY_ACTION, PASTE_ACTION,
-            DEMOTE_ACTION, PROMOTE_ACTION, INSERT_ACTION, ENTER_ACTION,
+            PROMOTE_ACTION, DEMOTE_ACTION, EXPAND_ACTION, COLLAPSE_ACTION,
+            EXPAND_ALL_ACTION, INSERT_ACTION, ENTER_ACTION,
             DELETE_ACTION };
     }
 
@@ -326,6 +327,15 @@ public class WBSJTable extends JTable {
         }
     }
 
+    private Set getNodeIDs(List nodes) {
+        Set nodeIDs = new HashSet();
+        for (Iterator i = nodes.iterator(); i.hasNext();) {
+            WBSNode node = (WBSNode) i.next();
+            nodeIDs.add(Integer.toString(node.getUniqueID()));
+        }
+
+        return nodeIDs;
+    }
 
     private interface EnablementCalculation {
         public void recalculateEnablement(int[] selectedRows);
@@ -862,6 +872,109 @@ public class WBSJTable extends JTable {
         }
     }
 
+    /** An action to perform an "expand" operation */
+    private class ExpandAction extends AbstractAction implements
+            EnablementCalculation {
+
+        public ExpandAction() {
+            super("Expand", IconFactory.getExpandIcon());
+            enablementCalculations.add(this);
+        }
+        public void actionPerformed(ActionEvent e) {
+            // get a list of the currently selected rows.
+            int[] rows = getSelectedRows();
+            if (rows == null || rows.length == 0) return;
+
+            // expand selected nodes
+            List selectedNodes = new ArrayList();
+            for (int i = 0; i < rows.length; i++) {
+                selectedNodes.add(wbsModel.getNodeForRow(rows[i]));
+            }
+            Set nodeIDs = getNodeIDs(selectedNodes);
+            Set expandedNodeIDs = wbsModel.getExpandedNodeIDs();
+            expandedNodeIDs.addAll(nodeIDs);
+            wbsModel.setExpandedNodeIDs(expandedNodeIDs);
+
+            // update selection
+            List nodesToSelect = new ArrayList(selectedNodes);
+            for (Iterator i = selectedNodes.iterator(); i.hasNext();) {
+                WBSNode node = (WBSNode) i.next();
+                nodesToSelect.addAll(Arrays.asList(wbsModel.getDescendants(node)));
+            }
+
+            selectRows(wbsModel.getRowsForNodes(nodesToSelect));
+         }
+        public void recalculateEnablement(int[] selectedRows) {
+            setEnabled(notJustRoot(selectedRows));
+        }
+    }
+    final ExpandAction EXPAND_ACTION = new ExpandAction();
+
+    /** An action to perform an "expand all" operation */
+    private class ExpandAllAction extends AbstractAction implements
+            EnablementCalculation {
+
+        public ExpandAllAction() {
+            super("Expand All", IconFactory.getExpandAllIcon());
+            enablementCalculations.add(this);
+        }
+        public void actionPerformed(ActionEvent e) {
+            // get a list of the currently selected rows.
+            int[] rows = getSelectedRows();
+            if (rows == null || rows.length == 0) return;
+
+            // expand selected nodes and all descendants
+            List selectedNodes = wbsModel.getNodesForRows(rows, true);
+            List nodesToExpand = new ArrayList(selectedNodes);
+            for (Iterator i = selectedNodes.iterator(); i.hasNext();) {
+                WBSNode node = (WBSNode) i.next();
+                WBSNode[] descendants = wbsModel.getDescendants(node);
+                nodesToExpand.addAll(Arrays.asList(descendants));
+            }
+
+            Set nodeIDs = getNodeIDs(nodesToExpand);
+            Set expandedNodeIDs = wbsModel.getExpandedNodeIDs();
+            expandedNodeIDs.addAll(nodeIDs);
+            wbsModel.setExpandedNodeIDs(expandedNodeIDs);
+
+            // update selection
+            selectRows(wbsModel.getRowsForNodes(nodesToExpand));
+        }
+        public void recalculateEnablement(int[] selectedRows) {
+            setEnabled(notJustRoot(selectedRows));
+        }
+    }
+    final ExpandAllAction EXPAND_ALL_ACTION = new ExpandAllAction();
+
+
+    /** An action to perform a "collapse" operation */
+    private class CollapseAction extends AbstractAction implements
+            EnablementCalculation {
+
+        public CollapseAction() {
+            super("Collapse", IconFactory.getCollapseIcon());
+            enablementCalculations.add(this);
+        }
+        public void actionPerformed(ActionEvent e) {
+            // get a list of the currently selected rows.
+            int[] rows = getSelectedRows();
+            if (rows == null || rows.length == 0) return;
+
+            // collapse selected nodes
+            List selectedNodes = wbsModel.getNodesForRows(rows, true);
+            Set nodeIDs = getNodeIDs(selectedNodes);
+            Set expandedNodeIDs = wbsModel.getExpandedNodeIDs();
+            expandedNodeIDs.removeAll(nodeIDs);
+            wbsModel.setExpandedNodeIDs(expandedNodeIDs);
+
+            // update selection
+            selectRows(wbsModel.getRowsForNodes(selectedNodes));
+        }
+        public void recalculateEnablement(int[] selectedRows) {
+            setEnabled(notJustRoot(selectedRows));
+        }
+    }
+    final CollapseAction COLLAPSE_ACTION = new CollapseAction();
 
     /** Recalculate enablement following changes in selection */
     private final class SelectionListener implements ListSelectionListener {

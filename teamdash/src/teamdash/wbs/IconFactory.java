@@ -147,6 +147,23 @@ public class IconFactory {
         return getDemoteIcon();
     }
 
+    public static Icon getExpandIcon() {
+        if (EXPAND_ICON == null) EXPAND_ICON = loadIconResource("expand.png");
+        return EXPAND_ICON;
+    }
+    private static Icon EXPAND_ICON = null;
+
+    public static Icon getExpandAllIcon() {
+        if (EXPAND_ALL_ICON == null) EXPAND_ALL_ICON = loadIconResource("expand-all.png");
+        return EXPAND_ALL_ICON;
+    }
+    private static Icon EXPAND_ALL_ICON = null;
+
+    public static Icon getCollapseIcon() {
+        if (COLLAPSE_ICON == null) COLLAPSE_ICON = loadIconResource("collapse.png");
+        return COLLAPSE_ICON;
+    }
+    private static Icon COLLAPSE_ICON = null;
 
     /** Convenience method for mixing colors.
      * @param r the ratio to use when mixing; must be between 0.0 and 1.0 .

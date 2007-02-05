@@ -73,7 +73,7 @@ public class WBSTabPanel extends JPanel
 
         // manually set the initial divider location, to trigger the
         // size coordination logic.
-        splitPane.setDividerLocation(200);
+        splitPane.setDividerLocation(245);
     }
 
     public void setReadOnly(boolean readOnly) {
