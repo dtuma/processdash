@@ -63,8 +63,11 @@ public class DefectTypeStandard extends OptionList {
             String settingDataName = DataRepository.createDataName(path,
                     SETTING_DATA_NAME);
             SimpleData d = data.getSimpleValue(settingDataName);
-            if (d != null && d.test())
-                return getByName(d.format(), data);
+            if (d != null && d.test()) {
+                String defectTypeName = d.format();
+                if (defectTypeName.trim().length() > 0)
+                    return getByName(defectTypeName, data);
+            }
 
             // next, check for an ad-hoc standard, specified directly for this
             // particular path
@@ -204,7 +207,7 @@ public class DefectTypeStandard extends OptionList {
         SimpleData defectSetting = data.getSimpleValue(dataName);
         String result = null;
         if (defectSetting != null) result = defectSetting.format();
-        if (result != null && result.length() == 0) result = null;
+        if (result != null && result.trim().length() == 0) result = null;
         return result;
     }
 
