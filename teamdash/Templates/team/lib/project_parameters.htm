@@ -79,6 +79,17 @@
 <td COLSPAN=2>Max levels of drill down in archived plan snapshots:
 <input type=text size=7 name="Export_Max_Node_Depth"></td>
 </tr>
+
+<!--#if not master -->
+[!--#if Dash_Package_pspdash ge 'version 1.7.1b.5a' --]
+<tr>
+<td COLSPAN=2>Designate a defect type standard for this team project:
+[!--#include file="/dash/dtsSelect?None_Text=None" --]
+&nbsp;&nbsp;&nbsp;<i><a href="/dash/dtsEdit.class">More...</a></i></td>
+</tr>
+[!--#endif--]
+<!--#endif-->
+
 <!--#endif-->
 
 </table>

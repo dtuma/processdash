@@ -48,7 +48,7 @@ undefine([Simple Project Tag]);
 [Team_Settings] = TAG;
 
 [Team_Settings /Defect_Type_Standard] =
-    iff([Defect Type Standard],
+    iff([Defect Type Standard] && ([Defect Type Standard] != " "),
         [Defect Type Standard] & ", imported from team project:::" &
         indirect("/Defect Type Standard/" & [Defect Type Standard]),
         null);
