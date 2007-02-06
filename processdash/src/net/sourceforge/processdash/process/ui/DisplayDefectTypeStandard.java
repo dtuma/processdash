@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2006 Tuma Solutions, LLC
+// Copyright (C) 2003-2007 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -70,13 +70,15 @@ public class DisplayDefectTypeStandard extends TinyCGIBase {
         for (int i=0;  i<defectTypeStandard.options.size();  i++) {
             type = (String) defectTypeStandard.options.elementAt(i);
             description = (String) defectTypeStandard.comments.get(type);
-            if (description == null) description = "&nbsp;";
 
             out.print("<TR><TD VALIGN=baseline>");
             out.print(HTMLUtils.escapeEntities(type));
             out.println("</TD>");
             out.print("    <TD VALIGN=baseline>");
-            out.print(HTMLUtils.escapeEntities(description));
+            if (description == null)
+                out.print("&nbsp;");
+            else
+                out.print(HTMLUtils.escapeEntities(description));
             out.println("</TD></TR>");
         }
         out.println("</TABLE>");

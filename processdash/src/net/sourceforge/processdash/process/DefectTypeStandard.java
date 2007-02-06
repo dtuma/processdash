@@ -1,5 +1,5 @@
+// Copyright (C) 2003-2007 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -32,7 +32,6 @@ import java.util.Iterator;
 import java.util.LinkedList;
 
 import net.sourceforge.processdash.Settings;
-import net.sourceforge.processdash.data.SaveableData;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.StringData;
 import net.sourceforge.processdash.data.repository.DataRepository;
@@ -48,28 +47,59 @@ public class DefectTypeStandard extends OptionList {
 
     private static final String DATA_PREFIX = "/Defect Type Standard/";
     private static final String SETTING_DATA_NAME = "Defect Type Standard";
+    private static final String CONTENTS_DATA_NAME =
+        "Defect Type Standard Contents";
+    private static final String TITLE_DELIMITER = ":::";
 
     /** Get the defect type standard for the named project/task */
     public static DefectTypeStandard get(String path, DataRepository r) {
         data = r;
 
         // get the defect type standard for this project.
-        String defectTypeName = null;
         if (path == null) path = "";
 
-        SaveableData defectSetting = data.getInheritableValue
-            (path, SETTING_DATA_NAME);
+        while (path != null) {
+            // first, check for a setting pointing to a defined standard.
+            String settingDataName = DataRepository.createDataName(path,
+                    SETTING_DATA_NAME);
+            SimpleData d = data.getSimpleValue(settingDataName);
+            if (d != null && d.test())
+                return getByName(d.format(), data);
 
-        if (defectSetting != null)
-            defectTypeName = defectSetting.getSimpleValue().format();
-        if (defectTypeName == null)
-            defectTypeName = Settings.getVal("defectTypeStandard");
+            // next, check for an ad-hoc standard, specified directly for this
+            // particular path
+            String contentDataName = DataRepository.createDataName(path,
+                    CONTENTS_DATA_NAME);
+            d = data.getSimpleValue(contentDataName);
+            if (d != null && d.test())
+                return getFromContents(d.format());
+
+            // no luck - move up the hierarchy
+            path = DataRepository.chopPath(path);
+        }
+
+        // No setting was found in the hierarchy for this project.  Look in
+        // the user settings, or fall back to a global default standard
+        String defectTypeName = Settings.getVal("defectTypeStandard");
         if (defectTypeName == null)
             defectTypeName = DEFAULT_NAME;
 
         return getByName(defectTypeName, r);
     }
 
+    /** Construct a standard on-the-fly, from custom-supplied contents */
+    private static DefectTypeStandard getFromContents(String contents) {
+        String defectTypeName = null;
+        int colonPos = contents.indexOf(TITLE_DELIMITER);
+        if (colonPos != -1) {
+            defectTypeName = contents.substring(0, colonPos);
+            contents = contents.substring(colonPos + TITLE_DELIMITER.length());
+        }
+
+        DefectTypeStandard result = new DefectTypeStandard(contents);
+        result.defectTypeName = defectTypeName;
+        return result;
+    }
 
     /** Get the named defect type standard. */
     public static DefectTypeStandard getByName(String defectTypeName,
