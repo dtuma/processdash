@@ -138,6 +138,10 @@ public class HierarchySynchronizer {
         this.whatIfMode = whatIf;
     }
 
+    public boolean isWhatIfMode() {
+        return whatIfMode;
+    }
+
     public void setDeletionPermissions(List p) {
         this.deletionPermissions = p;
     }
@@ -406,7 +410,7 @@ public class HierarchySynchronizer {
 
         changes = new ArrayList();
         syncActions = buildSyncActions();
-        initPhaseIDs();
+        phaseIDs = initPhaseIDs(processID);
 
         SyncWorker syncWorker;
 
@@ -684,10 +688,10 @@ public class HierarchySynchronizer {
     private static final String PROJECT_TYPE = "project";
     private static final String SOFTWARE_TYPE = "component";
     private static final String DOCUMENT_TYPE = "document";
-    private static final String PSP_TYPE = "psp";
+    static final String PSP_TYPE = "psp";
     private static final String TASK_TYPE = "task";
     private static final String DEPENDENCY_TYPE = "dependency";
-    private static final List NODE_TYPES = Arrays.asList(new String[] {
+    static final List NODE_TYPES = Arrays.asList(new String[] {
         PROJECT_TYPE, SOFTWARE_TYPE, DOCUMENT_TYPE, PSP_TYPE, TASK_TYPE });
 
     private static final String TEAM_MEMBER_TYPE = "teamMember";
@@ -1097,8 +1101,8 @@ public class HierarchySynchronizer {
 
     private HashMap phaseIDs;
 
-    private void initPhaseIDs() {
-        phaseIDs = new HashMap();
+    static HashMap initPhaseIDs(String processID) {
+        HashMap phaseIDs = new HashMap();
         Iterator i = DashController.getTemplates().entrySet().iterator();
         Map.Entry e;
         String phasePrefix = processID + "/PHASE/";
@@ -1109,13 +1113,14 @@ public class HierarchySynchronizer {
             if (templateID.startsWith(phasePrefix))
                 phaseIDs.put(name, templateID);
         }
+        return phaseIDs;
     }
 
     private class SyncTaskNode extends SyncSimpleNode {
 
         public SyncTaskNode() {
             super(taskNodeID, " Task", readOnlyNodeID);
-            initPhaseIDs();
+            phaseIDs = initPhaseIDs(processID);
         }
         public boolean syncNode(SyncWorker worker, String pathPrefix, Element node)
             throws HierarchyAlterationException

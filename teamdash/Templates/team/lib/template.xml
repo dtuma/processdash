@@ -418,6 +418,7 @@
       defineRollup="no"
       defectLog="true"
       dataFile="PID/indiv_empty_dataFile.txt"
+      autoData="none"
       size="New &amp; Changed LOC"
       href="none"
       constraints="<!--#echo creatable_indiv_nodes #-->

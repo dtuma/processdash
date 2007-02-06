@@ -48,6 +48,8 @@ public class WBSEditor implements WindowListener, SaveListener,
     TeamTimePanel teamTimePanel;
     WBSDataWriter dataWriter;
     File dataDumpFile;
+    WBSDataWriter workflowWriter;
+    File workflowDumpFile;
     private int mode;
     boolean readOnly = false;
     boolean exitOnClose = false;
@@ -66,13 +68,14 @@ public class WBSEditor implements WindowListener, SaveListener,
     private static final String EXPANDED_NODES_KEY_SUFFIX = "_EXPANDEDNODES";
     private static final String EXPANDED_NODES_DELIMITER = Character.toString('\u0001');
 
-    public WBSEditor(TeamProject teamProject, File dumpFile, String intent)
-            throws ConcurrencyLock.FailureException {
+    public WBSEditor(TeamProject teamProject, File dumpFile, File workflowFile,
+            String intent) throws ConcurrencyLock.FailureException {
 
         this.teamProject = teamProject;
         acquireLock(intent);
 
         this.dataDumpFile = dumpFile;
+        this.workflowDumpFile = workflowFile;
         this.readOnly = teamProject.isReadOnly();
 
         setMode(teamProject);
@@ -92,6 +95,8 @@ public class WBSEditor implements WindowListener, SaveListener,
         dataWriter = new WBSDataWriter(model, data,
                 teamProject.getTeamProcess(), teamProject.getProjectID(),
                 teamProject.getTeamMemberList());
+        workflowWriter = new WBSDataWriter(teamProject.getWorkflows(), null,
+                teamProject.getTeamProcess(), teamProject.getProjectID(), null);
         tabPanel = new WBSTabPanel(model, data, teamProject.getTeamProcess(),
                 taskDependencySource);
         tabPanel.setReadOnly(readOnly);
@@ -338,6 +343,7 @@ public class WBSEditor implements WindowListener, SaveListener,
         if (!readOnly)
             try {
                 dataWriter.write(dataDumpFile);
+                workflowWriter.write(workflowDumpFile);
             } catch (Exception e) {
                 e.printStackTrace();
                 return false;
@@ -447,6 +453,7 @@ public class WBSEditor implements WindowListener, SaveListener,
             boolean exitOnClose, boolean forceReadOnly) {
         File dir = new File(directory);
         File dumpFile = new File(dir, "projDump.xml");
+        File workflowFile = new File(dir, "workflowDump.xml");
         TeamProject proj;
         if (bottomUp)
             proj = new TeamProjectBottomUp(dir, "Team Project");
@@ -457,7 +464,7 @@ public class WBSEditor implements WindowListener, SaveListener,
 
         String intent = showTeamList ? INTENT_TEAM_EDITOR : INTENT_WBS_EDITOR;
         try {
-            WBSEditor w = new WBSEditor(proj, dumpFile, intent);
+            WBSEditor w = new WBSEditor(proj, dumpFile, workflowFile, intent);
             w.setExitOnClose(exitOnClose);
             w.setSyncURL(syncURL);
             if (showTeamList)

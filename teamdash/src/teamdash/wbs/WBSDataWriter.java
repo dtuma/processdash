@@ -71,15 +71,17 @@ public class WBSDataWriter {
         this.projectID = projectID;
         this.teamList = teamList;
 
-        for (int i = 0;   i < SIZE_COLUMN_IDS.length;   i++)
-            sizeAccountingColumns[i] =
-                dataModel.findColumn(SIZE_COLUMN_IDS[i]);
-        directSizeUnitsColumn =
-            dataModel.findColumn(DirectSizeTypeColumn.COLUMN_ID);
-        labelsColumn =
-            dataModel.findColumn(TaskLabelColumn.COLUMN_ID);
-        dependencyColumn =
-            dataModel.findColumn(TaskDependencyColumn.COLUMN_ID);
+        if (dataModel != null) {
+            for (int i = 0;   i < SIZE_COLUMN_IDS.length;   i++)
+                sizeAccountingColumns[i] =
+                    dataModel.findColumn(SIZE_COLUMN_IDS[i]);
+            directSizeUnitsColumn =
+                dataModel.findColumn(DirectSizeTypeColumn.COLUMN_ID);
+            labelsColumn =
+                dataModel.findColumn(TaskLabelColumn.COLUMN_ID);
+            dependencyColumn =
+                dataModel.findColumn(TaskDependencyColumn.COLUMN_ID);
+        }
         attributeWriters = buildAttributeWriters();
     }
 
@@ -99,7 +101,10 @@ public class WBSDataWriter {
      */
     public void write(Writer out) throws IOException {
         // initialize
-        teamMemberColumns = dataModel.getTeamMemberColumnIDs();
+        if (dataModel == null)
+            teamMemberColumns = null;
+        else
+            teamMemberColumns = dataModel.getTeamMemberColumnIDs();
 
         // write XML header
         out.write("<?xml version='1.0' encoding='UTF-8'?>\n");
@@ -134,8 +139,10 @@ public class WBSDataWriter {
             aw.writeAttributes(out, node);
 
         WBSNode[] children = wbsModel.getChildren(node);
-        TaskDependencyList dependencies = (TaskDependencyList) WrappedValue
-                .unwrap(dataModel.getValueAt(node, dependencyColumn));
+        TaskDependencyList dependencies = null;
+        if (dataModel != null)
+            dependencies = (TaskDependencyList) WrappedValue.unwrap(dataModel
+                    .getValueAt(node, dependencyColumn));
 
         if ((children == null || children.length == 0)
                 && (dependencies == null || dependencies.isEmpty())
@@ -160,6 +167,9 @@ public class WBSDataWriter {
 
 
     private String getLabelSaveString(WBSNode node) {
+        if (dataModel == null)
+            return null;
+
         String result = (String) WrappedValue.unwrap(dataModel.getValueAt(node,
                 labelsColumn));
 
@@ -174,6 +184,9 @@ public class WBSDataWriter {
 
 
     private void writeTeamMembers(Writer out) throws IOException {
+        if (teamList == null)
+            return;
+
         List members = teamList.getTeamMembers();
         for (Iterator i = members.iterator(); i.hasNext();) {
             TeamMember t = (TeamMember) i.next();
@@ -214,9 +227,11 @@ public class WBSDataWriter {
     /** Determine which XML tag should be used to represent the given node.
      */
     private String getTagNameForNode(WBSNode node) {
-        String type = node.getType();
+        String type = wbsModel.filterNodeType(node);
         if ("Project".equals(type))
             return PROJECT_TAG;
+        if (TeamProcess.WORKFLOW_TYPE.equals(type))
+            return WORKFLOW_TAG;
         if (TeamProcess.SOFTWARE_COMPONENT_TYPE.equals(type)
                 || TeamProcess.COMPONENT_TYPE.equals(type))
             return SOFTWARE_TAG;
@@ -305,6 +320,8 @@ public class WBSDataWriter {
         private void maybeWriteSizeAttrs(Writer out, WBSNode node)
             throws IOException
         {
+            if (dataModel == null) return;
+
             // check with the direct size units column to see if a top-down size
             // has been entered for the given node.
             Object units = dataModel.getValueAt(node, directSizeUnitsColumn);
@@ -347,6 +364,7 @@ public class WBSDataWriter {
                                            String phaseType, WBSNode node)
             throws IOException
         {
+            if (dataModel == null) return;
             if (!QUALITY_PHASE_TYPES.contains(phaseType)) return;
 
             String units = process.getPhaseSizeMetric(phase);
@@ -377,6 +395,9 @@ public class WBSDataWriter {
      * to spend in the given node.
      */
     private String getTeamMemberTimes(WBSNode node) {
+        if (teamMemberColumns == null)
+            return null;
+
         StringBuffer result = new StringBuffer();
         for (int i = 0;   i < teamMemberColumns.size();   i++) {
             int col = teamMemberColumns.get(i);
@@ -414,6 +435,7 @@ public class WBSDataWriter {
 
     // strings naming each XML tag we will output
     private static final String PROJECT_TAG = "project";
+    private static final String WORKFLOW_TAG = "workflow";
     private static final String SOFTWARE_TAG = "component";
     private static final String DOCUMENT_TAG = "document";
     private static final String PSP_TAG = "psp";

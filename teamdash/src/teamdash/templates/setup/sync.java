@@ -47,10 +47,16 @@ public class sync extends TinyCGIBase {
 
     /** The hierarchy path to the root of the enclosing team project */
     private String projectRoot;
+    /** The unique ID assigned to the enclosing team project */
+    private String projectID;
     /** The processID used by the enclosing team project */
     private String processID;
     /** The wbs dump file, written by a WBSDataWriter */
     private File wbsFile;
+    /** The workflow dump file, written by a WBSDataWriter */
+    private File workflowFile;
+    /** The templates directory for the project */
+    private File templatesDir;
     /** The initials of the current team member, if applicable */
     private String initials;
     /** True if this is the team rollup side of the project */
@@ -185,6 +191,16 @@ public class sync extends TinyCGIBase {
             signalError(WBS_FILE_INACCESSIBLE + "&wbsFile",
                         wbsFile.toString());
 
+        // locate the workflow file and the templates directory
+        workflowFile = new File(teamDirectory, WORKFLOW_FILENAME);
+        templatesDir = new File(teamDir.getParentFile().getParentFile(),
+                "Templates");
+
+        // look up the unique ID for this project.
+        d = data.getSimpleValue(DataRepository.createDataName
+                (projectRoot, PROJECT_ID_DATA_NAME));
+        projectID = (d == null ? "" : d.format());
+
         if (isTeam) {
             initials = (isMaster ? HierarchySynchronizer.SYNC_MASTER
                     : HierarchySynchronizer.SYNC_TEAM);
@@ -213,6 +229,7 @@ public class sync extends TinyCGIBase {
     {
         synch.setWhatIfMode(true);
         synch.sync();
+        syncTemplates(synch);
         if (synch.getChanges().isEmpty())
             printChanges(synch.getChanges());
         else if (isTeam == false
@@ -236,6 +253,7 @@ public class sync extends TinyCGIBase {
 
         synch.setWhatIfMode(false);
         synch.sync();
+        syncTemplates(synch);
         if (synch.isFollowOnWorkNeeded()) {
             saveChangeList(synch);
             parameters.remove(RUN_PARAM);
@@ -245,6 +263,18 @@ public class sync extends TinyCGIBase {
         } else {
             new AsyncExporter(projectRoot).start();
             printChanges(synch.getChanges());
+        }
+    }
+
+
+    private void syncTemplates(HierarchySynchronizer sync) {
+        if (isTeam) {
+            String templateURI = "/" + processID + "-template.xml";
+            TemplateSynchronizer tSync = new TemplateSynchronizer(processID,
+                    projectID, templateURI, workflowFile, templatesDir);
+            tSync.setWhatIfMode(sync.isWhatIfMode());
+            tSync.sync();
+            sync.getChanges().addAll(tSync.getChanges());
         }
     }
 
@@ -468,9 +498,11 @@ public class sync extends TinyCGIBase {
     private static final String TEAM_ROOT = "/TeamRoot";
     private static final String INDIV_ROOT = "/IndivRoot";
     private static final String TEAMDIR_DATA_NAME = "Team_Data_Directory";
+    private static final String PROJECT_ID_DATA_NAME = "Project_ID";
     private static final String INITIALS_DATA_NAME = "Indiv_Initials";
     private static final String FULLCOPY_DATA_NAME = "Sync_Full_WBS";
     private static final String HIER_FILENAME = "projDump.xml";
+    private static final String WORKFLOW_FILENAME = "workflowDump.xml";
 
     private static final String NOT_TEAM_PROJECT = "notTeamProject";
     private static final String TEAM_DIR_MISSING = "teamDirMissing";
