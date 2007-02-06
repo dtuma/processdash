@@ -2,7 +2,8 @@
 
 <exportMetricsFile>
   <metricsFilter>
-    <!-- for now, export NO data. -->
-    <exclude>.</exclude>
+    <include>/Project_ID$</include>
+    <include>/Team_Settings$</include>
+    <include>/Team_Settings /</include>
   </metricsFilter>
 </exportMetricsFile>

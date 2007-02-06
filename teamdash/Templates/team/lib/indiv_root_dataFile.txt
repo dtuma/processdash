@@ -25,3 +25,17 @@
 // find sized objects in this project
 
 [Sized_Object_List] = search(".", "Sized_Object_Units");
+
+
+
+/*
+ * Lookup team settings data for this project
+ */
+
+[/Team_Settings_Node_List] = search("/", "Team_Settings");
+[Team_Settings_Node] = 
+    index(0, filter([Project_ID] == indirect([_] &/ "Project_ID"),
+                    [/Team_Settings_Node_List])) & "/Team_Settings /";
+
+[Defect Type Standard Contents] = 
+    indirect([Team_Settings_Node] & "Defect_Type_Standard");
