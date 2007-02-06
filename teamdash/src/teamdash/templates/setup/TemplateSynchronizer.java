@@ -186,6 +186,7 @@ public class TemplateSynchronizer {
         ser.startTag(null, TEMPLATE_TAG);
 
         String workflowName = workflow.getAttribute(WORKFLOW_NAME_ATTR);
+        workflowName = deconflictName(workflowName, "_");
         String templateName = processID + "-Common-Team-Workflow:!*!:"
                 + workflowName;
         ser.attribute(null, TEMPLATE_NAME_ATTR, templateName);
@@ -216,6 +217,7 @@ public class TemplateSynchronizer {
         ser.startTag(null, NODE_TAG);
 
         String nodeName = node.getAttribute(WORKFLOW_NAME_ATTR);
+        nodeName = deconflictName(nodeName, " Task");
         ser.attribute(null, TEMPLATE_NAME_ATTR, nodeName);
 
         if (PSP_TYPE.equals(node.getTagName())) {
@@ -263,7 +265,6 @@ public class TemplateSynchronizer {
             copyAttribute(ser, srcTemplate, attrName[i]);
     }
 
-
     private void copyAttribute(XmlSerializer ser, Element srcTemplate,
             String attrName) throws IOException {
         String value = srcTemplate.getAttribute(attrName);
@@ -271,6 +272,16 @@ public class TemplateSynchronizer {
             ser.attribute(null, attrName, value);
     }
 
+    private String deconflictName(String name, String suffix) {
+        if (isPhaseName(name))
+            return name + suffix;
+        else
+            return name;
+    }
+
+    private boolean isPhaseName(String name) {
+        return phaseIDs.containsKey(name);
+    }
 
     private static final String ENCODING = "UTF-8";
 
