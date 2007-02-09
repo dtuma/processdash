@@ -193,7 +193,9 @@ public class WorkingTimeLog implements ModifiableTimeLog, IDSource,
         try {
             in.close();
             tempFile.delete();
-        } catch (IOException ioe) {}
+        } catch (IOException ioe) {
+            ioe.printStackTrace();
+        }
 
         long checksum2 = rout.getChecksum();
         if (checksum1 != checksum2) {

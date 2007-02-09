@@ -290,6 +290,7 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
             this.timeLog.getTimeLoggingModel().setActiveTaskModel(activeTaskModel);
             DashboardTimeLog.setDefault(this.timeLog);
         } catch (IOException e1) {
+            logErr("Unable to read time log", e1);
             displayStartupIOError("Errors.Read_File_Error.Time_Log",
                     property_directory + WorkingTimeLog.TIME_LOG_FILENAME);
             System.exit(0);
