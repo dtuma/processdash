@@ -1,5 +1,5 @@
+// Copyright (C) 2003-2007 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -596,7 +596,7 @@ public class TemplateLoader {
         deleteDuplicates(urls);
         Map packages = makePackages(urls);
         removeIncompatiblePackages(packages, urls);
-        deleteObsoletePackages(packages, urls);
+        removeDuplicatePackages(packages, urls);
         dashPackages = new ArrayList(packages.keySet());
     }
 
@@ -658,31 +658,54 @@ public class TemplateLoader {
         return null;            // shouldn't happen...
     }
 
-    private static void deleteObsoletePackages(Map packages, Vector urls) {
-        Map versionNumbers = getMaxVersionNumbers(packages);
-        Iterator i = packages.keySet().iterator();
-        while (i.hasNext()) {
+    private static void removeDuplicatePackages(Map packages, Vector urls) {
+        List packagesToDelete = new ArrayList();
+        Map packagesToKeep = new HashMap();
+
+        for (Iterator i = packages.keySet().iterator(); i.hasNext();) {
             DashPackage pkg = (DashPackage) i.next();
-            String versionToUse = (String) versionNumbers.get(pkg.id);
-            if (DashPackage.compareVersions(pkg.version, versionToUse) < 0) {
-                Object url = packages.get(pkg);
-                urls.remove(url);
-                i.remove();
+            String id = pkg.id;
+            DashPackage match = (DashPackage) packagesToKeep.get(id);
+            if (match == null)
+                packagesToKeep.put(id, pkg);
+            else if (selectBetterPackage(pkg, match) == match)
+                packagesToDelete.add(pkg);
+            else {
+                packagesToKeep.put(id, pkg);
+                packagesToDelete.add(match);
             }
+        }
+
+        for (Iterator i = packagesToDelete.iterator(); i.hasNext();) {
+            DashPackage pkg = (DashPackage) i.next();
+            Object url = packages.remove(pkg);
+            urls.remove(url);
         }
     }
 
-    private static Map getMaxVersionNumbers(Map packages) {
-        HashMap versionNumbers = new HashMap();
-        Iterator i = packages.keySet().iterator();
-        while (i.hasNext()) {
-            DashPackage pkg = (DashPackage) i.next();
-            String maxVersion = (String) versionNumbers.get(pkg.id);
-            if (maxVersion == null ||
-                DashPackage.compareVersions(pkg.version, maxVersion) > 0)
-                versionNumbers.put(pkg.id, pkg.version);
-        }
-        return versionNumbers;
+    private static DashPackage selectBetterPackage(DashPackage a, DashPackage b) {
+        if (a == null) return b;
+        if (b == null) return a;
+
+        // obviously, we want to prefer packages with higher version numbers.
+        int versionCompare = DashPackage.compareVersions(a.version, b.version);
+        if (versionCompare > 0) return a;
+        if (versionCompare < 0) return b;
+
+        // if we have two identical packages (same id, same version), prefer
+        // the one that is installed locally.  This offers better performance
+        // and offers certain advantages regarding locking of network files.
+        String baseDir = getBaseDir();
+        if (baseDir != null)
+            try {
+                if (a.filename != null && a.filename.indexOf(baseDir) != -1)
+                    return a;
+                if (b.filename != null && b.filename.indexOf(baseDir) != -1)
+                    return b;
+            } catch (Exception e) {}
+
+        // we can't see much difference between the two files.  Just pick one.
+        return a;
     }
 
 
