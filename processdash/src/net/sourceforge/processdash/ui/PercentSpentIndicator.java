@@ -149,6 +149,7 @@ public class PercentSpentIndicator extends JPanel implements DataListener,
 
         setBorder(BorderFactory.createLineBorder(UIManager
                 .getColor("controlDkShadow")));
+        setMinimumSize(new Dimension(11, 21));
         setPreferredSize(new Dimension(11, 21));
 
         new ToolTipTimingCustomizer(750, 60000).install(this);
