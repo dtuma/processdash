@@ -84,11 +84,12 @@ public class SyncScanner implements Runnable {
                         fullUri);
 
                 if (containsAlertToken(response)) {
+                    String id = "teamdash.SyncScanner:" + path;
                     String msg = "The project '" + path + "' needs to be "
                             + "synchronized to the team work breakdown "
                             + "structure.";
-                    UserNotificationManager.getInstance().addNotification(msg,
-                            new LaunchBrowserWindow(fullUri));
+                    UserNotificationManager.getInstance().addNotification(id,
+                            msg, new LaunchBrowserWindow(fullUri));
                 }
             } catch (IOException e) {
                 String msg = "Encountered exception when trying to see if "
