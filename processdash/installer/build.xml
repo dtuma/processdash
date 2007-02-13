@@ -67,7 +67,7 @@ Authors:
 
     <property name="version" value="${dashboard-version}"/>
     <property name="jreInstDir" value="c:\download\java\_"/>
-    <property name="jreInstExe" value="jre-1_5_0_07-windows-i586-p.exe"/>
+    <property name="jreInstExe" value="jre-6-windows-i586.exe"/>
 
     <!-- the the IZPACK home directory -->
     <property name="izpack.dir" value="IzPack"/>
