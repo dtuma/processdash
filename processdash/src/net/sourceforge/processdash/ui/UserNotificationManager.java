@@ -90,11 +90,15 @@ public class UserNotificationManager {
     }
 
     public void addNotification(String message) {
-        addNotification(message, NO_OP);
+        addNotification(null, message, null);
     }
 
     public void addNotification(String message, Runnable action) {
-        notifications.add(new Notification(message, action));
+        addNotification(null, message, action);
+    }
+
+    public void addNotification(String id, String message, Runnable action) {
+        notifications.add(new Notification(id, message, action));
         deferUntil = 0;
     }
 
@@ -125,11 +129,17 @@ public class UserNotificationManager {
     }
 
     private class Notification {
+        String id;
+
         String message;
 
         Runnable action;
 
-        public Notification(String message, Runnable action) {
+        public Notification(String id, String message, Runnable action) {
+            if (message == null)
+                throw new NullPointerException("message cannot be null");
+
+            this.id = id;
             this.message = message;
             this.action = action;
         }
@@ -139,14 +149,39 @@ public class UserNotificationManager {
                 new Thread(action).start();
         }
 
+        public boolean equals(Object obj) {
+            if (obj instanceof Notification) {
+                Notification that = (Notification) obj;
+
+                if (this.id != null || that.id != null)
+                    return eq(this.id, that.id);
+
+                return eq(this.message, that.message)
+                        && eq(this.action, that.action);
+            }
+            return false;
+        }
+
+        private boolean eq(Object a, Object b) {
+            if (a == b) return true;
+            if (a == null || b == null) return false;
+            return a.equals(b);
+        }
+
+        public int hashCode() {
+            if (id != null)
+                return id.hashCode();
+            int result = 0;
+            if (action != null)
+                result = action.hashCode() << 3;
+            result = result ^ message.hashCode();
+            return result;
+        }
+
         public String toString() {
             return message;
         }
     }
-
-    private static final Runnable NO_OP = new Runnable() {
-        public void run() {}
-    };
 
     private class NotificationList extends AbstractTableModel {
 
@@ -154,9 +189,11 @@ public class UserNotificationManager {
                 .synchronizedList(new ArrayList());
 
         public void add(Notification notification) {
-            int numRows = notifications.size();
-            notifications.add(notification);
-            fireTableRowsInserted(numRows, numRows);
+            if (!notifications.contains(notification)) {
+                int numRows = notifications.size();
+                notifications.add(notification);
+                fireTableRowsInserted(numRows, numRows);
+            }
         }
 
         public void ignore(int row) {
