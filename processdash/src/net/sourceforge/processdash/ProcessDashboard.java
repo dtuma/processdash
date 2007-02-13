@@ -42,6 +42,7 @@ import java.net.InetAddress;
 import java.net.Socket;
 import java.net.URL;
 import javax.swing.*;
+import javax.swing.Timer;
 
 import net.sourceforge.processdash.data.DataContext;
 import net.sourceforge.processdash.data.SimpleData;
@@ -667,8 +668,18 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
         return result;
     }
 
-    private class ResizeWatcher extends ComponentAdapter {
+    private class ResizeWatcher extends ComponentAdapter implements ActionListener {
+        Timer t;
+        public ResizeWatcher() {
+            t = new Timer(1000, this);
+            t.setRepeats(false);
+        }
+
         public void componentResized(ComponentEvent e) {
+            t.restart();
+        }
+
+        public void actionPerformed(ActionEvent e) {
             Dimension minSize = getMinimumSize();
             Dimension preferredSize = getPreferredSize();
             Dimension currentSize = getSize();
@@ -686,7 +697,6 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
                 InternalSettings.set("window.maxWidth",
                         Integer.toString(currentSize.width));
             }
-
         }
     }
 
