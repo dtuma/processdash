@@ -31,7 +31,6 @@ import org.xmlpull.v1.XmlSerializer;
  */
 public class TemplateSynchronizer {
 
-
     /** The ID of the process that this team project is using */
     private String processID;
 
@@ -249,7 +248,7 @@ public class TemplateSynchronizer {
         ser.attribute(null, "defectLog", "true");
         ser.attribute(null, "autoData", "none");
         ser.attribute(null, "dataFile", "psp2.1/dataFile.txt");
-        ser.attribute(null, "constraints",
+        ser.attribute(null, CONSTRAINTS_ATTR,
                 "{Design Inspection(3){Code Inspection(-2)");
 
         for (int i = 0; i < PSP_PHASES.length; i++) {
@@ -306,6 +305,8 @@ public class TemplateSynchronizer {
 
     private static final String TEMPLATE_ID_ATTR = "ID";
 
+    private static final String CONSTRAINTS_ATTR = "constraints";
+
     private static final String NODE_TAG = "node";
 
     private static final String PHASE_TAG = "phase";
@@ -313,9 +314,9 @@ public class TemplateSynchronizer {
 
 
     private static final String[] COPY_TEMPLATE_ATTRS = { TEMPLATE_ID_ATTR,
-            "defectLog", "dataFile", "size", "constraints" };
+            "defectLog", "dataFile", "size", CONSTRAINTS_ATTR };
 
     private static final String[] COPY_NODE_ATTRS = { TEMPLATE_ID_ATTR,
-            "defectLog", "dataFile" };
+            "defectLog", "dataFile", CONSTRAINTS_ATTR  };
 
 }
