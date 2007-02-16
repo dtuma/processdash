@@ -68,6 +68,7 @@ public abstract class LOCDiffReportGenerator {
     protected StringBuffer addedTable;
     protected StringBuffer modifiedTable;
     protected StringBuffer deletedTable;
+    protected StringBuffer unchangedTable;
     protected File redlinesTempFile;
     protected PrintWriter redlinesOut;
     protected long base;
@@ -78,6 +79,7 @@ public abstract class LOCDiffReportGenerator {
     protected int counter;
     private String outputCharset = "iso-8859-1";
     protected boolean skipIdentical = true;
+    protected boolean showIdenticalRedlines = true;
     protected String options = null;
 
     protected List progressListeners = new LinkedList();
@@ -183,6 +185,7 @@ public abstract class LOCDiffReportGenerator {
         addedTable = new StringBuffer();
         modifiedTable = new StringBuffer();
         deletedTable = new StringBuffer();
+        unchangedTable = new StringBuffer();
         redlinesTempFile = File.createTempFile("diff", ".txt");
         redlinesTempFile.deleteOnExit();
         redlinesOut = new PrintWriter(new OutputStreamWriter
@@ -244,6 +247,9 @@ public abstract class LOCDiffReportGenerator {
         } else if (contentsAfter == null) {
             fileTable = deletedTable;
             label = resources.getHTML("Report.Deleted");
+        } else if (filesAreIdentical) {
+            fileTable = unchangedTable;
+            label = resources.getHTML("Report.Unchanged");
         } else {
             fileTable = modifiedTable;
             label = resources.getHTML("Report.Modified");
@@ -252,64 +258,129 @@ public abstract class LOCDiffReportGenerator {
 
         // Don't try to compare binary files.
         if (filesAreBinary) {
-            fileTable.append("<tr><td class='nowrap'>").append(htmlName);
-            if (fileTable == modifiedTable)
-                fileTable.append("</td><td></td><td></td><td></td><td>");
-            fileTable.append("</td><td></td><td>")
-                .append(resources.getHTML("Report.Binary"))
-                .append("</td></tr>\n");
+            appendFileRow(fileTable, htmlName, null, null, resources
+                    .getHTML("Report.Binary"));
             return;
         }
 
         // Compare the file.
         String contentsA = getContents(contentsBefore);
         String contentsB = getContents(contentsAfter);
-        LOCDiff diff = new LOCDiff(languageFilters, contentsA, contentsB,
-                                   filename, options);
+        LOCDiff diff = createDiff(filename, contentsA, contentsB);
 
         // the two files may not have been byte-for-byte identical, but
         // they also may not contain any significant differences. (For example,
         // the files may have differed in whitespace only.)
-        if (skipIdentical &&
-            (diff.getDeleted() + diff.getAdded() + diff.getModified() == 0))
-            return;
+        if (diff.getDeleted() + diff.getAdded() + diff.getModified() == 0)
+            filesAreIdentical = true;
+
+        boolean showRedlines = true;
+        if (filesAreIdentical) {
+            if (skipIdentical) return;
+
+            fileTable = unchangedTable;
+            label = resources.getHTML("Report.Unchanged");
+            showRedlines = showIdenticalRedlines;
+        }
 
         // keep running metrics.
+        accumulateMetrics(diff);
+
+        // add to the LOC table.
+        appendFileRow(fileTable, htmlName,
+                (showRedlines ? "file"+counter : null), diff,
+                AbstractLanguageFilter.getFilterName(diff.getFilter()));
+
+        // add to the redlines output.
+        if (showRedlines) {
+            redlinesOut.print("<hr><DIV title=\"");
+            redlinesOut.print(htmlName);
+            redlinesOut.print("\"><h1><a name='file");
+            redlinesOut.print(counter++);
+            redlinesOut.print("'>");
+            redlinesOut.print(label);
+            redlinesOut.print(": ");
+            redlinesOut.print(htmlName);
+            redlinesOut.print("</a></h1>");
+            diff.displayHTMLRedlines(redlinesOut);
+            redlinesOut.print("</DIV>\n\n\n");
+        }
+
+        diff.dispose();
+    }
+
+    protected LOCDiff createDiff(String filename, String contentsA, String contentsB) {
+        return new LOCDiff(languageFilters, contentsA, contentsB,
+                                   filename, options);
+    }
+
+    protected void appendFileRow(StringBuffer fileTable, String htmlName,
+            String anchor, LOCDiff diff, String infoHtml) {
+        boolean showBase = (fileTable != addedTable);
+        boolean showChanges = (fileTable == modifiedTable);
+        boolean showTotal = (fileTable != deletedTable
+                && fileTable != unchangedTable);
+        appendFileRow(fileTable, htmlName, anchor, diff, showBase, showChanges,
+                showTotal, infoHtml);
+    }
+
+    protected void appendFileRow(StringBuffer out, String htmlName,
+            String anchor, LOCDiff diff, boolean showBase, boolean showChanges,
+            boolean showTotal, String infoHtml) {
+
+        out.append("<tr>");
+        appendFilenameCell(out, htmlName, anchor);
+        appendLOCCells(out, diff, showBase, showChanges, showTotal);
+        appendInfoCell(out, infoHtml);
+        out.append("</tr>\n");
+    }
+
+    protected void appendFilenameCell(StringBuffer out, String htmlName,
+            String anchor) {
+        out.append("<td class='nowrap'>");
+        if (anchor != null)
+            out.append("<a href='#").append(anchor).append("'>");
+        out.append(htmlName);
+        if (anchor != null)
+            out.append("</a>");
+        out.append("</td>");
+    }
+
+    protected void appendLOCCells(StringBuffer out, LOCDiff diff,
+            boolean showBase, boolean showChanges, boolean showTotal) {
+        String base, deleted, modified, added, total;
+        base = deleted = modified = added = total = "";
+        if (diff != null) {
+            base = Integer.toString(diff.getBase());
+            deleted = Integer.toString(diff.getDeleted());
+            modified = Integer.toString(diff.getModified());
+            added = Integer.toString(diff.getAdded());
+            total = Integer.toString(diff.getTotal());
+        }
+
+        if (showBase)
+            out.append("<td>").append(base).append("</td>");
+        if (showChanges)
+            out.append("<td>").append(deleted)
+                .append("</td><td>").append(modified)
+                .append("</td><td>").append(added).append("</td>");
+        if (showTotal)
+            out.append("<td>").append(total).append("</td>");
+    }
+
+    protected void appendInfoCell(StringBuffer out, String infoHtml) {
+        out.append("<td>");
+        if (infoHtml != null)
+            out.append(infoHtml);
+        out.append("</td>");
+    }
+
+    protected void accumulateMetrics(LOCDiff diff) {
         base     += diff.getBase();
         deleted  += diff.getDeleted();
         added    += diff.getAdded();
         modified += diff.getModified();
         total    += diff.getTotal();
-
-        // add to the LOC table.
-        fileTable.append("<tr><td class='nowrap'><a href='#file")
-            .append(counter).append("'>").append(htmlName).append("</a>");
-        if (fileTable != addedTable)
-            fileTable.append("</td><td>").append(diff.getBase());
-        if (fileTable == modifiedTable)
-            fileTable.append("</td><td>").append(diff.getDeleted())
-                .append("</td><td>").append(diff.getModified())
-                .append("</td><td>").append(diff.getAdded());
-        if (fileTable != deletedTable)
-            fileTable.append("</td><td>").append(diff.getTotal());
-        fileTable.append("</td><td>")
-            .append(AbstractLanguageFilter.getFilterName(diff.getFilter()))
-            .append("</td></tr>\n");
-
-        // add to the redlines output.
-        redlinesOut.print("<hr><DIV title=\"");
-        redlinesOut.print(htmlName);
-        redlinesOut.print("\"><h1><a name='file");
-        redlinesOut.print(counter++);
-        redlinesOut.print("'>");
-        redlinesOut.print(label);
-        redlinesOut.print(": ");
-        redlinesOut.print(htmlName);
-        redlinesOut.print("</a></h1>");
-        diff.displayHTMLRedlines(redlinesOut);
-        redlinesOut.print("</DIV>\n\n\n");
-
-        diff.dispose();
     }
 
     protected String getContents(InputStream in) throws IOException {
@@ -338,42 +409,86 @@ public abstract class LOCDiffReportGenerator {
                   outputCharset + "\">\n" +
                   "<style type=\"text/css\">\n");
         out.write(LOCDiff.getCssText());
+        writeCustomStyleInfo(out);
         out.write("</style></head>\n" +
                   "<body>\n" +
                   "<div>\n");
 
         if (addedTable.length() > 0) {
-            intlWrite(out,
-                      "<table border><tr>" +
-                      "<th>${Report.Added_Files}</th>"+
-                      "<th>${Report.Added_Abbr}</th>" +
-                      "<th>${Report.File_Type}</th></tr>");
+            out.write("<table border>");
+            intlWrite(out, getAddedTableHeader());
             out.write(addedTable.toString());
             out.write("</table><br><br>");
         }
         if (modifiedTable.length() > 0) {
-            intlWrite(out,
-                      "<table border><tr>" +
-                      "<th>${Report.Modified_Files}</th>" +
-                      "<th>${Report.Base_Abbr}</th>" +
-                      "<th>${Report.Deleted_Abbr}</th>" +
-                      "<th>${Report.Modified_Abbr}</th>" +
-                      "<th>${Report.Added_Abbr}</th>" +
-                      "<th>${Report.Total_Abbr}</th>" +
-                      "<th>${Report.File_Type}</th></tr>");
+            out.write("<table border>");
+            intlWrite(out, getModifiedTableHeader());
             out.write(modifiedTable.toString());
             out.write("</table><br><br>");
         }
         if (deletedTable.length() > 0) {
-            intlWrite(out,
-                      "<table border><tr>" +
-                      "<th>${Report.Deleted_Files}</th>"+
-                      "<th>${Report.Deleted_Abbr}</th>" +
-                      "<th>${Report.File_Type}</th></tr>");
+            out.write("<table border>");
+            intlWrite(out, getDeletedTableHeader());
             out.write(deletedTable.toString());
             out.write("</table><br><br>");
         }
+        if (unchangedTable.length() > 0) {
+            out.write("<table border>");
+            intlWrite(out, getUnchangedTableHeader());
+            out.write(unchangedTable.toString());
+            out.write("</table><br><br>");
+        }
 
+        writeSummaryTable(out);
+
+        out.write("</div>");
+
+        // copy redlines output from the temp file to the final file
+        redlinesOut.close();
+        out.flush();
+        InputStream redlines = new FileInputStream(redlinesTempFile);
+        byte [] buffer = new byte[4096];
+        int bytesRead;
+        while ((bytesRead = redlines.read(buffer)) != -1)
+            outStream.write(buffer, 0, bytesRead);
+
+        // finish the HTML
+        outStream.write("</BODY></HTML>".getBytes());
+        outStream.close();
+    }
+
+    protected void writeCustomStyleInfo(BufferedWriter out) throws IOException {
+    }
+
+    protected String getAddedTableHeader() {
+        return "<tr><th>${Report.Added_Files}</th>" +
+            "<th>${Report.Added_Abbr}</th>" +
+            "<th>${Report.File_Type}</th></tr>";
+    }
+
+    protected String getModifiedTableHeader() {
+        return "<tr><th>${Report.Modified_Files}</th>" +
+            "<th>${Report.Base_Abbr}</th>" +
+            "<th>${Report.Deleted_Abbr}</th>" +
+            "<th>${Report.Modified_Abbr}</th>" +
+            "<th>${Report.Added_Abbr}</th>" +
+            "<th>${Report.Total_Abbr}</th>" +
+            "<th>${Report.File_Type}</th></tr>";
+    }
+
+    protected String getDeletedTableHeader() {
+        return "<tr><th>${Report.Deleted_Files}</th>"+
+            "<th>${Report.Deleted_Abbr}</th>" +
+            "<th>${Report.File_Type}</th></tr>";
+    }
+
+    protected String getUnchangedTableHeader() {
+        return "<tr><th>${Report.Unchanged_Files}</th>" +
+            "<th>${Report.Base_Abbr}</th>" +
+            "<th>${Report.File_Type}</th></tr>";
+    }
+
+    protected void writeSummaryTable(BufferedWriter out) throws IOException {
         out.write("<table border>\n");
         if (modifiedTable.length() > 0 || deletedTable.length() > 0) {
             intlWrite(out, "<tr><td>${Report.Base}:&nbsp;</td><td>");
@@ -390,20 +505,7 @@ public abstract class LOCDiffReportGenerator {
         }
         intlWrite(out, "<tr><td>${Report.Total}:&nbsp;</td><td>");
         out.write(Long.toString(total));
-        out.write("</td></tr>\n</table></div>");
-
-        // copy redlines output from the temp file to the final file
-        redlinesOut.close();
-        out.flush();
-        InputStream redlines = new FileInputStream(redlinesTempFile);
-        byte [] buffer = new byte[4096];
-        int bytesRead;
-        while ((bytesRead = redlines.read(buffer)) != -1)
-            outStream.write(buffer, 0, bytesRead);
-
-        // finish the HTML
-        outStream.write("</BODY></HTML>".getBytes());
-        outStream.close();
+        out.write("</td></tr>\n</table>");
     }
 
     /** Look for command line options, and consolodate them into the first

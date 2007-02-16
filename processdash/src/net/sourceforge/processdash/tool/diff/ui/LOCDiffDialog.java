@@ -1,5 +1,5 @@
+// Copyright (C) 2003-2007 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -26,46 +26,10 @@
 package net.sourceforge.processdash.tool.diff.ui;
 
 
-import java.awt.Component;
-import java.awt.Dimension;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
-import java.io.Reader;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
-
-import javax.swing.Box;
-import javax.swing.JButton;
-import javax.swing.JComponent;
-import javax.swing.JDialog;
-import javax.swing.JFileChooser;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JTextField;
 
 import net.sourceforge.processdash.DashController;
-import net.sourceforge.processdash.i18n.Resources;
-import net.sourceforge.processdash.net.http.WebServer;
-import net.sourceforge.processdash.tool.diff.AbstractLanguageFilter;
-import net.sourceforge.processdash.tool.diff.LOCDiff;
-import net.sourceforge.processdash.tool.diff.TemplateFilterLocator;
-import net.sourceforge.processdash.ui.Browser;
-import net.sourceforge.processdash.ui.DashboardIconFactory;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
-import net.sourceforge.processdash.util.EscapeString;
-import net.sourceforge.processdash.util.HTMLUtils;
 
 
 
@@ -82,10 +46,7 @@ public class LOCDiffDialog extends TinyCGIBase {
     /** Generate CGI script output. */
     protected void writeContents() throws IOException {
         DashController.checkIP(env.get("REMOTE_ADDR"));
-        List filters = TemplateFilterLocator.getFilters(getTinyWebServer());
-        FileSystemLOCDiffDialog dialog = new FileSystemLOCDiffDialog(filters);
-        dialog.setOutputCharset(WebServer.getOutputCharset());
-        dialog.showDialog();
+        OpenLOCDiffAction.showDialog(getTinyWebServer());
         DashController.printNullDocument(out);
     }
 

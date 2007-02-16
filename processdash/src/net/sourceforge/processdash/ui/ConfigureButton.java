@@ -57,6 +57,7 @@ import net.sourceforge.processdash.log.time.TimeLoggingApprover;
 import net.sourceforge.processdash.log.ui.DefectLogEditor;
 import net.sourceforge.processdash.log.ui.TimeLogEditor;
 import net.sourceforge.processdash.templates.ExtensionManager;
+import net.sourceforge.processdash.tool.diff.ui.OpenLOCDiffAction;
 import net.sourceforge.processdash.tool.export.ui.SaveBackupAction;
 import net.sourceforge.processdash.tool.export.ui.wizard.ShowExportWizardAction;
 import net.sourceforge.processdash.tool.export.ui.wizard.ShowImportWizardAction;
@@ -183,6 +184,7 @@ public class ConfigureButton extends JMenuBar implements ActionListener, Hierarc
         }
         toolMenu.add(new SaveBackupAction(parent.getData()));
         maybeAddTranslationTool(toolMenu);
+        toolMenu.add(new OpenLOCDiffAction(parent));
         addToolExtensions(toolMenu);
     }
 

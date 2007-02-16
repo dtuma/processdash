@@ -1,5 +1,5 @@
+// Copyright (C) 2005-2007 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2005 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -25,60 +25,40 @@
 
 package net.sourceforge.processdash.tool.diff.ui;
 
-import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
+import java.beans.EventHandler;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
-import java.io.Reader;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
 
+import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JComponent;
-import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JTextField;
-import javax.swing.event.ChangeListener;
+import javax.swing.event.DocumentListener;
 
-import net.sourceforge.processdash.i18n.Resources;
-import net.sourceforge.processdash.tool.diff.AbstractLanguageFilter;
 import net.sourceforge.processdash.tool.diff.HardcodedFilterLocator;
-import net.sourceforge.processdash.tool.diff.LOCDiff;
-import net.sourceforge.processdash.tool.diff.LOCDiffReportGenerator;
 import net.sourceforge.processdash.tool.diff.impl.FileSystemLOCDiff;
 import net.sourceforge.processdash.ui.Browser;
 import net.sourceforge.processdash.ui.DashboardIconFactory;
 import net.sourceforge.processdash.ui.lib.ProgressDialog;
-import net.sourceforge.processdash.util.EscapeString;
-import net.sourceforge.processdash.util.HTMLUtils;
 
 
 public class FileSystemLOCDiffDialog extends FileSystemLOCDiff
         implements ActionListener, ProgressDialog.CancellableTask {
 
 
-    private JFrame frame;
+    protected JFrame frame;
     private JTextField fileA, fileB;
     private JButton browseA, browseB, compareButton, closeButton;
+    private JCheckBox countIdentical;
     private static JFileChooser fileChooser = null;
 
     public FileSystemLOCDiffDialog(List languageFilters) {
@@ -90,7 +70,12 @@ public class FileSystemLOCDiffDialog extends FileSystemLOCDiff
         frame.setIconImage(DashboardIconFactory.getWindowIconImage());
         frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
+        DocumentListener dl = (DocumentListener) EventHandler.create(
+                DocumentListener.class, this, "recalculateEnablement");
+
         Box vBox = Box.createVerticalBox();
+        vBox.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
+
         Box hBox = Box.createHorizontalBox();
         hBox.add(new JLabel(resources.getString("Dialog.File_A_Prompt")));
         hBox.add(Box.createHorizontalStrut(150));
@@ -98,8 +83,10 @@ public class FileSystemLOCDiffDialog extends FileSystemLOCDiff
         vBox.add(hBox);
 
         hBox = Box.createHorizontalBox();
+        hBox.add(Box.createHorizontalStrut(10));
         hBox.add(fileA = new JTextField());
         dontStretchVertically(fileA);
+        fileA.getDocument().addDocumentListener(dl);
         hBox.add(browseA = new JButton(resources.getDlgString("Browse")));
         browseA.addActionListener(this);
         vBox.add(hBox);
@@ -112,10 +99,20 @@ public class FileSystemLOCDiffDialog extends FileSystemLOCDiff
         vBox.add(hBox);
 
         hBox = Box.createHorizontalBox();
+        hBox.add(Box.createHorizontalStrut(10));
         hBox.add(fileB = new JTextField());
         dontStretchVertically(fileB);
+        fileB.getDocument().addDocumentListener(dl);
         hBox.add(browseB = new JButton(resources.getDlgString("Browse")));
         browseB.addActionListener(this);
+        vBox.add(hBox);
+
+        hBox = Box.createHorizontalBox();
+        hBox.add(Box.createHorizontalStrut(10));
+        hBox.add(countIdentical = new JCheckBox(resources
+                .getString("Dialog.Count_Unchanged")));
+        countIdentical.setEnabled(false);
+        hBox.add(Box.createHorizontalGlue());
         vBox.add(hBox);
 
         vBox.add(Box.createVerticalStrut(5));
@@ -170,6 +167,14 @@ public class FileSystemLOCDiffDialog extends FileSystemLOCDiff
             if (f != null)
                 dest.setText(f.getPath());
         }
+    }
+
+    public void recalculateEnablement() {
+        String filenameA = fileA.getText().trim();
+        String filenameB = fileB.getText().trim();
+        countIdentical.setEnabled(
+                filenameA.length() > 0 && filenameB.length() > 0
+                && isDir(new File(filenameA)) && isDir(new File(filenameB)));
     }
 
     protected void beep(JTextField field) {
@@ -235,6 +240,7 @@ public class FileSystemLOCDiffDialog extends FileSystemLOCDiff
 
         setCompareA(compareA);
         setCompareB(compareB);
+        skipIdentical = (countIdentical.isSelected() == false);
 
         return true;
     }

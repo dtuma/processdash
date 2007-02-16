@@ -1,5 +1,5 @@
+// Copyright (C) 2003-2007 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -45,7 +45,7 @@ public class LOCDiff {
 
     static final Resources resource = Resources.getDashBundle("LOCDiff");
 
-    private int base, added, deleted, modified, total;
+    protected int base, added, deleted, modified, total;
     WhitespaceCompareString[] linesA, linesB;
     boolean ignoreComments = true;
     private int tabWidth = 8;
@@ -274,8 +274,10 @@ public class LOCDiff {
 
         out.print(ROW_BEGIN[type]);
         for (int lineNum = beginIndex;   lineNum < endIndex;   ) {
-            out.print(fixupLine(lines[lineNum].toString(), type));
-            if (++lineNum < endIndex) out.println();
+            String fixupLine = fixupLine(lines[lineNum].toString(), type);
+            out.print(fixupLine);
+            if (++lineNum < endIndex && !fixupLine.endsWith("</div>"))
+                out.println();
         }
         out.println("</pre></td></tr>");
     }
@@ -501,7 +503,7 @@ public class LOCDiff {
     static final String BAD_LINE_ENDING_B = "\r";
     static final String GOOD_LINE_ENDING  = "\n";
 
-    protected void canonicalizeLineEndings(StringBuffer buf) {
+    protected static void canonicalizeLineEndings(StringBuffer buf) {
         int pos;
         boolean fixedSomeLines = false;
 

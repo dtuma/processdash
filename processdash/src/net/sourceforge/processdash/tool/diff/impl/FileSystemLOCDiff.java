@@ -64,12 +64,14 @@ public class FileSystemLOCDiff extends LOCDiffReportGenerator {
 
     protected Collection getFilesToCompare() {
         if (compareB.isDirectory()) {
+            showIdenticalRedlines = false;
             TreeSet result = new TreeSet();
             listAllFiles(result, compareA, compareA);
             listAllFiles(result, compareB, compareB);
             return result;
         } else {
             skipIdentical = false;
+            showIdenticalRedlines = true;
             return Collections.singleton
                 (new SimpleFileComparison(compareA, compareB));
         }
