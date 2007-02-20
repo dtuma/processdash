@@ -54,6 +54,7 @@ import java.awt.image.ImageProducer;
 import java.awt.image.RGBImageFilter;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.EventObject;
@@ -63,6 +64,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
 import javax.swing.BorderFactory;
@@ -2197,12 +2199,18 @@ public class TaskScheduleDialog
         return true;
     }
 
-    private String getExpandedNodesKey(String taskListId) {
-        return taskListId + EXPANDED_NODES_KEY_SUFFIX;
+    private String getExpandedNodesKey(String taskListId, String num) {
+        return taskListId + EXPANDED_NODES_KEY_SUFFIX + "_" + num;
+    }
+
+    private Preferences getExpandedNodesPrefNode(String taskListId) {
+        return preferences.node(taskListId + EXPANDED_NODES_KEY_SUFFIX);
     }
 
     private Set getExpandedNodesPref(String taskListId) {
-        String value = preferences.get(getExpandedNodesKey(taskListId), "");
+        List valueList = findPreferenceValues(taskListId, getExpandedNodesKey(taskListId, ""));
+        String value = StringUtils.join(valueList, EXPANDED_NODES_DELIMITER);
+
         String[] nodesArray = value.split(EXPANDED_NODES_DELIMITER);
         Set nodesToExpand = new HashSet(Arrays.asList(nodesArray));
 
@@ -2210,8 +2218,22 @@ public class TaskScheduleDialog
     }
 
     private void setExpandedNodesPref(String taskListId, Set value) {
-        preferences.put(getExpandedNodesKey(taskListId),
-                StringUtils.join(value, EXPANDED_NODES_DELIMITER));
+        List splitValues = new ArrayList();
+        splitDelimitedString(splitValues, StringUtils.join(value, EXPANDED_NODES_DELIMITER),
+                EXPANDED_NODES_DELIMITER, Preferences.MAX_VALUE_LENGTH);
+
+        try {
+            // Remove all expandedNodes preferences
+            getExpandedNodesPrefNode(taskListId).clear();
+
+            // Set preference values
+            for (int i = 0; i < splitValues.size(); i++) {
+                String key = getExpandedNodesKey(taskListId, String.valueOf(i + 1));
+                getExpandedNodesPrefNode(taskListId).put(key, (String) splitValues.get(i));
+            }
+        } catch (BackingStoreException e) {
+            // NO-OP
+        }
     }
 
     private void saveExpandedNodesPref(String taskListId) {
@@ -2250,6 +2272,36 @@ public class TaskScheduleDialog
         }
         for (int i = 0; i < taskNode.getNumChildren(); i++) {
             expandNodes(nodesToExpand, taskNode.getChild(i));
+        }
+    }
+
+    private List findPreferenceValues(String taskListId, String keyPrefix) {
+        List values = new ArrayList();
+
+        try {
+            String[] preferenceKeys = getExpandedNodesPrefNode(taskListId).keys();
+            for (int i = 0; i < preferenceKeys.length; i++) {
+                if (preferenceKeys[i].startsWith(keyPrefix)) {
+                    String valuePiece = getExpandedNodesPrefNode(taskListId).get(preferenceKeys[i], null);
+                    values.add(valuePiece);
+                }
+            }
+        } catch (BackingStoreException e) {
+            // NO-OP
+        }
+
+        return values;
+    }
+
+    private void splitDelimitedString(List splitValues, String value, String delim, int maxLength) {
+        // Split value on the last delimiter before maxLength
+        if (value.length() > maxLength) {
+            int split_position = value.lastIndexOf(delim, maxLength);
+            splitValues.add(value.substring(0, split_position));
+
+            splitDelimitedString(splitValues, value.substring(split_position + 1), delim, maxLength);
+        } else {
+            splitValues.add(value);
         }
     }
 }
