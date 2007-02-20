@@ -1,5 +1,5 @@
+// Copyright (C) 2003 - 2007 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 - 2005 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -26,7 +26,6 @@
 package net.sourceforge.processdash.util;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -53,7 +52,10 @@ public class RobustFileOutputStream extends OutputStream {
     public RobustFileOutputStream(File destFile) throws IOException {
         File parentDir = destFile.getParentFile();
         if (!parentDir.isDirectory())
-            parentDir.mkdirs();
+            if (parentDir.mkdirs() == false)
+                throw new IOException("Cannot write to file '" + destFile
+                        + "' - parent directory does not exist, "
+                        + "and could not be created.");
 
         String filename = destFile.getName();
         this.destFile = destFile;
@@ -63,6 +65,9 @@ public class RobustFileOutputStream extends OutputStream {
         if (destFile.isDirectory())
             throw new IOException("Cannot write to file '" + destFile
                     + "' - directory is in the way.");
+        else if (destFile.exists() && !destFile.canWrite())
+            throw new IOException("Cannot write to file '" + destFile
+                    + "' - file is read-only.");
 
         origFileExists = destFile.isFile();
 
@@ -120,28 +125,33 @@ public class RobustFileOutputStream extends OutputStream {
         long actualChecksum = FileUtils.computeChecksum(outFile,
                                                         makeChecksum());
         // if the checksums don't match, throw an exception
-        if (expectedChecksum != actualChecksum)
+        if (expectedChecksum != actualChecksum) {
+            outFile.delete();
             throw new IOException("Error writing file '" + destFile +
                     "' - verification of written data failed.");
+        }
 
         // temporarily move the original file out of the way, into the backup
         if (origFileExists) {
             if (backupFile.exists())
                 backupFile.delete();
-            if (destFile.renameTo(backupFile) == false)
+            if (renameTo(destFile, backupFile) == false) {
+                outFile.delete();
                 throw new IOException("Error writing file '" + destFile +
                         "' - could not backup original file.");
+            }
         }
 
         // rename the output file to the real destination file
-        if (outFile.renameTo(destFile) == false) {
+        if (renameTo(outFile, destFile) == false) {
             // put the original file back in place
             if (origFileExists) {
-                if (backupFile.renameTo(destFile) == false) {
+                if (renameTo(backupFile, destFile) == false) {
                     System.err.println("Warning - couldn't restore '" +
                             destFile + "' from backup '" + backupFile + "'.");
                 }
             }
+            outFile.delete();
             throw new IOException("Error writing file '" + destFile + "'.");
         }
 
@@ -152,6 +162,32 @@ public class RobustFileOutputStream extends OutputStream {
 
     public long getChecksum() {
         return checksum.getValue();
+    }
+
+    /** Rename a file.
+     * 
+     * This method is a workaround based on Java bug 6213298.  Sometimes,
+     * transient filesystem errors may prevent a file from being renamed.
+     * This method retries the operation in the case of initial error.
+     */
+    protected boolean renameTo(File src, File dest) {
+        if (src.renameTo(dest))
+            return true;
+
+        if (src.exists() && !src.canWrite())
+            return false;
+        if (dest.exists() && !dest.canWrite())
+            return false;
+
+        for (int numTries = 0;   numTries < 10;  numTries++) {
+            try {
+                Thread.sleep(10 * (1 << (numTries/2)));
+            } catch (InterruptedException ie) {}
+            if (src.renameTo(dest))
+                return true;
+        }
+
+        return false;
     }
 
 }
