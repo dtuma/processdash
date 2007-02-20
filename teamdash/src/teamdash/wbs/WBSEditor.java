@@ -14,7 +14,9 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
+import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
 import javax.swing.AbstractAction;
@@ -478,12 +480,18 @@ public class WBSEditor implements WindowListener, SaveListener,
         }
     }
 
-    private String getExpandedNodesKey(String projectId) {
-        return projectId + EXPANDED_NODES_KEY_SUFFIX;
+    private String getExpandedNodesKey(String projectId, String num) {
+        return projectId + EXPANDED_NODES_KEY_SUFFIX + "_" + num;
+    }
+
+    private Preferences getExpandedNodesPrefNode(String projectId) {
+        return preferences.node(projectId + EXPANDED_NODES_KEY_SUFFIX);
     }
 
     private Set getExpandedNodesPref(String projectId) {
-        String value = preferences.get(getExpandedNodesKey(projectId), null);
+        List valueList = findPreferenceValues(projectId, getExpandedNodesKey(projectId, ""));
+        String value = joinDelimitedString(valueList, EXPANDED_NODES_DELIMITER);
+
         if (value == null)
             return null;
 
@@ -494,8 +502,52 @@ public class WBSEditor implements WindowListener, SaveListener,
     }
 
     private void setExpandedNodesPref(String projectId, Set value) {
-        preferences.put(getExpandedNodesKey(projectId),
-                joinDelimitedString(value, EXPANDED_NODES_DELIMITER));
+        List splitValues = new ArrayList();
+        splitDelimitedString(splitValues, joinDelimitedString(value, EXPANDED_NODES_DELIMITER),
+                EXPANDED_NODES_DELIMITER, Preferences.MAX_VALUE_LENGTH);
+
+        try {
+            // Remove all expandedNodes preferences
+            getExpandedNodesPrefNode(projectId).clear();
+
+            // Set preference values
+            for (int i = 0; i < splitValues.size(); i++) {
+                String key = getExpandedNodesKey(projectId, String.valueOf(i + 1));
+                getExpandedNodesPrefNode(projectId).put(key, (String) splitValues.get(i));
+            }
+        } catch (BackingStoreException e) {
+            // NO-OP
+        }
+    }
+
+    private List findPreferenceValues(String projectId, String keyPrefix) {
+        List values = new ArrayList();
+
+        try {
+            String[] preferenceKeys = getExpandedNodesPrefNode(projectId).keys();
+            for (int i = 0; i < preferenceKeys.length; i++) {
+                if (preferenceKeys[i].startsWith(keyPrefix)) {
+                    String valuePiece = getExpandedNodesPrefNode(projectId).get(preferenceKeys[i], null);
+                    values.add(valuePiece);
+                }
+            }
+        } catch (BackingStoreException e) {
+            // NO-OP
+        }
+
+        return values;
+    }
+
+    private void splitDelimitedString(List splitValues, String value, String delim, int maxLength) {
+        // Split value on the last delimiter before maxLength
+        if (value.length() > maxLength) {
+            int split_position = value.lastIndexOf(delim, maxLength);
+            splitValues.add(value.substring(0, split_position));
+
+            splitDelimitedString(splitValues, value.substring(split_position + 1), delim, maxLength);
+        } else {
+            splitValues.add(value);
+        }
     }
 
     private String joinDelimitedString(Collection c, String delim) {
