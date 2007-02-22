@@ -15,6 +15,7 @@ public class AllUtilTests {
         suite.addTestSuite(TestFormatUtil.class);
         suite.addTestSuite(TimeNumberFormatTest.class);
         suite.addTestSuite(PatternListTest.class);
+        suite.addTestSuite(PreferencesUtilTest.class);
         suite.addTestSuite(GlobEngineTest.class);
         //$JUnit-END$
         return suite;
