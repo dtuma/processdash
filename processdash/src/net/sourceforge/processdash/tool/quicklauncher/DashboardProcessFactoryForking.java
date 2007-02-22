@@ -26,13 +26,11 @@
 package net.sourceforge.processdash.tool.quicklauncher;
 
 import java.io.File;
-import java.io.UnsupportedEncodingException;
-import java.net.URL;
-import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.List;
 
 import net.sourceforge.processdash.ProcessDashboard;
+import net.sourceforge.processdash.util.JVMUtils;
 
 class DashboardProcessFactoryForking extends DashboardProcessFactory {
 
@@ -41,7 +39,7 @@ class DashboardProcessFactoryForking extends DashboardProcessFactory {
     private String classpath;
 
     public DashboardProcessFactoryForking() throws Exception {
-        jreExecutable = getJreExecutable();
+        jreExecutable = JVMUtils.getJreExecutable();
         if (jreExecutable == null)
             throw new Exception(resources.getString("Errors.Missing_JRE"));
 
@@ -69,67 +67,15 @@ class DashboardProcessFactoryForking extends DashboardProcessFactory {
         return result;
     }
 
-    private String getJreExecutable() {
-        File javaHome = new File(System.getProperty("java.home"));
-
-        boolean isWindows = System.getProperty("os.name").toLowerCase()
-                .indexOf("windows") != -1;
-        String baseName = (isWindows ? "java.exe" : "java");
-
-        String result = getExistingFile(javaHome, "bin", baseName);
-        if (result == null)
-            result = getExistingFile(javaHome, "sh", baseName);
-        if (result == null)
-            result = baseName;
-        return result;
-    }
-
-    private static String getExistingFile(File dir, String subdir,
-            String baseName) {
-        dir = new File(dir, subdir);
-        File file = new File(dir, baseName);
-        if (file.exists())
-            return file.getAbsolutePath();
-        return null;
-    }
-
     private String getSelfClasspath() {
-        String selfClassName = getClass().getName();
-        selfClassName = selfClassName
-                .substring(selfClassName.lastIndexOf(".") + 1);
-        URL selfUrl = getClass().getResource(selfClassName + ".class");
-        if (selfUrl == null)
-            return null;
+        File f = JVMUtils.getClasspathFile(getClass());
 
-        String selfUrlStr = selfUrl.toString();
-        if (selfUrlStr.startsWith("jar:file:"))
-            return getJarBasedClasspath(selfUrlStr);
-        else if (selfUrlStr.startsWith("file:"))
-            return getDirBasedClasspath(selfUrlStr);
+        if (f.isFile())
+            return f.getAbsolutePath();
+        else if (f.isDirectory())
+            return extendDashboardClasspath(f);
         else
             return null;
-    }
-
-    /** Return a classpath for use with the packaged JAR file containing the
-     * compiled classes used by the dashboard.
-     * 
-     * @param selfUrlStr the URL of the class file for this class; must be a
-     *    jar:file: URL.
-     * @return the JAR-based classpath in effect
-     */
-    private String getJarBasedClasspath(String selfUrlStr) {
-        // remove initial "jar:file:" and trailing "!/net/..." information
-        selfUrlStr = selfUrlStr.substring(9, selfUrlStr.indexOf("!/net/"));
-
-        String jarFileName;
-        try {
-            jarFileName = URLDecoder.decode(selfUrlStr, "UTF-8");
-        } catch (UnsupportedEncodingException e) {
-            // can't happen
-            return null;
-        }
-        File classpathItem = new File(jarFileName);
-        return classpathItem.getAbsolutePath();
     }
 
     /** Return a classpath for use with the unpackaged class files in a
@@ -143,19 +89,7 @@ class DashboardProcessFactoryForking extends DashboardProcessFactory {
      *    contains this class, and will also include the JAR files in the
      *    "lib" directory of the process dashboard project directory.
      */
-
-    private String getDirBasedClasspath(String selfUrlStr) {
-        // remove initial "file:" and trailing "/net/..." information
-        selfUrlStr = selfUrlStr.substring(5, selfUrlStr.indexOf("/net/"));
-
-        File binDir;
-        try {
-            String path = URLDecoder.decode(selfUrlStr, "UTF-8");
-            binDir = new File(path).getAbsoluteFile();
-        } catch (Exception e) {
-            return null;
-        }
-
+    private String extendDashboardClasspath(File binDir) {
         File parentDir = binDir.getParentFile();
         File libDir = new File(parentDir, "lib");
         File[] libFiles = libDir.listFiles();
