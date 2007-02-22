@@ -30,7 +30,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.sourceforge.processdash.ProcessDashboard;
-import net.sourceforge.processdash.util.JVMUtils;
+import net.sourceforge.processdash.util.RuntimeUtils;
 
 class DashboardProcessFactoryForking extends DashboardProcessFactory {
 
@@ -39,7 +39,7 @@ class DashboardProcessFactoryForking extends DashboardProcessFactory {
     private String classpath;
 
     public DashboardProcessFactoryForking() throws Exception {
-        jreExecutable = JVMUtils.getJreExecutable();
+        jreExecutable = RuntimeUtils.getJreExecutable();
         if (jreExecutable == null)
             throw new Exception(resources.getString("Errors.Missing_JRE"));
 
@@ -68,7 +68,7 @@ class DashboardProcessFactoryForking extends DashboardProcessFactory {
     }
 
     private String getSelfClasspath() {
-        File f = JVMUtils.getClasspathFile(getClass());
+        File f = RuntimeUtils.getClasspathFile(getClass());
 
         if (f.isFile())
             return f.getAbsolutePath();
