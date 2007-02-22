@@ -11,12 +11,9 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Set;
-import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
 import javax.swing.AbstractAction;
@@ -27,10 +24,14 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
+import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
+
+import net.sourceforge.processdash.util.PreferencesUtils;
+import net.sourceforge.processdash.util.StringUtils;
 
 import teamdash.ConcurrencyLock;
 import teamdash.SaveListener;
@@ -232,20 +233,25 @@ public class WBSEditor implements WindowListener, SaveListener,
 
     public String handleMessage(String message) {
         if (INTENT_TEAM_EDITOR.equals(message)) {
-            showTeamListEditor();
+            SwingUtilities.invokeLater(new Runnable() {
+                public void run() {
+                    showTeamListEditor();
+                }});
             return "OK";
         }
         if (INTENT_WBS_EDITOR.equals(message)) {
-            raiseWindow();
+            SwingUtilities.invokeLater(new Runnable() {
+                public void run() {
+                    raiseWindow();
+                }});
             return "OK";
         }
         throw new IllegalArgumentException();
     }
 
     public void raiseWindow() {
-        if (frame.getState() == JFrame.ICONIFIED)
-            frame.setState(JFrame.NORMAL);
-        frame.show();
+        frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
+        frame.setVisible(true);
         frame.toFront();
     }
 
@@ -480,18 +486,13 @@ public class WBSEditor implements WindowListener, SaveListener,
         }
     }
 
-    private String getExpandedNodesKey(String projectId, String num) {
-        return projectId + EXPANDED_NODES_KEY_SUFFIX + "_" + num;
-    }
-
-    private Preferences getExpandedNodesPrefNode(String projectId) {
-        return preferences.node(projectId + EXPANDED_NODES_KEY_SUFFIX);
+    private String getExpandedNodesKey(String projectId) {
+        return projectId + EXPANDED_NODES_KEY_SUFFIX;
     }
 
     private Set getExpandedNodesPref(String projectId) {
-        List valueList = findPreferenceValues(projectId, getExpandedNodesKey(projectId, ""));
-        String value = joinDelimitedString(valueList, EXPANDED_NODES_DELIMITER);
-
+        String value = PreferencesUtils.getCLOB(preferences,
+                getExpandedNodesKey(projectId), null);
         if (value == null)
             return null;
 
@@ -502,64 +503,8 @@ public class WBSEditor implements WindowListener, SaveListener,
     }
 
     private void setExpandedNodesPref(String projectId, Set value) {
-        List splitValues = new ArrayList();
-        splitDelimitedString(splitValues, joinDelimitedString(value, EXPANDED_NODES_DELIMITER),
-                EXPANDED_NODES_DELIMITER, Preferences.MAX_VALUE_LENGTH);
-
-        try {
-            // Remove all expandedNodes preferences
-            getExpandedNodesPrefNode(projectId).clear();
-
-            // Set preference values
-            for (int i = 0; i < splitValues.size(); i++) {
-                String key = getExpandedNodesKey(projectId, String.valueOf(i + 1));
-                getExpandedNodesPrefNode(projectId).put(key, (String) splitValues.get(i));
-            }
-        } catch (BackingStoreException e) {
-            // NO-OP
-        }
-    }
-
-    private List findPreferenceValues(String projectId, String keyPrefix) {
-        List values = new ArrayList();
-
-        try {
-            String[] preferenceKeys = getExpandedNodesPrefNode(projectId).keys();
-            for (int i = 0; i < preferenceKeys.length; i++) {
-                if (preferenceKeys[i].startsWith(keyPrefix)) {
-                    String valuePiece = getExpandedNodesPrefNode(projectId).get(preferenceKeys[i], null);
-                    values.add(valuePiece);
-                }
-            }
-        } catch (BackingStoreException e) {
-            // NO-OP
-        }
-
-        return values;
-    }
-
-    private void splitDelimitedString(List splitValues, String value, String delim, int maxLength) {
-        // Split value on the last delimiter before maxLength
-        if (value.length() > maxLength) {
-            int split_position = value.lastIndexOf(delim, maxLength);
-            splitValues.add(value.substring(0, split_position));
-
-            splitDelimitedString(splitValues, value.substring(split_position + 1), delim, maxLength);
-        } else {
-            splitValues.add(value);
-        }
-    }
-
-    private String joinDelimitedString(Collection c, String delim) {
-        if (c == null || c.isEmpty())
-            return "";
-        else if (c.size() == 1)
-            return String.valueOf(c.iterator().next());
-
-        StringBuffer result = new StringBuffer();
-        for (Iterator i = c.iterator(); i.hasNext();)
-            result.append(delim).append(i.next());
-        return result.substring(delim.length());
+        PreferencesUtils.putCLOB(preferences, getExpandedNodesKey(projectId),
+                StringUtils.join(value, EXPANDED_NODES_DELIMITER));
     }
 
     public static void main(String args[]) {
@@ -718,10 +663,30 @@ public class WBSEditor implements WindowListener, SaveListener,
     }
 
     public void itemSaved(Object item) {
-        if (item == teamListEditor)
-            teamProject.saveTeamList();
-        else if (item == workflowEditor)
-            teamProject.saveWorkflows();
+        if (item == teamListEditor) {
+            if (!frame.isVisible()) {
+                // The frame containing the WBSEditor itself is not visible.
+                // Thus, the user must have just opened the team member list
+                // only, edited, and clicked the save button. It will fall to us
+                // to save files on the team member list's behalf.  Since they
+                // might have edited initials (which alters the data model),
+                // we need to save the entire team project, not just the team
+                // member list.  It is safe to do this without asking, because
+                // the WBS and workflows have never been displayed, so they must
+                // not have been otherwise altered. Finally, since no GUI
+                // windows will be visible anymore, we should exit.
+                save();
+                if (exitOnClose)
+                    System.exit(0);
+            }
+        }
+    }
+
+    public void itemCancelled(Object item) {
+        if (item == teamListEditor) {
+            if (exitOnClose && !frame.isVisible())
+                System.exit(0);
+        }
     }
 
 }

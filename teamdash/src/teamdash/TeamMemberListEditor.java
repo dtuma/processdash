@@ -55,7 +55,9 @@ public class TeamMemberListEditor implements WindowListener {
 
     public void show() {
         teamMemberList.maybeAddEmptyRow();
-        frame.show();
+        frame.setExtendedState(JFrame.NORMAL);
+        frame.setVisible(true);
+        frame.repaint();
         frame.toFront();
     }
 
@@ -127,6 +129,9 @@ public class TeamMemberListEditor implements WindowListener {
             table.getCellEditor().stopCellEditing();
         // revert back to the original version of the team member list.
         teamMemberList.copyFrom(orig);
+
+        // notify any listeners
+        fireItemCancelled();
     }
 
     private void buildTable() {
@@ -186,6 +191,11 @@ public class TeamMemberListEditor implements WindowListener {
         Iterator i = saveListeners.iterator();
         while (i.hasNext())
             ((SaveListener) i.next()).itemSaved(this);
+    }
+    protected void fireItemCancelled() {
+        Iterator i = saveListeners.iterator();
+        while (i.hasNext())
+            ((SaveListener) i.next()).itemCancelled(this);
     }
 
     private class SelectAllJTable extends JTable {

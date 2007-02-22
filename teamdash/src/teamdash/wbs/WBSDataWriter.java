@@ -8,7 +8,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
-import teamdash.RobustFileWriter;
+import net.sourceforge.processdash.util.RobustFileWriter;
 import teamdash.TeamMember;
 import teamdash.TeamMemberList;
 import teamdash.XMLUtils;

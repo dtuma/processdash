@@ -6,10 +6,11 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Arrays;
 
+import net.sourceforge.processdash.util.RobustFileWriter;
+
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import teamdash.RobustFileWriter;
 import teamdash.XMLUtils;
 
 

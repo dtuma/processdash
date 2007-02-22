@@ -6,8 +6,10 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Locale;
 
 import net.sourceforge.processdash.DashController;
@@ -15,6 +17,7 @@ import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.net.http.WebServer;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.HTMLUtils;
+import net.sourceforge.processdash.util.RuntimeUtils;
 import teamdash.FilenameMapper;
 import teamdash.XMLUtils;
 import teamdash.wbs.WBSEditor;
@@ -41,13 +44,16 @@ public class OpenWBSEditor extends TinyCGIBase {
         }
 
         boolean useJNLP = Settings.getBool("wbsEditor.useJNLP", false);
+        if (parameters.containsKey("useJNLP"))
+            useJNLP = true;
+        else if (parameters.containsKey("isTriggering")
+                || parameters.containsKey("trigger"))
+            useJNLP = false;
         try {
             DashController.checkIP(env.get("REMOTE_ADDR"));
         } catch (IOException ioe) {
             useJNLP = true;
         }
-        if (parameters.containsKey("isTriggering"))
-            useJNLP = false;
 
         parseFormData();
         String directory = getParameter("directory");
@@ -59,7 +65,7 @@ public class OpenWBSEditor extends TinyCGIBase {
         if (useJNLP)
             writeJnlpFile(directory, bottomUp, showTeam, syncURL);
         else
-            openInternally(directory, bottomUp, showTeam, syncURL);
+            openInProcess(directory, bottomUp, showTeam, syncURL);
     }
 
     private String getSyncURL() {
@@ -72,14 +78,25 @@ public class OpenWBSEditor extends TinyCGIBase {
         return "http://" + ws.getHostName(true) + ":" + ws.getPort() + syncURI;
     }
 
-    private void openInternally(String directory, boolean bottomUp,
+    private void openInProcess(String directory, boolean bottomUp,
             boolean showTeam, String syncURL) {
         if (!checkEntryCriteria(directory))
             return;
 
         writeHtmlHeader();
-        DashController.printNullDocument(out);
-        showEditor(directory, bottomUp, showTeam, syncURL);
+        if (launchEditorProcess(directory, bottomUp, showTeam, syncURL)) {
+            // if we successfully opened the WBS, write the null document.
+            DashController.printNullDocument(out);
+        } else {
+            // if, for some reason, we weren't able to launch the WBS in a new
+            // process, our best bet is to try JNLP instead.  Use an HTML
+            // redirect to point the user to a forced JNLP page.
+            out.print("<html><head>");
+            out.print("<meta http-equiv='Refresh' CONTENT='0;URL=" +
+                        "/team/tools/OpenWBSEditor.class?useJNLP&");
+            out.print(env.get("QUERY_STRING"));
+            out.print("'></head></html>");
+        }
     }
 
     private boolean checkEntryCriteria(String directory) {
@@ -103,8 +120,65 @@ public class OpenWBSEditor extends TinyCGIBase {
 
     private static Hashtable editors = new Hashtable();
 
-    private void showEditor(String directory, boolean bottomUp,
+    private boolean launchEditorProcess(String directory, boolean bottomUp,
             boolean showTeam, String syncURL) {
+        String[] cmdLine = getProcessCmdLine(directory, bottomUp, showTeam,
+                syncURL);
+        if (cmdLine == null)
+            return false;
+
+        try {
+            Process p = Runtime.getRuntime().exec(cmdLine, null,
+                    new File(directory));
+            new OutputConsumer(p).start();
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    private String[] getProcessCmdLine(String directory, boolean bottomUp,
+            boolean showTeam, String syncURL) {
+        String jreExecutable = RuntimeUtils.getJreExecutable();
+        File classpath = RuntimeUtils.getClasspathFile(getClass());
+        if (jreExecutable == null || classpath == null)
+            return null;
+
+        List cmd = new ArrayList();
+        cmd.add(jreExecutable);
+
+        if (bottomUp)
+            cmd.add("-Dteamdash.wbs.bottomUp=true");
+        if (showTeam)
+            cmd.add("-Dteamdash.wbs.showTeamMemberList=true");
+        if (Settings.getBool("READ_ONLY", false))
+            cmd.add("-Dteamdash.wbs.readOnly=true");
+        if (syncURL != null)
+            cmd.add("-Dteamdash.wbs.syncURL=" + syncURL);
+
+        cmd.add("-jar");
+        cmd.add(classpath.getAbsolutePath());
+
+        cmd.add(directory);
+
+        return (String[]) cmd.toArray(new String[cmd.size()]);
+    }
+
+    private static class OutputConsumer extends Thread {
+        Process p;
+        public OutputConsumer(Process p) {
+            this.p = p;
+            setDaemon(true);
+        }
+        public void run() {
+            RuntimeUtils.consumeOutput(p, System.out, System.err);
+        }
+    }
+
+
+    protected void showEditorInternally(String directory, boolean bottomUp,
+                boolean showTeam, String syncURL) {
         String key = directory;
         if (bottomUp)
             key = "bottomUp:" + key;

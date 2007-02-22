@@ -107,12 +107,41 @@
 
 
   <target name="TeamTools" unless="noBuild">
+    <!-- compute the classes needed for the team tools jar file -->
     <classfileset id="teamToolsClasses" dir="bin">
       <root classname="teamdash.wbs.WBSEditor"/>
       <root classname="teamdash.templates.tools.OpenWBSEditor"/>
       <root classname="teamdash.FilenameMapperExtResMgr"/>
     </classfileset>
 
+    <!-- also compute the classes needed from processdash packages -->
+    <classfileset id="dashClasses" dir="${processdash.dir}/antbin">
+      <root classname="net.sourceforge.processdash.util.PreferencesUtils"/>
+      <root classname="net.sourceforge.processdash.util.RobustFileWriter"/>
+      <root classname="net.sourceforge.processdash.util.RuntimeUtils"/>
+      <root classname="net.sourceforge.processdash.util.StringUtils"/>
+    </classfileset>
+
+    <!-- count the number of processdash classes we are using -->
+    <pathconvert property="dashClasses.count" refid="dashClasses" pathsep="">
+      <mapper type="merge" to="X"/>
+    </pathconvert>
+    <condition property="dashClasses.overflowing">
+      <length string="${dashClasses.count}" when="greater" length="10"/>
+    </condition>
+
+    <!-- abort if the processdash class list was larger than expected -->
+    <pathconvert property="dashClasses.list" refid="dashClasses" 
+        pathsep="&#10;    ">
+      <regexpmapper from=".*/antbin/(.*).class" to="\1" handledirsep="true"/>
+    </pathconvert>
+    <fail if="dashClasses.overflowing">
+Unexpected number of processdash classes referenced by TeamTools.jar
+(Perhaps a runaway class dependency has been added in a dashboard class?)
+    ${dashClasses.list}
+    </fail>
+
+    <!-- Now build the TeamTools.jar file -->
     <jar destfile="TeamTools.jar" duplicate="fail">
       <!-- specify the manifest file contents -->
       <manifest>
@@ -131,6 +160,7 @@
         <include name="teamdash/**/*.png"/>
         <include name="teamdash/**/*.gif"/>
       </fileset>
+      <fileset refid="dashClasses"/>
 
       <!-- include the wbs-editor-related templates -->
       <fileset dir=".">

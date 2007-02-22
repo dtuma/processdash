@@ -4,11 +4,12 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.net.URL;
 
+import net.sourceforge.processdash.util.RobustFileWriter;
+
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
-import teamdash.RobustFileWriter;
 import teamdash.XMLUtils;
 import teamdash.TeamMemberList;
 
