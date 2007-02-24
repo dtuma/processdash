@@ -7,6 +7,8 @@
       value="Templates/team/lib/TeamProcessCGI.jar"/>
   <property name="server.jar" value="generateProcess.jar"/>
   <property name="jnlp.jar" value="FrameworkEditorJNLP.jar"/>
+  <property environment="env"/>
+
 
   <target name="-defaultValues">
     <property name="teamProcess.xml" value="PDSSD.xml"/>
@@ -56,9 +58,10 @@
         <include name="teamdash/FilenameMapper*"/>
       </fileset>
     </jar>
-    <property environment="env"/>
-    <signjar jar="${TeamProcessCGI.jar}" alias="processdash-full-permissions"
-	storepass="${env.TDKSPW}"/>
+    <antcall target="signjar">
+      <param name="sign.jar" value="${TeamProcessCGI.jar}"/>
+      <param name="sign.alias" value="processdash-full-permissions"/>
+    </antcall>
   </target>
 
 
@@ -99,8 +102,7 @@
       </manifest>
       <fileset refid="jnlpClasses"/>
     </jar>
-    <property environment="env"/>
-    <signjar jar="${jnlp.jar}" alias="tuma-solutions"
+    <signjar jar="${jnlp.jar}" alias="tuma-solutions-2006"
 	storepass="${env.TDKSPW}"/>
   </target>
 
@@ -127,7 +129,7 @@
       <mapper type="merge" to="X"/>
     </pathconvert>
     <condition property="dashClasses.overflowing">
-      <length string="${dashClasses.count}" when="greater" length="10"/>
+      <length string="${dashClasses.count}" when="greater" length="9"/>
     </condition>
 
     <!-- abort if the processdash class list was larger than expected -->
@@ -170,9 +172,10 @@ Unexpected number of processdash classes referenced by TeamTools.jar
       </fileset>
     </jar>
 
-    <property environment="env"/>
-    <signjar jar="TeamTools.jar" alias="tuma-solutions"
-	storepass="${env.TDKSPW}"/>
+    <antcall target="signjar">
+        <param name="sign.jar" value="TeamTools.jar"/>
+	<param name="sign.alias" value="tuma-solutions-2006"/>
+    </antcall>
   </target>
 
   <target name="TeamProcess" depends="-defaultValues,server" unless="noBuild">
@@ -273,5 +276,10 @@ Unexpected number of processdash classes referenced by TeamTools.jar
 
   <target name="dist" depends="installer"/>
   <target name="dist-all" depends="installer"/>
+
+  <target name="signjar" if="env.TDKSPW">
+    <signjar jar="${sign.jar}" alias="${sign.alias}" 
+        storepass="${env.TDKSPW}"/>
+  </target>
 
 </project>
