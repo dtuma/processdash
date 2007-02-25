@@ -149,7 +149,7 @@ Unexpected number of processdash classes referenced by TeamTools.jar
       <manifest>
         <attribute name="Main-Class" value="teamdash.wbs.WBSEditor"/>
 	<attribute name="Dash-Pkg-ID" value="teamTools"/>
-	<attribute name="Dash-Pkg-Version" value="2.4.1"/>
+	<attribute name="Dash-Pkg-Version" value="2.4.3"/>
 	<attribute name="Dash-Pkg-Requires-Version" value="1.7.rc1+"/>
 	<attribute name="Dash-Pkg-Name" value="Advanced Team Tools"/>
 	<attribute name="Dash-Pkg-URL"
@@ -274,8 +274,8 @@ Unexpected number of processdash classes referenced by TeamTools.jar
     <antcall target="installer-cd"/>
   </target>
 
-  <target name="dist" depends="installer"/>
-  <target name="dist-all" depends="installer"/>
+  <target name="dist" depends="installer-cd"/>
+  <target name="dist-all" depends="installer-cd"/>
 
   <target name="signjar" if="env.TDKSPW">
     <signjar jar="${sign.jar}" alias="${sign.alias}" 

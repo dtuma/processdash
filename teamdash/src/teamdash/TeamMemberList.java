@@ -234,7 +234,7 @@ public class TeamMemberList extends AbstractTableModel {
     }
 
     /** Find the earliest date when any team members is starting.  If no team
-     * members have start dates, use "next Sunday". */
+     * members have start dates, use "last Sunday". */
     private Date getDefaultStartDate() {
         long result = Long.MAX_VALUE;
         for (Iterator i = teamMembers.iterator(); i.hasNext();) {
@@ -245,7 +245,6 @@ public class TeamMemberList extends AbstractTableModel {
         }
         if (result == Long.MAX_VALUE) {
             Calendar c = Calendar.getInstance();
-            c.add(Calendar.DATE, 7);
             c.set(Calendar.DAY_OF_WEEK, Calendar.SUNDAY);
             c.set(Calendar.HOUR_OF_DAY, 0); c.set(Calendar.MINUTE, 0);
             c.set(Calendar.SECOND, 0); c.set(Calendar.MILLISECOND, 0);
