@@ -65,6 +65,7 @@ import net.sourceforge.processdash.templates.DashPackage.InvalidDashPackage;
 import net.sourceforge.processdash.ui.lib.ErrorReporter;
 import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.HTMLUtils;
+import net.sourceforge.processdash.util.PatternList;
 import net.sourceforge.processdash.util.XMLUtils;
 
 import org.w3c.dom.Document;
@@ -526,13 +527,16 @@ public class TemplateLoader {
         for (int i=0;  i < dirContents.length;  i++) try {
             name = dirContents[i].toURL().toString();
             lname = name.toLowerCase();
-            if ((lname.endsWith(".jar") || lname.endsWith(".zip"))) {
+            if ((lname.endsWith(".jar") || lname.endsWith(".zip"))
+                    && !NONTEMPLATE_FILENAMES.matches(lname)) {
                 processTimestamp(dirContents[i]);
                 if (!isDashboardJarfile(dirContents[i]))
                     v.add(jarfileTemplateURL(name));
             }
         } catch (MalformedURLException mue) {}
     }
+    private static final PatternList NONTEMPLATE_FILENAMES = new PatternList(
+            new String[] { "/pdash-install-", "/pdash-.*-cd", "/pdash-src-" } );
     private static URL jarfileTemplateURL(String jarfileURL)
         throws MalformedURLException
     {
