@@ -103,6 +103,10 @@ public class QuickLauncher {
 
             processFactory.addVmArg("-Dbackup.enabled=false");
 
+            String userLang = System.getProperty("user.language");
+            if (userLang != null)
+                processFactory.addVmArg("-Duser.language=" + userLang);
+
             instanceList = new InstanceList();
             processFactory.addVmArg("-D"
                     + ProcessDashboard.NOTIFY_ON_OPEN_PORT_PROPERTY + "="
