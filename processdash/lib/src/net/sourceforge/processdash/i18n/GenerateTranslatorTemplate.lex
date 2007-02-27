@@ -306,7 +306,7 @@ import java.util.*;
 %implements TranslationEngine
 %function next
 %type Boolean
-%state script, comment, tag
+%state script, style, comment, tag
 
 ANY=[\x00-\uffff]
 WORD_CHAR=[A-Za-z]
@@ -324,6 +324,10 @@ SAFE_INNER=[^<>\-]
 
 <script> "</script"{IN_TAG}*">" { yybegin(YYINITIAL); return send(); }
 
+<YYINITIAL> "<style"{IN_TAG}*">" { yybegin(style); return send(); }
+
+<style> "</style"{IN_TAG}*">" { yybegin(YYINITIAL); return send(); }
+
 
 
 <YYINITIAL> "<!--" { yybegin(comment); return send(); }
@@ -338,7 +342,7 @@ SAFE_INNER=[^<>\-]
 <tag> ">" { yybegin(YYINITIAL); return send(); }
 
 
-<comment,script,tag> {ANY}|{SAFE_INNER}+ { return send(); }
+<comment,script,style,tag> {ANY}|{SAFE_INNER}+ { return send(); }
 
 
 
