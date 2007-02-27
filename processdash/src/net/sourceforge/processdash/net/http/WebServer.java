@@ -968,20 +968,8 @@ public class WebServer {
                 String mimeType)
             throws TinyWebThreadException, IOException
         {
-            String content = null;
-            if (translate) {
-                Reader r = Translator.translate
-                    (new InputStreamReader(in, DASH_CHARSET));
-                StringBuffer buf = new StringBuffer();
-                int c;
-                while ((c = r.read()) > 0)
-                    buf.append((char) c);
-                content = buf.toString();
-
-            } else {
-                byte[] rawContent = FileUtils.slurpContents(in, true);
-                content = new String(rawContent, DASH_CHARSET);
-            }
+            byte[] rawContent = FileUtils.slurpContents(in, true);
+            String content = new String(rawContent, DASH_CHARSET);
 
             parseHTTPHeaders();
 
@@ -989,7 +977,12 @@ public class WebServer {
                 new HTMLPreprocessor(WebServer.this, data, env);
             if (mimeType != null && mimeType.indexOf("html") != -1)
                 p.setDefaultEchoEncoding("html");
-            return p.preprocess(content);
+            String result = p.preprocess(content);
+
+            if (translate)
+                result = Translator.translate(result);
+
+            return result;
         }
 
         private void serveTranslatedFile(InputStream content, String mime_type)
