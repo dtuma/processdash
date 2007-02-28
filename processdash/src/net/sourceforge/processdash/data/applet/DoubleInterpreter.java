@@ -31,6 +31,7 @@ import net.sourceforge.processdash.data.ImmutableDoubleData;
 import net.sourceforge.processdash.data.MalformedValueException;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.repository.Repository;
+import net.sourceforge.processdash.util.FormatUtil;
 
 
 class DoubleInterpreter extends DataInterpreter {
@@ -56,7 +57,11 @@ class DoubleInterpreter extends DataInterpreter {
 
 
     public void setString(String s) throws MalformedValueException {
-        value = new DoubleData(s);
+        try {
+            value = new DoubleData(FormatUtil.parseNumber(s), true);
+        } catch (Exception e) {
+            throw new MalformedValueException();
+        }
     }
 
 

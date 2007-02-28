@@ -131,6 +131,7 @@ public class FormatUtil {
 
     private static AdaptiveNumberFormat NUMBER_FORMAT =
         new AdaptiveNumberFormat(NumberFormat.getNumberInstance(), 3);
+    private static NumberFormat NUMBER_PARSE = NumberFormat.getNumberInstance();
 
     public static String formatNumber(double value) {
         return formatNumber(value, AUTO_DECIMAL);
@@ -141,7 +142,9 @@ public class FormatUtil {
     }
 
     public static double parseNumber(String number) throws ParseException {
-        return NUMBER_FORMAT.parse(number.trim()).doubleValue();
+        synchronized (NUMBER_PARSE) {
+            return NUMBER_PARSE.parse(number.trim()).doubleValue();
+        }
     }
 
 
@@ -151,6 +154,8 @@ public class FormatUtil {
 
     private static AdaptiveNumberFormat PERCENT_FORMAT =
         new AdaptiveNumberFormat(NumberFormat.getPercentInstance(), 3);
+    private static NumberFormat PERCENT_PARSE =
+        NumberFormat.getPercentInstance();
 
     public static String formatPercent(double percent) {
         return formatPercent(percent, AUTO_DECIMAL);
@@ -161,9 +166,11 @@ public class FormatUtil {
 
     public static double parsePercent(String percent) throws ParseException {
         try {
-            return PERCENT_FORMAT.parse(percent.trim()).doubleValue();
+            synchronized (PERCENT_PARSE) {
+                return PERCENT_PARSE.parse(percent.trim()).doubleValue();
+            }
         } catch (Exception e) {}
-        return NUMBER_FORMAT.parse(percent.trim()).doubleValue() / 100;
+        return parseNumber(percent) / 100;
     }
 
 
