@@ -1,4 +1,4 @@
-<html>
+<html><!--#do-not-translate-->
 <head>
 <title><!--#if [setup//Is_Master] -->Master<!--#else-->Team<!--#endif--> Project Setup Wizard</title>
 <link rel=stylesheet type='text/css' href='/dash/teamStart.css'>
