@@ -3,6 +3,13 @@
 <title>Team Project Setup Wizard</title>
 <link rel=stylesheet type='text/css' href='../../dash/teamStart.css'>
 <script>
+    function fixURL(url) {
+        var sepPos = url.lastIndexOf("/+/");
+        if (sepPos != -1)
+            url = url.substring(0, sepPos) + "//" + url.substring(sepPos+3);
+        return url;
+    }
+
     function textToHTML(text) {
         return text.replace(/&/, "&amp;").replace(/</, "&lt;")
             .replace(/>/, "&gt;").replace(/"/, "&quot;"); //");
@@ -10,7 +17,7 @@
 
     function writeHref() {
         document.write("<PRE>        ");
-        document.write(textToHTML(window.location.href));
+        document.write(textToHTML(fixURL(window.location.href)));
         document.write("</PRE>");
     }
 </script>
