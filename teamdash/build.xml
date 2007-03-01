@@ -202,7 +202,9 @@ Unexpected number of processdash classes referenced by TeamTools.jar
     <loadfile property="extraIni" srcFile="install/custom-install.ini">
       <filterchain><expandproperties/></filterchain>
     </loadfile>
-    <property name="extraCoreFiles" value=""/>
+    <loadfile property="extraCoreFiles" srcFile="install/extraCore.xml">
+      <filterchain><expandproperties/></filterchain>
+    </loadfile>
     <property name="install-flags" value=""/>
     <property name="cd-qualifier" value="team"/>
   </target>
