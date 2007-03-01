@@ -9,12 +9,12 @@
    xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="537"
+   width="540"
    height="167"
    id="svg20349"
    sodipodi:version="0.32"
    inkscape:version="0.44"
-   sodipodi:docbase="c:\Tuma\projects\processdash\Templates\help\Images\constr"
+   sodipodi:docbase="C:\Tuma\projects\processdash\Templates\help\Images\constr"
    sodipodi:docname="ChooseEditDataRollupFilter.svg"
    version="1.0">
   <defs
@@ -29,16 +29,16 @@
      objecttolerance="10"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="1.4427767"
+     inkscape:zoom="1.4142136"
      inkscape:cx="268.57144"
      inkscape:cy="55.222294"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      inkscape:window-width="940"
      inkscape:window-height="664"
-     inkscape:window-x="424"
-     inkscape:window-y="291"
-     width="537px"
+     inkscape:window-x="156"
+     inkscape:window-y="161"
+     width="540px"
      height="167px" />
   <metadata
      id="metadata20354">
@@ -60,23 +60,27 @@
        x="2"
        id="image20364"
        height="163"
-       width="533"
+       width="537"
        sodipodi:absref="c:\Tuma\projects\processdash\Templates\help\Images\constr\ChooseEditDataRollupFilter.png"
        xlink:href="ChooseEditDataRollupFilter.png" />
     <text
        xml:space="preserve"
        style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
-       x="307.04681"
-       y="111.81471"
+       x="328.20547"
+       y="107.81471"
        id="text20367"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
          id="tspan20369"
-         x="307.04681"
-         y="111.81471">Edit the rollup filter for the dataset</tspan></text>
+         x="328.20547"
+         y="107.81471">Edit the rollup filter</tspan><tspan
+         sodipodi:role="line"
+         x="328.20547"
+         y="126.56471"
+         id="tspan1971">for the dataset</tspan></text>
     <path
-       style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="M 233.57737,128.18596 L 304.96749,106.69961"
+       style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:0.99999946px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="M 245.5773,128.1859 L 324.37441,113.63064"
        id="path20371" />
   </g>
 </svg>

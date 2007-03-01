@@ -39,6 +39,7 @@
 
   <mapID target="AccessingScripts" url="Topics/Execution/AccessingScripts.html" />
   <mapID target="PlayPause" url="Topics/Execution/PlayPause.html" />
+  <mapID target="PercentSpentIndicator" url="Topics/Execution/PercentSpent.html" />
   <mapID target="CompletionButton" url="Topics/Execution/CompletionButton.html" />
   <mapID target="UsingTimeLogEditor" url="Topics/Execution/UsingTimeLogEditor.html" />
   <mapID target="UsingTimeLogEditor.TimeCardView" url="Topics/Execution/UsingTimeLogEditor.html#TimeCardView" />

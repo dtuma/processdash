@@ -9,13 +9,13 @@
    xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="512"
+   width="525"
    height="90"
    id="svg5776"
    sodipodi:version="0.32"
    inkscape:version="0.44"
    version="1.0"
-   sodipodi:docbase="c:\Tuma\projects\processdash\Templates\help\Images\constr"
+   sodipodi:docbase="C:\Tuma\projects\processdash\Templates\help\Images\constr"
    sodipodi:docname="MainWindowDependencyIndicator.svg">
   <defs
      id="defs5778" />
@@ -29,13 +29,13 @@
      objecttolerance="10"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="1.6292373"
+     inkscape:zoom="1"
      inkscape:cx="246.42857"
      inkscape:cy="67.158093"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      height="90px"
-     width="512px"
+     width="525px"
      inkscape:window-width="1045"
      inkscape:window-height="688"
      inkscape:window-x="311"
@@ -58,25 +58,25 @@
     <text
        xml:space="preserve"
        style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
-       x="308.11963"
+       x="320.39532"
        y="83.810814"
        id="text5878"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
          id="tspan5880"
-         x="308.11963"
+         x="320.39532"
          y="83.810814">Task Dependency Indicator</tspan></text>
     <image
        y="2"
        x="2"
        id="image13000"
        height="54"
-       width="508"
+       width="521"
        sodipodi:absref="c:\Tuma\projects\processdash\Templates\help\Images\constr\MainWindowDependencyIndicator.png"
        xlink:href="MainWindowDependencyIndicator.png" />
     <path
        style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="M 476.29649,47.035111 L 461.56351,72.553381"
+       d="M 488.57217,47.035111 L 473.83919,72.553381"
        id="path13003" />
   </g>
 </svg>

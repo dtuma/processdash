@@ -9,13 +9,13 @@
    xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="514"
+   width="527"
    height="90"
    id="svg5776"
    sodipodi:version="0.32"
    inkscape:version="0.44"
    version="1.0"
-   sodipodi:docbase="c:\Tuma\projects\processdash\Templates\help\Images\constr"
+   sodipodi:docbase="C:\Tuma\projects\processdash\Templates\help\Images\constr"
    sodipodi:docname="PointToDefectButton.svg">
   <defs
      id="defs5778" />
@@ -35,7 +35,7 @@
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      height="90px"
-     width="514px"
+     width="527px"
      inkscape:window-width="1045"
      inkscape:window-height="688"
      inkscape:window-x="413"
@@ -60,23 +60,23 @@
        x="2"
        id="image15501"
        height="54"
-       width="510"
+       width="523"
        sodipodi:absref="c:\Tuma\projects\processdash\Templates\help\Images\constr\ShowHierarchyMenus.png"
        xlink:href="ShowHierarchyMenus.png" />
     <text
        xml:space="preserve"
        style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
-       x="93.295189"
+       x="106.18465"
        y="83.810814"
        id="text5878"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
          id="tspan5880"
-         x="93.295189"
+         x="106.18465"
          y="83.810814">Defect button</tspan></text>
     <path
        style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="M 81.633289,47.035111 L 106.18465,71.586476"
+       d="M 94.522756,47.035111 L 119.07412,71.586476"
        id="path19281" />
   </g>
 </svg>

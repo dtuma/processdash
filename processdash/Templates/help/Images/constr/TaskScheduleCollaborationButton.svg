@@ -9,13 +9,13 @@
    xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="655"
+   width="676"
    height="743"
    id="svg11919"
    sodipodi:version="0.32"
    inkscape:version="0.44"
    version="1.0"
-   sodipodi:docbase="c:\Tuma\projects\processdash\Templates\help\Images\constr"
+   sodipodi:docbase="C:\Tuma\projects\processdash\Templates\help\Images\constr"
    sodipodi:docname="TaskScheduleCollaborationButton.svg">
   <defs
      id="defs11921" />
@@ -29,17 +29,17 @@
      objecttolerance="10"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="0.86231244"
+     inkscape:zoom="1"
      inkscape:cx="327.5"
-     inkscape:cy="7.8375084"
+     inkscape:cy="356.31978"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      height="743px"
-     width="655px"
+     width="676px"
      inkscape:window-width="853"
-     inkscape:window-height="831"
+     inkscape:window-height="961"
      inkscape:window-x="433"
-     inkscape:window-y="154" />
+     inkscape:window-y="24" />
   <metadata
      id="metadata11924">
     <rdf:RDF>
@@ -60,7 +60,7 @@
        x="2"
        id="image11967"
        height="705"
-       width="651"
+       width="672"
        sodipodi:absref="c:\Tuma\projects\processdash\Templates\help\Images\constr\TaskSchedule.png"
        xlink:href="TaskSchedule.png" />
     <text

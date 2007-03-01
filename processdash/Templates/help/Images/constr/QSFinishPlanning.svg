@@ -9,13 +9,13 @@
    xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="476"
+   width="489"
    height="90"
    id="svg5776"
    sodipodi:version="0.32"
    inkscape:version="0.44"
    version="1.0"
-   sodipodi:docbase="c:\Tuma\projects\processdash\Templates\help\Images\constr"
+   sodipodi:docbase="C:\Tuma\projects\processdash\Templates\help\Images\constr"
    sodipodi:docname="QSFinishPlanning.svg">
   <defs
      id="defs5778" />
@@ -29,13 +29,13 @@
      objecttolerance="10"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="1.6292373"
+     inkscape:zoom="1"
      inkscape:cx="246.42857"
      inkscape:cy="67.158093"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      height="90px"
-     width="476px"
+     width="489px"
      inkscape:window-width="1045"
      inkscape:window-height="688"
      inkscape:window-x="311"
@@ -60,23 +60,23 @@
        x="2"
        id="image5824"
        height="54"
-       width="472"
+       width="485"
        sodipodi:absref="c:\Tuma\projects\processdash\Templates\help\Images\constr\QSFinishPlanning.png"
        xlink:href="QSFinishPlanning.png" />
     <text
        xml:space="preserve"
        style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
-       x="176.15605"
+       x="190.27309"
        y="83.197029"
        id="text5827"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
          id="tspan5829"
-         x="176.15605"
+         x="190.27309"
          y="83.197029">Click the Completion checkbox to finish</tspan></text>
     <path
        style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="M 457.26918,48.211337 L 434.25228,71.228242"
+       d="M 471.38622,48.211337 L 448.36932,71.228242"
        id="path5833" />
   </g>
 </svg>

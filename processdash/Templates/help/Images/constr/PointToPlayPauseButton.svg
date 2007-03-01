@@ -9,13 +9,13 @@
    xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="514"
+   width="527"
    height="90"
    id="svg5776"
    sodipodi:version="0.32"
    inkscape:version="0.44"
    version="1.0"
-   sodipodi:docbase="c:\Tuma\projects\processdash\Templates\help\Images\constr"
+   sodipodi:docbase="C:\Tuma\projects\processdash\Templates\help\Images\constr"
    sodipodi:docname="PointToPlayPauseButton.svg">
   <defs
      id="defs5778" />
@@ -35,7 +35,7 @@
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      height="90px"
-     width="514px"
+     width="527px"
      inkscape:window-width="1045"
      inkscape:window-height="688"
      inkscape:window-x="413"
@@ -60,7 +60,7 @@
        x="2"
        id="image15501"
        height="54"
-       width="510"
+       width="523"
        sodipodi:absref="c:\Tuma\projects\processdash\Templates\help\Images\constr\ShowHierarchyMenus.png"
        xlink:href="ShowHierarchyMenus.png" />
     <text
