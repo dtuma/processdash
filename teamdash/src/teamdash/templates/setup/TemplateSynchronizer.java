@@ -31,6 +31,9 @@ import org.xmlpull.v1.XmlSerializer;
  */
 public class TemplateSynchronizer {
 
+    /** The path/prefix of this team project */
+    private String projectPath;
+
     /** The ID of the process that this team project is using */
     private String processID;
 
@@ -53,8 +56,10 @@ public class TemplateSynchronizer {
     private boolean whatIfMode = true;
 
 
-    public TemplateSynchronizer(String processID, String projectID,
-            String templateUri, File workflowFile, File destDir) {
+    public TemplateSynchronizer(String projectPath, String processID,
+            String projectID, String templateUri, File workflowFile,
+            File destDir) {
+        this.projectPath = projectPath;
         this.processID = processID;
         this.projectID = projectID;
         this.templateUri = templateUri;
@@ -155,12 +160,15 @@ public class TemplateSynchronizer {
 
     private Map phaseIDs;
 
+    private String projectNamePrefix;
+
     private void writeTemplateXml(List workflows, Map templates)
             throws IOException {
         XmlSerializer ser = XMLUtils.getXmlSerializer(true);
         genericSubtaskTemplate = (Element) templates.get(processID
                 + "/IndivEmptyNode");
         phaseIDs = HierarchySynchronizer.initPhaseIDs(processID);
+        projectNamePrefix = getProjectNamePrefix(projectPath);
 
         OutputStream out = new RobustFileOutputStream(destFile);
         ser.setOutput(out, ENCODING);
@@ -187,7 +195,7 @@ public class TemplateSynchronizer {
         String workflowName = workflow.getAttribute(WORKFLOW_NAME_ATTR);
         workflowName = deconflictName(workflowName, "_");
         String templateName = processID + "-Common-Team-Workflow:!*!:"
-                + workflowName;
+                + projectNamePrefix + workflowName;
         ser.attribute(null, TEMPLATE_NAME_ATTR, templateName);
 
         ser.attribute(null, "defineRollup", "no");
@@ -269,6 +277,19 @@ public class TemplateSynchronizer {
         String value = srcTemplate.getAttribute(attrName);
         if (value != null && value.length() > 0)
             ser.attribute(null, attrName, value);
+    }
+
+    private String getProjectNamePrefix(String path) {
+        if (path == null)
+            return "";
+
+        // get the portion of the project following the last slash, or
+        // the entire project path if no slash is found.
+        int slashPos = path.lastIndexOf('/');
+        String terminalName = path.substring(slashPos+1);
+
+        // return the terminal name, followed by a separator string
+        return terminalName + " - ";
     }
 
     private String deconflictName(String name, String suffix) {

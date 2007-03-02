@@ -270,8 +270,9 @@ public class sync extends TinyCGIBase {
     private void syncTemplates(HierarchySynchronizer sync) {
         if (isTeam) {
             String templateURI = "/" + processID + "-template.xml";
-            TemplateSynchronizer tSync = new TemplateSynchronizer(processID,
-                    projectID, templateURI, workflowFile, templatesDir);
+            TemplateSynchronizer tSync = new TemplateSynchronizer(projectRoot,
+                    processID, projectID, templateURI, workflowFile,
+                    templatesDir);
             tSync.setWhatIfMode(sync.isWhatIfMode());
             tSync.sync();
             sync.getChanges().addAll(tSync.getChanges());
