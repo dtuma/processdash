@@ -1,0 +1,12 @@
+/* CSS rules used by the dashboard time log reports */
+
+
+table.timeLog {
+    empty-cells: show;
+}
+
+@media print { table.timeLog td { font-size: 8pt } }
+
+table.timeLog td {
+    vertical-align: baseline;
+}

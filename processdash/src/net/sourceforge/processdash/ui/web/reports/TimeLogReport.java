@@ -47,20 +47,17 @@ public class TimeLogReport extends TinyCGIBase {
         Resources.getDashBundle("Time.Report");
 
     private static final String START_TEXT =
-        "<HTML><HEAD><TITLE>${Title}%for owner%%for path%</TITLE>%css%\n" +
-        "<STYLE>\n" +
-        "    TABLE { empty-cells: show }\n" +
-        "    .header { font-weight: bold }\n" +
-        "    TD { vertical-align: baseline }\n" +
-        "</STYLE></HEAD>\n" +
-        "<BODY><H1>${Title}%for path%</H1>\n" +
-        "<TABLE BORDER><TR class=header>\n" +
-        "<TD>${Project}</TD>\n" +
-        "<TD>${Phase}</TD>\n" +
-        "<TD>${Start_Time}</TD>\n" +
-        "<TD>${Elapsed}</TD>\n" +
-        "<TD>${Interrupt}</TD>\n" +
-        "<TD>${Comment}</TD></TR>\n";
+        "<html><head><title>${Title}%for owner%%for path%</title>%css%\n" +
+        "<link rel=\"stylesheet\" type=\"text/css\" href=\"/reports/timeReports.css\">"+
+        "</head>\n" +
+        "<body><h1>${Title}%for path%</h1>\n" +
+        "<!-- cutStart --><table border class='timeLog'><tr>\n" +
+        "<th>${Project}</th>\n" +
+        "<th>${Phase}</th>\n" +
+        "<th>${Start_Time}</th>\n" +
+        "<th>${Elapsed}</th>\n" +
+        "<th>${Interrupt}</th>\n" +
+        "<th>${Comment}</th></tr>\n";
 
     private static final String EXPORT_LINK =
         "<P class=doNotPrint><A HREF=\"excel.iqy\"><I>" +
@@ -110,7 +107,7 @@ public class TimeLogReport extends TinyCGIBase {
             out.println("<TD>" + (comment == null ? "" : comment) + "</TD>");
             out.println("</TR>");
         }
-        out.println("</TABLE>");
+        out.println("</TABLE><!-- cutEnd -->");
 
         if (parameters.get("skipFooter") == null) {
             out.print(resources.interpolate(EXPORT_LINK,
