@@ -37,6 +37,8 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.MissingResourceException;
 import java.util.StringTokenizer;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.ListData;
@@ -263,16 +265,24 @@ public class HTMLPreprocessor {
             return url + '&' + params;
     }
     private String cutHtml(String text, String cutToken) {
-        if (StringUtils.hasValue(cutToken)) {
-            String begToken = "<!-- cutStart:" + cutToken + " -->";
-            int beg = text.indexOf(begToken);
-            if (beg != -1)
-                text = text.substring(beg + begToken.length());
+        if (cutToken != null) {
+            cutToken = cutToken.trim();
+            if ("none".equalsIgnoreCase(cutToken))
+                cutToken = "";
+            else if (cutToken.length() > 0)
+                cutToken = "\\Q:" + cutToken + "\\E";
 
-            String endToken =  "<!-- cutEnd:" + cutToken + " -->";
-            int end = text.indexOf(endToken);
-            if (end != -1)
-                text = text.substring(0, end);
+            Pattern begToken = Pattern.compile("<!--\\s*cutStart" + cutToken
+                    + "\\s*-->");
+            Matcher m = begToken.matcher(text);
+            if (m.find())
+                text = text.substring(m.end());
+
+            Pattern endToken = Pattern.compile("<!--\\s*cutEnd" + cutToken
+                    + "\\s*-->");
+            m = endToken.matcher(text);
+            if (m.find())
+                text = text.substring(0, m.start());
         }
 
         return text;
