@@ -74,6 +74,7 @@ public class FileBackupManager {
 
     private static OutputStream logFile = null;
     private static final String LOG_FILE_NAME = "log.txt";
+    private static final String HIST_LOG_FILE_NAME = "histLog.txt";
     private static final String OLD_BACKUP_TEMP_FILENAME = "temp_old.zip";
     private static final String NEW_BACKUP_TEMP_FILENAME = "temp_new.zip";
     private static final SimpleDateFormat DATE_FMT =
@@ -160,6 +161,8 @@ public class FileBackupManager {
                         new FileOutputStream(newBackupTempFile)));
         newBackupOut.setLevel(9);
 
+        boolean wroteHistLog = false;
+
         if (mostRecentBackupFile != null) {
             ZipInputStream oldBackupIn = new ZipInputStream(
                     new BufferedInputStream(new FileInputStream(
@@ -176,8 +179,21 @@ public class FileBackupManager {
             ZipEntry oldEntry;
             while ((oldEntry = oldBackupIn.getNextEntry()) != null) {
                 String filename = oldEntry.getName();
+
                 if (extResourceMgr.isArchivedItem(filename))
                     continue;
+
+                if (HIST_LOG_FILE_NAME.equals(filename)) {
+                    if (when == STARTUP)
+                        // at startup, just copy the file to the new backup.
+                        copyZipEntry(oldBackupIn, newBackupOut, oldEntry, null);
+                    else
+                        // other times, append the old file and the new log.
+                        writeHistLogFile(oldBackupIn, newBackupOut, dataDir);
+                    wroteHistLog = true;
+                    continue;
+                }
+
                 File file = new File(dataDir, filename);
 
                 if (dataFiles.remove(filename)) {
@@ -235,6 +251,11 @@ public class FileBackupManager {
             File file = new File(dataDir, filename);
             backupFile(null, null, null, newBackupOut, file, filename);
         }
+
+        // if the old backup didn't contain a historical log file, initialize
+        // it with the current log file
+        if (wroteHistLog == false)
+            writeHistLogFile(null, newBackupOut, dataDir);
 
         // Allow the external resource manager to save any items of interest.
         extResourceMgr.addExternalResourcesToBackup(newBackupOut);
@@ -372,6 +393,7 @@ public class FileBackupManager {
                 }
             }
         }
+        fileIn.close();
 
         if (oldIn != null) {
             // read the next byte from the old backup.
@@ -398,6 +420,47 @@ public class FileBackupManager {
         if (filename.equalsIgnoreCase(WorkingTimeLog.TIME_LOG_MOD_FILENAME))
             oldBackupContainsTimeLogModFile = true;
     }
+
+
+    private static void writeHistLogFile(ZipInputStream oldBackupIn,
+            ZipOutputStream newBackupOut, File dataDir)
+            throws IOException {
+        File currentLog = new File(dataDir, LOG_FILE_NAME);
+        if (oldBackupIn == null && !currentLog.exists())
+            // if we have neither a historical log, nor a current log, there
+            // is nothing to do.
+            return;
+
+        // start an entry in the zip file for the historical log.
+        ZipEntry e = new ZipEntry(HIST_LOG_FILE_NAME);
+        e.setTime(System.currentTimeMillis());
+        newBackupOut.putNextEntry(e);
+
+        // read in the previous historical log, and copy appropriate portions
+        // to the output ZIP.
+        if (oldBackupIn != null) {
+            byte[] histLog = FileUtils.slurpContents(oldBackupIn, false);
+
+            long totalSize = histLog.length + currentLog.length();
+            int skip = (int) Math.max(0, totalSize - MAX_HIST_LOG_SIZE);
+
+            if (skip < histLog.length)
+                newBackupOut.write(histLog, skip, histLog.length - skip);
+        }
+
+        if (currentLog.exists() && currentLog.length() > 0) {
+            newBackupOut.write(HIST_SEPARATOR.getBytes());
+            FileUtils.copyFile(currentLog, newBackupOut);
+        }
+
+        newBackupOut.closeEntry();
+    }
+
+    private static int MAX_HIST_LOG_SIZE = Settings.getInt(
+            "logging.maxHistLogSize", 500000);
+    private static final String HIST_SEPARATOR = "--------------------"
+            + "--------------------------------------------------"
+            + System.getProperty("line.separator");
 
 
     private static void makeExtraBackupCopies(File backupFile, String who)
