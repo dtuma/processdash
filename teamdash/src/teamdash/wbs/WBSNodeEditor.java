@@ -16,6 +16,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
 import java.beans.PropertyChangeListener;
 import java.util.EventObject;
 import java.util.Iterator;
@@ -435,6 +436,8 @@ public class WBSNodeEditor extends AbstractCellEditor
             // don't display a border around the text field.
             textField.setBorder(BorderFactory.createEmptyBorder());
             textField.setDisabledTextColor(Color.gray);
+            if (System.getProperty("java.version").compareTo("1.4") > 0)
+                textField.addMouseMotionListener(new VerticalDragHandler());
             new ConditionalPasteAction(textField);
             this.add(textField);
 
@@ -607,6 +610,30 @@ public class WBSNodeEditor extends AbstractCellEditor
             }
         }
 
+        /** If the user begins a drag gesture in the text field, then drags
+         * vertically beyond the boundaries of the text field, it means that
+         * they want to select multiple rows in the table.
+         * 
+         * In Java 1.4, the JTable class would forward the drag event to the
+         * shouldSelectCell method above.  There, we would stopCellEditing so
+         * the table row selection logic could take over.
+         * 
+         * Starting with Java 1.5, JTable no longer calls shouldSelectCell in
+         * this scenario.  This class watches for that drag pattern and makes
+         * the appropriate call to stop cell editing.
+         */
+        private class VerticalDragHandler implements MouseMotionListener {
+
+            public void mouseDragged(MouseEvent e) {
+                if (e.getSource() instanceof Component) {
+                    Component c = (Component) e.getSource();
+                    if (!c.contains(0, e.getY()))
+                        stopCellEditing();
+                }
+            }
+
+            public void mouseMoved(MouseEvent e) {}
+        }
 
         /** Event object which can be used to resume an interrupted editing
          * session */
