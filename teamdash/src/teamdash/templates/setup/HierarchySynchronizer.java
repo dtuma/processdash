@@ -1128,6 +1128,9 @@ public class HierarchySynchronizer {
             if (super.syncNode(worker, pathPrefix, node) == false)
                 return false;
 
+            if (isPrunedNode(node))
+                return true;
+
             String path = getPath(pathPrefix, node);
             maybeSaveInspSizeData(path, node);
 
