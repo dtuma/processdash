@@ -60,6 +60,8 @@ public class ArchiveMetricsFileExporter implements Runnable,
 
     private static final String DEFECT_FILE_NAME = "defects.xml";
 
+    private static final String TIME_FILE_NAME = "time.xml";
+
     private static final String EV_FILE_NAME = "ev.xml";
 
     private DashboardContext ctx;
@@ -115,6 +117,7 @@ public class ArchiveMetricsFileExporter implements Runnable,
         if (!taskListNames.isEmpty())
             writeTaskLists(zipOut, taskListNames);
         writeDefects(zipOut);
+        writeTimeLogEntries(zipOut);
         writeManifest(zipOut, !taskListNames.isEmpty());
 
         zipOut.close();
@@ -143,6 +146,7 @@ public class ArchiveMetricsFileExporter implements Runnable,
         writeManifestMetaData(xml);
         writeManifestFileEntry(xml, DATA_FILE_NAME, FILE_TYPE_METRICS, "1");
         writeManifestFileEntry(xml, DEFECT_FILE_NAME, FILE_TYPE_DEFECTS, "1");
+        writeManifestFileEntry(xml, TIME_FILE_NAME, FILE_TYPE_TIME_LOG, "1");
         if (includeTaskLists)
             writeManifestFileEntry(xml, EV_FILE_NAME, FILE_TYPE_EARNED_VALUE,
                     "1");
@@ -216,6 +220,15 @@ public class ArchiveMetricsFileExporter implements Runnable,
 
         DefectExporter exp = new DefectExporterXMLv1();
         exp.dumpDefects(ctx.getHierarchy(), filter, zipOut);
+
+        zipOut.closeEntry();
+    }
+
+    private void writeTimeLogEntries(ZipOutputStream zipOut) throws IOException {
+        zipOut.putNextEntry(new ZipEntry(TIME_FILE_NAME));
+
+        TimeLogExporter exp = new TimeLogExporterXMLv1();
+        exp.dumpTimeLogEntries(ctx.getTimeLog(), filter, zipOut);
 
         zipOut.closeEntry();
     }
