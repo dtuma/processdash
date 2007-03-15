@@ -50,6 +50,7 @@ public class OptionCheckbox extends JCheckBox implements ActionListener {
             setSelected(true);
         addActionListener(this);
         setBorder(new EmptyBorder(0, 20, 0, 0));
+        setFocusPainted(false);
         actionPerformed(null);
     }
 

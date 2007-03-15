@@ -155,6 +155,9 @@ public class QuickLauncher {
         contents.add(new OptionCheckbox("Disable_Export", "-D"
                 + Settings.SYS_PROP_PREFIX + "export.disableAutoExport=true",
                 null, processFactory, true));
+        contents.add(new OptionCheckbox("Use_External_Templates", null, "-D"
+                + Settings.SYS_PROP_PREFIX + "templates.directory=",
+                processFactory, false));
 
         JTable table = new JTable(instanceList);
         TableColumnModel cols = table.getColumnModel();
