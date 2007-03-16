@@ -6,16 +6,23 @@ import java.awt.Graphics;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.awt.event.ActionEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
+import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JMenu;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
@@ -47,6 +54,8 @@ public class WBSTabPanel extends JPanel
     UndoList undoList;
     ArrayList tableColumnModels = new ArrayList();
     GridBagLayout layout;
+    ArrayList editableTabs = new ArrayList();
+    List enablementCalculations = new LinkedList();
 
     /** Create a WBSTabPanel */
     public WBSTabPanel(WBSModel wbs, DataTableModel data,
@@ -87,16 +96,29 @@ public class WBSTabPanel extends JPanel
         UndoList.stopCellEditing(this);
     }
 
+    protected boolean isTabEditable(int tabIndex) {
+        return editableTabs.contains(String.valueOf(tabIndex));
+    }
+
+    public int addTab(
+            String tabName,
+            String columnIDs[],
+            String[] columnNames)
+        throws IllegalArgumentException {
+        return addTab(tabName, columnIDs, columnNames, false);
+    }
+
     /** Add a tab to the tab panel
      * @param tabName The name to display on the tab
      * @param columnNames The columns to display when this tab is selected
      * @throws IllegalArgumentException if <code>columnNames</code> names
      *    a column which cannot be found
      */
-    public void addTab(
+    public int addTab(
         String tabName,
         String columnIDs[],
-        String[] columnNames)
+        String[] columnNames,
+        boolean isEditable)
         throws IllegalArgumentException {
 
         DataTableModel tableModel = (DataTableModel) dataTable.getModel();
@@ -116,7 +138,10 @@ public class WBSTabPanel extends JPanel
                 columnModel.addColumn(tableColumn);
             }
         }
+        return addTab(tabName, columnModel, isEditable);
+    }
 
+    protected int addTab(String tabName, TableColumnModel columnModel, boolean isEditable) {
         // add the newly created table model to the tableColumnModels list
         tableColumnModels.add(columnModel);
 
@@ -124,8 +149,14 @@ public class WBSTabPanel extends JPanel
         // an automatic tab selection event, which will effectively install
         // the tableColumnModel we just created.)
         tabbedPane.add(tabName, new EmptyComponent(new Dimension(10, 10)));
-    }
 
+        int tabIndex = tableColumnModels.size() - 1;
+
+        if (isEditable)
+            editableTabs.add(String.valueOf(tabIndex));
+
+        return tabIndex;
+    }
 
     /** Get a list of actions for editing the work breakdown structure */
     public Action[] getEditingActions() {
@@ -151,6 +182,115 @@ public class WBSTabPanel extends JPanel
         return wbsTable.getMasterActions(masterProjectDir);
     }
 
+    private interface EnablementCalculation {
+        public void recalculateEnablement(int selectedTabIndex);
+    }
+
+    private TableColumnModel copyColumnsDeep(TableColumnModel tableColumnModel) {
+        TableColumnModel newTableColumnModel = new DefaultTableColumnModel();
+        for (Enumeration columns = tableColumnModel.getColumns(); columns.hasMoreElements();) {
+            TableColumn existingColumn = (TableColumn) columns.nextElement();
+            DataTableModel tableModel = (DataTableModel) dataTable.getModel();
+
+            // construct new column
+            String columnID = (String) existingColumn.getIdentifier();
+            DataTableColumn newColumn = new DataTableColumn(tableModel, columnID);
+            newColumn.setHeaderValue(existingColumn.getHeaderValue());
+            newTableColumnModel.addColumn(newColumn);
+        }
+        return newTableColumnModel;
+    }
+
+    public Action[] getTabActions() {
+        return new Action[] {NEW_TAB_ACTION, RENAME_TAB_ACTION, DUPLICATE_TAB_ACTION,
+                DELETE_TAB_ACTION};
+    }
+
+    private class NewTabAction extends AbstractAction {
+        public NewTabAction() {
+            super("New Tab");
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            String tabName = JOptionPane.showInputDialog(tabbedPane,
+                    "Enter a name for the new tab:",
+                    "Add New Tab",
+                    JOptionPane.QUESTION_MESSAGE);
+            if (null == tabName)
+                return;
+
+            int tabIndex = addTab(tabName, new DefaultTableColumnModel(), true);
+            tabbedPane.setSelectedIndex(tabIndex);
+        }
+    }
+    final NewTabAction NEW_TAB_ACTION = new NewTabAction();
+
+    private class RenameTabAction extends AbstractAction implements EnablementCalculation {
+        public RenameTabAction() {
+            super("Rename Tab");
+            enablementCalculations.add(this);
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            String tabName = JOptionPane.showInputDialog(tabbedPane,
+                    "Enter a new name for the '" + tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()) + "' tab:",
+                    "Rename Tab",
+                    JOptionPane.QUESTION_MESSAGE);
+            if (null == tabName)
+                return;
+
+            tabbedPane.setTitleAt(tabbedPane.getSelectedIndex(), tabName);
+        }
+
+        public void recalculateEnablement(int selectedTabIndex) {
+            setEnabled(isTabEditable(selectedTabIndex));
+        }
+    }
+    final RenameTabAction RENAME_TAB_ACTION = new RenameTabAction();
+
+    private class DuplicateTabAction extends AbstractAction {
+        public DuplicateTabAction() {
+            super("Duplicate Tab");
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            String tabName = JOptionPane.showInputDialog(tabbedPane,
+                    "Enter a name for the new tab:",
+                    "Duplicate Tab",
+                    JOptionPane.QUESTION_MESSAGE);
+            if (null == tabName)
+                return;
+
+            TableColumnModel columns = copyColumnsDeep(
+                    (TableColumnModel) tableColumnModels.get(tabbedPane.getSelectedIndex()));
+            int tabIndex = addTab(tabName, columns, true);
+            tabbedPane.setSelectedIndex(tabIndex);
+        }
+    }
+    final DuplicateTabAction DUPLICATE_TAB_ACTION = new DuplicateTabAction();
+
+    private class DeleteTabAction extends AbstractAction implements EnablementCalculation {
+        public DeleteTabAction() {
+            super("Delete Tab");
+            enablementCalculations.add(this);
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            int confirm = JOptionPane.showConfirmDialog(tabbedPane,
+                    "Delete tab named '" + tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()) + "'?",
+                    "Delete Tab",
+                    JOptionPane.OK_CANCEL_OPTION);
+            if (confirm == JOptionPane.OK_OPTION) {
+                tableColumnModels.remove(tabbedPane.getSelectedIndex());
+                tabbedPane.remove(tabbedPane.getSelectedIndex());
+            }
+        }
+
+        public void recalculateEnablement(int selectedTabIndex) {
+            setEnabled(isTabEditable(tabbedPane.getSelectedIndex()));
+        }
+    }
+    final DeleteTabAction DELETE_TAB_ACTION = new DeleteTabAction();
 
     /** Listen for changes in team member initials, and disable undo. */
     public void initialsChanged(String oldInitials, String newInitials) {
@@ -232,7 +372,7 @@ public class WBSTabPanel extends JPanel
 
     /** Create and install the tabbed pane component. */
     private void makeTabbedPane() {
-        tabbedPane = new JTabbedPane();
+        tabbedPane = new JTabbedPane(JTabbedPane.TOP, JTabbedPane.SCROLL_TAB_LAYOUT);
 
         tabbedPane.addChangeListener(new TabListener());
 
@@ -293,6 +433,11 @@ public class WBSTabPanel extends JPanel
             TableColumnModel newModel =
                 (TableColumnModel) tableColumnModels.get(whichTab);
             dataTable.setColumnModel(newModel);
+
+            for (Iterator i = enablementCalculations.iterator(); i.hasNext();) {
+                EnablementCalculation calc = (EnablementCalculation) i.next();
+                calc.recalculateEnablement(whichTab);
+            }
         }
     }
 

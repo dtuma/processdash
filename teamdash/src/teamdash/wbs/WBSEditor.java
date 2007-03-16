@@ -279,6 +279,7 @@ public class WBSEditor implements WindowListener, SaveListener,
 
         result.add(buildFileMenu());
         result.add(buildEditMenu(tabPanel.getEditingActions()));
+        result.add(buildTabMenu(tabPanel.getTabActions()));
         if (!isMode(MODE_BOTTOM_UP))
             result.add(buildWorkflowMenu
                 (workflows, tabPanel.getInsertWorkflowAction(workflows)));
@@ -305,6 +306,15 @@ public class WBSEditor implements WindowListener, SaveListener,
         for (int i = 0;   i < editingActions.length;   i++) {
             result.add(editingActions[i]);
             if (i == 1) result.addSeparator();
+        }
+
+        return result;
+    }
+    private JMenu buildTabMenu(Action[] tabActions) {
+        JMenu result = new JMenu("Tabs");
+        result.setMnemonic('A');
+        for (int i = 0; i < tabActions.length; i++) {
+            result.add(tabActions[i]);
         }
 
         return result;
