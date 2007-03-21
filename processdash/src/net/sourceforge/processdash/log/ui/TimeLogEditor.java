@@ -30,11 +30,14 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
+import java.awt.Event;
 import java.awt.Insets;
+import java.awt.datatransfer.Transferable;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
@@ -51,8 +54,10 @@ import java.util.StringTokenizer;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.InputMap;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
@@ -64,8 +69,10 @@ import javax.swing.JSplitPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.JTree;
+import javax.swing.KeyStroke;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.Timer;
+import javax.swing.TransferHandler;
 import javax.swing.WindowConstants;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.TableModelEvent;
@@ -774,6 +781,7 @@ public class TimeLogEditor extends Object implements TreeSelectionListener,
         tableModel = new TimeLogTableModel();
         if (Settings.isReadOnly())
             tableModel.setEditable(false);
+        tableModel.setApprover(approver);
         tableModel.addTableModelListener(this);
         table = new TimeLogJTable(tableModel);
         TableUtils.configureTable(table, TimeLogTableModel.COLUMN_WIDTHS,
@@ -918,6 +926,7 @@ public class TimeLogEditor extends Object implements TreeSelectionListener,
 
         public TimeLogJTable(TimeLogTableModel tableModel) {
             super(tableModel);
+            setTransferHandler(new TransferSupport());
         }
 
         public boolean editCellAt(int row, int column, EventObject e) {
@@ -941,6 +950,25 @@ public class TimeLogEditor extends Object implements TreeSelectionListener,
         private boolean shouldSelectAll(int column) {
             return (column == TimeLogTableModel.COL_ELAPSED
                     || column == TimeLogTableModel.COL_INTERRUPT);
+        }
+
+        private class TransferSupport extends TransferHandler {
+
+            public TransferSupport() {
+                InputMap inputMap = getInputMap();
+
+                inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_C,
+                        Event.CTRL_MASK), "CopyEntries");
+                getActionMap().put("CopyEntries", getCopyAction());
+            }
+
+            public int getSourceActions(JComponent c) {
+                return COPY_OR_MOVE;
+            }
+
+            protected Transferable createTransferable(JComponent c) {
+                return tableModel.getTransferrable(getSelectedRows());
+            }
         }
 
     }

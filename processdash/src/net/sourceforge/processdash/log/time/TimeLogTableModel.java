@@ -25,6 +25,8 @@
 
 package net.sourceforge.processdash.log.time;
 
+import java.awt.datatransfer.StringSelection;
+import java.awt.datatransfer.Transferable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -44,6 +46,8 @@ public class TimeLogTableModel extends AbstractTableModel implements
         TimeLogListener {
 
     private ModifiableTimeLog timeLog;
+
+    private TimeLoggingApprover approver;
 
     private ArrayList filteredEntries;
 
@@ -95,6 +99,10 @@ public class TimeLogTableModel extends AbstractTableModel implements
                 timeLog.addTimeLogListener(this);
             refreshFilteredEntries();
         }
+    }
+
+    public void setApprover(TimeLoggingApprover approver) {
+        this.approver = approver;
     }
 
     public void setFilter(String path, Date from, Date to) {
@@ -187,10 +195,9 @@ public class TimeLogTableModel extends AbstractTableModel implements
         switch (columnIndex) {
 
         case COL_PATH:
-            // FIXME: we need to validate the path?  Or else add a table cell
-            // editor that makes it impossible to select an invalid value
-            diff = new TimeLogEntryVO(tle.getID(), newValue, null, 0, 0, null,
-                    ChangeFlagged.MODIFIED);
+            if (approver == null || approver.isTimeLoggingAllowed(newValue))
+                diff = new TimeLogEntryVO(tle.getID(), newValue, null, 0, 0,
+                        null, ChangeFlagged.MODIFIED);
             break;
 
         case COL_START_TIME:
@@ -310,6 +317,29 @@ public class TimeLogTableModel extends AbstractTableModel implements
             return newComment;  // use new comment
         else
             return origComment + "\n" + newComment;  // merge comments
+    }
+
+    public Transferable getTransferrable(int[] rows) {
+        StringBuffer result = new StringBuffer();
+        result.append(COLUMN_NAMES[COL_PATH]).append('\t');
+        result.append(COLUMN_NAMES[COL_START_TIME]).append('\t');
+        result.append(COLUMN_NAMES[COL_ELAPSED]).append('\t');
+        result.append(COLUMN_NAMES[COL_INTERRUPT]).append('\t');
+        result.append(COLUMN_NAMES[COL_COMMENT]).append('\n');
+
+        for (int i = 0; i < rows.length; i++) {
+            TimeLogEntry tle = (TimeLogEntry) filteredEntries.get(rows[i]);
+            result.append(tle.getPath()).append("\t");
+            result.append(FormatUtil.formatDateTime(tle.getStartTime())).append("\t");
+            result.append(tle.getElapsedTime()).append("\t");
+            result.append(tle.getInterruptTime()).append("\t");
+            String comment = tle.getComment();
+            if (comment != null)
+                result.append(comment.replace('\t', ' ').replace('\r', ' ')
+                        .replace('\n', ' '));
+            result.append("\n");
+        }
+        return new StringSelection(result.toString());
     }
 
     public void timeLogChanged(TimeLogEvent e) {
