@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2006 Tuma Solutions, LLC
+// Copyright (C) 2003-2007 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -370,6 +370,16 @@ public class TinyCGIBase implements TinyCGI {
      * override this method to return false. */
     protected boolean supportQueryFiles() { return true; }
 
+    /** Is the current request occurring on behalf of an export operation? */
+    protected boolean isExporting() {
+        return parameters.containsKey("EXPORT");
+    }
+
+    /** Is the current request occurring on behalf of an export-to-excel
+     * operation? */
+    protected boolean isExportingToExcel() {
+        return "excel".equals(parameters.get("EXPORT"));
+    }
 
     /** Handle an HTTP POST request */
     protected void doPost() throws IOException {

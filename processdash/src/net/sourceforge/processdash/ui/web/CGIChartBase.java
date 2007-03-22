@@ -1,5 +1,5 @@
+// Copyright (C) 2003-2007 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -169,7 +169,7 @@ public abstract class CGIChartBase extends net.sourceforge.processdash.ui.web.Ti
         chart.draw(g2, new Rectangle2D.Double(0, 0, width, height));
         g2.dispose();
 
-        int quality = (parameters.containsKey("EXPORT") ? 85 : 100);
+        int quality = (isExporting() ? 85 : 100);
         JpegEncoder jpegEncoder = new JpegEncoder(img, quality, outStream);
         jpegEncoder.Compress();
         outStream.flush();
