@@ -572,7 +572,10 @@ public class EVTaskList extends AbstractTreeTableModel
         totalPlanValue = schedule.getMetrics().totalPlan();
         EVTask taskRoot = (EVTask) root;
         totalActualTime = taskRoot.actualCurrentTime;
-        showDirectTimeColumns = (taskRoot.planTime != taskRoot.planValue);
+
+        double directTimeDelta = taskRoot.planTime - taskRoot.planValue;
+        showDirectTimeColumns = Math.abs(directTimeDelta) > 0.1;
+
         fireEvRecalculated();
     }
 
