@@ -324,8 +324,13 @@ public class ConfigureButton extends JMenuBar implements ActionListener, Hierarc
     }
 
     public void startTimeLog() {
+        startTimeLog(null);
+    }
+
+    public void startTimeLog(PropertyKey phase) {
         DashHierarchy hier = parent.getProperties();
-        PropertyKey phase = parent.getCurrentPhase();
+        if (phase == null)
+            phase = parent.getCurrentPhase();
 
         if (hier != null) {
             if (time_frame != null) {

@@ -1,5 +1,5 @@
+// Copyright (C) 2003-2007 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -33,6 +33,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import net.sourceforge.processdash.i18n.Resources;
+import net.sourceforge.processdash.log.time.RolledUpTimeLog;
 import net.sourceforge.processdash.log.time.TimeLog;
 import net.sourceforge.processdash.log.time.TimeLogEntry;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
@@ -81,8 +82,15 @@ public class TimeLogReport extends TinyCGIBase {
         header = StringUtils.findAndReplace(header, "%css%", cssLinkHTML());
         out.print(header);
 
-        TimeLog tl = getDashboardContext().getTimeLog();
+        TimeLog tl;
+        String type = getParameter("type");
+        if ("rollup".equals(type))
+            tl = new RolledUpTimeLog.FromResultSet(getDashboardContext(),
+                    getPrefix(), parameters);
+        else
+            tl = getDashboardContext().getTimeLog();
         List l = Collections.list(tl.filter(path, null, null));
+
         Collections.sort(l);
         Iterator rows = l.iterator();
         TimeLogEntry tle;
@@ -110,11 +118,17 @@ public class TimeLogReport extends TinyCGIBase {
         out.println("</TABLE><!-- cutEnd -->");
 
         if (parameters.get("skipFooter") == null) {
-            out.print(resources.interpolate(EXPORT_LINK,
-                                            HTMLUtils.ESC_ENTITIES));
-            if (getParameter("EXPORT") == null)
-                out.print(resources.interpolate(DISCLAIMER,
-                                                HTMLUtils.ESC_ENTITIES));
+            if (!isExportingToExcel())
+                out.print(resources.interpolate(EXPORT_LINK,
+                        HTMLUtils.ESC_ENTITIES));
+            if (!isExporting() && !"rollup".equals(type)) {
+                StringBuffer html = new StringBuffer(resources.interpolate(
+                        DISCLAIMER, HTMLUtils.ESC_ENTITIES));
+                StringUtils.findAndReplace(html, "&lt;a&gt;",
+                        "<a href='../control/showTimeLog'>");
+                StringUtils.findAndReplace(html, "&lt;/a&gt;", "</a>");
+                out.print(html.toString());
+            }
         }
 
         out.println("</BODY></HTML>");

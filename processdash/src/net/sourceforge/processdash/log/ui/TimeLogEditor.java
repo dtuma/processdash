@@ -1,4 +1,4 @@
-// Copyright (C) 1999-2006 Tuma Solutions, LLC
+// Copyright (C) 1999-2007 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -42,6 +42,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.beans.EventHandler;
+import java.io.IOException;
 import java.text.NumberFormat;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -50,7 +51,9 @@ import java.util.EventObject;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.SortedMap;
 import java.util.StringTokenizer;
+import java.util.TreeMap;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -88,11 +91,15 @@ import javax.swing.tree.TreePath;
 import net.sourceforge.processdash.InternalSettings;
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.hier.DashHierarchy;
+import net.sourceforge.processdash.hier.Filter;
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.hier.ui.PropTreeModel;
 import net.sourceforge.processdash.i18n.Resources;
+import net.sourceforge.processdash.log.time.ChangeFlaggedTimeLogEntry;
 import net.sourceforge.processdash.log.time.CommittableModifiableTimeLog;
 import net.sourceforge.processdash.log.time.DashboardTimeLog;
+import net.sourceforge.processdash.log.time.ModifiableTimeLog;
+import net.sourceforge.processdash.log.time.TimeLog;
 import net.sourceforge.processdash.log.time.TimeLogEntry;
 import net.sourceforge.processdash.log.time.TimeLogEvent;
 import net.sourceforge.processdash.log.time.TimeLogListener;
@@ -103,6 +110,7 @@ import net.sourceforge.processdash.ui.help.PCSH;
 import net.sourceforge.processdash.ui.lib.DeferredSelectAllExecutor;
 import net.sourceforge.processdash.ui.lib.DropDownButton;
 import net.sourceforge.processdash.ui.lib.TableUtils;
+import net.sourceforge.processdash.util.EnumerIterator;
 import net.sourceforge.processdash.util.FormatUtil;
 
 public class TimeLogEditor extends Object implements TreeSelectionListener,
@@ -129,6 +137,8 @@ public class TimeLogEditor extends Object implements TreeSelectionListener,
 
     protected TimeLoggingApprover approver;
 
+    protected boolean forceReadOnly;
+
     JTextField toDate = null;
 
     JTextField fromDate = null;
@@ -151,20 +161,27 @@ public class TimeLogEditor extends Object implements TreeSelectionListener,
 
     boolean selectedNodeLoggingAllowed = false;
 
-    Resources resources = Resources.getDashBundle("Time");
+    static Resources resources = Resources.getDashBundle("Time");
 
 
     // constructor
-    public TimeLogEditor(DashboardTimeLog timeLog,
+    public TimeLogEditor(TimeLog timeLog,
             DashHierarchy props, TimeLoggingApprover approver,
             PropertyKey currentPhase) {
-        this.dashTimeLog = timeLog;
+        if (timeLog instanceof DashboardTimeLog)
+            this.dashTimeLog = (DashboardTimeLog) timeLog;
+        else
+            this.dashTimeLog = null;
+
         this.useProps = props;
         this.useProps.addHierarchyListener(this);
         this.approver = approver;
+        this.forceReadOnly = !(timeLog instanceof ModifiableTimeLog);
 
         constructUserInterface();
         setSelectedNode(currentPhase);
+        if (this.dashTimeLog == null)
+            setTimeLog(timeLog);
         show();
     }
 
@@ -183,7 +200,7 @@ public class TimeLogEditor extends Object implements TreeSelectionListener,
     }
 
     public boolean saveRevertOrCancel(boolean showCancel) {
-        if (isDirty() && Settings.isReadWrite()) {
+        if (isDirty() && Settings.isReadWrite() && !forceReadOnly) {
             int optionType = showCancel ? JOptionPane.YES_NO_CANCEL_OPTION
                     : JOptionPane.YES_NO_OPTION;
             int userChoice = JOptionPane.showConfirmDialog(frame,
@@ -207,6 +224,21 @@ public class TimeLogEditor extends Object implements TreeSelectionListener,
 
     protected boolean isDirty() {
         return timeLog != null && timeLog.hasUncommittedData();
+    }
+
+    public void narrowToPath(String path) {
+        PropertyKey key = useProps.findExistingKey(path);
+        if (key == null)
+            throw new IllegalArgumentException("Path not found");
+
+        treeModel.setRootKey(key);
+        treeModel.reload(useProps);
+        tree.setRootVisible(!PropertyKey.ROOT.equals(key));
+        expandRoot();
+    }
+
+    public void setTitle(String title) {
+        frame.setTitle(title);
     }
 
     public void tableChanged(TableModelEvent evt) {
@@ -315,8 +347,8 @@ public class TimeLogEditor extends Object implements TreeSelectionListener,
             timeCardDialog.recalc();
     }
 
-    private Map getTimes(Date fd, Date td) {
-        Map result = new HashMap();
+    private SortedMap getTimes(Date fd, Date td) {
+        SortedMap result = new TreeMap();
         try {
             for (Iterator i = timeLog.filter(null, fd, td); i.hasNext();) {
                 TimeLogEntry tle = (TimeLogEntry) i.next();
@@ -333,7 +365,7 @@ public class TimeLogEditor extends Object implements TreeSelectionListener,
         return result;
     }
 
-    private long collectTime(Object node, Map timesIn, Map timesOut) {
+    private long collectTime(Object node, SortedMap timesIn, Map timesOut) {
         long t = 0; // time for this node
 
         // recursively compute total time for each
@@ -343,11 +375,29 @@ public class TimeLogEditor extends Object implements TreeSelectionListener,
         }
 
         // fetch and add time spent in this node
-        Object[] path = treeModel.getPathToRoot((TreeNode) node);
-        PropertyKey key = treeModel.getPropKey(useProps, path);
-        long[] l = (long[]) (key == null ? null : timesIn.get(key.path()));
-        if (l != null)
-            t += l[0];
+        Object[] treePath = treeModel.getPathToRoot((TreeNode) node);
+        PropertyKey key = treeModel.getPropKey(useProps, treePath);
+        if (key != null) {
+            String pathPrefix = key.path();
+            // For efficiency, we only search through the portion of the
+            // SortedMap which could contain paths matching our prefix.
+            // "Matching our prefix" means that it exactly equals our
+            // prefix, or it begins with our prefix followed by a slash.
+            // The character after the slash character is the zero '0'.
+            // So any string that is greater than that prefix can't match.
+            String endPrefix = pathPrefix + '0';
+            for (Iterator i = timesIn.subMap(pathPrefix, endPrefix).entrySet()
+                    .iterator(); i.hasNext();) {
+                Map.Entry e = (Map.Entry) i.next();
+                String onePath = (String) e.getKey();
+                if (Filter.pathMatches(onePath, pathPrefix)) {
+                    long[] l = (long[]) e.getValue();
+                    if (l != null)
+                        t += l[0];
+                    i.remove();
+                }
+            }
+        }
 
         timesOut.put(node, new Long(t));
 
@@ -573,20 +623,29 @@ public class TimeLogEditor extends Object implements TreeSelectionListener,
     }
 
     public void show() {
-        if (frame.isShowing())
+        if (frame.isShowing()) {
+            frame.setExtendedState(JFrame.NORMAL);
             frame.toFront();
-        else {
-            setTimeLog(dashTimeLog.getDeferredTimeLogModifications());
+        } else {
+            if (dashTimeLog != null)
+                setTimeLog(dashTimeLog.getDeferredTimeLogModifications());
             frame.show();
         }
     }
 
-    protected void setTimeLog(CommittableModifiableTimeLog newTimeLog) {
+    protected void setTimeLog(TimeLog newTimeLog) {
         if (newTimeLog != timeLog) {
             if (timeLog != null)
                 timeLog.removeTimeLogListener(this);
 
-            timeLog = newTimeLog;
+            if (newTimeLog == null)
+                timeLog = null;
+            else if (newTimeLog instanceof CommittableModifiableTimeLog)
+                timeLog = (CommittableModifiableTimeLog) newTimeLog;
+            else {
+                timeLog = new CMTLWrapper(newTimeLog);
+                tableModel.setEditable(false);
+            }
 
             if (timeLog != null)
                 timeLog.addTimeLogListener(this);
@@ -642,7 +701,8 @@ public class TimeLogEditor extends Object implements TreeSelectionListener,
     }
 
     private boolean timeLoggingAllowed(PropertyKey key) {
-        return key != null && approver.isTimeLoggingAllowed(key.path());
+        return key != null && approver != null
+            && approver.isTimeLoggingAllowed(key.path());
     }
 
     // DateChangeAction responds to user input in a date field.
@@ -779,7 +839,7 @@ public class TimeLogEditor extends Object implements TreeSelectionListener,
 
         retPanel.setLayout(new BorderLayout());
         tableModel = new TimeLogTableModel();
-        if (Settings.isReadOnly())
+        if (Settings.isReadOnly() || forceReadOnly)
             tableModel.setEditable(false);
         tableModel.setApprover(approver);
         tableModel.addTableModelListener(this);
@@ -793,7 +853,7 @@ public class TimeLogEditor extends Object implements TreeSelectionListener,
         createButton(btnPanel, "Delete", "deleteSelectedRow");
         createButton(btnPanel, "Summarize_Button", "summarizeWarning");
 
-        if (Settings.isReadWrite())
+        if (Settings.isReadWrite() && !forceReadOnly)
             retPanel.add("South", btnPanel);
 
         return retPanel;
@@ -913,7 +973,8 @@ public class TimeLogEditor extends Object implements TreeSelectionListener,
             boolean hideIfReadOnly) {
         JButton result = new JButton(getResource(resKey));
         result.addActionListener(createActionListener(action));
-        if (hideIfReadOnly == false || Settings.isReadOnly() == false)
+        if (hideIfReadOnly == false
+                || (Settings.isReadWrite() && !forceReadOnly))
             p.add(result);
         return result;
     }
@@ -971,6 +1032,36 @@ public class TimeLogEditor extends Object implements TreeSelectionListener,
             }
         }
 
+    }
+
+    /**
+     * The code for the time log editor generally targets modifiable time logs.
+     * However, 95% of it is useful for read-only analysis of unmodifiable time
+     * logs as well. In fact, when a small number of boolean flags are toggled,
+     * the 5% of the code that handles modification is no longer be triggered by
+     * user gestures. Rather than cluttering that unreachable code with
+     * conditional branches to handle readOnly scenarios that will never happen,
+     * this class wraps an unmodifiable time log with the expected interfaces,
+     * implementing modification calls as no-ops.
+     */
+    private class CMTLWrapper implements CommittableModifiableTimeLog {
+        TimeLog tl;
+
+        public CMTLWrapper(TimeLog timeLog) {
+            this.tl = timeLog;
+        }
+        public EnumerIterator filter(String path, Date from, Date to)
+                throws IOException {
+            return tl.filter(path, from, to);
+        }
+        public void addModification(ChangeFlaggedTimeLogEntry tle) {}
+        public void addModifications(Iterator iter) {}
+        public void addTimeLogListener(TimeLogListener l) {}
+        public void removeTimeLogListener(TimeLogListener l) {}
+        public void clearUncommittedData() {}
+        public void commitData() {}
+        public long getNextID() { return -1; }
+        public boolean hasUncommittedData() { return false; }
     }
 
 }

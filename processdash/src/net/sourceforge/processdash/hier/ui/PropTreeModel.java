@@ -1,5 +1,5 @@
+// Copyright (C) 2003-2007 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -38,10 +38,20 @@ public class PropTreeModel extends DefaultTreeModel
 {
     TreeModelListener listener;
 
+    private PropertyKey rootKey = PropertyKey.ROOT;
+
     public PropTreeModel (DefaultMutableTreeNode root,
                           TreeModelListener      l) {
         super (root);
         listener = l;
+    }
+
+    public PropertyKey getRootKey() {
+        return rootKey;
+    }
+
+    public void setRootKey(PropertyKey rootNode) {
+        this.rootKey = rootNode;
     }
 
     public void useTreeModelListener (boolean listen) {
@@ -68,12 +78,13 @@ public class PropTreeModel extends DefaultTreeModel
 
     public void fill (DashHierarchy props) {
         DefaultMutableTreeNode root = (DefaultMutableTreeNode) getRoot();
-        fill (root, props, PropertyKey.ROOT);
+        fill (root, props, rootKey);
+        root.setUserObject(rootKey.path());
     }
 
-    public void reload (DashHierarchy          props,
-                        DefaultMutableTreeNode node,
-                        PropertyKey            key) {
+    private void reload (DashHierarchy          props,
+                         DefaultMutableTreeNode node,
+                         PropertyKey            key) {
         DefaultMutableTreeNode child;
         int childIndex = 0;
         //set the current node name
@@ -96,11 +107,13 @@ public class PropTreeModel extends DefaultTreeModel
 
     public void reload (DashHierarchy props) {
         // the root node is assumed to be non-null!
-        reload (props, (DefaultMutableTreeNode)getRoot(), PropertyKey.ROOT);
+        DefaultMutableTreeNode root = (DefaultMutableTreeNode)getRoot();
+        reload (props, root, rootKey);
+        root.setUserObject(rootKey.path());
     }
 
     public PropertyKey getPropKey (DashHierarchy props, Object [] path) {
-        PropertyKey key = PropertyKey.ROOT;
+        PropertyKey key = rootKey;
         if (path != null)
             for (int i = 1; i < path.length; i++) {
                 int index = getIndexOfChild (path [i - 1], path [i]);
@@ -110,7 +123,9 @@ public class PropTreeModel extends DefaultTreeModel
     }
 
     public TreeNode getNodeForKey (DashHierarchy props, PropertyKey key) {
-        if (PropertyKey.ROOT.equals(key))
+        if (key == null)
+            return null;
+        if (rootKey.equals(key))
             return (TreeNode) getRoot();
         PropertyKey parentKey = key.getParent();
         TreeNode parent = getNodeForKey(props, parentKey);
