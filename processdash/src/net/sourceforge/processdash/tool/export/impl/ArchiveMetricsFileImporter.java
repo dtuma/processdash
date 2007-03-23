@@ -1,4 +1,4 @@
-// Copyright (C) 2005-2006 Tuma Solutions, LLC
+// Copyright (C) 2005-2007 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -41,6 +41,7 @@ import net.sourceforge.processdash.data.ImmutableDoubleData;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.data.repository.InvalidDatafileFormat;
 import net.sourceforge.processdash.log.ImportedDefectManager;
+import net.sourceforge.processdash.log.time.ImportedTimeLogManager;
 import net.sourceforge.processdash.util.XMLUtils;
 
 import org.xmlpull.v1.XmlPullParser;
@@ -77,6 +78,7 @@ public class ArchiveMetricsFileImporter implements Runnable,
         List result = new LinkedList();
         result.add(new EVImporterXMLv1());
         result.add(new DefectImporterXMLv1());
+        result.add(new TimeLogImporterXMLv1());
         result.add(new DataImporterXMLv1());
         return result;
     }
@@ -151,6 +153,7 @@ public class ArchiveMetricsFileImporter implements Runnable,
                 WHEN_ATTR));
 
         ImportedDefectManager.closeDefects(prefix);
+        ImportedTimeLogManager.getInstance().closeTimeLogs(prefix);
         defns = new HashMap();
 
         while (parser.next() != XmlPullParser.END_DOCUMENT) {

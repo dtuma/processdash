@@ -1,0 +1,176 @@
+// Copyright (C) 2007 Tuma Solutions, LLC
+// Process Dashboard - Data Automation Tool for high-maturity processes
+//
+// This program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License
+// as published by the Free Software Foundation; either version 2
+// of the License, or (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, write to the Free Software
+// Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+//
+// The author(s) may be contacted at:
+// Process Dashboard Group
+// c/o Ken Raisor
+// 6137 Wardleigh Road
+// Hill AFB, UT 84056-5843
+//
+// E-Mail POC: processdash-devel@lists.sourceforge.net
+
+package net.sourceforge.processdash.log.time;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
+import net.sourceforge.processdash.hier.Filter;
+import net.sourceforge.processdash.util.EnumerIterator;
+import net.sourceforge.processdash.util.IteratorConcatenator;
+import net.sourceforge.processdash.util.StringMapper;
+
+public class ImportedTimeLogManager {
+
+    private static final ImportedTimeLogManager INSTANCE = new ImportedTimeLogManager();
+
+    public static ImportedTimeLogManager getInstance() {
+        return INSTANCE;
+    }
+
+    Map importedLogs;
+
+    private ImportedTimeLogManager() {
+        importedLogs = Collections.synchronizedMap(new HashMap());
+    }
+
+
+    /**
+     * Remove the time log associated with the given prefix from our cache.
+     */
+    public void closeTimeLogs(String prefix) {
+        File oldFile = (File) importedLogs.remove(cleanupPrefix(prefix));
+        if (oldFile != null)
+            oldFile.delete();
+    }
+
+    /**
+     * Import a time log, and associate it with the given prefix. If another
+     * time log is already present in the cache with the same prefix, it will be
+     * replaced by the incoming time log.
+     * 
+     * @param prefix the prefix where the time log should be mounted
+     * @param timeLogData an input stream containing XML time log data
+     */
+    public void importTimeLog(String prefix, InputStream timeLogData)
+            throws IOException {
+        File oldFile;
+        prefix = cleanupPrefix(prefix);
+
+        // read the time log entries from the stream
+        Iterator timeLogEntries = new TimeLogReader(timeLogData, false);
+
+        if (!timeLogEntries.hasNext()) {
+            // if the incoming time log is empty, don't bother saving it. Just
+            // delete any time log for the given prefix.
+            oldFile = (File) importedLogs.remove(prefix);
+
+        } else {
+            // prepend the prefix to all time log entries
+            timeLogEntries = new TimeLogEntryVOPathFilter(timeLogEntries,
+                    new PrefixAppender(prefix));
+
+            // create a temporary file, and copy the frobbed entries to it
+            File destFile = File.createTempFile("tempImportedTimeLog", ".xml");
+            destFile.deleteOnExit();
+            TimeLogWriter.write(destFile, timeLogEntries);
+
+            // save the new file into our map of imported log files.
+            oldFile = (File) importedLogs.put(prefix, destFile);
+        }
+
+        // cleanup after the old file, if it was present.
+        if (oldFile != null)
+            oldFile.delete();
+    }
+
+    /**
+     * Return an iterator of the time log entries mounted at the given prefix.
+     * If no imported defects are mounted at the given prefix, returns null.
+     */
+    public EnumerIterator getImportedTimeLogEntries(String prefix)
+            throws IOException {
+        prefix = cleanupPrefix(prefix);
+        List timeLogIterators = new ArrayList();
+
+        ArrayList l;
+        synchronized (importedLogs) {
+            l = new ArrayList(importedLogs.entrySet());
+        }
+        for (Iterator i = l.iterator(); i.hasNext();) {
+            Map.Entry e = (Map.Entry) i.next();
+            String importedPrefix = (String) e.getKey();
+            File file = (File) e.getValue();
+
+            if (Filter.pathMatches(importedPrefix, prefix)) {
+                // this set of imported time log data is either (a) mounted
+                // at the exact prefix requested, or (b) mounted at a prefix
+                // underneath the one requested. In either case, we should
+                // return all imported entries.
+                Iterator content = new TimeLogReader(file);
+                timeLogIterators.add(content);
+            } else if (Filter.pathMatches(prefix, importedPrefix)) {
+                // in this case, the requested prefix identifies a subset of
+                // the imported time log data. We must filter that imported
+                // data to return the requested entries.
+                Iterator content = new TimeLogReader(file);
+                Iterator filteredContent = new TimeLogIteratorFilter(content,
+                        prefix, null, null);
+                if (filteredContent.hasNext())
+                    timeLogIterators.add(filteredContent);
+            }
+        }
+
+        if (timeLogIterators.isEmpty())
+            return null;
+        else if (timeLogIterators.size() == 1)
+            return (EnumerIterator) timeLogIterators.get(0);
+        else
+            return new IteratorConcatenator(timeLogIterators);
+    }
+
+    private String cleanupPrefix(String prefix) {
+        while (prefix.length() > 1 && prefix.endsWith("/"))
+            prefix = prefix.substring(0, prefix.length() - 1);
+        if (!prefix.startsWith("/"))
+            prefix = "/" + prefix;
+        return prefix;
+    }
+
+    /**
+     * Filter for TimeLogEntryVO objects, that prepends a prefix to the path of
+     * each entry.
+     */
+    private static class PrefixAppender implements StringMapper {
+        String prefixToPrepend;
+
+        public PrefixAppender(String prefixToPrepend) {
+            this.prefixToPrepend = prefixToPrepend;
+        }
+
+        public String getString(String path) {
+            return prefixToPrepend + path;
+        }
+    }
+
+}

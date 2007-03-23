@@ -1,5 +1,5 @@
+// Copyright (C) 2005-2007 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2005 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -44,6 +44,7 @@ import net.sourceforge.processdash.data.TagData;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.data.repository.InvalidDatafileFormat;
 import net.sourceforge.processdash.log.ImportedDefectManager;
+import net.sourceforge.processdash.log.time.ImportedTimeLogManager;
 import net.sourceforge.processdash.tool.export.mgr.ExportManager;
 import net.sourceforge.processdash.util.EscapeString;
 
@@ -119,6 +120,7 @@ public class TextMetricsFileImporter implements Runnable {
             }
 
             ImportedDefectManager.closeDefects(prefix);
+            ImportedTimeLogManager.getInstance().closeTimeLogs(prefix);
             while (line != null && !line.startsWith("<!--"))
                 line = in.readLine();
             if (line != null) {

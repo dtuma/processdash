@@ -27,7 +27,6 @@ package net.sourceforge.processdash.tool.export.impl;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.OutputStreamWriter;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
@@ -35,7 +34,6 @@ import java.util.Iterator;
 import net.sourceforge.processdash.hier.Filter;
 import net.sourceforge.processdash.log.time.TimeLog;
 import net.sourceforge.processdash.log.time.TimeLogEntry;
-import net.sourceforge.processdash.log.time.TimeLogIOConstants;
 import net.sourceforge.processdash.log.time.TimeLogWriter;
 import net.sourceforge.processdash.util.IteratorFilter;
 
@@ -55,10 +53,8 @@ public class TimeLogExporterXMLv1 implements TimeLogExporter {
             entries = new TimeLogFilter(entries, filter);
         }
 
-        OutputStreamWriter osw = new OutputStreamWriter(out,
-                TimeLogIOConstants.ENCODING);
-        TimeLogWriter.write(osw, entries, false);
-        osw.flush();
+        TimeLogWriter.write(out, entries, false);
+        out.flush();
     }
 
     private class TimeLogFilter extends IteratorFilter {

@@ -1,4 +1,4 @@
-// Copyright (C) 2005-2006 Tuma Solutions, LLC
+// Copyright (C) 2005-2007 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -25,12 +25,17 @@
 
 package net.sourceforge.processdash.log.time;
 
+import java.io.BufferedOutputStream;
+import java.io.File;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.Date;
 import java.util.Iterator;
 
 import net.sourceforge.processdash.log.ChangeFlagged;
+import net.sourceforge.processdash.util.RobustFileOutputStream;
 import net.sourceforge.processdash.util.XMLUtils;
 
 import org.xmlpull.v1.XmlPullParserException;
@@ -41,10 +46,30 @@ public class TimeLogWriter implements TimeLogIOConstants {
 
     private static final String NEWLINE = System.getProperty("line.separator");
 
-    public static void write(Writer out, Iterator timeLogEntries) throws IOException {
+    public static void write(File f, Iterator timeLogEntries)
+            throws IOException {
+        write(new RobustFileOutputStream(f), timeLogEntries, true);
+    }
+
+    public static void write(OutputStream out, Iterator timeLogEntries)
+            throws IOException {
         write(out, timeLogEntries, true);
     }
-    public static void write(Writer out, Iterator timeLogEntries, boolean close) throws IOException {
+
+    public static void write(OutputStream out, Iterator timeLogEntries,
+            boolean close) throws IOException {
+        if (!(out instanceof BufferedOutputStream))
+            out = new BufferedOutputStream(out);
+        write(new OutputStreamWriter(out, ENCODING), timeLogEntries, close);
+    }
+
+    public static void write(Writer out, Iterator timeLogEntries)
+            throws IOException {
+        write(out, timeLogEntries, true);
+    }
+
+    public static void write(Writer out, Iterator timeLogEntries, boolean close)
+            throws IOException {
         XmlSerializer ser = null;
         try {
             XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
@@ -73,6 +98,8 @@ public class TimeLogWriter implements TimeLogIOConstants {
 
         if (close)
             out.close();
+        else
+            out.flush();
     }
 
     private static void writeTimeLogEntry(XmlSerializer ser, TimeLogEntry entry)

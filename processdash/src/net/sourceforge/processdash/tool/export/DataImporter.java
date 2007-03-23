@@ -39,6 +39,7 @@ import java.util.Set;
 
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.log.ImportedDefectManager;
+import net.sourceforge.processdash.log.time.ImportedTimeLogManager;
 import net.sourceforge.processdash.tool.export.impl.ArchiveMetricsFileImporter;
 import net.sourceforge.processdash.tool.export.impl.TextMetricsFileImporter;
 import net.sourceforge.processdash.util.FileAgeComparator;
@@ -234,6 +235,7 @@ public class DataImporter extends Thread {
         System.out.println("closing import " + f);
         data.closeDatafile(prefix);
         ImportedDefectManager.closeDefects(prefix);
+        ImportedTimeLogManager.getInstance().closeTimeLogs(prefix);
         modTimes.remove(f);
     }
 
