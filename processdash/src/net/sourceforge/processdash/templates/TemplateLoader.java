@@ -48,6 +48,8 @@ import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.Vector;
 import java.util.jar.JarInputStream;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -923,8 +925,7 @@ public class TemplateLoader {
                 continue;
             }
             htmlPackage = htmlPage.getAttribute(HTML_PACKAGE_ATTR);
-            if (hasValue(htmlPackage) &&
-                getPackageVersion(htmlPackage) == null)
+            if (meetsPackageRequirement(htmlPackage) == false)
                 continue;
 
             if (hasValue(htmlID = htmlPage.getAttribute(ID_ATTR)))
@@ -936,6 +937,63 @@ public class TemplateLoader {
 
         return result;
     }
+
+    /** Check to see if the currently installed packages satisfy a particular
+     * set of requirements.
+     * 
+     * The input value can be one of the following:
+     * <ul>
+     * <li>An unadorned string, denoting the ID of a package that must be
+     *     installed</li>
+     * <li>A string of the form
+     *     <pre>{packageID} version {packageVersion}</pre>
+     *     where <code>{packageID}</code> is the ID of a package that must be
+     *     present, and <code>{packageVersion}</code> is the minimum required
+     *     version of that package.</li>
+     * <li>A semicolon-separated list of individual package requirements (each
+     *     of which is a string meeting either of the forms above)</li>
+     * </ul>
+     * 
+     * @param packageList a package requirement description
+     * @return true if the installed packages meet the given requirement.
+     */
+    public static boolean meetsPackageRequirement(String packageList) {
+        if (!hasValue(packageList))
+            return true;
+
+        String[] requirements = packageList.split(";");
+        for (int i = 0; i < requirements.length; i++) {
+            String packageID = requirements[i].trim();
+            if (!hasValue(packageID))
+                continue;
+            String requiredVersion = null;
+            Matcher m = HTML_PACKAGE_VERSION_PATTERN.matcher(packageID);
+            if (m.matches()) {
+                packageID = m.group(1);
+                requiredVersion = m.group(2);
+            }
+
+            String installedVersion = getPackageVersion(packageID);
+            if (installedVersion == null)
+                // this package is not installed, so the requirement isn't met
+                return false;
+
+            else if (requiredVersion == null)
+                // any version of this package will do. Check the next reqt.
+                continue;
+
+            else
+                // check to see if the version meets the requirement.  If not,
+                // then the overall requirement is not met.
+                if (DashPackage.compareVersions(installedVersion,
+                        requiredVersion) < 0)
+                    return false;
+        }
+
+        // All requirements were met.
+        return true;
+    }
+
     private static void resolveScriptIDs(Element node, Map idMap) {
         if (idMap == null) return;
         String htmlID = node.getAttribute(HTML_ID_ATTR), htmlHref;
@@ -1002,6 +1060,9 @@ public class TemplateLoader {
     private static final String HTML_NAME_ATTR = "title";
     private static final String HTML_HREF_ATTR = DashHierarchy.HTML_HREF_ATTR;
     private static final String HTML_PACKAGE_ATTR = "inPackage";
+    private static final Pattern HTML_PACKAGE_VERSION_PATTERN = Pattern.compile(
+            "(.*)[\\p{Punct}\\p{Space}]+version[\\p{Punct}\\p{Space}]+(.*)",
+            Pattern.CASE_INSENSITIVE);
     private static final String ID_ATTR   = DashHierarchy.ID_ATTR;
     static final String NAME_ATTR = DashHierarchy.NAME_ATTR;
 
