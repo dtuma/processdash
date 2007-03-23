@@ -546,7 +546,8 @@ public class EVMetrics implements TableModel {
         abstract Date val();
         protected void recalc() {
             Date d = val();
-            if (d == null)
+            if (d == null || d == EVSchedule.A_LONG_TIME_AGO
+                    || d == EVSchedule.NEVER)
                 args = null;
             else
                 args = new Object[] { d };
