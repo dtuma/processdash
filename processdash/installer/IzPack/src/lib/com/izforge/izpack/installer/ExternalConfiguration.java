@@ -80,7 +80,7 @@ public class ExternalConfiguration {
     public static String getURL1() {
         // find a "custom-install.ini" file that is inside the installation JAR
         // file, and return the URL.  If no such file exists, return "none".
-        URL result = ExternalConfiguration.class.getResource("/"
+        URL result = ExternalConfiguration.class.getResource("/res/"
                 + INSTALL_INI_FILENAME);
         if (result == null)
             return "none";
