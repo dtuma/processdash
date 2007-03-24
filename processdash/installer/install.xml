@@ -129,6 +129,8 @@
 
             <file targetdir="$INSTALL_PATH" override="true"
 	          src="../dist/pspProc.jar" />
+            <file targetdir="$INSTALL_PATH" override="true"
+	          src="../dist/importPSP.jar" />
         </pack>
 
         <pack name="PSP(SM) for Engineers" id="pspForEng" required="no"
