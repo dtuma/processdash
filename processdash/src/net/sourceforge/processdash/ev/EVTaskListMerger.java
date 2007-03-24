@@ -489,6 +489,28 @@ public class EVTaskListMerger {
 
         // recalculate the merged metrics on the newly created node.
         rollupNode(newNode, key.evNodes, false);
+
+        // accumulate "node time" from the nodes we are merging.  (This is
+        // time that was logged against a non-leaf node in a subschedule.)
+        for (Iterator i = key.evNodes.iterator(); i.hasNext();) {
+            EVTask subTask = (EVTask) i.next();
+            if (!subTask.isUserPruned()) {
+                double subNodeTime = getActualNodeTime(subTask);
+                if (subNodeTime > 0) {
+                    newNode.actualNodeTime += subNodeTime;
+                    newNode.actualTime += subNodeTime;
+                    newNode.actualCurrentTime += subNodeTime;
+                    newNode.actualDirectTime += subNodeTime;
+                }
+            }
+        }
+    }
+
+    private double getActualNodeTime(EVTask task) {
+        double result = task.actualCurrentTime;
+        for (int i = task.getNumChildren(); i-- > 0;)
+            result -= task.getChild(i).actualCurrentTime;
+        return result;
     }
 
     /** Compute rolled up metrics for a merged leaf node in the result tree. */
