@@ -34,6 +34,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.Properties;
 
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
@@ -47,6 +48,7 @@ import net.n3.nanoxml.XMLElement;
 
 import com.izforge.izpack.Pack;
 import com.izforge.izpack.gui.ButtonFactory;
+import com.izforge.izpack.installer.ExternalConfiguration;
 import com.izforge.izpack.installer.InstallData;
 import com.izforge.izpack.installer.InstallerFrame;
 import com.izforge.izpack.installer.IzPanel;
@@ -169,6 +171,13 @@ public class TeamDataDirPanel extends IzPanel implements ActionListener
      */
     public void loadDefaultDir()
     {
+        Properties p = ExternalConfiguration.getConfig();
+        String extDefault = p.getProperty("dir.teamconfig.default");
+        if (extDefault != null) {
+            defaultDir = extDefault;
+            return;
+        }
+
         BufferedReader br = null;
         try
         {
