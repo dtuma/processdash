@@ -321,7 +321,8 @@ public class TimeLogTableModel extends AbstractTableModel implements
 
     public Transferable getTransferrable(int[] rows) {
         StringBuffer result = new StringBuffer();
-        result.append(COLUMN_NAMES[COL_PATH]).append('\t');
+        result.append(resources.getString("Report.Project")).append('\t');
+        result.append(resources.getString("Report.Phase")).append('\t');
         result.append(COLUMN_NAMES[COL_START_TIME]).append('\t');
         result.append(COLUMN_NAMES[COL_ELAPSED]).append('\t');
         result.append(COLUMN_NAMES[COL_INTERRUPT]).append('\t');
@@ -329,7 +330,17 @@ public class TimeLogTableModel extends AbstractTableModel implements
 
         for (int i = 0; i < rows.length; i++) {
             TimeLogEntry tle = (TimeLogEntry) filteredEntries.get(rows[i]);
-            result.append(tle.getPath()).append("\t");
+
+            String path = tle.getPath();
+            String phase = "";
+            int slashPos = path.lastIndexOf("/");
+            if (slashPos != -1) {
+                phase = path.substring(slashPos+1);
+                path = path.substring(0, slashPos);
+            }
+
+            result.append(path).append("\t");
+            result.append(phase).append("\t");
             result.append(FormatUtil.formatDateTime(tle.getStartTime())).append("\t");
             result.append(tle.getElapsedTime()).append("\t");
             result.append(tle.getInterruptTime()).append("\t");
