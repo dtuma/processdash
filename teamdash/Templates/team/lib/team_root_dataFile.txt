@@ -43,6 +43,14 @@ undefine([Simple Project Tag]);
 
 
 /*
+ * Create a list of nodes whose Project_WBS_ID matches the ID of this node.
+ */
+[Corresponding_Project_Nodes] =
+    filter([Project_WBS_ID] == indirect([_] &/ "Project_WBS_ID"),
+           [/<!--#echo Process_ID -->/Project List]);
+
+
+/*
  * Publish team settings data that can be exported to individuals
  */
 [Team_Settings] = TAG;

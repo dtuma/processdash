@@ -54,16 +54,19 @@
         title="    Edit Project Parameters and Settings"/>
     <html ID="import" href="control/importNow.class"
         title="    Import All Data Now"/>
+    <html ID="timelog" href="control/showTimeLog?type=rollup&amp;for=[Corresponding_Project_Nodes]&amp;mergePrefixes&amp;trigger"
+        title="    View Rolled-Up Time Log"
+	inPackage="pspdash version 1.7.1b.8a"/>
     <html ID="snapshot" href="PID/saveSnapshot.shtm"
         title="    Save Snapshot of Project Plan"/>
     <html ID="subproj" href="PID/setup/subprojectList.shtm"
         title="    Edit List of Subprojects"/>
     <html ID="wbsTD" href="PID/setup/openWBS.shtm?trigger&amp;master"
         title="    Edit Top-Down Work Breakdown Structure"
-	inPackage="teamTools"/>
+	inPackage="teamTools version 2.4.4"/>
     <html ID="wbsBU" href="PID/setup/openWBS.shtm?trigger&amp;bottomUp"
         title="    View Bottom-Up Work Breakdown Structure"
-	inPackage="teamTools"/>
+	inPackage="teamTools version 2.4.4"/>
     <html ID="sync" href="PID/setup/sync.class?master"
         title="    Sync Work Breakdown Structure"/>
 
@@ -136,14 +139,17 @@
         title="    Edit Project Parameters and Settings"/>
     <html ID="import" href="control/importNow.class"
         title="    Import All Data Now"/>
+    <html ID="timelog" href="control/showTimeLog?type=rollup&amp;for=[Corresponding_Project_Nodes]&amp;mergePrefixes&amp;trigger"
+        title="    View Team Time Log"
+	inPackage="pspdash version 1.7.1b.8a"/>
     <html ID="snapshot" href="PID/saveSnapshot.shtm"
         title="    Save Snapshot of Project Plan"/>
     <html ID="editTeam" href="PID/setup/openWBS.shtm?trigger&amp;team"
         title="    Edit Team Member List"
-	inPackage="teamTools"/>
+	inPackage="teamTools version 2.4.4"/>
     <html ID="editWBS" href="PID/setup/openWBS.shtm?trigger"
         title="    Edit Work Breakdown Structure"
-	inPackage="teamTools"/>
+	inPackage="teamTools version 2.4.4"/>
     <html ID="sync" href="PID/setup/sync.class?team"
         title="    Sync Work Breakdown Structure"/>
 

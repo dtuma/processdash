@@ -65,6 +65,17 @@
 <input type=submit name="submit" value="Import All Data Now">
 </form>
 
+[!--#if Dash_Package_pspdash ge 'version 1.7.1b.8a' --]
+[!--#if REMOTE_ADDR eq '127.0.0.1' --]
+<p><form action="../control/showTimeLog" method="POST">
+<input type=hidden name="type" value="rollup">
+<input type=hidden name="for" value="[Corresponding_Project_Nodes]">
+<input type=hidden name="mergePrefixes" value="t">
+<input type=submit name="submit" value="View Team Time Log">
+</form>
+[!--#endif REMOTE_ADDR --]
+[!--#endif 1.7.1b.8a --]
+
 <p><form action="/dash/archive.class" method="POST">
 <input type=hidden name="filename"
        value="<!--#echo Process_ID -->_Summary-PREFIX">
