@@ -340,7 +340,7 @@ public class EVCalculatorData extends EVCalculator {
 
         task.actualNodeTime += entry.getElapsedTime();
         if (task.actualStartDate == null ||
-            task.actualStartDate.compareTo(d) < 0)
+            task.actualStartDate.compareTo(d) > 0)
             task.actualStartDate = d;
 
         if (task.isUserPruned()) return;

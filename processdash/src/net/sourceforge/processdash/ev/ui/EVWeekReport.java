@@ -279,7 +279,8 @@ public class EVWeekReport extends TinyCGIBase {
 
         double numWeeks = Double.NaN;
         if (startDate != null)
-            numWeeks = (effDate.getTime() - startDate.getTime())
+            numWeeks = (effDate.getTime() - startDate.getTime() - EVSchedule
+                    .dstDifference(startDate.getTime(), effDate.getTime()))
                     / (double) MILLIS_PER_WEEK;
         interpOut("<tr><td class=left>${Summary.Average_per_Week}" +
                 "</td><td></td>");
