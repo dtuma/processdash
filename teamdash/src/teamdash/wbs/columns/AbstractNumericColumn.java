@@ -29,6 +29,10 @@ public abstract class AbstractNumericColumn extends AbstractDataColumn {
 
 
     protected boolean equal(double a, double b) {
+        return equal(a, b, fuzzFactor);
+    }
+
+    protected boolean equal(double a, double b, double fuzzFactor) {
         if (Double.isNaN(a)) return Double.isNaN(b);
         if (Double.isInfinite(a)) return Double.isInfinite(b);
         return Math.abs(a - b) < fuzzFactor;

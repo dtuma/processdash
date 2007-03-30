@@ -101,7 +101,7 @@ public class TopDownBottomUpColumn extends AbstractNumericColumn
 
             // look up the old value of this node.
             double oldValue = NumericDataValue.parse(getValueAt(node));
-            if (equal(oldValue, newValue))
+            if (equal(oldValue, newValue, 0.00001))
                 return;             // if no change was made, return.
 
             // if this node has children, try multiplying all their values
