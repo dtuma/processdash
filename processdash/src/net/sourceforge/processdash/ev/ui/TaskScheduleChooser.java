@@ -70,6 +70,7 @@ import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.ev.EVTaskList;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.ui.help.PCSH;
+import net.sourceforge.processdash.ui.lib.JOptionPaneActionHandler;
 
 public class TaskScheduleChooser
     implements ActionListener, ListSelectionListener
@@ -145,6 +146,7 @@ public class TaskScheduleChooser
         } else
             options = new Object[] { OK, CANCEL };
         JTextField inputField = new JTextField();
+        new JOptionPaneActionHandler(OK).install(inputField);
 
         Component parentComponent = null;
         if (parent instanceof Component)
@@ -159,8 +161,7 @@ public class TaskScheduleChooser
             optionPane.createDialog(parentComponent, title).show();
 
             button = optionPane.getValue();
-            if (button == null || button == CANCEL ||
-                button == JOptionPane.UNINITIALIZED_VALUE)
+            if (!OK.equals(button))
                 return null;    // user cancel
 
             taskName = (String) inputField.getText();
