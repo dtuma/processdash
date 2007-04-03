@@ -149,8 +149,9 @@ public class WBSEditor implements WindowListener, SaveListener,
         if (isMode(MODE_BOTTOM_UP))
             teamTimePanel.setShowBalancedBar(false);
 
-        frame = new JFrame
-            (teamProject.getProjectName() + " - Work Breakdown Structure");
+        frame = new JFrame(teamProject.getProjectName()
+                + " - Work Breakdown Structure"
+                + (teamProject.isReadOnly() ? " (Read-Only)" : ""));
         frame.setJMenuBar(buildMenuBar(tabPanel, teamProject.getWorkflows()));
         frame.getContentPane().add(tabPanel);
         frame.getContentPane().add(teamTimePanel, BorderLayout.SOUTH);
@@ -279,7 +280,7 @@ public class WBSEditor implements WindowListener, SaveListener,
 
         result.add(buildFileMenu());
         result.add(buildEditMenu(tabPanel.getEditingActions()));
-        result.add(buildTabMenu(tabPanel.getTabActions()));
+        // result.add(buildTabMenu(tabPanel.getTabActions()));
         if (!isMode(MODE_BOTTOM_UP))
             result.add(buildWorkflowMenu
                 (workflows, tabPanel.getInsertWorkflowAction(workflows)));
@@ -371,7 +372,7 @@ public class WBSEditor implements WindowListener, SaveListener,
 
     private void showSaveErrorMessage() {
         SAVE_ERROR_MSG[4] = "      "
-                + teamProject.getLockFile().getParentFile().getAbsolutePath();
+                + teamProject.getStorageDirectory().getAbsolutePath();
         JOptionPane.showMessageDialog(frame, SAVE_ERROR_MSG,
                 "Unable to Save", JOptionPane.ERROR_MESSAGE);
     }
@@ -479,6 +480,8 @@ public class WBSEditor implements WindowListener, SaveListener,
             proj = new TeamProject(dir, "Team Project");
         if (forceReadOnly)
             proj.setReadOnly(true);
+        else if (checkProjectEditability(proj, dumpFile, workflowFile) == false)
+            return null;
 
         String intent = showTeamList ? INTENT_TEAM_EDITOR : INTENT_WBS_EDITOR;
         try {
@@ -495,6 +498,39 @@ public class WBSEditor implements WindowListener, SaveListener,
             return null;
         }
     }
+
+    private static boolean checkProjectEditability(TeamProject teamProject,
+            File dumpFile, File workflowFile) {
+        if (teamProject.filesAreReadOnly() == false
+                && fileIsReadOnly(dumpFile) == false
+                && fileIsReadOnly(workflowFile) == false)
+            // all of the files for the project are editable.
+            return true;
+
+        READ_ONLY_FILES_MESSAGE[2] = "      "
+            + teamProject.getStorageDirectory().getAbsolutePath();
+        int userResponse = JOptionPane.showConfirmDialog(null,
+                READ_ONLY_FILES_MESSAGE, "Open Project in Read-Only Mode",
+                JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+        if (userResponse == JOptionPane.YES_OPTION) {
+            teamProject.setReadOnly(true);
+            return true;
+        }
+
+        return false;
+    }
+    private static boolean fileIsReadOnly(File file) {
+        return (file.exists() && !file.canWrite());
+    }
+    private static final String[] READ_ONLY_FILES_MESSAGE = {
+        "The Work Breakdown Structure Editor stores data for this project",
+        "into XML files located in the following directory:",
+        "",
+        " ",
+        "Unfortunately, the current filesystem permissions do not allow",
+        "you to modify those files.  Would you like to open the project",
+        "anyway, in read-only mode?"
+    };
 
     private String getExpandedNodesKey(String projectId) {
         return projectId + EXPANDED_NODES_KEY_SUFFIX;

@@ -26,6 +26,7 @@ public class TeamProject {
     private long fileModTime;
     private File masterProjectDirectory;
     private boolean readOnly;
+    private boolean filesAreReadOnly;
 
 
     /** Create or open a team project */
@@ -44,6 +45,7 @@ public class TeamProject {
      */
     public void reload() {
         fileModTime = 0;
+        filesAreReadOnly = false;
         openProjectSettings();
         openTeamList();
         openTeamProcess();
@@ -140,6 +142,16 @@ public class TeamProject {
             teamList.setReadOnly(readOnly);
     }
 
+    /** Return true if some files for this team project are read-only */
+    public boolean filesAreReadOnly() {
+        return filesAreReadOnly;
+    }
+
+    /** Return the directory where files for this team project are stored */
+    public File getStorageDirectory() {
+        return directory;
+    }
+
     /** Return a lock file for protecting this team project */
     public File getLockFile() {
         return new File(directory, "teamProject.lock");
@@ -160,6 +172,13 @@ public class TeamProject {
         } catch (Exception e) {
             return null;
         }
+    }
+
+    /** Make a note of whether a file is editable */
+    private File checkEditable(File file) {
+        if (file.exists() && !file.canWrite())
+            filesAreReadOnly = true;
+        return file;
     }
 
     /** Open the file containing the project settings (written by the team
@@ -218,7 +237,8 @@ public class TeamProject {
     /** Open the file containing the list of team members */
     private void openTeamList() {
         try {
-            Element xml = openXML(new File(directory, TEAM_LIST_FILENAME));
+            Element xml = openXML(checkEditable(new File(directory,
+                    TEAM_LIST_FILENAME)));
             if (xml != null) teamList = new TeamMemberList(xml);
         } catch (Exception e) {
         }
@@ -282,7 +302,8 @@ public class TeamProject {
 
     protected WBSModel readWBS() {
         try {
-            Element xml = openXML(new File(directory, WBS_FILENAME));
+            Element xml = openXML(checkEditable(new File(directory,
+                    WBS_FILENAME)));
             if (xml != null) {
                 WBSModel result = new WBSModel(xml);
                 projectName = result.getRoot().getName();
@@ -317,7 +338,8 @@ public class TeamProject {
     /** Open the file containing the common workflows */
     private void openWorkflows() {
         try {
-            Element xml = openXML(new File(directory, FLOW_FILENAME));
+            Element xml = openXML(checkEditable(new File(directory,
+                    FLOW_FILENAME)));
             if (xml != null) workflows = new WorkflowWBSModel(xml);
         } catch (Exception e) {
         }
