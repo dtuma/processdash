@@ -1,5 +1,5 @@
+// Copyright (C) 2003-2007 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -26,13 +26,12 @@
 package net.sourceforge.processdash.i18n;
 
 import java.io.Reader;
-import java.lang.reflect.Constructor;
-import java.net.URL;
-import java.net.URLClassLoader;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Locale;
+import java.util.Map;
 
 import net.sourceforge.processdash.Settings;
-import net.sourceforge.processdash.templates.TemplateLoader;
 
 
 public class Translator {
@@ -99,66 +98,10 @@ public class Translator {
 
 
     public static void init() {
-        TRANSLATOR = null;
-        createCustomEngine();
         if (TRANSLATOR == null) createDefaultEngine();
         STRICT_STRING_TRANSLATION = Settings.getBool
             ("i18n.strictTranslation", false);
-        //System.out.println("Translator is " +
-        //                   (TRANSLATOR == null ? "OFF" : "ON"));
     }
-
-
-    private static void createCustomEngine() {
-        try {
-            URL u = getCustomEngineClassURL();
-            if (u == null) return;
-
-            String path = u.toString();
-            int pos = path.lastIndexOf('/');
-            String className = path.substring(pos+1, path.length()-6);
-            path = path.substring(0, pos+1);
-
-            URL[] classPath = new URL[1];
-            classPath[0] = new URL(path);
-            URLClassLoader cl = new URLClassLoader(classPath);
-            Class c = cl.loadClass(className);
-            try {
-                Constructor cstr = c.getConstructor(new Class[] { Map.class });
-                TRANSLATOR = (TranslationEngine) cstr.newInstance
-                    (new Object[] { buildTranslationItemsMap() });
-            } catch (Exception e) {
-                TRANSLATOR = (TranslationEngine) c.newInstance();
-            }
-
-        } catch (Exception e) {
-            TRANSLATOR = null;
-        }
-    }
-
-    private static URL getCustomEngineClassURL() {
-        Locale l = Locale.getDefault();
-        String language = l.getLanguage();
-        String country = l.getCountry();
-        URL result;
-
-        if (language != null && language.length() != 0) {
-            if (country != null && country.length() != 0) {
-                result = findTemplateClass("_" + language + "_" + country);
-                if (result != null) return result;
-            }
-            result = findTemplateClass("_" + language);
-            if (result != null) return result;
-        }
-        return null;
-    }
-
-
-    private static URL findTemplateClass(String qualifiers) {
-        String resName = "resources/Translator" + qualifiers + ".class";
-        return TemplateLoader.resolveURL(resName);
-    }
-
 
     private static void createDefaultEngine() {
         try {
