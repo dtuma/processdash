@@ -56,7 +56,7 @@
         title="    Import All Data Now"/>
     <html ID="timelog" href="control/showTimeLog?type=rollup&amp;for=[Corresponding_Project_Nodes]&amp;mergePrefixes&amp;trigger"
         title="    View Rolled-Up Time Log"
-	inPackage="pspdash version 1.7.1b.8a"/>
+	inPackage="pspdash version 1.7.1b.8"/>
     <html ID="snapshot" href="PID/saveSnapshot.shtm"
         title="    Save Snapshot of Project Plan"/>
     <html ID="subproj" href="PID/setup/subprojectList.shtm"
@@ -141,7 +141,7 @@
         title="    Import All Data Now"/>
     <html ID="timelog" href="control/showTimeLog?type=rollup&amp;for=[Corresponding_Project_Nodes]&amp;mergePrefixes&amp;trigger"
         title="    View Team Time Log"
-	inPackage="pspdash version 1.7.1b.8a"/>
+	inPackage="pspdash version 1.7.1b.8"/>
     <html ID="snapshot" href="PID/saveSnapshot.shtm"
         title="    Save Snapshot of Project Plan"/>
     <html ID="editTeam" href="PID/setup/openWBS.shtm?trigger&amp;team"
