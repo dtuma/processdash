@@ -1,17 +1,17 @@
+// Copyright (C) 2003-2007 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003-2005 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
-// modify it under the terms of the GNU General Public License
+// modify it under the terms of the GNU Lesser General Public License
 // as published by the Free Software Foundation; either version 2
 // of the License, or (at your option) any later version.
 //
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
+// GNU Lesser General Public License for more details.
 //
-// You should have received a copy of the GNU General Public License
+// You should have received a copy of the GNU Lesser General Public License
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 //
@@ -26,6 +26,8 @@
 package net.sourceforge.processdash.i18n;
 
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.text.MessageFormat;
@@ -35,6 +37,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
+import java.util.logging.Logger;
 
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.StringMapper;
@@ -47,12 +50,22 @@ public class Resources extends ResourceBundle implements StringMapper {
     private String bundlePrefix;
     private ResourceBundle delegate;
 
+    private static Logger logger = Logger.getLogger(Resources.class.getName());
+
     private Resources(String bundleName, String bundlePrefix,
                       ResourceBundle delegate, ResourceBundle parent) {
         this.bundleName = bundleName;
         this.bundlePrefix = bundlePrefix;
         this.delegate = delegate;
         setParent(parent);
+    }
+
+    public String getBundleName() {
+        return bundleName;
+    }
+
+    public String getBundlePrefix() {
+        return bundlePrefix;
     }
 
     protected Object handleGetObject(String key) {
@@ -116,8 +129,6 @@ public class Resources extends ResourceBundle implements StringMapper {
     }
 
 
-    private static final String VAR_START_PAT = "${";
-    private static final String VAR_END_PAT = "}";
     public String interpolate(String s) {
         return interpolate(s, null);
     }
@@ -164,7 +175,18 @@ public class Resources extends ResourceBundle implements StringMapper {
         return dialogIndicatorFormat.format(new Object[] { value });
     }
 
-    private static final ClassLoader RESOURCE_LOADER = makeResourceLoader();
+    private static ClassLoader RESOURCE_LOADER = null;
+    private static ClassLoader getResourceLoader() {
+        if (RESOURCE_LOADER == null)
+            RESOURCE_LOADER = makeResourceLoader();
+        return RESOURCE_LOADER;
+    }
+    public static void setResourceLoader(ClassLoader cl) {
+        RESOURCE_LOADER = cl;
+        globalResources = null;
+        dialogIndicatorFormat = null;
+    }
+
     private static ClassLoader makeResourceLoader() {
         return (ClassLoader) AccessController.doPrivileged(new PrivilegedAction() {
             public Object run() {
@@ -173,15 +195,22 @@ public class Resources extends ResourceBundle implements StringMapper {
     }
     private static ClassLoader makeResourceLoader0() {
         try {
-            Class.forName("org.w3c.dom.Element");
-            Class clz = Class.forName
-                ("net.sourceforge.processdash.i18n.MergingTemplateClassLoader");
-            return (ClassLoader) clz.newInstance();
-        } catch (Throwable t) { }
-        // System.out.println("XML classes unavailable - using safe loader");
-        return new SafeTemplateClassLoader();
-    }
+            BufferedReader in = new BufferedReader(new InputStreamReader(
+                    Resources.class.getResourceAsStream("ResourceLoaders.txt"),
+                    "UTF-8"));
+            String className;
+            while ((className = in.readLine()) != null)
+                try {
+                    Class clz = Class.forName(className);
+                    ClassLoader result = (ClassLoader) clz.newInstance();
+                    logger.config("Using i18n resource loader " + className);
+                    return result;
+                } catch (Throwable t) {}
 
+        } catch (Throwable t) {}
+
+        return Resources.class.getClassLoader();
+    }
 
     private static final boolean TIME_LOADING = false;
     private static final char PREFIX_SEPARATOR = '_';
@@ -208,7 +237,7 @@ public class Resources extends ResourceBundle implements StringMapper {
                 .replace(PREFIX_SEPARATOR, '.');
 
         ResourceBundle realBundle = ResourceBundle.getBundle
-            (bundleBaseName, Locale.getDefault(), RESOURCE_LOADER);
+            (bundleBaseName, Locale.getDefault(), getResourceLoader());
         Resources result = new Resources(bundleBaseName, bundlePrefix,
                                          realBundle, parent);
 

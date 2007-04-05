@@ -1,5 +1,5 @@
+// Copyright (C) 2003-2007 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -47,7 +47,7 @@ import net.sourceforge.processdash.templates.TemplateLoader;
  * one matching ".properties" file in the TemplateLoader search
  * path, it will merge their contents.
  */
-class MergingTemplateClassLoader extends SafeTemplateClassLoader {
+public class MergingTemplateClassLoader extends SafeTemplateClassLoader {
 
     private Map cache = Collections.synchronizedMap(new HashMap());
     private boolean reverseOrder;
