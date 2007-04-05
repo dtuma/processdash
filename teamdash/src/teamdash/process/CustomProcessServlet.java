@@ -8,8 +8,6 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import net.sourceforge.processdash.net.http.WebServer;
-
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
@@ -17,10 +15,10 @@ import teamdash.XMLUtils;
 
 public class CustomProcessServlet extends HttpServlet {
 
-    WebServer webserver;
-
-    public CustomProcessServlet() throws IOException {
-        this.webserver = GenerateProcess.getTinyWebServer();
+    public void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        response.setContentType("text/plain");
+        response.getWriter().print("ACK");
     }
 
     public void doPost(HttpServletRequest request, HttpServletResponse response)
@@ -32,7 +30,7 @@ public class CustomProcessServlet extends HttpServlet {
             Document settings = XMLUtils.parse(in);
             CustomProcess process = new CustomProcess(settings);
             CustomProcessPublisher.publish(process, response.getOutputStream(),
-                    webserver);
+                    new ClasspathContentProvider());
         } catch (SAXException e) {
             e.printStackTrace();
         }

@@ -3,6 +3,7 @@
 
   <property name="processdash.dir" value="../processdash"/>
   <property name="pspdash.jar" value="${processdash.dir}/dist/pspdash.jar"/>
+  <property name="xmlpull.jar" value="${processdash.dir}/lib/kxml-2.2.1-mod.jar"/>
   <property name="TeamProcessCGI.jar"
       value="Templates/team/lib/TeamProcessCGI.jar"/>
   <property name="server.jar" value="generateProcess.jar"/>
@@ -67,14 +68,25 @@
 
   <target name="server" depends="TeamProcessCGI,filelist.txt"
       description="Build a JAR file to deploy to the server, where the custom process generator will run">
+
+    <!-- compute the classes needed for the custom process servlet -->
+    <classfileset id="servletClasses" dir="bin">
+      <root classname="teamdash.process.CustomProcessServlet"/>
+      <root classname="teamdash.process.GenerateProcess"/>
+    </classfileset>
+
+    <!-- also compute the classes needed from processdash packages -->
+    <classfileset id="servletDashClasses" dir="${processdash.dir}/antbin">
+      <root classname="net.sourceforge.processdash.net.http.HTMLPreprocessor"/>
+      <root classname="net.sourceforge.processdash.process.PhaseUtil"/>
+      <root classname="net.sourceforge.processdash.ui.lib.ProgressDialog"/>
+    </classfileset>
+
     <jar destfile="${server.jar}" duplicate="fail">
       <!-- include the compiled files -->
-      <fileset dir="bin">
-        <include name="teamdash/**/*.class"/>
-        <include name="teamdash/**/*.png"/>
-        <include name="teamdash/**/*.gif"/>
-        <exclude name="teamdash/templates/setup/"/>
-      </fileset>
+      <fileset refid="servletClasses"/>
+      <fileset refid="servletDashClasses"/>
+      <zipfileset src="${xmlpull.jar}"/>
 
       <!-- include the templates -->
       <fileset dir=".">
@@ -86,6 +98,7 @@
         <include name="Templates/team/setup/*.shtm" />
         <include name="Templates/team/setup/filelist.txt" />
       </fileset>
+      <fileset dir="${processdash.dir}" includes="Templates/style.css"/>
     </jar>
   </target>
 
@@ -181,8 +194,7 @@ Unexpected number of processdash classes referenced by TeamTools.jar
   <target name="TeamProcess" depends="-defaultValues,server" unless="noBuild">
     <java classname="teamdash.process.GenerateProcess" fork="true">
       <classpath>
-        <pathelement location="${server.jar}"/>	
-        <pathelement location="${pspdash.jar}"/>
+        <pathelement location="${server.jar}"/>
       </classpath>
       <arg value="${teamProcess.xml}"/>
       <arg value="."/>

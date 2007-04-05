@@ -23,9 +23,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 
+import net.sourceforge.processdash.net.http.ContentSource;
 import net.sourceforge.processdash.net.http.HTMLPreprocessor;
-import net.sourceforge.processdash.net.http.WebServer;
-import net.sourceforge.processdash.process.TemplateAutoData;
+import net.sourceforge.processdash.process.PhaseUtil;
 import net.sourceforge.processdash.templates.DashPackage;
 import net.sourceforge.processdash.ui.lib.ProgressDialog;
 import net.sourceforge.processdash.util.FileUtils;
@@ -46,21 +46,21 @@ public class CustomProcessPublisher {
     private static final String VALUE = "value";
 
     public static void publish(CustomProcess process, File destFile,
-            WebServer webServer) throws IOException {
+            ContentSource contentSource) throws IOException {
 
-        publish(process, destFile, webServer, null);
+        publish(process, destFile, contentSource, null);
     }
 
     public static void publish(CustomProcess process, OutputStream output,
-            WebServer webServer) throws IOException {
+            ContentSource contentSource) throws IOException {
 
-        publish(process, output, webServer, null);
+        publish(process, output, contentSource, null);
     }
 
     public static void publish(CustomProcess process, File destFile,
-            WebServer webServer, URL extBase) throws IOException {
+            ContentSource contentSource, URL extBase) throws IOException {
 
-        CustomProcessPublisher pub = new CustomProcessPublisher(webServer,
+        CustomProcessPublisher pub = new CustomProcessPublisher(contentSource,
                 extBase);
         FileOutputStream fos = new FileOutputStream(destFile);
         pub.publish(process, fos);
@@ -68,9 +68,9 @@ public class CustomProcessPublisher {
     }
 
     public static void publish(CustomProcess process, OutputStream output,
-            WebServer webServer, URL extBase) throws IOException {
+            ContentSource contentSource, URL extBase) throws IOException {
 
-        CustomProcessPublisher pub = new CustomProcessPublisher(webServer,
+        CustomProcessPublisher pub = new CustomProcessPublisher(contentSource,
                 extBase);
         pub.setHeadless(true);
         pub.publish(process, output);
@@ -81,7 +81,7 @@ public class CustomProcessPublisher {
 
     Writer out;
 
-    WebServer webServer;
+    ContentSource contentSource;
 
     HTMLPreprocessor processor;
 
@@ -91,13 +91,13 @@ public class CustomProcessPublisher {
 
     boolean headless;
 
-    protected CustomProcessPublisher(WebServer webServer, URL extBase)
+    protected CustomProcessPublisher(ContentSource contentSource, URL extBase)
             throws IOException {
-        this.webServer = webServer;
+        this.contentSource = contentSource;
         this.extBase = extBase;
         parameters = new HashMap();
         customParams = new HashMap();
-        processor = new HTMLPreprocessor(webServer, null, null, "",
+        processor = new HTMLPreprocessor(contentSource, null, null, "",
                 customParams, parameters);
     }
 
@@ -329,21 +329,21 @@ public class CustomProcessPublisher {
         else
             phaseType = "DEVELOP";
 
-        if (TemplateAutoData.isAppraisalPhaseType(phaseType)) {
+        if (PhaseUtil.isAppraisalPhaseType(phaseType)) {
             setParam(id + "_Is_Appraisal", "t");
             setParam(id + "_Is_Quality", "t");
             if (phaseType.endsWith("INSP"))
                 setParam(id + "_Is_Inspection", "t");
-        } else if (TemplateAutoData.isFailurePhaseType(phaseType)) {
+        } else if (PhaseUtil.isFailurePhaseType(phaseType)) {
             setParam(id + "_Is_Failure", "t");
             setParam(id + "_Is_Quality", "t");
-        } else if (TemplateAutoData.isDevelopmentPhaseType(phaseType)) {
+        } else if (PhaseUtil.isDevelopmentPhaseType(phaseType)) {
             setParam(id + "_Is_Development", "t");
-        } else if (TemplateAutoData.isOverheadPhaseType(phaseType)) {
+        } else if (PhaseUtil.isOverheadPhaseType(phaseType)) {
             setParam(id + "_Is_Overhead", "t");
         }
         if ("plan".equalsIgnoreCase(phaseType)
-                || !TemplateAutoData.isOverheadPhaseType(phaseType)) {
+                || !PhaseUtil.isOverheadPhaseType(phaseType)) {
             setParam(id + "_Is_Defect_Injection", "t");
             setParam(id + "_Is_Defect_Removal", "t");
         }
@@ -392,7 +392,7 @@ public class CustomProcessPublisher {
             return getRawBytesFromExternalFile(filename
                     .substring(EXT_FILE_PREFIX.length()));
         else
-            return webServer.getRawRequest(filename);
+            return contentSource.getContent("/", filename, true);
     }
 
     private byte[] getRawBytesFromExternalFile(String filename)

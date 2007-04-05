@@ -3,28 +3,24 @@ package teamdash.process;
 import java.io.File;
 import java.io.IOException;
 
-import net.sourceforge.processdash.net.http.WebServer;
+import net.sourceforge.processdash.net.http.ContentSource;
 
 public class CustomProcessEditor extends AbstractCustomProcessEditor {
 
     public static void main(String[] args) {
-        try {
-            new CustomProcessEditor(null, GenerateProcess.getTinyWebServer());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        new CustomProcessEditor(null, new ClasspathContentProvider());
     }
 
-    WebServer webServer;
+    ContentSource contentSource;
 
-    public CustomProcessEditor(String prefix, WebServer webServer) {
+    public CustomProcessEditor(String prefix, ContentSource contentSource) {
         super(prefix);
-        this.webServer = webServer;
+        this.contentSource = contentSource;
         frame.setVisible(true);
     }
 
     protected void publishProcess(CustomProcess process, File destFile)
             throws IOException {
-        CustomProcessPublisher.publish(process, destFile, webServer);
+        CustomProcessPublisher.publish(process, destFile, contentSource);
     }
 }
