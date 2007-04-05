@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2006 Tuma Solutions, LLC
+// Copyright (C) 2003-2007 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -97,7 +97,7 @@ import net.sourceforge.processdash.util.MD5;
 import net.sourceforge.processdash.util.ResourcePool;
 import net.sourceforge.processdash.util.StringUtils;
 
-public class WebServer {
+public class WebServer implements ContentSource {
 
     private Vector serverSocketListeners = new Vector();
 
@@ -973,8 +973,9 @@ public class WebServer {
 
             parseHTTPHeaders();
 
-            HTMLPreprocessor p =
-                new HTMLPreprocessor(WebServer.this, data, env);
+            String prefix = (String) env.get("PATH_TRANSLATED");
+            HTMLPreprocessor p = new HTMLPreprocessor(WebServer.this,
+                    data.getSubcontext(prefix), env);
             if (mimeType != null && mimeType.indexOf("html") != -1)
                 p.setDefaultEchoEncoding("html");
             String result = p.preprocess(content);
@@ -1601,12 +1602,25 @@ public class WebServer {
     public byte[] getRequest(String context, String uri, boolean skipHeaders)
         throws IOException
     {
+        uri = resolveUriInContext(context, uri);
+        return getRequest(uri, skipHeaders);
+    }
+    private String resolveUriInContext(String context, String uri) throws IOException {
         if (!uri.startsWith("/")) {
             URL contextURL = new URL("http://unimportant" + context);
             URL uriURL = new URL(contextURL, uri);
             uri = uriURL.getFile();
         }
-        return getRequest(uri, skipHeaders);
+        return uri;
+    }
+
+    public byte[] getContent(String context, String uri, boolean raw)
+            throws IOException {
+        uri = resolveUriInContext(context, uri);
+        if (raw)
+            return getRawRequest(uri);
+        else
+            return getRequest(uri, true);
     }
 
     public String getRequestAsString(String uri) throws IOException {

@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2006 Tuma Solutions, LLC
+// Copyright (C) 2003-2007 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -41,18 +41,18 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import net.sourceforge.processdash.Settings;
+import net.sourceforge.processdash.data.DataContext;
 import net.sourceforge.processdash.data.ListData;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.StringData;
-import net.sourceforge.processdash.data.repository.DataRepository;
-import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.PropertyKey;
+import net.sourceforge.processdash.hier.PropertyKeyHierarchy;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.i18n.Translator;
-import net.sourceforge.processdash.process.AutoData;
 import net.sourceforge.processdash.templates.DashPackage;
-import net.sourceforge.processdash.ui.web.TinyCGIBase;
+import net.sourceforge.processdash.util.EscapeString;
 import net.sourceforge.processdash.util.HTMLUtils;
+import net.sourceforge.processdash.util.HttpQueryParser;
 import net.sourceforge.processdash.util.Perl5Util;
 import net.sourceforge.processdash.util.PerlPool;
 import net.sourceforge.processdash.util.StringUtils;
@@ -68,29 +68,26 @@ public class HTMLPreprocessor {
     public static final String RESOURCES_PARAM = "RESOURCES";
     public static final String REPLACEMENTS_PARAM = "EAGERLY_REPLACE";
 
-    WebServer web;
-    DataRepository data;
-    DashHierarchy props;
+    ContentSource web;
+    DataContext data;
+    PropertyKeyHierarchy props;
     Map env, params;
     String prefix;
     String defaultEchoEncoding = null;
     LinkedList resources;
 
 
-    public HTMLPreprocessor(WebServer web, DataRepository data, Map env) {
-        this(web, data, (DashHierarchy) env.get(TinyCGI.PSP_PROPERTIES),
-             (String) env.get("PATH_TRANSLATED"), env, null);
-        QueryParser p = new QueryParser();
-        try {
-            p.parseInput((String) env.get("SCRIPT_PATH"),
-                         (String) env.get("QUERY_STRING"));
-        } catch (IOException ioe) {}
-        params = p.getParameters();
+    public HTMLPreprocessor(ContentSource web, DataContext data, Map env) {
+        this(web,
+             data,
+             (PropertyKeyHierarchy) env.get(TinyCGI.PSP_PROPERTIES),
+             (String) env.get("PATH_TRANSLATED"),
+             env,
+             parseParameters((String) env.get("QUERY_STRING")));
     }
 
-    public HTMLPreprocessor(WebServer web, DataRepository data,
-                            DashHierarchy props,
-                            String prefix, Map env, Map params) {
+    public HTMLPreprocessor(ContentSource web, DataContext data,
+            PropertyKeyHierarchy props, String prefix, Map env, Map params) {
         this.web = web;
         this.data = data;
         this.props = props;
@@ -174,7 +171,7 @@ public class HTMLPreprocessor {
             // replace the include directive with its contents.
             String context = (String) env.get("REQUEST_URI");
             String incText = new String
-                (web.getRequest(context, url, true), "UTF-8");
+                (web.getContent(context, url, false), "UTF-8");
 
             // If the page author wants us to extract only a certain piece of
             // the file, discard the rest.
@@ -369,7 +366,8 @@ public class HTMLPreprocessor {
                 // encode the value as an xml entity
                 value = XMLUtils.escapeAttribute(value);
             else if ("data".equalsIgnoreCase(encoding))
-                value = AutoData.esc(value);
+                // this code must be kept in sync with AutoData
+                value = EscapeString.escape(value, '\\', "'\"[]");
             else if ("dir".equalsIgnoreCase(encoding))
                 value = dirEncode(value);
             else if ("javaStr".equalsIgnoreCase(encoding))
@@ -1210,7 +1208,7 @@ public class HTMLPreprocessor {
     /** lookup a named value in the data repository. */
     private SimpleData getSimpleValue(String name) {
         if (data == null) return null;
-        return data.getSimpleValue(DataRepository.createDataName(prefix, name));
+        return data.getSimpleValue(name);
     }
 
     /** trim the first and last character from a string */
@@ -1227,8 +1225,7 @@ public class HTMLPreprocessor {
             // listName names a data element
             name = trimDelim(name);
             if (checkDefined) {
-                name = DataRepository.createDataName(prefix, name);
-                return (data.getValue(name) != null);
+                return (data != null && data.getValue(name) != null);
             } else {
                 SimpleData d = getSimpleValue(name);
                 return (d == null ? false : d.test());
@@ -1323,16 +1320,12 @@ public class HTMLPreprocessor {
     }
 
 
-    private static class QueryParser extends TinyCGIBase {
-        protected boolean supportQueryFiles() {
-            return false;
-        }
-        public void parseInput(String context, String query) throws IOException {
-            super.parseInput(context, query);
-        }
-        public Map getParameters() {
-            return parameters;
-        }
+    private static Map parseParameters(String params) {
+        Map result = new HashMap();
+        try {
+            new HttpQueryParser().parse(result, params);
+        } catch (IOException ioe) {}
+        return result;
     }
 
     /** @return true if t is null or the empty string */

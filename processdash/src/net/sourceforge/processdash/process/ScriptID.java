@@ -27,9 +27,9 @@
 package net.sourceforge.processdash.process;
 
 
-import net.sourceforge.processdash.net.http.*;
 import net.sourceforge.processdash.process.ui.TriggerURI;
-import net.sourceforge.processdash.ui.*;
+import net.sourceforge.processdash.ui.Browser;
+import net.sourceforge.processdash.util.HTMLUtils;
 
 
 public class ScriptID {
@@ -112,7 +112,7 @@ public class ScriptID {
     protected String getHref (String theScript, String thePath) {
         if (theScript == null || thePath == null) return null;
         String delim = (theScript.startsWith("/") ? "/" : "//");
-        return WebServer.urlEncodePath(thePath) + delim + theScript;
+        return HTMLUtils.urlEncodePath(thePath) + delim + theScript;
     }
 
     protected String stripHash(String script) {

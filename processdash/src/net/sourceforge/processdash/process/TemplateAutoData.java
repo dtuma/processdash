@@ -1,5 +1,5 @@
+// Copyright (C) 2003-2007 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -28,12 +28,18 @@ package net.sourceforge.processdash.process;
 
 
 import java.io.IOException;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Stack;
 
 import net.sourceforge.processdash.data.ListData;
 import net.sourceforge.processdash.data.repository.DataRepository;
-import net.sourceforge.processdash.hier.*;
-import net.sourceforge.processdash.util.*;
+import net.sourceforge.processdash.hier.DashHierarchy;
+import net.sourceforge.processdash.util.StringUtils;
+import net.sourceforge.processdash.util.XMLDepthFirstIterator;
+import net.sourceforge.processdash.util.XMLUtils;
 
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -218,15 +224,15 @@ public class TemplateAutoData extends AutoData {
                 phaseType = cleanupPhaseType(phaseType);
                 nodeDefinitions.append("#define IS_")
                     .append(phaseType.toUpperCase()).append("_PHASE\n");
-                if (appraisalPhaseTypes.contains(phaseType))
+                if (isAppraisalPhaseType(phaseType))
                     nodeDefinitions.append("#define IS_APPRAISAL_PHASE\n")
                         .append("#define IS_QUALITY_PHASE\n");
-                else if (failurePhaseTypes.contains(phaseType))
+                else if (isFailurePhaseType(phaseType))
                     nodeDefinitions.append("#define IS_FAILURE_PHASE\n")
                         .append("#define IS_QUALITY_PHASE\n");
-                else if (overheadPhaseTypes.contains(phaseType))
+                else if (isOverheadPhaseType(phaseType))
                     nodeDefinitions.append("#define IS_OVERHEAD_PHASE\n");
-                else if (developmentPhaseTypes.contains(phaseType))
+                else if (isDevelopmentPhaseType(phaseType))
                     nodeDefinitions.append("#define IS_DEVELOPMENT_PHASE\n");
             }
 
@@ -268,24 +274,14 @@ public class TemplateAutoData extends AutoData {
         return phaseType;
     }
 
-    static PhaseTypeSet appraisalPhaseTypes = new PhaseTypeSet(new String[] {
-        "appraisal", "review", "insp", "reqinsp", "hldr", "hldrinsp",
-        "dldr", "dldinsp", "cr", "codeinsp" });
-    static PhaseTypeSet failurePhaseTypes = new PhaseTypeSet(new String[] {
-        "failure", "comp", "ut", "it", "st", "at", "pl" });
-    static PhaseTypeSet overheadPhaseTypes = new PhaseTypeSet(new String[] {
-        "overhead", "mgmt", "strat", "plan", "pm" });
-    static PhaseTypeSet developmentPhaseTypes = new PhaseTypeSet(new String[] {
-        "develop", "req", "stp", "itp", "td", "hld", "dld", "code", "doc" });
-
-    public static boolean isAppraisalPhaseType(String phaseType) {
-        return appraisalPhaseTypes.contains(phaseType); }
-    public static boolean isFailurePhaseType(String phaseType) {
-        return failurePhaseTypes.contains(phaseType); }
-    public static boolean isDevelopmentPhaseType(String phaseType) {
-        return developmentPhaseTypes.contains(phaseType); }
-    public static boolean isOverheadPhaseType(String phaseType) {
-        return overheadPhaseTypes.contains(phaseType); }
+    private static boolean isAppraisalPhaseType(String phaseType) {
+        return PhaseUtil.isAppraisalPhaseType(phaseType); }
+    private static boolean isFailurePhaseType(String phaseType) {
+        return PhaseUtil.isFailurePhaseType(phaseType); }
+    private static boolean isDevelopmentPhaseType(String phaseType) {
+        return PhaseUtil.isDevelopmentPhaseType(phaseType); }
+    private static boolean isOverheadPhaseType(String phaseType) {
+        return PhaseUtil.isOverheadPhaseType(phaseType); }
 
     private static final String LEAF_DATA    = getFileContents("leafData.txt");
     private static final String NODE_DATA    = getFileContents("nodeData.txt");
@@ -370,15 +366,15 @@ public class TemplateAutoData extends AutoData {
                     // appraisal, failure, and/or yield lists.
                     String phaseType =
                         e.getAttribute(PHASE_TYPE_ATTR);
-                    if (failurePhaseTypes.contains(phaseType)) {
+                    if (isFailurePhaseType(phaseType)) {
                         failure.add(nodeName);
                         quality.add(nodeName);
-                    } else if (appraisalPhaseTypes.contains(phaseType)) {
+                    } else if (isAppraisalPhaseType(phaseType)) {
                         appraisal.add(nodeName);
                         quality.add(nodeName);
-                    } else if (developmentPhaseTypes.contains(phaseType)) {
+                    } else if (isDevelopmentPhaseType(phaseType)) {
                         development.add(nodeName);
-                    } else if (overheadPhaseTypes.contains(phaseType)) {
+                    } else if (isOverheadPhaseType(phaseType)) {
                         overhead.add(nodeName);
                     }
 
@@ -427,25 +423,3 @@ public class TemplateAutoData extends AutoData {
     }
 }
 
-/** A case-insensitive set containing phase types.
- */
-class PhaseTypeSet {
-
-    public final String[] phaseTypes;
-    public final Set phaseTypeSet;
-
-    /** Construct a PhaseTypeSet from the list of types in the given array.
-     *  The array must contain strings which are all lower case.
-     */
-    public PhaseTypeSet(String [] phaseTypes) {
-        this.phaseTypes = phaseTypes;
-        this.phaseTypeSet = Collections.unmodifiableSet
-            (new HashSet(Arrays.asList(phaseTypes)));
-    }
-
-    /** Returns true if a given phaseType is contained in this PhaseTypeSet.
-     */
-    public boolean contains(String phaseType) {
-        return phaseTypeSet.contains(phaseType.toLowerCase());
-    }
-}

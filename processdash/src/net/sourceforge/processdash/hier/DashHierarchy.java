@@ -1,4 +1,4 @@
-// Copyright (C) 1999-2006 Tuma Solutions, LLC
+// Copyright (C) 1999-2007 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -72,7 +72,7 @@ import org.xml.sax.SAXParseException;
 
 
 public class DashHierarchy extends Hashtable implements ItemSelectable,
-                                                        Comparator {
+        Comparator, PropertyKeyHierarchy {
 
     protected EventListenerList ell = new EventListenerList();
     protected int nextDataFileNumber  = 0;

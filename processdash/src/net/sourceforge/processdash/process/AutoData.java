@@ -1,5 +1,5 @@
+// Copyright (C) 2003-2007 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -30,15 +30,19 @@ package net.sourceforge.processdash.process;
 import java.io.Serializable;
 import java.net.URL;
 import java.net.URLConnection;
-import java.util.*;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Map;
 
 import net.sourceforge.processdash.data.ListData;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.data.repository.DefinitionFactory;
-import net.sourceforge.processdash.hier.*;
-import net.sourceforge.processdash.i18n.*;
-import net.sourceforge.processdash.net.http.*;
-import net.sourceforge.processdash.util.*;
+import net.sourceforge.processdash.hier.DashHierarchy;
+import net.sourceforge.processdash.i18n.Resources;
+import net.sourceforge.processdash.util.EscapeString;
+import net.sourceforge.processdash.util.FileUtils;
+import net.sourceforge.processdash.util.StringUtils;
+import net.sourceforge.processdash.util.XMLUtils;
 
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -268,6 +272,8 @@ public abstract class AutoData implements DefinitionFactory, Serializable {
      * name or as a string literal.
      */
     public static String esc(String arg) {
+        // If you alter the next line, you must also update the code in
+        // HTMLPreprocessor.applyEncodings()
         return EscapeString.escape(arg, '\\', "'\"[]");
     }
 
