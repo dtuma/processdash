@@ -88,7 +88,7 @@ public class InterpreterFactory {
         if (n.hasFlag('s') || n.hasFlag('n') || n.hasFlag('d') || n.hasFlag('t'))
             return false;
         for (int i = 0; i < PERCENT_NAMES.length; i++) {
-            if (n.name.indexOf(PERCENT_NAMES[i]) != -1)
+            if (n.relName.indexOf(PERCENT_NAMES[i]) != -1)
                 return true;
         }
         return false;
@@ -102,9 +102,9 @@ public class InterpreterFactory {
             return false;
         if (n.hasFlag('t'))
             return true;
-        if (n.name.indexOf("Time") != -1
-                && TIME_PATTERN.matcher(n.name).find()
-                && !FALSE_TIME_PATTERN.matcher(n.name).find())
+        if (n.relName.indexOf("Time") != -1
+                && TIME_PATTERN.matcher(n.relName).find()
+                && !FALSE_TIME_PATTERN.matcher(n.relName).find())
             return true;
         return false;
     }

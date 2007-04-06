@@ -30,7 +30,7 @@ import net.sourceforge.processdash.util.FormatUtil;
 // import netscape.javascript.JSObject;
 
 public class InputName {
-    public String name, flags, value;
+    public String prefix, relName, name, flags, value;
 
     public InputName(String text, String prefix) {
         int tabpos;
@@ -53,6 +53,9 @@ public class InputName {
                 value = text.substring(equalpos+1);
             }
         }
+        this.prefix = prefix;
+        this.relName = name;
+
         if (prefix == null) prefix = "";
         if (name == null || name.length() == 0)
             name = prefix;
