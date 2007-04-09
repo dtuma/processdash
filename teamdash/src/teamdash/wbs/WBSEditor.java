@@ -31,6 +31,7 @@ import javax.swing.event.ChangeListener;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 
+import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.PreferencesUtils;
 import net.sourceforge.processdash.util.StringUtils;
 
@@ -56,6 +57,7 @@ public class WBSEditor implements WindowListener, SaveListener,
     WBSDataWriter workflowWriter;
     File workflowDumpFile;
     DirectoryBackup teamProjectBackup;
+    private String owner;
     private int mode;
     boolean readOnly = false;
     boolean exitOnClose = false;
@@ -113,6 +115,7 @@ public class WBSEditor implements WindowListener, SaveListener,
                 teamProjectBackup.backup("startup");
             } catch (IOException e) {}
         }
+        this.owner = owner;
 
         tabPanel = new WBSTabPanel(model, data, teamProject.getTeamProcess(),
                 taskDependencySource);
@@ -386,7 +389,11 @@ public class WBSEditor implements WindowListener, SaveListener,
             try {
                 dataWriter.write(dataDumpFile);
                 workflowWriter.write(workflowDumpFile);
-                teamProjectBackup.backup("save");
+
+                String qualifier = "saved";
+                if (owner != null && owner.trim().length() > 0)
+                    qualifier = "saved_by_" + FileUtils.makeSafe(owner.trim());
+                teamProjectBackup.backup(qualifier);
             } catch (Exception e) {
                 e.printStackTrace();
                 return false;
