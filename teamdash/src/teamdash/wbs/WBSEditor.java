@@ -72,10 +72,11 @@ public class WBSEditor implements WindowListener, SaveListener,
     private static final String EXPANDED_NODES_DELIMITER = Character.toString('\u0001');
 
     public WBSEditor(TeamProject teamProject, File dumpFile, File workflowFile,
-            String intent) throws ConcurrencyLock.FailureException {
+            String intent, String owner)
+            throws ConcurrencyLock.FailureException {
 
         this.teamProject = teamProject;
-        acquireLock(intent);
+        acquireLock(intent, owner);
 
         this.dataDumpFile = dumpFile;
         this.workflowDumpFile = workflowFile;
@@ -160,16 +161,25 @@ public class WBSEditor implements WindowListener, SaveListener,
         frame.pack();
     }
 
-    private void acquireLock(String intent) throws ConcurrencyLock.FailureException {
+    private void acquireLock(String intent, String owner)
+            throws ConcurrencyLock.FailureException {
         if (teamProject.isReadOnly())
             return;
 
         try {
             this.concurrencyLock = new ConcurrencyLock(teamProject
-                    .getLockFile(), intent, this);
+                    .getLockFile(), intent, this, owner);
         } catch (ConcurrencyLock.SentMessageException sme) {
             throw sme;
         } catch (ConcurrencyLock.FailureException e) {
+            String otherOwner = null;
+            if (e instanceof ConcurrencyLock.AlreadyLockedException)
+                otherOwner = ((ConcurrencyLock.AlreadyLockedException) e)
+                    .getExtraInfo();
+            if (otherOwner == null)
+                otherOwner = "someone on another machine";
+            CONCURRENCY_MESSAGE[1] += (otherOwner + ".");
+
             int userResponse = JOptionPane.showConfirmDialog(null,
                     CONCURRENCY_MESSAGE, "Open Project in Read-Only Mode",
                     JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
@@ -180,10 +190,10 @@ public class WBSEditor implements WindowListener, SaveListener,
         }
     }
     private static final String[] CONCURRENCY_MESSAGE = {
-        "Someone on another machine is already running the",
-        "Work Breakdown Structure Editor for this project.",
-        "Would you like to open the project anyway, in",
-        "read-only mode?"
+        "The Work Breakdown Structure for this project is currently",
+        "open for editing by ",
+        " ",
+        "Would you like to open the project anyway, in read-only mode?"
     };
 
     private void setMode(TeamProject teamProject) {
@@ -469,7 +479,7 @@ public class WBSEditor implements WindowListener, SaveListener,
 
     public static WBSEditor createAndShowEditor(String directory,
             boolean bottomUp, boolean showTeamList, String syncURL,
-            boolean exitOnClose, boolean forceReadOnly) {
+            boolean exitOnClose, boolean forceReadOnly, String owner) {
         File dir = new File(directory);
         File dumpFile = new File(dir, "projDump.xml");
         File workflowFile = new File(dir, "workflowDump.xml");
@@ -484,8 +494,12 @@ public class WBSEditor implements WindowListener, SaveListener,
             return null;
 
         String intent = showTeamList ? INTENT_TEAM_EDITOR : INTENT_WBS_EDITOR;
+        if (owner == null && !forceReadOnly)
+            owner = getOwnerName();
+
         try {
-            WBSEditor w = new WBSEditor(proj, dumpFile, workflowFile, intent);
+            WBSEditor w = new WBSEditor(proj, dumpFile, workflowFile, intent,
+                    owner);
             w.setExitOnClose(exitOnClose);
             w.setSyncURL(syncURL);
             if (showTeamList)
@@ -532,6 +546,19 @@ public class WBSEditor implements WindowListener, SaveListener,
         "anyway, in read-only mode?"
     };
 
+    private static String getOwnerName() {
+        String result = preferences.get("ownerName", null);
+        if (result == null) {
+            result = JOptionPane.showInputDialog(null, INPUT_NAME_MESSAGE,
+                    "Enter Your Name", JOptionPane.PLAIN_MESSAGE);
+            if (result != null)
+                preferences.put("ownerName", result);
+        }
+        return result;
+    }
+    private static final String INPUT_NAME_MESSAGE =
+        "To open the Work Breakdown Structure, please enter your name:";
+
     private String getExpandedNodesKey(String projectId) {
         return projectId + EXPANDED_NODES_KEY_SUFFIX;
     }
@@ -567,8 +594,9 @@ public class WBSEditor implements WindowListener, SaveListener,
         boolean showTeam = Boolean.getBoolean("teamdash.wbs.showTeamMemberList");
         boolean readOnly = Boolean.getBoolean("teamdash.wbs.readOnly");
         String syncURL = System.getProperty("teamdash.wbs.syncURL");
+        String owner = System.getProperty("teamdash.wbs.owner");
         createAndShowEditor(filename, bottomUp, showTeam, syncURL, true,
-                readOnly);
+                readOnly, owner);
     }
 
     private static void showBadFilenameError(String filename) {

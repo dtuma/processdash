@@ -157,6 +157,10 @@ public class OpenWBSEditor extends TinyCGIBase {
         if (syncURL != null)
             cmd.add("-Dteamdash.wbs.syncURL=" + syncURL);
 
+        String owner = getOwner();
+        if (owner != null)
+            cmd.add("-Dteamdash.wbs.owner=" + owner);
+
         cmd.add("-jar");
         cmd.add(classpath.getAbsolutePath());
 
@@ -193,7 +197,7 @@ public class OpenWBSEditor extends TinyCGIBase {
         } else {
             editor = WBSEditor.createAndShowEditor(directory, bottomUp,
                     showTeam, syncURL, false, Settings.getBool("READ_ONLY",
-                            false));
+                            false), getOwner());
             if (editor != null)
                 editors.put(key, editor);
             else
@@ -243,6 +247,11 @@ public class OpenWBSEditor extends TinyCGIBase {
         if (syncURL != null)
             out.print("<property name='teamdash.wbs.syncURL' value='"
                     + XMLUtils.escapeAttribute(syncURL) + "'/>\n");
+
+        String owner = getOwner();
+        if (owner != null)
+            out.print("<property name='teamdash.wbs.owner' value='"
+                    + XMLUtils.escapeAttribute(owner) + "'/>\n");
 
         out.print("</resources>\n");
 

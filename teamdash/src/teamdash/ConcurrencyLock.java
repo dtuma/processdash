@@ -50,6 +50,21 @@ public class ConcurrencyLock {
     /** Exception indicating that the lock could not be obtained because
      * some other process owns it, and we were unable to contact them. */
     public class AlreadyLockedException extends FailureException {
+
+        private String extraInfo;
+
+        public AlreadyLockedException(String extraInfo) {
+            this.extraInfo = extraInfo;
+        }
+
+        /** Get the extra info that was written into the lock file by the
+         * owner of this lock.  If no extra information was provided by the
+         * owner of the lock, returns null.
+         */
+        public String getExtraInfo() {
+            return extraInfo;
+        }
+
     }
 
     /** Exception indicating that the lock could not be obtained because
@@ -94,6 +109,10 @@ public class ConcurrencyLock {
      *     other process.
      * @param listener (optional) a listener who will receive messages from
      *     other processes which want this lock.
+     * @param extraInfo (optional) an arbitrary string of text (containing no
+     *     carriage return or newline characters) to write into the lock file.
+     *     This could be used by clients to identify the owner of the lock in
+     *     a human-meaningful way.
      *
      * @throws SentMessageException if someone else already owns this lock, and
      *     we were able to send a message to them.  The exception will include
@@ -103,9 +122,9 @@ public class ConcurrencyLock {
      * @throws FailureException if the lock could not be obtained for any other
      *     reason.
      */
-    public ConcurrencyLock(File lockFile, String message, Listener listener)
-            throws SentMessageException, AlreadyLockedException,
-            FailureException {
+    public ConcurrencyLock(File lockFile, String message, Listener listener,
+            String extraInfo) throws SentMessageException,
+            AlreadyLockedException, FailureException {
 
         try {
             this.lockFile = lockFile.getCanonicalFile();
@@ -117,7 +136,9 @@ public class ConcurrencyLock {
             if (lock != null) {
                 // we successfully got the lock.
                 if (listener != null)
-                    messageHandler = new MessageHandler(listener);
+                    messageHandler = new MessageHandler(listener, extraInfo);
+                else if (extraInfo != null)
+                    writeExtraInfoOnly(extraInfo);
                 registerShutdownHook();
             } else {
                 // we were unable to get the lock.  Possibly try to contact the
@@ -180,12 +201,28 @@ public class ConcurrencyLock {
     }
 
 
+    /** If this process does not intend to listen for messages from other
+     * would-be lock-holders, but it still wants to write extra information
+     * into the lock file, this method will write that information.
+     */
+    private void writeExtraInfoOnly(String extraInfo) throws IOException {
+        Writer out = Channels.newWriter(lockChannel, "UTF-8");
+        // write the first byte of the file (which we have locked, and no
+        // one else will be able to read).  Also write empty/bogus lines for
+        // the contact information.
+        out.write("\n\n0\n\n");
+        // now write the extra info.
+        extraInfo = extraInfo.replace('\r', ' ').replace('\n', ' ');
+        out.write(extraInfo + "\n");
+        // flush the data to the file.
+        out.flush();
+        lockChannel.force(true);
+    }
+
+
     private void tryToSendMessage(String message) throws FailureException {
-        if (message == null || message.length() == 0)
-            throw new AlreadyLockedException();
-
+        String extraInfo = null;
         try {
-
             // Read the information written in the lock file by the other
             // process
             BufferedReader infoIn = new BufferedReader(Channels.newReader(
@@ -194,16 +231,22 @@ public class ConcurrencyLock {
             if (otherHost == null)
                 // there is no contact information in the lock file (because
                 // the other process didn't provide a Listener).
-                throw new AlreadyLockedException();
+                throw new AlreadyLockedException(null);
 
             int otherPort = Integer.parseInt(infoIn.readLine());
             String otherToken = infoIn.readLine();
+            extraInfo = infoIn.readLine();
             infoIn.close();
+
+            // if our caller didn't have a request to send, don't try to
+            // contact the owner of the lock.
+            if (message == null || message.length() == 0)
+                throw new AlreadyLockedException(extraInfo);
 
             // Check to see if the other process is running on the same
             // computer that we're running on.  If not, don't try to contact it.
             if (!getCurrentHost().equals(otherHost))
-                throw new AlreadyLockedException();
+                throw new AlreadyLockedException(extraInfo);
 
             // Try to contact the process that created this lock file, and
             // send it the message
@@ -227,14 +270,14 @@ public class ConcurrencyLock {
             if (otherToken.equals(liveToken))
                 throw new SentMessageException(response);
             else
-                throw new AlreadyLockedException();
+                throw new AlreadyLockedException(extraInfo);
 
         } catch (FailureException fe) {
             throw fe;
         } catch (Exception exc) {
             // If we reach this point, it means we were UNABLE to contact
             // the process which created the lock file.
-            AlreadyLockedException e = new AlreadyLockedException();
+            AlreadyLockedException e = new AlreadyLockedException(extraInfo);
             e.initCause(exc);
             throw e;
         }
@@ -290,7 +333,8 @@ public class ConcurrencyLock {
 
         private volatile boolean isRunning;
 
-        public MessageHandler(Listener listener) throws IOException {
+        public MessageHandler(Listener listener, String extraInfo)
+                throws IOException {
             super("Concurrency Lock Message Handler for " + lockFile);
             setDaemon(true);
 
@@ -310,6 +354,10 @@ public class ConcurrencyLock {
             out.write(getCurrentHost() + "\n");
             out.write(serverSocket.getLocalPort() + "\n");
             out.write(token + "\n");
+            if (extraInfo != null) {
+                extraInfo = extraInfo.replace('\r', ' ').replace('\n', ' ');
+                out.write(extraInfo + "\n");
+            }
             // flush the data we've written out to the file, but DO NOT close
             // the stream.  Closing the stream would release our lock.
             out.flush();
