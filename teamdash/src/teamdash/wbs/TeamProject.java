@@ -1,8 +1,12 @@
 package teamdash.wbs;
 
 import java.io.File;
+import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.net.URL;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 import net.sourceforge.processdash.util.RobustFileWriter;
 
@@ -10,8 +14,8 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
-import teamdash.XMLUtils;
 import teamdash.TeamMemberList;
+import teamdash.XMLUtils;
 
 public class TeamProject {
 
@@ -365,6 +369,27 @@ public class TeamProject {
         return true;
     }
 
+
+    private static class TeamProjectFileFilter implements FileFilter {
+
+        private Set includedNames;
+
+        TeamProjectFileFilter() {
+            Set m = new HashSet();
+            m.add(TEAM_LIST_FILENAME.toLowerCase());
+            m.add(WBS_FILENAME.toLowerCase());
+            m.add(FLOW_FILENAME.toLowerCase());
+            this.includedNames = Collections.unmodifiableSet(m);
+        }
+
+        public boolean accept(File f) {
+            return includedNames.contains(f.getName().toLowerCase());
+        }
+
+    }
+
+    /** A filter that accepts files used for storing team project data */
+    public static final FileFilter FILE_FILTER = new TeamProjectFileFilter();
 
 
     /*

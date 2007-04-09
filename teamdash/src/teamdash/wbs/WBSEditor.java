@@ -6,6 +6,7 @@ import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.io.BufferedInputStream;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
@@ -34,6 +35,7 @@ import net.sourceforge.processdash.util.PreferencesUtils;
 import net.sourceforge.processdash.util.StringUtils;
 
 import teamdash.ConcurrencyLock;
+import teamdash.DirectoryBackup;
 import teamdash.SaveListener;
 import teamdash.TeamMemberListEditor;
 import teamdash.wbs.columns.SizeAccountingColumnSet;
@@ -53,6 +55,7 @@ public class WBSEditor implements WindowListener, SaveListener,
     File dataDumpFile;
     WBSDataWriter workflowWriter;
     File workflowDumpFile;
+    DirectoryBackup teamProjectBackup;
     private int mode;
     boolean readOnly = false;
     boolean exitOnClose = false;
@@ -96,11 +99,21 @@ public class WBSEditor implements WindowListener, SaveListener,
         DataTableModel data = new DataTableModel
             (model, teamProject.getTeamMemberList(),
              teamProject.getTeamProcess(), taskDependencySource);
+
         dataWriter = new WBSDataWriter(model, data,
                 teamProject.getTeamProcess(), teamProject.getProjectID(),
                 teamProject.getTeamMemberList());
         workflowWriter = new WBSDataWriter(teamProject.getWorkflows(), null,
                 teamProject.getTeamProcess(), teamProject.getProjectID(), null);
+        if (!readOnly) {
+            teamProjectBackup = new DirectoryBackup(teamProject
+                    .getStorageDirectory(), "backup", TeamProject.FILE_FILTER);
+            teamProjectBackup.cleanupOldBackups(30);
+            try {
+                teamProjectBackup.backup("startup");
+            } catch (IOException e) {}
+        }
+
         tabPanel = new WBSTabPanel(model, data, teamProject.getTeamProcess(),
                 taskDependencySource);
         tabPanel.setReadOnly(readOnly);
@@ -373,6 +386,7 @@ public class WBSEditor implements WindowListener, SaveListener,
             try {
                 dataWriter.write(dataDumpFile);
                 workflowWriter.write(workflowDumpFile);
+                teamProjectBackup.backup("save");
             } catch (Exception e) {
                 e.printStackTrace();
                 return false;
