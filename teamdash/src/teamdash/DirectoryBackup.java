@@ -64,12 +64,18 @@ public class DirectoryBackup {
         File outputZipFile = new File(backupDir, getOutputFilename(qualifier));
         ZipOutputStream zipOut = new ZipOutputStream(new BufferedOutputStream(
                 new FileOutputStream(outputZipFile)));
+        boolean wroteAtLeastOneFile = false;
 
         File[] files = directory.listFiles();
         for (int i = 0; i < files.length; i++) {
-            if (filter.accept(files[i]))
+            if (filter.accept(files[i])) {
                 backupFile(zipOut, files[i]);
+                wroteAtLeastOneFile = true;
+            }
         }
+
+        if (!wroteAtLeastOneFile)
+            zipOut.putNextEntry(new ZipEntry("No_Files_Found"));
 
         zipOut.close();
     }
