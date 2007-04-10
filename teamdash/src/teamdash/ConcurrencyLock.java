@@ -17,6 +17,8 @@ import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 import java.nio.channels.ServerSocketChannel;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 
 public class ConcurrencyLock {
@@ -43,8 +45,24 @@ public class ConcurrencyLock {
 
     }
 
+    /** A message that is sent to the listener of a lock, if the lock was
+     * lost and could not be reclaimed. */
+    public static final String LOCK_LOST_MESSAGE = "lockWasLost";
+
+
     /** General exception class indicating failure to obtain the lock */
     public class FailureException extends Exception {
+
+        public FailureException() {}
+
+        public FailureException(String message) {
+            super(message);
+        }
+
+        public FailureException(Throwable cause) {
+            super(cause);
+        }
+
     }
 
     /** Exception indicating that the lock could not be obtained because
@@ -84,6 +102,11 @@ public class ConcurrencyLock {
         }
     }
 
+    /** Exception thrown if we cannot determine whether a lock is valid.
+     * This typically occurs if the lock file is in a network directory that
+     * is not currently reachable. */
+    public class LockUncertainException extends FailureException {}
+
 
 
     private File lockFile = null;
@@ -95,6 +118,12 @@ public class ConcurrencyLock {
     private MessageHandler messageHandler = null;
 
     private Thread shutdownHook = null;
+
+    private String lockToken = null;
+
+
+    private static Logger logger = Logger.getLogger(ConcurrencyLock.class
+            .getName());
 
 
     /** Obtain a concurrency lock for the data in the given directory.
@@ -135,10 +164,11 @@ public class ConcurrencyLock {
 
             if (lock != null) {
                 // we successfully got the lock.
+                lockToken = Long.toString(System.currentTimeMillis());
                 if (listener != null)
                     messageHandler = new MessageHandler(listener, extraInfo);
-                else if (extraInfo != null)
-                    writeExtraInfoOnly(extraInfo);
+                else
+                    writeLockMetaData("", 0, lockToken, extraInfo);
                 registerShutdownHook();
             } else {
                 // we were unable to get the lock.  Possibly try to contact the
@@ -153,17 +183,97 @@ public class ConcurrencyLock {
         } catch (Exception e) {
             // If we were unable to obtain a lock, throw a FailureException
             unlock();
-            FailureException fe = new FailureException();
-            fe.initCause(e);
+            throw new FailureException(e);
+        }
+
+        logger.log(Level.FINE, "Obtained lock for: {0}", lockFile);
+    }
+
+
+    public void assertValidity() throws FailureException {
+        if (lock == null || lockFile == null)
+            throw new FailureException("This object does not own a lock.");
+
+        if (!lockFile.getParentFile().isDirectory()) {
+            // the parent directory of the lock doesn't exist.  This probably
+            // means that we have temporarily lost our connection to the
+            // network directory where the lock is located, and we don't
+            // know for certain whether we've lost the lock.
+            logger.log(Level.FINE, "Lock directory does not exist for {0}",
+                    lockFile);
+            throw new LockUncertainException();
+        }
+
+        if (!lockFile.exists()) {
+            // the lock file no longer exists. This means that we lost the lock,
+            // then someone else already claimed and released the lock.  We
+            // have to assume that the information protected by the lock was
+            // altered, and we no longer own the canonical version.
+            logger.log(Level.FINE, "Lock file no longer exists: {0}", lockFile);
+            throw new AlreadyLockedException(null);
+        }
+
+        try {
+            FileChannel oldLockChannel = lockChannel;
+            lockChannel = new RandomAccessFile(lockFile, "rw").getChannel();
+
+            LockMetaData metaData = readLockMetaData(false);
+            if (metaData == null) {
+                // the lock file can't be read, or doesn't contain any metadata.
+                // this is another indication that someone else has claimed
+                // this lock.
+                logger.log(Level.FINE, "Lock file could not be read: {0}",
+                        lockFile);
+                closeChannel(oldLockChannel);
+                throw new AlreadyLockedException(null);
+            }
+
+            if (!lockToken.equals(metaData.token)) {
+                // someone else has claimed the lock, and still owns it.
+                logger.log(Level.FINE, "Lock was lost: {0}", lockFile);
+                closeChannel(oldLockChannel);
+                throw new AlreadyLockedException(metaData.extraInfo);
+            }
+
+            // The lock file is still intact, and still contains our lock
+            // token.  This is a sign that no one else has taken the lock
+            // from us.
+            //
+            // There doesn't seem to be an API to determine whether we lost
+            // the native lock.  The only way to test whether we still own
+            // it, is to release and actively reestablish the lock.
+            try {
+                lock.release();
+                closeChannel(oldLockChannel);
+            } catch (Exception e) {}
+            lock = lockChannel.tryLock(0, 1, false);
+            if (lock == null) {
+                logger.log(Level.FINE, "Lock could not be reestablished: {0}",
+                        lockFile);
+                throw new AlreadyLockedException(null);
+            } else {
+                logger.log(Level.FINEST, "Lock is valid: {0}", lockFile);
+            }
+        } catch (FailureException fe) {
             throw fe;
+        } catch (Exception e) {
+            throw new FailureException(e);
         }
     }
 
+    private void closeChannel(FileChannel c) {
+        if (c != null)
+            try {
+                c.close();
+            } catch (Exception e) {}
+    }
 
 
     /** Release this concurrency lock.
      */
     public synchronized void unlock() {
+        logger.log(Level.FINE, "Unlocking lock: {0}", lockFile);
+
         if (messageHandler != null)
             try {
                 messageHandler.terminate();
@@ -201,42 +311,17 @@ public class ConcurrencyLock {
     }
 
 
-    /** If this process does not intend to listen for messages from other
-     * would-be lock-holders, but it still wants to write extra information
-     * into the lock file, this method will write that information.
-     */
-    private void writeExtraInfoOnly(String extraInfo) throws IOException {
-        Writer out = Channels.newWriter(lockChannel, "UTF-8");
-        // write the first byte of the file (which we have locked, and no
-        // one else will be able to read).  Also write empty/bogus lines for
-        // the contact information.
-        out.write("\n\n0\n\n");
-        // now write the extra info.
-        extraInfo = extraInfo.replace('\r', ' ').replace('\n', ' ');
-        out.write(extraInfo + "\n");
-        // flush the data to the file.
-        out.flush();
-        lockChannel.force(true);
-    }
-
 
     private void tryToSendMessage(String message) throws FailureException {
         String extraInfo = null;
         try {
-            // Read the information written in the lock file by the other
-            // process
-            BufferedReader infoIn = new BufferedReader(Channels.newReader(
-                    lockChannel.position(1), "UTF-8"));
-            String otherHost = infoIn.readLine();
-            if (otherHost == null)
+            LockMetaData metaData = readLockMetaData(true);
+            if (metaData == null)
                 // there is no contact information in the lock file (because
                 // the other process didn't provide a Listener).
                 throw new AlreadyLockedException(null);
-
-            int otherPort = Integer.parseInt(infoIn.readLine());
-            String otherToken = infoIn.readLine();
-            extraInfo = infoIn.readLine();
-            infoIn.close();
+            else
+                extraInfo = metaData.extraInfo;
 
             // if our caller didn't have a request to send, don't try to
             // contact the owner of the lock.
@@ -245,12 +330,12 @@ public class ConcurrencyLock {
 
             // Check to see if the other process is running on the same
             // computer that we're running on.  If not, don't try to contact it.
-            if (!getCurrentHost().equals(otherHost))
+            if (!getCurrentHost().equals(metaData.hostName))
                 throw new AlreadyLockedException(extraInfo);
 
             // Try to contact the process that created this lock file, and
             // send it the message
-            Socket s = new Socket(LOOPBACK_ADDR, otherPort);
+            Socket s = new Socket(LOOPBACK_ADDR, metaData.port);
             PrintWriter out = new PrintWriter(new OutputStreamWriter(s
                     .getOutputStream(), "UTF-8"), false);
             out.println(message);
@@ -267,7 +352,7 @@ public class ConcurrencyLock {
             in.close();
             s.close();
 
-            if (otherToken.equals(liveToken))
+            if (metaData.token.equals(liveToken))
                 throw new SentMessageException(response);
             else
                 throw new AlreadyLockedException(extraInfo);
@@ -282,6 +367,64 @@ public class ConcurrencyLock {
             throw e;
         }
     }
+
+
+
+    private void writeLockMetaData(String hostName, int port, String token,
+            String extraInfo) throws IOException {
+        // write data into the lock file indicating the socket where
+        // we are listening.
+        Writer out = Channels.newWriter(lockChannel, "UTF-8");
+        // write the first byte of the file (which we have locked, and no
+        // one else will be able to read).
+        out.write("\n");
+        // now write the information about how to contact us.
+        out.write(hostName + "\n");
+        out.write(port + "\n");
+        out.write(token + "\n");
+        // write extra info, if it is present.
+        if (extraInfo != null) {
+            extraInfo = extraInfo.replace('\r', ' ').replace('\n', ' ');
+            out.write(extraInfo + "\n");
+        }
+
+        // flush the data we've written out to the file, but DO NOT close
+        // the stream.  Closing the stream would release our lock.
+        out.flush();
+        lockChannel.force(true);
+    }
+
+    private static class LockMetaData {
+        String hostName;
+        int port;
+        String token;
+        String extraInfo;
+    }
+
+    private LockMetaData readLockMetaData(boolean close) throws IOException {
+        LockMetaData result = new LockMetaData();
+
+        // Read the information written in the lock file by the other
+        // process
+        BufferedReader infoIn = new BufferedReader(Channels.newReader(
+                lockChannel.position(1), "UTF-8"));
+        result.hostName = infoIn.readLine();
+        if (result.hostName == null)
+            // there is no contact information in the lock file (because
+            // the other process didn't provide a Listener, and was written
+            // by an older version of this class).
+            return null;
+
+        result.port = Integer.parseInt(infoIn.readLine());
+        result.token = infoIn.readLine();
+        result.extraInfo = infoIn.readLine();
+
+        if (close)
+            infoIn.close();
+
+        return result;
+    }
+
 
 
     /** Register a JVM shutdown hook to clean up the files created by this lock.
@@ -320,7 +463,6 @@ public class ConcurrencyLock {
 
 
 
-
     /** Listen for and handle messages from other would-be lock owners.
      */
     private class MessageHandler extends Thread {
@@ -341,27 +483,11 @@ public class ConcurrencyLock {
             // listen on a socket for messages from other owners.
             this.serverSocket = ServerSocketChannel.open().socket();
             this.serverSocket.bind(new InetSocketAddress(LOOPBACK_ADDR, 0));
-            this.token = Long.toString(System.currentTimeMillis());
+            this.token = lockToken;
             this.listener = listener;
 
-            // write data into the lock file indicating the socket where
-            // we are listening.
-            Writer out = Channels.newWriter(lockChannel, "UTF-8");
-            // write the first bytes of the file (which we have locked, and no
-            // one else will be able to read).
-            out.write("\n");
-            // now write the information about how to contact us.
-            out.write(getCurrentHost() + "\n");
-            out.write(serverSocket.getLocalPort() + "\n");
-            out.write(token + "\n");
-            if (extraInfo != null) {
-                extraInfo = extraInfo.replace('\r', ' ').replace('\n', ' ');
-                out.write(extraInfo + "\n");
-            }
-            // flush the data we've written out to the file, but DO NOT close
-            // the stream.  Closing the stream would release our lock.
-            out.flush();
-            lockChannel.force(true);
+            writeLockMetaData(getCurrentHost(), serverSocket.getLocalPort(),
+                    token, extraInfo);
 
             // start up this thread.
             this.isRunning = true;
@@ -369,11 +495,30 @@ public class ConcurrencyLock {
         }
 
         public void run() {
+            setCheckInterval(60);
+
             while (isRunning) {
+                // listen for and handle a message.
                 try {
                     Socket s = serverSocket.getChannel().socket().accept();
                     handle(s);
+                } catch (Exception e) {}
+
+                // periodically check to ensure that the lock is still valid.
+                try {
+                    long start = System.currentTimeMillis();
+                    assertValidity();
+                    long end = System.currentTimeMillis();
+                    logger.log(Level.FINEST, "assertValidity took {0} ms",
+                            new Long(end-start));
+                    setCheckInterval(60);
+                } catch (LockUncertainException lue) {
+                    setCheckInterval(20);
                 } catch (Exception e) {
+                    try {
+                        listener.handleMessage(LOCK_LOST_MESSAGE);
+                    } catch (Exception e1) {}
+                    setCheckInterval(0);
                 }
             }
 
@@ -382,6 +527,12 @@ public class ConcurrencyLock {
             } catch (IOException e) {
                 e.printStackTrace();
             }
+        }
+
+        private void setCheckInterval(int seconds) {
+            try {
+                this.serverSocket.setSoTimeout(seconds * 1000 /*millis*/);
+            } catch (Exception e) {}
         }
 
         private void handle(Socket s) throws Exception {

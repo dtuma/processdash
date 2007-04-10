@@ -273,6 +273,16 @@ public class WBSEditor implements WindowListener, SaveListener,
                 }});
             return "OK";
         }
+        if (ConcurrencyLock.LOCK_LOST_MESSAGE.equals(message)) {
+            if (readOnly == false) {
+                readOnly = true;
+                SwingUtilities.invokeLater(new Runnable() {
+                    public void run() {
+                        showLostLockMessage();
+                    }});
+            }
+            return "OK";
+        }
         throw new IllegalArgumentException();
     }
 
@@ -292,6 +302,27 @@ public class WBSEditor implements WindowListener, SaveListener,
         }
     }
 
+    public void showLostLockMessage() {
+        readOnly = true;
+        tabPanel.setReadOnly(true);
+        saveAction.setEnabled(false);
+        importFromCsvAction.setEnabled(false);
+
+        JOptionPane.showMessageDialog(frame, LOST_LOCK_MESSAGE,
+                "Network Connectivity Problems", JOptionPane.ERROR_MESSAGE);
+    }
+    private static final String[] LOST_LOCK_MESSAGE = {
+        "Although you opened the work breakdown structure in read-write",
+        "mode, your connection to the network was broken, and your lock",
+        "on the WBS was lost.  In the meantime, another individual has",
+        "opened the work breakdown structure for editing, so your lock",
+        "could not be reclaimed.",
+        " ",
+        "As a result, you will no longer be able to save changes to the",
+        "work breakdown structure.  You are strongly encouraged to close",
+        "and reopen the work breakdown structure editor."
+    };
+
     private void showWorkflowEditor() {
         if (workflowEditor != null)
             workflowEditor.show();
@@ -306,7 +337,7 @@ public class WBSEditor implements WindowListener, SaveListener,
 
         result.add(buildFileMenu());
         result.add(buildEditMenu(tabPanel.getEditingActions()));
-        result.add(buildTabMenu(tabPanel.getTabActions()));
+        // result.add(buildTabMenu(tabPanel.getTabActions()));
         if (!isMode(MODE_BOTTOM_UP))
             result.add(buildWorkflowMenu
                 (workflows, tabPanel.getInsertWorkflowAction(workflows)));
@@ -318,12 +349,13 @@ public class WBSEditor implements WindowListener, SaveListener,
 
         return result;
     }
+    private Action saveAction, importFromCsvAction;
     private JMenu buildFileMenu() {
         JMenu result = new JMenu("File");
         result.setMnemonic('F');
-        result.add(new SaveAction());
+        result.add(saveAction = new SaveAction());
         if (!isMode(MODE_BOTTOM_UP))
-            result.add(new ImportFromCsvAction());
+            result.add(importFromCsvAction = new ImportFromCsvAction());
         result.add(new CloseAction());
         return result;
     }
@@ -375,10 +407,22 @@ public class WBSEditor implements WindowListener, SaveListener,
     private boolean save() {
         if (!readOnly) {
             tabPanel.stopCellEditing();
+
+            try {
+                concurrencyLock.assertValidity();
+            } catch (ConcurrencyLock.LockUncertainException lue) {
+                showSaveErrorMessage();
+                return false;
+            } catch (ConcurrencyLock.FailureException fe) {
+                showLostLockMessage();
+                return false;
+            }
+
             if (teamProject.save() == false || writeData() == false) {
                 showSaveErrorMessage();
                 return false;
             }
+
             maybeTriggerSyncOperation();
         }
         return true;
@@ -530,6 +574,8 @@ public class WBSEditor implements WindowListener, SaveListener,
 
             return w;
         } catch (ConcurrencyLock.FailureException e) {
+            if (exitOnClose)
+                System.exit(0);
             return null;
         }
     }
