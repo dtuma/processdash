@@ -25,12 +25,15 @@
 
 package net.sourceforge.processdash.data.compiler.function;
 
+import java.util.Iterator;
 import java.util.List;
 
 import net.sourceforge.processdash.data.DoubleData;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.compiler.AbstractFunction;
+import net.sourceforge.processdash.data.compiler.CompiledScript;
 import net.sourceforge.processdash.data.compiler.ExpressionContext;
+import net.sourceforge.processdash.data.compiler.ListStack;
 
 public class Nvl extends AbstractFunction {
 
@@ -40,16 +43,31 @@ public class Nvl extends AbstractFunction {
      */
     public Object call(List arguments, ExpressionContext context)
     {
-        SimpleData arg;
+        ListStack stack = null;
+        for (Iterator iter = arguments.iterator(); iter.hasNext();) {
+            Object arg = iter.next();
 
-        for (int i = 0;   i < arguments.size();   i++)
-            if (!isBadValue(arg = getArg(arguments, i)))
+            if (arg instanceof CompiledScript) {
+                try {
+                    CompiledScript script = (CompiledScript) arg;
+                    if (stack == null)
+                        stack = new ListStack();
+                    else
+                        stack.clear();
+                    script.run(stack, context);
+                    arg = stack.pop();
+                } catch (Exception e) {}
+            }
+
+            if (arg instanceof SimpleData
+                    && !isBadValue((SimpleData) arg))
                 return arg;
+        }
 
         return null;
     }
 
-    private static boolean isBadValue(SimpleData data) {
+    protected boolean isBadValue(SimpleData data) {
         // null values are "bad".
         if (data == null) return true;
 

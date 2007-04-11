@@ -231,6 +231,20 @@ public class Compiler extends DepthFirstAdapter {
         outAScript1FunctionCall(node);
     }
 
+    public void caseAScriptargFunctionCall(AScriptargFunctionCall node) {
+        inAScriptargFunctionCall(node);
+        add(FunctionCall.PUSH_STACK_MARKER);
+        if(node.getExpression() != null)
+            node.getExpression().apply(this);
+        simplifyScriptConstants = true;
+        if(node.getScriptlist() != null)
+            node.getScriptlist().apply(this);
+        simplifyScriptConstants = false;
+        if(node.getScriptargFunctionName() != null)
+            node.getScriptargFunctionName().apply(this);
+        outAScriptargFunctionCall(node);
+    }
+
     public void caseAFunctionCall(AFunctionCall node)
     {
         inAFunctionCall(node);
@@ -266,6 +280,8 @@ public class Compiler extends DepthFirstAdapter {
         add(FunctionCall.get(node.getText())); }
     public void caseTScript1FunctionName(TScript1FunctionName node) {
         add(FunctionCall.get(node.getText())); }
+    public void caseTScriptargFunctionName(TScriptargFunctionName node) {
+        add(FunctionCall.get(node.getText())); }
     public void caseTIdentifier(TIdentifier node) {
         add(new PushVariable(trimDelim(node))); }
     public void caseTStringLiteral(TStringLiteral node) {
@@ -300,8 +316,13 @@ public class Compiler extends DepthFirstAdapter {
     public void caseTFalse(TFalse node) {
         add(new PushConstant(ImmutableDoubleData.FALSE)); }
 
+    private boolean simplifyScriptConstants = false;
     public void caseASimpleScript(ASimpleScript node) {
-        add(new PushObject(compile(node.getValue())));
+        CompiledScript scriptTerm = compile(node.getValue());
+        if (simplifyScriptConstants && scriptTerm.isConstant())
+            add(new PushConstant(scriptTerm.getConstant()));
+        else
+            add(new PushObject(scriptTerm));
     }
 
     /** Convenience routine for adding an instruction to the script */

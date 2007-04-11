@@ -25,30 +25,11 @@
 
 package net.sourceforge.processdash.data.compiler.function;
 
-import java.util.List;
-
 import net.sourceforge.processdash.data.SimpleData;
-import net.sourceforge.processdash.data.compiler.AbstractFunction;
-import net.sourceforge.processdash.data.compiler.ExpressionContext;
 
-public class Nvlz extends AbstractFunction {
+public class Nvlz extends Nvl {
 
-    /** Perform a procedure call.
-     *
-     * This method <b>must</b> be thread-safe.
-     */
-    public Object call(List arguments, ExpressionContext context)
-    {
-        SimpleData arg;
-
-        for (int i = 0;   i < arguments.size();   i++)
-            if (!isBadValue(arg = getArg(arguments, i)))
-                return arg;
-
-        return null;
-    }
-
-    private static boolean isBadValue(SimpleData data) {
+    protected boolean isBadValue(SimpleData data) {
         // null values are "bad".
         if (data == null) return true;
 

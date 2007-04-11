@@ -29,7 +29,9 @@ import java.util.List;
 
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.compiler.AbstractFunction;
+import net.sourceforge.processdash.data.compiler.CompiledScript;
 import net.sourceforge.processdash.data.compiler.ExpressionContext;
+import net.sourceforge.processdash.data.compiler.ListStack;
 
 public class Iff extends AbstractFunction {
 
@@ -39,13 +41,25 @@ public class Iff extends AbstractFunction {
      */
     public Object call(List arguments, ExpressionContext context)
     {
-        SimpleData test = getArg(arguments, 0);
-        SimpleData t    = getArg(arguments, 1);
-        SimpleData f    = getArg(arguments, 2);
+        if (arguments.size() < 2) return null;
 
+        SimpleData test = getArg(arguments, 0);
+
+        Object result = null;
         if (test != null && test.test())
-            return t;
-        else
-            return f;
+            result = arguments.get(1);
+        else if (arguments.size() > 2)
+            result = arguments.get(2);
+
+        if (result instanceof CompiledScript) {
+            try {
+                CompiledScript script = (CompiledScript) result;
+                ListStack stack = new ListStack();
+                script.run(stack, context);
+                result = stack.pop();
+            } catch (Exception e) {}
+        }
+
+        return result;
     }
 }

@@ -76,6 +76,9 @@ Helpers
     tag = t a g;
     filter = f i l t e r;
     map = m a p;
+    iff = i f f;
+    nvl = n v l;
+    nvlz = n v l z;
     true = t r u e;
     false = f a l s e;
     exclude = e x c l u d e;
@@ -126,6 +129,7 @@ Tokens
     {b->i, i} undefine = undefine;
     {b->i, i} exclude = exclude;
     {b->i, i} script1_function_name = filter | map;
+    {b->i, i} scriptarg_function_name = iff | nvl | nvlz;
     {b->i, i} function_name = nondigit+;
 
     {b->i, i} blank = (tab | ' ')+;
@@ -248,6 +252,8 @@ Productions
 
   function_call =
     {script1} script1_function_name l_par script comma arglist? r_par |
+    {scriptarg} scriptarg_function_name l_par expression comma 
+         scriptlist? r_par |
     function_name l_par arglist? r_par;
 
   arglist =
@@ -255,6 +261,12 @@ Productions
 
   arglist_tail =
     comma value;
+
+  scriptlist =
+    script scriptlist_tail*;
+
+  scriptlist_tail =
+    comma script;
 
   identifier_list =
     identifier identifier_list_tail*;
