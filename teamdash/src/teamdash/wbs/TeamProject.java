@@ -28,6 +28,7 @@ public class TeamProject {
     private WBSModel wbs;
     private WBSModel workflows;
     private long fileModTime;
+    private String masterProjectID;
     private File masterProjectDirectory;
     private boolean readOnly;
     private boolean filesAreReadOnly;
@@ -201,12 +202,16 @@ public class TeamProject {
             if (XMLUtils.hasValue(id))
                 projectID = id;
 
+            masterProjectID = null;
             NodeList nl = projectSettings.getElementsByTagName("masterProject");
             if (nl == null || nl.getLength() == 0)
                 masterProjectDirectory = null;
-            else
+            else {
                 masterProjectDirectory = getProjectDataDirectory(
                         (Element) nl.item(0), true);
+                if (masterProjectDirectory != null)
+                    masterProjectID = masterProjectDirectory.getName();
+            }
 
         } catch (Exception e) {
             projectSettings = null;
@@ -302,6 +307,10 @@ public class TeamProject {
     /** Open the file containing the work breakdown structure */
     private void openWBS() {
         wbs = readWBS();
+
+        if (masterProjectID != null)
+            wbs.getRoot().setAttribute(MasterWBSUtil.MASTER_NODE_ID,
+                    masterProjectID + ":000000");
     }
 
     protected WBSModel readWBS() {
