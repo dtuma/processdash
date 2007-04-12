@@ -60,12 +60,14 @@ public class OpenWBSEditor extends TinyCGIBase {
         directory = FilenameMapper.remap(directory);
         boolean bottomUp = parameters.containsKey("bottomUp");
         boolean showTeam = parameters.containsKey("team");
+        boolean readOnly = Settings.getBool("READ_ONLY", false)
+                || "true".equalsIgnoreCase(getParameter("forceReadOnly"));
         String syncURL = getSyncURL();
 
         if (useJNLP)
-            writeJnlpFile(directory, bottomUp, showTeam, syncURL);
+            writeJnlpFile(directory, bottomUp, showTeam, readOnly, syncURL);
         else
-            openInProcess(directory, bottomUp, showTeam, syncURL);
+            openInProcess(directory, bottomUp, showTeam, readOnly, syncURL);
     }
 
     private String getSyncURL() {
@@ -79,12 +81,13 @@ public class OpenWBSEditor extends TinyCGIBase {
     }
 
     private void openInProcess(String directory, boolean bottomUp,
-            boolean showTeam, String syncURL) {
+            boolean showTeam, boolean readOnly, String syncURL) {
         if (!checkEntryCriteria(directory))
             return;
 
         writeHtmlHeader();
-        if (launchEditorProcess(directory, bottomUp, showTeam, syncURL)) {
+        if (launchEditorProcess(directory, bottomUp, showTeam, readOnly,
+                syncURL)) {
             // if we successfully opened the WBS, write the null document.
             DashController.printNullDocument(out);
         } else {
@@ -121,9 +124,9 @@ public class OpenWBSEditor extends TinyCGIBase {
     private static Hashtable editors = new Hashtable();
 
     private boolean launchEditorProcess(String directory, boolean bottomUp,
-            boolean showTeam, String syncURL) {
+            boolean showTeam, boolean readOnly, String syncURL) {
         String[] cmdLine = getProcessCmdLine(directory, bottomUp, showTeam,
-                syncURL);
+                readOnly, syncURL);
         if (cmdLine == null)
             return false;
 
@@ -139,7 +142,7 @@ public class OpenWBSEditor extends TinyCGIBase {
     }
 
     private String[] getProcessCmdLine(String directory, boolean bottomUp,
-            boolean showTeam, String syncURL) {
+            boolean showTeam, boolean readOnly, String syncURL) {
         String jreExecutable = RuntimeUtils.getJreExecutable();
         File classpath = RuntimeUtils.getClasspathFile(getClass());
         if (jreExecutable == null || classpath == null)
@@ -152,7 +155,7 @@ public class OpenWBSEditor extends TinyCGIBase {
             cmd.add("-Dteamdash.wbs.bottomUp=true");
         if (showTeam)
             cmd.add("-Dteamdash.wbs.showTeamMemberList=true");
-        if (Settings.getBool("READ_ONLY", false))
+        if (readOnly)
             cmd.add("-Dteamdash.wbs.readOnly=true");
         if (syncURL != null)
             cmd.add("-Dteamdash.wbs.syncURL=" + syncURL);
@@ -182,7 +185,7 @@ public class OpenWBSEditor extends TinyCGIBase {
 
 
     protected void showEditorInternally(String directory, boolean bottomUp,
-                boolean showTeam, String syncURL) {
+                boolean showTeam, boolean readOnly, String syncURL) {
         String key = directory;
         if (bottomUp)
             key = "bottomUp:" + key;
@@ -196,8 +199,7 @@ public class OpenWBSEditor extends TinyCGIBase {
 
         } else {
             editor = WBSEditor.createAndShowEditor(directory, bottomUp,
-                    showTeam, syncURL, false, Settings.getBool("READ_ONLY",
-                            false), getOwner());
+                    showTeam, syncURL, false, readOnly, getOwner());
             if (editor != null)
                 editors.put(key, editor);
             else
@@ -206,7 +208,7 @@ public class OpenWBSEditor extends TinyCGIBase {
     }
 
     private void writeJnlpFile(String directory, boolean bottomUp,
-            boolean showTeam, String syncURL) {
+            boolean showTeam, boolean readOnly, String syncURL) {
         out.print("Content-type: application/x-java-jnlp-file\r\n\r\n");
 
         WebServer ws = getTinyWebServer();
@@ -240,7 +242,7 @@ public class OpenWBSEditor extends TinyCGIBase {
             out.print("<property name='teamdash.wbs.showTeamMemberList' " +
                         "value='true'/>\n");
 
-        if (Settings.getBool("READ_ONLY", false))
+        if (readOnly)
             out.print("<property name='teamdash.wbs.readOnly' " +
                         "value='true'/>\n");
 

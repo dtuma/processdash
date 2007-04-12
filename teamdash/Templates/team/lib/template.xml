@@ -272,11 +272,14 @@
         title="<!--#echo Full_Name --> Project Quality Summary"/ -->
     <html ID="top" href="PID/script.htm"
         title="<!--#echo Full_Name --> Process Script"/>
+    <html ID="tasklist" href="control/showTaskSchedule.class?trigger&amp;PID"
+        title="Open Earned Value Task &amp; Schedule"
+	inPackage="pspdash version 1.7.1b.8"/>
     <html ID="params" href="PID/indiv_project_parameters.shtm"
         title="Edit Project Parameters and Settings"/>
     <html ID="editWBS" href="PID/setup/openWBS.shtm?trigger&amp;indiv"
-        title="Edit Team Work Breakdown Structure"
-	inPackage="teamTools version 2.4.4; indivWBS"/>
+        title="Open Team Work Breakdown Structure"
+	inPackage="teamTools version 2.4.7"/>
     <html ID="sync" href="PID/setup/sync.class"
         title="Sync Work Breakdown Structure"/>
     <html ID="export" href="control/exportNow.class"

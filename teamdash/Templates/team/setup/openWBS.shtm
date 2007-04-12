@@ -29,9 +29,16 @@
     <!--#echo [Project_ID] #-->
 <!--#endset-->
 
+<!--#if [WBS_Read_Only] -->
+    <!--#set var="readOnly" value="true" -->
+<!--#else-->
+    <!--#set var="readOnly" value="false" -->
+<!--#endif-->
+
 <!--#include file="/team/tools/OpenWBSEditor.class" -->
     <!--#parameter name="QUERY_STRING" -->
     <!--#parameter name="syncURL" encoding="relUri" value="sync.class?run" -->
+    <!--#parameter name="forceReadOnly" var="readOnly" -->
     <!--#parameter name="directory" var="directory" -->
 
 <!--#endif-->

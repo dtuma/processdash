@@ -39,3 +39,6 @@
 
 [Defect Type Standard Contents] = 
     indirect([Team_Settings_Node] & "Defect_Type_Standard");
+
+[WBS_Read_Only] = 
+    not indirect([Team_Settings_Node] & "Allow_Indiv_WBS_Editing");

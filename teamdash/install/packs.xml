@@ -3,9 +3,6 @@
               preselected="no">
             <description>Tools enabling team leaders to create and manage team projects.</description>
 
-            <file targetdir="$INSTALL_PATH" override="true" 
-	          src="${teamdash.dir}/TeamTools.jar"/>
-
             <file targetdir="$TEAM_DATA_PATH" override="true"
                   src="${teamdash.dir}/install/teamicon.ico"/>
             <file targetdir="$TEAM_DATA_PATH" override="true"

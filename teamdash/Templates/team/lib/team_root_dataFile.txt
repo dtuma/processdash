@@ -60,3 +60,6 @@ undefine([Simple Project Tag]);
         [Defect Type Standard] & ", imported from team project:::" &
         indirect("/Defect Type Standard/" & [Defect Type Standard]),
         null);
+
+[Allow_Indiv_WBS_Editing] = 0;
+[Team_Settings /Allow_Indiv_WBS_Editing] = [Allow_Indiv_WBS_Editing];
