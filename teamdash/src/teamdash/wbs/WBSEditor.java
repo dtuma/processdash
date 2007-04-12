@@ -337,7 +337,7 @@ public class WBSEditor implements WindowListener, SaveListener,
 
         result.add(buildFileMenu());
         result.add(buildEditMenu(tabPanel.getEditingActions()));
-        result.add(buildTabMenu(tabPanel.getTabActions()));
+        // result.add(buildTabMenu(tabPanel.getTabActions()));
         if (!isMode(MODE_BOTTOM_UP))
             result.add(buildWorkflowMenu
                 (workflows, tabPanel.getInsertWorkflowAction(workflows)));
