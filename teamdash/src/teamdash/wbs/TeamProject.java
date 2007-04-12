@@ -308,7 +308,8 @@ public class TeamProject {
     private void openWBS() {
         wbs = readWBS();
 
-        if (masterProjectID != null)
+        if (masterProjectID != null
+                && wbs.getRoot().getAttribute(MasterWBSUtil.MASTER_NODE_ID) == null)
             wbs.getRoot().setAttribute(MasterWBSUtil.MASTER_NODE_ID,
                     masterProjectID + ":000000");
     }
@@ -328,7 +329,8 @@ public class TeamProject {
 
         System.out.println("No "+WBS_FILENAME+
                            " file found; creating default wbs");
-        return new WBSModel(projectName);
+        boolean createDefaultNode = !isMasterProject();
+        return new WBSModel(projectName, createDefaultNode);
     }
 
     /** Save the work breakdown structure */

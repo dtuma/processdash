@@ -102,13 +102,18 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
      * @param rootNodeName the name to give the root node of the hierarchy.
      */
     public WBSModel(String rootNodeName) {
+        this(rootNodeName, true);
+    }
+
+    public WBSModel(String rootNodeName, boolean createDefaultNode) {
         wbsNodes = new ArrayList();
         if (rootNodeName == null || rootNodeName.trim().length() == 0)
             rootNodeName = "Team Project";
         add(new WBSNode(this, rootNodeName, "Project", 0, true));
         getRoot().setUniqueID((new Random()).nextInt() & 0xffffff);
-        add(new WBSNode(this, "Software Component",
-                TeamProcess.SOFTWARE_COMPONENT_TYPE, 1, true));
+        if (createDefaultNode)
+            add(new WBSNode(this, "Software Component",
+                    TeamProcess.SOFTWARE_COMPONENT_TYPE, 1, true));
         validator = new WBSModelValidator(this);
     }
 
