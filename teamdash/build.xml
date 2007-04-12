@@ -6,6 +6,7 @@
   <property name="xmlpull.jar" value="${processdash.dir}/lib/kxml-2.2.1-mod.jar"/>
   <property name="TeamProcessCGI.jar"
       value="Templates/team/lib/TeamProcessCGI.jar"/>
+  <property name="server.dir" value="generateProcess"/>
   <property name="server.jar" value="generateProcess.jar"/>
   <property name="jnlp.jar" value="FrameworkEditorJNLP.jar"/>
   <property environment="env"/>
@@ -87,7 +88,10 @@
       <fileset refid="servletClasses"/>
       <fileset refid="servletDashClasses"/>
       <zipfileset src="${xmlpull.jar}"/>
+    </jar>
 
+    <mkdir dir="${server.dir}"/>
+    <sync todir="${server.dir}">
       <!-- include the templates -->
       <fileset dir=".">
         <include name="Templates/team/lib/" />
@@ -99,7 +103,7 @@
         <include name="Templates/team/setup/filelist.txt" />
       </fileset>
       <fileset dir="${processdash.dir}" includes="Templates/style.css"/>
-    </jar>
+    </sync>
   </target>
 
 
@@ -194,6 +198,7 @@ Unexpected number of processdash classes referenced by TeamTools.jar
   <target name="TeamProcess" depends="-defaultValues,server" unless="noBuild">
     <java classname="teamdash.process.GenerateProcess" fork="true">
       <classpath>
+        <pathelement location="${server.dir}"/>
         <pathelement location="${server.jar}"/>
       </classpath>
       <arg value="${teamProcess.xml}"/>
