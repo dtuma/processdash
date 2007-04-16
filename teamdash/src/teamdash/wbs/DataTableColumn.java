@@ -36,6 +36,20 @@ public class DataTableColumn extends TableColumn {
         init(model, c, columnIndex);
     }
 
+    /** 
+     * Create a copy of an existing DataTableColumn
+     * @param orig
+     */
+    public DataTableColumn(DataTableColumn orig) {
+        setModelIndex(orig.getModelIndex());
+        setHeaderValue(orig.getHeaderValue());
+        setIdentifier(orig.getIdentifier());
+        setPreferredWidth(orig.getPreferredWidth ());
+        setCellRenderer(orig.getCellRenderer());
+        setCellEditor(orig.getCellEditor());
+    }
+
+
     private void init(DataTableModel model, DataColumn c, int columnIndex) {
         // set the index, header value, and identifier.
         setModelIndex(columnIndex);
@@ -56,4 +70,7 @@ public class DataTableColumn extends TableColumn {
             setCellEditor(((CustomEditedColumn) c).getCellEditor());
     }
 
+    public String toString() {
+        return getHeaderValue().toString();
+    }
 }

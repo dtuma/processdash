@@ -374,6 +374,7 @@ public class WBSEditor implements WindowListener, SaveListener,
         result.setMnemonic('A');
         for (int i = 0; i < tabActions.length; i++) {
             result.add(tabActions[i]);
+            if (i == 2) result.addSeparator();
         }
 
         return result;

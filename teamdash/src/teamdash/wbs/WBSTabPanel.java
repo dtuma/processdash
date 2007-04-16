@@ -1,7 +1,9 @@
 package teamdash.wbs;
 
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.Graphics;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -12,6 +14,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -21,6 +24,9 @@ import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComponent;
+import javax.swing.JDialog;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -28,14 +34,20 @@ import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JToolBar;
+import javax.swing.SwingUtilities;
+import javax.swing.border.EmptyBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.table.DefaultTableColumnModel;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeCellRenderer;
+import javax.swing.tree.TreeNode;
 
 import teamdash.TeamMemberList;
+import teamdash.TreeListSelector;
 
 /** Class to display the WBS editor panel
  */
@@ -43,8 +55,11 @@ public class WBSTabPanel extends JPanel
     implements TeamMemberList.InitialsListener
 {
 
+    private static final String COLUMN_SELECTOR_DIALOG_TITLE = "Select Tab Columns";
+
     public static final String TEAM_MEMBER_TIMES_ID = "TeamMemberTimes";
 
+    WBSColumnSelectorDialog columnSelectorDialog;
     WBSJTable wbsTable;
     DataJTable dataTable;
     JScrollPane scrollPane;
@@ -55,6 +70,7 @@ public class WBSTabPanel extends JPanel
     ArrayList tableColumnModels = new ArrayList();
     GridBagLayout layout;
     ArrayList editableTabs = new ArrayList();
+    ArrayList protectedTabs = new ArrayList();
     List enablementCalculations = new LinkedList();
 
     /** Create a WBSTabPanel */
@@ -100,6 +116,10 @@ public class WBSTabPanel extends JPanel
         return editableTabs.contains(String.valueOf(tabIndex));
     }
 
+    protected boolean isTabProtected(int tabIndex) {
+        return protectedTabs.contains(String.valueOf(tabIndex));
+    }
+
     public int addTab(
             String tabName,
             String columnIDs[],
@@ -123,13 +143,15 @@ public class WBSTabPanel extends JPanel
 
         DataTableModel tableModel = (DataTableModel) dataTable.getModel();
         TableColumnModel columnModel = new DefaultTableColumnModel();
+        boolean protectedTab = false;
 
         for (int i = 0; i < columnIDs.length; i++) {
             if (columnIDs[i] == null)
                 continue;
-            else if (TEAM_MEMBER_TIMES_ID.equals(columnIDs[i]))
+            else if (TEAM_MEMBER_TIMES_ID.equals(columnIDs[i])) {
                 tableModel.addTeamMemberTimes(columnModel);
-            else {
+                protectedTab = true;
+            } else {
                 TableColumn tableColumn =
                     new DataTableColumn(tableModel, columnIDs[i]);
                 if (columnNames != null && columnNames[i] != null)
@@ -138,7 +160,11 @@ public class WBSTabPanel extends JPanel
                 columnModel.addColumn(tableColumn);
             }
         }
-        return addTab(tabName, columnModel, isEditable);
+        int tabIndex = addTab(tabName, columnModel, isEditable);
+        if (protectedTab)
+            protectedTabs.add(String.valueOf(tabIndex));
+
+        return tabIndex;
     }
 
     protected int addTab(String tabName, TableColumnModel columnModel, boolean isEditable) {
@@ -189,21 +215,15 @@ public class WBSTabPanel extends JPanel
     private TableColumnModel copyColumnsDeep(TableColumnModel tableColumnModel) {
         TableColumnModel newTableColumnModel = new DefaultTableColumnModel();
         for (Enumeration columns = tableColumnModel.getColumns(); columns.hasMoreElements();) {
-            TableColumn existingColumn = (TableColumn) columns.nextElement();
-            DataTableModel tableModel = (DataTableModel) dataTable.getModel();
-
-            // construct new column
-            String columnID = (String) existingColumn.getIdentifier();
-            DataTableColumn newColumn = new DataTableColumn(tableModel, columnID);
-            newColumn.setHeaderValue(existingColumn.getHeaderValue());
-            newTableColumnModel.addColumn(newColumn);
+            DataTableColumn existingColumn = (DataTableColumn) columns.nextElement();
+            newTableColumnModel.addColumn(new DataTableColumn(existingColumn));
         }
         return newTableColumnModel;
     }
 
     public Action[] getTabActions() {
-        return new Action[] {NEW_TAB_ACTION, RENAME_TAB_ACTION, DUPLICATE_TAB_ACTION,
-                DELETE_TAB_ACTION};
+        return new Action[] {NEW_TAB_ACTION, DUPLICATE_TAB_ACTION,
+                DELETE_TAB_ACTION, CHANGE_TAB_COLUMNS_ACTION, RENAME_TAB_ACTION};
     }
 
     private class NewTabAction extends AbstractAction {
@@ -221,6 +241,7 @@ public class WBSTabPanel extends JPanel
 
             int tabIndex = addTab(tabName, new DefaultTableColumnModel(), true);
             tabbedPane.setSelectedIndex(tabIndex);
+            showColumnSelector();
         }
     }
     final NewTabAction NEW_TAB_ACTION = new NewTabAction();
@@ -248,9 +269,10 @@ public class WBSTabPanel extends JPanel
     }
     final RenameTabAction RENAME_TAB_ACTION = new RenameTabAction();
 
-    private class DuplicateTabAction extends AbstractAction {
+    private class DuplicateTabAction extends AbstractAction implements EnablementCalculation {
         public DuplicateTabAction() {
             super("Duplicate Tab");
+            enablementCalculations.add(this);
         }
 
         public void actionPerformed(ActionEvent e) {
@@ -265,6 +287,11 @@ public class WBSTabPanel extends JPanel
                     (TableColumnModel) tableColumnModels.get(tabbedPane.getSelectedIndex()));
             int tabIndex = addTab(tabName, columns, true);
             tabbedPane.setSelectedIndex(tabIndex);
+            showColumnSelector();
+        }
+
+        public void recalculateEnablement(int selectedTabIndex) {
+            setEnabled(!isTabProtected(selectedTabIndex));
         }
     }
     final DuplicateTabAction DUPLICATE_TAB_ACTION = new DuplicateTabAction();
@@ -287,10 +314,26 @@ public class WBSTabPanel extends JPanel
         }
 
         public void recalculateEnablement(int selectedTabIndex) {
-            setEnabled(isTabEditable(tabbedPane.getSelectedIndex()));
+            setEnabled(isTabEditable(selectedTabIndex));
         }
     }
     final DeleteTabAction DELETE_TAB_ACTION = new DeleteTabAction();
+
+    private class ChangeTabColumnsAction extends AbstractAction implements EnablementCalculation {
+        public ChangeTabColumnsAction() {
+            super("Change Tab Columns");
+            enablementCalculations.add(this);
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            showColumnSelector();
+        }
+
+        public void recalculateEnablement(int selectedTabIndex) {
+            setEnabled(isTabEditable(selectedTabIndex));
+        }
+    }
+    final ChangeTabColumnsAction CHANGE_TAB_COLUMNS_ACTION = new ChangeTabColumnsAction();
 
     /** Listen for changes in team member initials, and disable undo. */
     public void initialsChanged(String oldInitials, String newInitials) {
@@ -530,4 +573,28 @@ public class WBSTabPanel extends JPanel
         }
     }
 
+    /**
+     * Display dialog to allow user to select columns to display on the current tab.
+     */
+    private void showColumnSelector() {
+        if (columnSelectorDialog == null)
+            columnSelectorDialog = new WBSColumnSelectorDialog((JFrame) SwingUtilities.getWindowAncestor(this), COLUMN_SELECTOR_DIALOG_TITLE, getAvailableTabColumns());
+
+        columnSelectorDialog.setTableColumnModel((TableColumnModel) tableColumnModels.get(tabbedPane.getSelectedIndex()));
+        columnSelectorDialog.setDialogMessage(tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()));
+        columnSelectorDialog.show();
+    }
+
+    /**
+     * Build map of table column models for non-editable and non-protected tabs
+     * @return Map
+     */
+    private Map getAvailableTabColumns() {
+        Map tabColumnsMap = new LinkedHashMap();
+        for (int i = 0; i < tabbedPane.getTabCount(); i++) {
+            if (!isTabEditable(i) && !isTabProtected(i))
+                tabColumnsMap.put(tabbedPane.getTitleAt(i), tableColumnModels.get(i));
+        }
+        return tabColumnsMap;
+    }
 }
