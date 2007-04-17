@@ -69,6 +69,8 @@ Authors:
 
 <project default="dist" basedir=".">
 
+  <property file="${lib}/build.properties"/>
+
   <property environment="env"/>
 
   <property name="build"      value="antbin"/>
@@ -126,6 +128,7 @@ Authors:
 
   <!-- property name="build.sysclasspath" value="ignore"/ -->
   <property name="build.compiler" value="javac1.4"/>
+  <property name="compile.target" value="1.4"/>
 
   <path id="build.classpath">
     <pathelement location="${build}"/>
@@ -168,7 +171,7 @@ Authors:
 
     <!-- Compile the java code from ${src} into ${build} -->
     <javac srcdir="${src}" destdir="${build}" debug="${debug}"
-           classpathref="build.classpath" target="1.4">
+           classpathref="build.classpath" target="${compile.target}">
       <include name="net/**/*.java"/>
       <exclude name="**/*Test.java"/>
       <excludesfile name="${lib}/fileset-applet-only.txt"/>

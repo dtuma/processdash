@@ -16,6 +16,13 @@ To build the PSP Dashboard, you will need:
 Then simply run "ant" on the file "build.xml" in this directory.
 
 
+Many aspects of the build process are configurable via ant properties.
+You can override any <property> in the build.xml file by creating a
+file called "build.properties" in the "lib" subdirectory.  Place
+name=value pairs in that file in java.util.Properties format, and
+your values will take precedence over the ones defined in build.xml.
+
+
 Optional: If you use Eclipse to edit Java code, take note:
 
    * A .classpath and .project file are included for your use.  The
@@ -32,8 +39,8 @@ Optional: If you use Eclipse to edit Java code, take note:
      the final, distributable "jar" file.
 
    * Due to differences in the way ant and Eclipse build the project,
-     ant will be compiling files into a subdirectory called "bin" and
-     Eclipse will be compiling into a subdirectory called "bin2".
+     ant will be compiling files into a subdirectory called "antbin"
+     and Eclipse will be compiling into a subdirectory called "bin".
      This is normal.  Don't try to switch it back, or Eclipse will
      spend a lot of time thrashing each time files in its output
      directory are changed by ant.

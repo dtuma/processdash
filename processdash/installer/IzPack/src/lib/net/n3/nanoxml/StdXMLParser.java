@@ -484,10 +484,10 @@ public class StdXMLParser
                                                   extraAttributes,
                                                   this.reader.getSystemID(),
                                                   this.reader.getLineNr());
-        Enumeration enum = extraAttributes.keys();
+        Enumeration enum_ = extraAttributes.keys();
 
-        while (enum.hasMoreElements()) {
-            String key = (String) enum.nextElement();
+        while (enum_.hasMoreElements()) {
+            String key = (String) enum_.nextElement();
             String value = extraAttributes.getProperty(key);
             String attPrefix = null;
             colonIndex = key.indexOf(':');

@@ -307,10 +307,10 @@ public class XMLElement
      */
     public XMLElement getFirstChildNamed(String name)
     {
-        Enumeration enum = this.children.elements();
+        Enumeration enum_ = this.children.elements();
 
-        while (enum.hasMoreElements()) {
-            XMLElement child = (XMLElement) enum.nextElement();
+        while (enum_.hasMoreElements()) {
+            XMLElement child = (XMLElement) enum_.nextElement();
 
             if (child.getName().equals(name)) {
                 return child;
@@ -331,10 +331,10 @@ public class XMLElement
     public Vector getChildrenNamed(String name)
     {
         Vector result = new Vector(this.children.size());
-        Enumeration enum = this.children.elements();
+        Enumeration enum_ = this.children.elements();
 
-        while (enum.hasMoreElements()) {
-            XMLElement child = (XMLElement) enum.nextElement();
+        while (enum_.hasMoreElements()) {
+            XMLElement child = (XMLElement) enum_.nextElement();
 
             if (child.getName().equals(name)) {
                 result.addElement(child);
