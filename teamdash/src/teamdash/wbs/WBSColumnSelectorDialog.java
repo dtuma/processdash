@@ -34,7 +34,7 @@ public class WBSColumnSelectorDialog extends JDialog {
     private JLabel dialogLabel;
 
     public WBSColumnSelectorDialog(JFrame parent, String title, Map availableTabs) {
-        super(parent, title);
+        super(parent, title, true);
         setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 
         //build content

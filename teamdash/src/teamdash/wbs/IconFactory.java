@@ -165,6 +165,12 @@ public class IconFactory {
     }
     private static Icon COLLAPSE_ICON = null;
 
+    public static Icon getColumnsIcon() {
+        if (COLUMNS_ICON == null) COLUMNS_ICON = loadIconResource("columns.png");
+        return COLUMNS_ICON;
+    }
+    private static Icon COLUMNS_ICON = null;
+
     /** Convenience method for mixing colors.
      * @param r the ratio to use when mixing; must be between 0.0 and 1.0 .
      *   A value of 1.0 would return a color equivalent to color a.

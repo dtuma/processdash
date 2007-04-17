@@ -1,13 +1,13 @@
 package teamdash.wbs;
 
-import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
-import java.awt.FlowLayout;
 import java.awt.Graphics;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.awt.Shape;
 import java.awt.event.ActionEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
@@ -24,9 +24,7 @@ import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComponent;
-import javax.swing.JDialog;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -35,19 +33,15 @@ import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JToolBar;
 import javax.swing.SwingUtilities;
-import javax.swing.border.EmptyBorder;
+import javax.swing.border.EtchedBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.table.DefaultTableColumnModel;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
-import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.DefaultTreeCellRenderer;
-import javax.swing.tree.TreeNode;
 
 import teamdash.TeamMemberList;
-import teamdash.TreeListSelector;
 
 /** Class to display the WBS editor panel
  */
@@ -402,6 +396,15 @@ public class WBSTabPanel extends JPanel
         wbsTable.setOpaque(false);
         scrollPane.getRowHeader().setOpaque(false);
 
+        // place a button in the top-right corner for column editing
+        JButton colButton = new JButton(CHANGE_TAB_COLUMNS_ACTION);
+        colButton.setBorder(new ChoppedEtchedBorder());
+        colButton.setFocusable(false);
+        colButton.setIcon(IconFactory.getColumnsIcon());
+        colButton.setToolTipText(colButton.getText());
+        colButton.setText(null);
+        scrollPane.setCorner(JScrollPane.UPPER_RIGHT_CORNER, colButton);
+
         // add the scroll pane to the panel
         GridBagConstraints c = new GridBagConstraints();
         c.gridx = c.gridy = 0;
@@ -573,6 +576,21 @@ public class WBSTabPanel extends JPanel
         }
     }
 
+    private class ChoppedEtchedBorder extends EtchedBorder {
+
+        public void paintBorder(Component c, Graphics g, int x, int y,
+                int width, int height) {
+            Shape clipping = g.getClip();
+            g.setClip(x, y, width, height);
+            super.paintBorder(c, g, x, y, width, height+1);
+            g.setClip(clipping);
+        }
+
+        public Insets getBorderInsets(Component c) {
+            return new Insets(2,2,1,2);
+        }
+    }
+
     /**
      * Display dialog to allow user to select columns to display on the current tab.
      */
@@ -582,6 +600,7 @@ public class WBSTabPanel extends JPanel
 
         columnSelectorDialog.setTableColumnModel((TableColumnModel) tableColumnModels.get(tabbedPane.getSelectedIndex()));
         columnSelectorDialog.setDialogMessage(tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()));
+        columnSelectorDialog.setLocationRelativeTo(this);
         columnSelectorDialog.show();
     }
 
