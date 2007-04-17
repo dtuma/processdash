@@ -45,6 +45,8 @@ import net.sourceforge.processdash.util.LightweightSynchronizedSet;
 public class CompiledFunction implements SaveableData, AliasedData,
         DataListener {
 
+    public static final String ANONYMOUS_EDITABLE_ALIAS = "";
+
     protected static final SimpleData VALUE_NEVER_QUERIED =
         new ImmutableStringData("", false, false);
 
@@ -308,7 +310,10 @@ public class CompiledFunction implements SaveableData, AliasedData,
 
             if (newHandledCount == unhandledChangeCount) {
                 value = newValue;
-                aliasFor = newAlias;
+                if (newAlias == ANONYMOUS_EDITABLE_ALIAS)
+                    aliasFor = null;
+                else
+                    aliasFor = newAlias;
                 unhandledChangeCount = 0;
                 return true;
             } else {
