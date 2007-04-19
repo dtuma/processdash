@@ -1,6 +1,8 @@
 
 <project default="publish" basedir=".">
 
+  <property name="teamtools.version" value="2.4.7"/>
+
   <property name="processdash.dir" value="../processdash"/>
   <property name="pspdash.jar" value="${processdash.dir}/dist/pspdash.jar"/>
   <property name="xmlpull.jar" value="${processdash.dir}/lib/kxml-2.2.1-mod.jar"/>
@@ -166,11 +168,12 @@ Unexpected number of processdash classes referenced by TeamTools.jar
       <manifest>
         <attribute name="Main-Class" value="teamdash.wbs.WBSEditor"/>
 	<attribute name="Dash-Pkg-ID" value="teamTools"/>
-	<attribute name="Dash-Pkg-Version" value="2.4.7"/>
+	<attribute name="Dash-Pkg-Version" value="${teamtools.version}"/>
 	<attribute name="Dash-Pkg-Requires-Version" value="1.7.rc1+"/>
 	<attribute name="Dash-Pkg-Name" value="Advanced Team Tools"/>
 	<attribute name="Dash-Pkg-URL"
 	           value="http://processdash.sourceforge.net/cgi-bin/update"/>
+	<attribute name="Implementation-Version" value="${teamtools.version}"/>
       </manifest>
 
       <!-- include the compiled files -->
