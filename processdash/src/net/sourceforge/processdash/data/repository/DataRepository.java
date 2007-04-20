@@ -1985,7 +1985,7 @@ public class DataRepository implements Repository, DataContext,
 
 
         public SaveableData getValue(String name) {
-            DataElement d = getOrCreateDefaultDataElement(name);
+            DataElement d = getOrCreateDefaultDataElement(maybeRootDataName(name));
             if (d == null)
                 return null;
             else
@@ -1993,7 +1993,7 @@ public class DataRepository implements Repository, DataContext,
         }
 
         public final SimpleData getSimpleValue(String name) {
-            DataElement d = getOrCreateDefaultDataElement(name);
+            DataElement d = getOrCreateDefaultDataElement(maybeRootDataName(name));
             if (d == null)
                 return null;
             else
@@ -2133,7 +2133,8 @@ public class DataRepository implements Repository, DataContext,
         private volatile int recursion_depth = 0;
 
         public void putValue(String name, SaveableData value) {
-            putValue(name, value, IS_NOT_DEFAULT_VAL, MAYBE_MODIFYING_DATAFILE);
+            putValue(maybeRootDataName(name), value, IS_NOT_DEFAULT_VAL,
+                    MAYBE_MODIFYING_DATAFILE);
         }
 
         protected void putValue(String name, SaveableData value,
@@ -3852,6 +3853,10 @@ public class DataRepository implements Repository, DataContext,
                 result = name1.compareTo(name2);
 
             return result;
+        }
+
+        private String maybeRootDataName(String name) {
+            return createDataName("/", name);
         }
 
         private static String intern(String s, boolean recommendNew) {
