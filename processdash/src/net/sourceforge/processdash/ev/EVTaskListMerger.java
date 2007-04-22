@@ -59,7 +59,7 @@ public class EVTaskListMerger {
 
     public static final String TASK_LIST_FLAG = "merged";
 
-    private static final Logger logger = Logger
+    protected static final Logger logger = Logger
             .getLogger(EVTaskListMerger.class.getName());
 
     private EVTaskList taskList;
@@ -455,20 +455,13 @@ public class EVTaskListMerger {
         List childKeys = findChildrenOfKey(allTaskKeys, key);
         List leafNodes = getLeafNodes(key.getEvNodes());
 
-        if (!childKeys.isEmpty()) {
-            if (!leafNodes.isEmpty())
-                logger.warning("Unexpected situation - both children "
-                        + "and leaf nodes are present for node "
-                        + newNode.fullName);
-            populateNonLeafChild(newNode, key, childKeys, allTaskKeys);
-        } else
-            populateLeafChild(newNode, leafNodes);
+        populateChild(newNode, key, childKeys, allTaskKeys, leafNodes);
     }
 
     /** Create the descendants for a newly created, merged node.
      */
-    private void populateNonLeafChild(EVTask newNode, TaskKey key,
-            List childKeys, Map allTaskKeys) {
+    private void populateChild(EVTask newNode, TaskKey key,
+            List childKeys, Map allTaskKeys, List leavesToMerge) {
         // compute the names of each child.  Use the SortableTaskName class
         // and a TreeMap to put them in the best order relative to each other.
         SortedMap childMap = new TreeMap();
@@ -486,37 +479,10 @@ public class EVTaskListMerger {
             TaskKey childKey = (TaskKey) e.getValue();
             addChild(newNode, childKey, childName.name, allTaskKeys);
         }
+        int numberOfTrueChildren = newNode.getNumChildren();
 
-        // recalculate the merged metrics on the newly created node.
-        rollupNode(newNode, key.evNodes, false);
-
-        // accumulate "node time" from the nodes we are merging.  (This is
-        // time that was logged against a non-leaf node in a subschedule.)
-        for (Iterator i = key.evNodes.iterator(); i.hasNext();) {
-            EVTask subTask = (EVTask) i.next();
-            if (!subTask.isUserPruned()) {
-                double subNodeTime = getActualNodeTime(subTask);
-                if (subNodeTime > 0) {
-                    newNode.actualNodeTime += subNodeTime;
-                    newNode.actualTime += subNodeTime;
-                    newNode.actualCurrentTime += subNodeTime;
-                    newNode.actualDirectTime += subNodeTime;
-                }
-            }
-        }
-    }
-
-    private double getActualNodeTime(EVTask task) {
-        double result = task.actualCurrentTime;
-        for (int i = task.getNumChildren(); i-- > 0;)
-            result -= task.getChild(i).actualCurrentTime;
-        return result;
-    }
-
-    /** Compute rolled up metrics for a merged leaf node in the result tree. */
-    private void populateLeafChild(EVTask newNode, List leavesToMerge) {
-        // temporarily add all of the nodes to be merged as children of the
-        // target node.
+        // temporarily add all of the leaf nodes whose data should be merged
+        // with the target node.
         for (Iterator i = leavesToMerge.iterator(); i.hasNext();) {
             EVTask node = (EVTask) i.next();
             EVTask tempChild = (EVTask) node.clone();
@@ -527,13 +493,38 @@ public class EVTaskListMerger {
             newNode.add(tempChild);
         }
 
-        // now that we've added the nodes to merge as our children, we can
-        // reuse existing rollup logic to sum the values exactly.
-        rollupNode(newNode, leavesToMerge, true);
+        // recalculate the merged metrics on the newly created node.
+        List allMergedNodes = new ArrayList(key.evNodes);
+        allMergedNodes.addAll(leavesToMerge);
+        rollupNode(newNode, allMergedNodes, leavesToMerge);
 
-        // now that the metrics have been rolled up, delete the child nodes,
-        // so we are a leaf again.
-        clearChildren(newNode);
+        // accumulate "node time" from the nodes we are merging.  (This is
+        // time that was logged against a non-leaf node in a subschedule.)
+        for (Iterator i = key.evNodes.iterator(); i.hasNext();) {
+            EVTask subTask = (EVTask) i.next();
+            if (!containsIdentity(leavesToMerge, subTask)
+                    && !subTask.isUserPruned()) {
+                double subNodeTime = getActualNodeTime(subTask);
+                if (subNodeTime > 0) {
+                    newNode.actualNodeTime += subNodeTime;
+                    newNode.actualTime += subNodeTime;
+                    newNode.actualCurrentTime += subNodeTime;
+                    newNode.actualDirectTime += subNodeTime;
+                }
+            }
+        }
+
+        // finally, delete the leaf nodes that were temporarily added for
+        // calculation purposes
+        while (newNode.getNumChildren() > numberOfTrueChildren)
+            newNode.remove(newNode.getChild(numberOfTrueChildren));
+    }
+
+    private double getActualNodeTime(EVTask task) {
+        double result = task.actualCurrentTime;
+        for (int i = task.getNumChildren(); i-- > 0;)
+            result -= task.getChild(i).actualCurrentTime;
+        return result;
     }
 
     /** Merge metrics and data structures for a node in the result tree.
@@ -544,7 +535,7 @@ public class EVTaskListMerger {
      * @param doResources true if resource assignments should be rolled up.
      */
     private void rollupNode(EVTask task, Collection mergedNodes,
-            boolean doResources) {
+            Collection doResourcesFor) {
         // begin by computing the simple rollup of metrics data from the
         // children of the merged node.
         EVCalculatorRollup.recalcRollupNode(task);
@@ -556,14 +547,14 @@ public class EVTaskListMerger {
         List taskIDLists = new LinkedList();
         for (Iterator i = mergedNodes.iterator(); i.hasNext();) {
             EVTask node = (EVTask) i.next();
-            addAll(assignedTo, node.getAssignedTo());
+            if (containsIdentity(doResourcesFor, node))
+                addAll(assignedTo, node.getAssignedTo());
             addAll(dependencies, node.getDependencies());
             taskIDLists.add(node.getTaskIDs());
         }
 
         // assign these merged lists of data to the merged EVTask.
-        if (doResources)
-            task.assignedTo = new LinkedList(assignedTo);
+        task.assignedTo = new LinkedList(assignedTo);
         task.dependencies = new LinkedList(dependencies);
         task.taskIDs = new LinkedList(mergeTaskIDLists(taskIDLists));
     }
@@ -806,6 +797,17 @@ public class EVTaskListMerger {
     private static void addAll(Collection a, Collection b) {
         if (hasValue(b))
             a.addAll(b);
+    }
+
+    /** Test for the presence of an object in a collection, using identity
+     * comparisons instead of equals()
+     */
+    private static boolean containsIdentity(Collection a, Object b) {
+        for (Iterator i = a.iterator(); i.hasNext();) {
+            if (i.next() == b)
+                return true;
+        }
+        return false;
     }
 
     /** Convenience routine for instance counting */
