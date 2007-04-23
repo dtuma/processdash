@@ -155,4 +155,16 @@ public class ProcessUtil {
         return processID;
     }
 
+    public String getEffectivePhase(String path, boolean guessFromPath) {
+        String dataName = path + "/Effective_Phase";
+        String result = getProcessString(dataName, false);
+        if (result != null && result.length() > 0)
+            return result;
+
+        if (!guessFromPath)
+            return null;
+
+        int slashPos = path.lastIndexOf('/');
+        return path.substring(slashPos + 1);
+    }
 }

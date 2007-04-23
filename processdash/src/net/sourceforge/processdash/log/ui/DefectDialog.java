@@ -1,5 +1,5 @@
+// Copyright (C) 2003-2007 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -26,33 +26,55 @@
 
 package net.sourceforge.processdash.log.ui;
 
-import java.awt.GridBagLayout;
-import java.awt.GridBagConstraints;
-import java.awt.Insets;
-import java.awt.Dimension;
 import java.awt.BorderLayout;
-import java.awt.event.*;
+import java.awt.Dimension;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 import java.text.NumberFormat;
-import javax.swing.*;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
+import java.util.Collections;
+import java.util.Date;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Hashtable;
+import java.util.Map;
+import java.util.Stack;
+import java.util.StringTokenizer;
+import java.util.Vector;
+
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
 import javax.swing.border.BevelBorder;
 import javax.swing.border.EmptyBorder;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 
 import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.ListData;
 import net.sourceforge.processdash.data.StringData;
 import net.sourceforge.processdash.hier.PropertyKey;
-import net.sourceforge.processdash.i18n.*;
-import net.sourceforge.processdash.log.*;
+import net.sourceforge.processdash.i18n.Resources;
+import net.sourceforge.processdash.log.Defect;
+import net.sourceforge.processdash.log.DefectLog;
 import net.sourceforge.processdash.process.DefectTypeStandard;
+import net.sourceforge.processdash.process.ProcessUtil;
 import net.sourceforge.processdash.ui.DashboardIconFactory;
-import net.sourceforge.processdash.ui.help.*;
-import net.sourceforge.processdash.ui.lib.*;
+import net.sourceforge.processdash.ui.help.PCSH;
+import net.sourceforge.processdash.ui.lib.DecimalField;
 import net.sourceforge.processdash.util.Stopwatch;
-
-import java.util.*;
 
 
 public class DefectDialog extends JDialog
@@ -174,14 +196,9 @@ public class DefectDialog extends JDialog
         g.gridwidth = 1;
 
 
-        int prefixLength = defectPath.path().length() + 1;
         String defaultRemovalPhase = null;
-        if (guessDefaults) {
-            String phasePath = parent.getCurrentPhase().path();
-            if (phasePath.length() > prefixLength)
-                defaultRemovalPhase = phasePath.substring(prefixLength);
-        }
-
+        if (guessDefaults)
+            defaultRemovalPhase = guessRemovalPhase(defectPath);
         phase_removed = phaseComboBox(defectPath, defaultRemovalPhase);
 
         String defaultInjectionPhase = null;
@@ -470,6 +487,29 @@ public class DefectDialog extends JDialog
     }
 
 
+    /** Make an educated guess about which removal phase might correspond to
+     * the current dashboard state.
+     */
+    private String guessRemovalPhase(PropertyKey defectPath) {
+        String phasePath = parent.getCurrentPhase().path();
+
+        // first, check to see if this task has registered an effective phase
+        ProcessUtil pu = new ProcessUtil(parent.getData());
+        String effectivePhase = pu.getEffectivePhase(phasePath, false);
+        if (effectivePhase != null)
+            return effectivePhase;
+
+        // if no effective phase was registered, infer it from the path.  We
+        // don't use the path inference provided by ProcessUtil because we
+        // need to preserve more than just the final path segment. For example,
+        // in the case of a PSP3 project, we need to keep both the cycle name
+        // and the phase name.
+        int prefixLength = defectPath.path().length() + 1;
+        if (phasePath.length() > prefixLength)
+            return phasePath.substring(prefixLength);
+
+        return null;
+    }
 
     /** Make an educated guess about which injection phase might correspond
      *  to the given removal phase.
