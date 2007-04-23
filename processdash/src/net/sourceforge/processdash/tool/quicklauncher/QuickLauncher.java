@@ -242,6 +242,7 @@ public class QuickLauncher {
                 else
                     instance.waitForCompletion();
             } catch (LaunchException le) {
+                le.printStackTrace();
                 showError(le.getMessage());
             } finally {
                 instanceList.removeInstance(instance);
