@@ -104,15 +104,17 @@ public class TimeLogReport extends TinyCGIBase {
             entryPath = entryPath.substring(0, slashPos);
 
             out.println("<TR>");
-            out.println("<TD NOWRAP>" + entryPath + "</TD>");
-            out.println("<TD>" + phase + "</TD>");
+            out.println("<TD NOWRAP>" + HTMLUtils.escapeEntities(entryPath)
+                    + "</TD>");
+            out.println("<TD>" + HTMLUtils.escapeEntities(phase) + "</TD>");
             out.println("<TD>" +
                         FormatUtil.formatDateTime(tle.getStartTime()) +
                         "</TD>");
             out.println("<TD>" + tle.getElapsedTime() + "</TD>");
             out.println("<TD>" + tle.getInterruptTime() + "</TD>");
             String comment = tle.getComment();
-            out.println("<TD>" + (comment == null ? "" : comment) + "</TD>");
+            out.println("<TD>" + (comment == null ? ""
+                    : HTMLUtils.escapeEntities(comment)) + "</TD>");
             out.println("</TR>");
         }
         out.println("</TABLE><!-- cutEnd -->");
@@ -136,7 +138,7 @@ public class TimeLogReport extends TinyCGIBase {
 
     private String For(String phrase) {
         if (phrase != null && phrase.length() > 1)
-            return resources.format("For_FMT", phrase);
+            return HTMLUtils.escapeEntities(resources.format("For_FMT", phrase));
         else
             return "";
     }

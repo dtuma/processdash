@@ -126,13 +126,17 @@ public class DefectLogReport extends TinyCGIBase implements DefectAnalyzer.Task 
 
     private String For(String phrase) {
         if (phrase != null && phrase.length() > 1)
-            return resources.format("For_FMT", phrase);
+            return esc(resources.format("For_FMT", phrase));
         else
             return "";
     }
 
     private String tr(String text) {
         return Translator.translate(text);
+    }
+
+    private String esc(String text) {
+        return HTMLUtils.escapeEntities(text);
     }
 
     private boolean phaseMatches(String a, String b) {
@@ -146,15 +150,15 @@ public class DefectLogReport extends TinyCGIBase implements DefectAnalyzer.Task 
             return;
 
         out.println("<TR>");
-        out.println("<TD NOWRAP>" + path + "</TD>");
+        out.println("<TD NOWRAP>" + esc(path) + "</TD>");
         out.println("<TD>" + FormatUtil.formatDate(d.date) + "</TD>");
         out.println("<TD>" + d.number + "</TD>");
-        out.println("<TD>" + d.defect_type + "</TD>");
-        out.println("<TD>" + d.phase_injected + "</TD>");
-        out.println("<TD>" + d.phase_removed + "</TD>");
+        out.println("<TD>" + esc(d.defect_type) + "</TD>");
+        out.println("<TD>" + esc(d.phase_injected) + "</TD>");
+        out.println("<TD>" + esc(d.phase_removed) + "</TD>");
         out.println("<TD>" + d.fix_time + "</TD>");
         out.println("<TD>" + d.fix_defect + "</TD>");
-        out.println("<TD>" + d.description + "</TD>");
+        out.println("<TD>" + esc(d.description) + "</TD>");
         out.println("</TR>");
     }
 }
