@@ -18,9 +18,9 @@ Then simply run "ant" on the file "build.xml" in this directory.
 
 Many aspects of the build process are configurable via ant properties.
 You can override any <property> in the build.xml file by creating a
-file called "build.properties" in the "lib" subdirectory.  Place
-name=value pairs in that file in java.util.Properties format, and
-your values will take precedence over the ones defined in build.xml.
+file called build.properties in this directory.  Place name=value pairs
+in that file in java.util.Properties format, and your values will take
+precedence over the ones defined in build.xml.
 
 
 Optional: If you use Eclipse to edit Java code, take note:

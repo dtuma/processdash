@@ -69,7 +69,7 @@ Authors:
 
 <project default="dist" basedir=".">
 
-  <property file="${lib}/build.properties"/>
+  <property file="build.properties"/>
 
   <property environment="env"/>
 
