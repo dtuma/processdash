@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2006 Tuma Solutions, LLC
+// Copyright (C) 2003-2007 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -31,19 +31,23 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.Vector;
 
 import javax.swing.JCheckBox;
 
 import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.DateData;
+import net.sourceforge.processdash.data.repository.DataEvent;
+import net.sourceforge.processdash.data.repository.DataListener;
 import net.sourceforge.processdash.data.repository.DataRepository;
+import net.sourceforge.processdash.data.repository.RemoteException;
 import net.sourceforge.processdash.hier.ActiveTaskModel;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.ui.help.PCSH;
 
 public class CompletionButton extends JCheckBox implements ActionListener,
-        PropertyChangeListener {
+        PropertyChangeListener, DataListener {
 
     ProcessDashboard parent = null;
     ActiveTaskModel activeTaskModel;
@@ -69,8 +73,13 @@ public class CompletionButton extends JCheckBox implements ActionListener,
     }
 
     public void updateAll() {
+        if (dataName != null)
+            parent.getData().removeDataListener(dataName, this);
+
         String path = activeTaskModel.getPath();
         dataName = DataRepository.createDataName(path, "Completed");
+        parent.getData().addDataListener(dataName, this, false);
+
         update();
     }
 
@@ -109,6 +118,14 @@ public class CompletionButton extends JCheckBox implements ActionListener,
 
     public void propertyChange(PropertyChangeEvent evt) {
         updateAll();
+    }
+
+    public void dataValueChanged(DataEvent e) throws RemoteException {
+        update();
+    }
+
+    public void dataValuesChanged(Vector v) throws RemoteException {
+        update();
     }
 
 }
