@@ -31,7 +31,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.util.Vector;
 
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
@@ -42,16 +41,12 @@ import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTree;
 import javax.swing.SwingConstants;
-import javax.swing.SwingUtilities;
 import javax.swing.tree.TreePath;
 
 import net.sourceforge.processdash.DashboardContext;
 import net.sourceforge.processdash.InternalSettings;
 import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.Settings;
-import net.sourceforge.processdash.data.repository.DataEvent;
-import net.sourceforge.processdash.data.repository.DataListener;
-import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.hier.ActiveTaskModel;
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.PropertyKey;
@@ -69,6 +64,7 @@ public class HierarchyMenu implements ActionListener, PropertyChangeListener,
 
     ProcessDashboard parent;
     ActiveTaskModel activeTaskModel;
+    HierarchicalCompletionStatusCalculator statusCalc;
     JMenuBar menuBar = null;
     JMenu menu = null;
     HierarchyMenu child = null;
@@ -77,19 +73,24 @@ public class HierarchyMenu implements ActionListener, PropertyChangeListener,
 
     public HierarchyMenu(ProcessDashboard dash, JMenuBar menuBar,
             ActiveTaskModel model) {
-        this(dash, menuBar, model, getRootKeyFromSetting(dash), true);
+        this(dash, menuBar, model, getRootKeyFromSetting(dash), null, true);
     }
 
     private HierarchyMenu(ProcessDashboard dash, JMenuBar menuBar,
-            ActiveTaskModel model, PropertyKey useSelf, boolean isFirstMenu) {
+            ActiveTaskModel model, PropertyKey useSelf,
+            HierarchicalCompletionStatusCalculator statusCalc,
+            boolean isFirstMenu) {
         super();
         this.parent = dash;
         this.menuBar = menuBar;
         this.activeTaskModel = model;
         this.self = useSelf;
         this.isFirstMenu = isFirstMenu;
-        // if (self != null)
-        // debug (self.toString());
+
+        if (isFirstMenu && SHOW_CHECKMARKS && statusCalc == null)
+            statusCalc = new HierarchicalCompletionStatusCalculator(dash
+                    .getData(), dash.getHierarchy(), self);
+        this.statusCalc = statusCalc;
 
         DashHierarchy props = parent.getProperties();
 
@@ -106,6 +107,10 @@ public class HierarchyMenu implements ActionListener, PropertyChangeListener,
 
             syncSelectedChildToHierarchy();
 
+            if (statusCalc != null) {
+                statusCalc.addActionListener(this);
+                updateCompletionStatus();
+            }
         } else {
             activeTaskModel.setNode(self);
             parent.validate();
@@ -179,10 +184,14 @@ public class HierarchyMenu implements ActionListener, PropertyChangeListener,
             child.delete();
             child = null;
             menuBar.remove(menu);
-            for (int i = menu.getItemCount(); i-- > 0;)
-                if (menu.getItem(i) instanceof MyMenuItem)
-                    ((MyMenuItem) menu.getItem(i)).delete();
+            menu.removeAll();
             menu = null;
+        }
+        if (statusCalc != null) {
+            statusCalc.removeActionListener(this);
+            if (isFirstMenu)
+                statusCalc.dispose();
+            statusCalc = null;
         }
     }
 
@@ -204,7 +213,7 @@ public class HierarchyMenu implements ActionListener, PropertyChangeListener,
 
             menu.setText(TaskNavigationSelector.prettifyPath(activeTask));
             child = new HierarchyMenu(parent, menuBar, activeTaskModel,
-                    activeTask, false);
+                    activeTask, statusCalc, false);
             return true;
         }
 
@@ -228,51 +237,35 @@ public class HierarchyMenu implements ActionListener, PropertyChangeListener,
         menu.setText(childKey.name());
 
         child = new HierarchyMenu(parent, menuBar, activeTaskModel, childKey,
-                false);
+                statusCalc, false);
         return true;
     }
 
 
 
-    private String getCompletedDataname(PropertyKey key) {
-        return DataRepository.createDataName(key.path(), "Completed");
+    private void updateCompletionStatus() {
+        if (menu != null && statusCalc != null)
+            for (int i = menu.getItemCount(); i-- > 0;)
+                if (menu.getItem(i) instanceof MyMenuItem)
+                    ((MyMenuItem) menu.getItem(i)).updateStatus();
     }
 
-    class MyMenuItem extends JMenuItem implements DataListener {
-        String dataname;
+    class MyMenuItem extends JMenuItem {
+
+        String path;
 
         MyMenuItem(PropertyKey key) {
             super(key.name());
+            path = key.path();
             addActionListener(HierarchyMenu.this);
             setHorizontalTextPosition(SwingConstants.LEFT);
-            dataname = getCompletedDataname(key);
-            if (SHOW_CHECKMARKS) {
-                // System.out.println("addDataListener("+dataname+")");
-                parent.getData().addDataListener(dataname, this);
-            }
         }
 
-        public void dataValueChanged(DataEvent e) {
-            final Icon i = ((e.getValue() != null && e.getValue().test()) ? CHECKMARK_ICON
-                    : null);
-            SwingUtilities.invokeLater(new Runnable() {
-                public void run() {
-                    setIcon(i);
-                }
-            });
+        public void updateStatus() {
+            Icon i = (statusCalc.isCompleted(path) ? CHECKMARK_ICON : null);
+            setIcon(i);
         }
 
-        public void dataValuesChanged(Vector v) {
-            for (int i = v.size(); i-- > 0;)
-                dataValueChanged((DataEvent) v.get(i));
-        }
-
-        public void delete() {
-            if (SHOW_CHECKMARKS) {
-                // System.out.println("removeDataListener("+dataname+")");
-                parent.getData().removeDataListener(dataname, this);
-            }
-        }
     }
 
     private static final String CHECKMARK_SETTING_NAME = "setting";
@@ -284,13 +277,17 @@ public class HierarchyMenu implements ActionListener, PropertyChangeListener,
             .getCheckIcon();
 
     public void actionPerformed(ActionEvent e) {
-        String childName = ((JMenuItem) e.getSource()).getText();
-        PropertyKey newChild = new PropertyKey(self, childName);
-        if (activeTaskModel.setNode(newChild) == false) {
-            System.out.println("task model refused to change to "+newChild);
-            activeTaskModel.setNode(newChild);
-        }
+        if (e.getSource() instanceof HierarchicalCompletionStatusCalculator) {
+            updateCompletionStatus();
 
+        } else if (e.getSource() instanceof MyMenuItem) {
+            String childName = ((JMenuItem) e.getSource()).getText();
+            PropertyKey newChild = new PropertyKey(self, childName);
+            if (activeTaskModel.setNode(newChild) == false) {
+                System.out.println("task model refused to change to "+newChild);
+                activeTaskModel.setNode(newChild);
+            }
+        }
     }
 
     public void propertyChange(PropertyChangeEvent evt) {
