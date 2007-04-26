@@ -36,6 +36,7 @@ import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.log.time.RolledUpTimeLog;
 import net.sourceforge.processdash.log.time.TimeLog;
 import net.sourceforge.processdash.log.time.TimeLogEntry;
+import net.sourceforge.processdash.process.ProcessUtil;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.FormatUtil;
 import net.sourceforge.processdash.util.HTMLUtils;
@@ -90,18 +91,19 @@ public class TimeLogReport extends TinyCGIBase {
         else
             tl = getDashboardContext().getTimeLog();
         List l = Collections.list(tl.filter(path, null, null));
-
         Collections.sort(l);
-        Iterator rows = l.iterator();
-        TimeLogEntry tle;
-        String entryPath, phase;
-        int slashPos;
-        while (rows.hasNext()) {
-            tle = (TimeLogEntry) rows.next();
-            entryPath = tle.getPath();
-            slashPos = entryPath.lastIndexOf("/");
-            phase = entryPath.substring(slashPos+1);
-            entryPath = entryPath.substring(0, slashPos);
+
+        ProcessUtil procUtil = new ProcessUtil(getDataContext());
+
+        for (Iterator rows = l.iterator(); rows.hasNext();) {
+            TimeLogEntry tle = (TimeLogEntry) rows.next();
+            String entryPath = tle.getPath();
+            String phase = procUtil.getEffectivePhase(entryPath, false);
+            if (phase == null) {
+                int slashPos = entryPath.lastIndexOf('/');
+                phase = entryPath.substring(slashPos+1);
+                entryPath = entryPath.substring(0, slashPos);
+            }
 
             out.println("<TR>");
             out.println("<TD NOWRAP>" + HTMLUtils.escapeEntities(entryPath)
