@@ -37,7 +37,7 @@ public class CFilter extends AbstractLanguageFilter {
     protected String[] getCommentEnders()   { return COMMENT_ENDERS; }
 
     private static final String[] FILENAME_ENDINGS = {
-        ".c", ".cpp", ".c++", ".h", ".java" };
+        ".c", ".cpp", ".c++", ".h", ".java", ".cs" };
     protected String[] getDefaultFilenameEndings() {
         return FILENAME_ENDINGS;
     }
