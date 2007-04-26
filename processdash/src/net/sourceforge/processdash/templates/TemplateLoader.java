@@ -786,6 +786,9 @@ public class TemplateLoader {
      * the {@link TinyWebServer} instead.
      */
     public static URLConnection resolveURLConnection(String url) {
+        if (!isValidTemplateURL(url))
+            return null;
+
         URL [] roots = getTemplateURLs();
         if (url.startsWith("/")) url = url.substring(1);
         URL u;
@@ -816,6 +819,9 @@ public class TemplateLoader {
      * class named within.
      */
     public static URL[] resolveURLs(String url) {
+        if (!isValidTemplateURL(url))
+            return new URL[0];
+
         Vector result = new Vector();
 
         URL [] roots = getTemplateURLs();
@@ -830,6 +836,37 @@ public class TemplateLoader {
         } catch (IOException ioe) { }
 
         return (URL[]) result.toArray(new URL[0]);
+    }
+
+    /** Returns true if the given string is a valid URI that can be resolved
+     * relative to the template search path.
+     */
+    public static boolean isValidTemplateURL(String uri) {
+        if (uri == null || uri.length() == 0)
+            return false;
+        if (uri.endsWith("/")) return false;
+        if (uri.indexOf("..") != -1) return false;
+        if (uri.indexOf("//") != -1) return false;
+
+        for (int i = uri.length();  i-- > 0; ) {
+            char c = uri.charAt(i);
+            if (c >= VALID_TEMPLATE_CHARS.length)
+                return false;
+            if (VALID_TEMPLATE_CHARS[c] == false)
+                return false;
+        }
+
+        return true;
+    }
+    private static final boolean VALID_TEMPLATE_CHARS[] = new boolean[128];
+    static {
+        Arrays.fill(VALID_TEMPLATE_CHARS, false);
+        Arrays.fill(VALID_TEMPLATE_CHARS, '0', '9'+1, true);
+        Arrays.fill(VALID_TEMPLATE_CHARS, 'A', 'Z'+1, true);
+        Arrays.fill(VALID_TEMPLATE_CHARS, 'a', 'z'+1, true);
+        String validChars = "-._/()";
+        for (int i = validChars.length();  i-- > 0; )
+            VALID_TEMPLATE_CHARS[validChars.charAt(i)] = true;
     }
 
     private static void processTimestamp(long time) {

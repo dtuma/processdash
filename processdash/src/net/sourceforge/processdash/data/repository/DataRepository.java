@@ -2475,18 +2475,17 @@ public class DataRepository implements Repository, DataContext,
                                               // strip <> chars
                 path = path.substring(1, path.length()-1);
 
-                URL u;
-                URLConnection conn;
                                         // look in each template URL until we
                                         // find the named file
-                for (int i = 0;  i < templateURLs.length;  i++) try {
-                    u = new URL(templateURLs[i], path);
-                    conn = u.openConnection();
-                    conn.connect();
-                    InputStream result = conn.getInputStream();
-                    return result;
-                } catch (IOException ioe) { }
-
+                if (TemplateLoader.isValidTemplateURL(path)) {
+                    for (int i = 0;  i < templateURLs.length;  i++) try {
+                        URL u = new URL(templateURLs[i], path);
+                        URLConnection conn = u.openConnection();
+                        conn.connect();
+                        InputStream result = conn.getInputStream();
+                        return result;
+                    } catch (IOException ioe) { }
+                }
                                         // couldn't find the file in any template
                                         // URL - give up.
                 throw new FileNotFoundException("<" + path + ">");

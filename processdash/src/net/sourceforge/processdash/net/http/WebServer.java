@@ -1269,6 +1269,10 @@ public class WebServer implements ContentSource {
     private static String canonicalizePath(String path) {
         if (path == null) return null;
         path = path.trim();
+        path = StringUtils.findAndReplace(path, "%2f", "/");
+        path = StringUtils.findAndReplace(path, "%2F", "/");
+        path = StringUtils.findAndReplace(path, "%2e", ".");
+        path = StringUtils.findAndReplace(path, "%2E", ".");
 
         int pos, beg;
         while (true) {
@@ -1306,7 +1310,8 @@ public class WebServer implements ContentSource {
 
     private URLConnection resolveURL(String url) {
         url = canonicalizePath(url);
-        if (url == null) return null;
+        if (!TemplateLoader.isValidTemplateURL(url))
+            return null;
 
         if (url.startsWith(CMS_URI_PREFIX))
             url = CMS_SCRIPT_PATH;
@@ -1318,6 +1323,10 @@ public class WebServer implements ContentSource {
             url = (String) v.next();
             for (int i = 0;  i < roots.length;  i++) try {
                 u = new URL(roots[i], url);
+
+                // reject resolved URLs that aren't children of a template root
+                if (!u.toExternalForm().startsWith(roots[i].toExternalForm()))
+                    continue;
 
                 // don't accept resolved URLs that point to a directory
                 if (isDirectory(u)) continue;
