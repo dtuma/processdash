@@ -34,11 +34,11 @@ import javax.swing.event.TableModelListener;
 import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.PreferencesUtils;
 import net.sourceforge.processdash.util.StringUtils;
-
 import teamdash.ConcurrencyLock;
 import teamdash.DirectoryBackup;
 import teamdash.SaveListener;
 import teamdash.TeamMemberListEditor;
+import teamdash.wbs.WBSTabPanel.LoadTabsException;
 import teamdash.wbs.columns.SizeAccountingColumnSet;
 
 public class WBSEditor implements WindowListener, SaveListener,
@@ -57,6 +57,7 @@ public class WBSEditor implements WindowListener, SaveListener,
     WBSDataWriter workflowWriter;
     File workflowDumpFile;
     DirectoryBackup teamProjectBackup;
+    File customTabsFile;
     private String owner;
     private int mode;
     boolean readOnly = false;
@@ -75,9 +76,10 @@ public class WBSEditor implements WindowListener, SaveListener,
     private static Preferences preferences = Preferences.userNodeForPackage(WBSEditor.class);
     private static final String EXPANDED_NODES_KEY_SUFFIX = "_EXPANDEDNODES";
     private static final String EXPANDED_NODES_DELIMITER = Character.toString('\u0001');
+    private static final String CUSTOM_TABS_FILE = "tabs.xml";
 
     public WBSEditor(TeamProject teamProject, File dumpFile, File workflowFile,
-            String intent, String owner)
+            File customTabsFile, String intent, String owner)
             throws ConcurrencyLock.FailureException {
 
         this.teamProject = teamProject;
@@ -85,6 +87,7 @@ public class WBSEditor implements WindowListener, SaveListener,
 
         this.dataDumpFile = dumpFile;
         this.workflowDumpFile = workflowFile;
+        this.customTabsFile = customTabsFile;
         this.readOnly = teamProject.isReadOnly();
 
         setMode(teamProject);
@@ -159,6 +162,12 @@ public class WBSEditor implements WindowListener, SaveListener,
 
         //String[] s = new String[] { "P", "O", "N", "M", "L", "K", "J", "I", "H", "G", "F" };
         //table.addTab("Defects", s, s);
+
+        // read in custom tabs file
+        try {
+            tabPanel.loadTabs(customTabsFile);
+        } catch (LoadTabsException e) {
+        }
 
         teamTimePanel =
             new TeamTimePanel(teamProject.getTeamMemberList(), data);
@@ -374,7 +383,7 @@ public class WBSEditor implements WindowListener, SaveListener,
         result.setMnemonic('A');
         for (int i = 0; i < tabActions.length; i++) {
             result.add(tabActions[i]);
-            if (i == 2) result.addSeparator();
+            if (i == 2 || i == 4) result.addSeparator();
         }
 
         return result;
@@ -434,6 +443,9 @@ public class WBSEditor implements WindowListener, SaveListener,
             try {
                 dataWriter.write(dataDumpFile);
                 workflowWriter.write(workflowDumpFile);
+
+                // write out custom tabs file
+                tabPanel.saveTabs(customTabsFile);
 
                 String qualifier = "saved";
                 if (owner != null && owner.trim().length() > 0)
@@ -549,6 +561,8 @@ public class WBSEditor implements WindowListener, SaveListener,
         File dir = new File(directory);
         File dumpFile = new File(dir, "projDump.xml");
         File workflowFile = new File(dir, "workflowDump.xml");
+        File customTabsFile = new File(dir, CUSTOM_TABS_FILE);
+
         TeamProject proj;
         if (bottomUp)
             proj = new TeamProjectBottomUp(dir, "Team Project");
@@ -556,7 +570,7 @@ public class WBSEditor implements WindowListener, SaveListener,
             proj = new TeamProject(dir, "Team Project");
         if (forceReadOnly)
             proj.setReadOnly(true);
-        else if (checkProjectEditability(proj, dumpFile, workflowFile) == false)
+        else if (checkProjectEditability(proj, dumpFile, workflowFile, customTabsFile) == false)
             return null;
 
         String intent = showTeamList ? INTENT_TEAM_EDITOR : INTENT_WBS_EDITOR;
@@ -564,8 +578,8 @@ public class WBSEditor implements WindowListener, SaveListener,
             owner = getOwnerName();
 
         try {
-            WBSEditor w = new WBSEditor(proj, dumpFile, workflowFile, intent,
-                    owner);
+            WBSEditor w = new WBSEditor(proj, dumpFile, workflowFile, customTabsFile,
+                    intent, owner);
             w.setExitOnClose(exitOnClose);
             w.setSyncURL(syncURL);
             if (showTeamList)
@@ -582,10 +596,11 @@ public class WBSEditor implements WindowListener, SaveListener,
     }
 
     private static boolean checkProjectEditability(TeamProject teamProject,
-            File dumpFile, File workflowFile) {
+            File dumpFile, File workflowFile, File customTabsFile) {
         if (teamProject.filesAreReadOnly() == false
                 && fileIsReadOnly(dumpFile) == false
-                && fileIsReadOnly(workflowFile) == false)
+                && fileIsReadOnly(workflowFile) == false
+                && fileIsReadOnly(customTabsFile) == false)
             // all of the files for the project are editable.
             return true;
 

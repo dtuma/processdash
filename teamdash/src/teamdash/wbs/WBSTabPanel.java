@@ -11,8 +11,11 @@ import java.awt.Shape;
 import java.awt.event.ActionEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -24,6 +27,7 @@ import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComponent;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JOptionPane;
@@ -36,12 +40,21 @@ import javax.swing.SwingUtilities;
 import javax.swing.border.EtchedBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import javax.swing.filechooser.FileFilter;
 import javax.swing.table.DefaultTableColumnModel;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 
+import net.sourceforge.processdash.util.RobustFileWriter;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
+
 import teamdash.TeamMemberList;
+import teamdash.XMLUtils;
 
 /** Class to display the WBS editor panel
  */
@@ -49,6 +62,17 @@ public class WBSTabPanel extends JPanel
     implements TeamMemberList.InitialsListener
 {
 
+    private static final String SAVE_TABS_ERROR_MESSAGE = "An unexpected error has prevented the file from being saved.";
+    private static final String LOAD_TABS_ERROR_MESSAGE = "An unexpected error has prevented the file from being imported.";
+    private static final String NO_TABS_MESSAGE = "The file selected did not contain any tabs";
+    private static final String INVALID_FILE_MESSAGE = "The file selected is not a valid tab import file.";
+    private static final String TABXML_EXTENSION = ".tabxml";
+    private static final String ID_ATTRIBUTE = "id";
+    private static final String NAME_ATTRIBUTE = "name";
+    private static final String VERSION_ATTRIBUTE = "version";
+    private static final String COLUMN_ELEMENT = "column";
+    private static final String TAB_ELEMENT = "tab";
+    private static final String WBS_TABS_ELEMENT = "wbstabs";
     private static final String COLUMN_SELECTOR_DIALOG_TITLE = "Select Tab Columns";
 
     public static final String TEAM_MEMBER_TIMES_ID = "TeamMemberTimes";
@@ -60,11 +84,11 @@ public class WBSTabPanel extends JPanel
     JTabbedPane tabbedPane;
     JSplitPane splitPane;
     JToolBar toolBar;
+    JFileChooser fileChooser;
     UndoList undoList;
     ArrayList tableColumnModels = new ArrayList();
     GridBagLayout layout;
-    ArrayList editableTabs = new ArrayList();
-    ArrayList protectedTabs = new ArrayList();
+    ArrayList tabProperties = new ArrayList();
     List enablementCalculations = new LinkedList();
 
     /** Create a WBSTabPanel */
@@ -107,75 +131,92 @@ public class WBSTabPanel extends JPanel
     }
 
     protected boolean isTabEditable(int tabIndex) {
-        return editableTabs.contains(String.valueOf(tabIndex));
+        return ((TabProperties) tabProperties.get(tabIndex)).isEditable();
     }
 
     protected boolean isTabProtected(int tabIndex) {
-        return protectedTabs.contains(String.valueOf(tabIndex));
+        return ((TabProperties) tabProperties.get(tabIndex)).isProtected();
+    }
+
+    private boolean editableTabsExist() {
+        for (Iterator iter = tabProperties.iterator(); iter.hasNext();) {
+            TabProperties properties = (TabProperties) iter.next();
+            if (properties.isEditable())
+                return true;
+        }
+
+        return false;
     }
 
     public int addTab(
             String tabName,
             String columnIDs[],
-            String[] columnNames)
-        throws IllegalArgumentException {
-        return addTab(tabName, columnIDs, columnNames, false);
+            String[] columnNames) {
+        return addTab(tabName, columnIDs, columnNames, false, false);
     }
 
     /** Add a tab to the tab panel
      * @param tabName The name to display on the tab
      * @param columnNames The columns to display when this tab is selected
-     * @throws IllegalArgumentException if <code>columnNames</code> names
-     *    a column which cannot be found
      */
     public int addTab(
         String tabName,
         String columnIDs[],
         String[] columnNames,
-        boolean isEditable)
-        throws IllegalArgumentException {
+        boolean isEditable,
+        boolean isProtected) {
 
         DataTableModel tableModel = (DataTableModel) dataTable.getModel();
         TableColumnModel columnModel = new DefaultTableColumnModel();
-        boolean protectedTab = false;
 
         for (int i = 0; i < columnIDs.length; i++) {
             if (columnIDs[i] == null)
                 continue;
             else if (TEAM_MEMBER_TIMES_ID.equals(columnIDs[i])) {
                 tableModel.addTeamMemberTimes(columnModel);
-                protectedTab = true;
+                isProtected = true;
             } else {
-                TableColumn tableColumn =
-                    new DataTableColumn(tableModel, columnIDs[i]);
-                if (columnNames != null && columnNames[i] != null)
-                    // maybe change the name of the column
-                    tableColumn.setHeaderValue(columnNames[i]);
-                columnModel.addColumn(tableColumn);
+                try {
+                    TableColumn tableColumn =
+                        new DataTableColumn(tableModel, columnIDs[i]);
+                    if (columnNames != null && columnNames[i] != null)
+                        // maybe change the name of the column
+                        tableColumn.setHeaderValue(columnNames[i]);
+                    columnModel.addColumn(tableColumn);
+                } catch (IllegalArgumentException e) {
+                    //ignore columns not found
+                }
             }
         }
-        int tabIndex = addTab(tabName, columnModel, isEditable);
-        if (protectedTab)
-            protectedTabs.add(String.valueOf(tabIndex));
+        int tabIndex = addTab(tabName, columnModel, new TabProperties(isEditable, isProtected));
 
         return tabIndex;
     }
 
-    protected int addTab(String tabName, TableColumnModel columnModel, boolean isEditable) {
+    protected int addTab(String tabName, TableColumnModel columnModel, TabProperties properties) {
         // add the newly created table model to the tableColumnModels list
         tableColumnModels.add(columnModel);
+
+        // add tab properties
+        tabProperties.add(properties);
 
         // add the new tab. (Note: the addition of the first tab triggers
         // an automatic tab selection event, which will effectively install
         // the tableColumnModel we just created.)
         tabbedPane.add(tabName, new EmptyComponent(new Dimension(10, 10)));
 
+        if (properties.isEditable())
+            EXPORT_TABS_ACTION.setEnabled(true);
+
         int tabIndex = tableColumnModels.size() - 1;
 
-        if (isEditable)
-            editableTabs.add(String.valueOf(tabIndex));
-
         return tabIndex;
+    }
+
+    protected void removeTab(int index) {
+        tabProperties.remove(index);
+        tableColumnModels.remove(index);
+        tabbedPane.remove(index);
     }
 
     /** Get a list of actions for editing the work breakdown structure */
@@ -217,7 +258,8 @@ public class WBSTabPanel extends JPanel
 
     public Action[] getTabActions() {
         return new Action[] {NEW_TAB_ACTION, DUPLICATE_TAB_ACTION,
-                DELETE_TAB_ACTION, CHANGE_TAB_COLUMNS_ACTION, RENAME_TAB_ACTION};
+                DELETE_TAB_ACTION, IMPORT_TABS_ACTION, EXPORT_TABS_ACTION,
+                CHANGE_TAB_COLUMNS_ACTION, RENAME_TAB_ACTION};
     }
 
     private class NewTabAction extends AbstractAction {
@@ -233,7 +275,7 @@ public class WBSTabPanel extends JPanel
             if (null == tabName)
                 return;
 
-            int tabIndex = addTab(tabName, new DefaultTableColumnModel(), true);
+            int tabIndex = addTab(tabName, new DefaultTableColumnModel(), new TabProperties(true, false));
             tabbedPane.setSelectedIndex(tabIndex);
             showColumnSelector();
         }
@@ -279,7 +321,7 @@ public class WBSTabPanel extends JPanel
 
             TableColumnModel columns = copyColumnsDeep(
                     (TableColumnModel) tableColumnModels.get(tabbedPane.getSelectedIndex()));
-            int tabIndex = addTab(tabName, columns, true);
+            int tabIndex = addTab(tabName, columns, new TabProperties(true, false));
             tabbedPane.setSelectedIndex(tabIndex);
             showColumnSelector();
         }
@@ -302,8 +344,10 @@ public class WBSTabPanel extends JPanel
                     "Delete Tab",
                     JOptionPane.OK_CANCEL_OPTION);
             if (confirm == JOptionPane.OK_OPTION) {
-                tableColumnModels.remove(tabbedPane.getSelectedIndex());
-                tabbedPane.remove(tabbedPane.getSelectedIndex());
+                removeTab(tabbedPane.getSelectedIndex());
+
+                if (!editableTabsExist())
+                    EXPORT_TABS_ACTION.setEnabled(false);
             }
         }
 
@@ -328,6 +372,101 @@ public class WBSTabPanel extends JPanel
         }
     }
     final ChangeTabColumnsAction CHANGE_TAB_COLUMNS_ACTION = new ChangeTabColumnsAction();
+
+    private class ExportTabsAction extends AbstractAction {
+        public ExportTabsAction() {
+            super("Export Tabs...");
+            setEnabled(false);
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            try {
+                File file = getFile();
+                if (null != file)
+                    saveTabs(file);
+            } catch (IOException exception) {
+                JOptionPane.showMessageDialog(tabbedPane, exception.getMessage(),
+                        "Export Tabs", JOptionPane.ERROR_MESSAGE);
+                exception.printStackTrace();
+            }
+        }
+
+        private File getFile() {
+            File file = null;
+            JFileChooser chooser = getFileChooser();
+            int returnValue = chooser.showSaveDialog(tabbedPane);
+            if (returnValue == JFileChooser.APPROVE_OPTION) {
+                file = chooser.getSelectedFile();
+
+                // check for an extension and add it if it is missing
+                if (file.getName().indexOf('.') == -1)
+                    file = new File(file.getParentFile(), file.getName() + TABXML_EXTENSION);
+
+                if (file.exists()) {
+                    if (file.canWrite()) {
+                        int option = JOptionPane.showConfirmDialog(tabbedPane, "File " + file.getName()
+                                + " already exists.\nDo you want to replace it?",
+                                "Export Tabs", JOptionPane.YES_NO_OPTION);
+
+                        if (option == JOptionPane.NO_OPTION)
+                            file = getFile();
+                    } else {
+                        JOptionPane.showMessageDialog(tabbedPane, "File " + file.getName()
+                                + " cannot be overwritten.\nPlease choose a different file.",
+                                "Export Tabs", JOptionPane.ERROR_MESSAGE);
+                        file = getFile();
+                    }
+                }
+            }
+
+            return file;
+        }
+    }
+
+    final ExportTabsAction EXPORT_TABS_ACTION = new ExportTabsAction();
+
+    private class ImportTabsAction extends AbstractAction {
+
+        public ImportTabsAction() {
+            super("Import Tabs...");
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            try {
+                File file = getFile();
+                if (null != file)
+                    loadTabs(file);
+            } catch (LoadTabsException exception) {
+                JOptionPane.showMessageDialog(tabbedPane, exception.getMessage(),
+                        "Import Tabs", JOptionPane.ERROR_MESSAGE);
+                exception.printStackTrace();
+            }
+        }
+
+        private File getFile() {
+            File file = null;
+            JFileChooser chooser = getFileChooser();
+            int returnValue = chooser.showOpenDialog(tabbedPane);
+            if (returnValue == JFileChooser.APPROVE_OPTION) {
+                file = chooser.getSelectedFile();
+                if (file.exists()) {
+                    if (!file.canRead()) {
+                        JOptionPane.showMessageDialog(tabbedPane, "File " + file.getName()
+                                + " cannot be read.\nPlease check the file permissions.",
+                                "Error Importing Custom Tabs", JOptionPane.ERROR_MESSAGE);
+                    }
+                } else {
+                    JOptionPane.showMessageDialog(tabbedPane, "File " + file.getName()
+                            + " does not exist.\nPlease choose a new file.",
+                            "Error Importing Custom Tabs", JOptionPane.ERROR_MESSAGE);
+                    file = getFile();
+                }
+            }
+
+            return file;
+        }
+    }
+    final ImportTabsAction IMPORT_TABS_ACTION = new ImportTabsAction();
 
     /** Listen for changes in team member initials, and disable undo. */
     public void initialsChanged(String oldInitials, String newInitials) {
@@ -615,5 +754,152 @@ public class WBSTabPanel extends JPanel
                 tabColumnsMap.put(tabbedPane.getTitleAt(i), tableColumnModels.get(i));
         }
         return tabColumnsMap;
+    }
+
+    /**
+     * Load custom tab definitions from file.
+     * @param file
+     * @throws LoadTabsException
+     */
+    public void loadTabs(File file) throws LoadTabsException {
+        try {
+            Document document = XMLUtils.parse(new FileInputStream(file));
+            if (!WBS_TABS_ELEMENT.equals(document.getDocumentElement().getTagName()))
+                throw new LoadTabsException(INVALID_FILE_MESSAGE);
+
+            // read xml
+            NodeList tabNodes = document.getElementsByTagName(TAB_ELEMENT);
+            if (tabNodes.getLength() == 0)
+                throw new LoadTabsException(NO_TABS_MESSAGE);
+
+            for (int i = 0; i < tabNodes.getLength(); i++) {
+                Element tab = (Element) tabNodes.item(i);
+                String tabTitle = tab.getAttribute(NAME_ATTRIBUTE);
+                NodeList columnNodes = tab.getElementsByTagName(COLUMN_ELEMENT);
+                String[] columnHeaders = new String[columnNodes.getLength()];
+                String[] columnIDs = new String[columnNodes.getLength()];
+                for (int j = 0; j < columnNodes.getLength(); j++) {
+                    Element column = (Element) columnNodes.item(j);
+                    columnHeaders[j] = column.getAttribute(NAME_ATTRIBUTE);
+                    columnIDs[j] = column.getAttribute(ID_ATTRIBUTE);
+                }
+                addTab(tabTitle, columnIDs, columnHeaders, true, false);
+            }
+
+        } catch (LoadTabsException exception) {
+            throw exception;
+        } catch (SAXException saxe) {
+            LoadTabsException e = new LoadTabsException(INVALID_FILE_MESSAGE);
+            e.initCause(saxe);
+            throw e;
+        } catch (Exception exception) {
+            LoadTabsException e = new LoadTabsException(LOAD_TABS_ERROR_MESSAGE);
+            e.initCause(exception);
+            throw e;
+        }
+    }
+
+    /**
+     * Save custom tab definitions to file.
+     * @param file
+     * @throws IOException
+     */
+    public void saveTabs(File file) throws IOException {
+        try {
+            RobustFileWriter out = new RobustFileWriter(file, "UTF-8");
+
+            // write out xml
+            out.write("<?xml version='1.0' encoding='utf-8'?>\n");
+            out.write("<" + WBS_TABS_ELEMENT + " " + VERSION_ATTRIBUTE + "='" + getVersionNumber() + "'>\n");
+            for (int i = 0; i < tabbedPane.getTabCount(); i++) {
+                if (isTabEditable(i)) {
+                    out.write("\t<" + TAB_ELEMENT + " " + NAME_ATTRIBUTE + "='"
+                            + XMLUtils.escapeAttribute(tabbedPane.getTitleAt(i)) + "'>\n");
+                    TableColumnModel tableColumnModel = (TableColumnModel)tableColumnModels.get(i);
+                    for (Enumeration e = tableColumnModel.getColumns(); e.hasMoreElements();) {
+                        TableColumn column = (TableColumn) e.nextElement();
+                        out.write("\t\t<" + COLUMN_ELEMENT
+                                + " " + NAME_ATTRIBUTE + "='" + XMLUtils.escapeAttribute(column.getHeaderValue().toString()) + "'"
+                                + " " + ID_ATTRIBUTE + "='" + XMLUtils.escapeAttribute(column.getIdentifier().toString()) + "'/>\n");
+                    }
+                    out.write("\t</" + TAB_ELEMENT + ">\n");
+                }
+            }
+            out.write("</" + WBS_TABS_ELEMENT + ">\n");
+            out.close();
+        } catch (Exception e) {
+            IOException exception = new IOException(SAVE_TABS_ERROR_MESSAGE);
+            exception.initCause(e);
+            throw exception;
+        }
+    }
+
+    private static String getVersionNumber() {
+        String result = null;
+        try {
+            result = WBSTabPanel.class.getPackage()
+                    .getImplementationVersion();
+        } catch (Exception e) {
+        }
+        return (result == null ? "####" : result);
+    }
+
+    private JFileChooser getFileChooser() {
+        if (fileChooser == null) {
+            fileChooser = new JFileChooser();
+            fileChooser.setFileFilter(TABFILE_FILTER);
+            fileChooser.setMultiSelectionEnabled(false);
+        }
+
+        return fileChooser;
+    }
+
+    static FileFilter TABFILE_FILTER = new TabFileFilter();
+
+    private static class TabFileFilter extends FileFilter {
+
+        public boolean accept(File f) {
+            return (f.isDirectory() ||
+                    f.getName().endsWith(TABXML_EXTENSION));
+        }
+
+        public String getDescription() {
+            return "Custom Tabs (.tabxml)";
+        }
+
+    }
+
+    public class LoadTabsException extends Exception {
+        public LoadTabsException (String message) {
+            super(message);
+        }
+    }
+
+    private class TabProperties {
+        private static final String TAB_PROTECTED_PROPERTY = "protected";
+        private static final String TAB_EDITABLE_PROPERTY = "editable";
+
+        private HashMap properties = new HashMap();
+
+        public TabProperties(boolean editable, boolean protect) {
+            setEditable(editable);
+            setProtected(protect);
+        }
+
+        public boolean isEditable() {
+            return ((Boolean) properties.get(TAB_EDITABLE_PROPERTY)).booleanValue();
+        }
+
+        public void setEditable(boolean editable) {
+            properties.put(TAB_EDITABLE_PROPERTY, new Boolean(editable));
+        }
+
+        public boolean isProtected() {
+            return ((Boolean) properties.get(TAB_PROTECTED_PROPERTY)).booleanValue();
+        }
+
+        public void setProtected(boolean protect) {
+            properties.put(TAB_PROTECTED_PROPERTY, new Boolean(protect));
+        }
     }
 }
