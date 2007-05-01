@@ -864,7 +864,8 @@ public class TemplateLoader {
         Arrays.fill(VALID_TEMPLATE_CHARS, '0', '9'+1, true);
         Arrays.fill(VALID_TEMPLATE_CHARS, 'A', 'Z'+1, true);
         Arrays.fill(VALID_TEMPLATE_CHARS, 'a', 'z'+1, true);
-        String validChars = "-._/()";
+        String validChars = Settings.getVal("templates.safePunctuation",
+                "-.,_/()");
         for (int i = validChars.length();  i-- > 0; )
             VALID_TEMPLATE_CHARS[validChars.charAt(i)] = true;
     }
