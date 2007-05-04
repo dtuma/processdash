@@ -427,16 +427,11 @@ public class HTMLPreprocessor {
         String loopIndex = foreach.getAttribute("name");
         String loopContents = text.substring(foreach.end, endfor.begin);
         StringBuffer replacement = new StringBuffer();
-        String iterResults;
         for (int i = 0;   i < list.size();   i++) {
-            iterResults = StringUtils.findAndReplace
-                (loopContents, loopIndex, (String)list.get(i));
-            /*
-            iterResults = StringUtils.findAndReplace
-                (iterResults,
-                 DIRECTIVE_START + "0",
-                 DIRECTIVE_START + "0" + i + "-");
-            */
+            Object oneVal = list.get(i);
+            String strVal = (oneVal == null ? "" : oneVal.toString());
+            String iterResults = StringUtils.findAndReplace(loopContents,
+                    loopIndex, strVal);
             replacement.append(iterResults);
         }
 
