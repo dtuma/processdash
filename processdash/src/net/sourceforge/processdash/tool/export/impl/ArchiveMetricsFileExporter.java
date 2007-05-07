@@ -38,6 +38,7 @@ import java.util.zip.ZipOutputStream;
 
 import net.sourceforge.processdash.DashboardContext;
 import net.sourceforge.processdash.ProcessDashboard;
+import net.sourceforge.processdash.data.util.TopDownBottomUpJanitor;
 import net.sourceforge.processdash.ev.EVDependencyCalculator;
 import net.sourceforge.processdash.ev.EVTaskList;
 import net.sourceforge.processdash.ev.EVTaskListMerged;
@@ -113,6 +114,7 @@ public class ArchiveMetricsFileExporter implements Runnable,
         ZipOutputStream zipOut = new ZipOutputStream(
                 new RobustFileOutputStream(dest));
 
+        EST_TIME_JANITOR.cleanup(ctx);
         Collection taskListNames = writeData(zipOut);
         if (!taskListNames.isEmpty())
             writeTaskLists(zipOut, taskListNames);
@@ -274,4 +276,6 @@ public class ArchiveMetricsFileExporter implements Runnable,
         return schedules;
     }
 
+    private static final TopDownBottomUpJanitor EST_TIME_JANITOR =
+        new TopDownBottomUpJanitor("Estimated Time");
 }

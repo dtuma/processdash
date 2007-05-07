@@ -43,6 +43,7 @@ import net.sourceforge.processdash.data.ListData;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.StringData;
 import net.sourceforge.processdash.data.repository.DataRepository;
+import net.sourceforge.processdash.data.util.TopDownBottomUpJanitor;
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.net.cache.ObjectCache;
@@ -67,6 +68,7 @@ public class EVTaskListData extends EVTaskList
         this.data = data;
         this.hierarchy = hierarchy;
 
+        EST_TIME_JANITOR.cleanup(data, hierarchy);
         addTasksFromData(data, taskListName);
         schedule = getSchedule(data, taskListName);
         loadID(taskListName, data, EST_HOURS_DATA_NAME);
@@ -272,6 +274,12 @@ public class EVTaskListData extends EVTaskList
             this.recalcTimer.setInitialDelay(10);
     }
 
+    public void setValueAt(Object value, Object node, int column) {
+        super.setValueAt(value, node, column);
+        if (column == PLAN_TIME_COLUMN)
+            EST_TIME_JANITOR.cleanup(data, hierarchy);
+    }
+
     public void dispose() {
         hierarchy.removeHierarchyListener(this);
         super.dispose();
@@ -300,4 +308,6 @@ public class EVTaskListData extends EVTaskList
              dataName.length() - EST_HOURS_DATA_NAME.length() - 1);
     }
 
+    static final TopDownBottomUpJanitor EST_TIME_JANITOR =
+        new TopDownBottomUpJanitor("Estimated Time");
 }

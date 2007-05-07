@@ -62,6 +62,7 @@ import net.sourceforge.processdash.data.repository.DataEvent;
 import net.sourceforge.processdash.data.repository.DataListener;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.data.repository.RemoteException;
+import net.sourceforge.processdash.data.util.TopDownBottomUpJanitor;
 import net.sourceforge.processdash.ev.EVForecastDateCalculators;
 import net.sourceforge.processdash.ev.EVSchedule;
 import net.sourceforge.processdash.ev.EVTaskList;
@@ -317,6 +318,10 @@ public class PercentSpentIndicator extends JPanel implements DataListener,
                 || estTimeEditable == false)
             return;
 
+        ToolTipManager.sharedInstance().mouseExited(
+                new MouseEvent(this, MouseEvent.MOUSE_EXITED, System
+                        .currentTimeMillis(), 0, 0, -1, 0, false));
+
         final JTextField estimate = new JTextField();
         if (estTime > 0 && !Double.isInfinite(estTime))
             estimate.setText(FormatUtil.formatTime(estTime));
@@ -324,7 +329,7 @@ public class PercentSpentIndicator extends JPanel implements DataListener,
         String prompt = resources.format("Edit_Dialog.Prompt_FMT",
                 currentTaskPath);
 
-        JPanel p = new JPanel(new GridLayout(2, 2));
+        JPanel p = new JPanel(new GridLayout(2, 2, 10, 2));
         p.add(new JLabel(resources.getString("Actual_Time_Label"),
                 JLabel.TRAILING));
         p.add(new JLabel(FormatUtil.formatTime(actTime)));
@@ -355,6 +360,7 @@ public class PercentSpentIndicator extends JPanel implements DataListener,
                 newEstimate = new DoubleData(l, true);
             }
             dashCtx.getData().userPutValue(estTimeDataName, newEstimate);
+            EST_TIME_JANITOR.cleanup(dashCtx);
             return;
         }
     }
@@ -441,4 +447,7 @@ public class PercentSpentIndicator extends JPanel implements DataListener,
 
     }
 
+
+    private static final TopDownBottomUpJanitor EST_TIME_JANITOR =
+        new TopDownBottomUpJanitor("Estimated Time");
 }
