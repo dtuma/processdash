@@ -34,8 +34,7 @@ import net.sourceforge.processdash.util.StringMapper;
  * Simple filter for an iterator of TimeLogEntryVO objects, which rewrites the
  * paths of the entries.
  */
-
-class TimeLogEntryVOPathFilter extends IteratorFilter {
+public class TimeLogEntryVOPathFilter extends IteratorFilter {
 
     StringMapper pathRemapper;
 

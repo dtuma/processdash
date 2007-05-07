@@ -29,18 +29,24 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 
+import net.sourceforge.processdash.data.DataContext;
 import net.sourceforge.processdash.hier.Filter;
 import net.sourceforge.processdash.log.time.TimeLog;
 import net.sourceforge.processdash.log.time.TimeLogEntry;
+import net.sourceforge.processdash.log.time.TimeLogEntryVOPathFilter;
 import net.sourceforge.processdash.log.time.TimeLogWriter;
+import net.sourceforge.processdash.process.ProcessUtil;
 import net.sourceforge.processdash.util.IteratorFilter;
+import net.sourceforge.processdash.util.StringMapper;
 
 public class TimeLogExporterXMLv1 implements TimeLogExporter {
 
-    public void dumpTimeLogEntries(TimeLog timeLog, Collection filter,
-            OutputStream out) throws IOException {
+    public void dumpTimeLogEntries(TimeLog timeLog, DataContext data,
+            Collection filter, OutputStream out) throws IOException {
 
         Iterator entries;
         if (filter.isEmpty()) {
@@ -52,6 +58,8 @@ public class TimeLogExporterXMLv1 implements TimeLogExporter {
             entries = timeLog.filter(null, null, null);
             entries = new TimeLogFilter(entries, filter);
         }
+        entries = new TimeLogEntryVOPathFilter(entries,
+                new PhaseAppender(data));
 
         TimeLogWriter.write(out, entries, false);
         out.flush();
@@ -75,5 +83,32 @@ public class TimeLogExporterXMLv1 implements TimeLogExporter {
 
     }
 
+    private static class PhaseAppender implements StringMapper {
+
+        private ProcessUtil procUtil;
+
+        private Map pathCache;
+
+        public PhaseAppender(DataContext data) {
+            this.procUtil = new ProcessUtil(data);
+            this.pathCache = new HashMap();
+        }
+
+        public String getString(String path) {
+            String result = (String) pathCache.get(path);
+            if (result != null)
+                return result;
+
+            String phase = procUtil.getEffectivePhase(path, false);
+            if (phase == null)
+                result = path;
+            else
+                result = path + "/" + phase;
+
+            pathCache.put(path, result);
+            return result;
+        }
+
+    }
 
 }
