@@ -91,6 +91,20 @@ combine(Defects Removed);
 [PM/Defects Removed]  = [Postmortem/Defects Removed];
 
 
+/*
+ * Define namespaced phase metrics.
+ */
+
+#define namespaceMetrics(Phase) \
+[PSP /Phase/Estimated Time] = [Phase/Estimated Time]; \
+[PSP /Phase/Time] = [Phase/Time]; \
+[PSP /Phase/Estimated Defects Injected] = [Phase/Estimated Defects Injected]; \
+[PSP /Phase/Defects Injected] = [Phase/Defects Injected]; \
+[PSP /Phase/Estimated Defects Removed] = [Phase/Estimated Defects Removed]; \
+[PSP /Phase/Defects Removed] = [Phase/Defects Removed];
+
+FOR_EACH_PHASE(namespaceMetrics)
+
 
 
 /*
