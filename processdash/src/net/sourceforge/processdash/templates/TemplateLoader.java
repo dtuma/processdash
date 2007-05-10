@@ -714,6 +714,32 @@ public class TemplateLoader {
         return a;
     }
 
+    /**
+     * Return true if the given directory is present in the user-defined
+     * template search path.
+     * 
+     * Note this does not test whether the directory might be the baseDir where
+     * the Process Dashboard was installed - it only tests to see if a directory
+     * is in the user-configured list of additional search directories.
+     */
+    public static boolean templateSearchPathContainsDir(File dir) {
+        if (dir == null)
+            return false;
+
+        String userSetting = Settings.getFile("templates.directory");
+        if (userSetting == null || userSetting.length() == 0)
+            return false;
+
+        String[] searchPath = userSetting.split(";");
+        for (int i = 0; i < searchPath.length; i++) {
+            File onePath = new File(searchPath[i]);
+            if (onePath.equals(dir))
+                return true;
+        }
+
+        return false;
+    }
+
 
 
     private static ArrayList dashPackages = new ArrayList();

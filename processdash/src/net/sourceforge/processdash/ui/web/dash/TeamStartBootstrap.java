@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2006 Tuma Solutions, LLC
+// Copyright (C) 2003-2007 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.Iterator;
@@ -106,6 +107,7 @@ public class TeamStartBootstrap extends TinyCGIBase {
     private static final String TEMPLATE_PATH = "setup//Template_Path";
     private static final String TEMPLATE_UNC = "setup//Template_Path_UNC";
     private static final String CONTINUATION_URI = "setup//Continuation_URI";
+    private static final String RELAX_PATH_REQ = "setup//Relax_Path_Reqt";
 
     // value indicating we should help an individual join a team project
     private static final String JOIN_PAGE = "join";
@@ -161,6 +163,7 @@ public class TeamStartBootstrap extends TinyCGIBase {
 
     /** Save a value into the data repository. */
     protected void putValue(String name, String value) {
+        if (value == null) value = "";
         putValue(name, new ImmutableStringData(value));
     }
 
@@ -369,6 +372,7 @@ public class TeamStartBootstrap extends TinyCGIBase {
         putValue(TEMPLATE_PATH, e.getAttribute("Template_Path"));
         putValue(TEMPLATE_UNC, e.getAttribute("Template_Path_UNC"));
         putValue(CONTINUATION_URI, e.getAttribute("Continuation_URI"));
+        putValue(RELAX_PATH_REQ, e.getAttribute("Relax_Path_Reqt"));
 
         return null;
     }
@@ -381,6 +385,7 @@ public class TeamStartBootstrap extends TinyCGIBase {
         putValue(TEMPLATE_PATH, getParameter("Template_Path"));
         putValue(TEMPLATE_UNC, getParameter("Template_Path_UNC"));
         putValue(CONTINUATION_URI, getParameter("Continuation_URI"));
+        putValue(RELAX_PATH_REQ, getParameter("Relax_Path_Reqt"));
         joinProject();
     }
 
@@ -392,12 +397,15 @@ public class TeamStartBootstrap extends TinyCGIBase {
         String templatePath = getValue(TEMPLATE_PATH);
         String templatePathUNC = getValue(TEMPLATE_UNC);
         String continuationURI = getValue(CONTINUATION_URI);
+        String relaxPathReq = getValue(RELAX_PATH_REQ);
+        boolean requirePath = !StringUtils.hasValue(relaxPathReq);
 
         String errorMessage = null;
         File templateFile = resolveTemplateLocation(templatePath,
                 templatePathUNC);
 
-        if (templateIsLoaded(templateID, templateFile, continuationURI)) {
+        if (templateIsLoaded(templateID, templateFile, continuationURI,
+                requirePath)) {
             // the template is already present in the dashboard.  Test to
             // make certain our dashboard can understand that template.
             errorMessage = testContinuation(getPrefix(), continuationURI);
@@ -432,6 +440,8 @@ public class TeamStartBootstrap extends TinyCGIBase {
                         templatePathUNC);
                 if (altTemplatePath != null)
                     f = new File(altTemplatePath);
+                else
+                    f = new File(templatePathUNC);
             }
         }
 
@@ -449,7 +459,8 @@ public class TeamStartBootstrap extends TinyCGIBase {
 
     private boolean templateIsLoaded(String templateID,
                                      File templateJarfile,
-                                     String continuationURI)
+                                     String continuationURI,
+                                     boolean requireDirInSearchPath)
     {
         // if we have no loaded template with the given ID, return false.
         if (DashController.getTemplates().get(templateID) == null) {
@@ -469,30 +480,36 @@ public class TeamStartBootstrap extends TinyCGIBase {
         logger.log(Level.FINER, "url={0}", url);
         if (url == null) return false;
 
-        // Allow the user to disable the exact matching logic below via
-        // a setting.
-        if (Settings.getBool("teamStart.relaxTemplateMatchingLogic", false))
-            return true;
+        // if the file could not be located or does not exist, then we can't
+        // compare to see if we have an appropriate version. For now, we
+        // will choose to fail in that scenario. (In a later version of the
+        // dashboard, this decision might be revisited.)
+        if (templateJarfile == null || !templateJarfile.exists())
+            return false;
 
-        // check to see if the continuation URI appears to be provided by
-        // the named templatePath
-        String urlStr = url.toString();
-        if (!urlStr.startsWith("jar:file:")) return false;
-        pos = urlStr.indexOf("!/Templates");
-        if (pos == -1) return false;
-        String urlJarpath = HTMLUtils.urlDecode(urlStr.substring(9, pos));
-        logger.log(Level.FINER, "urlJarpath={0}", urlJarpath);
-        File urlJarfile = new File(urlJarpath);
-        try {
-            File urlJarfileCanon = urlJarfile.getCanonicalFile();
-            File templateJarfileCanon = templateJarfile.getCanonicalFile();
-            if (!urlJarfileCanon.equals(templateJarfileCanon)) {
-                logger.finer("paths do not match: '" + urlJarfileCanon
-                        + "' != '" + templateJarfileCanon + "'" );
+        // Check to see if the template search path already includes the
+        // directory containing the template JAR file.
+        if (requireDirInSearchPath) {
+            File templateJarDir = templateJarfile.getParentFile();
+            if (!TemplateLoader.templateSearchPathContainsDir(templateJarDir)) {
+                logger.log(Level.FINER, "The template search path does not "
+                        + "contain the directory {0}", templateJarDir);
                 return false;
             }
-        } catch (IOException ioe) {
-            logger.log(Level.WARNING, "Encountered error comparing paths", ioe);
+        }
+
+        // Check to see if we have already loaded an up-to-date version of
+        // the process contained in the JAR file.
+        try {
+            DashPackage pkg = getDashPackageForFile(templateJarfile);
+            if (upgradeIsNeeded(pkg)) {
+                logger.log(Level.FINEST, "Our currently installed version of "
+                        + "the process JAR file is out of date.");
+                return false;
+            }
+        } catch (Exception e) {
+            logger.log(Level.WARNING, "Encountered error comparing process "
+                    + "version numbers", e);
             return false;
         }
 
@@ -507,6 +524,27 @@ public class TeamStartBootstrap extends TinyCGIBase {
         if (result == null)
             result = TemplateLoader.resolveURL(uri + ".link");
         return result;
+    }
+
+
+    private DashPackage getDashPackageForFile(File templateFile)
+            throws MalformedURLException, InvalidDashPackage {
+        String jarURL = templateFile.toURL().toString();
+        URL url = new URL("jar:" + jarURL + "!/Templates/");
+        DashPackage dashPackage = new DashPackage(url);
+        return dashPackage;
+    }
+
+
+    private boolean upgradeIsNeeded(DashPackage pkg) {
+        String pkgId = pkg.id;
+        String pkgVersion = pkg.version;
+        String instVersion = TemplateLoader.getPackageVersion(pkgId);
+        logger.log(Level.FINER, "template package ID={0}", pkgId);
+        logger.log(Level.FINER, "template package version={0}", pkgVersion);
+        logger.log(Level.FINER, "installed version={0}", instVersion);
+        return (instVersion == null
+                || DashPackage.compareVersions(pkgVersion, instVersion) > 0);
     }
 
 
@@ -570,10 +608,9 @@ public class TeamStartBootstrap extends TinyCGIBase {
 
         // Check to make certain the file is a valid dashboard package, and
         // is compatible with this version of the dashboard.
+        boolean upgradeNeeded = true;
         try {
-            String jarURL = templateFile.toURL().toString();
-            URL url = new URL("jar:" + jarURL + "!/Templates/");
-            DashPackage dashPackage = new DashPackage(url);
+            DashPackage dashPackage = getDashPackageForFile(templateFile);
             String currentDashVersion = (String) env.get(
                     WebServer.PACKAGE_ENV_PREFIX + "pspdash");
             if (dashPackage.isIncompatible(currentDashVersion)) {
@@ -589,6 +626,7 @@ public class TeamStartBootstrap extends TinyCGIBase {
                             requiredVersion, currentDashVersion);
                 }
             }
+            upgradeNeeded = upgradeIsNeeded(dashPackage);
 
         } catch (InvalidDashPackage idp) {
             return resources.getString("Errors.Invalid_Dash_Package");
@@ -598,9 +636,10 @@ public class TeamStartBootstrap extends TinyCGIBase {
         }
 
         // Initiate the loading of the template definition.
-        new TemplateLoadTask(templatePath, templateDir);
+        new TemplateLoadTask(templatePath, templateDir, upgradeNeeded);
         return null;
     }
+
 
     /**
      * The DashController.loadNewTemplate method will block, waiting for user
@@ -608,13 +647,19 @@ public class TeamStartBootstrap extends TinyCGIBase {
      */
     private class TemplateLoadTask extends Thread {
         private String templatePath, templateDir;
-        public TemplateLoadTask(String templatePath, String templateDir) {
+        private boolean upgradeNeeded;
+        public TemplateLoadTask(String templatePath, String templateDir,
+                boolean upgradeNeeded) {
             this.templatePath = templatePath;
             this.templateDir = templateDir;
+            this.upgradeNeeded = upgradeNeeded;
             this.start();
         }
         public void run() {
-            DashController.loadNewTemplate(templatePath, templateDir, false);
+            if (upgradeNeeded)
+                DashController.loadNewTemplate(templatePath, templateDir, false);
+            else
+                DashController.addTemplateDirToPath(templateDir, false);
         }
     }
 }
