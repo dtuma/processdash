@@ -48,6 +48,8 @@ import javax.swing.JTable;
 import javax.swing.Timer;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
 
@@ -100,6 +102,11 @@ public class UserNotificationManager {
     public void addNotification(String id, String message, Runnable action) {
         notifications.add(new Notification(id, message, action));
         deferUntil = 0;
+    }
+
+    public void removeNotification(String id) {
+        if (id != null)
+            notifications.removeNotification(id);
     }
 
     public void maybeShowNotifications(Window w) {
@@ -196,6 +203,17 @@ public class UserNotificationManager {
             }
         }
 
+        public void removeNotification(String id) {
+            for (int row = 0;  row < notifications.size();  row++) {
+                Notification n = (Notification) notifications.get(row);
+                if (id.equals(n.id)) {
+                    notifications.remove(row);
+                    fireTableRowsDeleted(row, row);
+                    break;
+                }
+            }
+        }
+
         public void ignore(int row) {
             notifications.remove(row);
             fireTableRowsDeleted(row, row);
@@ -259,6 +277,11 @@ public class UserNotificationManager {
             table.addMouseListener(this);
             table.getSelectionModel().addListSelectionListener(this);
             table.setPreferredScrollableViewportSize(new Dimension(300, 200));
+
+            notifications.addTableModelListener(new TableModelListener() {
+                public void tableChanged(TableModelEvent e) {
+                    hideIfEmpty();
+                }});
 
             JScrollPane sp = new JScrollPane(table,
                     JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
