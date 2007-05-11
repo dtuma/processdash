@@ -3537,6 +3537,32 @@ public class DataRepository implements Repository, DataContext,
             return result;
         }
 
+        /** Mark a data element as "undeletable".
+         * 
+         * Some data elements are not persistent: they should not be saved out
+         * to any data file.  This status is normally indicated on an element by
+         * including a double slash in its data name.
+         * 
+         * However, the repository normally considers such elements to be completely
+         * transient: if all listeners unregister interest in the element, it is
+         * automatically discarded.
+         * 
+         * For some data elements, that auto-discard is undesired.  This method
+         * can be called to "pin" such an element in the repository.
+         * 
+         * @param name the name of the data element to "pin" down.
+         */
+        public void pinElement(String name) {
+            addDataListener(name, PINNED_DATA_LISTENER, false);
+        }
+        public void unpinElement(String name) {
+            removeDataListener(name, PINNED_DATA_LISTENER);
+        }
+        private static final DataListener PINNED_DATA_LISTENER = new DataListener() {
+            public void dataValueChanged(DataEvent e) {}
+            public void dataValuesChanged(Vector v) {}
+        };
+
 
         private void maybeDelete(String name, DataElement d,
                 boolean deleteDefaultValues) {

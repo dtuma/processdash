@@ -399,6 +399,8 @@ public class DashHierarchy extends Hashtable implements ItemSelectable,
         return (containsKey(result) ? result : null);
     }
 
+    public static final String DATA_REPOSITORY_NAME = "///Hierarchy";
+
     public static final String NAME_ATTR = "name";
     public static final String TEMPLATE_ATTR = "templateID";
     public static final String DATAFILE_ATTR = "dataFile";
@@ -1045,5 +1047,9 @@ public class DashHierarchy extends Hashtable implements ItemSelectable,
                 ((Listener) i.next()).hierarchyChanged(e);
         }
     }
+
+    public String toString() { return getClass().getName() + "@" + hashCode(); }
+    public boolean equals(Object o) { return (this == o); }
+    public int hashCode() { return System.identityHashCode(this); }
 
 }

@@ -45,6 +45,7 @@ import javax.swing.*;
 import javax.swing.Timer;
 
 import net.sourceforge.processdash.data.DataContext;
+import net.sourceforge.processdash.data.ListData;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.ev.EVTaskDependencyResolver;
@@ -283,6 +284,8 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
             }
         }
         data.setNodeComparator(props);
+        registerHierarchyDataElement();
+        data.pinElement(DashHierarchy.DATA_REPOSITORY_NAME);
         activeTaskModel = new DefaultActiveTaskModel(props);
 
         // create the time log
@@ -389,6 +392,7 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
         props.addHierarchyListener(new DashHierarchy.Listener() {
                 public void hierarchyChanged(Event e) {
                     saveHierarchy();
+                    registerHierarchyDataElement();
                     refreshHierarchy(e.isAdjusting());
                 }});
 
@@ -398,6 +402,13 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
         ExternalResourceManager.getInstance().cleanupBogusExtResDirectory(
                 prop_file.getParentFile());
         BackgroundTaskManager.initialize(this);
+    }
+    private int hierChangeCount = 0;
+    private void registerHierarchyDataElement() {
+        ListData propItem = new ListData();
+        propItem.add(props);
+        propItem.add(String.valueOf(hierChangeCount++));
+        data.putValue(DashHierarchy.DATA_REPOSITORY_NAME, propItem);
     }
     private Component addToMainWindow(Component component, double weight) {
         GridBagConstraints g = new GridBagConstraints();
