@@ -67,10 +67,12 @@ import java.util.prefs.Preferences;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
+import javax.swing.DefaultCellEditor;
 import javax.swing.Icon;
 import javax.swing.InputMap;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -107,6 +109,7 @@ import javax.swing.tree.TreePath;
 
 import net.sourceforge.processdash.DashboardContext;
 import net.sourceforge.processdash.Settings;
+import net.sourceforge.processdash.data.ListData;
 import net.sourceforge.processdash.ev.EVDependencyCalculator;
 import net.sourceforge.processdash.ev.EVSchedule;
 import net.sourceforge.processdash.ev.EVTask;
@@ -628,6 +631,9 @@ public class TaskScheduleDialog
                                              selectedEditableColor,
                                              editableColor);
 
+            getColumnModel().getColumn(EVTaskList.NODE_TYPE_COLUMN)
+                    .setCellEditor(new NodeTypeEditor());
+
             dependencyEditor = new TaskDependencyCellEditor(
                     TaskScheduleDialog.this, dash);
             getColumnModel().getColumn(EVTaskList.DEPENDENCIES_COLUMN)
@@ -750,6 +756,42 @@ public class TaskScheduleDialog
 
                 return result;
             }
+        }
+
+        class NodeTypeEditor extends DefaultCellEditor {
+            JComboBox comboBox;
+            public NodeTypeEditor() {
+                super(new JComboBox());
+                this.comboBox = (JComboBox) getComponent();
+                comboBox.setFont(comboBox.getFont().deriveFont(Font.PLAIN));
+            }
+
+            public Component getTableCellEditorComponent(JTable table,
+                    Object value, boolean isSelected, int row, int column) {
+
+                comboBox.removeAllItems();
+
+                TreePath path = getTree().getPathForRow(row);
+                if (path != null) {
+                    EVTask task = (EVTask) path.getLastPathComponent();
+                    ListData types = task.getAcceptableNodeTypes();
+                    if (types != null) {
+                        for (int i = 1;  i < types.size();  i++) {
+                            String oneType = (String) types.get(i);
+                            if (oneType.startsWith("(") && oneType.endsWith(")"))
+                                continue;
+                            comboBox.addItem(oneType);
+                        }
+                    }
+                }
+                if (comboBox.getItemCount() == 0)
+                    comboBox.addItem(value);
+
+                return super.getTableCellEditorComponent(table, value,
+                        isSelected, row, column);
+            }
+
+
         }
 
         public boolean editCellAt(int row, int column, EventObject e) {
@@ -1881,6 +1923,7 @@ public class TaskScheduleDialog
             TableColumn c = treeColumnModel.getColumn(i);
             switch (c.getModelIndex()) {
             case EVTaskList.TASK_COLUMN:
+            case EVTaskList.NODE_TYPE_COLUMN:
             case EVTaskList.PLAN_TIME_COLUMN:
             case EVTaskList.PLAN_DTIME_COLUMN:
             //case EVTaskList.ACT_TIME_COLUMN:

@@ -43,6 +43,7 @@ import java.util.TreeSet;
 import java.util.logging.Logger;
 
 import net.sourceforge.processdash.util.LightweightSet;
+import net.sourceforge.processdash.util.StringUtils;
 
 /** This class produces a merged view of a rolled-up earned value schedule
  * for a project.
@@ -541,22 +542,26 @@ public class EVTaskListMerger {
         EVCalculatorRollup.recalcRollupNode(task);
 
         // now, compute the set union of resource assignments, dependencies,
-        // and task IDs from the nodes we are merging.
+        // task IDs, and node types from the nodes we are merging.
         Set assignedTo = new TreeSet();
         Set dependencies = new HashSet();
         List taskIDLists = new LinkedList();
+        Set nodeTypes = new TreeSet();
         for (Iterator i = mergedNodes.iterator(); i.hasNext();) {
             EVTask node = (EVTask) i.next();
             if (containsIdentity(doResourcesFor, node))
                 addAll(assignedTo, node.getAssignedTo());
             addAll(dependencies, node.getDependencies());
             taskIDLists.add(node.getTaskIDs());
+            if (StringUtils.hasValue(node.getNodeType()))
+                nodeTypes.add(node.getNodeType());
         }
 
         // assign these merged lists of data to the merged EVTask.
         task.assignedTo = new LinkedList(assignedTo);
         task.dependencies = new LinkedList(dependencies);
         task.taskIDs = new LinkedList(mergeTaskIDLists(taskIDLists));
+        task.nodeType = StringUtils.join(nodeTypes, ", ");
     }
 
     /** Merge several lists of taskIDs, preserving order as best as possible */

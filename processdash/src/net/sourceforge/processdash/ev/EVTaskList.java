@@ -82,6 +82,7 @@ public class EVTaskList extends AbstractTreeTableModel
     protected double totalPlanValue;
     protected double totalActualTime;
     protected boolean showDirectTimeColumns;
+    protected boolean showNodeTypeColumn;
     protected boolean showReplanColumn = Settings.getBool(
             "ev.showReplanColumn", true);
 
@@ -575,6 +576,7 @@ public class EVTaskList extends AbstractTreeTableModel
 
         double directTimeDelta = taskRoot.planTime - taskRoot.planValue;
         showDirectTimeColumns = Math.abs(directTimeDelta) > 0.1;
+        showNodeTypeColumn = taskRoot.nodeTypesAreInUse();
 
         fireEvRecalculated();
     }
@@ -597,9 +599,9 @@ public class EVTaskList extends AbstractTreeTableModel
 
 
     private static final String[] COLUMN_KEYS = {
-        "Task", "PT", "PDT", "Time", "DTime", "PV", "CPT", "CPV", "Who",
-        "Plan_Date", "Replan_Date", "Forecast_Date", "Date", "Depn", "PctC",
-        "PctS", "EV" };
+        "Task", "NodeType", "PT", "PDT", "Time", "DTime", "PV", "CPT", "CPV",
+        "Who", "Plan_Date", "Replan_Date", "Forecast_Date", "Date", "Depn",
+        "PctC", "PctS", "EV" };
 
     /** Names of the columns in the TreeTableModel. */
     protected static String[] colNames =
@@ -610,30 +612,33 @@ public class EVTaskList extends AbstractTreeTableModel
         resources.getStrings("TaskList.Columns.", COLUMN_KEYS, ".Tooltip");
 
     public static final int TASK_COLUMN           = 0;
-    public static final int PLAN_TIME_COLUMN      = 1;
-    public static final int PLAN_DTIME_COLUMN     = 2;
-    public static final int ACT_TIME_COLUMN       = 3;
-    public static final int ACT_DTIME_COLUMN      = 4;
-    public static final int PLAN_VALUE_COLUMN     = 5;
-    public static final int PLAN_CUM_TIME_COLUMN  = 6;
-    public static final int PLAN_CUM_VALUE_COLUMN = 7;
-    public static final int ASSIGNED_TO_COLUMN    = 8;
-    public static final int PLAN_DATE_COLUMN      = 9;
-    public static final int REPLAN_DATE_COLUMN    = 10;
-    public static final int FORECAST_DATE_COLUMN  = 11;
-    public static final int DATE_COMPLETE_COLUMN  = 12;
-    public static final int DEPENDENCIES_COLUMN   = 13;
-    public static final int PCT_COMPLETE_COLUMN   = 14;
-    public static final int PCT_SPENT_COLUMN      = 15;
-    public static final int VALUE_EARNED_COLUMN   = 16;
+    public static final int NODE_TYPE_COLUMN      = 1;
+    public static final int PLAN_TIME_COLUMN      = 2;
+    public static final int PLAN_DTIME_COLUMN     = 3;
+    public static final int ACT_TIME_COLUMN       = 4;
+    public static final int ACT_DTIME_COLUMN      = 5;
+    public static final int PLAN_VALUE_COLUMN     = 6;
+    public static final int PLAN_CUM_TIME_COLUMN  = 7;
+    public static final int PLAN_CUM_VALUE_COLUMN = 8;
+    public static final int ASSIGNED_TO_COLUMN    = 9;
+    public static final int PLAN_DATE_COLUMN      = 10;
+    public static final int REPLAN_DATE_COLUMN    = 11;
+    public static final int FORECAST_DATE_COLUMN  = 12;
+    public static final int DATE_COMPLETE_COLUMN  = 13;
+    public static final int DEPENDENCIES_COLUMN   = 14;
+    public static final int PCT_COMPLETE_COLUMN   = 15;
+    public static final int PCT_SPENT_COLUMN      = 16;
+    public static final int VALUE_EARNED_COLUMN   = 17;
 
-    public static final int[] HIDABLE_COLUMN_LIST = {
-        PLAN_DTIME_COLUMN, ACT_DTIME_COLUMN, REPLAN_DATE_COLUMN };
+    public static final int[] HIDABLE_COLUMN_LIST = { NODE_TYPE_COLUMN,
+            PLAN_DTIME_COLUMN, ACT_DTIME_COLUMN, REPLAN_DATE_COLUMN };
+
     public static final String ID_DATA_NAME = "Task List ID";
 
     /** Types of the columns in the TreeTableModel. */
     static protected Class[]  colTypes = {
         TreeTableModel.class,   // project/task
+        String.class,           // node type
         String.class,           // planned time
         String.class,           // planned direct time
         String.class,           // actual time
@@ -659,6 +664,7 @@ public class EVTaskList extends AbstractTreeTableModel
 
     public static final Object[] COLUMN_FORMATS = {
         COLUMN_FMT_OTHER,     // project/task
+        COLUMN_FMT_OTHER,     // node type
         COLUMN_FMT_TIME,      // planned time
         COLUMN_FMT_TIME,      // planned direct time
         COLUMN_FMT_TIME,      // actual time
@@ -716,6 +722,10 @@ public class EVTaskList extends AbstractTreeTableModel
             // in the Tree column to the underlying JTree.
             return true;
 
+        case NODE_TYPE_COLUMN:
+            return Settings.isReadWrite()
+                    && ((EVTask) node).nodeTypeIsEditable();
+
         case PLAN_TIME_COLUMN:
             return Settings.isReadWrite()
                     && ((EVTask) node).plannedTimeIsEditable();
@@ -744,6 +754,8 @@ public class EVTaskList extends AbstractTreeTableModel
         boolean showColumn = true;
         if (column == PLAN_DTIME_COLUMN || column == ACT_DTIME_COLUMN)
             showColumn = showDirectTimeColumns;
+        else if (column == NODE_TYPE_COLUMN)
+            showColumn = showNodeTypeColumn;
         else if (column == REPLAN_DATE_COLUMN)
             showColumn = showReplanColumn;
 
@@ -762,6 +774,7 @@ public class EVTaskList extends AbstractTreeTableModel
         EVTask n = (EVTask) node;
         switch (column) {
         case TASK_COLUMN:           return n.getName();
+        case NODE_TYPE_COLUMN:      return n.getNodeType();
         case PLAN_TIME_COLUMN:      return n.getPlanTime();
         case -PLAN_TIME_COLUMN:     return new Double(n.planTime);
         case PLAN_DTIME_COLUMN:     return n.getPlanDirectTime();
@@ -792,6 +805,7 @@ public class EVTaskList extends AbstractTreeTableModel
         if (node == null) return;
         EVTask n = (EVTask) node;
         switch (column) {
+        case NODE_TYPE_COLUMN:     n.userSetNodeType(value);              break;
         case PLAN_TIME_COLUMN:     n.userSetPlanTime(value);              break;
         case DATE_COMPLETE_COLUMN: n.userSetActualDate(value);            break;
         case DEPENDENCIES_COLUMN:  n.setDependencies((Collection) value); break;

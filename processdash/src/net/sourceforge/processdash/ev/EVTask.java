@@ -39,10 +39,12 @@ import java.util.Vector;
 
 import net.sourceforge.processdash.data.DateData;
 import net.sourceforge.processdash.data.DoubleData;
+import net.sourceforge.processdash.data.ListData;
 import net.sourceforge.processdash.data.NumberData;
 import net.sourceforge.processdash.data.NumberFunction;
 import net.sourceforge.processdash.data.SaveableData;
 import net.sourceforge.processdash.data.SimpleData;
+import net.sourceforge.processdash.data.StringData;
 import net.sourceforge.processdash.data.repository.DataEvent;
 import net.sourceforge.processdash.data.repository.DataListener;
 import net.sourceforge.processdash.data.repository.DataRepository;
@@ -60,6 +62,8 @@ public class EVTask implements Cloneable, DataListener {
 
     public static final String PLAN_TIME_DATA_NAME      = "Estimated Time";
     public static final String ACT_TIME_DATA_NAME       = "Time";
+    public static final String NODE_TYPE_DATA_NAME      = "Node_Type";
+    public static final String ALLOWED_TYPES_DATA_NAME  = "Acceptable_Node_Types";
     public static final String DATE_COMPLETED_DATA_NAME = "Completed";
     public static final String IGNORE_PLAN_TIME_NAME    = "Rollup Tag";
     private static final String LEVEL_OF_EFFORT_PREFIX  = "TST-LOE_";
@@ -120,6 +124,13 @@ public class EVTask implements Cloneable, DataListener {
     public static final int USER_PRUNED = -1;
     public static final int ANCESTOR_PRUNED = -2;
     public static final int USER_UNPRUNED = 1;
+
+
+    /** The type of node represented by this task (Generally used by a process
+     * definition to capture process-specific information.) */
+    String nodeType;
+    /** True if the node type is an editable value */
+    boolean nodeTypeEditable;
 
 
     /** The time (minutes) the user plans to spend in this node, taken
@@ -285,6 +296,7 @@ public class EVTask implements Cloneable, DataListener {
 
         setActualTime(getValue(ACT_TIME_DATA_NAME));
 
+        setNodeType(getValue(NODE_TYPE_DATA_NAME));
         setLevelOfEffort(getValue(getLevelOfEffortDataname()));
         loadStructuralData();
         loadDependencyInformation();
@@ -351,6 +363,8 @@ public class EVTask implements Cloneable, DataListener {
         flag = e.getAttribute("flag");
         if (!XMLUtils.hasValue(flag))
             flag = null;
+        if (e.hasAttribute("nt"))
+            nodeType = e.getAttribute("nt");
 
         planTimeEditable = planTimeNull = planTimeUndefined = false;
         actualPreTime = 0;
@@ -641,6 +655,21 @@ public class EVTask implements Cloneable, DataListener {
         }
     }
 
+    public void userSetNodeType(Object aValue) {
+        if (!nodeTypeIsEditable() || aValue == null)
+            return;
+        String newType = aValue.toString();
+
+        ListData allowedTypes = getAcceptableNodeTypes();
+        if (allowedTypes == null || !allowedTypes.contains(newType))
+            return;
+
+        String dataName = DataRepository.createDataName(fullName,
+                NODE_TYPE_DATA_NAME);
+        this.nodeType = newType;
+        data.userPutValue(dataName, StringData.create(newType));
+    }
+
     protected static NumberFormat percentFormatter =
         NumberFormat.getPercentInstance();
     protected static NumberFormat intPercentFormatter =
@@ -678,6 +707,42 @@ public class EVTask implements Cloneable, DataListener {
     public String getName() { return name; }
     public List getTaskIDs() { return taskIDs; }
     public String getFlag() { return flag; }
+    public String getNodeType() { return nodeType; }
+    public void setNodeType(SimpleData type) {
+        if (type == null) {
+            this.nodeType = null;
+            this.nodeTypeEditable = false;
+        } else {
+            this.nodeType = type.format();
+            this.nodeTypeEditable = type.isEditable();
+        }
+    }
+    public boolean nodeTypeIsEditable() {
+        return nodeType != null && nodeTypeEditable;
+    }
+    public ListData getAcceptableNodeTypes() {
+        SaveableData allowedTypesVal = data.getInheritableValue(fullName,
+                ALLOWED_TYPES_DATA_NAME);
+        if (allowedTypesVal == null)
+            return null;
+
+        allowedTypesVal = allowedTypesVal.getSimpleValue();
+        if (allowedTypesVal instanceof ListData)
+            return (ListData) allowedTypesVal;
+        else if (allowedTypesVal instanceof StringData)
+            return ((StringData) allowedTypesVal).asList();
+        else
+            return null;
+    }
+    public boolean nodeTypesAreInUse() {
+        if (XMLUtils.hasValue(nodeType))
+            return true;
+        for (int i = getNumChildren();  i-- > 0; ) {
+            if (getChild(i).nodeTypesAreInUse())
+                return true;
+        }
+        return false;
+    }
     public String getAssignedToText() {
         return StringUtils.join(getAssignedTo(), ", ");
     }
@@ -1204,6 +1269,8 @@ public class EVTask implements Cloneable, DataListener {
             setPlanTime(e.getValue());
         else if (ACT_TIME_DATA_NAME.equals(dataName))
             setActualTime(e.getValue());
+        else if (NODE_TYPE_DATA_NAME.equals(dataName))
+            setNodeType(e.getValue());
         else if (DATE_COMPLETED_DATA_NAME.equals(dataName))
             setActualDate(e.getValue());
         else if (dataName.startsWith(LEVEL_OF_EFFORT_PREFIX))
@@ -1280,6 +1347,8 @@ public class EVTask implements Cloneable, DataListener {
                     StringUtils.join(assignedTo, ",")));
         if (XMLUtils.hasValue(flag))
             result.append("' flag='").append(XMLUtils.escapeAttribute(flag));
+        if (nodeType != null)
+            result.append("' nt='").append(XMLUtils.escapeAttribute(nodeType));
 
         String newline = (whitespace ? "\n" : "");
 
