@@ -38,17 +38,20 @@ public class PendingDataChange {
     public String destFile;
     public String newPrefix;
     public String oldPrefix;
+    public String extraData;
     public int    changeType;
 
     private PendingDataChange (String src,
                                String dest,
                                String newPre,
                                String oldPre,
+                               String extra,
                                int typeOfChange) {
         srcFile    = src;
         destFile   = dest;
         newPrefix  = newPre;
         oldPrefix  = oldPre;
+        extraData  = extra;
         changeType = typeOfChange;
     }
 
@@ -56,21 +59,22 @@ public class PendingDataChange {
      */
     public PendingDataChange (String src,
                               String dest,
-                              String newPre) {
-        this (src, dest, newPre, null, CREATE);
+                              String newPre,
+                              String extraData) {
+        this (src, dest, newPre, null, extraData, CREATE);
     }
 
     /** Create a pending data change for the renaming of a datafile.
      */
     public PendingDataChange (String newPre,
                               String oldPre) {
-        this (null, null, newPre, oldPre, CHANGE);
+        this (null, null, newPre, oldPre, null, CHANGE);
     }
 
     /** Create a pending data change for the deletion of a datafile.
      */
     public PendingDataChange (String pre) {
-        this (null, null, null, pre, DELETE);
+        this (null, null, null, pre, null, DELETE);
     }
 
     public String toString() {

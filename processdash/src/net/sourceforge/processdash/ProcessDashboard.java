@@ -333,7 +333,7 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
             // if the user doesn't have a global data file, create one
             // for them from the default template.
             HierarchyEditor.createDataFile (property_directory + "global.dat",
-                                          "dataFile.txt");
+                                          "dataFile.txt", null);
             openDatafile("", "global.dat");
 
         } catch (Exception exc) {

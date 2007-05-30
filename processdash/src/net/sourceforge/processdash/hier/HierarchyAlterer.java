@@ -409,7 +409,8 @@ public class HierarchyAlterer implements ItemListener {
         if (p.srcFile == null)
             HierarchyEditor.createEmptyFile(dataDir + p.destFile);
         else
-            HierarchyEditor.createDataFile(dataDir + p.destFile, p.srcFile);
+            HierarchyEditor.createDataFile(dataDir + p.destFile, p.srcFile,
+                    p.extraData);
 
         if (p.newPrefix != null)
             dashboard.openDatafile (p.newPrefix, p.destFile);

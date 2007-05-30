@@ -419,6 +419,8 @@ public class DashHierarchy extends Hashtable implements ItemSelectable,
     public static final String NO_DATAFILE = "none";
     public static final String NO_HREF = "none";
 
+    private static final String DATA_ELEM_TAG = "extraData";
+
     private static final String[] TEMPLATE_NODE_NAMES = {
         TEMPLATE_NODE_NAME, PHASE_NODE_NAME, NODE_NODE_NAME };
     static { Arrays.sort(TEMPLATE_NODE_NAMES); }
@@ -526,11 +528,13 @@ public class DashHierarchy extends Hashtable implements ItemSelectable,
             Node n = children.item(i);
             if (n instanceof Element) {
                 Element elem = (Element) n;
-                if (Arrays.binarySearch(TEMPLATE_NODE_NAMES,
-                        elem.getTagName().toLowerCase()) >= 0) {
+                String elemName = elem.getTagName().toLowerCase();
+                if (Arrays.binarySearch(TEMPLATE_NODE_NAMES, elemName) >= 0) {
                     val.addChild(loadXMLNode(elem, templates, key, templateKey),-1);
                     if ("true".equals(elem.getAttribute(SELECTED_ATTR)))
                         val.setSelectedChild(val.getNumChildren() - 1);
+                } else if (DATA_ELEM_TAG.equalsIgnoreCase(elemName)) {
+                    val.setExtraData(XMLUtils.getTextContents(elem));
                 }
             }
         }
@@ -810,7 +814,8 @@ public class DashHierarchy extends Hashtable implements ItemSelectable,
     public void copyFrom (DashHierarchy fromProps,
                           PropertyKey   fromKey,
                           PropertyKey   toKey) {
-        Prop aProp = new Prop (fromProps.pget (fromKey));
+        Prop fromProp = fromProps.pget (fromKey);
+        Prop aProp = new Prop (fromProp);
         for (int ii = 0; ii < aProp.getNumChildren(); ii++) {
             PropertyKey fc = aProp.getChild(ii);
             PropertyKey tc = new PropertyKey (toKey, fc.name());
@@ -820,10 +825,11 @@ public class DashHierarchy extends Hashtable implements ItemSelectable,
         String datafile = aProp.getDataFile();
         if (hasDataFile(aProp)) {
             String newfile = getNextDatafilename();
+            String extraData = fromProp.getExtraData();
 
             aProp.setDataFile (newfile);
             fireDataFileChange
-                (new PendingDataChange(datafile, newfile, toKey.path()));
+                (new PendingDataChange(datafile, newfile, toKey.path(), extraData));
         }
         String defectlog = aProp.getDefectLog();
         if (defectlog != null && defectlog.length() > 0) {
@@ -833,7 +839,7 @@ public class DashHierarchy extends Hashtable implements ItemSelectable,
             // this is kind of icky - we're using the datafile change queue to
             // remember changes to defect logs.  Perhaps later we should rework this.
             fireDataFileChange
-                (new PendingDataChange(null, newfile, null));
+                (new PendingDataChange(null, newfile, null, null));
         }
         put (toKey, aProp);
         //fireHierarchyChanged();

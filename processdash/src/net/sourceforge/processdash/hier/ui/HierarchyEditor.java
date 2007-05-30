@@ -380,7 +380,7 @@ public class HierarchyEditor extends Object implements TreeModelListener, TreeSe
         if (p.srcFile == null)
             createEmptyFile(dataDir + p.destFile);
         else
-            createDataFile(dataDir + p.destFile, p.srcFile);
+            createDataFile(dataDir + p.destFile, p.srcFile, p.extraData);
 
         if (p.newPrefix != null)
             dashboard.openDatafile(p.newPrefix, p.destFile);
@@ -990,7 +990,7 @@ public class HierarchyEditor extends Object implements TreeModelListener, TreeSe
     }
 
 
-    public static void createDataFile (String dest, String src) {
+    public static void createDataFile (String dest, String src, String extra) {
         BufferedWriter out;
         try {
             File parentDir = new File(new File(dest).getParent());
@@ -999,6 +999,8 @@ public class HierarchyEditor extends Object implements TreeModelListener, TreeSe
             out = new BufferedWriter (new FileWriter (dest));
             out.write("#include <" + src + ">");
             out.newLine();
+            if (extra != null)
+                out.write(extra);
             out.close();
         } catch (IOException e) {}
     }

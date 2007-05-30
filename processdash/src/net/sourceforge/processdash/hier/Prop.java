@@ -39,6 +39,7 @@ public class Prop
     protected String myID       = null;
     protected String scriptFile = null;
     protected String dataFile   = null;
+    protected String extraData  = null;
     protected String status     = null;
     protected int selectedChild = 0;
     protected PropertyKey children[] = null;
@@ -72,6 +73,7 @@ public class Prop
     public void setID         (String id)  { myID          = id;  }
     public void setScriptFile (String log) { scriptFile    = log; }
     public void setDataFile   (String log) { dataFile      = log; }
+    public void setExtraData  (String d)   { extraData     = d;   }
     public void setStatus     (String log) { status        = log; }
     public void setSelectedChild (int num) { selectedChild = num; }
 
@@ -145,6 +147,7 @@ public class Prop
     public String getID ()         { return myID; }
     public String getScriptFile () { return scriptFile; }
     public String getDataFile ()   { return dataFile; }
+    public String getExtraData()   { return extraData; }
     public String getStatus ()     { return status; }
     public int getSelectedChild () { return selectedChild; }
 
