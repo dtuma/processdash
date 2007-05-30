@@ -37,6 +37,7 @@ import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.DataContext;
 import net.sourceforge.processdash.data.DoubleData;
 import net.sourceforge.processdash.data.NumberFunction;
+import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.PropertyKey;
@@ -149,9 +150,14 @@ public class DashboardTimeLog implements ModifiableTimeLog,
                 || Settings.isReadOnly())
             return false;
 
-        // if the node has children, logging time here is not allowed.
-        if (props.pget(node).getNumChildren() > 0)
-            return false;
+        // if the node has children, logging time here is not allowed, unless
+        // the node explicitly defines a "Time_Logging_Allowed" marker.
+        if (props.pget(node).getNumChildren() > 0) {
+            String dataName = DataRepository.createDataName(node.path(),
+                    "Time_Logging_Allowed");
+            SimpleData marker = data.getSimpleValue(dataName);
+            return (marker != null && marker.test());
+        }
 
         // check to see if the current node defines time as a calculation.
         // if it does, logging time here is not allowed.

@@ -178,6 +178,7 @@ public class TimingMetricsRecorder implements TimeLogListener, DataConsistencyOb
             initMapFromTouchedPaths(path, result);
             initMapFromHierarchy(path, result);
             addTimeFromTimeLog(path, result);
+            reparentOrphanedTime(result);
             return result;
         } catch (IOException e) {
             return null;
@@ -228,6 +229,22 @@ public class TimingMetricsRecorder implements TimeLogListener, DataConsistencyOb
         }
     }
 
+    private void reparentOrphanedTime(Map result) {
+        for (Iterator i = result.entrySet().iterator(); i.hasNext();) {
+            Map.Entry e = (Map.Entry) i.next();
+            String path = (String) e.getKey();
+            String hierarchyPath = getHierarchyPath(path);
+            if (path != hierarchyPath) {
+                long[] orphanedTime = (long[]) e.getValue();
+                e.setValue(null);
+                if (orphanedTime != null && orphanedTime[0] > 0) {
+                    long[] ancestorTime = getTime(result, hierarchyPath);
+                    ancestorTime[0] += orphanedTime[0];
+                }
+            }
+        }
+    }
+
     private long[] getTime(Map timeMap, String key) {
         long[] time = (long[]) timeMap.get(key);
         if (time == null) {
@@ -236,6 +253,19 @@ public class TimingMetricsRecorder implements TimeLogListener, DataConsistencyOb
             timeMap.put(key, time);
         }
         return time;
+    }
+
+    /** Returns the path to the existing element of the hierarchy which
+     * is equivalent to or the first ancestor of the given path
+     */
+    private String getHierarchyPath(String path) {
+        while (path != null) {
+            PropertyKey key = hierarchy.findExistingKey(path);
+            if (key != null)
+                return path;
+            path = DataRepository.chopPath(path);
+        }
+        return "/";
     }
 
     protected void setStartTimeElements(TimeLogEntry tle) {
