@@ -819,6 +819,7 @@ public class EVTaskList extends AbstractTreeTableModel
         switch (column) {
         case TASK_COLUMN: return n.getTaskError();
         case PLAN_TIME_COLUMN: return n.getPlanTimeError();
+        case NODE_TYPE_COLUMN: return n.getNodeTypeError();
         default: return null;
         }
     }

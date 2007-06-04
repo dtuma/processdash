@@ -720,6 +720,14 @@ public class EVTask implements Cloneable, DataListener {
     public boolean nodeTypeIsEditable() {
         return nodeType != null && nodeTypeEditable;
     }
+    public boolean nodeTypeIsMissing() {
+        return "?????".equals(nodeType);
+    }
+    public String getNodeTypeError() {
+        if (nodeTypeIsMissing())
+            return resources.getString("Task.Node_Type_Missing.Error");
+        return null;
+    }
     public ListData getAcceptableNodeTypes() {
         SaveableData allowedTypesVal = data.getInheritableValue(fullName,
                 ALLOWED_TYPES_DATA_NAME);
@@ -1181,6 +1189,13 @@ public class EVTask implements Cloneable, DataListener {
             if (planTimeIsMissing()) {
                 String errorMessage = resources.format(
                         "Task.Plan_Time_Missing.Error_Msg_FMT",
+                         fullName);
+                metrics.addError(errorMessage, this);
+            }
+
+            if (nodeTypeIsMissing()) {
+                String errorMessage = resources.format(
+                        "Task.Node_Type_Missing.Error_Msg_FMT",
                          fullName);
                 metrics.addError(errorMessage, this);
             }
