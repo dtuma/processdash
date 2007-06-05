@@ -114,7 +114,7 @@ public class TimeLogTableModelTest extends AbstractTimeLogTest implements TimeLo
     };
 
     private static final String[][] SUMMARIZED_CONTENT = {
-        { PATH1, DFMT.format(FILTER_DATE), "4:38", "0:15", "extra comment\nlong comment with\nembedded newlines\nfor entry near end" }
+        { PATH1, DFMT.format(FILTER_DATE), "4:28", "0:15", "extra comment\nlong comment with\nembedded newlines\nfor entry near end" }
     };
 
     private static final long[] SUMMARIZED_IDS = { TABLE_IDS_1[0] };
@@ -154,18 +154,19 @@ public class TimeLogTableModelTest extends AbstractTimeLogTest implements TimeLo
         setValue(tableModel, 3, 3, "invalid time", false, null);
         setValue(tableModel, 3, 3, "00:00", false, expectedContents);
         setValue(tableModel, 3, 3, "0:10", true, expectedContents);
-        assertModification(timeLog, TABLE_IDS_1[3], null, null, 0, 10, null);
+        expectedContents[3][2] = "0:47";
+        assertModification(timeLog, TABLE_IDS_1[3], null, null, -10, 10, null);
 
         setValue(tableModel, 1, 4, "new comment", true, expectedContents);
         assertModification(timeLog, TABLE_IDS_1[1], null, null, 0, 0, "new comment");
         setValue(tableModel, 3, 4, null, true, expectedContents);
-        assertModification(timeLog, TABLE_IDS_1[3], null, null, 0, 10, "");
+        assertModification(timeLog, TABLE_IDS_1[3], null, null, -10, 10, "");
         setValue(tableModel, 3, 4, "foo", true, expectedContents);
-        assertModification(timeLog, TABLE_IDS_1[3], null, null, 0, 10, "foo");
+        assertModification(timeLog, TABLE_IDS_1[3], null, null, -10, 10, "foo");
         tableModel.setValueAt("", 3, 4);
         assertEquals(null, tableModel.getValueAt(3, 4));
         expectedContents[3][4] = null;
-        assertModification(timeLog, TABLE_IDS_1[3], null, null, 0, 10, "");
+        assertModification(timeLog, TABLE_IDS_1[3], null, null, -10, 10, "");
 
         assertTableContents(TABLE_IDS_1, expectedContents, tableModel);
 
@@ -189,7 +190,7 @@ public class TimeLogTableModelTest extends AbstractTimeLogTest implements TimeLo
         assertTimeLogEvent(timeLog, IDs[0], FILTER_PATH+"/new Path", null, 0, 0, null);
         assertTimeLogEvent(timeLog, IDs[4], null, now, 0, 0, null);
         assertTimeLogEvent(timeLog, IDs[2], null, null, 63, 0, null);
-        assertTimeLogEvent(timeLog, IDs[3], null, null, 0, 10, null);
+        assertTimeLogEvent(timeLog, IDs[3], null, null, -10, 10, null);
         assertTimeLogEvent(timeLog, IDs[1], null, null, 0, 0, "new comment");
         assertTimeLogEvent(timeLog, IDs[3], null, null, 0, 0, "");
         assertTimeLogEvent(timeLog, IDs[3], null, null, 0, 0, "foo");
