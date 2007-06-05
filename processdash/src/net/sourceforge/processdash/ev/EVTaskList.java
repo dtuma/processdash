@@ -36,6 +36,7 @@ import java.util.Date;
 import java.util.EventObject;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
@@ -51,6 +52,7 @@ import javax.swing.table.TableModel;
 import javax.swing.tree.TreePath;
 
 import net.sourceforge.processdash.Settings;
+import net.sourceforge.processdash.data.ListData;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.StringData;
 import net.sourceforge.processdash.data.repository.DataRepository;
@@ -75,6 +77,7 @@ public class EVTaskList extends AbstractTreeTableModel
     protected EVSchedule schedule;
     protected EVCalculator calculator;
     protected EVDependencyCalculator dependencyCalculator = null;
+    protected Set nodeTypeSpecs = null;
 
     /** timer for triggering recalculations */
     protected Timer recalcTimer = null;
@@ -577,6 +580,7 @@ public class EVTaskList extends AbstractTreeTableModel
         double directTimeDelta = taskRoot.planTime - taskRoot.planValue;
         showDirectTimeColumns = Math.abs(directTimeDelta) > 0.1;
         showNodeTypeColumn = taskRoot.nodeTypesAreInUse();
+        nodeTypeSpecs = null;
 
         fireEvRecalculated();
     }
@@ -585,6 +589,26 @@ public class EVTaskList extends AbstractTreeTableModel
 
     public void setDependencyCalculator(EVDependencyCalculator d) {
         this.dependencyCalculator = d;
+    }
+
+    public Set getNodeTypeSpecs() {
+        if (nodeTypeSpecs == null)
+            recalcNodeTypeSpecs();
+        return nodeTypeSpecs;
+    }
+
+    protected void recalcNodeTypeSpecs() {
+        Set result = new LinkedHashSet();
+        recalcNodeTypeSpecs((EVTask) root, result);
+        nodeTypeSpecs = result;
+    }
+
+    private void recalcNodeTypeSpecs(EVTask task, Set result) {
+        ListData l = task.nodeTypeSpec;
+        if (l != null && l.size() > 0)
+            result.add(l.asList());
+        for (int i = task.getNumChildren();  i-- > 0; )
+            recalcNodeTypeSpecs(task.getChild(i), result);
     }
 
     public List findTasksByFullName(String fullName) {

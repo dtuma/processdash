@@ -63,7 +63,8 @@ public class EVTask implements Cloneable, DataListener {
     public static final String PLAN_TIME_DATA_NAME      = "Estimated Time";
     public static final String ACT_TIME_DATA_NAME       = "Time";
     public static final String NODE_TYPE_DATA_NAME      = "Node_Type";
-    public static final String ALLOWED_TYPES_DATA_NAME  = "Acceptable_Node_Types";
+    public static final String NODE_TYPE_SPEC_DATA_NAME = "Node_Type_Spec";
+    public static final String MISSING_NODE_TYPE        = "?????";
     public static final String DATE_COMPLETED_DATA_NAME = "Completed";
     public static final String IGNORE_PLAN_TIME_NAME    = "Rollup Tag";
     private static final String LEVEL_OF_EFFORT_PREFIX  = "TST-LOE_";
@@ -131,6 +132,8 @@ public class EVTask implements Cloneable, DataListener {
     String nodeType;
     /** True if the node type is an editable value */
     boolean nodeTypeEditable;
+    /** Information about acceptable node types */
+    ListData nodeTypeSpec;
 
 
     /** The time (minutes) the user plans to spend in this node, taken
@@ -296,7 +299,14 @@ public class EVTask implements Cloneable, DataListener {
 
         setActualTime(getValue(ACT_TIME_DATA_NAME));
 
+        if (parent == null || !StringUtils.hasValue(parent.fullName))
+            nodeTypeSpec = ListData.asListData(data.getInheritableValue(
+                    fullName, NODE_TYPE_SPEC_DATA_NAME));
+        else
+            nodeTypeSpec = ListData.asListData(getValue(
+                    NODE_TYPE_SPEC_DATA_NAME, false));
         setNodeType(getValue(NODE_TYPE_DATA_NAME));
+
         setLevelOfEffort(getValue(getLevelOfEffortDataname()));
         loadStructuralData();
         loadDependencyInformation();
@@ -365,6 +375,8 @@ public class EVTask implements Cloneable, DataListener {
             flag = null;
         if (e.hasAttribute("nt"))
             nodeType = e.getAttribute("nt");
+        if (e.hasAttribute("nts"))
+            nodeTypeSpec = new ListData(e.getAttribute("nts"));
 
         planTimeEditable = planTimeNull = planTimeUndefined = false;
         actualPreTime = 0;
@@ -707,7 +719,12 @@ public class EVTask implements Cloneable, DataListener {
     public String getName() { return name; }
     public List getTaskIDs() { return taskIDs; }
     public String getFlag() { return flag; }
-    public String getNodeType() { return nodeType; }
+    public String getNodeType() {
+        if (nodeTypeIsImplicit())
+            return nodeType.substring(1, nodeType.length()-1);
+        else
+            return nodeType;
+    }
     public void setNodeType(SimpleData type) {
         if (type == null) {
             this.nodeType = null;
@@ -721,29 +738,37 @@ public class EVTask implements Cloneable, DataListener {
         return nodeType != null && nodeTypeEditable;
     }
     public boolean nodeTypeIsMissing() {
-        return "?????".equals(nodeType);
+        return MISSING_NODE_TYPE.equals(nodeType);
+    }
+    public boolean nodeTypeIsInvalid() {
+        if (nodeType == null || nodeType.length() == 0 || nodeTypeIsImplicit())
+            return false;
+
+        ListData l = getAcceptableNodeTypes();
+        return (l != null && !l.contains(nodeType));
+    }
+    public boolean nodeTypeIsImplicit() {
+        return (nodeType != null
+                && nodeType.startsWith("(")
+                && nodeType.endsWith(")"));
     }
     public String getNodeTypeError() {
         if (nodeTypeIsMissing())
             return resources.getString("Task.Node_Type_Missing.Error");
+        if (nodeTypeIsInvalid())
+            return resources.getString("Task.Node_Type_Invalid.Error");
         return null;
     }
     public ListData getAcceptableNodeTypes() {
-        SaveableData allowedTypesVal = data.getInheritableValue(fullName,
-                ALLOWED_TYPES_DATA_NAME);
-        if (allowedTypesVal == null)
+        if (nodeTypeSpec != null)
+            return nodeTypeSpec;
+        else if (parent == null)
             return null;
-
-        allowedTypesVal = allowedTypesVal.getSimpleValue();
-        if (allowedTypesVal instanceof ListData)
-            return (ListData) allowedTypesVal;
-        else if (allowedTypesVal instanceof StringData)
-            return ((StringData) allowedTypesVal).asList();
         else
-            return null;
+            return parent.getAcceptableNodeTypes();
     }
     public boolean nodeTypesAreInUse() {
-        if (XMLUtils.hasValue(nodeType))
+        if (XMLUtils.hasValue(nodeType) && !nodeTypeIsImplicit())
             return true;
         for (int i = getNumChildren();  i-- > 0; ) {
             if (getChild(i).nodeTypesAreInUse())
@@ -1198,6 +1223,13 @@ public class EVTask implements Cloneable, DataListener {
                         "Task.Node_Type_Missing.Error_Msg_FMT",
                          fullName);
                 metrics.addError(errorMessage, this);
+            } else if (nodeTypeIsInvalid()) {
+                String processName = (String) getAcceptableNodeTypes().get(0);
+                processName = processName.substring(13, processName.length()-1);
+                String errorMessage = resources.format(
+                        "Task.Node_Type_Invalid.Error_Msg_FMT",
+                        fullName, nodeType, processName);
+                metrics.addError(errorMessage, this);
             }
         }
 
@@ -1364,6 +1396,9 @@ public class EVTask implements Cloneable, DataListener {
             result.append("' flag='").append(XMLUtils.escapeAttribute(flag));
         if (nodeType != null)
             result.append("' nt='").append(XMLUtils.escapeAttribute(nodeType));
+        if (nodeTypeSpec != null)
+            result.append("' nts='").append(XMLUtils.escapeAttribute(
+                    nodeTypeSpec.formatClean()));
 
         String newline = (whitespace ? "\n" : "");
 

@@ -308,7 +308,7 @@ public class EVWeekReport extends TinyCGIBase {
         }
 
         // create a table writer with appropriate renderers.
-        HTMLTableWriter tableWriter = createTableWriter(hideNames,
+        HTMLTableWriter tableWriter = createTableWriter(evModel, hideNames,
                 showTimingIcons);
 
         // to draw the completed tasks table, remove the "task with timing
@@ -393,11 +393,11 @@ public class EVWeekReport extends TinyCGIBase {
 
 
 
-    private HTMLTableWriter createTableWriter(boolean hideNames,
-            boolean showTimingIcons) {
+    private HTMLTableWriter createTableWriter(EVTaskList evModel,
+            boolean hideNames, boolean showTimingIcons) {
         HTMLTableWriter tableWriter = new HTMLTableWriter();
         EVReport.setupTaskTableRenderers(tableWriter, showTimingIcons,
-                exportingToExcel(), hideNames);
+                exportingToExcel(), hideNames, evModel.getNodeTypeSpecs());
         tableWriter.setExtraColumnAttributes(EVTaskList.TASK_COLUMN,
                 "class='left'");
         tableWriter.setExtraColumnAttributes(EVTaskList.ASSIGNED_TO_COLUMN,

@@ -32,7 +32,7 @@ import java.util.Vector;
 
 public class ListData implements SimpleData {
 
-    public static final String PREFERRED_DELIMITERS = ",;|\n";
+    public static final String PREFERRED_DELIMITERS = ",;|!:^~`/\\+-=_\t@#$%&*\n\r ";
 
     public static final ListData EMPTY_LIST = new ListData();
     static { EMPTY_LIST.setImmutable(); }
@@ -178,6 +178,18 @@ public class ListData implements SimpleData {
         return stringVersion;
     }
 
+    /** Return a formatted string which can be parsed later, but which avoids
+     * using a binary delimiter if possible. */
+    public String formatClean() {
+        String result = format();
+        for (int i = 0;  i < PREFERRED_DELIMITERS.length();  i++) {
+            char d = PREFERRED_DELIMITERS.charAt(i);
+            if (result.indexOf(d) == -1)
+                return result.replace(DEFAULT_DELIM, d);
+        }
+        return result;
+    }
+
     public SimpleData parse(String val) {
         return (val == null || val.length() == 0) ? null : new ListData(val);
     }
@@ -195,4 +207,18 @@ public class ListData implements SimpleData {
     // since editable lists are not supported, there is no need to
     // create a different version of this list.
     public SaveableData getEditable(boolean editable) { return this; }
+
+    public static ListData asListData(SaveableData d) {
+        if (d == null)
+            return null;
+        if (!(d instanceof SimpleData))
+            d = d.getSimpleValue();
+
+        if (d instanceof ListData)
+            return (ListData) d;
+        else if (d instanceof StringData)
+            return ((StringData)d).asList();
+        else
+            return null;
+    }
 }

@@ -17,6 +17,7 @@ public class AllUtilTests {
         suite.addTestSuite(PatternListTest.class);
         suite.addTestSuite(PreferencesUtilTest.class);
         suite.addTestSuite(GlobEngineTest.class);
+        suite.addTestSuite(OrderedListMergerTest.class);
         //$JUnit-END$
         return suite;
     }

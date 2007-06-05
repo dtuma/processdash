@@ -7,6 +7,12 @@
     [PATH/node] == TAG;
     [PATH/leaf] == TAG;
 
+#ifdef PATH
+
+    [PATH/Node_Type] == "(PATH)";
+
+#endif // PATH
+
 #endif // !IS_IMAGINARY_NODE
 
 

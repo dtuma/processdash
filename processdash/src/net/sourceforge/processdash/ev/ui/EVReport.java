@@ -33,6 +33,7 @@ import java.io.PrintWriter;
 import java.text.DateFormat;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -40,6 +41,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -71,6 +73,7 @@ import net.sourceforge.processdash.ui.web.CGIChartBase;
 import net.sourceforge.processdash.ui.web.reports.ExcelReport;
 import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.HTMLUtils;
+import net.sourceforge.processdash.util.OrderedListMerger;
 import net.sourceforge.processdash.util.StringUtils;
 
 import org.jfree.chart.JFreeChart;
@@ -1065,7 +1068,7 @@ public class EVReport extends CGIChartBase {
         writer.setSkipColumn(EVTaskList.PLAN_CUM_VALUE_COLUMN, true);
         boolean hideNames = settings.getBool(CUSTOMIZE_HIDE_NAMES);
         setupTaskTableRenderers(writer, showTimingIcons, exportingToExcel(),
-                hideNames);
+                hideNames, taskList.getNodeTypeSpecs());
         if (!(taskList instanceof EVTaskListRollup) || hideNames)
             writer.setSkipColumn(EVTaskList.ASSIGNED_TO_COLUMN, true);
         if (hidePlan) {
@@ -1080,13 +1083,17 @@ public class EVReport extends CGIChartBase {
 
     /** Install renderers that are appropriate for a task table. */
     static HTMLTableWriter setupTaskTableRenderers(HTMLTableWriter writer,
-            boolean showTimingIcons, boolean exportingToExcel, boolean hideNames) {
+            boolean showTimingIcons, boolean exportingToExcel, boolean hideNames,
+            Set nodeTypeSpecs) {
         setupRenderers(writer, EVTaskList.COLUMN_FORMATS);
         writer.setCellRenderer(EVTaskList.DEPENDENCIES_COLUMN,
                 new DependencyCellRenderer(exportingToExcel, hideNames));
         if (showTimingIcons)
             writer.setCellRenderer(EVTaskList.TASK_COLUMN,
                     new TaskNameWithTimingIconRenderer());
+        if (nodeTypeSpecs != null && !nodeTypeSpecs.isEmpty())
+            writer.setCellRenderer(EVTaskList.NODE_TYPE_COLUMN,
+                    new NodeTypeCellRenderer(nodeTypeSpecs));
         return writer;
     }
 
@@ -1387,6 +1394,23 @@ public class EVReport extends CGIChartBase {
         }
     }
 
+
+    static class NodeTypeCellRenderer extends EVCellRenderer {
+
+        List phaseOrder;
+
+        public NodeTypeCellRenderer(Set nodeTypeSpecs) {
+            phaseOrder = new ArrayList();
+            phaseOrder.add(EVTask.MISSING_NODE_TYPE);
+            phaseOrder.add(null);
+            phaseOrder.add("");
+            phaseOrder.addAll(OrderedListMerger.merge(nodeTypeSpecs));
+        }
+
+        protected String getSortKey(Object value) {
+            return Integer.toString(phaseOrder.indexOf(value));
+        }
+    }
 
     static class DependencyCellRenderer implements HTMLTableWriter.CellRenderer {
 
