@@ -767,6 +767,20 @@ public class EVTask implements Cloneable, DataListener {
         else
             return parent.getAcceptableNodeTypes();
     }
+    public String getNodeTypeSpecValue(String key, String defaulVal) {
+        ListData spec = getAcceptableNodeTypes();
+        if (spec == null)
+            return defaulVal;
+
+        String prefix = "(" + key + ":";
+        for (int i = 0;  i < spec.size();  i++) {
+            String specItem = (String) spec.get(i);
+            if (specItem.startsWith(prefix) && specItem.endsWith(")"))
+                return specItem.substring(prefix.length(), specItem.length()-1);
+        }
+
+        return defaulVal;
+    }
     public boolean nodeTypesAreInUse() {
         if (XMLUtils.hasValue(nodeType) && !nodeTypeIsImplicit())
             return true;
@@ -1224,8 +1238,7 @@ public class EVTask implements Cloneable, DataListener {
                          fullName);
                 metrics.addError(errorMessage, this);
             } else if (nodeTypeIsInvalid()) {
-                String processName = (String) getAcceptableNodeTypes().get(0);
-                processName = processName.substring(13, processName.length()-1);
+                String processName = getNodeTypeSpecValue("processName", "");
                 String errorMessage = resources.format(
                         "Task.Node_Type_Invalid.Error_Msg_FMT",
                         fullName, nodeType, processName);
