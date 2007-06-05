@@ -163,14 +163,18 @@ public class EVTaskList extends AbstractTreeTableModel
 
             // if any of the tests succeeded, add the name to the list.
             if (taskListName != null)
-                result.add(taskListName);
+                result.add(cleanupName(taskListName) + "\n" + taskListName);
         }
 
         String[] ret = new String[result.size()];
         i = result.iterator();
         int j = 0;
-        while (i.hasNext())
-            ret[j++] = (String) i.next();
+        while (i.hasNext()) {
+            String oneName = (String) i.next();
+            int pos = oneName.indexOf('\n');
+            oneName = oneName.substring(pos+1);
+            ret[j++] = oneName;
+        }
         return ret;
     }
 
