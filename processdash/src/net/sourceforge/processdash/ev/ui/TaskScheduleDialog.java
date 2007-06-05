@@ -125,6 +125,7 @@ import net.sourceforge.processdash.ui.Browser;
 import net.sourceforge.processdash.ui.DashboardIconFactory;
 import net.sourceforge.processdash.ui.NodeSelectionDialog;
 import net.sourceforge.processdash.ui.help.PCSH;
+import net.sourceforge.processdash.ui.lib.JOptionPaneClickHandler;
 import net.sourceforge.processdash.ui.lib.PaintUtils;
 import net.sourceforge.processdash.ui.lib.DeferredSelectAllExecutor;
 import net.sourceforge.processdash.ui.lib.ErrorReporter;
@@ -1418,9 +1419,18 @@ public class TaskScheduleDialog
     protected void addTask() {
         if (Settings.isReadOnly()) return;
 
-        String path = null;
+        boolean madeChange = false;
         if (isRollup()) {
-            path = chooseTaskList();
+            String[] taskListNames = chooseTaskLists();
+            if (taskListNames != null) {
+                for (int i = 0; i < taskListNames.length; i++) {
+                    if (taskListNames[i] != null
+                            && model.addTask(taskListNames[i], dash.getData(),
+                                    dash.getHierarchy(), dash.getCache(), true))
+                        madeChange = true;
+                }
+            }
+
         } else {
             NodeSelectionDialog dialog = new NodeSelectionDialog
                 (frame, dash.getHierarchy(),
@@ -1428,11 +1438,13 @@ public class TaskScheduleDialog
                  resources.getString("Add_Task_Dialog.Instructions"),
                  resources.getString("Add_Task_Dialog.Button"),
                  null);
-            path = dialog.getSelectedPath();
+            String path = dialog.getSelectedPath();
+            if (path != null)
+                madeChange = model.addTask(path, dash.getData(),
+                        dash.getHierarchy(), dash.getCache(), true);
         }
-        if (path != null &&
-            model.addTask(path, dash.getData(), dash.getHierarchy(),
-                          dash.getCache(), true)) {
+
+        if (madeChange) {
             treeTable.getTree().expandRow(0);
             setDirty(true);
             recalcAll();
@@ -1441,7 +1453,7 @@ public class TaskScheduleDialog
     }
 
 
-    private String chooseTaskList() {
+    private String[] chooseTaskLists() {
         String[] taskListNames =
             EVTaskList.findTaskLists(dash.getData(), false, true);
         taskListNames = insertRemoveElem
@@ -1450,6 +1462,7 @@ public class TaskScheduleDialog
              this.taskListName);
         String[] taskListDisplayNames = EVTaskList.getDisplayNames(taskListNames);
         JList taskLists = new JList(taskListDisplayNames);
+        new JOptionPaneClickHandler().install(taskLists);
         JScrollPane sp = new JScrollPane(taskLists);
         sp.setPreferredSize(new Dimension(200, 200));
         Object message = new Object[] {
@@ -1459,13 +1472,16 @@ public class TaskScheduleDialog
              resources.getString("Add_Schedule_Dialog.Title"),
              JOptionPane.OK_CANCEL_OPTION)
             == JOptionPane.OK_OPTION) {
-            int selIndex = taskLists.getSelectedIndex();
-            if (selIndex == -1)
-                return null;
-            else if (selIndex == 0)
-                return importNewSharedSchedule();
-            else
-                return taskListNames[selIndex];
+
+            int[] indexes = taskLists.getSelectedIndices();
+            String[] result = new String[indexes.length];
+            for (int i = 0; i < result.length; i++) {
+                if (indexes[i] == 0)
+                    result[i] = importNewSharedSchedule();
+                else
+                    result[i] = taskListNames[indexes[i]];
+            }
+            return result;
         }
         return null;
     }
