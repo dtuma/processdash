@@ -9,7 +9,7 @@
 **/Thumbs.db
 **/SCR-*.htm
 Templates/DCR.template
-Templates/help/Images/constr
+Templates/help/Images/constr/
 Templates/help/createBroker.class.link
 Templates/help/help.config
 Templates/help/javaHelp-manifest.txt
