@@ -29,6 +29,7 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -164,13 +165,14 @@ public class ExportManager extends AbstractManager {
             dest = ExternalResourceManager.getInstance().remapFilename(dest);
             Vector paths = instr.getPaths();
 
+            File destFile = new File(dest);
             if (dest.toLowerCase().endsWith(".txt"))
-                return new TextMetricsFileExporter(dashboard, new File(dest),
-                        paths);
+                return new ExportTask(destFile, new TextMetricsFileExporter(
+                        dashboard, destFile, paths));
             else
-                return new ArchiveMetricsFileExporter(dashboard,
-                        new File(dest), paths, instr.getMetricsIncludes(),
-                        instr.getMetricsExcludes());
+                return new ExportTask(destFile, new ArchiveMetricsFileExporter(
+                        dashboard, destFile, paths, instr.getMetricsIncludes(),
+                        instr.getMetricsExcludes()));
         }
 
     }
@@ -323,6 +325,8 @@ public class ExportManager extends AbstractManager {
         }
     }
 
+
+
     public static class BGTask implements Runnable {
 
         private DashboardContext context;
@@ -341,4 +345,77 @@ public class ExportManager extends AbstractManager {
         }
 
     }
+
+
+
+    private class ExportTask implements Runnable, CompletionStatus.Capable, Cancellable {
+
+        private File dest;
+
+        private Runnable target;
+
+        public ExportTask(File dest, Runnable target) {
+            this.dest = dest;
+            this.target = target;
+        }
+
+        public void run() {
+            exportTaskStarting();
+            target.run();
+            exportTaskFinished();
+        }
+
+        public void tryCancel() {
+            if (target instanceof Cancellable)
+                ((Cancellable) target).tryCancel();
+        }
+
+        public CompletionStatus getCompletionStatus() {
+            return ((CompletionStatus.Capable) target).getCompletionStatus();
+        }
+
+        private void exportTaskStarting() {
+            ExportTask task = putTask();
+            if (task == this)
+                return;
+
+            long waitUntil = System.currentTimeMillis() + 5000;
+            task.tryCancel();
+            do {
+                try {
+                    Thread.sleep(200);
+                } catch (InterruptedException e) {}
+                if (putTask() == this)
+                    return;
+            } while (System.currentTimeMillis() < waitUntil);
+
+            EXPORT_TASKS_IN_PROGRESS.put(dest, this);
+        }
+
+        private ExportTask putTask() {
+            synchronized (EXPORT_TASKS_IN_PROGRESS) {
+                ExportTask current = (ExportTask) EXPORT_TASKS_IN_PROGRESS
+                        .get(dest);
+                if (current == null) {
+                    EXPORT_TASKS_IN_PROGRESS.put(dest, this);
+                    return this;
+                } else {
+                    return current;
+                }
+            }
+        }
+
+        private void exportTaskFinished() {
+            synchronized (EXPORT_TASKS_IN_PROGRESS) {
+                Object current = EXPORT_TASKS_IN_PROGRESS.get(dest);
+                if (current == this)
+                    EXPORT_TASKS_IN_PROGRESS.remove(dest);
+            }
+        }
+
+    }
+
+    private static final Map EXPORT_TASKS_IN_PROGRESS = Collections
+            .synchronizedMap(new HashMap());
+
 }

@@ -1,4 +1,4 @@
-// Copyright (C) 2005-2006 Tuma Solutions, LLC
+// Copyright (C) 2005-2007 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -44,6 +44,7 @@ import net.sourceforge.processdash.ev.EVTaskList;
 import net.sourceforge.processdash.ev.EVTaskListMerged;
 import net.sourceforge.processdash.templates.DashPackage;
 import net.sourceforge.processdash.templates.TemplateLoader;
+import net.sourceforge.processdash.tool.export.mgr.Cancellable;
 import net.sourceforge.processdash.tool.export.mgr.CompletionStatus;
 import net.sourceforge.processdash.util.RobustFileOutputStream;
 import net.sourceforge.processdash.util.XMLUtils;
@@ -53,7 +54,8 @@ import org.xmlpull.v1.XmlPullParserFactory;
 import org.xmlpull.v1.XmlSerializer;
 
 public class ArchiveMetricsFileExporter implements Runnable,
-        ArchiveMetricsXmlConstants, CompletionStatus.Capable {
+        ArchiveMetricsXmlConstants, CompletionStatus.Capable,
+        Cancellable {
 
     private static final String MERGED_PREFIX = "MERGED:";
 
@@ -75,6 +77,8 @@ public class ArchiveMetricsFileExporter implements Runnable,
 
     private List metricsExcludes;
 
+    private RobustFileOutputStream outStream;
+
     private CompletionStatus completionStatus = CompletionStatus.NOT_RUN_STATUS;
 
     public ArchiveMetricsFileExporter(DashboardContext ctx, File dest,
@@ -95,6 +99,15 @@ public class ArchiveMetricsFileExporter implements Runnable,
         return completionStatus;
     }
 
+    public void tryCancel() {
+        RobustFileOutputStream os = outStream;
+        if (os != null) {
+            try {
+                os.abort();
+            } catch (Exception e) {}
+        }
+    }
+
     public void run() {
         try {
             doExport();
@@ -104,15 +117,15 @@ public class ArchiveMetricsFileExporter implements Runnable,
             completionStatus = new CompletionStatus(CompletionStatus.ERROR,
                     dest, ioe);
             ioe.printStackTrace();
-            dest.delete();
+            tryCancel();
         }
 
         ctx.getData().gc(filter);
     }
 
     private void doExport() throws IOException {
-        ZipOutputStream zipOut = new ZipOutputStream(
-                new RobustFileOutputStream(dest));
+        outStream = new RobustFileOutputStream(dest);
+        ZipOutputStream zipOut = new ZipOutputStream(outStream);
 
         EST_TIME_JANITOR.cleanup(ctx);
         Collection taskListNames = writeData(zipOut);
@@ -123,6 +136,7 @@ public class ArchiveMetricsFileExporter implements Runnable,
         writeManifest(zipOut, !taskListNames.isEmpty());
 
         zipOut.close();
+        outStream = null;
     }
 
     private void writeManifest(ZipOutputStream zipOut, boolean includeTaskLists)
@@ -278,4 +292,5 @@ public class ArchiveMetricsFileExporter implements Runnable,
 
     private static final TopDownBottomUpJanitor EST_TIME_JANITOR =
         new TopDownBottomUpJanitor("Estimated Time");
+
 }

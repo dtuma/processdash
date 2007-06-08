@@ -26,7 +26,6 @@
 package net.sourceforge.processdash.tool.export.impl;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Collection;
 import java.util.HashSet;
@@ -42,19 +41,22 @@ import net.sourceforge.processdash.ev.EVTaskListData;
 import net.sourceforge.processdash.hier.Filter;
 import net.sourceforge.processdash.log.time.TimeLog;
 import net.sourceforge.processdash.log.time.TimeLogEntry;
+import net.sourceforge.processdash.tool.export.mgr.Cancellable;
 import net.sourceforge.processdash.tool.export.mgr.CompletionStatus;
 import net.sourceforge.processdash.tool.export.mgr.ExportManager;
 import net.sourceforge.processdash.util.FormatUtil;
 import net.sourceforge.processdash.util.RobustFileWriter;
 
 public class TextMetricsFileExporter implements Runnable,
-        CompletionStatus.Capable {
+        CompletionStatus.Capable, Cancellable {
 
     private DashboardContext ctx;
 
     private File dest;
 
     private Collection filter;
+
+    private RobustFileWriter outWriter;
 
     private CompletionStatus completionStatus = CompletionStatus.NOT_RUN_STATUS;
 
@@ -69,11 +71,19 @@ public class TextMetricsFileExporter implements Runnable,
         return completionStatus;
     }
 
+    public void tryCancel() {
+        RobustFileWriter ow = outWriter;
+        if (ow != null) {
+            try {
+                ow.abort();
+            } catch (Exception e) {}
+        }
+    }
+
     public void run() {
-        boolean fail = false;
-        PrintWriter out = null;
         try {
-            out = new PrintWriter(new RobustFileWriter(dest, "UTF-8"));
+            outWriter = new RobustFileWriter(dest, "UTF-8");
+            PrintWriter out = new PrintWriter(outWriter);
 
             // Find and print any applicable task lists.
             Iterator i = ctx.getData().getKeys();
@@ -119,18 +129,18 @@ public class TextMetricsFileExporter implements Runnable,
             DefectExporterXMLv1 exp = new DefectExporterXMLv1();
             exp.dumpDefects(ctx.getHierarchy(), filter, out);
 
+            out.close();
+            outWriter = null;
+
             completionStatus = new CompletionStatus(CompletionStatus.SUCCESS,
                     dest, null);
 
-        } catch (IOException ioe) {
-            fail = true;
+        } catch (Exception ioe) {
             completionStatus = new CompletionStatus(CompletionStatus.ERROR,
                     dest, ioe);
             System.out.println("IOException: " + ioe);
+            tryCancel();
         }
-        out.close();
-        if (fail)
-            dest.delete();
 
         ctx.getData().gc(filter);
     }
