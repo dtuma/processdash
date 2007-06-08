@@ -60,29 +60,40 @@ public class TopDownBottomUpJanitor {
 
     public void cleanup(DataContext data, PropertyKeyHierarchy hier,
             PropertyKey start) {
-        doCleanup(data, hier, start);
+        doCleanup(data, hier, start, false);
     }
 
     protected double doCleanup(DataContext data, PropertyKeyHierarchy hier,
-            PropertyKey node) {
-        double topDownValue = getValueAt(data, node);
-        int childCount = hier.getNumChildren(node);
-        if (childCount == 0)
-            return topDownValue;
+            PropertyKey node, boolean valueNeeded) {
+        // see if this node should potentially be cleaned.
+        boolean isCleanableNode = testTagAt(data, node);
 
+        int childCount = hier.getNumChildren(node);
         double bottomUpValue = 0;
         for (int i = 0; i < childCount; i++)
-            bottomUpValue += doCleanup(data, hier, hier.getChildKey(node, i));
-        if (bottomUpValue == 0)
+            bottomUpValue += doCleanup(data, hier, hier.getChildKey(node, i),
+                    isCleanableNode);
+
+        if (!isCleanableNode && !valueNeeded)
+            return 0;
+
+        double topDownValue = getValueAt(data, node);
+        if (!isCleanableNode)
             return topDownValue;
+
+        double result;
+        if (bottomUpValue == 0)
+            result = topDownValue;
         else if (topDownValue == 0)
-            return bottomUpValue;
+            result = bottomUpValue;
+        else {
+            double delta = Math.abs(topDownValue - bottomUpValue);
+            if (delta < tolerance)
+                clearValueAt(data, node);
+            result = bottomUpValue;
+        }
 
-        double delta = Math.abs(topDownValue - bottomUpValue);
-        if (delta < tolerance && testTagAt(data, node))
-            clearValueAt(data, node);
-
-        return bottomUpValue;
+        return (valueNeeded ? result : 0);
     }
 
     protected double getValueAt(DataContext data, PropertyKey node) {
