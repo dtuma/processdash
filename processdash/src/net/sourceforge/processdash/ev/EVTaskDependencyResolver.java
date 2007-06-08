@@ -41,6 +41,7 @@ import java.util.regex.Pattern;
 import net.sourceforge.processdash.DashboardContext;
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.PropertyKey;
+import net.sourceforge.processdash.util.ThreadThrottler;
 
 public class EVTaskDependencyResolver {
 
@@ -244,6 +245,7 @@ public class EVTaskDependencyResolver {
         if (containsTaskInfo(newListCache, taskListName))
             return;
 
+        ThreadThrottler.tick();
         EVTaskList tl = EVTaskList.openExisting(taskListName, context
                 .getData(), context.getHierarchy(), context.getCache(),
                 false);
@@ -273,6 +275,7 @@ public class EVTaskDependencyResolver {
 
     private void registerTasks(Map cache, Map reverseCache,
             TaskListInfo info, EVTask task) {
+        ThreadThrottler.tick();
         List taskIDs = task.getTaskIDs();
         if (taskIDs != null)
             for (Iterator i = taskIDs.iterator(); i.hasNext();) {

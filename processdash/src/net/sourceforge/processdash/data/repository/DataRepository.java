@@ -107,6 +107,7 @@ import net.sourceforge.processdash.util.CppFilterReader;
 import net.sourceforge.processdash.util.EscapeString;
 import net.sourceforge.processdash.util.PatternList;
 import net.sourceforge.processdash.util.RobustFileWriter;
+import net.sourceforge.processdash.util.ThreadThrottler;
 
 public class DataRepository implements Repository, DataContext,
         DataConsistencyEventSource {
@@ -271,6 +272,7 @@ public class DataRepository implements Repository, DataContext,
             }
 
             public SimpleData getSimpleValue() {
+                ThreadThrottler.tick();
                 try {
                     synchronized (this) {
                         lockFromDisposal();
@@ -3273,6 +3275,8 @@ public class DataRepository implements Repository, DataContext,
                         && workingExplicitNames.hasNext());
             }
             public Object next() {
+                ThreadThrottler.tick();
+
                 // first, try to return one of the default names inherited by the
                 // working datafile.
                 while (hasNextWorkingDefaultLocalName()) {

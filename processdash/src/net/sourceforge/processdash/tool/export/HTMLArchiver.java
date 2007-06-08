@@ -46,6 +46,7 @@ import net.sourceforge.processdash.net.http.WebServer;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.HTTPUtils;
 import net.sourceforge.processdash.util.StringUtils;
+import net.sourceforge.processdash.util.ThreadThrottler;
 
 
 /** Class for creating archives of dashboard web content.
@@ -73,7 +74,12 @@ public class HTMLArchiver {
         throws IOException
     {
         HTMLArchiver m = new HTMLArchiver(webServer, data, outputMode);
-        m.run(outStream, startingUri);
+        try {
+            ThreadThrottler.beginThrottling(0.5);
+            m.run(outStream, startingUri);
+        } finally {
+            ThreadThrottler.endThrottling();
+        }
     }
 
     protected HTMLArchiver(WebServer webServer, DataRepository data,
@@ -151,6 +157,7 @@ public class HTMLArchiver {
 
         seenURIs.add(uri);
         logger.log(Level.FINER, "writing item ''{0}''", uri);
+        ThreadThrottler.tick();
 
         try {
             RequestResult item = openURI(uri);
@@ -294,6 +301,7 @@ public class HTMLArchiver {
             }
 
         } catch (IOException ioe) {}
+        ThreadThrottler.tick();
     }
 
     protected int findFormScriptStart(StringBuffer html) {
@@ -631,6 +639,7 @@ public class HTMLArchiver {
         public RequestResult(String uri) throws IOException {
             this.uri = uri;
             this.contents = webServer.getRequest(getExportURI(uri), false);
+            ThreadThrottler.tick();
 
             if (this.contents != null) {
                 headerLength = HTTPUtils.getHeaderLength(contents);

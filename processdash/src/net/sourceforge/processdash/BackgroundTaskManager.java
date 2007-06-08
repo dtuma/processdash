@@ -40,14 +40,22 @@ import javax.swing.Timer;
 import net.sourceforge.processdash.security.DashboardPermission;
 import net.sourceforge.processdash.templates.ExtensionManager;
 import net.sourceforge.processdash.util.StringUtils;
+import net.sourceforge.processdash.util.ThreadThrottler;
 
 import org.w3c.dom.Element;
 
 
 /** This class manages the registration and execution of background tasks.
  * 
- * Background tasks are registered in template.xml files. They can be run at
+ * Background tasks represent work that can run asynchronously, and is not
+ * time-sensitive.  Background tasks will typically be throttled such that
+ * they do not use excessive system resources (e.g. CPU).
+ * 
+ * Background tasks can be defined in template.xml files. They can be run at
  * startup and potentially once an hour thereafter.
+ * 
+ * In addition, java clients can request for tasks to be run on the background
+ * thread.
  * 
  * @author Tuma
  *
@@ -63,6 +71,10 @@ public class BackgroundTaskManager {
     private static final String ENABLE_SETTING_NAME = "enabledWith";
     private static final String SORT_ORDINAL = "ordinal";
     private static final String DEFAULT_SORT_ORDINAL = "1000";
+    private static final long STUCK_TASK_ELAPSED_TIME =
+        15 /*minutes*/ * 60 /*seconds*/ * 1000 /*millis*/;
+    public static final String CPU_SETTING = "backgroundTasks.cpuPercent";
+
 
 
 
@@ -78,9 +90,23 @@ public class BackgroundTaskManager {
         INSTANCE = new BackgroundTaskManager(dashContext);
     }
 
+    public static BackgroundTaskManager getInstance() {
+        return INSTANCE;
+    }
+
+    public void addTask(Runnable r) {
+        addTask(null, r);
+    }
+
+    public void addTask(String id, Runnable r) {
+        doAddTask(new UserTask(id, r));
+    }
 
 
-    private List tasks;
+
+    private List definedTasks;
+
+    private List tasksAwaitingExecution;
 
     private BackgroundTaskExecutor currentTaskExecutor;
 
@@ -89,25 +115,26 @@ public class BackgroundTaskManager {
 
 
     private BackgroundTaskManager(DashboardContext dashContext) {
+        tasksAwaitingExecution = Collections.synchronizedList(new ArrayList());
         createBackgroundTasks(dashContext);
-        if (!tasks.isEmpty()) {
-            new BackgroundTaskExecutor(true).start();
+        if (!definedTasks.isEmpty()) {
+            queueScheduledTasks(true);
             startPeriodicExecutor();
         }
     }
 
     private void createBackgroundTasks(DashboardContext dashContext) {
-        logger.fine("Creating background tasks");
+        logger.finest("Creating background tasks");
 
-        tasks = Collections.synchronizedList(new ArrayList());
+        definedTasks = Collections.synchronizedList(new ArrayList());
         List configElements = ExtensionManager
                 .getXmlConfigurationElements(BACKGROUND_TASK_TAG);
         for (Iterator i = configElements.iterator(); i.hasNext();) {
             Element configElem = (Element) i.next();
             try {
                 BackgroundTask bt = new BackgroundTask(configElem, dashContext);
-                logger.log(Level.FINE, "Created background task {0}", bt);
-                tasks.add(bt);
+                logger.log(Level.FINEST, "Created background task {0}", bt);
+                definedTasks.add(bt);
             } catch (Throwable t) {
                 String message = "Unable to create background task "
                         + configElem.getAttribute(CLASS_ATTR) + " "
@@ -115,10 +142,10 @@ public class BackgroundTaskManager {
                 logger.log(Level.SEVERE, message, t);
             }
         }
-        Collections.sort(tasks);
+        Collections.sort(definedTasks);
 
-        logger.log(Level.FINE, "Background tasks ({0}) created", new Integer(
-                tasks.size()));
+        logger.log(Level.FINER, "Background tasks ({0}) created", new Integer(
+                definedTasks.size()));
     }
 
 
@@ -127,15 +154,60 @@ public class BackgroundTaskManager {
 
         ActionListener periodicTaskInitiator = new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                new BackgroundTaskExecutor(false).start();
+                queueScheduledTasks(false);
             }};
         Timer t = new Timer(millisPerHour, periodicTaskInitiator);
         t.start();
     }
 
+    private synchronized void queueScheduledTasks(boolean isStartup) {
+        queueLogMessage(isStartup ? "Running startup tasks"
+                : "Running periodic tasks");
+
+        int currentHourOfDay = Calendar.getInstance().get(
+                Calendar.HOUR_OF_DAY);
+
+        for (Iterator i = definedTasks.iterator(); i.hasNext();) {
+            BackgroundTask task = (BackgroundTask) i.next();
+            if (task.shouldRun(isStartup, currentHourOfDay))
+                doAddTask(task);
+        }
+
+        queueLogMessage(isStartup ? "Startup tasks completed"
+                : "Periodic tasks completed");
+    }
+
+    private void queueLogMessage(final String message) {
+        doAddTask(new Runnable() {
+            public void run() {
+                logger.fine(message);
+            }});
+    }
+
+    private synchronized void doAddTask(Runnable r) {
+        tasksAwaitingExecution.add(r);
+
+        if (currentTaskExecutor == null)
+            currentTaskExecutor = new BackgroundTaskExecutor();
+
+        else if (currentTaskExecutor.appearsStuck()) {
+            BackgroundTaskExecutor stuckThread = currentTaskExecutor;
+            currentTaskExecutor = new BackgroundTaskExecutor();
+            stuckThread.abort();
+        }
+    }
+
+    private synchronized Runnable getNextTask() {
+        if (tasksAwaitingExecution.isEmpty()) {
+            currentTaskExecutor = null;
+            return null;
+        } else
+            return (Runnable) tasksAwaitingExecution.remove(0);
+    }
 
 
-    private class BackgroundTask implements Comparable {
+
+    private class BackgroundTask implements Comparable, Runnable {
 
         private Element config;
 
@@ -176,18 +248,22 @@ public class BackgroundTaskManager {
             sortKey = "00000000".substring(0, 8 - sortKey.length()) + sortKey;
         }
 
+        public void run() {
+            runnable.run();
+        }
+
         public boolean shouldRun(boolean isStartup, int hourOfDay) {
             if (!matches(isStartup, hourOfDay)) {
-                logger.log(Level.FINER, "Task schedule doesn''t match: {0}",
+                logger.log(Level.FINEST, "Task schedule doesn''t match: {0}",
                         this);
                 return false;
 
             } else if (isDisabled()) {
-                logger.log(Level.FINER, "Task is disabled: {0}", this);
+                logger.log(Level.FINEST, "Task is disabled: {0}", this);
                 return false;
 
             } else if (isNotEnabled()) {
-                logger.log(Level.FINER, "Task is not enabled: {0}", this);
+                logger.log(Level.FINEST, "Task is not enabled: {0}", this);
                 return false;
             }
 
@@ -241,61 +317,77 @@ public class BackgroundTaskManager {
     }
 
 
+    private class UserTask implements Runnable {
 
-    private class BackgroundTaskExecutor extends Thread {
+        private String id;
 
-        private boolean isStartup;
+        private Runnable runnable;
 
-        private volatile boolean running = true;
-
-        private BackgroundTask currentTask = null;
-
-        public BackgroundTaskExecutor(boolean isStartup) {
-            super("BackgroundTaskExecutor");
-            setDaemon(true);
-            this.isStartup = isStartup;
+        public UserTask(String id, Runnable runnable) {
+            this.id = id;
+            this.runnable = runnable;
         }
 
         public void run() {
-            synchronized (BackgroundTaskManager.this) {
-                if (currentTaskExecutor != null)
-                    currentTaskExecutor.abort();
-                currentTaskExecutor = this;
-            }
+            runnable.run();
+        }
 
-            int currentHourOfDay = Calendar.getInstance().get(
-                    Calendar.HOUR_OF_DAY);
-            if (isStartup)
-                logger.fine("Running startup tasks");
+        public String toString() {
+            if (id == null)
+                return runnable.toString();
             else
-                logger.fine("Running periodic tasks");
+                return id;
+        }
 
-            for (Iterator i = tasks.iterator(); running && i.hasNext();) {
-                BackgroundTask task = (BackgroundTask) i.next();
-                if (task.shouldRun(isStartup, currentHourOfDay)) {
-                    currentTask = task;
-                    try {
-                        logger.log(Level.FINE, "Running background task {0}",
-                                task);
-                        task.runnable.run();
-                    } catch (Throwable t) {
-                        logger.log(Level.SEVERE, "Background task '" + task
-                                + "' encountered exception; discaring it", t);
-                        i.remove();
-                    }
-                    currentTask = null;
+    }
+
+
+    private class BackgroundTaskExecutor extends Thread {
+
+        private volatile boolean running = true;
+
+        private Runnable currentTask = null;
+
+        private volatile long currentTaskStartTime = -1;
+
+        public BackgroundTaskExecutor() {
+            super("Process Dashboard Background Task Thread");
+            setDaemon(true);
+            start();
+        }
+
+        public void run() {
+            while (running) {
+                currentTask = getNextTask();
+                if (currentTask == null) {
+                    running = false;
+                    logger.fine("Background tasks completed.");
+                    break;
                 }
-            }
 
-            synchronized (BackgroundTaskManager.this) {
-                if (currentTaskExecutor == this)
-                    currentTaskExecutor = null;
+                try {
+                    int percent = Settings.getInt(CPU_SETTING, 20);
+                    ThreadThrottler.setThrottling(percent / 100.0);
+                    currentTaskStartTime = System.currentTimeMillis();
+                    logger.log(Level.FINE, "Running background task {0}",
+                            currentTask);
+                    currentTask.run();
+                } catch (Throwable t) {
+                    logger.log(Level.SEVERE, "Background task '" + currentTask
+                            + "' encountered exception; discaring it", t);
+                    definedTasks.remove(currentTask);
+                }
+                currentTask = null;
+                currentTaskStartTime = -1;
             }
+        }
 
-            if (isStartup)
-                logger.fine("Startup tasks completed");
-            else
-                logger.fine("Periodic tasks completed");
+        public boolean appearsStuck() {
+            if (!running || currentTask == null || currentTaskStartTime == -1)
+                return false;
+            long now = System.currentTimeMillis();
+            long elapsed = now - currentTaskStartTime;
+            return elapsed > STUCK_TASK_ELAPSED_TIME;
         }
 
         public void abort() {
@@ -304,7 +396,7 @@ public class BackgroundTaskManager {
             if (currentTask != null) {
                 logger.log(Level.SEVERE, "A background task '" + currentTask
                         + "' appears to be stuck; discarding it");
-                tasks.remove(currentTask);
+                definedTasks.remove(currentTask);
             }
 
             try {

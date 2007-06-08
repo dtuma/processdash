@@ -53,6 +53,7 @@ import net.sourceforge.processdash.log.time.WorkingTimeLog;
 import net.sourceforge.processdash.tool.export.mgr.ExternalResourceManager;
 import net.sourceforge.processdash.ui.ConsoleWindow;
 import net.sourceforge.processdash.util.FileUtils;
+import net.sourceforge.processdash.util.ThreadThrottler;
 
 
 /** Backup data and other files automatically.
@@ -179,6 +180,7 @@ public class FileBackupManager {
             ZipEntry oldEntry;
             while ((oldEntry = oldBackupIn.getNextEntry()) != null) {
                 String filename = oldEntry.getName();
+                ThreadThrottler.tick();
 
                 if (extResourceMgr.isArchivedItem(filename))
                     continue;
@@ -247,6 +249,7 @@ public class FileBackupManager {
         // backup all the files that are present in the backup directory that
         // weren't in the old backup zipfile.
         for (Iterator iter = dataFiles.iterator(); iter.hasNext();) {
+            ThreadThrottler.tick();
             String filename = (String) iter.next();
             File file = new File(dataDir, filename);
             backupFile(null, null, null, newBackupOut, file, filename);
@@ -336,8 +339,11 @@ public class FileBackupManager {
             oldBackupOut.write(prepend);
 
         int bytesRead;
-        while ((bytesRead = oldBackupIn.read(copyBuf)) != -1)
+        while ((bytesRead = oldBackupIn.read(copyBuf)) != -1) {
+            ThreadThrottler.tick();
             oldBackupOut.write(copyBuf, 0, bytesRead);
+            ThreadThrottler.tick();
+        }
         oldBackupOut.closeEntry();
     }
     private static byte[] copyBuf = new byte[1024];
@@ -392,6 +398,7 @@ public class FileBackupManager {
                     wroteEntryToOldBackup(filename);
                 }
             }
+            ThreadThrottler.tick();
         }
         fileIn.close();
 
@@ -477,6 +484,7 @@ public class FileBackupManager {
                 .split(";");
         String filename = "backup-" + FileUtils.makeSafe(who) + ".zip";
         for (int i = 0; i < dirNames.length; i++) {
+            ThreadThrottler.tick();
             File copy = new File(dirNames[i], filename);
             try {
                 FileUtils.copyFile(backupFile, copy);

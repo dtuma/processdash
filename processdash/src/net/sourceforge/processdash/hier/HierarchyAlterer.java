@@ -50,6 +50,7 @@ import net.sourceforge.processdash.log.time.ModifiableTimeLog;
 import net.sourceforge.processdash.log.time.PathRenamer;
 import net.sourceforge.processdash.log.ui.DefectLogEditor;
 import net.sourceforge.processdash.util.ComparableValue;
+import net.sourceforge.processdash.util.ThreadThrottler;
 
 /** General purpose class for making <b>simple</b> changes to the hierarchy.
  */
@@ -97,6 +98,7 @@ public class HierarchyAlterer implements ItemListener {
         updateNodesAndLeaves(dashboard.getData(), dashboard.getHierarchy());
         dashboard.getData().finishInconsistency(true);
         dispatchOrScheduleHierarchyChangedEvent();
+        ThreadThrottler.tick();
     }
 
 
