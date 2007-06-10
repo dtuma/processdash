@@ -60,6 +60,7 @@ import net.sourceforge.processdash.tool.export.mgr.ImportManager;
 public class DashController {
 
     static ProcessDashboard dash = null;
+    private static String loopbackAddress = "127.0.0.1";
     private static String localAddress = "127.0.0.1";
     private static DashboardPermission PERMISSION =
         new DashboardPermission("dashController");
@@ -67,17 +68,32 @@ public class DashController {
             .getName());
 
     public static void setDashboard(ProcessDashboard dashboard) {
+        PERMISSION.checkPermission();
         dash = dashboard;
         try {
             localAddress = InetAddress.getLocalHost().getHostAddress();
+            loopbackAddress = InetAddress.getByName("localhost")
+                    .getHostAddress();
         } catch (IOException ioe) {}
     }
 
     public static void checkIP(Object remoteAddress) throws IOException {
         PERMISSION.checkPermission();
-        if (!"127.0.0.1".equals(remoteAddress) &&
-            !localAddress.equals(remoteAddress))
-            throw new IOException("Connection not accepted from: " + remoteAddress);
+
+        if ("127.0.0.1".equals(remoteAddress)) return;
+        if (loopbackAddress.equals(remoteAddress)) return;
+        if (localAddress.equals(remoteAddress)) return;
+
+        InetAddress addr = null;
+        if (remoteAddress instanceof InetAddress)
+            addr = (InetAddress) remoteAddress;
+        else if (remoteAddress != null) try {
+            addr = InetAddress.getByName(remoteAddress.toString());
+        } catch (Exception e) {}
+
+        if (addr != null && addr.isLoopbackAddress()) return;
+
+        throw new IOException("Connection not accepted from: " + remoteAddress);
     }
 
     public static void raiseWindow() {

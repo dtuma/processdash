@@ -1039,7 +1039,7 @@ public class WebServer implements ContentSource {
             // unconditionally serve requests that originate from the
             // local host.
             InetAddress remoteIP = effectiveClientSocket.getInetAddress();
-            if (remoteIP.equals(LOOPBACK_ADDR) ||
+            if (remoteIP.isLoopbackAddress() ||
                 remoteIP.equals(LOCAL_HOST_ADDR)) return;
 
             parseHTTPHeaders();
