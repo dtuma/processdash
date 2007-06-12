@@ -204,6 +204,8 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
         logger.info("Process Dashboard version " + versionNumber);
 
         if (title == null)
+            title = Settings.getVal("window.title");
+        if (title == null)
             title = resources.getString("Window_Title");
         if (Settings.isReadOnly())
             title = resources.format("ReadOnly.Title_FMT", title);
