@@ -901,7 +901,12 @@ public class EVTask implements Cloneable, DataListener {
         return dateCompleted;
     }
     public String getPercentComplete() {
-        if (valueEarned == 0 || planValue == 0 || isLevelOfEffortTask())
+        if (isLevelOfEffortTask() || isTotallyPruned() ||
+                dateCompleted == COMPLETION_DATE_NA)
+            return "";
+        else if (planValue == 0)
+            return (dateCompleted == null ? "" : formatIntPercent(1.0));
+        else if (valueEarned == 0)
             return "";
         else return formatIntPercent(valueEarned / planValue);
     }
