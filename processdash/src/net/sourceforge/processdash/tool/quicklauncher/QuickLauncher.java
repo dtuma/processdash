@@ -139,7 +139,11 @@ public class QuickLauncher {
     }
 
     private void buildUI() throws Exception {
-        frame = new JFrame(resources.getString("Window_Title"));
+        String windowTitle = resources.getString("Window_Title");
+        String versionNumber = getVersionNumber();
+        if (versionNumber != null)
+            windowTitle = windowTitle + " " + versionNumber;
+        frame = new JFrame(windowTitle);
         frame.setIconImage(DashboardIconFactory.getLauncherWindowIconImage());
 
         JPanel contents = new JPanel();
@@ -182,6 +186,14 @@ public class QuickLauncher {
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.pack();
         frame.show();
+    }
+
+    private static String getVersionNumber() {
+        try {
+            return QuickLauncher.class.getPackage().getImplementationVersion();
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     public void updateCursor() {
