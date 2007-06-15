@@ -764,7 +764,8 @@ public class TaskScheduleDialog
             public NodeTypeEditor() {
                 super(new JComboBox());
                 this.comboBox = (JComboBox) getComponent();
-                comboBox.setFont(comboBox.getFont().deriveFont(Font.PLAIN));
+                Font f = comboBox.getFont();
+                comboBox.setFont(f.deriveFont(Font.PLAIN, f.getSize2D()-2));
             }
 
             public Component getTableCellEditorComponent(JTable table,
