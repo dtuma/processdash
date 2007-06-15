@@ -132,6 +132,18 @@ public class DashPackage {
         init(filename, manifest);
     }
 
+    /** For package-internal use only, create a package for an unpackaged
+     * (binary) Process Dashboard build of the specified version.
+     */
+    DashPackage(String versionNumber) {
+        if (versionNumber == null || versionNumber.trim().length() == 0)
+            throw new IllegalArgumentException("Version number required");
+
+        name = "Process Dashboard";
+        id = "pspdash";
+        version = versionNumber;
+    }
+
     private void init(String filename, Manifest manifest)
         throws InvalidDashPackage
     {

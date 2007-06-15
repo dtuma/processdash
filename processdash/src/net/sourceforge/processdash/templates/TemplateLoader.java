@@ -44,6 +44,7 @@ import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.Vector;
@@ -448,7 +449,11 @@ public class TemplateLoader {
                 addTemplateURLs(tok.nextToken(), result);
         }
 
-        addTemplateURLs(getBaseDir(), result);
+        String baseDir = getBaseDir();
+        if (unpackagedBinaryBaseDir != null)
+            addTemplateURLs(unpackagedBinaryBaseDir + Settings.sep + "dist",
+                    result);
+        addTemplateURLs(baseDir, result);
 
         try {
             Enumeration e = TemplateLoader.class.getClassLoader()
@@ -573,11 +578,15 @@ public class TemplateLoader {
             String classDirName = myURL.substring(5,myURL.lastIndexOf("/net/"));
             classDirName = HTMLUtils.urlDecode(classDirName);
             File classDir = new File(classDirName);
-            if (classDir.isDirectory())
-                return classDir.getParent();
+            if (classDir.isDirectory()) {
+                unpackagedBinaryBaseDir = classDir.getParent();
+                return unpackagedBinaryBaseDir;
+            }
         } catch (Exception e) {}
         return null;
     }
+    private static String unpackagedBinaryBaseDir = null;
+
 
     public static File getDefaultTemplatesDir() {
         String baseDir = getBaseDir();
@@ -625,6 +634,18 @@ public class TemplateLoader {
             URL url = (URL) i.next();
             result.put(new DashPackage(url), url);
         } catch (DashPackage.InvalidDashPackage idp) {}
+
+        if (unpackagedBinaryBaseDir != null) {
+            try {
+                Properties p = new Properties();
+                File libDir = new File(unpackagedBinaryBaseDir, "lib");
+                File versionFile = new File(libDir, "version.properties");
+                p.load(new FileInputStream(versionFile));
+                String version = p.getProperty("dashboard.version");
+                result.put(new DashPackage(version), null);
+            } catch (Exception e) {}
+        }
+
         return result;
     }
 

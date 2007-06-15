@@ -113,6 +113,8 @@ public class DisplayConfig extends TinyCGIBase {
     }
 
     private String cleanupFilename(String filename) {
+        if (filename == null)
+            return "";
         if (filename.startsWith("file:")) {
             filename = HTMLUtils.urlDecode(filename.substring(5));
             File f = new File(filename);
