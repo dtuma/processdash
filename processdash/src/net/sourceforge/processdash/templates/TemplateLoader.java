@@ -732,9 +732,11 @@ public class TemplateLoader {
 
         String[] searchPath = userSetting.split(";");
         for (int i = 0; i < searchPath.length; i++) {
-            File onePath = new File(searchPath[i]);
-            if (onePath.equals(dir))
-                return true;
+            if (searchPath[i].trim().length() > 0) {
+                File onePath = new File(searchPath[i].trim());
+                if (onePath.equals(dir))
+                    return true;
+            }
         }
 
         return false;

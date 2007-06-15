@@ -268,7 +268,7 @@ public class DashController {
         templateDir = templateDir.replace('\\', '/');
 
         String templatePath = Settings.getVal(TEMPLATE_PATH);
-        if (templatePath == null)
+        if (templatePath == null || templatePath.trim().length() == 0)
             InternalSettings.set(TEMPLATE_PATH, templateDir);
 
         else if (!templateSettingContainsDir(templatePath, templateDir)) {
@@ -280,8 +280,8 @@ public class DashController {
     private static boolean templateSettingContainsDir(String setting,
                                                       String dir)
     {
-        setting = ";" + setting + ";";
-        dir     = ";" + dir     + ";";
+        setting = ";" + setting.replace('\\', '/') + ";";
+        dir     = ";" + dir.replace('\\', '/')     + ";";
         return setting.indexOf(dir) != -1;
     }
 
