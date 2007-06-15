@@ -34,6 +34,7 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Random;
 
+import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.HTTPUtils;
 
@@ -231,7 +232,8 @@ public class MimeArchiveWriter implements ArchiveWriter {
 
 
     private boolean testing() {
-        return Boolean.getBoolean("processdash.testArchiver");
+        return Boolean.getBoolean("processdash.testArchiver")
+            || Settings.getBool("export.testArchiver", false);
     }
 
     private static final String CRLF = "\r\n";
