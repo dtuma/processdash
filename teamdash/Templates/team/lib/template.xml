@@ -117,7 +117,7 @@
       name="PID-Team:!*!:<!--#echo Full_Name --> Project (Team)"
       ID="PID/TeamRoot"
       defineRollup="no"
-      dataFile="PID/team_root_dataFile.txt"
+      dataFile="PID/team2_root_dataFile.txt"
       constraints="{PID/Rollup}"
       ><!--#break comment-->
            This node cannot be directly instantiated by the user. (The
@@ -218,18 +218,134 @@
 
   First, define a few common values that we will use repeatedly below.
 
-  creatable_indiv_nodes is a constraint value, listing the IDs of nodes
+  creatable_indiv2_nodes is a constraint value, listing the IDs of nodes
   that the user can create within the boundaries of a team project in their
-  personal dashboard.  In addition, it lists all of the process phase
+  personal dashboard.
+
+  parentable_indiv2_nodes is a constraint value, listing the IDs of nodes
+  that can exist within the boundaries of a team project in a personal
+  dashboard, that a user can create children underneath.
+
+<!--#endbreak comment-->
+
+
+<!--#set var="creatable_indiv2_nodes" inline="true" #-->
+    <!--#echo PSP_Children #-->
+    {PID/Indiv2Task<!--#endset-->
+
+<!--#set var="parentable_indiv2_nodes" inline="true" #-->
+    }PID/Indiv2Root}PID/Indiv2ReadOnlyNode}PID/Indiv2Task<!--#endset-->
+
+
+<!--======================================================================
+    The template for a root project node on the individual side.
+ =======================================================================-->
+
+  <template
+      name="PID-Indiv2:!*!:<!--#echo Full_Name --> Project"
+      ID="PID/Indiv2Root"
+      defineRollup="no"
+      defectLog="false"
+      dataFile="PID/indiv2_root_dataFile.txt"
+      autoData="none"
+      constraints="<!--#echo creatable_indiv2_nodes -->}"
+      ><!--#break comment-->
+           This node cannot be directly instantiated by the user. They
+	   must instead use the team setup wizard to join a team project.
+       <!--#endbreak comment-->
+
+    <html ID="sump" href="cms/PID/indiv_plan_summary"
+        title="<!--#echo Full_Name --> Project Plan Summary"/>
+    <html ID="size" href="PID/sizeForm.class"
+        title="<!--#echo Full_Name --> Size Inventory"/>
+    <html ID="top" href="PID/script.htm"
+        title="<!--#echo Full_Name --> Process Script"/>
+    <html ID="tasklist" href="control/showTaskSchedule.class?trigger&amp;PID"
+        title="Open Earned Value Task &amp; Schedule"
+	inPackage="pspdash version 1.7.1b.8"/>
+    <html ID="params" href="PID/indiv_project_parameters.shtm"
+        title="Edit Project Parameters and Settings"/>
+    <html ID="editWBS" href="PID/setup/openWBS.shtm?trigger&amp;indiv"
+        title="Open Team Work Breakdown Structure"
+	inPackage="teamTools version 2.4.7"/>
+    <html ID="sync" href="PID/setup/sync.class"
+        title="Sync Work Breakdown Structure"/>
+    <html ID="export" href="control/exportNow.class"
+        title="Export My Data Now"/>
+
+  </template>
+
+
+
+
+<!--======================================================================
+    The template for a read-only node/task on the individual side.
+    This is used to construct a read-only copy of the components in the
+    team hierarchy.
+ =======================================================================-->
+
+  <template
+      name="PID-Indiv2:!*!:Subsystem"
+      ID="PID/Indiv2ReadOnlyNode"
+      defineRollup="no"
+      defectLog="true"
+      dataFile="PID/indiv2_empty_dataFile.txt"
+      autoData="none"
+      href="none"
+      constraints="MED<!--#echo creatable_indiv2_nodes -->}"
+      ><!--#break comment-->
+         We alter the constraints to make this node immovable and
+	 uneditable.  We also change the 'required parent' list to '}',
+	 which makes it impossible for users to instantiate this
+	 node into their hierarchy manually.
+       <!--#endbreak comment-->
+
+  </template>
+
+
+
+
+<!--======================================================================
+    The template for a node/task on the individual side.
+ =======================================================================-->
+
+  <template
+      name="PID-Indiv2:!*!:<!--#echo Full_Name --> Task"
+      ID="PID/Indiv2Task"
+      defineRollup="no"
+      defectLog="true"
+      dataFile="PID/indiv2_empty_dataFile.txt"
+      autoData="none"
+      href="none"
+      constraints="<!--#echo creatable_indiv2_nodes #-->
+                   <!--#echo parentable_indiv2_nodes -->"
+      >
+
+  </template>
+
+
+
+
+
+
+
+
+<!--======================================================================
+    Historical templates for use on the individual side.
+ =======================================================================-->
+
+<!--#break comment-->
+
+  Define a few common values that we will use repeatedly below.  The
+  description above applies here as well, but these values are used
+  to build the historical individual templates.
+
+  In addition, the creatable_indiv_nodes item lists all of the process phase
   templates.  Strictly speaking, the user can no longer add those process
   phase templates to their hierarchy (because the phase templates use the
   "required parent" constraint to forbid their instantiation). But it is
   important to list them anyway, because the hierarchy editor uses their
   presence in this list to constrain the set of allowable child names.
-
-  parentable_indiv_nodes is a constraint value, listing the IDs of nodes
-  that can exist within the boundaries of a team project in a personal
-  dashboard, that a user can create children underneath.
 
 <!--#endbreak comment-->
 
@@ -249,7 +365,7 @@
 
 
 <!--======================================================================
-    The template for a root project node on the individual side.
+    The historical template for a root project node on the individual side.
  =======================================================================-->
 
   <template
@@ -291,9 +407,7 @@
 
 
 <!--======================================================================
-    The template for a "full" node/task on the individual side.  A "full"
-    node contains all the phases underneath by default; these phases
-    can be manually deleted as necessary, and reinserted later if needed.
+    The historical template for a "full" node/task on the individual side.
  =======================================================================-->
 
   <template
@@ -347,9 +461,7 @@
 
 
 <!--======================================================================
-    The template for a "summary" node/task on the individual side.  A
-    summary node is designed to hold subtasks, which must be added
-    separately.  No metrics can be recorded against a summary task.
+    The historical template for a "summary" node/task on the individual side.
  =======================================================================-->
 
   <template
@@ -378,8 +490,7 @@
 
 
 <!--======================================================================
-    The template for a read-only "simple" node/task on the individual side.
-    This is used to construct a read-only copy of the team hierarchy.
+    The historical template for a read-only node on the individual side.
  =======================================================================-->
 
   <template
@@ -411,8 +522,7 @@
 
 
 <!--======================================================================
-    The templates for each individual phase.  These can be added into
-    the "subtask" or "simple subtask" nodes above.
+    The historical templates for each individual phase.
  =======================================================================-->
 
 <!--#foreach name=Phase list=Phase_List -->
@@ -421,7 +531,7 @@
       name="PID-phase<!--#echo Phase_Pos -->:!*!:<!--#echo Phase_Name -->"
       ID="PID/PHASE/<!--#echo Phase_ID -->"
       dataFile="none"
-      href="PID/<!--#echo Phase_ID -->_script.htm"
+      href="none"
       constraints="ME{}" />
 
   <template
@@ -437,8 +547,7 @@
                    <!--#echo parentable_indiv_nodes -->"
       >
     <phase name="<!--#echo Phase_Name -->"
-           ID="PID/PHASE/<!--#echo Phase_ID -->"
-           href="PID/<!--#echo Phase_ID -->_script.htm"/>
+           ID="PID/PHASE/<!--#echo Phase_ID -->"/>
   </template>
 
 <!--#endfor-->
@@ -512,14 +621,18 @@
   =======================================================================-->
 
   <background-task class="teamdash.templates.setup.SyncScanner"
-          settingPrefix="teamAutoSync" runAtStartup="true" whenDefault="*">
+          settingPrefix="teamAutoSync" ordinal="2000"
+	  runAtStartup="true" whenDefault="*">
     <sync templateID="PID/MasterRoot" uri="PID/setup/sync.class?run"/>
     <sync templateID="PID/TeamRoot" uri="PID/setup/sync.class?run"/>
   </background-task>
 
   <background-task class="teamdash.templates.setup.SyncScanner"
-          settingPrefix="indivAutoSync" runAtStartup="true" whenDefault="0,12">
+          settingPrefix="indivAutoSync" ordinal="2000"
+	  runAtStartup="true" whenDefault="0,12">
     <sync templateID="PID/IndivRoot" uri="PID/setup/sync.class"
+          alertIfToken="SYNC-IS-NEEDED"/>
+    <sync templateID="PID/Indiv2Root" uri="PID/setup/sync.class"
           alertIfToken="SYNC-IS-NEEDED"/>
   </background-task>
 
@@ -530,11 +643,22 @@
 
   <snippet id="PID.teamSummaryPageHeader" version="1.0" hide="true">
     <resources>CMS.Snippet.Anonymous</resources>
+    <context>PID Indiv2 Root Tag</context>
     <context>PID Team Root Tag</context>
     <context>PID Team Node Tag</context>
     <context>PID Master Root Tag</context>
     <context>PID Master Node Tag</context>
     <uri>/PID/setup/summaryName.class</uri>
+  </snippet>
+
+  <snippet id="PID.sizeSummary" version="1.0" category="forms">
+    <resources>Team-PID.SizeSummary</resources>
+    <context>PID Indiv2 Root Tag</context>
+    <context>PID Team Root Tag</context>
+    <context>PID Team Node Tag</context>
+    <context>PID Master Root Tag</context>
+    <context>PID Master Node Tag</context>
+    <uri>/PID/size_summary.shtm</uri>
   </snippet>
 
 </dashboard-process-template>

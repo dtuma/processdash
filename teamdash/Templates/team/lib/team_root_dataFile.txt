@@ -1,4 +1,4 @@
-// <!--#echo var="-*- mode:html -*-" -->
+// <!--#echo var="-*- mode:html -*-" defaultEncoding="data" -->
 // Data file for a team project for <!--#echo Full_Name -->
 //
 
@@ -21,6 +21,8 @@ undefine([Simple Project Tag]);
 [Related_EV_Schedule/Master] =
     iff(! [Master_Project_Path], "",
        "MERGED:" & indirect([Master_Project_Path] &/ "Project_Schedule_Name"));
+
+[Individuals_Using_Stubless_Phases] = false;
 
 
 /*
@@ -47,7 +49,18 @@ undefine([Simple Project Tag]);
  */
 [Corresponding_Project_Nodes] =
     filter([Project_WBS_ID] == indirect([_] &/ "Project_WBS_ID"),
-           [/<!--#echo Process_ID -->/Project List]);
+           setUnion([/<!--#echo Process_ID -->/Project List],
+                    [/<!--#echo Process_ID -->/Indiv Root List]));
+
+/*
+ * Scan included projects to determine whether namespaced data is in use.
+ */
+[Rollup_Unadorned_Phase_Metrics]  = 0 < count(filter(
+     ! lookup([_] &/ "Exporting_Namespaced_Phase_Metrics"),
+     [Corresponding_Project_Nodes]));
+[Rollup_Namespaced_Phase_Metrics] = 0 < count(filter(
+     lookup([_] &/ "Exporting_Namespaced_Phase_Metrics"),
+     [Corresponding_Project_Nodes]));
 
 
 /*
@@ -63,3 +76,23 @@ undefine([Simple Project Tag]);
 
 [Allow_Indiv_WBS_Editing] = 0;
 [Team_Settings /Allow_Indiv_WBS_Editing] = [Allow_Indiv_WBS_Editing];
+
+[Team_Settings /Phase_Display_Filter_List] = [Phase_Display_Filter_List];
+
+<!--#foreach name=PHASE list=Phase_List #-->
+[Team_Settings /<!--#echo PHASE_Name -->/Estimated % Phase Yield] =
+        [<!--#echo PHASE_Name -->/Estimated % Phase Yield];
+[Team_Settings /<!--#echo PHASE_Name -->/Estimated Defects Injected per Hour] =
+        [<!--#echo PHASE_Name -->/Estimated Defects Injected per Hour];
+<!--#endfor-->
+
+[Team_Settings /Target Design/Code Ratio] =
+        [Target Design/Code Ratio];
+[Team_Settings /Target Design Review/Design Ratio] =
+        [Target Design Review/Design Ratio];
+[Team_Settings /Target Code Review/Code Ratio] =
+        [Target Code Review/Code Ratio];
+[Team_Settings /Target Test Defect Density] =
+        [Target Test Defect Density];
+[Team_Settings /Target Compile Defect Density] =
+        [Target Compile Defect Density];

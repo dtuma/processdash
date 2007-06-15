@@ -1,9 +1,10 @@
+<!--#echo defaultEncoding=xml #-->
 <?xml version='1.0' standalone='yes' ?>
 
 <exportMetricsFile>
   <metricsFilter>
     <!-- include various markers and metadata -->
-    <include><!--#echo Process_ID --> (Rollup Eligible|Tag)$</include>
+    <include><!--#echo Process_ID --> (Rollup Eligible|Tag|Indiv Root Tag)$</include>
     <include>/Project_WBS_ID$</include>
     <include>/WBS_Unique_ID$</include>
     <include>/EV_Task_IDs$</include>
@@ -12,12 +13,21 @@
     <include>/PSP Rollup Eligible$</include>
     <include>/Started$</include>
     <include>/Completed$</include>
+    <include>Exporting_Namespaced_Phase_Metrics$</include>
 
     <!-- include basic time and defect information -->
     <!--#foreach name=Phase list=Phase_List -->
-    <include>/<!--#echo Phase_Name -->/(Estimated )?Time$</include>
-    <include>/<!--#echo Phase_Name -->/Defects (Injected|Removed)$</include>
+    <!--#if oldStyle -->
+        <include>/<!--#echo Phase_Name -->/(Estimated )?Time$</include>
+        <include>/<!--#echo Phase_Name -->/Defects (Injected|Removed)$</include>
+        <exclude>/<!--#echo Process_ID --> /</exclude>
+    <!--#else -->
+        <include>/(PSP|<!--#echo Process_ID -->) /<!--#echo Phase_Name -->/(Estimated )?Time$</include>
+        <include>/(PSP|<!--#echo Process_ID -->) /<!--#echo Phase_Name -->/Defects (Injected|Removed)$</include>
+        <include>/<!--#echo Process_ID --> /Uncategorized/(Estimated )?Time$</include>
+    <!--#endif -->
     <!--#endfor-->
+
     <include>/Before Development/Defects Injected$</include>
     <include>/After Development/Defects Removed$</include>
 

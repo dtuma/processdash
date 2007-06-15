@@ -37,7 +37,7 @@
 
 <!--#include file="/team/tools/OpenWBSEditor.class" -->
     <!--#parameter name="QUERY_STRING" -->
-    <!--#parameter name="syncURL" encoding="relUri" value="sync.class?run" -->
+    <!--#parameter name="syncURL" encoding="relUri" value="sync.class?run&bg" -->
     <!--#parameter name="forceReadOnly" var="readOnly" -->
     <!--#parameter name="directory" var="directory" -->
 

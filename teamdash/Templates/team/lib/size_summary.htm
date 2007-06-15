@@ -1,0 +1,116 @@
+
+<h2>[!--#echo Heading --][!--#if [<!--#echo Process_ID --> Indiv Root Tag] --]
+<a class="doNotPrint" target="_top" href="sizeForm.class" style="font-size: medium; font-style: italic; font-weight: normal; margin-left: 0.5cm">[!--#echo Edit_Link --]</a>
+[!--#endif--]</h2>
+
+<table>
+
+<tr>
+<th></th>
+<th style="padding-left: 10px">[!--#echo Plan --]</th>
+<th>[!--#echo Actual --]</th>
+</tr>
+
+[!--#if [<!--#echo Process_ID --> Indiv Root Tag] --]
+<tr style="background-color: #D3D3D3; font-weight: bold">
+<td align="left" colspan="3">[!--#echo Personally_Produced --]</td>
+</tr>
+[!--#endif--]
+
+<!--#foreach name=Metric list=Size_Metric_List -->
+
+<tr>
+<td align="left"><!--#echo Metric_Long_Name --></td>
+<td style="padding-left: 10px"><input type="text" size="7"
+    name="Estimated <!--#echo Metric_Name -->"></td>
+<td><input type="text" size="7" name="<!--#echo Metric_Name -->"></td>
+</tr>
+
+<!--#endfor-->
+
+<!--#if Process_Uses_DLD_Lines -->
+<tr>
+<td align="left">[!--#echo Detailed_Design_Lines --]</td>
+<td style="padding-left: 10px"><input type="text" size="7"
+    name="Estimated DLD Lines"></td>
+<td><input type="text" size="7" name="DLD Lines"></td>
+</tr>
+<!--#endif-->
+
+<!--#if Show_Loc_Accounting_In_Size_Summary -->
+
+<!--#foreach name=TypeOf values=",Base,Deleted,Modified,Added,Reused,New &amp; Changed,Total,New Reused,Object," -->
+<tr>
+<td align="left"<!--#if 'TypeOf' eq 'Deleted' || 'TypeOf' eq 'Modified' || 'TypeOf' eq 'Added' || 'TypeOf' eq 'Reused' --> style='padding-left: .5cm'<!--#endif-->>TypeOf LOC</TD>
+<td style="padding-left: 10px"><input type="text" size="7"
+    name="Estimated TypeOf LOC"></td>
+<td><input type="text" size="7" name="TypeOf LOC"></td>
+</tr>
+<!--#endfor-->
+
+<tr>
+<td align="left">% Reuse</td>
+<td style="padding-left: 10px"><input type="text" size="7"
+    name="Estimated % Reused"></td>
+<td><input type="text" size="7" name="% Reused"></td>
+</tr>
+
+<tr>
+<td align="left">% New Reuse</td>
+<td style="padding-left: 10px"><input type="text" size="7"
+    name="Estimated % New Reused"></td>
+<td><input type="text" size="7" name="% New Reused"></td>
+</tr>
+
+<!--#else-->
+
+<tr>
+<td align="left">[!--#echo New_&_Changed_LOC --]</td>
+<td style="padding-left: 10px"><input type="text" size="7"
+    name="Estimated New &amp; Changed LOC"></td>
+<td><input type="text" size="7" name="New &amp; Changed LOC"></td>
+</tr>
+
+<!--#endif-->
+
+
+
+
+[!--#if [<!--#echo Process_ID --> Indiv Root Tag] --]
+
+<tr style="background-color: #D3D3D3; font-weight: bold">
+<td align="left" colspan="3">[!--#echo Personally_Inspected --]</td>
+</tr>
+
+<!--#foreach name=Metric list=Size_Metric_List -->
+
+<tr>
+<td align="left"><!--#echo Metric_Long_Name --></td>
+<td style="padding-left: 10px"><input type="text" size="7"
+    name="Estimated Inspected <!--#echo Metric_Name -->"></td>
+<td><input type="text" size="7" 
+    name="Inspected <!--#echo Metric_Name -->"></td>
+</tr>
+
+<!--#endfor-->
+
+<!--#if Process_Uses_DLD_Lines -->
+<tr>
+<td align="left">[!--#echo Detailed_Design_Lines --]</td>
+<td style="padding-left: 10px"><input type="text" size="7"
+    name="Estimated Inspected DLD Lines"></td>
+<td><input type="text" size="7" name="Inspected DLD Lines"></td>
+</tr>
+<!--#endif-->
+
+<tr>
+<td align="left">[!--#echo New_&_Changed_LOC --]</td>
+<td style="padding-left: 10px"><input type="text" size="7"
+    name="Estimated Inspected New &amp; Changed LOC"></td>
+<td><input type="text" size="7" name="Inspected New &amp; Changed LOC"></td>
+</tr>
+
+[!--#endif--]
+
+
+</table>

@@ -348,11 +348,14 @@ public class WBSDataWriter {
             if (!nodeType.endsWith(" Task"))
                 // should I throw some sort of error?
                 return;
-            if (wbsModel.getChildCount(node) != 0)
-                // only write attributes for leaf tasks.
-                return;
 
             String phaseName = nodeType.substring(0, nodeType.length()-5);
+            if (wbsModel.getChildCount(node) != 0) {
+                // only write an "effective phase" attribute for non-leaf tasks.
+                writeAttr(out, EFFECTIVE_PHASE_ATTR, phaseName);
+                return;
+            }
+
             String phaseType = process.getPhaseType(phaseName);
             writeAttr(out, PHASE_NAME_ATTR, phaseName);
             writeAttr(out, PHASE_TYPE_ATTR, phaseType);
@@ -463,6 +466,7 @@ public class WBSDataWriter {
     private static final String DEP_SRC_ATTR = "source";
     private static final String PHASE_NAME_ATTR = "phaseName";
     private static final String PHASE_TYPE_ATTR = "phaseType";
+    private static final String EFFECTIVE_PHASE_ATTR = "effectivePhase";
     private static final String TIME_ATTR = "time";
     private static final String UNITS_ATTR = "sizeUnits";
     private static final String INSP_UNITS_ATTR = "inspUnits";

@@ -84,7 +84,7 @@ public class SyncScanner implements Runnable {
                         fullUri);
 
                 if (containsAlertToken(response)) {
-                    String id = "teamdash.SyncScanner:" + path;
+                    String id = getScanTaskID(path);
                     String msg = "The project '" + path + "' needs to be "
                             + "synchronized to the team work breakdown "
                             + "structure.";
@@ -117,4 +117,9 @@ public class SyncScanner implements Runnable {
             Browser.launch(uri);
         }
     }
+
+    public static String getScanTaskID(String path) {
+        return "teamdash.SyncScanner:" + path;
+    }
+
 }

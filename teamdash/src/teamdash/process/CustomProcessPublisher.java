@@ -10,11 +10,15 @@ import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 import java.util.jar.Attributes;
 import java.util.jar.JarInputStream;
 import java.util.jar.JarOutputStream;
@@ -350,7 +354,14 @@ public class CustomProcessPublisher {
         if ("at".equalsIgnoreCase(phaseType)
                 || "pl".equalsIgnoreCase(phaseType))
             setParam(id + "_Is_After_Development", "t");
+
+        if (PSP_PHASE_NAMES.contains(phaseName.toLowerCase()))
+            setParam(id + "_Is_PSP", "t");
     }
+    private static Set PSP_PHASE_NAMES = Collections.unmodifiableSet(
+            new HashSet(Arrays.asList(new String[] { "planning", "design",
+                    "design review", "code", "code review", "compile", "test",
+                    "postmortem" })));
 
     private void initParam(CustomProcess.Item item) {
         String name = item.getAttr(CustomProcess.NAME);

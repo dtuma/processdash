@@ -30,6 +30,7 @@ public class selectWBS extends selectHier {
     protected boolean prune(DashHierarchy hierarchy, PropertyKey key) {
         String id = getID(hierarchy, key);
         if (id == null || id.length() == 0) return true;
+        if (id.endsWith("EmptyNode")) return true;
         if (!id.endsWith("Root") && !id.endsWith("Node")) return true;
         return false;
     }

@@ -2,6 +2,7 @@
 package teamdash.templates.setup;
 import java.io.IOException;
 
+import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.net.cms.SnippetEnvironment;
 import net.sourceforge.processdash.net.http.WebServer;
@@ -25,7 +26,9 @@ public class summaryName extends selectWBS {
         String projectRoot = projectRootKey.path();
         String currentFilter = selectLabelFilter.getCurrentFilter(
                 getDataRepository(), projectRoot);
-        boolean  isSnippet = (env.containsKey(SnippetEnvironment.SNIPPET_ID));
+        boolean isSnippet = (env.containsKey(SnippetEnvironment.SNIPPET_ID));
+        boolean isIndiv = (getID(getPSPProperties(), projectRootKey).indexOf(
+                "Indiv") != -1);
 
         out.println("<html><head>");
         out.println("<link rel=stylesheet type='text/css' href='/style.css'>");
@@ -42,7 +45,10 @@ public class summaryName extends selectWBS {
         out.print("<h2>");
 
         writeFilterIcon(projectRoot, currentFilter);
-        writeHierarchyIcon(prefix, projectRoot);
+        if (isIndiv)
+            writeHierarchyIconIndiv(projectRoot);
+        else
+            writeHierarchyIcon(prefix, projectRoot);
 
         out.println("</h2>");
         String cmsPageTitle = (String) env.get("cmsPageTitle");
@@ -81,7 +87,41 @@ public class summaryName extends selectWBS {
             out.print(" ");
     }
 
-    /** Print the icon and text for navigating the hierarchy
+    /** Print the icon and text for navigating the hierarchy for an individual
+     */
+    private void writeHierarchyIconIndiv(String projectRoot) {
+        String pathDisplay = "/";
+        SimpleData wbsData = getDataContext().getSimpleValue(
+                "Project_WBS_ID_Filter");
+        if (wbsData != null) {
+            pathDisplay = wbsData.format();
+            int slashPos = pathDisplay.indexOf('/');
+            if (slashPos == -1)
+                pathDisplay = "/";
+            else
+                pathDisplay = pathDisplay.substring(slashPos);
+        }
+
+        boolean exporting = parameters.containsKey("EXPORT");
+        if (!exporting) {
+            String href = WebServer.urlEncodePath(projectRoot) + "//"
+                    + processID + "/setup/selectWBSIndiv";
+            writeHyperlink(href, getSnippetParams(false, false));
+        }
+
+        out.print("<img border=0 src='../hier.png' "
+                + "style='margin-right:2px' width='16' height='23' ");
+        if (!exporting)
+            out.print("title='Navigate Hierarchy'></a>");
+        else if ("/".equals(pathDisplay))
+            out.print("title='Showing data from entire project hierarchy'>");
+        else
+            out.print("title='Hierarchy Drill-down is in effect'>");
+
+        out.print(HTMLUtils.escapeEntities(pathDisplay));
+    }
+
+    /** Print the icon and text for navigating the hierarchy on the team side
      */
     private void writeHierarchyIcon(String prefix, String projectRoot) {
         String href = WebServer.urlEncodePath(projectRoot) + "//" + processID

@@ -1,17 +1,21 @@
 <?xml version="1.0"?>
 <!--#do-not-translate-->
 
-<!--#foreach name="|" list=[file_sep] -->
+<!--#replace token=":" var=[file_sep] -->
 
 <join-team-project
+<!--#if [Individuals_Using_Stubless_Phases] || teamSync.noPhaseStubs -->
+    Template_ID="<!--#echo var=[Team_Process_PID] encoding=xml -->/Indiv2Root"
+<!--#else-->
     Template_ID="<!--#echo var=[Team_Process_PID] encoding=xml -->/IndivRoot"
+<!--#endif-->
 
     Team_Directory="<!--#echo var=[Team_Directory] encoding=xml -->"
-    Template_Path="<!--#echo var=[Team_Directory] encoding=xml -->|Templates|<!--#echo var=[Team_Process_PID] encoding=xml -->.zip"
+    Template_Path="<!--#echo var=[Team_Directory] encoding=xml -->:Templates:<!--#echo var=[Team_Process_PID] encoding=xml -->.zip"
 
 <!--#if [Team_Directory_UNC] -->
     Team_Directory_UNC="<!--#echo var=[Team_Directory_UNC] encoding=xml -->"
-    Template_Path_UNC="<!--#echo var=[Team_Directory_UNC] encoding=xml -->|Templates|<!--#echo var=[Team_Process_PID] encoding=xml -->.zip"
+    Template_Path_UNC="<!--#echo var=[Team_Directory_UNC] encoding=xml -->:Templates:<!--#echo var=[Team_Process_PID] encoding=xml -->.zip"
 <!--#else-->
     Team_Directory_UNC=""
     Template_Path_UNC=""
@@ -22,4 +26,4 @@
 
 />
 
-<!--#endfor-->
+<!--#endreplace-->

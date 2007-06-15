@@ -12,6 +12,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import net.sourceforge.processdash.data.StringData;
 import net.sourceforge.processdash.templates.TemplateLoader;
 import net.sourceforge.processdash.util.RobustFileOutputStream;
 import net.sourceforge.processdash.util.XMLUtils;
@@ -156,18 +157,25 @@ public class TemplateSynchronizer {
         return result;
     }
 
-    private Element genericSubtaskTemplate;
+    private Element genericOldSubtaskTemplate;
+    private Element genericNewSubtaskTemplate;
 
     private Map phaseIDs;
 
     private String projectNamePrefix;
 
+    private String effectivePhaseDataName;
+
     private void writeTemplateXml(List workflows, Map templates)
             throws IOException {
         XmlSerializer ser = XMLUtils.getXmlSerializer(true);
-        genericSubtaskTemplate = (Element) templates.get(processID
+        genericOldSubtaskTemplate = (Element) templates.get(processID
                 + "/IndivEmptyNode");
+        genericNewSubtaskTemplate = (Element) templates.get(processID
+                + "/Indiv2Task");
         phaseIDs = HierarchySynchronizer.initPhaseIDs(processID);
+        effectivePhaseDataName = HierarchySynchronizer
+                .getEffectivePhaseDataName(processID);
         projectNamePrefix = getProjectNamePrefix(projectPath);
 
         OutputStream out = new RobustFileOutputStream(destFile);
@@ -190,23 +198,8 @@ public class TemplateSynchronizer {
         if (children == null || children.isEmpty())
             return;
 
-        ser.startTag(null, TEMPLATE_TAG);
-
-        String workflowName = workflow.getAttribute(WORKFLOW_NAME_ATTR);
-        workflowName = deconflictName(workflowName, "_");
-        String templateName = processID + "-Common-Team-Workflow:!*!:"
-                + projectNamePrefix + workflowName;
-        ser.attribute(null, TEMPLATE_NAME_ATTR, templateName);
-
-        ser.attribute(null, "defineRollup", "no");
-        ser.attribute(null, "href", "none");
-        ser.attribute(null, "autoData", "none");
-        copyAttributes(ser, genericSubtaskTemplate, COPY_TEMPLATE_ATTRS);
-
-        for (Iterator i = children.iterator(); i.hasNext();)
-            writeTemplateNode(ser, (Element) i.next());
-
-        ser.endTag(null, TEMPLATE_TAG);
+        writeOldStyleTemplate(ser, workflow, children);
+        writeNewStyleTemplate(ser, workflow, children);
     }
 
     private List getChildNodes(Element workflow) {
@@ -219,7 +212,28 @@ public class TemplateSynchronizer {
         return result;
     }
 
-    private void writeTemplateNode(XmlSerializer ser, Element node)
+    private void writeOldStyleTemplate(XmlSerializer ser, Element workflow,
+            List children) throws IOException {
+        ser.startTag(null, TEMPLATE_TAG);
+
+        String workflowName = workflow.getAttribute(WORKFLOW_NAME_ATTR);
+        workflowName = deconflictName(workflowName, "_");
+        String templateName = processID + "-Common-Team-Workflow-Template:!*!:"
+                + projectNamePrefix + workflowName;
+        ser.attribute(null, TEMPLATE_NAME_ATTR, templateName);
+
+        ser.attribute(null, "defineRollup", "no");
+        ser.attribute(null, "href", "none");
+        ser.attribute(null, "autoData", "none");
+        copyAttributes(ser, genericOldSubtaskTemplate, COPY_TEMPLATE_ATTRS);
+
+        for (Iterator i = children.iterator(); i.hasNext();)
+            writeOldStyleTemplateNode(ser, (Element) i.next());
+
+        ser.endTag(null, TEMPLATE_TAG);
+    }
+
+    private void writeOldStyleTemplateNode(XmlSerializer ser, Element node)
             throws IOException {
         ser.startTag(null, NODE_TAG);
 
@@ -230,12 +244,12 @@ public class TemplateSynchronizer {
         if (PSP_TYPE.equals(node.getTagName())) {
             writePSPTask(ser);
         } else {
-            copyAttributes(ser, genericSubtaskTemplate, COPY_NODE_ATTRS);
+            copyAttributes(ser, genericOldSubtaskTemplate, COPY_NODE_ATTRS);
 
             List children = getChildNodes(node);
             if (children != null && !children.isEmpty()) {
                 for (Iterator i = children.iterator(); i.hasNext();)
-                    writeTemplateNode(ser, (Element) i.next());
+                    writeOldStyleTemplateNode(ser, (Element) i.next());
             } else {
                 String phaseName = node.getAttribute(PHASE_NAME_ATTR);
                 String phaseID = (String) phaseIDs.get(phaseName);
@@ -246,6 +260,57 @@ public class TemplateSynchronizer {
                     ser.endTag(null, PHASE_TAG);
                 }
             }
+        }
+
+        ser.endTag(null, NODE_TAG);
+    }
+
+    private void writeNewStyleTemplate(XmlSerializer ser, Element workflow,
+            List children) throws IOException {
+        ser.startTag(null, TEMPLATE_TAG);
+
+        String workflowName = workflow.getAttribute(WORKFLOW_NAME_ATTR);
+        String templateName = processID + "-Common-Team-Workflow-Template2:!*!:"
+                + projectNamePrefix + workflowName;
+        ser.attribute(null, TEMPLATE_NAME_ATTR, templateName);
+
+        ser.attribute(null, "defineRollup", "no");
+        ser.attribute(null, "href", "none");
+        ser.attribute(null, "autoData", "none");
+        copyAttributes(ser, genericNewSubtaskTemplate, COPY_TEMPLATE_ATTRS);
+
+        for (Iterator i = children.iterator(); i.hasNext();)
+            writeNewStyleTemplateNode(ser, (Element) i.next());
+
+        ser.endTag(null, TEMPLATE_TAG);
+    }
+
+    private void writeNewStyleTemplateNode(XmlSerializer ser, Element node)
+            throws IOException {
+        ser.startTag(null, NODE_TAG);
+
+        String nodeName = node.getAttribute(WORKFLOW_NAME_ATTR);
+        ser.attribute(null, TEMPLATE_NAME_ATTR, nodeName);
+
+        if (PSP_TYPE.equals(node.getTagName())) {
+            writePSPTask(ser);
+        } else {
+            copyAttributes(ser, genericNewSubtaskTemplate, COPY_NODE_ATTRS);
+
+            String phaseName = node.getAttribute(PHASE_NAME_ATTR);
+            if (!XMLUtils.hasValue(phaseName))
+                phaseName = node.getAttribute(EFF_PHASE_ATTR);
+            if (XMLUtils.hasValue(phaseName)) {
+                ser.startTag(null, EXTRA_DATA_TAG);
+                ser.text(effectivePhaseDataName);
+                ser.text("=");
+                ser.text(StringData.saveString(phaseName));
+                ser.endTag(null, EXTRA_DATA_TAG);
+            }
+
+            List children = getChildNodes(node);
+            for (Iterator i = children.iterator(); i.hasNext();)
+                writeNewStyleTemplateNode(ser, (Element) i.next());
         }
 
         ser.endTag(null, NODE_TAG);
@@ -318,6 +383,8 @@ public class TemplateSynchronizer {
 
     private static final String PHASE_NAME_ATTR = "phaseName";
 
+    private static final String EFF_PHASE_ATTR = "effectivePhase";
+
     private static final String DOC_ROOT_ELEM = "dashboard-process-template";
 
     private static final String TEMPLATE_TAG = "template";
@@ -331,6 +398,8 @@ public class TemplateSynchronizer {
     private static final String NODE_TAG = "node";
 
     private static final String PHASE_TAG = "phase";
+
+    private static final String EXTRA_DATA_TAG = "extraData";
 
 
 

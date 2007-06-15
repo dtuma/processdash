@@ -21,7 +21,7 @@
 
 <input type=hidden name=requiredTag
 <!--#if indiv -->
-       VALUE="<!--#echo Process_ID -->/IndivRoot Tag"
+       VALUE="<!--#echo Process_ID --> Indiv Root Tag"
 <!--#elif master -->
        VALUE="<!--#echo Process_ID -->/MasterRoot Tag"
 <!--#else-->
@@ -110,27 +110,27 @@
 
 <tr>
 <td class=indented>Design time as a % of coding time</td>
-<td><input type=text size=7 name="[Target Design/Code Ratio]%"></td>
+<td><input type=text size=7 name="[Target Design/Code Ratio]%u"></td>
 </tr>
 
 <tr>
 <td class=indented>Code review time as a % of code time</td>
-<td><input type=text size=7 name="[Target Code Review/Code Ratio]%"></td>
+<td><input type=text size=7 name="[Target Code Review/Code Ratio]%u"></td>
 </tr>
 
 <tr>
 <td class=indented>Compile defects/KLOC</td>
-<td><input type=text size=7 name="Target Compile Defect Density"></td>
+<td><input type=text size=7 name="[Target Compile Defect Density]u"></td>
 </tr>
 
 <tr>
 <td class=indented>Unit test defects/KLOC</td>
-<td><input type=text size=7 name="Target Test Defect Density"></td>
+<td><input type=text size=7 name="[Target Test Defect Density]u"></td>
 </tr>
 
 <tr>
 <td class=indented>Design review time as a % of design time</td>
-<td><input type=text size=7 name="[Target Design Review/Design Ratio]%"></td>
+<td><input type=text size=7 name="[Target Design Review/Design Ratio]%u"></td>
 </tr>
 
 </table>
@@ -146,7 +146,7 @@
 
 <tr>
 <td class=indented><!--#echo PHASE_Long_Name --></td>
-<td><input type=text size=7 name="<!--#echo PHASE_Name -->/Estimated % Phase Yield"></td>
+<td><input type=text size=7 name="[<!--#echo PHASE_Name -->/Estimated % Phase Yield]%u"></td>
 </tr>
 
 <!--#endif-->
@@ -164,7 +164,7 @@
 
 <tr>
 <td class=indented><!--#echo PHASE_Long_Name --></td>
-<td><input type=text size=7 name="<!--#echo PHASE_Name -->/Estimated Defects Injected per Hour	4"></td>
+<td><input type=text size=7 name="[<!--#echo PHASE_Name -->/Estimated Defects Injected per Hour]4u"></td>
 </tr>
 
 <!--#endif-->

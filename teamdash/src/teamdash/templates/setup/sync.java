@@ -5,8 +5,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import teamdash.FilenameMapper;
-
+import net.sourceforge.processdash.BackgroundTaskManager;
 import net.sourceforge.processdash.DashController;
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.ListData;
@@ -16,9 +15,12 @@ import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.hier.HierarchyAlterer.HierarchyAlterationException;
 import net.sourceforge.processdash.net.http.TinyCGIException;
+import net.sourceforge.processdash.ui.UserNotificationManager;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.HTMLUtils;
+import net.sourceforge.processdash.util.ThreadThrottler;
 import net.sourceforge.processdash.util.XMLUtils;
+import teamdash.FilenameMapper;
 
 /** CGI script which synchonizes a dashboard hierarchy with a WBS description.
  * 
@@ -141,10 +143,15 @@ public class sync extends TinyCGIBase {
             }
             if (templateID != null && templateID.endsWith(INDIV_ROOT)) {
                 projectRoot = key.path();
-                processID =
-                    templateID.substring(
-                        0,
-                        templateID.length() - INDIV_ROOT.length());
+                processID = templateID.substring
+                    (0, templateID.length() - INDIV_ROOT.length());
+                isTeam = isMaster = false;
+                return;
+            }
+            if (templateID != null && templateID.endsWith(INDIV2_ROOT)) {
+                projectRoot = key.path();
+                processID = templateID.substring
+                    (0, templateID.length() - INDIV2_ROOT.length());
                 isTeam = isMaster = false;
                 return;
             }
@@ -251,9 +258,16 @@ public class sync extends TinyCGIBase {
         if (!isTeam)
             loadPermissionData(synch);
 
-        synch.setWhatIfMode(false);
-        synch.sync();
-        syncTemplates(synch);
+        boolean bg = parameters.containsKey("bg");
+        try {
+            if (bg) ThreadThrottler.beginThrottling(0.2);
+            synch.setWhatIfMode(false);
+            synch.sync();
+            syncTemplates(synch);
+        } finally {
+            if (bg) ThreadThrottler.endThrottling();
+        }
+
         if (synch.isFollowOnWorkNeeded()) {
             saveChangeList(synch);
             parameters.remove(RUN_PARAM);
@@ -261,8 +275,14 @@ public class sync extends TinyCGIBase {
             writeContents();
 
         } else {
-            new AsyncExporter(projectRoot).start();
-            printChanges(synch.getChanges());
+            if (printChanges(synch.getChanges())
+                    && !parameters.containsKey("noExport")
+                    && !Settings.getBool("export.disableAutoExport", false))
+                BackgroundTaskManager.getInstance().addTask(
+                        new AsyncExporter(projectRoot));
+
+            UserNotificationManager.getInstance().removeNotification(
+                    SyncScanner.getScanTaskID(projectRoot));
         }
     }
 
@@ -422,7 +442,7 @@ public class sync extends TinyCGIBase {
 
     /** Print a list of changes made by a synchronization operation.
      */
-    private void printChanges(List changeList) {
+    private boolean printChanges(List changeList) {
         ListData oldChanges = (ListData) getDataContext().getSimpleValue(
                 CHANGES_DATANAME);
         if (oldChanges != null) {
@@ -446,12 +466,14 @@ public class sync extends TinyCGIBase {
             out.print("</ul>");
         }
         out.print("</body></html>");
+
+        return !changeList.isEmpty();
     }
 
 
     /** Asynchronously export the user's data.
      */
-    private static class AsyncExporter extends Thread {
+    private static class AsyncExporter implements Runnable {
 
         private String projectRoot;
 
@@ -461,6 +483,10 @@ public class sync extends TinyCGIBase {
 
         public void run() {
             DashController.exportData(projectRoot);
+        }
+
+        public String toString() {
+            return "AsyncExporter:" + projectRoot;
         }
 
     }
@@ -498,6 +524,7 @@ public class sync extends TinyCGIBase {
     private static final String MASTER_ROOT = "/MasterRoot";
     private static final String TEAM_ROOT = "/TeamRoot";
     private static final String INDIV_ROOT = "/IndivRoot";
+    private static final String INDIV2_ROOT = "/Indiv2Root";
     private static final String TEAMDIR_DATA_NAME = "Team_Data_Directory";
     private static final String PROJECT_ID_DATA_NAME = "Project_ID";
     private static final String INITIALS_DATA_NAME = "Indiv_Initials";

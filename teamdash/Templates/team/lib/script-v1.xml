@@ -68,25 +68,38 @@
     <file in="root_data.txt" encoding="data" />
 
     <!-- data files for use on the team side -->
-    <file in="team_root_dataFile.txt" encoding="data" />
-    <file in="team_node_dataFile.txt" encoding="data" />
+    <file in="team_root_dataFile.txt" />
+    <file in="team2_root_dataFile.txt" />
+    <file in="team_node_dataFile.txt" />
     <file in="disseminationExportFilter.xml" encoding="xml" />
 
     <!-- data files for use by a master project -->
-    <file in="master_root_dataFile.txt" encoding="data" />
-    <file in="master_node_dataFile.txt" encoding="data" />
+    <file in="master_root_dataFile.txt" />
+    <file in="master_node_dataFile.txt" />
 
     <!-- data files for use on the individal side -->
-    <file in="indiv_root_dataFile.txt" encoding="data" />
+    <file in="indiv_root_data.txt" />
+    <file in="indiv_root_dataFile.txt" />
+    <file in="indiv2_root_dataFile.txt" />
     <file in="indiv_simple_full_dataFile.txt"
           out="indiv_full_dataFile.txt" encoding="data" />
-    <file in="indiv_empty_dataFile.txt" encoding="data" />
-    <file in="metricsExportFilter.xml" encoding="xml" />
+    <file in="indiv_empty_dataFile.txt" >
+        <param name="PID" replace="true" value="<!--#echo Process_ID -->"/>
+    </file>
+    <file in="indiv2_empty_dataFile.txt" >
+        <param name="PID" replace="true" value="<!--#echo Process_ID -->"/>
+    </file>
+    <file in="metricsExportFilter.xml" out="metricsExportFilterOld.xml">
+        <param name="oldStyle" value="true"/>
+    </file>
+    <file in="metricsExportFilter.xml"/>
 
     <!-- forms for use on the individual side -->
     <file in="expanding_indiv_plan_summary.htm" encoding="html"
           out="plan_summary.shtm"/>
-    <file in="summary_redirect.htm" out="summary.shtm"/>
+    <file in="summary_redirect.htm" out="summary.shtm" encoding="html">
+        <param name="PID" replace="true" value="<!--#echo var=Process_ID -->"/>
+    </file>
     <!--#if not VVIS -->
     <file in="quality_summary.htm" encoding="html"
           out="quality_summary.shtm"/>
@@ -126,6 +139,13 @@
     <!--#else-->
     <file in="rollup_plan_summary.xml" encoding="xml"/>
     <!--#endif-->
+    <!--#if Indiv_Summary_Filename -->
+    <file in="extfile:<!--#echo Indiv_Summary_Filename -->"
+          out="indiv_plan_summary.xml" encoding="xml"/>
+    <!--#else-->
+    <file in="indiv_plan_summary.xml" encoding="xml"/>
+    <!--#endif-->
+    <file in="size_summary.htm" out="size_summary.shtm" encoding="html"/>
     <file in="defect_analysis.htm" encoding="html"
           out="/Templates/reports/analysis/<!--#echo Process_ID -->_defect_reports.shtm"/>
     <file in="autoExport.js" encoding="none"/>
@@ -153,8 +173,9 @@
     <file in="filterWBS.js" encoding="none"/>
 
     <!-- data file used by rollups and team nodes -->
-    <file in="rollup_dataFile.txt" encoding="data"
-          out="rollup_dataFile.txt"/>
+    <file in="rollup_dataFile.txt">
+        <param name="PID" replace="true" value="<!--#echo Process_ID -->"/>
+    </file>
 
     <!-- core datafile that describes the data structure of the process -->
     <file in="prototype_dataFile.txt" encoding="data"
@@ -181,6 +202,10 @@
         <param name="PID" replace="true" value="<!--#echo var=Process_ID -->"/>
     </file>
     <!--#endif-->
+
+    <!-- resources for internationalization -->
+    <file in="resources.properties" encoding="none"
+          out="/Templates/resources/Team-<!--#echo Process_ID -->.properties"/>
 
     <!-- Icon used for navigating the hierarchy -->
     <file in="hier.png" encoding="binary" />

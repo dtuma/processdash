@@ -1,4 +1,4 @@
-//<!--#echo -*- mode:html -*- -->
+// <!--#echo var="-*- mode:html -*-" defaultEncoding="data" -->
 //  This is the datafile for an empty <!--#echo Full_Name --> process node.
 //
 

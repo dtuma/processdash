@@ -82,17 +82,21 @@ Project Setup Wizard<br><!--#echo var=PATH_TRANSLATED --></h1></td></tr>
     document.write("'>");
 </script>
 
-<!--#foreach name="|" list=[file_sep] -->
+<!--#replace token=":" var=[file_sep] -->
 
 <input type="hidden" name="Template_ID"
-      value="<!--#echo [Team_Process_PID] -->/IndivRoot">
+<!--#if [Individuals_Using_Stubless_Phases] || teamSync.noPhaseStubs -->
+      value="<!--#echo [Team_Process_PID] -->/Indiv2Root"
+<!--#else-->
+      value="<!--#echo [Team_Process_PID] -->/IndivRoot"
+<!--#endif-->  >
 
 <input type="hidden" name="Template_Path"
-      value="<!--#echo [Team_Directory] -->|Templates|<!--#echo [Team_Process_PID] -->.zip">
+      value="<!--#echo [Team_Directory] -->:Templates:<!--#echo [Team_Process_PID] -->.zip">
 
 <input type="hidden" name="Template_Path_UNC"
 <!--#if [Team_Directory_UNC] -->
-      value="<!--#echo [Team_Directory_UNC] -->|Templates|<!--#echo [Team_Process_PID] -->.zip">
+      value="<!--#echo [Team_Directory_UNC] -->:Templates:<!--#echo [Team_Process_PID] -->.zip">
 <!--#else-->
       value="">
 <!--#endif-->
@@ -101,7 +105,7 @@ Project Setup Wizard<br><!--#echo var=PATH_TRANSLATED --></h1></td></tr>
       value="/<!--#echo [Team_Process_PID] -->/setup/wizard.class?page=indiv">
 <input type="hidden" name="page" value="join">
 
-<!--#endfor-->
+<!--#endreplace-->
 
 <table width='100%'><tr><td width='100%' align='right' nowrap>
 <input type=button name=next value='Next'

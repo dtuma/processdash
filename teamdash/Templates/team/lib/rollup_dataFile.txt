@@ -1,8 +1,8 @@
-// <!--#echo var="-*- mode:html -*-" -->
+// <!--#echo var="-*- mode:html -*-" defaultEncoding="data" -->
 // Data file for a rollup dataset for <!--#echo Full_Name -->
 //
 
-#include <ROLLUP:<!--#echo Process_ID -->>;
+#include <ROLLUP:PID>;
 undefine([Historical Data Tag]);
 [Exclude Children of Rollup_List for Defects] = tag;
 
@@ -10,10 +10,9 @@ undefine([Historical Data Tag]);
  * We need to redefine the rollup project list to include PSP projects.
  */
 [/PSP/Project List] = search("/", "PSP Rollup Eligible");
-[/<!--#echo Process_ID -->/Full Project List] =
-    setUnion([/<!--#echo Process_ID -->/Project List], [/PSP/Project List]);
-[Rollup_List] =
-    filter(eval([Rollup_Filter], [_]), [/<!--#echo Process_ID -->/Full Project List]);
+[/PID/Indiv Root List] = search("/", "PID Indiv Root Tag");
+[/PID/Full Project List] = setUnion([/PID/Project List], [/PSP/Project List]);
+[Rollup_List] = filter(eval([Rollup_Filter], [_]), [/PID/Full Project List]);
 
 
 /*
@@ -46,3 +45,38 @@ undefine([Historical Data Tag]);
     [Software_Project_List])) / [Software_Project_Count];
 
 <!--#endif--><!--#endfor-->
+
+
+/*
+ * Roll up phase data both from both new style (namespaced) and old style
+ * (plain/unadorned) data exports.
+ */
+[Rollup_Unadorned_Phase_Metrics] = true;
+[Rollup_Namespaced_Phase_Metrics] = true;
+
+<!--#foreach name=PHASE list=Phase_List #-->
+<!--#foreach name=METRIC values=',Estimated Time,Time,Defects Injected,Defects Removed,' #-->
+
+[<!--#echo PHASE_Name -->/METRIC] =
+    iff([Rollup_Unadorned_Phase_Metrics],
+        sumFor("<!--#echo PHASE_Name -->/METRIC", [Rollup_List]), 0) +
+    iff([Rollup_Namespaced_Phase_Metrics],
+        sumFor("PID /<!--#echo PHASE_Name -->/METRIC", [Rollup_List])
+        <!--#if PHASE_Is_PSP #-->
+	+ sumFor("PSP /<!--#echo PHASE_Name -->/METRIC", [Rollup_List])
+	<!--#endif-->, 0);
+
+<!--#endfor--><!--#endfor-->
+
+
+
+/*
+ * Add up metrics for uncategorized tasks
+ */
+
+[Uncategorized/Time] = sumFor("PID /Uncategorized/Time", [Rollup_List]);
+[Uncategorized/Estimated Time] =
+    sumFor("PID /Uncategorized/Estimated Time", [Rollup_List]);
+
+[Time] = sumFor("Time", [Phase_List], "Uncategorized");
+[Estimated Time] = sumFor("Estimated Time", [Phase_List], "Uncategorized");

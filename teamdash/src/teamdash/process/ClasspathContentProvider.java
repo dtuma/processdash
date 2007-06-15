@@ -9,6 +9,16 @@ import net.sourceforge.processdash.util.FileUtils;
 
 public class ClasspathContentProvider implements ContentSource {
 
+    private String contentPrefix;
+
+    public ClasspathContentProvider() {
+        this("/Templates");
+    }
+
+    public ClasspathContentProvider(String prefix) {
+        this.contentPrefix = prefix;
+    }
+
     public byte[] getContent(String context, String uri, boolean raw)
             throws IOException {
         if (!uri.startsWith("/")) {
@@ -16,7 +26,7 @@ public class ClasspathContentProvider implements ContentSource {
             URL uriURL = new URL(contextURL, uri);
             uri = uriURL.getFile();
         }
-        String resName = "/Templates" + uri;
+        String resName = contentPrefix + uri;
         InputStream in = GenerateProcess.class.getResourceAsStream(resName);
         if (in == null)
             throw new IOException("No such file");

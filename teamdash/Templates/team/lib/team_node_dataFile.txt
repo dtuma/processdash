@@ -1,4 +1,4 @@
-// <!--#echo var="-*- mode:html -*-" -->
+// <!--#echo var="-*- mode:html -*-" defaultEncoding="data" -->
 // Data file for a component of a <!--#echo Full_Name --> team project
 //
 
@@ -12,7 +12,8 @@ undefine([Simple Project Tag]);
 [Project_WBS_ID] = [../Project_WBS_ID] &/ pathTail([^]);
 [Filtered_Task_Labels] = [../Filtered_Task_Labels];
 [Phase_Display_Filter_List] = [../Phase_Display_Filter_List];
-
+[Rollup_Unadorned_Phase_Metrics] = [../Rollup_Unadorned_Phase_Metrics];
+[Rollup_Namespaced_Phase_Metrics] = [../Rollup_Namespaced_Phase_Metrics];
 
 /*
  * Redefine the rollup filter to include items from this project, and

@@ -1,0 +1,9 @@
+// <!--#echo var="-*- mode:html -*-" defaultEncoding="data" -->
+// Data file for a team project for <!--#echo Full_Name -->
+//
+
+#include <<!--#echo Process_ID -->/team_root_dataFile.txt>
+
+[<!--#echo Process_ID --> Team2 Root Tag] = tag;
+
+[Individuals_Using_Stubless_Phases] = true;

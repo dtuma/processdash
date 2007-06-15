@@ -1,44 +1,8 @@
-//<!--#echo -*- mode:html -*- -->
+// <!--#echo var="-*- mode:html -*-" defaultEncoding="data" -->
 // Data file for an individual <!--#echo Full_Name --> project.
 //
 
 #include <<!--#echo Process_ID -->/indiv_empty_dataFile.txt> exclude (
     [<!--#echo Process_ID -->/IndivEmptyNode Tag]
 )
-#include <<!--#echo Process_ID -->/root_data.txt>
-
-[Indiv_Initials] = "tttt";
-[EXPORT_FILE] = 
-    iff([Team_Data_Directory] == "", "",
-        [Team_Data_Directory] & [file_sep] & [Indiv_Initials] & "-data" &
-        iff([//Export_Manager/Supports_pdash_format], ".pdash", ".txt"));
-[EXPORT_FILE/Instructions] = 
-    "file:/<!--#echo Process_ID -->/metricsExportFilter.xml";
-[EXPORT_FILE/Disabled] = [Project_Is_Done];
-
-[Sync_Full_WBS] = 0;
-
-[Task_Labels] = [Synchronized_Task_Labels];
-
-[Effective_Defect_Phase_List] = "<!--#foreach name=Phase list=Phase_List --><!--#if Phase_Is_Defect_Injection --><!--#echo Phase_Name --><!--#endif--><!--#endfor-->";
-
-// find sized objects in this project
-
-[Sized_Object_List] = search(".", "Sized_Object_Units");
-
-
-
-/*
- * Lookup team settings data for this project
- */
-
-[/Team_Settings_Node_List] = search("/", "Team_Settings");
-[Team_Settings_Node] = 
-    index(0, filter([Project_ID] == indirect([_] &/ "Project_ID"),
-                    [/Team_Settings_Node_List])) & "/Team_Settings /";
-
-[Defect Type Standard Contents] = 
-    indirect([Team_Settings_Node] & "Defect_Type_Standard");
-
-[WBS_Read_Only] = 
-    not indirect([Team_Settings_Node] & "Allow_Indiv_WBS_Editing");
+#include <<!--#echo Process_ID -->/indiv_root_data.txt>
