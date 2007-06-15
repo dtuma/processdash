@@ -208,6 +208,10 @@ public class InternalSettings extends Settings {
                 fsettings.setComment(name, comment);
         }
 
+        String propName = SYS_PROP_PREFIX + name;
+        if (System.getProperty(propName) != null)
+            System.getProperties().remove(propName);
+
         serializable = null;
         dirty = true;
 
