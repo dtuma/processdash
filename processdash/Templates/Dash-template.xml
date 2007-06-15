@@ -54,13 +54,13 @@ E-Mail POC:  processdash-devel@lists.sourceforge.net
 
   <!-- definitions for background tasks that are provided by the dashboard -->
 
-  <background-task 
-     class="net.sourceforge.processdash.tool.export.mgr.ExportManager$BGTask"
-     settingPrefix="export" disabledWith="export.disableAutoExport"/>
-
-  <background-task 
+  <background-task ordinal="500"
      class="net.sourceforge.processdash.FileBackupManager$BGTask"
      settingPrefix="backup" enabledWith="backup.enabled"/>
+
+  <background-task ordinal="5000"
+     class="net.sourceforge.processdash.tool.export.mgr.ExportManager$BGTask"
+     settingPrefix="export" disabledWith="export.disableAutoExport"/>
 
 
   <!-- definitions for snippets that are provided by the dashboard -->
