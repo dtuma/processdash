@@ -1,9 +1,12 @@
 package teamdash.templates.setup;
+import java.awt.Component;
 import java.io.File;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+
+import javax.swing.JOptionPane;
 
 import net.sourceforge.processdash.BackgroundTaskManager;
 import net.sourceforge.processdash.DashController;
@@ -15,6 +18,7 @@ import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.hier.HierarchyAlterer.HierarchyAlterationException;
 import net.sourceforge.processdash.net.http.TinyCGIException;
+import net.sourceforge.processdash.process.ui.TriggerURI;
 import net.sourceforge.processdash.ui.UserNotificationManager;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.HTMLUtils;
@@ -452,10 +456,19 @@ public class sync extends TinyCGIBase {
 
         out.print("<html><head><title>Synchronization Complete</title></head>");
         out.print("<body><h1>Synchronization Complete</h1>");
-        if (changeList.isEmpty())
+        if (changeList.isEmpty()) {
             out.print("<p>Your hierarchy is up to date - no changes "+
                       "were necessary.");
-        else {
+
+            if (parameters.containsKey("isTriggering")) {
+                out.print(TriggerURI.NULL_DOCUMENT_MARKER);
+                JOptionPane.showMessageDialog(getParentComponent(),
+                        "Your hierarchy is up to date - no changes were necessary.",
+                        "Synchronization Complete",
+                        JOptionPane.PLAIN_MESSAGE);
+            }
+
+        } else {
             out.print("<p>The following changes were made to your hierarchy:");
             out.print("<ul>");
             Iterator i = changeList.iterator();
@@ -468,6 +481,14 @@ public class sync extends TinyCGIBase {
         out.print("</body></html>");
 
         return !changeList.isEmpty();
+    }
+
+    private Component getParentComponent() {
+        Object result = getDashboardContext();
+        if (result instanceof Component)
+            return (Component) result;
+        else
+            return null;
     }
 
 

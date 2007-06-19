@@ -67,7 +67,7 @@
     <html ID="wbsBU" href="PID/setup/openWBS.shtm?trigger&amp;bottomUp"
         title="    View Bottom-Up Work Breakdown Structure"
 	inPackage="teamTools version 2.4.4"/>
-    <html ID="sync" href="PID/setup/sync.class?master"
+    <html ID="sync" href="PID/setup/sync.class?trigger&amp;master"
         title="    Sync Work Breakdown Structure"/>
 
   </template>
@@ -150,7 +150,7 @@
     <html ID="editWBS" href="PID/setup/openWBS.shtm?trigger"
         title="    Edit Work Breakdown Structure"
 	inPackage="teamTools version 2.4.4"/>
-    <html ID="sync" href="PID/setup/sync.class?team"
+    <html ID="sync" href="PID/setup/sync.class?trigger&amp;team"
         title="    Sync Work Breakdown Structure"/>
 
   </template>
@@ -268,9 +268,9 @@
     <html ID="editWBS" href="PID/setup/openWBS.shtm?trigger&amp;indiv"
         title="Open Team Work Breakdown Structure"
 	inPackage="teamTools version 2.4.7"/>
-    <html ID="sync" href="PID/setup/sync.class"
+    <html ID="sync" href="PID/setup/sync.class?trigger&amp;indiv"
         title="Sync Work Breakdown Structure"/>
-    <html ID="export" href="control/exportNow.class"
+    <html ID="export" href="control/exportNow.class?trigger"
         title="Export My Data Now"/>
 
   </template>
@@ -396,9 +396,9 @@
     <html ID="editWBS" href="PID/setup/openWBS.shtm?trigger&amp;indiv"
         title="Open Team Work Breakdown Structure"
 	inPackage="teamTools version 2.4.7"/>
-    <html ID="sync" href="PID/setup/sync.class"
+    <html ID="sync" href="PID/setup/sync.class?trigger&amp;indiv"
         title="Sync Work Breakdown Structure"/>
-    <html ID="export" href="control/exportNow.class"
+    <html ID="export" href="control/exportNow.class?trigger"
         title="Export My Data Now"/>
 
   </template>
