@@ -44,10 +44,14 @@ import javax.swing.border.Border;
 
 public class DropDownButton extends Box {
 
+    public static final int NO_ACTION = 0;
+    public static final int RUN_FIRST_MENU_OPTION = 1;
+    public static final int OPEN_DROP_DOWN_MENU = 2;
+
     private JButton mainButton;
     private JButton dropDownButton;
     private boolean dropDownEnabled = false;
-    private boolean mainRunsDefaultMenuOption = true;
+    private int mainButtonDefaultAction = RUN_FIRST_MENU_OPTION;
     private Icon enabledDownArrow, disDownArrow;
     private DropDownMenu menu;
     private MainButtonListener mainButtonListener = new MainButtonListener();
@@ -112,35 +116,56 @@ public class DropDownButton extends Box {
      *    an actionPerformed() on the first item in the popup menu.
      */
     public void setRunFirstMenuOption(boolean enable) {
-        mainButton.removeActionListener(mainButtonListener);
-        mainRunsDefaultMenuOption = enable;
-        setEnabled(mainRunsDefaultMenuOption == false ||
-                   isEmpty() == false);
-        if (mainRunsDefaultMenuOption)
-            mainButton.addActionListener(mainButtonListener);
+        setMainButtonBehavior(enable ? RUN_FIRST_MENU_OPTION : NO_ACTION);
     }
 
     /** @return true if a click on the main button will trigger an
      *    actionPerformed() on the first item in the popup menu.
      */
     public boolean getRunFirstMenuOption() {
-        return mainRunsDefaultMenuOption;
+        return mainButtonDefaultAction == RUN_FIRST_MENU_OPTION;
+    }
+
+    /** Set the behavior of the main button.
+     *
+     * @param enable if true, a click on the main button will cause the drop
+     *    down menu to be displayed.
+     */
+    public void setOpenPopupMenu(boolean enable) {
+        setMainButtonBehavior(enable ? OPEN_DROP_DOWN_MENU : NO_ACTION);
+    }
+
+    /** @return true if a click on the main button will cause the drop down
+     *    menu to be displayed.
+     */
+    public boolean getOpenPopupMenu() {
+        return mainButtonDefaultAction == OPEN_DROP_DOWN_MENU;
+    }
+
+    public void setMainButtonBehavior(int which) {
+        mainButton.removeActionListener(mainButtonListener);
+        mainButtonDefaultAction = which;
+        setEnabled(which == NO_ACTION || isEmpty() == false);
+        if (which != NO_ACTION)
+            mainButton.addActionListener(mainButtonListener);
     }
 
     private void setDropDownEnabled(boolean enable) {
         dropDownEnabled = enable;
         dropDownButton.setIcon(enable ? enabledDownArrow : disDownArrow);
-        if (mainRunsDefaultMenuOption)
+        if (mainButtonDefaultAction != NO_ACTION)
             setEnabled(enable);
     }
 
     /** This object responds to events on the main button. */
     private class MainButtonListener implements ActionListener {
         public void actionPerformed(ActionEvent e) {
-            if (mainRunsDefaultMenuOption && !isEmpty()) {
+            if (getRunFirstMenuOption() && !isEmpty()) {
                 JMenuItem defaultItem = menu.getItem(0);
                 if (defaultItem != null)
                     defaultItem.doClick(0);
+            } else if (getOpenPopupMenu() && !isEmpty()) {
+                if (dropDownEnabled) menu.doClick(0);
             }
         }
     }
