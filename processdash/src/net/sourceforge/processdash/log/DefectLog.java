@@ -240,15 +240,13 @@ public class DefectLog {
             new_phase_removed  = d.phase_removed;
 
                                       // assign the defect a unique number
-            int maxNum = defects.length;
-            try {
-                for (int i = defects.length;  i-- > 0; )
-                    if (defects[i] != null) {
-                        maxNum = Integer.parseInt(defects[i].number) + 1;
-                        break;
-                    }
-            } catch (Exception e) { }
-            d.number = Integer.toString(maxNum == 0 ? 1 : maxNum);
+            int maxNum = 0;
+            for (int i = defects.length;  i-- > 0; )
+                if (defects[i] != null)
+                    try {
+                        maxNum = Math.max(maxNum, Integer.parseInt(defects[i].number));
+                    } catch (NumberFormatException nfe) {}
+            d.number = Integer.toString(maxNum + 1);
 
             // changed defect, or new defect with number already assigned
         } else {
