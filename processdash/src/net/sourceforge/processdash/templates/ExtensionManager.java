@@ -101,12 +101,20 @@ public class ExtensionManager {
 
     public static List getExecutableExtensions(String tagName,
             DashboardContext context) {
-        return getExecutableExtensions(tagName, "class", context);
+        return getExecutableExtensions(tagName, "class", "requires", context);
     }
 
 
-    public static List getExecutableExtensions(String tagName, String attrName,
+    public static List getExecutableExtensions(String tagName,
+            String classAttrName, DashboardContext context) {
+        return getExecutableExtensions(tagName, classAttrName, "requires",
+                context);
+    }
+
+    public static List getExecutableExtensions(String tagName,
+            String classAttrName, String requiresAttrName,
             DashboardContext context) {
+
         List configElements = getXmlConfigurationElements(tagName);
         if (configElements.isEmpty())
             return configElements;
@@ -114,10 +122,16 @@ public class ExtensionManager {
         List result = new ArrayList();
         for (Iterator i = configElements.iterator(); i.hasNext();) {
             Element configElem = (Element) i.next();
+
+            if (requiresAttrName != null) {
+                String requiresVal = configElem.getAttribute(requiresAttrName);
+                if (!TemplateLoader.meetsPackageRequirement(requiresVal))
+                    continue;
+            }
+
             try {
-                result
-                        .add(getExecutableExtension(configElem, attrName,
-                                context));
+                result.add(getExecutableExtension(configElem, classAttrName,
+                        context));
             } catch (Exception e) {
                 logger.log(Level.WARNING,
                         "Unable to create executable extension", e);
