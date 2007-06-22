@@ -412,6 +412,24 @@ public class StringUtils
     }
 
 
+    /** Returns true if one string contains any of the characters present in
+     * another string.
+     * 
+     * @param text a string of text
+     * @param chars a set of characters to look for in the text
+     * @return true if any of the characters were found
+     */
+    public static boolean containsChars(String text, String chars) {
+        if (hasValue(text) && hasValue(chars)) {
+            for (int i = chars.length();  i-- > 0; ) {
+                char oneChar = chars.charAt(i);
+                if (text.indexOf(oneChar) != -1)
+                    return true;
+            }
+        }
+        return false;
+    }
+
     public static String[] split(String s, String delims) {
         ArrayList result = new ArrayList();
         StringTokenizer tok = new StringTokenizer(s, delims);

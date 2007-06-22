@@ -37,6 +37,9 @@ import java.util.StringTokenizer;
 public class HTMLUtils {
 
     public static String escapeEntities(String value) {
+        if (StringUtils.containsChars(value, "<>&\"") == false)
+            return value;
+
         StringTokenizer tok = new StringTokenizer(value, "<>&\"", true);
         StringBuffer result = new StringBuffer();
         String token;
@@ -58,6 +61,9 @@ public class HTMLUtils {
     };
 
     public static String unescapeEntities(String value) {
+        if (value.indexOf('&') == -1)
+            return value;
+
         value = StringUtils.findAndReplace(value, "&lt;",   "<");
         value = StringUtils.findAndReplace(value, "&gt;",   ">");
         value = StringUtils.findAndReplace(value, "&quot;", "\"");
