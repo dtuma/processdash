@@ -40,9 +40,13 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.Enumeration;
 import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.List;
 import java.util.StringTokenizer;
 import java.util.Vector;
 
+import javax.swing.Action;
+import javax.swing.Box;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -50,6 +54,8 @@ import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
+import javax.swing.JMenu;
+import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -77,10 +83,12 @@ import net.sourceforge.processdash.log.defects.Defect;
 import net.sourceforge.processdash.log.defects.DefectLog;
 import net.sourceforge.processdash.log.defects.DefectLogID;
 import net.sourceforge.processdash.process.DefectTypeStandard;
+import net.sourceforge.processdash.templates.ExtensionManager;
 import net.sourceforge.processdash.ui.Browser;
 import net.sourceforge.processdash.ui.ConfigureButton;
 import net.sourceforge.processdash.ui.DashboardIconFactory;
 import net.sourceforge.processdash.ui.help.PCSH;
+import net.sourceforge.processdash.ui.lib.DropDownButton;
 import net.sourceforge.processdash.util.FormatUtil;
 
 
@@ -88,6 +96,11 @@ public class DefectLogEditor extends Component
     implements TreeSelectionListener, ListSelectionListener, ActionListener,
                DashHierarchy.Listener, DefectLog.Listener
 {
+    public static final String IMPORT_ACTION_INVALID = "invalid";
+    public static final String IMPORT_ACTION_SEL_PATH = "selectedPath";
+    public static final String IMPORT_ACTION_DEF_PATH = "defectLogPath";
+
+
     /** Class Attributes */
     protected JFrame          frame;
     protected JTree           tree;
@@ -99,6 +112,7 @@ public class DefectLogEditor extends Component
     protected JSplitPane      splitPane;
     protected DataRepository  data;
     protected Vector          currentLog   = new Vector();
+    protected DropDownButton  importButton;
     protected JButton editButton, deleteButton, closeButton, dtsEditButton;
     protected JComboBox dtsSelector;
 //  protected UserWarning     warnUser;
@@ -384,21 +398,26 @@ public class DefectLogEditor extends Component
     }
 
     void applyFilter () {
+        PropertyKey selectedKey = null, defectLogKey = null;
         PropertyKey key = null;
         DefaultMutableTreeNode selected = getSelectedNode();
         String extraPathFilter = null;
         if (selected != null) {
-            key = treeModel.getPropKey (useProps, selected.getPath());
+            key = selectedKey = treeModel.getPropKey (useProps, selected.getPath());
             if (key != null) {
                 String selectedPath = key.path();
                 DefectLogID logid = useProps.defectLog(key, "unimportant");
-                if (logid != null && logid.path != key) {
-                    key = logid.path;
-                    String defectLogPath = key.path();
-                    extraPathFilter = selectedPath.substring(defectLogPath.length()+1);
+                if (logid != null) {
+                    defectLogKey = logid.path;
+                    if (logid.path != key) {
+                        key = logid.path;
+                        String defectLogPath = key.path();
+                        extraPathFilter = selectedPath.substring(defectLogPath.length()+1);
+                    }
                 }
             }
         }
+        updateImportActions(selectedKey, defectLogKey);
         // apply the filter and load the vector (and the table)
         VTableModel model = (VTableModel)table.table.getModel();
         Object[] row = new Object [9];
@@ -552,6 +571,13 @@ public class DefectLogEditor extends Component
         retPanel.add ("Center", table);
 
         JPanel btnPanel = new JPanel(false);
+
+        importButton = createImportButton();
+        if (importButton != null && Settings.isReadWrite()) {
+            btnPanel.add(importButton);
+            btnPanel.add(Box.createHorizontalStrut(100));
+        }
+
                                     // Should only be available if one
                                     // entry is selected
         editButton = new JButton (resources.getString("Edit"));
@@ -578,6 +604,56 @@ public class DefectLogEditor extends Component
         retPanel.add ("South", btnPanel);
 
         return retPanel;
+    }
+
+    private DropDownButton createImportButton() {
+        List importActions = ExtensionManager.getExecutableExtensions(
+                "defect-importer", dashboard);
+        if (importActions.isEmpty())
+            return null;
+
+        DropDownButton result = new DropDownButton(resources
+                .getString("Log.Import_Button"));
+        result.setMainButtonBehavior(DropDownButton.OPEN_DROP_DOWN_MENU);
+
+        for (Iterator i = importActions.iterator(); i.hasNext();) {
+            Action a = (Action) i.next();
+            if (a.getValue(IMPORT_ACTION_INVALID) != null)
+                i.remove();
+            else
+                result.getMenu().add(a);
+        }
+
+        if (result.isEmpty())
+            return null;
+        else
+            return result;
+    }
+
+    private void updateImportActions(PropertyKey selectedKey,
+            PropertyKey defectLogKey) {
+        if (importButton == null)
+            return;
+
+        boolean enable = false;
+        JMenu importMenu = importButton.getMenu();
+        for (int i = 0;  i < importMenu.getItemCount();  i++) {
+            JMenuItem item = importMenu.getItem(i);
+            if (item == null) continue;
+            Action a = item.getAction();
+            if (a == null) continue;
+            updateImportAction(a, selectedKey, defectLogKey);
+            if (a.isEnabled())
+                enable = true;
+        }
+        importButton.setEnabled(enable);
+    }
+    private void updateImportAction(Action a, PropertyKey selectedKey,
+              PropertyKey defectLogKey) {
+        a.putValue(IMPORT_ACTION_SEL_PATH,
+                selectedKey == null ? null : selectedKey.path());
+        a.putValue(IMPORT_ACTION_DEF_PATH,
+                defectLogKey == null ? null : defectLogKey.path());
     }
 
     private void enableButtons(boolean enable)
