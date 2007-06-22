@@ -58,7 +58,7 @@ import javax.swing.event.EventListenerList;
 
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.i18n.Resources;
-import net.sourceforge.processdash.log.DefectLogID;
+import net.sourceforge.processdash.log.defects.DefectLogID;
 import net.sourceforge.processdash.process.ScriptID;
 import net.sourceforge.processdash.templates.TemplateLoader;
 import net.sourceforge.processdash.util.RobustFileWriter;

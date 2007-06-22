@@ -33,8 +33,8 @@ import java.util.Collection;
 import java.util.Iterator;
 
 import net.sourceforge.processdash.hier.DashHierarchy;
-import net.sourceforge.processdash.log.Defect;
-import net.sourceforge.processdash.log.DefectAnalyzer;
+import net.sourceforge.processdash.log.defects.Defect;
+import net.sourceforge.processdash.log.defects.DefectAnalyzer;
 import net.sourceforge.processdash.util.XMLUtils;
 
 public class DefectExporterXMLv1 implements DefectExporter,

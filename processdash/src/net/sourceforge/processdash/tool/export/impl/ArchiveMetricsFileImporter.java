@@ -40,7 +40,7 @@ import java.util.zip.ZipFile;
 import net.sourceforge.processdash.data.ImmutableDoubleData;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.data.repository.InvalidDatafileFormat;
-import net.sourceforge.processdash.log.ImportedDefectManager;
+import net.sourceforge.processdash.log.defects.ImportedDefectManager;
 import net.sourceforge.processdash.log.time.ImportedTimeLogManager;
 import net.sourceforge.processdash.util.XMLUtils;
 

@@ -30,8 +30,8 @@ package net.sourceforge.processdash.ui.web.reports;
 
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.i18n.Translator;
-import net.sourceforge.processdash.log.Defect;
-import net.sourceforge.processdash.log.DefectAnalyzer;
+import net.sourceforge.processdash.log.defects.Defect;
+import net.sourceforge.processdash.log.defects.DefectAnalyzer;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.FormatUtil;
 import net.sourceforge.processdash.util.HTMLUtils;

@@ -38,7 +38,7 @@ import javax.swing.JButton;
 import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.PropertyKey;
-import net.sourceforge.processdash.log.DefectLogID;
+import net.sourceforge.processdash.log.defects.DefectLogID;
 import net.sourceforge.processdash.ui.DashboardIconFactory;
 import net.sourceforge.processdash.ui.help.PCSH;
 

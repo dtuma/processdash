@@ -31,8 +31,8 @@ import java.io.Reader;
 import java.util.LinkedList;
 import java.util.List;
 
-import net.sourceforge.processdash.log.Defect;
-import net.sourceforge.processdash.log.ImportedDefectManager;
+import net.sourceforge.processdash.log.defects.Defect;
+import net.sourceforge.processdash.log.defects.ImportedDefectManager;
 import net.sourceforge.processdash.util.XMLDepthFirstIterator;
 import net.sourceforge.processdash.util.XMLUtils;
 

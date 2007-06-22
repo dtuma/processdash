@@ -23,7 +23,7 @@
 //
 // E-Mail POC:  processdash-devel@lists.sourceforge.net
 
-package net.sourceforge.processdash.log;
+package net.sourceforge.processdash.log.defects;
 
 import java.util.Collections;
 import java.util.Date;

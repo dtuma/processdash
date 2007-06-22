@@ -33,8 +33,8 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import net.sourceforge.processdash.i18n.Translator;
-import net.sourceforge.processdash.log.Defect;
-import net.sourceforge.processdash.log.DefectAnalyzer;
+import net.sourceforge.processdash.log.defects.Defect;
+import net.sourceforge.processdash.log.defects.DefectAnalyzer;
 import net.sourceforge.processdash.process.DefectTypeStandard;
 import net.sourceforge.processdash.util.FormatUtil;
 import net.sourceforge.processdash.util.HTMLUtils;

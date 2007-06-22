@@ -55,6 +55,7 @@ import net.sourceforge.processdash.hier.DashHierarchy.Event;
 import net.sourceforge.processdash.hier.ui.*;
 import net.sourceforge.processdash.i18n.*;
 import net.sourceforge.processdash.log.*;
+import net.sourceforge.processdash.log.defects.DefectAnalyzer;
 import net.sourceforge.processdash.log.time.DashboardTimeLog;
 import net.sourceforge.processdash.log.time.WorkingTimeLog;
 import net.sourceforge.processdash.log.time.TimeLog;

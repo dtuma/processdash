@@ -36,8 +36,8 @@ import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.data.util.ResultSet;
 import net.sourceforge.processdash.i18n.Translator;
-import net.sourceforge.processdash.log.Defect;
-import net.sourceforge.processdash.log.DefectAnalyzer;
+import net.sourceforge.processdash.log.defects.Defect;
+import net.sourceforge.processdash.log.defects.DefectAnalyzer;
 import net.sourceforge.processdash.net.http.WebServer;
 import net.sourceforge.processdash.util.HTMLUtils;
 
