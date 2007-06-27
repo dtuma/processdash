@@ -357,7 +357,14 @@ public class TaskListNavigator implements TaskNavigationSelector.NavMenuUI,
         String tooltip = null;
         if (taskListPath != null && Filter.pathMatches(path, taskListPath)) {
             tooltip = TaskNavigationSelector.prettifyPath(path);
-            path = path.substring(taskListPath.length()+1);
+            if (path.length() > taskListPath.length())
+                path = path.substring(taskListPath.length()+1);
+            else {
+                // the path and the task path are equal!  Just use the final
+                // part of the path in this case.
+                int slashPos = path.lastIndexOf('/');
+                path = path.substring(slashPos + 1);
+            }
         }
         target.setText(TaskNavigationSelector.prettifyPath(path));
         target.setToolTipText(tooltip);
