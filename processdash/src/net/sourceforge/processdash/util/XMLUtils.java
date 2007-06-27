@@ -286,6 +286,12 @@ public class XMLUtils {
             return parseDate(s);
         } catch (Exception exc) { return null; }
     }
+    public static String getAttribute(Element e, String attrName, String def) {
+        String result = e.getAttribute(attrName);
+        if (!hasValue(result))
+            result = def;
+        return result;
+    }
     public static String getTextContents(Element e) {
         if (!e.hasChildNodes()) return null;
 

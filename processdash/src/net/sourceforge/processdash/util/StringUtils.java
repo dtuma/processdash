@@ -533,21 +533,25 @@ public class StringUtils
         return sw.toString();
     }
 
-public static String javaEncode(String s) {
-    StringBuffer result = new StringBuffer();
-    for (int i = 0;   i < s.length();   i++)
-        switch (s.charAt(i)) {
-            case '\b': result.append("\\b"); break;
-            case '\t': result.append("\\t"); break;
-            case '\f': result.append("\\f"); break;
-            case '\r': result.append("\\r"); break;
-            case '\n': result.append("\\n"); break;
-            case '\'': result.append("\\'"); break;
-            case '\"': result.append("\\\""); break;
-            case '\\': result.append("\\\\"); break;
-            default:   result.append(s.charAt(i)); break;
-        }
+    public static String javaEncode(String s) {
+        StringBuffer result = new StringBuffer();
+        for (int i = 0;   i < s.length();   i++)
+            switch (s.charAt(i)) {
+                case '\b': result.append("\\b"); break;
+                case '\t': result.append("\\t"); break;
+                case '\f': result.append("\\f"); break;
+                case '\r': result.append("\\r"); break;
+                case '\n': result.append("\\n"); break;
+                case '\'': result.append("\\'"); break;
+                case '\"': result.append("\\\""); break;
+                case '\\': result.append("\\\\"); break;
+                default:   result.append(s.charAt(i)); break;
+            }
 
-    return result.toString();
-}
+        return result.toString();
+    }
+
+    public static String asString(Object value) {
+        return (value == null ? null : value.toString());
+    }
 }
