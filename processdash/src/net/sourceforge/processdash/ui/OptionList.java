@@ -1,5 +1,5 @@
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
+// Copyright (C) 2003-2007 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -98,12 +98,24 @@ public class OptionList {
     }
 
 
+    /** Create a new option list that is a copy of another.
+     * 
+     * @param list the OptionList to copy
+     */
+    public OptionList(OptionList list) {
+        options = new Vector(list.options);
+        if (list.comments != null)
+            comments = new HashMap(list.comments);
+        if (list.translations != null)
+            translations = new HashMap(list.translations);
+    }
+
+
     public String getAsHTML(String name) {
         StringBuffer result = new StringBuffer();
         result.append("<SELECT NAME='")
             .append(HTMLUtils.escapeEntities(name)).append("'>\n");
         Iterator i = options.iterator();
-        String option;
         while (i.hasNext()) {
             String elem = (String) i.next();
             String trans = null;

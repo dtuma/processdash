@@ -36,15 +36,11 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.text.NumberFormat;
-import java.util.Collections;
 import java.util.Date;
-import java.util.Enumeration;
-import java.util.HashMap;
 import java.util.Hashtable;
-import java.util.Map;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Stack;
-import java.util.StringTokenizer;
-import java.util.Vector;
 
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -63,14 +59,12 @@ import javax.swing.event.DocumentListener;
 
 import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.Settings;
-import net.sourceforge.processdash.data.ListData;
-import net.sourceforge.processdash.data.StringData;
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.log.defects.Defect;
 import net.sourceforge.processdash.log.defects.DefectLog;
+import net.sourceforge.processdash.log.defects.DefectUtil;
 import net.sourceforge.processdash.process.DefectTypeStandard;
-import net.sourceforge.processdash.process.ProcessUtil;
 import net.sourceforge.processdash.ui.DashboardIconFactory;
 import net.sourceforge.processdash.ui.help.PCSH;
 import net.sourceforge.processdash.ui.lib.DecimalField;
@@ -195,17 +189,19 @@ public class DefectDialog extends JDialog
         g.anchor = GridBagConstraints.NORTHWEST;
         g.gridwidth = 1;
 
+        List defectPhases = DefectUtil.getDefectPhases(defectPath.path(),
+                parent);
 
         String defaultRemovalPhase = null;
         if (guessDefaults)
             defaultRemovalPhase = guessRemovalPhase(defectPath);
-        phase_removed = phaseComboBox(defectPath, defaultRemovalPhase);
+        phase_removed = phaseComboBox(defectPhases, defaultRemovalPhase);
 
         String defaultInjectionPhase = null;
         if (guessDefaults && defaultRemovalPhase != null)
-            defaultInjectionPhase =
-                guessInjectionPhase(phase_removed, defaultRemovalPhase);
-        phase_injected = phaseComboBox(defectPath, defaultInjectionPhase);
+            defaultInjectionPhase = DefectUtil.guessInjectionPhase(defectPhases,
+                    defaultRemovalPhase);
+        phase_injected = phaseComboBox(defectPhases, defaultInjectionPhase);
 
         phase_injected.insertItemAt("Before Development", 0);
         phase_injected.addActionListener(this);
@@ -437,53 +433,17 @@ public class DefectDialog extends JDialog
             }
     }
 
-    private JComboBox phaseComboBox(PropertyKey defectPath,
-                                    String selectedChild) {
+    private JComboBox phaseComboBox(List phases, String selectedChild) {
         JComboBox result = new JComboBox();
 
-        int prefixLength = 0;
-
-        Enumeration leafNames = getInheritedPhaseList(defectPath.path());
-        if (leafNames == null) {
-            leafNames = parent.getProperties().getLeafNames(defectPath);
-            prefixLength = defectPath.path().length() + 1;
-        }
-
-        String item = null;
-        while (leafNames.hasMoreElements()) {
-            item = (String) leafNames.nextElement();
-            if (item == null || item.length() <= prefixLength) continue;
-            item = item.substring(prefixLength);
-
-            // This is NOT the right way to do this. A better way would be to
-            // look at the defect flag of each leaf.  Leaves that wanted to
-            // forbid defects could set their flag to false. But this will work...
-            if (item.endsWith("Postmortem") || item.endsWith("Reassessment"))
-                continue;           // don't add to the list.
-            result.addItem(item);
-            if (item.equals(selectedChild))
-                result.setSelectedItem(item);
+        for (Iterator i = phases.iterator(); i.hasNext();) {
+            String phase = (String) i.next();
+            result.addItem(phase);
+            if (phase.equals(selectedChild))
+                result.setSelectedItem(phase);
         }
 
         return result;
-    }
-
-    protected Enumeration getInheritedPhaseList(String defectPath) {
-        Object inheritedPhaseList = parent.getData().getInheritableValue
-            (defectPath, "Effective_Defect_Phase_List");
-        ListData list = null;
-        if (inheritedPhaseList instanceof ListData)
-            list = (ListData) inheritedPhaseList;
-        else if (inheritedPhaseList instanceof StringData)
-            list = ((StringData) inheritedPhaseList).asList();
-
-        if (list == null)
-            return null;
-
-        Vector result = new Vector();
-        for (int i = 0;   i < list.size();   i++)
-            result.add(list.get(i).toString());
-        return result.elements();
     }
 
 
@@ -492,97 +452,10 @@ public class DefectDialog extends JDialog
      */
     private String guessRemovalPhase(PropertyKey defectPath) {
         String phasePath = parent.getCurrentPhase().path();
-
-        // first, check to see if this task has registered an effective phase
-        ProcessUtil pu = new ProcessUtil(parent.getData());
-        String effectivePhase = pu.getEffectivePhase(phasePath, false);
-        if (effectivePhase != null)
-            return effectivePhase;
-
-        // if no effective phase was registered, infer it from the path.  We
-        // don't use the path inference provided by ProcessUtil because we
-        // need to preserve more than just the final path segment. For example,
-        // in the case of a PSP3 project, we need to keep both the cycle name
-        // and the phase name.
-        int prefixLength = defectPath.path().length() + 1;
-        if (phasePath.length() > prefixLength)
-            return phasePath.substring(prefixLength);
-
-        return null;
+        return DefectUtil.guessRemovalPhase(defectPath.path(), phasePath,
+                parent);
     }
 
-    /** Make an educated guess about which injection phase might correspond
-     *  to the given removal phase.
-     *
-     * Currently, this just guesses the phase immediately preceeding the
-     * removal phase.  In the future, it might read a user setting
-     */
-    private String guessInjectionPhase(JComboBox phases, String removalPhase)
-    {
-        String result, mappedGuess, onePhase;
-
-        int pos = removalPhase.lastIndexOf('/');
-        if (pos == -1)
-            mappedGuess = (String) INJ_REM_PAIRS.get(removalPhase);
-        else
-            mappedGuess =
-                (String) INJ_REM_PAIRS.get(removalPhase.substring(pos+1));
-
-        int i = phases.getItemCount();
-        while (i-- > 0)
-            if (removalPhase.equals(phases.getItemAt(i))) break;
-
-        result = null;
-        while (i-- > 0) {
-            onePhase = (String) phases.getItemAt(i);
-            if (phaseMatches(onePhase, mappedGuess))
-                return onePhase;
-            if (result == null &&
-                !onePhase.endsWith(" Review") &&
-                !onePhase.endsWith(" Inspection") &&
-                !onePhase.endsWith(" Inspect") &&
-                !onePhase.endsWith("Compile") &&
-                !onePhase.endsWith("Test"))
-                // remember the first non-quality, non-failure phase
-                // we find before the removalPhase.
-                result = onePhase;
-        }
-        if (result == null)
-            result = removalPhase;
-
-        return result;
-    }
-
-    private boolean phaseMatches(String fullName, String phaseName) {
-        if (fullName == null || phaseName == null) return false;
-
-        int pos = fullName.lastIndexOf('/');
-        if (pos != -1)
-            fullName = fullName.substring(pos+1);
-
-        return fullName.equalsIgnoreCase(phaseName);
-    }
-
-    private static Map INJ_REM_PAIRS;
-    static {
-        HashMap phaseMap = new HashMap();
-        String userSetting = Settings.getVal("defectDialog.phaseMap");
-        if (userSetting != null) {
-            StringTokenizer tok = new StringTokenizer(userSetting, "|");
-            String phasePair, rem, inj;
-            int pos;
-            while (tok.hasMoreTokens()) {
-                phasePair = tok.nextToken();
-                pos = phasePair.indexOf("=>");
-                if (pos != -1) {
-                    inj = phasePair.substring(0, pos).trim();
-                    rem = phasePair.substring(pos+2).trim();
-                    phaseMap.put(rem, inj);
-                }
-            }
-        }
-        INJ_REM_PAIRS = Collections.unmodifiableMap(phaseMap);
-    }
 
     private void hide_popups() {
         defect_type.hidePopup();

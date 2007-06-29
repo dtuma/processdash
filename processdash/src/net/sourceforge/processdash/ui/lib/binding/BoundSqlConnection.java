@@ -33,12 +33,11 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 
 import net.sourceforge.processdash.util.Base64;
-import net.sourceforge.processdash.util.ObservableMap;
 import net.sourceforge.processdash.util.StringUtils;
 
 import org.w3c.dom.Element;
 
-public class BoundSqlConnection implements BoundForm.Disposable, ErrorTokens {
+public class BoundSqlConnection implements BoundMap.Disposable, ErrorTokens {
 
     private static final String NO_PASSWORD_TOKEN = "[none]";
 
@@ -59,7 +58,7 @@ public class BoundSqlConnection implements BoundForm.Disposable, ErrorTokens {
 
     protected String password;
 
-    protected ObservableMap map;
+    protected BoundMap map;
 
     protected String destPropName;
 
@@ -71,7 +70,7 @@ public class BoundSqlConnection implements BoundForm.Disposable, ErrorTokens {
 
     protected Connection connection;
 
-    public BoundSqlConnection(ObservableMap map, Element xml) {
+    public BoundSqlConnection(BoundMap map, Element xml) {
         this(map, xml.getAttribute("id"), //
                 xml.getAttribute("url"), //
                 xml.getAttribute("username"), //
@@ -83,7 +82,7 @@ public class BoundSqlConnection implements BoundForm.Disposable, ErrorTokens {
 
     }
 
-    public BoundSqlConnection(ObservableMap map, String destProp,
+    public BoundSqlConnection(BoundMap map, String destProp,
             String jdbcURL, String username, String usernameProp,
             String password, String passwordProp, String unavailableMsg) {
         this.map = map;
@@ -180,7 +179,9 @@ public class BoundSqlConnection implements BoundForm.Disposable, ErrorTokens {
                     password);
             setError(null, ErrorData.NO_ERROR);
             return;
-        } catch (SQLException e) {}
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
 
         // see if a network connection appears to be available.
         try {
@@ -195,7 +196,7 @@ public class BoundSqlConnection implements BoundForm.Disposable, ErrorTokens {
     }
 
     protected void setMissingAttrError(String attrName, String errorToken) {
-        ErrorData errorData = BoundForm.getErrorDataForAttr(map, attrName);
+        ErrorData errorData = map.getErrorDataForAttr(attrName);
         if (errorData != null)
             setError(errorData.getError(), errorData.getSeverity());
         else

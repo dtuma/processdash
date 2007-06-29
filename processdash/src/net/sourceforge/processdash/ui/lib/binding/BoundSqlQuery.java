@@ -42,7 +42,6 @@ import java.util.regex.Pattern;
 
 import net.sourceforge.processdash.ui.lib.SwingWorker;
 import net.sourceforge.processdash.ui.lib.binding.BoundSqlConnection.ConnectionSource;
-import net.sourceforge.processdash.util.ObservableMap;
 import net.sourceforge.processdash.util.SqlResultData;
 import net.sourceforge.processdash.util.XMLUtils;
 
@@ -50,7 +49,7 @@ import org.w3c.dom.Element;
 
 public class BoundSqlQuery implements ErrorTokens {
 
-    protected ObservableMap map;
+    protected BoundMap map;
 
     protected String destPropName;
 
@@ -67,7 +66,7 @@ public class BoundSqlQuery implements ErrorTokens {
             .getName());
 
 
-    public BoundSqlQuery(ObservableMap map, Element xml) {
+    public BoundSqlQuery(BoundMap map, Element xml) {
         String destPropName = xml.getAttribute("id");
         String connPropName = XMLUtils.getAttribute(xml, "connection",
                 BoundSqlConnection.DEFAULT_ID);
@@ -80,12 +79,12 @@ public class BoundSqlQuery implements ErrorTokens {
         init(map, destPropName, connPropName, query, emptyMessage);
     }
 
-    public BoundSqlQuery(ObservableMap map, String destPropName,
+    public BoundSqlQuery(BoundMap map, String destPropName,
             String connectionPropName, String query, String emptyMessage) {
         init(map, destPropName, connectionPropName, query, emptyMessage);
     }
 
-    protected void init(ObservableMap map, String destPropName,
+    protected void init(BoundMap map, String destPropName,
             String connectionPropName, String query, String emptyMessage) {
         this.map = map;
         this.destPropName = destPropName;
@@ -134,8 +133,7 @@ public class BoundSqlQuery implements ErrorTokens {
 
             if (value == null) {
                 isNullPresent = true;
-                String missing = BoundForm.getErrorForMissingAttr(map,
-                        parameterNames[i]);
+                String missing = map.getErrorForMissingAttr(parameterNames[i]);
                 if (missing != null)
                     errorData = new ErrorValue(missing, MISSING_DATA_SEVERITY);
             }
@@ -174,7 +172,7 @@ public class BoundSqlQuery implements ErrorTokens {
             // succession. To avoid churn, wait a moment and ensure that
             // no additional values have arrived before we do our work.
             try {
-                Thread.sleep(300);
+                Thread.sleep(200);
             } catch (InterruptedException ie) {}
             if (currentLoader != this)
                 return null;

@@ -1,4 +1,4 @@
-// Copyright (C) 1999-2006 Tuma Solutions, LLC
+// Copyright (C) 1999-2007 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -69,6 +69,20 @@ public class DefectLog {
         this.dataPrefix = dataPath + "/";
         this.data = data;
         this.parent = dash;
+    }
+
+    /** Find the existing defect in the log with the given ID.
+     * 
+     * @param id the ID number of the defect to find.
+     * @return a matching defect, or null if none was found.
+     */
+    public synchronized Defect getDefect(String id) {
+        Defect defectsRead[] = readDefects();
+        int pos = findDefect(defectsRead, id);
+        if (pos == -1)
+            return null;
+        else
+            return defectsRead[pos];
     }
 
     /** Save data for the given defect to the defect log.

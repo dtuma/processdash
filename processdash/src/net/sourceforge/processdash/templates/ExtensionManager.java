@@ -183,6 +183,22 @@ public class ExtensionManager {
         }
     }
 
+    static ClassLoader getExtensionClassLoader(Element configElement) {
+        if (configElement == null)
+            throw new NullPointerException("configElement must not be null");
+
+        Document configDoc = configElement.getOwnerDocument();
+        ExtensionData metaData = (ExtensionData) extensionXmlDocs
+                .get(configDoc);
+        if (metaData == null)
+            throw new IllegalArgumentException("configElement does not belong "
+                    + "to any registered template.xml configuration document");
+
+        ClassLoader loader = getClassLoader(metaData.baseUrl);
+        return loader;
+    }
+
+
 
     public static String getDebugDescriptionOfSource(Element configElement) {
         if (configElement == null) return null;

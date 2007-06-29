@@ -32,24 +32,33 @@ import java.beans.EventHandler;
 
 import javax.swing.JTextField;
 
-import net.sourceforge.processdash.util.ObservableMap;
 import net.sourceforge.processdash.util.StringUtils;
+import net.sourceforge.processdash.util.XMLUtils;
 
 import org.w3c.dom.Element;
 
 public class BoundTextField extends JTextField {
 
-    private ObservableMap map;
+    private BoundMap map;
 
     private String propertyName;
 
-    public BoundTextField(ObservableMap map, Element xml) {
-        this(map, xml.getAttribute("id"));
+    private boolean allowBlank;
+
+    public BoundTextField(BoundMap map, Element xml) {
+        this(map, xml.getAttribute("id"),
+                XMLUtils.getXMLInt(xml, "width"),
+                "true".equalsIgnoreCase(xml.getAttribute("allowBlank")));
     }
 
-    public BoundTextField(ObservableMap map, String attributeName) {
+    public BoundTextField(BoundMap map, String attributeName, int width,
+            boolean allowBlank) {
+        super(width <= 0 ? 20 : width);
+        setMinimumSize(getPreferredSize());
+
         this.map = map;
         this.propertyName = attributeName;
+        this.allowBlank = allowBlank;
 
         map.addPropertyChangeListener(attributeName, this, "updateFromMap");
 
@@ -70,7 +79,10 @@ public class BoundTextField extends JTextField {
     }
 
     public void updateFromText() {
-        map.put(propertyName, getText());
+        String text = getText();
+        if (!allowBlank && !StringUtils.hasValue(text))
+            text = null;
+        map.put(propertyName, text);
     }
 
 }

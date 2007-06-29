@@ -33,22 +33,21 @@ import java.beans.PropertyChangeListener;
 
 import javax.swing.JPasswordField;
 
-import net.sourceforge.processdash.util.ObservableMap;
 import net.sourceforge.processdash.util.StringUtils;
 
 import org.w3c.dom.Element;
 
 public class BoundPasswordField extends JPasswordField {
 
-    private ObservableMap map;
+    private BoundMap map;
 
     private String propertyName;
 
-    public BoundPasswordField(ObservableMap map, Element xml) {
+    public BoundPasswordField(BoundMap map, Element xml) {
         this(map, xml.getAttribute("id"));
     }
 
-    public BoundPasswordField(ObservableMap map, String attributeName) {
+    public BoundPasswordField(BoundMap map, String attributeName) {
         this.map = map;
         this.propertyName = attributeName;
 

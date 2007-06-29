@@ -37,7 +37,6 @@ import javax.swing.JComboBox;
 import javax.swing.JList;
 import javax.swing.plaf.basic.BasicComboBoxRenderer;
 
-import net.sourceforge.processdash.util.ObservableMap;
 import net.sourceforge.processdash.util.StringUtils;
 import net.sourceforge.processdash.util.XMLUtils;
 
@@ -45,7 +44,7 @@ import org.w3c.dom.Element;
 
 public class BoundComboBox extends JComboBox {
 
-    private ObservableMap map;
+    private BoundMap map;
 
     private String propertyName;
 
@@ -60,7 +59,7 @@ public class BoundComboBox extends JComboBox {
     private Color implicitColor;
 
 
-    public BoundComboBox(ObservableMap map, Element xml) {
+    public BoundComboBox(BoundMap map, Element xml) {
         this(map, xml.getAttribute("id"), //
                 xml.getAttribute("choices"), //
                 XMLUtils.getAttribute(xml, "choiceValue", "VALUE"), //
@@ -68,12 +67,12 @@ public class BoundComboBox extends JComboBox {
                 xml.getAttribute("selectionPrompt"));
     }
 
-    public BoundComboBox(ObservableMap map, String propertyName,
+    public BoundComboBox(BoundMap map, String propertyName,
             String listName) {
         this(map, propertyName, listName, "VALUE", "DISPLAY", null);
     }
 
-    public BoundComboBox(ObservableMap map, String propertyName,
+    public BoundComboBox(BoundMap map, String propertyName,
             String listName, String listIdName, String listDisplayName,
             String selectionPrompt) {
         this.map = map;
@@ -135,9 +134,9 @@ public class BoundComboBox extends JComboBox {
 
         Object listObj = map.get(listName);
         if (ErrorValue.isRealError(listObj) || !(listObj instanceof List)) {
-            ErrorData errorData = BoundForm.getErrorDataForAttr(map, listName);
+            ErrorData errorData = map.getErrorDataForAttr(listName);
             if (errorData != null) {
-                Color c = BoundForm.getErrorColor(map, errorData);
+                Color c = map.getErrorColor(errorData);
                 addItem(new MessageItem(null, errorData.getError(), c));
                 setSelectedIndex(0);
                 updateMapFromValue();

@@ -31,14 +31,13 @@ import java.beans.PropertyChangeListener;
 
 import javax.swing.JCheckBox;
 
-import org.w3c.dom.Element;
-
-import net.sourceforge.processdash.util.ObservableMap;
 import net.sourceforge.processdash.util.XMLUtils;
+
+import org.w3c.dom.Element;
 
 public class BoundCheckBox extends JCheckBox {
 
-    private ObservableMap map;
+    private BoundMap map;
 
     private String propertyName;
 
@@ -46,7 +45,7 @@ public class BoundCheckBox extends JCheckBox {
 
     private Object falseValue;
 
-    public BoundCheckBox(ObservableMap map, Element xml) {
+    public BoundCheckBox(BoundMap map, Element xml) {
         String propertyName = xml.getAttribute("id");
 
         Object trueValue = xml.getAttribute("trueValue");
@@ -60,16 +59,16 @@ public class BoundCheckBox extends JCheckBox {
         init(map, propertyName, trueValue, falseValue);
     }
 
-    public BoundCheckBox(ObservableMap map, String propertyName) {
+    public BoundCheckBox(BoundMap map, String propertyName) {
         this(map, propertyName, Boolean.TRUE, Boolean.FALSE);
     }
 
-    public BoundCheckBox(ObservableMap map, String propertyName,
+    public BoundCheckBox(BoundMap map, String propertyName,
             Object trueValue, Object falseValue) {
         init(map, propertyName, trueValue, falseValue);
     }
 
-    protected void init(ObservableMap map, String propertyName,
+    protected void init(BoundMap map, String propertyName,
             Object trueValue, Object falseValue) {
         this.map = map;
         this.propertyName = propertyName;

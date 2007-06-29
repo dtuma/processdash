@@ -31,7 +31,6 @@ import java.beans.PropertyChangeListener;
 
 import javax.swing.JLabel;
 
-import net.sourceforge.processdash.util.ObservableMap;
 import net.sourceforge.processdash.util.SqlResultData;
 import net.sourceforge.processdash.util.StringUtils;
 
@@ -39,17 +38,17 @@ import org.w3c.dom.Element;
 
 public class BoundLabel extends JLabel {
 
-    private ObservableMap map;
+    private BoundMap map;
 
     private String propertyName;
 
     private Color normalColor;
 
-    public BoundLabel(ObservableMap map, Element xml) {
+    public BoundLabel(BoundMap map, Element xml) {
         this(map, xml.getAttribute("id"));
     }
 
-    public BoundLabel(ObservableMap map, String attributeName) {
+    public BoundLabel(BoundMap map, String attributeName) {
         this.map = map;
         this.propertyName = attributeName;
         this.normalColor = getForeground();
@@ -62,9 +61,9 @@ public class BoundLabel extends JLabel {
     }
 
     public void updateFromMap() {
-        ErrorData errorData = BoundForm.getErrorDataForAttr(map, propertyName);
+        ErrorData errorData = map.getErrorDataForAttr(propertyName);
         if (errorData != null) {
-            setForeground(BoundForm.getErrorColor(map, errorData));
+            setForeground(map.getErrorColor(errorData));
             setText(errorData.getError());
             return;
         }
