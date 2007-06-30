@@ -2,7 +2,9 @@ package teamdash.templates.setup;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -31,8 +33,15 @@ public class SyncScanner implements Runnable {
 
     private Map syncTasks;
 
+
+    private static final Vector SCANNER_OBJECTS = new Vector();
+
     private static final Logger logger = Logger.getLogger(SyncScanner.class
             .getName());
+
+    public SyncScanner() {
+        SCANNER_OBJECTS.add(this);
+    }
 
     public void setDashboardContext(DashboardContext context) {
         this.context = context;
@@ -50,19 +59,25 @@ public class SyncScanner implements Runnable {
 
     public void run() {
         if (Settings.isReadWrite())
-            lookForSyncOperations(PropertyKey.ROOT);
+            lookForSyncOperations(PropertyKey.ROOT, true);
     }
 
-    private void lookForSyncOperations(PropertyKey node) {
+    private void lookForSyncOperations(PropertyKey node, boolean recurse) {
         DashHierarchy hier = context.getHierarchy();
         String templateID = hier.getID(node);
         SyncTask task = (SyncTask) syncTasks.get(templateID);
         if (task != null)
             task.run(node.path());
-        else {
+        else if (recurse) {
             for (int i = hier.getNumChildren(node); i-- > 0;)
-                lookForSyncOperations(hier.getChildKey(node, i));
+                lookForSyncOperations(hier.getChildKey(node, i), true);
         }
+    }
+
+    private void lookForSyncOperation(String path) {
+        PropertyKey key = context.getHierarchy().findExistingKey(path);
+        if (Settings.isReadWrite() && key != null)
+            lookForSyncOperations(key, false);
     }
 
 
@@ -127,6 +142,14 @@ public class SyncScanner implements Runnable {
 
         public void run() {
             Browser.launch(uri);
+        }
+    }
+
+    public static void requestScan(String path) {
+        logger.log(Level.FINE, "Requesting scan for {0}", path);
+        for (Iterator i = SCANNER_OBJECTS.iterator(); i.hasNext();) {
+            SyncScanner scanner = (SyncScanner) i.next();
+            scanner.lookForSyncOperation(path);
         }
     }
 

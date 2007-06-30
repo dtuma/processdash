@@ -116,6 +116,15 @@ public class sync extends TinyCGIBase {
         } catch (IOException ioe) {
             showErrorPage("generalError", ioe.getMessage());
         }
+
+        // certain operations (such as saving the WBS) trigger a sync to run
+        // in the background.  For various reasons, that sync may require user
+        // involvement to finish all the work needed.  After the code above
+        // has finished as much work as possible, ask the SyncScanner to alert
+        // the user if their involvement is needed to finish.
+        if (projectRoot != null && parameters.containsKey(RUN_PARAM)
+                && parameters.containsKey(BACKGROUND_PARAM))
+            SyncScanner.requestScan(projectRoot);
     }
 
 
@@ -175,10 +184,6 @@ public class sync extends TinyCGIBase {
         // ensure we are within a team project.
         if (projectRoot == null)
             signalError(NOT_TEAM_PROJECT);
-
-        // ensure that the hierarchy editor is not open.
-        if (DashController.isHierarchyEditorOpen())
-            signalError(HIER_EDITOR_OPEN);
 
         DataRepository data = getDataRepository();
 
@@ -259,10 +264,14 @@ public class sync extends TinyCGIBase {
     private void synchronize(HierarchySynchronizer synch)
         throws HierarchyAlterationException, IOException
     {
+        // ensure that the hierarchy editor is not open.
+        if (DashController.isHierarchyEditorOpen())
+            signalError(HIER_EDITOR_OPEN);
+
         if (!isTeam)
             loadPermissionData(synch);
 
-        boolean bg = parameters.containsKey("bg");
+        boolean bg = parameters.containsKey(BACKGROUND_PARAM);
         try {
             if (bg) ThreadThrottler.beginThrottling(0.2);
             synch.setWhatIfMode(false);
@@ -560,6 +569,7 @@ public class sync extends TinyCGIBase {
     private static final String INITIALS_MISSING = "initialsMissing";
     private static final String HIER_EDITOR_OPEN = "hierEditorOpen";
 
+    private static final String BACKGROUND_PARAM = "bg";
     private static final String RUN_PARAM = "run";
     private static final String SAVE_PERMS = "savePerms";
     private static final String COMPLETE_PREFIX = "COMPLETE:";
