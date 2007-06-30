@@ -106,7 +106,6 @@ public class WebServer implements ContentSource {
     DataRepository data = null;
 
     Hashtable cgiLoaderMap = new Hashtable();
-    Hashtable addOnLoaderMap = new Hashtable();
     Hashtable cgiCache = new Hashtable();
     MD5 md5 = new MD5();
     private static final int ALLOW_REMOTE_NEVER = 0;
@@ -201,18 +200,13 @@ public class WebServer implements ContentSource {
     }
 
     private ClassLoader getParentClassLoader(String url) {
-        if (!url.startsWith("jar:")) return null;
-        int pos = url.lastIndexOf("!/Templates");
-        if (pos == -1) return null;
-        url = url.substring(4, pos);
-        synchronized (addOnLoaderMap) {
-            ClassLoader result = (ClassLoader) addOnLoaderMap.get(url);
-            if (result == null) try {
-                result = new URLClassLoader(new URL[] { new URL(url) });
-                addOnLoaderMap.put(url, result);
+        if (url.startsWith("jar:")) {
+            try {
+                return TemplateLoader.getTemplateClassLoader(new URL(url));
             } catch (Exception e) {}
-            return result;
         }
+
+        return null;
     }
 
     public ResourcePool getCGIPool(String path) {
@@ -1683,7 +1677,7 @@ public class WebServer implements ContentSource {
     /** Clear the classloader caches, so classes will be reloaded.
      */
     public void clearClassLoaderCaches() {
-        addOnLoaderMap.clear();
+        TemplateLoader.clearTemplateClassLoaderCache();
         cgiLoaderMap.clear();
         cgiCache.clear();
     }

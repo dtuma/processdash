@@ -27,7 +27,6 @@ package net.sourceforge.processdash.templates;
 
 import java.lang.reflect.Method;
 import java.net.URL;
-import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.Iterator;
@@ -165,7 +164,8 @@ public class ExtensionManager {
                     + configElement.getTagName() + "' tag");
 
         try {
-            ClassLoader loader = getClassLoader(metaData.baseUrl);
+            ClassLoader loader = TemplateLoader
+                    .getTemplateClassLoader(metaData.baseUrl);
             Class clazz = loader.loadClass(className);
             Object result = clazz.newInstance();
             initializeExecutableExtension(result, configElement, attrName,
@@ -194,7 +194,8 @@ public class ExtensionManager {
             throw new IllegalArgumentException("configElement does not belong "
                     + "to any registered template.xml configuration document");
 
-        ClassLoader loader = getClassLoader(metaData.baseUrl);
+        ClassLoader loader = TemplateLoader
+                .getTemplateClassLoader(metaData.baseUrl);
         return loader;
     }
 
@@ -209,25 +210,6 @@ public class ExtensionManager {
             return null;
         else
             return metaData.getDescription();
-    }
-
-
-    private static Map CLASSLOADERS = new Hashtable();
-
-    private static ClassLoader getClassLoader(URL baseUrl) {
-        if (baseUrl == null)
-            return ExtensionManager.class.getClassLoader();
-
-        ClassLoader result;
-        synchronized (CLASSLOADERS) {
-            result = (ClassLoader) CLASSLOADERS.get(baseUrl);
-            if (result == null) {
-                result = new URLClassLoader(new URL[] { baseUrl });
-                CLASSLOADERS.put(baseUrl, result);
-            }
-        }
-
-        return result;
     }
 
     private static void initializeExecutableExtension(Object obj, Element xml,

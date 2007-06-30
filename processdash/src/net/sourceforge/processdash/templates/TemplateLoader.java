@@ -33,6 +33,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLClassLoader;
 import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -93,6 +94,10 @@ public class TemplateLoader {
         new DashboardPermission("templateLoader.addTemplateJar");
     private static final DashboardPermission GET_TEMPLATE_URLS_PERMISSION =
         new DashboardPermission("templateLoader.getTemplateURLs");
+    private static final DashboardPermission GET_CLASSLOADER_PERMISSION =
+        new DashboardPermission("templateLoader.getTemplateClassloader");
+    private static final DashboardPermission CLEAR_CLASSLOADER_PERMISSION =
+        new DashboardPermission("templateLoader.clearTemplateClassloader");
 
     private static long templateTimestamp = 0;
 
@@ -805,6 +810,55 @@ public class TemplateLoader {
 
         return null;
     }
+
+
+    /** Returns a classloader capable of loading classes from the given
+     * template URL.
+     * 
+     * @param baseUrl the URL of a JAR file in the template search path.
+     * @return a classloader for loading classes from that JAR.  Repeated
+     *    calls to this method for the same JAR will return an identical
+     *    classloader object.
+     */
+    public static ClassLoader getTemplateClassLoader(URL baseUrl) {
+        GET_CLASSLOADER_PERMISSION.checkPermission();
+
+        if (baseUrl == null)
+            return TemplateLoader.class.getClassLoader();
+
+        // if we've been passed a url inside a template JAR file, normalize
+        // it to the URL of the JAR itself.
+        String urlStr = baseUrl.toString();
+        if (urlStr.startsWith("jar:")) {
+            int exclPos = urlStr.indexOf("!/");
+            if (exclPos == -1) return null;
+            urlStr = urlStr.substring(4, exclPos);
+            try {
+                baseUrl = new URL(urlStr);
+            } catch (Exception e) { return null; }
+        }
+
+        // TODO: check to ensure that this URL is part of our search path?
+        // Would that be beneficial or a bad idea?
+
+        ClassLoader result;
+        synchronized (TEMPLATE_CLASSLOADERS) {
+            result = (ClassLoader) TEMPLATE_CLASSLOADERS.get(baseUrl);
+            if (result == null) {
+                result = new URLClassLoader(new URL[] { baseUrl });
+                TEMPLATE_CLASSLOADERS.put(baseUrl, result);
+            }
+        }
+
+        return result;
+    }
+
+    public static void clearTemplateClassLoaderCache() {
+        CLEAR_CLASSLOADER_PERMISSION.checkPermission();
+        TEMPLATE_CLASSLOADERS.clear();
+    }
+
+    private static Map TEMPLATE_CLASSLOADERS = new Hashtable();
 
 
     /** Looks through the various loaded templates, and determines which
