@@ -1,4 +1,4 @@
-// Copyright (C) 1999-2006 Tuma Solutions, LLC
+// Copyright (C) 1999-2007 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -30,6 +30,7 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.PrintJob;
 import java.awt.event.ActionEvent;
@@ -60,12 +61,14 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
+import javax.swing.JTable;
 import javax.swing.JTree;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
@@ -560,6 +563,9 @@ public class DefectLogEditor extends Component
              new boolean[] {false, false, false, // no columns editable
                             false, false, false,
                             false, false, false});
+        DefectCellRenderer rend = new DefectCellRenderer();
+        for (int col = 2;  col < 5;  col++)
+            table.table.getColumnModel().getColumn(col).setCellRenderer(rend);
         table.table.setRowSelectionAllowed (false);
         table.table.getSelectionModel().addListSelectionListener(this);
         table.table.addMouseListener(new MouseAdapter() {
@@ -604,6 +610,33 @@ public class DefectLogEditor extends Component
         retPanel.add ("South", btnPanel);
 
         return retPanel;
+    }
+
+    private class DefectCellRenderer extends DefaultTableCellRenderer {
+        private Font boldFont = null;
+
+        public Component getTableCellRendererComponent(JTable table,
+                    Object value, boolean isSelected, boolean hasFocus, int row,
+                    int column) {
+            if (value == null || value.toString().trim().length() == 0)
+                value = Defect.UNSPECIFIED;
+
+            Component result = super.getTableCellRendererComponent(table,
+                        value, isSelected, hasFocus, row, column);
+
+            if (Defect.UNSPECIFIED.equals(value)) {
+                result.setForeground(Color.RED);
+                if (boldFont == null)
+                    boldFont = table.getFont().deriveFont(Font.BOLD);
+                result.setFont(boldFont);
+            } else {
+                result.setForeground(Color.BLACK);
+                result.setFont(table.getFont());
+            }
+
+            return result;
+        }
+
     }
 
     private DropDownButton createImportButton() {

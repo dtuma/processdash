@@ -1,5 +1,5 @@
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
+// Copyright (C) 1998-2007 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -33,6 +33,9 @@ import net.sourceforge.processdash.util.FormatUtil;
 import net.sourceforge.processdash.util.XMLUtils;
 
 public class Defect {
+
+    public static final String UNSPECIFIED = "Unspecified";
+
     public Date date;
     public String number, defect_type, phase_injected, phase_removed,
                   fix_time, fix_defect, description;
