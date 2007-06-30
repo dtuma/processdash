@@ -33,6 +33,7 @@ import java.io.FileInputStream;
 import java.io.InputStream;
 import java.net.InetAddress;
 import java.net.URL;
+import java.net.URLConnection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -59,6 +60,7 @@ import net.sourceforge.processdash.log.defects.DefectLog;
 import net.sourceforge.processdash.log.defects.DefectUtil;
 import net.sourceforge.processdash.net.http.WebServer;
 import net.sourceforge.processdash.templates.SqlDriverManager;
+import net.sourceforge.processdash.templates.TemplateLoader;
 import net.sourceforge.processdash.ui.DashboardIconFactory;
 import net.sourceforge.processdash.ui.lib.binding.BoundForm;
 import net.sourceforge.processdash.util.StringUtils;
@@ -77,7 +79,6 @@ public class DefectImportForm extends BoundForm {
     private JFrame frame;
     private Map persistentValues;
 
-    public static final String UNSPECIFIED = "Unspecified";
     private static final String SETTING_ATTR = "setting";
 
 
@@ -99,6 +100,7 @@ public class DefectImportForm extends BoundForm {
         setResources(resources);
 
         Document spec = openSpecDocument(configElement);
+        checkPackageRequirements(spec);
         if (!StringUtils.hasValue(this.formId))
             this.formId = spec.getDocumentElement().getAttribute("id");
 
@@ -140,11 +142,16 @@ public class DefectImportForm extends BoundForm {
                 in = new FileInputStream(href);
 
             // check for URL
-            else if (href.indexOf(":/") != -1)
-                in = new URL(href).openStream();
+            else if (href.indexOf(":/") != -1) {
+                URLConnection conn = new URL(href).openConnection();
+                String version = TemplateLoader.getPackageVersion("pspdash");
+                if (StringUtils.hasValue(version))
+                    conn.setRequestProperty("X-Process-Dashboard-Version",
+                            version);
+                in = conn.getInputStream();
 
             // default: spec is packaged in dashboard template area
-            else {
+            } else {
                 if (href.startsWith("/"))
                     href = WebServer.DASHBOARD_PROTOCOL + ":" + href;
                 else
@@ -174,6 +181,14 @@ public class DefectImportForm extends BoundForm {
             AbortImport.showErrorAndAbort("Cannot_Read_Spec", href);
             return null; // this line will not be reached
         }
+    }
+
+
+    private void checkPackageRequirements(Document spec) throws AbortImport {
+        String requires = spec.getDocumentElement().getAttribute("requires");
+        if (!TemplateLoader.meetsPackageRequirement(requires))
+            AbortImport.showErrorAndAbort("Version_Mismatch",
+                    TemplateLoader.getPackageVersion("pspdash"));
     }
 
 
@@ -228,10 +243,12 @@ public class DefectImportForm extends BoundForm {
 
 
     private void createValueMappers() {
+        put(DefaultTypeSelector.TYPE_ID, Defect.UNSPECIFIED);
         new DefectFieldMapper(this, //
                 BoundDefectData.getMapperId(BoundDefectData.TYPE), //
                 "FIXME-type-translator", //
-                DefaultTypeSelector.TYPE_ID);
+                DefaultTypeSelector.TYPE_ID, //
+                null);
 
         List defectPhases = DefectUtil.getDefectPhases(defectLogPath,
                 dashboardContext);
@@ -240,24 +257,26 @@ public class DefectImportForm extends BoundForm {
         String injectionPhase = DefectUtil.guessInjectionPhase(defectPhases,
                 removalPhase);
 
-        defectPhases.add(0, UNSPECIFIED);
+        defectPhases.add(0, Defect.UNSPECIFIED);
         put(DefaultPhaseSelector.PHASE_LIST_ID, defectPhases);
 
         if (!defectPhases.contains(injectionPhase))
-            injectionPhase = UNSPECIFIED;
+            injectionPhase = Defect.UNSPECIFIED;
         put(DefaultPhaseSelector.INJ_PHASE_ID, injectionPhase);
         new DefectFieldMapper(this, //
                 BoundDefectData.getMapperId(BoundDefectData.INJECTED), //
-                "FIXME-inj-translator", // FIXME
-                DefaultPhaseSelector.INJ_PHASE_ID);
+                "FIXME-inj-translator", //
+                DefaultPhaseSelector.INJ_PHASE_ID, //
+                defectPhases);
 
         if (!defectPhases.contains(removalPhase))
-            removalPhase = UNSPECIFIED;
+            removalPhase = Defect.UNSPECIFIED;
         put(DefaultPhaseSelector.REM_PHASE_ID, removalPhase);
         new DefectFieldMapper(this, //
                 BoundDefectData.getMapperId(BoundDefectData.REMOVED), //
                 "FIXME-rem-translator", //
-                DefaultPhaseSelector.REM_PHASE_ID);
+                DefaultPhaseSelector.REM_PHASE_ID, //
+                defectPhases);
     }
 
     public Object addFormElement(Element xml, String type) {
@@ -368,7 +387,7 @@ public class DefectImportForm extends BoundForm {
     }
 
     private static String merge(String a, String b) {
-        if (a == null || "".equals(a) || UNSPECIFIED.equals(a))
+        if (a == null || "".equals(a) || Defect.UNSPECIFIED.equals(a))
             return b;
         else
             return a;

@@ -33,6 +33,7 @@ import javax.swing.JComboBox;
 import javax.swing.JPanel;
 
 import net.sourceforge.processdash.i18n.Translator;
+import net.sourceforge.processdash.log.defects.Defect;
 import net.sourceforge.processdash.process.DefectTypeStandard;
 import net.sourceforge.processdash.ui.OptionList;
 import net.sourceforge.processdash.ui.lib.binding.BoundMap;
@@ -55,16 +56,15 @@ public class DefaultTypeSelector extends JPanel {
                 form.getDashContext().getData());
         OptionList ol = new OptionList(dts);
 
-        ol.options.insertElementAt(DefectImportForm.UNSPECIFIED, 0);
+        ol.options.insertElementAt(Defect.UNSPECIFIED, 0);
 
         if (ol.translations != null)
-            ol.translations.put(DefectImportForm.UNSPECIFIED, Translator
-                    .translate(DefectImportForm.UNSPECIFIED));
+            ol.translations.put(Defect.UNSPECIFIED, Translator
+                    .translate(Defect.UNSPECIFIED));
 
         if (ol.comments != null)
-            ol.comments.put(DefectImportForm.UNSPECIFIED,
-                    DefectImportForm.resources
-                            .getString("Unspecified_Type_Comment"));
+            ol.comments.put(Defect.UNSPECIFIED, DefectImportForm.resources
+                    .getString("Unspecified_Type_Comment"));
 
         comboBox = ol.getAsComboBox();
         comboBox.setSelectedIndex(0);

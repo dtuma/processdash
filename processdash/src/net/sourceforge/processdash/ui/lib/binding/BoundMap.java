@@ -33,6 +33,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.ResourceBundle;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import net.sourceforge.processdash.util.ObservableMap;
 import net.sourceforge.processdash.util.StringUtils;
@@ -51,6 +53,10 @@ public class BoundMap extends ObservableMap {
     protected static final String ERROR_RESOURCE_PREFIX = "Errors.";
 
     protected static final String DATA_MISSING = "Data_Missing";
+
+    private static final Logger logger = Logger.getLogger(BoundMap.class
+            .getName());
+
 
 
     protected Map elementTypes;
@@ -133,8 +139,10 @@ public class BoundMap extends ObservableMap {
     public Object addFormElement(Element xml, String type) {
 
         Constructor cstr = (Constructor) elementTypes.get(type);
-        if (cstr == null)
+        if (cstr == null) {
+            logger.log(Level.WARNING, "Unrecognized bound-item type {0}", type);
             return null;
+        }
 
         try {
             Object[] params = new Object[] { this, xml };
@@ -142,7 +150,8 @@ public class BoundMap extends ObservableMap {
             addFormElement(formElement, xml);
             return formElement;
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.log(Level.SEVERE, "Unable to create bound-item of type "
+                    + type, e);
             return null;
         }
     }

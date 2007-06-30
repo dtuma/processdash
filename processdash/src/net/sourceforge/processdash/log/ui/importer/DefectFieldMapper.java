@@ -25,6 +25,9 @@
 
 package net.sourceforge.processdash.log.ui.importer;
 
+import java.util.Collection;
+import java.util.Iterator;
+
 import net.sourceforge.processdash.ui.lib.binding.BoundMap;
 import net.sourceforge.processdash.util.StringMapper;
 import net.sourceforge.processdash.util.StringUtils;
@@ -32,6 +35,7 @@ import net.sourceforge.processdash.util.StringUtils;
 public class DefectFieldMapper {
 
     private BoundMap map;
+    private Collection allowedValues;
     private String destProperty;
 
     private String translationId;
@@ -41,11 +45,12 @@ public class DefectFieldMapper {
     private String defaultValue;
 
     public DefectFieldMapper(BoundMap map, String destProperty,
-            String translationId, String defaultValId) {
+            String translationId, String defaultValId, Collection allowedValues) {
         this.map = map;
         this.destProperty = destProperty;
         this.translationId = translationId;
         this.defaultValId = defaultValId;
+        this.allowedValues = allowedValues;
 
         map.addPropertyChangeListener(new String[] { translationId,
                 defaultValId }, this, "update");
@@ -63,6 +68,28 @@ public class DefectFieldMapper {
             map.put(destProperty, new PublicValue());
     }
 
+    private String scrubForAllowedValue(String s) {
+        if (allowedValues == null || s == null)
+            return s;
+
+        s = s.trim();
+        if (allowedValues.contains(s))
+            return s;
+        if (s.length() == 0)
+            return null;
+
+        // see if the string is present with a different capitalization; if
+        // so, canonicalize the case.
+        for (Iterator i = allowedValues.iterator(); i.hasNext();) {
+            String oneVal = (String) i.next();
+            if (s.equalsIgnoreCase(oneVal))
+                return oneVal;
+        }
+
+        // the value isn't present.  Return null.
+        return null;
+    }
+
     private class PublicValue implements StringMapper {
 
         public String getString(String str) {
@@ -70,6 +97,8 @@ public class DefectFieldMapper {
                 StringMapper sm = (StringMapper) translation;
                 str = sm.getString(str);
             }
+
+            str = scrubForAllowedValue(str);
 
             if (StringUtils.hasValue(str))
                 return str;
