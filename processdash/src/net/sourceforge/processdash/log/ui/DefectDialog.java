@@ -69,6 +69,7 @@ import net.sourceforge.processdash.ui.DashboardIconFactory;
 import net.sourceforge.processdash.ui.help.PCSH;
 import net.sourceforge.processdash.ui.lib.DecimalField;
 import net.sourceforge.processdash.util.Stopwatch;
+import net.sourceforge.processdash.util.StringUtils;
 
 
 public class DefectDialog extends JDialog
@@ -429,8 +430,12 @@ public class DefectDialog extends JDialog
         while (i != 0)
             if (item.equals(cb.getItemAt(--i))) {
                 cb.setSelectedIndex(i);
-                break;
+                return;
             }
+        if (StringUtils.hasValue(item)) {
+            cb.addItem(item);
+            cb.setSelectedItem(item);
+        }
     }
 
     private JComboBox phaseComboBox(List phases, String selectedChild) {
