@@ -8,6 +8,8 @@ import java.util.logging.Logger;
 
 import net.sourceforge.processdash.DashboardContext;
 import net.sourceforge.processdash.Settings;
+import net.sourceforge.processdash.data.SimpleData;
+import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.net.http.WebServer;
@@ -77,6 +79,16 @@ public class SyncScanner implements Runnable {
         }
 
         public void run(String path) {
+            String disabledDataName = DataRepository.createDataName(path,
+                    "Autosync_Disabled");
+            SimpleData disabledData = context.getData().getSimpleValue(
+                    disabledDataName);
+            if (disabledData != null && disabledData.test()) {
+                logger.log(Level.FINE, "Automatic sync is disabled for \"{0}\"",
+                        path);
+                return;
+            }
+
             String fullUri = WebServer.urlEncodePath(path) + "/" + uri;
             try {
                 logger.log(Level.FINE, "Checking for synch against {0}", path);

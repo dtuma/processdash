@@ -19,6 +19,7 @@
 [EXPORT_FILE/Disabled] = [Project_Is_Done];
 
 [Sync_Full_WBS] = 0;
+[Autosync_Disabled] = [Project_Is_Done];
 
 [Task_Labels] = [Synchronized_Task_Labels];
 
