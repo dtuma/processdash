@@ -222,20 +222,47 @@ public class DashHierarchy extends Hashtable implements ItemSelectable,
         //fireHierarchyChanged();
     }
 
-    private PropertyKey findExistingKey (PropertyKey key, String s) {
-        PropertyKey k;
-        if (key.path().equals(s))
-            return key;
-        for (int i = 0; i < getNumChildren (key); i++)
-            if ((k = findExistingKey (getChildKey (key, i), s)) != null)
-                return k;
-        return null;
+    public PropertyKey findExistingKey (String s) {
+        return findKey(s, true);
     }
 
-    public PropertyKey findExistingKey (String s) {
-        if (s == null) return null;
-        if ("/".equals(s) || s.length() == 0) return PropertyKey.ROOT;
-        return findExistingKey (PropertyKey.ROOT, s);
+    public PropertyKey findClosestKey(String path) {
+        return findKey(path, false);
+    }
+
+    private PropertyKey findKey(String path, boolean exactMatch) {
+        if (path == null) return null;
+        if (path.startsWith("/"))
+            path = path.substring(1);
+        PropertyKey result = PropertyKey.ROOT;
+
+        SEGMENTS: while (path.length() > 0) {
+            Prop p = (Prop) get(result);
+            if (p == null || p.getNumChildren() == 0)
+                return exactMatch ? null : result;
+
+            String nextSegment;
+            int slashPos = path.indexOf('/');
+            if (slashPos == -1) {
+                nextSegment = path;
+                path = "";
+            } else {
+                nextSegment = path.substring(0, slashPos);
+                path = path.substring(slashPos+1);
+            }
+
+            for (int i = p.getNumChildren();  i-- > 0; ) {
+                PropertyKey child = p.getChild(i);
+                if (nextSegment.equals(child.name())) {
+                    result = child;
+                    continue SEGMENTS;
+                }
+            }
+
+            return exactMatch ? null : result;
+        }
+
+        return result;
     }
 
     /* returns true IIF the property has a datafile. */

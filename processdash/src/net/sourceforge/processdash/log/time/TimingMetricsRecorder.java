@@ -1,4 +1,4 @@
-// Copyright (C) 2005-2006 Tuma Solutions, LLC
+// Copyright (C) 2005-2007 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -259,13 +259,11 @@ public class TimingMetricsRecorder implements TimeLogListener, DataConsistencyOb
      * is equivalent to or the first ancestor of the given path
      */
     private String getHierarchyPath(String path) {
-        while (path != null) {
-            PropertyKey key = hierarchy.findExistingKey(path);
-            if (key != null)
-                return path;
-            path = DataRepository.chopPath(path);
-        }
-        return "/";
+        String result = hierarchy.findClosestKey(path).path();
+        if (result.length() > 0)
+            return result;
+        else
+            return "/";
     }
 
     protected void setStartTimeElements(TimeLogEntry tle) {
