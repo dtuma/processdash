@@ -302,7 +302,8 @@ public class HierarchySynchronizer {
     }
 
     /** Ensure that the children of the given element have unique names, by
-     * renaming children with duplicate names.
+     * renaming children with duplicate names.   In the process, also scrub
+     * the name for unexpected characters.
      */
     private void renameDuplicateChildren(Element e) {
         Set childNames = new HashSet();
@@ -310,6 +311,11 @@ public class HierarchySynchronizer {
         for (Iterator i = children.iterator(); i.hasNext();) {
             Element child = (Element) i.next();
             String name = child.getAttribute(NAME_ATTR);
+
+            String scrubbedName = scrubHierarchyName(name);
+            if (!scrubbedName.equals(name))
+                child.setAttribute(NAME_ATTR, name = scrubbedName);
+
             if (childNames.contains(name)) {
                 String newName;
                 int j = 2;
@@ -322,6 +328,25 @@ public class HierarchySynchronizer {
             childNames.add(name);
         }
     }
+
+    private String scrubHierarchyName(String name) {
+        // replace common extended characters found in Office documents
+        for (int i = 0; i < CHARACTER_REPLACEMENTS.length; i++) {
+            String repl = CHARACTER_REPLACEMENTS[i];
+            for (int c = 1;  c < repl.length();  c++)
+                name = name.replace(repl.charAt(c), repl.charAt(0));
+        }
+        // disallow slash characters
+        name = name.replace('/', ',');
+        // perform round-trip through default platform encoding, and trim
+        name = new String(name.getBytes()).trim();
+        return name;
+    }
+    private static final String[] CHARACTER_REPLACEMENTS = {
+        "\"\u201C\u201D",       // opening and closing double quotes
+        "-\u2013\u2014",        // Em-dash and En-dash
+        " \u00A0\u2002\u2003"    // nonbreaking space, em-space, en-space
+    };
 
     private Set getNonprunableIDs() {
         if (isTeam())
