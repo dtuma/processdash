@@ -61,6 +61,7 @@ import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.net.cache.ObjectCache;
 import net.sourceforge.processdash.ui.lib.AbstractTreeTableModel;
 import net.sourceforge.processdash.ui.lib.TreeTableModel;
+import net.sourceforge.processdash.util.PatternList;
 
 
 public class EVTaskList extends AbstractTreeTableModel
@@ -142,7 +143,12 @@ public class EVTaskList extends AbstractTreeTableModel
 
          */
         TreeSet result = new TreeSet();
-        Iterator i = data.getKeys();
+
+        PatternList hints = new PatternList();
+        hints.addRegexp("^" + MAIN_DATA_PREFIX);
+        if (includeImports)
+            hints.addRegexp("/" + EVTaskListXML.XML_DATA_NAME + "$");
+        Iterator i = data.getKeys(null, hints);
         String dataName, taskListName;
         while (i.hasNext()) {
             dataName = (String) i.next();
