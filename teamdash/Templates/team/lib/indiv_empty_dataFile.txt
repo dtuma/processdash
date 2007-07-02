@@ -9,3 +9,5 @@
 <!--#endfor-->
     [<!--#echo Process_ID -->/IndivFullNode Tag]
 )
+
+[Completed] = null;
