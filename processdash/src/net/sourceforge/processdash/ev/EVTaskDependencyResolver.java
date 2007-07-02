@@ -39,6 +39,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import net.sourceforge.processdash.DashboardContext;
+import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.util.ThreadThrottler;
@@ -73,12 +74,15 @@ public class EVTaskDependencyResolver {
 
     private long lastRefresh;
 
+    private long lastReverseRefresh;
+
+
     private EVTaskDependencyResolver(DashboardContext context) {
         this.context = context;
         this.nameCache = new Hashtable();
         this.taskCache = new Hashtable();
         this.reverseDependencyCache = new Hashtable();
-        this.lastRefresh = -1;
+        this.lastRefresh = this.lastReverseRefresh = -1;
     }
 
     public List getTaskListsContaining(String taskID) {
@@ -141,8 +145,13 @@ public class EVTaskDependencyResolver {
         if (taskIDs == null || taskIDs.isEmpty())
             return result;
 
-        if (lastRefresh == -1)
-            refreshCache();
+        String ownerName = ProcessDashboard.getOwnerName(context.getData());
+        if (ignoreIndividual != null && ignoreIndividual.equals(ownerName)) {
+            maybeRefreshReverseDependencies();
+        } else {
+            if (lastRefresh == -1)
+                refreshCache();
+        }
 
         for (Iterator i = taskIDs.iterator(); i.hasNext();) {
             String id = (String) i.next();
@@ -169,7 +178,7 @@ public class EVTaskDependencyResolver {
 
     private boolean maybeRefreshCache() {
         long now = System.currentTimeMillis();
-        if (now - lastRefresh < 5000)
+        if (now - lastRefresh < 30000)
             return false;
 
         refreshCache();
@@ -184,13 +193,33 @@ public class EVTaskDependencyResolver {
         SortedSet newListCache = new TreeSet();
         Map newReverseCache = new Hashtable();
         findTasksInTaskLists(newTaskCache, listCache, newListCache,
-                newReverseCache);
+                newReverseCache, false);
 
         this.nameCache = newNameCache;
         this.taskCache = newTaskCache;
         this.listCache = newListCache;
         this.reverseDependencyCache = newReverseCache;
-        this.lastRefresh = System.currentTimeMillis();
+        this.lastRefresh = this.lastReverseRefresh = System.currentTimeMillis();
+    }
+
+    private boolean maybeRefreshReverseDependencies() {
+        long now = System.currentTimeMillis();
+        if (now - lastReverseRefresh < 30000)
+            return false;
+
+        refreshExternalReverseDependencies();
+        return true;
+    }
+
+    private void refreshExternalReverseDependencies() {
+        Map newTaskCache = new Hashtable();
+        SortedSet newListCache = new TreeSet();
+        Map newReverseCache = new Hashtable();
+        findTasksInTaskLists(newTaskCache, listCache, newListCache,
+                newReverseCache, true);
+
+        this.reverseDependencyCache = newReverseCache;
+        this.lastReverseRefresh = System.currentTimeMillis();
     }
 
     private void findTasksInHierarchy(Map newCache, PropertyKey key) {
@@ -223,7 +252,7 @@ public class EVTaskDependencyResolver {
     }
 
     private void findTasksInTaskLists(Map newCache, SortedSet listCache,
-            SortedSet newListCache, Map newReverseCache) {
+            SortedSet newListCache, Map newReverseCache, boolean externalOnly) {
         String[] taskListNames = EVTaskList.findTaskLists(context.getData(),
                 false, true);
 
@@ -235,9 +264,10 @@ public class EVTaskDependencyResolver {
             }
 
         for (int i = 0; i < taskListNames.length; i++)
-            registerListName(newCache, newListCache, taskListNames[i],
-                    newReverseCache);
-
+            if (externalOnly == false
+                    || EVTaskListXML.validName(taskListNames[i]))
+                registerListName(newCache, newListCache, taskListNames[i],
+                        newReverseCache);
     }
 
     private void registerListName(Map newCache, SortedSet newListCache,
