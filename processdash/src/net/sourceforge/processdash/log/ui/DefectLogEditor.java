@@ -66,6 +66,8 @@ import javax.swing.JTree;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+import javax.swing.event.PopupMenuEvent;
+import javax.swing.event.PopupMenuListener;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.table.DefaultTableCellRenderer;
@@ -123,8 +125,6 @@ public class DefectLogEditor extends Component
     Resources resources = Resources.getDashBundle("Defects");
     String inheritTypeSelection, typeSelectionTooltip;
     boolean buildingDtsSelector = false;
-    private PropertyKey explicitlySelectedPhase, explicitlySelectedNode;
-
 
 
     static final String DTS_EDIT_URL = "/dash/dtsEdit.class";
@@ -418,6 +418,10 @@ public class DefectLogEditor extends Component
                         key = logid.path;
                         String defectLogPath = key.path();
                         extraPathFilter = selectedPath.substring(defectLogPath.length()+1);
+                    } else {
+                        PropertyKey currPhase = dashboard.getCurrentPhase();
+                        if (currPhase != null && currPhase.getParent().equals(selectedKey))
+                            selectedKey = currPhase;
                     }
                 }
             }
@@ -650,6 +654,12 @@ public class DefectLogEditor extends Component
         DropDownButton result = new DropDownButton(resources
                 .getString("Log.Import_Button"));
         result.setMainButtonBehavior(DropDownButton.OPEN_DROP_DOWN_MENU);
+        result.getMenu().getPopupMenu().addPopupMenuListener(new PopupMenuListener() {
+            public void popupMenuCanceled(PopupMenuEvent e) {}
+            public void popupMenuWillBecomeInvisible(PopupMenuEvent e) {}
+            public void popupMenuWillBecomeVisible(PopupMenuEvent e) {
+                reupdateImportActions();
+            }});
 
         for (Iterator i = importActions.iterator(); i.hasNext();) {
             Action a = (Action) i.next();
@@ -665,17 +675,27 @@ public class DefectLogEditor extends Component
             return result;
     }
 
+    private void reupdateImportActions() {
+        DefaultMutableTreeNode selectedTreeNode = getSelectedNode();
+        if (selectedTreeNode == null)
+            return;
+        PropertyKey selectedKey = treeModel.getPropKey(useProps,
+                  selectedTreeNode.getPath());
+        if (selectedKey == null || hasDefLog(selectedKey) == false)
+            return;
+
+        PropertyKey currPhase = dashboard.getCurrentPhase();
+        if (currPhase == null)
+            return;
+
+        if (currPhase.path().startsWith(selectedKey.path()+"/"))
+            updateImportActions(currPhase, selectedKey);
+    }
+
     private void updateImportActions(PropertyKey selectedKey,
             PropertyKey defectLogKey) {
         if (importButton == null)
             return;
-
-        // When initially syncing the tree selection with the user's current task,
-        // we often select the parent node instead of the current phase.  Thus,
-        // if the currently selected tree node is that "replacement node", switch
-        // back to the "real" phase instead for computation purposes.
-        if (selectedKey != null && selectedKey.equals(explicitlySelectedNode))
-            selectedKey = explicitlySelectedPhase;
 
         boolean enable = false;
         JMenu importMenu = importButton.getMenu();
@@ -835,14 +855,10 @@ public class DefectLogEditor extends Component
     public void setSelectedPhase(PropertyKey phase) {
         if (phase == null) return;
         PropertyKey parent = phase.getParent();
-        if (!hasDefLog(phase) && hasDefLog(parent)) {
+        if (!hasDefLog(phase) && hasDefLog(parent))
             setSelectedNode(parent);
-            explicitlySelectedPhase = phase;
-            explicitlySelectedNode = parent;
-        } else {
+        else
             setSelectedNode(phase);
-            explicitlySelectedPhase = explicitlySelectedNode = phase;
-        }
     }
 
 }
