@@ -136,6 +136,7 @@ public class WBSClipSelection implements Transferable, ClipboardOwner {
             String plainText = (String) t
                     .getTransferData(DataFlavor.stringFlavor);
             String[] lines = plainText.split("\n");
+            int baseIndent = Math.max(1, prototype.getIndentLevel());
 
             List result = new ArrayList();
             for (int i = 0; i < lines.length; i++) {
@@ -143,17 +144,15 @@ public class WBSClipSelection implements Transferable, ClipboardOwner {
                 if (!m.find())
                     continue;
 
-                WBSNode node = (WBSNode) prototype.clone();
-                node.setReadOnly(false);
-                node.setName(m.group(2).replace('/', ','));
-                node.setType(WBSNode.UNKNOWN_TYPE);
-                int indent = Math.max(1, node.getIndentLevel());
+                String nodeName = scrubName(m.group(2));
+                int indent = baseIndent;
                 if (m.group(1) != null && m.group(1).length() > 0) {
                     Matcher mi = INDENT_PATTERN.matcher(m.group(1));
                     while (mi.find())
                         indent++;
                 }
-                node.setIndentLevel(indent);
+                WBSNode node = new WBSNode(prototype.getWbsModel(), nodeName,
+                        WBSNode.UNKNOWN_TYPE, indent, true);
                 result.add(node);
             }
             return result;
@@ -168,5 +167,26 @@ public class WBSClipSelection implements Transferable, ClipboardOwner {
 
     private static final Pattern PLAINTEXT_PATTERN = Pattern
             .compile("^([ \t]*)([^\t]+)");
+
+    private static String scrubName(String name) {
+        // replace common extended characters found in Office documents
+        for (int i = 0; i < CHARACTER_REPLACEMENTS.length; i++) {
+            String repl = CHARACTER_REPLACEMENTS[i];
+            for (int c = 1;  c < repl.length();  c++)
+                name = name.replace(repl.charAt(c), repl.charAt(0));
+        }
+        // disallow slash characters
+        name = name.replace('/', ',');
+        // perform round-trip through default platform encoding, and trim
+        name = new String(name.getBytes()).trim();
+        return name;
+    }
+
+    private static final String[] CHARACTER_REPLACEMENTS = {
+        "\"\u201C\u201D",       // opening and closing double quotes
+        "-\u2013\u2014",        // Em-dash and En-dash
+        " \u00A0\u2002\u2003"    // nonbreaking space, em-space, en-space
+    };
+
 
 }
