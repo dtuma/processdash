@@ -190,30 +190,32 @@ public class BoundSqlQuery implements ErrorTokens {
                     return NO_CONNECTION_ERROR_VALUE;
             }
 
-            int sqlStep = PREPARING;
-            try {
-                PreparedStatement statement = connection
-                        .prepareStatement(query);
+            synchronized (connection) {
+                int sqlStep = PREPARING;
+                try {
+                    PreparedStatement statement = connection
+                            .prepareStatement(query);
 
-                sqlStep = SETTING_PARAMS;
-                statement.clearParameters();
-                for (int i = 0; i < parameterValues.length; i++)
-                    statement.setObject(i + 1, parameterValues[i]);
+                    sqlStep = SETTING_PARAMS;
+                    statement.clearParameters();
+                    for (int i = 0; i < parameterValues.length; i++)
+                        statement.setObject(i + 1, parameterValues[i]);
 
-                sqlStep = EXECUTING;
-                ResultSet results = statement.executeQuery();
+                    sqlStep = EXECUTING;
+                    ResultSet results = statement.executeQuery();
 
-                sqlStep = READING;
-                SqlResultData resultData = new SqlResultData(results);
+                    sqlStep = READING;
+                    SqlResultData resultData = new SqlResultData(results);
 
-                if (resultData.isEmpty())
-                    return new EmptyResultSet(emptyResultSetMessage);
-                else
-                    return resultData;
+                    if (resultData.isEmpty())
+                        return new EmptyResultSet(emptyResultSetMessage);
+                    else
+                        return resultData;
 
-            } catch (SQLException sqle) {
-                logger.log(Level.SEVERE, LOG_MESSAGES[sqlStep], sqle);
-                return SQL_ERROR_VALUE;
+                } catch (SQLException sqle) {
+                    logger.log(Level.SEVERE, LOG_MESSAGES[sqlStep], sqle);
+                    return SQL_ERROR_VALUE;
+                }
             }
         }
 
