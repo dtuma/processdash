@@ -74,6 +74,7 @@ import net.sourceforge.processdash.ui.lib.SwingWorker;
 import net.sourceforge.processdash.ui.lib.ToolTipTimingCustomizer;
 import net.sourceforge.processdash.util.FormatUtil;
 import net.sourceforge.processdash.util.HTMLUtils;
+import net.sourceforge.processdash.util.ThreadThrottler;
 
 public class PercentSpentIndicator extends JPanel implements DataListener,
         PropertyChangeListener {
@@ -373,6 +374,7 @@ public class PercentSpentIndicator extends JPanel implements DataListener,
         }
 
         public Object construct() {
+            ThreadThrottler.beginThrottling();
             long startTime = System.currentTimeMillis();
             forecastDateHTML = resources.interpolate(
                     "<i>${Calculating_Forecast_Date}</i>",

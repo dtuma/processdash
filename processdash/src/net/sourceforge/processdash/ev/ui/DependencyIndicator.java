@@ -91,15 +91,8 @@ public class DependencyIndicator extends JLabel implements
         }
 
         public Object construct() {
-            ThreadThrottler.beginThrottling(0.2);
-            try {
-                return doCalc();
-            } finally {
-                ThreadThrottler.endThrottling();
-            }
-        }
+            ThreadThrottler.beginThrottling();
 
-        private Object doCalc() {
             EVDependencyCalculator calc = new EVDependencyCalculator(context
                     .getData(), context.getHierarchy(), context.getCache());
             String owner = ProcessDashboard.getOwnerName(context.getData());

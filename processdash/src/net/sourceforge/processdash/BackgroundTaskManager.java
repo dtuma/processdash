@@ -367,6 +367,8 @@ public class BackgroundTaskManager {
 
                 try {
                     int percent = Settings.getInt(CPU_SETTING, 20);
+                    ThreadThrottler
+                            .setDefaultThrottlingPercentage(percent / 100.0);
                     ThreadThrottler.setThrottling(percent / 100.0);
                     currentTaskStartTime = System.currentTimeMillis();
                     logger.log(Level.FINE, "Running background task {0}",

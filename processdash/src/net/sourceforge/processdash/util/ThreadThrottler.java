@@ -113,6 +113,8 @@ public class ThreadThrottler {
 
     private static ThreadLocal THROTTLERS = new ThreadLocal();
 
+    private static double DEFAULT_THROTTLING_PERCENTAGE = 0.2;
+
 
     /** Call this method as often as possible during the execution of a
      * throttled operation.
@@ -128,6 +130,16 @@ public class ThreadThrottler {
             t.doTick();
     }
 
+
+
+
+    public static double getDefaultThrottlingPercentage() {
+        return DEFAULT_THROTTLING_PERCENTAGE;
+    }
+
+    public static void setDefaultThrottlingPercentage(double percentage) {
+        DEFAULT_THROTTLING_PERCENTAGE = percentage;
+    }
 
     /** Indicate the start of a throttled operation on the current thread.
      * 
@@ -154,6 +166,14 @@ public class ThreadThrottler {
         ThreadThrottler newThrottler = new ThreadThrottler(currentThrottler,
                 percentage);
         THROTTLERS.set(newThrottler);
+    }
+
+    /** Begin throttling, using the default throttling percentage.
+     * 
+     * {@see #setDefaultThrottlingPercentage(double)}
+     */
+    public static void beginThrottling() {
+        beginThrottling(DEFAULT_THROTTLING_PERCENTAGE);
     }
 
 
