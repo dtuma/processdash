@@ -156,58 +156,61 @@ public class DataImporter extends Thread {
         } catch (IOException ioe) {}
     }
 
-        private File[] getFilesToImport() {
-                // get a list of files in the directory
-                File[] files = directory.listFiles();
-                // sort them in chronological order, oldest first.
-                Arrays.sort(files, FileAgeComparator.OLDEST_FIRST);
+    private File[] getFilesToImport() {
+        // get a list of files in the directory
+        File[] files = directory.listFiles();
+        if (files == null)
+            return new File[0];
 
-                // look through all the files, and make a list of the ones that we
-                // should import. Files whose names do not match recognized patterns
-                // are discarded. If a file appears more than once with different
-                // recognized suffixes, only keep the newest version.
-                Map results = new HashMap();
-                for (int i = 0; i < files.length; i++) {
-                        File oneFile = files[i];
-                        String basename = getBaseImportName(oneFile);
-                        if (basename != null)
-                                results.put(basename, oneFile);
-                }
+        // sort them in chronological order, oldest first.
+        Arrays.sort(files, FileAgeComparator.OLDEST_FIRST);
 
-                // return the results we found.
-                return (File[]) results.values().toArray(new File[0]);
+        // look through all the files, and make a list of the ones that we
+        // should import. Files whose names do not match recognized patterns
+        // are discarded. If a file appears more than once with different
+        // recognized suffixes, only keep the newest version.
+        Map results = new HashMap();
+        for (int i = 0; i < files.length; i++) {
+            File oneFile = files[i];
+            String basename = getBaseImportName(oneFile);
+            if (basename != null)
+                results.put(basename, oneFile);
         }
 
-        /** If the file is one that could be imported, return its filename, in
-         * lowercase, without the suffix.  Otherwise, return null.
-         */
+        // return the results we found.
+        return (File[]) results.values().toArray(new File[0]);
+    }
+
+    /** If the file is one that could be imported, return its filename, in
+     * lowercase, without the suffix. Otherwise, return null.
+     */
     private String getBaseImportName(File file) {
         if (!file.isFile())
-                // ignore directories.
-                return null;
+            // ignore directories.
+            return null;
 
-                String filename = file.getName().toLowerCase();
+        String filename = file.getName().toLowerCase();
 
         if (filename.startsWith(RobustFileOutputStream.OUT_PREFIX))
             // ignore temporary files created by the RobustFileWriter class.
-                return null;
+            return null;
 
         else if (filename.endsWith(EXPORT_FILE_OLD_SUFFIX))
-                // accept files whose name ends with the old export suffix.
-                        return filename.substring(0,
-                                        filename.length() - EXPORT_FILE_OLD_SUFFIX.length());
+            // accept files whose name ends with the old export suffix.
+            return filename.substring(0,
+                    filename.length() - EXPORT_FILE_OLD_SUFFIX.length());
 
-                else if (filename.endsWith(EXPORT_FILE_SUFFIX))
-                // accept files whose name ends with the new export suffix.
-                        return filename.substring(0,
-                                        filename.length() - EXPORT_FILE_SUFFIX.length());
+        else if (filename.endsWith(EXPORT_FILE_SUFFIX))
+            // accept files whose name ends with the new export suffix.
+            return filename.substring(0,
+                    filename.length() - EXPORT_FILE_SUFFIX.length());
 
-                else
-                        // reject other files.
-                        return null;
-        }
+        else
+            // reject other files.
+            return null;
+    }
 
-        public void dispose() {
+    public void dispose() {
         for (Iterator i = modTimes.keySet().iterator(); i.hasNext();) {
             closeFile((File) i.next());
         }
