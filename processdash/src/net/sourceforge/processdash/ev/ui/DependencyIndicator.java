@@ -25,41 +25,37 @@
 
 package net.sourceforge.processdash.ev.ui;
 
-import java.awt.Component;
-import java.awt.Graphics;
 import java.awt.Window;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.List;
 
-import javax.swing.Icon;
 import javax.swing.JLabel;
-import javax.swing.SwingUtilities;
 
 import net.sourceforge.processdash.DashboardContext;
 import net.sourceforge.processdash.ProcessDashboard;
-import net.sourceforge.processdash.data.DataContext;
 import net.sourceforge.processdash.ev.EVDependencyCalculator;
 import net.sourceforge.processdash.ev.EVTaskDependency;
 import net.sourceforge.processdash.hier.ActiveTaskModel;
+import net.sourceforge.processdash.ui.lib.SwingWorker;
 import net.sourceforge.processdash.ui.lib.ToolTipTimingCustomizer;
+import net.sourceforge.processdash.util.ThreadThrottler;
 
 public class DependencyIndicator extends JLabel implements
         PropertyChangeListener {
 
     Window window;
 
-    DataContext data;
-
-    Worker worker;
+    DashboardContext context;
 
     ActiveTaskModel taskModel;
 
+    private Worker currentWorker = null;
+
     public DependencyIndicator(ProcessDashboard dash, ActiveTaskModel taskModel) {
         this.window = dash;
-        this.data = dash.getData();
+        this.context = dash;
         this.taskModel = taskModel;
-        this.worker = new Worker(dash);
 
         new ToolTipTimingCustomizer().install(this);
         taskModel.addPropertyChangeListener(this);
@@ -71,14 +67,7 @@ public class DependencyIndicator extends JLabel implements
         setToolTipText(null);
 
         String taskPath = taskModel.getPath();
-        String owner = ProcessDashboard.getOwnerName(data);
-        List dependencies = EVTaskDependency.getAllDependencies(data, taskPath,
-                owner);
-        if (dependencies != null && !dependencies.isEmpty()) {
-            setIcon(BLANK_ICON);
-            window.pack();
-            worker.doCalc(dependencies);
-        }
+        new Worker(taskPath).start();
     }
 
     public void propertyChange(PropertyChangeEvent evt) {
@@ -86,57 +75,59 @@ public class DependencyIndicator extends JLabel implements
     }
 
 
-    private class Worker extends Thread {
+    private class Worker extends SwingWorker {
 
-        EVDependencyCalculator calc;
+        String taskPath;
 
-        List dependenciesToCalc = null;
+        long requestTime;
 
-        public Worker(DashboardContext context) {
-            super(Worker.class.getName());
-            calc = new EVDependencyCalculator(context.getData(), context
-                    .getHierarchy(), context.getCache());
-            setDaemon(true);
-            start();
+        public Worker(String taskPath) {
+            this.taskPath = taskPath;
+            this.requestTime = System.currentTimeMillis();
+
+            if (currentWorker != null)
+                currentWorker.interrupt();
+            currentWorker = this;
         }
 
-        public synchronized void doCalc(List dependencies) {
-            dependenciesToCalc = dependencies;
-            notify();
-        }
-
-        public void run() {
-            while (true) {
-                List dependencies;
-                synchronized (this) {
-                    while (dependenciesToCalc == null)
-                        try {
-                            wait();
-                        } catch (InterruptedException e) {
-                        }
-                    dependencies = dependenciesToCalc;
-                    dependenciesToCalc = null;
-                }
-
-                calc.recalculate(dependencies);
-
-                synchronized (this) {
-                    if (dependenciesToCalc == null)
-                        SwingUtilities.invokeLater(new Updater(dependencies));
-                }
+        public Object construct() {
+            ThreadThrottler.beginThrottling(0.2);
+            try {
+                return doCalc();
+            } finally {
+                ThreadThrottler.endThrottling();
             }
         }
-    }
 
-    private class Updater implements Runnable {
+        private Object doCalc() {
+            EVDependencyCalculator calc = new EVDependencyCalculator(context
+                    .getData(), context.getHierarchy(), context.getCache());
+            String owner = ProcessDashboard.getOwnerName(context.getData());
+            List dependencies = EVTaskDependency.getAllDependencies(context
+                    .getData(), taskPath, owner);
+            calc.recalculate(dependencies);
 
-        List dependencies;
+            // an immediate change to the dashboard will cause the window to
+            // apparently "jump", which the user might find disconcerting.
+            // wait a moment before setting the icon.
+            long now = System.currentTimeMillis();
+            long elapsed = now - requestTime;
+            if (elapsed < 1000) {
+                try {
+                    Thread.sleep(1000 - elapsed);
+                } catch (InterruptedException ie) {}
+            }
 
-        public Updater(List dependencies) {
-            this.dependencies = dependencies;
+            return dependencies;
         }
 
-        public void run() {
+
+        public void finished() {
+            if (currentWorker != this)
+                return;
+
+            List dependencies = (List) get();
+
             TaskDependencyAnalyzer.GUI a = new TaskDependencyAnalyzer.GUI(
                     dependencies);
             switch (a.getStatus()) {
@@ -155,11 +146,5 @@ public class DependencyIndicator extends JLabel implements
         }
 
     }
-
-    private static final Icon BLANK_ICON = new Icon() {
-        public int getIconHeight() { return 11; }
-        public int getIconWidth() { return 11; }
-        public void paintIcon(Component c, Graphics g, int x, int y) { }
-    };
 
 }
