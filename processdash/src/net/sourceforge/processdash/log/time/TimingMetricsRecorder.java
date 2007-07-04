@@ -26,9 +26,11 @@
 package net.sourceforge.processdash.log.time;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -230,19 +232,36 @@ public class TimingMetricsRecorder implements TimeLogListener, DataConsistencyOb
     }
 
     private void reparentOrphanedTime(Map result) {
+        List orphanedEntries = new ArrayList();
         for (Iterator i = result.entrySet().iterator(); i.hasNext();) {
             Map.Entry e = (Map.Entry) i.next();
             String path = (String) e.getKey();
             String hierarchyPath = getHierarchyPath(path);
-            if (path != hierarchyPath) {
+            if (!path.equals(hierarchyPath)) {
                 long[] orphanedTime = (long[]) e.getValue();
                 e.setValue(null);
-                if (orphanedTime != null && orphanedTime[0] > 0) {
-                    long[] ancestorTime = getTime(result, hierarchyPath);
-                    ancestorTime[0] += orphanedTime[0];
-                }
+                if (orphanedTime != null && orphanedTime[0] > 0)
+                    orphanedEntries.add(new OrphanedEntry(path, hierarchyPath,
+                            orphanedTime[0]));
             }
         }
+        for (Iterator i = orphanedEntries.iterator(); i.hasNext();) {
+            OrphanedEntry e = (OrphanedEntry) i.next();
+            long[] ancestorTime = getTime(result, e.retargetedPath);
+            ancestorTime[0] += e.time;
+        }
+    }
+
+    private static class OrphanedEntry {
+        public String orphanedPath;
+        public String retargetedPath;
+        public long time;
+        public OrphanedEntry(String orphanedPath, String retargetedPath, long time) {
+            this.orphanedPath = orphanedPath;
+            this.retargetedPath = retargetedPath;
+            this.time = time;
+        }
+
     }
 
     private long[] getTime(Map timeMap, String key) {
