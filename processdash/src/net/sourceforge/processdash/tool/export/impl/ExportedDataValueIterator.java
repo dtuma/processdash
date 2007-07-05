@@ -121,7 +121,7 @@ public class ExportedDataValueIterator extends IteratorFilter {
                 // an exception could be thrown to indicate that some of the
                 // include patterns were not recognizable as explicitly
                 // enumerated metrics names.
-                logger.severe("Cannot respect request for explicitly " +
+                logger.warning("Cannot respect request for explicitly " +
                                 "enumerated metrics");
             }
 
