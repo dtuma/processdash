@@ -109,8 +109,20 @@ public class BoundComboBox extends JComboBox {
             }
         }
         // if we reach this point, then someone has put a value in the Map that
-        // doesn't appear in the list! What should we do?
-        // setSelectedItem(null);
+        // doesn't appear in our list.  We need an implicit item to hold it.
+        MessageItem newValue;
+        if (getItemCount() > 0 && getItemAt(0) instanceof MessageItem) {
+            // if the first item in the list is already a message item, reuse
+            // it to hold the designated value.
+            newValue = (MessageItem) getItemAt(0);
+            newValue.value = value;
+            setSelectedIndex(0);
+        } else {
+            // otherwise, we need to create a new value item to add to the list.
+            newValue = new MessageItem(value, "", getForeground());
+            insertItemAt(newValue, 0);
+            setSelectedItem(newValue);
+        }
     }
 
     public void updateMapFromValue() {
@@ -242,8 +254,8 @@ public class BoundComboBox extends JComboBox {
     private static boolean eq(Object a, Object b) {
         if (a == b)
             return true;
-        if (a == null)
+        if (a == null || b == null)
             return false;
-        return a.equals(b);
+        return a.equals(b) || a.toString().equals(b.toString());
     }
 }
