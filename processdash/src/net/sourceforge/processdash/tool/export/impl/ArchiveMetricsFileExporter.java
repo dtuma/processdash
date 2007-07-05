@@ -28,11 +28,13 @@ package net.sourceforge.processdash.tool.export.impl;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -47,6 +49,7 @@ import net.sourceforge.processdash.templates.TemplateLoader;
 import net.sourceforge.processdash.tool.export.mgr.Cancellable;
 import net.sourceforge.processdash.tool.export.mgr.CompletionStatus;
 import net.sourceforge.processdash.util.RobustFileOutputStream;
+import net.sourceforge.processdash.util.ThreadThrottler;
 import net.sourceforge.processdash.util.XMLUtils;
 
 import org.xmlpull.v1.XmlPullParserException;
@@ -80,6 +83,10 @@ public class ArchiveMetricsFileExporter implements Runnable,
     private RobustFileOutputStream outStream;
 
     private CompletionStatus completionStatus = CompletionStatus.NOT_RUN_STATUS;
+
+    private static final Logger logger = Logger
+            .getLogger(ArchiveMetricsFileExporter.class.getName());
+
 
     public ArchiveMetricsFileExporter(DashboardContext ctx, File dest,
             Collection filter) {
@@ -214,14 +221,44 @@ public class ArchiveMetricsFileExporter implements Runnable,
     private Collection writeData(ZipOutputStream zipOut) throws IOException {
         zipOut.putNextEntry(new ZipEntry(DATA_FILE_NAME));
 
-        Iterator iter = new ExportedDataValueIterator(ctx.getData(), filter,
-                metricsIncludes, metricsExcludes);
-        TaskListDataWatcher taskListWatcher = new TaskListDataWatcher(iter);
-        DefaultDataExportFilter ddef = new DefaultDataExportFilter(
-                taskListWatcher);
-        ddef.setIncludes(metricsIncludes);
-        ddef.setExcludes(metricsExcludes);
-        ddef.init();
+        ExportedDataValueIterator baseIter = new ExportedDataValueIterator(ctx
+                .getData(), ctx.getHierarchy(), filter, metricsIncludes,
+                metricsExcludes);
+
+        DefaultDataExportFilter ddef;
+        TaskListDataWatcher taskListWatcher;
+
+        if (baseIter.isUsingExplicitNames()) {
+            logger.fine("Using explicit name approach");
+
+            // first, make a quick scan to find task list names.
+            Iterator taskListSearcher = new ExportedDataValueIterator(ctx
+                    .getData(), ctx.getHierarchy(), filter, null,
+                    Collections.singleton("."));
+            taskListWatcher = new TaskListDataWatcher(taskListSearcher);
+            while (taskListWatcher.hasNext()) {
+                ThreadThrottler.tick();
+                taskListWatcher.next();
+            }
+
+            // now, find the data to export.  The explicit data name filter
+            // will ensure that we only examine the exact names that should be
+            // exported;  The DefaultDataExportFilter will additionally skip
+            // zero/null values.
+            ddef = new DefaultDataExportFilter(baseIter);
+            ddef.setSkipProcessAutoData(false);
+            ddef.setSkipToDateData(false);
+            ddef.setSkipNodesAndLeaves(false);
+            ddef.init();
+
+        } else {
+            logger.fine("Using pattern-based name approach");
+            taskListWatcher = new TaskListDataWatcher(baseIter);
+            ddef = new DefaultDataExportFilter(taskListWatcher);
+            ddef.setIncludes(metricsIncludes);
+            ddef.setExcludes(metricsExcludes);
+            ddef.init();
+        }
 
         DataExporter exp = new DataExporterXMLv1();
         exp.export(zipOut, ddef);

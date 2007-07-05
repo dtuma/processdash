@@ -156,6 +156,30 @@ public class PatternList {
         return false;
     }
 
+    public boolean isAlwaysTrue() {
+        return alwaysTrue;
+    }
+
+    public List getContainsItems() {
+        return containsItems;
+    }
+
+    public List getEndsWithItems() {
+        return endsWithItems;
+    }
+
+    public List getEqualsItems() {
+        return equalsItems;
+    }
+
+    public List getRegexpItems() {
+        return regexpItems;
+    }
+
+    public List getStartsWithItems() {
+        return startsWithItems;
+    }
+
     protected List addToList(List l, Object o) {
         if (l == null)
             l = new ArrayList();

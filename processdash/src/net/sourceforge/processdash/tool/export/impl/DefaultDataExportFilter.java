@@ -165,8 +165,11 @@ public class DefaultDataExportFilter extends IteratorFilter {
     }
 
     private boolean isSkippableProcessAutoData(ExportedDataValue v) {
-        Matcher m = PROCESS_AUTO_DATA_PATTERN.matcher(v.getName());
-        return m.find();
+        if (skipProcessAutoData) {
+            Matcher m = PROCESS_AUTO_DATA_PATTERN.matcher(v.getName());
+            return m.find();
+        } else
+            return false;
     }
 
     private static Pattern PROCESS_AUTO_DATA_PATTERN;

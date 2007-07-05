@@ -25,13 +25,23 @@
 
 package net.sourceforge.processdash.tool.export.impl;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
+import java.util.logging.Logger;
 
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.repository.DataNameFilter;
 import net.sourceforge.processdash.data.repository.DataRepository;
+import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.Filter;
+import net.sourceforge.processdash.hier.PropertyKey;
+import net.sourceforge.processdash.hier.PropertyKeyIterator;
 import net.sourceforge.processdash.util.IteratorFilter;
+import net.sourceforge.processdash.util.PatternList;
+import net.sourceforge.processdash.util.StringUtils;
+import net.sourceforge.processdash.util.ThreadThrottler;
 
 public class ExportedDataValueIterator extends IteratorFilter {
 
@@ -39,20 +49,37 @@ public class ExportedDataValueIterator extends IteratorFilter {
 
     Collection prefixes;
 
-    public ExportedDataValueIterator(DataRepository data, Collection prefixes,
-            Collection metricsIncludes, Collection metricsExcludes) {
-        this(data, prefixes, metricsIncludes, metricsExcludes, true);
+    boolean usingExplicitNames;
+
+    private static final Logger logger = Logger
+            .getLogger(ExportedDataValueIterator.class.getName());
+
+
+    public ExportedDataValueIterator(DataRepository data, DashHierarchy hier,
+            Collection prefixes, Collection metricsIncludes,
+            Collection metricsExcludes) {
+        this(data, hier, prefixes, metricsIncludes, metricsExcludes, true);
     }
 
     protected ExportedDataValueIterator(DataRepository data,
-            Collection prefixes, Collection metricsIncludes,
-            Collection metricsExcludes, boolean init) {
-        super(data.getKeys(prefixes, getDataNameHints(metricsIncludes,
-                metricsExcludes)));
+            DashHierarchy hier, Collection prefixes,
+            Collection metricsIncludes, Collection metricsExcludes, boolean init) {
+        this(data, prefixes, getDataNameIterator(data, hier, prefixes,
+                metricsIncludes, metricsExcludes), init);
+    }
+
+    protected ExportedDataValueIterator(DataRepository data,
+            Collection prefixes, Iterator parent, boolean init) {
+        super(parent);
         this.data = data;
         this.prefixes = prefixes;
+        this.usingExplicitNames = (parent instanceof CartesianDataNameIterator);
         if (init)
             init();
+    }
+
+    public boolean isUsingExplicitNames() {
+        return usingExplicitNames;
     }
 
     protected boolean includeInResults(Object o) {
@@ -82,6 +109,26 @@ public class ExportedDataValueIterator extends IteratorFilter {
 
     }
 
+    private static Iterator getDataNameIterator(DataRepository data,
+            DashHierarchy hier, Collection prefixes,
+            Collection metricsIncludes, Collection metricsExcludes) {
+
+        if (metricsExcludes.contains(EXCLUDE_ALL_NONMATCHING_METRICS))
+            try {
+                return new CartesianDataNameIterator(prefixes, hier,
+                        metricsIncludes);
+            } catch (Exception e) {
+                // an exception could be thrown to indicate that some of the
+                // include patterns were not recognizable as explicitly
+                // enumerated metrics names.
+                logger.severe("Cannot respect request for explicitly " +
+                                "enumerated metrics");
+            }
+
+        return data.getKeys(prefixes, getDataNameHints(metricsIncludes,
+                metricsExcludes));
+    }
+
     private static Object getDataNameHints(Collection includes,
             Collection excludes) {
 
@@ -102,4 +149,86 @@ public class ExportedDataValueIterator extends IteratorFilter {
             return null;
     }
 
+    public static final String EXCLUDE_ALL_NONMATCHING_METRICS =
+        "All Metrics Not Explicitly Listed";
+
+    private static class CartesianDataNameIterator implements Iterator {
+        private Iterator prefixKeys;
+        private Collection names;
+
+        private String workingPrefix;
+        private Iterator workingNames;
+
+        public CartesianDataNameIterator(Collection prefixes,
+                DashHierarchy hier, Collection namePatterns) {
+            this.prefixKeys = enumeratePrefixes(prefixes, hier);
+            this.names = enumerateNames(namePatterns);
+
+            getNextPrefix();
+        }
+
+        private Iterator enumeratePrefixes(Collection prefixes,
+                final DashHierarchy hier) {
+            Iterator iter = PropertyKeyIterator.getForPrefixes(hier, prefixes);
+            Iterator result = new IteratorFilter(iter) {
+                { init(); }
+                protected boolean includeInResults(Object o) {
+                    PropertyKey key = (PropertyKey) o;
+                    return StringUtils.hasValue(hier.pget(key).getDataFile());
+                }};
+            return result;
+        }
+
+        private Collection enumerateNames(Collection namePatterns) {
+            PatternList pl = new PatternList(namePatterns);
+            if (pl.getContainsItems() != null || pl.getRegexpItems() != null
+                    || pl.getStartsWithItems() != null
+                    || pl.getEqualsItems() != null)
+                throw new UnsupportedOperationException();
+
+            List result = new ArrayList(pl.getEndsWithItems().size());
+            for (Iterator i = pl.getEndsWithItems().iterator(); i.hasNext();) {
+                String oneItem = (String) i.next();
+                if (oneItem.startsWith("/"))
+                    oneItem = oneItem.substring(1);
+                result.add(oneItem);
+            }
+
+            return result;
+        }
+
+        private void getNextPrefix() {
+            if (prefixKeys.hasNext()) {
+                PropertyKey nextKey = (PropertyKey) prefixKeys.next();
+                workingPrefix = nextKey.path();
+                if (!workingPrefix.endsWith("/"))
+                    workingPrefix = workingPrefix + "/";
+                workingNames = names.iterator();
+            } else {
+                workingPrefix = null;
+                workingNames = null;
+            }
+        }
+
+        public void remove() {
+            throw new UnsupportedOperationException();
+        }
+
+        public boolean hasNext() {
+            return workingPrefix != null && workingNames.hasNext();
+        }
+
+        public Object next() {
+            ThreadThrottler.tick();
+
+            String nextName = (String) workingNames.next();
+            String result = workingPrefix + nextName;
+
+            if (!workingNames.hasNext())
+                getNextPrefix();
+
+            return result;
+        }
+
+    }
 }

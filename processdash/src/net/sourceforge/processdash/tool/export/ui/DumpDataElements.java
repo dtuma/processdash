@@ -67,7 +67,7 @@ public class DumpDataElements extends TinyCGIBase implements TinyCGIHighVolume {
 
     private void dumpXml(Vector filter) throws IOException {
         Iterator iter = new ExportedDataValueIterator(getDataRepository(),
-                filter, null, null);
+                getPSPProperties(), filter, null, null);
 
         DefaultDataExportFilter ddef = new DefaultDataExportFilter(iter);
         if (parameters.containsKey("showToDate"))
