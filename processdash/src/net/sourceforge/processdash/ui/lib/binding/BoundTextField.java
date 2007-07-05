@@ -82,7 +82,14 @@ public class BoundTextField extends JTextField {
         String text = getText();
         if (!allowBlank && !StringUtils.hasValue(text))
             text = null;
-        map.put(propertyName, text);
+        Object val = null;
+        if (text != null)
+            val = parseText(text);
+        map.put(propertyName, val);
+    }
+
+    protected Object parseText(String text) {
+        return text;
     }
 
 }

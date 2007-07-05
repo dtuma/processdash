@@ -96,6 +96,7 @@ public class BoundMap extends ObservableMap {
         addElementType("value", BoundConstant.class);
         addElementType("checkbox", BoundCheckBox.class);
         addElementType("combobox", BoundComboBox.class);
+        addElementType("numberfield", BoundNumberField.class);
         addElementType("textfield", BoundTextField.class);
         addElementType("password", BoundPasswordField.class);
         addElementType("label", BoundLabel.class);
