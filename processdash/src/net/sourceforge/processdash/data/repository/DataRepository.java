@@ -105,6 +105,7 @@ import net.sourceforge.processdash.hier.Filter;
 import net.sourceforge.processdash.templates.TemplateLoader;
 import net.sourceforge.processdash.util.CppFilterReader;
 import net.sourceforge.processdash.util.EscapeString;
+import net.sourceforge.processdash.util.HashTree;
 import net.sourceforge.processdash.util.PatternList;
 import net.sourceforge.processdash.util.RobustFileWriter;
 import net.sourceforge.processdash.util.ThreadThrottler;
@@ -129,6 +130,7 @@ public class DataRepository implements Repository, DataContext,
         PrefixHierarchy repositoryListenerList = new PrefixHierarchy();
 
         Vector datafiles = new Vector();
+        HashTree datafilePrefixMap = new HashTree();
 
         RepositoryServer dataServer = null;
         RepositoryServer secondaryDataServer = null;
@@ -1744,7 +1746,7 @@ public class DataRepository implements Repository, DataContext,
                                             // remove 'datafile' from the list of
                                             // datafiles in this repository.
                     datafile.isRemoved = true;
-                    datafiles.removeElement(datafile);
+                    removeDataFile(datafile);
 
                     Iterator k = getInternalKeys();
                     String name;
@@ -1893,17 +1895,18 @@ public class DataRepository implements Repository, DataContext,
             int pos = name.indexOf("//");
             if (pos == -1 || isLegacyDoubleSlashDataName(name, pos))
                 synchronized (datafiles) {
-                    for (Iterator i = datafiles.iterator(); i.hasNext();) {
-                        DataFile datafile = (DataFile) i.next();
-                        if (requireWritable) {
-                            if (datafile.file == null)
-                                continue;
-                            if (!datafile.canWrite)
-                                continue;
-                        }
-                        if (name.length() > datafile.prefix.length()
-                                && Filter.pathMatches(name, datafile.prefix, true))
+                    HashTree t = datafilePrefixMap.getDeepestExistingSubtree(name);
+                    for ( ; t != null; t = t.getParent()) {
+                        DataFile datafile = (DataFile) t.get(DATAFILE_MAP_VAL_NAME);
+                        if (datafile != null) {
+                            if (requireWritable) {
+                                if (datafile.file == null)
+                                    continue;
+                                if (!datafile.canWrite)
+                                    continue;
+                            }
                             return datafile;
+                        }
                     }
                 }
 
@@ -1943,12 +1946,10 @@ public class DataRepository implements Repository, DataContext,
         private DataFile getDataFileForPrefix(String prefix,
                 boolean requireNonNullFile) {
             synchronized (datafiles) {
-                for (Iterator i = datafiles.iterator(); i.hasNext();) {
-                    DataFile f = (DataFile) i.next();
-                    if (f.prefix.equals(prefix))
-                        if (requireNonNullFile == false || f.file != null)
-                            return f;
-                }
+                String name = datafilePrefixMapItemName(prefix);
+                DataFile f = (DataFile) datafilePrefixMap.get(name);
+                if (f == null || requireNonNullFile == false || f.file != null)
+                    return f;
             }
             return null;
         }
@@ -3177,11 +3178,30 @@ public class DataRepository implements Repository, DataContext,
 
         private static volatile int MAX_DIRTY = 10;
 
+        private static final String DATAFILE_MAP_VAL_NAME = " datafile";
+
         private void addDataFile(DataFile df) {
             synchronized (datafiles) {
                 datafiles.add(0, df);
                 Collections.sort(datafiles);
+
+                datafilePrefixMap.put(datafilePrefixMapItemName(df.prefix), df);
             }
+        }
+
+        private void removeDataFile(DataFile df) {
+            synchronized (datafiles) {
+                datafiles.remove(df);
+
+                String name = datafilePrefixMapItemName(df.prefix);
+                Object removed = datafilePrefixMap.remove(name);
+                if (removed != df)
+                    datafilePrefixMap.put(name, removed);
+            }
+        }
+
+        private String datafilePrefixMapItemName(String prefix) {
+            return prefix + "/" + DATAFILE_MAP_VAL_NAME;
         }
 
         private void datafileModified(DataFile datafile) {

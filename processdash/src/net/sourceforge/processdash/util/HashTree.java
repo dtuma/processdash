@@ -165,6 +165,17 @@ public class HashTree {
      * it is looked up relative to this node of the HashTree.
      */
     public Object get(String key) {
+        return getImpl0(key, false);
+    }
+
+    /** Returns the deepest HashTree object that is currently nested under
+     * this object, that would be an ancestor of the given key.
+     */
+    public HashTree getDeepestExistingSubtree(String key) {
+        return (HashTree) getImpl0(key + "/", true);
+    }
+
+    protected Object getImpl0(String key, boolean deepestChild) {
         // null keys are not allowed.
         if (key == null)
             return null;
@@ -172,7 +183,7 @@ public class HashTree {
         // if the key starts with a slash, it is absolute, relative to the
         // root of the HashTree
         if (key.startsWith(SEPARATOR))
-            return root.getImpl(canonicalizeKey(key.substring(1)));
+            return root.getImpl1(canonicalizeKey(key.substring(1)), deepestChild);
 
         // remove ".." sequences from the key
         key = canonicalizeKey(key);
@@ -185,14 +196,15 @@ public class HashTree {
         // if the key is not absolute, call getImpl to lookup the relative
         // reference.
         else
-            return getImpl(key);
+            return getImpl1(key, deepestChild);
     }
+
 
 
     /** Returns the value to which the specified key is mapped in this
      * hashtree, when key is known to be a non-null, relative reference.
      */
-    protected synchronized Object getImpl(String key) {
+    protected synchronized Object getImpl1(String key, boolean deepestChild) {
         if (key.length() == 0)
             return this;
 
@@ -205,9 +217,9 @@ public class HashTree {
         HashTree subHash = (HashTree) contents.get(subKey);
 
         if (subHash == null)
-            return null;
+            return deepestChild ? this : null;
         else
-            return subHash.getImpl(key.substring(slashPos));
+            return subHash.getImpl1(key.substring(slashPos), deepestChild);
     }
 
 
