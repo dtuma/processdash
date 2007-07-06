@@ -38,6 +38,8 @@ class DashboardProcessFactoryForking extends DashboardProcessFactory {
 
     private String classpath;
 
+    private String mainClassName;
+
     public DashboardProcessFactoryForking() throws Exception {
         jreExecutable = RuntimeUtils.getJreExecutable();
         if (jreExecutable == null)
@@ -46,6 +48,16 @@ class DashboardProcessFactoryForking extends DashboardProcessFactory {
         classpath = getSelfClasspath();
         if (classpath == null)
             throw new Exception(resources.getString("Errors.Missing_JAR"));
+
+        mainClassName = ProcessDashboard.class.getName();
+    }
+
+    public void setClasspath(String classpath) {
+        this.classpath = classpath;
+    }
+
+    public void setMainClassName(String mainClassName) {
+        this.mainClassName = mainClassName;
     }
 
     public Process launchDashboard(File pspdataDir, List extraVmArgs, List extraArgs)
@@ -58,7 +70,7 @@ class DashboardProcessFactoryForking extends DashboardProcessFactory {
             cmd.addAll(vmArgs);
         if (extraVmArgs != null)
             cmd.addAll(extraVmArgs);
-        cmd.add(ProcessDashboard.class.getName());
+        cmd.add(mainClassName);
         if (extraArgs != null)
             cmd.addAll(extraArgs);
 

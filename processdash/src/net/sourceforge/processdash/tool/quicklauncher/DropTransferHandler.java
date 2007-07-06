@@ -68,6 +68,12 @@ public class DropTransferHandler extends TransferHandler {
         Set targets = new LightweightSet();
         for (Iterator i = files.iterator(); i.hasNext();) {
             File f = (File) i.next();
+
+            if ("pspdash.jar".equals(f.getName())) {
+                launcher.useDashboardJarFile(f);
+                continue;
+            }
+
             DashboardInstance l = launcherFactory.getLauncher(comp, f);
             if (l != null)
                 targets.add(l);

@@ -36,6 +36,9 @@ import java.net.InetAddress;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.jar.Attributes;
+import java.util.jar.JarFile;
+import java.util.jar.Manifest;
 
 import javax.swing.BoxLayout;
 import javax.swing.JFrame;
@@ -52,6 +55,7 @@ import javax.swing.table.TableColumnModel;
 import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.i18n.Resources;
+import net.sourceforge.processdash.templates.DashPackage;
 import net.sourceforge.processdash.ui.DashboardIconFactory;
 import net.sourceforge.processdash.util.ConcurrencyLock;
 
@@ -139,10 +143,12 @@ public class QuickLauncher {
     }
 
     private void buildUI() throws Exception {
-        String windowTitle = resources.getString("Window_Title");
+        String windowTitle;
         String versionNumber = getVersionNumber();
-        if (versionNumber != null)
-            windowTitle = windowTitle + " " + versionNumber;
+        if (versionNumber == null)
+            windowTitle = resources.getString("Window_Title");
+        else
+            windowTitle = resources.format("Window_Title2_FMT", versionNumber);
         frame = new JFrame(windowTitle);
         frame.setIconImage(DashboardIconFactory.getLauncherWindowIconImage());
 
@@ -209,6 +215,49 @@ public class QuickLauncher {
     private void abortWithError(Object message) {
         showError(message);
         System.exit(1);
+    }
+
+    public boolean useDashboardJarFile(File f) {
+        if (!(processFactory instanceof DashboardProcessFactoryForking)) {
+            JOptionPane.showMessageDialog(frame,
+                    resources.getStrings("Errors.SameJVMCannotSwitch"),
+                    resources.getString("Errors.Dialog_Title"),
+                    JOptionPane.ERROR_MESSAGE);
+            return false;
+        }
+
+        String packageID = null;
+        String version = null;
+        String mainClass = null;
+        try {
+            JarFile jar = new JarFile(f);
+            Manifest mf = jar.getManifest();
+            Attributes attrs = mf.getMainAttributes();
+            packageID = attrs.getValue(DashPackage.ID_ATTRIBUTE);
+            version = attrs.getValue(DashPackage.VERSION_ATTRIBUTE);
+            mainClass = attrs.getValue("Main-Class");
+            jar.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        if (!"pspdash".equals(packageID) || version == null || mainClass == null) {
+            JOptionPane.showMessageDialog(frame,
+                    resources.format("Errors.Not_Pspdash_Jar_FMT",
+                            f.getAbsolutePath()),
+                    resources.getString("Errors.Dialog_Title"),
+                    JOptionPane.ERROR_MESSAGE);
+            return false;
+        }
+
+        DashboardProcessFactoryForking pf =
+            (DashboardProcessFactoryForking) processFactory;
+        pf.setClasspath(f.getAbsolutePath());
+        pf.setMainClassName(mainClass);
+
+        String windowTitle = resources.format("Window_Title3_FMT", version, f
+                .getParent());
+        frame.setTitle(windowTitle);
+        return true;
     }
 
     public void launchInstances(Collection launchers) {
@@ -304,4 +353,5 @@ public class QuickLauncher {
         }
 
     }
+
 }
