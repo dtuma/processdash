@@ -170,9 +170,12 @@ public class HashTree {
 
     /** Returns the deepest HashTree object that is currently nested under
      * this object, that would be an ancestor of the given key.
+     * 
+     * Note that if the key exactly names a tree, but does not end in a slash,
+     * this will return the parent of that tree.
      */
     public HashTree getDeepestExistingSubtree(String key) {
-        return (HashTree) getImpl0(key + "/", true);
+        return (HashTree) getImpl0(key, true);
     }
 
     protected Object getImpl0(String key, boolean deepestChild) {
@@ -210,7 +213,10 @@ public class HashTree {
 
         int slashPos = key.indexOf(SEPARATOR_CHAR);
         if (slashPos == -1)
-            return contents.get(key);
+            if (deepestChild)
+                return this;
+            else
+                return contents.get(key);
 
         slashPos++;
         String subKey = key.substring(0, slashPos);

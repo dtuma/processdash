@@ -182,6 +182,9 @@ public class HashTreeTest extends TestCase {
 
         assertEquals(tree, tree.getDeepestExistingSubtree("/asdfas/asdfa/sadfa"));
         assertEquals(tree, tree.getDeepestExistingSubtree("asdfas/asdfa/sadfa"));
+        assertEquals(tree, tree.getDeepestExistingSubtree("/qierqoiwerqoiweu"));
+        assertEquals(tree, tree.getDeepestExistingSubtree("qierqoiwerqoiweu"));
+        assertEquals(tree, tree.getDeepestExistingSubtree(NAMES[0]));
 
         for (Iterator i = allNames.iterator(); i.hasNext();) {
             String name = (String) i.next();
@@ -191,6 +194,7 @@ public class HashTreeTest extends TestCase {
             assertNotNull(parent);
             assertEquals(parent, tree.getDeepestExistingSubtree(name));
             assertEquals(parent, tree.getDeepestExistingSubtree(name + "/SUPASDOIF/ASDFASP/ASDFASASFDAS"));
+            assertEquals(parent, tree.getDeepestExistingSubtree(parentName + "/SUPASDOIF/ASDFASP/ASDFASASFDAS"));
         }
     }
 
