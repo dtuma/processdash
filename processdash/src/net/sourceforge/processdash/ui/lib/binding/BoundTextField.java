@@ -25,13 +25,19 @@
 
 package net.sourceforge.processdash.ui.lib.binding;
 
+import java.awt.Color;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
 import java.beans.EventHandler;
+import java.text.Format;
+import java.text.NumberFormat;
+import java.text.ParseException;
 
 import javax.swing.JTextField;
 
+import net.sourceforge.processdash.ui.lib.FormattedDocument;
+import net.sourceforge.processdash.ui.lib.PaintUtils;
 import net.sourceforge.processdash.util.StringUtils;
 import net.sourceforge.processdash.util.XMLUtils;
 
@@ -45,20 +51,37 @@ public class BoundTextField extends JTextField {
 
     private boolean allowBlank;
 
+    private Format format;
+
+    private Color normalBackground;
+
     public BoundTextField(BoundMap map, Element xml) {
         this(map, xml.getAttribute("id"),
                 XMLUtils.getXMLInt(xml, "width"),
+                xml.getAttribute("dataType"),
                 "true".equalsIgnoreCase(xml.getAttribute("allowBlank")));
     }
 
     public BoundTextField(BoundMap map, String attributeName, int width,
-            boolean allowBlank) {
+            String type, boolean allowBlank) {
         super(width <= 0 ? 20 : width);
         setMinimumSize(getPreferredSize());
 
         this.map = map;
         this.propertyName = attributeName;
         this.allowBlank = allowBlank;
+
+        if ("integer".equalsIgnoreCase(type)) {
+            this.allowBlank = false;
+            this.format = NumberFormat.getIntegerInstance();
+            setDocument(new FormattedDocument(this.format));
+        } else if ("number".equalsIgnoreCase(type)) {
+            this.allowBlank = false;
+            this.format = NumberFormat.getInstance();
+            setDocument(new FormattedDocument(this.format));
+        }
+
+        this.normalBackground = getBackground();
 
         map.addPropertyChangeListener(attributeName, this, "updateFromMap");
 
@@ -74,8 +97,22 @@ public class BoundTextField extends JTextField {
     }
 
     public void updateFromMap() {
+        setBackground(normalBackground);
         Object value = map.get(propertyName);
-        setText(StringUtils.asString(value));
+        String text = formatValue(value);
+        setText(text);
+    }
+
+    protected String formatValue(Object value) {
+        if (value == null)
+            return "";
+
+        else if (format != null)
+            try {
+                return format.format(value);
+            } catch (Exception e) {}
+
+        return StringUtils.asString(value);
     }
 
     public void updateFromText() {
@@ -85,11 +122,24 @@ public class BoundTextField extends JTextField {
         Object val = null;
         if (text != null)
             val = parseText(text);
-        map.put(propertyName, val);
+        if (val != INVALID_VALUE)
+            map.put(propertyName, val);
     }
 
     protected Object parseText(String text) {
-        return text;
+        if (format == null)
+            return text;
+        else
+            try {
+                setBackground(normalBackground);
+                return format.parseObject(text);
+            } catch (ParseException e) {
+                Color c = map.getErrorColor(ErrorData.SEVERE);
+                c = PaintUtils.mixColors(c, normalBackground, 0.2);
+                setBackground(c);
+                return INVALID_VALUE;
+            }
     }
+    private Object INVALID_VALUE = new Object();
 
 }
