@@ -3,6 +3,9 @@
 
 <exportMetricsFile>
   <metricsFilter>
+    <!-- request explicit metrics enumeration -->
+    <exclude>All Metrics Not Explicitly Listed</exclude>
+
     <!-- include various markers and metadata -->
     <include><!--#echo Process_ID --> (Rollup Eligible|Tag|Indiv Root Tag)$</include>
     <include>/Project_WBS_ID$</include>
@@ -36,7 +39,7 @@
 
     <!--#foreach name=Metric list=Size_Metric_Data_Names -->
         <include>/(Estimated )?<!--#echo value="Metric" -->$</include>
-        <exclude>/(Estimated )?Inspected <!--#echo value="Metric" --></exclude>
+        <exclude>/(Estimated )?Inspected <!--#echo value="Metric" -->$</exclude>
     <!--#endfor-->
 
     <!--#foreach name=TypeOf values=",Base,Deleted,Modified,Added,Reused,New & Changed,Total,New Reused,Object," -->
