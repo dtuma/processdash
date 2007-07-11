@@ -236,6 +236,9 @@
 <!--#set var="parentable_indiv2_nodes" inline="true" #-->
     }PID/Indiv2Root}PID/Indiv2ReadOnlyNode}PID/Indiv2Task<!--#endset-->
 
+<!--#set var="phase_stubs" inline="true" #-->
+    <!--#foreach name=Phase list=Phase_List #-->
+        {PID/PHASE/<!--#echo Phase_ID --><!--#endfor--><!--#endset-->
 
 <!--======================================================================
     The template for a root project node on the individual side.
@@ -248,7 +251,7 @@
       defectLog="false"
       dataFile="PID/indiv2_root_dataFile.txt"
       autoData="none"
-      constraints="<!--#echo creatable_indiv2_nodes -->}"
+      constraints="<!--#echo creatable_indiv2_nodes --><!--#echo phase_stubs -->}"
       ><!--#break comment-->
            This node cannot be directly instantiated by the user. They
 	   must instead use the team setup wizard to join a team project.

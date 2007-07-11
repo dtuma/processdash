@@ -902,6 +902,7 @@ public class HierarchySynchronizer {
 
         String templateID, suffix;
         Collection compatibleTemplateIDs;
+        String forcedRootChildSuffix = " Task";
 
         public SyncSimpleNode(String templateID, String suffix,
                 String compatibleTemplateID) {
@@ -1019,8 +1020,12 @@ public class HierarchySynchronizer {
 
         public String getName(Element node) {
             String result = super.getName(node);
-            if (isPhaseName(result))
-                result = result + suffix;
+            if (isPhaseName(result)) {
+                if (suffix.length() > 0)
+                    result = result + suffix;
+                else if (node.getParentNode() == projectXML)
+                    result = result + forcedRootChildSuffix;
+            }
             return result;
         }
 
