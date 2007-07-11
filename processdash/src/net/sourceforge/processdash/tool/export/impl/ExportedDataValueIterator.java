@@ -25,12 +25,15 @@
 
 package net.sourceforge.processdash.tool.export.impl;
 
-import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.logging.Logger;
 
+import net.sourceforge.processdash.data.DataContext;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.repository.DataNameFilter;
 import net.sourceforge.processdash.data.repository.DataRepository;
@@ -115,7 +118,7 @@ public class ExportedDataValueIterator extends IteratorFilter {
 
         if (metricsExcludes.contains(EXCLUDE_ALL_NONMATCHING_METRICS))
             try {
-                return new CartesianDataNameIterator(prefixes, hier,
+                return new CartesianDataNameIterator(data, prefixes, hier,
                         metricsIncludes);
             } catch (Exception e) {
                 // an exception could be thrown to indicate that some of the
@@ -153,14 +156,16 @@ public class ExportedDataValueIterator extends IteratorFilter {
         "All Metrics Not Explicitly Listed";
 
     private static class CartesianDataNameIterator implements Iterator {
+        private DataContext data;
         private Iterator prefixKeys;
-        private Collection names;
+        private Map names;
 
         private String workingPrefix;
         private Iterator workingNames;
 
-        public CartesianDataNameIterator(Collection prefixes,
+        public CartesianDataNameIterator(DataContext data, Collection prefixes,
                 DashHierarchy hier, Collection namePatterns) {
+            this.data = data;
             this.prefixKeys = enumeratePrefixes(prefixes, hier);
             this.names = enumerateNames(namePatterns);
 
@@ -179,35 +184,83 @@ public class ExportedDataValueIterator extends IteratorFilter {
             return result;
         }
 
-        private Collection enumerateNames(Collection namePatterns) {
-            PatternList pl = new PatternList(namePatterns);
+        private Map enumerateNames(Collection namePatterns) {
+            PatternList pl = new PatternList();
+            for (Iterator i = namePatterns.iterator(); i.hasNext();)
+                pl.addRegexp(fixupPattern((String) i.next()));
+
             if (pl.getContainsItems() != null || pl.getRegexpItems() != null
                     || pl.getStartsWithItems() != null
                     || pl.getEqualsItems() != null)
                 throw new UnsupportedOperationException();
 
-            List result = new ArrayList(pl.getEndsWithItems().size());
+            Map result = new HashMap();
             for (Iterator i = pl.getEndsWithItems().iterator(); i.hasNext();) {
                 String oneItem = (String) i.next();
+                String rootTag = null;
+                int tagEnd = oneItem.indexOf(TAG_SEP_CHAR);
+                if (tagEnd != -1) {
+                    rootTag = oneItem.substring(0, tagEnd);
+                    oneItem = oneItem.substring(tagEnd + 1);
+                }
+
                 if (oneItem.startsWith("/"))
                     oneItem = oneItem.substring(1);
-                result.add(oneItem);
+
+                Set s = (Set) result.get(rootTag);
+                if (s == null) {
+                    s = new HashSet();
+                    result.put(rootTag, s);
+                }
+                s.add(oneItem);
             }
 
             return result;
         }
 
+        private String fixupPattern(String pattern) {
+            if (!pattern.startsWith("{"))
+                return pattern;
+            int bracePos = pattern.indexOf('}');
+            if (bracePos < 2)
+                return pattern;
+            int barPos = pattern.lastIndexOf('|', bracePos);
+            if (barPos == -1)
+                return pattern.substring(1, bracePos) + TAG_SEP_CHAR
+                        + pattern.substring(bracePos + 1);
+            else
+                return '(' + pattern.substring(1, bracePos) + ")"
+                        + TAG_SEP_CHAR + pattern.substring(bracePos + 1);
+        }
+
         private void getNextPrefix() {
-            if (prefixKeys.hasNext()) {
+            while (prefixKeys.hasNext()) {
                 PropertyKey nextKey = (PropertyKey) prefixKeys.next();
                 workingPrefix = nextKey.path();
                 if (!workingPrefix.endsWith("/"))
                     workingPrefix = workingPrefix + "/";
-                workingNames = names.iterator();
-            } else {
-                workingPrefix = null;
-                workingNames = null;
+                workingNames = getNamesForPrefix(workingPrefix);
+                if (workingNames.hasNext())
+                    return;
             }
+            workingPrefix = null;
+            workingNames = null;
+        }
+
+        private Iterator getNamesForPrefix(String prefix) {
+            Set result = new HashSet();
+            for (Iterator i = names.entrySet().iterator(); i.hasNext();) {
+                Map.Entry e = (Map.Entry) i.next();
+                String tagName = (String) e.getKey();
+                if (StringUtils.hasValue(tagName)) {
+                    String dataName = prefix + tagName;
+                    SimpleData sd = data.getSimpleValue(dataName);
+                    if (sd == null || sd.test() == false)
+                        continue;
+                }
+                result.addAll((Set) e.getValue());
+            }
+            return result.iterator();
         }
 
         public void remove() {
@@ -229,6 +282,8 @@ public class ExportedDataValueIterator extends IteratorFilter {
 
             return result;
         }
+
+        private static final char TAG_SEP_CHAR = '\u0001';
 
     }
 }

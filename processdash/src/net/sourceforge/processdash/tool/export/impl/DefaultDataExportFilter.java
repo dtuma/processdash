@@ -204,6 +204,9 @@ public class DefaultDataExportFilter extends IteratorFilter {
             PatternList result = new PatternList();
             for (Iterator iter = regexps.iterator(); iter.hasNext();) {
                 String re = (String) iter.next();
+                int bracePos = re.indexOf('}');
+                if (bracePos != -1 && re.startsWith("{"))
+                    re = re.substring(bracePos + 1);
                 try {
                     result.addRegexp(re);
                 } catch (Exception e) {
