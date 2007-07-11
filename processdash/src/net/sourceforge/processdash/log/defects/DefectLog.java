@@ -44,6 +44,7 @@ import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.DoubleData;
 import net.sourceforge.processdash.data.NumberFunction;
+import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.util.RobustFileWriter;
 
@@ -56,6 +57,7 @@ public class DefectLog {
 
     String defectLogFilename = null;
     String dataPrefix = null;
+    String dataNamespace = null;
     DataRepository data = null;
     ProcessDashboard parent;
 
@@ -65,8 +67,9 @@ public class DefectLog {
 
     public DefectLog(String filename, String dataPath, DataRepository data,
               ProcessDashboard dash) {
-        defectLogFilename = filename;
+        this.defectLogFilename = filename;
         this.dataPrefix = dataPath + "/";
+        this.dataNamespace = null;
         this.data = data;
         this.parent = dash;
     }
@@ -205,7 +208,8 @@ public class DefectLog {
     }
 
     private void incrementDataValue(String dataName, int increment) {
-        dataName = DataRepository.createDataName(dataPrefix, dataName);
+        String prefix = dataPrefix + getDataNamespace();
+        dataName = DataRepository.createDataName(prefix, dataName);
         DoubleData val;
         try {
             val = (DoubleData)data.getValue(dataName);
@@ -222,6 +226,18 @@ public class DefectLog {
         data.putValue(dataName, val);
     }
 
+    private String getDataNamespace() {
+        if (dataNamespace == null) {
+            String dataName = DataRepository.createDataName(dataPrefix,
+                    "Defect_Data_Namespace");
+            SimpleData sd = data.getSimpleValue(dataName);
+            if (sd == null)
+                dataNamespace = "";
+            else
+                dataNamespace = sd.format() + "/";
+        }
+        return dataNamespace;
+    }
 
     /** Recalculate some defect data.  This action is appropriate when
      * one defect has been changed or added.
