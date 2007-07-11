@@ -91,8 +91,11 @@
     </file>
     <file in="metricsExportFilter.xml" out="metricsExportFilterOld.xml">
         <param name="oldStyle" value="true"/>
+        <param name="PID" replace="true" value="<!--#echo Process_ID -->"/>
     </file>
-    <file in="metricsExportFilter.xml"/>
+    <file in="metricsExportFilter.xml">
+        <param name="PID" replace="true" value="<!--#echo Process_ID -->"/>
+    </file>
 
     <!-- forms for use on the individual side -->
     <file in="expanding_indiv_plan_summary.htm" encoding="html"

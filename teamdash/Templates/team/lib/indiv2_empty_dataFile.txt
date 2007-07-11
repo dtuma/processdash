@@ -27,33 +27,15 @@
 
 
 /*
- * Calculate namespaced phase data for this task.
+ * Namespace the time and defect data for this task.
  */
-<!--#foreach name=PHASE list=Phase_List #-->
+[PID Namespaced Data] = tag;
 
-  <!--#foreach name=Estimated_ values=',Estimated ,,' #-->
+[PID /Estimated Time] = [Estimated Time];
+[PID /Time] = [Time];
 
-  [PID /<!--#echo PHASE_Name -->/Estimated_Time] = iff(
-      [PID /Effective_Phase] == "<!--#echo PHASE_Name -->",
-      [Estimated_Time], 0);
+[Defect_Data_Namespace] = "PID ";
 
-  <!--#endfor-->
-
-[PID /<!--#echo PHASE_Name -->/Defects Injected] =
-    [<!--#echo PHASE_Name -->/Defects Injected];
-[PID /<!--#echo PHASE_Name -->/Defects Removed] =
-    [<!--#echo PHASE_Name -->/Defects Removed];
-
-<!--#endfor-->
-
-
-<!--#foreach name=Estimated_ values=',Estimated ,,' #-->
-
-[PID /Uncategorized/Estimated_Time] = iff(
-    intersects([PID /Effective_Phase], [/PID/Phase_List]),
-    0, [Estimated_Time]);
-
-<!--#endfor-->
 
 
 /*

@@ -21,9 +21,6 @@ undefine([Simple Project Tag]);
     listFor("Task_Labels", [Subproject_Path_List]));
 [Filtered_Task_Labels] = globSearch([Label//Filter], [Task_Labels]);
 
-[Rollup_Unadorned_Phase_Metrics] = 0 < count(filter(
-     lookup([_] &/ "Rollup_Unadorned_Phase_Metrics"),
-     [Subproject_Path_List]));
 [Rollup_Namespaced_Phase_Metrics] = 0 < count(filter(
      lookup([_] &/ "Rollup_Namespaced_Phase_Metrics"),
      [Subproject_Path_List]));

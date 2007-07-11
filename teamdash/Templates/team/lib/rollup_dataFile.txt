@@ -7,6 +7,12 @@ undefine([Historical Data Tag]);
 [Exclude Children of Rollup_List for Defects] = tag;
 
 /*
+ * Store the list of phases, for use by other calculations.
+ */
+[/<!--#echo Process_ID -->/Phase_List] = "<!--#foreach name=Phase list=Phase_List --><!--#echo Phase_Name --><!--#endfor-->";
+
+
+/*
  * We need to redefine the rollup project list to include PSP projects.
  */
 [/PSP/Project List] = search("/", "PSP Rollup Eligible");
@@ -51,32 +57,58 @@ undefine([Historical Data Tag]);
  * Roll up phase data both from both new style (namespaced) and old style
  * (plain/unadorned) data exports.
  */
-[Rollup_Unadorned_Phase_Metrics] = true;
 [Rollup_Namespaced_Phase_Metrics] = true;
 
+[Unadorned_Rollup_List] =
+    filter(! indirect([_] &/ "PID Namespaced Data"), [Rollup_List]);
+
+[Namespaced_Rollup_List] = iff(![Rollup_Namespaced_Phase_Metrics], null,
+    filter(indirect([_] &/ "PID Namespaced Data"), [Rollup_List]));
+
 <!--#foreach name=PHASE list=Phase_List #-->
-<!--#foreach name=METRIC values=',Estimated Time,Time,Defects Injected,Defects Removed,' #-->
+
+[Namespaced_Rollup_List/<!--#echo PHASE_Name -->] =
+    filter(indirect([_] &/ "PID /Effective_Phase")
+                     == "<!--#echo PHASE_Name -->", [Namespaced_Rollup_List]);
+
+<!--#foreach name=METRIC values=',Estimated Time,Time,' #-->
 
 [<!--#echo PHASE_Name -->/METRIC] =
-    iff([Rollup_Unadorned_Phase_Metrics],
-        sumFor("<!--#echo PHASE_Name -->/METRIC", [Rollup_List]), 0) +
-    iff([Rollup_Namespaced_Phase_Metrics],
-        sumFor("PID /<!--#echo PHASE_Name -->/METRIC", [Rollup_List])
-        <!--#if PHASE_Is_PSP #-->
-	+ sumFor("PSP /<!--#echo PHASE_Name -->/METRIC", [Rollup_List])
-	<!--#endif-->, 0);
+    sumFor("<!--#echo PHASE_Name -->/METRIC", [Unadorned_Rollup_List]) +
+    sumFor("PID /METRIC", [Namespaced_Rollup_List/<!--#echo PHASE_Name -->]);
+
+<!--#endfor-->
+
+<!--#foreach name=METRIC values=',Defects Injected,Defects Removed,' #-->
+
+[<!--#echo PHASE_Name -->/METRIC] =
+    sumFor("<!--#echo PHASE_Name -->/METRIC", [Unadorned_Rollup_List]) +
+    sumFor("PID /<!--#echo PHASE_Name -->/METRIC", [Namespaced_Rollup_List]);
 
 <!--#endfor--><!--#endfor-->
+
+[Before Development/Defects Injected] =
+    sumFor("Before Development/Defects Injected", [Unadorned_Rollup_List]) +
+    sumFor("PID /Before Development/Defects Injected",
+           [Namespaced_Rollup_List]);
+[After Development/Defects Removed] =
+    sumFor("After Development/Defects Removed", [Unadorned_Rollup_List]) +
+    sumFor("PID /After Development/Defects Removed", [Namespaced_Rollup_List]);
 
 
 
 /*
  * Add up metrics for uncategorized tasks
  */
+[Namespaced_Rollup_List/Uncategorized] = 
+    filter(! intersects(indirect([_] &/ "PID /Effective_Phase"),
+                        [/PID/Phase_List]),
+           [Namespaced_Rollup_List]);
 
-[Uncategorized/Time] = sumFor("PID /Uncategorized/Time", [Rollup_List]);
+[Uncategorized/Time] =
+     sumFor("PID /Time", [Namespaced_Rollup_List/Uncategorized]);
 [Uncategorized/Estimated Time] =
-    sumFor("PID /Uncategorized/Estimated Time", [Rollup_List]);
+    sumFor("PID /Estimated Time", [Namespaced_Rollup_List/Uncategorized]);
 
 [Time] = sumFor("Time", [Phase_List], "Uncategorized");
 [Estimated Time] = sumFor("Estimated Time", [Phase_List], "Uncategorized");

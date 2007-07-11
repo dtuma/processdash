@@ -55,9 +55,6 @@ undefine([Simple Project Tag]);
 /*
  * Scan included projects to determine whether namespaced data is in use.
  */
-[Rollup_Unadorned_Phase_Metrics]  = 0 < count(filter(
-     ! lookup([_] &/ "Exporting_Namespaced_Phase_Metrics"),
-     [Corresponding_Project_Nodes]));
 [Rollup_Namespaced_Phase_Metrics] = 0 < count(filter(
      lookup([_] &/ "Exporting_Namespaced_Phase_Metrics"),
      [Corresponding_Project_Nodes]));
