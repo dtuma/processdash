@@ -59,6 +59,7 @@ import net.sourceforge.processdash.ev.EVTaskDependency;
 import net.sourceforge.processdash.ev.EVTaskFilter;
 import net.sourceforge.processdash.ev.EVTaskList;
 import net.sourceforge.processdash.ev.EVTaskListData;
+import net.sourceforge.processdash.ev.EVTaskListMerged;
 import net.sourceforge.processdash.ev.EVTaskListRollup;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.net.cache.CachedURLObject;
@@ -92,6 +93,7 @@ public class EVReport extends CGIChartBase {
     public static final String XML_PARAM = "xml";
     public static final String XLS_PARAM = "xls";
     public static final String CSV_PARAM = "csv";
+    public static final String MERGED_PARAM = "merged";
     public static final String TIME_CHART = "time";
     public static final String VALUE_CHART = "value";
     public static final String VALUE_CHART2 = "value2";
@@ -267,6 +269,10 @@ public class EVReport extends CGIChartBase {
                 outStream.write((CachedURLObject.OWNER_HEADER_FIELD +
                                  ": " + owner + "\r\n").getBytes());
             outStream.write("\r\n".getBytes());
+
+            if (evModel instanceof EVTaskListRollup
+                    && parameters.containsKey(MERGED_PARAM))
+                evModel = new EVTaskListMerged(evModel, false, null);
 
             outStream.write(XML_HEADER.getBytes("UTF-8"));
             outStream.write(evModel.getAsXML(true).getBytes("UTF-8"));
