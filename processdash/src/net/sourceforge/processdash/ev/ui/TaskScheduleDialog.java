@@ -32,6 +32,7 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Event;
 import java.awt.Font;
+import java.awt.Frame;
 import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.Toolkit;
@@ -570,7 +571,12 @@ public class TaskScheduleDialog
         return result;
     }
 
-    public void show() { frame.show(); frame.toFront(); }
+    public void show() {
+        if (frame.getState() == Frame.ICONIFIED)
+            frame.setState(Frame.NORMAL);
+        frame.show();
+        frame.toFront();
+    }
 
     protected Map getErrors() {
         return model.getSchedule().getMetrics().getErrors();

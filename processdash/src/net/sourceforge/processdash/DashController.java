@@ -133,7 +133,7 @@ public class DashController {
         List taskLists = EVTaskList.getTaskListNamesForPath(dash.data,
                 path);
 
-        raiseWindow();
+        raiseWindowImpl();
         if (taskLists.size() == 1)
             TaskScheduleChooser.open(dash, (String) taskLists.get(0));
         else
