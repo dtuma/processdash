@@ -66,7 +66,7 @@ public class EVTask implements Cloneable, DataListener {
     public static final String NODE_TYPE_SPEC_DATA_NAME = "Node_Type_Spec";
     public static final String MISSING_NODE_TYPE        = "?????";
     public static final String DATE_COMPLETED_DATA_NAME = "Completed";
-    public static final String IGNORE_PLAN_TIME_NAME    = "Rollup Tag";
+    public static final String NODE_IS_ROLLUP_DATA_NAME = "Rollup Tag";
     private static final String LEVEL_OF_EFFORT_PREFIX  = "TST-LOE_";
     private static final String TASK_ORDINAL_PREFIX  = "TST-TSK#_";
     private static final String TASK_PRUNING_PREFIX  = "TST-PRUNED_";
@@ -292,12 +292,12 @@ public class EVTask implements Cloneable, DataListener {
         this.data = data;
         this.listener = listener;
 
-        if (getValue(IGNORE_PLAN_TIME_NAME) != null)
+        if (getValue(NODE_IS_ROLLUP_DATA_NAME) != null) {
             ignorePlanTime();
-        else
+        } else {
             setPlanTime(getValue(PLAN_TIME_DATA_NAME));
-
-        setActualTime(getValue(ACT_TIME_DATA_NAME));
+            setActualTime(getValue(ACT_TIME_DATA_NAME));
+        }
 
         if (parent == null || !StringUtils.hasValue(parent.fullName))
             nodeTypeSpec = ListData.asListData(data.getInheritableValue(
