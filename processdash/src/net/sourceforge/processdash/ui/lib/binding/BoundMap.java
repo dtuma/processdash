@@ -26,6 +26,7 @@
 package net.sourceforge.processdash.ui.lib.binding;
 
 import java.awt.Color;
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -36,6 +37,7 @@ import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import net.sourceforge.processdash.util.Base64;
 import net.sourceforge.processdash.util.ObservableMap;
 import net.sourceforge.processdash.util.StringUtils;
 import net.sourceforge.processdash.util.XMLUtils;
@@ -281,5 +283,63 @@ public class BoundMap extends ObservableMap {
     private static final Color DEFAULT_INFORMATION_COLOR = Color.BLUE;
 
     private static final Color DEFAULT_NO_ERROR_COLOR = Color.BLACK;
+
+
+    /** Decode a hashed value */
+    public String unhashValue(String hash) {
+        if (!StringUtils.hasValue(hash))
+            return hash;
+
+        byte[] bytes = Base64.decode(hash);
+        if (bytes == null)
+            // if the string wasn't a valid base 64 encoding, decode() will
+            // return null. In that case, the value must not have been hashed.
+            return hash;
+
+        try {
+            hashBytes(bytes);
+            return new String(bytes, "UTF-8");
+        } catch (Exception e) {
+            // garbage input or some other problem? Return unchanged.
+            return hash;
+        }
+    }
+
+    /** Encode a hashed value */
+    public String hashValue(String value) {
+        byte[] bytes;
+        try {
+            bytes = value.getBytes("UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            // can't happen
+            return null;
+        }
+
+        hashBytes(bytes);
+        return Base64.encodeBytes(bytes);
+    }
+
+    // VERY SIMPLISTIC algorithm. This isn't *any* sort of real protection -
+    // it's just to prevent accidental misuse of a hashed value. In the event
+    // that the hash and the value are stored in different places, and one
+    // or the other isn't broadly accessible, this could provide some amount
+    // of protection.
+    private void hashBytes(byte[] bytes) {
+        byte[] hb = null;
+        try {
+            hb = hashChars.getBytes("UTF-8");
+        } catch (Exception e) {
+        }
+        if (hb == null || hb.length == 0)
+            hb = new byte[] { 55 };
+        int max = Math.max(bytes.length, hb.length);
+        for (int i = 0; i < max; i++) {
+            int j = i % bytes.length;
+            int k = i % hb.length;
+            bytes[j] = (byte) ((bytes[j] ^ hb[k]) & 0xff);
+        }
+    }
+
+    protected String hashChars = "HASH-CHARS";
 
 }

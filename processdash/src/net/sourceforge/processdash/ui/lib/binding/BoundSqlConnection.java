@@ -26,13 +26,11 @@
 package net.sourceforge.processdash.ui.lib.binding;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
-import net.sourceforge.processdash.util.Base64;
 import net.sourceforge.processdash.util.StringUtils;
 
 import org.w3c.dom.Element;
@@ -75,7 +73,7 @@ public class BoundSqlConnection implements BoundMap.Disposable, ErrorTokens {
                 xml.getAttribute("url"), //
                 xml.getAttribute("username"), //
                 xml.getAttribute("usernameId"), //
-                decodePassword(xml.getAttribute("password")), //
+                map.unhashValue(xml.getAttribute("password")), //
                 xml.getAttribute("passwordId"), //
                 xml.getAttribute("unavailableMessage"));
 
@@ -225,43 +223,6 @@ public class BoundSqlConnection implements BoundMap.Disposable, ErrorTokens {
             return errorSeverity;
         }
 
-    }
-
-    private static String decodePassword(String passwordHash) {
-        if (!StringUtils.hasValue(passwordHash))
-            return "";
-        if (NO_PASSWORD_TOKEN.equals(passwordHash))
-            return NO_PASSWORD_TOKEN;
-
-        byte[] bytes = Base64.decode(passwordHash);
-        for (int i = 0; i < bytes.length; i++)
-            bytes[i] = (byte) ((bytes[i] ^ XOR_BITS) & 0xff);
-        try {
-            return new String(bytes, "US-ASCII");
-        } catch (UnsupportedEncodingException e) {
-            // can't happen
-            return null;
-        }
-    }
-
-    private static String encodePassword(String password) {
-        byte[] bytes;
-        try {
-            bytes = password.getBytes("US-ASCII");
-        } catch (UnsupportedEncodingException e) {
-            // can't happen
-            return null;
-        }
-
-        for (int i = 0; i < bytes.length; i++)
-            bytes[i] = (byte) ((bytes[i] ^ XOR_BITS) & 0xff);
-        return Base64.encodeBytes(bytes);
-    }
-
-    private static final int XOR_BITS = 55;
-
-    public static void main(String[] args) {
-        System.out.println(encodePassword(args[0]));
     }
 
 }

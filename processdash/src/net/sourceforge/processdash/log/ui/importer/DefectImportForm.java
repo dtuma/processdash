@@ -96,7 +96,7 @@ public class DefectImportForm extends BoundForm {
         this.dashboardContext = dashboardContext;
         this.selectedPath = selectedPath;
         this.defectLogPath = defectLogPath;
-        this.formId = configElement.getAttribute("id");
+        this.formId = this.hashChars = configElement.getAttribute("id");
         setResources(resources);
 
         Document spec = openSpecDocument(configElement);
