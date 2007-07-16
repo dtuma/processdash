@@ -1,7 +1,9 @@
 
 <project default="publish" basedir=".">
 
-  <property name="teamtools.version" value="2.5.0"/>
+  <property file="build.properties"/>
+
+  <property name="teamtools.version" value="3.0.0"/>
 
   <property name="processdash.dir" value="../processdash"/>
   <property name="pspdash.jar" value="${processdash.dir}/dist/pspdash.jar"/>
