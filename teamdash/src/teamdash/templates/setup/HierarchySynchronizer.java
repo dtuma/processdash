@@ -84,6 +84,11 @@ public class HierarchySynchronizer {
     /** Does the caller just want to find out if anything needs changing? */
     private boolean whatIfMode = true;
 
+    /** In "what-if" mode, can we stop as soon as we discover that work is
+     * needed?  This would be false if a full list of deletions/renames is
+     * needed. */
+    private boolean whatIfBrief = false;
+
     /** Does the caller want to copy all nontask WBS items? */
     private boolean fullCopyMode;
 
@@ -150,6 +155,16 @@ public class HierarchySynchronizer {
 
     public boolean isWhatIfMode() {
         return whatIfMode;
+    }
+
+    public boolean isWhatIfBrief() {
+        return whatIfBrief;
+    }
+
+    public void setWhatIfBrief(boolean whatIfBrief) {
+        this.whatIfBrief = whatIfBrief;
+        if (whatIfBrief)
+            this.whatIfMode = true;
     }
 
     public void setDeletionPermissions(List p) {
@@ -755,6 +770,8 @@ public class HierarchySynchronizer {
         throws HierarchyAlterationException
     {
         ThreadThrottler.tick();
+        if (whatIfBrief && !changes.isEmpty())
+            return null;
         String type = node.getTagName();
         SyncNode s = (SyncNode) syncActions.get(type);
         if (s != null) {

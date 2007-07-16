@@ -244,6 +244,9 @@ public class sync extends TinyCGIBase {
         throws HierarchyAlterationException
     {
         synch.setWhatIfMode(true);
+        if (parameters.containsKey(TriggerURI.IS_TRIGGERING)
+                || parameters.containsKey(BRIEF_PARAM))
+            synch.setWhatIfBrief(true);
         synch.sync();
         syncTemplates(synch);
         if (synch.getChanges().isEmpty())
@@ -469,7 +472,7 @@ public class sync extends TinyCGIBase {
             out.print("<p>Your hierarchy is up to date - no changes "+
                       "were necessary.");
 
-            if (parameters.containsKey("isTriggering")) {
+            if (parameters.containsKey(TriggerURI.IS_TRIGGERING)) {
                 out.print(TriggerURI.NULL_DOCUMENT_MARKER);
                 JOptionPane.showMessageDialog(getParentComponent(),
                         "Your hierarchy is up to date - no changes were necessary.",
@@ -570,6 +573,7 @@ public class sync extends TinyCGIBase {
     private static final String HIER_EDITOR_OPEN = "hierEditorOpen";
 
     private static final String BACKGROUND_PARAM = "bg";
+    private static final String BRIEF_PARAM = "brief";
     private static final String RUN_PARAM = "run";
     private static final String SAVE_PERMS = "savePerms";
     private static final String COMPLETE_PREFIX = "COMPLETE:";

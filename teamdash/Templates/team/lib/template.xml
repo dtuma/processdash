@@ -633,9 +633,9 @@
   <background-task class="teamdash.templates.setup.SyncScanner"
           settingPrefix="indivAutoSync" ordinal="2000"
 	  runAtStartup="true" whenDefault="0,12">
-    <sync templateID="PID/IndivRoot" uri="PID/setup/sync.class"
+    <sync templateID="PID/IndivRoot" uri="PID/setup/sync.class?brief"
           alertIfToken="SYNC-IS-NEEDED"/>
-    <sync templateID="PID/Indiv2Root" uri="PID/setup/sync.class"
+    <sync templateID="PID/Indiv2Root" uri="PID/setup/sync.class?brief"
           alertIfToken="SYNC-IS-NEEDED"/>
   </background-task>
 
