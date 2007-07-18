@@ -320,13 +320,14 @@ public class DefectDialog extends JDialog
 
     public static DefectDialog getDialogForDefect
         (ProcessDashboard dash, String defectFilename,
-         PropertyKey defectPath, Defect defect)
+         PropertyKey defectPath, Defect defect, boolean create)
     {
         DefectDialog result = null;
 
         String comparisonKey = defectFilename + defect.number;
         result = (DefectDialog) defectDialogs.get(comparisonKey);
         if (result != null && result.isDisplayable()) return result;
+        if (!create) return null;
 
         result = new DefectDialog(dash, defectFilename, defectPath, defect);
         result.saveDialogInCache();
