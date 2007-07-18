@@ -450,7 +450,7 @@ Authors:
   <!-- Update the JavaHelp                                                 -->
   <!-- =================================================================== -->
   <target name="javahelp"
-          depends="init,-javahelp-depend,-javahelp-index,-javahelp-book,-javahelp-images"/>
+          depends="init,-javahelp-depend,-javahelp-images,-javahelp-index,-javahelp-book"/>
 
   <!-- invoke the jhindexer -->
   <target name="-javahelp-index" depends="init,-javahelp-depend"
