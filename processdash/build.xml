@@ -395,7 +395,7 @@ Authors:
 
 
   <target name="jar" description="Make the jarfile for distribution"
-          depends="ant-tasks,init,compile,javahelp,l10n-tool,jarsurf-list">
+          depends="ant-tasks,init,javahelp,compile,l10n-tool,jarsurf-list">
     <svnRevInfo property="svnRevision"/>
     <jar destfile="${dist}/pspdash.jar" duplicate="fail">
       <!-- specify the manifest file contents -->
@@ -514,7 +514,7 @@ Authors:
 
   <!-- check to see if help needs updating -->
   <target name="-javahelp-depend">
-    <uptodate property="javahelp.upToDate" targetfile="${helpsearch}/TMAP">
+    <uptodate property="javahelp.upToDate" targetfile="${help}/book.html">
       <srcfiles dir="${help}">
         <include name="**/*.html"/>
         <include name="**/*.htm"/>
@@ -599,6 +599,7 @@ Authors:
     <delete quiet="true" file="${i18n}/DefaultEngine*"/>
     <delete quiet="true" file="${cms}/SnippetHtmlPostprocessor.dat"/>
     <delete quiet="true" file="${cms}/SnippetHtmlPostprocessor.java"/>
+    <delete quiet="true" file="${help}/book.html"/>
     <delete quiet="true" dir="${helpsearch}"/>
 
     <delete quiet="true" file="${dist}/pspdash.jar"/>
