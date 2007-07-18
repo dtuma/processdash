@@ -1,5 +1,5 @@
+// Copyright (C) 1998-2007 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 1998-2007 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -30,9 +30,10 @@ import java.util.*;
 import java.text.*;
 
 import net.sourceforge.processdash.util.FormatUtil;
+import net.sourceforge.processdash.util.StringUtils;
 import net.sourceforge.processdash.util.XMLUtils;
 
-public class Defect {
+public class Defect implements Cloneable {
 
     public static final String UNSPECIFIED = "Unspecified";
 
@@ -44,7 +45,7 @@ public class Defect {
 
     public Defect(String s) throws ParseException {
         if (s == null) throw new ParseException("Null pointer passed in", 0);
-        StringTokenizer tok = new StringTokenizer(s.replace('','\n'), "\t");
+        StringTokenizer tok = new StringTokenizer(s.replace('\u0001','\n'), "\t");
         try {
             number = tok.nextToken();
             defect_type = tok.nextToken();
@@ -61,10 +62,12 @@ public class Defect {
     }
 
     private String token(String s, boolean multiline) {
-        if      (s == null) return " ";
-        else if (s.length() == 0) return " ";
-        else if (multiline) return s.replace('\t', ' ').replace('\n','');
-        else return s.replace('\t', ' ').replace('\n',' ');
+        if (s == null || s.length() == 0)
+            return " ";
+        s = StringUtils.canonicalizeNewlines(s);
+        s = s.replace('\t', ' ');
+        s = s.replace('\n', (multiline ? '\u0001' : ' '));
+        return s;
     }
 
     public String toString() {
@@ -79,6 +82,60 @@ public class Defect {
                 token(fix_defect, false) + tab +
                 token(description, true) + tab +
                 token(dateStr, false) + tab);
+    }
+
+    public boolean equals(Object obj) {
+        if (obj instanceof Defect) {
+            Defect that = (Defect) obj;
+            return eq(this.date, that.date)
+                        && eq(this.number, that.number)
+                        && eq(this.defect_type, that.defect_type)
+                        && eq(this.phase_injected, that.phase_injected)
+                        && eq(this.phase_removed, that.phase_removed)
+                        && eq(this.fix_time, that.fix_time)
+                        && eq(this.fix_defect, that.fix_defect)
+                        && eq(this.description, that.description);
+        }
+        return false;
+    }
+
+    private boolean eq(Object a, Object b) {
+        if (a == b) return true;
+        if (!hasValue(a)) return !hasValue(b);
+        return a.equals(b);
+    }
+
+    private boolean hasValue(Object obj) {
+        return obj != null && !"".equals(obj) && !" ".equals(obj)
+                  && !UNSPECIFIED.equals(obj);
+    }
+
+    public int hashCode() {
+        int result = hc(this.date);
+        result = (result << 1) ^ hc(this.number);
+        result = (result << 1) ^ hc(this.defect_type);
+        result = (result << 1) ^ hc(this.phase_injected);
+        result = (result << 1) ^ hc(this.phase_removed);
+        result = (result << 1) ^ hc(this.fix_time);
+        result = (result << 1) ^ hc(this.fix_defect);
+        result = (result << 1) ^ hc(this.description);
+        return result;
+    }
+
+    private int hc(Object a) {
+        if (hasValue(a))
+            return a.hashCode();
+        else
+            return 0;
+    }
+
+    public Object clone() {
+        try {
+            return super.clone();
+        } catch (CloneNotSupportedException e) {
+            // can't happen?
+            return null;
+        }
     }
 
 }

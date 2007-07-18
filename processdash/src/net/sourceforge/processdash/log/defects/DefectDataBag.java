@@ -38,6 +38,7 @@ import javax.swing.table.AbstractTableModel;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.util.FormatUtil;
 import net.sourceforge.processdash.util.StringMapper;
+import net.sourceforge.processdash.util.StringUtils;
 
 public class DefectDataBag extends AbstractTableModel {
 
@@ -142,6 +143,7 @@ public class DefectDataBag extends AbstractTableModel {
 
     public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
         getItemForRow(rowIndex).put(ATTRS[columnIndex], aValue);
+        fireTableCellUpdated(rowIndex, columnIndex);
     }
 
     public void selectUnselectAll(boolean select) {
@@ -162,10 +164,8 @@ public class DefectDataBag extends AbstractTableModel {
         Object result = getValueAt(row, col);
         if (result == null)
             return "";
-        else if (result instanceof String)
-            return (String) result;
         else
-            return result.toString();
+            return StringUtils.canonicalizeNewlines(result.toString());
     }
 
     public Date getDate(int row) {
@@ -209,6 +209,13 @@ public class DefectDataBag extends AbstractTableModel {
             result.add(d);
         }
         return result;
+    }
+
+    public boolean hasSelectedDefects() {
+        for (int row = getRowCount();  row-- > 0; )
+            if (isIncluded(row))
+                return true;
+        return false;
     }
 
 }

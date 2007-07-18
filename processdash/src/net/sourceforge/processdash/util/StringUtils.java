@@ -551,6 +551,14 @@ public class StringUtils
         return result.toString();
     }
 
+    public static String canonicalizeNewlines(String str) {
+        if (str == null)
+            return str;
+        str = findAndReplace(str, "\r\n", "\n");
+        str = str.replace('\r', '\n');
+        return str;
+    }
+
     public static String asString(Object value) {
         return (value == null ? null : value.toString());
     }

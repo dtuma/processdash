@@ -46,7 +46,10 @@ import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.border.EmptyBorder;
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
 
 import net.sourceforge.processdash.DashboardContext;
 import net.sourceforge.processdash.InternalSettings;
@@ -327,9 +330,17 @@ public class DefectImportForm extends BoundForm {
         cancelButton.addActionListener((ActionListener) EventHandler.create(
                 ActionListener.class, this, "cancel"));
 
-        JButton importButton = new JButton(resources.getString("Import_Button"));
+        final JButton importButton = new JButton(resources
+                .getString("Import_Button"));
         importButton.addActionListener((ActionListener) EventHandler.create(
                 ActionListener.class, this, "doImport"));
+        importButton.setEnabled(false);
+
+        final BoundDefectData data = BoundDefectData.getDefectData(this);
+        data.addTableModelListener(new TableModelListener() {
+            public void tableChanged(TableModelEvent e) {
+                importButton.setEnabled(data.hasSelectedDefects());
+            }});
 
         Box buttonBox = Box.createHorizontalBox();
         buttonBox.add(Box.createHorizontalGlue());
@@ -369,27 +380,63 @@ public class DefectImportForm extends BoundForm {
                 dashboard.getDirectory() + filename, defectLogPath,
                 dashboardContext.getData(), dashboard);
 
+        int addedCount = 0;
+        int updatedCount = 0;
+        int unchangedCount = 0;
+
         for (Iterator i = defects.iterator(); i.hasNext();) {
             Defect newDefect = (Defect) i.next();
             Defect oldDefect = defectLog.getDefect(newDefect.number);
             if (oldDefect == null) {
+                addedCount++;
                 defectLog.writeDefect(newDefect);
             } else {
+                Defect originalDefect = (Defect) oldDefect.clone();
                 oldDefect.defect_type = merge(oldDefect.defect_type, newDefect.defect_type);
                 oldDefect.phase_injected = merge(oldDefect.phase_injected, newDefect.phase_injected);
                 oldDefect.phase_removed = merge(oldDefect.phase_removed, newDefect.phase_removed);
                 oldDefect.description = merge(oldDefect.description, newDefect.description);
                 oldDefect.fix_time = merge(oldDefect.fix_time, newDefect.fix_time);
                 oldDefect.fix_defect = merge(oldDefect.fix_defect, newDefect.fix_defect);
-                defectLog.writeDefect(oldDefect);
+                if (originalDefect.equals(oldDefect)) {
+                    unchangedCount++;
+                } else {
+                    updatedCount++;
+                    defectLog.writeDefect(oldDefect);
+                }
             }
+        }
+
+        if (addedCount == 0 && updatedCount == 0) {
+            JOptionPane.showMessageDialog(frame,
+                    resources.getStrings("Nothing_To_Do.Message"),
+                    resources.getString("Nothing_To_Do.Title"),
+                    JOptionPane.INFORMATION_MESSAGE);
+
+        } else if (addedCount < defects.size()) {
+            String title = resources.getString("Defects_Updated.Title");
+            Object[] message = new Object[4];
+            message[0] = resources.getStrings("Defects_Updated.Message");
+            message[1] = getUpdatedSegment("Added", addedCount);
+            message[2] = getUpdatedSegment("Unchanged", unchangedCount);
+            message[3] = getUpdatedSegment("Updated", updatedCount);
+            JOptionPane.showMessageDialog(frame, message, title,
+                    JOptionPane.INFORMATION_MESSAGE);
         }
     }
 
     private static String merge(String a, String b) {
-        if (a == null || "".equals(a) || Defect.UNSPECIFIED.equals(a))
+        if (a == null || a.trim().length() == 0 || Defect.UNSPECIFIED.equals(a))
             return b;
         else
             return a;
+    }
+
+    private String getUpdatedSegment(String key, int count) {
+        if (count == 0)
+            return null;
+        else
+            return "    " + resources.format("Defects_Updated." + key + "_FMT",
+                    new Integer(count));
     }
 }
