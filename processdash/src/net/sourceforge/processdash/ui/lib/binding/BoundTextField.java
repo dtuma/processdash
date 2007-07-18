@@ -71,15 +71,10 @@ public class BoundTextField extends JTextField {
         this.propertyName = attributeName;
         this.allowBlank = allowBlank;
 
-        if ("integer".equalsIgnoreCase(type)) {
-            this.allowBlank = false;
-            this.format = NumberFormat.getIntegerInstance();
-            setDocument(new FormattedDocument(this.format));
-        } else if ("number".equalsIgnoreCase(type)) {
-            this.allowBlank = false;
-            this.format = NumberFormat.getInstance();
-            setDocument(new FormattedDocument(this.format));
-        }
+        if ("integer".equalsIgnoreCase(type))
+            setNumberFormat(NumberFormat.getIntegerInstance());
+        else if ("number".equalsIgnoreCase(type))
+            setNumberFormat(NumberFormat.getInstance());
 
         this.normalBackground = getBackground();
 
@@ -94,6 +89,17 @@ public class BoundTextField extends JTextField {
         });
 
         updateFromMap();
+    }
+
+    protected void setNumberFormat(NumberFormat fmt) {
+        fmt.setGroupingUsed(false);
+        setFormat(fmt);
+    }
+
+    protected void setFormat(Format fmt) {
+        this.allowBlank = false;
+        this.format = fmt;
+        setDocument(new FormattedDocument(fmt));
     }
 
     public void updateFromMap() {
