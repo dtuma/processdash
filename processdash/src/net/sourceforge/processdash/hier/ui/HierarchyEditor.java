@@ -1,4 +1,4 @@
-// Copyright (C) 1999-2006 Tuma Solutions, LLC
+// Copyright (C) 1999-2007 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -337,11 +337,11 @@ public class HierarchyEditor extends Object implements TreeModelListener, TreeSe
 
     protected void savePendingVector() {
 
-        if (pendingVector != null) {
-            String dataDir = dashboard.getDirectory();
-            dashboard.getData().startInconsistency();
+        String dataDir = dashboard.getDirectory();
+        dashboard.getData().startInconsistency();
 
-            try {
+        try {
+            if (pendingVector != null) {
                 for (int i = 0; i < pendingVector.size(); i++) {
                     if (pendingVector.elementAt (i) instanceof PendingDataChange) {
                         PendingDataChange p=(PendingDataChange)pendingVector.elementAt(i);
@@ -362,14 +362,14 @@ public class HierarchyEditor extends Object implements TreeModelListener, TreeSe
                     incrementProgressDialog();
                 }
                 pendingVector.removeAllElements();
-
-                HierarchyAlterer.updateNodesAndLeaves
-                    (dashboard.getData(), useProps);
-                incrementProgressDialog();
-
-            } finally {
-                dashboard.getData().finishInconsistency();
             }
+
+            HierarchyAlterer.updateNodesAndLeaves
+                    (dashboard.getData(), useProps);
+            incrementProgressDialog();
+
+        } finally {
+            dashboard.getData().finishInconsistency();
         }
 
         dashboard.getHierarchy().fireHierarchyChanged();
