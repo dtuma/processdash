@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2006 Tuma Solutions, LLC
+// Copyright (C) 2003-2007 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -41,6 +41,8 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Iterator;
@@ -233,6 +235,7 @@ public class TaskScheduleChooser
                     }
                 }});
         list.getSelectionModel().addListSelectionListener(this);
+        EVTaskList.addTaskListSaveListener(this);
         dialog.getContentPane().add(new JScrollPane(list),
                                     BorderLayout.CENTER);
 
@@ -265,11 +268,27 @@ public class TaskScheduleChooser
 
         dialog.getContentPane().add(buttons, BorderLayout.SOUTH);
         dialog.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+        dialog.addWindowListener(new ListenerCloser(this));
 
         dialog.pack();
         dialog.show();
         dialog.toFront();
     }
+
+    /**
+     * WindowListener that will remove this object from EVTaskList's
+     * save listener list on disposal.
+     */
+    private class ListenerCloser extends WindowAdapter {
+        private ActionListener listener;
+        public ListenerCloser(ActionListener al) {
+            listener = al;
+        }
+        public void windowClosed(WindowEvent e) {
+            EVTaskList.removeTaskListSaveListener(listener);
+        }
+    }
+
 
     public static void open(DashboardContext dash, String taskListName) {
         if (taskListName == null)
@@ -317,6 +336,8 @@ public class TaskScheduleChooser
             showReportForTaskList(null);
         else if (e.getSource() == cancelButton)
             dialog.dispose();
+        else if (e.getSource() == EVTaskList.class)
+            refreshList();
     }
 
     protected void openSelectedTaskList() {
