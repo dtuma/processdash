@@ -307,6 +307,9 @@ public class BoundMap extends ObservableMap {
 
     /** Encode a hashed value */
     public String hashValue(String value) {
+        if (!StringUtils.hasValue(value))
+            return value;
+
         byte[] bytes;
         try {
             bytes = value.getBytes("UTF-8");

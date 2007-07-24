@@ -48,6 +48,9 @@ public class BoundPasswordField extends JPasswordField {
     }
 
     public BoundPasswordField(BoundMap map, String attributeName) {
+        super(20);
+        setMinimumSize(getPreferredSize());
+
         this.map = map;
         this.propertyName = attributeName;
 
@@ -70,11 +73,15 @@ public class BoundPasswordField extends JPasswordField {
 
     public void updateFromMap() {
         Object value = map.get(propertyName);
-        setText(StringUtils.asString(value));
+        String str = StringUtils.asString(value);
+        str = map.unhashValue(str);
+        setText(str);
     }
 
     public void updateFromText() {
-        map.put(propertyName, new String(getPassword()));
+        String str = new String(getPassword());
+        str = map.hashValue(str);
+        map.put(propertyName, str);
     }
 
 }

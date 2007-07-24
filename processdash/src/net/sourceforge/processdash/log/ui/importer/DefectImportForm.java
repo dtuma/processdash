@@ -30,6 +30,7 @@ import java.awt.Font;
 import java.awt.event.ActionListener;
 import java.beans.EventHandler;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetAddress;
 import java.net.URL;
@@ -38,6 +39,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -66,6 +68,7 @@ import net.sourceforge.processdash.templates.SqlDriverManager;
 import net.sourceforge.processdash.templates.TemplateLoader;
 import net.sourceforge.processdash.ui.DashboardIconFactory;
 import net.sourceforge.processdash.ui.lib.binding.BoundForm;
+import net.sourceforge.processdash.ui.lib.binding.BoundSqlConnection;
 import net.sourceforge.processdash.util.StringUtils;
 import net.sourceforge.processdash.util.XMLUtils;
 
@@ -107,6 +110,8 @@ public class DefectImportForm extends BoundForm {
         if (!StringUtils.hasValue(this.formId))
             this.formId = spec.getDocumentElement().getAttribute("id");
 
+        readExtraProperties(configElement);
+        registerExplicitSqlDrivers();
         addDefectSpecificTypes();
         createValueMappers();
         addFormHeader();
@@ -138,6 +143,31 @@ public class DefectImportForm extends BoundForm {
         if (!StringUtils.hasValue(href))
             href = xml.getAttribute("specLocation");
 
+        InputStream in = openStream(href);
+        if (in == null) {
+            logger.log(Level.SEVERE,
+                    "For defect-importer {0}, cannot locate spec {1}",
+                    new Object[] { formId, href });
+            boolean noNetwork = false;
+            try {
+                if (InetAddress.getLocalHost().isLoopbackAddress())
+                    noNetwork = true;
+            } catch (Exception e) {}
+            AbortImport.showErrorAndAbort(noNetwork ? "No_Network_Available"
+                    : "Cannot_Find_Spec");
+        }
+
+        try {
+            return XMLUtils.parse(in);
+        } catch (Exception e) {
+            e.printStackTrace();
+            AbortImport.showErrorAndAbort("Cannot_Read_Spec", href);
+            return null; // this line will not be reached
+        }
+    }
+
+
+    private InputStream openStream(String href) {
         InputStream in = null;
         try {
             // check for windows-style file path (UNC or drive letter)
@@ -164,26 +194,7 @@ public class DefectImportForm extends BoundForm {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        if (in == null) {
-            logger.log(Level.SEVERE,
-                    "For defect-importer {0}, cannot locate spec {1}",
-                    new Object[] { formId, href });
-            boolean noNetwork = false;
-            try {
-                if (InetAddress.getLocalHost().isLoopbackAddress())
-                    noNetwork = true;
-            } catch (Exception e) {}
-            AbortImport.showErrorAndAbort(noNetwork ? "No_Network_Available"
-                    : "Cannot_Find_Spec");
-        }
-
-        try {
-            return XMLUtils.parse(in);
-        } catch (Exception e) {
-            e.printStackTrace();
-            AbortImport.showErrorAndAbort("Cannot_Read_Spec", href);
-            return null; // this line will not be reached
-        }
+        return in;
     }
 
 
@@ -192,6 +203,66 @@ public class DefectImportForm extends BoundForm {
         if (!TemplateLoader.meetsPackageRequirement(requires))
             AbortImport.showErrorAndAbort("Version_Mismatch",
                     TemplateLoader.getPackageVersion("pspdash"));
+    }
+
+
+    private void readExtraProperties(Element configElement) {
+        // first, see if there is a "properties" attribute on the config
+        String propertiesFile = configElement.getAttribute("properties");
+        readExternalProperties(propertiesFile);
+
+        // now, see if the config has any child elements that specify properties
+        List children = XMLUtils.getChildElements(configElement);
+        for (Iterator i = children.iterator(); i.hasNext();) {
+            Element e = (Element) i.next();
+            if (!"property".equals(e.getTagName()))
+                // we're only interested in <property> tags.
+                continue;
+
+            // for a child of the form <property file="..."/>, load
+            // external properties from the named file.
+            if (e.hasAttribute("file"))
+                readExternalProperties(e.getAttribute("file"));
+
+            // for a child of the form <property name="..." value="..."/>,
+            // set a single property value as indicated.
+            else if (e.hasAttribute("name") && e.hasAttribute("value"))
+                put(e.getAttribute("name"), e.getAttribute("value"));
+        }
+    }
+
+
+    private void readExternalProperties(String propertiesFile) {
+        if (!StringUtils.hasValue(propertiesFile))
+            return;
+
+        InputStream in = openStream(propertiesFile);
+        if (in == null) {
+            logger.log(Level.SEVERE,
+                "For defect-importer {0}, cannot locate properties {1}",
+                new Object[] { formId, propertiesFile });
+            return;
+        }
+
+        Properties props = new Properties();
+        try {
+            props.load(in);
+        } catch (IOException e) {
+            logger.log(Level.SEVERE,
+                "For defect-importer {0}, cannot read properties {1}",
+                new Object[] { formId, propertiesFile });
+            e.printStackTrace();
+            return;
+        }
+        putAll(props);
+    }
+
+
+    private void registerExplicitSqlDrivers() {
+        String driver = (String) get(BoundSqlConnection.DEFAULT_ID
+                + ".driver");
+        if (StringUtils.hasValue(driver))
+            SqlDriverManager.registerDriver(driver);
     }
 
 
