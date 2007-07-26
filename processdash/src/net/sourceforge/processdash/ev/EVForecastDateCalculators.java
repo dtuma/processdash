@@ -252,7 +252,11 @@ public class EVForecastDateCalculators {
         private double almostDonePercentage;
         private double maxAdjustmentRatio;
 
-        private Date getFinalDate(EVSchedule schedule, EVMetrics metrics, List evLeaves) {
+        private Date getFinalDate(EVSchedule schedule, EVMetrics metrics,
+                List evLeaves) {
+            if (evLeaves.isEmpty())
+                return null;
+
             boolean usePerformanceIndexes = usePerformanceIndexes();
             double cpi = (usePerformanceIndexes
                     ? metrics.costPerformanceIndex() : 1.0);
@@ -429,18 +433,21 @@ public class EVForecastDateCalculators {
         public void calculateForecastDates(EVTask taskRoot,
                 EVSchedule schedule, EVMetrics metrics, List evLeaves) {
 
-            totalActualEV = totalPlannedHistTime = 0;
-            HourlySplitSched s = new HourlySplitSched(schedule);
             Date finalDate = null;
 
-            if (totalActualEV > 0 && totalPlannedHistTime > 0) {
-                for (Iterator i = evLeaves.iterator(); i.hasNext();) {
-                    EVTask task = (EVTask) i.next();
-                    task.forecastDate = task.getActualDate();
-                    if (task.forecastDate == null) {
-                        task.forecastDate = s.getHypotheticalDate(
-                                task.cumPlanValue, false);
-                        finalDate = task.forecastDate;
+            if (!evLeaves.isEmpty()) {
+                totalActualEV = totalPlannedHistTime = 0;
+                HourlySplitSched s = new HourlySplitSched(schedule);
+
+                if (totalActualEV > 0 && totalPlannedHistTime > 0) {
+                    for (Iterator i = evLeaves.iterator(); i.hasNext();) {
+                        EVTask task = (EVTask) i.next();
+                        task.forecastDate = task.getActualDate();
+                        if (task.forecastDate == null) {
+                            task.forecastDate = s.getHypotheticalDate(
+                                    task.cumPlanValue, false);
+                            finalDate = task.forecastDate;
+                        }
                     }
                 }
             }
