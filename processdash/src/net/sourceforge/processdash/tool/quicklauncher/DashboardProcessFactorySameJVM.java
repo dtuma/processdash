@@ -60,8 +60,12 @@ public class DashboardProcessFactorySameJVM extends DashboardProcessFactory {
         for (Iterator i = args.iterator(); i.hasNext();) {
             String arg = (String) i.next();
             Matcher m = SYS_PROP_PATTERN.matcher(arg);
-            if (m.matches())
-                System.setProperty(m.group(1), m.group(2));
+            if (m.matches()) {
+                String key = m.group(1);
+                String value = m.group(2);
+                if (System.getProperty(key) == null)
+                    System.setProperty(key, value);
+            }
         }
     }
 

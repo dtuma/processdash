@@ -52,6 +52,8 @@ public class CompressedInstanceLauncher extends DashboardInstance {
     private static final String EXT_RES_MGR_ARG = "-D"
             + ExternalResourceManager.INITIALIZATION_MODE_PROPERTY_NAME + "="
             + ExternalResourceManager.INITIALIZATION_MODE_ARCHIVE;
+    private static final String DISABLE_BACKUP = "-D"
+            + Settings.SYS_PROP_PREFIX + "backup.enabled=false";
 
     private File compressedData;
 
@@ -80,6 +82,7 @@ public class CompressedInstanceLauncher extends DashboardInstance {
 
         List vmArgs = new ArrayList();
         vmArgs.add(EXT_RES_MGR_ARG);
+        vmArgs.add(DISABLE_BACKUP);
         if (dataTimeStamp > 0)
             vmArgs.add("-D" + Settings.SYS_PROP_PREFIX + "ev.effectiveDate="
                     + dataTimeStamp);

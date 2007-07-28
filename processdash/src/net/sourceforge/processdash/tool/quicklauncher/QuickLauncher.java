@@ -105,7 +105,8 @@ public class QuickLauncher {
             else
                 processFactory = new DashboardProcessFactoryForking();
 
-            processFactory.addVmArg("-Dbackup.enabled=false");
+            processFactory.addVmArg("-D" + Settings.SYS_PROP_PREFIX
+                    + "backup.extraDirectories=");
 
             String userLang = System.getProperty("user.language");
             if (userLang != null)
