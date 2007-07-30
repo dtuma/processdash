@@ -786,6 +786,8 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
             // display an error message, but still exit.
             logErr("When shutting down, encountered the exception:", t);
         }
+
+        setVisible(false);
         logger.fine("Backing up data directory");
         FileBackupManager.maybeRun
             (property_directory, FileBackupManager.SHUTDOWN, owner);
