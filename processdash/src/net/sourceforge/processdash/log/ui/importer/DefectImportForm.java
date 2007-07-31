@@ -209,7 +209,13 @@ public class DefectImportForm extends BoundForm {
     private void readExtraProperties(Element configElement) {
         // first, see if there is a "properties" attribute on the config
         String propertiesFile = configElement.getAttribute("properties");
-        readExternalProperties(propertiesFile);
+        if (StringUtils.hasValue(propertiesFile)) {
+            String userSettingName = getUserSettingFullName("propertiesLocation");
+            String userSettingVal = Settings.getVal(userSettingName);
+            if (StringUtils.hasValue(userSettingVal))
+                propertiesFile = userSettingVal;
+            readExternalProperties(propertiesFile);
+        }
 
         // now, see if the config has any child elements that specify properties
         List children = XMLUtils.getChildElements(configElement);
