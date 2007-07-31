@@ -281,13 +281,17 @@ public class DefectImportForm extends BoundForm {
 
 
     public Object addFormElement(Element xml) {
+        Object result = super.addFormElement(xml);
+        if (result == null)
+            return null;
+
         String settingName = xml.getAttribute(SETTING_ATTR);
         if (StringUtils.hasValue(settingName)) {
             String id = xml.getAttribute("id");
             registerSetting(id, settingName);
         }
 
-        return super.addFormElement(xml);
+        return result;
     }
 
 
