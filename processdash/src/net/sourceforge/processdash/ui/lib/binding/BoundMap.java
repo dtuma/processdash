@@ -134,8 +134,23 @@ public class BoundMap extends ObservableMap {
     }
 
     public Object addFormElement(Element xml) {
+        if (shouldIgnoreElement(xml))
+            return null;
+
         String tagName = xml.getTagName();
         return addFormElement(xml, tagName);
+    }
+
+    protected boolean shouldIgnoreElement(Element xml) {
+        String ifProp = xml.getAttribute("ifPropIsSet");
+        if (StringUtils.hasValue(ifProp) && !isPropSet(ifProp))
+            return true;
+
+        String unlessProp = xml.getAttribute("unlessPropIsSet");
+        if (StringUtils.hasValue(unlessProp) && isPropSet(unlessProp))
+            return true;
+
+        return false;
     }
 
     public Object addFormElement(Element xml, String type) {
@@ -283,6 +298,16 @@ public class BoundMap extends ObservableMap {
     private static final Color DEFAULT_INFORMATION_COLOR = Color.BLUE;
 
     private static final Color DEFAULT_NO_ERROR_COLOR = Color.BLACK;
+
+
+    /**
+     * Return true if a given key in the map has a non-null, non-empty-string
+     * value.
+     */
+    public boolean isPropSet(String propName) {
+        Object val = get(propName);
+        return (val != null && !"".equals(val));
+    }
 
 
     /** Decode a hashed value */
