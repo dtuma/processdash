@@ -1,5 +1,7 @@
 package teamdash.wbs;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileInputStream;
@@ -171,7 +173,8 @@ public class TeamProject {
     /** Open and parse an XML file. @return null on error. */
     private Element openXML(File file) {
         try {
-            Document doc = XMLUtils.parse(new FileInputStream(file));
+            Document doc = XMLUtils.parse(new BufferedInputStream(
+                    new FileInputStream(file)));
             fileModTime = Math.max(fileModTime, file.lastModified());
             return doc.getDocumentElement();
         } catch (Exception e) {
@@ -265,7 +268,9 @@ public class TeamProject {
             try {
                 File f = new File(directory, TEAM_LIST_FILENAME);
                 RobustFileWriter out = new RobustFileWriter(f, "UTF-8");
-                teamList.getAsXML(out);
+                BufferedWriter buf = new BufferedWriter(out);
+                teamList.getAsXML(buf);
+                buf.flush();
                 out.close();
             } catch (Exception e) {
                 e.printStackTrace();
@@ -339,7 +344,9 @@ public class TeamProject {
             try {
                 File f = new File(directory, WBS_FILENAME);
                 RobustFileWriter out = new RobustFileWriter(f, "UTF-8");
-                wbs.getAsXML(out);
+                BufferedWriter buf = new BufferedWriter(out);
+                wbs.getAsXML(buf);
+                buf.flush();
                 out.close();
             } catch (Exception e) {
                 e.printStackTrace();
@@ -371,7 +378,9 @@ public class TeamProject {
             try {
                 File f = new File(directory, FLOW_FILENAME);
                 RobustFileWriter out = new RobustFileWriter(f, "UTF-8");
-                workflows.getAsXML(out);
+                BufferedWriter buf = new BufferedWriter(out);
+                workflows.getAsXML(buf);
+                buf.flush();
                 out.close();
             } catch (Exception e) {
                 e.printStackTrace();
