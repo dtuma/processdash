@@ -19,7 +19,8 @@
 [EXPORT_FILE/Disabled] = [Project_Is_Done];
 
 [Sync_Full_WBS] = 0;
-[Autosync_Disabled] = [Project_Is_Done];
+[Autosync_Disabled] = [Project_Is_Done]
+    || lookup([Team_Settings_Node] & "Disable_Indiv_Auto_Sync");
 
 [Task_Labels] = [Synchronized_Task_Labels];
 

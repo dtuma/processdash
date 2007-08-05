@@ -86,13 +86,16 @@
 <input type=checkbox name="Allow_Indiv_WBS_Editing"></td>
 </tr>
 
-[!--#if Dash_Package_pspdash ge 'version 1.7.1b.5a' --]
+<tr>
+<td COLSPAN=2>Do not notify individuals when a "Sync to WBS" is needed
+<input type=checkbox name="Disable_Indiv_Auto_Sync"></td>
+</tr>
+
 <tr>
 <td COLSPAN=2>Designate a defect type standard for this team project:
 [!--#include file="/dash/dtsSelect?None_Text=None" --]
 &nbsp;&nbsp;&nbsp;<i><a href="/dash/dtsEdit.class">More...</a></i></td>
 </tr>
-[!--#endif--]
 <!--#endif-->
 
 <!--#endif-->

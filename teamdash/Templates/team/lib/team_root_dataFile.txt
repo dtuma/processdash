@@ -75,6 +75,9 @@ undefine([Simple Project Tag]);
 [Allow_Indiv_WBS_Editing] = 0;
 [Team_Settings /Allow_Indiv_WBS_Editing] = [Allow_Indiv_WBS_Editing];
 
+[Disable_Indiv_Auto_Sync] = 0;
+[Team_Settings /Disable_Indiv_Auto_Sync] = [Disable_Indiv_Auto_Sync];
+
 [Team_Settings /Phase_Display_Filter_List] = [Phase_Display_Filter_List];
 
 <!--#foreach name=PHASE list=Phase_List #-->
