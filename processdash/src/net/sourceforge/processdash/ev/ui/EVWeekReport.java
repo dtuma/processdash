@@ -227,7 +227,7 @@ public class EVWeekReport extends TinyCGIBase {
 
         Map errors = metrics.getErrors();
         if (errors != null && errors.size() > 0) {
-            out.print("<table border><tr><td bgcolor='#ff5050'><h2>");
+            out.print("<table border><tr><td class='left' bgcolor='#ff5050'><h2>");
             out.print(getResource("Report.Errors_Heading"));
             out.print("</h2><b>");
             out.print(getResource("Error_Dialog.Head"));
