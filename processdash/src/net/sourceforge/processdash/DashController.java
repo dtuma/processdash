@@ -130,7 +130,7 @@ public class DashController {
             return;
         }
 
-        List taskLists = EVTaskList.getTaskListNamesForPath(dash.data,
+        List taskLists = EVTaskList.getPreferredTaskListsForPath(dash.data,
                 path);
 
         raiseWindowImpl();

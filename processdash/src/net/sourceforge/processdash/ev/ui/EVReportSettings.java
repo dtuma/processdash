@@ -213,17 +213,9 @@ public class EVReportSettings {
      *     null.
      */
     private String getAutoTaskList() {
-        // check and see whether this prefix names a project which has
-        // explicitly specified a schedule (typical for team projects)
-        String dataName = DataRepository.createDataName(prefix,
-                "Project_Schedule_Name");
-        SimpleData val = data.getSimpleValue(dataName);
-        if (val != null && val.test())
-            return val.format();
-
-        // check and see whether there is exactly one task list that contains
+        // check and see whether there is exactly one preferred task list for
         // the prefix in question.
-        List taskLists = EVTaskList.getTaskListNamesForPath(data, prefix);
+        List taskLists = EVTaskList.getPreferredTaskListsForPath(data, prefix);
         if (taskLists != null && taskLists.size() == 1)
             return (String) taskLists.get(0);
 

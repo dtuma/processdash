@@ -53,6 +53,7 @@ import javax.swing.tree.TreePath;
 
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.ListData;
+import net.sourceforge.processdash.data.SaveableData;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.StringData;
 import net.sourceforge.processdash.data.repository.DataRepository;
@@ -314,6 +315,27 @@ public class EVTaskList extends AbstractTreeTableModel
                 i.remove();
         }
         return taskLists;
+    }
+
+    /** Find the best task list (or lists) that represent the given project.
+     * 
+     *  If the project (or one of its ancestors) explicitly names a preferred
+     *  task list (via the "Project_Schedule_Name" data element), this method
+     *  will return a list of length 1, containing that task list name.
+     *  Otherwise, this method will return the same data as the
+     *  {@link #getTaskListNamesForPath(DataRepository, String)} method.
+     */
+    public static List getPreferredTaskListsForPath(DataRepository data,
+            String path) {
+        SaveableData sd = data.getInheritableValue(path,
+            "Project_Schedule_Name");
+        if (sd != null) {
+            SimpleData val = sd.getSimpleValue();
+            if (val != null && val.test())
+                return Collections.singletonList(val.format());
+        }
+
+        return getTaskListNamesForPath(data, path);
     }
 
     private static String TESTING_TASK_LIST_NAME = null;
