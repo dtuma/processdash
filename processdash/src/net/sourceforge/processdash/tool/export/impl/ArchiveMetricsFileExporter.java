@@ -262,6 +262,7 @@ public class ArchiveMetricsFileExporter implements Runnable,
 
         DataExporter exp = new DataExporterXMLv1();
         exp.export(zipOut, ddef);
+        baseIter.iterationFinished();
 
         zipOut.closeEntry();
 

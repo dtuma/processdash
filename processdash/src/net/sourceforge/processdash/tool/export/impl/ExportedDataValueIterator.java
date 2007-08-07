@@ -31,6 +31,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import net.sourceforge.processdash.data.DataContext;
@@ -53,6 +54,8 @@ public class ExportedDataValueIterator extends IteratorFilter {
     Collection prefixes;
 
     boolean usingExplicitNames;
+
+    Map timings;
 
     private static final Logger logger = Logger
             .getLogger(ExportedDataValueIterator.class.getName());
@@ -77,12 +80,23 @@ public class ExportedDataValueIterator extends IteratorFilter {
         this.data = data;
         this.prefixes = prefixes;
         this.usingExplicitNames = (parent instanceof CartesianDataNameIterator);
+        if (logger.isLoggable(Level.FINEST))
+            timings = new HashMap();
         if (init)
             init();
     }
 
     public boolean isUsingExplicitNames() {
         return usingExplicitNames;
+    }
+
+    public void iterationFinished() {
+        if (timings != null) {
+            for (Iterator i = timings.entrySet().iterator(); i.hasNext();) {
+                Map.Entry e = (Map.Entry) i.next();
+                System.out.println(e.getKey() + "\t" + e.getValue());
+            }
+        }
     }
 
     protected boolean includeInResults(Object o) {
@@ -97,9 +111,13 @@ public class ExportedDataValueIterator extends IteratorFilter {
     private class DataValue implements ExportedDataValue {
 
         private String name;
+        private boolean retrievedValue;
+        private SimpleData value;
 
         public DataValue(String name) {
             this.name = name;
+            this.retrievedValue = false;
+            this.value = null;
         }
 
         public String getName() {
@@ -107,7 +125,23 @@ public class ExportedDataValueIterator extends IteratorFilter {
         }
 
         public SimpleData getSimpleValue() {
-            return data.getSimpleValue(name);
+            if (!retrievedValue) {
+                long start = 0;
+                if (timings != null)
+                    start = System.currentTimeMillis();
+
+                value = data.getSimpleValue(name);
+                retrievedValue = true;
+
+                if (timings != null) {
+                    long finish = System.currentTimeMillis();
+                    long elapsed = finish - start;
+                    if (elapsed > 0)
+                        timings.put(name, new Long(elapsed));
+                }
+            }
+
+            return value;
         }
 
     }
