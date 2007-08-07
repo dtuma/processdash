@@ -1367,20 +1367,21 @@ public class TaskScheduleDialog
     public void evNodeChanged(final EVTask node) {
         if (SwingUtilities.isEventDispatchThread())
             handleEvNodeChanged(node);
-        else try {
-            SwingUtilities.invokeAndWait(new Runnable() {
+        else
+            SwingUtilities.invokeLater(new Runnable() {
                 public void run() { handleEvNodeChanged(node); } } );
-        } catch (Exception e) { }
     }
 
     private void handleEvNodeChanged(EVTask node) {
-        TreePath tp = new TreePath(node.getPath());
-        int row = treeTable.getTree().getRowForPath(tp);
-        if (row != -1) {
-            AbstractTableModel model =
-                (AbstractTableModel) treeTable.getModel();
-            model.fireTableChanged(new TableModelEvent(model, row));
-        }
+        try {
+            TreePath tp = new TreePath(node.getPath());
+            int row = treeTable.getTree().getRowForPath(tp);
+            if (row != -1) {
+                AbstractTableModel model =
+                    (AbstractTableModel) treeTable.getModel();
+                model.fireTableChanged(new TableModelEvent(model, row));
+            }
+        } catch (Exception e) {}
     }
 
     public void evScheduleChanged() {

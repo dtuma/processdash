@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2006 Tuma Solutions, LLC
+// Copyright (C) 2003-2007 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -26,10 +26,10 @@
 package net.sourceforge.processdash.hier;
 
 
+import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
-import java.beans.EventHandler;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -58,18 +58,14 @@ public class HierarchyAlterer implements ItemListener {
 
     private ProcessDashboard dashboard;
     private DashHierarchy origHierarchy;
-    private Timer eventDispatchTimer;
-    private int eventDispatchChangeCount;
+    private HierarchyEventDispatcher eventDispatcher;
 
     private static final Logger logger = Logger
             .getLogger(HierarchyAlterer.class.getName());
 
     public HierarchyAlterer(ProcessDashboard dashboard) {
         this.dashboard = dashboard;
-        this.eventDispatchTimer = new Timer(EVENT_DISPATCH_DELAY,
-                (ActionListener) EventHandler.create(ActionListener.class,
-                        this, "dispatchHierarchyChangedEvent"));
-        this.eventDispatchTimer.setRepeats(false);
+        this.eventDispatcher = new HierarchyEventDispatcher();
     }
 
     public class HierarchyAlterationException extends Exception {
@@ -84,6 +80,7 @@ public class HierarchyAlterer implements ItemListener {
             throw new HierarchyAlterationException
                 ("The dashboard is running in read-only mode.");
 
+        eventDispatcher.beginChanges();
         dashboard.getData().startInconsistency();
 
         DashHierarchy hier = dashboard.getHierarchy();
@@ -97,7 +94,7 @@ public class HierarchyAlterer implements ItemListener {
         dashboard.getHierarchy().removeItemListener(this);
         updateNodesAndLeaves(dashboard.getData(), dashboard.getHierarchy());
         dashboard.getData().finishInconsistency(true);
-        dispatchOrScheduleHierarchyChangedEvent();
+        eventDispatcher.endChanges();
         ThreadThrottler.tick();
     }
 
@@ -525,8 +522,8 @@ public class HierarchyAlterer implements ItemListener {
     }
     private static final Object DATA_NAME_HINT = new NodeAndLeafDataNameHint();
 
-    /** Number of milliseconds to delay before delivering a hiearchy changed
-     * notification event - nonzero to prevent unnecessary overnotification
+    /** Number of milliseconds to delay before delivering a hierarchy changed
+     * notification event - nonzero to prevent unnecessary over-notification
      * during a period of heavy hierarchy alteration */
     private static final int EVENT_DISPATCH_DELAY = 300;
 
@@ -536,25 +533,56 @@ public class HierarchyAlterer implements ItemListener {
     private static final int EVENT_COUNT_THRESHHOLD = 30;
 
 
+    /** This class manages the dispatch of "hierarchy changed" events.  A
+     * separate object is needed to avoid deadlock between these synchronized
+     * methods and the synchronized methods in the HierarchyAlterer class.
+     */
+    private class HierarchyEventDispatcher implements ActionListener {
+        private boolean changesAreUnderway;
+        private boolean eventIsNeeded;
+        private int eventDispatchChangeCount;
+        private Timer eventDispatchTimer;
 
+        public HierarchyEventDispatcher() {
+            changesAreUnderway = eventIsNeeded = false;
+            eventDispatchChangeCount = 0;
 
-
-    private void dispatchOrScheduleHierarchyChangedEvent() {
-        if (++eventDispatchChangeCount >= EVENT_COUNT_THRESHHOLD) {
-            eventDispatchTimer.stop();
-            dispatchHierarchyChangedEvent(true);
+            eventDispatchTimer = new Timer(EVENT_DISPATCH_DELAY, this);
+            eventDispatchTimer.setRepeats(false);
         }
 
-        eventDispatchTimer.restart();
-    }
+        protected void finalize() throws Throwable {
+            eventDispatchTimer.removeActionListener(this);
+            super.finalize();
+        }
 
-    public void dispatchHierarchyChangedEvent() {
-        dispatchHierarchyChangedEvent(false);
-    }
+        public synchronized void beginChanges() {
+            changesAreUnderway = true;
+        }
 
-    private synchronized void dispatchHierarchyChangedEvent(boolean isAdjusting) {
-        eventDispatchChangeCount = 0;
-        dashboard.getHierarchy().fireHierarchyChanged(isAdjusting);
-    }
+        public synchronized void endChanges() {
+            changesAreUnderway = false;
 
+            if (++eventDispatchChangeCount >= EVENT_COUNT_THRESHHOLD
+                    || eventIsNeeded) {
+                eventDispatchTimer.stop();
+                dispatchHierarchyChangedEvent(true);
+            }
+
+            eventDispatchTimer.restart();
+        }
+
+        public synchronized void actionPerformed(ActionEvent e) {
+            if (changesAreUnderway)
+                eventIsNeeded = true;
+            else
+                dispatchHierarchyChangedEvent(false);
+        }
+
+        private void dispatchHierarchyChangedEvent(boolean isAdjusting) {
+            eventDispatchChangeCount = 0;
+            eventIsNeeded = false;
+            dashboard.getHierarchy().fireHierarchyChanged(isAdjusting);
+        }
+    }
 }
