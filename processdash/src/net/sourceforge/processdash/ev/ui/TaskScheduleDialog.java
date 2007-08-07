@@ -1955,6 +1955,7 @@ public class TaskScheduleDialog
             case EVTaskList.PLAN_DATE_COLUMN:
             case EVTaskList.FORECAST_DATE_COLUMN:
             case EVTaskList.DEPENDENCIES_COLUMN:
+            case EVTaskList.PCT_SPENT_COLUMN:
                 result.addColumn(cloneTableColumn(c));
                 break;
 
