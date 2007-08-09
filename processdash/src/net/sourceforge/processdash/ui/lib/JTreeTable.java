@@ -320,10 +320,12 @@ public class JTreeTable extends JTable {
          */
         public boolean isCellEditable(EventObject e) {
             if (e instanceof MouseEvent) {
+                MouseEvent me = (MouseEvent) e;
+                if ((me.getModifiersEx() & ANY_MODIFIER_KEY_DOWN) != 0)
+                    return false;
                 for (int counter = getColumnCount() - 1; counter >= 0;
                      counter--) {
                     if (getColumnClass(counter) == TreeTableModel.class) {
-                        MouseEvent me = (MouseEvent)e;
                         MouseEvent newME = new MouseEvent(tree, me.getID(),
                                    me.getWhen(), me.getModifiers(),
                                    me.getX() - getCellRect(0, counter, true).x,
@@ -337,6 +339,9 @@ public class JTreeTable extends JTable {
             return false;
         }
     }
+    private static final int ANY_MODIFIER_KEY_DOWN = MouseEvent.CTRL_DOWN_MASK
+            | MouseEvent.SHIFT_DOWN_MASK | MouseEvent.META_DOWN_MASK
+            | MouseEvent.ALT_DOWN_MASK | MouseEvent.ALT_GRAPH_DOWN_MASK;
 
 
     /**
