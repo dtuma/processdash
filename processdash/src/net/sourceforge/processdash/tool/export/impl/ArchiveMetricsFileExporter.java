@@ -25,6 +25,7 @@
 
 package net.sourceforge.processdash.tool.export.impl;
 
+import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
@@ -132,7 +133,8 @@ public class ArchiveMetricsFileExporter implements Runnable,
 
     private void doExport() throws IOException {
         outStream = new RobustFileOutputStream(dest);
-        ZipOutputStream zipOut = new ZipOutputStream(outStream);
+        ZipOutputStream zipOut = new ZipOutputStream(new BufferedOutputStream(
+                outStream));
 
         EST_TIME_JANITOR.cleanup(ctx);
         Collection taskListNames = writeData(zipOut);

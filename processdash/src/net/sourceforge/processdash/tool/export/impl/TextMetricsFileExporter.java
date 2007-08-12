@@ -25,6 +25,7 @@
 
 package net.sourceforge.processdash.tool.export.impl;
 
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.PrintWriter;
 import java.util.Collection;
@@ -83,7 +84,7 @@ public class TextMetricsFileExporter implements Runnable,
     public void run() {
         try {
             outWriter = new RobustFileWriter(dest, "UTF-8");
-            PrintWriter out = new PrintWriter(outWriter);
+            PrintWriter out = new PrintWriter(new BufferedWriter(outWriter));
 
             // Find and print any applicable task lists.
             Iterator i = ctx.getData().getKeys();
