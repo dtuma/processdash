@@ -65,7 +65,7 @@ public class DashboardSecurity {
             // System.out.println("process.dashboard.codebase.url="+baseURLStr);
             System.setProperty("java.security.policy", policyURLStr);
             // System.out.println("java.security.policy="+policyURLStr);
-            System.setSecurityManager(new SecurityManager());
+            System.setSecurityManager(new DashboardSecurityManager());
             DashboardPermission.enableChecking();
         } catch (Exception e) {
             System.out.println("Caught exception - security manager not installed.");
