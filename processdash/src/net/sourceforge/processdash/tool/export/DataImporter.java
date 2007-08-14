@@ -28,7 +28,6 @@ package net.sourceforge.processdash.tool.export;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
@@ -42,7 +41,6 @@ import net.sourceforge.processdash.log.defects.ImportedDefectManager;
 import net.sourceforge.processdash.log.time.ImportedTimeLogManager;
 import net.sourceforge.processdash.tool.export.impl.ArchiveMetricsFileImporter;
 import net.sourceforge.processdash.tool.export.impl.TextMetricsFileImporter;
-import net.sourceforge.processdash.util.FileAgeComparator;
 import net.sourceforge.processdash.util.RobustFileOutputStream;
 
 
@@ -162,34 +160,40 @@ public class DataImporter extends Thread {
         if (files == null)
             return new File[0];
 
-        // sort them in chronological order, oldest first.
-        Arrays.sort(files, FileAgeComparator.OLDEST_FIRST);
-
         // look through all the files, and make a list of the ones that we
         // should import. Files whose names do not match recognized patterns
         // are discarded. If a file appears more than once with different
         // recognized suffixes, only keep the newest version.
-        Map results = new HashMap();
+        Map baseFileLists = new HashMap();
         for (int i = 0; i < files.length; i++) {
             File oneFile = files[i];
-            String basename = getBaseImportName(oneFile);
-            if (basename != null)
-                results.put(basename, oneFile);
+            String basename = getBaseImportName(oneFile.getName());
+            if (basename != null && oneFile.isFile()) {
+                List oneBaseList = (List) baseFileLists.get(basename);
+                if (oneBaseList == null) {
+                    oneBaseList = new ArrayList();
+                    baseFileLists.put(basename, oneBaseList);
+                }
+                oneBaseList.add(oneFile);
+            }
+        }
+
+        // now find the newest file for each base filename.
+        List results = new ArrayList();
+        for (Iterator i = baseFileLists.values().iterator(); i.hasNext();) {
+            List oneBaseList = (List) i.next();
+            results.add(getNewestFile(oneBaseList));
         }
 
         // return the results we found.
-        return (File[]) results.values().toArray(new File[0]);
+        return (File[]) results.toArray(new File[0]);
     }
 
     /** If the file is one that could be imported, return its filename, in
      * lowercase, without the suffix. Otherwise, return null.
      */
-    private String getBaseImportName(File file) {
-        if (!file.isFile())
-            // ignore directories.
-            return null;
-
-        String filename = file.getName().toLowerCase();
+    private String getBaseImportName(String filename) {
+        filename = filename.toLowerCase();
 
         if (filename.startsWith(RobustFileOutputStream.OUT_PREFIX))
             // ignore temporary files created by the RobustFileWriter class.
@@ -208,6 +212,36 @@ public class DataImporter extends Thread {
         else
             // reject other files.
             return null;
+    }
+
+    /** Return the newest file from a list.
+     * 
+     * Previously, we were sorting files using FileAgeComparator, then returning
+     * the first item in the list.  However, FileAgeComparator performs as many
+     * as  n<sup>2</sup> calls to File.lastModified(). When network file I/O is
+     * very slow, this can take forever.  The method below is optimized for
+     * the minimal number of File I/O calls.
+     */
+    private Object getNewestFile(List baseFiles) {
+        if (baseFiles == null || baseFiles.isEmpty())
+            throw new IllegalArgumentException();
+        else if (baseFiles.size() == 1)
+            return baseFiles.get(0);  // most common case
+
+        Iterator i = baseFiles.iterator();
+        File result = (File) i.next();
+        long resultLastMod = result.lastModified();
+
+        while (i.hasNext()) {
+            File oneFile = (File) i.next();
+            long oneFileLastMod = oneFile.lastModified();
+            if (oneFileLastMod > resultLastMod) {
+                result = oneFile;
+                resultLastMod = oneFileLastMod;
+            }
+        }
+
+        return result;
     }
 
     public void dispose() {
