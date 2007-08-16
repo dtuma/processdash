@@ -162,7 +162,9 @@ public class Unpacker extends Thread
                         }
 
                         // We add the path to the log,
-                        udata.addFile(path);
+                        if (fileShouldBeLogged(path)) {
+                            udata.addFile(path);
+                        }
 
                         handler.progress (j, path);
 
@@ -320,10 +322,31 @@ public class Unpacker extends Thread
 
 
     /**
-     *  Puts the uninstaller.
-     *
-     * @exception  Exception  Description of the Exception
+     * Check to see if the specified file should be logged for the uninstaller or not.
+     * 
+     * @param filePath The complete file path
      */
+    private boolean fileShouldBeLogged(String filePath) {
+        int lastSlash = filePath.lastIndexOf(File.separatorChar);
+
+        String fileFolder = filePath.substring(0, lastSlash);
+        String fileName = filePath.substring(lastSlash+1);
+
+        // TODO : "run-dash.sh" could be a constant somewhere...
+
+        // We log the file if it is neither in the DATA_PATH or in the TEAM_DATA_PATH
+        //  or if it IS "run-dash.sh"
+        return (!fileFolder.equals(idata.getVariable(ScriptParser.DATA_PATH))
+                && !fileFolder.equals(idata.getVariable(ScriptParser.TEAM_DATA_PATH)))
+                || fileName.equals("run-dash.sh");
+    }
+
+
+/**
+    *  Puts the uninstaller.
+    *
+    * @exception  Exception  Description of the Exception
+    */
     private void putUninstaller() throws Exception
     {
         // Me make the .uninstaller directory
