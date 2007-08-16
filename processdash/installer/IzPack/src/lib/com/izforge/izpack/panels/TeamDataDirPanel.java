@@ -52,6 +52,7 @@ import com.izforge.izpack.installer.ExternalConfiguration;
 import com.izforge.izpack.installer.InstallData;
 import com.izforge.izpack.installer.InstallerFrame;
 import com.izforge.izpack.installer.IzPanel;
+import com.izforge.izpack.installer.ScriptParser;
 
 /**
  *  The taget directory selection panel.
@@ -61,8 +62,6 @@ import com.izforge.izpack.installer.IzPanel;
  */
 public class TeamDataDirPanel extends IzPanel implements ActionListener
 {
-    private static final String TEAM_DATA_PATH = "TEAM_DATA_PATH";
-
     /**  The default directory. */
     private String defaultDir;
 
@@ -103,7 +102,7 @@ public class TeamDataDirPanel extends IzPanel implements ActionListener
             createDefaultDirValue();
         if (defaultDir != null)
             // override the system default
-            idata.setVariable(TEAM_DATA_PATH, defaultDir);
+            idata.setVariable(ScriptParser.TEAM_DATA_PATH, defaultDir);
 
         // We create and put the components
 
@@ -117,7 +116,7 @@ public class TeamDataDirPanel extends IzPanel implements ActionListener
         layout.addLayoutComponent(infoLabel, gbConstraints);
         add(infoLabel);
 
-        textField = new JTextField(idata.getVariable(TEAM_DATA_PATH), 40);
+        textField = new JTextField(idata.getVariable(ScriptParser.TEAM_DATA_PATH), 40);
         textField.addActionListener(this);
         parent.buildConstraints(gbConstraints, 0, 1, 1, 1, 3.0, 0.0);
         gbConstraints.fill = GridBagConstraints.HORIZONTAL;
@@ -246,7 +245,7 @@ public class TeamDataDirPanel extends IzPanel implements ActionListener
     private static final boolean SHOULD_CREATE_DEFAULT_DIR = false;
     private void createDefaultDirValue() {
         if (SHOULD_CREATE_DEFAULT_DIR) {
-            String personalDataDirName = idata.getVariable("DATA_PATH");
+            String personalDataDirName = idata.getVariable(ScriptParser.DATA_PATH);
             if (personalDataDirName != null) {
                 File personalDataDir = new File(personalDataDirName);
                 File defaultFile = new File(personalDataDir, "teaminstance");
@@ -280,7 +279,7 @@ public class TeamDataDirPanel extends IzPanel implements ActionListener
         File path = new File(dataPath);
         dataPath = path.toString();
 
-        idata.setVariable(TEAM_DATA_PATH, dataPath);
+        idata.setVariable(ScriptParser.TEAM_DATA_PATH, dataPath);
         return ok;
     }
 
@@ -338,7 +337,7 @@ public class TeamDataDirPanel extends IzPanel implements ActionListener
     {
         // Data path markup
         XMLElement ipath = new XMLElement("teamdatapath");
-        ipath.setContent(idata.getVariable(TEAM_DATA_PATH));
+        ipath.setContent(idata.getVariable(ScriptParser.TEAM_DATA_PATH));
         panelRoot.addChild(ipath);
     }
 
@@ -352,6 +351,6 @@ public class TeamDataDirPanel extends IzPanel implements ActionListener
     {
         // We set the data path
         XMLElement ipath = panelRoot.getFirstChildNamed("teamdatapath");
-        idata.setVariable(TEAM_DATA_PATH, ipath.getContent());
+        idata.setVariable(ScriptParser.TEAM_DATA_PATH, ipath.getContent());
     }
 }
