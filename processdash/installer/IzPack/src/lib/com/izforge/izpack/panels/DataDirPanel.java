@@ -49,6 +49,7 @@ import com.izforge.izpack.installer.ExternalConfiguration;
 import com.izforge.izpack.installer.InstallData;
 import com.izforge.izpack.installer.InstallerFrame;
 import com.izforge.izpack.installer.IzPanel;
+import com.izforge.izpack.installer.ScriptParser;
 
 /**
  *  The taget directory selection panel.
@@ -58,8 +59,6 @@ import com.izforge.izpack.installer.IzPanel;
  */
 public class DataDirPanel extends IzPanel implements ActionListener
 {
-    private static final String DATA_PATH = "DATA_PATH";
-
     /**  The default directory. */
     private String defaultDir;
 
@@ -100,7 +99,7 @@ public class DataDirPanel extends IzPanel implements ActionListener
             createDefaultDirValue();
         if (defaultDir != null)
             // override the system default
-            idata.setVariable(DATA_PATH, defaultDir);
+            idata.setVariable(ScriptParser.DATA_PATH, defaultDir);
 
         // We create and put the components
 
@@ -114,7 +113,7 @@ public class DataDirPanel extends IzPanel implements ActionListener
         layout.addLayoutComponent(infoLabel, gbConstraints);
         add(infoLabel);
 
-        textField = new JTextField(idata.getVariable(DATA_PATH), 40);
+        textField = new JTextField(idata.getVariable(ScriptParser.DATA_PATH), 40);
         textField.addActionListener(this);
         parent.buildConstraints(gbConstraints, 0, 1, 1, 1, 3.0, 0.0);
         gbConstraints.fill = GridBagConstraints.HORIZONTAL;
@@ -269,7 +268,7 @@ public class DataDirPanel extends IzPanel implements ActionListener
                 "\n" + dataPath);
         */
 
-        idata.setVariable(DATA_PATH, dataPath);
+        idata.setVariable(ScriptParser.DATA_PATH, dataPath);
         return ok;
     }
 
@@ -311,7 +310,7 @@ public class DataDirPanel extends IzPanel implements ActionListener
     {
         // Data path markup
         XMLElement ipath = new XMLElement("datapath");
-        ipath.setContent(idata.getVariable(DATA_PATH));
+        ipath.setContent(idata.getVariable(ScriptParser.DATA_PATH));
         panelRoot.addChild(ipath);
     }
 
@@ -325,6 +324,6 @@ public class DataDirPanel extends IzPanel implements ActionListener
     {
         // We set the data path
         XMLElement ipath = panelRoot.getFirstChildNamed("datapath");
-        idata.setVariable(DATA_PATH, ipath.getContent());
+        idata.setVariable(ScriptParser.DATA_PATH, ipath.getContent());
     }
 }
