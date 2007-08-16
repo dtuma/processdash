@@ -50,6 +50,12 @@ public class ScriptParser
     /**  The install path. */
     public final static String INSTALL_PATH = "INSTALL_PATH";
 
+    /**  The user's data path. */
+    public static final String DATA_PATH = "DATA_PATH";
+
+    /**  The user's team data path. */
+    public static final String TEAM_DATA_PATH = "TEAM_DATA_PATH";
+
     /**  The Java home path. */
     public final static String JAVA_HOME = "JAVA_HOME";
 
