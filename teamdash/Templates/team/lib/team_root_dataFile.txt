@@ -72,7 +72,7 @@ undefine([Simple Project Tag]);
         indirect("/Defect Type Standard/" & [Defect Type Standard]),
         null);
 
-[Allow_Indiv_WBS_Editing] = 1;
+[Allow_Indiv_WBS_Editing] = 2;
 [Team_Settings /Allow_Indiv_WBS_Editing] = [Allow_Indiv_WBS_Editing];
 
 [Disable_Indiv_Auto_Sync] = 0;
