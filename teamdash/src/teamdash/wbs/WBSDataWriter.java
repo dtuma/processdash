@@ -9,9 +9,9 @@ import java.util.Iterator;
 import java.util.List;
 
 import net.sourceforge.processdash.util.RobustFileWriter;
-import teamdash.TeamMember;
-import teamdash.TeamMemberList;
 import teamdash.XMLUtils;
+import teamdash.team.TeamMember;
+import teamdash.team.TeamMemberList;
 import teamdash.wbs.columns.DirectSizeTypeColumn;
 import teamdash.wbs.columns.SizeAccountingColumnSet;
 import teamdash.wbs.columns.TaskDependencyColumn;

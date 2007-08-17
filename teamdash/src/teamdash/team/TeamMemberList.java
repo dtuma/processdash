@@ -1,9 +1,11 @@
 
-package teamdash;
+package teamdash.team;
 
 import java.awt.Color;
 import java.io.IOException;
 import java.io.Writer;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -16,13 +18,16 @@ import javax.swing.table.AbstractTableModel;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
+import teamdash.XMLUtils;
+
+
 
 /** Represents the list of team members assigned to a team project.
  *
  * This implements <code>TableModel</code> so the team can be displayed in
  * an editable table.
  */
-public class TeamMemberList extends AbstractTableModel {
+public class TeamMemberList extends AbstractTableModel implements EffortCalendar {
 
     /** A special interface for people wanting to be alerted to changes in
      * the initials of any existing team member. */
@@ -33,28 +38,80 @@ public class TeamMemberList extends AbstractTableModel {
 
     /** The list of team members */
     private ArrayList teamMembers = new ArrayList();
+
     /** True if we should always keep an empty team member at the end of
      * the list */
     private boolean autoNewRow = true;
+
     /** Is this team member list read only? */
     private boolean readOnly = false;
 
+    /** What day of the week would the user like the schedule to start?
+     * This should be a value recognized by the java.util.Calendar class
+     * for the DAY_OF_WEEK field. */
+    private int startOnDayOfWeek;
+
+    /** A date/time in the middle of the "zero week" of the schedule */
+    private Date referenceDate;
+
+    /** A date/time on the first day of the "zero week" of the schedule.
+     * Note that this won't necessarily be at midnight; see the
+     * {@link #recalcZeroDay()} method for an explanation. */
+    private Date zeroDay;
+
+    /** The table model only shows a slice of the overall schedule. This
+     * field controls where in the calendar this slice has scrolled to. */
+    private int weekOffset;
+
+    /** The table model only shows a slice of the overall schedule. This
+     * field controls how many weeks are represented in that slice. */
+    private int columnCount = FIRST_WEEK_COLUMN+1;
+
+
     /** Creates an empty team member list. */
     public TeamMemberList() {
+        startOnDayOfWeek = Calendar.SUNDAY;
+        referenceDate = getDefaultReferenceDate();
+        weekOffset = getDefaultWeekOffset();
+        recalcZeroDay();
     }
 
     /** Create a team member list from the information in the given
      * XML element.  */
     public TeamMemberList(Element e) {
+        // read the "starting day of the week" from the XML, or choose a default
+        if (e.hasAttribute(DAY_OF_WEEK_ATTR))
+            startOnDayOfWeek = XMLUtils.getXMLInt(e, DAY_OF_WEEK_ATTR);
+        else
+            startOnDayOfWeek = Calendar.SUNDAY;
+
+        // read the "reference date" from the XML, or choose a default
+        referenceDate = null;
+        if (e.hasAttribute(REFERENCE_DATE_ATTR))
+            referenceDate = XMLUtils.getXMLDate(e, REFERENCE_DATE_ATTR);
+        if (referenceDate == null)
+            referenceDate = getDefaultReferenceDate(e);
+
+        // calculate the "zero date" for extrapolating display dates
+        recalcZeroDay();
+
+        // construct the list of team members from the XML data
         NodeList nodes = e.getElementsByTagName(TeamMember.TAG_NAME);
         for (int i = 0;   i < nodes.getLength();   i++)
-            teamMembers.add(new TeamMember((Element) nodes.item(i)));
+            teamMembers.add(new TeamMember((Element) nodes.item(i), zeroDay));
+
+        // determine what date to scroll to initially
+        weekOffset = getDefaultWeekOffset();
     }
 
     /** Create a cloned copy of the given team member list */
     public TeamMemberList(TeamMemberList list) {
         this.teamMembers = copyTeamMemberList(list.teamMembers);
         this.readOnly = list.readOnly;
+        this.startOnDayOfWeek = list.startOnDayOfWeek;
+        this.referenceDate = list.referenceDate;
+        this.weekOffset = getDefaultWeekOffset();
+        recalcZeroDay();
     }
 
     public void setReadOnly(boolean readOnly) {
@@ -63,6 +120,32 @@ public class TeamMemberList extends AbstractTableModel {
 
     public boolean isReadOnly() {
         return readOnly;
+    }
+
+    public int getStartOnDayOfWeek() {
+        return startOnDayOfWeek;
+    }
+
+    public void setStartOnDayOfWeek(int startOnDayOfWeek) {
+        this.startOnDayOfWeek = startOnDayOfWeek;
+        recalcZeroDay();
+    }
+
+    public void setNumWeekColumns(int num) {
+        this.columnCount = num + FIRST_WEEK_COLUMN + 1;
+    }
+
+    public int getNumWeekColumns() {
+        return this.columnCount - 1 - FIRST_WEEK_COLUMN;
+    }
+
+    public int getWeekOffset() {
+        return weekOffset;
+    }
+
+    public void setWeekOffset(int offset) {
+        this.weekOffset = offset;
+        fireTableDataChanged();
     }
 
     /** Add an empty team member to the bottom of the list if the last member
@@ -76,15 +159,18 @@ public class TeamMemberList extends AbstractTableModel {
             addNewRow();
     }
 
-    private void maybeDefaultStartDates() {
-        Date defaultStartDate = getDefaultStartDate();
-        for (int i = 0;  i < getRowCount();  i++) {
-            TeamMember m = get(i);
-            if (!hasValue(m.getName())) {
-                m.setStartDate(defaultStartDate);
-                fireTableCellUpdated(i, START_DATE_COLUMN);
-            }
-        }
+    private int getEarliestStartWeek() {
+        int result = Integer.MAX_VALUE;
+        for (int i = getRowCount();  i-- > 0; )
+            result = Math.min(result, getScheduleAt(i).getStartWeek());
+        if (result == Integer.MAX_VALUE)
+            return 0;
+        else
+            return result;
+    }
+
+    private int getDefaultWeekOffset() {
+        return getEarliestStartWeek() - FIRST_WEEK_COLUMN - 1;
     }
 
     /** Get a list of all the non-empty team members.
@@ -124,17 +210,27 @@ public class TeamMemberList extends AbstractTableModel {
      * Writer.
      */
     public void getAsXML(Writer out) throws IOException {
-        out.write("<"+TAG_NAME+">\n");
+        out.write("<"+TAG_NAME);
+        out.write(" "+DAY_OF_WEEK_ATTR+"='");
+        out.write(Integer.toString(startOnDayOfWeek));
+        out.write("' "+REFERENCE_DATE_ATTR+"='");
+        out.write(XMLUtils.saveDate(referenceDate));
+        out.write("'>\n");
+
         Iterator i = teamMembers.iterator();
         while (i.hasNext()) {
             TeamMember m = (TeamMember) i.next();
             if (!m.isEmpty())
                 m.getAsXML(out);
         }
+
         out.write("</"+TAG_NAME+">\n");
     }
     // the XML tag name identifying the team member list.
     private static final String TAG_NAME = "teamList";
+    private static final String DAY_OF_WEEK_ATTR = "firstDayOfWeek";
+    private static final String REFERENCE_DATE_ATTR = "referenceDate";
+    private static final String START_DATE_ATTR = "startDate";
 
 
 
@@ -145,19 +241,56 @@ public class TeamMemberList extends AbstractTableModel {
     public static final int NAME_COLUMN = 0;
     public static final int INITIALS_COLUMN = 1;
     public static final int COLOR_COLUMN = 2;
-    public static final int START_DATE_COLUMN = 3;
-    public static final int HOURS_COLUMN = 4;
+    public static final int HOURS_COLUMN = 3;
+    public static final int FIRST_WEEK_COLUMN = 4;
 
     private static final String[] columnNames = {
-        "Name", "Initials", "Color", "Start Date", "Est Hours/Week" };
+        "Name", "Initials", "Color", "Hrs/Week" };
     private static final Class[] columnClass = {
-        String.class, String.class, Color.class, Date.class, Double.class };
+        String.class, String.class, Color.class, Double.class };
 
-    public int getRowCount()            { return teamMembers.size(); }
-    public int getColumnCount()         { return columnNames.length; }
-    public String getColumnName(int c)  { return columnNames[c];     }
-    public Class getColumnClass(int c)  { return columnClass[c];     }
-    public boolean isCellEditable(int row, int col) { return !isReadOnly(); }
+    public int getRowCount() {
+        return teamMembers.size();
+    }
+
+    public int getColumnCount() {
+        return columnCount;
+    }
+
+    public String getColumnName(int col) {
+        if (col < columnNames.length)
+            return columnNames[col];
+
+        int week = col + weekOffset;
+        Date d = new Date(zeroDay.getTime() + week * WEEK_MILLIS);
+        if (col == FIRST_WEEK_COLUMN+1)
+            return LONG_DATE_FORMAT.format(d);
+        else
+            return DATE_FORMAT.format(d);
+    }
+    private DateFormat DATE_FORMAT = new SimpleDateFormat("M/d");
+    private DateFormat LONG_DATE_FORMAT = new SimpleDateFormat("M/d/yy");
+    private static final long WEEK_MILLIS = 7l * 24 * 60 * 60 * 1000;
+
+    public Class getColumnClass(int col) {
+        if (col < columnClass.length)
+            return columnClass[col];
+        else
+            return WeekData.class;
+    }
+
+    public boolean isCellEditable(int row, int col) {
+        if (isReadOnly())
+            return false;
+        if (col < FIRST_WEEK_COLUMN)
+            return true;
+
+        Object value = getValueAt(row, col);
+        if (value instanceof WeekData)
+            return ((WeekData) value).isInsideSchedule();
+        else
+            return false;
+    }
 
     public Object getValueAt(int row, int column) {
         TeamMember m = get(row);
@@ -165,10 +298,15 @@ public class TeamMemberList extends AbstractTableModel {
         case NAME_COLUMN: return m.getName();
         case INITIALS_COLUMN: return m.getInitials();
         case COLOR_COLUMN: return m.getColor();
-        case START_DATE_COLUMN: return m.getStartDate();
         case HOURS_COLUMN: return m.getHoursPerWeek();
         }
-        return null;
+
+        if (column == columnCount-1)
+            return WeekData.WEEK_END;
+
+        WeeklySchedule sched = getScheduleAt(row);
+        int week = column + weekOffset;
+        return sched.getWeekData(week);
     }
 
     public void setValueAt(Object aValue, int row, int column) {
@@ -180,24 +318,46 @@ public class TeamMemberList extends AbstractTableModel {
         case NAME_COLUMN:
             m.setName((String) aValue);
             if (autoNewRow) maybeAddEmptyRow();
-            break;
+            return;
 
-        case START_DATE_COLUMN:
-            m.setStartDate((Date) aValue);
-            if (autoNewRow) maybeDefaultStartDates();
-            break;
+        case INITIALS_COLUMN:
+            m.setInitials((String) aValue);
+            return;
 
-        case INITIALS_COLUMN: m.setInitials((String) aValue); break;
-        case COLOR_COLUMN: m.setColor((Color) aValue); break;
-        case HOURS_COLUMN: m.setHoursPerWeek((Double) aValue); break;
+        case COLOR_COLUMN:
+            m.setColor((Color) aValue);
+            return;
+
+        case HOURS_COLUMN:
+            m.setHoursPerWeek((Double) aValue);
+            fireTableRowsUpdated(row, row);
+            return;
+        }
+
+        if (column == columnCount-1) {
+            if (aValue instanceof WeekData
+                    && ((WeekData)aValue).getType() == WeekData.TYPE_END) {
+                getScheduleAt(row).setEndWeek(WeeklySchedule.NO_END);
+                fireTableRowsUpdated(row, row);
+            }
+        } else {
+            WeeklySchedule sched = getScheduleAt(row);
+            int week = column + weekOffset;
+            sched.setWeekData(week, aValue);
+            fireTableRowsUpdated(row, row);
         }
     }
-
 
     /** Convenience method to retrieve a particular team member. */
     private TeamMember get(int r) {
         return (TeamMember) teamMembers.get(r);
     }
+
+    /** Convenience method to retrieve the schedule for a team member. */
+    private WeeklySchedule getScheduleAt(int row) {
+        return get(row).getSchedule();
+    }
+
     /** Convenience method to determine whether a string has a non-null,
      * non-whitespace, non-empty value. */
     private boolean hasValue(Object s) {
@@ -212,8 +372,8 @@ public class TeamMemberList extends AbstractTableModel {
 
         int newRowNum = getRowCount();
         Color c = getFirstUnusedColor();
-        Date d = getDefaultStartDate();
-        teamMembers.add(new TeamMember(null, null, c, d));
+        int sw = getEarliestStartWeek();
+        teamMembers.add(new TeamMember(null, null, c, sw, zeroDay));
         fireTableRowsInserted(newRowNum, newRowNum);
     }
 
@@ -233,25 +393,131 @@ public class TeamMemberList extends AbstractTableModel {
          return Color.darkGray;
     }
 
-    /** Find the earliest date when any team members is starting.  If no team
-     * members have start dates, use "last Sunday". */
-    private Date getDefaultStartDate() {
-        long result = Long.MAX_VALUE;
-        for (Iterator i = teamMembers.iterator(); i.hasNext();) {
-            TeamMember m = (TeamMember) i.next();
-            if (hasValue(m.getName()) && m.getHoursPerWeek().intValue() > 0
-                    && m.getStartDate() != null)
-                result = Math.min(result, m.getStartDate().getTime());
-        }
-        if (result == Long.MAX_VALUE) {
-            Calendar c = Calendar.getInstance();
-            c.set(Calendar.DAY_OF_WEEK, Calendar.SUNDAY);
-            c.set(Calendar.HOUR_OF_DAY, 0); c.set(Calendar.MINUTE, 0);
-            c.set(Calendar.SECOND, 0); c.set(Calendar.MILLISECOND, 0);
-            return c.getTime();
-        } else
-            return new Date(result);
+    private Date getDefaultReferenceDate() {
+        return getDefaultReferenceDate(new Date());
     }
+
+    private Date getDefaultReferenceDate(Element xml) {
+        long when = System.currentTimeMillis();
+        NodeList nodes = xml.getElementsByTagName(TeamMember.TAG_NAME);
+        for (int i = 0;   i < nodes.getLength();   i++) {
+            Element e = (Element) nodes.item(i);
+            Date d = XMLUtils.getXMLDate(e, START_DATE_ATTR);
+            if (d != null && d.getTime() < when)
+                when = d.getTime();
+        }
+        return getDefaultReferenceDate(new Date(when));
+    }
+
+    /** Calculate a reference date to use when normalizing schedules.
+     * 
+     * The reference date is not used directly by calculations;  instead, those
+     * use the zero date.  Thus, the reference date exists solely to help us
+     * produce the zero date.
+     * 
+     * The zero date always falls in the week immediately preceeding the
+     * reference date.  The exact day of the week is chosen by the user;
+     * however, Sunday and Monday are the most common values.
+     * 
+     * When the user changes the preferred day of the week, we would prefer
+     * for the zero date NOT to move very far.  So we put the reference date
+     * on Wednesday at noon.  This value is sufficiently far away from the most
+     * commonly used day of week values, so that changing the day of the week
+     * will generally have a tiny effect.
+     */
+    private Date getDefaultReferenceDate(Date when) {
+        Calendar c = Calendar.getInstance();
+        c.setTime(when);
+        c.set(Calendar.DAY_OF_WEEK, Calendar.WEDNESDAY);
+        c.set(Calendar.HOUR_OF_DAY, 12); c.set(Calendar.MINUTE, 0); // 12:00 PM
+        c.set(Calendar.SECOND, 0); c.set(Calendar.MILLISECOND, 0);
+        return c.getTime();
+    }
+
+    /**
+     * Calculate a zero day, by finding the day on the calendar that falls
+     * in the week prior to the reference date, and that is on the day of the
+     * week selected by the user.
+     * 
+     * Note: one might initially expect to place the zero date at midnight
+     * on the chosen day;  however, if we do, we have to be wary of daylight
+     * savings time changes as we do week arithmetic.  We will never be
+     * displaying times - only dates.  So we place the zero date at 4:00 AM.
+     * This allows us to blindly add the number of nominal milliseconds in a
+     * week without worrying about daylight savings time.  Our resulting
+     * timestamps may fall at 3:00 AM or 5:00 AM, but will still format as
+     * the correct day on the calendar.
+     */
+    private void recalcZeroDay() {
+        Calendar c = Calendar.getInstance();
+        c.setTime(referenceDate);
+        c.set(Calendar.DAY_OF_WEEK, startOnDayOfWeek);
+        c.set(Calendar.HOUR_OF_DAY, 4); c.set(Calendar.MINUTE, 0);  // 4:00 AM
+        c.set(Calendar.SECOND, 0); c.set(Calendar.MILLISECOND, 0);
+        Date result = c.getTime();
+        if (result.after(referenceDate)) {
+            c.add(Calendar.DATE, -7);
+            result = c.getTime();
+        }
+        this.zeroDay = result;
+
+        for (int i = getRowCount();  i-- > 0; )
+            getScheduleAt(i).setZeroDay(result);
+    }
+
+    public Date getDateForEffort(double hours) {
+
+        int week = getEarliestStartWeek();
+
+        while (hours > 0) {
+            double hoursThisWeek = 0;
+            boolean foundParticipant = false;
+            boolean inMaintenancePeriod = true;
+
+            for (int i = getRowCount();  i-- > 0; ) {
+                WeekData wd = getScheduleAt(i).getWeekData(week);
+                if (wd.isInsideSchedule()) {
+                    foundParticipant = true;
+                    hoursThisWeek += wd.getHours();
+                }
+                if (week < getScheduleAt(i).getMaintenanceStartWeek())
+                    inMaintenancePeriod = false;
+            }
+
+            // no one is working on the project anymore, even though is still
+            // work to be done.  The project will never finish.
+            if (!foundParticipant)
+                return null;
+
+            // if we can get done this week, calculate when.
+            if (hours < hoursThisWeek) {
+                double fractionalWeek = hours / hoursThisWeek;
+                return weekValueToDate(week + fractionalWeek);
+            }
+
+            // if we've passed all the exceptions, and we're in the maintenance
+            // range of the project, just extrapolate to get the end date
+            if (inMaintenancePeriod) {
+                if (hoursThisWeek > 0) {
+                    double remainingWeeks = hours / hoursThisWeek;
+                    return weekValueToDate(week + remainingWeeks);
+                } else {
+                    return null;
+                }
+            }
+
+            // otherwise, take credit for this week's hours, and keep going.
+            hours = hours - hoursThisWeek;
+            week++;
+        }
+
+        return weekValueToDate(week);
+    }
+
+    private Date weekValueToDate(double week) {
+        return WeeklySchedule.weekValueToDate(zeroDay, week);
+    }
+
 
     /** A list of 18 colors that look mutually unique. (This was really hard
      * to create!) */
@@ -431,4 +697,5 @@ public class TeamMemberList extends AbstractTableModel {
             ((InitialsListener) i.next()).initialsChanged
                 (initBefore, initAfter);
     }
+
 }

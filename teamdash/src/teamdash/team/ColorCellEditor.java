@@ -1,4 +1,4 @@
-package teamdash;
+package teamdash.team;
 
 import java.awt.Color;
 import java.awt.Component;
@@ -22,7 +22,7 @@ import javax.swing.JTable;
  * the implementation of TableCellEditor methods
  * from the source code for DefaultCellEditor.
  */
-class ColorCellEditor extends DefaultCellEditor {
+public class ColorCellEditor extends DefaultCellEditor {
     Color currentColor = null;
 
     public ColorCellEditor(JButton b) {
@@ -59,7 +59,7 @@ class ColorCellEditor extends DefaultCellEditor {
     }
 
     //Set up the editor for the Color cells.
-    static void setUpColorEditor(JTable table) {
+    public static void setUpColorEditor(JTable table) {
         //First, set up the button that brings up the dialog.
         final JButton button = new JButton("") {
                 public void setText(String s) {
@@ -94,7 +94,7 @@ class ColorCellEditor extends DefaultCellEditor {
                     //Without the following line, the dialog comes up
                     //in the middle of the screen.
                     //dialog.setLocationRelativeTo(button);
-                    dialog.show();
+                    dialog.setVisible(true);
                 }
             });
     }

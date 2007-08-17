@@ -2,7 +2,7 @@ package teamdash.wbs.columns;
 
 import javax.swing.table.TableCellRenderer;
 
-import teamdash.TeamMember;
+import teamdash.team.TeamMember;
 import teamdash.wbs.CustomRenderedColumn;
 import teamdash.wbs.DataTableModel;
 import teamdash.wbs.NumericDataValue;

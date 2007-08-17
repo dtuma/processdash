@@ -1,4 +1,4 @@
-package teamdash;
+package teamdash.team;
 
 import java.awt.Color;
 import java.awt.Component;

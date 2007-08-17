@@ -53,8 +53,8 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
-import teamdash.TeamMemberList;
 import teamdash.XMLUtils;
+import teamdash.team.TeamMemberList;
 
 /** Class to display the WBS editor panel
  */
@@ -740,7 +740,7 @@ public class WBSTabPanel extends JPanel
         columnSelectorDialog.setTableColumnModel((TableColumnModel) tableColumnModels.get(tabbedPane.getSelectedIndex()));
         columnSelectorDialog.setDialogMessage(tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()));
         columnSelectorDialog.setLocationRelativeTo(this);
-        columnSelectorDialog.show();
+        columnSelectorDialog.setVisible(true);
     }
 
     /**

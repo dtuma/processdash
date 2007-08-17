@@ -1,6 +1,6 @@
 package teamdash.wbs;
 
-import teamdash.TeamMemberList;
+import teamdash.team.TeamMemberList;
 import teamdash.wbs.columns.TaskSizeUnitsColumn;
 import teamdash.wbs.columns.WBSNodeColumn;
 import teamdash.wbs.columns.WorkflowNumPeopleColumn;

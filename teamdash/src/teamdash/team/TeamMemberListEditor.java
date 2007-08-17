@@ -1,13 +1,11 @@
-package teamdash;
+package teamdash.team;
 
 import java.awt.BorderLayout;
-import java.awt.Component;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
@@ -19,9 +17,8 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
-import javax.swing.table.TableCellEditor;
-import javax.swing.table.TableModel;
-import javax.swing.text.JTextComponent;
+
+import teamdash.SaveListener;
 
 
 /** A graphical user interface for editing the list of team members.
@@ -41,7 +38,7 @@ public class TeamMemberListEditor implements WindowListener {
     public TeamMemberListEditor(String projectName, TeamMemberList teamList) {
         teamMemberList = new TeamMemberList(orig = teamList);
         teamMemberList.maybeAddEmptyRow();
-        buildTable();
+        table = new TeamMemberListTable(teamMemberList);
         JPanel buttons = buildButtons();
 
         frame = new JFrame(projectName + " - Team Members");
@@ -49,8 +46,8 @@ public class TeamMemberListEditor implements WindowListener {
         frame.getContentPane().add(buttons, BorderLayout.SOUTH);
         frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         frame.addWindowListener(this);
-        frame.setSize(460, 200);
-        frame.show();
+        frame.setSize(670, 200);
+        frame.setVisible(true);
     }
 
     public void show() {
@@ -134,22 +131,6 @@ public class TeamMemberListEditor implements WindowListener {
         fireItemCancelled();
     }
 
-    private void buildTable() {
-        table = new SelectAllJTable(teamMemberList);
-
-        //Set up renderer and editor for the Color column.
-        ColorCellRenderer.setUpColorRenderer(table);
-        ColorCellEditor.setUpColorEditor(table);
-        table.setDefaultEditor(Date.class, new DateCellEditor());
-
-        // set preferred sizes for each column
-        table.getColumn("Name").setPreferredWidth(150);
-        table.getColumn("Initials").setPreferredWidth(55);
-        table.getColumn("Color").setPreferredWidth(55);
-        table.getColumn("Start Date").setPreferredWidth(80);
-        table.getColumn("Est Hours/Week").setPreferredWidth(100);
-    }
-
     private JPanel buildButtons() {
         JPanel buttons = new JPanel(new FlowLayout(FlowLayout.RIGHT, 2, 2));
 
@@ -188,34 +169,18 @@ public class TeamMemberListEditor implements WindowListener {
             saveListeners.remove(l);
     }
     protected void fireItemSaved() {
+        if (saveListeners != null) {
         Iterator i = saveListeners.iterator();
-        while (i.hasNext())
-            ((SaveListener) i.next()).itemSaved(this);
+            while (i.hasNext())
+                ((SaveListener) i.next()).itemSaved(this);
+        }
     }
     protected void fireItemCancelled() {
-        Iterator i = saveListeners.iterator();
-        while (i.hasNext())
-            ((SaveListener) i.next()).itemCancelled(this);
-    }
-
-    private class SelectAllJTable extends JTable {
-
-        public SelectAllJTable(TableModel dm) { super(dm); }
-
-
-        public Component prepareEditor(
-            TableCellEditor editor,
-            int row,
-            int column) {
-
-            Component result = super.prepareEditor(editor, row, column);
-
-            if (result instanceof JTextComponent)
-                ((JTextComponent) result).selectAll();
-
-            return result;
+        if (saveListeners != null) {
+            Iterator i = saveListeners.iterator();
+            while (i.hasNext())
+                ((SaveListener) i.next()).itemCancelled(this);
         }
-
     }
 
 }

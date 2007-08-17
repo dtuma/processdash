@@ -1,5 +1,5 @@
 
-package teamdash;
+package teamdash.team;
 
 import java.awt.Color;
 import java.io.IOException;
@@ -9,6 +9,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.w3c.dom.Element;
+
+import teamdash.XMLUtils;
+
 
 
 
@@ -20,14 +23,11 @@ public class TeamMember implements Cloneable {
     private String name;
     /** The initials of the team member (e.g. jd) */
     private String initials;
-    /** The date this individual will start working */
-    private Date startDate;
-    /** The approximate number of hours this team member will be able to spend
-     * per week on project tasks */
-    private Double hoursPerWeek;
     /** A color that will be used to represent this individual in various
      * charts, tables, and displays */
     private Color color;
+    /** The schedule for this team member */
+    private WeeklySchedule schedule;
 
 
     /** public TeamMember() { } */
@@ -39,31 +39,27 @@ public class TeamMember implements Cloneable {
      * @param initials the person's initials
      * @param color the color to use for this person
      */
-    public TeamMember(String name, String initials, Color color, Date start) {
+    public TeamMember(String name, String initials, Color color, int startWeek,
+            Date zeroDay) {
         this.name = trim(name);
         this.initials = trim(initials);
         this.color = color;
-        this.startDate = start;
-        this.hoursPerWeek = new Double(20);
+        this.schedule = new WeeklySchedule(zeroDay, startWeek);
     }
 
     /** Create a team member object using data in the given XML element. */
-    public TeamMember(Element e) {
+    public TeamMember(Element e, Date teamZeroDay) {
         // extract the name from the element.
         this.name = trim(e.getAttribute(NAME_ATTR));
         // extract the initials from the element.
         this.initials = trim(e.getAttribute(INITIALS_ATTR));
-        // extract hours per week information if it is present.
-        String attr = e.getAttribute(HOURS_ATTR);
-        if (XMLUtils.hasValue(attr)) try {
-            hoursPerWeek = new Double(attr);
-        } catch (NumberFormatException nfe) {}
-        this.startDate = XMLUtils.getXMLDate(e, START_DATE_ATTR);
         // extract color information if it is present.
-        attr = e.getAttribute(COLOR_ATTR);
+        String attr = e.getAttribute(COLOR_ATTR);
         if (XMLUtils.hasValue(attr)) try {
             color = Color.decode(attr);
         } catch (NumberFormatException nfe) {}
+        // extract schedule information
+        this.schedule = new WeeklySchedule(e, teamZeroDay);
     }
 
     /** Convenience method - trim whitespace from the ends of a string.
@@ -102,12 +98,20 @@ public class TeamMember implements Cloneable {
     public void setColor(Color color) { this.color = color; }
 
     // getter/setter for the "start date" property.
-    public Date getStartDate() { return startDate; }
-    public void setStartDate(Date d) { startDate = d; }
+    public Date getStartDate() { return schedule.getStartDate(); }
+    public void setStartDate(Date d) { schedule.setStartDate(d); }
+
+    public Date getEndDate() { return schedule.getEndDate(); }
 
     // getter/setter for the "hours per week" property.
-    public Double getHoursPerWeek() { return hoursPerWeek; }
-    public void setHoursPerWeek(Double d) { hoursPerWeek = d; }
+    public Double getHoursPerWeek() {
+        return new Double(schedule.getHoursPerWeek());
+    }
+    public void setHoursPerWeek(Double d) {
+        schedule.setHoursPerWeek(d == null ? 0 : d.doubleValue());
+    }
+
+    public WeeklySchedule getSchedule() { return schedule; }
 
     /** returns true if this individual has no name or initials. */
     public boolean isEmpty() {
@@ -124,24 +128,29 @@ public class TeamMember implements Cloneable {
         out.write("' "+INITIALS_ATTR+"='");
         if (initials != null)
             out.write(XMLUtils.escapeAttribute(initials));
-        out.write("' "+HOURS_ATTR+"='");
-        if (hoursPerWeek != null)
-            out.write(hoursPerWeek.toString());
-        out.write("' "+START_DATE_ATTR+"='");
-        if (startDate != null)
-            out.write(XMLUtils.saveDate(startDate));
         out.write("' "+COLOR_ATTR+"='");
         if (color != null) {
             out.write("#");
             out.write(Integer.toHexString(color.getRGB()).substring(2));
         }
-        out.write("'/>\n");
+        out.write("'");
+
+        schedule.writeAttributes(out);
+        if (schedule.hasExceptions()) {
+            out.write(">\n");
+            schedule.writeExceptions(out);
+            out.write("  </"+TAG_NAME+">\n");
+        } else {
+            out.write("/>\n");
+        }
     }
 
     /** Make a copy of this team member object. */
     public Object clone() {
         try {
-            return super.clone();
+            TeamMember result = (TeamMember) super.clone();
+            result.schedule = new WeeklySchedule(schedule);
+            return result;
         } catch (CloneNotSupportedException cnse) {
             // can't happen?
             return null;
@@ -185,8 +194,6 @@ public class TeamMember implements Cloneable {
     static final String TAG_NAME = "teamMember";
     private static final String NAME_ATTR = "name";
     private static final String INITIALS_ATTR = "initials";
-    private static final String START_DATE_ATTR = "startDate";
-    private static final String HOURS_ATTR = "hoursPerWeek";
     private static final String COLOR_ATTR = "color";
 
 }

@@ -37,7 +37,7 @@ import net.sourceforge.processdash.util.StringUtils;
 import teamdash.ConcurrencyLock;
 import teamdash.DirectoryBackup;
 import teamdash.SaveListener;
-import teamdash.TeamMemberListEditor;
+import teamdash.team.TeamMemberListEditor;
 import teamdash.wbs.WBSTabPanel.LoadTabsException;
 import teamdash.wbs.columns.SizeAccountingColumnSet;
 
@@ -263,7 +263,7 @@ public class WBSEditor implements WindowListener, SaveListener,
     }
 
     public void show() {
-        frame.show();
+        frame.setVisible(true);
         frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
     }
 

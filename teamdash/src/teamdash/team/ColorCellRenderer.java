@@ -1,4 +1,4 @@
-package teamdash;
+package teamdash.team;
 
 import java.awt.Color;
 import java.awt.Component;
@@ -62,7 +62,7 @@ implements TableCellRenderer {
         return result;
     }
 
-    static void setUpColorRenderer(JTable table) {
+    public static void setUpColorRenderer(JTable table) {
         table.setDefaultRenderer
             (Color.class, new ColorCellRenderer(true));
     }

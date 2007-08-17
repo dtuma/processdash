@@ -13,8 +13,8 @@ import java.util.ListIterator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import teamdash.TeamMember;
-import teamdash.TeamMemberList;
+import teamdash.team.TeamMember;
+import teamdash.team.TeamMemberList;
 import teamdash.wbs.columns.TaskDependencyColumn;
 import teamdash.wbs.columns.TeamMemberTimeColumn;
 import teamdash.wbs.columns.TeamTimeColumn;

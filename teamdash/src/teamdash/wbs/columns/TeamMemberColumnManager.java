@@ -12,8 +12,8 @@ import javax.swing.event.TableModelListener;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 
-import teamdash.TeamMember;
-import teamdash.TeamMemberList;
+import teamdash.team.TeamMember;
+import teamdash.team.TeamMemberList;
 import teamdash.wbs.DataTableColumn;
 import teamdash.wbs.DataTableModel;
 

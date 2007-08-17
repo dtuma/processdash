@@ -15,8 +15,8 @@ import java.util.Set;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
-import teamdash.TeamMember;
-import teamdash.TeamMemberList;
+import teamdash.team.TeamMember;
+import teamdash.team.TeamMemberList;
 
 public class TeamProjectBottomUp extends TeamProject {
 
@@ -169,52 +169,39 @@ public class TeamProjectBottomUp extends TeamProject {
 
     private void addTeamMember(TeamMemberList newTeam, String shortName,
             TeamProject subproject, double totalSubprojectTime) {
+        // create a new row in the team list, and set the name/initials.
         newTeam.maybeAddEmptyRow();
         int pos = newTeam.getRowCount() - 1;
         newTeam.setValueAt(shortName, pos, TeamMemberList.NAME_COLUMN);
         newTeam.setValueAt(shortName, pos, TeamMemberList.INITIALS_COLUMN);
 
-        // now, decide how to set the start date and hours per week.
-        //
-        // start date is easy to determine: just find out when the earliest
-        // team member begins.
-        //
-        // hours per week is trickier. Ultimately, we want the TeamTimePanel
-        // to display the correct end date for the subproject. So first, we
-        // calculate the desired end date, by choosing the date the last team
-        // member will finish.  Then, knowing how the TeamTimePanel
-        // calculates the end date for a bar, we choose a value for "hours
-        // per week" that will produce that end date.
+        // retrieve the newly added pseudo-team-member. (Note that we couldn't
+        // do this until the name was set above, because the getTeamMembers()
+        // method only returns nonempty individuals.)
+        TeamMember newMember = (TeamMember) newTeam.getTeamMembers().get(pos);
 
-        long startTime = Long.MAX_VALUE;
-        long endTime = 0;
-        List subprojMembers = subproject.getTeamMemberList().getTeamMembers();
-        for (Iterator i = subprojMembers.iterator(); i.hasNext();) {
+        // find out when the subteam is starting, and set that as the start
+        // date for our new pseudo-team-member.
+        TeamMemberList subTeam = subproject.getTeamMemberList();
+        Date subteamStartDate = subTeam.getDateForEffort(0);
+        newMember.setStartDate(subteamStartDate);
+
+        // now, find out when the subteam plans to finish.  Then, create an
+        // artificial schedule that causes our pseudo-team-member's to finish
+        // on that date.
+        long teamEndTime = subteamStartDate.getTime();
+        for (Iterator i = subTeam.getTeamMembers().iterator(); i.hasNext();) {
             TeamMember m = (TeamMember) i.next();
-            double hoursPerWeek = m.getHoursPerWeek().doubleValue();
-            if (hoursPerWeek == 0)
-                continue;
-
-            long memberStart;
-            if (m.getStartDate() == null)
-                memberStart = System.currentTimeMillis();
-            else
-                memberStart = m.getStartDate().getTime();
-            startTime = Math.min(startTime, memberStart);
-
             double memberTime = sumUpTime(subproject.getWBS(), m.getInitials());
-            double memberWeeks = memberTime / hoursPerWeek;
-            long memberEnd = memberStart
-                    + (long) (memberWeeks * MILLIS_PER_WEEK);
-            endTime = Math.max(endTime, memberEnd);
+            Date memberEndDate = m.getSchedule().getDateForEffort(memberTime);
+            if (memberEndDate != null)
+                teamEndTime = Math.max(teamEndTime, memberEndDate.getTime());
         }
-
-        Date startDate = new Date(startTime);
-        double elapsedWeeks = ((double) (endTime - startTime)) / MILLIS_PER_WEEK;
-        Double effHrsPerWeek = new Double(totalSubprojectTime / elapsedWeeks);
-
-        newTeam.setValueAt(startDate, pos, TeamMemberList.START_DATE_COLUMN);
-        newTeam.setValueAt(effHrsPerWeek, pos, TeamMemberList.HOURS_COLUMN);
+        Date teamEndDate = new Date(teamEndTime);
+        int teamEndWeek = newMember.getSchedule().dateToWeekValue(teamEndDate);
+        newMember.getSchedule().setHoursPerWeek(0.01);
+        newMember.getSchedule().setWeekData(teamEndWeek,
+            new Double(Integer.MAX_VALUE));
     }
 
     private void addWBSItems(WBSModel newWbs, String shortName,
@@ -297,7 +284,4 @@ public class TeamProjectBottomUp extends TeamProject {
         }
     }
 
-
-    private static final long MILLIS_PER_WEEK = 7L /*days*/ * 24 /*hours*/
-            * 60 /*min*/ * 60 /*sec*/ * 1000 /*millis*/;
 }

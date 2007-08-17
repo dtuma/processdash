@@ -9,7 +9,7 @@ import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.filechooser.FileFilter;
 
-import teamdash.TeamMemberList;
+import teamdash.team.TeamMemberList;
 import teamdash.wbs.CsvNodeDataImporter.ParseException;
 
 /** Interact with the user to find and import data from an MS Project CSV file.
