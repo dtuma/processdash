@@ -32,6 +32,7 @@ import java.awt.Toolkit;
 import java.awt.Image;
 
 import javax.swing.Icon;
+import javax.swing.ImageIcon;
 
 public class DashboardIconFactory {
 
@@ -46,29 +47,42 @@ public class DashboardIconFactory {
                 launcherWindowIconImage);
     }
 
+    private static Icon timingIcon = null;
+    public static Icon getTimingIcon() {
+        if (timingIcon == null) {
+            timingIcon = loadNamedIcon("timing");
+            if (timingIcon == null)
+                timingIcon = new ImageIcon(loadImage("timing.png", null));
+        }
+        return timingIcon;
+    }
+
+    private static Icon timingDisabledIcon = null;
+    public static Icon getTimingDisabledIcon() {
+        if (timingDisabledIcon == null) {
+            timingDisabledIcon = loadNamedIcon("timingDisabled");
+            if (timingDisabledIcon == null)
+                timingDisabledIcon = new ImageIcon(loadImage(
+                    "timingDisabled.png", null));
+        }
+        return timingDisabledIcon;
+    }
+
+    private static Icon pausedIcon = null;
+    public static Icon getPausedIcon() {
+        if (pausedIcon == null) {
+            pausedIcon = loadNamedIcon("paused");
+            if (pausedIcon == null)
+                pausedIcon = new ImageIcon(loadImage("paused.png", null));
+        }
+        return pausedIcon;
+    }
+
     private static Image loadImage(String resourceName, Image current) {
         if (current != null)
             return current;
         return Toolkit.getDefaultToolkit().createImage(
                 DashboardIconFactory.class.getResource(resourceName));
-    }
-
-    public static Icon getContinueIcon() {
-        Icon result = loadNamedIcon("continue");
-        if (result == null) result = new ContinueIcon();
-        return result;
-    }
-
-    public static Icon getDisabledContinueIcon() {
-        Icon result = loadNamedIcon("continue-dis");
-        if (result == null) result = new DisabledContinueIcon();
-        return result;
-    }
-
-    public static Icon getPauseIcon() {
-        Icon result = loadNamedIcon("pause");
-        if (result == null) result = new PauseIcon();
-        return result;
     }
 
     public static Icon getCheckIcon() {
@@ -105,55 +119,6 @@ public class DashboardIconFactory {
         // TODO: try loading icons out of the Templates/resources directory,
         // to allow for localization of icons.
         return null;
-    }
-
-    private static class ContinueIcon implements Icon {
-
-        protected Color color = Color.black;
-
-        public void paintIcon(Component c, Graphics g, int x, int y) {
-            g.setColor(color);
-            g.drawLine(x, y,    x+12, y+6);
-            g.drawLine(x, y+12, x+11, y+7);
-
-            int[] xx = new int[] { x, x,    x+12 };
-            int[] yy = new int[] { y, y+12, y+6  };
-            g.fillPolygon(xx, yy, 3);
-        }
-
-        public int getIconWidth() {
-            return 13;
-        }
-
-        public int getIconHeight() {
-            return 13;
-        }
-    }
-
-    private static class DisabledContinueIcon extends ContinueIcon {
-
-        public DisabledContinueIcon() {
-            color = Color.gray;
-        }
-
-    }
-
-    private static class PauseIcon implements Icon {
-
-        public void paintIcon(Component c, Graphics g, int x, int y) {
-            g.setColor(Color.black);
-            g.fillRect(x, y, 5, 13);
-            g.fillRect(x+8, y, 5, 13);
-        }
-
-        public int getIconWidth() {
-            return 13;
-        }
-
-        public int getIconHeight() {
-            return 13;
-        }
-
     }
 
     private static class CheckIcon implements Icon {

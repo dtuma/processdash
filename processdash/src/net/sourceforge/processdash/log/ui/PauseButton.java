@@ -53,13 +53,13 @@ import net.sourceforge.processdash.ui.lib.DropDownButton;
 
 public class PauseButton extends DropDownButton implements ActionListener, PropertyChangeListener {
 
-    private Icon pauseIcon;
-    private Icon continueIcon;
-    private String pauseTip;
-    private String continueTip;
+    private Icon pausedIcon;
+    private Icon timingIcon;
+    private String timingTip;
+    private String pausedTip;
+    private String disabledTip;
     private SoundClip timingSound = null;
 
-    private boolean showCurrent = false;
     private boolean quiet;
 
     private TimeLoggingModel loggingModel;
@@ -73,13 +73,15 @@ public class PauseButton extends DropDownButton implements ActionListener, Prope
         PCSH.enableHelpKey(getMenu(), "PlayPause");
 
         Resources res = Resources.getDashBundle("ProcessDashboard.Pause");
-        pauseTip = res.getString("Pause_Tip");
-        continueTip = res.getString("Continue_Tip");
+        timingTip = res.getString("Pause_Tip");
+        pausedTip = res.getString("Continue_Tip");
+        disabledTip = res.getString("Disabled_Tip");
 
-        pauseIcon = DashboardIconFactory.getPauseIcon();
-        continueIcon = DashboardIconFactory.getContinueIcon();
-        getButton().setDisabledIcon(DashboardIconFactory.getDisabledContinueIcon());
-        getButton().setMargin(new Insets(1,2,1,2));
+        pausedIcon = DashboardIconFactory.getPausedIcon();
+        timingIcon = DashboardIconFactory.getTimingIcon();
+        getButton().setDisabledIcon(
+            DashboardIconFactory.getTimingDisabledIcon());
+        getButton().setMargin(new Insets(0,0,0,0));
         getButton().setFocusPainted(false);
         getButton().addActionListener(this);
         setRunFirstMenuOption(false);
@@ -96,9 +98,14 @@ public class PauseButton extends DropDownButton implements ActionListener, Prope
 
     private void updateAppearance() {
         boolean paused = loggingModel.isPaused();
-        getButton().setIcon(showCurrent == paused ? pauseIcon : continueIcon);
-        getButton().setToolTipText(paused ? continueTip : pauseTip);
-        setEnabled(loggingModel.isLoggingAllowed());
+        getButton().setIcon(paused ? pausedIcon : timingIcon);
+        if (loggingModel.isLoggingAllowed()) {
+            getButton().setToolTipText(paused ? pausedTip : timingTip);
+            setEnabled(true);
+        } else {
+            getButton().setToolTipText(disabledTip);
+            setEnabled(false);
+        }
     }
 
 
@@ -177,9 +184,6 @@ public class PauseButton extends DropDownButton implements ActionListener, Prope
 
 
     private void loadUserSettings() {
-        // Load the user setting for button appearance
-        showCurrent = Settings.getBool("pauseButton.showCurrent", false);
-
         // Load the user setting for audible feedback
         quiet = Settings.getBool("pauseButton.quiet", false);
 
