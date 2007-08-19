@@ -63,6 +63,7 @@ public class EVSchedule implements TableModel {
     public static final Date NEVER = new Date(Long.MAX_VALUE);
     public static final Date A_LONG_TIME_AGO = new Date(0);
     static Resources resources = Resources.getDashBundle("EV");
+    static final String END_TOKEN = resources.getString("Schedule.End_Token");
 
     public interface Listener {
         public void evScheduleChanged();
@@ -134,8 +135,18 @@ public class EVSchedule implements TableModel {
         }
         public boolean isAutomatic() { return automatic; }
 
-        public String getPlanTime() { return formatTime(planTotalTime); }
-        public String getPlanDirectTime() { return formatTime(planDirectTime); }
+        public String getPlanTime() {
+            if (isScheduleEnd())
+                return END_TOKEN;
+            else
+                return formatTime(planTotalTime);
+        }
+        public String getPlanDirectTime() {
+            if (isScheduleEnd())
+                return END_TOKEN;
+            else
+                return formatTime(planDirectTime);
+        }
         public double planDirectTime() { return planDirectTime; }
         public String getCumPlanTime() { return formatTime(cumPlanDirectTime); }
         public double cumPlanDirectTime() { return cumPlanDirectTime; }
@@ -280,6 +291,29 @@ public class EVSchedule implements TableModel {
             }
         }
 
+        private boolean isScheduleEnd() {
+            return inScheduleEnd()
+                && (previous == null || previous.planTotalTime > 0);
+        }
+        private boolean inScheduleEnd() {
+            return !isAutomatic() && planTotalTime == 0
+                && cumPlanDirectTime == getLast().cumPlanDirectTime;
+        }
+        private void setAsScheduleEnd() {
+            for (int i = periods.indexOf(this); i < periods.size(); i++)
+                get(i).setPlanTime(0);
+        }
+        private void prepForException() {
+            int pos = periods.indexOf(this);
+            if (pos == periods.size()-1) {
+                grow(false);
+                getLast().setPlanTime(defaultPlanTotalTime);
+            } else if (get(pos+1).isAutomatic()) {
+                get(pos+1).setPlanTime(defaultPlanTotalTime);
+                get(pos+1).clearAutomaticFlag();
+            }
+        }
+
         private void setPlanTime(double planTime) {
             if (planTime != -1 && planTime != this.planTotalTime) {
                 this.planTotalTime = planTime;
@@ -292,8 +326,15 @@ public class EVSchedule implements TableModel {
 
         public void setPlanTime(Object value) {
             if (value instanceof String) {
-                // parse the value to obtain a number of minutes
-                setPlanTime(FormatUtil.parseTime((String) value));
+                if (END_TOKEN.equalsIgnoreCase((String)value))
+                    setAsScheduleEnd();
+                else {
+                    // parse the value to obtain a number of minutes
+                    long time = FormatUtil.parseTime((String) value);
+                    if (!inScheduleEnd() && (time == 0 || datesLocked))
+                        prepForException();
+                    setPlanTime(time);
+                }
             }
         }
 
@@ -304,8 +345,15 @@ public class EVSchedule implements TableModel {
 
         public void setPlanDirectTime(Object value) {
             if (value instanceof String) {
-                // parse the value to obtain a number of minutes
-                setPlanDirectTime(FormatUtil.parseTime((String) value));
+                if (END_TOKEN.equalsIgnoreCase((String)value))
+                    setAsScheduleEnd();
+                else {
+                    // parse the value to obtain a number of minutes
+                    long time = FormatUtil.parseTime((String) value);
+                    if (!inScheduleEnd() && (time == 0 || datesLocked))
+                        prepForException();
+                    setPlanDirectTime(time);
+                }
             }
 
         }

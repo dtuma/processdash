@@ -179,12 +179,13 @@ requirements.</p>
 
 <p><center><img src="../../Images/TaskScheduleTimes.png"></center></p>
 
-<p><A NAME="shortSchedule"></A>You can disable this automatic schedule 
-expansion simply by making the final manual row in your schedule contain zero 
-planned hours.  The dashboard recognizes that infinite duplications of the 
-"zero" row will not help you get any more hours, so it leaves the schedule 
-short and assigns some of your tasks the planned completion date of 
-"never".</p> 
+<p><A NAME="shortSchedule"></A>You can disable this automatic schedule
+expansion by entering the word <tt>END</tt> in the planned time column for
+a particular row.  This tells the dashboard that you plan to stop work on a
+particular date, whether the tasks are completed or not.  The dashboard
+will take this end date into account for its calculations; if the schedule
+no longer has enough planned hours to finish all of the work, some tasks
+may be assigned the planned completion date of "never".</p>
 
 <P>As in the task list, editable cells have a yellow background.  Since time 
 periods are contiguous, editing the "To" value on one row will cause the 
@@ -203,8 +204,9 @@ Insert Row button will split the currently selected time period into two
 separate rows, while the Delete Row will merge the currently selected time 
 period with the one that follows it. Note that it isn't possible to delete 
 an automatically generated row. If you want to to force your schedule to 
-end early, you should do so by entering 0 planned hours for the final time 
-period, as described <A HREF="#shortSchedule">above</A>.</P> 
+end early, you should do so by entering <tt>END</tt> in the planned time
+column for the final time period, as described
+<A HREF="#shortSchedule">above</A>.</P> 
 
 <p>If you have any &quot;level of effort&quot; tasks in your task
 list, you'll notice that there are two planned time columns - one for
