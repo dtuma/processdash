@@ -2070,12 +2070,26 @@ public class TaskScheduleDialog
 
         boolean enableDelete = false, enableInsert = false;
         int[] rows = scheduleTable.getSelectedRows();
-        enableInsert = (rows != null && rows.length > 0
-                && !model.getSchedule().areDatesLocked());
-        if (enableInsert) for (int i = rows.length;  i-- > 0; )
-            if (!model.getSchedule().rowIsAutomatic(rows[i])) {
-                enableDelete = true; break;
+        if (rows != null && rows.length > 0) {
+            if (model.getSchedule().areDatesLocked()) {
+                Arrays.sort(rows);
+                int minRow = rows[0];
+                enableDelete = !model.getSchedule().rowIsAutomatic(minRow);
+                for (int i = minRow;  i < model.getSchedule().getRowCount(); i++) {
+                    if (model.getSchedule().rowIsAutomatic(i))
+                        break;
+                    else if (Arrays.binarySearch(rows, i) < 0)
+                        enableDelete = false;
+                }
+
+            } else {
+                enableInsert = true;
+                for (int i = rows.length;  i-- > 0; )
+                    if (!model.getSchedule().rowIsAutomatic(rows[i])) {
+                        enableDelete = true; break;
+                    }
             }
+        }
 
         insertPeriodButton.setEnabled(enableInsert);
         deletePeriodButton.setEnabled(enableDelete);
