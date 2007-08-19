@@ -39,6 +39,7 @@ import javax.swing.tree.TreePath;
 import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.data.DataComparator;
 import net.sourceforge.processdash.data.DoubleData;
+import net.sourceforge.processdash.data.ImmutableDoubleData;
 import net.sourceforge.processdash.data.ListData;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.StringData;
@@ -57,6 +58,7 @@ public class EVTaskListData extends EVTaskList
     public static final String TASK_LIST_FLAG = "plain";
     public static final String TASK_ORDINAL_PREFIX = "TST_";
     public static final String EST_HOURS_DATA_NAME = "Planned Hours";
+    public static final String DATES_LOCKED_DATA_NAME = "Schedule_Dates_Locked";
     protected DataRepository data;
     protected DashHierarchy hierarchy;
 
@@ -113,9 +115,13 @@ public class EVTaskListData extends EVTaskList
             DataRepository.createDataName(globalPrefix, EST_HOURS_DATA_NAME);
         SimpleData d = data.getSimpleValue(dataName);
         if (d instanceof StringData) d = ((StringData) d).asList();
-        if (d instanceof ListData)
-            return new EVSchedule((ListData) d);
-        else
+        if (d instanceof ListData) {
+            String lockedName = DataRepository.createDataName(globalPrefix,
+                DATES_LOCKED_DATA_NAME);
+            SimpleData l = data.getSimpleValue(lockedName);
+            boolean locked = (l != null && l.test());
+            return new EVSchedule((ListData) d, locked);
+        } else
             return new EVSchedule();
     }
     protected void assignToOwner() {
@@ -161,6 +167,12 @@ public class EVTaskListData extends EVTaskList
                 (globalPrefix, EST_HOURS_DATA_NAME);
             data.putValue(dataName, schedule.getSaveList());
             oldNames.remove(dataName);
+            if (schedule.areDatesLocked()) {
+                dataName = DataRepository.createDataName(globalPrefix,
+                    DATES_LOCKED_DATA_NAME);
+                data.putValue(dataName, ImmutableDoubleData.TRUE);
+                oldNames.remove(dataName);
+            }
             // save the task list unique ID
             dataName = DataRepository.createDataName
                 (globalPrefix, ID_DATA_NAME);

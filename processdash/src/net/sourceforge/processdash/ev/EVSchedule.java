@@ -28,9 +28,11 @@ package net.sourceforge.processdash.ev;
 import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Vector;
 
@@ -295,12 +297,15 @@ public class EVSchedule implements TableModel {
             }
         }
 
+        private void setPlanDirectTime(double planDirectTime) {
+            if (planDirectTime != -1 && directPercentage > 0)
+                setPlanTime(planDirectTime / directPercentage);
+        }
+
         public void setPlanDirectTime(Object value) {
             if (value instanceof String) {
                 // parse the value to obtain a number of minutes
-                long planTime = FormatUtil.parseTime((String) value);
-                if (planTime != -1 && directPercentage > 0)
-                    setPlanTime(planTime / directPercentage);
+                setPlanDirectTime(FormatUtil.parseTime((String) value));
             }
 
         }
@@ -356,6 +361,7 @@ public class EVSchedule implements TableModel {
     }
 
     Vector periods = new Vector();
+    boolean datesLocked = false;
     EVMetrics metrics = new EVMetrics();
 
     public EVSchedule() { this(20.0); }
@@ -379,6 +385,14 @@ public class EVSchedule implements TableModel {
         c.set(Calendar.SECOND, 0); c.set(Calendar.MILLISECOND, 0);
         return c.getTime();
     }
+    private static Date roundDate(Date d) {
+        Calendar c = Calendar.getInstance();
+        c.setTime(d);
+        c.add(Calendar.HOUR_OF_DAY, 12);
+        c.set(Calendar.HOUR_OF_DAY, 0); c.set(Calendar.MINUTE, 0);
+        c.set(Calendar.SECOND, 0); c.set(Calendar.MILLISECOND, 0);
+        return c.getTime();
+    }
 
 
     public EVSchedule(Date start, Date end, double minutes) {
@@ -386,7 +400,7 @@ public class EVSchedule implements TableModel {
         add(new Period(end, minutes));
     }
 
-    public EVSchedule(ListData saveList) {
+    public EVSchedule(ListData saveList, boolean datesLocked) {
         if (saveList == null || saveList.size() < 3 ||
             (saveList.size() & 1) != 1)
             throw new IllegalArgumentException();
@@ -399,14 +413,60 @@ public class EVSchedule implements TableModel {
             d = parseDate((String) saveList.get(i+1));
             add(new Period(d, time));
         }
+        this.datesLocked = datesLocked;
         recalcCumPlanTimes();
         // double-check to ensure that dates are increasing?
+    }
+
+    public EVSchedule(Date startDate, double hoursPerWeek, int endWeek,
+            Map exceptions, double levelOfEffort, boolean datesLocked) {
+        this();
+        setLevelOfEffort(levelOfEffort);
+        get(1).setBeginDate(startDate);
+        get(1).setPlanDirectTime(hoursPerWeek * 60);
+        this.datesLocked = datesLocked;
+        cleanUp();
+
+        List weeksToTweak = new ArrayList();
+        if (endWeek >= 0)
+            weeksToTweak.add(new Integer(endWeek));
+        if (exceptions != null)
+            weeksToTweak.addAll(exceptions.keySet());
+        if (weeksToTweak.isEmpty())
+            return;
+
+        Collections.sort(weeksToTweak);
+        int maxTweakWeek = ((Integer) weeksToTweak.get(weeksToTweak.size() - 1))
+                .intValue();
+        if (maxTweakWeek != endWeek)
+            maxTweakWeek++;
+        double totalTime = hoursPerWeek * (maxTweakWeek + 1) * 60.0;
+        getPlannedCompletionDate(totalTime, totalTime);
+        getLast().clearAutomaticFlag();
+
+        if (exceptions != null) {
+            for (Iterator i = exceptions.entrySet().iterator(); i
+                    .hasNext();) {
+                Map.Entry e = (Map.Entry) i.next();
+                int week = ((Integer) e.getKey()).intValue();
+                double hours = ((Number) e.getValue()).doubleValue();
+                get(week+1).setPlanDirectTime(hours * 60);
+            }
+        }
+
+        if (endWeek >= 0) {
+            for (int i = endWeek+1;  i < periods.size(); i++)
+                get(i).setPlanTime(0);
+        }
     }
 
     public EVSchedule copy() { return new EVSchedule(this); }
     public EVSchedule(EVSchedule s) {
         addAllPeriods(s.periods, periods);
         directPercentage = s.directPercentage;
+    }
+    public void copyFrom(EVSchedule that) {
+        addAllPeriods(that.periods, this.periods);
     }
     protected void addAllPeriods(List src, List dest) {
         dest.clear();
@@ -442,6 +502,7 @@ public class EVSchedule implements TableModel {
                 "period".equals(((Element) n).getTagName()))
                 add(new Period((Element) n));
         }
+        maybeNormalizeDates();
         recalcCumPlanTimes();
         recalcCumActualTimes();
         setEffectiveDate(getXMLDate(e, "eff"));
@@ -482,6 +543,31 @@ public class EVSchedule implements TableModel {
         }
     }
 
+    protected void maybeNormalizeDates() {
+        long scheduleStart = get(0).getEndDate(false).getTime();
+        long scheduleEnd = getLast().getEndDate(false).getTime();
+        long avgPeriodLen = scheduleEnd - scheduleStart / getRowCount();
+        double avgPeriodDays = (avgPeriodLen * 7.0) / WEEK_MILLIS;
+        if (avgPeriodDays > 5)
+            normalizeDates();
+    }
+
+    /** Align all periods to begin on day boundaries (i.e., at midnight) */
+    public void normalizeDates() {
+        for (Iterator i = periods.iterator(); i.hasNext();) {
+            Period p = (Period) i.next();
+            p.endDate = roundDate(p.endDate);
+        }
+    }
+
+    public boolean areDatesLocked() {
+        return datesLocked;
+    }
+
+    public void setDatesLocked(boolean datesLocked) {
+        this.datesLocked = datesLocked;
+    }
+
 
     public Period get(int pos) {
         try {
@@ -512,6 +598,10 @@ public class EVSchedule implements TableModel {
         }
         result.setImmutable();
         return result;
+    }
+
+    public boolean isEquivalentTo(EVSchedule that) {
+        return this.getSaveList().equals(that.getSaveList());
     }
 
     static String saveDate(Date d) {
@@ -564,7 +654,7 @@ public class EVSchedule implements TableModel {
         result.append(indent).append("</schedule>").append(newline);
     }
 
-    protected synchronized Period get(Date when) {
+    public synchronized Period get(Date when) {
         long time = when.getTime();
         Period p;
         for (int i = periods.size();  i-- > 0; ) {
@@ -813,6 +903,20 @@ public class EVSchedule implements TableModel {
         }
     }
     public Date getStartDate() { return get(0).endDate; }
+
+    public Date getEndDate() {
+        if (defaultPlanDirectTime > 0
+                || getLast().isAutomatic()
+                || getLast().planDirectTime() > 0)
+            return null;
+        for (int i = periods.size();  i-- > 0; ) {
+            Period p = get(i);
+            if (p.planDirectTime() > 0)
+                return p.getEndDate(false);
+        }
+        return null;
+    }
+
     public EVMetrics getMetrics() { return metrics; }
 
     /** look at the final row in the schedule, and maybe bump it up.
@@ -1172,7 +1276,9 @@ public class EVSchedule implements TableModel {
 
     public Class getColumnClass(int i) { return colTypes[i]; }
     public boolean isCellEditable(int rowIndex, int columnIndex) {
-        return columnIndex < 4 && Settings.isReadWrite();
+        if (Settings.isReadOnly()) return false;
+        if (columnIndex < 2) return (datesLocked == false);
+        return columnIndex < 4;
     }
     public Object getValueAt(int rowIndex, int columnIndex) {
         Period p = get(rowIndex+1);

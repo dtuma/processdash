@@ -2070,7 +2070,8 @@ public class TaskScheduleDialog
 
         boolean enableDelete = false, enableInsert = false;
         int[] rows = scheduleTable.getSelectedRows();
-        enableInsert = (rows != null && rows.length > 0);
+        enableInsert = (rows != null && rows.length > 0
+                && !model.getSchedule().areDatesLocked());
         if (enableInsert) for (int i = rows.length;  i-- > 0; )
             if (!model.getSchedule().rowIsAutomatic(rows[i])) {
                 enableDelete = true; break;
