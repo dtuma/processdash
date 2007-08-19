@@ -2,6 +2,7 @@ package teamdash.team;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -246,29 +247,42 @@ public class WeeklySchedule implements EffortCalendar {
 
 
 
-    public void writeAttributes(Writer out) throws IOException {
-        // write the start week
-        out.write(" " + START_WEEK_ATTR + "='");
-        out.write(Integer.toString(startWeek));
-        // write the start date, for legacy clients
-        out.write("' " + START_DATE_ATTR + "='");
-        out.write(XMLUtils.saveDate(getStartDate()));
-        // write the end week, if we have one
-        if (endWeek != NO_END) {
-            out.write("' " + END_WEEK_ATTR + "='");
-            out.write(Integer.toString(endWeek));
+    public void writeAttributes(Writer out, boolean dumpMode) throws IOException {
+        // write out information about the schedule start
+        if (dumpMode) {
+            out.write(" " + START_DATE_ATTR + "='");
+            out.write(XMLUtils.saveDate(truncDate(getStartDate())));
+        } else {
+            out.write(" " + START_WEEK_ATTR + "='");
+            out.write(Integer.toString(startWeek));
         }
+
+        // write the end week, if applicable
+        if (endWeek != NO_END) {
+            int week = endWeek;
+            if (dumpMode) week = week - startWeek;
+            out.write("' " + END_WEEK_ATTR + "='");
+            out.write(Integer.toString(week));
+        }
+
         // write the default hours per week
         out.write("' " + HOURS_PER_WEEK_ATTR + "='");
         out.write(Double.toString(hoursPerWeek.getHours()));
         out.write("'");
     }
 
-    public void writeExceptions(Writer out) throws IOException {
+    public void writeExceptions(Writer out, boolean dumpMode) throws IOException {
         for (Iterator i = exceptions.entrySet().iterator(); i.hasNext();) {
             Map.Entry e = (Map.Entry) i.next();
+            int week = ((Integer) e.getKey()).intValue();
+            if (dumpMode) {
+                if (week < startWeek || week >= endWeek)
+                    continue;
+                week = week - startWeek;
+            }
+
             out.write("    <" + EXCEPTION_TAG + " " + WEEK_ATTR + "='");
-            out.write(e.getKey().toString());
+            out.write(Integer.toString(week));
             out.write("' " + HOURS_ATTR + "='");
             WeekData wd = (WeekData) e.getValue();
             out.write(Double.toString(wd.getHours()));
@@ -300,6 +314,14 @@ public class WeeklySchedule implements EffortCalendar {
     }
 
     private static final long WEEK_MILLIS = 7l * 24 * 60 * 60 * 1000;
+
+    private static Date truncDate(Date d) {
+        Calendar c = Calendar.getInstance();
+        c.setTime(d);
+        c.set(Calendar.HOUR_OF_DAY, 0); c.set(Calendar.MINUTE, 0);
+        c.set(Calendar.SECOND, 0); c.set(Calendar.MILLISECOND, 0);
+        return c.getTime();
+    }
 
 
     private static final String START_DATE_ATTR = "startDate";

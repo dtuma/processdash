@@ -302,8 +302,12 @@ Unexpected number of processdash classes referenced by TeamTools.jar
   <target name="dist-all" depends="installer-cd"/>
 
   <target name="signjar" if="env.TDKSPW">
-    <signjar jar="${sign.jar}" alias="${sign.alias}" 
-        storepass="${env.TDKSPW}"/>
+    <exec executable="c:/java/jdk1.4.2/bin/jarsigner.exe">
+        <arg value="-storepass"/>
+        <arg value="${env.TDKSPW}"/>
+        <arg value="${sign.jar}"/>
+        <arg value="${sign.alias}"/>
+    </exec>
   </target>
 
 </project>

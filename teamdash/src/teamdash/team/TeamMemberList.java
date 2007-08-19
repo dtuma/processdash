@@ -221,7 +221,7 @@ public class TeamMemberList extends AbstractTableModel implements EffortCalendar
         while (i.hasNext()) {
             TeamMember m = (TeamMember) i.next();
             if (!m.isEmpty())
-                m.getAsXML(out);
+                m.getAsXML(out, false);
         }
 
         out.write("</"+TAG_NAME+">\n");

@@ -190,17 +190,8 @@ public class WBSDataWriter {
         List members = teamList.getTeamMembers();
         for (Iterator i = members.iterator(); i.hasNext();) {
             TeamMember t = (TeamMember) i.next();
-            if (t == null || t.isEmpty())
-                continue;
-            writeIndent(out, 1);
-            out.write("<" + TEAM_MEMBER_TAG);
-            writeAttr(out, INITIALS_ATTR, t.getInitials());
-            if (t.getStartDate() != null)
-                writeAttr(out, START_DATE_ATTR,
-                        XMLUtils.saveDate(t.getStartDate()));
-            writeAttr(out, HOURS_PER_WEEK_ATTR,
-                    formatNumber(t.getHoursPerWeek()));
-            out.write("/>\n");
+            if (t != null && !t.isEmpty())
+                t.getAsXML(out, true);
         }
 
     }
@@ -443,7 +434,6 @@ public class WBSDataWriter {
     private static final String DOCUMENT_TAG = "document";
     private static final String PSP_TAG = "psp";
     private static final String TASK_TAG = "task";
-    private static final String TEAM_MEMBER_TAG = "teamMember";
     private static final String DEPENDENCY_TAG = "dependency";
 
     /** A list of column IDs for the top-level size accounting columns */
@@ -460,9 +450,6 @@ public class WBSDataWriter {
     private static final String TASK_ID_ATTR = "tid";
     private static final String LABELS_ATTR = "labels";
     private static final String NO_LABELS_VAL = "none";
-    private static final String INITIALS_ATTR = "initials";
-    private static final String START_DATE_ATTR = "startDate";
-    private static final String HOURS_PER_WEEK_ATTR = "hoursPerWeek";
     private static final String DEP_SRC_ATTR = "source";
     private static final String PHASE_NAME_ATTR = "phaseName";
     private static final String PHASE_TYPE_ATTR = "phaseType";

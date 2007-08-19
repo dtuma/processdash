@@ -8,6 +8,7 @@ import java.io.PrintWriter;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -24,7 +25,6 @@ import java.util.TreeSet;
 
 import net.sourceforge.processdash.DashController;
 import net.sourceforge.processdash.data.DataContext;
-import net.sourceforge.processdash.data.DateData;
 import net.sourceforge.processdash.data.DoubleData;
 import net.sourceforge.processdash.data.ListData;
 import net.sourceforge.processdash.data.NumberData;
@@ -65,7 +65,9 @@ public class HierarchySynchronizer {
     private boolean oldStyleSync;
     private Element projectXML;
     private Date startDate;
+    private int endWeek;
     private double hoursPerWeek;
+    private Map scheduleExceptions;
     private ArrayList changes;
 
     private String readOnlyNodeID;
@@ -578,17 +580,48 @@ public class HierarchySynchronizer {
 
     private void getScheduleData(Element projectXML) {
         startDate = null;
+        endWeek = -1;
         hoursPerWeek = 0;
+        scheduleExceptions = null;
         List children = XMLUtils.getChildElements(projectXML);
         for (Iterator i = children.iterator(); i.hasNext();) {
             Element e = (Element) i.next();
             if (TEAM_MEMBER_TYPE.equals(e.getTagName())
                     && initials.equalsIgnoreCase(e.getAttribute(INITIALS_ATTR))) {
-                startDate = XMLUtils.getXMLDate(e, START_DATE_ATTR);
-                hoursPerWeek = XMLUtils.getXMLNum(e, HOURS_PER_WEEK_ATTR);
+                saveScheduleData(e);
                 return;
             }
         }
+    }
+
+    private void saveScheduleData(Element e) {
+        startDate = roundDate(XMLUtils.getXMLDate(e, START_DATE_ATTR));
+        if (e.hasAttribute(END_WEEK_ATTR))
+            endWeek = XMLUtils.getXMLInt(e, END_WEEK_ATTR);
+        hoursPerWeek = XMLUtils.getXMLNum(e, HOURS_PER_WEEK_ATTR);
+        scheduleExceptions = new HashMap();
+        List exceptionNodes = XMLUtils.getChildElements(e);
+        for (Iterator i = exceptionNodes.iterator(); i.hasNext();) {
+            Element exc = (Element) i.next();
+            if (SCHEDULE_EXCEPTION_TAG.equals(exc.getTagName())) {
+                int week = XMLUtils.getXMLInt(exc, SCHEDULE_EXCEPTION_WEEK_ATTR);
+                double hours = XMLUtils.getXMLNum(exc,
+                    SCHEDULE_EXCEPTION_HOURS_ATTR);
+                scheduleExceptions.put(new Integer(week), new Double(hours));
+            }
+        }
+    }
+
+    private static Date roundDate(Date d) {
+        if (d == null)
+            return null;
+
+        Calendar c = Calendar.getInstance();
+        c.setTime(d);
+        c.add(Calendar.HOUR_OF_DAY, 12);
+        c.set(Calendar.HOUR_OF_DAY, 0); c.set(Calendar.MINUTE, 0);
+        c.set(Calendar.SECOND, 0); c.set(Calendar.MILLISECOND, 0);
+        return c.getTime();
     }
 
 
@@ -613,58 +646,144 @@ public class HierarchySynchronizer {
         // open the schedule.
         EVTaskListData tl = new EVTaskListData(taskListName, dataRepository,
                 hierarchy, false);
-        EVSchedule schedule = tl.getSchedule();
+        EVSchedule currentSchedule = tl.getSchedule();
 
-        // if the schedule has more than one non-automatic row, the user MUST
-        // have manually edited it.  Don't make any changes.
-        if (schedule.getRowCount() > 1 && !schedule.get(2).isAutomatic())
+        // see if it is OK for us to change this schedule.  If the dates are
+        // locked, then we must have created it, so we can change it.
+        // Otherwise, if it looks like a default schedule (only one manual row),
+        // it is fine to replace it.
+        boolean isLocked = currentSchedule.areDatesLocked();
+        boolean isDefault = (currentSchedule.getRowCount() == 1
+                || currentSchedule.get(2).isAutomatic());
+        if (!isLocked && !isDefault)
             return;
 
-        // The schedule only has one explicit row.  Compare that row to the
-        // last synced values for the schedule.  If they don't match, don't
-        // make any changes.
-        Period p = schedule.get(1);
+        EVSchedule wbsSchedule = new EVSchedule(startDate, hoursPerWeek,
+            endWeek, scheduleExceptions,
+            currentSchedule.getLevelOfEffort(), true);
+        if (wbsSchedule.isEquivalentTo(currentSchedule))
+            // the schedules are the same!  There is nothing to do.
+            return;
+
+        // retrieve information about the last values we synced to the schedule
+        String lastSyncName = DataRepository.createDataName(projectPath,
+            TeamDataConstants.PROJECT_SCHEDULE_SYNC_SCHEDULE);
+        ListData lastSyncedHoursList = ListData.asListData(data
+                .getValue(lastSyncName));
         double syncPdt = getDoubleData(getData(projectPath,
-                TeamDataConstants.PROJECT_SCHEDULE_SYNC_PDT));
-        if (p.planDirectTime() != syncPdt)
-            return;
-        Date syncDate = getDateData(getData(projectPath,
-                TeamDataConstants.PROJECT_SCHEDULE_SYNC_DATE));
-        if (!p.getBeginDate().equals(syncDate))
-            return;
+            TeamDataConstants.PROJECT_SCHEDULE_SYNC_PDT));
 
-        boolean madeChange = false;
+        if (isDefault || lastSyncedHoursList == null) {
+            currentSchedule.copyFrom(wbsSchedule);
 
-        // if we have hours per week information, and it differs from the
-        // data in the schedule, update the schedule.
-        int pdt = (int) (hoursPerWeek * 60);
-        if (pdt != 0 && Math.abs(p.planDirectTime() - pdt) > 0.01) {
-            p.setPlanDirectTime(Integer.toString(pdt));
-            if (!whatIfMode)
-                dataRepository.putValue(DataRepository.createDataName(
-                        projectPath,
-                        TeamDataConstants.PROJECT_SCHEDULE_SYNC_PDT),
-                        new DoubleData(pdt, false));
-            madeChange = true;
+        } else {
+            EVSchedule lastSyncedSchedule = new EVSchedule(lastSyncedHoursList,
+                true);
+            if (wbsSchedule.isEquivalentTo(lastSyncedSchedule))
+                return;  // no new changes to incorporate
+
+            EVSchedule origSchedule = currentSchedule.copy();
+            mergeSchedules(currentSchedule, lastSyncedSchedule, syncPdt);
+            if (origSchedule.isEquivalentTo(currentSchedule))
+                return;  // no changes were made
         }
 
-        // if we have a start date, and it differs from the data in the
-        // schedule, update the schedule.
-        if (startDate != null && !startDate.equals(p.getBeginDate())) {
-            p.setBeginDate(startDate);
-            if (!whatIfMode)
-                dataRepository.putValue(DataRepository.createDataName(
-                        projectPath,
-                        TeamDataConstants.PROJECT_SCHEDULE_SYNC_DATE),
-                        new DateData(startDate, false));
-            madeChange = true;
-        }
-
-        if (madeChange)
-            changes.add("Updated the earned value schedule");
-
-        if (!whatIfMode)
+        if (!whatIfMode) {
+            // save the "last synced hours" value for future reference
+            dataRepository.putValue(DataRepository.createDataName(
+                projectPath, TeamDataConstants.PROJECT_SCHEDULE_SYNC_SCHEDULE),
+                wbsSchedule.getSaveList());
+            // save the "last synced pdt" value for future reference
+            dataRepository.putValue(DataRepository.createDataName(
+                projectPath, TeamDataConstants.PROJECT_SCHEDULE_SYNC_PDT),
+                new DoubleData(hoursPerWeek * 60, false));
+            // save the task list
             tl.save();
+        }
+
+        changes.add("Updated the earned value schedule");
+    }
+
+    private void mergeSchedules(EVSchedule currentSchedule,
+            EVSchedule lastSyncedSchedule, double syncPdt) {
+        // look at the three schedule end dates, and determine when the merged
+        // schedule should end.
+        int currentEndWeek = getEndWeekOfSchedule(currentSchedule, startDate);
+        int syncedEndWeek = getEndWeekOfSchedule(lastSyncedSchedule, startDate);
+        int mergedEndWeek;
+        if (currentEndWeek == syncedEndWeek)
+            mergedEndWeek = endWeek;
+        else
+            mergedEndWeek = currentEndWeek;
+
+        // Make a list of "merged exceptions."  Begin with the ones that came
+        // from the current WBS.
+        Map mergedExceptions = new HashMap(scheduleExceptions);
+
+        // Now, look for manual edits in the users current schedule. By
+        // this, we mean places where the user has changed the planned time
+        // manually after receiving the last schedule from the WBS.
+        for (int i = 0;  i < currentSchedule.getRowCount();  i++) {
+            Period c = currentSchedule.get(i+1);
+            // if we've reached the automatic part of the current schedule,
+            // we can stop looking for manual edits
+            if (c.isAutomatic())
+                break;
+
+            Date beg = c.getBeginDate();
+            Date end = c.getEndDate();
+            long midTime = (beg.getTime() + end.getTime()) / 2;
+            Date mid = new Date(midTime);
+
+            // if the time in this period matches the value that came from the
+            // last synced schedule, it isn't a manual edit.
+            double currentTime = c.planDirectTime();
+            Period s = lastSyncedSchedule.get(mid);
+            if (s != null && eq(s.planDirectTime(), currentTime))
+                continue;
+
+            // if the manual edit happened in a week that preceeds the start or
+            // follows the end of our new schedule, it isn't relevant.
+            int week = (int) ((midTime - startDate.getTime()) / WEEK_MILLIS);
+            if (week < 0)
+                continue;
+            if (mergedEndWeek != -1 && week >= mergedEndWeek)
+                continue;
+
+            if (eq(currentTime, syncPdt)) {
+                // the user erased an exception that they received from the
+                // WBS.  We should do the same thing for the new WBS data.
+                mergedExceptions.remove(new Integer(week));
+
+            } else {
+                // the user created a new exception in the schedule.  Add it
+                // to our map.
+                double hours = currentTime / 60.0;
+                mergedExceptions.put(new Integer(week), new Double(hours));
+            }
+        }
+
+        // build a schedule from the information we've merged, and reset the
+        // current schedule to use that information.
+        double levelOfEffort = currentSchedule.getLevelOfEffort();
+        EVSchedule mergedSchedule = new EVSchedule(startDate, hoursPerWeek,
+                mergedEndWeek, mergedExceptions, levelOfEffort, true);
+        currentSchedule.copyFrom(mergedSchedule);
+    }
+
+    private int getEndWeekOfSchedule(EVSchedule s, Date zeroDate) {
+        Date end = s.getEndDate();
+        if (end == null)
+            return -1;
+        long diff = end.getTime() - zeroDate.getTime();
+        if (diff < 0)
+            return -1;
+        else
+            return (int) (diff / WEEK_MILLIS);
+    }
+
+    private static boolean eq(double a, double b) {
+        return Math.abs(a - b) < 0.01;
     }
 
 
@@ -803,7 +922,13 @@ public class HierarchySynchronizer {
     private static final String TEAM_MEMBER_TYPE = "teamMember";
     private static final String INITIALS_ATTR = "initials";
     private static final String START_DATE_ATTR = "startDate";
+    private static final String END_WEEK_ATTR = "endWeek";
     private static final String HOURS_PER_WEEK_ATTR = "hoursPerWeek";
+    private static final String SCHEDULE_EXCEPTION_TAG = "scheduleException";
+    private static final String SCHEDULE_EXCEPTION_WEEK_ATTR = "week";
+    private static final String SCHEDULE_EXCEPTION_HOURS_ATTR = "hours";
+    private static final long WEEK_MILLIS = 7l * 24 * 60 * 60 * 1000;
+
 
     private static final String WBS_ID_DATA_NAME = "WBS_Unique_ID";
     private static final String PROCESS_ID_DATA_NAME = "Process_ID";
@@ -1188,13 +1313,6 @@ public class HierarchySynchronizer {
 
     private String getStringData(SimpleData val) {
         return (val == null ? null : val.format());
-    }
-
-    private Date getDateData(SimpleData val) {
-        if (val instanceof DateData)
-            return ((DateData) val).getValue();
-        else
-            return null;
     }
 
     private double getDoubleData(SimpleData val) {

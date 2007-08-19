@@ -121,24 +121,26 @@ public class TeamMember implements Cloneable {
     }
 
     /** Serialize this team member to XML and write it to the given Writer. */
-    public void getAsXML(Writer out) throws IOException {
+    public void getAsXML(Writer out, boolean dumpMode) throws IOException {
         out.write("  <"+TAG_NAME+" "+NAME_ATTR+"='");
         if (name != null)
             out.write(XMLUtils.escapeAttribute(name));
         out.write("' "+INITIALS_ATTR+"='");
         if (initials != null)
             out.write(XMLUtils.escapeAttribute(initials));
-        out.write("' "+COLOR_ATTR+"='");
-        if (color != null) {
-            out.write("#");
-            out.write(Integer.toHexString(color.getRGB()).substring(2));
+        if (!dumpMode) {
+            out.write("' "+COLOR_ATTR+"='");
+            if (color != null) {
+                out.write("#");
+                out.write(Integer.toHexString(color.getRGB()).substring(2));
+            }
         }
         out.write("'");
 
-        schedule.writeAttributes(out);
+        schedule.writeAttributes(out, dumpMode);
         if (schedule.hasExceptions()) {
             out.write(">\n");
-            schedule.writeExceptions(out);
+            schedule.writeExceptions(out, dumpMode);
             out.write("  </"+TAG_NAME+">\n");
         } else {
             out.write("/>\n");
