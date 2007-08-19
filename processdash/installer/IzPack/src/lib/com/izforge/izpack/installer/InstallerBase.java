@@ -158,6 +158,17 @@ public class InstallerBase
             ExternalConfiguration.getURL1());
         installdata.setVariable("EXTERNAL_CONFIG_URL2",
             ExternalConfiguration.getURL2());
+
+        // read the max memory preference from the external configuration, and
+        // set it in the installation data
+        String maxMem = ExternalConfiguration.getConfig().getProperty("max.memory");
+        try {
+            Integer.parseInt(maxMem);
+        } catch (Exception exc) {
+            maxMem = "200";
+        }
+        installdata.setVariable("MAX_MEMORY", maxMem);
+
         if (null != variables)
         {
             Enumeration enum_ = variables.keys();

@@ -112,6 +112,10 @@ public class QuickLauncher {
             if (userLang != null)
                 processFactory.addVmArg("-Duser.language=" + userLang);
 
+            String maxMem = System.getProperty("maxMemory");
+            if (maxMem != null)
+                processFactory.addVmArg("-Xmx" + maxMem);
+
             instanceList = new InstanceList();
             processFactory.addVmArg("-D"
                     + ProcessDashboard.NOTIFY_ON_OPEN_PORT_PROPERTY + "="

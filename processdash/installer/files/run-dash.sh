@@ -16,4 +16,4 @@ cd '$DATA_PATH'
 
 # Runs the Process Dashboard
 #
-java -jar '$INSTALL_PATH/pspdash.jar' 'Process Dashboard'
+java -Xmx${MAX_MEMORY}m -jar '$INSTALL_PATH/pspdash.jar' 'Process Dashboard'
