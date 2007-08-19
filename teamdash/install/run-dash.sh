@@ -16,4 +16,4 @@ cd '$DATA_PATH/teaminstance'
 
 # Runs the Process Dashboard
 #
-java -jar '$INSTALL_PATH/pspdash.jar' 'Team Dashboard'
+java -Xmx${MAX_MEMORY}m -jar '$INSTALL_PATH/pspdash.jar' 'Team Dashboard'
