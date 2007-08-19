@@ -7,6 +7,7 @@ import java.net.URLConnection;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.Hashtable;
 import java.util.List;
@@ -18,6 +19,7 @@ import net.sourceforge.processdash.net.http.WebServer;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.RuntimeUtils;
+import net.sourceforge.processdash.util.StringUtils;
 import teamdash.FilenameMapper;
 import teamdash.XMLUtils;
 import teamdash.wbs.WBSEditor;
@@ -151,6 +153,10 @@ public class OpenWBSEditor extends TinyCGIBase {
         List cmd = new ArrayList();
         cmd.add(jreExecutable);
 
+        String extraArgs = Settings.getVal("wbs.jvmArgs", "-Xmx200m");
+        if (StringUtils.hasValue(extraArgs))
+            cmd.addAll(Arrays.asList(extraArgs.split("\\s+")));
+
         if (bottomUp)
             cmd.add("-Dteamdash.wbs.bottomUp=true");
         if (showTeam)
@@ -231,7 +237,7 @@ public class OpenWBSEditor extends TinyCGIBase {
         int pos = path.lastIndexOf('/');
         String jarPath = path.substring(1, pos+1) + "TeamTools.jar";
         out.print("<resources>\n");
-        out.print("<j2se version='1.4+'/>\n");
+        out.print("<j2se version='1.5+' initial-heap-size='2M' max-heap-size='200M'/>\n");
         out.print("<jar href='");
         out.print(jarPath);
         out.print("'/>\n");
