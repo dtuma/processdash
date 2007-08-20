@@ -119,6 +119,7 @@ Authors:
   <property name="kxml.jar"       value="${lib}/kxml-2.2.1-mod.jar"/>
   <property name="json.jar"       value="${lib}/json_simple.jar"/>
   <property name="svg.jar"        value="${lib}/svgSalamander.jar"/>
+  <property name="jcalendar.jar"  value="${lib}/jcalendar-1.3.2.jar"/>
   <property name="l10n-tool.jar"  value="l10n-tool/dist/jrc-editor.jar"/>
 
   <property name="cvsroot"
@@ -137,6 +138,7 @@ Authors:
     <pathelement location="${jcommon.jar}"/>
     <pathelement location="${kxml.jar}"/>
     <pathelement location="${json.jar}"/>
+    <pathelement location="${jcalendar.jar}"/>
   </path>
 
 
@@ -437,6 +439,7 @@ Authors:
       <zipfileset src="${jfreechart.jar}"/>
       <zipfileset src="${kxml.jar}"/>
       <zipfileset src="${json.jar}"/>
+      <zipfileset src="${jcalendar.jar}"/>
       <zipfileset src="${lib}/jfreechart_ja.zip"/>
       <zipfileset src="${lib}/jfreechart_zh.zip"/>
       <zipfileset src="${lib}/distlib.jar" excludes="**/*.java"/>
