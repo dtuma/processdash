@@ -43,6 +43,7 @@
 package net.sourceforge.processdash.ui.lib;
 
 import javax.swing.*;
+import javax.swing.AbstractCellEditor;
 import javax.swing.event.*;
 import javax.swing.tree.*;
 import javax.swing.table.*;
@@ -338,6 +339,8 @@ public class JTreeTable extends JTable {
             }
             return false;
         }
+
+        public Object getCellEditorValue() { return null; }
     }
     private static final int ANY_MODIFIER_KEY_DOWN = MouseEvent.CTRL_DOWN_MASK
             | MouseEvent.SHIFT_DOWN_MASK | MouseEvent.META_DOWN_MASK
