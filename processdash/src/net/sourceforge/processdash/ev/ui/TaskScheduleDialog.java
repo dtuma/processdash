@@ -126,6 +126,7 @@ import net.sourceforge.processdash.ui.Browser;
 import net.sourceforge.processdash.ui.DashboardIconFactory;
 import net.sourceforge.processdash.ui.NodeSelectionDialog;
 import net.sourceforge.processdash.ui.help.PCSH;
+import net.sourceforge.processdash.ui.lib.JDateTimeChooserCellEditor;
 import net.sourceforge.processdash.ui.lib.JOptionPaneClickHandler;
 import net.sourceforge.processdash.ui.lib.PaintUtils;
 import net.sourceforge.processdash.ui.lib.DeferredSelectAllExecutor;
@@ -178,6 +179,9 @@ public class TaskScheduleDialog
     private static Preferences preferences = Preferences.userNodeForPackage(TaskScheduleDialog.class);
     private static final String EXPANDED_NODES_KEY_SUFFIX = "_EXPANDEDNODES";
     private static final String EXPANDED_NODES_DELIMITER = Character.toString('\u0001');
+
+    /**  The format of the string used to validate dates entered manually */
+    private static final String DATE_FORMAT = "yyyy-MM-dd h:mm:ss aa";
 
     public TaskScheduleDialog(DashboardContext dash, String taskListName,
                               boolean createRollup) {
@@ -2123,6 +2127,8 @@ public class TaskScheduleDialog
     }
 
     protected void configureEditor(JTable table) {
+        table.setDefaultEditor(Date.class, new JDateTimeChooserCellEditor(DATE_FORMAT));
+
         //configureEditor(table.getDefaultEditor(String.class));
         //configureEditor(table.getDefaultEditor(Date.class));
     }/*
