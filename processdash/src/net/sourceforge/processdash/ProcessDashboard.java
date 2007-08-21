@@ -55,6 +55,7 @@ import java.util.List;
 import java.util.ResourceBundle;
 import java.util.Vector;
 import java.util.logging.Level;
+import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
 import javax.swing.ButtonGroup;
@@ -193,6 +194,18 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
         } catch (IOException ioe) {}
         propertiesFile = prop_file.getPath();
         property_directory = prop_file.getParent() + Settings.sep;
+
+        // if this JVM does not explicitly have a logging config set, but one
+        // is present in the user's data directory, read it.
+        File logConfig = new File(property_directory + "logging.properties");
+        if (System.getProperty("java.util.logging.config.file") == null
+                  && logConfig.isFile()) {
+            try {
+                LogManager.getLogManager().readConfiguration(
+                    new FileInputStream(logConfig));
+            } catch (Exception e) {}
+        }
+
         DefectAnalyzer.setDataDirectory(property_directory);
         CmsDefaultConfig.setPersistenceDirectory(prop_file.getParentFile());
         ExternalResourceManager.getInstance().initializeMappings(
