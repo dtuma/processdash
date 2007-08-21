@@ -145,6 +145,10 @@ public class EVTaskListRollup extends EVTaskList {
         super.save(newName);
     }
 
+    public int getSubScheduleCount() {
+        return evTaskLists.size();
+    }
+
     public EVTaskList getSubSchedule(int pos) {
         if (pos < 0 || pos >= evTaskLists.size()) return null;
         return (EVTaskList) evTaskLists.get(pos);
