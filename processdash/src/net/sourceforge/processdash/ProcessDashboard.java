@@ -398,6 +398,18 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
             logErr("when generating default datafile, caught exception", exc);
         }
 
+        try {
+            objectCache =
+                new FileObjectCache(new File(property_directory), ".obj");
+        } catch (IOException ioe) {
+            // not possible?
+            ioe.printStackTrace();
+        }
+
+        webServer.setData(data);
+        webServer.setProps(props);
+        webServer.setCache(objectCache);
+
         configure_button = new ConfigureButton(this);
         addToMainWindow(configure_button, 0);
         PCSH.enableHelpKey(this, "QuickOverview");
@@ -430,17 +442,6 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
         LegacySupport.configureRemoteListeningCapability(data);
         timeLog.refreshMetrics();
 
-        try {
-            objectCache =
-                new FileObjectCache(new File(property_directory), ".obj");
-        } catch (IOException ioe) {
-            // not possible?
-            ioe.printStackTrace();
-        }
-
-        webServer.setData(data);
-        webServer.setProps(props);
-        webServer.setCache(objectCache);
         EVTaskDependencyResolver.init(this);
 
         taskNav = new TaskNavigationSelector
