@@ -3,7 +3,7 @@
 
   <property file="build.properties"/>
 
-  <property name="teamtools.version" value="3.0.1"/>
+  <property name="teamtools.version" value="3.1.0"/>
 
   <property name="processdash.dir" value="../processdash"/>
   <property name="pspdash.jar" value="${processdash.dir}/dist/pspdash.jar"/>
