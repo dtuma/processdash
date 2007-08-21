@@ -205,7 +205,7 @@ public class EVWeekReport extends TinyCGIBase {
                     completedTasksTotalActualTime += parseTime
                         (tasks.getValueAt(i, -EVTaskList.ACT_DTIME_COLUMN));
 
-                    if (completed.after(lastWeek) &&
+                    if (!completed.before(lastWeek) &&
                         completed.before(nextWeek))
                         completedLastWeek[i] = oneCompletedLastWeek = true;
 
