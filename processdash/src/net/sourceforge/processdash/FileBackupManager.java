@@ -53,6 +53,7 @@ import net.sourceforge.processdash.log.time.WorkingTimeLog;
 import net.sourceforge.processdash.tool.export.mgr.ExternalResourceManager;
 import net.sourceforge.processdash.ui.ConsoleWindow;
 import net.sourceforge.processdash.util.FileUtils;
+import net.sourceforge.processdash.util.ProfTimer;
 import net.sourceforge.processdash.util.ThreadThrottler;
 
 
@@ -113,7 +114,9 @@ public class FileBackupManager {
 
         File result = null;
         try {
+            ProfTimer pt = new ProfTimer(logger);
             result = backupFiles(dataDir, backupDir, when, who);
+            pt.click("Finished backup");
         } catch (Exception e) {
             printError(e);
         }
@@ -151,6 +154,7 @@ public class FileBackupManager {
 
         ExternalResourceManager extResourceMgr = ExternalResourceManager
                 .getInstance();
+        ProfTimer pt = new ProfTimer(logger);
 
         File[] backupFiles = getBackupFiles(backupDir);
         File mostRecentBackupFile = findMostRecentBackupFile(backupFiles);
@@ -260,8 +264,11 @@ public class FileBackupManager {
         if (wroteHistLog == false)
             writeHistLogFile(null, newBackupOut, dataDir);
 
+        pt.click("Backed up data files");
+
         // Allow the external resource manager to save any items of interest.
         extResourceMgr.addExternalResourcesToBackup(newBackupOut);
+        pt.click("Backed up external resources");
 
         // finalize the new backup, and give it its final name.
         newBackupOut.close();
@@ -270,6 +277,8 @@ public class FileBackupManager {
         newBackupTempFile.renameTo(newBackupFile);
 
         makeExtraBackupCopies(newBackupFile, who);
+        pt.click("Made extra backup copies");
+
         cleanupOldBackupFiles(backupFiles);
         return newBackupFile;
     }

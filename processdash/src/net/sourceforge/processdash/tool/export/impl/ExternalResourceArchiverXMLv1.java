@@ -33,13 +33,16 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
+import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.tool.export.DataImporter;
 import net.sourceforge.processdash.tool.export.mgr.ExternalResourceManager;
 import net.sourceforge.processdash.tool.export.mgr.ImportDirectoryInstruction;
 import net.sourceforge.processdash.util.FileUtils;
+import net.sourceforge.processdash.util.ProfTimer;
 import net.sourceforge.processdash.util.XMLUtils;
 
 import org.w3c.dom.Document;
@@ -49,6 +52,12 @@ import org.xmlpull.v1.XmlSerializer;
 
 public class ExternalResourceArchiverXMLv1 implements ExternalResourceArchiver,
         ExternalResourceMappingLoader, ExternalResourceXmlConstantsv1 {
+
+    private static final Logger logger = Logger
+            .getLogger(ExternalResourceArchiverXMLv1.class.getName());
+
+    private boolean keepFileModificationTimes = Settings.getBool(
+        "backup.keepExternalFileTimes", true);
 
     private Map importedDirs = new HashMap();
 
@@ -73,30 +82,38 @@ public class ExternalResourceArchiverXMLv1 implements ExternalResourceArchiver,
             String origPath = (String) e.getKey();
             origPath = extMgr.remapFilename(origPath);
             File sourceDir = new File(origPath);
+            ProfTimer pt = new ProfTimer(logger, origPath);
             if (sourceDir.isDirectory()) {
+                pt.click("isDirectory");
                 String newPath = "extdir" + fmt.format(pos++);
                 e.setValue(newPath);
-                archiveDirectory(out, sourceDir, newPath);
+                archiveDirectory(out, sourceDir, newPath, pt);
+                pt.click("finished archiving directory");
             } else {
                 i.remove();
+                pt.click("is not directory");
             }
         }
     }
 
     private void archiveDirectory(ZipOutputStream out, File sourceDir,
-            String newPath) throws IOException {
+            String newPath, ProfTimer pt) throws IOException {
         File[] files = sourceDir.listFiles();
+        pt.click("listed files");
         for (int i = 0; i < files.length; i++) {
-            if (files[i].isFile()) {
-                String filename = files[i].getName();
-                if (isFileToArchive(filename)) {
-                    ZipEntry e = new ZipEntry(ARCHIVE_PATH + "/" + newPath
-                            + "/" + filename);
+            String filename = files[i].getName();
+            if (isFileToArchive(filename) && files[i].isFile()) {
+                pt.click("isFile("+filename+")");
+                ZipEntry e = new ZipEntry(ARCHIVE_PATH + "/" + newPath
+                        + "/" + filename);
+                if (keepFileModificationTimes) {
                     e.setTime(files[i].lastModified());
-                    out.putNextEntry(e);
-                    FileUtils.copyFile(files[i], out);
-                    out.closeEntry();
+                    pt.click("lastModified("+filename+")");
                 }
+                out.putNextEntry(e);
+                FileUtils.copyFile(files[i], out);
+                out.closeEntry();
+                pt.click("copyFile("+filename+")");
             }
         }
     }

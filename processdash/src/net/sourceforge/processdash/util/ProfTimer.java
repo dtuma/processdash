@@ -1,5 +1,5 @@
+// Copyright (C) 2003-2007 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -25,38 +25,48 @@
 
 package net.sourceforge.processdash.util;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 
 /**
- * <P>  The <B>ProfTimer</B> class is used for crude profiling.
+ * <P>
+ * The <B>ProfTimer</B> class is used for crude profiling.
  * <P>
  */
 public class ProfTimer {
 
-    String name;
-    long lastTime;
-    boolean print = true;
+    private Logger logger;
 
-    private void init(String name, boolean print) {
-        int idnum = (int) (Math.random() * 10000.0);
-        this.name = name + "(" + idnum + "): ";
-        lastTime = System.currentTimeMillis();
-        this.print = print;
-        if (print)
-            System.out.println(this.name + "starting.");
-    }
-    public ProfTimer(String name) {
-        init(name, true);
-    }
-    public ProfTimer(String name, boolean print) {
-        init(name, print);
+    private Level level;
+
+    private String instanceName;
+
+    private long lastTime;
+
+    public ProfTimer(Logger logger) {
+        this(logger, null);
     }
 
-    public void click( String msg )
-    {
+    public ProfTimer(Logger logger, String instanceName) {
+        this(logger, instanceName, Level.FINEST);
+    }
+
+    public ProfTimer(Logger logger, String instanceName, Level level) {
+        this.logger = logger;
+        this.instanceName = (instanceName == null ? "" : instanceName + ": ");
+        this.level = level;
+        this.lastTime = System.currentTimeMillis();
+
+        if (logger.isLoggable(level))
+            logger.log(level, this.instanceName + "starting...");
+    }
+
+    public void click(String msg) {
         long currTime = System.currentTimeMillis();
         long diff = currTime - lastTime;
-        if (print)
-            System.out.println(name + msg + ", took " + diff + "ms.");
+        if (logger.isLoggable(level))
+            logger.log(level, instanceName + msg + ", took " + diff + " ms.");
         lastTime = currTime;
     }
 }
