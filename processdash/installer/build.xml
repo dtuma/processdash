@@ -192,7 +192,7 @@ Authors:
             installerType="standard-kunststoff"
             basedir="." izPackDir="${izpack.dir}/"/>
         
-	<echo file="cd-config.ini">1.4
+	<echo file="cd-config.ini">1.5
 ${jreInstExe}
 pdash-install-${qualifier}-${dashboard-version}.jar
 </echo>
