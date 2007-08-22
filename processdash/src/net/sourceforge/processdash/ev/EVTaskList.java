@@ -331,8 +331,12 @@ public class EVTaskList extends AbstractTreeTableModel
             "Project_Schedule_Name");
         if (sd != null) {
             SimpleData val = sd.getSimpleValue();
-            if (val != null && val.test())
-                return Collections.singletonList(val.format());
+            if (val != null && val.test()) {
+                String taskListName = val.format();
+                if (EVTaskListData.exists(data, taskListName)
+                        || EVTaskListRollup.exists(data, taskListName))
+                    return Collections.singletonList(taskListName);
+            }
         }
 
         return getTaskListNamesForPath(data, path);
