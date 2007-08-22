@@ -279,6 +279,7 @@ public class WBSDataWriter {
      */
     private HashMap buildAttributeWriters() {
         HashMap result = new HashMap();
+        result.put(PROJECT_TAG, new ProjectAttributeWriter());
         SizeAttributeWriter sw = new SizeAttributeWriter();
         result.put(SOFTWARE_TAG, sw);
         result.put(DOCUMENT_TAG, sw);
@@ -294,6 +295,25 @@ public class WBSDataWriter {
     private interface AttributeWriter {
         public void writeAttributes(Writer out, WBSNode node)
             throws IOException;
+    }
+
+
+
+    /** AttributeWriter which writes top-level project attributes.
+     */
+    private class ProjectAttributeWriter implements AttributeWriter {
+
+        public void writeAttributes(Writer out, WBSNode node)
+                throws IOException {
+            String version = null;
+            try {
+                version = WBSDataWriter.class.getPackage()
+                        .getImplementationVersion();
+            } catch (Exception e) {}
+            if (version == null)
+                version = "999";
+            writeAttr(out, VERSION_ATTR, version);
+        }
     }
 
 
@@ -458,6 +478,7 @@ public class WBSDataWriter {
     private static final String UNITS_ATTR = "sizeUnits";
     private static final String INSP_UNITS_ATTR = "inspUnits";
     private static final String INSP_SIZE_ATTR = "inspSize";
+    private static final String VERSION_ATTR = "dumpFileVersion";
 
     /** A list of phase types for quality phases */
     private static final List QUALITY_PHASE_TYPES = Arrays.asList(new String[] {
