@@ -38,6 +38,7 @@ import java.beans.EventHandler;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.EventObject;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -67,6 +68,7 @@ import net.sourceforge.processdash.ev.EVTaskDependency;
 import net.sourceforge.processdash.ev.EVTaskDependencyResolver;
 import net.sourceforge.processdash.ev.EVTaskList;
 import net.sourceforge.processdash.i18n.Resources;
+import net.sourceforge.processdash.ui.lib.JOptionPaneClickHandler;
 import net.sourceforge.processdash.ui.lib.JTreeTable;
 
 public class TaskDependencyCellEditor extends AbstractCellEditor implements
@@ -114,8 +116,17 @@ public class TaskDependencyCellEditor extends AbstractCellEditor implements
             this.taskName = node.getFullName();
         }
 
-        if (value instanceof Collection)
-            this.dependencies.addAll((Collection) value);
+        if (value instanceof Collection) {
+            for (Iterator i = ((Collection) value).iterator(); i.hasNext();) {
+                Object obj = i.next();
+                if (obj instanceof EVTaskDependency) {
+                    EVTaskDependency d = (EVTaskDependency) obj;
+                    // reverse dependencies aren't editable - skip over them
+                    if (!d.isReverse())
+                        dependencies.add(d);
+                }
+            }
+        }
 
         // lookup the cell renderer for this row/column.  It will probably
         // be a task DependencyCellRenderer.  If so, copy the icon it is
@@ -209,12 +220,11 @@ public class TaskDependencyCellEditor extends AbstractCellEditor implements
                 dialogComponents, resources.getString("Window_Title"),
                 JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
 
-        if (userResponse == JOptionPane.OK_OPTION) {
-            if (madeChange)
-                SwingUtilities.invokeLater(new Runnable() {
-                    public void run() {
-                        parent.evScheduleChanged();
-                    }});
+        if (userResponse == JOptionPane.OK_OPTION && madeChange) {
+            SwingUtilities.invokeLater(new Runnable() {
+                public void run() {
+                    parent.evScheduleChanged();
+                }});
             stopCellEditing();
         } else {
             cancelCellEditing();
@@ -335,6 +345,7 @@ public class TaskDependencyCellEditor extends AbstractCellEditor implements
                     .getData(), false, true);
             String[] taskListDisplayNames = getDisplayNames(taskListNames);
             JList taskLists = new JList(taskListDisplayNames);
+            new JOptionPaneClickHandler().install(taskLists);
             JScrollPane scrollPane = new JScrollPane(taskLists);
             scrollPane.setPreferredSize(new Dimension(200, 200));
             Object message = new Object[] {
@@ -376,6 +387,8 @@ public class TaskDependencyCellEditor extends AbstractCellEditor implements
             for (int i = tree.getRowCount(); i-- > 0;)
                 tree.expandRow(i);
             tree.setRootVisible(false);
+            tree.setToggleClickCount(3);
+            new JOptionPaneClickHandler().install(tree);
             tree.getSelectionModel().setSelectionMode(
                     TreeSelectionModel.SINGLE_TREE_SELECTION);
 
