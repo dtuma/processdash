@@ -33,12 +33,14 @@ import net.sourceforge.processdash.data.StringData;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.ev.EVSchedule;
 import net.sourceforge.processdash.ev.EVTaskDependency;
+import net.sourceforge.processdash.ev.EVTaskList;
 import net.sourceforge.processdash.ev.EVTaskListData;
 import net.sourceforge.processdash.ev.EVSchedule.Period;
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.Filter;
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.hier.HierarchyAlterer.HierarchyAlterationException;
+import net.sourceforge.processdash.templates.DashPackage;
 import net.sourceforge.processdash.util.StringUtils;
 import net.sourceforge.processdash.util.ThreadThrottler;
 import net.sourceforge.processdash.util.XMLUtils;
@@ -64,6 +66,7 @@ public class HierarchySynchronizer {
     private String initials, initialsPattern;
     private boolean oldStyleSync;
     private Element projectXML;
+    private String dumpFileVersion;
     private Date startDate;
     private int endWeek;
     private double hoursPerWeek;
@@ -246,6 +249,10 @@ public class HierarchySynchronizer {
             String projectTaskID = projectXML.getAttribute(TASK_ID_ATTR);
             projectTaskID = cleanupProjectIDs(projectTaskID);
             projectXML.setAttribute(TASK_ID_ATTR, projectTaskID);
+
+            dumpFileVersion = projectXML.getAttribute(VERSION_ATTR);
+            if (!StringUtils.hasValue(dumpFileVersion))
+                dumpFileVersion = "0";
         } catch (Exception e) {
             throw new IOException
                 ("The dashboard could not read the file containing the work " +
@@ -579,6 +586,12 @@ public class HierarchySynchronizer {
 
 
     private void getScheduleData(Element projectXML) {
+        // our schedule sync strategy depends upon data introduced in the
+        // dump file in version 3.1.0.  If an earlier version wrote the file,
+        // don't attempt to retrieve schedule data for sync purposes.
+        if (DashPackage.compareVersions(dumpFileVersion, "3.1.0") < 0)
+            return;
+
         startDate = null;
         endWeek = -1;
         hoursPerWeek = 0;
@@ -638,8 +651,10 @@ public class HierarchySynchronizer {
 
         // look up the name of the EV schedule for the individual. If we
         // don't find a valid/existing schedule name, abort.
-        String taskListName = getStringData(getData(projectPath,
-                TeamDataConstants.PROJECT_SCHEDULE_NAME));
+        List names = EVTaskList.getPreferredTaskListsForPath(dataRepository,
+            projectPath);
+        if (names == null || names.size() != 1) return;
+        String taskListName = (String) names.get(0);
         if (!EVTaskListData.validName(taskListName)) return;
         if (!EVTaskListData.exists(dataRepository, taskListName)) return;
 
@@ -903,6 +918,7 @@ public class HierarchySynchronizer {
     private static final String NAME_ATTR = "name";
     private static final String ID_ATTR = "id";
     private static final String TASK_ID_ATTR = "tid";
+    private static final String VERSION_ATTR = "dumpFileVersion";
     private static final String LABELS_ATTR = "labels";
     private static final String PHASE_NAME_ATTR = "phaseName";
     private static final String EFF_PHASE_ATTR = "effectivePhase";
