@@ -249,8 +249,10 @@ public class TeamProject {
     /** Open the file containing the list of team members */
     private void openTeamList() {
         try {
-            Element xml = openXML(checkEditable(new File(directory,
-                    TEAM_LIST_FILENAME)));
+            File file1 = checkEditable(new File(directory, TEAM_LIST_FILENAME));
+            File file2 = checkEditable(new File(directory, TEAM_LIST_FILENAME2));
+            File file = (file2.exists() ? file2 : file1);
+            Element xml = openXML(file);
             if (xml != null) teamList = new TeamMemberList(xml);
         } catch (Exception e) {
         }
@@ -266,12 +268,25 @@ public class TeamProject {
     boolean saveTeamList() {
         if (!readOnly)
             try {
-                File f = new File(directory, TEAM_LIST_FILENAME);
+                // For now, we save the data to two different files:
+                // "team.xml" and "team2.xml".  "team.xml" will be read - and
+                // possibly overwritten incorrectly - by older versions of the
+                // TeamTools code.  "team2.xml" will be preferred by newer
+                // versions, and shouldn't get clobbered.
+                File f = new File(directory, TEAM_LIST_FILENAME2);
                 RobustFileWriter out = new RobustFileWriter(f, "UTF-8");
                 BufferedWriter buf = new BufferedWriter(out);
                 teamList.getAsXML(buf);
                 buf.flush();
                 out.close();
+
+                f = new File(directory, TEAM_LIST_FILENAME);
+                out = new RobustFileWriter(f, "UTF-8");
+                buf = new BufferedWriter(out);
+                teamList.getAsXML(buf);
+                buf.flush();
+                out.close();
+
             } catch (Exception e) {
                 e.printStackTrace();
                 return false;
@@ -432,6 +447,7 @@ public class TeamProject {
     */
 
     private static final String TEAM_LIST_FILENAME = "team.xml";
+    private static final String TEAM_LIST_FILENAME2 = "team2.xml";
     private static final String WBS_FILENAME = "wbs.xml";
     private static final String FLOW_FILENAME = "workflow.xml";
     private static final String PROCESS_FILENAME = "process.xml";

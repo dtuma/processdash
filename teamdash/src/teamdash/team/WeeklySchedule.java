@@ -248,12 +248,13 @@ public class WeeklySchedule implements EffortCalendar {
 
 
     public void writeAttributes(Writer out, boolean dumpMode) throws IOException {
-        // write out information about the schedule start
-        if (dumpMode) {
-            out.write(" " + START_DATE_ATTR + "='");
-            out.write(XMLUtils.saveDate(truncDate(getStartDate())));
-        } else {
-            out.write(" " + START_WEEK_ATTR + "='");
+        // write the start date.  This is used by the dump/sync, and also used
+        // by legacy WBS Editor code (which doesn't use week numbers)
+        out.write(" " + START_DATE_ATTR + "='");
+        out.write(XMLUtils.saveDate(truncDate(getStartDate())));
+        if (!dumpMode) {
+            // write out the schedule start week
+            out.write("' " + START_WEEK_ATTR + "='");
             out.write(Integer.toString(startWeek));
         }
 
