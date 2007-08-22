@@ -26,14 +26,13 @@
 package net.sourceforge.processdash.ui.lib;
 
 import java.awt.Component;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.util.Date;
 
 import javax.swing.AbstractCellEditor;
-import javax.swing.JComponent;
 import javax.swing.JTable;
-import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
 import javax.swing.table.TableCellEditor;
 
 import com.toedter.calendar.JDateChooser;
@@ -48,23 +47,21 @@ public class JDateTimeChooserCellEditor extends AbstractCellEditor
                                         implements TableCellEditor {
 
     private JDateChooser dateChooser;
+    private boolean changingInternally;
 
     public JDateTimeChooserCellEditor(String format) {
+        this(format, true);
+    }
+
+    public JDateTimeChooserCellEditor(String format, boolean autoSave) {
         dateChooser = new JDateChooser(null, null, format,
             new JTextFieldDateTimeEditor());
+        changingInternally = false;
 
-        // Causes the Enter key to save changes
-        JComponent uiComponent = dateChooser.getDateEditor().getUiComponent();
-        if (uiComponent instanceof JTextField) {
-            JTextField tf = (JTextField) uiComponent;
-            tf.addActionListener(new ActionListener() {
-                public void actionPerformed(ActionEvent e) {
-                    stopCellEditing();
-                }
-            });
+        dateChooser.getDateEditor().getUiComponent().setBorder(null);
 
-            tf.setBorder(null);
-        }
+        if (autoSave)
+            dateChooser.addPropertyChangeListener(new AutoSaver());
     }
 
     public Component getTableCellEditorComponent(JTable table,
@@ -74,13 +71,29 @@ public class JDateTimeChooserCellEditor extends AbstractCellEditor
         if (value instanceof Date)
             date = (Date) value;
 
+        changingInternally = true;
         dateChooser.setDate(date);
+        changingInternally = false;
 
         return dateChooser;
     }
 
     public Object getCellEditorValue() {
         return dateChooser.getDate();
+    }
+
+
+    private class AutoSaver implements PropertyChangeListener, Runnable {
+
+        public void propertyChange(PropertyChangeEvent evt) {
+            if (!changingInternally && evt.getPropertyName().equals("date"))
+                SwingUtilities.invokeLater(this);
+        }
+
+        public void run() {
+            stopCellEditing();
+        }
+
     }
 
 
