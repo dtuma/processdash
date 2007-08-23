@@ -168,7 +168,7 @@ public class TeamMemberListTable extends JTable {
         result.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         result.setBackground(getBackground());
         result.setOpaque(true);
-        result.setToolTipText("Click to for additional schedule options");
+        result.setToolTipText("Click for additional schedule options");
         result.setHorizontalAlignment(SwingConstants.CENTER);
         result.setVerticalAlignment(SwingConstants.BOTTOM);
         result.setSize(WEEK_COL_WIDTH, getRowHeight());
