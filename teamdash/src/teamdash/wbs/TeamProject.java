@@ -412,6 +412,7 @@ public class TeamProject {
         TeamProjectFileFilter() {
             Set m = new HashSet();
             m.add(TEAM_LIST_FILENAME.toLowerCase());
+            m.add(TEAM_LIST_FILENAME2.toLowerCase());
             m.add(WBS_FILENAME.toLowerCase());
             m.add(FLOW_FILENAME.toLowerCase());
             this.includedNames = Collections.unmodifiableSet(m);
