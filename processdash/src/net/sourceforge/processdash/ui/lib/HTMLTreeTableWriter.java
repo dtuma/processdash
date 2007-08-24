@@ -42,6 +42,7 @@ public class HTMLTreeTableWriter extends HTMLTableWriter {
 
     TreeNodeCellRenderer nodeRenderer;
 
+    private String expandAllTooltip;
 
     public int getNodeColumn() {
         return nodeColumn;
@@ -57,6 +58,10 @@ public class HTMLTreeTableWriter extends HTMLTableWriter {
 
     public void setTreeName(String treeName) {
         this.treeName = treeName;
+    }
+
+    public void setExpandAllTooltip(String expandAllTooltip) {
+        this.expandAllTooltip = expandAllTooltip;
     }
 
     public void writeTree(Writer out, TreeTableModel t) throws IOException {
@@ -149,8 +154,12 @@ public class HTMLTreeTableWriter extends HTMLTableWriter {
             if (isRoot) {
                 result.append("<a href='#' class='treeTableExpandAll' "
                             + "onclick='toggleRows(this); return false;'>"
-                            + "<img border='0' src='/Images/expand-all.png'"
-                            + " width='16' height='16'></a>");
+                            + "<img border='0' src='/Images/expand-all.png'");
+
+                if (expandAllTooltip != null)
+                    result.append(" title='").append(expandAllTooltip).append("'");
+
+                result.append(" width='16' height='16'></a>");
             }
 
             // If the node is a leaf, we want a simple document icon. If it's
