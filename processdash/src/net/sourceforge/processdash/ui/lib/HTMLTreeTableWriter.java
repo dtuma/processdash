@@ -1,5 +1,5 @@
+// Copyright (C) 2006-2007 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2006 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -131,20 +131,38 @@ public class HTMLTreeTableWriter extends HTMLTableWriter {
             TreePath path = tree.getPathForRow(row);
             Object node = path.getLastPathComponent();
             boolean isLeaf = treeModel.isLeaf(node);
+            boolean isRoot = (row == 0);
+
             int indent = path.getPathCount() - 1;
+
             int iconWidth = (isLeaf ? 15 : 30);
+
+            if (isRoot)
+                iconWidth += 28;
 
             StringBuffer result = new StringBuffer();
             result.append("<div style='margin-left: ") //
                     .append(30 * indent + iconWidth) //
                     .append("px; position: relative'>");
+
+            // If the node is the root node, we add the "Expand all" link
+            if (isRoot) {
+                result.append("<a href='#' class='treeTableExpandAll' "
+                            + "onclick='toggleRows(this); return false;'>"
+                            + "<img border='0' src='/Images/expand-all.png'"
+                            + " width='16' height='16'></a>");
+            }
+
+            // If the node is a leaf, we want a simple document icon. If it's
+            //  not a leaf, we want it to have an opened folder icon (since by
+            //  default the node is opened).
             if (isLeaf)
                 result.append("<img class='treeTableDoc' width='12'"
                         +" height='14' src='/Images/document.gif'>");
             else
                 result.append("<a href='#' class='treeTableFolder' "
                         + "onclick='toggleRows(this); return false;'>"
-                        + "<img border='0' src='/Images/folder-closed.gif'"
+                        + "<img border='0' src='/Images/folder-open.gif'"
                         + " width='26' height='14'></a>");
 
             if (innerHtml != null)
