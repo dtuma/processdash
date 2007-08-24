@@ -11,3 +11,10 @@ img.treeTableDoc {
     left: -15;
     top: 2;
 }
+
+a.treeTableExpandAll {
+	position: absolute;
+    vertical-align: baseline;
+    left: -55;
+    top: 2;
+}
