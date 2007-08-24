@@ -6,25 +6,21 @@
 
 function toggleRows(elm) {
    var rows = document.getElementsByTagName("TR");
-   setImage(elm, "tree-table-folder-closed");
    var newDisplay = "none";
    var thisID = elm.parentNode.parentNode.parentNode.id + "-";
-   // Are we expanding or contracting? If the first child is hidden, we expand
-   for (var i = 0; i < rows.length; i++) {
-      var r = rows[i];
-      if (matchStart(r.id, thisID, true)) {
-         if (r.style.display == "none") {
-            if (document.all) newDisplay = "block"; //IE4+ specific code
-            else newDisplay = "table-row"; //Netscape and Mozilla
-            setImage(elm, "tree-table-folder-open");
-         }
-         break;
-      }
+   var expandingOne = getExpandingOne(rows, thisID);  // Are we expanding one element ?
+   var expandingAll = (elm.className == "treeTableExpandAll"); // Are we expanding all
+                                                               //  elements ?	
+   
+   if (expandingOne || expandingAll) {
+       if (document.all) newDisplay = "block"; //IE4+ specific code
+	   else newDisplay = "table-row"; //Netscape and Mozilla
    }
  
-   // When expanding, only expand one level.  Collapse all desendants.
-   var matchDirectChildrenOnly = (newDisplay != "none");
-
+   // When expanding, only expand one level.  Collapse all desendants, unless we
+   //  are expanding all
+   var matchDirectChildrenOnly = (newDisplay != "none") && !expandingAll;
+   
    for (var j = 0; j < rows.length; j++) {
       var s = rows[j];
       if (matchStart(s.id, thisID, matchDirectChildrenOnly)) {
@@ -32,16 +28,44 @@ function toggleRows(elm) {
          var cell = lookForChild(s, "TD");
          var tier = lookForChild(cell, "DIV");
          var folder = lookForChild(tier, "A");
-         setImage(folder, "tree-table-folder-closed");
+         
+         // If we are expanding all, we want all folder's icon to be opened
+         if (expandingAll)
+         	setImage(folder, "tree-table-folder-open");
+         else
+            setImage(folder, "tree-table-folder-closed");
       }
    }
+   
+   // We finally set the correct image for the icon we have just clicked. If we are
+   //  expanding all, we want to set the correct icon for the folder next to the
+   //  "expand all" button.
+   setFolderIconClicked(expandingOne, expandingAll, elm)
 }
 
-function lookForChild(elem, tagName) {
+function getExpandingOne(rows, thisID) {
+   // Are we expanding or contracting? If the first child is hidden, we expand.
+   for (var i = 0; i < rows.length; i++) {
+      var r = rows[i];
+      if (matchStart(r.id, thisID, true)) {
+         return (r.style.display == "none");
+      }
+   }
+   
+   // Should not normally get here
+   return false;
+}
+
+function lookForChild(elem, tagName, childIndice) {
+   // childIndice is an optional parameter
+   if (typeof childIndice == "undefined") {
+       childIndice = 0;
+   }
+   
    if (elem == null) return null;
    var children = elem.getElementsByTagName(tagName);
-   if (children == null || children.length == 0) return null;
-   return children[0];
+   if (children == null || children.length < childIndice) return null;
+   return children[childIndice];
 }
 
 function setImage(elm, imgID) {
@@ -54,6 +78,24 @@ function setImage(elm, imgID) {
          image.src = allImages[i].src;
          return;
       }     
+   }
+}
+
+// Sets the correct image for the icon we have just clicked. If we are expanding
+//  all, we want to set the correct icon for the folder next to the "expand all"
+//  button.
+function setFolderIconClicked(expandingOne, expandingAll, elm) {
+   if (expandingAll) {
+       var parentDiv = elm.parentNode;
+       
+       // The folder icon we want opened is the second children of the parent
+       //  DIV (the child located at position 1)
+       var folderToOpen = lookForChild(parentDiv, "A", 1);
+       setImage(folderToOpen, "tree-table-folder-open");
+   }
+   else {
+       if (expandingOne) setImage(elm, "tree-table-folder-open");
+       else setImage(elm, "tree-table-folder-closed");
    }
 }
 
