@@ -1048,6 +1048,7 @@ public class EVReport extends CGIChartBase {
         customizeTaskTableWriter(writer, taskList, null, hidePlan,
                 hideForecast, false);
         writer.setTreeName("$$$_t");
+        writer.setExpandAllTooltip(resources.getHTML("Report.Expand_All_Tooltip"));
         writer.setTableAttributes(
                 "class='needsTreeSortLinks' id='$$$_task' border='1'");
         writer.writeTree(out, tree);
