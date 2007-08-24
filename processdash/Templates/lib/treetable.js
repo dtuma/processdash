@@ -37,10 +37,11 @@ function toggleRows(elm) {
       }
    }
    
-   // We finally set the correct image for the icon we have just clicked. If we are
-   //  expanding all, we want to set the correct icon for the folder next to the
-   //  "expand all" button.
-   setFolderIconClicked(expandingOne, expandingAll, elm)
+   // We finally set the correct image for the icon we have just clicked.
+   if (!expandingAll) {
+       if (expandingOne) setImage(elm, "tree-table-folder-open");
+       else setImage(elm, "tree-table-folder-closed");
+   }
 }
 
 function getExpandingOne(rows, thisID) {
@@ -56,16 +57,11 @@ function getExpandingOne(rows, thisID) {
    return false;
 }
 
-function lookForChild(elem, tagName, childIndice) {
-   // childIndice is an optional parameter
-   if (typeof childIndice == "undefined") {
-       childIndice = 0;
-   }
-   
+function lookForChild(elem, tagName) {
    if (elem == null) return null;
    var children = elem.getElementsByTagName(tagName);
-   if (children == null || children.length < childIndice) return null;
-   return children[childIndice];
+   if (children == null || children.length == 0) return null;
+   return children[0];
 }
 
 function setImage(elm, imgID) {
@@ -78,24 +74,6 @@ function setImage(elm, imgID) {
          image.src = allImages[i].src;
          return;
       }     
-   }
-}
-
-// Sets the correct image for the icon we have just clicked. If we are expanding
-//  all, we want to set the correct icon for the folder next to the "expand all"
-//  button.
-function setFolderIconClicked(expandingOne, expandingAll, elm) {
-   if (expandingAll) {
-       var parentDiv = elm.parentNode;
-       
-       // The folder icon we want opened is the second children of the parent
-       //  DIV (the child located at position 1)
-       var folderToOpen = lookForChild(parentDiv, "A", 1);
-       setImage(folderToOpen, "tree-table-folder-open");
-   }
-   else {
-       if (expandingOne) setImage(elm, "tree-table-folder-open");
-       else setImage(elm, "tree-table-folder-closed");
    }
 }
 

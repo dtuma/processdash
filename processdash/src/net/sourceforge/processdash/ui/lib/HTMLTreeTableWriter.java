@@ -142,16 +142,18 @@ public class HTMLTreeTableWriter extends HTMLTableWriter {
 
             int iconWidth = (isLeaf ? 15 : 30);
 
-            if (isRoot)
-                iconWidth += 28;
-
             StringBuffer result = new StringBuffer();
             result.append("<div style='margin-left: ") //
                     .append(30 * indent + iconWidth) //
                     .append("px; position: relative'>");
 
-            // If the node is the root node, we add the "Expand all" link
-            if (isRoot) {
+            if (isLeaf)
+                // If the node is a leaf, we want a simple document icon.
+                result.append("<img class='treeTableDoc' width='12'"
+                        +" height='14' src='/Images/document.gif'>");
+
+            else if (isRoot) {
+                // If the node is the root node, show the "Expand all" icon
                 result.append("<a href='#' class='treeTableExpandAll' "
                             + "onclick='toggleRows(this); return false;'>"
                             + "<img border='0' src='/Images/expand-all.png'");
@@ -160,15 +162,10 @@ public class HTMLTreeTableWriter extends HTMLTableWriter {
                     result.append(" title='").append(expandAllTooltip).append("'");
 
                 result.append(" width='16' height='16'></a>");
-            }
 
-            // If the node is a leaf, we want a simple document icon. If it's
-            //  not a leaf, we want it to have an opened folder icon (since by
-            //  default the node is opened).
-            if (isLeaf)
-                result.append("<img class='treeTableDoc' width='12'"
-                        +" height='14' src='/Images/document.gif'>");
-            else
+            } else
+                // If the node is not a leaf, we want it to have an opened
+                // folder icon (since by default the node is opened).
                 result.append("<a href='#' class='treeTableFolder' "
                         + "onclick='toggleRows(this); return false;'>"
                         + "<img border='0' src='/Images/folder-open.gif'"
