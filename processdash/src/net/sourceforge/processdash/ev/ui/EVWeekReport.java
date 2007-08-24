@@ -39,6 +39,7 @@ import java.util.Map;
 import javax.swing.table.TableModel;
 
 import net.sourceforge.processdash.Settings;
+import net.sourceforge.processdash.ev.DefaultTaskLabeler;
 import net.sourceforge.processdash.ev.EVDependencyCalculator;
 import net.sourceforge.processdash.ev.EVMetrics;
 import net.sourceforge.processdash.ev.EVSchedule;
@@ -101,6 +102,7 @@ public class EVWeekReport extends TinyCGIBase {
         EVDependencyCalculator depCalc = new EVDependencyCalculator(
                 getDataRepository(), getPSPProperties(), getObjectCache());
         evModel.setDependencyCalculator(depCalc);
+        evModel.setTaskLabeler(new DefaultTaskLabeler(getDashboardContext()));
 
         evModel.recalc();
         EVSchedule schedule = evModel.getSchedule();
@@ -162,6 +164,7 @@ public class EVWeekReport extends TinyCGIBase {
                 && !hideNames;
         boolean showTimingIcons = (evModel instanceof EVTaskListData
                 && !isExporting() && purpose == PLAIN_REPORT);
+        boolean showLabels = evModel.showLabelsColumn();
 
         // Calculate the dates one week before and after the effective date.
         Date lastWeek = adjustDate(effDate, -EVSchedule.WEEK_MILLIS);
@@ -393,14 +396,16 @@ public class EVWeekReport extends TinyCGIBase {
                           "<td class=header>${Columns.Percent_Spent}</td>");
                 if (showAssignedTo)
                     interpOut("<td class=header>${Columns.Assigned_To}</td>");
-                interpOut("<td class=header>${Columns.Planned_Date}</td>"+
-                          "<td class=header>${Columns.Earned_Value}</td>"+
+                interpOut("<td class=header>${Columns.Planned_Date}</td>");
+                if (showLabels)
+                    interpOut("<td class=header>${Columns.Labels}</td>");
+                interpOut("<td class=header>${Columns.Earned_Value}</td>"+
                           "</tr>\n");
 
                 for (int i = 0;   i < taskListLen;   i++)
                     if (completedLastWeek[i])
                         printCompletedLine(tableWriter, tasks, i,
-                            showAssignedTo);
+                            showAssignedTo, showLabels);
 
                 out.println("</table>");
             }
@@ -418,8 +423,10 @@ public class EVWeekReport extends TinyCGIBase {
                           "<td class=header>${Columns.Percent_Spent}</td>");
                 if (showAssignedTo)
                     interpOut("<td class=header>${Columns.Assigned_To}</td>");
-                interpOut("<td class=header>${Columns.Planned_Date}</td>"+
-                          "<td class=header title='${Columns.Depend_Tooltip}'>${Columns.Depend}</td>"+
+                interpOut("<td class=header>${Columns.Planned_Date}</td>");
+                if (showLabels)
+                    interpOut("<td class=header>${Columns.Labels}</td>");
+                interpOut("<td class=header title='${Columns.Depend_Tooltip}'>${Columns.Depend}</td>"+
                           "<td class=header>${Columns.Forecast_Time_Remaining}</td>"+
                           "</tr>\n");
 
@@ -427,10 +434,11 @@ public class EVWeekReport extends TinyCGIBase {
                 for (int i = 0;   i < taskListLen;   i++)
                     if (dueThroughNextWeek[i])
                         timeRemaining += printDueLine(tableWriter, tasks, i, cpi,
-                                showAssignedTo);
+                                showAssignedTo, showLabels);
 
                 out.print("<tr class='sortbottom'><td align=right colspan=");
-                out.print(showAssignedTo ? "7" : "6");
+                int colspan = 6 + (showAssignedTo ? 1:0) + (showLabels ? 1:0);
+                out.print(Integer.toString(colspan));
                 interpOut("><b>${Due_Tasks.Total}"
                         + "&nbsp;</b></td><td class='timeFmt'>");
                 out.print(formatTime(timeRemaining));
@@ -465,7 +473,7 @@ public class EVWeekReport extends TinyCGIBase {
                     EVTaskDependency d = (EVTaskDependency) e.getKey();
                     List dependentTasks = (List) e.getValue();
                     printUpcomingDependencies(d, dependentTasks, tasks,
-                            showAssignedTo, hideNames, pos++);
+                            showAssignedTo, hideNames, showLabels, pos++);
                 }
             }
 
@@ -576,7 +584,7 @@ public class EVWeekReport extends TinyCGIBase {
     }
 
     protected void printCompletedLine(HTMLTableWriter tableWriter, TableModel tasks, int i,
-            boolean showAssignedTo) throws IOException {
+            boolean showAssignedTo, boolean showLabels) throws IOException {
         out.print("<tr>");
         tableWriter.writeCell(out, tasks, i, EVTaskList.TASK_COLUMN);
         tableWriter.writeCell(out, tasks, i, EVTaskList.PLAN_TIME_COLUMN);
@@ -585,13 +593,15 @@ public class EVWeekReport extends TinyCGIBase {
         if (showAssignedTo)
             tableWriter.writeCell(out, tasks, i, EVTaskList.ASSIGNED_TO_COLUMN);
         tableWriter.writeCell(out, tasks, i, EVTaskList.PLAN_DATE_COLUMN);
+        if (showLabels)
+            tableWriter.writeCell(out, tasks, i, EVTaskList.LABELS_COLUMN);
         tableWriter.writeCell(out, tasks, i, EVTaskList.VALUE_EARNED_COLUMN);
         out.println("</tr>");
     }
 
     protected double printDueLine(HTMLTableWriter tableWriter,
-            TableModel tasks, int i, double cpi, boolean showAssignedTo)
-            throws IOException {
+            TableModel tasks, int i, double cpi, boolean showAssignedTo,
+            boolean showLabels) throws IOException {
         out.print("<tr>");
         tableWriter.writeCell(out, tasks, i, EVTaskList.TASK_COLUMN);
         tableWriter.writeCell(out, tasks, i, EVTaskList.PLAN_TIME_COLUMN);
@@ -600,6 +610,8 @@ public class EVWeekReport extends TinyCGIBase {
         if (showAssignedTo)
             tableWriter.writeCell(out, tasks, i, EVTaskList.ASSIGNED_TO_COLUMN);
         tableWriter.writeCell(out, tasks, i, EVTaskList.PLAN_DATE_COLUMN);
+        if (showLabels)
+            tableWriter.writeCell(out, tasks, i, EVTaskList.LABELS_COLUMN);
         tableWriter.writeCell(out, tasks, i, EVTaskList.DEPENDENCIES_COLUMN);
 
         double planTime = parseTime(tasks.getValueAt(i, -EVTaskList.PLAN_TIME_COLUMN));
@@ -622,7 +634,7 @@ public class EVWeekReport extends TinyCGIBase {
 
     protected void printUpcomingDependencies(EVTaskDependency d,
             List dependentTasks, TableModel tasks, boolean showAssignedTo,
-            boolean hideNames, int pos) {
+            boolean hideNames, boolean showLabels, int pos) {
 
         boolean isExcel = isExportingToExcel();
 
@@ -653,6 +665,8 @@ public class EVWeekReport extends TinyCGIBase {
                 + "<td class=header>${Columns.Needed_For}</td>");
         if (showAssignedTo)
             interpOut("<td class=header>${Columns.Assigned_To}</td>");
+        if (showLabels)
+            interpOut("<td class=header>${Columns.Labels}</td>");
         interpOut("<td class=header>${Columns.Planned_Date}</td></tr>\n");
 
         for (Iterator j = dependentTasks.iterator(); j.hasNext();) {
@@ -663,6 +677,11 @@ public class EVWeekReport extends TinyCGIBase {
                 out.print("</td><td class='left'>");
                 out.print(encodeHTML
                           (tasks.getValueAt(i, EVTaskList.ASSIGNED_TO_COLUMN)));
+            }
+            if (showLabels) {
+                out.print("</td><td class='left'>");
+                out.print(encodeHTML
+                          (tasks.getValueAt(i, EVTaskList.LABELS_COLUMN)));
             }
             out.print("</td><td>");
             out.print(encodeHTML

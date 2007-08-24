@@ -48,6 +48,7 @@ import java.util.regex.Pattern;
 import javax.swing.table.TableModel;
 
 import net.sourceforge.processdash.Settings;
+import net.sourceforge.processdash.ev.DefaultTaskLabeler;
 import net.sourceforge.processdash.ev.EVDependencyCalculator;
 import net.sourceforge.processdash.ev.EVLabelFilter;
 import net.sourceforge.processdash.ev.EVMetrics;
@@ -241,6 +242,7 @@ public class EVReport extends CGIChartBase {
         EVDependencyCalculator depCalc = new EVDependencyCalculator(
                 getDataRepository(), getPSPProperties(), getObjectCache());
         evModel.setDependencyCalculator(depCalc);
+        evModel.setTaskLabeler(new DefaultTaskLabeler(getDashboardContext()));
 
         evModel.recalc();
 

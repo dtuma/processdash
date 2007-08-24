@@ -111,6 +111,7 @@ import javax.swing.tree.TreePath;
 import net.sourceforge.processdash.DashboardContext;
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.ListData;
+import net.sourceforge.processdash.ev.DefaultTaskLabeler;
 import net.sourceforge.processdash.ev.EVDependencyCalculator;
 import net.sourceforge.processdash.ev.EVSchedule;
 import net.sourceforge.processdash.ev.EVTask;
@@ -212,6 +213,7 @@ public class TaskScheduleDialog
         EVDependencyCalculator depCalc = new EVDependencyCalculator(
                 dash.getData(), dash.getHierarchy(), dash.getCache());
         model.setDependencyCalculator(depCalc);
+        model.setTaskLabeler(new DefaultTaskLabeler(dash));
 
         model.recalc();
         model.setNodeListener(this);
@@ -1958,6 +1960,7 @@ public class TaskScheduleDialog
             //case EVTaskList.ACT_DTIME_COLUMN:
             case EVTaskList.PLAN_DATE_COLUMN:
             case EVTaskList.FORECAST_DATE_COLUMN:
+            case EVTaskList.LABELS_COLUMN:
             case EVTaskList.DEPENDENCIES_COLUMN:
             case EVTaskList.PCT_SPENT_COLUMN:
                 result.addColumn(cloneTableColumn(c));

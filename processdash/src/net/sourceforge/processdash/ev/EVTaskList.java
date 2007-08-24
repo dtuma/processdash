@@ -63,6 +63,7 @@ import net.sourceforge.processdash.net.cache.ObjectCache;
 import net.sourceforge.processdash.ui.lib.AbstractTreeTableModel;
 import net.sourceforge.processdash.ui.lib.TreeTableModel;
 import net.sourceforge.processdash.util.PatternList;
+import net.sourceforge.processdash.util.StringUtils;
 
 
 public class EVTaskList extends AbstractTreeTableModel
@@ -79,6 +80,7 @@ public class EVTaskList extends AbstractTreeTableModel
     protected EVSchedule schedule;
     protected EVCalculator calculator;
     protected EVDependencyCalculator dependencyCalculator = null;
+    protected TaskLabeler taskLabeler = null;
     protected Set nodeTypeSpecs = null;
 
     /** timer for triggering recalculations */
@@ -90,6 +92,7 @@ public class EVTaskList extends AbstractTreeTableModel
     protected boolean showNodeTypeColumn;
     protected boolean showReplanColumn = Settings.getBool(
             "ev.showReplanColumn", true);
+    protected boolean showLabelsColumn;
 
 
     protected EVTaskList(String taskListName,
@@ -616,6 +619,7 @@ public class EVTaskList extends AbstractTreeTableModel
         double directTimeDelta = taskRoot.planTime - taskRoot.planValue;
         showDirectTimeColumns = Math.abs(directTimeDelta) > 0.1;
         showNodeTypeColumn = taskRoot.nodeTypesAreInUse();
+        showLabelsColumn = labelsAreInUse(taskRoot);
         nodeTypeSpecs = null;
 
         fireEvRecalculated();
@@ -625,6 +629,32 @@ public class EVTaskList extends AbstractTreeTableModel
 
     public void setDependencyCalculator(EVDependencyCalculator d) {
         this.dependencyCalculator = d;
+    }
+
+    public void setTaskLabeler(TaskLabeler l) {
+        this.taskLabeler = l;
+    }
+
+    private Object getTaskLabels(EVTask n) {
+        if (taskLabeler == null)
+            return null;
+        List labels = taskLabeler.getLabelsForTask(n);
+        return StringUtils.join(labels, ", ");
+    }
+
+    private boolean labelsAreInUse(EVTask task) {
+        if (taskLabeler == null)
+            return false;
+
+        List labels = taskLabeler.getLabelsForTask(task);
+        if (labels != null && !labels.isEmpty())
+            return true;
+
+        for (int i = task.getNumChildren();  i-- > 0; )
+            if (labelsAreInUse(task.getChild(i)))
+                return true;
+
+        return false;
     }
 
     public Set getNodeTypeSpecs() {
@@ -660,8 +690,8 @@ public class EVTaskList extends AbstractTreeTableModel
 
     private static final String[] COLUMN_KEYS = {
         "Task", "NodeType", "PT", "PDT", "Time", "DTime", "PV", "CPT", "CPV",
-        "Who", "Plan_Date", "Replan_Date", "Forecast_Date", "Date", "Depn",
-        "PctC", "PctS", "EV" };
+        "Who", "Plan_Date", "Replan_Date", "Forecast_Date", "Date", "Labels",
+        "Depn", "PctC", "PctS", "EV" };
 
     /** Names of the columns in the TreeTableModel. */
     protected static String[] colNames =
@@ -672,26 +702,28 @@ public class EVTaskList extends AbstractTreeTableModel
         resources.getStrings("TaskList.Columns.", COLUMN_KEYS, ".Tooltip");
 
     public static final int TASK_COLUMN           = 0;
-    public static final int NODE_TYPE_COLUMN      = 1;
-    public static final int PLAN_TIME_COLUMN      = 2;
-    public static final int PLAN_DTIME_COLUMN     = 3;
-    public static final int ACT_TIME_COLUMN       = 4;
-    public static final int ACT_DTIME_COLUMN      = 5;
-    public static final int PLAN_VALUE_COLUMN     = 6;
-    public static final int PLAN_CUM_TIME_COLUMN  = 7;
-    public static final int PLAN_CUM_VALUE_COLUMN = 8;
-    public static final int ASSIGNED_TO_COLUMN    = 9;
-    public static final int PLAN_DATE_COLUMN      = 10;
-    public static final int REPLAN_DATE_COLUMN    = 11;
-    public static final int FORECAST_DATE_COLUMN  = 12;
-    public static final int DATE_COMPLETE_COLUMN  = 13;
-    public static final int DEPENDENCIES_COLUMN   = 14;
-    public static final int PCT_COMPLETE_COLUMN   = 15;
-    public static final int PCT_SPENT_COLUMN      = 16;
-    public static final int VALUE_EARNED_COLUMN   = 17;
+    public static final int NODE_TYPE_COLUMN      = TASK_COLUMN+1;
+    public static final int PLAN_TIME_COLUMN      = NODE_TYPE_COLUMN+1;
+    public static final int PLAN_DTIME_COLUMN     = PLAN_TIME_COLUMN+1;
+    public static final int ACT_TIME_COLUMN       = PLAN_DTIME_COLUMN+1;
+    public static final int ACT_DTIME_COLUMN      = ACT_TIME_COLUMN+1;
+    public static final int PLAN_VALUE_COLUMN     = ACT_DTIME_COLUMN+1;
+    public static final int PLAN_CUM_TIME_COLUMN  = PLAN_VALUE_COLUMN+1;
+    public static final int PLAN_CUM_VALUE_COLUMN = PLAN_CUM_TIME_COLUMN+1;
+    public static final int ASSIGNED_TO_COLUMN    = PLAN_CUM_VALUE_COLUMN+1;
+    public static final int PLAN_DATE_COLUMN      = ASSIGNED_TO_COLUMN+1;
+    public static final int REPLAN_DATE_COLUMN    = PLAN_DATE_COLUMN+1;
+    public static final int FORECAST_DATE_COLUMN  = REPLAN_DATE_COLUMN+1;
+    public static final int DATE_COMPLETE_COLUMN  = FORECAST_DATE_COLUMN+1;
+    public static final int LABELS_COLUMN         = DATE_COMPLETE_COLUMN+1;
+    public static final int DEPENDENCIES_COLUMN   = LABELS_COLUMN+1;
+    public static final int PCT_COMPLETE_COLUMN   = DEPENDENCIES_COLUMN+1;
+    public static final int PCT_SPENT_COLUMN      = PCT_COMPLETE_COLUMN+1;
+    public static final int VALUE_EARNED_COLUMN   = PCT_SPENT_COLUMN+1;
 
     public static final int[] HIDABLE_COLUMN_LIST = { NODE_TYPE_COLUMN,
-            PLAN_DTIME_COLUMN, ACT_DTIME_COLUMN, REPLAN_DATE_COLUMN };
+            PLAN_DTIME_COLUMN, ACT_DTIME_COLUMN, REPLAN_DATE_COLUMN,
+            LABELS_COLUMN };
 
     public static final String ID_DATA_NAME = "Task List ID";
 
@@ -711,6 +743,7 @@ public class EVTaskList extends AbstractTreeTableModel
         Date.class,             // replanned date
         Date.class,             // forecast date
         Date.class,             // date
+        String.class,           // labels
         Collection.class,       // task dependencies
         String.class,           // percent complete
         String.class,           // percent spent
@@ -737,6 +770,7 @@ public class EVTaskList extends AbstractTreeTableModel
         COLUMN_FMT_DATE,      // replanned date
         COLUMN_FMT_DATE,      // forecast date
         COLUMN_FMT_DATE,      // date
+        COLUMN_FMT_OTHER,     // labels
         COLUMN_FMT_OTHER,     // task dependencies
         COLUMN_FMT_PERCENT,   // percent complete
         COLUMN_FMT_PERCENT,   // percent spent
@@ -769,6 +803,11 @@ public class EVTaskList extends AbstractTreeTableModel
      */
     public boolean showDirectTimeColumns() {
         return showDirectTimeColumns;
+    }
+
+    /** Returns true if the label column in this schedule should be displayed */
+    public boolean showLabelsColumn() {
+        return showLabelsColumn;
     }
 
     /** Returns true if the value in column <code>column</code> of object
@@ -818,6 +857,8 @@ public class EVTaskList extends AbstractTreeTableModel
             showColumn = showNodeTypeColumn;
         else if (column == REPLAN_DATE_COLUMN)
             showColumn = showReplanColumn;
+        else if (column == LABELS_COLUMN)
+            showColumn = showLabelsColumn;
 
         if (showColumn)
             return colNames[column];
@@ -851,6 +892,7 @@ public class EVTaskList extends AbstractTreeTableModel
         case REPLAN_DATE_COLUMN:    return n.getReplanDate();
         case FORECAST_DATE_COLUMN:  return n.getForecastDate();
         case DATE_COMPLETE_COLUMN:  return n.getActualDate();
+        case LABELS_COLUMN:         return getTaskLabels(n);
         case DEPENDENCIES_COLUMN:   return n.getDependencies();
         case PCT_COMPLETE_COLUMN:   return n.getPercentComplete();
         case PCT_SPENT_COLUMN:      return n.getPercentSpent();
