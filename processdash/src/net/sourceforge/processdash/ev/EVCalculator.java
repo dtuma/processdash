@@ -26,6 +26,7 @@
 
 package net.sourceforge.processdash.ev;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
@@ -170,6 +171,15 @@ public abstract class EVCalculator {
         if (b == null) return a;
         if (a.compareTo(b) < 0) return a;
         return b;
+    }
+
+    protected static Date minStartDate(Collection dates) {
+        Date result = null;
+        if (dates != null) {
+            for (Iterator i = dates.iterator(); i.hasNext();)
+                result = minStartDate(result, (Date) i.next());
+        }
+        return result;
     }
 
 

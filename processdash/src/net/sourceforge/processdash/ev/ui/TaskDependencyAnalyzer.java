@@ -44,13 +44,16 @@ import net.sourceforge.processdash.util.HTMLUtils;
 public class TaskDependencyAnalyzer {
 
     public static final int HAS_ERROR = 0;
-    public static final int HAS_INCOMPLETE = 1;
-    public static final int ALL_COMPLETE = 2;
-    public static final int HAS_REVERSE = 3;
-    public static final int NO_DEPENDENCIES = 4;
+    public static final int HAS_MISORDERED_INCOMPLETE = 1;
+    public static final int HAS_MISORDERED_REVERSE = 2;
+    public static final int HAS_INCOMPLETE = 3;
+    public static final int ALL_COMPLETE = 4;
+    public static final int HAS_REVERSE = 5;
+    public static final int NO_DEPENDENCIES = 6;
 
-    public static final String[] RES_KEYS = { "Unresolved", "Incomplete",
-            "Complete", "Reverse" , "None"};
+    public static final String[] RES_KEYS = { "Unresolved",
+            "Incomplete_Misordered", "Reverse_Misordered", "Incomplete",
+            "Complete", "Reverse", "None" };
 
     private Collection dependencies;
 
@@ -63,6 +66,10 @@ public class TaskDependencyAnalyzer {
     public boolean hasIncomplete;
 
     public boolean hasReverse;
+
+    public boolean hasMisorderedIncomplete;
+
+    public boolean hasMisorderedReverse;
 
     private static Resources resources = Resources.getDashBundle("EV");
 
@@ -81,6 +88,8 @@ public class TaskDependencyAnalyzer {
         hasError = false;
         hasIncomplete = false;
         hasReverse = false;
+        hasMisorderedIncomplete = false;
+        hasMisorderedReverse = false;
 
         if (dependencies != null)
             for (Iterator i = dependencies.iterator(); i.hasNext();) {
@@ -90,8 +99,12 @@ public class TaskDependencyAnalyzer {
                     hasError = true;
                 } else if (d.isReverse()) {
                     hasReverse = true;
+                    if (d.isMisordered())
+                        hasMisorderedReverse = true;
                 } else if (d.getPercentComplete() < 1.0) {
                     hasIncomplete = true;
+                    if (d.isMisordered())
+                        hasMisorderedIncomplete = true;
                 }
             }
     }
@@ -103,6 +116,10 @@ public class TaskDependencyAnalyzer {
     public int getStatus() {
         if (hasError)
             return HAS_ERROR;
+        else if (hasMisorderedIncomplete)
+            return HAS_MISORDERED_INCOMPLETE;
+        else if (hasMisorderedReverse)
+            return HAS_MISORDERED_REVERSE;
         else if (hasIncomplete)
             return HAS_INCOMPLETE;
         else if (hasReverse)
@@ -115,18 +132,21 @@ public class TaskDependencyAnalyzer {
 
     public String getSortKey() {
         switch (getStatus()) {
-        case HAS_ERROR:       return "0";
-        case HAS_REVERSE:     return "1";
-        case ALL_COMPLETE:    return "2";
-        case NO_DEPENDENCIES: return "3";
-        case HAS_INCOMPLETE:  return "4";
+        case HAS_ERROR:                 return "0";
+        case HAS_MISORDERED_REVERSE:    return "1";
+        case HAS_REVERSE:               return "2";
+        case ALL_COMPLETE:              return "3";
+        case NO_DEPENDENCIES:           return "4";
+        case HAS_INCOMPLETE:            return "5";
+        case HAS_MISORDERED_INCOMPLETE: return "6";
         }
         return "0";
     }
 
     public String getHtmlTable(String tableAttrs, String stopUrl,
-            String checkUrl, String reverseUrl, String sep,
-            boolean includeBodyTags, boolean includeTooltips) {
+            String checkUrl, String reverseUrl, String misorderedUrl,
+            String misorderedReverseUrl, String sep, boolean includeBodyTags,
+            boolean includeTooltips) {
         if (dependencies == null || getStatus() == NO_DEPENDENCIES)
             return null;
 
@@ -149,15 +169,29 @@ public class TaskDependencyAnalyzer {
                         .append(resources.getHTML("Dependency.Unresolved.Text"))
                         .append("</td>");
             } else if (d.isReverse()) {
-                if (includeTooltips)
-                    descr.append(getTooltip(HAS_REVERSE));
-                descr.append("style='text-align:center'><img src='")
-                    .append(reverseUrl).append("'></td>");
+                if (d.isMisordered()) {
+                    if (includeTooltips)
+                        descr.append(getTooltip(HAS_MISORDERED_REVERSE));
+                    descr.append("style='text-align:center'><img src='")
+                        .append(misorderedReverseUrl).append("'></td>");
+                } else {
+                    if (includeTooltips)
+                        descr.append(getTooltip(HAS_REVERSE));
+                    descr.append("style='text-align:center'><img src='")
+                        .append(reverseUrl).append("'></td>");
+                }
             } else if (d.getPercentComplete() < 1.0) {
-                if (includeTooltips)
-                    descr.append(getTooltip(HAS_INCOMPLETE));
-                descr.append("style='text-align:center'><img src='")
-                        .append(stopUrl).append("'></td>");
+                if (d.isMisordered()) {
+                    if (includeTooltips)
+                        descr.append(getTooltip(HAS_MISORDERED_INCOMPLETE));
+                    descr.append("style='text-align:center'><img src='")
+                            .append(misorderedUrl).append("'></td>");
+                } else {
+                    if (includeTooltips)
+                        descr.append(getTooltip(HAS_INCOMPLETE));
+                    descr.append("style='text-align:center'><img src='")
+                            .append(stopUrl).append("'></td>");
+                }
             } else {
                 if (includeTooltips)
                     descr.append(getTooltip(ALL_COMPLETE));
@@ -165,8 +199,10 @@ public class TaskDependencyAnalyzer {
                         .append(checkUrl).append("'></td>");
             }
             descr.append("<td style='text-align:left' nowrap>");
-            if (EVTaskDependency.REVERSE_PSEUDO_TASK.equals(d.getTaskID()))
-                descr.append(resources.getHTML("Dependency.Reverse.Display"));
+            if (d.isReverse())
+                descr.append(resources.getHTML(d.isMisordered()
+                        ? "Dependency.Reverse_Misordered.Display"
+                        : "Dependency.Reverse.Display"));
             else
                 descr.append(nvl(d.getDisplayName()));
             descr.append(getBriefDetails(d, sep, hideNames));
@@ -206,6 +242,10 @@ public class TaskDependencyAnalyzer {
         return "title='" + getRes(which, "Explanation", true) + "' ";
     }
 
+    private static String getTooltipAll(int which) {
+        return "title='" + getRes(which, "Explanation_All", true) + "' ";
+    }
+
     public String getRes(String type) {
         return getRes(getStatus(), type, true);
     }
@@ -224,7 +264,8 @@ public class TaskDependencyAnalyzer {
         public String getHtmlTable(String tableAttrs) {
             return super.getHtmlTable(tableAttrs, GUI_STOP_URL.toString(),
                     GUI_CHECK_URL.toString(), GUI_REVERSE_URL.toString(),
-                    GUI_SEP, true, false);
+                    GUI_INCOMPLETE_MIS_URL.toString(),
+                    GUI_REVERSE_MIS_URL.toString(), GUI_SEP, true, false);
         }
 
         public void syncLabel(JLabel label) {
@@ -248,8 +289,18 @@ public class TaskDependencyAnalyzer {
                 label.setText(null);
                 break;
 
+            case TaskDependencyAnalyzer.HAS_MISORDERED_INCOMPLETE:
+                label.setIcon(GUI_INCOMPLETE_MIS_ICON);
+                label.setText(null);
+                break;
+
             case TaskDependencyAnalyzer.HAS_REVERSE:
                 label.setIcon(GUI_REVERSE_ICON);
+                label.setText(null);
+                break;
+
+            case TaskDependencyAnalyzer.HAS_MISORDERED_REVERSE:
+                label.setIcon(GUI_REVERSE_MIS_ICON);
                 label.setText(null);
                 break;
 
@@ -262,15 +313,21 @@ public class TaskDependencyAnalyzer {
         }
     }
 
-    private static final URL GUI_STOP_URL = TaskDependencyAnalyzer.class
-            .getResource("stop.png");
+    private static final URL imageURL(String name) {
+        return TaskDependencyAnalyzer.class.getResource(name);
+    }
+
+    private static final URL GUI_STOP_URL = imageURL("stop.png");
     private static final Icon GUI_STOP_ICON = new ImageIcon(GUI_STOP_URL);
-    private static final URL GUI_CHECK_URL = TaskDependencyAnalyzer.class
-            .getResource("check.png");
+    private static final URL GUI_CHECK_URL = imageURL("check.png");
     private static final Icon GUI_CHECK_ICON = new ImageIcon(GUI_CHECK_URL);
-    private static final URL GUI_REVERSE_URL = TaskDependencyAnalyzer.class
-            .getResource("group.png");
+    private static final URL GUI_REVERSE_URL = imageURL("group.png");
     private static final Icon GUI_REVERSE_ICON = new ImageIcon(GUI_REVERSE_URL);
+    private static final URL GUI_REVERSE_MIS_URL = imageURL("warning.png");
+    private static final Icon GUI_REVERSE_MIS_ICON = new ImageIcon(GUI_REVERSE_MIS_URL);
+    private static final URL GUI_INCOMPLETE_MIS_URL = imageURL("warningRed.png");
+    private static final Icon GUI_INCOMPLETE_MIS_ICON = new ImageIcon(GUI_INCOMPLETE_MIS_URL);
+
     private static final String GUI_SEP = "  \u25AA  ";
 
     public static class HTML extends TaskDependencyAnalyzer {
@@ -282,7 +339,8 @@ public class TaskDependencyAnalyzer {
 
         public String getHtmlTable(String tableAttrs) {
             return super.getHtmlTable(tableAttrs, HTML_STOP_URI,
-                    HTML_CHECK_URI, HTML_REVERSE_URI, HTML_SEP, false, true);
+                    HTML_CHECK_URI, HTML_REVERSE_URI, HTML_INCOMPLETE_MIS_URI,
+                    HTML_REVERSE_MIS_URI, HTML_SEP, false, true);
         }
 
         public String getHtmlIndicator() {
@@ -293,20 +351,34 @@ public class TaskDependencyAnalyzer {
     private static final String HTML_STOP_URI = "/Images/stop.gif";
     private static final String HTML_CHECK_URI = "/Images/check.gif";
     private static final String HTML_REVERSE_URI = "/Images/group.gif";
+    private static final String HTML_REVERSE_MIS_URI = "/Images/warning.gif";
+    private static final String HTML_INCOMPLETE_MIS_URI = "/Images/warningRed.gif";
     static final String HTML_SEP = " &bull; ";
+    private static final String HTML_INDICATOR_IMG_ATTRS = "' border='0' width='14' height='14' ";
     private static final String[] HTML_INDICATORS = new String[] {
-            "<span style='color:red; font-weight:bold' title='"
-                    + getRes(0, "Explanation_All", true) + "'>"
-                    + getRes(0, "Text", true) + "</span>",
+            // HAS_ERROR
+            "<span style='color:red; font-weight:bold' "
+                    + getTooltipAll(HAS_ERROR) + ">"
+                    + getRes(HAS_ERROR, "Text", true) + "</span>",
+            // HAS_MISORDERED_INCOMPLETE
+            "<img src='" + TaskDependencyAnalyzer.HTML_INCOMPLETE_MIS_URI
+                    + HTML_INDICATOR_IMG_ATTRS
+                    + getTooltipAll(HAS_MISORDERED_INCOMPLETE) + ">",
+            // HAS_MISORDERED_REVERSE
+            "<img src='" + TaskDependencyAnalyzer.HTML_REVERSE_MIS_URI
+                    + HTML_INDICATOR_IMG_ATTRS
+                    + getTooltipAll(HAS_MISORDERED_REVERSE) + ">",
+            // HAS_INCOMPLETE
             "<img src='" + TaskDependencyAnalyzer.HTML_STOP_URI
-                    + "' border='0' width='14' height='14' title='"
-                    + getRes(1, "Explanation_All", true) + "'>",
+                    + HTML_INDICATOR_IMG_ATTRS
+                    + getTooltipAll(HAS_INCOMPLETE) + ">",
+            // ALL_COMPLETE
             "<img src='" + TaskDependencyAnalyzer.HTML_CHECK_URI
-                    + "' border='0' width='14' height='14' title='"
-                    + getRes(2, "Explanation_All", true) + "'>",
+                    + HTML_INDICATOR_IMG_ATTRS
+                    + getTooltipAll(ALL_COMPLETE) + ">",
+            // HAS_REVERSE
             "<img src='" + TaskDependencyAnalyzer.HTML_REVERSE_URI
-                    + "' border='0' width='14' height='14' title='"
-                    + getRes(3, "Explanation_All", true) + "'>"
+                    + HTML_INDICATOR_IMG_ATTRS
+                    + getTooltipAll(HAS_REVERSE) + ">"
     };
-
 }

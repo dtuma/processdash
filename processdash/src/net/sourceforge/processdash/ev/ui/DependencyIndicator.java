@@ -28,6 +28,7 @@ package net.sourceforge.processdash.ev.ui;
 import java.awt.Window;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.Iterator;
 import java.util.List;
 
 import javax.swing.JLabel;
@@ -35,7 +36,9 @@ import javax.swing.JLabel;
 import net.sourceforge.processdash.DashboardContext;
 import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.ev.EVDependencyCalculator;
+import net.sourceforge.processdash.ev.EVTask;
 import net.sourceforge.processdash.ev.EVTaskDependency;
+import net.sourceforge.processdash.ev.EVTaskList;
 import net.sourceforge.processdash.hier.ActiveTaskModel;
 import net.sourceforge.processdash.ui.lib.SwingWorker;
 import net.sourceforge.processdash.ui.lib.ToolTipTimingCustomizer;
@@ -93,12 +96,36 @@ public class DependencyIndicator extends JLabel implements
         public Object construct() {
             ThreadThrottler.beginThrottling();
 
+            // Find and recalc the dependencies associated with this task.
             EVDependencyCalculator calc = new EVDependencyCalculator(context
                     .getData(), context.getHierarchy(), context.getCache());
             String owner = ProcessDashboard.getOwnerName(context.getData());
             List dependencies = EVTaskDependency.getAllDependencies(context
                     .getData(), taskPath, owner);
+            if (dependencies == null || dependencies.isEmpty())
+                return dependencies;
             calc.recalculate(dependencies);
+
+            // if there is only one EV task list containing this task, or if
+            // there is a preferred task list, find the active task in that
+            // task list, and compute the dependency target date.
+            List taskListNames = EVTaskList.getPreferredTaskListsForPath(
+                context.getData(), taskPath);
+            if (taskListNames != null && taskListNames.size() == 1) {
+                String taskListName = (String) taskListNames.get(0);
+                EVTaskList tl = EVTaskList.openExisting(taskListName,
+                    context.getData(), context.getHierarchy(),
+                    context.getCache(), false);
+                tl.recalc();
+                List l = tl.findTasksByFullName(taskPath);
+                if (l != null && l.size() == 1) {
+                    EVTask t = (EVTask) l.get(0);
+                    for (Iterator i = dependencies.iterator(); i.hasNext();) {
+                        EVTaskDependency d = (EVTaskDependency) i.next();
+                        d.loadParentDate(t);
+                    }
+                }
+            }
 
             // an immediate change to the dashboard will cause the window to
             // apparently "jump", which the user might find disconcerting.
@@ -131,7 +158,9 @@ public class DependencyIndicator extends JLabel implements
 
             case TaskDependencyAnalyzer.HAS_ERROR:
             case TaskDependencyAnalyzer.HAS_INCOMPLETE:
+            case TaskDependencyAnalyzer.HAS_MISORDERED_INCOMPLETE:
             case TaskDependencyAnalyzer.HAS_REVERSE:
+            case TaskDependencyAnalyzer.HAS_MISORDERED_REVERSE:
                 a.syncLabel(DependencyIndicator.this);
                 window.pack();
                 break;

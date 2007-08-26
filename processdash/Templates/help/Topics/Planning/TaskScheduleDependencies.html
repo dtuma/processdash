@@ -53,17 +53,40 @@ dependency, one of the following icons will be displayed:</p>
     <td>This depends on at least one other task, but status information
         for that task is not available.</td></tr>
 
+<tr><td style="font-size:2px">&nbsp;</td></tr>
+
 <tr><td><img src="../../../Images/stop.gif"></td>
     <td>This depends on at least one other task that still has not been
         completed.</td></tr>
 
+<tr><td style="font-size:2px">&nbsp;</td></tr>
+
+<tr><td valign="top" style="padding-top:6px"><img src="../../../Images/warningRed.gif"></td>
+    <td><a name="redWarning"></a>This depends on at least one other task that
+        still has not been completed - and unfortunately, it does not look
+        like the dependent task(s) will be ready as soon as you need them to
+        be.<a href="#misordered">*</a></td></tr>
+
+<tr><td style="font-size:2px">&nbsp;</td></tr>
+
 <tr><td><img src="../../../Images/check.gif"></td>
     <td>All of the dependencies for this task have been completed.</td></tr>
+
+<tr><td style="font-size:2px">&nbsp;</td></tr>
 
 <tr><td><img src="../../../Images/group.gif"></td>
     <td>Other people are waiting for you to complete this task.</td></tr>
 
+<tr><td style="font-size:2px">&nbsp;</td></tr>
+
+<tr><td valign="top" style="padding-top:6px"><img src="../../../Images/warning.gif"></td>
+    <td><a name="yellowWarning"></a>Other people are waiting for you to
+        complete this task - and unfortunately, it does not look like you
+        will complete this task in time to meet their needs.<a
+        href="#misordered">*</a></td></tr>
+
 </table>
+
 
 
 <p>These icons are displayed in the "Dep" column of the task list when it
@@ -79,6 +102,55 @@ well.)  The detailed status will show you all the dependent tasks (if there is
 more than one), the completion status of each, the names of the individuals
 assigned to the task, the planned completion date, and the task's percentage
 complete.</p>
+
+
+<h2><A NAME="misordered"></A>Misordered Dependencies</h2>
+
+<p>As described above, task dependencies are a way of stating,
+&quot;<i>this</i> task cannot start until <i>those</i> tasks are
+finished.&quot; Accordingly, when task dependencies are present, it becomes
+necessary to work on tasks in a particular order.</p>
+
+<p>However, the dashboard does not perform any critical path analysis on your
+task dependencies, and it does not attempt to compute the optimal order in
+which tasks should be performed.  Thus, you must collaborate with your
+teammates to determine the best task order.</p>
+
+<p>Once you decide which tasks you will be working on first, second, etc,
+you should use the <a href="TaskScheduleSteps.html#flatView">flat view</a> of
+your task list to record this order in the dashboard.  The dashboard will
+then use this order to compute planned and forecast completion dates for
+each task.</p>
+
+<p>Once all team members have performed this step, the dashboard will
+compare the computed plan dates to see if any dependent tasks have been
+placed out of order.  For example, imagine the following scenario:</p>
+
+  <ul>
+
+  <li>Person A is working on Task A, and plans to complete it by June 1.</li>
+
+  <li>Person B is working on Task B, and plans to complete it by May 1.</li>
+
+  <li>Task B cannot start until Task A is complete</li>
+
+  </ul>
+
+<p>Obviously, the tasks are misordered!  In this case, Person A would see a
+<a href="#yellowWarning">yellow warning sign</a> next to Task A, with a
+message "Other individuals need this task earlier than it is projected to
+finish."  Person B would see a <a href="#redWarning">red warning sign</a>
+next to Task B, with a message "This dependent task is not projected to
+finish in time."</p>
+
+<p>When you see these warning icons, it is a sign that you need to coordinate
+with your team members to resolve the problem!  It is possible that the other
+individual just hasn't bothered to record the task order in their <a
+href="TaskScheduleSteps.html#flatView">flat view</a> yet.  Or, it could be an
+indication of a serious scheduling problem.  Either way, a conversation with
+your team member is in order.  If your team uses task dependencies, it is
+best for each team member to use flat view faithfully so the dashboard can
+provide the most useful information for team collaboration.</p>
 
 </body>
 </html>

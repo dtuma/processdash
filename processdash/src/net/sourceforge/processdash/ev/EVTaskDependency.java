@@ -1,4 +1,4 @@
-// Copyright (C) 2006 Tuma Solutions, LLC
+// Copyright (C) 2006-2007 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -33,10 +33,12 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.DataContext;
 import net.sourceforge.processdash.data.ImmutableStringData;
 import net.sourceforge.processdash.data.ListData;
@@ -70,6 +72,8 @@ public class EVTaskDependency {
 
     private Date projectedDate;
 
+    private Date parentDate;
+
     public EVTaskDependency(String taskID, String displayName) {
         this.taskID = taskID;
         this.displayName = displayName;
@@ -85,12 +89,13 @@ public class EVTaskDependency {
         this.projectedDate = XMLUtils.getXMLDate(e, PROJ_DATE_ATTR);
     }
 
-    public EVTaskDependency(Set waitingIndividuals) {
+    public EVTaskDependency(Map waitingIndividuals) {
         this.taskID = REVERSE_PSEUDO_TASK;
         this.displayName = this.taskListName = null;
-        this.assignedTo = StringUtils.join(waitingIndividuals, ", ");
+        this.assignedTo = StringUtils.join(waitingIndividuals.keySet(), ", ");
         this.percentComplete = 0;
-        this.projectedDate = null;
+        this.projectedDate = EVCalculator.minStartDate(waitingIndividuals
+                .values());
         this.unresolvable = false;
     }
 
@@ -138,6 +143,21 @@ public class EVTaskDependency {
         return projectedDate;
     }
 
+    public Date getParentDate() {
+        return parentDate;
+    }
+
+    public void setParentDate(Date parentDate) {
+        this.parentDate = parentDate;
+    }
+
+    public void loadParentDate(Object parent) {
+        if (parent instanceof EVTask)
+            setParentDate(getDependencyComparisonDate((EVTask) parent));
+        else
+            setParentDate(null);
+    }
+
     public boolean isUnresolvable() {
         return unresolvable;
     }
@@ -145,6 +165,19 @@ public class EVTaskDependency {
     public boolean isReverse() {
         return REVERSE_PSEUDO_TASK.equals(taskID);
     }
+
+    public boolean isMisordered() {
+        if (isReverse())
+            return isNotBefore(parentDate, projectedDate);
+        else
+            return isNotBefore(projectedDate, parentDate);
+    }
+
+    private static boolean isNotBefore(Date a, Date b) {
+        return (a != null && b != null && b.before(a));
+    }
+
+
 
     public void setResolvedDetails(boolean unresolvable, String assignedTo,
             double percentComplete, Date projectedDate, String displayName) {
@@ -371,7 +404,7 @@ public class EVTaskDependency {
             return null;
 
         LinkedHashMap result = new LinkedHashMap();
-        Set waitingIndividuals = null;
+        Map waitingIndividuals = null;
 
         while (taskPath != null && taskPath.length() > 1) {
             List taskDep = getDependencies(data, taskPath);
@@ -439,6 +472,46 @@ public class EVTaskDependency {
                 TASK_DEPENDENCIES_DATA_NAME);
         data.putValue(dataName, value);
     }
+
+
+    public static final int CMP_NONE = 0;
+    public static final int CMP_PLAN = 1;
+    public static final int CMP_REPLAN = 2;
+    public static final int CMP_FORECAST = 3;
+
+    protected static int getDependencyComparisonDateType() {
+        String setting = Settings.getVal("ev.dependencies.compareDates");
+        if ("false".equalsIgnoreCase(setting) || "no".equalsIgnoreCase(setting)
+                || "none".equalsIgnoreCase(setting))
+            return CMP_NONE;
+        else if ("plan".equalsIgnoreCase(setting))
+            return CMP_PLAN;
+        else if ("forecast".equalsIgnoreCase(setting))
+            return CMP_FORECAST;
+        else
+            return CMP_REPLAN;    // default value
+    }
+
+    public static Date getDependencyComparisonDate(EVTask task) {
+        Date needDate = null;
+        switch (getDependencyComparisonDateType()) {
+        case CMP_FORECAST:
+            needDate = task.getForecastDate();
+
+        case CMP_REPLAN:
+            if (needDate == null || EVSchedule.NEVER.equals(needDate))
+                needDate = task.getReplanDate();
+
+        case CMP_PLAN:
+            if (needDate == null || EVSchedule.NEVER.equals(needDate))
+                needDate = task.getPlanDate();
+
+            if (EVSchedule.NEVER.equals(needDate))
+                needDate = null;
+        }
+        return needDate;
+    }
+
 
 
     private static final String TASK_ID_DATA_NAME = "EV_Task_IDs";

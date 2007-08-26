@@ -1,5 +1,5 @@
+// Copyright (C) 2006-2007 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2006 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -26,6 +26,7 @@
 package net.sourceforge.processdash.ev;
 
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Iterator;
@@ -33,7 +34,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.SortedMap;
 import java.util.SortedSet;
+import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -42,6 +45,7 @@ import net.sourceforge.processdash.DashboardContext;
 import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.PropertyKey;
+import net.sourceforge.processdash.util.LightweightSet;
 import net.sourceforge.processdash.util.ThreadThrottler;
 
 public class EVTaskDependencyResolver {
@@ -140,7 +144,7 @@ public class EVTaskDependencyResolver {
         }
     }
 
-    public Set getIndividualsWaitingOnTask(Set result, Collection taskIDs,
+    public Map getIndividualsWaitingOnTask(Map result, Collection taskIDs,
             String ignoreIndividual) {
         if (taskIDs == null || taskIDs.isEmpty())
             return result;
@@ -155,10 +159,11 @@ public class EVTaskDependencyResolver {
 
         for (Iterator i = taskIDs.iterator(); i.hasNext();) {
             String id = (String) i.next();
-            Set who = (Set) reverseDependencyCache.get(id);
+            Map who = (Map) reverseDependencyCache.get(id);
             if (containsMoreThanJust(who, ignoreIndividual)) {
-                if (result == null) result = new TreeSet();
-                result.addAll(who);
+                if (result == null)
+                    result = new TreeMap();
+                mergeReverseDependencyInfo(result, who);
                 if (ignoreIndividual != null)
                     result.remove(ignoreIndividual);
             }
@@ -167,10 +172,10 @@ public class EVTaskDependencyResolver {
         return result;
     }
 
-    private boolean containsMoreThanJust(Set set, Object object) {
-        if (set == null || set.isEmpty())
+    private boolean containsMoreThanJust(Map map, Object key) {
+        if (map == null || map.isEmpty())
             return false;
-        if (set.size() == 1 && object != null && set.contains(object))
+        if (map.size() == 1 && key != null && map.containsKey(key))
             return false;
         return true;
     }
@@ -341,14 +346,52 @@ public class EVTaskDependencyResolver {
 
         List assignedIndividuals = task.getAssignedTo();
         if (assignedIndividuals == null || assignedIndividuals.isEmpty())
+            assignedIndividuals = getAllAssignedIndividuals(null, task);
+        if (assignedIndividuals == null || assignedIndividuals.isEmpty())
             return;
 
-        SortedSet reverseWho = (SortedSet) reverseCache.get(dependsOnId);
+        Date needDate = EVTaskDependency.getDependencyComparisonDate(task);
+
+        SortedMap reverseWho = (SortedMap) reverseCache.get(dependsOnId);
         if (reverseWho == null) {
-            reverseWho = new TreeSet();
+            reverseWho = new TreeMap();
             reverseCache.put(dependsOnId, reverseWho);
         }
-        reverseWho.addAll(assignedIndividuals);
+
+        for (Iterator i = assignedIndividuals.iterator(); i.hasNext();) {
+            String personName = (String) i.next();
+            mergeReverseDependencyInfo(reverseWho, personName, needDate);
+        }
+    }
+
+    private List getAllAssignedIndividuals(List result, EVTask task) {
+        List taskWho = task.assignedTo;
+        if (taskWho != null && !taskWho.isEmpty()) {
+            if (result == null)
+                result = new LightweightSet();
+            result.addAll(taskWho);
+        }
+
+        for (int i = task.getNumChildren();  i-- > 0; )
+            result = getAllAssignedIndividuals(result, task.getChild(i));
+
+        return result;
+    }
+
+    public static void mergeReverseDependencyInfo(Map dest, Map src) {
+        for (Iterator i = src.entrySet().iterator(); i.hasNext();) {
+            Map.Entry e = (Map.Entry) i.next();
+            String name = (String) e.getKey();
+            Date date = (Date) e.getValue();
+            mergeReverseDependencyInfo(dest, name, date);
+        }
+    }
+
+    private static void mergeReverseDependencyInfo(Map dest, String name,
+            Date date) {
+        Date oldDate = (Date) dest.get(name);
+        Date earlierDate = EVCalculator.minStartDate(date, oldDate);
+        dest.put(name, earlierDate);
     }
 
 
