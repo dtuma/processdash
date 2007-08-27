@@ -176,6 +176,16 @@ Autocompleter.Base.prototype = {
   },
   
   onBlur: function(event) {
+    // Dont hide the div on "blur" if the user clicks scrollbar 
+    // Snippet taken from scriptaculous enhancement request http://dev.rubyonrails.org/ticket/4782
+ 	if(Element.getStyle(this.update, 'height') != ''){
+ 		window.status=Position.within(this.update,Event.pointerX(event),Event.pointerY(event)) 
+ 		if( Position.within( this.update , Event.pointerX(event) , Event.pointerY(event) ) ){
+ 			// make sure blur is still around on
+ 			Event.observe(this.update, "blur", this.onBlur.bindAsEventListener(this),true); 
+ 			return;  
+ 		} 
+ 	} 
     // needed to make click events working
     setTimeout(this.hide.bind(this), 250);
     this.hasFocus = false;
