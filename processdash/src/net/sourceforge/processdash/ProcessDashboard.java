@@ -635,23 +635,6 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
         }
     }
 
-    private static void ensureJRE13() {
-        String versionNum = System.getProperty("java.version");
-        String req = "1.4";
-        if (DashPackage.compareVersions(versionNum, req) < 0) {
-            Resources res = Resources.getDashBundle("ProcessDashboard.Errors");
-            String vendorURL = System.getProperty("java.vendor.url");
-            JOptionPane.showMessageDialog
-                (null,
-                 res.formatStrings("JRE_Requirement_Message_FMT",
-                                   versionNum, vendorURL, req),
-                 res.format("JRE_Requirement_Title_FMT", req),
-                 JOptionPane.ERROR_MESSAGE);
-            Browser.launch(vendorURL);
-            System.exit(0);
-        }
-    }
-
     public static String getOwnerName(DataRepository data) {
         return getOwnerName((DataContext) data);
     }
@@ -966,8 +949,6 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
 
         ss = new DashboardSplashScreen();
         ss.displayFor(3000);      // show for at least 3 seconds.
-
-        ensureJRE13();
 
         if (Boolean.getBoolean("readOnly"))
             InternalSettings.setReadOnly(true);

@@ -9,7 +9,7 @@
             <author email="tuma@users.sourceforge.net" name="David Tuma"/>
         </authors>
         <url>http://processdash.sourceforge.net</url>
-	<javaversion>1.4</javaversion>
+	<javaversion>1.5</javaversion>
     </info>
 
     <guiprefs height="480" resizable="yes" width="640"/>

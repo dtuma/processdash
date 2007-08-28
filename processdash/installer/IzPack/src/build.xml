@@ -127,7 +127,10 @@
     <!-- Compiler to use put your own here (jikes, modern, gcj, ...) -->
     <!--<property name="build.compiler" value="jikes" />-->
 
-    <!-- Define directories -->
+	<!-- property to control "source" and "target" attributes of javac task -->
+	<property name="javac.level" value="1.4"/>
+
+	<!-- Define directories -->
     <property file="src/ant.properties"/>
     <property name="ver" value="3.2"/>
     <property name="rel" value="1"/>
@@ -178,7 +181,7 @@
 
     <!-- Compiles the compiler src files -->
     <target name="compile.compiler" depends="prepare">
-        <javac srcdir="${src.dir}" destdir="${build.dir}" optimize="on" deprecation="on" debug="${debug}">
+        <javac srcdir="${src.dir}" destdir="${build.dir}" optimize="on" deprecation="on" debug="${debug}" source="${javac.level}" target="${javac.level}">
             <include name="com/izforge/izpack/*.java"/>
             <include name="com/izforge/izpack/compiler/*.java"/>
             <include name="com/izforge/izpack/ant/*.java"/>
@@ -276,7 +279,7 @@
 
     <!-- Compiles the installer src files -->
     <target name="compile.installer" depends="prepare">
-        <javac srcdir="${src.dir}" destdir="${build.dir}" optimize="on" deprecation="on" debug="${debug}">
+        <javac srcdir="${src.dir}" destdir="${build.dir}" optimize="on" deprecation="on" debug="${debug}" source="${javac.level}" target="${javac.level}">
             <include name="com/izforge/izpack/*.java"/>
             <include name="com/izforge/izpack/gui/*.java"/>
             <include name="com/izforge/izpack/installer/*.java"/>
@@ -324,7 +327,7 @@
 
     <!-- Compiles the uninstaller src files -->
     <target name="compile.uninstaller" depends="prepare">
-        <javac srcdir="${src.dir}" destdir="${build.dir}" optimize="on" deprecation="on" debug="${debug}">
+        <javac srcdir="${src.dir}" destdir="${build.dir}" optimize="on" deprecation="on" debug="${debug}" source="${javac.level}" target="${javac.level}">
             <include name="com/izforge/izpack/LocaleDatabase.java"/>
             <include name="com/izforge/izpack/gui/*.java"/>
             <include name="com/izforge/izpack/util/*.java"/>
@@ -374,7 +377,7 @@
     <!-- Compile a panel -->
     <target name="compile.panel">
         <echo message="Compiles panel ${panel}"/>
-        <javac srcdir="${src.dir}" destdir="${build.dir}" classpath="${installer.jar}" optimize="on" deprecation="on" debug="${debug}">
+        <javac srcdir="${src.dir}" destdir="${build.dir}" classpath="${installer.jar}" optimize="on" deprecation="on" debug="${debug}" source="${javac.level}" target="${javac.level}">
             <include name="com/izforge/izpack/panels/${panel}*.java"/>
         </javac>
         <echo message="Creates bin/panels/${panel-dir} directory"/>
