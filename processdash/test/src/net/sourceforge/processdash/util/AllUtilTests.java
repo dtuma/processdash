@@ -19,6 +19,8 @@ public class AllUtilTests {
         suite.addTestSuite(PreferencesUtilTest.class);
         suite.addTestSuite(GlobEngineTest.class);
         suite.addTestSuite(OrderedListMergerTest.class);
+        suite.addTestSuite(FallbackObjectFactoryTest.class);
+        suite.addTestSuite(RuntimeUtilsTest.class);
         //$JUnit-END$
         return suite;
     }

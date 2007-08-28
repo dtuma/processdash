@@ -29,6 +29,7 @@ import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLDecoder;
 
@@ -214,6 +215,30 @@ public class RuntimeUtils {
 
         // return completion status to caller
         return exitValue;
+    }
+
+
+    /**
+     * Utility routine to check that a given class provides a particular
+     * method in the enclosing java runtime environment.
+     * 
+     * Note: this verifies the presence of a method by name only.  In the
+     * future, if more stringent checks are required (for example, for specific
+     * overloaded arguments), a new method can be introduced.
+     * 
+     * @param clazz the class to check
+     * @param methodName a method to require
+     * @throws UnsupportedOperationException if the method does not exist
+     */
+    public static void assertMethod(Class clazz, String methodName)
+            throws UnsupportedOperationException {
+        Method[] m = clazz.getMethods();
+        for (Method method : m) {
+            if (method.getName().equals(methodName))
+                return;
+        }
+        throw new UnsupportedOperationException("Class " + clazz.getName()
+                + " does not support method " + methodName);
     }
 
 }
