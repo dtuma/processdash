@@ -27,8 +27,10 @@ package net.sourceforge.processdash;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.ResourceBundle;
 import java.util.StringTokenizer;
 
 import javax.swing.JOptionPane;
@@ -53,10 +55,19 @@ public class Main {
         Version jre = new Version(System.getProperty("java.version"));
         Version req = new Version("1.5");
         if (jre.compareTo(req) < 0) {
-            JOptionPane.showMessageDialog(null,
-                "You are attempting to run ProcessDashboard using older JRE "
-                        + jre + "\nThe minimum required version is " + req,
-                "Unsupported Java Runtime Environment",
+            ResourceBundle res = ResourceBundle
+                    .getBundle("Templates.resources.ProcessDashboard");
+            String vendorURL = System.getProperty("java.vendor.url");
+
+            String titleFmt = res.getString("Errors.JRE_Requirement_Title_FMT");
+            String title = MessageFormat.format(titleFmt,
+                new Object[] { req.toString() });
+
+            String msgFmt = res.getString("Errors.JRE_Requirement_Message_FMT");
+            String message = MessageFormat.format(msgFmt,
+                new Object[] { jre.toString(), vendorURL, req.toString() });
+
+            JOptionPane.showMessageDialog(null, message, title,
                 JOptionPane.ERROR_MESSAGE);
             System.exit(0);
         }
