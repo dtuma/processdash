@@ -386,7 +386,7 @@ public class DefectImportForm extends BoundForm {
                 disposeForm();
             }
         };
-        frame.setIconImage(DashboardIconFactory.getWindowIconImage());
+        DashboardIconFactory.setWindowIcon(frame);
         frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         frame.getContentPane().setLayout(new BorderLayout());
         ((JComponent) getContainer()).setBorder(new EmptyBorder(5, 5, 5, 5));
@@ -403,7 +403,7 @@ public class DefectImportForm extends BoundForm {
         int height = XMLUtils.getXMLInt(xml, "windowHeight");
         if (height <= 0) height = 500;
         frame.setSize(width, height);
-        frame.show();
+        frame.setVisible(true);
     }
 
     private Box createButtonBox() {

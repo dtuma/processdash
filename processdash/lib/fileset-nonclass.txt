@@ -31,9 +31,8 @@ net/sourceforge/processdash/pspdash.ad-comments
 net/sourceforge/processdash/state
 net/sourceforge/processdash/tool/export/jarsurf/classes.txt
 net/sourceforge/processdash/ui/hourglass.png
-net/sourceforge/processdash/ui/icon32.gif
-net/sourceforge/processdash/ui/icon32.png
-net/sourceforge/processdash/ui/launcher32.png
+net/sourceforge/processdash/ui/dashicon.ico
+net/sourceforge/processdash/ui/launcher.ico
 net/sourceforge/processdash/ui/paused.png
 net/sourceforge/processdash/ui/splash.png
 net/sourceforge/processdash/ui/splash.html

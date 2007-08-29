@@ -93,7 +93,7 @@ public class TaskScheduleChart extends JFrame
     public TaskScheduleChart(EVTaskList tl, EVTaskFilter filter) {
         super(formatWindowTitle(tl, filter));
         PCSH.enableHelpKey(this, "UsingTaskSchedule.chart");
-        setIconImage(DashboardIconFactory.getWindowIconImage());
+        DashboardIconFactory.setWindowIcon(this);
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         taskList = tl;
         taskList.addRecalcListener(this);
@@ -113,7 +113,7 @@ public class TaskScheduleChart extends JFrame
         getContentPane().add(tabPane);
         pack();
         adjustTabNames(getWidth());
-        show();
+        setVisible(true);
     }
 
     private static String formatWindowTitle(EVTaskList tl, EVTaskFilter filter) {

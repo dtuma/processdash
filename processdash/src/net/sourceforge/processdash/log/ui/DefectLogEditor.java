@@ -145,7 +145,7 @@ public class DefectLogEditor extends Component
         reload ();
 
         frame = new JFrame(resources.getString("Log.Window_Title"));
-        frame.setIconImage(DashboardIconFactory.getWindowIconImage());
+        DashboardIconFactory.setWindowIcon(frame);
         frame.getContentPane().add("Center", panel);
         frame.setBackground(Color.lightGray);
         PCSH.enableHelpKey(frame, "UsingDefectLogEditor");
@@ -175,7 +175,7 @@ public class DefectLogEditor extends Component
         applyFilter();
         //frame.pack();
         frame.setSize(new Dimension(frameWidth, frameHeight));
-        frame.show();
+        frame.setVisible(true);
     }
 
     JComponent constructTreePanel() {
@@ -370,7 +370,7 @@ public class DefectLogEditor extends Component
             frame.toFront();
         else {
             reload();
-            frame.show();
+            frame.setVisible(true);
         }
     }
 
@@ -525,7 +525,7 @@ public class DefectLogEditor extends Component
             }
 
         } else if (cmd.equals("close")) {
-            frame.hide();
+            frame.setVisible(false);
 
         } else if (cmd.equals("print")) {  // TBD
             PrintJob pjob = getToolkit().getPrintJob(frame, "Defect Log", null);

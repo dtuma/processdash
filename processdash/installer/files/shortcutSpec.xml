@@ -15,7 +15,7 @@
      commandLine="-Xmx${MAX_MEMORY}m -jar &quot;$INSTALL_PATH\pspdash.jar&quot;"
      workingDirectory="$DATA_PATH"
      description="Process Dashboard"
-     iconFile="$INSTALL_PATH\icon32.ico"
+     iconFile="$INSTALL_PATH\dashicon.ico"
      iconIndex="0"
      initialState="normal"/>
 

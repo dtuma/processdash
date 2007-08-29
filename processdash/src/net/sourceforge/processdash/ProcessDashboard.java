@@ -99,7 +99,6 @@ import net.sourceforge.processdash.process.ui.ScriptButton;
 import net.sourceforge.processdash.security.DashboardPermission;
 import net.sourceforge.processdash.security.DashboardSecurity;
 import net.sourceforge.processdash.templates.AutoUpdateManager;
-import net.sourceforge.processdash.templates.DashPackage;
 import net.sourceforge.processdash.templates.TemplateLoader;
 import net.sourceforge.processdash.tool.export.mgr.ExportManager;
 import net.sourceforge.processdash.tool.export.mgr.ExternalResourceManager;
@@ -173,7 +172,6 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
 
     public ProcessDashboard(String title) {
         super();
-        setIconImage(DashboardIconFactory.getWindowIconImage());
         getContentPane().setLayout(new GridBagLayout());
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
         addWindowListener(this);
@@ -962,8 +960,9 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
         ProcessDashboard dash = new ProcessDashboard
             (args.length > pos ? args[pos] : null);
 
+        DashboardIconFactory.setWindowIcon(dash);
         dash.pack();
-        dash.show();
+        dash.setVisible(true);
 
         dropSplashScreen();
         dash.maybeNotifyOpened();

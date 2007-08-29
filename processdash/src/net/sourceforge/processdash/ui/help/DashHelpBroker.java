@@ -1,5 +1,5 @@
+// Copyright (C) 2003-2007 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003-2005 Software Process Dashboard Initiative
 //
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -28,7 +28,6 @@ package net.sourceforge.processdash.ui.help;
 
 import java.awt.Component;
 import java.awt.Dimension;
-import java.awt.Frame;
 import java.awt.Window;
 import java.io.FileNotFoundException;
 import java.lang.reflect.Constructor;
@@ -40,13 +39,13 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import org.w3c.dom.Element;
-
 import net.sourceforge.processdash.net.http.WebServer;
 import net.sourceforge.processdash.templates.DashPackage;
 import net.sourceforge.processdash.templates.ExtensionManager;
 import net.sourceforge.processdash.templates.TemplateLoader;
 import net.sourceforge.processdash.ui.DashboardIconFactory;
+
+import org.w3c.dom.Element;
 
 
 
@@ -120,9 +119,7 @@ public class DashHelpBroker implements DashHelpProvider {
         try {
             Object windowPres = invoke(broker, "getWindowPresentation");
             Window w = (Window) invoke(windowPres, "getHelpWindow");
-            if (w instanceof Frame)
-                ((Frame) w).setIconImage
-                    (DashboardIconFactory.getWindowIconImage());
+            DashboardIconFactory.setWindowIcon(w);
         } catch (Throwable t) {
             // an old version of JavaHelp in the system classpath will
             // cause this to fail.  It's no big deal - the window will

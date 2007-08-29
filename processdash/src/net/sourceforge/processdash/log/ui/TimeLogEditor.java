@@ -629,7 +629,7 @@ public class TimeLogEditor extends Object implements TreeSelectionListener,
         } else {
             if (dashTimeLog != null)
                 setTimeLog(dashTimeLog.getDeferredTimeLogModifications());
-            frame.show();
+            frame.setVisible(true);
         }
     }
 
@@ -783,7 +783,7 @@ public class TimeLogEditor extends Object implements TreeSelectionListener,
         loadCustomDimensions();
 
         frame = new JFrame(getResource("Time_Log_Editor_Window_Title"));
-        frame.setIconImage(DashboardIconFactory.getWindowIconImage());
+        DashboardIconFactory.setWindowIcon(frame);
         frame.setSize(new Dimension(frameWidth, frameHeight));
         frame.addWindowListener(new WindowAdapter() {
             public void windowClosing(WindowEvent e) {

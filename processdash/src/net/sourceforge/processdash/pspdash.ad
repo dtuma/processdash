@@ -170,3 +170,4 @@ backup.timesOfDay=0
 export.timesOfDay=0
 
 forms.useHoursMinutes=true
+window.icon=~/icon.ico

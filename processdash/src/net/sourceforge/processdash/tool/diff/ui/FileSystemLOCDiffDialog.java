@@ -67,7 +67,7 @@ public class FileSystemLOCDiffDialog extends FileSystemLOCDiff
 
     public void showDialog() {
         frame = new JFrame(resources.getString("Dialog.Window_Title"));
-        frame.setIconImage(DashboardIconFactory.getWindowIconImage());
+        DashboardIconFactory.setWindowIcon(frame);
         frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
         DocumentListener dl = (DocumentListener) EventHandler.create(
@@ -129,7 +129,7 @@ public class FileSystemLOCDiffDialog extends FileSystemLOCDiff
 
         frame.getContentPane().add(vBox);
         frame.pack();
-        frame.show();
+        frame.setVisible(true);
     }
 
     protected void dontStretchVertically(JComponent c) {
@@ -249,7 +249,7 @@ public class FileSystemLOCDiffDialog extends FileSystemLOCDiff
         try {
             File outFile = generateDiffs();
             outFile.deleteOnExit();
-            Browser.launch(outFile.toURL().toString());
+            Browser.launch(outFile.toURI().toString());
 
         } catch (IOException ioe) {
             beep(null);

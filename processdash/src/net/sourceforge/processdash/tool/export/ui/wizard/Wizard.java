@@ -1,5 +1,5 @@
+// Copyright (C) 2005-2007 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2005 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -28,15 +28,11 @@ package net.sourceforge.processdash.tool.export.ui.wizard;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Stack;
 import java.util.Vector;
 
 import javax.swing.BorderFactory;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
-import javax.swing.SwingUtilities;
 
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.ui.DashboardIconFactory;
@@ -56,7 +52,7 @@ public class Wizard {
 
     public Wizard(String titleKey) {
         frame = new JFrame(resources.getString(titleKey));
-        frame.setIconImage(DashboardIconFactory.getWindowIconImage());
+        DashboardIconFactory.setWindowIcon(frame);
 
         panelHolder = new JPanel(new BorderLayout());
         panelHolder.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
@@ -71,7 +67,7 @@ public class Wizard {
     }
 
     public void show() {
-        frame.show();
+        frame.setVisible(true);
     }
 
     public void close() {

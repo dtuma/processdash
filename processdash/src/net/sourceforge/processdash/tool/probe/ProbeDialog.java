@@ -1,5 +1,5 @@
+// Copyright (C) 2003-2007 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -93,7 +93,7 @@ public class ProbeDialog extends JFrame implements
         super();
         setTitle(resources.getString("PROBE_Window_Title"));
         PCSH.enableHelpKey(this, "UsingProbeTool");
-        setIconImage(DashboardIconFactory.getWindowIconImage());
+        DashboardIconFactory.setWindowIcon(this);
 
         this.hier = props;
         this.data = data;
@@ -333,7 +333,7 @@ public class ProbeDialog extends JFrame implements
 
         // display the dialog
         pack();
-        show();
+        setVisible(true);
     }
 
     private String notEnoughData = resources.getString("Not_Enough_Data");
@@ -654,7 +654,7 @@ public class ProbeDialog extends JFrame implements
             if (filterDlg == null)
                 filterDlg = new FilterDialog (hier, this, this);
             else
-                filterDlg.show();
+                filterDlg.setVisible(true);
         } else if ("chart".equals(cmd)) {
             //Bring up a dialog here that shows the data used.
             if (chartDlg == null)
@@ -664,7 +664,7 @@ public class ProbeDialog extends JFrame implements
                                             (String)yName.getSelectedItem(),
                                             showRegression, showAverage);
             else
-                chartDlg.show();
+                chartDlg.setVisible(true);
         } else if ("close".equals(cmd)) {
             close();
         } else if ("applyFilter".equals(cmd)) { // response from filter dlg

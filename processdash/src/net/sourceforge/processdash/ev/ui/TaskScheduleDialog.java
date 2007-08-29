@@ -191,7 +191,7 @@ public class TaskScheduleDialog
 
         // Create the frame and set an appropriate icon
         frame = new JFrame(resources.getString("Window_Title"));
-        frame.setIconImage(DashboardIconFactory.getWindowIconImage());
+        DashboardIconFactory.setWindowIcon(frame);
         PCSH.enableHelpKey(frame, "UsingTaskSchedule");
 
         // Try to open an existing earned value model.
@@ -311,7 +311,7 @@ public class TaskScheduleDialog
         frame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
 
         frame.setSize(new Dimension(totalWidth + 20, 600));
-        frame.show();
+        frame.setVisible(true);
 
         // if the task list is empty, open the add task dialog immediately.
         if (((EVTask) model.getRoot()).isLeaf() && Settings.isReadWrite())
@@ -580,7 +580,7 @@ public class TaskScheduleDialog
     public void show() {
         if (frame.getState() == Frame.ICONIFIED)
             frame.setState(Frame.NORMAL);
-        frame.show();
+        frame.setVisible(true);
         frame.toFront();
     }
 
@@ -2148,7 +2148,7 @@ public class TaskScheduleDialog
 
     public void showChart() {
         if (chartDialog != null && chartDialog.isDisplayable()) {
-            chartDialog.show();
+            chartDialog.setVisible(true);
             chartDialog.toFront();
         } else
             chartDialog = new TaskScheduleChart(model, null);

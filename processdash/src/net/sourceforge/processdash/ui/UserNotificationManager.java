@@ -259,7 +259,7 @@ public class UserNotificationManager {
             JPanel panel = new JPanel(new BorderLayout(5, 5));
             panel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
-            setIconImage(DashboardIconFactory.getWindowIconImage());
+            DashboardIconFactory.setWindowIcon(this);
             panel.add(new JLabel(resources.getString("Prompt")),
                     BorderLayout.NORTH);
             setDefaultCloseOperation(DISPOSE_ON_CLOSE);

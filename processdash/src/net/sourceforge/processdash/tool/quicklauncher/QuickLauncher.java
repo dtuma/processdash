@@ -155,7 +155,7 @@ public class QuickLauncher {
         else
             windowTitle = resources.format("Window_Title2_FMT", versionNumber);
         frame = new JFrame(windowTitle);
-        frame.setIconImage(DashboardIconFactory.getLauncherWindowIconImage());
+        DashboardIconFactory.setLauncherWindowIcon(frame);
 
         JPanel contents = new JPanel();
         contents.setLayout(new BoxLayout(contents, BoxLayout.Y_AXIS));
@@ -196,7 +196,7 @@ public class QuickLauncher {
         frame.getContentPane().add(contents);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.pack();
-        frame.show();
+        frame.setVisible(true);
     }
 
     private static String getVersionNumber() {
@@ -346,7 +346,7 @@ public class QuickLauncher {
         private void raiseWindowImpl() {
             if (frame.getState() == Frame.ICONIFIED)
                 frame.setState(Frame.NORMAL);
-            frame.show();
+            frame.setVisible(true);
             frame.toFront();
         }
 

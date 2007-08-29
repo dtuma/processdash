@@ -28,24 +28,113 @@ package net.sourceforge.processdash.ui;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Graphics;
+import java.awt.MediaTracker;
 import java.awt.Toolkit;
 import java.awt.Image;
+import java.awt.Window;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Collection;
+import java.util.List;
 
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+
+import net.sf.image4j.codec.ico.ICODecoder;
+import net.sourceforge.processdash.Settings;
+import net.sourceforge.processdash.util.FallbackObjectFactory;
+import net.sourceforge.processdash.util.RuntimeUtils;
 
 public class DashboardIconFactory {
 
-    private static Image windowIconImage = null;
-    public static Image getWindowIconImage() {
-        return windowIconImage = loadImage("icon32.png", windowIconImage);
+    /** Find an ICO file containing the icons to display for this application,
+     * and return the contents of that file as a binary stream.
+     * 
+     * This method allows a user to customize the icon used by the application
+     * via the "window.icon" setting in their configuration file.  The default
+     * value of that setting will allow them to customize the icon simply by
+     * placing a file called "icon.ico" in their data directory. If that file
+     * is present, it will be returned; otherwise, the default icons shipped
+     * with the dashboard will be returned.
+     */
+    public static InputStream getApplicationIconData() {
+        // first, we check to see if the user has selected a preferred icon
+        // file.  If so, we return that file.
+        try {
+            String iconFile = Settings.getFile("window.icon");
+            if (iconFile != null && iconFile.length() > 0) {
+                File f = new File(iconFile);
+                if (f.exists())
+                    return new FileInputStream(f);
+            }
+        } catch (IOException e) {}
+
+        // if the user has not overridden the application icon, or the file
+        // cannot be read, use the default icons shipped with the dashboard.
+        return DashboardIconFactory.class.getResourceAsStream("dashicon.ico");
     }
 
-    private static Image launcherWindowIconImage = null;
-    public static Image getLauncherWindowIconImage() {
-        return launcherWindowIconImage = loadImage("launcher32.png",
-                launcherWindowIconImage);
+
+    /** Apply the dashboard application icon to the given window. */
+    public static void setWindowIcon(Window w) {
+        windowIconImageSetter = getWindowIconImageSetter(windowIconImageSetter,
+            getApplicationIcons());
+        windowIconImageSetter.setWindowIconImage(w);
     }
+    private static WindowIconImageSetter windowIconImageSetter = null;
+
+
+
+
+
+    /** Return an application icon that is as close as possible to the
+     * given preferred size.
+     * 
+     * @param preferredSize the ideal width/height of the icon.
+     * @param preferSmaller if no icon exactly matches the given size, should
+     *    a smaller image be preferred over a larger one?
+     * @return the application image most closely matching the requirements.
+     */
+    public static Image getApplicationImage(int preferredSize,
+            boolean preferSmaller) {
+        return selectImageClosestToSize(getApplicationIcons(), preferredSize,
+            preferSmaller);
+    }
+
+    /** @deprecated */
+    public static Image getWindowIconImage() {
+        return selectImageClosestToSize(getApplicationIcons(), 32, true);
+    }
+
+    private static List<? extends Image> getApplicationIcons() {
+        if (APPLICATION_ICONS == null) {
+            try {
+                APPLICATION_ICONS = ICODecoder.read(getApplicationIconData());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        return APPLICATION_ICONS;
+    }
+    private static List<? extends Image> APPLICATION_ICONS = null;
+
+
+    public static void setLauncherWindowIcon(Window w) {
+        try {
+            InputStream iconSrc = DashboardIconFactory.class
+                    .getResourceAsStream("launcher.ico");
+            List<? extends Image> icons = ICODecoder.read(iconSrc);
+            WindowIconImageSetter wiis = getWindowIconImageSetter(null, icons);
+            wiis.setWindowIconImage(w);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
 
     private static Icon timingIcon = null;
     public static Icon getTimingIcon() {
@@ -120,6 +209,85 @@ public class DashboardIconFactory {
         // to allow for localization of icons.
         return null;
     }
+
+
+    /** 
+     * From a list of images, select the one that is closest to the preferred
+     * size.
+     * 
+     *
+     * 
+     * @param images a list of images to choose from.
+     * @param preferredSize
+     * @return
+     */
+    public static Image selectImageClosestToSize(
+            Collection<? extends Image> images, int preferredSize,
+            boolean preferSmaller) {
+        // if no images were provided, return null.
+        if (images == null || images.isEmpty())
+            return null;
+
+        // for our purposes, the images will almost always be loaded in full
+        // by the time this method is called.  But it doesn't hurt to make
+        // certain that they are ready to go.
+        JLabel bogusImageObserver = new JLabel();
+        MediaTracker t = new MediaTracker(bogusImageObserver);
+        int id = 0;
+        for (Image i : images)
+            t.addImage(i, id++);
+        try {
+            t.waitForAll();
+        } catch (InterruptedException e) {}
+
+        // keep track of the "too big" image closest to the preferred size
+        Image bigResult = null;
+        int bigDelta = 1000;
+        // keep track of the "too small" image closest to the preferred size
+        Image smallResult = null;
+        int smallDelta = 1000;
+        // iterate over the images looking for the best match.
+        for (Image image : images) {
+            int size = Math.max(image.getWidth(bogusImageObserver),
+                image.getHeight(bogusImageObserver));
+
+            if (size < 0)
+                // this image must be broken, since getWidth/getHeight returned
+                // -1 even after the MediaTracker said it was completely loaded.
+                continue;
+
+            else if (size == preferredSize)
+                // we've found a perfect match!  Return it.
+                return image;
+
+            else if (size < preferredSize) {
+                // this image is too small.  But see if it is closer to the
+                // preferred size than the best small image we've seen so far.
+                int delta = preferredSize - size;
+                if (delta < smallDelta) {
+                    smallResult = image;
+                    smallDelta = delta;
+                }
+
+            } else {
+                // this image is too big.  But see if it is closer to the
+                // preferred size than the best big image we've seen so far.
+                int delta = size - preferredSize;
+                if (delta < bigDelta) {
+                    bigResult = image;
+                    bigDelta = delta;
+                }
+            }
+        }
+
+        if (preferSmaller) {
+            return (smallResult != null ? smallResult : bigResult);
+        } else {
+            return (bigResult != null ? bigResult : smallResult);
+        }
+    }
+
+
 
     private static class CheckIcon implements Icon {
 
@@ -284,8 +452,10 @@ public class DashboardIconFactory {
 
     }
 
+    @SuppressWarnings("unused")
     private static final Color blue = new Color(102, 102, 153);
 
+    @SuppressWarnings("unused")
     private static class BlockArrowIcon implements Icon {
 
         Color bg, fg;
@@ -335,4 +505,63 @@ public class DashboardIconFactory {
         }
 
     }
+
+
+    interface WindowIconImageSetter {
+        public void init(List<? extends Image> icons);
+        public void setWindowIconImage(Window w);
+    }
+
+    private static WindowIconImageSetter getWindowIconImageSetter(
+            WindowIconImageSetter current, List<? extends Image> icons) {
+        if (current != null)
+            return current;
+
+        WindowIconImageSetter result =
+                new FallbackObjectFactory<WindowIconImageSetter>(
+                    WindowIconImageSetter.class) //
+                    .add("DashboardIconFactory$WindowIconImageSetter16") //
+                    .add("DashboardIconFactory$WindowIconImageSetter15") //
+                    .get();
+        result.init(icons);
+        return result;
+    }
+
+    public static class WindowIconImageSetter15 implements
+            WindowIconImageSetter {
+
+        Image image;
+
+        public void init(List<? extends Image> icons) {
+            this.image = selectImageClosestToSize(icons, 32, true);
+        }
+
+        public void setWindowIconImage(Window w) {
+            if (w instanceof JFrame) {
+                JFrame frame = (JFrame) w;
+                frame.setIconImage(image);
+            }
+        }
+
+    }
+
+    public static class WindowIconImageSetter16 implements
+            WindowIconImageSetter {
+
+        private List<? extends Image> icons;
+
+        public WindowIconImageSetter16() {
+            RuntimeUtils.assertMethod(Window.class, "setIconImages");
+        }
+
+        public void init(List<? extends Image> icons) {
+            this.icons = icons;
+        }
+
+        public void setWindowIconImage(Window w) {
+            w.setIconImages(icons);
+        }
+
+    }
+
 }

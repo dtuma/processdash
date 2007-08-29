@@ -239,7 +239,7 @@ public class HierarchyEditor extends Object implements TreeModelListener, TreeSe
 
         frame = new JFrame(resource.getString("HierarchyEditor"));
         frame.setTitle(resource.getString("HierarchyEditor"));
-        frame.setIconImage(DashboardIconFactory.getWindowIconImage());
+        DashboardIconFactory.setWindowIcon(frame);
         JToolBar toolBar = buildToolBar();
         if (Settings.isReadWrite())
             frame.getContentPane().add("North", toolBar);
@@ -294,7 +294,7 @@ public class HierarchyEditor extends Object implements TreeModelListener, TreeSe
             frame.pack();
         else
             frame.setSize(new Dimension(frameWidth, frameHeight));
-        frame.show();
+        frame.setVisible(true);
         useProps.addItemListener (this);
     }
 
@@ -417,7 +417,8 @@ public class HierarchyEditor extends Object implements TreeModelListener, TreeSe
     }
 
     private void showProgressDialog() {
-        if (progressDialog != null) progressDialog.show();
+        if (progressDialog != null)
+                progressDialog.setVisible(true);
     }
 
     private void incrementProgressDialog() {
@@ -443,7 +444,7 @@ public class HierarchyEditor extends Object implements TreeModelListener, TreeSe
     }
 
     public void show() {
-        frame.show();
+        frame.setVisible(true);
         frame.toFront();
     }
 
