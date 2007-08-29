@@ -55,7 +55,7 @@ public class VariableSubstitutor
 {
 
     /**  The variable value mappings */
-    protected Map environment;
+    protected VariableValueMap environment;
 
     /**  A constant for file type. Plain file. */
     protected final static int TYPE_PLAIN = 0;
@@ -90,7 +90,7 @@ public class VariableSubstitutor
      *
      * @param  environment  the environment with variable value mappings
      */
-    public VariableSubstitutor(Map environment)
+    public VariableSubstitutor(VariableValueMap environment)
     {
         this.environment = environment;
     }
@@ -243,13 +243,13 @@ public class VariableSubstitutor
             // Check if a legal and defined variable found
             boolean found = ((!braces || c == '}') &&
                 name.length() > 0 &&
-                environment.containsKey(name));
+                environment.getVariable(name) != null);
 
             // Substitute the variable...
             if (found)
             {
                 writer.write
-                    (escapeSpecialChars((String) environment.get(name), t));
+                    (escapeSpecialChars(environment.getVariable(name), t));
                 if (braces)
                     c = reader.read();
             }

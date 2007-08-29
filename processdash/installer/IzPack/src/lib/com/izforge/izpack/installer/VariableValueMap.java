@@ -24,14 +24,12 @@
  */
 package com.izforge.izpack.installer;
 
-import java.util.Map;
-
 /**
  *  Maps variable names to a variable value.
  *
  * @author     Johannes Lehtinen <johannes.lehtinen@iki.fi>
  */
-public interface VariableValueMap extends Map
+public interface VariableValueMap
 {
 
     /**
