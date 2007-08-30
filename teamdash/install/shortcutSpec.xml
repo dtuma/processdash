@@ -13,7 +13,7 @@
      commandLine="-Xmx${MAX_MEMORY}m -jar &quot;$INSTALL_PATH\pspdash.jar&quot; &quot;Team Dashboard&quot;"
      workingDirectory="$TEAM_DATA_PATH"
      description="Process Dashboard instance containing your team data"
-     iconFile="$TEAM_DATA_PATH\teamicon.ico"
+     iconFile="$INSTALL_PATH\teamicon.ico"
      iconIndex="0"
      initialState="minimized">
        <createForPack id="teamTools"/>
