@@ -1748,10 +1748,21 @@ public class TaskScheduleDialog
     protected void moveTaskUpFlatView() {
         int firstRowNum = treeTable.getSelectionModel().getMinSelectionIndex();
         int lastRowNum = treeTable.getSelectionModel().getMaxSelectionIndex();
-        if (flatModel.moveTasksUp(firstRowNum-1, lastRowNum-1)) {
-            setDirty(true);
-            SwingUtilities.invokeLater
+        if (treeTable.getSelectedRowCount() < lastRowNum - firstRowNum+1) {
+            TransferHandler.getCopyAction().actionPerformed(
+                    new ActionEvent(treeTable, ActionEvent.ACTION_PERFORMED,
+                            "Copy"));
+            treeTable.getSelectionModel().setSelectionInterval(firstRowNum - 1,
+                    firstRowNum - 1);
+            TransferHandler.getPasteAction().actionPerformed(
+                    new ActionEvent(treeTable, ActionEvent.ACTION_PERFORMED,
+                            "Paste"));
+        } else {
+            if (flatModel.moveTasksUp(firstRowNum-1, lastRowNum-1)) {
+                setDirty(true);
+                SwingUtilities.invokeLater
                 (new RowSelectionTask(firstRowNum-1, lastRowNum-1, false));
+            }
         }
     }
 
@@ -1789,10 +1800,21 @@ public class TaskScheduleDialog
     protected void moveTaskDownFlatView() {
         int firstRowNum = treeTable.getSelectionModel().getMinSelectionIndex();
         int lastRowNum = treeTable.getSelectionModel().getMaxSelectionIndex();
-        if (flatModel.moveTasksDown(firstRowNum-1, lastRowNum-1)) {
-            setDirty(true);
-            SwingUtilities.invokeLater
+        if (treeTable.getSelectedRowCount() < lastRowNum - firstRowNum+1) {
+            TransferHandler.getCopyAction().actionPerformed(
+                    new ActionEvent(treeTable, ActionEvent.ACTION_PERFORMED,
+                            "Copy"));
+            treeTable.getSelectionModel().setSelectionInterval(lastRowNum + 2,
+                    lastRowNum + 2);
+            TransferHandler.getPasteAction().actionPerformed(
+                    new ActionEvent(treeTable, ActionEvent.ACTION_PERFORMED,
+                            "Paste"));
+        } else {
+            if (flatModel.moveTasksDown(firstRowNum-1, lastRowNum-1)) {
+                setDirty(true);
+                SwingUtilities.invokeLater
                 (new RowSelectionTask(firstRowNum+1, lastRowNum+1, true));
+            }
         }
     }
 
@@ -1871,8 +1893,10 @@ public class TaskScheduleDialog
 
         boolean enableDelete = (disableTaskPruning == false
                 && firstRowNum > 0 && firstRowNum == lastRowNum);
-        boolean enableUp     = (firstRowNum > 1);
-        boolean enableDown   = (lastRowNum > 0 && lastRowNum < treeTable.getRowCount()-1);
+
+        boolean enableUp = (lastRowNum - treeTable.getSelectedRowCount() > 1);
+        boolean enableDown = (lastRowNum > 0 && (firstRowNum + treeTable
+                .getSelectedRowCount()) < treeTable.getRowCount());
 
         //addTaskButton    .setEnabled(false);
         deleteTaskButton .setEnabled(enableDelete);
@@ -1933,6 +1957,8 @@ public class TaskScheduleDialog
         if (!isFlatView()) {
             changeTreeTableModel(model, treeColumnModel);
             treeTable.setDragEnabled(false);
+            treeTable.setSelectionMode(
+                    ListSelectionModel.SINGLE_INTERVAL_SELECTION);
         } else {
             if (flatModel == null) {
                 flatModel = model.getFlatModel();
@@ -1940,6 +1966,8 @@ public class TaskScheduleDialog
             }
             changeTreeTableModel(flatModel, flatColumnModel);
             treeTable.setDragEnabled(true);
+            treeTable.setSelectionMode(
+                    ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
         }
 
         enableTaskButtons();

@@ -1254,7 +1254,11 @@ public class EVTaskList extends AbstractTreeTableModel
 
             List newLeaves = new LinkedList(evLeaves);
             Object insertionMarker = new Object();
-            newLeaves.add(beforePos, insertionMarker);
+            if (beforePos >= newLeaves.size()) {
+                newLeaves.add(insertionMarker);
+            } else {
+                newLeaves.add(beforePos, insertionMarker);
+            }
 
             String[] nodeNames = tasks.split("[\t\f\r\n]+",0);
             List tasksToInsert = new ArrayList(nodeNames.length);
