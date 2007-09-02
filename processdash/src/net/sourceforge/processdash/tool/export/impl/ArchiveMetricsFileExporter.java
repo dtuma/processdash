@@ -28,6 +28,7 @@ package net.sourceforge.processdash.tool.export.impl;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -49,7 +50,10 @@ import net.sourceforge.processdash.templates.DashPackage;
 import net.sourceforge.processdash.templates.TemplateLoader;
 import net.sourceforge.processdash.tool.export.mgr.Cancellable;
 import net.sourceforge.processdash.tool.export.mgr.CompletionStatus;
+import net.sourceforge.processdash.tool.export.mgr.ExportFileEntry;
+import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.RobustFileOutputStream;
+import net.sourceforge.processdash.util.StringUtils;
 import net.sourceforge.processdash.util.ThreadThrottler;
 import net.sourceforge.processdash.util.XMLUtils;
 
@@ -81,6 +85,8 @@ public class ArchiveMetricsFileExporter implements Runnable,
 
     private List metricsExcludes;
 
+    private List additionalEntries;
+
     private RobustFileOutputStream outStream;
 
     private CompletionStatus completionStatus = CompletionStatus.NOT_RUN_STATUS;
@@ -91,16 +97,18 @@ public class ArchiveMetricsFileExporter implements Runnable,
 
     public ArchiveMetricsFileExporter(DashboardContext ctx, File dest,
             Collection filter) {
-        this(ctx, dest, filter, null, null);
+        this(ctx, dest, filter, null, null, null);
     }
 
     public ArchiveMetricsFileExporter(DashboardContext ctx, File dest,
-            Collection filter, List metricsIncludes, List metricsExcludes) {
+            Collection filter, List metricsIncludes, List metricsExcludes,
+            List additionalEntries) {
         this.ctx = ctx;
         this.dest = dest;
         this.filter = filter;
         this.metricsIncludes = metricsIncludes;
         this.metricsExcludes = metricsExcludes;
+        this.additionalEntries = additionalEntries;
     }
 
     public CompletionStatus getCompletionStatus() {
@@ -142,6 +150,7 @@ public class ArchiveMetricsFileExporter implements Runnable,
             writeTaskLists(zipOut, taskListNames);
         writeDefects(zipOut);
         writeTimeLogEntries(zipOut);
+        writeAditionalEntries(zipOut);
         writeManifest(zipOut, !taskListNames.isEmpty());
 
         zipOut.close();
@@ -175,6 +184,14 @@ public class ArchiveMetricsFileExporter implements Runnable,
         if (includeTaskLists)
             writeManifestFileEntry(xml, EV_FILE_NAME, FILE_TYPE_EARNED_VALUE,
                     "1");
+
+        if (additionalEntries != null)
+            for (Iterator i = additionalEntries.iterator(); i.hasNext();) {
+                ExportFileEntry file = (ExportFileEntry) i.next();
+                writeManifestFileEntry(xml, file.getFilename(), file.getType(),
+                    file.getVersion());
+            }
+
         xml.endTag(null, ARCHIVE_ELEM);
         xml.ignorableWhitespace(NEWLINE);
         xml.endDocument();
@@ -214,8 +231,10 @@ public class ArchiveMetricsFileExporter implements Runnable,
         xml.ignorableWhitespace(INDENT);
         xml.startTag(null, FILE_ELEM);
         xml.attribute(null, FILE_NAME_ATTR, filename);
-        xml.attribute(null, TYPE_ATTR, type);
-        xml.attribute(null, VERSION_ATTR, version);
+        if (StringUtils.hasValue(type))
+            xml.attribute(null, TYPE_ATTR, type);
+        if (StringUtils.hasValue(version))
+            xml.attribute(null, VERSION_ATTR, version);
         xml.endTag(null, FILE_ELEM);
         xml.ignorableWhitespace(NEWLINE);
     }
@@ -287,6 +306,59 @@ public class ArchiveMetricsFileExporter implements Runnable,
         exp.dumpTimeLogEntries(ctx.getTimeLog(), ctx.getData(), filter, zipOut);
 
         zipOut.closeEntry();
+    }
+
+    private void writeAditionalEntries(ZipOutputStream zipOut) throws IOException {
+        if (additionalEntries != null) {
+            additionalEntries = new ArrayList(additionalEntries);
+            for (Iterator i = additionalEntries.iterator(); i.hasNext();) {
+                ExportFileEntry file = (ExportFileEntry) i.next();
+                if (writeAditionalEntry(zipOut, file) == false)
+                    i.remove();
+            }
+        }
+    }
+
+    private boolean writeAditionalEntry(ZipOutputStream zipOut,
+            ExportFileEntry file) throws IOException {
+        if (!StringUtils.hasValue(file.getHref())) {
+            logger.severe("Missing href for additional export entry " +
+                        "when exporting file " + dest);
+            return false;
+        }
+        if (!StringUtils.hasValue(file.getFilename())) {
+            logger.severe("Missing filename for additional export entry " +
+                        "when exporting file " + dest);
+            return false;
+        }
+
+        byte[] data;
+        String uri = getAdditionalEntryUri(file);
+        try {
+            data = ctx.getWebServer().getRequest(uri, true);
+        } catch (IOException ioe) {
+            logger.severe("Encountered exception when exporting " + uri
+                    + " for export file " + dest);
+            ioe.printStackTrace();
+            return false;
+        }
+
+        zipOut.putNextEntry(new ZipEntry(file.getFilename()));
+        zipOut.write(data);
+        zipOut.closeEntry();
+
+        return true;
+    }
+
+    private String getAdditionalEntryUri(ExportFileEntry file) {
+        StringBuffer uri = new StringBuffer(file.getHref());
+        if (!file.getHref().startsWith("/"))
+            uri.insert(0, '/');
+        for (Iterator i = filter.iterator(); i.hasNext();) {
+            String path = (String) i.next();
+            HTMLUtils.appendQuery(uri, "hierarchyPath", path);
+        }
+        return uri.toString();
     }
 
     private void writeTaskLists(ZipOutputStream zipOut, Collection taskListNames)

@@ -172,7 +172,8 @@ public class ExportManager extends AbstractManager {
             else
                 return new ExportTask(destFile, new ArchiveMetricsFileExporter(
                         dashboard, destFile, paths, instr.getMetricsIncludes(),
-                        instr.getMetricsExcludes()));
+                        instr.getMetricsExcludes(),
+                        instr.getAdditionalFileEntries()));
         }
 
     }
