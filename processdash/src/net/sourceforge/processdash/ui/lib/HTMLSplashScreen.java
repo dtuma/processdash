@@ -38,6 +38,7 @@ import javax.swing.JEditorPane;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JWindow;
+import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 
 public class HTMLSplashScreen extends JWindow implements ActionListener {
@@ -90,19 +91,28 @@ public class HTMLSplashScreen extends JWindow implements ActionListener {
         t.start();
     }
 
-    public synchronized void okayToDispose() {
-        waitingForOK = false;
-        maybeDispose();
+    private Object syncLock = new Object();
+
+    public void okayToDispose() {
+        synchronized (syncLock) {
+            waitingForOK = false;
+            maybeDispose();
+        }
     }
 
-    public synchronized void actionPerformed(ActionEvent e) {
-        waitingForTimer = false;
-        maybeDispose();
+    public void actionPerformed(ActionEvent e) {
+        synchronized (syncLock) {
+            waitingForTimer = false;
+            maybeDispose();
+        }
     }
 
-    private synchronized void maybeDispose() {
+    private void maybeDispose() {
         if (!waitingForOK && !waitingForTimer)
-            dispose();
+            SwingUtilities.invokeLater(new Runnable() {
+                public void run() {
+                    dispose();
+                }});
     }
 
 }
