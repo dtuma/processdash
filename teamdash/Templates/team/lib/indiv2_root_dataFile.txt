@@ -10,6 +10,7 @@
 undefine([Simple Project Tag]);
 [Exporting_Namespaced_Phase_Metrics] = true;
 [<!--#echo Process_ID --> Indiv2 Root Tag] = tag;
+[Enable_Reverse_Sync] = true;
 
 
 // I'm commenting this line out for now, because the indiv plan summary

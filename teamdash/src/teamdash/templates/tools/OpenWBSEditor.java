@@ -65,31 +65,42 @@ public class OpenWBSEditor extends TinyCGIBase {
         boolean readOnly = Settings.getBool("READ_ONLY", false)
                 || "true".equalsIgnoreCase(getParameter("forceReadOnly"));
         String syncURL = getSyncURL();
+        String reverseSyncURL = getReverseSyncURL();
 
         if (useJNLP)
-            writeJnlpFile(directory, bottomUp, showTeam, readOnly, syncURL);
+            writeJnlpFile(directory, bottomUp, showTeam, readOnly, syncURL,
+                reverseSyncURL);
         else
-            openInProcess(directory, bottomUp, showTeam, readOnly, syncURL);
+            openInProcess(directory, bottomUp, showTeam, readOnly, syncURL,
+                reverseSyncURL);
     }
 
     private String getSyncURL() {
-        String syncURI = getParameter("syncURL");
-        if (syncURI == null || syncURI.length() == 0)
+        return makeAbsoluteURL(getParameter("syncURL"));
+    }
+
+    private String getReverseSyncURL() {
+        return makeAbsoluteURL(getParameter("reverseSyncURL"));
+    }
+
+    private String makeAbsoluteURL(String uri) {
+        if (uri == null || uri.trim().length() == 0)
             return null;
-        if (syncURI.startsWith("http"))
-            return syncURI;
+        if (uri.startsWith("http"))
+            return uri;
         WebServer ws = getTinyWebServer();
-        return "http://" + ws.getHostName(true) + ":" + ws.getPort() + syncURI;
+        return "http://" + ws.getHostName(true) + ":" + ws.getPort() + uri;
     }
 
     private void openInProcess(String directory, boolean bottomUp,
-            boolean showTeam, boolean readOnly, String syncURL) {
+            boolean showTeam, boolean readOnly, String syncURL,
+            String reverseSyncURL) {
         if (!checkEntryCriteria(directory))
             return;
 
         writeHtmlHeader();
         if (launchEditorProcess(directory, bottomUp, showTeam, readOnly,
-                syncURL)) {
+                syncURL, reverseSyncURL)) {
             // if we successfully opened the WBS, write the null document.
             DashController.printNullDocument(out);
         } else {
@@ -126,9 +137,10 @@ public class OpenWBSEditor extends TinyCGIBase {
     private static Hashtable editors = new Hashtable();
 
     private boolean launchEditorProcess(String directory, boolean bottomUp,
-            boolean showTeam, boolean readOnly, String syncURL) {
+            boolean showTeam, boolean readOnly, String syncURL,
+            String reverseSyncURL) {
         String[] cmdLine = getProcessCmdLine(directory, bottomUp, showTeam,
-                readOnly, syncURL);
+                readOnly, syncURL, reverseSyncURL);
         if (cmdLine == null)
             return false;
 
@@ -144,7 +156,8 @@ public class OpenWBSEditor extends TinyCGIBase {
     }
 
     private String[] getProcessCmdLine(String directory, boolean bottomUp,
-            boolean showTeam, boolean readOnly, String syncURL) {
+            boolean showTeam, boolean readOnly, String syncURL,
+            String reverseSyncURL) {
         String jreExecutable = RuntimeUtils.getJreExecutable();
         File classpath = RuntimeUtils.getClasspathFile(getClass());
         if (jreExecutable == null || classpath == null)
@@ -165,6 +178,8 @@ public class OpenWBSEditor extends TinyCGIBase {
             cmd.add("-Dteamdash.wbs.readOnly=true");
         if (syncURL != null)
             cmd.add("-Dteamdash.wbs.syncURL=" + syncURL);
+        if (reverseSyncURL != null)
+            cmd.add("-Dteamdash.wbs.reverseSyncURL=" + reverseSyncURL);
 
         String owner = getOwner();
         if (owner != null)
@@ -214,7 +229,8 @@ public class OpenWBSEditor extends TinyCGIBase {
     }
 
     private void writeJnlpFile(String directory, boolean bottomUp,
-            boolean showTeam, boolean readOnly, String syncURL) {
+            boolean showTeam, boolean readOnly, String syncURL,
+            String reverseSyncURL) {
         out.print("Content-type: application/x-java-jnlp-file\r\n\r\n");
 
         WebServer ws = getTinyWebServer();
@@ -255,6 +271,10 @@ public class OpenWBSEditor extends TinyCGIBase {
         if (syncURL != null)
             out.print("<property name='teamdash.wbs.syncURL' value='"
                     + XMLUtils.escapeAttribute(syncURL) + "'/>\n");
+
+        if (reverseSyncURL != null)
+            out.print("<property name='teamdash.wbs.reverseSyncURL' value='"
+                    + XMLUtils.escapeAttribute(reverseSyncURL) + "'/>\n");
 
         String owner = getOwner();
         if (owner != null)

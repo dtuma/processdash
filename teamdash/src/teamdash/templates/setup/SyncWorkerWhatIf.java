@@ -67,4 +67,9 @@ public class SyncWorkerWhatIf extends SyncWorker {
         localData.put(name, value);
     }
 
+    protected void doPutValueForce(String name, SaveableData value) {
+        name = getOriginalPath(name);
+        data.putValue(name, value);
+    }
+
 }

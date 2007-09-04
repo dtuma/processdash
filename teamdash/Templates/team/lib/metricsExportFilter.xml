@@ -2,6 +2,10 @@
 <?xml version='1.0' standalone='yes' ?>
 
 <exportMetricsFile>
+  <!--#if not oldStyle #-->
+    <addEntry name="userDump.xml" href="PID/setup/userData" type="PID-reverseSync"/>
+  <!--#endif #-->
+ 
   <metricsFilter>
     <!-- request explicit metrics enumeration -->
     <exclude>All Metrics Not Explicitly Listed</exclude>

@@ -176,26 +176,42 @@ public abstract class SyncWorker implements DataContext {
 
     protected abstract void doPutValue(String name, SaveableData value);
 
+    /** Write a value into the data repository;  do it always, even if
+     * we're in "what-if" mode. */
+    protected void doPutValueForce(String name, SaveableData value) {
+        doPutValue(name, value);
+    }
+
 
     private static final String SYNC_VAL_SUFFIX = "_Last_Synced_Val";
 
+    private SaveableData lastReverseSyncedValue = null;
 
-    public void putValue(String name, SaveableData value) {
+    public void setLastReverseSyncedValue(SaveableData d) {
+        lastReverseSyncedValue = d;
+    }
+    public void setLastReverseSyncedValue(double d) {
+        setLastReverseSyncedValue(new DoubleData(d));
+    }
+
+    public void putValue(String name, SaveableData newValue) {
         SaveableData currVal = getValue(name);
+        SaveableData lastRevSyncVal = lastReverseSyncedValue;
+        lastReverseSyncedValue = null;
 
-        if (!(value instanceof NumberData)) {
+        if (!(newValue instanceof NumberData)) {
             // This isn't a number.  Just check for equality with the current
             // value.  Note that we place value first and currVal second; this
             // is important.  A ListData element turns into a StringData
             // element after a shutdown/restart cycle;  if the new value is a
             // list, and the currVal is a string, the order below will result
             // in a positive match (while the reverse order would return false)
-            if (dataEquals(value, currVal))
+            if (dataEquals(newValue, currVal))
                 // no need to store the new value if it matches the current value.
                 return;
             else {
                 // the value has changed. save the new value.
-                doPutValue(name, value);
+                doPutValue(name, newValue);
                 noteDataChange(name);
                 return;
             }
@@ -203,22 +219,30 @@ public abstract class SyncWorker implements DataContext {
 
         String syncName = name + SYNC_VAL_SUFFIX;
         SimpleData lastSyncVal = getSimpleValue(syncName);
-        if (isFalseSimpleValue(currVal) || dataEquals(currVal, lastSyncVal)) {
-            if (dataEquals(currVal, value))
+
+        if (dataEquals(newValue, currVal)) {
+            if (dataEquals(newValue, lastSyncVal)) {
                 // all three numbers are in agreement. Nothing needs to be done.
                 return;
 
-            // Update the value, and make a note of the value we're syncing.
-            doPutValue(name, value);
-            doPutValue(syncName, value);
-            noteDataChange(name);
+            } else {
+                // the new and old values match, but the sync doesn't.  This
+                // would occur if:
+                //   (a) the user has synced an estimate manually,
+                //   (b) the WBS was updated via reverse sync, or
+                //   (c) the sync occurred before sync records were kept.
+                // The right action is to store the sync value for future
+                // reference.  We will do this silently, even in what-if mode,
+                // and won't report any change having been made.
+                doPutValueForce(syncName, newValue);
+            }
 
-        } else if (dataEquals(currVal, value)) {
-            // the new and old values match, but the sync doesn't.  This would
-            // occur if  (a) the user had synced an estimate manually, or
-            // (b) the sync occurred before sync records were kept.  The
-            // right action is to store the sync value for future reference.
-            doPutValue(syncName, value);
+        } else if (isFalseSimpleValue(currVal)
+                || dataEquals(currVal, lastSyncVal)
+                || dataEquals(currVal, lastRevSyncVal)) {
+            // Update the value, and make a note of the value we're syncing.
+            doPutValue(name, newValue);
+            doPutValue(syncName, newValue);
             noteDataChange(name);
         }
     }

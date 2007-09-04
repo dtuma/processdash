@@ -272,7 +272,7 @@ public class WBSNode implements Cloneable {
             Iterator i = result.attributes.keySet().iterator();
             while (i.hasNext()) {
                 String attrName = (String) i.next();
-                if (attrName.indexOf('_') != -1)
+                if (attrName.indexOf('_') != -1 && attrName.indexOf('@') == -1)
                     i.remove();
             }
             return result;

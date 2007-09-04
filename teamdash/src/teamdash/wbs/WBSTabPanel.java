@@ -75,7 +75,8 @@ public class WBSTabPanel extends JPanel
     private static final String WBS_TABS_ELEMENT = "wbstabs";
     private static final String COLUMN_SELECTOR_DIALOG_TITLE = "Select Tab Columns";
 
-    public static final String TEAM_MEMBER_TIMES_ID = "TeamMemberTimes";
+    public static final String TEAM_MEMBER_PLAN_TIMES_ID = "TeamMemberTimes";
+    public static final String TEAM_MEMBER_ACTUAL_TIMES_ID = "TeamMemberActualTimes";
 
     WBSColumnSelectorDialog columnSelectorDialog;
     WBSJTable wbsTable;
@@ -172,8 +173,11 @@ public class WBSTabPanel extends JPanel
         for (int i = 0; i < columnIDs.length; i++) {
             if (columnIDs[i] == null)
                 continue;
-            else if (TEAM_MEMBER_TIMES_ID.equals(columnIDs[i])) {
-                tableModel.addTeamMemberTimes(columnModel);
+            else if (TEAM_MEMBER_PLAN_TIMES_ID.equals(columnIDs[i])) {
+                tableModel.addTeamMemberPlanTimes(columnModel);
+                isProtected = true;
+            } else if (TEAM_MEMBER_ACTUAL_TIMES_ID.equals(columnIDs[i])) {
+                tableModel.addTeamMemberActualTimes(columnModel);
                 isProtected = true;
             } else {
                 try {

@@ -184,14 +184,14 @@ public class WeeklySchedule implements EffortCalendar {
 
         else if (value == null || "".equals(value)) {
             if (exceptions.containsKey(week))
-                exceptions.remove(week);
+                removeException(week);
             else
                 addException(week, 0);
 
         } else if (value instanceof Number) {
             double hours = ((Number) value).doubleValue();
             if (eq(hours, hoursPerWeek.getHours()))
-                exceptions.remove(week);
+                removeException(week);
             else if (hours >= 0)
                 addException(week, hours);
         }
@@ -240,11 +240,14 @@ public class WeeklySchedule implements EffortCalendar {
         return weekValueToDate(week);
     }
 
-    protected void addException(int weekNum, double time) {
+    public void addException(int weekNum, double time) {
         exceptions.put(weekNum, new WeekData(time, WeekData.TYPE_EXCEPTION));
         maxExceptionWeek = Math.max(maxExceptionWeek, weekNum);
     }
 
+    public void removeException(int week) {
+        exceptions.remove(week);
+    }
 
 
     public void writeAttributes(Writer out, boolean dumpMode) throws IOException {

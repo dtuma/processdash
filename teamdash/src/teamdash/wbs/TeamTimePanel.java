@@ -25,6 +25,7 @@ import javax.swing.event.TableModelListener;
 
 import teamdash.team.TeamMember;
 import teamdash.team.TeamMemberList;
+import teamdash.wbs.columns.TeamMemberTimeColumn;
 
 /** Displays a panel containing dynamic bar charts for each team member. The
  * bars indicate the approximate bottom-up duration of the schedule for each
@@ -347,7 +348,8 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
 
         /** Look up the time column for this team member. */
         private int findTimeColumn() {
-            return dataModel.findColumn(teamMember.getInitials()+"-Time");
+            String columnID = TeamMemberTimeColumn.getColumnID(teamMember);
+            return dataModel.findColumn(columnID);
         }
 
         /** Alter the horizontal position of this bar.

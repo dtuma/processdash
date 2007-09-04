@@ -24,6 +24,8 @@ import teamdash.wbs.WBSNode;
  */
 public class TeamTimeColumn extends TopDownBottomUpColumn {
 
+    public static final String COLUMN_ID = "Time";
+
     int sizeColumn = -1;
     int unitsColumn = -1;
     IntList teamMemberColumns;
@@ -35,7 +37,7 @@ public class TeamTimeColumn extends TopDownBottomUpColumn {
 
 
     public TeamTimeColumn(DataTableModel m) {
-        super(m, "Time", "Time");
+        super(m, "Time", COLUMN_ID);
         this.dependentColumns = new String[] { "Task Size", "Task Size Units" };
         this.teamMemberColumns = new IntList();
         this.preferredWidth = 55;

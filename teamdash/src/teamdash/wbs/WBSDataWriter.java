@@ -371,6 +371,7 @@ public class WBSDataWriter {
             writeAttr(out, PHASE_NAME_ATTR, phaseName);
             writeAttr(out, PHASE_TYPE_ATTR, phaseType);
             writeAttr(out, TIME_ATTR, getTeamMemberTimes(node));
+            writeAttr(out, SYNC_TIME_ATTR, getTeamMemberSyncTimes(node));
             maybeWriteQualitySize(out, phaseName, phaseType, node);
         }
 
@@ -399,6 +400,7 @@ public class WBSDataWriter {
     private class PSPTaskAttributeWriter extends SizeAttributeWriter {
         public void writeAttributes(Writer out, WBSNode node) throws IOException {
             writeAttr(out, TIME_ATTR, getTeamMemberTimes(node));
+            writeAttr(out, SYNC_TIME_ATTR, getTeamMemberSyncTimes(node));
             super.writeAttributes(out, node);
         }
     }
@@ -421,6 +423,41 @@ public class WBSDataWriter {
 
             result.append(",").append(dataModel.getColumnName(col))
                 .append("=").append(time);
+        }
+
+        if (result.length() == 0)
+            return null;
+
+        result.append(",");
+        return result.toString();
+    }
+
+
+
+    /** Build an XML attribute value describing the time each team member plans
+     * to spend in the given node.
+     */
+    private String getTeamMemberSyncTimes(WBSNode node) {
+        if (teamMemberColumns == null)
+            return null;
+
+        String[] syncAttrs = new String[teamMemberColumns.size()];
+        for (int i = 0; i < syncAttrs.length; i++) {
+            int col = teamMemberColumns.get(i);
+            String colID = dataModel.getColumn(col).getColumnID();
+            String attrName = WBSSynchronizer.getSyncAttrName(colID);
+            syncAttrs[i] = attrName;
+        }
+
+        StringBuffer result = new StringBuffer();
+        for (int i = 0;   i < teamMemberColumns.size();   i++) {
+            double lastSyncedVal = node.getNumericAttribute(syncAttrs[i]);
+            if (!Double.isNaN(lastSyncedVal)) {
+                int col = teamMemberColumns.get(i);
+                String initials = dataModel.getColumnName(col);
+                result.append(",").append(initials)
+                    .append("=").append(lastSyncedVal);
+            }
         }
 
         if (result.length() == 0)
@@ -475,6 +512,7 @@ public class WBSDataWriter {
     private static final String PHASE_TYPE_ATTR = "phaseType";
     private static final String EFFECTIVE_PHASE_ATTR = "effectivePhase";
     private static final String TIME_ATTR = "time";
+    private static final String SYNC_TIME_ATTR = "syncTime";
     private static final String UNITS_ATTR = "sizeUnits";
     private static final String INSP_UNITS_ATTR = "inspUnits";
     private static final String INSP_SIZE_ATTR = "inspSize";

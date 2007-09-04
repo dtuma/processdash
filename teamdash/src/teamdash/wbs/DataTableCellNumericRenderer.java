@@ -41,7 +41,7 @@ class DataTableCellNumericRenderer extends DefaultTableCellRenderer {
 
         if (number != null) {
             // extract information from the NumericDataValue object.
-            display = number.isInvisible ? "" : number.toString();
+            display = number.isInvisible ? "" : formatNumber(number);
             errorMsg = number.errorMessage;
             errorColor = number.errorColor;
             readOnly = (number.isEditable == false);
@@ -64,6 +64,11 @@ class DataTableCellNumericRenderer extends DefaultTableCellRenderer {
             ((JComponent) result).setToolTipText(errorMsg);
 
         return result;
+    }
+
+    /** Get a string to display the number supplied */
+    protected String formatNumber(NumericDataValue number) {
+        return number.toString();
     }
 
     /** Determine the appropriate foreground color based on the conditions

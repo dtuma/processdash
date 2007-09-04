@@ -23,6 +23,7 @@ import teamdash.wbs.columns.SizeTypeColumn;
 import teamdash.wbs.columns.TaskDependencyColumn;
 import teamdash.wbs.columns.TaskSizeColumn;
 import teamdash.wbs.columns.TaskSizeUnitsColumn;
+import teamdash.wbs.columns.TeamActualTimeColumn;
 import teamdash.wbs.columns.TeamMemberColumnManager;
 import teamdash.wbs.columns.TeamTimeColumn;
 
@@ -236,14 +237,19 @@ public class DataTableModel extends AbstractTableModel {
 
 
     /** Add time columns for each team member to the given column model. */
-    public void addTeamMemberTimes(TableColumnModel columnModel) {
-        memberColumnManager.addToColumnModel(columnModel);
+    public void addTeamMemberPlanTimes(TableColumnModel columnModel) {
+        memberColumnManager.addPlanTimesToColumnModel(columnModel);
+    }
+
+    /** Add time columns for each team member to the given column model. */
+    public void addTeamMemberActualTimes(TableColumnModel columnModel) {
+        memberColumnManager.addActualTimesToColumnModel(columnModel);
     }
 
     /** Get a list of the column numbers for each team member column. */
     public IntList getTeamMemberColumnIDs() {
         IntList result = new IntList();
-        Iterator i = memberColumnManager.getColumns().iterator();
+        Iterator i = memberColumnManager.getPlanTimeColumns().iterator();
         while (i.hasNext())
             result.add(columns.indexOf(i.next()));
 
@@ -261,6 +267,7 @@ public class DataTableModel extends AbstractTableModel {
         addDataColumn(new TaskSizeColumn(this, teamProcess));
         addDataColumn(new TaskSizeUnitsColumn(this, teamProcess));
         addDataColumn(new TeamTimeColumn(this));
+        addDataColumn(new TeamActualTimeColumn(this, teamList));
         addDataColumn(new TaskLabelColumn(this));
         addDataColumn(new TaskDependencyColumn(this, dependencySource,
                 teamProcess.getIconMap()));

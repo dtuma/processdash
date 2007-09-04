@@ -39,7 +39,12 @@ import teamdash.DirectoryBackup;
 import teamdash.SaveListener;
 import teamdash.team.TeamMemberListEditor;
 import teamdash.wbs.WBSTabPanel.LoadTabsException;
+import teamdash.wbs.columns.PercentCompleteColumn;
+import teamdash.wbs.columns.PercentSpentColumn;
 import teamdash.wbs.columns.SizeAccountingColumnSet;
+import teamdash.wbs.columns.TeamActualTimeColumn;
+import teamdash.wbs.columns.TeamCompletionDateColumn;
+import teamdash.wbs.columns.TeamTimeColumn;
 
 public class WBSEditor implements WindowListener, SaveListener,
         ConcurrencyLock.Listener {
@@ -57,6 +62,7 @@ public class WBSEditor implements WindowListener, SaveListener,
     WBSDataWriter workflowWriter;
     File workflowDumpFile;
     DirectoryBackup teamProjectBackup;
+    WBSSynchronizer reverseSynchronizer;
     File customTabsFile;
     private String owner;
     private int mode;
@@ -105,6 +111,11 @@ public class WBSEditor implements WindowListener, SaveListener,
             (model, teamProject.getTeamMemberList(),
              teamProject.getTeamProcess(), taskDependencySource);
 
+        reverseSynchronizer = new WBSSynchronizer(teamProject, data);
+        reverseSynchronizer.run();
+        boolean showActualData = isMode(MODE_PLAIN)
+                && reverseSynchronizer.getFoundActualData();
+
         dataWriter = new WBSDataWriter(model, data,
                 teamProject.getTeamProcess(), teamProject.getProjectID(),
                 teamProject.getTeamMemberList());
@@ -143,8 +154,9 @@ public class WBSEditor implements WindowListener, SaveListener,
                                     "Reused", "N&C", "Total" });
 
         if (!isMode(MODE_MASTER))
-            tabPanel.addTab("Time",
-                     new String[] { "Time", WBSTabPanel.TEAM_MEMBER_TIMES_ID },
+            tabPanel.addTab((showActualData ? "Planned Time" : "Time"),
+                     new String[] { TeamTimeColumn.COLUMN_ID,
+                                    WBSTabPanel.TEAM_MEMBER_PLAN_TIMES_ID },
                      new String[] { "Team", "" });
 
         tabPanel.addTab("Task Time",
@@ -152,13 +164,23 @@ public class WBSEditor implements WindowListener, SaveListener,
                         ifMode(MODE_PLAIN, "Hrs/Indiv"),
                         ifMode(MODE_PLAIN, "# People"),
                         (isMode(MODE_MASTER) ? "TimeNoErr" : "Time"),
-                        ifNotMode(MODE_MASTER, "Assigned To") },
+                        ifNotMode(MODE_MASTER, "Assigned To"),
+                        (showActualData ? TeamCompletionDateColumn.COLUMN_ID : null),
+                        (showActualData ? PercentCompleteColumn.COLUMN_ID : null),
+                        (showActualData ? PercentSpentColumn.COLUMN_ID : null) },
                 new String[] { "Phase/Type", "Task Size", "Units", "Rate",
-                        "Hrs/Indiv", "# People", "Time", "Assigned To" });
+                        "Hrs/Indiv", "# People", "Time", "Assigned To",
+                        "Completed", "%C", "%S" });
 
         tabPanel.addTab("Task Details",
                 new String[] { "Labels", "Dependencies" },
                 new String[] { "Task Labels", "Task Dependencies" });
+
+        if (showActualData)
+            tabPanel.addTab("Actual Time",
+                new String[] { TeamActualTimeColumn.COLUMN_ID,
+                               WBSTabPanel.TEAM_MEMBER_ACTUAL_TIMES_ID },
+                new String[] { "Team", "" });
 
         //String[] s = new String[] { "P", "O", "N", "M", "L", "K", "J", "I", "H", "G", "F" };
         //table.addTab("Defects", s, s);
@@ -174,6 +196,7 @@ public class WBSEditor implements WindowListener, SaveListener,
         teamTimePanel.setVisible(isMode(MODE_BOTTOM_UP));
         if (isMode(MODE_BOTTOM_UP))
             teamTimePanel.setShowBalancedBar(false);
+
 
         frame = new JFrame(teamProject.getProjectName()
                 + " - Work Breakdown Structure"

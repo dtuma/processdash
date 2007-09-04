@@ -5,9 +5,11 @@ import java.io.IOException;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 
@@ -170,6 +172,17 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
     public WBSNode getNodeForRow(int row) {
         if (row < 0 || row >= rows.length) return null;
         return (WBSNode) wbsNodes.get(rows[row]);
+    }
+
+    /** Return a collection of the nodes in this model, indexed by unique ID.
+     * (The root node is not included in the result.) */
+    public Map<Integer, WBSNode> getNodeMap() {
+        Map<Integer, WBSNode> result = new HashMap<Integer, WBSNode>();
+        for (int i = 1;  i < wbsNodes.size();  i++) {
+            WBSNode n = (WBSNode) wbsNodes.get(i);
+            result.put(n.getUniqueID(), n);
+        }
+        return result;
     }
 
     public boolean isLeaf(Object node) {

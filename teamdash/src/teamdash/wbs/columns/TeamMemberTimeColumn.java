@@ -10,6 +10,7 @@ import teamdash.wbs.TeamMemberTime;
 import teamdash.wbs.TeamMemberTimeCellRenderer;
 import teamdash.wbs.WBSModel;
 import teamdash.wbs.WBSNode;
+import teamdash.wbs.columns.TeamMemberColumnManager.TeamMemberColumn;
 
 /** A column for displaying the amount of time an individual is spending on
  * each node in the work breakdown structure.
@@ -17,7 +18,7 @@ import teamdash.wbs.WBSNode;
  * This inherits "top-down-bottom-up" column editing behaviors.
  */
 public class TeamMemberTimeColumn extends TopDownBottomUpColumn
-    implements CustomRenderedColumn
+    implements CustomRenderedColumn, TeamMemberColumn
 {
 
     public static final String ATTR_SUFFIX = "-Time";
@@ -28,7 +29,7 @@ public class TeamMemberTimeColumn extends TopDownBottomUpColumn
                                 TeamMember teamMember) {
         super(dataModel,
               teamMember.getInitials(),
-              teamMember.getInitials() + ATTR_SUFFIX);
+              getColumnID(teamMember));
         this.teamMember = teamMember;
     }
 
@@ -40,7 +41,7 @@ public class TeamMemberTimeColumn extends TopDownBottomUpColumn
 
     /** Update the team member object for this column.
      */
-    void setTeamMember(TeamMember t) {
+    public void setTeamMember(TeamMember t) {
         if (!validFor(t))
             throw new IllegalArgumentException("Invalid team member");
         teamMember = t;
@@ -97,6 +98,10 @@ public class TeamMemberTimeColumn extends TopDownBottomUpColumn
         WBSNode[] children = wbsModel.getChildren(node);
         for (int i = children.length;   i-- > 0; )
             changeInitials(wbsModel, children[i], oldID, newID);
+    }
+
+    public static String getColumnID(TeamMember teamMember) {
+        return teamMember.getInitials() + ATTR_SUFFIX;
     }
 
 }

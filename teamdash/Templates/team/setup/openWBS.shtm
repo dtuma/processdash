@@ -29,6 +29,12 @@
     <!--#echo [Project_ID] #-->
 <!--#endset-->
 
+<!--#set var="reverseSyncURI" inline="true" #-->
+    <!--#if [Enable_Reverse_Sync] #-->
+        <!--#echo encoding="relUri" value="userData?forceRefresh" #-->
+    <!--#else--> <!--#endif#-->
+<!--#endset-->
+
 <!--#if [WBS_Read_Only] -->
     <!--#set var="readOnly" value="true" -->
 <!--#else-->
@@ -38,6 +44,7 @@
 <!--#include file="/team/tools/OpenWBSEditor.class" -->
     <!--#parameter name="QUERY_STRING" -->
     <!--#parameter name="syncURL" encoding="relUri" value="sync.class?run&bg" -->
+    <!--#parameter name="reverseSyncURL" var="reverseSyncURI" -->
     <!--#parameter name="forceReadOnly" var="readOnly" -->
     <!--#parameter name="directory" var="directory" -->
 

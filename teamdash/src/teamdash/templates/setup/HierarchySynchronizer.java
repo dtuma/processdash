@@ -72,6 +72,7 @@ public class HierarchySynchronizer {
     private double hoursPerWeek;
     private Map scheduleExceptions;
     private ArrayList changes;
+    private ListData discrepancies;
 
     private String readOnlyNodeID;
     private String taskNodeID;
@@ -413,7 +414,7 @@ public class HierarchySynchronizer {
     }
 
     private String getWbsIdForPath(String path) {
-        return getStringData(getData(path, WBS_ID_DATA_NAME));
+        return getStringData(getData(path, TeamDataConstants.WBS_ID_DATA_NAME));
     }
 
     private Set deletableIndividualNodes;
@@ -479,7 +480,7 @@ public class HierarchySynchronizer {
     private boolean isUserCreatedNode(PropertyKey key) {
         if (isTeam() || isPhaseStub(key))
             return false;
-        return (getData(key.path(), WBS_ID_DATA_NAME) == null);
+        return (getWbsIdForPath(key.path()) == null);
     }
 
     private boolean isPhaseStub(PropertyKey key) {
@@ -518,6 +519,8 @@ public class HierarchySynchronizer {
         }
 
         changes = new ArrayList();
+        discrepancies = new ListData();
+        discrepancies.add(new Date());
         syncActions = buildSyncActions();
         phaseIDs = initPhaseIDs(processID);
 
@@ -543,6 +546,10 @@ public class HierarchySynchronizer {
         processDeferredDeletions(syncWorker);
 
         readChangesFromWorker(syncWorker);
+
+        String discrepancyDataName = DataRepository.createDataName(projectPath,
+            SyncDiscrepancy.DISCREPANCIES_DATANAME);
+        dataRepository.putValue(discrepancyDataName, discrepancies);
     }
 
     private ListData getLabelData(Element projectXML) {
@@ -673,12 +680,10 @@ public class HierarchySynchronizer {
         if (!isLocked && !isDefault)
             return;
 
+        // construct a schedule according to the specifications in the WBS.
         EVSchedule wbsSchedule = new EVSchedule(startDate, hoursPerWeek,
             endWeek, scheduleExceptions,
             currentSchedule.getLevelOfEffort(), true);
-        if (wbsSchedule.isEquivalentTo(currentSchedule))
-            // the schedules are the same!  There is nothing to do.
-            return;
 
         // retrieve information about the last values we synced to the schedule
         String lastSyncName = DataRepository.createDataName(projectPath,
@@ -688,22 +693,37 @@ public class HierarchySynchronizer {
         double syncPdt = getDoubleData(getData(projectPath,
             TeamDataConstants.PROJECT_SCHEDULE_SYNC_PDT));
 
+        // flags to keep track of what changes are made.
+        boolean madeChange = false;
+        boolean needSyncUpdate = false;
+
         if (isDefault || lastSyncedHoursList == null) {
             currentSchedule.copyFrom(wbsSchedule);
+            madeChange = needSyncUpdate = true;
 
         } else {
             EVSchedule lastSyncedSchedule = new EVSchedule(lastSyncedHoursList,
                 true);
-            if (wbsSchedule.isEquivalentTo(lastSyncedSchedule))
-                return;  // no new changes to incorporate
-
             EVSchedule origSchedule = currentSchedule.copy();
             mergeSchedules(currentSchedule, lastSyncedSchedule, syncPdt);
-            if (origSchedule.isEquivalentTo(currentSchedule))
-                return;  // no changes were made
+
+            if (wbsSchedule.isEquivalentTo(lastSyncedSchedule))
+                // the wbs schedule hasn't changed since our last sync, so
+                // there are no new changes to incorporate.  (Note that it
+                // was still necessary for us to call mergeSchedules though,
+                // to compute the list of user discrepancies for reverse sync)
+                madeChange = false;
+
+            else if (origSchedule.isEquivalentTo(currentSchedule))
+                // no changes were made to the schedule, but we still need
+                // to update the sync data.
+                needSyncUpdate = true;
+
+            else
+                madeChange = needSyncUpdate = true;
         }
 
-        if (!whatIfMode) {
+        if (!whatIfMode || (needSyncUpdate && !madeChange)) {
             // save the "last synced hours" value for future reference
             dataRepository.putValue(DataRepository.createDataName(
                 projectPath, TeamDataConstants.PROJECT_SCHEDULE_SYNC_SCHEDULE),
@@ -712,11 +732,14 @@ public class HierarchySynchronizer {
             dataRepository.putValue(DataRepository.createDataName(
                 projectPath, TeamDataConstants.PROJECT_SCHEDULE_SYNC_PDT),
                 new DoubleData(hoursPerWeek * 60, false));
-            // save the task list
-            tl.save();
         }
 
-        changes.add("Updated the earned value schedule");
+        if (madeChange) {
+            // save the task list
+            if (!whatIfMode)
+                tl.save();
+            changes.add("Updated the earned value schedule");
+        }
     }
 
     private void mergeSchedules(EVSchedule currentSchedule,
@@ -730,6 +753,9 @@ public class HierarchySynchronizer {
             mergedEndWeek = endWeek;
         else
             mergedEndWeek = currentEndWeek;
+
+        // Keep a list of manual edits the user has made, for reverse sync
+        Map<Date,Double> userExceptions = new HashMap<Date,Double>();
 
         // Make a list of "merged exceptions."  Begin with the ones that came
         // from the current WBS.
@@ -768,13 +794,15 @@ public class HierarchySynchronizer {
             if (eq(currentTime, syncPdt)) {
                 // the user erased an exception that they received from the
                 // WBS.  We should do the same thing for the new WBS data.
-                mergedExceptions.remove(new Integer(week));
+                mergedExceptions.remove(week);
+                userExceptions.put(mid, null);
 
             } else {
                 // the user created a new exception in the schedule.  Add it
                 // to our map.
-                double hours = currentTime / 60.0;
-                mergedExceptions.put(new Integer(week), new Double(hours));
+                Double hours = new Double(currentTime / 60.0);
+                mergedExceptions.put(week, hours);
+                userExceptions.put(mid, hours);
             }
         }
 
@@ -784,6 +812,10 @@ public class HierarchySynchronizer {
         EVSchedule mergedSchedule = new EVSchedule(startDate, hoursPerWeek,
                 mergedEndWeek, mergedExceptions, levelOfEffort, true);
         currentSchedule.copyFrom(mergedSchedule);
+
+        // save information about user edits for delivery to the WBS
+        if (!userExceptions.isEmpty())
+            discrepancies.add(new SyncDiscrepancy.EVSchedule(userExceptions));
     }
 
     private int getEndWeekOfSchedule(EVSchedule s, Date zeroDate) {
@@ -877,7 +909,7 @@ public class HierarchySynchronizer {
 
         if (changes.isEmpty()
                 && (foundNullChangeTokens || !worker.dataChanged.isEmpty()))
-            changes.add("Updated miscellaneous project information");
+            changes.add(MISC_CHANGE_COMMENT);
     }
 
     private Map buildSyncActions() {
@@ -923,6 +955,7 @@ public class HierarchySynchronizer {
     private static final String PHASE_NAME_ATTR = "phaseName";
     private static final String EFF_PHASE_ATTR = "effectivePhase";
     private static final String TIME_ATTR = "time";
+    private static final String SYNC_TIME_ATTR = "syncTime";
     private static final String PRUNED_ATTR = "PRUNED";
 
 
@@ -946,11 +979,13 @@ public class HierarchySynchronizer {
     private static final long WEEK_MILLIS = 7l * 24 * 60 * 60 * 1000;
 
 
-    private static final String WBS_ID_DATA_NAME = "WBS_Unique_ID";
     private static final String PROCESS_ID_DATA_NAME = "Process_ID";
     private static final String EST_TIME_DATA_NAME = "Estimated Time";
     private static final String LABEL_LIST_DATA_NAME =
         "Synchronized_Task_Labels";
+    static final String MISC_CHANGE_COMMENT =
+        "Updated miscellaneous project information";
+
 
 
     private class SyncNode {
@@ -1162,7 +1197,8 @@ public class HierarchySynchronizer {
              String nodeID = node.getAttribute(ID_ATTR);
              String taskID = node.getAttribute(TASK_ID_ATTR);
              try {
-                 putData(path, WBS_ID_DATA_NAME, StringData.create(nodeID));
+                 putData(path, TeamDataConstants.WBS_ID_DATA_NAME,
+                     StringData.create(nodeID));
                  if (!isPrunedNode(node))
                      setTaskIDs(path, taskID);
             } catch (Exception e) {}
@@ -1195,8 +1231,21 @@ public class HierarchySynchronizer {
 
             if (undoMarkTaskComplete(worker, path))
                 changes.add("Marked '" + path + "' incomplete.");
-            if (okToChangeTimeEstimate(path))
+            if (okToChangeTimeEstimate(path)) {
+                worker.setLastReverseSyncedValue(parseSyncTime(node) * 60);
                 putData(path, EST_TIME_DATA_NAME, new DoubleData(time * 60));
+            }
+
+            // FIXME: this code won't correctly handle (a) tasks that have
+            // been pruned from the WBS (b) tasks with 0 time in the WBS
+            // (c) tasks that have been subdivided by the user.  (a) and (b)
+            // will never get here, so no discrepancy will be logged. (c) will
+            // log a discrepancy stating that the planned time should be 0,
+            // which is incorrect.
+            double finalTime = getDoubleData(getData(path, EST_TIME_DATA_NAME)) / 60;
+            if (eq(finalTime, time) == false)
+                discrepancies.add(new SyncDiscrepancy.PlanTime(path,
+                        getWbsIdForPath(path), finalTime));
         }
 
         protected boolean okToChangeTimeEstimate(String path) {
@@ -1214,6 +1263,15 @@ public class HierarchySynchronizer {
 
         protected double parseTime(Element node) {
             String timeAttr = node.getAttribute(TIME_ATTR);
+            return parseTime(timeAttr);
+        }
+
+        protected double parseSyncTime(Element node) {
+            String timeAttr = node.getAttribute(SYNC_TIME_ATTR);
+            return parseTime(timeAttr);
+        }
+
+        protected double parseTime(String timeAttr) {
             if (timeAttr == null) return 0;
             int beg = timeAttr.toLowerCase().indexOf(initialsPattern);
             if (beg == -1) return 0;

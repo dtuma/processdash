@@ -14,6 +14,7 @@ import javax.swing.table.TableColumnModel;
 
 import teamdash.team.TeamMember;
 import teamdash.team.TeamMemberList;
+import teamdash.wbs.DataColumn;
 import teamdash.wbs.DataTableColumn;
 import teamdash.wbs.DataTableModel;
 
@@ -25,12 +26,19 @@ import teamdash.wbs.DataTableModel;
 public class TeamMemberColumnManager
     implements TeamMemberList.InitialsListener, TableModelListener {
 
+    public interface TeamMemberColumn {
+        public boolean validFor(TeamMember t);
+        public void setTeamMember(TeamMember t);
+    }
+
     /** The DataTableModel to create columns for */
     private DataTableModel dataModel;
     /** The list of team members */
     private TeamMemberList teamList;
     /** The list of TeamMemberTimeColumn objects for each team member */
-    private List columnList;
+    private List<TeamMemberTimeColumn> planTimeColumnList;
+    /** The list of TeamMemberActualTimeColumn objects for each team member */
+    private List<TeamMemberActualTimeColumn> actualTimeColumnList;
     /** A list of AffectedTableColumnModel objects for each affected
      * TableColumnModel */
     private List affectedColumnModels;
@@ -41,7 +49,8 @@ public class TeamMemberColumnManager
                                    TeamMemberList teamList) {
         this.dataModel = dataModel;
         this.teamList = teamList;
-        this.columnList = new ArrayList();
+        this.planTimeColumnList = new ArrayList<TeamMemberTimeColumn>();
+        this.actualTimeColumnList = new ArrayList<TeamMemberActualTimeColumn>();
         this.affectedColumnModels = new ArrayList();
 
         createColumns();
@@ -53,44 +62,63 @@ public class TeamMemberColumnManager
 
 
     /** Get a list of the TeamMemberTimeColumn objects for each team member */
-    public List getColumns() {
-        return Collections.unmodifiableList(columnList);
+    public List<TeamMemberTimeColumn> getPlanTimeColumns() {
+        return Collections.unmodifiableList(planTimeColumnList);
     }
 
+    /** Get a list of the TeamMemberActualTimeColumn objects for each team member */
+    public List<TeamMemberActualTimeColumn> getActualTimeColumns() {
+        return Collections.unmodifiableList(actualTimeColumnList);
+    }
 
 
     /** Create or recreate TeamMemberTimeColumn objects for each team member
      */
     private void createColumns() {
-        List obsoleteColumns = columnList;
+        List<TeamMemberTimeColumn> obsoletePlanTimeColumns = planTimeColumnList;
+        List<TeamMemberActualTimeColumn> obsoleteActualTimeColumns = actualTimeColumnList;
         ArrayList newColumns = new ArrayList();
 
-        columnList = new ArrayList();
+        planTimeColumnList = new ArrayList<TeamMemberTimeColumn>();
+        actualTimeColumnList = new ArrayList<TeamMemberActualTimeColumn>();
         Iterator teamMembers = teamList.getTeamMembers().iterator();
         while (teamMembers.hasNext()) {
             // Loop through the list of team members.
             TeamMember m = (TeamMember) teamMembers.next();
 
-            // try to find a preexisting column for this team member.
-            TeamMemberTimeColumn col =
-                getExistingValidTimeColumn(obsoleteColumns, m);
+            // try to find a preexisting planned time column for this team member.
+            TeamMemberTimeColumn planTimeCol =
+                getExistingValidTimeColumn(obsoletePlanTimeColumns, m);
 
-            if (col != null)
-                // we'll keep this existing column, since it works for this
-                // team member
-                obsoleteColumns.remove(col);
-            else {
+            if (planTimeCol == null) {
                 // create a new column for this team member.
-                col = new TeamMemberTimeColumn(dataModel, m);
-                newColumns.add(col);
+                planTimeCol = new TeamMemberTimeColumn(dataModel, m);
+                newColumns.add(planTimeCol);
             }
             // add the column to our master list.
-            columnList.add(col);
+            planTimeColumnList.add(planTimeCol);
+
+            // try to find a preexisting actual time column for this team member.
+            TeamMemberActualTimeColumn actualTimeCol =
+                getExistingValidTimeColumn(obsoleteActualTimeColumns, m);
+
+            if (actualTimeCol == null) {
+                // create a new column for this team member.
+                actualTimeCol = new TeamMemberActualTimeColumn(m);
+                newColumns.add(actualTimeCol);
+            }
+            // add the column to our master list.
+            actualTimeColumnList.add(actualTimeCol);
         }
 
         // make the changes to the columns in the data model.
-        if (!newColumns.isEmpty() || !obsoleteColumns.isEmpty())
+        if (!newColumns.isEmpty() || !obsoletePlanTimeColumns.isEmpty()
+                || !obsoleteActualTimeColumns.isEmpty()) {
+            List obsoleteColumns = new ArrayList();
+            obsoleteColumns.addAll(obsoletePlanTimeColumns);
+            obsoleteColumns.addAll(obsoleteActualTimeColumns);
             dataModel.addRemoveDataColumns(newColumns, obsoleteColumns);
+        }
     }
 
 
@@ -100,14 +128,14 @@ public class TeamMemberColumnManager
      * 
      * @return a valid column, or null if none could be found.
      */
-    private TeamMemberTimeColumn getExistingValidTimeColumn(
-        List existingColumns,
-        TeamMember m) {
-        Iterator i = existingColumns.iterator();
+    private static <T extends TeamMemberColumn> T getExistingValidTimeColumn(
+            List<T> existingColumns, TeamMember m) {
+        Iterator<T> i = existingColumns.iterator();
         while (i.hasNext()) {
-            TeamMemberTimeColumn col = (TeamMemberTimeColumn) i.next();
+            T col = i.next();
             if (col.validFor(m)) {
                 col.setTeamMember(m);
+                i.remove();
                 return col;
             }
         }
@@ -116,10 +144,19 @@ public class TeamMemberColumnManager
 
 
 
-    /** Add columns for each team member to the given TableColumnModel. */
-    public void addToColumnModel(TableColumnModel columnModel) {
+    /** Add columns for each team member plan time to the given TableColumnModel. */
+    public void addPlanTimesToColumnModel(TableColumnModel columnModel) {
+        addToColumnModel(columnModel, PLAN_TIME_COLS);
+    }
+
+    /** Add columns for each team member plan time to the given TableColumnModel. */
+    public void addActualTimesToColumnModel(TableColumnModel columnModel) {
+        addToColumnModel(columnModel, ACTUAL_TIME_COLS);
+    }
+
+    private void addToColumnModel(TableColumnModel columnModel, int colSet) {
         AffectedTableColumnModel settings =
-            new AffectedTableColumnModel(columnModel);
+            new AffectedTableColumnModel(columnModel, colSet);
         affectedColumnModels.add(settings);
         settings.addAllColumns();
     }
@@ -180,7 +217,8 @@ public class TeamMemberColumnManager
         }
     }
 
-
+    private static final int PLAN_TIME_COLS = 0;
+    private static final int ACTUAL_TIME_COLS = 1;
 
     /** Maintains information about a TableColumnModel object that contains
      * some of our columns.
@@ -191,14 +229,17 @@ public class TeamMemberColumnManager
         TableColumnModel model;
         /** The column that our columns should be inserted after */
         TableColumn afterColumn;
+        /** Which set of columns we're adding */
+        int whichColumnSet;
         /** The list of TableColumn objects we inserted */
-        List tableColumns;
+        List<TableColumn> tableColumns;
         /** The position where the next TableColumn should be inserted */
         int destPos;
 
-        public AffectedTableColumnModel(TableColumnModel model) {
+        public AffectedTableColumnModel(TableColumnModel model, int colSet) {
             this.model = model;
-            this.tableColumns = new ArrayList();
+            this.whichColumnSet = colSet;
+            this.tableColumns = new ArrayList<TableColumn>();
 
             // insert our columns at the end of this TableColumnModel
             destPos = model.getColumnCount();
@@ -210,13 +251,19 @@ public class TeamMemberColumnManager
 
         /** Add all of the TeamMemberTimeColumn objects to this model. */
         public void addAllColumns() {
-            Iterator i = columnList.iterator();
-            while (i.hasNext())
-                addColumn((TeamMemberTimeColumn) i.next());
+            for (DataColumn dataColumn : getColumnSet())
+                addColumn(dataColumn);
+        }
+
+        private List<? extends DataColumn> getColumnSet() {
+            switch (whichColumnSet) {
+            case ACTUAL_TIME_COLS: return actualTimeColumnList;
+            case PLAN_TIME_COLS: default: return planTimeColumnList;
+            }
         }
 
         /** Add a new column to this TableColumnModel */
-        private void addColumn(TeamMemberTimeColumn column) {
+        private void addColumn(DataColumn column) {
             // create the new column and add it to the TableColumnModel.
             TableColumn tableColumn = new DataTableColumn(dataModel, column);
             model.addColumn(tableColumn);
@@ -234,9 +281,8 @@ public class TeamMemberColumnManager
         /** Remove all our columns from this TableColumnModel. */
         public void clearColumns() {
             // remove each column
-            Iterator i = tableColumns.iterator();
-            while (i.hasNext())
-                model.removeColumn((TableColumn) i.next());
+            for (TableColumn column : tableColumns)
+                model.removeColumn(column);
 
             // reset the destPos location
             if (afterColumn == null)
