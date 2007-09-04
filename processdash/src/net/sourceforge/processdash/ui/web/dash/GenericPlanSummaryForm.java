@@ -50,10 +50,10 @@ public class GenericPlanSummaryForm extends TinyCGIBase {
 
     private static final String BEGIN_CUT = "<!--PhaseStart-->";
     private static final String END_CUT   = "<!--PhaseEnd-->";
-    private static final String PHASE_TAG = "/PHASE/";
-    private static final String PHASE_NAME_TAG = "/PHASE_NAME/";
-    private static final String UNIT_TAG  = "/UNIT/";
-    private static final String UNITS_TAG = "/UNITS/";
+    private static final String PHASE_TAG = "/$$$$$/";
+    private static final String PHASE_NAME_TAG = "/$$$$$_NAME/";
+    private static final String UNIT_TAG  = "/####/";
+    private static final String UNITS_TAG = "/####S/";
 
     private static final String SHOW_SIZE_NAME = "Generic - Show Size";
     private static final String SHOW_DEF_NAME  = "Generic - Show Defects";
