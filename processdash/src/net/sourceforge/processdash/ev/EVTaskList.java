@@ -721,6 +721,10 @@ public class EVTaskList extends AbstractTreeTableModel
     public static final int PCT_SPENT_COLUMN      = PCT_COMPLETE_COLUMN+1;
     public static final int VALUE_EARNED_COLUMN   = PCT_SPENT_COLUMN+1;
 
+    // pseudo column numbers for retrieving other extended task data
+    public static final int EVTASK_NODE_COLUMN    = -99999;
+    public static final int PROJ_DATE_COLUMN      = -1000;
+
     public static final int[] HIDABLE_COLUMN_LIST = { NODE_TYPE_COLUMN,
             PLAN_DTIME_COLUMN, ACT_DTIME_COLUMN, REPLAN_DATE_COLUMN,
             LABELS_COLUMN };
@@ -888,6 +892,7 @@ public class EVTaskList extends AbstractTreeTableModel
         case PLAN_CUM_TIME_COLUMN:  return n.getCumPlanTime();
         case PLAN_CUM_VALUE_COLUMN: return n.getCumPlanValue(totalPlanValue);
         case ASSIGNED_TO_COLUMN:    return n.getAssignedToText();
+        case -ASSIGNED_TO_COLUMN:   return n.getAssignedTo();
         case PLAN_DATE_COLUMN:      return n.getPlanDate();
         case REPLAN_DATE_COLUMN:    return n.getReplanDate();
         case FORECAST_DATE_COLUMN:  return n.getForecastDate();
@@ -897,6 +902,10 @@ public class EVTaskList extends AbstractTreeTableModel
         case PCT_COMPLETE_COLUMN:   return n.getPercentComplete();
         case PCT_SPENT_COLUMN:      return n.getPercentSpent();
         case VALUE_EARNED_COLUMN:   return n.getValueEarned(totalPlanValue);
+
+        case EVTASK_NODE_COLUMN:    return n;
+        case PROJ_DATE_COLUMN:
+            return EVTaskDependency.getDependencyComparisonDate(n);
         }
         return null;
     }

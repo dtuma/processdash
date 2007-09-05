@@ -339,11 +339,8 @@ public class EVDependencyCalculator {
                 if (hasValue(t.getAssignedTo()))
                     people.addAll(t.getAssignedTo());
 
-                Date taskDate = t.getForecastDate();
-                if (taskDate == null)
-                    taskDate = t.getPlanDate();
                 projectedDate = EVCalculator.maxPlanDate(projectedDate,
-                        taskDate);
+                        EVTaskDependency.getDependencyComparisonDate(t));
 
                 taskCount++;
                 if (t.getActualDate() != null)

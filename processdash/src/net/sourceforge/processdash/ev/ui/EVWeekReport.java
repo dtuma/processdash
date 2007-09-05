@@ -27,19 +27,23 @@ package net.sourceforge.processdash.ev.ui;
 
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.swing.table.TableModel;
 
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.ev.DefaultTaskLabeler;
+import net.sourceforge.processdash.ev.EVCalculator;
 import net.sourceforge.processdash.ev.EVDependencyCalculator;
 import net.sourceforge.processdash.ev.EVMetrics;
 import net.sourceforge.processdash.ev.EVSchedule;
@@ -172,10 +176,11 @@ public class EVWeekReport extends TinyCGIBase {
         Date startDate = schedule.getStartDate();
         if (lastWeek.before(startDate)) lastWeek = startDate;
 
-        // Calculate a future date cutoff for task dependency display
-        int numDependWeeks = Settings.getInt("ev.numDependencyWeeks", 3);
-        Date dependDate = new Date(effDate.getTime() + numDependWeeks
-                * EVSchedule.WEEK_MILLIS);
+        // Calculate future cutoff dates for task dependency display
+        Date dependDate = getFutureCutoffDate(effDate,
+            Settings.getInt("ev.numDependencyWeeks", 3));
+        Date revDependDate = getFutureCutoffDate(effDate,
+            Settings.getInt("ev.numReverseDependencyWeeks", 6));
 
         // Get a slice of the schedule representing the previous week.
         EVSchedule.Period weekSlice = EVScheduleRollup.getSlice(
@@ -188,11 +193,20 @@ public class EVWeekReport extends TinyCGIBase {
         // keep track of tasks that should be displayed in the three lists.
         boolean[] completedLastWeek = new boolean[taskListLen];
         boolean[] dueThroughNextWeek = new boolean[taskListLen];
-        Map upcomingDependencies = new LinkedHashMap();
+        Map<String, DependencyForCoord> upcomingDependencies =
+            new HashMap<String, DependencyForCoord>();
+        List<RevDependencyForCoord> reverseDependencies =
+            new ArrayList<RevDependencyForCoord>();
         Arrays.fill(completedLastWeek, false);
         Arrays.fill(dueThroughNextWeek, false);
         boolean oneCompletedLastWeek = false;
         boolean oneDueNextWeek = false;
+
+        // keep track of the people assigned to the current schedule
+        Set allIndividuals = new HashSet();
+        String ignoreIndividual = null;
+        if (evModel instanceof EVTaskListData && purpose == PLAIN_REPORT)
+            allIndividuals.add(ignoreIndividual = getOwner());
 
         // keep track of the two total plan/actual time to date for
         // completed tasks.
@@ -218,11 +232,25 @@ public class EVWeekReport extends TinyCGIBase {
                 if (due != null && due.after(startDate)) {
                     if (due.before(nextWeek))
                         dueThroughNextWeek[i] = oneDueNextWeek = true;
-                    if (due.before(dependDate)) {
-                        findUpcomingDependencies(tasks, upcomingDependencies, i);
-                    }
                 }
+                Date projectedDate = (Date) tasks.getValueAt(i,
+                    EVTaskList.PROJ_DATE_COLUMN);
+                findUpcomingDependencies(tasks, upcomingDependencies,
+                    i, projectedDate, dependDate, ignoreIndividual);
+                // don't search for reverse dependencies when we're hiding the
+                // names of individuals.  After all, the only thing we display
+                // about a reverse dependency is the names of the waiting
+                // people.  If we can't display their names, then we won't
+                // have any identifying data to show, so there would be no
+                // point in collecting reverse dependencies.
+                if (!hideNames)
+                    findReverseDependencies(tasks, reverseDependencies,
+                        revDependDate, i);
             }
+            List assignedTo = (List) tasks.getValueAt(i,
+                -EVTaskList.ASSIGNED_TO_COLUMN);
+            if (assignedTo != null)
+                allIndividuals.addAll(assignedTo);
         }
 
         double cpi = completedTasksTotalPlanTime/completedTasksTotalActualTime;
@@ -464,16 +492,22 @@ public class EVWeekReport extends TinyCGIBase {
 
         } else {
             interpOut("<" + hh + ">${Dependencies.Header}</" + hh + ">\n");
-            if (upcomingDependencies.isEmpty())
+            discardInternalReverseDependencies(upcomingDependencies,
+                reverseDependencies, allIndividuals);
+            if (upcomingDependencies.isEmpty() && reverseDependencies.isEmpty())
                 interpOut("<p><i>${None}</i>\n");
             else {
+                if (!hideNames && !reverseDependencies.isEmpty())
+                    printReverseDependencyTable(tasks, reverseDependencies);
+
+                List<DependencyForCoord> depsForCoord =
+                    new ArrayList<DependencyForCoord>(
+                        upcomingDependencies.values());
+                Collections.sort(depsForCoord);
                 int pos = 0;
-                for (Iterator i = upcomingDependencies.entrySet().iterator(); i.hasNext();) {
-                    Map.Entry e = (Map.Entry) i.next();
-                    EVTaskDependency d = (EVTaskDependency) e.getKey();
-                    List dependentTasks = (List) e.getValue();
-                    printUpcomingDependencies(d, dependentTasks, tasks,
-                            showAssignedTo, hideNames, showLabels, pos++);
+                for (DependencyForCoord coord : depsForCoord) {
+                    printUpcomingDependencies(coord, tasks, showAssignedTo,
+                        hideNames, showLabels, pos++);
                 }
             }
 
@@ -482,6 +516,17 @@ public class EVWeekReport extends TinyCGIBase {
 
             out.print(FOOTER_HTML);
         }
+    }
+
+
+    private Date getFutureCutoffDate(Date effDate, int numWeeksFromNow) {
+        if (numWeeksFromNow < 0)
+            return EVSchedule.NEVER;
+        else if (numWeeksFromNow == 0)
+            return EVSchedule.A_LONG_TIME_AGO;
+        else
+            return new Date(effDate.getTime() + numWeeksFromNow
+                * EVSchedule.WEEK_MILLIS);
     }
 
 
@@ -510,23 +555,131 @@ public class EVWeekReport extends TinyCGIBase {
 
 
     private void findUpcomingDependencies(TableModel tasks,
-            Map upcomingDependencies, int i) {
-        Collection deps = (Collection) tasks.getValueAt(i,
+            Map<String, DependencyForCoord> upcomingDependencies,
+            int taskRowNum, Date projDate, Date cutoffDate,
+            String ignoreIndividual) {
+        boolean beforeCutoff = compareDates(projDate, cutoffDate) <= 0;
+        Collection deps = (Collection) tasks.getValueAt(taskRowNum,
                 EVTaskList.DEPENDENCIES_COLUMN);
         if (deps != null) {
             for (Iterator j = deps.iterator(); j.hasNext();) {
                 EVTaskDependency d = (EVTaskDependency) j.next();
-                if (!d.isUnresolvable() && !d.isReverse()
-                        && d.getPercentComplete() < 1) {
-                    List l = (List) upcomingDependencies.get(d);
-                    if (l == null) {
-                        l = new LinkedList();
-                        upcomingDependencies.put(d, l);
+                // skip unresolvable and reverse dependencies
+                if (d.isUnresolvable() || d.isReverse())
+                    continue;
+                // skip dependencies that have been satisfied
+                if (!(d.getPercentComplete() < 1))
+                    continue;
+                // don't warn an individual when he depends on himself
+                if (ignoreIndividual != null
+                        && ignoreIndividual.equals(d.getAssignedTo()))
+                    continue;
+
+                if (d.isMisordered() || beforeCutoff) {
+                    String taskID = d.getTaskID();
+                    DependencyForCoord coord = upcomingDependencies.get(taskID);
+                    if (coord == null) {
+                        coord = new DependencyForCoord(d);
+                        upcomingDependencies.put(taskID, coord);
                     }
-                    l.add(new Integer(i));
+                    coord.addMatchingTask(new RowNumWithDate(taskRowNum,
+                            projDate));
                 }
             }
         }
+    }
+
+
+    private void findReverseDependencies(TableModel tasks,
+            List<RevDependencyForCoord> reverseDependencies,
+            Date cutoffDate, int taskRowNum) {
+        Collection deps = (Collection) tasks.getValueAt(taskRowNum,
+            EVTaskList.DEPENDENCIES_COLUMN);
+        if (deps != null) {
+            for (Iterator j = deps.iterator(); j.hasNext();) {
+                EVTaskDependency d = (EVTaskDependency) j.next();
+                if (!d.isReverse())
+                    continue;
+                if (d.isMisordered() ||
+                        compareDates(d.getProjectedDate(), cutoffDate) <= 0) {
+                    RevDependencyForCoord revDep = new RevDependencyForCoord(
+                            taskRowNum, d);
+                    reverseDependencies.add(revDep);
+                }
+            }
+        }
+    }
+
+
+    private void discardInternalReverseDependencies(
+            Map<String, DependencyForCoord> upcomingDependencies,
+            List<RevDependencyForCoord> reverseDependencies,
+            Set currentTeam) {
+
+        for (Iterator i = reverseDependencies.iterator(); i.hasNext();) {
+            RevDependencyForCoord revCoord = (RevDependencyForCoord) i.next();
+
+            revCoord.computeExternalWaitingPeople(currentTeam);
+            if (revCoord.externalPeople == null)
+                i.remove();
+        }
+    }
+
+
+    private class DependencyForCoord implements Comparable<DependencyForCoord> {
+        EVTaskDependency d;
+        Date sortDate;
+        List<RowNumWithDate> matchingTasks;
+
+        public DependencyForCoord(EVTaskDependency d) {
+            this.d = d;
+            this.matchingTasks = new ArrayList<RowNumWithDate>();
+        }
+
+        public void addMatchingTask(RowNumWithDate item) {
+            matchingTasks.add(item);
+            sortDate = EVCalculator.minStartDate(sortDate, item.date);
+        }
+
+        public int compareTo(DependencyForCoord that) {
+            return compareDates(this.sortDate, that.sortDate);
+        }
+
+    }
+
+    private class RevDependencyForCoord extends RowNumWithDate {
+        EVTaskDependency revDep;
+        String externalPeople;
+
+        public RevDependencyForCoord(int rowNumber, EVTaskDependency revDep) {
+            super(rowNumber, revDep.getProjectedDate());
+            this.revDep = revDep;
+        }
+
+        public void computeExternalWaitingPeople(Set peopleToIgnore) {
+            List waitingIndividuals = new ArrayList(revDep.getAssignedToList());
+            waitingIndividuals.removeAll(peopleToIgnore);
+            if (waitingIndividuals.isEmpty())
+                externalPeople = null;
+            else
+                externalPeople = StringUtils.join(waitingIndividuals, ", ");
+        }
+
+    }
+
+    private class RowNumWithDate implements Comparable<RowNumWithDate> {
+        int rowNumber;
+        Date date;
+
+        public RowNumWithDate(int rowNumber, Date date) {
+            this.rowNumber = rowNumber;
+            this.date = date;
+        }
+
+        public int compareTo(RowNumWithDate that) {
+            return compareDates(this.date, that.date);
+        }
+
     }
 
 
@@ -632,11 +785,49 @@ public class EVWeekReport extends TinyCGIBase {
         return forecastTimeRemaining > 0 ? forecastTimeRemaining : 0;
     }
 
-    protected void printUpcomingDependencies(EVTaskDependency d,
-            List dependentTasks, TableModel tasks, boolean showAssignedTo,
+    private void printReverseDependencyTable(TableModel tasks,
+            List<RevDependencyForCoord> reverseDependencies) {
+
+        Collections.sort(reverseDependencies);
+
+        out.print("<div class='expanded'>");
+        printExpansionIcon();
+        interpOut("${Dependencies.Reverse.Header}\n"
+                + "<div class='dependDetail hideIfCollapsed'>\n"
+                + "<table border=1 name='extCommit' class='sortable' "
+                + "id='$$$_extCommit'>\n<tr>"
+                + "<td class=header>${Columns.Task_Commitment}</td>"
+                + "<td class=header>${Columns.Projected_Date}</td>"
+                + "<td class=header>${Columns.Needed_By}</td>"
+                + "<td class=header>${Columns.Need_Date}</td></tr>\n");
+
+        for (RevDependencyForCoord revCoord : reverseDependencies) {
+            int i = revCoord.rowNumber;
+            out.print("<td class='left'>");
+            out.print(encodeHTML(tasks.getValueAt(i, EVTaskList.TASK_COLUMN)));
+            out.print("</td>");
+            Date projDate = (Date) tasks.getValueAt(i, EVTaskList.PROJ_DATE_COLUMN);
+            printDateCell(projDate, null, false);
+            out.print("<td>");
+            out.print(encodeHTML(revCoord.externalPeople));
+            out.print("</td>");
+            printDateCell(revCoord.revDep.getProjectedDate(),
+                TaskDependencyAnalyzer.HTML_REVERSE_MISORD_IND,
+                revCoord.revDep.isMisordered());
+            out.println("</tr>");
+        }
+
+        out.println("</table></div></div>");
+        out.println("<br>");
+    }
+
+    protected void printUpcomingDependencies(DependencyForCoord coord,
+            TableModel tasks, boolean showAssignedTo,
             boolean hideNames, boolean showLabels, int pos) {
 
         boolean isExcel = isExportingToExcel();
+        EVTaskDependency d = coord.d;
+        Date origParentDate = d.getParentDate();
 
         out.print("<div class='expanded'>");
         printExpansionIcon();
@@ -653,7 +844,7 @@ public class EVWeekReport extends TinyCGIBase {
         out.println("<div class='dependDetail hideIfCollapsed'>");
         interpOut("<b>${Columns.Percent_Complete_Tooltip}:</b> ");
         out.println(formatPercent(d.getPercentComplete()));
-        interpOut("<br><b>${Columns.Planned_Date}:</b> ");
+        interpOut("<br><b>${Columns.Projected_Date}:</b> ");
         out.println(encodeHTML(d.getProjectedDate()));
         if (!hideNames) {
             interpOut("<br><b>${Columns.Assigned_To}:</b> ");
@@ -662,41 +853,67 @@ public class EVWeekReport extends TinyCGIBase {
 
         // Now, print a table of the dependent tasks.
         interpOut("<table border=1 class='sortable' id='$$$_dep_"+pos+"'><tr>"
-                + "<td class=header>${Columns.Needed_For}</td>");
-        if (showAssignedTo)
-            interpOut("<td class=header>${Columns.Assigned_To}</td>");
+                + "<td class=header>${Columns.Needed_For}</td>"
+                + "<td class=header>${Columns.Projected_Date}</td>");
         if (showLabels)
             interpOut("<td class=header>${Columns.Labels}</td>");
-        interpOut("<td class=header>${Columns.Planned_Date}</td></tr>\n");
+        if (showAssignedTo)
+            interpOut("<td class=header>${Columns.Needed_By}</td>");
+        out.println("</tr>");
 
-        for (Iterator j = dependentTasks.iterator(); j.hasNext();) {
-            int i = ((Integer) j.next()).intValue();
-            out.print("<td class='left'>");
+        Collections.sort(coord.matchingTasks);
+        for (RowNumWithDate taskMatch : coord.matchingTasks) {
+            int i = taskMatch.rowNumber;
+            out.print("<tr><td class='left'>");
             out.print(encodeHTML(tasks.getValueAt(i, EVTaskList.TASK_COLUMN)));
-            if (showAssignedTo) {
-                out.print("</td><td class='left'>");
-                out.print(encodeHTML
-                          (tasks.getValueAt(i, EVTaskList.ASSIGNED_TO_COLUMN)));
-            }
+            out.print("</td>");
+
+            Date projDate = (Date) tasks.getValueAt(i,
+                EVTaskList.PROJ_DATE_COLUMN);
+            d.setParentDate(projDate);
+            printDateCell(projDate,
+                TaskDependencyAnalyzer.HTML_INCOMPLETE_MISORD_IND,
+                d.isMisordered());
+
             if (showLabels) {
-                out.print("</td><td class='left'>");
+                out.print("<td class='left'>");
                 out.print(encodeHTML
                           (tasks.getValueAt(i, EVTaskList.LABELS_COLUMN)));
+                out.print("</td>");
             }
-            out.print("</td><td>");
-            out.print(encodeHTML
-                    (tasks.getValueAt(i, EVTaskList.PLAN_DATE_COLUMN)));
-            out.println("</td></tr>");
+
+            if (showAssignedTo) {
+                out.print("<td class='left'>");
+                out.print(encodeHTML(tasks.getValueAt(i,
+                    EVTaskList.ASSIGNED_TO_COLUMN)));
+                out.print("</td>");
+            }
+            out.println("</tr>");
         }
 
         out.println("</table></div></div>");
         out.println("<br>");
+
+        d.setParentDate(origParentDate);
     }
 
     private void printExpansionIcon() {
         if (!isExportingToExcel())
             out.print("<a onclick='toggleExpanded(this); return false;' " +
                         "class='expIcon' href='#'></a>&nbsp;");
+    }
+
+    private void printDateCell(Date date, String indicatorHtml,
+            boolean showIndicator) {
+        out.print("<td ");
+        out.print(EVReport.getSortAttribute(EVReport.getDateSortKey(date)));
+        out.print(">");
+        if (indicatorHtml != null && showIndicator && !isExportingToExcel()) {
+            out.print(indicatorHtml);
+            out.print("&nbsp;");
+        }
+        out.print(encodeHTML(date));
+        out.println("</td>");
     }
 
     private EVSchedule getEvSchedule(EVTaskList evModel,
@@ -788,5 +1005,12 @@ public class EVWeekReport extends TinyCGIBase {
 
     private void interpOut(String text) {
         out.print(resources.interpolate(text, HTMLUtils.ESC_ENTITIES));
+    }
+
+    private static int compareDates(Date a, Date b) {
+        if (a == b) return 0;
+        if (a == null) return -1;
+        if (b == null) return +1;
+        return a.compareTo(b);
     }
 }

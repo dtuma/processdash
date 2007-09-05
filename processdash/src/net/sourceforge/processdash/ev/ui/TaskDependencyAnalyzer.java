@@ -381,4 +381,10 @@ public class TaskDependencyAnalyzer {
                     + HTML_INDICATOR_IMG_ATTRS
                     + getTooltipAll(HAS_REVERSE) + ">"
     };
+    static final String HTML_INCOMPLETE_MISORD_IND = "<img src='"
+            + TaskDependencyAnalyzer.HTML_INCOMPLETE_MIS_URI
+            + HTML_INDICATOR_IMG_ATTRS + ">";
+    static final String HTML_REVERSE_MISORD_IND = "<img src='"
+            + TaskDependencyAnalyzer.HTML_REVERSE_MIS_URI
+            + HTML_INDICATOR_IMG_ATTRS + ">";
 }

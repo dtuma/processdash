@@ -1346,15 +1346,18 @@ public class EVReport extends CGIChartBase {
     private static class EVDateCellRenderer extends EVCellRenderer {
 
         protected String getSortKey(Object value) {
-            if (value instanceof Date)
-                return Long.toString(((Date) value).getTime());
-            else
-                // The dates we display are typically completion dates.
-                // if a date is missing, that implies not yet completed;
-                // such dates should sort after all reasonable date values
-                return "9999999999999";
+            return getDateSortKey(value);
         }
 
+    }
+    static String getDateSortKey(Object value) {
+        if (value instanceof Date)
+            return Long.toString(((Date) value).getTime());
+        else
+            // The dates we display are typically completion dates.
+            // if a date is missing, that implies not yet completed;
+            // such dates should sort after all reasonable date values
+            return "9999999999999";
     }
 
     private static class EVPercentCellRenderer extends EVCellRenderer {

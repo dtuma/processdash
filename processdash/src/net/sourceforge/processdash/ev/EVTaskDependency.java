@@ -26,7 +26,9 @@
 package net.sourceforge.processdash.ev;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -133,6 +135,13 @@ public class EVTaskDependency {
 
     public String getAssignedTo() {
         return assignedTo;
+    }
+
+    public List getAssignedToList() {
+        if (!StringUtils.hasValue(assignedTo))
+            return Collections.EMPTY_LIST;
+        else
+            return Arrays.asList(assignedTo.split(", "));
     }
 
     public double getPercentComplete() {

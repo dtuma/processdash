@@ -166,14 +166,14 @@ public abstract class EVCalculator {
     }
 
 
-    protected static Date minStartDate(Date a, Date b) {
+    public static Date minStartDate(Date a, Date b) {
         if (a == null) return b;
         if (b == null) return a;
         if (a.compareTo(b) < 0) return a;
         return b;
     }
 
-    protected static Date minStartDate(Collection dates) {
+    public static Date minStartDate(Collection dates) {
         Date result = null;
         if (dates != null) {
             for (Iterator i = dates.iterator(); i.hasNext();)
