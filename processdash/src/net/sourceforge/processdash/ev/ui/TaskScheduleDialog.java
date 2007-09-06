@@ -630,7 +630,7 @@ public class TaskScheduleDialog
             selectedEditableColor =
                 PaintUtils.mixColors(getSelectionBackground(), editableColor, 0.4);
             expandedColor =
-                PaintUtils.mixColors(getBackground(), getForeground(), 0.8);
+                PaintUtils.mixColors(getBackground(), getForeground(), 0.45);
 
             editable = new TaskTableRenderer(selectedEditableColor,
                                              editableColor,
