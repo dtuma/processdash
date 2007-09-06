@@ -8,6 +8,7 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.Rectangle;
+import java.awt.event.MouseEvent;
 import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -25,6 +26,7 @@ import javax.swing.event.TableModelListener;
 
 import teamdash.team.TeamMember;
 import teamdash.team.TeamMemberList;
+import teamdash.wbs.columns.TeamActualTimeColumn;
 import teamdash.wbs.columns.TeamMemberTimeColumn;
 
 /** Displays a panel containing dynamic bar charts for each team member. The
@@ -42,21 +44,28 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
     private GridBagLayout layout;
     /** A list of the bar charts for each individual (each is a
      * TeamMemberBar object). */
-    private List teamMemberBars;
-    /** The index in the data model of the "team time" column */
-    private int teamColumnNum;
+    private List<TeamMemberBar> teamMemberBars;
     /** The point in time when the first person is starting */
     private long teamStartTime;
-    /** The number of milliseconds between the team start date and the
+    /** The team effective date for actual metrics collected so far */
+    private Date teamEffectiveDate;
+    /** The point in time represented by the left edge of this panel */
+    private long leftTimeBoundary;
+    /** The number of milliseconds between the left time boundary and the
      * latest finish date */
     private double maxScheduleLength;
-    /** The number of milliseconds between the team start date and the
+    /** The amount of time in schedules for team members whose end date
+     * precedes the team effective date */
+    private double historicalTeamMemberCollateralTime;
+    /** The number of milliseconds between the left time boundary and the
      * balanced completion date.  If no balanced date can be computed, -1 */
     private long balancedLength = -1;
     /** The indicator for the balanced team duration */
     private JPanel balancedBar;
     /** Should the balanced bar be shown, or hidden */
     private boolean showBalancedBar;
+    /** Should the bars show total project data, or just remaining project data */
+    private boolean showRemainingWork;
     /** The position of the balanced bar, in pixels from the left edge of the
      * area where colored bars are drawn */
     private int balancedBarPos;
@@ -72,9 +81,9 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
     public TeamTimePanel(TeamMemberList teamList, DataTableModel dataModel) {
         this.teamList = teamList;
         this.dataModel = dataModel;
-        this.teamMemberBars = new ArrayList();
-        this.teamColumnNum = dataModel.findColumn("Time");
+        this.teamMemberBars = new ArrayList<TeamMemberBar>();
         this.showBalancedBar = true;
+        this.showRemainingWork = true;
 
         setLayout(layout = new GridBagLayout());
         rebuildPanelContents();
@@ -90,6 +99,18 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
 
     public void setShowBalancedBar(boolean showBalancedBar) {
         this.showBalancedBar = showBalancedBar;
+    }
+
+    public boolean isShowRemainingWork() {
+        return showRemainingWork;
+    }
+
+    public void setShowRemainingWork(boolean showRemaining) {
+        if (this.showRemainingWork != showRemaining) {
+            this.showRemainingWork = showRemaining;
+            rebuildPanelContents();
+            recalc();
+        }
     }
 
     private void rebuildPanelContents() {
@@ -115,6 +136,12 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
         c.gridx = 2; c.gridy = 0;
         layout.setConstraints(balancedBar, c);
 
+        teamEffectiveDate = (Date) dataModel.getWBSModel().getRoot()
+            .getAttribute(WBSSynchronizer.EFFECTIVE_DATE_ATTR);
+        if (teamEffectiveDate == null)
+            teamEffectiveDate = A_LONG_TIME_AGO;
+        historicalTeamMemberCollateralTime = 0;
+
         List teamMembers = teamList.getTeamMembers();
         // create a constraints object for the name labels.
         GridBagConstraints nc = new GridBagConstraints();
@@ -134,6 +161,19 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
             // for each team member, create a name label and a horizontal
             // progress bar.
             TeamMember m = (TeamMember) teamMembers.get(i);
+
+            // if we're only showing remaining time, and this team member's
+            // schedule ends before the effective date, don't show a bar for
+            // this individual.
+            if (showRemainingWork) {
+                Date endDate = m.getSchedule().getEndDate();
+                if (endDate != null && endDate.before(teamEffectiveDate)) {
+                    historicalTeamMemberCollateralTime +=
+                        m.getSchedule().getEffortForDate(teamEffectiveDate);
+                    continue;
+                }
+            }
+
             TeamMemberBar bar = new TeamMemberBar(m);
             teamMemberBars.add(bar);
 
@@ -175,49 +215,60 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
 
 
     public void recalc() {
-        recalcTeam();
-        recalcIndividuals();
+        recalcStartDate();
+        double totalTime = recalcIndividuals();
+        recalcTeam(totalTime);
         revalidate();
         repaintIndividuals();
     }
 
 
-    /** Recalculate the duration of a balanced team schedule.
+    /** Recalculate the start dates for the team schedule.
      */
-    protected void recalcTeam() {
+    protected void recalcStartDate() {
         // find out how when the overall team is starting work.
         Date teamStartDate = teamList.getDateForEffort(0);
         teamStartTime = teamStartDate.getTime();
 
-        // retrieve the total amount of planned time in the work
-        // breakdown structure for the entire team.
-        NumericDataValue teamTotal =
-            (NumericDataValue) dataModel.getValueAt(0, teamColumnNum);
-        double totalHours = teamTotal.value;
-
-        // calculate the optimal finish time
-        Date balancedDate = teamList.getDateForEffort(totalHours);
-        if (balancedDate == null) {
-            balancedLength = -1;
-            maxScheduleLength = 0;
-        } else {
-            balancedLength = balancedDate.getTime() - teamStartTime;
-            maxScheduleLength = balancedLength;
-            balancedBar.setToolTipText("Balanced Team Duration - " +
-                dateFormat.format(balancedDate));
-        }
+        // select the time value to use for the left edge of the panel
+        if (showRemainingWork)
+            leftTimeBoundary = Math.max(teamStartTime,
+                teamEffectiveDate.getTime());
+        else
+            leftTimeBoundary = teamStartTime;
     }
 
 
     /** Recalculate the horizontal bars for each team member.
+     * @return
      */
-    protected void recalcIndividuals() {
-        // first, recalculate each team member's schedule, and keep track
-        // of the longest duration we've seen so far.
-        Iterator i = teamMemberBars.iterator();
-        while (i.hasNext())
-            maxScheduleLength = Math.max(maxScheduleLength,
-                ((TeamMemberBar) i.next()).recalc());
+    protected double recalcIndividuals() {
+        double totalTime = historicalTeamMemberCollateralTime;
+        long maxLen = 0;
+        // recalculate each team member's schedule. Keep track of the longest
+        // duration we've seen so far, and the total effective time.
+        for (TeamMemberBar tmb : teamMemberBars) {
+            tmb.recalc();
+            totalTime += tmb.getTotalHours();
+            maxLen = Math.max(maxLen, tmb.getFinishTime());
+        }
+        maxScheduleLength = maxLen;
+        return totalTime;
+    }
+
+    /** Recalculate the duration of a balanced team schedule.
+     */
+    protected void recalcTeam(double totalHours) {
+        // calculate the optimal finish time
+        Date balancedDate = teamList.getDateForEffort(totalHours);
+        if (balancedDate == null) {
+            balancedLength = -1;
+        } else {
+            balancedLength = balancedDate.getTime() - leftTimeBoundary;
+            maxScheduleLength = Math.max(maxScheduleLength, balancedLength);
+            balancedBar.setToolTipText("Balanced Team Duration - " +
+                dateFormat.format(balancedDate));
+        }
     }
 
     /** Repaint the horizontal bars for each team member.
@@ -262,6 +313,13 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
         /** True if we should paint the label with a light color */
         private boolean labelIsLight;
 
+        /** When we're showing remaining time, how many hours should we add to
+         * account for the portion of the schedule that has already passed? */
+        private double effectivePastHours;
+
+        /** The total number of effective hours in this individual's schedule */
+        private double totalHours;
+
         /** Millis between the team start and the start date for this person */
         private long lagTime;
 
@@ -275,10 +333,19 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
         /** The label to display on the bar */
         private String label;
 
+        /** A tooltip to display for the start of the bar */
+        private String startTooltip;
+
+        /** The pixel position of the start of the bar */
+        private int startPos;
+
 
         public TeamMemberBar(TeamMember teamMember) {
             this.teamMember = teamMember;
             this.columnNumber = findTimeColumn();
+
+            effectivePastHours = teamMember.getSchedule().getEffortForDate(
+                teamEffectiveDate);
 
             setBorder(BorderFactory.createBevelBorder(BevelBorder.LOWERED));
             // use the color associated with the given team member.
@@ -296,32 +363,47 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
          * the number of milliseconds in their schedule (including lag time at
          * the beginning of the schedule)
          */
-        public long recalc() {
+        public void recalc() {
             Date startDate = teamMember.getStartDate();
-            lagTime = Math.max(0, startDate.getTime() - teamStartTime);
+            lagTime = startDate.getTime() - leftTimeBoundary;
+            if (lagTime < 0) {
+                startTooltip = teamMember.getName()
+                        + " - Work started previously on "
+                        + dateFormat.format(startDate);
+            } else {
+                startTooltip = teamMember.getName() + " - Start Date "
+                        + dateFormat.format(startDate);
+            }
 
             Date endDate = teamMember.getEndDate();
             if (endDate == null)
                 endTime = -1;
             else
-                endTime = endDate.getTime() - teamStartTime;
+                endTime = endDate.getTime() - leftTimeBoundary;
 
-            double hours = getTotalAssignedHours();
-            Date finishDate = teamMember.getSchedule().getDateForEffort(hours);
+            totalHours = (showRemainingWork
+                    ? getEffectiveRemainingHours() : getTotalAssignedHours());
+            Date finishDate = teamMember.getSchedule().getDateForEffort(totalHours);
 
             if (finishDate == null) {
                 finishTime = -1;
-                String hoursString = NumericDataValue.format(hours + 0.049);
+                String hoursString = NumericDataValue.format(totalHours + 0.049);
                 setLabel(hoursString + " total hours");
-                return 0;
             } else {
-                finishTime = finishDate.getTime() - teamStartTime;
+                finishTime = finishDate.getTime() - leftTimeBoundary;
                 String dateString = dateFormat.format(finishDate);
                 if (endTime > 0 && finishTime > endTime)
                     dateString = dateString + " - OVERTASKED";
                 setLabel(dateString);
-                return finishTime;
             }
+        }
+
+        public double getTotalHours() {
+            return totalHours;
+        }
+
+        public long getFinishTime() {
+            return finishTime;
         }
 
         private void setLabel(String message) {
@@ -329,7 +411,23 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
             setToolTipText(teamMember.getName() + " - " + message);
         }
 
-        public double getTotalAssignedHours() {
+        @Override
+        public String getToolTipText(MouseEvent event) {
+            if (Math.abs(event.getX() - startPos) < 5)
+                return startTooltip;
+            else
+                return super.getToolTipText(event);
+        }
+
+        private double getEffectiveRemainingHours() {
+            String attrName = TeamActualTimeColumn.getRemainingTimeAttr(
+                teamMember);
+            double remainingTime = dataModel.getWBSModel().getRoot()
+                    .getNumericAttribute(attrName);
+            return remainingTime + effectivePastHours;
+        }
+
+        private double getTotalAssignedHours() {
             if (columnNumber == -1) {
                 columnNumber = findTimeColumn();
                 // if we can't find a column for this team member, return
@@ -367,7 +465,7 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
 
             if (finishTime > 0 && maxScheduleLength > 0) {
                 // now paint the bar.
-                double leftPos = lagTime / maxScheduleLength;
+                double leftPos = Math.max(lagTime, 0) / maxScheduleLength;
                 double rightPos = finishTime / maxScheduleLength;
 
                 Rectangle bounds = getBounds();
@@ -398,6 +496,20 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
                     g.setFont(labelFont);
                     g.setColor(labelIsLight ? Color.white : Color.black);
                     g.drawString(label, labelPos, barHeight + insets.top - 2);
+                }
+
+                this.startPos = barLeft;
+
+                // in "show remaining work" mode, if this team member started
+                // before the effective date, draw a jagged left edge for their
+                // colored bar to indicate that the full schedule continues
+                // to the left
+                if (lagTime < 0 && showRemainingWork) {
+                    g.setColor(getBackground());
+                    int ll = insets.left, tt = insets.top, d = barHeight/4;
+                    int[] xx = new int[] { ll, ll + d, ll, ll+d, ll };
+                    int[] yy = new int[] { tt, tt+d, tt+d*2, tt+d*3, tt+barHeight };
+                    g.fillPolygon(xx, yy, xx.length);
                 }
             }
         }
@@ -458,5 +570,6 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
     private static final int BALANCED_BAR_WIDTH = 8;
     private static final int BBHW = BALANCED_BAR_WIDTH / 2;
     private static final int PAD = 3;
+    private static final Date A_LONG_TIME_AGO = new Date(0);
 
 }

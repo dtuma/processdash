@@ -1,6 +1,7 @@
 package teamdash.wbs.columns;
 
 import java.beans.EventHandler;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -19,6 +20,10 @@ public class TeamActualTimeColumn extends AbstractNumericColumn implements
         CalculatedDataColumn {
 
     public static final String COLUMN_ID = "Actual-Time";
+
+    public static String getRemainingTimeAttr(TeamMember m) {
+        return getRemainingTimeAttr(m.getInitials());
+    }
 
     private static final String ACT_TIME_ATTR_NAME = "Actual_Team_Time";
 
@@ -99,10 +104,20 @@ public class TeamActualTimeColumn extends AbstractNumericColumn implements
     }
 
     public boolean recalculate() {
-        recalculate(wbsModel.getRoot(), new double[teamSize],
+        RemainingTimeCalculator[] remainingTime =
+            createRemainingTimeCalculators();
+
+        recalculate(wbsModel.getRoot(), new double[teamSize], remainingTime,
             new double[1], new long[1]);
+
+        for (int i = 0; i < teamSize; i++)
+            wbsModel.getRoot().setNumericAttribute(
+                getRemainingTimeAttr(initials[i]),
+                remainingTime[i].getTotalRemainingTime());
+
         return true;
     }
+
 
     /** Recalculate data for a single node in the WBS.
      * 
@@ -123,7 +138,8 @@ public class TeamActualTimeColumn extends AbstractNumericColumn implements
      *     and return the result in the single field of this array.
      */
     private void recalculate(WBSNode node, double[] actualTime,
-            double[] earnedValue, long[] completionDate) {
+            RemainingTimeCalculator[] remainingTime, double[] earnedValue,
+            long[] completionDate) {
         // get the list of children underneath this node
         WBSNode[] children = wbsModel.getChildren(node);
         boolean isLeaf = (children.length == 0);
@@ -152,6 +168,8 @@ public class TeamActualTimeColumn extends AbstractNumericColumn implements
                     // team has earned the value associated with the task.
                     if (memberCompletionDate != null)
                         earnedValue[0] += memberPlanTime;
+                    else
+                        remainingTime[i].addTask(memberPlanTime, actualTime[i]);
                 }
             }
 
@@ -161,8 +179,8 @@ public class TeamActualTimeColumn extends AbstractNumericColumn implements
             long[] childCompletionDate = new long[1];
             for (int i = 0; i < children.length; i++) {
                 // ask our child to compute its time data
-                recalculate(children[i], childTime, childEarnedValue,
-                    childCompletionDate);
+                recalculate(children[i], childTime, remainingTime,
+                    childEarnedValue, childCompletionDate);
                 // now accumulate time from that child into our total
                 for (int j = 0; j < teamSize; j++)
                     actualTime[j] += childTime[j];
@@ -218,4 +236,78 @@ public class TeamActualTimeColumn extends AbstractNumericColumn implements
             return Math.max(a, b.getTime());
     }
 
+    private RemainingTimeCalculator[] createRemainingTimeCalculators() {
+        RemainingTimeCalculator[] result = new RemainingTimeCalculator[teamSize];
+        for (int i = 0; i < result.length; i++)
+            result[i] = new RemainingTimeCalculator();
+        return result;
+    }
+
+    private class RemainingTimeCalculator {
+
+        private List<TaskData> remainingTasks;
+        private double underspentTime;
+        private double overspentTime;
+
+        public RemainingTimeCalculator() {
+            remainingTasks = new ArrayList<TaskData>();
+            underspentTime = overspentTime = 0;
+        }
+
+        public void addTask(double planTime, double actualTime) {
+            remainingTasks.add(new TaskData(planTime, actualTime));
+        }
+
+        public double getTotalRemainingTime() {
+            double adjustmentRatio = - overspentTime / underspentTime;
+            adjustmentRatio = Math.min(adjustmentRatio, MAX_ADJUSTMENT_RATIO);
+
+            double cumRemainingTime = 0;
+            for (TaskData task : remainingTasks)
+                cumRemainingTime += task.getTimeRemaining(adjustmentRatio);
+            return cumRemainingTime;
+        }
+
+        private class TaskData {
+
+            /** The user's planned time for this task */
+            private double planTime;
+            /** The actual time logged against this task to date */
+            private double actualTime;
+
+            /** The projected cost for this task, calculated by assuming that
+             * the task is "almost done" */
+            double almostDoneCost;
+            double delta;
+
+            public TaskData(double planTime, double actualTime) {
+
+                this.planTime = planTime;
+                this.actualTime = actualTime;
+                almostDoneCost = actualTime / ALMOST_DONE_PERCENTAGE;
+                delta = planTime - almostDoneCost;
+                if (delta > 0)
+                    underspentTime += delta;
+                else
+                    overspentTime += delta;
+            }
+
+            public double getTimeRemaining(double deltaRatio) {
+                if (delta > 0)
+                    return planTime - (delta * deltaRatio) - actualTime;
+                else
+                    return almostDoneCost - actualTime;
+            }
+
+        }
+
+    }
+
+    private static final double ALMOST_DONE_PERCENTAGE = 0.9;
+
+    private static final double MAX_ADJUSTMENT_RATIO = 0.2;
+
+    private static String getRemainingTimeAttr(String initials) {
+        return initials + "-Remaining_Time";
+    }
 }

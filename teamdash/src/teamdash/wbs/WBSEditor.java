@@ -19,13 +19,17 @@ import java.util.prefs.Preferences;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
+import javax.swing.BorderFactory;
+import javax.swing.ButtonGroup;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
+import javax.swing.JRadioButtonMenuItem;
 import javax.swing.SwingUtilities;
+import javax.swing.border.EmptyBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.TableModelEvent;
@@ -66,6 +70,7 @@ public class WBSEditor implements WindowListener, SaveListener,
     File customTabsFile;
     private String owner;
     private int mode;
+    boolean showActualData = false;
     boolean readOnly = false;
     boolean exitOnClose = false;
     String syncURL = null;
@@ -111,10 +116,11 @@ public class WBSEditor implements WindowListener, SaveListener,
             (model, teamProject.getTeamMemberList(),
              teamProject.getTeamProcess(), taskDependencySource);
 
-        reverseSynchronizer = new WBSSynchronizer(teamProject, data);
-        reverseSynchronizer.run();
-        boolean showActualData = isMode(MODE_PLAIN)
-                && reverseSynchronizer.getFoundActualData();
+        if (isMode(MODE_PLAIN)) {
+            reverseSynchronizer = new WBSSynchronizer(teamProject, data);
+            reverseSynchronizer.run();
+            showActualData = reverseSynchronizer.getFoundActualData();
+        }
 
         dataWriter = new WBSDataWriter(model, data,
                 teamProject.getTeamProcess(), teamProject.getProjectID(),
@@ -434,6 +440,11 @@ public class WBSEditor implements WindowListener, SaveListener,
         if (isMode(MODE_PLAIN))
             result.add(new ShowTeamMemberListEditorMenuItem());
         result.add(new ShowTeamTimePanelMenuItem());
+        if (showActualData) {
+            ButtonGroup g = new ButtonGroup();
+            result.add(new BottomUpShowReplanMenuItem(g));
+            result.add(new BottomUpShowPlanMenuItem(g));
+        }
         return result;
     }
 
@@ -839,6 +850,34 @@ public class WBSEditor implements WindowListener, SaveListener,
         public void stateChanged(ChangeEvent e) {
             teamTimePanel.setVisible(getState());
             frame.invalidate();
+        }
+    }
+
+    private class BottomUpShowReplanMenuItem extends JRadioButtonMenuItem
+    implements ChangeListener {
+        public BottomUpShowReplanMenuItem (ButtonGroup buttonGroup) {
+            super("Colored Bars Show Remaining Work");
+            setMnemonic('R');
+            setDisplayedMnemonicIndex(getText().indexOf('R'));
+            setSelected(true);
+            setBorder(BorderFactory.createCompoundBorder(getBorder(),
+                new EmptyBorder(0, 15, 0, 0)));
+            buttonGroup.add(this);
+            addChangeListener(this);
+        }
+
+        public void stateChanged(ChangeEvent e) {
+            teamTimePanel.setShowRemainingWork(isSelected());
+        }
+    }
+
+    private class BottomUpShowPlanMenuItem extends JRadioButtonMenuItem {
+        public BottomUpShowPlanMenuItem (ButtonGroup buttonGroup) {
+            super("Colored Bars Show End-to-End Plan");
+            setMnemonic('P');
+            setBorder(BorderFactory.createCompoundBorder(getBorder(),
+                new EmptyBorder(0, 15, 0, 0)));
+            buttonGroup.add(this);
         }
     }
 

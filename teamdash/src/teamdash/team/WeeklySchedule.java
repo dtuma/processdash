@@ -205,6 +205,21 @@ public class WeeklySchedule implements EffortCalendar {
         return -1;
     }
 
+    public double getEffortForDate(Date d) {
+        if (d == null || d.before(zeroDay))
+            return 0;
+
+        double week = dateToDoubleWeekValue(zeroDay, d);
+        int finalWeekNum = (int) week;
+
+        double result = 0;
+        for (int i = startWeek;  i < finalWeekNum;  i++)
+            result += getWeekData(i).getHours();
+
+        double weekFraction = week - finalWeekNum;
+        result += getWeekData(finalWeekNum).getHours() * weekFraction;
+        return result;
+    }
 
     public Date getDateForEffort(double hours) {
 
@@ -304,9 +319,13 @@ public class WeeklySchedule implements EffortCalendar {
     }
 
     public static int dateToWeekValue(Date zero, Date d) {
-        double delta = d.getTime() - zero.getTime();
-        double weekDelta = delta / WEEK_MILLIS;
+        double weekDelta = dateToDoubleWeekValue(zero, d);
         return (int) Math.round(weekDelta);
+    }
+
+    private static double dateToDoubleWeekValue(Date zero, Date d) {
+        double delta = d.getTime() - zero.getTime();
+        return delta / WEEK_MILLIS;
     }
 
     public Date weekValueToDate(double week) {

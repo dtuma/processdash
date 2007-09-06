@@ -32,13 +32,12 @@ import teamdash.wbs.columns.TeamMemberTimeColumn;
 
 public class WBSSynchronizer {
 
-    private static final String USER_DUMP_ENTRY_NAME = "userDump.xml";
-
-    private static final String EXPORT_FILENAME_ENDING = "-data.pdash";
 
     private TeamProject teamProject;
 
     private DataTableModel dataModel;
+
+    private Date effectiveDate;
 
     private boolean foundActualData = false;
 
@@ -52,6 +51,9 @@ public class WBSSynchronizer {
         return id.replace('_', '-') + " (Synced)";
     }
 
+    public static final String EFFECTIVE_DATE_ATTR =
+        "Team@Actual_Data_Effective_Date";
+
 
     public WBSSynchronizer(TeamProject teamProject, DataTableModel dataModel) {
         this.teamProject = teamProject;
@@ -60,6 +62,7 @@ public class WBSSynchronizer {
     }
 
     public void run() {
+        effectiveDate = new Date(0);
         foundActualData = false;
         Element directDumpData = getDirectDumpData();
         Map<String, File> exportFiles = getExportFiles();
@@ -71,6 +74,9 @@ public class WBSSynchronizer {
             Element dump = getUserDumpData(m, exportFiles, directDumpData);
             syncTeamMember(m, dump, nodeMap);
         }
+
+        teamProject.getWBS().getRoot().setAttribute(EFFECTIVE_DATE_ATTR,
+            effectiveDate);
 
         int col = dataModel.findColumn(TeamActualTimeColumn.COLUMN_ID);
         dataModel.columnChanged(dataModel.getColumn(col));
@@ -200,6 +206,11 @@ public class WBSSynchronizer {
 
         logger.log(Level.FINE, "Reverse synchronizing data for {0}", m
                 .getName());
+
+        Date indivEffDate = XMLUtils.getXMLDate(dumpData, TIMESTAMP_ATTR);
+        if (indivEffDate != null && indivEffDate.after(effectiveDate))
+            effectiveDate = indivEffDate;
+
         NodeList children = dumpData.getChildNodes();
         for (int i = 0; i < children.getLength(); i++) {
             Node child = children.item(i);
@@ -342,7 +353,13 @@ public class WBSSynchronizer {
             return Math.abs(a - b) < 0.01;
     }
 
+    private static final String USER_DUMP_ENTRY_NAME = "userDump.xml";
+
+    private static final String EXPORT_FILENAME_ENDING = "-data.pdash";
+
     private static final String INITIALS_ATTR = "initials";
+
+    private static final String TIMESTAMP_ATTR = "timestamp";
 
     private static final String PLAN_TIME_CHANGE_TAG = "planTimeChange";
 
