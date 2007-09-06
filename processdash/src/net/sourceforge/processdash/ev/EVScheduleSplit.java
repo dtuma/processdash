@@ -141,20 +141,35 @@ public class EVScheduleSplit extends EVSchedule {
     }
 
     protected void rewriteHistory(Date effDate, List histPeriods) {
-        for (int i = 1;  i < periods.size() && i < histPeriods.size();  i++) {
+        for (int i = 1;  i < periods.size();  i++) {
             Period p = get(i);
-            Period h = (Period) histPeriods.get(i);
-            if (p.endDate.compareTo(effDate) <= 0)
+            Period h;
+            if (i < histPeriods.size())
+                h = (Period) histPeriods.get(i);
+            else
+                h = null;
+            if (p.endDate.compareTo(effDate) <= 0) {
                 rewriteHistoricalPeriod(p, h);
-            p.automatic = false;
+                p.automatic = false;
+            }
         }
     }
 
     protected void rewriteHistoricalPeriod(Period p, Period h) {
-        p.planTotalTime = h.actualDirectTime + h.actualIndirectTime;
-        p.planDirectTime = h.actualDirectTime;
-        p.cumPlanDirectTime = h.cumActualDirectTime;
-        p.cumPlanValue = h.cumEarnedValue;
+        if (h != null) {
+            p.planTotalTime = h.actualDirectTime + h.actualIndirectTime;
+            p.planDirectTime = h.actualDirectTime;
+            p.cumPlanDirectTime = h.cumActualDirectTime;
+            p.cumPlanValue = h.cumEarnedValue;
+        } else {
+            p.planTotalTime = p.planDirectTime = 0;
+            if (p.previous != null) {
+                p.cumPlanDirectTime = p.previous.cumPlanDirectTime;
+                p.cumPlanValue = p.previous.cumPlanValue;
+            } else {
+                p.cumPlanDirectTime = p.cumPlanValue = 0;
+            }
+        }
     }
 
 
