@@ -116,6 +116,7 @@ import net.sourceforge.processdash.ui.TaskNavigationSelector;
 import net.sourceforge.processdash.ui.UserNotificationManager;
 import net.sourceforge.processdash.ui.help.PCSH;
 import net.sourceforge.processdash.ui.lib.ErrorReporter;
+import net.sourceforge.processdash.ui.systray.SystemTrayManagement;
 import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.FormatUtil;
 import net.sourceforge.processdash.util.HTTPUtils;
@@ -462,7 +463,29 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
                 prop_file.getParentFile());
         DashController.setDashboard(this);
         BackgroundTaskManager.initialize(this);
+        initializeSystemTray();
     }
+
+    /**
+     * Enable system tray icon based on a property value.
+     */
+    private void initializeSystemTray() {
+        if (isSystemTrayEnabled()){
+            //install icon
+            SystemTrayManagement.getIcon().initialize(this);
+        } else {
+            //remove the icon from the system tray
+            SystemTrayManagement.getIcon().dispose();
+        }
+    }
+
+    /**
+     * @return true if preferences allow system tray icon
+     */
+    private static boolean isSystemTrayEnabled() {
+        return Settings.getBool("sysTray.enabled", false);
+    }
+
     private int hierChangeCount = 0;
     private void registerHierarchyDataElement() {
         ListData propItem = new ListData();
@@ -782,6 +805,7 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
             logErr("When shutting down, encountered the exception:", t);
         }
 
+        SystemTrayManagement.getIcon().dispose();
         setVisible(false);
         logger.fine("Backing up data directory");
         FileBackupManager.maybeRun
