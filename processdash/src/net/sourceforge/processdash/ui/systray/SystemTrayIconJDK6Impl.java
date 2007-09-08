@@ -154,9 +154,8 @@ public class SystemTrayIconJDK6Impl implements SystemTrayIcon {
     /**
      * Get an image for the icon in the systray.<br><br>
      * 
-     * TODO Update this method to reflect current application state. Use
-     * any processdash classes or resources, for example
-     * <code>DashController.getProcessDash()</code>.
+     * TODO: Update this method to reflect current application state.
+     * 
      * @return an image
      */
     protected Image getImage() {
@@ -167,9 +166,8 @@ public class SystemTrayIconJDK6Impl implements SystemTrayIcon {
      * Builds popup menu for the systray icon. This method should also
      * setup menu action listener(s).<br><br>
      * 
-     * TODO Update this method to reflect current application state. Use
-     * any processdash classes or resources, for example
-     * <code>DashController.getProcessDash()</code>.
+     * TODO: Update this method to reflect current application state.
+     * 
      * @return popup menu
      */
     protected PopupMenu getMenu() {
@@ -203,9 +201,7 @@ public class SystemTrayIconJDK6Impl implements SystemTrayIcon {
     /**
      * Updates icon tooltip text that appears when mouse hovers over the icon.<br><br>
      * 
-     * TODO Update this method to reflect current application state. Use
-     * any processdash classes or resources, for example
-     * <code>DashController.getProcessDash()</code>.
+     * TODO: Update this method to reflect current application state.
      * 
      * @return tooltip text
      */
