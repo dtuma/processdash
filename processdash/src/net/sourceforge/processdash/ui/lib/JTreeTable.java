@@ -198,6 +198,14 @@ public class JTreeTable extends JTable {
     }
 
     /**
+     * Method to convert between table rows and tree rows - meant for
+     * overriding in a subclass.
+     */
+    protected int convertTableRowToTreeRow(int tableRow) {
+        return tableRow;
+    }
+
+    /**
      * A TreeCellRenderer that displays a JTree.
      */
     public class TreeTableCellRenderer extends JTree implements
@@ -249,7 +257,7 @@ public class JTreeTable extends JTable {
          * This is overridden to set the height to match that of the JTable.
          */
         public void setBounds(int x, int y, int w, int h) {
-            super.setBounds(x, 0, w, JTreeTable.this.getHeight());
+            super.setBounds(x, 0, w, getRowHeight()*getRowCount());
         }
 
         /**
@@ -274,7 +282,7 @@ public class JTreeTable extends JTable {
             else
                 setBackground(table.getBackground());
 
-            visibleRow = row;
+            visibleRow = convertTableRowToTreeRow(row);
             return this;
         }
 
