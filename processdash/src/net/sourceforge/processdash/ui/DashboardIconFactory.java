@@ -41,13 +41,11 @@ import java.util.List;
 
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
-import javax.swing.JFrame;
 import javax.swing.JLabel;
 
 import net.sf.image4j.codec.ico.ICODecoder;
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.util.FallbackObjectFactory;
-import net.sourceforge.processdash.util.RuntimeUtils;
 
 public class DashboardIconFactory {
 
@@ -507,11 +505,6 @@ public class DashboardIconFactory {
     }
 
 
-    interface WindowIconImageSetter {
-        public void init(List<? extends Image> icons);
-        public void setWindowIconImage(Window w);
-    }
-
     private static WindowIconImageSetter getWindowIconImageSetter(
             WindowIconImageSetter current, List<? extends Image> icons) {
         if (current != null)
@@ -520,48 +513,11 @@ public class DashboardIconFactory {
         WindowIconImageSetter result =
                 new FallbackObjectFactory<WindowIconImageSetter>(
                     WindowIconImageSetter.class) //
-                    .add("DashboardIconFactory$WindowIconImageSetter16") //
-                    .add("DashboardIconFactory$WindowIconImageSetter15") //
+                    .add("WindowIconImageSetter16") //
+                    .add("WindowIconImageSetter15") //
                     .get();
         result.init(icons);
         return result;
-    }
-
-    public static class WindowIconImageSetter15 implements
-            WindowIconImageSetter {
-
-        Image image;
-
-        public void init(List<? extends Image> icons) {
-            this.image = selectImageClosestToSize(icons, 32, true);
-        }
-
-        public void setWindowIconImage(Window w) {
-            if (w instanceof JFrame) {
-                JFrame frame = (JFrame) w;
-                frame.setIconImage(image);
-            }
-        }
-
-    }
-
-    public static class WindowIconImageSetter16 implements
-            WindowIconImageSetter {
-
-        private List<? extends Image> icons;
-
-        public WindowIconImageSetter16() {
-            RuntimeUtils.assertMethod(Window.class, "setIconImages");
-        }
-
-        public void init(List<? extends Image> icons) {
-            this.icons = icons;
-        }
-
-        public void setWindowIconImage(Window w) {
-            w.setIconImages(icons);
-        }
-
     }
 
 }
