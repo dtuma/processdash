@@ -85,6 +85,7 @@ import net.sourceforge.processdash.i18n.Translator;
 import net.sourceforge.processdash.log.defects.DefectAnalyzer;
 import net.sourceforge.processdash.log.time.DashboardTimeLog;
 import net.sourceforge.processdash.log.time.TimeLog;
+import net.sourceforge.processdash.log.time.TimeLoggingModel;
 import net.sourceforge.processdash.log.time.WorkingTimeLog;
 import net.sourceforge.processdash.log.ui.DefectButton;
 import net.sourceforge.processdash.log.ui.PauseButton;
@@ -483,7 +484,7 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
      * @return true if preferences allow system tray icon
      */
     private static boolean isSystemTrayEnabled() {
-        return Settings.getBool("sysTray.enabled", false);
+        return !Settings.getBool("sysTray.disabled", false);
     }
 
     private int hierChangeCount = 0;
@@ -698,6 +699,10 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
 
     public ActiveTaskModel getActiveTaskModel() {
         return activeTaskModel;
+    }
+
+    public TimeLoggingModel getTimeLoggingModel() {
+        return timeLog.getTimeLoggingModel();
     }
 
 

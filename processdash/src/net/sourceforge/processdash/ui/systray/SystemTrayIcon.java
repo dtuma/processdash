@@ -41,12 +41,6 @@ public interface SystemTrayIcon {
     public void initialize(ProcessDashboard pdash);
 
     /**
-     * This method updates an already displaying systray icon, for
-     * example to rebuild menu or to display a different icon.
-     */
-    public void update();
-
-    /**
      * Remove the application icon from the system tray.
      */
     public void dispose();

@@ -30,6 +30,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.sourceforge.processdash.ProcessDashboard;
+import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.util.RuntimeUtils;
 
 class DashboardProcessFactoryForking extends DashboardProcessFactory {
@@ -50,6 +51,10 @@ class DashboardProcessFactoryForking extends DashboardProcessFactory {
             throw new Exception(resources.getString("Errors.Missing_JAR"));
 
         mainClassName = ProcessDashboard.class.getName();
+
+        // do not display tray icons for launched instances; otherwise, there
+        // could be an unhelpful proliferation of identical icons
+        addVmArg("-D" + Settings.SYS_PROP_PREFIX + "sysTray.disabled=true");
     }
 
     public void setClasspath(String classpath) {

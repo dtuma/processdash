@@ -26,32 +26,27 @@
 package net.sourceforge.processdash.ui.systray;
 
 import java.awt.AWTException;
+import java.awt.Dimension;
 import java.awt.Image;
-import java.awt.MenuItem;
-import java.awt.PopupMenu;
 import java.awt.SystemTray;
-import java.awt.Toolkit;
 import java.awt.TrayIcon;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
-import net.sourceforge.processdash.DashController;
 import net.sourceforge.processdash.ProcessDashboard;
+import net.sourceforge.processdash.ui.DashboardIconFactory;
 
 /**
  * The JDK 6 implementation of the systray icon. This class supports one tray icon.
  * 
  * @see SystemTrayIcon
  * @see SystemTrayManagement
- * @see DashController
  * @see ProcessDashboard#initializeSystemTray()
  * 
  * @author Max Agapov <magapov@gmail.com>
  * 
  */
 public class SystemTrayIconJDK6Impl implements SystemTrayIcon {
-
-    private static final String SEPARATOR = "-";
 
     /**
      * Our icon in the systray
@@ -62,6 +57,30 @@ public class SystemTrayIconJDK6Impl implements SystemTrayIcon {
      * Process Dashboard object
      */
     ProcessDashboard pdash;
+
+    /**
+     * Object to recompute and update our icon.
+     */
+    IconImageHandler imageHandler;
+
+    /**
+     * Object to recompute and update our tooltip.
+     */
+    TooltipHandler tooltipHandler;
+
+    /**
+     * Object to handle "minimize to system tray" behavior
+     */
+    WindowHandler windowHandler;
+
+    /**
+     * Object to recompute and update the contents of our popup menu
+     */
+    MenuHandler menuHandler;
+
+
+    private static final Logger logger = Logger
+            .getLogger(SystemTrayIconJDK6Impl.class.getName());
 
     /**
      * No argument constructor. Throws an exception if
@@ -89,34 +108,28 @@ public class SystemTrayIconJDK6Impl implements SystemTrayIcon {
      * {@inheritDoc}
      */
     public void initialize(ProcessDashboard pdash) {
-        this.pdash = pdash;
-        update();
-    }
+        if (this.pdash != null || this.icon != null) {
+            logger.warning("SystemTrayIconJDK6Impl already initialized");
+            return;
+        }
 
-    /**
-     * {@inheritDoc}
-     */
-    public void update() {
         try {
             setupIcon();
         } catch (AWTException e) {
-            throw new RuntimeException("TrayIcon setup failed", e);
+            logger.log(Level.SEVERE, "TrayIcon setup failed", e);
+            return;
         }
 
-        //update image
-        Image img = getImage();
-        if (icon.getImage() != img) {
-            icon.setImage(img);
-        }
+        this.pdash = pdash;
 
-        //update menu
-        PopupMenu menu = getMenu();
-        if (icon.getPopupMenu() != menu){
-            icon.setPopupMenu(menu);
-        }
+        imageHandler = new IconImageHandler(pdash, icon);
+        tooltipHandler =  new TooltipHandler(pdash, icon);
+        windowHandler = new WindowHandler(pdash, icon);
+        menuHandler = new MenuHandler(pdash, icon);
+        icon.addActionListener(menuHandler.getDefaultAction());
 
-        //update tooltip text
-        icon.setToolTip(getToolTip());
+        // TODO: need to listen for and handle mouse events
+
     }
 
     /**
@@ -129,15 +142,6 @@ public class SystemTrayIconJDK6Impl implements SystemTrayIcon {
         if (icon == null) {
             // Create instance with an image
             icon = new TrayIcon(getImage());
-            icon.setImageAutoSize(true);
-
-            // Handle the default (mouse doubleclick) action
-            // to restore application view.
-            icon.addActionListener(new ActionListener() {
-                public void actionPerformed(ActionEvent e) {
-                    showApplication();
-                }
-            });
 
             // Add our new icon to the system tray
             SystemTray.getSystemTray().add(icon);
@@ -145,67 +149,14 @@ public class SystemTrayIconJDK6Impl implements SystemTrayIcon {
     }
 
     /**
-     * Brings the application window to the front.
-     */
-    private void showApplication() {
-        DashController.raiseWindow();
-    }
-
-    /**
-     * Get an image for the icon in the systray.<br><br>
-     * 
-     * TODO: Update this method to reflect current application state.
+     * Get an image for the icon in the systray.
      * 
      * @return an image
      */
     protected Image getImage() {
-        return Toolkit.getDefaultToolkit().getImage("filename");
+        Dimension iconSize = SystemTray.getSystemTray().getTrayIconSize();
+        int size = Math.min(iconSize.width, iconSize.height);
+        return DashboardIconFactory.getApplicationImage(size, true);
     }
 
-    /**
-     * Builds popup menu for the systray icon. This method should also
-     * setup menu action listener(s).<br><br>
-     * 
-     * TODO: Update this method to reflect current application state.
-     * 
-     * @return popup menu
-     */
-    protected PopupMenu getMenu() {
-
-        PopupMenu popup = new PopupMenu();
-
-        //Default item
-        MenuItem defaultItem = new MenuItem("Show ProcessDash");
-        defaultItem.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                showApplication();
-            }
-        });
-        popup.add(defaultItem);
-
-        //Separator
-        popup.add(new MenuItem(SEPARATOR));
-
-        //Exit item
-        MenuItem exitItem = new MenuItem("Exit");
-        exitItem.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                pdash.exitProgram();
-            }
-        });
-        popup.add(exitItem);
-
-        return popup;
-    }
-
-    /**
-     * Updates icon tooltip text that appears when mouse hovers over the icon.<br><br>
-     * 
-     * TODO: Update this method to reflect current application state.
-     * 
-     * @return tooltip text
-     */
-    protected String getToolTip() {
-        return "Process Dash";
-    }
 }
