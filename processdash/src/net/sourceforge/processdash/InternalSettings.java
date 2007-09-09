@@ -35,6 +35,7 @@ import java.io.Writer;
 import java.net.URL;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Properties;
@@ -84,6 +85,7 @@ public class InternalSettings extends Settings {
                 Properties systemDefaults = new Properties(defaults);
                 systemDefaults.load(in);
                 in.close();
+                filterOperatingSystemSpecificSettings(systemDefaults);
                 defaults = systemDefaults;
             }
 
@@ -165,6 +167,31 @@ public class InternalSettings extends Settings {
         fsettings.setHeader(PROPERTIES_FILE_HEADER);
         fsettings.setKeepingStrangeKeys(true);
 
+    }
+    private static void filterOperatingSystemSpecificSettings(Properties settings) {
+        String os = "os-" + getOSPrefix() + ".";
+        Map matchingValues = new HashMap();
+        for (Iterator i = settings.entrySet().iterator(); i.hasNext();) {
+            Map.Entry e = (Map.Entry) i.next();
+            String key = (String) e.getKey();
+            if (key.startsWith("os-")) {
+                if (key.startsWith(os))
+                    matchingValues.put(key.substring(os.length()), e.getValue());
+                i.remove();
+            }
+        }
+        settings.putAll(matchingValues);
+    }
+    private static String getOSPrefix() {
+        String os = System.getProperty("os.name").toLowerCase();
+        if (os.indexOf("windows") != -1)
+            return "windows";
+        else if (System.getProperty("mrj.version") != null)
+            return "mac";
+        else if (os.indexOf("linux") != -1)
+            return "linux";
+        else
+            return "unix";
     }
     private static final String getSettingsFilename() {
         if (System.getProperty("os.name").toUpperCase().startsWith("WIN"))
