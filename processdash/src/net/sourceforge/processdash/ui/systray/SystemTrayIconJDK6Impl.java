@@ -78,6 +78,11 @@ public class SystemTrayIconJDK6Impl implements SystemTrayIcon {
      */
     MenuHandler menuHandler;
 
+    /**
+     * Object to respond to mouse events on our icon
+     */
+    MouseHandler mouseHandler;
+
 
     private static final Logger logger = Logger
             .getLogger(SystemTrayIconJDK6Impl.class.getName());
@@ -126,10 +131,7 @@ public class SystemTrayIconJDK6Impl implements SystemTrayIcon {
         tooltipHandler =  new TooltipHandler(pdash, icon);
         windowHandler = new WindowHandler(pdash, icon);
         menuHandler = new MenuHandler(pdash, icon);
-        icon.addActionListener(menuHandler.getDefaultAction());
-
-        // TODO: need to listen for and handle mouse events
-
+        mouseHandler = new MouseHandler(pdash, icon, menuHandler, imageHandler);
     }
 
     /**

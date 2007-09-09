@@ -80,7 +80,7 @@ public class MenuHandler {
         // - Maybe mirror configuration menu?
     }
 
-    public ActionListener getDefaultAction() {
+    public ActionListener getShowWindowAction() {
         return showWindowAction;
     }
 

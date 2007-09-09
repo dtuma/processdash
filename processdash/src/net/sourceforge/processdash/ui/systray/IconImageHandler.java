@@ -58,6 +58,7 @@ public class IconImageHandler {
 
     private Image timingImage;
 
+    private Image armedImage;
 
     public IconImageHandler(ProcessDashboard pdash, TrayIcon icon) {
         this.timeLoggingModel = pdash.getTimeLoggingModel();
@@ -66,6 +67,7 @@ public class IconImageHandler {
         // create the images
         normalImage = trayIcon.getImage();
         timingImage = drawTimingImage(normalImage);
+        armedImage = drawArmedImage(normalImage);
 
         // register for change notification
         PropertyChangeListener pcl = EventHandler.create(
@@ -82,6 +84,11 @@ public class IconImageHandler {
         else
             trayIcon.setImage(timingImage);
     }
+
+    public void showArmedIcon() {
+        trayIcon.setImage(armedImage);
+    }
+
 
 
     private Image drawTimingImage(Image baseImage) {
@@ -102,6 +109,27 @@ public class IconImageHandler {
         int[] xx = new int[] { x, x+dx, x };
         int[] yy = new int[] { y, y+dy, y+2*dy };
         g.fillPolygon(xx, yy, 3);
+
+        return result;
+    }
+
+
+    private Image drawArmedImage(Image baseImage) {
+        ImageIcon baseIcon = new ImageIcon(baseImage);
+        Image result = new BufferedImage(baseIcon.getIconWidth(), baseIcon
+                .getIconHeight(), BufferedImage.TYPE_INT_ARGB);
+        Component c = new Component() {};
+        Graphics2D g = (Graphics2D) result.getGraphics();
+        baseIcon.paintIcon(c, g, 0, 0);
+
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+            RenderingHints.VALUE_ANTIALIAS_ON);
+        g.setColor(Color.black);
+        int x = baseIcon.getIconWidth()/4;
+        int dx = baseIcon.getIconWidth()/2 - 2;
+        int y = baseIcon.getIconHeight()/2;
+        int dy = baseIcon.getIconHeight()/4 - 1;
+        g.fillOval(x, y, dx, dy*2);
 
         return result;
     }
