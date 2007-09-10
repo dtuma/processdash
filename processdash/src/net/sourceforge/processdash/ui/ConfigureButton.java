@@ -68,6 +68,7 @@ import net.sourceforge.processdash.util.HTMLUtils;
 
 public class ConfigureButton extends JMenuBar implements ActionListener, HierarchyEditor.Listener {
     ProcessDashboard   parent       = null;
+    JMenu menu = null;
     HierarchyEditor  prop_frame   = null;
     //TaskScheduleDialog   task_frame   = null;
     TimeLogEditor  time_frame   = null;
@@ -130,7 +131,7 @@ public class ConfigureButton extends JMenuBar implements ActionListener, Hierarc
         parent = dash;
 
         String    s;
-        JMenu     menu = new JMenu(resources.getString("Main_Menu_Name"));
+        menu = new JMenu(resources.getString("Main_Menu_Name"));
         add (menu);
         setMinimumSize(getPreferredSize());
 
@@ -161,6 +162,10 @@ public class ConfigureButton extends JMenuBar implements ActionListener, Hierarc
                                     // get needed system properties
         Properties prop = System.getProperties ();
         FILE_SEP = prop.getProperty ("file.separator");
+    }
+
+    public JMenu getMainMenu() {
+        return menu;
     }
 
     private JMenuItem makeMenuItem(String text) {
@@ -318,7 +323,7 @@ public class ConfigureButton extends JMenuBar implements ActionListener, Hierarc
 
     protected void startProbeDialog () {
         if (probe_dialog != null)
-            probe_dialog.show();
+            probe_dialog.setVisible(true);
         else
             probe_dialog = new ProbeDialog(parent.getHierarchy(), parent.getData());
     }

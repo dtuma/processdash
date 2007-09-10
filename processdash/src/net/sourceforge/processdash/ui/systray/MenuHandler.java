@@ -37,6 +37,7 @@ import net.sourceforge.processdash.DashController;
 import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.log.time.TimeLoggingModel;
+import net.sourceforge.processdash.ui.lib.DuplicatedMenu;
 
 /**
  * Creates and manages the popup menu for the dashboard tray icon.
@@ -57,6 +58,7 @@ public class MenuHandler {
 
     private ActionListener changeTaskAction;
 
+
     private static final Resources res = Resources
             .getDashBundle("ProcessDashboard.SysTray.Menu");
 
@@ -67,17 +69,13 @@ public class MenuHandler {
 
         createSharedActions(pdash);
 
-        popupMenu.add(makeShowWindowMenuItem(pdash));
+        popupMenu.add(new DuplicatedMenu(pdash.getTitle(),
+            pdash.getConfigurationMenu()));
+        new ScriptMenuReplicator(pdash, popupMenu);
         popupMenu.add(makeChangeTaskMenuItem());
         popupMenu.add(new PlayPauseMenuItem(pdash.getTimeLoggingModel()));
-        popupMenu.addSeparator();
-        popupMenu.add(makeExitMenuItem(pdash));
+        popupMenu.add(makeShowWindowMenuItem(pdash));
 
-        // TODO: still need to add other menu items:
-        // - play/pause timer
-        // - change active task
-        // - listen to script menu & mirror its contents
-        // - Maybe mirror configuration menu?
     }
 
     public ActionListener getShowWindowAction() {
@@ -127,12 +125,7 @@ public class MenuHandler {
         return changeTaskItem;
     }
 
-    private MenuItem makeExitMenuItem(ProcessDashboard pdash) {
-        MenuItem exitItem = new MenuItem(res.getString("Exit"));
-        exitItem.addActionListener(EventHandler.create(ActionListener.class,
-            pdash, "exitProgram"));
-        return exitItem;
-    }
+
 
     public class PlayPauseMenuItem extends MenuItem {
         TimeLoggingModel timeLoggingModel;

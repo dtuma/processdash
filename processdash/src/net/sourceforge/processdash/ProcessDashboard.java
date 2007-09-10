@@ -60,6 +60,7 @@ import java.util.logging.Logger;
 
 import javax.swing.ButtonGroup;
 import javax.swing.JFrame;
+import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JOptionPane;
 import javax.swing.JRadioButton;
@@ -737,6 +738,10 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
 
     public DataRepository getDataRepository() {
         return data;
+    }
+
+    public JMenu getConfigurationMenu() {
+        return configure_button.getMainMenu();
     }
 
     public Dimension getPreferredSize() {
