@@ -76,15 +76,18 @@ import net.sourceforge.processdash.hier.ActiveTaskModel;
 import net.sourceforge.processdash.hier.Filter;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.ui.TaskNavigationSelector;
+import net.sourceforge.processdash.ui.TaskNavigationSelector.QuickSelectTaskProvider;
+import net.sourceforge.processdash.ui.lib.AbstractTreeTableModel;
 import net.sourceforge.processdash.ui.lib.JOptionPaneClickHandler;
 import net.sourceforge.processdash.ui.lib.JOptionPaneTweaker;
 import net.sourceforge.processdash.ui.lib.NarrowJMenu;
 import net.sourceforge.processdash.ui.lib.SwingWorker;
+import net.sourceforge.processdash.ui.lib.TreeTableModel;
 import net.sourceforge.processdash.util.StringUtils;
 
 
 public class TaskListNavigator implements TaskNavigationSelector.NavMenuUI,
-        ActionListener, DataListener {
+        QuickSelectTaskProvider, ActionListener, DataListener {
 
     private JMenuBar menuBar;
 
@@ -103,6 +106,8 @@ public class TaskListNavigator implements TaskNavigationSelector.NavMenuUI,
     private JMenu completedTasksMenu;
 
     private EVTaskList taskList;
+
+    private TreeTableModel quickTasks;
 
     private static Resources resources = Resources.getDashBundle("EV");
 
@@ -196,6 +201,10 @@ public class TaskListNavigator implements TaskNavigationSelector.NavMenuUI,
         installTaskList(null);
     }
 
+    public TreeTableModel getTaskSelectionChoices() { return quickTasks; }
+    public String getPathForTreeNode(Object node) { return node.toString(); }
+    public Object getTreeNodeForPath(String path) { return path; }
+
     private void createMenus() {
         completedTasksMenu = new JMenu(resources
                 .getString("Navigator.Completed_Items"));
@@ -288,6 +297,9 @@ public class TaskListNavigator implements TaskNavigationSelector.NavMenuUI,
                     listeningToData.add(dataName);
                 }
             }
+
+            quickTasks = new TaskListFlatTreeTableModel(todoTasks,
+                completedTasks);
 
             int maxItemsPerMenu = Settings.getInt("hierarchyMenu.maxItems", 20);
 
@@ -561,6 +573,61 @@ public class TaskListNavigator implements TaskNavigationSelector.NavMenuUI,
         }
 
         private static final String PLACEHOLDER = "placeholder";
+
+    }
+
+    private class TaskListFlatTreeTableModel extends AbstractTreeTableModel {
+
+        private static final String ROOT_OBJECT = "ROOT";
+
+        private List todoTasks;
+        private List completedTasks;
+        private String completed;
+
+        public TaskListFlatTreeTableModel(List todoTasks,
+                List completedTasks) {
+            super(ROOT_OBJECT);
+            this.todoTasks = todoTasks;
+            this.completedTasks = completedTasks;
+            this.completed = resources.getString("Navigator.Completed_Items");
+        }
+
+        public int getColumnCount() {
+            return 1;
+        }
+
+        public Class getColumnClass(int column) {
+            return TreeTableModel.class;
+        }
+
+        public String getColumnName(int column) {
+            return resources.getString("Task");
+        }
+
+        public Object getValueAt(Object node, int column) {
+            return node;
+        }
+
+        public Object getChild(Object parent, int index) {
+            if (parent == ROOT_OBJECT) {
+                if (index < todoTasks.size())
+                    return todoTasks.get(index);
+                else
+                    return completed;
+            } else if (parent == completed)
+                return completedTasks.get(index);
+            else
+                return null;
+        }
+
+        public int getChildCount(Object parent) {
+            if (parent == ROOT_OBJECT)
+                return todoTasks.size() + (completedTasks.isEmpty() ? 0 : 1);
+            else if (parent == completed)
+                return completedTasks.size();
+            else
+                return 0;
+        }
 
     }
 

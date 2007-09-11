@@ -28,10 +28,13 @@ package net.sourceforge.processdash.ui.lib;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Window;
+import java.awt.event.ActionListener;
+import java.beans.EventHandler;
 
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.SwingUtilities;
+import javax.swing.Timer;
 
 public class JOptionPaneTweaker extends Component {
 
@@ -76,7 +79,10 @@ public class JOptionPaneTweaker extends Component {
         }
 
         public void doTweak(JDialog dialog) {
-            c.requestFocus();
+            Timer t = new Timer(100, EventHandler.create(ActionListener.class,
+                c, "requestFocus"));
+            t.setRepeats(false);
+            t.start();
         }
     }
 

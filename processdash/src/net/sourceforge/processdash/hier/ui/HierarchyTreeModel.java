@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2006 Tuma Solutions, LLC
+// Copyright (C) 2003-2007 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -36,20 +36,27 @@ import javax.swing.tree.TreeNode;
 
 import net.sourceforge.processdash.hier.*;
 import net.sourceforge.processdash.hier.DashHierarchy.Event;
+import net.sourceforge.processdash.ui.lib.TreeTableModel;
 
 
 
 public class HierarchyTreeModel extends DefaultTreeModel
-    implements DashHierarchy.Listener
+    implements DashHierarchy.Listener, TreeTableModel
 {
     protected DashHierarchy tree;
     protected Map nodes;
     protected String rootName;
+    protected String columnName;
 
 
     public HierarchyTreeModel(DashHierarchy hierarchy) {
+        this(hierarchy, null);
+    }
+
+    public HierarchyTreeModel(DashHierarchy hierarchy, String colName) {
         super(new DefaultMutableTreeNode());
         tree = hierarchy;
+        columnName = colName;
         nodes = new HashMap();
         setRoot(getNodeForKey(PropertyKey.ROOT));
     }
@@ -62,6 +69,27 @@ public class HierarchyTreeModel extends DefaultTreeModel
         this.rootName = rootName;
     }
 
+    public Class getColumnClass(int column) {
+        return TreeTableModel.class;
+    }
+
+    public int getColumnCount() {
+        return 1;
+    }
+
+    public String getColumnName(int column) {
+        return columnName;
+    }
+
+    public Object getValueAt(Object node, int column) {
+        return node.toString();
+    }
+
+    public void setValueAt(Object value, Object node, int column) {}
+
+    public boolean isCellEditable(Object node, int column) {
+        return false;
+    }
 
     public void addTreeModelListener(TreeModelListener l) {
         if (listenerList.getListenerCount(TreeModelListener.class) == 0)

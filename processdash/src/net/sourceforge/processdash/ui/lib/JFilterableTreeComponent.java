@@ -50,6 +50,8 @@ import javax.swing.tree.TreePath;
 public class JFilterableTreeComponent extends JPanel {
     public static final String NODE_ACCEPTED = "nodeAccepted";
 
+    JTextField filterTextField;
+
     JFilterableTreeTable treeTable;
 
     protected EventListenerList listenerList = new EventListenerList();
@@ -61,16 +63,21 @@ public class JFilterableTreeComponent extends JPanel {
     private final SelectNextNodeAction nextNodeAction = new SelectNextNodeAction();
 
     public JFilterableTreeComponent(TreeTableModel treeTableModel) {
+        this(treeTableModel, "Find: ", true);
+    }
+
+    public JFilterableTreeComponent(TreeTableModel treeTableModel,
+            String prompt, boolean rootVisible) {
         super(new BorderLayout());
 
         // Create the components.
-        final JLabel filterTextLabel = new JLabel("Find: ");
-        final JTextField filterTextField = new JTextField(20);
-        final JPanel filterTextPanel = new JPanel();
+        filterTextField = new JTextField(20);
+        JPanel filterTextPanel = new JPanel();
         filterTextPanel.setLayout(new BoxLayout(filterTextPanel,
                 BoxLayout.X_AXIS));
         filterTextPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 5, 0));
-        filterTextPanel.add(filterTextLabel);
+        if (prompt != null)
+            filterTextPanel.add(new JLabel(prompt));
         filterTextPanel.add(filterTextField);
         filterTextField.addKeyListener(new KeyAdapter() {
             public void keyReleased(KeyEvent e) {
@@ -90,6 +97,7 @@ public class JFilterableTreeComponent extends JPanel {
         filterTextField.getActionMap().put("nextNode", nextNodeAction);
 
         treeTable = new JFilterableTreeTable(treeTableModel);
+        treeTable.setRootVisible(rootVisible);
         treeTable.getSelectionModel().setSelectionMode(
             ListSelectionModel.SINGLE_SELECTION);
         treeTable.addMouseListener(new MouseAdapter() {
@@ -110,6 +118,8 @@ public class JFilterableTreeComponent extends JPanel {
         treeTable.getActionMap().put("previousNode", previousNodeAction);
         treeTable.getActionMap().put("nextNode", nextNodeAction);
 
+        selectFirstLeaf();
+
         JScrollPane sp = new JScrollPane(treeTable);
         sp.getViewport().setBackground(Color.white);
 
@@ -118,13 +128,17 @@ public class JFilterableTreeComponent extends JPanel {
         add(sp, BorderLayout.CENTER);
     }
 
+    public void selectFirstLeaf() {
+        selectFirstLeafAfter(-1);
+    }
+
     private void filter(String text) {
         try {
             if (text == null || text.trim().length() == 0)
                 treeTable.setFilter(null);
             else
                 treeTable.setFilter(new NodeNamePatternMatcher(text));
-            selectFirstLeafAfter(0);
+            selectFirstLeaf();
         } catch (Exception e1) {
             e1.printStackTrace();
         }
@@ -181,7 +195,7 @@ public class JFilterableTreeComponent extends JPanel {
 
     private void selectFirstLeafAfter(int startRow) {
         if (startRow < 0)
-            startRow = 0;
+            startRow = -1;
 
         for (int i = startRow + 1; i < treeTable.getRowCount(); i++) {
             TreePath path = treeTable.getPathForRow(i);
@@ -213,6 +227,10 @@ public class JFilterableTreeComponent extends JPanel {
             return node;
         else
             return null;
+    }
+
+    public JTextField getFilterTextField() {
+        return this.filterTextField;
     }
 
     public JFilterableTreeTable getTreeTable() {

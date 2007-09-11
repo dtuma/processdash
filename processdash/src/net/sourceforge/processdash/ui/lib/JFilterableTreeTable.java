@@ -60,6 +60,18 @@ public class JFilterableTreeTable extends JTreeTable {
         setRowSorter(sorter = new TreeTableSorter());
     }
 
+    public boolean isRootVisible() {
+        return getTree().isRootVisible();
+    }
+
+    public void setRootVisible(boolean rootVisible) {
+        if (rootVisible != isRootVisible()) {
+            clearSelection();
+            getTree().setRootVisible(rootVisible);
+            sorter.sort();
+        }
+    }
+
     /** Change the object that filters which tree nodes should be displayed.
      * 
      * @param f a {@link Filter} object which can decide which tree nodes

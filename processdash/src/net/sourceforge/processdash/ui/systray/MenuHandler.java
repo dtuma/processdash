@@ -104,11 +104,7 @@ public class MenuHandler {
             }
         };
 
-        changeTaskAction = new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                // TODO Auto-generated method stub
-            }
-        };
+        changeTaskAction = pdash.getChangeTaskAction();
     }
 
     private MenuItem makeShowWindowMenuItem(ProcessDashboard pdash) {

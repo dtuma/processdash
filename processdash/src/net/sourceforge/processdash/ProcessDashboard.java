@@ -58,6 +58,7 @@ import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
+import javax.swing.Action;
 import javax.swing.ButtonGroup;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
@@ -742,6 +743,10 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
 
     public JMenu getConfigurationMenu() {
         return configure_button.getMainMenu();
+    }
+
+    public Action getChangeTaskAction() {
+        return taskNav.getChangeTaskAction();
     }
 
     public Dimension getPreferredSize() {

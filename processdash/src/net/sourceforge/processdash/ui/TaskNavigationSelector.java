@@ -29,6 +29,7 @@ import java.awt.event.ActionListener;
 import java.beans.EventHandler;
 import java.beans.PropertyChangeListener;
 
+import javax.swing.Action;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
@@ -40,8 +41,11 @@ import net.sourceforge.processdash.ev.ui.TaskListNavigator;
 import net.sourceforge.processdash.hier.ActiveTaskModel;
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.hier.ui.HierarchyMenu;
+import net.sourceforge.processdash.hier.ui.HierarchyTreeModel;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.ui.lib.ToolTipTimingCustomizer;
+import net.sourceforge.processdash.ui.lib.TreeTableModel;
+import net.sourceforge.processdash.util.FallbackObjectFactory;
 
 public class TaskNavigationSelector {
 
@@ -51,10 +55,20 @@ public class TaskNavigationSelector {
         public void delete();
     }
 
+    public interface QuickSelectTaskProvider {
+        public TreeTableModel getTaskSelectionChoices();
+        public Object getTreeNodeForPath(String path);
+        public String getPathForTreeNode(Object node);
+    }
+
+    static final String TASK_PROVIDER_KEY = "QuickSelectTaskProvider";
+    static final String ACTIVE_TASK_MODEL_KEY = "QuickSelectTaskModel";
+
     ProcessDashboard dash;
     ActiveTaskModel activeTaskModel;
     JMenuBar menuBar;
     JMenu menu;
+    Action changeTaskAction;
     NavMenuUI currentNavigator;
 
     private static final Resources resources = Resources
@@ -72,6 +86,10 @@ public class TaskNavigationSelector {
 
     public boolean selectNext() {
         return currentNavigator.selectNext();
+    }
+
+    public Action getChangeTaskAction() {
+        return changeTaskAction;
     }
 
     public void hierarchyChanged() {
@@ -97,6 +115,14 @@ public class TaskNavigationSelector {
         useTaskList.addActionListener((ActionListener) EventHandler.create(
                 ActionListener.class, this, "chooseTaskListNavigator"));
         menu.add(useTaskList);
+
+        changeTaskAction = new FallbackObjectFactory<Action>(Action.class)
+                .add("net.sourceforge.processdash.ui.QuickSelectTaskAction")
+                .get(false);
+        if (changeTaskAction != null) {
+            changeTaskAction.putValue(ACTIVE_TASK_MODEL_KEY, activeTaskModel);
+            menu.add(new JMenuItem(changeTaskAction));
+        }
     }
 
     private void createNavigator() {
@@ -113,6 +139,15 @@ public class TaskNavigationSelector {
             createHierarchyNavigator();
 
         activeTaskModel.addPropertyChangeListener(currentNavigator);
+
+        if (changeTaskAction != null) {
+            QuickSelectTaskProvider taskProvider;
+            if (currentNavigator instanceof QuickSelectTaskProvider)
+                taskProvider = (QuickSelectTaskProvider) currentNavigator;
+            else
+                taskProvider = new DefaultTaskProvider();
+            changeTaskAction.putValue(TASK_PROVIDER_KEY, taskProvider);
+        }
     }
 
     private void createHierarchyNavigator() {
@@ -164,4 +199,25 @@ public class TaskNavigationSelector {
     private static final String HIERARCHY_TYPE = "hierarchy";
     private static final String TASK_LIST_TYPE = "taskList";
 
+    private class DefaultTaskProvider extends HierarchyTreeModel implements
+            QuickSelectTaskProvider {
+
+        public DefaultTaskProvider() {
+            super(dash.getHierarchy(), resources.getString("Task"));
+        }
+
+        public String getPathForTreeNode(Object node) {
+            return key(node).path();
+        }
+
+        public TreeTableModel getTaskSelectionChoices() {
+            return this;
+        }
+
+        public Object getTreeNodeForPath(String path) {
+            PropertyKey key = dash.getHierarchy().findExistingKey(path);
+            return getNodeForKey(key);
+        }
+
+    }
 }
