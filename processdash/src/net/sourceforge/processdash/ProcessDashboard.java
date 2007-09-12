@@ -486,7 +486,7 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
      * @return true if preferences allow system tray icon
      */
     private static boolean isSystemTrayEnabled() {
-        return !Settings.getBool("sysTray.disabled", false);
+        return !Settings.getBool(SystemTrayManagement.DISABLED_SETTING, false);
     }
 
     private int hierChangeCount = 0;

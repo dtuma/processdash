@@ -27,6 +27,7 @@ package net.sourceforge.processdash.ui.systray;
 
 import java.awt.MenuItem;
 import java.awt.PopupMenu;
+import java.awt.SystemTray;
 import java.awt.TrayIcon;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -34,6 +35,7 @@ import java.beans.EventHandler;
 import java.beans.PropertyChangeListener;
 
 import net.sourceforge.processdash.DashController;
+import net.sourceforge.processdash.InternalSettings;
 import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.log.time.TimeLoggingModel;
@@ -71,6 +73,7 @@ public class MenuHandler {
 
         popupMenu.add(new DuplicatedMenu(pdash.getTitle(),
             pdash.getConfigurationMenu()));
+        popupMenu.add(new RemoveTrayIconAction(icon));
         ScriptMenuReplicator.replicate(pdash, popupMenu);
         popupMenu.add(makeChangeTaskMenuItem());
         popupMenu.add(new PlayPauseMenuItem(pdash.getTimeLoggingModel()));
@@ -121,6 +124,24 @@ public class MenuHandler {
         return changeTaskItem;
     }
 
+
+
+    public class RemoveTrayIconAction extends MenuItem {
+
+        private TrayIcon icon;
+
+        public RemoveTrayIconAction(TrayIcon icon) {
+            super(res.getString("Remove_Icon"));
+            this.icon = icon;
+            addActionListener(EventHandler.create(ActionListener.class, this,
+                "hideIcon"));
+        }
+
+        public void hideIcon() {
+            InternalSettings.set(SystemTrayManagement.DISABLED_SETTING, "true");
+            SystemTray.getSystemTray().remove(icon);
+        }
+    }
 
 
     public class PlayPauseMenuItem extends MenuItem {
