@@ -58,6 +58,7 @@
       <tocitem image="PageIcon" target="ConfigureMenu" text="The 'C' (configuration) menu"/>
       <tocitem image="PageIcon" target="UsingTimeLogEditor" text="Editing Time data" />
       <tocitem image="PageIcon" target="UsingDefectLogEditor" text="Editing Defect data"/>
+      <tocitem image="PageIcon" target="SystemTray" text="The System Tray Icon"/>
     </tocitem>
 
     <tocitem image="BookIcon" target="PostmortemAnalysis" text="Postmortem Analysis">

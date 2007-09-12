@@ -13,10 +13,14 @@
    height="162"
    id="svg17395"
    sodipodi:version="0.32"
-   inkscape:version="0.44"
+   inkscape:version="0.45.1"
    version="1.0"
-   sodipodi:docbase="c:\Tuma\projects\processdash\Templates\help\Images\constr"
-   sodipodi:docname="PointToPlayPausePullDownShowMenu.svg">
+   sodipodi:docbase="/home/rognon/travail/pspdash/new screens/svg"
+   sodipodi:docname="PointToPlayPausePullDownShowMenu.svg"
+   inkscape:output_extension="org.inkscape.output.svg.inkscape"
+   inkscape:export-filename="/home/rognon/travail/pspdash/new screens/final/PointToPlayPausePullDownShowMenu.png"
+   inkscape:export-xdpi="90"
+   inkscape:export-ydpi="90">
   <defs
      id="defs17397" />
   <sodipodi:namedview
@@ -29,7 +33,7 @@
      objecttolerance="10"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="1.47"
+     inkscape:zoom="1"
      inkscape:cx="190"
      inkscape:cy="28.183038"
      inkscape:document-units="px"
@@ -37,9 +41,9 @@
      height="162px"
      width="394px"
      inkscape:window-width="853"
-     inkscape:window-height="573"
+     inkscape:window-height="599"
      inkscape:window-x="513"
-     inkscape:window-y="510" />
+     inkscape:window-y="327" />
   <metadata
      id="metadata17400">
     <rdf:RDF>
@@ -60,9 +64,9 @@
        x="2"
        id="image17410"
        height="134"
-       width="390"
        sodipodi:absref="c:\Tuma\projects\processdash\Templates\help\Images\constr\PointToPlayPausePullDownShowMenu.png"
-       xlink:href="PointToPlayPausePullDownShowMenu.png" />
+       xlink:href="PointToPlayPausePullDownShowMenu.png"
+       width="386" />
     <text
        xml:space="preserve"
        style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"

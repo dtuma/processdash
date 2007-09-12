@@ -9,14 +9,18 @@
    xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="523"
+   width="531"
    height="90"
    id="svg5776"
    sodipodi:version="0.32"
-   inkscape:version="0.44"
+   inkscape:version="0.45.1"
    version="1.0"
-   sodipodi:docbase="C:\Tuma\projects\processdash\Templates\help\Images\constr"
-   sodipodi:docname="QSDesignReviewDefectButton.svg">
+   sodipodi:docbase="/home/rognon/travail/pspdash/new screens/svg"
+   sodipodi:docname="QSDesignReviewDefectButton.svg"
+   inkscape:output_extension="org.inkscape.output.svg.inkscape"
+   inkscape:export-filename="/home/rognon/travail/pspdash/new screens/final/QSDesignReviewDefectButton.png"
+   inkscape:export-xdpi="90"
+   inkscape:export-ydpi="90">
   <defs
      id="defs5778" />
   <sodipodi:namedview
@@ -35,11 +39,11 @@
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      height="90px"
-     width="523px"
+     width="531px"
      inkscape:window-width="1045"
      inkscape:window-height="688"
      inkscape:window-x="311"
-     inkscape:window-y="218" />
+     inkscape:window-y="212" />
   <metadata
      id="metadata5781">
     <rdf:RDF>
@@ -57,26 +61,26 @@
      id="layer1">
     <text
        xml:space="preserve"
-       style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
-       x="103.61248"
+       style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
+       x="113.61248"
        y="83.197029"
        id="text5878"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
          id="tspan5880"
-         x="103.61248"
+         x="113.61248"
          y="83.197029">Defect button</tspan></text>
     <image
        y="2"
        x="2"
        id="image5924"
        height="54"
-       width="519"
        sodipodi:absref="c:\Tuma\projects\processdash\Templates\help\Images\constr\QSDesignReviewDefectButton.png"
-       xlink:href="QSDesignReviewDefectButton.png" />
+       xlink:href="QSDesignReviewDefectButton.png"
+       width="529" />
     <path
-       style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="M 96.860858,47.035111 L 118.6502,68.824447"
+       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="M 106.86086,47.035111 L 128.6502,68.824447"
        id="path5927" />
   </g>
 </svg>

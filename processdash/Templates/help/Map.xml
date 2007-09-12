@@ -47,6 +47,7 @@
   <mapID target="UsingDefectLogEditor" url="Topics/Execution/UsingDefectLogEditor.html" />
   <mapID target="HierarchyMenus" url="Topics/Execution/HierarchyMenus.html" />
   <mapID target="ConfigureMenu" url="Topics/Execution/ConfigureMenu.html" />
+  <mapID target="SystemTray" url="Topics/Execution/SystemTray.html" />
   <mapID target="Help" url="Topics/Execution/UsingHelp.html" />
 
   <mapID target="PostmortemAnalysis" url="Topics/PostmortemAnalysis/PostmortemAnalysis.html" />

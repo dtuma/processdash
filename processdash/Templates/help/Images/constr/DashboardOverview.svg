@@ -9,14 +9,17 @@
    xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="539"
-   height="275"
+   width="553"
+   height="267.25156"
    id="svg2"
    sodipodi:version="0.32"
    inkscape:version="0.44"
    version="1.0"
    sodipodi:docbase="C:\Tuma\projects\processdash\Templates\help\Images\constr"
-   sodipodi:docname="DashboardOverview.svg">
+   sodipodi:docname="DashboardOverview.svg"
+   inkscape:export-filename="/home/rognon/travail/pspdash/new screens/final/DashboardOverview.png"
+   inkscape:export-xdpi="90"
+   inkscape:export-ydpi="90">
   <defs
      id="defs4" />
   <sodipodi:namedview
@@ -37,9 +40,9 @@
      height="275px"
      width="539px"
      inkscape:window-width="1339"
-     inkscape:window-height="993"
-     inkscape:window-x="217"
-     inkscape:window-y="64" />
+     inkscape:window-height="900"
+     inkscape:window-x="50"
+     inkscape:window-y="48" />
   <metadata
      id="metadata7">
     <rdf:RDF>
@@ -54,18 +57,19 @@
   <g
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
-     id="layer1">
+     id="layer1"
+     transform="translate(-2,-2)">
     <image
        y="2"
        x="2"
        id="image1930"
        height="54"
-       width="535"
        sodipodi:absref="C:\Tuma\projects\processdash\Templates\help\Images\constr\MainDashboardWindow.png"
-       xlink:href="MainDashboardWindow.png" />
+       xlink:href="MainDashboardWindow.png"
+       width="553" />
     <text
        xml:space="preserve"
-       style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
+       style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
        x="64.215141"
        y="266.09482"
        id="text1941"
@@ -76,7 +80,7 @@
          y="266.09482">&quot;Configuration&quot; menu - special features</tspan></text>
     <text
        xml:space="preserve"
-       style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
+       style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
        x="86.773117"
        y="240.34448"
        id="text1945"
@@ -87,102 +91,102 @@
          y="240.34448">Time entry via &quot;Play / Pause&quot; button</tspan></text>
     <text
        xml:space="preserve"
-       style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
-       x="130.40958"
+       style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
+       x="140.40958"
        y="188.84383"
        id="text1949"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
          id="tspan1951"
-         x="130.40958"
+         x="140.40958"
          y="188.84383">Defect entry</tspan></text>
     <text
        xml:space="preserve"
-       style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
-       x="152.63065"
+       style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
+       x="166.63065"
        y="163.09349"
        id="text1953"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
          id="tspan1955"
-         x="152.63065"
+         x="166.63065"
          y="163.09349">Process scripts/summary forms button</tspan></text>
     <text
        xml:space="preserve"
-       style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
-       x="337.16168"
+       style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
+       x="353.16168"
        y="110.65522"
        id="text1957"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
          id="tspan1959"
-         x="337.16168"
+         x="353.16168"
          y="110.65522">&quot;Phase complete&quot; checkbox</tspan></text>
     <text
        xml:space="preserve"
-       style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
-       x="175.65736"
+       style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
+       x="187.65736"
        y="137.34315"
        id="text1961"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
          id="tspan1963"
-         x="175.65736"
+         x="187.65736"
          y="137.34315">Task navigation style selector</tspan></text>
     <text
        xml:space="preserve"
        style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
-       x="191.85541"
+       x="205.62666"
        y="85.9673"
        id="text1965"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
          id="tspan1967"
-         x="191.85541"
+         x="205.62666"
          y="85.9673">Project hierarchy menus - select active task</tspan></text>
     <path
-       style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="M 521.5498,45.170494 L 507.26601,98.478323"
+       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="M 537.5498,45.170494 L 523.26601,98.478323"
        id="path2883" />
     <path
-       style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="M 156.27888,48.230255 L 176.47298,123.59565"
+       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="M 168.27888,48.230255 L 188.47298,123.59565"
        id="path2895" />
     <path
-       style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="M 122.62151,47.210334 L 150.415,150.93703"
+       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="M 136.62151,47.210334 L 164.415,150.93703"
        id="path2897" />
     <path
-       style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="M 95.083665,47.720294 L 129.95072,177.84592"
+       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="M 105.08366,47.720294 L 139.95072,177.84592"
        id="path2901" />
     <path
-       style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:1.00000024px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1.00000024px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
        d="M 45.856587,48.230262 L 93.642252,226.1658"
        id="path2903" />
     <path
-       style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:0.99999982px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:0.99999982px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
        d="M 17.808756,47.720297 L 72.41532,251.20217"
        id="path2905" />
     <path
-       style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:1.1501478px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="M 178.96865,51.676846 C 184.60073,59.368256 189.33519,65.128066 198.46043,65.128066 C 224.06842,65.128066 276.58894,65.081215 330.77782,65.03233 C 333.39479,65.02997 339.63589,70.698781 340.04989,70.407387 C 342.45792,68.712438 346.50778,65.018142 349.60672,65.015357 C 402.49295,64.967816 454.18957,64.923269 481.29213,64.923269 C 490.79323,64.923269 491.70213,58.726547 496.80752,51.754424"
+       style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:1.15014744px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="M 188.96854,51.676846 C 194.70694,59.368256 199.53077,65.128066 208.82828,65.128066 C 234.91966,65.128066 288.4316,65.081215 343.6434,65.03233 C 346.30978,65.02997 352.66869,70.698781 353.09051,70.407387 C 355.54399,68.712438 359.67029,65.018142 362.82773,65.015357 C 416.7123,64.967816 469.38479,64.923269 496.99896,64.923269 C 506.67942,64.923269 507.60547,58.726547 512.80724,51.754424"
        id="path5711"
        sodipodi:nodetypes="csscssc" />
     <text
        sodipodi:linespacing="125%"
        id="text2117"
        y="214.59415"
-       x="108.18851"
-       style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
+       x="118.18851"
+       style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
        xml:space="preserve"><tspan
          y="214.59415"
-         x="108.18851"
+         x="118.18851"
          id="tspan2119"
          sodipodi:role="line">Percent Spent Indicator</tspan></text>
     <path
        id="path2123"
-       d="M 70.856557,48.230236 L 111.82611,201.16569"
-       style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:0.9999997px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+       d="M 80.856557,48.230236 L 121.82611,201.16569"
+       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:0.9999997px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
   </g>
 </svg>

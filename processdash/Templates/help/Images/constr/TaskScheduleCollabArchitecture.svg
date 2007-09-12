@@ -9,17 +9,19 @@
    xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="541"
+   width="535"
    height="320"
    id="svg13892"
    sodipodi:version="0.32"
    inkscape:version="0.44"
    version="1.0"
-   sodipodi:docbase="c:\Tuma\projects\processdash\Templates\help\Images\constr"
-   sodipodi:docname="TaskScheduleCollabArchitecture.svg">
+   sodipodi:docbase="C:\Tuma\projects\processdash\Templates\help\Images\constr"
+   sodipodi:docname="TaskScheduleCollabArchitecture.svg"
+   inkscape:export-filename="/home/rognon/travail/pspdash/new screens/final/TaskScheduleCollabArchitecture.png"
+   inkscape:export-xdpi="90"
+   inkscape:export-ydpi="90">
   <defs
-     id="defs13894">
-  </defs>
+     id="defs13894" />
   <sodipodi:namedview
      id="base"
      pagecolor="#ffffff"
@@ -30,13 +32,13 @@
      objecttolerance="10"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="1.7783985"
+     inkscape:zoom="1"
      inkscape:cx="270.5"
      inkscape:cy="160"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      height="320px"
-     width="541px"
+     width="535px"
      inkscape:window-width="1039"
      inkscape:window-height="772"
      inkscape:window-x="380"
@@ -70,17 +72,17 @@
        x="2"
        id="image14026"
        height="54"
-       width="508"
        sodipodi:absref="c:\Tuma\projects\processdash\Templates\help\Images\constr\TaskScheduleCollabArchitecture1.png"
-       xlink:href="TaskScheduleCollabArchitecture1.png" />
+       xlink:href="TaskScheduleCollabArchitecture1.png"
+       width="531" />
     <image
        y="264"
        x="2"
        id="image14069"
        height="54"
-       width="537"
        sodipodi:absref="c:\Tuma\projects\processdash\Templates\help\Images\constr\TaskScheduleCollabArchitecture2.png"
-       xlink:href="TaskScheduleCollabArchitecture2.png" />
+       xlink:href="TaskScheduleCollabArchitecture2.png"
+       width="473" />
     <image
        y="2"
        x="3"

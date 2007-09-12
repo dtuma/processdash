@@ -9,14 +9,18 @@
    xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="527"
+   width="537"
    height="90"
    id="svg5776"
    sodipodi:version="0.32"
-   inkscape:version="0.44"
+   inkscape:version="0.45.1"
    version="1.0"
-   sodipodi:docbase="C:\Tuma\projects\processdash\Templates\help\Images\constr"
-   sodipodi:docname="PointToPlayPauseButton.svg">
+   sodipodi:docbase="/home/rognon/travail/pspdash/new screens/svg"
+   sodipodi:docname="PointToPlayPauseButton.svg"
+   inkscape:output_extension="org.inkscape.output.svg.inkscape"
+   inkscape:export-filename="/home/rognon/travail/pspdash/new screens/final/PointToPlayPauseButton.png"
+   inkscape:export-xdpi="90"
+   inkscape:export-ydpi="90">
   <defs
      id="defs5778" />
   <sodipodi:namedview
@@ -29,17 +33,17 @@
      objecttolerance="10"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="1.6292373"
+     inkscape:zoom="1"
      inkscape:cx="246.42857"
      inkscape:cy="67.158093"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      height="90px"
-     width="527px"
+     width="537px"
      inkscape:window-width="1045"
      inkscape:window-height="688"
-     inkscape:window-x="413"
-     inkscape:window-y="331" />
+     inkscape:window-x="296"
+     inkscape:window-y="141" />
   <metadata
      id="metadata5781">
     <rdf:RDF>
@@ -60,23 +64,23 @@
        x="2"
        id="image15501"
        height="54"
-       width="523"
        sodipodi:absref="c:\Tuma\projects\processdash\Templates\help\Images\constr\ShowHierarchyMenus.png"
-       xlink:href="ShowHierarchyMenus.png" />
+       xlink:href="ShowHierarchyMenus.png"
+       width="533" />
     <text
        xml:space="preserve"
-       style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
-       x="36.827049"
+       style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
+       x="42.827049"
        y="83.810814"
        id="text5878"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
          id="tspan5880"
-         x="36.827049"
+         x="42.827049"
          y="83.810814">Play / Pause button</tspan></text>
     <path
-       style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="M 43.578673,45.807543 L 59.037768,72.58348"
+       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="M 49.578673,45.807543 L 65.037768,72.58348"
        id="path17393" />
   </g>
 </svg>

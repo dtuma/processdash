@@ -9,14 +9,18 @@
    xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="489"
+   width="497"
    height="90"
    id="svg5636"
    sodipodi:version="0.32"
-   inkscape:version="0.44"
+   inkscape:version="0.45.1"
    version="1.0"
-   sodipodi:docbase="C:\Tuma\projects\processdash\Templates\help\Images\constr"
-   sodipodi:docname="QSChoosingPlanning.svg">
+   sodipodi:docbase="/home/rognon/travail/pspdash/new screens/svg"
+   sodipodi:docname="QSChoosingPlanning.svg"
+   inkscape:output_extension="org.inkscape.output.svg.inkscape"
+   inkscape:export-filename="/home/rognon/travail/pspdash/new screens/final/QSChoosingPlanning.png"
+   inkscape:export-xdpi="90"
+   inkscape:export-ydpi="90">
   <defs
      id="defs5638" />
   <sodipodi:namedview
@@ -35,11 +39,11 @@
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      height="90px"
-     width="489px"
+     width="497px"
      inkscape:window-width="952"
      inkscape:window-height="805"
-     inkscape:window-x="499"
-     inkscape:window-y="162" />
+     inkscape:window-x="488"
+     inkscape:window-y="95" />
   <metadata
      id="metadata5641">
     <rdf:RDF>
@@ -60,35 +64,35 @@
        x="2"
        id="image5684"
        height="54"
-       width="485"
        sodipodi:absref="c:\Tuma\projects\processdash\Templates\help\Images\constr\QSChoosingPlanning.png"
-       xlink:href="QSChoosingPlanning.png" />
+       xlink:href="QSChoosingPlanning.png"
+       width="495" />
     <text
        xml:space="preserve"
-       style="font-size:14px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
-       x="6.3459034"
+       style="font-size:14px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
+       x="14.345903"
        y="82.536362"
        id="text5687"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
          id="tspan5689"
-         x="6.3459034"
+         x="14.345903"
          y="82.536362"
          style="font-size:15px">Play button</tspan></text>
     <text
        xml:space="preserve"
-       style="font-size:14px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
-       x="122.28869"
+       style="font-size:14px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
+       x="130.2887"
        y="82.536362"
        id="text5691"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
          id="tspan5693"
-         x="122.28869"
+         x="130.2887"
          y="82.536362">Scripts button</tspan></text>
     <text
        xml:space="preserve"
-       style="font-size:14px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
+       style="font-size:14px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
        x="265.45645"
        y="82.536362"
        id="text5695"
@@ -98,17 +102,17 @@
          x="265.45645"
          y="82.536362">Hierarchy menus</tspan></text>
     <path
-       style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="M 185.25482,50.065242 C 189.73104,57.818275 193.49385,63.62423 200.74633,63.62423 C 221.09885,63.62423 262.84068,63.577004 305.90847,63.527727 C 307.98837,63.525348 312.94862,69.239575 313.27765,68.945847 C 315.19149,67.237319 318.4102,63.513426 320.87315,63.510618 C 362.90563,63.462696 403.99265,63.417793 425.533,63.417793 C 433.08421,63.417793 433.80659,57.171426 437.8642,50.143446"
+       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1.0377233px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="M 185.27368,50.084104 C 190.10363,57.821655 194.1638,63.616017 201.9894,63.616017 C 223.95026,63.616017 268.99071,63.568885 315.4619,63.519706 C 317.70616,63.517332 323.05839,69.220149 323.41342,68.927007 C 325.4785,67.221891 328.95157,63.505434 331.60915,63.502631 C 376.96322,63.454805 421.29711,63.409992 444.53967,63.409992 C 452.68761,63.409992 453.46708,57.176098 457.84534,50.162151"
        id="path5711"
        sodipodi:nodetypes="csscssc" />
     <path
-       style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="M 42.964889,47.16775 L 28.916908,71.499568"
+       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="M 50.964889,47.16775 L 36.916908,71.499568"
        id="path5713" />
     <path
-       style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="M 125.82575,47.781534 L 139.67917,71.776361"
+       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="M 133.82575,47.781534 L 147.67917,71.776361"
        id="path5715" />
   </g>
 </svg>

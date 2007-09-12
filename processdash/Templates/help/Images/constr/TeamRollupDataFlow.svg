@@ -34,8 +34,8 @@
      inkscape:cy="269.80684"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
-     inkscape:window-width="853"
-     inkscape:window-height="573"
+     inkscape:window-width="1270"
+     inkscape:window-height="887"
      inkscape:window-x="110"
      inkscape:window-y="110"
      height="480.35999px"
@@ -55,6 +55,10 @@
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
      id="layer1">
+    <path
+       style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:2;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="M 254.96515,29.359985 L 371.90405,29.359985"
+       id="path8585" />
     <path
        style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:2;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        d="M 34.5,266.49093 L 34.5,403.55866 C 34.5,436.14819 51.75328,454.35999 86.259841,454.35999 L 175.40179,454.35999"
@@ -167,18 +171,18 @@
     </g>
     <image
        y="1.3599854"
-       x="372"
+       x="361.00015"
        id="image1930"
        height="54"
-       width="327"
+       width="350"
        sodipodi:absref="C:\Tuma\projects\processdash\Templates\help\Images\constr\TeamRollupDataFlowT.png"
        xlink:href="TeamRollupDataFlowT.png" />
     <image
        y="275.35999"
-       x="99"
+       x="89"
        id="image1973"
        height="54"
-       width="472"
+       width="495"
        sodipodi:absref="C:\Tuma\projects\processdash\Templates\help\Images\constr\TeamRollupDataFlow1.png"
        xlink:href="TeamRollupDataFlow1.png" />
     <text
@@ -246,18 +250,18 @@
          y="244.36218">Automated Data Export</tspan></text>
     <image
        y="348.35999"
-       x="166"
+       x="152"
        id="image6737"
        height="54"
-       width="480"
+       width="503"
        sodipodi:absref="C:\Tuma\projects\processdash\Templates\help\Images\constr\TeamRollupDataFlow2.png"
        xlink:href="TeamRollupDataFlow2.png" />
     <image
        y="423.35999"
-       x="177"
+       x="127"
        id="image6780"
        height="54"
-       width="544"
+       width="599"
        sodipodi:absref="C:\Tuma\projects\processdash\Templates\help\Images\constr\TeamRollupDataFlow3.png"
        xlink:href="TeamRollupDataFlow3.png" />
     <g
@@ -282,9 +286,5 @@
            x="433.9039"
            y="115.37743">Automated Data Import</tspan></text>
     </g>
-    <path
-       style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:2;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       d="M 254.96515,29.359985 L 371.90405,29.359985"
-       id="path8585" />
   </g>
 </svg>

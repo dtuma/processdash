@@ -19,31 +19,13 @@ href="UsingTimeLogEditor.html">time log</a> for the project/task which you
 have made active with the <a href="HierarchyMenus.html">hierarchy
 menus</a>.</P>
 
-<P>By default, the play/pause button shows a triangle when the timer <em>IS 
-NOT</em> running.  The intent is that the picture shows what will happen when 
-it is pressed (pressing the play button will cause the timer to start).  Once 
-pressed, the button image changes from the triangle to a pair of vertical 
-bars.  When the vertical bars are displayed, the timer <em>IS</em> running.  
-Again, the intent is to show what will happen when the button is pressed at 
-this point (pressing the pause button will cause the timer to pause).</P>
+<p>When the timer is stopped, the paused icon will have a soft blue glow:</p>
 
 <p><img src="../../Images/DashboardStopped.png"></p>
-Dashboard timer waiting to be started
+
+<p>When the timer is running, the play icon will have a soft green glow:</p>
 
 <p><img src="../../Images/DashboardRunning.png"></p>
-Dashboard timer running
-
-<P>If you would prefer to see the triangle when the timer <em>IS</em> 
-currently running (i.e. you would rather see the current state of the timer 
-on the button), you can override this default behavior by adding an entry to 
-the configuration file.  Adding the following line to the configuration file 
-will cause the play and pause symbols to reverse their meaning:</P>
-
-<pre>pauseButton.showCurrent=true</pre>
-
-<P>For more information about the configuration file see the <a 
-href="../AdvancedTopics/ConfigurationFile.html">configuration file</a> help 
-topic.</P>
 
 <p>It is <b>not</b> necessary to stop the timer before using the hierarchy
 menus to change the active project/task/phase.  You can leave the timer in

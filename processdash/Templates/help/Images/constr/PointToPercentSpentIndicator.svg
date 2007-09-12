@@ -9,14 +9,18 @@
    xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="527"
-   height="90"
+   width="537"
+   height="92"
    id="svg5776"
    sodipodi:version="0.32"
-   inkscape:version="0.44"
+   inkscape:version="0.45.1"
    version="1.0"
-   sodipodi:docbase="C:\Tuma\projects\processdash\Templates\help\Images\constr"
-   sodipodi:docname="PointToPercentSpentIndicator.svg">
+   sodipodi:docbase="/home/rognon/travail/pspdash/new screens/svg"
+   sodipodi:docname="PointToPercentSpentIndicator.svg"
+   inkscape:output_extension="org.inkscape.output.svg.inkscape"
+   inkscape:export-filename="/home/rognon/travail/pspdash/new screens/final/PointToPercentSpentIndicator.png"
+   inkscape:export-xdpi="90.221016"
+   inkscape:export-ydpi="90.221016">
   <defs
      id="defs5778" />
   <sodipodi:namedview
@@ -34,12 +38,12 @@
      inkscape:cy="67.158093"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
-     height="90px"
-     width="527px"
+     height="92px"
+     width="537px"
      inkscape:window-width="1045"
      inkscape:window-height="688"
-     inkscape:window-x="413"
-     inkscape:window-y="331" />
+     inkscape:window-x="395"
+     inkscape:window-y="212" />
   <metadata
      id="metadata5781">
     <rdf:RDF>
@@ -60,23 +64,23 @@
        x="2"
        id="image15501"
        height="54"
-       width="523"
        sodipodi:absref="c:\Tuma\projects\processdash\Templates\help\Images\constr\ShowHierarchyMenus.png"
-       xlink:href="ShowHierarchyMenus.png" />
+       xlink:href="ShowHierarchyMenus.png"
+       width="533" />
     <text
        xml:space="preserve"
-       style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
-       x="63.219769"
+       style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
+       x="73.219772"
        y="83.810814"
        id="text5878"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
          id="tspan5880"
-         x="63.219769"
+         x="73.219772"
          y="83.810814">Percent Spent Indicator</tspan></text>
     <path
-       style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="M 69.971391,45.807543 L 85.430486,72.58348"
+       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="M 79.971391,45.807543 L 95.430486,72.58348"
        id="path17393" />
   </g>
 </svg>
