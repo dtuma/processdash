@@ -63,6 +63,7 @@ public class TaskNavigationSelector {
 
     static final String TASK_PROVIDER_KEY = "QuickSelectTaskProvider";
     static final String ACTIVE_TASK_MODEL_KEY = "QuickSelectTaskModel";
+    static final String PARENT_COMPONENT_KEY = "QuickSelectParentComponent";
 
     ProcessDashboard dash;
     ActiveTaskModel activeTaskModel;
@@ -121,6 +122,7 @@ public class TaskNavigationSelector {
                 .get(false);
         if (changeTaskAction != null) {
             changeTaskAction.putValue(ACTIVE_TASK_MODEL_KEY, activeTaskModel);
+            changeTaskAction.putValue(PARENT_COMPONENT_KEY, dash);
             menu.add(new JMenuItem(changeTaskAction));
         }
     }

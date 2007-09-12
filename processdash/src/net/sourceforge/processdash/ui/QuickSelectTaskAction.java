@@ -25,6 +25,7 @@
 
 package net.sourceforge.processdash.ui;
 
+import java.awt.Component;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 
@@ -46,6 +47,7 @@ public class QuickSelectTaskAction extends AbstractAction {
 
     QuickSelectTaskProvider taskProvider;
     ActiveTaskModel activeTaskModel;
+    Component parentComponent;
 
 
     private static final Resources resources = Resources
@@ -62,6 +64,8 @@ public class QuickSelectTaskAction extends AbstractAction {
             taskProvider = (QuickSelectTaskProvider) newValue;
         else if (TaskNavigationSelector.ACTIVE_TASK_MODEL_KEY.equals(key))
             activeTaskModel = (ActiveTaskModel) newValue;
+        else if (TaskNavigationSelector.PARENT_COMPONENT_KEY.equals(key))
+            parentComponent = (Component) newValue;
         else
             super.putValue(key, newValue);
     }
@@ -88,7 +92,7 @@ public class QuickSelectTaskAction extends AbstractAction {
                 new JOptionPaneTweaker.MakeResizable(),
                 new JOptionPaneTweaker.GrabFocus(selector.getFilterTextField())
         };
-        int userChoice = JOptionPane.showConfirmDialog(null, message,
+        int userChoice = JOptionPane.showConfirmDialog(parentComponent, message,
             resources.getString("Choose_Task.Title"),
             JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
         if (userChoice != JOptionPane.OK_OPTION)
