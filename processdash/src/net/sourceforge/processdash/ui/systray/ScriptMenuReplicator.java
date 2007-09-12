@@ -48,6 +48,10 @@ public class ScriptMenuReplicator {
 
     private PopupMenu popupMenu;
 
+    public static void replicate(ProcessDashboard pdash, PopupMenu dest) {
+        new ScriptMenuReplicator(pdash, dest);
+    }
+
     public ScriptMenuReplicator(ProcessDashboard pdash, PopupMenu popupMenu) {
         this.popupMenu = popupMenu;
         popupMenu.add(new ScriptMenuSeparator());
@@ -66,8 +70,9 @@ public class ScriptMenuReplicator {
         // look for the last "script menu separator" item to determine where
         // the script menu entries appear in our popup menu.
         int pos = popupMenu.getItemCount() - 1;
-        while (!(popupMenu.getItem(pos) instanceof ScriptMenuSeparator))
+        while (!(popupMenu.getItem(pos) instanceof ScriptMenuSeparator)) {
             pos--;
+        }
 
         // now, discard any script menu items that are currently present.
         while (pos-- > 0) {
@@ -106,7 +111,8 @@ public class ScriptMenuReplicator {
     private interface ScriptItemTag {
     }
 
-    private class ScriptMenuItem extends MenuItem implements ScriptItemTag {
+    private static class ScriptMenuItem extends MenuItem implements
+            ScriptItemTag {
         private ScriptID target;
 
         public ScriptMenuItem(ScriptID target) {
@@ -119,20 +125,19 @@ public class ScriptMenuReplicator {
             target.display();
         }
 
+        private static final ActionListener DISPATCHER = new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                ((ScriptMenuItem) e.getSource()).display();
+            }
+        };
+
     }
 
-    private class ScriptMenuSeparator extends MenuItem implements ScriptItemTag {
+    private static class ScriptMenuSeparator extends MenuItem implements
+            ScriptItemTag {
         public ScriptMenuSeparator() {
             super("-");
         }
     }
-
-    private static final ActionListener DISPATCHER = new ActionListener() {
-        public void actionPerformed(ActionEvent e) {
-            if (e.getSource() instanceof ScriptMenuItem) {
-                ((ScriptMenuItem) e.getSource()).display();
-            }
-        }
-    };
 
 }

@@ -71,7 +71,7 @@ public class MenuHandler {
 
         popupMenu.add(new DuplicatedMenu(pdash.getTitle(),
             pdash.getConfigurationMenu()));
-        new ScriptMenuReplicator(pdash, popupMenu);
+        ScriptMenuReplicator.replicate(pdash, popupMenu);
         popupMenu.add(makeChangeTaskMenuItem());
         popupMenu.add(new PlayPauseMenuItem(pdash.getTimeLoggingModel()));
         popupMenu.add(makeShowWindowMenuItem(pdash));
