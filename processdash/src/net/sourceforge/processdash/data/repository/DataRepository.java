@@ -1608,7 +1608,7 @@ public class DataRepository implements Repository, DataContext,
         private static final boolean disableSerialization = true;
         private boolean definitionsDirty = true;
         public void maybeSaveDefinitions(File out) throws IOException {
-            if (definitionsDirty)
+            if (definitionsDirty && !disableSerialization)
                 saveDefinitions(new FileOutputStream(out));
         }
         public void saveDefinitions(OutputStream out) throws IOException {
