@@ -138,6 +138,10 @@ public class MenuHandler {
         }
 
         public void hideIcon() {
+            // if the main window is currently "minimized to the tray" when we
+            // remove the tray icon, the user would have no way of getting it
+            // back.  Raise the window to make certain that doesn't happen.
+            DashController.raiseWindow();
             InternalSettings.set(SystemTrayManagement.DISABLED_SETTING, "true");
             SystemTray.getSystemTray().remove(icon);
         }

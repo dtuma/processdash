@@ -172,9 +172,6 @@ export.timesOfDay=0
 forms.useHoursMinutes=true
 window.icon=~/icon.ico
 
-systemTray.minimizeToTray=false
-os-windows.systemTray.minimizeToTray=true
-
 systemTray.tooltipFormat={1}
 systemTray.tooltipMaxLen=64
 os-windows.systemTray.tooltipFormat={0}\u000A{1}\u000A{2}

@@ -26,6 +26,8 @@
 package net.sourceforge.processdash;
 
 import java.awt.Frame;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -38,6 +40,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.swing.SwingUtilities;
+import javax.swing.Timer;
 
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.ev.EVTaskList;
@@ -97,14 +100,37 @@ public class DashController {
     }
 
     public static void raiseWindow() {
-        SwingUtilities.invokeLater(new Runnable() {
-                public void run() { raiseWindowImpl(); } } );
+        new WindowRaiser();
+    }
+
+    /** In Gnome/Linux, a single call to raiseWindowImpl doesn't seem to do the
+     * trick.  It has to be called a couple of times, with a delay in between.
+     * This class performs that task.
+     */
+    private static class WindowRaiser implements ActionListener {
+
+        Timer t;
+        private int retryCount = 10;
+
+        public WindowRaiser() {
+            t = new Timer(100, this);
+            t.start();
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            boolean isIconified = (dash.getExtendedState() & Frame.ICONIFIED) > 0;
+            if (retryCount-- < 0 || (dash.isActive() && !isIconified))
+                t.stop();
+            else
+                raiseWindowImpl();
+        }
+
     }
 
     private static void raiseWindowImpl() {
-        if (dash.getState() == Frame.ICONIFIED)
+        if ((dash.getExtendedState() & Frame.ICONIFIED) > 0)
             dash.setState(Frame.NORMAL);
-        dash.show();
+        dash.setVisible(true);
         dash.toFront();
     }
 

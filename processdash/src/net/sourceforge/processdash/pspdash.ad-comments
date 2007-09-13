@@ -221,7 +221,7 @@ pspdiff.suffix.sql=a space-separated list of filename extensions (e.g. \
 
 stateFile=The default location for the user's state file.
 
-sysTray.disabled=If this property is set to "true", the dashboard will \
+systemTray.disabled=If this property is set to "true", the dashboard will \
 	not display an icon in the system tray.
 
 templates.directory=Supplemental locations of system-wide template files. \

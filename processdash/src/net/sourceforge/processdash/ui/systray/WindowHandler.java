@@ -28,9 +28,13 @@ package net.sourceforge.processdash.ui.systray;
 import java.awt.SystemTray;
 import java.awt.TrayIcon;
 import java.awt.Window;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.Arrays;
+
+import javax.swing.Timer;
 
 import net.sourceforge.processdash.Settings;
 
@@ -62,9 +66,41 @@ public class WindowHandler {
 
 
     private class MinimizeToTraySupport extends WindowAdapter {
+
+        /** On Gnome/Linux, when code elsewhere makes the hidden-iconified
+         * window visible again, a 2nd "windowIconified" event is received, even
+         * though the window was *not* just iconified. So we have to keep track
+         * of a secondary flag so we can distinguish whether we're iconifying
+         * from a visible state or from an already iconified state.
+         */
+        private boolean windowIsVisible = true;
+
+        public void windowActivated(WindowEvent e) {
+            recordThatTheWindowIsVisible();
+        }
+
+        public void windowOpened(WindowEvent e) {
+            recordThatTheWindowIsVisible();
+        }
+
+        /** Something happened that lets us know the window is truly visible.
+         * Make a note of it - but not right away, in case we're being sent
+         * a quick stream of intermediate window change events.
+         */
+        private void recordThatTheWindowIsVisible() {
+            Timer t = new Timer(200, new ActionListener() {
+                public void actionPerformed(ActionEvent e) {
+                    windowIsVisible = true;
+                }});
+            t.setRepeats(false);
+            t.start();
+        }
+
         public void windowIconified(WindowEvent e) {
-            if (isHideAppropriate())
+            if (windowIsVisible && isHideAppropriate()) {
+                windowIsVisible = false;
                 window.setVisible(false);
+            }
         }
 
         private boolean isHideAppropriate() {

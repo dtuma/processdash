@@ -40,7 +40,7 @@ import net.sourceforge.processdash.util.FallbackObjectFactory;
 public class SystemTrayManagement {
 
     /** A user setting which is used to enable/disable the system tray icon */
-    public static final String DISABLED_SETTING = "sysTray.disabled";
+    public static final String DISABLED_SETTING = "systemTray.disabled";
 
     /**
      * the icon object
