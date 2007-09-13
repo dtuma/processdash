@@ -25,6 +25,7 @@
 
 package net.sourceforge.processdash.ui.systray;
 
+import java.awt.Font;
 import java.awt.MenuItem;
 import java.awt.PopupMenu;
 import java.awt.event.ActionEvent;
@@ -33,6 +34,8 @@ import java.beans.EventHandler;
 import java.beans.PropertyChangeListener;
 import java.util.Iterator;
 import java.util.List;
+
+import javax.swing.UIManager;
 
 import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.hier.ActiveTaskModel;
@@ -87,21 +90,22 @@ public class ScriptMenuReplicator {
         List scriptItems = hierarchy.getScriptIDs(currentPhase);
 
         if (scriptItems != null && scriptItems.size() > 1) {
-            // insert a separator at the top of the list of script items
-            popupMenu.insert(new ScriptMenuSeparator(), ++pos);
             Iterator i = scriptItems.iterator();
+            String currentPath = null;
             // the first item in the list is a "default script" which does not
-            // need to be displayed. But we will retrieve the initial data
-            // path from that item to know what we're displaying scripts for.
-            String currentPath = ((ScriptID) i.next()).getDataPath();
+            // need to be displayed in our menu. Discard it.
+            i.next();
             // now insert a menu item for each script.
             while (i.hasNext()) {
                 ScriptID scriptID = (ScriptID) i.next();
                 // if the data path changed with this item, insert a separator
+                // and a header identifying the new path
                 String newPath = scriptID.getDataPath();
-                if (!newPath.equals(currentPath))
+                if (!newPath.equals(currentPath)) {
                     popupMenu.insert(new ScriptMenuSeparator(), ++pos);
-                currentPath = newPath;
+                    popupMenu.insert(new ScriptMenuHeader(newPath), ++pos);
+                    currentPath = newPath;
+                }
                 // now insert a menu item for this script.
                 popupMenu.insert(new ScriptMenuItem(scriptID), ++pos);
             }
@@ -131,6 +135,19 @@ public class ScriptMenuReplicator {
             }
         };
 
+    }
+
+    private static class ScriptMenuHeader extends MenuItem implements
+            ScriptItemTag {
+
+        public ScriptMenuHeader(String path) {
+            int slashPos = path.lastIndexOf('/');
+            String label = path.substring(slashPos+1);
+            setLabel(label);
+
+            Font f = UIManager.getFont("MenuItem.font");
+            setFont(f.deriveFont(Font.BOLD));
+        }
     }
 
     private static class ScriptMenuSeparator extends MenuItem implements
