@@ -77,10 +77,6 @@
 	          src="../src/net/sourceforge/processdash/ui/launcher.ico"/>
             <file targetdir="$INSTALL_PATH" override="true"
 	          src="files/mergeSettings.jar"/>
-            <file targetdir="$INSTALL_PATH/Uninstaller" override="true"
-	          src="files/regInst.exe" os="windows"/>
-            <file targetdir="$INSTALL_PATH" override="true"
-	          src="files/regInst.exe" os="windows"/>
 
             <file targetdir="$DATA_PATH" src="files/run-dash.sh"
 	          override="false"/>
@@ -98,28 +94,6 @@
 		</args>
 	    </executable>
 
-            <executable targetfile="$INSTALL_PATH/regInst.exe"
-	         stage="postinstall">
-                <os family="windows"/>
-		<args>
-		    <arg value="-reg"/>
-		    <arg value="Process Dashboard"/>
-		    <arg value="Process Dashboard"/>
-		    <arg value="@version@"/>
-		    <arg value="$INSTALL_PATH\Uninstaller\uninstaller.jar"/>
-		    <arg value="$INSTALL_PATH"/>
-		    <arg value="$DATA_PATH"/>
-		</args>
-	    </executable>
-
-            <executable targetfile="$INSTALL_PATH/Uninstaller/regInst.exe"
-	          stage="uninstall">
-	        <os family="windows"/>
-		<args>
-		    <arg value="-unreg"/>
-		    <arg value="Process Dashboard"/>
-		</args>
-	    </executable>
 	    <!-- additional core files -->
         </pack>
 	
