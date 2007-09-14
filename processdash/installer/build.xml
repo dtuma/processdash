@@ -62,12 +62,13 @@ Authors:
 <project default="dist" basedir=".">
 
     <property name="processdash" value=".."/>
+    <property file="${processdash}/build.properties"/>
     <property file="${processdash}/lib/version.properties"/>
     <property name="dist" value="dist"/>
 
     <property name="version" value="${dashboard-version}"/>
     <property name="jreInstDir" value="c:\download\java\_"/>
-    <property name="jreInstExe" value="jre-6-windows-i586.exe"/>
+    <property name="jreInstExe" value="jre-6u2-windows-i586-p.exe"/>
 
     <!-- the the IZPACK home directory -->
     <property name="izpack.dir" value="IzPack"/>
