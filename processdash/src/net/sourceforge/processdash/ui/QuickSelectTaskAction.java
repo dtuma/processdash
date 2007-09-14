@@ -30,6 +30,7 @@ import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 
 import javax.swing.AbstractAction;
+import javax.swing.JDialog;
 import javax.swing.JOptionPane;
 import javax.swing.JTable;
 
@@ -84,13 +85,20 @@ public class QuickSelectTaskAction extends AbstractAction {
             throw new IllegalStateException("Object not yet initialized");
 
         TreeTableModel tasks = taskProvider.getTaskSelectionChoices();
-        JFilterableTreeComponent selector = new JFilterableTreeComponent(tasks,
-            resources.getString("Choose_Task.Find"), false);
+        final JFilterableTreeComponent selector = new JFilterableTreeComponent(
+                tasks, resources.getString("Choose_Task.Find"), false);
+        final Object nodeToSelect = taskProvider
+                .getTreeNodeForPath(activeTaskModel.getPath());
         new JOptionPaneActionHandler().install(selector);
         Object[] message = new Object[] {
                 resources.getString("Choose_Task.Prompt"), selector,
                 new JOptionPaneTweaker.MakeResizable(),
-                new JOptionPaneTweaker.GrabFocus(selector.getFilterTextField())
+                new JOptionPaneTweaker.GrabFocus(selector.getFilterTextField()),
+                new JOptionPaneTweaker(50) {
+                    public void doTweak(JDialog dialog) {
+                        if (nodeToSelect != null)
+                            selector.setSelectedNode(nodeToSelect);
+                    }}
         };
         int userChoice = JOptionPane.showConfirmDialog(parentComponent, message,
             resources.getString("Choose_Task.Title"),

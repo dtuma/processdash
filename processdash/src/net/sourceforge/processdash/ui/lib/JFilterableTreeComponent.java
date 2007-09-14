@@ -29,10 +29,9 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.beans.EventHandler;
 
 import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
@@ -43,6 +42,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.ListSelectionModel;
+import javax.swing.event.DocumentListener;
 import javax.swing.event.EventListenerList;
 import javax.swing.tree.TreePath;
 
@@ -79,12 +79,8 @@ public class JFilterableTreeComponent extends JPanel {
         if (prompt != null)
             filterTextPanel.add(new JLabel(prompt));
         filterTextPanel.add(filterTextField);
-        filterTextField.addKeyListener(new KeyAdapter() {
-            public void keyReleased(KeyEvent e) {
-                if (!e.isActionKey())
-                    filter(filterTextField.getText());
-            }
-        });
+        filterTextField.getDocument().addDocumentListener(EventHandler.create(
+            DocumentListener.class, this, "refilter"));
         filterTextField.getInputMap().put(KeyStroke.getKeyStroke("ENTER"),
             "selectNode");
         filterTextField.getInputMap().put(KeyStroke.getKeyStroke("UP"),
@@ -130,6 +126,21 @@ public class JFilterableTreeComponent extends JPanel {
 
     public void selectFirstLeaf() {
         selectFirstLeafAfter(-1);
+    }
+
+    public void setSelectedNode(Object nodeToSelect) {
+        for (int i = 0;  i < treeTable.getRowCount();  i++) {
+            TreePath path = treeTable.getPathForRow(i);
+            Object node = path.getLastPathComponent();
+            if (node.equals(nodeToSelect)) {
+                selectAndShowRow(i);
+                return;
+            }
+        }
+    }
+
+    public void refilter() {
+        filter(filterTextField.getText());
     }
 
     private void filter(String text) {
@@ -183,8 +194,7 @@ public class JFilterableTreeComponent extends JPanel {
             TreePath path = treeTable.getPathForRow(i);
             Object node = path.getLastPathComponent();
             if (treeTable.getTree().getModel().isLeaf(node)) {
-                treeTable.getSelectionModel().setSelectionInterval(i, i);
-                treeTable.scrollRectToVisible(treeTable.getCellRect(i, 0, true));
+                selectAndShowRow(i);
                 return;
             }
         }
@@ -201,11 +211,15 @@ public class JFilterableTreeComponent extends JPanel {
             TreePath path = treeTable.getPathForRow(i);
             Object node = path.getLastPathComponent();
             if (treeTable.getTree().getModel().isLeaf(node)) {
-                treeTable.getSelectionModel().setSelectionInterval(i, i);
-                treeTable.scrollRectToVisible(treeTable.getCellRect(i, 0, true));
+                selectAndShowRow(i);
                 return;
             }
         }
+    }
+
+    private void selectAndShowRow(int row) {
+        treeTable.getSelectionModel().setSelectionInterval(row, row);
+        treeTable.scrollRectToVisible(treeTable.getCellRect(row, 0, true));
     }
 
     private boolean isAcceptable() {

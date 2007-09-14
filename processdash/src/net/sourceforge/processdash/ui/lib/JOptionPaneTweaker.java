@@ -28,8 +28,8 @@ package net.sourceforge.processdash.ui.lib;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Window;
+import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.beans.EventHandler;
 
 import javax.swing.JComponent;
 import javax.swing.JDialog;
@@ -38,6 +38,15 @@ import javax.swing.Timer;
 
 public class JOptionPaneTweaker extends Component {
 
+    private int delay;
+
+    public JOptionPaneTweaker() {
+        this(0);
+    }
+
+    public JOptionPaneTweaker(int delay) {
+        this.delay = delay;
+    }
 
     public Dimension getMaximumSize() {
         return new Dimension(0,0);
@@ -55,8 +64,17 @@ public class JOptionPaneTweaker extends Component {
         super.addNotify();
         Window window = SwingUtilities.getWindowAncestor(this);
         if (window instanceof JDialog) {
-            JDialog dialog = (JDialog) window;
-            doTweak(dialog);
+            final JDialog dialog = (JDialog) window;
+            if (delay <= 0) {
+                doTweak(dialog);
+            } else {
+                Timer t = new Timer(delay, new ActionListener() {
+                    public void actionPerformed(ActionEvent e) {
+                        doTweak(dialog);
+                    }});
+                t.setRepeats(false);
+                t.start();
+            }
         }
     }
 
@@ -75,14 +93,12 @@ public class JOptionPaneTweaker extends Component {
         private JComponent c;
 
         public GrabFocus(JComponent c) {
+            super(100);
             this.c = c;
         }
 
         public void doTweak(JDialog dialog) {
-            Timer t = new Timer(100, EventHandler.create(ActionListener.class,
-                c, "requestFocus"));
-            t.setRepeats(false);
-            t.start();
+            c.requestFocus();
         }
     }
 
