@@ -31,6 +31,7 @@ import java.util.List;
 
 import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.Settings;
+import net.sourceforge.processdash.ui.systray.SystemTrayManagement;
 import net.sourceforge.processdash.util.RuntimeUtils;
 
 class DashboardProcessFactoryForking extends DashboardProcessFactory {
@@ -54,7 +55,8 @@ class DashboardProcessFactoryForking extends DashboardProcessFactory {
 
         // do not display tray icons for launched instances; otherwise, there
         // could be an unhelpful proliferation of identical icons
-        addVmArg("-D" + Settings.SYS_PROP_PREFIX + "sysTray.disabled=true");
+        addVmArg("-D" + Settings.SYS_PROP_PREFIX
+                + SystemTrayManagement.DISABLED_SETTING + "=true");
     }
 
     public void setClasspath(String classpath) {
