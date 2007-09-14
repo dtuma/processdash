@@ -40,7 +40,7 @@ import javax.swing.tree.TreePath;
 public class JFilterableTreeTable extends JTreeTable {
 
     public interface Filter {
-        public boolean test(Object treeNode);
+        public boolean test(TreePath pathToTreeNode);
     }
 
     private TreeTableSorter sorter;
@@ -158,7 +158,7 @@ public class JFilterableTreeTable extends JTreeTable {
                 return false;
 
             Object node = path.getLastPathComponent();
-            boolean nodeIsMatch = parentMatches || filter.test(node);
+            boolean nodeIsMatch = parentMatches || filter.test(path);
 
             boolean childIsMatch = false;
             for (int i = tree.getModel().getChildCount(node);  i-- > 0; ) {

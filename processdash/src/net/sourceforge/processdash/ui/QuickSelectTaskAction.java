@@ -89,6 +89,7 @@ public class QuickSelectTaskAction extends AbstractAction {
                 tasks, resources.getString("Choose_Task.Find"), false);
         final Object nodeToSelect = taskProvider
                 .getTreeNodeForPath(activeTaskModel.getPath());
+        selector.setMatchEntirePath(true);
         new JOptionPaneActionHandler().install(selector);
         Object[] message = new Object[] {
                 resources.getString("Choose_Task.Prompt"), selector,

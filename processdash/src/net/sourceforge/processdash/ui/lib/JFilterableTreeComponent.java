@@ -54,6 +54,8 @@ public class JFilterableTreeComponent extends JPanel {
 
     JFilterableTreeTable treeTable;
 
+    boolean matchEntirePath;
+
     protected EventListenerList listenerList = new EventListenerList();
 
     private final SelectNodeAction selectNodeAction = new SelectNodeAction();
@@ -139,6 +141,17 @@ public class JFilterableTreeComponent extends JPanel {
         }
     }
 
+    public boolean isMatchEntirePath() {
+        return matchEntirePath;
+    }
+
+    public void setMatchEntirePath(boolean matchEntirePath) {
+        if (this.matchEntirePath != matchEntirePath) {
+            this.matchEntirePath = matchEntirePath;
+            refilter();
+        }
+    }
+
     public void refilter() {
         filter(filterTextField.getText());
     }
@@ -148,7 +161,8 @@ public class JFilterableTreeComponent extends JPanel {
             if (text == null || text.trim().length() == 0)
                 treeTable.setFilter(null);
             else
-                treeTable.setFilter(new NodeNamePatternMatcher(text));
+                treeTable.setFilter(new NodeNamePatternMatcher(text,
+                    matchEntirePath));
             selectFirstLeaf();
         } catch (Exception e1) {
             e1.printStackTrace();
@@ -159,15 +173,18 @@ public class JFilterableTreeComponent extends JPanel {
 
         private String[] patterns;
 
-        public NodeNamePatternMatcher(String text) {
-            patterns = text.toLowerCase().split("\\s+");
+        boolean matchEntirePath;
+
+        public NodeNamePatternMatcher(String text, boolean matchEntirePath) {
+            this.patterns = text.toLowerCase().split("\\s+");
+            this.matchEntirePath = matchEntirePath;
         }
 
-        public boolean test(Object treeNode) {
-            if (treeNode == null)
+        public boolean test(TreePath treePath) {
+            if (treePath == null)
                 return false;
 
-            String str = treeNode.toString().toLowerCase();
+            String str = getMatchStringForNode(treePath);
             for (int i = 0; i < patterns.length; i++) {
                 if (str.indexOf(patterns[i]) == -1)
                     return false;
@@ -175,6 +192,24 @@ public class JFilterableTreeComponent extends JPanel {
             return true;
         }
 
+        private String getMatchStringForNode(TreePath treePath) {
+            if (matchEntirePath == false) {
+                return asString(treePath.getLastPathComponent()).toLowerCase();
+            } else {
+                StringBuilder sb = new StringBuilder(256);
+                Object[] path = treePath.getPath();
+                int i = (treeTable.isRootVisible() ? 0 : 1);
+                while (i < path.length) {
+                    sb.append('/').append(asString(path[i++]).toLowerCase());
+                }
+                return sb.toString();
+            }
+        }
+
+    }
+
+    private String asString(Object obj) {
+        return (obj == null ? "" : obj.toString());
     }
 
     private void handleClick() {
