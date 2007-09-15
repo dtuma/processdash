@@ -49,11 +49,12 @@ public class TaskDependencyAnalyzer {
     public static final int HAS_INCOMPLETE = 3;
     public static final int ALL_COMPLETE = 4;
     public static final int HAS_REVERSE = 5;
-    public static final int NO_DEPENDENCIES = 6;
+    public static final int HAS_COMPLETED_REVERSE = 6;
+    public static final int NO_DEPENDENCIES = 7;
 
     public static final String[] RES_KEYS = { "Unresolved",
             "Incomplete_Misordered", "Reverse_Misordered", "Incomplete",
-            "Complete", "Reverse", "None" };
+            "Complete", "Reverse", "Reverse_Completed", "None" };
 
     private Collection dependencies;
 
@@ -70,6 +71,8 @@ public class TaskDependencyAnalyzer {
     public boolean hasMisorderedIncomplete;
 
     public boolean hasMisorderedReverse;
+
+    public boolean hasCompletedReverse;
 
     private static Resources resources = Resources.getDashBundle("EV");
 
@@ -98,9 +101,13 @@ public class TaskDependencyAnalyzer {
                 if (d.isUnresolvable()) {
                     hasError = true;
                 } else if (d.isReverse()) {
-                    hasReverse = true;
-                    if (d.isMisordered())
-                        hasMisorderedReverse = true;
+                    if (d.isIncomplete()) {
+                        hasReverse = true;
+                        if (d.isMisordered())
+                            hasMisorderedReverse = true;
+                    } else {
+                        hasCompletedReverse = true;
+                    }
                 } else if (d.getPercentComplete() < 1.0) {
                     hasIncomplete = true;
                     if (d.isMisordered())
@@ -124,6 +131,8 @@ public class TaskDependencyAnalyzer {
             return HAS_INCOMPLETE;
         else if (hasReverse)
             return HAS_REVERSE;
+        else if (hasCompletedReverse)
+            return HAS_COMPLETED_REVERSE;
         else if (hasDependency)
             return ALL_COMPLETE;
         else
@@ -135,10 +144,11 @@ public class TaskDependencyAnalyzer {
         case HAS_ERROR:                 return "0";
         case HAS_MISORDERED_REVERSE:    return "1";
         case HAS_REVERSE:               return "2";
-        case ALL_COMPLETE:              return "3";
-        case NO_DEPENDENCIES:           return "4";
-        case HAS_INCOMPLETE:            return "5";
-        case HAS_MISORDERED_INCOMPLETE: return "6";
+        case HAS_COMPLETED_REVERSE:     return "3";
+        case ALL_COMPLETE:              return "4";
+        case NO_DEPENDENCIES:           return "5";
+        case HAS_INCOMPLETE:            return "6";
+        case HAS_MISORDERED_INCOMPLETE: return "7";
         }
         return "0";
     }
@@ -169,7 +179,12 @@ public class TaskDependencyAnalyzer {
                         .append(resources.getHTML("Dependency.Unresolved.Text"))
                         .append("</td>");
             } else if (d.isReverse()) {
-                if (d.isMisordered()) {
+                if (d.isIncomplete() == false) {
+                    if (includeTooltips)
+                        descr.append(getTooltip(HAS_COMPLETED_REVERSE));
+                    descr.append("style='text-align:center'><img src='")
+                        .append(checkUrl).append("'></td>");
+                } else if (d.isMisordered()) {
                     if (includeTooltips)
                         descr.append(getTooltip(HAS_MISORDERED_REVERSE));
                     descr.append("style='text-align:center'><img src='")
@@ -180,7 +195,7 @@ public class TaskDependencyAnalyzer {
                     descr.append("style='text-align:center'><img src='")
                         .append(reverseUrl).append("'></td>");
                 }
-            } else if (d.getPercentComplete() < 1.0) {
+            } else if (d.isIncomplete()) {
                 if (d.isMisordered()) {
                     if (includeTooltips)
                         descr.append(getTooltip(HAS_MISORDERED_INCOMPLETE));
@@ -199,11 +214,17 @@ public class TaskDependencyAnalyzer {
                         .append(checkUrl).append("'></td>");
             }
             descr.append("<td style='text-align:left' nowrap>");
-            if (d.isReverse())
-                descr.append(resources.getHTML(d.isMisordered()
-                        ? "Dependency.Reverse_Misordered.Display"
-                        : "Dependency.Reverse.Display"));
-            else
+            if (d.isReverse()) {
+                String key;
+                if (d.isIncomplete() == false) {
+                    key = "Dependency.Reverse_Completed.Display";
+                } else if (d.isMisordered()) {
+                    key = "Dependency.Reverse_Misordered.Display";
+                } else {
+                    key = "Dependency.Reverse.Display";
+                }
+                descr.append(resources.getHTML(key));
+            }else
                 descr.append(nvl(d.getDisplayName()));
             descr.append(getBriefDetails(d, sep, hideNames));
             descr.append("</td></tr>");
@@ -223,7 +244,7 @@ public class TaskDependencyAnalyzer {
         if (hideNames == false)
             result.append(sep).append(nvl(d.getAssignedTo()));
         Date pd = d.getProjectedDate();
-        if (pd != null && d.getPercentComplete() < 1)
+        if (pd != null && d.isIncomplete())
             result.append(sep).append(DATE_FORMAT.format(pd));
         if (!d.isReverse())
             result.append(sep).append(
@@ -304,6 +325,7 @@ public class TaskDependencyAnalyzer {
                 label.setText(null);
                 break;
 
+            case TaskDependencyAnalyzer.HAS_COMPLETED_REVERSE:
             case TaskDependencyAnalyzer.ALL_COMPLETE:
                 label.setIcon(GUI_CHECK_ICON);
                 label.setText(null);
@@ -379,7 +401,11 @@ public class TaskDependencyAnalyzer {
             // HAS_REVERSE
             "<img src='" + TaskDependencyAnalyzer.HTML_REVERSE_URI
                     + HTML_INDICATOR_IMG_ATTRS
-                    + getTooltipAll(HAS_REVERSE) + ">"
+                    + getTooltipAll(HAS_REVERSE) + ">",
+            // HAS_COMPLETED_REVERSE
+            "<img src='" + TaskDependencyAnalyzer.HTML_CHECK_URI
+                    + HTML_INDICATOR_IMG_ATTRS
+                    + getTooltipAll(HAS_COMPLETED_REVERSE) + ">"
     };
     static final String HTML_INCOMPLETE_MISORD_IND = "<img src='"
             + TaskDependencyAnalyzer.HTML_INCOMPLETE_MIS_URI

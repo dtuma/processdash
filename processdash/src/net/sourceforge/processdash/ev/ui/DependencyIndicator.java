@@ -1,5 +1,5 @@
+// Copyright (C) 2006-2007 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2006 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -153,6 +153,7 @@ public class DependencyIndicator extends JLabel implements
             switch (a.getStatus()) {
 
             case TaskDependencyAnalyzer.NO_DEPENDENCIES:
+            case TaskDependencyAnalyzer.HAS_COMPLETED_REVERSE:
             case TaskDependencyAnalyzer.ALL_COMPLETE:
                 break;
 

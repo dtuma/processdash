@@ -53,7 +53,7 @@ import net.sourceforge.processdash.util.XMLUtils;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
-public class EVTaskDependency {
+public class EVTaskDependency implements Cloneable {
 
     private static final Logger logger = Logger
             .getLogger(EVTaskDependency.class.getName());
@@ -144,6 +144,10 @@ public class EVTaskDependency {
             return Arrays.asList(assignedTo.split(", "));
     }
 
+    public boolean isIncomplete() {
+        return percentComplete < 1.0;
+    }
+
     public double getPercentComplete() {
         return percentComplete;
     }
@@ -156,15 +160,16 @@ public class EVTaskDependency {
         return parentDate;
     }
 
-    public void setParentDate(Date parentDate) {
-        this.parentDate = parentDate;
-    }
-
     public void loadParentDate(Object parent) {
-        if (parent instanceof EVTask)
-            setParentDate(getDependencyComparisonDate((EVTask) parent));
-        else
-            setParentDate(null);
+        if (parent instanceof EVTask) {
+            EVTask parentTask = (EVTask) parent;
+            this.parentDate = getDependencyComparisonDate(parentTask);
+            if (isReverse()) {
+                this.percentComplete =
+                    (parentTask.getActualDate() == null ? 0 : 1);
+            }
+        } else
+            this.parentDate = null;
     }
 
     public boolean isUnresolvable() {
@@ -251,6 +256,24 @@ public class EVTaskDependency {
             return null;
     }
 
+    public EVTaskDependency getWithNewParent(Object newParent) {
+        if (newParent instanceof EVTask) {
+            EVTaskDependency result = clone();
+            result.loadParentDate(newParent);
+            return result;
+        } else {
+            return this;
+        }
+    }
+
+    public EVTaskDependency clone() {
+        try {
+            return (EVTaskDependency) super.clone();
+        } catch (CloneNotSupportedException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
+    }
 
     public static void addTaskIDs(DataContext data, String taskPath, String id) {
         if (id == null || id.length() == 0)

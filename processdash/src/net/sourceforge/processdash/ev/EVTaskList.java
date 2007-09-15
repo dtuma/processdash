@@ -977,13 +977,18 @@ public class EVTaskList extends AbstractTreeTableModel
     }
 
 
-    public Object getAllDependenciesFor(EVTask node) {
+    public Object getAllDependenciesFor(EVTask forNode) {
+        EVTask node = forNode;
         Set result = null;
         while (node != null) {
-            if (node.getDependencies() != null) {
+            List deps = node.getDependencies();
+            if (deps != null) {
                 if (result == null)
                     result = new HashSet();
-                result.addAll(node.getDependencies());
+                for (Iterator i = deps.iterator(); i.hasNext();) {
+                    EVTaskDependency d = (EVTaskDependency) i.next();
+                    result.add(d.getWithNewParent(forNode));
+                }
             }
             node = node.getParent();
         }

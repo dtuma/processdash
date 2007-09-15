@@ -498,7 +498,8 @@ public class EVWeekReport extends TinyCGIBase {
                 interpOut("<p><i>${None}</i>\n");
             else {
                 if (!hideNames && !reverseDependencies.isEmpty())
-                    printReverseDependencyTable(tasks, reverseDependencies);
+                    printReverseDependencyTable(tasks, reverseDependencies,
+                        showAssignedTo);
 
                 List<DependencyForCoord> depsForCoord =
                     new ArrayList<DependencyForCoord>(
@@ -786,7 +787,8 @@ public class EVWeekReport extends TinyCGIBase {
     }
 
     private void printReverseDependencyTable(TableModel tasks,
-            List<RevDependencyForCoord> reverseDependencies) {
+            List<RevDependencyForCoord> reverseDependencies,
+            boolean showAssignedTo) {
 
         Collections.sort(reverseDependencies);
 
@@ -796,8 +798,10 @@ public class EVWeekReport extends TinyCGIBase {
                 + "<div class='dependDetail hideIfCollapsed'>\n"
                 + "<table border=1 name='extCommit' class='sortable' "
                 + "id='$$$_extCommit'>\n<tr>"
-                + "<td class=header>${Columns.Task_Commitment}</td>"
-                + "<td class=header>${Columns.Projected_Date}</td>"
+                + "<td class=header>${Columns.Task_Commitment}</td>");
+        if (showAssignedTo)
+            interpOut("<td class=header>${Columns.Assigned_To}</td>");
+        interpOut("<td class=header>${Columns.Projected_Date}</td>"
                 + "<td class=header>${Columns.Needed_By}</td>"
                 + "<td class=header>${Columns.Need_Date}</td></tr>\n");
 
@@ -805,6 +809,11 @@ public class EVWeekReport extends TinyCGIBase {
             int i = revCoord.rowNumber;
             out.print("<td class='left'>");
             out.print(encodeHTML(tasks.getValueAt(i, EVTaskList.TASK_COLUMN)));
+            if (showAssignedTo) {
+                out.print("</td><td>");
+                out.print(encodeHTML(tasks.getValueAt(i,
+                    EVTaskList.ASSIGNED_TO_COLUMN)));
+            }
             out.print("</td>");
             Date projDate = (Date) tasks.getValueAt(i, EVTaskList.PROJ_DATE_COLUMN);
             printDateCell(projDate, null, false);
@@ -826,8 +835,7 @@ public class EVWeekReport extends TinyCGIBase {
             boolean hideNames, boolean showLabels, int pos) {
 
         boolean isExcel = isExportingToExcel();
-        EVTaskDependency d = coord.d;
-        Date origParentDate = d.getParentDate();
+        EVTaskDependency d = coord.d.clone();
 
         out.print("<div class='expanded'>");
         printExpansionIcon();
@@ -868,10 +876,8 @@ public class EVWeekReport extends TinyCGIBase {
             out.print(encodeHTML(tasks.getValueAt(i, EVTaskList.TASK_COLUMN)));
             out.print("</td>");
 
-            Date projDate = (Date) tasks.getValueAt(i,
-                EVTaskList.PROJ_DATE_COLUMN);
-            d.setParentDate(projDate);
-            printDateCell(projDate,
+            d.loadParentDate(tasks.getValueAt(i, EVTaskList.EVTASK_NODE_COLUMN));
+            printDateCell(d.getParentDate(),
                 TaskDependencyAnalyzer.HTML_INCOMPLETE_MISORD_IND,
                 d.isMisordered());
 
@@ -893,8 +899,6 @@ public class EVWeekReport extends TinyCGIBase {
 
         out.println("</table></div></div>");
         out.println("<br>");
-
-        d.setParentDate(origParentDate);
     }
 
     private void printExpansionIcon() {
