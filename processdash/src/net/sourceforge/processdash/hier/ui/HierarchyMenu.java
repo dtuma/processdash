@@ -114,7 +114,7 @@ public class HierarchyMenu implements ActionListener, PropertyChangeListener,
         } else {
             activeTaskModel.setNode(self);
             parent.validate();
-            parent.pack();
+            parent.windowSizeRequirementsChanged();
         }
     }
 

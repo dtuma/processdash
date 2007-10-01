@@ -163,7 +163,12 @@ public class DependencyIndicator extends JLabel implements
             case TaskDependencyAnalyzer.HAS_REVERSE:
             case TaskDependencyAnalyzer.HAS_MISORDERED_REVERSE:
                 a.syncLabel(DependencyIndicator.this);
-                window.pack();
+
+                if (window instanceof ProcessDashboard)
+                    ((ProcessDashboard)window).windowSizeRequirementsChanged();
+                else
+                    window.pack();
+
                 break;
             }
         }

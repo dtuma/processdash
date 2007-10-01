@@ -981,6 +981,11 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
         logger.log(Level.SEVERE, msg, t);
     }
 
+    public void windowSizeRequirementsChanged() {
+        if (this.isVisible())
+            this.pack();
+    }
+
     public static void main(String args[]) {
         DashboardSecurity.setupSecurityManager();
 
@@ -1000,8 +1005,8 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
             (args.length > pos ? args[pos] : null);
 
         DashboardIconFactory.setWindowIcon(dash);
-        dash.pack();
         dash.setVisible(true);
+        dash.windowSizeRequirementsChanged();
 
         dropSplashScreen();
         dash.maybeNotifyOpened();

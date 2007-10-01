@@ -131,6 +131,7 @@ public class DashController {
         if ((dash.getExtendedState() & Frame.ICONIFIED) > 0)
             dash.setState(Frame.NORMAL);
         dash.setVisible(true);
+        dash.windowSizeRequirementsChanged();
         dash.toFront();
     }
 

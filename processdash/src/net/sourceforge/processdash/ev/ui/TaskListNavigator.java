@@ -64,6 +64,7 @@ import javax.swing.tree.TreeSelectionModel;
 
 import net.sourceforge.processdash.DashboardContext;
 import net.sourceforge.processdash.InternalSettings;
+import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.repository.DataEvent;
 import net.sourceforge.processdash.data.repository.DataListener;
@@ -392,8 +393,13 @@ public class TaskListNavigator implements TaskNavigationSelector.NavMenuUI,
             menu.setActionCommand(currentPath);
             setDisplayTextForPath(menu, currentPath);
             Window window = SwingUtilities.getWindowAncestor(menu);
-            if (window != null)
-                window.pack();
+            if (window != null) {
+                if (window instanceof ProcessDashboard)
+                    ((ProcessDashboard)window).windowSizeRequirementsChanged();
+                else
+                    window.pack();
+            }
+
         }
     }
 

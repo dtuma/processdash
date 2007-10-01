@@ -129,8 +129,7 @@ public class SystemTrayIconJDK6Impl implements SystemTrayIcon {
 
         imageHandler = new IconImageHandler(pdash, icon);
         tooltipHandler =  new TooltipHandler(pdash, icon);
-        // disable minimize to tray for now - it seems to have real problems
-        // windowHandler = new WindowHandler(pdash, icon);
+        windowHandler = new WindowHandler(pdash, icon);
         menuHandler = new MenuHandler(pdash, icon);
         mouseHandler = new MouseHandler(pdash, icon, menuHandler, imageHandler);
     }
