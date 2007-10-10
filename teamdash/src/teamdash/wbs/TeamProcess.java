@@ -405,7 +405,7 @@ public class TeamProcess {
     static final String COMPONENT_TYPE = "Component";
     static final String SOFTWARE_COMPONENT_TYPE = "Software Component";
     static final String WORKFLOW_TYPE = "Workflow";
-    private static final String PSP_TASK_TYPE = "PSP Task";
+    static final String PSP_TASK_TYPE = "PSP Task";
     private static final String DLD_DOCUMENT_TYPE = "Detailed Design Document";
 
     private static final String INSPECTED_PREFIX = "Inspected ";

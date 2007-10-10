@@ -6,9 +6,11 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -29,6 +31,7 @@ import teamdash.wbs.columns.TeamActualTimeColumn;
 import teamdash.wbs.columns.TeamMemberActualTimeColumn;
 import teamdash.wbs.columns.TeamCompletionDateColumn;
 import teamdash.wbs.columns.TeamMemberTimeColumn;
+import teamdash.wbs.columns.TeamTimeColumn;
 
 public class WBSSynchronizer {
 
@@ -229,6 +232,7 @@ public class WBSSynchronizer {
         result.put(SCHEDULE_CHANGE_TAG, new ScheduleSynchronizer());
         result.put(PLAN_TIME_CHANGE_TAG, new PlanTimeSynchronizer());
         result.put(ACTUAL_DATA_TAG, new ActualDataLoader());
+        result.put(NEW_TASK_TAG, new NewTaskLoader());
         return result;
     }
 
@@ -346,6 +350,166 @@ public class WBSSynchronizer {
 
     }
 
+    private class NewTaskLoader implements SyncHandler {
+
+        private TeamMember m;
+        private String estTimeAttrName;
+        private String estTimeSyncAttrName;
+        private String actualTimeAttrName;
+        private String completionDateAttrName;
+        private String teamTimeAttrName = TeamTimeColumn.getNodeDataAttrName();
+
+        private void setTeamMember(TeamMember m) {
+            if (this.m != m) {
+                this.m = m;
+
+                estTimeAttrName = TeamMemberTimeColumn
+                        .getMemberNodeDataAttrName(m);
+                estTimeSyncAttrName = getSyncAttrName(TeamMemberTimeColumn
+                        .getColumnID(m));
+                actualTimeAttrName = TeamMemberActualTimeColumn
+                        .getNodeDataAttrName(m);
+                completionDateAttrName = TeamCompletionDateColumn
+                        .getMemberNodeDataAttrName(m);
+            }
+        }
+
+        public void sync(TeamProject teamProject, TeamMember individual,
+                Map<Integer, WBSNode> nodeMap, Element newTaskTag) {
+            setTeamMember(individual);
+
+            WBSNode parentNode = getParentNode(nodeMap, newTaskTag);
+            if (parentNode == null)
+                return;
+
+            int insertionPos = getInsertionPos(teamProject.getWBS(),
+                parentNode, newTaskTag);
+            if (insertionPos == -1)
+                return;
+
+            // we are either (a) subdividing an existing leaf, or (b) adding
+            // new tasks underneath an existing parent.  In either case, any
+            // previous top-down time estimate on the parent node is now
+            // out-of-date.  Delete it so the bottom-up estimates from the
+            // new children will prevail.
+            parentNode.setAttribute(estTimeAttrName, null);
+            parentNode.setAttribute(estTimeSyncAttrName, null);
+            parentNode.setAttribute(teamTimeAttrName, null);
+            // create and insert the new children
+            List newTasks = createNewTasks(teamProject.getWBS(), parentNode,
+                newTaskTag);
+            teamProject.getWBS().insertNodesAt(newTasks, insertionPos, true);
+        }
+
+        private WBSNode getParentNode(Map<Integer, WBSNode> nodeMap,
+                Element newTaskTag) {
+            if ("root".equals(newTaskTag.getAttribute(PARENT_ID_ATTR))) {
+                return nodeMap.get(null);
+            } else {
+                int parentID = XMLUtils.getXMLInt(newTaskTag, PARENT_ID_ATTR);
+                return nodeMap.get(parentID);
+            }
+        }
+
+        private int getInsertionPos(WBSModel wbsModel, WBSNode parentNode,
+                Element tag) {
+            WBSNode[] children = wbsModel.getChildren(parentNode);
+
+            String name = tag.getAttribute(TASK_NAME_ATTR);
+            if (name == null)
+                return -1;
+
+            WBSNode prevSibling = null;
+            WBSNode nextSibling = null;
+            String prevSiblingName = tag.getAttribute(PREV_SIBLING_NAME_ATTR);
+            int prevSiblingID = XMLUtils.getXMLInt(tag, PREV_SIBLING_ID_ATTR);
+            int nextSiblingID = XMLUtils.getXMLInt(tag, NEXT_SIBLING_ID_ATTR);
+            for (WBSNode node : children) {
+                if (name.equals(node.getName()))
+                    // it appears that a previous reverse sync operation has
+                    // already added this node to the WBS.  Do nothing.
+                    return -1;
+
+                if (prevSiblingID != -1) {
+                    if (prevSiblingID == node.getUniqueID())
+                        prevSibling = node;
+                } else if (nextSiblingID != -1) {
+                    if (nextSiblingID == node.getUniqueID())
+                        nextSibling = node;
+                } else if (prevSiblingName != null) {
+                    if (prevSiblingName.equals(node.getName()))
+                        prevSibling = node;
+                }
+            }
+
+            if (nextSibling != null) {
+                return wbsModel.getIndexOfNode(nextSibling);
+            } else {
+                WBSNode afterNode = prevSibling;
+                if (afterNode == null)
+                    afterNode = parentNode;
+                WBSNode[] descendants = wbsModel.getDescendants(afterNode);
+                if (descendants != null && descendants.length > 0)
+                    afterNode = descendants[descendants.length-1];
+                return wbsModel.getIndexOfNode(afterNode) + 1;
+            }
+        }
+
+        private List<WBSNode> createNewTasks(WBSModel wbsModel,
+                WBSNode parentNode, Element newTaskTag) {
+            List<WBSNode> result = new ArrayList<WBSNode>();
+            int indentLevel = parentNode.getIndentLevel() + 1;
+            createNewTasks(result, wbsModel, newTaskTag, indentLevel,
+                WBSNode.UNKNOWN_TYPE);
+            return result;
+        }
+
+        private void createNewTasks(List<WBSNode> result, WBSModel wbsModel,
+                Element task, int level, String defaultType) {
+            // retrieve the name of the new item
+            String name = task.getAttribute(TASK_NAME_ATTR);
+
+            // calculate the node type of the new item
+            String type = task.getAttribute(NODE_TYPE_ATTR);
+            if (type == null || type.length() == 0)
+                type = defaultType;
+            else if ("/PSP/".equals(type))
+                type = TeamProcess.PSP_TASK_TYPE;
+            else
+                type = type + " Task";
+
+            // create the new node
+            WBSNode node = new WBSNode(wbsModel, name, type, level, false);
+
+            // set node attributes for est/actual time, completion date
+            double estTime = XMLUtils.getXMLNum(task, EST_TIME_ATTR);
+            setNodeAttr(node, estTimeAttrName, estTime);
+            setNodeAttr(node, estTimeSyncAttrName, estTime);
+            double actualTime = XMLUtils.getXMLNum(task, TIME_ATTR);
+            setNodeAttr(node, actualTimeAttrName, actualTime);
+            Date actualDate = XMLUtils.getXMLDate(task, COMPLETION_DATE_ATTR);
+            node.setAttribute(completionDateAttrName, actualDate);
+
+            // add the new node to the result list.
+            result.add(node);
+
+            // recurse over children and create nodes for them, too.
+            NodeList subtasks = task.getChildNodes();
+            for (int i = 0;  i < subtasks.getLength();  i++) {
+                Node subtask = subtasks.item(i);
+                if (subtask instanceof Element)
+                    createNewTasks(result, wbsModel, (Element) subtask,
+                        level + 1, type);
+            }
+        }
+
+        private void setNodeAttr(WBSNode node, String attrName, double value) {
+            if (value > 0)
+                node.setNumericAttribute(attrName, value);
+        }
+
+    }
+
     private static boolean eq(double a, double b) {
         if (Double.isNaN(a) || Double.isNaN(b))
             return false;
@@ -382,4 +546,21 @@ public class WBSSynchronizer {
     // private static final String START_DATE_ATTR = "started";
 
     private static final String COMPLETION_DATE_ATTR = "completed";
+
+    private static final String NEW_TASK_TAG = "newTask";
+
+    private static final String TASK_NAME_ATTR = "name";
+
+    private static final String PARENT_ID_ATTR = "parentWbsId";
+
+    private static final String PREV_SIBLING_ID_ATTR = "prevSiblingId";
+
+    private static final String PREV_SIBLING_NAME_ATTR = "prevSiblingName";
+
+    private static final String NEXT_SIBLING_ID_ATTR = "nextSiblingId";
+
+    private static final String EST_TIME_ATTR = "estTime";
+
+    private static final String NODE_TYPE_ATTR = "nodeType";
+
 }

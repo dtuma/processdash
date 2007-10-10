@@ -104,4 +104,8 @@ public class TeamMemberTimeColumn extends TopDownBottomUpColumn
         return teamMember.getInitials() + ATTR_SUFFIX;
     }
 
+    public static String getMemberNodeDataAttrName(TeamMember m) {
+        return getTopDownAttrName(getColumnID(m));
+    }
+
 }

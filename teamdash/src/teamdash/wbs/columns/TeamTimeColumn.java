@@ -753,6 +753,10 @@ public class TeamTimeColumn extends TopDownBottomUpColumn {
         return (wbsModel.isLeaf(node) && node.getType().endsWith("Task"));
     }
 
+    public static String getNodeDataAttrName() {
+        return TopDownBottomUpColumn.getTopDownAttrName(COLUMN_ID);
+    }
+
 
     private static final String DATA_ATTR_NAME = "Time_Data";
     static final String RATE_ATTR = "Rate";

@@ -174,14 +174,19 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
         return (WBSNode) wbsNodes.get(rows[row]);
     }
 
+    protected int getIndexOfNode(Object node) {
+        return wbsNodes.indexOf(node);
+    }
+
     /** Return a collection of the nodes in this model, indexed by unique ID.
-     * (The root node is not included in the result.) */
+     * The root node is included in the result with the <tt>null</tt> key. */
     public Map<Integer, WBSNode> getNodeMap() {
         Map<Integer, WBSNode> result = new HashMap<Integer, WBSNode>();
         for (int i = 1;  i < wbsNodes.size();  i++) {
             WBSNode n = (WBSNode) wbsNodes.get(i);
             result.put(n.getUniqueID(), n);
         }
+        result.put(null, getRoot());
         return result;
     }
 
@@ -651,23 +656,37 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
     protected int[] insertNodes(List nodesToInsert, int beforeRow, boolean notify) {
         if (nodesToInsert == null || nodesToInsert.size() == 0) return null;
 
+        int beforePos;
+
+        // it's illegal to insert anything before the root node!
+        if (beforeRow == 0) beforePos = 1;
+
+        if (beforeRow < 0 || beforeRow >= rows.length)
+            // if the insertion point is illegal, just append nodes to
+            // the end of the list.
+            beforePos = Integer.MAX_VALUE;
+
+        else
+            beforePos = rows[beforeRow];
+
+        insertNodesAt(nodesToInsert, beforePos, notify);
+        return getRowsForNodes(nodesToInsert);
+    }
+
+    protected void insertNodesAt(List nodesToInsert, int beforePos,
+            boolean notify) {
+        if (nodesToInsert == null || nodesToInsert.size() == 0)
+            return;
+
         List currentVisibleNodes = new ArrayList();
         for (int i = 0;   i < rows.length;   i++)
             currentVisibleNodes.add(wbsNodes.get(rows[i]));
         currentVisibleNodes.add(nodesToInsert.get(0));
 
-        // it's illegal to insert anything before the root node!
-        if (beforeRow == 0) beforeRow = 1;
-
-        if (beforeRow < 0 || beforeRow >= rows.length)
-            // if the insertion point is illegal, just append nodes to
-            // the end of the list.
+        if (beforePos >= wbsNodes.size())
             wbsNodes.addAll(makeNodesIDUnique(nodesToInsert));
-
-        else {
-            int beforePos = rows[beforeRow];
+        else
             wbsNodes.addAll(beforePos, makeNodesIDUnique(nodesToInsert));
-        }
 
         recalcRows(false);
         Iterator i = currentVisibleNodes.iterator();
@@ -676,8 +695,6 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
 
         if (notify)
             fireTableDataChanged();
-
-        return getRowsForNodes(nodesToInsert);
     }
 
     /** Make this WBS be a copy of the given WBS.

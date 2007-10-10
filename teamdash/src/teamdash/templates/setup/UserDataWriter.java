@@ -53,6 +53,7 @@ public class UserDataWriter extends TinyCGIBase {
         if (hasValue(getData("Enable_Reverse_Sync"))) {
             try {
                 writeDiscrepancies(ser);
+                writeNewTasks(ser, processID);
                 writeActualData(ser);
             } catch (WrappedIOException wie) {
                 throw wie.getIOException();
@@ -61,6 +62,111 @@ public class UserDataWriter extends TinyCGIBase {
 
         ser.endTag(null, DOCUMENT_TAG);
         ser.endDocument();
+    }
+
+    private void writeNewTasks(XmlSerializer ser, String processID)
+            throws IOException {
+        DashHierarchy hier = getPSPProperties();
+        PropertyKey projectRoot = hier.findExistingKey(getPrefix());
+        String phaseDataName = HierarchySynchronizer
+                .getEffectivePhaseDataName(processID);
+        writeNewTasks(ser, hier, projectRoot, "root", phaseDataName);
+    }
+
+    private void writeNewTasks(XmlSerializer ser, DashHierarchy hier,
+            PropertyKey parent, String parentID, String phaseDataName)
+            throws IOException {
+
+        String prevSiblingName = null;
+        String prevSiblingID = null;
+        for (int i = 0;  i < hier.getNumChildren(parent);  i++) {
+            PropertyKey child = hier.getChildKey(parent, i);
+            String childID = getWbsIdForPath(child.path());
+
+            if (hasValue(childID)) {
+                // this task has a WBS ID, so it must have come from the WBS
+                // originally.  It isn't a new task.  So just recurse and
+                // look for new tasks underneath it.
+                if (!isPSPTask(child.path()))
+                    writeNewTasks(ser, hier, child, childID, phaseDataName);
+
+            } else {
+                // this task does not have a WBS ID, so it is new.  Write a
+                // "new task" entry for it.
+                String nextSiblingID = null;
+                if (prevSiblingName == null && prevSiblingID == null)
+                    nextSiblingID = getFirstTaskID(hier, parent);
+                writeNewTask(ser, hier, parentID, child, prevSiblingName,
+                    prevSiblingID, nextSiblingID, phaseDataName);
+            }
+
+            prevSiblingName = child.name();
+            prevSiblingID = childID;
+        }
+    }
+
+    private String getFirstTaskID(DashHierarchy hier, PropertyKey parent) {
+        for (int i = 0;  i < hier.getNumChildren(parent);  i++) {
+            PropertyKey child = hier.getChildKey(parent, i);
+            String childID = getWbsIdForPath(child.path());
+            if (hasValue(childID))
+                return childID;
+        }
+        return null;
+    }
+
+    private void writeNewTask(XmlSerializer ser, DashHierarchy hier,
+            String parentID, PropertyKey node, String previousSiblingName,
+            String previousSiblingID, String subsequentSiblingID,
+            String phaseDataName) throws IOException {
+
+        ser.startTag(null, NEW_TASK_TAG);
+
+        // write the name of the task
+        ser.attribute(null, TASK_NAME_ATTR, node.name());
+
+        // write information about where the task is located in the WBS
+        writeAttr(ser, PARENT_ID_ATTR, parentID);
+        writeAttr(ser, PREV_SIBLING_NAME_ATTR, previousSiblingName);
+        writeAttr(ser, PREV_SIBLING_ID_ATTR, previousSiblingID);
+        writeAttr(ser, NEXT_SIBLING_ID_ATTR, subsequentSiblingID);
+
+        // write estimated and actual data for the task
+        String path = node.path();
+        SimpleData estimatedTime = getData(path, "Estimated Time");
+        SimpleData actualTime = getData(path, "Time");
+        SimpleData startDate = getData(path, "Started");
+        SimpleData completionDate = getData(path, "Completed");
+        writeTimeDataAttr(ser, EST_TIME_ATTR, estimatedTime);
+        writeTimeDataAttr(ser, TIME_ATTR, actualTime);
+        writeActualDataAttr(ser, START_DATE_TAG, startDate);
+        writeActualDataAttr(ser, COMPLETION_DATE_TAG, completionDate);
+
+        if (isPSPTask(path)) {
+            // if this is a PSP project, write the node type "/PSP/"
+            writeAttr(ser, NODE_TYPE_ATTR, "/PSP/");
+
+        } else {
+            // otherwise, write the node type if there is one
+            String phaseType = getStringData(getData(path, phaseDataName));
+            if (phaseType != null && !phaseType.startsWith("?"))
+                writeAttr(ser, NODE_TYPE_ATTR, phaseType);
+
+            // recurse over subtasks
+            for (int i = 0;  i < hier.getNumChildren(node);  i++) {
+                PropertyKey subtask = hier.getChildKey(node, i);
+                writeNewTask(ser, hier, null, subtask, null, null, null,
+                    phaseDataName);
+            }
+        }
+
+        ser.endTag(null, NEW_TASK_TAG);
+    }
+
+    private void writeAttr(XmlSerializer ser, String name, String value)
+            throws IOException {
+        if (hasValue(value))
+            ser.attribute(null, name, value);
     }
 
     private void writeActualData(XmlSerializer ser) throws IOException {
@@ -86,7 +192,7 @@ public class UserDataWriter extends TinyCGIBase {
             throws IOException {
         String path = node.path();
         String wbsID = getWbsIdForPath(path);
-        if (!StringUtils.hasValue(wbsID))
+        if (!hasValue(wbsID))
             return;
 
         SimpleData actualTime = getData(path, "Time");
@@ -97,13 +203,18 @@ public class UserDataWriter extends TinyCGIBase {
                 || hasValue(completionDate)) {
             ser.startTag(null, ACTUAL_DATA_TAG);
             ser.attribute(null, WBS_ID_ATTR, wbsID);
-            if (actualTime instanceof DoubleData) {
-                double hours = ((DoubleData) actualTime).getDouble() / 60.0;
-                ser.attribute(null, TIME_ATTR, Double.toString(hours));
-            }
+            writeTimeDataAttr(ser, TIME_ATTR, actualTime);
             writeActualDataAttr(ser, START_DATE_TAG, startDate);
             writeActualDataAttr(ser, COMPLETION_DATE_TAG, completionDate);
             ser.endTag(null, ACTUAL_DATA_TAG);
+        }
+    }
+
+    private void writeTimeDataAttr(XmlSerializer ser, String attrName,
+            SimpleData time) throws IOException {
+        if (hasValue(time) && time instanceof DoubleData) {
+            double hours = ((DoubleData) time).getDouble() / 60.0;
+            ser.attribute(null, attrName, Double.toString(hours));
         }
     }
 
@@ -180,6 +291,13 @@ public class UserDataWriter extends TinyCGIBase {
         return getStringData(getData(path, TeamDataConstants.WBS_ID_DATA_NAME));
     }
 
+    private boolean isPSPTask(String path) {
+        return hasValue(getData(path, "PSP Project"));
+    }
+
+    private static boolean hasValue(String s) {
+        return StringUtils.hasValue(s);
+    }
 
     private class WrappedIOException extends RuntimeException {
 
@@ -253,6 +371,22 @@ public class UserDataWriter extends TinyCGIBase {
     private static final String INITIALS_ATTR = "initials";
 
     private static final String TIMESTAMP_ATTR = "timestamp";
+
+    private static final String NEW_TASK_TAG = "newTask";
+
+    private static final String TASK_NAME_ATTR = "name";
+
+    private static final String PARENT_ID_ATTR = "parentWbsId";
+
+    private static final String PREV_SIBLING_ID_ATTR = "prevSiblingId";
+
+    private static final String PREV_SIBLING_NAME_ATTR = "prevSiblingName";
+
+    private static final String NEXT_SIBLING_ID_ATTR = "nextSiblingId";
+
+    private static final String EST_TIME_ATTR = "estTime";
+
+    private static final String NODE_TYPE_ATTR = "nodeType";
 
     private static final String ACTUAL_DATA_TAG = "actualData";
 
