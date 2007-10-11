@@ -250,6 +250,7 @@ public class HierarchySynchronizer {
             String projectTaskID = projectXML.getAttribute(TASK_ID_ATTR);
             projectTaskID = cleanupProjectIDs(projectTaskID);
             projectXML.setAttribute(TASK_ID_ATTR, projectTaskID);
+            projectXML.setAttribute(ID_ATTR, ROOT_NODE_PSEUDO_ID);
 
             dumpFileVersion = projectXML.getAttribute(VERSION_ATTR);
             if (!StringUtils.hasValue(dumpFileVersion))
@@ -270,7 +271,8 @@ public class HierarchySynchronizer {
     private static final int DONT_PRUNE = 2;
 
     /** Return PRUNE if this element should be pruned. */
-    private int pruneWBS(Element e, boolean onlyPruneTasks, Set keepIDs) {
+    private int pruneWBS(Element e, boolean onlyPruneTasks, Set keepIDs,
+            Set parentPseudoIDs) {
         String type = e.getTagName();
         if (!NODE_TYPES.contains(type))
             return NOT_A_NODE;
@@ -296,11 +298,19 @@ public class HierarchySynchronizer {
         // exist.
         renameDuplicateChildren(e);
 
+        // Calculate an alternate list of names this node could be known by.
+        Set pseudoIDs = new HashSet();
+        for (Object oneParentID : parentPseudoIDs)
+            pseudoIDs.add(oneParentID + "/" + nodeName);
+        String nodeID = e.getAttribute(ID_ATTR);
+        pseudoIDs.add(nodeID);
+
         // Look at each child and see if it is prunable.
         List children = XMLUtils.getChildElements(e);
         for (Iterator i = children.iterator(); i.hasNext();) {
             Element child = (Element) i.next();
-            int childPrunable = pruneWBS(child, onlyPruneTasks, keepIDs);
+            int childPrunable = pruneWBS(child, onlyPruneTasks, keepIDs,
+                pseudoIDs);
             if (childPrunable == PRUNE)
                 e.removeChild(child);
             prunable = Math.max(prunable, childPrunable);
@@ -313,8 +323,7 @@ public class HierarchySynchronizer {
             prunable = DONT_PRUNE;
 
         // if this node is in the list of items we must keep, don't prune it.
-        String nodeID = e.getAttribute(ID_ATTR);
-        if (keepIDs.contains(nodeID))
+        if (setsIntersect(keepIDs, pseudoIDs))
             prunable = Math.max(prunable, QUASI_PRUNE);
 
         // If we were unable to prune this item because it (or one of its
@@ -406,7 +415,7 @@ public class HierarchySynchronizer {
         // the user's final WBS when we're done.  As a result, we'll need to
         // know the canonical location of the node in the project WBS, so we
         // request that it not be pruned.
-        results.add(getWbsIdForPath(path));
+        results.add(getPseudoWbsIdForKey(key));
 
         // recurse over children.
         for (int i = hierarchy.getNumChildren(key); i-- > 0; )
@@ -415,6 +424,30 @@ public class HierarchySynchronizer {
 
     private String getWbsIdForPath(String path) {
         return getStringData(getData(path, TeamDataConstants.WBS_ID_DATA_NAME));
+    }
+
+    /** Nodes that came from the WBS will have a WBS ID.  Nodes that the user
+     * created will not.  For such nodes, this method constructs a "pseudo ID"
+     * composed of the ID of the nearest WBS parent, followed by the string
+     * path to this node.  (For example, a user created node "Foo" underneath
+     * a WBS node with ID 123 would have the pseudo WBS ID "123/Foo".)
+     * 
+     * This method will return the official WBS ID of a node, if it has one.
+     * Otherwise, if this is the ROOT node, it will return "root".
+     * Otherwise, this will construct a pseudo WBS ID as described above and
+     * return that value.
+     */
+    private String getPseudoWbsIdForKey(PropertyKey key) {
+        if (key == null)
+            return null;
+        else if (key.equals(projectKey))
+            return ROOT_NODE_PSEUDO_ID;
+
+        String id = getWbsIdForPath(key.path());
+        if (StringUtils.hasValue(id))
+            return id;
+
+        return getPseudoWbsIdForKey(key.getParent()) + "/" + key.name();
     }
 
     private Set deletableIndividualNodes;
@@ -510,7 +543,8 @@ public class HierarchySynchronizer {
             // for a team, get label data for all nodes in a project before
             // we prune the non-team nodes
             labelData = getLabelData(projectXML);
-        pruneWBS(projectXML, fullCopyMode, getNonprunableIDs());
+        pruneWBS(projectXML, fullCopyMode, getNonprunableIDs(),
+            Collections.EMPTY_SET);
         if (!isTeam()) {
             // for an individual, collect label data after pruning so we
             // only see labels that are relevant to our tasks.
@@ -833,6 +867,15 @@ public class HierarchySynchronizer {
         return Math.abs(a - b) < 0.01;
     }
 
+    private boolean setsIntersect(Set a, Set b) {
+        if (a == null || a.isEmpty() || b == null || b.isEmpty())
+            return false;
+        for (Iterator i = b.iterator(); i.hasNext();) {
+            if (a.contains(i.next()))
+                return true;
+        }
+        return false;
+    }
 
     private void processDeferredDeletions(SyncWorker worker)
             throws HierarchyAlterationException {
@@ -957,6 +1000,7 @@ public class HierarchySynchronizer {
     private static final String TIME_ATTR = "time";
     private static final String SYNC_TIME_ATTR = "syncTime";
     private static final String PRUNED_ATTR = "PRUNED";
+    private static final String ROOT_NODE_PSEUDO_ID = "root";
 
 
     private static final String PROJECT_TYPE = "project";
@@ -1114,21 +1158,48 @@ public class HierarchySynchronizer {
 
             String nodeID = node.getAttribute(ID_ATTR);
             String currentNodeID = getWbsIdForPath(path);
+            List matchingNodes = null;
 
-            // If there is an incompatible node in the way, move it.
-            if (currentTemplateID != null && !isTeam()
-                    && (!compatibleTemplateIDs.contains(currentTemplateID)
-                            || !nodeID.equals(currentNodeID))) {
-                moveNodeOutOfTheWay(worker, path);
-                currentTemplateID = currentNodeID = null;
+            // If a node exists already in the desired location, and we're not
+            // doing a team sync, we may need to move the node out of the way.
+            if (currentTemplateID != null && !isTeam()) {
+                boolean needsMove = false;
+
+                if (!compatibleTemplateIDs.contains(currentTemplateID)) {
+                    // the current node is not compatible with the template
+                    // we need to create.  So the current node needs to be
+                    // moved out of the way.
+                    needsMove = true;
+
+                } else if (!StringUtils.hasValue(currentNodeID)) {
+                    // the node that is currently in place has no WBS ID - it
+                    // was created by the user. But it's template ID is
+                    // compatible, so we might be able to reuse it.  First,
+                    // check to see if a node elsewhere has the ID we need.
+                    // If so, that node elsewhere takes precedence, and we
+                    // should move this user node out of the way.
+                    matchingNodes = getCompatibleNodesWithID(nodeID);
+                    if (!matchingNodes.isEmpty())
+                        needsMove = true;
+
+                } else if (!nodeID.equals(currentNodeID)) {
+                    // the node that is in the way represents some other WBS
+                    // node.  We can't co-opt it.
+                    needsMove = true;
+                }
+
+                if (needsMove) {
+                    moveNodeOutOfTheWay(worker, path);
+                    currentTemplateID = currentNodeID = null;
+                }
             }
 
             // if the target node does not exist, try to find a match
             // elsewhere in the hierarchy to move to this location.
             if (currentTemplateID == null && !isTeam()) {
-                List movableNodes = findHierarchyNodesByID(nodeID);
-                filterIncompatibleNodes(movableNodes);
-                PropertyKey sourceNode = getBestNodeToMove(movableNodes);
+                if (matchingNodes == null)
+                    matchingNodes = getCompatibleNodesWithID(nodeID);
+                PropertyKey sourceNode = getBestNodeToMove(matchingNodes);
                 if (sourceNode != null) {
                     currentTemplateID = getTemplateIDForKey(sourceNode);
                     String oldPath = sourceNode.path();
@@ -1160,13 +1231,15 @@ public class HierarchySynchronizer {
             return true;
         }
 
-        protected void filterIncompatibleNodes(List movableNodes) {
-            for (Iterator i = movableNodes.iterator(); i.hasNext();) {
+        protected List getCompatibleNodesWithID(String nodeID) {
+            List result = findHierarchyNodesByID(nodeID);
+            for (Iterator i = result.iterator(); i.hasNext();) {
                 PropertyKey node = (PropertyKey) i.next();
                 String templateID = getTemplateIDForKey(node);
                 if (!compatibleTemplateIDs.contains(templateID))
                     i.remove();
             }
+            return result;
         }
 
         private PropertyKey getBestNodeToMove(List movableNodes) {
@@ -1194,13 +1267,14 @@ public class HierarchySynchronizer {
         }
 
         public void syncData(SyncWorker worker, String path, Element node) {
-             String nodeID = node.getAttribute(ID_ATTR);
-             String taskID = node.getAttribute(TASK_ID_ATTR);
-             try {
-                 putData(path, TeamDataConstants.WBS_ID_DATA_NAME,
-                     StringData.create(nodeID));
-                 if (!isPrunedNode(node))
-                     setTaskIDs(path, taskID);
+            String nodeID = node.getAttribute(ID_ATTR);
+            String taskID = node.getAttribute(TASK_ID_ATTR);
+            try {
+                String dataName = DataRepository.createDataName(path,
+                    TeamDataConstants.WBS_ID_DATA_NAME);
+                worker.doPutValueForce(dataName, StringData.create(nodeID));
+                if (!isPrunedNode(node))
+                    setTaskIDs(path, taskID);
             } catch (Exception e) {}
             if (!isTeam() && !isPrunedNode(node)) {
                 maybeSaveDocSize(path, node);
@@ -1578,6 +1652,10 @@ public class HierarchySynchronizer {
     private class SyncPSPTaskNode extends SyncSimpleNode {
         public SyncPSPTaskNode() {
             super("PSP2.1", (oldStyleSync ? " Task" : ""), null);
+            compatibleTemplateIDs.add("PSP0.1");
+            compatibleTemplateIDs.add("PSP1");
+            compatibleTemplateIDs.add("PSP1.1");
+            compatibleTemplateIDs.add("PSP2");
         }
 
         public void syncData(SyncWorker worker, String path, Element node) {
