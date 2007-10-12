@@ -72,7 +72,10 @@ public class EVWeekReport extends TinyCGIBase {
     private static final String EFF_DATE_PARAM = "eff";
     private static final String SPLIT_PARAM = "split";
 
-
+    // Used to indicate if a task is behind, ahead or on schedule
+    private static final byte BEHIND_SCHEDULE = 0;
+    private static final byte AHEAD_OF_SCHEDULE = 1;
+    private static final byte ON_SCHEDULE = 2;
 
     private static final long MILLIS_PER_WEEK = 7L /*days*/ * 24 /*hours*/
             * 60 /*minutes*/ * 60 /*seconds*/ * 1000 /*millis*/;
@@ -193,6 +196,7 @@ public class EVWeekReport extends TinyCGIBase {
         // keep track of tasks that should be displayed in the three lists.
         boolean[] completedLastWeek = new boolean[taskListLen];
         boolean[] dueThroughNextWeek = new boolean[taskListLen];
+        byte[] progress = new byte[taskListLen];
         Map<String, DependencyForCoord> upcomingDependencies =
             new HashMap<String, DependencyForCoord>();
         List<RevDependencyForCoord> reverseDependencies =
@@ -229,10 +233,22 @@ public class EVWeekReport extends TinyCGIBase {
             } else {
                 Date due =
                     (Date) tasks.getValueAt(i, EVTaskList.PLAN_DATE_COLUMN);
-                if (due != null && due.after(startDate)) {
-                    if (due.before(nextWeek))
-                        dueThroughNextWeek[i] = oneDueNextWeek = true;
+                Date replannedDue =
+                    (Date) tasks.getValueAt(i, EVTaskList.REPLAN_DATE_COLUMN);
+                if ((due != null && due.after(startDate) && due.before(nextWeek))
+                      || (replannedDue != null && replannedDue.after(startDate)
+                              && replannedDue.before(nextWeek))) {
+                    dueThroughNextWeek[i] = oneDueNextWeek = true;
+
+                    progress[i] = ON_SCHEDULE;
+                    if (due != null) {
+                        if (!due.after(effDate))
+                            progress[i] = BEHIND_SCHEDULE;
+                        else if (due.after(nextWeek))
+                            progress[i] = AHEAD_OF_SCHEDULE;
+                    }
                 }
+
                 Date projectedDate = (Date) tasks.getValueAt(i,
                     EVTaskList.PROJ_DATE_COLUMN);
                 findUpcomingDependencies(tasks, upcomingDependencies,
@@ -461,8 +477,8 @@ public class EVWeekReport extends TinyCGIBase {
                 double timeRemaining = 0;
                 for (int i = 0;   i < taskListLen;   i++)
                     if (dueThroughNextWeek[i])
-                        timeRemaining += printDueLine(tableWriter, tasks, i, cpi,
-                                showAssignedTo, showLabels);
+                        timeRemaining += printDueLine(tableWriter, tasks, progress[i], i, cpi,
+                                                      showAssignedTo, showLabels);
 
                 out.print("<tr class='sortbottom'><td align=right colspan=");
                 int colspan = 6 + (showAssignedTo ? 1:0) + (showLabels ? 1:0);
@@ -754,8 +770,8 @@ public class EVWeekReport extends TinyCGIBase {
     }
 
     protected double printDueLine(HTMLTableWriter tableWriter,
-            TableModel tasks, int i, double cpi, boolean showAssignedTo,
-            boolean showLabels) throws IOException {
+            TableModel tasks, byte progress, int i,
+            double cpi, boolean showAssignedTo, boolean showLabels) throws IOException {
         out.print("<tr>");
         tableWriter.writeCell(out, tasks, i, EVTaskList.TASK_COLUMN);
         tableWriter.writeCell(out, tasks, i, EVTaskList.PLAN_TIME_COLUMN);
@@ -763,7 +779,20 @@ public class EVWeekReport extends TinyCGIBase {
         tableWriter.writeCell(out, tasks, i, EVTaskList.PCT_SPENT_COLUMN);
         if (showAssignedTo)
             tableWriter.writeCell(out, tasks, i, EVTaskList.ASSIGNED_TO_COLUMN);
+
+        if (progress == BEHIND_SCHEDULE)
+            tableWriter.setExtraColumnAttributes(EVTaskList.PLAN_DATE_COLUMN,
+                               "class='behindSchedule' title='" +
+                               getResource("Week.Due_Tasks.Behind_Schedule_Tooltip") + "'");
+        else if (progress == AHEAD_OF_SCHEDULE)
+            tableWriter.setExtraColumnAttributes(EVTaskList.PLAN_DATE_COLUMN,
+                               "class='aheadOfSchedule' title='" +
+                               getResource("Week.Due_Tasks.Ahead_Of_Schedule_Tooltip") + "'");
+
         tableWriter.writeCell(out, tasks, i, EVTaskList.PLAN_DATE_COLUMN);
+
+        tableWriter.setExtraColumnAttributes(EVTaskList.PLAN_DATE_COLUMN, null);
+
         if (showLabels)
             tableWriter.writeCell(out, tasks, i, EVTaskList.LABELS_COLUMN);
         tableWriter.writeCell(out, tasks, i, EVTaskList.DEPENDENCIES_COLUMN);
@@ -783,7 +812,11 @@ public class EVWeekReport extends TinyCGIBase {
                     + EVReport.getSortAttribute("-1")
                     + ">0:00&nbsp;&nbsp;???");
         out.println("</td></tr>");
-        return forecastTimeRemaining > 0 ? forecastTimeRemaining : 0;
+
+        if (progress != AHEAD_OF_SCHEDULE && forecastTimeRemaining > 0)
+            return forecastTimeRemaining;
+        else
+            return 0;
     }
 
     private void printReverseDependencyTable(TableModel tasks,
@@ -939,6 +972,8 @@ public class EVWeekReport extends TinyCGIBase {
         "td.header { text-align:center; font-weight:bold; "+
                            " vertical-align:bottom }\n" +
         "td.modelErrors { text-align: left; background-color: #ff5050 }\n" +
+        "td.behindSchedule { background-color: #ffcccc }\n" +
+        "td.aheadOfSchedule { background-color: #ddffdd }\n" +
         "span.nav { font-size: medium;  font-style: italic; " +
                            " font-weight: normal }\n" +
         "div.subsection { margin-left: 1cm }\n" +
