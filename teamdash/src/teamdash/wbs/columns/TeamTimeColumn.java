@@ -7,6 +7,7 @@ import java.util.regex.Pattern;
 
 import javax.swing.table.TableCellRenderer;
 
+import teamdash.team.TeamMember;
 import teamdash.wbs.AnnotatedValue;
 import teamdash.wbs.CalculatedDataColumn;
 import teamdash.wbs.CustomRenderedColumn;
@@ -77,9 +78,11 @@ public class TeamTimeColumn extends TopDownBottomUpColumn {
             return result;
 
         boolean needsAssigning = false;
+        boolean needsEstimating = false;
         LeafNodeData leafData = getLeafNodeData(node);
         if (leafData != null) { // a leaf task
             needsAssigning = !leafData.isConnected();
+            needsEstimating = equal(result.value, 0);
         } else if (wbsModel.isLeaf(node)) { // a leaf node which isn't a task
             if (safe(result.value) != 0) {
                 result.errorMessage =
@@ -90,13 +93,14 @@ public class TeamTimeColumn extends TopDownBottomUpColumn {
 
         } else { // not a leaf task
             needsAssigning = !equal(result.value, sumIndivTimes(node));
+            needsEstimating = equal(result.value, 0);
         }
 
-        if (needsAssigning) {
-            result.errorMessage =
-                (equal(result.value, 0)
-                 ? "Task time needs to be estimated"
-                 : "Task needs to be assigned to individual(s)");
+        if (needsEstimating) {
+            result.errorMessage = "Task time needs to be estimated";
+            result.errorColor = Color.blue;
+        } else if (needsAssigning) {
+            result.errorMessage = "Task needs to be assigned to individual(s)";
             result.errorColor = Color.blue;
         }
 
@@ -165,12 +169,11 @@ public class TeamTimeColumn extends TopDownBottomUpColumn {
     }
 
 
-    /** Count the number of individuals with nonzero times in the given
-     * list of IndivTime objects. */
+    /** Count the number of assigned individuals in the given array. */
     private int countPeople(IndivTime[] indivTimes) {
         int count = 0;
         for (int i = 0;   i < indivTimes.length;   i++)
-            if (indivTimes[i].time > 0) count++;
+            if (indivTimes[i].isAssigned()) count++;
         return count;
     }
 
@@ -431,14 +434,16 @@ public class TeamTimeColumn extends TopDownBottomUpColumn {
             node.setNumericAttribute(TPP_ATTR, timePerPerson);
             recalculateRate();
 
-            // if the time per person changed from or to zero, don't try
+            // if the time per person changed to zero, don't try
             // to proportionally propagate the change along.
-            if (safe(oldTimePerPerson) != 0 && safe(timePerPerson) != 0) {
+            if (safe(timePerPerson) > 0) {
 
                 // find individuals with that amount of time, and update them.
-                for (int i = individualTimes.length;   i-- > 0; )
-                    if (equal(individualTimes[i].time, oldTimePerPerson))
+                for (int i = individualTimes.length;   i-- > 0; ) {
+                    if (individualTimes[i].isAssigned() &&
+                            equal(individualTimes[i].time, oldTimePerPerson))
                         individualTimes[i].setTime(timePerPerson);
+                }
                 individualTimes = getIndivTimes(node);
             }
 
@@ -488,16 +493,26 @@ public class TeamTimeColumn extends TopDownBottomUpColumn {
         double time;
         int column;
         String initials;
+        String zeroAttrName;
+        boolean zeroButAssigned;
 
         public IndivTime(WBSNode node, int column) {
             this.node = node;
             this.column = column;
             this.time = safe(parse(dataModel.getValueAt(node, column)));
             this.initials = dataModel.getColumnName(column);
+            this.zeroAttrName = getMemberAssignedZeroAttrName(this.initials);
+            this.zeroButAssigned = (node.getAttribute(zeroAttrName) != null);
+        }
+
+        public boolean isAssigned() {
+            return time > 0 || zeroButAssigned;
         }
 
         public void setTime(double newTime) {
             this.time = newTime;
+            this.zeroButAssigned = false;
+            node.setAttribute(zeroAttrName, null);
             dataModel.setValueAt(new Double(time), node, column);
         }
 
@@ -513,7 +528,10 @@ public class TeamTimeColumn extends TopDownBottomUpColumn {
             return buf;
         }
         public void setTime(HashMap times) {
-            time = safe(parse(times.get(initials.toLowerCase())));
+            String ilc = initials.toLowerCase();
+            this.time = safe(parse(times.get(ilc)));
+            this.zeroButAssigned = (time == 0 && times.containsKey(ilc));
+            node.setAttribute(zeroAttrName, zeroButAssigned ? "t" : null);
             dataModel.setValueAt(new Double(time), node, column);
         }
     }
@@ -663,7 +681,7 @@ public class TeamTimeColumn extends TopDownBottomUpColumn {
             StringBuffer result = new StringBuffer();
             StringBuffer annotatedResult = new StringBuffer();
             for (int i = 0;   i < times.length;   i++)
-                if (times[i].time > 0) {
+                if (times[i].isAssigned()) {
                     times[i].appendTimeString
                         (result.append(", "), defaultTime);
                     times[i].appendTimeString
@@ -672,9 +690,11 @@ public class TeamTimeColumn extends TopDownBottomUpColumn {
 
             if (result.length() == 0)
                 return UNASSIGNED;
-            else
+            else if (ANNOTATE_ASSIGNMENT_VALUE)
                 return new AnnotatedValue(result.toString().substring(2),
                         annotatedResult.toString().substring(2));
+            else
+                return result.toString().substring(2);
         }
         public void setValueAt(Object aValue, WBSNode node) {
             LeafNodeData leafData = getLeafNodeData(node);
@@ -705,6 +725,7 @@ public class TeamTimeColumn extends TopDownBottomUpColumn {
         ("???", "Task needs to be assigned to individual(s)");
     private static Pattern TIME_SETTING_PATTERN =
         Pattern.compile("([a-zA-Z]+)[^a-zA-Z0-9\\.]*([0-9\\.]+)?");
+    private static final boolean ANNOTATE_ASSIGNMENT_VALUE = false;
 
 
 
@@ -755,6 +776,14 @@ public class TeamTimeColumn extends TopDownBottomUpColumn {
 
     public static String getNodeDataAttrName() {
         return TopDownBottomUpColumn.getTopDownAttrName(COLUMN_ID);
+    }
+
+    public static String getMemberAssignedZeroAttrName(TeamMember m) {
+        return getMemberAssignedZeroAttrName(m.getInitials());
+    }
+
+    public static String getMemberAssignedZeroAttrName(String initials) {
+        return initials.replace('_', '-') + " (Assigned With Zero)";
     }
 
 

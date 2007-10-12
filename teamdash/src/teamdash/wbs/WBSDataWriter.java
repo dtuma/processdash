@@ -16,6 +16,7 @@ import teamdash.wbs.columns.DirectSizeTypeColumn;
 import teamdash.wbs.columns.SizeAccountingColumnSet;
 import teamdash.wbs.columns.TaskDependencyColumn;
 import teamdash.wbs.columns.TaskLabelColumn;
+import teamdash.wbs.columns.TeamTimeColumn;
 
 
 /** This class writes out an XML data file describing the work breakdown
@@ -43,6 +44,12 @@ public class WBSDataWriter {
     private TeamMemberList teamList;
     /** The list of column numbers for each team member time column */
     private IntList teamMemberColumns;
+    /** The initials for each team member */
+    private String[] initials;
+    /** Node attribute names for retrieving sync time information */
+    private String[] syncAttrs;
+    /** Node attribute names flagging whether a user is assigned with 0 hours */
+    private String[] zeroAssignmentAttrs;
     /** The list of column numbers for each top-level size accounting column */
     private int[] sizeAccountingColumns = new int[SIZE_COLUMN_IDS.length];
     /** This column number of the direct size units column */
@@ -101,10 +108,27 @@ public class WBSDataWriter {
      */
     public void write(Writer out) throws IOException {
         // initialize
-        if (dataModel == null)
+        if (dataModel == null) {
             teamMemberColumns = null;
-        else
+            initials = syncAttrs = zeroAssignmentAttrs = null;
+        } else {
             teamMemberColumns = dataModel.getTeamMemberColumnIDs();
+            int numTeamMembers = teamMemberColumns.size();
+
+            initials = new String[numTeamMembers];
+            syncAttrs = new String[numTeamMembers];
+            zeroAssignmentAttrs = new String[numTeamMembers];
+            for (int i = 0; i < numTeamMembers; i++) {
+                int col = teamMemberColumns.get(i);
+                initials[i] = dataModel.getColumnName(col);
+
+                String colID = dataModel.getColumn(col).getColumnID();
+                syncAttrs[i] = WBSSynchronizer.getSyncAttrName(colID);
+
+                zeroAssignmentAttrs[i] = TeamTimeColumn
+                        .getMemberAssignedZeroAttrName(initials[i]);
+            }
+        }
 
         // write XML header
         out.write("<?xml version='1.0' encoding='UTF-8'?>\n");
@@ -418,11 +442,11 @@ public class WBSDataWriter {
         for (int i = 0;   i < teamMemberColumns.size();   i++) {
             int col = teamMemberColumns.get(i);
             String time = formatNumber(dataModel.getValueAt(node, col));
-            if ("null".equals(time) || "0".equals(time) || "0.0".equals(time))
-                continue;
-
-            result.append(",").append(dataModel.getColumnName(col))
-                .append("=").append(time);
+            if ("null".equals(time) || "0".equals(time) || "0.0".equals(time)) {
+                if (node.getAttribute(zeroAssignmentAttrs[i]) == null)
+                    continue;
+            }
+            result.append(",").append(initials[i]).append("=").append(time);
         }
 
         if (result.length() == 0)
@@ -441,21 +465,12 @@ public class WBSDataWriter {
         if (teamMemberColumns == null)
             return null;
 
-        String[] syncAttrs = new String[teamMemberColumns.size()];
-        for (int i = 0; i < syncAttrs.length; i++) {
-            int col = teamMemberColumns.get(i);
-            String colID = dataModel.getColumn(col).getColumnID();
-            String attrName = WBSSynchronizer.getSyncAttrName(colID);
-            syncAttrs[i] = attrName;
-        }
 
         StringBuffer result = new StringBuffer();
         for (int i = 0;   i < teamMemberColumns.size();   i++) {
             double lastSyncedVal = node.getNumericAttribute(syncAttrs[i]);
             if (!Double.isNaN(lastSyncedVal)) {
-                int col = teamMemberColumns.get(i);
-                String initials = dataModel.getColumnName(col);
-                result.append(",").append(initials)
+                result.append(",").append(initials[i])
                     .append("=").append(lastSyncedVal);
             }
         }

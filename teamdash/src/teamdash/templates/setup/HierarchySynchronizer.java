@@ -1299,23 +1299,19 @@ public class HierarchySynchronizer {
 
         protected void maybeSaveTimeValue(SyncWorker worker, String path,
                 Element node) {
-            if (isPrunedNode(node)) return;
             double time = parseTime(node);
-            if (time == 0) return;
-
-            if (undoMarkTaskComplete(worker, path))
-                changes.add("Marked '" + path + "' incomplete.");
-            if (okToChangeTimeEstimate(path)) {
-                worker.setLastReverseSyncedValue(parseSyncTime(node) * 60);
-                putData(path, EST_TIME_DATA_NAME, new DoubleData(time * 60));
+            if (!isPrunedNode(node) && time >= 0) {
+                if (undoMarkTaskComplete(worker, path))
+                    changes.add("Marked '" + path + "' incomplete.");
+                if (okToChangeTimeEstimate(path)) {
+                    worker.setLastReverseSyncedValue(parseSyncTime(node) * 60);
+                    putData(path, EST_TIME_DATA_NAME, new DoubleData(time * 60));
+                }
             }
 
-            // FIXME: this code won't correctly handle (a) tasks that have
-            // been pruned from the WBS (b) tasks with 0 time in the WBS
-            // (c) tasks that have been subdivided by the user.  (a) and (b)
-            // will never get here, so no discrepancy will be logged. (c) will
-            // log a discrepancy stating that the planned time should be 0,
-            // which is incorrect.
+            // FIXME: this code won't correctly handle tasks that have been
+            // subdivided by the user. This code will log a discrepancy stating
+            // that the planned time should be 0, which is incorrect.
             double finalTime = getDoubleData(getData(path, EST_TIME_DATA_NAME)) / 60;
             if (eq(finalTime, time) == false)
                 discrepancies.add(new SyncDiscrepancy.PlanTime(path,
@@ -1342,21 +1338,21 @@ public class HierarchySynchronizer {
 
         protected double parseSyncTime(Element node) {
             String timeAttr = node.getAttribute(SYNC_TIME_ATTR);
-            return parseTime(timeAttr);
+            return Math.max(0, parseTime(timeAttr));
         }
 
         protected double parseTime(String timeAttr) {
-            if (timeAttr == null) return 0;
+            if (timeAttr == null) return -1;
             int beg = timeAttr.toLowerCase().indexOf(initialsPattern);
-            if (beg == -1) return 0;
+            if (beg == -1) return -1;
             beg += initialsPattern.length();
             int end = timeAttr.indexOf(',', beg);
-            if (end == -1) return 0;
+            if (end == -1) return -1;
             try {
                 return Double.parseDouble(timeAttr.substring(beg, end));
             } catch (Exception e) {}
 
-            return 0;
+            return -1;
         }
 
         protected void putNumber(String path, String name, String value, double ratio) {
@@ -1542,7 +1538,7 @@ public class HierarchySynchronizer {
         protected void syncTaskEffectivePhase(SyncWorker worker,
                 Element node, String path, String phaseName)
                 throws HierarchyAlterationException {
-            if (XMLUtils.hasValue(phaseName))
+            if (XMLUtils.hasValue(phaseName) && !"Unknown".equals(phaseName))
                 putData(path, phaseDataName, StringData.create(phaseName));
         }
 

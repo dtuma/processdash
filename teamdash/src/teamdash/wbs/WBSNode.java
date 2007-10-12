@@ -156,11 +156,17 @@ public class WBSNode implements Cloneable {
      *   or is not a numeric attribute. */
     public double getNumericAttribute(String attrName) {
         Object value = getAttribute(attrName);
-        if (value instanceof Number)
+        if (value instanceof Number) {
             return ((Number) value).doubleValue();
-        else if (value instanceof String) try {
-            return Double.parseDouble((String) value);
-        } catch (NumberFormatException nfe) {}
+
+        } else if (value instanceof String) {
+            try {
+                double doubleValue = Double.parseDouble((String) value);
+                setAttribute(attrName, doubleValue);
+                return doubleValue;
+            } catch (NumberFormatException nfe) {
+            }
+        }
 
         return Double.NaN;
     }

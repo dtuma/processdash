@@ -355,6 +355,7 @@ public class WBSSynchronizer {
         private TeamMember m;
         private String estTimeAttrName;
         private String estTimeSyncAttrName;
+        private String assignedZeroAttrName;
         private String actualTimeAttrName;
         private String completionDateAttrName;
         private String teamTimeAttrName = TeamTimeColumn.getNodeDataAttrName();
@@ -367,6 +368,8 @@ public class WBSSynchronizer {
                         .getMemberNodeDataAttrName(m);
                 estTimeSyncAttrName = getSyncAttrName(TeamMemberTimeColumn
                         .getColumnID(m));
+                assignedZeroAttrName = TeamTimeColumn
+                        .getMemberAssignedZeroAttrName(m);
                 actualTimeAttrName = TeamMemberActualTimeColumn
                         .getNodeDataAttrName(m);
                 completionDateAttrName = TeamCompletionDateColumn
@@ -494,13 +497,20 @@ public class WBSSynchronizer {
             result.add(node);
 
             // recurse over children and create nodes for them, too.
+            boolean isLeaf = true;
             NodeList subtasks = task.getChildNodes();
             for (int i = 0;  i < subtasks.getLength();  i++) {
                 Node subtask = subtasks.item(i);
-                if (subtask instanceof Element)
+                if (subtask instanceof Element) {
                     createNewTasks(result, wbsModel, (Element) subtask,
                         level + 1, type);
+                    isLeaf = false;
+                }
             }
+
+            // set the "assigned with zero hours" flag if needed.
+            if (isLeaf && estTime == 0)
+                node.setAttribute(assignedZeroAttrName, "t");
         }
 
         private void setNodeAttr(WBSNode node, String attrName, double value) {
