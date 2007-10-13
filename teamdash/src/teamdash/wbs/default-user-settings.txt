@@ -1,0 +1,1 @@
+reverseSync.newTask.disabled=true

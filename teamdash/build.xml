@@ -183,6 +183,7 @@ Unexpected number of processdash classes referenced by TeamTools.jar
       <fileset dir="bin">
         <include name="teamdash/**/*.png"/>
         <include name="teamdash/**/*.gif"/>
+        <include name="teamdash/**/default-user-settings.txt"/>
       </fileset>
       <fileset refid="dashClasses"/>
 

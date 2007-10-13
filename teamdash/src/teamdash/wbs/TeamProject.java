@@ -5,9 +5,11 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileInputStream;
+import java.io.InputStream;
 import java.net.URL;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Properties;
 import java.util.Set;
 
 import net.sourceforge.processdash.util.RobustFileWriter;
@@ -34,6 +36,7 @@ public class TeamProject {
     private File masterProjectDirectory;
     private boolean readOnly;
     private boolean filesAreReadOnly;
+    private Properties userSettings;
 
 
     /** Create or open a team project */
@@ -169,6 +172,11 @@ public class TeamProject {
         return projectSettings;
     }
 
+    /** Return the value of a user setting */
+    public String getUserSetting(String name) {
+        return userSettings.getProperty(name);
+    }
+
 
     /** Open and parse an XML file. @return null on error. */
     private Element openXML(File file) {
@@ -216,8 +224,29 @@ public class TeamProject {
                     masterProjectID = masterProjectDirectory.getName();
             }
 
+            userSettings = new Properties();
+            loadProperties(userSettings, TeamProject.class.getResourceAsStream(
+                "default-user-settings.txt"));
+
+            File userSettingsFile = new File(directory, USER_SETTINGS_FILENAME);
+            if (userSettingsFile.canRead()) {
+                userSettings = new Properties(userSettings);
+                loadProperties(userSettings, new FileInputStream(
+                        userSettingsFile));
+            }
+
         } catch (Exception e) {
             projectSettings = null;
+        }
+    }
+
+    private void loadProperties(Properties p, InputStream in) {
+        try {
+            in = new BufferedInputStream(in);
+            p.load(in);
+            in.close();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
@@ -453,6 +482,7 @@ public class TeamProject {
     private static final String FLOW_FILENAME = "workflow.xml";
     private static final String PROCESS_FILENAME = "process.xml";
     private static final String SETTINGS_FILENAME = "settings.xml";
+    private static final String USER_SETTINGS_FILENAME = "user-settings.ini";
 
     private static final String[] ALL_FILENAMES = {
         TEAM_LIST_FILENAME,
