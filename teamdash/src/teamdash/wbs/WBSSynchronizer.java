@@ -28,8 +28,8 @@ import teamdash.XMLUtils;
 import teamdash.team.TeamMember;
 import teamdash.team.WeeklySchedule;
 import teamdash.wbs.columns.TeamActualTimeColumn;
-import teamdash.wbs.columns.TeamMemberActualTimeColumn;
 import teamdash.wbs.columns.TeamCompletionDateColumn;
+import teamdash.wbs.columns.TeamMemberActualTimeColumn;
 import teamdash.wbs.columns.TeamMemberTimeColumn;
 import teamdash.wbs.columns.TeamTimeColumn;
 
@@ -41,6 +41,8 @@ public class WBSSynchronizer {
     private DataTableModel dataModel;
 
     private Date effectiveDate;
+
+    private boolean needsWbsEvent = false;
 
     private boolean foundActualData = false;
 
@@ -57,6 +59,9 @@ public class WBSSynchronizer {
     public static final String EFFECTIVE_DATE_ATTR =
         "Team@Actual_Data_Effective_Date";
 
+    public static final String SYNC_NODE_TYPE_ATTR =
+        getSyncAttrName("Node Type");
+
 
     public WBSSynchronizer(TeamProject teamProject, DataTableModel dataModel) {
         this.teamProject = teamProject;
@@ -66,7 +71,7 @@ public class WBSSynchronizer {
 
     public void run() {
         effectiveDate = new Date(0);
-        foundActualData = false;
+        foundActualData = needsWbsEvent = false;
         Element directDumpData = getDirectDumpData();
         Map<String, File> exportFiles = getExportFiles();
         Map<Integer, WBSNode> nodeMap = teamProject.getWBS().getNodeMap();
@@ -83,6 +88,9 @@ public class WBSSynchronizer {
 
         int col = dataModel.findColumn(TeamActualTimeColumn.COLUMN_ID);
         dataModel.columnChanged(dataModel.getColumn(col));
+
+        if (needsWbsEvent)
+            teamProject.getWBS().fireTableRowsUpdated(0, 0);
     }
 
 
@@ -229,12 +237,25 @@ public class WBSSynchronizer {
 
     private Map<String, SyncHandler> createSyncHandlers() {
         Map<String, SyncHandler> result = new HashMap<String, SyncHandler>();
-        result.put(SCHEDULE_CHANGE_TAG, new ScheduleSynchronizer());
-        result.put(PLAN_TIME_CHANGE_TAG, new PlanTimeSynchronizer());
-        result.put(ACTUAL_DATA_TAG, new ActualDataLoader());
-        result.put(NEW_TASK_TAG, new NewTaskLoader());
+        if (isEnabled(SCHEDULE_CHANGE_TAG))
+            result.put(SCHEDULE_CHANGE_TAG, new ScheduleSynchronizer());
+        if (isEnabled(PLAN_TIME_CHANGE_TAG))
+            result.put(PLAN_TIME_CHANGE_TAG, new PlanTimeSynchronizer());
+        if (isEnabled(NODE_TYPE_CHANGE_TAG))
+            result.put(NODE_TYPE_CHANGE_TAG, new NodeTypeSynchronizer());
+        if (isEnabled(ACTUAL_DATA_TAG))
+            result.put(ACTUAL_DATA_TAG, new ActualDataLoader());
+        if (isEnabled(NEW_TASK_TAG))
+            result.put(NEW_TASK_TAG, new NewTaskLoader());
         return result;
     }
+
+    private boolean isEnabled(String item) {
+        String settingName = "reverseSync." + item + ".disabled";
+        String setting = teamProject.getUserSetting(settingName);
+        return !"true".equalsIgnoreCase(setting);
+    }
+
 
     private interface SyncHandler {
         public void sync(TeamProject teamProject, TeamMember individual,
@@ -305,6 +326,35 @@ public class WBSSynchronizer {
                 dataModel.setValueAt(new Double(newUserTime), node,
                     indivTimeColumn);
                 node.setNumericAttribute(syncAttrName, newUserTime);
+            }
+        }
+
+    }
+
+    /**
+     * Class to read user changes in node type, and incorporate them into the
+     * node types for tasks in the WBS.
+     */
+    private class NodeTypeSynchronizer implements SyncHandler {
+
+        public void sync(TeamProject teamProject, TeamMember individual,
+                Map<Integer, WBSNode> nodeMap, Element nodeTypeTag) {
+            int wbsId = XMLUtils.getXMLInt(nodeTypeTag, WBS_ID_ATTR);
+            WBSNode node = nodeMap.get(wbsId);
+            if (node == null)
+                return;
+
+            String newUserType = nodeTypeTag.getAttribute(NODE_TYPE_ATTR);
+            if (!XMLUtils.hasValue(newUserType))
+                return;
+            newUserType = newUserType + " Task";
+
+            Object lastUserType = node.getAttribute(SYNC_NODE_TYPE_ATTR);
+
+            if (!newUserType.equals(lastUserType)) {
+                node.setType(newUserType);
+                node.setAttribute(SYNC_NODE_TYPE_ATTR, newUserType);
+                needsWbsEvent = true;
             }
         }
 
@@ -402,6 +452,7 @@ public class WBSSynchronizer {
             List newTasks = createNewTasks(teamProject.getWBS(), parentNode,
                 newTaskTag);
             teamProject.getWBS().insertNodesAt(newTasks, insertionPos, true);
+            needsWbsEvent = false;
         }
 
         private WBSNode getParentNode(Map<Integer, WBSNode> nodeMap,
@@ -572,5 +623,7 @@ public class WBSSynchronizer {
     private static final String EST_TIME_ATTR = "estTime";
 
     private static final String NODE_TYPE_ATTR = "nodeType";
+
+    private static final String NODE_TYPE_CHANGE_TAG = "nodeTypeChange";
 
 }

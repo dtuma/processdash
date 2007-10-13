@@ -996,6 +996,7 @@ public class HierarchySynchronizer {
     private static final String VERSION_ATTR = "dumpFileVersion";
     private static final String LABELS_ATTR = "labels";
     private static final String PHASE_NAME_ATTR = "phaseName";
+    private static final String SYNC_PHASE_NAME_ATTR = "syncPhaseName";
     private static final String EFF_PHASE_ATTR = "effectivePhase";
     private static final String TIME_ATTR = "time";
     private static final String SYNC_TIME_ATTR = "syncTime";
@@ -1538,8 +1539,19 @@ public class HierarchySynchronizer {
         protected void syncTaskEffectivePhase(SyncWorker worker,
                 Element node, String path, String phaseName)
                 throws HierarchyAlterationException {
-            if (XMLUtils.hasValue(phaseName) && !"Unknown".equals(phaseName))
+            if (XMLUtils.hasValue(phaseName) && !"Unknown".equals(phaseName)) {
+                worker.setLastReverseSyncedValue(StringData.create(node
+                        .getAttribute(SYNC_PHASE_NAME_ATTR)));
                 putData(path, phaseDataName, StringData.create(phaseName));
+            }
+
+            // after the sync, if our phase type disagrees with the WBS, make
+            // a note of the discrepancy for reverse sync purposes.
+            String finalPhase = getStringData(getData(path, phaseDataName));
+            if (StringUtils.hasValue(finalPhase) && !finalPhase.startsWith("?")
+                    && !finalPhase.equals(phaseName))
+                discrepancies.add(new SyncDiscrepancy.NodeType(path,
+                        getWbsIdForPath(path), finalPhase));
         }
 
         protected boolean undoMarkTaskComplete(SyncWorker worker, String path) {

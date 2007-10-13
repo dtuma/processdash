@@ -10,6 +10,7 @@ public abstract class SyncDiscrepancy {
     public interface Visitor {
         public void visit(PlanTime p);
         public void visit(EVSchedule s);
+        public void visit(NodeType n);
     }
 
     public static class PlanTime extends SyncDiscrepancy {
@@ -33,6 +34,36 @@ public abstract class SyncDiscrepancy {
 
         public double getPlannedHours() {
             return plannedHours;
+        }
+
+        @Override
+        public void visit(Visitor v) {
+            v.visit(this);
+        }
+
+    }
+
+    public static class NodeType extends SyncDiscrepancy {
+        private String path;
+        private String wbsId;
+        private String type;
+
+        public NodeType(String path, String wbsId, String type) {
+            this.path = path;
+            this.wbsId = wbsId;
+            this.type = type;
+        }
+
+        public String getPath() {
+            return path;
+        }
+
+        public String getWbsId() {
+            return wbsId;
+        }
+
+        public String getType() {
+            return type;
         }
 
         @Override

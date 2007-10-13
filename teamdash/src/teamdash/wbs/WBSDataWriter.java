@@ -384,7 +384,7 @@ public class WBSDataWriter {
                 // should I throw some sort of error?
                 return;
 
-            String phaseName = nodeType.substring(0, nodeType.length()-5);
+            String phaseName = removeTaskSuffix(nodeType);
             if (wbsModel.getChildCount(node) != 0) {
                 // only write an "effective phase" attribute for non-leaf tasks.
                 writeAttr(out, EFFECTIVE_PHASE_ATTR, phaseName);
@@ -392,11 +392,21 @@ public class WBSDataWriter {
             }
 
             String phaseType = process.getPhaseType(phaseName);
+            String syncPhaseName = removeTaskSuffix((String) node
+                    .getAttribute(WBSSynchronizer.SYNC_NODE_TYPE_ATTR));
             writeAttr(out, PHASE_NAME_ATTR, phaseName);
             writeAttr(out, PHASE_TYPE_ATTR, phaseType);
+            writeAttr(out, SYNC_PHASE_NAME_ATTR, syncPhaseName);
             writeAttr(out, TIME_ATTR, getTeamMemberTimes(node));
             writeAttr(out, SYNC_TIME_ATTR, getTeamMemberSyncTimes(node));
             maybeWriteQualitySize(out, phaseName, phaseType, node);
+        }
+
+        private String removeTaskSuffix(String phaseName) {
+            if (phaseName != null && phaseName.endsWith(" Task"))
+                return phaseName.substring(0, phaseName.length()-5);
+            else
+                return phaseName;
         }
 
         private void maybeWriteQualitySize(Writer out, String phase,
@@ -524,6 +534,7 @@ public class WBSDataWriter {
     private static final String NO_LABELS_VAL = "none";
     private static final String DEP_SRC_ATTR = "source";
     private static final String PHASE_NAME_ATTR = "phaseName";
+    private static final String SYNC_PHASE_NAME_ATTR = "syncPhaseName";
     private static final String PHASE_TYPE_ATTR = "phaseType";
     private static final String EFFECTIVE_PHASE_ATTR = "effectivePhase";
     private static final String TIME_ATTR = "time";

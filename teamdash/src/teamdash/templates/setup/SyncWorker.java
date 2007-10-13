@@ -199,8 +199,9 @@ public abstract class SyncWorker implements DataContext {
         SaveableData lastRevSyncVal = lastReverseSyncedValue;
         lastReverseSyncedValue = null;
 
-        if (!(newValue instanceof NumberData)) {
-            // This isn't a number.  Just check for equality with the current
+        if (lastRevSyncVal == null && !(newValue instanceof NumberData)) {
+            // This isn't a number, and isn't a value that is "reverse
+            // syncable."  Just check for equality with the current
             // value.  Note that we place value first and currVal second; this
             // is important.  A ListData element turns into a StringData
             // element after a shutdown/restart cycle;  if the new value is a
@@ -220,15 +221,15 @@ public abstract class SyncWorker implements DataContext {
         String syncName = name + SYNC_VAL_SUFFIX;
         SimpleData lastSyncVal = getSimpleValue(syncName);
 
-        if (dataEquals(newValue, currVal)) {
+        if (dataEquals(newValue, currVal) && (currVal instanceof SimpleData)) {
             if (dataEquals(newValue, lastSyncVal)) {
-                // all three numbers are in agreement. Nothing needs to be done.
+                // all three values are in agreement. Nothing needs to be done.
                 return;
 
             } else {
                 // the new and old values match, but the sync doesn't.  This
                 // would occur if:
-                //   (a) the user has synced an estimate manually,
+                //   (a) the user has synced a value manually,
                 //   (b) the WBS was updated via reverse sync, or
                 //   (c) the sync occurred before sync records were kept.
                 // The right action is to store the sync value for future
@@ -238,6 +239,7 @@ public abstract class SyncWorker implements DataContext {
             }
 
         } else if (isFalseSimpleValue(currVal)
+                || !(currVal instanceof SimpleData)
                 || dataEquals(currVal, lastSyncVal)
                 || dataEquals(currVal, lastRevSyncVal)) {
             // Update the value, and make a note of the value we're syncing.

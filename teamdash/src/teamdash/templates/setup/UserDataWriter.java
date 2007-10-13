@@ -19,6 +19,7 @@ import net.sourceforge.processdash.util.XMLUtils;
 import org.xmlpull.v1.XmlSerializer;
 
 import teamdash.templates.setup.SyncDiscrepancy.EVSchedule;
+import teamdash.templates.setup.SyncDiscrepancy.NodeType;
 import teamdash.templates.setup.SyncDiscrepancy.PlanTime;
 
 public class UserDataWriter extends TinyCGIBase {
@@ -356,6 +357,17 @@ public class UserDataWriter extends TinyCGIBase {
             }
         }
 
+        public void visit(NodeType n) {
+            try {
+                ser.startTag(null, NODE_TYPE_CHANGE_TAG);
+                ser.attribute(null, WBS_ID_ATTR, n.getWbsId());
+                ser.attribute(null, NODE_TYPE_ATTR, n.getType());
+                ser.endTag(null, NODE_TYPE_CHANGE_TAG);
+            } catch (IOException e) {
+                throw new WrappedIOException(e);
+            }
+        }
+
     }
 
     private static final long REFRESH_AGE_CUTOFF = 60 * 1000;
@@ -411,5 +423,7 @@ public class UserDataWriter extends TinyCGIBase {
     private static final String HOURS_ATTR = "hours";
 
     private static final String DEFAULT_HOURS_VAL = "DEFAULT";
+
+    private static final String NODE_TYPE_CHANGE_TAG = "nodeTypeChange";
 
 }
