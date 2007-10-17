@@ -28,6 +28,7 @@ package net.sourceforge.processdash.tool.export;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
@@ -54,6 +55,8 @@ public class DataImporter extends Thread {
 
     private static final long TIME_DELAY = 10 * 60 * 1000; // 10 minutes
     private static Hashtable importers = new Hashtable();
+    private static List initializingImporters = Collections
+            .synchronizedList(new ArrayList());
 
     private DataRepository data;
     private String importPrefix;
@@ -71,6 +74,15 @@ public class DataImporter extends Thread {
         DataImporter i = (DataImporter) importers.remove(getKey(prefix, dir));
         if (i != null)
             i.dispose();
+    }
+    public static void waitForAllInitialized() {
+        synchronized (initializingImporters) {
+            while (!initializingImporters.isEmpty())
+                try {
+                    initializingImporters.wait();
+                } catch (InterruptedException e) {
+                }
+        }
     }
 
     private static String getKey(String prefix, String dir) {
@@ -112,7 +124,7 @@ public class DataImporter extends Thread {
         this.importPrefix = prefix;
         this.directory = directory;
 
-        checkFiles(null);
+        initializingImporters.add(this);
         this.setDaemon(true);
         this.start();
     }
@@ -124,6 +136,12 @@ public class DataImporter extends Thread {
 
 
     public void run() {
+        checkFiles(null);
+        synchronized (initializingImporters) {
+            initializingImporters.remove(this);
+            if (initializingImporters.isEmpty())
+                initializingImporters.notifyAll();
+        }
         while (isRunning) try {
             sleep(TIME_DELAY);
             checkFiles(null);

@@ -50,6 +50,7 @@ public class ImportManager extends AbstractManager {
 
     public static void init(DataRepository dataRepository) {
         getInstance().setData(dataRepository, true);
+        DataImporter.waitForAllInitialized();
     }
 
     private ImportManager() {

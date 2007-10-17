@@ -44,6 +44,15 @@ public class ProfTimer {
 
     private long lastTime;
 
+    public ProfTimer(Class clazz) {
+        this(clazz, clazz.getName());
+    }
+
+    public ProfTimer(Class clazz, String instanceName) {
+        this(Logger.getLogger("profileTimer." + clazz.getName()),
+            instanceName);
+    }
+
     public ProfTimer(Logger logger) {
         this(logger, null);
     }

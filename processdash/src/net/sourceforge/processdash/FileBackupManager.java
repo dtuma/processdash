@@ -114,7 +114,8 @@ public class FileBackupManager {
 
         File result = null;
         try {
-            ProfTimer pt = new ProfTimer(logger);
+            ProfTimer pt = new ProfTimer(FileBackupManager.class,
+                "FileBackupManager.run");
             result = backupFiles(dataDir, backupDir, when, who);
             pt.click("Finished backup");
         } catch (Exception e) {
@@ -146,7 +147,7 @@ public class FileBackupManager {
     // Rename the output files appropriately.
     // Delete old/outdated backup files.
     private static File backupFiles(File dataDir, File backupDir, int when,
-            String who) throws IOException
+            final String who) throws IOException
     {
         List dataFiles = getDataFiles(dataDir);
         if (dataFiles == null || dataFiles.size() == 0)
@@ -154,7 +155,8 @@ public class FileBackupManager {
 
         ExternalResourceManager extResourceMgr = ExternalResourceManager
                 .getInstance();
-        ProfTimer pt = new ProfTimer(logger);
+        ProfTimer pt = new ProfTimer(FileBackupManager.class,
+            "FileBackupManager.backupFiles");
 
         File[] backupFiles = getBackupFiles(backupDir);
         File mostRecentBackupFile = findMostRecentBackupFile(backupFiles);
@@ -273,11 +275,19 @@ public class FileBackupManager {
         // finalize the new backup, and give it its final name.
         newBackupOut.close();
         String outputFilename = getOutputFilename(when, new Date());
-        File newBackupFile = new File(backupDir, outputFilename);
+        final File newBackupFile = new File(backupDir, outputFilename);
         newBackupTempFile.renameTo(newBackupFile);
 
-        makeExtraBackupCopies(newBackupFile, who);
-        pt.click("Made extra backup copies");
+        if (when == SHUTDOWN) {
+            makeExtraBackupCopies(newBackupFile, who);
+            pt.click("Made extra backup copies");
+        } else {
+            Runnable makeExtraBackupCopiesTask = new Runnable() {
+                public void run() {
+                    makeExtraBackupCopies(newBackupFile, who);
+                }};
+            new Thread(makeExtraBackupCopiesTask).start();
+        }
 
         cleanupOldBackupFiles(backupFiles);
         return newBackupFile;
@@ -479,8 +489,7 @@ public class FileBackupManager {
             + System.getProperty("line.separator");
 
 
-    private static void makeExtraBackupCopies(File backupFile, String who)
-            throws IOException {
+    private static void makeExtraBackupCopies(File backupFile, String who) {
         if (who == null || who.length() == 0)
             return;
 

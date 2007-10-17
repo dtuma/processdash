@@ -50,6 +50,7 @@ import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.Vector;
 import java.util.jar.JarInputStream;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
@@ -70,6 +71,7 @@ import net.sourceforge.processdash.ui.lib.ErrorReporter;
 import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.PatternList;
+import net.sourceforge.processdash.util.ProfTimer;
 import net.sourceforge.processdash.util.XMLUtils;
 
 import org.w3c.dom.Document;
@@ -90,6 +92,8 @@ public class TemplateLoader {
 
     public static final DashboardPermission LOAD_TEMPLATES_PERMISSION =
         new DashboardPermission("templateLoader.loadTemplates");
+    public static final DashboardPermission RESET_TEMPLATES_PERMISSION =
+        new DashboardPermission("templateLoader.resetTemplates");
     public static final DashboardPermission ADD_TEMPLATE_JAR_PERMISSION =
         new DashboardPermission("templateLoader.addTemplateJar");
     private static final DashboardPermission GET_TEMPLATE_URLS_PERMISSION =
@@ -99,15 +103,21 @@ public class TemplateLoader {
     private static final DashboardPermission CLEAR_CLASSLOADER_PERMISSION =
         new DashboardPermission("templateLoader.clearTemplateClassloader");
 
+    private static final Logger logger = Logger.getLogger(TemplateLoader.class
+            .getName());
+
+
     private static long templateTimestamp = 0;
 
     public static DashHierarchy loadTemplates(DataRepository data) {
         LOAD_TEMPLATES_PERMISSION.checkPermission();
 
         DashHierarchy templates = new DashHierarchy(null);
+        ProfTimer pt = new ProfTimer(TemplateLoader.class,
+            "TemplateLoader.loadTemplates");
 
-        template_url_list = null;
         URL[] roots = getTemplateURLs();
+        pt.click("Got template roots");
 
         String templateDirURL;
         for (int i=roots.length;   i-- > 0;  ) {
@@ -123,6 +133,7 @@ public class TemplateLoader {
                 String dirname = templateDirURL.substring(5);
                 dirname = HTMLUtils.urlDecode(dirname);
                 searchDirForTemplates(templates, dirname, data);
+                pt.click("searched dir '" + dirname + "' for templates");
 
             } else {
                 /* If the /Templates directory found is in a jar somewhere,
@@ -134,6 +145,7 @@ public class TemplateLoader {
                 String jarFileURL = templateDirURL.substring
                     (4, templateDirURL.indexOf('!'));
                 searchJarForTemplates(templates, jarFileURL, data);
+                pt.click("searched jar '" + jarFileURL + "' for templates");
             }
         }
 
@@ -141,6 +153,7 @@ public class TemplateLoader {
 
         createProcessRoot(templates);
 
+        pt.click("done loading templates");
         return templates;
     }
 
@@ -285,7 +298,7 @@ public class TemplateLoader {
                         debug("loading data: " + filename);
                         data.addGlobalDefinitions(jarFile, false);
                     } catch (Exception e) {
-                        System.out.println
+                        logger.severe
                             ("unable to load global process data from " +
                              file.getName() + " in " + jarURL + ": " + e);
                     }
@@ -293,7 +306,7 @@ public class TemplateLoader {
             }
 
         } catch (IOException ioe) {
-            System.out.println("error looking for templates in " + jarURL);
+            logger.severe("error looking for templates in " + jarURL);
             ioe.printStackTrace(System.out);
         }
         return foundTemplates;
@@ -343,7 +356,7 @@ public class TemplateLoader {
                     data.addGlobalDefinitions(new FileInputStream(f), true);
                     processTimestamp(f);
                 } catch (Exception e) {
-                    System.out.println
+                    logger.severe
                         ("unable to load global process data from " + f +
                          ": " + e);
                 }
@@ -421,9 +434,17 @@ public class TemplateLoader {
     }
 
     protected static void debug(String msg) {
-        // System.out.println("TemplateLoader: " + msg);
+        logger.finest(msg);
     }
 
+
+    /** Clear any previously computed list of template URLs, so the next
+     * call to {@link #getTemplateURLs()} will recalculate the list anew.
+     */
+    public static void resetTemplateURLs() {
+        RESET_TEMPLATES_PERMISSION.checkPermission();
+        template_url_list = null;
+    }
 
     /** Returns a list of URLs to templates, in logical search order.
      *
@@ -446,8 +467,10 @@ public class TemplateLoader {
         if (template_url_list != null) return template_url_list;
 
         Vector result = new Vector();
+        ProfTimer pt = new ProfTimer(TemplateLoader.class,
+                "TemplateLoader.getTemplateURLs");
 
-        String userSetting = Settings.getFile("templates.directory");
+        String userSetting = getSearchPath();
         if (userSetting != null && userSetting.length() != 0) {
             StringTokenizer tok = new StringTokenizer(userSetting, ";");
             while (tok.hasMoreTokens())
@@ -466,15 +489,31 @@ public class TemplateLoader {
             while (e.hasMoreElements())
                 result.addElement(e.nextElement());
         } catch (IOException ioe) {
-            System.err.println("An exception was encountered when searching " +
-                               "for process templates in the classpath:\n\t" +
-                               ioe);
+            logger.severe("An exception was encountered when searching "
+                    + "for process templates in the classpath:\n\t" + ioe);
         }
 
         filterURLList(result);
 
         template_url_list = urlListToArray(result);
+        pt.click("Calculated template URL list");
         return template_url_list;
+    }
+    private static String getSearchPath() {
+        if (Settings.getBool("templates.disableSearchPath", false)) {
+            logger.config("Template search path is disabled");
+            return null;
+        }
+
+        if (Settings.getBool("slowNetwork", false)
+                && !Settings.getBool("slowNetwork.searchForTemplates", false)) {
+            logger.config("Disabling template search path for slow network");
+            return null;
+        }
+
+        String result = Settings.getFile("templates.directory");
+        logger.config("Template search path is " + result);
+        return result;
     }
     private static URL[] urlListToArray(List list) {
         int i = list.size();
@@ -978,9 +1017,9 @@ public class TemplateLoader {
             templateTimestamp = time;
     }
     private static void processTimestamp(File f) {
-        //System.out.println("timestamp for file " + f.getPath() + " is " +
-        //                   f.lastModified());
-        processTimestamp(f.lastModified());
+        long modTime = f.lastModified();
+        debug("timestamp for file " + f.getPath() + " is " + modTime);
+        processTimestamp(modTime);
     }
     public static long getTemplateTimestamp() { return templateTimestamp; }
 
@@ -1180,8 +1219,7 @@ public class TemplateLoader {
                     ("Templates").format("Plan_Summary_Name_FMT", ID);
                 v.addElement(new ScriptID("dash/summary.shtm", null,
                                           planSummaryName));
-
-                //System.out.println("adding default HTML form for "+ID);
+                debug("adding default HTML form for "+ID);
             }
 
         } catch (ClassCastException cce) {}

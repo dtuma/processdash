@@ -25,15 +25,21 @@
 
 package net.sourceforge.processdash.tool.export.impl;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.text.NumberFormat;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
-import java.util.logging.Logger;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -42,7 +48,6 @@ import net.sourceforge.processdash.tool.export.DataImporter;
 import net.sourceforge.processdash.tool.export.mgr.ExternalResourceManager;
 import net.sourceforge.processdash.tool.export.mgr.ImportDirectoryInstruction;
 import net.sourceforge.processdash.util.FileUtils;
-import net.sourceforge.processdash.util.ProfTimer;
 import net.sourceforge.processdash.util.XMLUtils;
 
 import org.w3c.dom.Document;
@@ -53,13 +58,12 @@ import org.xmlpull.v1.XmlSerializer;
 public class ExternalResourceArchiverXMLv1 implements ExternalResourceArchiver,
         ExternalResourceMappingLoader, ExternalResourceXmlConstantsv1 {
 
-    private static final Logger logger = Logger
-            .getLogger(ExternalResourceArchiverXMLv1.class.getName());
-
     private boolean keepFileModificationTimes = Settings.getBool(
         "backup.keepExternalFileTimes", true);
 
-    private Map importedDirs = new HashMap();
+    private Map<String, String> importedDirs = Collections
+            .synchronizedMap(new HashMap<String, String>());
+    private IOException exceptionEncountered;
 
     public Object dispatch(ImportDirectoryInstruction instr) {
         importedDirs.put(instr.getDirectory(), null);
@@ -72,48 +76,70 @@ public class ExternalResourceArchiverXMLv1 implements ExternalResourceArchiver,
     }
 
     private void archiveDirectories(ZipOutputStream out) throws IOException {
-        ExternalResourceManager extMgr = ExternalResourceManager.getInstance();
+        ExecutorService dirScanner = Executors.newFixedThreadPool(5);
+        ExecutorService fileScanner = Executors.newFixedThreadPool(10);
+        exceptionEncountered = null;
         NumberFormat fmt = NumberFormat.getIntegerInstance();
         fmt.setMinimumIntegerDigits(3);
-        int pos = 1;
 
-        for (Iterator i = importedDirs.entrySet().iterator(); i.hasNext();) {
-            Map.Entry e = (Map.Entry) i.next();
-            String origPath = (String) e.getKey();
-            origPath = extMgr.remapFilename(origPath);
-            File sourceDir = new File(origPath);
-            ProfTimer pt = new ProfTimer(logger, origPath);
+        List<String> importedDirNames = new ArrayList<String>(importedDirs
+                .keySet());
+        for (int i = 0; i < importedDirNames.size(); i++) {
+            String origPath = importedDirNames.get(i);
+            String newPath = "extdir" + fmt.format(i + 1);
+            dirScanner.execute(new ArchiveDirectoryTask(fileScanner, out,
+                    origPath, newPath));
+        }
+
+        try {
+            dirScanner.shutdown();
+            dirScanner.awaitTermination(60*60, TimeUnit.SECONDS);
+            fileScanner.shutdown();
+            fileScanner.awaitTermination(60*60, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        if (exceptionEncountered != null)
+            throw exceptionEncountered;
+    }
+
+    private class ArchiveDirectoryTask implements Runnable {
+
+        Executor taskRunner;
+        ZipOutputStream out;
+        String origPath;
+        String newPath;
+
+        public ArchiveDirectoryTask(Executor taskRunner, ZipOutputStream out,
+                String origPath, String newPath) {
+            this.taskRunner = taskRunner;
+            this.out = out;
+            this.origPath = origPath;
+            this.newPath = newPath;
+        }
+
+        public void run() {
+            String remappedPath = ExternalResourceManager.getInstance()
+                    .remapFilename(origPath);
+            File sourceDir = new File(remappedPath);
             if (sourceDir.isDirectory()) {
-                pt.click("isDirectory");
-                String newPath = "extdir" + fmt.format(pos++);
-                e.setValue(newPath);
-                archiveDirectory(out, sourceDir, newPath, pt);
-                pt.click("finished archiving directory");
+                importedDirs.put(origPath, newPath);
+                archiveDirectory(taskRunner, out, sourceDir, newPath);
             } else {
-                i.remove();
-                pt.click("is not directory");
+                importedDirs.remove(origPath);
             }
         }
     }
 
-    private void archiveDirectory(ZipOutputStream out, File sourceDir,
-            String newPath, ProfTimer pt) throws IOException {
+    private void archiveDirectory(Executor taskRunner, ZipOutputStream out,
+            File sourceDir, String newPath) {
         File[] files = sourceDir.listFiles();
-        pt.click("listed files");
         for (int i = 0; i < files.length; i++) {
             String filename = files[i].getName();
-            if (isFileToArchive(filename) && files[i].isFile()) {
-                pt.click("isFile("+filename+")");
-                ZipEntry e = new ZipEntry(ARCHIVE_PATH + "/" + newPath
-                        + "/" + filename);
-                if (keepFileModificationTimes) {
-                    e.setTime(files[i].lastModified());
-                    pt.click("lastModified("+filename+")");
-                }
-                out.putNextEntry(e);
-                FileUtils.copyFile(files[i], out);
-                out.closeEntry();
-                pt.click("copyFile("+filename+")");
+            if (isFileToArchive(filename)) {
+                String zipPath = ARCHIVE_PATH + "/" + newPath + "/" + filename;
+                taskRunner.execute(new ArchiveFileTask(out, files[i], zipPath));
             }
         }
     }
@@ -123,6 +149,46 @@ public class ExternalResourceArchiverXMLv1 implements ExternalResourceArchiver,
         return filename.endsWith(DataImporter.EXPORT_FILE_OLD_SUFFIX)
                 || filename.endsWith(DataImporter.EXPORT_FILE_SUFFIX)
                 || filename.endsWith(".xml");
+    }
+
+    private class ArchiveFileTask implements Runnable {
+
+        ZipOutputStream out;
+        File sourceFile;
+        String zipEntryPath;
+
+        public ArchiveFileTask(ZipOutputStream out, File sourceFile,
+                String zipEntryPath) {
+            this.out = out;
+            this.sourceFile = sourceFile;
+            this.zipEntryPath = zipEntryPath;
+        }
+
+        public void run() {
+            if (sourceFile.isFile()) {
+                try {
+                    archiveFile();
+                } catch (IOException e) {
+                    exceptionEncountered = e;
+                }
+            }
+        }
+
+        private void archiveFile() throws IOException {
+            ByteArrayOutputStream buf = new ByteArrayOutputStream();
+            FileUtils.copyFile(sourceFile, buf);
+
+            ZipEntry e = new ZipEntry(zipEntryPath);
+            if (keepFileModificationTimes) {
+                e.setTime(sourceFile.lastModified());
+            }
+
+            synchronized (out) {
+                out.putNextEntry(e);
+                buf.writeTo(out);
+                out.closeEntry();
+            }
+        }
     }
 
     private void writeManifest(ZipOutputStream out) throws IOException {

@@ -123,6 +123,7 @@ import net.sourceforge.processdash.ui.systray.SystemTrayManagement;
 import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.FormatUtil;
 import net.sourceforge.processdash.util.HTTPUtils;
+import net.sourceforge.processdash.util.ProfTimer;
 import net.sourceforge.processdash.util.StringUtils;
 
 
@@ -179,6 +180,7 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
         getContentPane().setLayout(new GridBagLayout());
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
         addWindowListener(this);
+        ProfTimer pt = new ProfTimer(ProcessDashboard.class, "ProcessDashboard");
 
         // load app defaults and user settings.
         try {
@@ -196,6 +198,7 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
         } catch (IOException ioe) {}
         propertiesFile = prop_file.getPath();
         property_directory = prop_file.getParent() + Settings.sep;
+        TemplateLoader.resetTemplateURLs();
 
         // if this JVM does not explicitly have a logging config set, but one
         // is present in the user's data directory, read it.
@@ -207,6 +210,7 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
                     new FileInputStream(logConfig));
             } catch (Exception e) {}
         }
+        pt.click("Read settings");
 
         DefectAnalyzer.setDataDirectory(property_directory);
         CmsDefaultConfig.setPersistenceDirectory(prop_file.getParentFile());
@@ -217,6 +221,7 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
         } catch (IOException ioe) {
             default_directory = prop_file.getParentFile().getAbsolutePath();
         }
+        pt.click("Set default directory");
 
         // start the http server.
         try {
@@ -229,27 +234,34 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
         } catch (IOException ioe) {
             logErr("Couldn't start web server", ioe);
         }
+        pt.click("Started web server");
 
         maybeEnableReadOnlyMode();
+        pt.click("Checked read only mode");
 
         // ensure that we have exclusive control of the data in the
         // property_directory
         //
-        if (!Settings.isReadOnly())
+        if (!Settings.isReadOnly()) {
             concurrencyLock = new ConcurrencyLock(property_directory,
                                                   webServer.getPort(),
                                                   webServer.getTimestamp());
+            pt.click("Obtained concurrency lock");
+        }
 
         // run the backup process as soon as possible
         FileBackupManager.maybeRun
             (property_directory, FileBackupManager.STARTUP, null);
+        pt.click("Ran file backup");
 
 
         // create the data repository.
         data = new DataRepository();
         if ("true".equalsIgnoreCase(Settings.getVal("dataFreezing.disabled")))
             data.disableFreezing();
+        pt.click("Created Data Repository");
         templates = TemplateLoader.loadTemplates(data);
+        pt.click("Loaded templates");
         aum = new AutoUpdateManager(TemplateLoader.getPackages());
         resources = Resources.getDashBundle("ProcessDashboard");
         InternalSettings.loadLocaleSpecificDefaults(resources);
@@ -257,7 +269,9 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
                 Settings.getVal("dateTimeFormat"));
         Translator.init();
         LookAndFeelSettings.loadLocalizedSettings();
+        pt.click("Set locale specific defaults");
         data.setDatafileSearchURLs(TemplateLoader.getTemplateURLs());
+        pt.click("Set datafile search URLs");
         versionNumber = TemplateLoader.getPackageVersion("pspdash"); // legacy
         logger.info("Process Dashboard version " + versionNumber);
 
@@ -274,11 +288,13 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
         WebServer.setOutputCharset(getWebCharset());
 
         BetaVersionSetup.runSetup(property_directory);
+        pt.click("Ran beta version setup");
 
         // determine if Lost Data Files are present in the pspdata directory
         // and take steps to repair them.
         LostDataFiles lostPSPFiles = new LostDataFiles();
         lostPSPFiles.findLostFiles(property_directory);
+        pt.click("Checked for lost data files");
         if (lostPSPFiles.repair(this)==false) {
 
             // if the lost data files could not be repaired, exit the dashboard
@@ -347,6 +363,7 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
         registerHierarchyDataElement();
         data.pinElement(DashHierarchy.DATA_REPOSITORY_NAME);
         activeTaskModel = new DefaultActiveTaskModel(props);
+        pt.click("Loaded dashboard hierarchy");
 
         // create the time log
         try {
@@ -359,6 +376,7 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
                     property_directory + WorkingTimeLog.TIME_LOG_FILENAME);
             System.exit(0);
         }
+        pt.click("Initialized time log");
 
         // possibly reload cached data definitions.
         File serializedDefinitions = new File(property_directory, "defns.ser");
@@ -399,6 +417,7 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
         } catch (Exception exc) {
             logErr("when generating default datafile, caught exception", exc);
         }
+        pt.click("Opened data files");
 
         try {
             objectCache =
@@ -411,31 +430,41 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
         webServer.setData(data);
         webServer.setProps(props);
         webServer.setCache(objectCache);
+        pt.click("Set web server context objects");
 
         configure_button = new ConfigureButton(this);
         addToMainWindow(configure_button, 0);
         PCSH.enableHelpKey(this, "QuickOverview");
+        pt.click("Created configure button");
         pause_button = new PauseButton(timeLog.getTimeLoggingModel());
         if (Settings.isReadWrite())
             addToMainWindow(pause_button, 0);
+        pt.click("Created play/pause button");
         pct_spent_indicator = new PercentSpentIndicator(this, activeTaskModel);
         addToMainWindow(pct_spent_indicator, 0);
+        pt.click("Created percent spent indicator");
         defect_button = new DefectButton(this);
         if (Settings.isReadWrite())
             addToMainWindow(defect_button, 0);
+        pt.click("Created defect button");
         script_button = new ScriptButton(this);
         addToMainWindow(script_button, 0);
+        pt.click("Created script button");
         hierarchy_menubar = new JMenuBar();
         addToMainWindow(hierarchy_menubar, 1.0);
         DependencyIndicator dependencyIndicator = new DependencyIndicator(this,
                 activeTaskModel);
         addToMainWindow(dependencyIndicator, 0);
+        pt.click("Created dependency indicator");
         completion_button = new CompletionButton(this, activeTaskModel);
         addToMainWindow(completion_button, 0);
+        pt.click("Created completion button");
 
         ImportManager.init(data);
+        pt.click("Initialized import manager");
         data.finishInconsistency();
         ExportManager.init(data, this);
+        pt.click("Initialized export manager");
         try {
             data.maybeSaveDefinitions(serializedDefinitions);
         } catch (Exception e) {
@@ -443,13 +472,16 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
         }
         LegacySupport.configureRemoteListeningCapability(data);
         timeLog.refreshMetrics();
+        pt.click("Refreshed time log metrics");
 
         EVTaskDependencyResolver.init(this);
 
         taskNav = new TaskNavigationSelector
             (this, hierarchy_menubar, activeTaskModel);
         completion_button.setNavSelector(taskNav);
+        pt.click("Created task navigation selector");
         dependencyIndicator.update();
+        pt.click("Updated dependency indicator");
         props.addHierarchyListener(new DashHierarchy.Listener() {
                 public void hierarchyChanged(Event e) {
                     saveHierarchy();
@@ -467,6 +499,7 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
         DashController.setDashboard(this);
         BackgroundTaskManager.initialize(this);
         initializeSystemTray();
+        pt.click("Finished initializing Process Dashboard object");
     }
 
     /**
