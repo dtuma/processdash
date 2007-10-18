@@ -167,6 +167,8 @@ backup.enabled=true
 backup.keepBackupsNumDays=21
 backup.timesOfDay=0
 
+slowNetwork.numParallelReads=10
+
 export.timesOfDay=0
 
 forms.useHoursMinutes=true

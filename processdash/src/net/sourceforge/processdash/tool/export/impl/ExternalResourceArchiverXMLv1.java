@@ -76,8 +76,11 @@ public class ExternalResourceArchiverXMLv1 implements ExternalResourceArchiver,
     }
 
     private void archiveDirectories(ZipOutputStream out) throws IOException {
-        ExecutorService dirScanner = Executors.newFixedThreadPool(5);
-        ExecutorService fileScanner = Executors.newFixedThreadPool(10);
+        int numThreads = Settings.getInt("slowNetwork.numParallelReads", 10);
+        ExecutorService dirScanner = Executors.newFixedThreadPool(
+            Math.max(numThreads/2, 1));
+        ExecutorService fileScanner = Executors.newFixedThreadPool(
+            Math.max(numThreads, 1));
         exceptionEncountered = null;
         NumberFormat fmt = NumberFormat.getIntegerInstance();
         fmt.setMinimumIntegerDigits(3);
