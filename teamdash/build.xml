@@ -222,6 +222,8 @@ Unexpected number of processdash classes referenced by TeamTools.jar
     <loadfile property="extraPacks" srcFile="install/packs.xml">
       <filterchain><expandproperties/></filterchain>
     </loadfile>
+
+    <property name="installerExtraIni" value=""/>
     <loadfile property="extraIni" srcFile="install/custom-install.ini">
       <filterchain><expandproperties/></filterchain>
     </loadfile>
