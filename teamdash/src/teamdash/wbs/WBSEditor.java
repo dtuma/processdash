@@ -173,10 +173,11 @@ public class WBSEditor implements WindowListener, SaveListener,
                         ifNotMode(MODE_MASTER, "Assigned To"),
                         (showActualData ? TeamCompletionDateColumn.COLUMN_ID : null),
                         (showActualData ? PercentCompleteColumn.COLUMN_ID : null),
-                        (showActualData ? PercentSpentColumn.COLUMN_ID : null) },
+                        (showActualData ? PercentSpentColumn.COLUMN_ID : null),
+                        (showActualData ? TeamActualTimeColumn.COLUMN_ID : null) },
                 new String[] { "Phase/Type", "Task Size", "Units", "Rate",
                         "Hrs/Indiv", "# People", "Time", "Assigned To",
-                        "Completed", "%C", "%S" });
+                        "Completed", "%C", "%S", "Actual Time" });
 
         tabPanel.addTab("Task Details",
                 new String[] { "Labels", "Dependencies" },
