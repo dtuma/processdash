@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2006 Tuma Solutions, LLC
+// Copyright (C) 2003-2007 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -197,6 +197,8 @@ public class EVTaskListData extends EVTaskList
     public void hierarchyChanged(DashHierarchy.Event e) {
         if (someoneCares()) {
             EVTask r = (EVTask) root;
+
+            fireTreeStructureWillChange(this, r.getPath(), null, null);
 
             // delete all the previous children.
             int n = r.getNumChildren();

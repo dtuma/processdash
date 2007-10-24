@@ -26,6 +26,7 @@
 
 package net.sourceforge.processdash.ev.ui;
 
+import java.awt.AWTEvent;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
@@ -96,6 +97,8 @@ import javax.swing.WindowConstants;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.event.TableModelEvent;
+import javax.swing.event.TreeModelEvent;
+import javax.swing.event.TreeModelListener;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableColumnModel;
@@ -135,6 +138,7 @@ import net.sourceforge.processdash.ui.lib.ErrorReporter;
 import net.sourceforge.processdash.ui.lib.JTreeTable;
 import net.sourceforge.processdash.ui.lib.ToolTipTableCellRendererProxy;
 import net.sourceforge.processdash.ui.lib.ToolTipTimingCustomizer;
+import net.sourceforge.processdash.ui.lib.TreeModelWillChangeListener;
 import net.sourceforge.processdash.ui.lib.TreeTableModel;
 import net.sourceforge.processdash.util.BooleanArray;
 import net.sourceforge.processdash.util.HTMLUtils;
@@ -251,6 +255,9 @@ public class TaskScheduleDialog
             totalWidth += width;
         }
         configureEditor(treeTable);
+
+        model.addTreeModelWillChangeListener((TaskJTreeTable)treeTable);
+        model.addTreeModelListener((TaskJTreeTable)treeTable);
 
         // Create a JTable to display the schedule list.
         scheduleTable = new ScheduleJTable(model.getSchedule());
@@ -613,7 +620,8 @@ public class TaskScheduleDialog
     Color editableColor, selectedEditableColor;
     Color expandedColor, automaticColor;
 
-    class TaskJTreeTable extends JTreeTable {
+    class TaskJTreeTable extends JTreeTable implements TreeModelWillChangeListener,
+                                                       TreeModelListener {
 
         DefaultTableCellRenderer editable, readOnly, dependencies;
         TaskDependencyCellEditor dependencyEditor;
@@ -946,6 +954,27 @@ public class TaskScheduleDialog
             }
 
         }
+
+        public void treeStructureWillChange(TreeModelEvent e) {
+            if (shouldUseExpandedNodesPref() && model instanceof EVTaskList) {
+                    saveExpandedNodesPref(((EVTaskList)model).getID());
+                }
+        }
+
+        public void treeStructureChanged(TreeModelEvent e) {
+            SwingUtilities.invokeLater(new Runnable() {
+                public void run() {
+                    if (shouldUseExpandedNodesPref() && model instanceof EVTaskList)
+                        readExpandedNodesPref(((EVTaskList)model).getID());
+                }
+            });
+        }
+
+        public void treeNodesChanged(TreeModelEvent e) { }
+
+        public void treeNodesInserted(TreeModelEvent e) { }
+
+        public void treeNodesRemoved(TreeModelEvent e) { }
     }
 
     class TaskJTreeTableCellRenderer
@@ -2138,8 +2167,7 @@ public class TaskScheduleDialog
         TaskScheduleChooser.close(taskListName);
         frame.dispose();
 
-        if ((!isRollup() && !isFlatView()) ||
-            (isRollup() && isMergedView())) {
+        if (shouldUseExpandedNodesPref()) {
             saveExpandedNodesPref(model.getID());
         }
         model.setNodeListener(null);
@@ -2373,5 +2401,10 @@ public class TaskScheduleDialog
         for (int i = 0; i < taskNode.getNumChildren(); i++) {
             expandNodes(nodesToExpand, taskNode.getChild(i));
         }
+    }
+
+    private boolean shouldUseExpandedNodesPref() {
+        return (!isRollup() && !isFlatView()) ||
+                 (isRollup() && isMergedView());
     }
 }
