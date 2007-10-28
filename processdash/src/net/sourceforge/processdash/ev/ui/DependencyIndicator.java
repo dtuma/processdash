@@ -35,6 +35,9 @@ import javax.swing.JLabel;
 
 import net.sourceforge.processdash.DashboardContext;
 import net.sourceforge.processdash.ProcessDashboard;
+import net.sourceforge.processdash.Settings;
+import net.sourceforge.processdash.data.SaveableData;
+import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.ev.EVDependencyCalculator;
 import net.sourceforge.processdash.ev.EVTask;
 import net.sourceforge.processdash.ev.EVTaskDependency;
@@ -70,11 +73,26 @@ public class DependencyIndicator extends JLabel implements
         setToolTipText(null);
 
         String taskPath = taskModel.getPath();
-        new Worker(taskPath).start();
+        currentWorker = null;
+        if (shouldBeVisible(taskPath))
+            new Worker(taskPath).start();
     }
 
     public void propertyChange(PropertyChangeEvent evt) {
         update();
+    }
+
+    private boolean shouldBeVisible(String path) {
+        if (path == null)
+            return false;
+
+        SaveableData enabledVal =  context.getData().getInheritableValue(path,
+                ENABLED_DATA_NAME);
+        if (enabledVal == null)
+            return Settings.getBool(ENABLED_SETTING_NAME, true);
+
+        SimpleData enabled = enabledVal.getSimpleValue();
+        return (enabled != null && enabled.test());
     }
 
 
@@ -174,5 +192,11 @@ public class DependencyIndicator extends JLabel implements
         }
 
     }
+
+    private static final String ENABLED_DATA_NAME =
+        "Show_Task_Dependency_Indicator";
+
+    private static final String ENABLED_SETTING_NAME =
+        "taskDependencyIndicator.visible";
 
 }

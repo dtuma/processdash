@@ -57,6 +57,7 @@ import net.sourceforge.processdash.DashboardContext;
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.DoubleData;
 import net.sourceforge.processdash.data.NumberData;
+import net.sourceforge.processdash.data.SaveableData;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.repository.DataEvent;
 import net.sourceforge.processdash.data.repository.DataListener;
@@ -88,6 +89,7 @@ public class PercentSpentIndicator extends JPanel implements DataListener,
     private LevelIndicator levelIndicator;
 
     private String currentTaskPath = null;
+    private boolean shouldBeVisible = true;
 
     private boolean isInEVSchedule = false;
     private String forecastDateHTML = null;
@@ -243,6 +245,8 @@ public class PercentSpentIndicator extends JPanel implements DataListener,
         if (newTaskPath != null && newTaskPath.equals(currentTaskPath))
             return;
 
+        boolean newShouldBeVisible = shouldBeVisible(newTaskPath);
+
         String[] elemsToRemove = null;
         String[] elemsToAdd = null;
 
@@ -260,8 +264,9 @@ public class PercentSpentIndicator extends JPanel implements DataListener,
             actDate = null;
 
             currentTaskPath = newTaskPath;
+            shouldBeVisible = newShouldBeVisible;
 
-            if (currentTaskPath != null) {
+            if (currentTaskPath != null && shouldBeVisible) {
                 estTimeDataName = getDataName("Estimated Time");
                 actTimeDataName = getDataName("Time");
                 actDateDateName = getDataName("Completed");
@@ -272,7 +277,9 @@ public class PercentSpentIndicator extends JPanel implements DataListener,
 
         // Outside of the synchronized block, interact with the data repository
         // to update our data listener registrations.
-        List taskLists = EVTaskList.getTaskListNamesForPath(dashCtx.getData(),
+        List taskLists = null;
+        if (shouldBeVisible)
+            taskLists = EVTaskList.getTaskListNamesForPath(dashCtx.getData(),
                 currentTaskPath);
         isInEVSchedule = (taskLists != null && !taskLists.isEmpty());
 
@@ -290,6 +297,22 @@ public class PercentSpentIndicator extends JPanel implements DataListener,
                     dashCtx.getData().addDataListener(elemsToAdd[i], this);
             }
         }
+
+        setVisible(shouldBeVisible);
+    }
+
+
+    private boolean shouldBeVisible(String path) {
+        if (path == null)
+            return false;
+
+        SaveableData enabledVal = dashCtx.getData().getInheritableValue(path,
+                ENABLED_DATA_NAME);
+        if (enabledVal == null)
+            return Settings.getBool(ENABLED_SETTING_NAME, true);
+
+        SimpleData enabled = enabledVal.getSimpleValue();
+        return (enabled != null && enabled.test());
     }
 
 
@@ -449,6 +472,12 @@ public class PercentSpentIndicator extends JPanel implements DataListener,
 
     }
 
+
+    private static final String ENABLED_DATA_NAME =
+        "Show_Percent_Spent_Indicator";
+
+    private static final String ENABLED_SETTING_NAME =
+        "percentSpentIndicator.visible";
 
     private static final TopDownBottomUpJanitor EST_TIME_JANITOR =
         new TopDownBottomUpJanitor("Estimated Time");

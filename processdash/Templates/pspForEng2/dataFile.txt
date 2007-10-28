@@ -46,3 +46,10 @@ undefine([PSP Rollup Tag]);
 [P1_Program_Name] =
     index(0, filter(indirect([_] &/ "PSPFORENG_P1_TAG"), [Project_List]));
 [Project/Language] = lookup([P1_Program_Name] &/ "Project/Language");
+
+
+==
+== Don't display the percent spent indicator for the PSP programs.
+==
+
+[Show_Percent_Spent_Indicator] = 0;
