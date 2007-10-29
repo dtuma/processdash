@@ -9,6 +9,8 @@
 undefine([Simple Project Tag]);
 [<!--#echo Process_ID --> Master Root Tag] = tag;
 [EV Project Tag] = tag;
+[Show_Percent_Spent_Indicator] = 0;
+[Show_Task_Dependency_Indicator] = 0;
 
 
 [Project_WBS_Subpath] = "";
