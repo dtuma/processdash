@@ -732,8 +732,11 @@ public class HierarchySynchronizer {
         boolean needSyncUpdate = false;
 
         if (isDefault || lastSyncedHoursList == null) {
-            currentSchedule.copyFrom(wbsSchedule);
-            madeChange = needSyncUpdate = true;
+            if (!currentSchedule.isEquivalentTo(wbsSchedule)) {
+                currentSchedule.copyFrom(wbsSchedule);
+                madeChange = true;
+            }
+            needSyncUpdate = true;
 
         } else {
             EVSchedule lastSyncedSchedule = new EVSchedule(lastSyncedHoursList,
