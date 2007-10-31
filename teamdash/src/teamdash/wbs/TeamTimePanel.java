@@ -83,7 +83,7 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
         this.dataModel = dataModel;
         this.teamMemberBars = new ArrayList<TeamMemberBar>();
         this.showBalancedBar = true;
-        this.showRemainingWork = true;
+        this.showRemainingWork = false;
 
         setLayout(layout = new GridBagLayout());
         rebuildPanelContents();
@@ -368,10 +368,10 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
             lagTime = startDate.getTime() - leftTimeBoundary;
             if (lagTime < 0) {
                 startTooltip = teamMember.getName()
-                        + " - Work started previously on "
+                        + " - Schedule started previously on "
                         + dateFormat.format(startDate);
             } else {
-                startTooltip = teamMember.getName() + " - Start Date "
+                startTooltip = teamMember.getName() + " - Schedule Start Date "
                         + dateFormat.format(startDate);
             }
 

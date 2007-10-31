@@ -203,6 +203,7 @@ public class WBSEditor implements WindowListener, SaveListener,
         teamTimePanel.setVisible(isMode(MODE_BOTTOM_UP));
         if (isMode(MODE_BOTTOM_UP))
             teamTimePanel.setShowBalancedBar(false);
+        teamTimePanel.setShowRemainingWork(showActualData == true);
 
 
         frame = new JFrame(teamProject.getProjectName()
@@ -857,7 +858,7 @@ public class WBSEditor implements WindowListener, SaveListener,
     private class BottomUpShowReplanMenuItem extends JRadioButtonMenuItem
     implements ChangeListener {
         public BottomUpShowReplanMenuItem (ButtonGroup buttonGroup) {
-            super("Colored Bars Show Remaining Work");
+            super("Colored Bars Show Remaining Work (Replan)");
             setMnemonic('R');
             setDisplayedMnemonicIndex(getText().indexOf('R'));
             setSelected(true);
