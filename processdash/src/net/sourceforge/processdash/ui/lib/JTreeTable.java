@@ -43,7 +43,6 @@
 package net.sourceforge.processdash.ui.lib;
 
 import javax.swing.*;
-import javax.swing.AbstractCellEditor;
 import javax.swing.event.*;
 import javax.swing.tree.*;
 import javax.swing.table.*;
@@ -51,6 +50,7 @@ import javax.swing.table.*;
 import java.awt.Dimension;
 import java.awt.Component;
 import java.awt.Graphics;
+import java.awt.Rectangle;
 
 import java.awt.event.MouseEvent;
 
@@ -292,6 +292,17 @@ public class JTreeTable extends JTable {
         public String getToolTipText(MouseEvent event) {
             event.translatePoint(0, visibleRow * getRowHeight());
             return super.getToolTipText(event);
+        }
+
+        public Dimension getPreferredSize() {
+            Rectangle visibleRowBounds = getRowBounds(visibleRow);
+            double rightEdge = visibleRowBounds.getWidth() + visibleRowBounds.getX();
+
+            // We have to reduce the preferred height in order for the
+            // datatips tooltips to show up correctly.
+
+            return new Dimension((int)rightEdge,
+                                 (int)visibleRowBounds.getHeight()-1);
         }
     }
 

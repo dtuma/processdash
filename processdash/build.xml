@@ -118,6 +118,7 @@ Authors:
   <property name="image4j.jar"    value="${lib}/image4j.jar"/>
   <property name="svg.jar"        value="${lib}/svgSalamander.jar"/>
   <property name="jcalendar.jar"  value="${lib}/jcalendar-1.3.2.jar"/>
+  <property name="datatips.jar"   value="${lib}/datatips.jar"/>
   <property name="l10n-tool.jar"  value="l10n-tool/dist/jrc-editor.jar"/>
 
   <property name="cvsroot"
@@ -139,6 +140,7 @@ Authors:
     <pathelement location="${json.jar}"/>
     <pathelement location="${image4j.jar}"/>
     <pathelement location="${jcalendar.jar}"/>
+  	<pathelement location="${datatips.jar}"/>
   </path>
 
 
@@ -452,6 +454,7 @@ Authors:
       <zipfileset src="${lib}/jfreechart_zh.zip"/>
       <zipfileset src="${lib}/distlib.jar" excludes="**/*.java"/>
       <zipfileset src="${l10n-tool.jar}"/>
+      <zipfileset src="${datatips.jar}"/>
     </jar>
   </target>
 

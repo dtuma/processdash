@@ -26,7 +26,6 @@
 
 package net.sourceforge.processdash.ev.ui;
 
-import java.awt.AWTEvent;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
@@ -110,6 +109,8 @@ import javax.swing.text.JTextComponent;
 import javax.swing.tree.TreeCellRenderer;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
+
+import com.xduke.xswing.DataTipManager;
 
 import net.sourceforge.processdash.DashboardContext;
 import net.sourceforge.processdash.Settings;
@@ -255,6 +256,7 @@ public class TaskScheduleDialog
             totalWidth += width;
         }
         configureEditor(treeTable);
+        DataTipManager.get().register(treeTable);
 
         model.addTreeModelWillChangeListener((TaskJTreeTable)treeTable);
         model.addTreeModelListener((TaskJTreeTable)treeTable);
@@ -741,6 +743,17 @@ public class TaskScheduleDialog
                 if (f != null) result.setFont(f);
 
                 return result;
+            }
+
+            /*
+             * We absolutely have to reduce the preferred height in order
+             * for the datatips tooltips to show up correctly.
+             */
+            public Dimension getPreferredSize() {
+                Dimension originalDimension = super.getPreferredSize();
+
+                return new Dimension(originalDimension.width,
+                                     originalDimension.height-3);
             }
         }
 
@@ -1351,6 +1364,8 @@ public class TaskScheduleDialog
         Color backgroundColor;
         /** The alternate foreground color to use when useAlt returns true. */
         Color altForeground;
+        /** The minimum width the cell as to have for all it's content to be visible*/
+        double minimumWidth;
 
         public ShadedTableCellRenderer(Color sel, Color desel, Color fg) {
             selectedBackgroundColor = sel;
@@ -1395,6 +1410,20 @@ public class TaskScheduleDialog
                 setHorizontalAlignment(SwingConstants.RIGHT);
                 super.setValue(value);
             }
+        }
+
+        public void repaint() {
+            super.repaint();
+            minimumWidth = getMinimumSize().getWidth();
+        }
+
+        public int getHorizontalAlignment() {
+            double currentWidth = getBounds().getWidth();
+
+            if (currentWidth < minimumWidth)
+                return SwingConstants.LEFT;
+            else
+                return super.getHorizontalAlignment();
         }
     }
 
