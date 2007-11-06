@@ -28,6 +28,9 @@ package net.sourceforge.processdash.ev;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.IOException;
+import java.io.StringReader;
+import java.io.StringWriter;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -39,6 +42,7 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Properties;
 import java.util.Random;
 import java.util.Set;
 import java.util.TreeSet;
@@ -82,6 +86,7 @@ public class EVTaskList extends AbstractTreeTableModel
     protected EVDependencyCalculator dependencyCalculator = null;
     protected TaskLabeler taskLabeler = null;
     protected Set nodeTypeSpecs = null;
+    protected Properties metaData = null;
 
     /** timer for triggering recalculations */
     protected Timer recalcTimer = null;
@@ -330,19 +335,108 @@ public class EVTaskList extends AbstractTreeTableModel
      */
     public static List getPreferredTaskListsForPath(DataRepository data,
             String path) {
-        SaveableData sd = data.getInheritableValue(path,
-            "Project_Schedule_Name");
-        if (sd != null) {
-            SimpleData val = sd.getSimpleValue();
-            if (val != null && val.test()) {
-                String taskListName = val.format();
+        String result = getRegisteredTaskListForPath(data, path);
+        if (result != null)
+            return Collections.singletonList(result);
+        else
+            return getTaskListNamesForPath(data, path);
+    }
+
+    /** This method checks to see if a project schedule has been registered
+     * for path (or one of its parents) via the "Project_Schedule_Name" or
+     * "Project_Schedule_ID" data elements.  If so, it returns the name of
+     * the registered schedule (which will be guaranteed to exist).
+     * 
+     * In the process of making this inquiry, this method will update /
+     * synchronize the "Name" and "ID" attributes above if they have gotten
+     * out of sync with each other.
+     * 
+     * @param data the data repository
+     * @param projectPath the path to a hierarchy node
+     * @return the name of a schedule
+     */
+    private static String getRegisteredTaskListForPath(DataRepository data,
+            String projectPath) {
+        // check to see if one of our parents names a registered schedule.
+        StringBuffer path = new StringBuffer(projectPath);
+        SaveableData sd = data.getInheritableValue(path, PROJECT_SCHEDULE_NAME);
+        if (sd == null) return null;
+        SimpleData val = sd.getSimpleValue();
+        if (val == null || !val.test()) return null;
+
+        // We found a named schedule. Remember the prefix of the project that
+        // registered this schedule name.  Also, save the data name for the
+        // corresponding schedule ID attribute.
+        String prefix = path.toString();
+        String projSchedIdDataName = DataRepository.createDataName(
+            prefix, PROJECT_SCHEDULE_ID);
+
+        // Next, check to see if the named schedule actually exists.
+        String taskListName = val.format();
+        if (EVTaskListData.exists(data, taskListName)
+                || EVTaskListRollup.exists(data, taskListName)) {
+            // The named schedule exists!  Retrieve its actual task list ID,
+            // and record this for posterity.  Note that in the most common
+            // case, we will be recording the exact same ID value that is
+            // already present - but the data repository will be able to
+            // efficiently figure out whether a real change was made.
+            String taskListIdDataName = DataRepository.createDataName(
+                    MAIN_DATA_PREFIX + taskListName, ID_DATA_NAME);
+            SimpleData taskListID = data.getSimpleValue(taskListIdDataName);
+            data.putValue(projSchedIdDataName, taskListID);
+
+            // Finally, return the name we found.
+            return taskListName;
+        }
+
+        // We found a registered name, but it does not point to an existing
+        // schedule.  Check to see if we have a schedule ID to fall back to.
+        val = data.getSimpleValue(projSchedIdDataName);
+        if (val == null || !val.test())
+            return null;    // no fall-back schedule ID was provided.
+
+        String taskListID = val.format();
+        taskListName = getTaskListNameForID(data, taskListID);
+        if (taskListName == null)
+            return null;   // the fall-back ID doesn't name a real schedule.
+
+        // The fall-back ID named a real schedule.  Save that schedule name
+        // for posterity, then return it to our caller.
+        String projSchedNameDataName = DataRepository.createDataName(
+            prefix, PROJECT_SCHEDULE_NAME);
+        data.putValue(projSchedNameDataName, StringData.create(taskListName));
+        return taskListName;
+    }
+
+    /**
+     * Finds a regular or roll-up task list with the current ID, and returns
+     * its name.  If there is no regular or roll-up task list with the given
+     * ID, returns null.
+     */
+    public static String getTaskListNameForID(DataRepository data,
+            String taskListID) {
+        if (!StringUtils.hasValue(taskListID))
+            return null;
+
+        Object hints = new PatternList().addRegexp("/" + ID_DATA_NAME + "$");
+        Iterator i = data.getKeys(null, hints);
+        while (i.hasNext()) {
+            String dataName = (String) i.next();
+            if (!dataName.endsWith(ID_DATA_NAME))
+                continue;
+
+            SimpleData sd = data.getSimpleValue(dataName);
+            if (sd != null && taskListID.equals(sd.format())) {
+                String taskListName = dataName.substring(
+                    MAIN_DATA_PREFIX.length(),
+                    dataName.length() - ID_DATA_NAME.length() - 1);
                 if (EVTaskListData.exists(data, taskListName)
                         || EVTaskListRollup.exists(data, taskListName))
-                    return Collections.singletonList(taskListName);
+                    return taskListName;
             }
         }
 
-        return getTaskListNamesForPath(data, path);
+        return null;
     }
 
     private static String TESTING_TASK_LIST_NAME = null;
@@ -429,6 +523,20 @@ public class EVTaskList extends AbstractTreeTableModel
     public boolean isEditable() { return false; }
     public String getRootName() { return ((EVTask) root).name; }
     public String getID() { return taskListID; }
+
+    public String getMetadata(String key) {
+        return (metaData == null ? null : metaData.getProperty(key));
+    }
+
+    public String setMetadata(String key, String value) {
+        if (metaData == null)
+            metaData = new Properties();
+
+        if (StringUtils.hasValue(value))
+            return (String) metaData.put(key, value);
+        else
+            return (String) metaData.remove(key);
+    }
 
 
     public void save() { save(taskListName); }
@@ -730,6 +838,9 @@ public class EVTaskList extends AbstractTreeTableModel
             LABELS_COLUMN };
 
     public static final String ID_DATA_NAME = "Task List ID";
+    private static final String METADATA_DATA_NAME = "Task_List_Metadata";
+    private static final String PROJECT_SCHEDULE_ID = "Project_Schedule_ID";
+    private static final String PROJECT_SCHEDULE_NAME = "Project_Schedule_Name";
 
     /** Types of the columns in the TreeTableModel. */
     static protected Class[]  colTypes = {
@@ -976,6 +1087,85 @@ public class EVTaskList extends AbstractTreeTableModel
         }
     }
 
+    /** Save the unique ID for this task list.
+     * @param newName the name to use when saving this task list.
+     * @param data the DataRepository
+     */
+    protected String saveID(String newName, DataRepository data) {
+        StringData value = StringData.create(taskListID);
+        return persistDataValue(newName, data, ID_DATA_NAME, value);
+    }
+
+    /** Load the metadata for this task list.
+     * @param taskListName the name of this task list.
+     * @param data the DataRepository
+    */
+    protected void loadMetadata(String taskListName, DataRepository data) {
+        String globalPrefix = MAIN_DATA_PREFIX + taskListName;
+        String dataName = DataRepository.createDataName
+            (globalPrefix, METADATA_DATA_NAME);
+
+        SimpleData d = data.getSimpleValue(dataName);
+        String val = (d == null ? null : d.format());
+        if (StringUtils.hasValue(val)) {
+            try {
+                metaData = new Properties();
+                metaData.load(new StringReader(val));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    /** Save the metadata for this task list.
+     * @param newName the name to use when saving this task list.
+     * @param data the DataRepository
+     */
+    protected String saveMetadata(String newName, DataRepository data) {
+        SimpleData md = null;
+        if (newName != null && metaData != null && !metaData.isEmpty()) {
+            try {
+                StringWriter buf = new StringWriter();
+                metaData.store(buf, "task list metadata");
+                md = StringData.create(buf.toString());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return persistDataValue(newName, data, METADATA_DATA_NAME, md);
+    }
+
+    /**
+     * Help a task list to persist data to the repository.
+     * 
+     * @param newName the name of the task list that we're saving.  May differ
+     *    from the current taskListName if the task list is being renamed.
+     *    Can be null to indicate that the task list is being deleted.
+     * @param data the data repository
+     * @param dataName the terminal part of the name that should be used to
+     *    construct a data name for persistence
+     * @param value the value to persist
+     * @return the full dataname of the element that was saved to the repository
+     */
+    protected String persistDataValue(String newName, DataRepository data,
+            String dataName, SimpleData value) {
+        // delete the old data value if necessary.
+        if (!taskListName.equals(newName)) {
+            String oldDataName = DataRepository.createDataName
+                (MAIN_DATA_PREFIX + taskListName, dataName);
+            data.putValue(oldDataName, null);
+        }
+
+        // save the new value into the repository.
+        String newDataName = null;
+        if (newName != null) {
+            newDataName = DataRepository.createDataName(MAIN_DATA_PREFIX
+                    + newName, dataName);
+            data.putValue(newDataName, value);
+        }
+
+        return newDataName;
+    }
 
     public Object getAllDependenciesFor(EVTask forNode) {
         EVTask node = forNode;

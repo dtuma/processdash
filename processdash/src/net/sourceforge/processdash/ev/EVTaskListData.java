@@ -74,6 +74,7 @@ public class EVTaskListData extends EVTaskList
         addTasksFromData(data, taskListName);
         schedule = getSchedule(data, taskListName);
         loadID(taskListName, data, EST_HOURS_DATA_NAME);
+        loadMetadata(taskListName, data);
         assignToOwner();
         calculator = new EVCalculatorData((EVTask) root, schedule);
         ((EVTask) root).flag = TASK_LIST_FLAG;
@@ -173,11 +174,9 @@ public class EVTaskListData extends EVTaskList
                 data.putValue(dataName, ImmutableDoubleData.TRUE);
                 oldNames.remove(dataName);
             }
-            // save the task list unique ID
-            dataName = DataRepository.createDataName
-                (globalPrefix, ID_DATA_NAME);
-            data.putValue(dataName, StringData.create(taskListID));
-            oldNames.remove(dataName);
+            // save the task list unique ID and the metadata
+            oldNames.remove(saveID(newName, data));
+            oldNames.remove(saveMetadata(newName, data));
 
             taskListName = newName;
         }

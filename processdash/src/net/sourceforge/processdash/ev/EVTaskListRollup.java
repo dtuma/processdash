@@ -65,6 +65,7 @@ public class EVTaskListRollup extends EVTaskList {
         addTaskListsFromData(data, hierarchy, cache, taskListName);
         schedule = new EVScheduleRollup(evTaskLists);
         loadID(taskListName, data, TASK_LISTS_DATA_NAME);
+        loadMetadata(taskListName, data);
         calculator = new EVCalculatorRollup
             ((EVTask) root, evTaskLists, (EVScheduleRollup)schedule);
         ((EVTask) root).flag = TASK_LIST_FLAG;
@@ -127,30 +128,25 @@ public class EVTaskListRollup extends EVTaskList {
     }
 
     public void save(String newName) {
-        String dataName;
+        saveTaskLists(newName, data);
+        saveID(newName, data);
+        saveMetadata(newName, data);
 
-        // First, erase the data element that used to hold the list of
-        // task lists.
-        if (!taskListName.equals(newName)) {
-            dataName = DataRepository.createDataName
-                (MAIN_DATA_PREFIX + taskListName, TASK_LISTS_DATA_NAME);
-            data.putValue(dataName, null);
-        }
+        taskListName = newName;
 
-        // Now, save the rollup to the repository with the new name.
+        super.save(newName);
+    }
+
+    private void saveTaskLists(String newName, DataRepository data) {
+        ListData list = null;
         if (newName != null) {
-            dataName = DataRepository.createDataName
-                (MAIN_DATA_PREFIX + newName, TASK_LISTS_DATA_NAME);
-            ListData list = new ListData();
+            list = new ListData();
             Iterator i = evTaskLists.iterator();
             while (i.hasNext())
                 list.add(((EVTaskList) i.next()).taskListName);
-
-            data.putValue(dataName, list);
-            taskListName = newName;
         }
 
-        super.save(newName);
+        persistDataValue(newName, data, TASK_LISTS_DATA_NAME, list);
     }
 
     public int getSubScheduleCount() {
