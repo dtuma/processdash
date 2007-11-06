@@ -14,7 +14,6 @@ import java.util.Vector;
 import java.util.logging.Logger;
 
 import net.sourceforge.processdash.DashController;
-import net.sourceforge.processdash.data.DoubleData;
 import net.sourceforge.processdash.data.ImmutableDoubleData;
 import net.sourceforge.processdash.data.ImmutableStringData;
 import net.sourceforge.processdash.data.SimpleData;
@@ -485,8 +484,8 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
         // perform lots of other setup tasks.  Unlike the operation
         // above, these tasks should succeed 99.999% of the time.
         alterTeamTemplateID(teamPID);
-        saveTeamDataValues (teamDirectory, projectID, teamSchedule);
-        createTeamSchedule (teamSchedule);
+        String scheduleID = createTeamSchedule (teamSchedule);
+        saveTeamDataValues (teamDirectory, projectID, teamSchedule, scheduleID);
         saveTeamSettings (teamDirectory, projectID);
         tryToCopyProcessJarfile (processJarFile, teamDirectory);
 
@@ -612,15 +611,15 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
         return true;
     }
 
-    protected void saveTeamDataValues(String teamDirectory,
-                                      String projectID,
-                                      String teamSchedule) {
+    protected void saveTeamDataValues(String teamDirectory, String projectID,
+            String teamScheduleName, String teamScheduleID) {
         putValue(TEAM_DIRECTORY, teamDirectory);
         String uncName = calcUNCName(teamDirectory);
         if (uncName != null) putValue(TEAM_DIRECTORY_UNC, uncName);
 
         putValue(PROJECT_ID, projectID);
-        putValue(PROJECT_SCHEDULE_NAME, teamSchedule);
+        putValue(PROJECT_SCHEDULE_NAME, teamScheduleName);
+        putValue(PROJECT_SCHEDULE_ID, teamScheduleID);
 
         // FIXME: need to really give the user an opportunity to set a
         // password.
@@ -678,7 +677,7 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
     }
 
 
-    protected void createTeamSchedule(String scheduleName) {
+    protected String createTeamSchedule(String scheduleName) {
         DataRepository data = getDataRepository();
         EVTaskListRollup rollup = new EVTaskListRollup
             (scheduleName, data,
@@ -690,6 +689,8 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
         data.putValue(passwordDataName, ImmutableDoubleData.TRUE);
         passwordDataName = "/ev /" + scheduleName + "/PW_STOR";
         data.putValue(passwordDataName, StringData.create(" none "));
+
+        return rollup.getID();
     }
 
     protected void alterTeamTemplateID(String teamPID) {
@@ -1153,9 +1154,9 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
         // above, these tasks should succeed 99.999% of the time.
         setPrefix(localProjectName);
         createIndivProject(indivTemplateID);
-        saveIndivDataValues(projectID, teamURL, indivInitials, scheduleName,
-                            teamDirectory, teamDirectoryUNC, isLocal);
         String scheduleID = createIndivSchedule(scheduleName);
+        saveIndivDataValues(projectID, teamURL, indivInitials, scheduleName,
+            scheduleID, teamDirectory, teamDirectoryUNC, isLocal);
         exportIndivData();
         boolean joinSucceeded = true;
         if (isLocal)
@@ -1231,14 +1232,14 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
     }
 
     /** Save data values for an individual project. */
-    protected void saveIndivDataValues
-        (String projectID, String teamURL, String indivInitials,
-         String scheduleName, String teamDirectory, String teamDirectoryUNC,
-         boolean isLocal) {
+    protected void saveIndivDataValues(String projectID, String teamURL,
+            String indivInitials, String scheduleName, String scheduleID,
+            String teamDirectory, String teamDirectoryUNC, boolean isLocal) {
         putValue(PROJECT_ID, projectID);
         putValue(TEAM_PROJECT_URL, teamURL);
         putValue(INDIV_INITIALS, indivInitials);
         putValue(PROJECT_SCHEDULE_NAME, scheduleName);
+        putValue(PROJECT_SCHEDULE_ID, scheduleID);
         putValue(TEAM_DIRECTORY, teamDirectory);
         if (teamDirectoryUNC != null)
             putValue(TEAM_DIRECTORY_UNC, teamDirectoryUNC);
@@ -1252,12 +1253,11 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
         schedule.addTask(getPrefix(), getDataRepository(),
                          getPSPProperties(), null, false);
         schedule.getSchedule().setDatesLocked(true);
+        schedule.setMetadata(PROJECT_SCHEDULE_SYNC_SCHEDULE,
+            schedule.getSchedule().getSaveList().formatClean());
+        schedule.setMetadata(PROJECT_SCHEDULE_SYNC_PDT,
+            Double.toString(schedule.getSchedule().get(1).planDirectTime()));
         schedule.save();
-
-        putValue(PROJECT_SCHEDULE_SYNC_SCHEDULE, schedule.getSchedule()
-                .getSaveList());
-        putValue(PROJECT_SCHEDULE_SYNC_PDT, new DoubleData(schedule
-                .getSchedule().get(1).planDirectTime(), false));
 
         return schedule.getID();
     }

@@ -720,11 +720,9 @@ public class HierarchySynchronizer {
             currentSchedule.getLevelOfEffort(), true);
 
         // retrieve information about the last values we synced to the schedule
-        String lastSyncName = DataRepository.createDataName(projectPath,
-            TeamDataConstants.PROJECT_SCHEDULE_SYNC_SCHEDULE);
-        ListData lastSyncedHoursList = ListData.asListData(data
-                .getValue(lastSyncName));
-        double syncPdt = getDoubleData(getData(projectPath,
+        ListData lastSyncedHoursList = asListData(tl.getMetadata(
+            TeamDataConstants.PROJECT_SCHEDULE_SYNC_SCHEDULE));
+        double syncPdt = asDouble(tl.getMetadata(
             TeamDataConstants.PROJECT_SCHEDULE_SYNC_PDT));
 
         // flags to keep track of what changes are made.
@@ -760,22 +758,28 @@ public class HierarchySynchronizer {
                 madeChange = needSyncUpdate = true;
         }
 
-        if (!whatIfMode || (needSyncUpdate && !madeChange)) {
-            // save the "last synced hours" value for future reference
-            dataRepository.putValue(DataRepository.createDataName(
-                projectPath, TeamDataConstants.PROJECT_SCHEDULE_SYNC_SCHEDULE),
-                wbsSchedule.getSaveList());
-            // save the "last synced pdt" value for future reference
-            dataRepository.putValue(DataRepository.createDataName(
-                projectPath, TeamDataConstants.PROJECT_SCHEDULE_SYNC_PDT),
-                new DoubleData(hoursPerWeek * 60, false));
+        // make certain the dates in the schedule are locked
+        if (!currentSchedule.areDatesLocked()) {
+            currentSchedule.setDatesLocked(true);
+            madeChange = true;
         }
+
+        // save the "last synced hours" value for future reference
+        tl.setMetadata(TeamDataConstants.PROJECT_SCHEDULE_SYNC_SCHEDULE,
+            wbsSchedule.getSaveList().formatClean());
+        // save the "last synced pdt" value for future reference
+        tl.setMetadata(TeamDataConstants.PROJECT_SCHEDULE_SYNC_PDT,
+            Double.toString(hoursPerWeek * 60));
 
         if (madeChange) {
             // save the task list
             if (!whatIfMode)
                 tl.save();
             changes.add("Updated the earned value schedule");
+        } else if (needSyncUpdate) {
+            // no changes were made, but we need to save sync data.  It's OK to
+            // do this, even in what-if mode.
+            tl.save();
         }
     }
 
@@ -1475,6 +1479,22 @@ public class HierarchySynchronizer {
             return ((NumberData) d).getDouble() == 0;
         else
             return (d == null);
+    }
+
+    private static ListData asListData(String d) {
+        if (StringUtils.hasValue(d))
+            return new ListData(d);
+        else
+            return null;
+    }
+
+    private static double asDouble(String d) {
+        if (StringUtils.hasValue(d)) {
+            try {
+                return Double.parseDouble(d);
+            } catch (Exception e) {}
+        }
+        return Double.NaN;
     }
 
     private HashMap phaseIDs;

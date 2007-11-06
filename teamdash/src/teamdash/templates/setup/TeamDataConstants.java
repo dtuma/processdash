@@ -6,6 +6,7 @@ public interface TeamDataConstants {
     public static final String TEAM_DIRECTORY = "Team_Directory";
     public static final String TEAM_DIRECTORY_UNC = "Team_Directory_UNC";
     public static final String PROJECT_SCHEDULE_NAME = "Project_Schedule_Name";
+    public static final String PROJECT_SCHEDULE_ID = "Project_Schedule_ID";
     public static final String PROJECT_SCHEDULE_SYNC_PDT =
         "Project_Schedule_PDT_Last_Synced_Val";
     public static final String PROJECT_SCHEDULE_SYNC_SCHEDULE =
