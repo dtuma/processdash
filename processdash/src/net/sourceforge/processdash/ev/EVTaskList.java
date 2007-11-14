@@ -28,9 +28,9 @@ package net.sourceforge.processdash.ev;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.StringReader;
-import java.io.StringWriter;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -1110,7 +1110,7 @@ public class EVTaskList extends AbstractTreeTableModel
         if (StringUtils.hasValue(val)) {
             try {
                 metaData = new Properties();
-                metaData.load(new StringReader(val));
+                metaData.load(new ByteArrayInputStream(val.getBytes("ISO-8859-1")));
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -1125,9 +1125,9 @@ public class EVTaskList extends AbstractTreeTableModel
         SimpleData md = null;
         if (newName != null && metaData != null && !metaData.isEmpty()) {
             try {
-                StringWriter buf = new StringWriter();
-                metaData.store(buf, "task list metadata");
-                md = StringData.create(buf.toString());
+                ByteArrayOutputStream out = new ByteArrayOutputStream();
+                metaData.store(out, "task list metadata");
+                md = StringData.create(out.toString("ISO-8859-1"));
             } catch (IOException e) {
                 e.printStackTrace();
             }
