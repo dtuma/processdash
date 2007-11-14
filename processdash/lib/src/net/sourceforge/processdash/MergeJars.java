@@ -133,7 +133,7 @@ public class MergeJars extends Task {
         copyMetaInf(out);
         copyContents(out);
         copyExtraFiles(out);
-        out.close();
+        closeStreams(out);
     }
 
     private ZipOutputStream openOutputFile() throws IOException {
@@ -267,6 +267,14 @@ public class MergeJars extends Task {
         int bytesRead;
         while ((bytesRead = in.read(buffer)) != -1)
             zipout.write(buffer, 0, bytesRead);
+    }
+
+    private void closeStreams(ZipOutputStream out) throws IOException {
+        out.close();
+        for (Iterator i = openedJarFiles.iterator(); i.hasNext();) {
+            JarFile jf = (JarFile) i.next();
+            jf.close();
+        }
     }
 
 }
