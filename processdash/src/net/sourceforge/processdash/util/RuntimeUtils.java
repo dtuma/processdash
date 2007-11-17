@@ -32,6 +32,13 @@ import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLDecoder;
+import java.security.AccessController;
+import java.security.Permission;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class RuntimeUtils {
 
@@ -59,6 +66,68 @@ public class RuntimeUtils {
         if (file.exists())
             return file.getAbsolutePath();
         return null;
+    }
+
+    /** Returns a list of args that should be passed to any JVM that we
+     * spawn.
+     */
+    public static String[] getPropagatedJvmArgs() {
+        List<String> result = new ArrayList<String>();
+        for (Map.Entry<String, String> e : PROPS_TO_PROPAGATE.entrySet()) {
+            String propName = e.getKey();
+            String propValue = e.getValue();
+
+            if (propValue == null)
+                propValue = System.getProperty(propName);
+
+            if (propValue != null)
+                result.add("-D" + propName + "=" + propValue);
+        }
+        return result.toArray(new String[result.size()]);
+    }
+
+    /** Register a particular system property as one that should be propagated
+     * to child JVMs.
+     * 
+     * @param name the name of a property that should be propagated to
+     *     child JVMs
+     * @param value the value to propagate.  If null, the actual value will be
+     *     retrieved on-the-fly via System.getProperty() at JVM creation time
+     * @throws SecurityException if the caller does not have the appropriate
+     *     permission to alter propagated system properties
+     */
+    public static void addPropagatedSystemProperty(String name, String value)
+            throws SecurityException {
+        if (!StringUtils.hasValue(name))
+            throw new IllegalArgumentException("No property name was provided");
+
+        checkJvmArgsPermission();
+        PROPS_TO_PROPAGATE.put(name, value);
+    }
+
+    private static final Map<String,String> PROPS_TO_PROPAGATE =
+        Collections.synchronizedMap(new HashMap<String,String>());
+    static {
+        addPropagatedSystemProperty("user.language", null);
+        addPropagatedSystemProperty("java.util.logging.config.file", null);
+    }
+
+    /** Define the permission that is needed to alter propagated JVM args
+     * 
+     * @param p the permission to use
+     * @throws SecurityException if a previous permission was set, and the
+     *     caller does not have that permission.
+     */
+    public static void setJvmArgsPermission(Permission p)
+            throws SecurityException {
+        checkJvmArgsPermission();
+        JVM_ARGS_PERMISSION = p;
+    }
+
+    private static Permission JVM_ARGS_PERMISSION = null;
+    private static void checkJvmArgsPermission() {
+        if (JVM_ARGS_PERMISSION != null)
+            AccessController.checkPermission(JVM_ARGS_PERMISSION);
     }
 
     /** Return the file that forms the classpath for the given class.

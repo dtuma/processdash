@@ -26,27 +26,37 @@
 package net.sourceforge.processdash.security;
 
 import java.net.URL;
+import java.util.logging.Logger;
+
+import net.sourceforge.processdash.util.RuntimeUtils;
 
 
 public class DashboardSecurity {
 
     private static final String DISABLE_SECURITY_MANAGER_PROPERTY =
         "net.sourceforge.processdash.disableSecurityManager";
+    private static final String SECURE_CODEBASE_URL =
+        "process.dashboard.codebase.url";
+    private static final String JAVA_SECURITY_POLICY = "java.security.policy";
+
     private static final DashboardPermission SETUP_SECURITY_MANAGER_PERMISSION =
         new DashboardPermission("setupSecurityManager");
+    private static final DashboardPermission RUNTIME_JVM_ARGS_PERMISSION =
+        new DashboardPermission("runtimeUtils.setJvmArgs");
 
+    private static final Logger logger = Logger.getLogger(DashboardSecurity.class.getName());
 
     public static void setupSecurityManager() {
         SETUP_SECURITY_MANAGER_PERMISSION.checkPermission();
 
         if (Boolean.getBoolean(DISABLE_SECURITY_MANAGER_PROPERTY)) {
-            System.out.println("Security Manager disabled / not installed.");
+            logger.warning("Security Manager disabled / not installed.");
             return;
         }
 
         URL policyURL = DashboardSecurity.class.getResource("security.policy");
         if (policyURL == null) {
-            System.err.println("No security policy found - security manager not installed.");
+            logger.severe("No security policy found - security manager not installed.");
             return;
         }
         String policyURLStr = policyURL.toString();
@@ -61,14 +71,23 @@ public class DashboardSecurity {
             baseURLStr = baseURLStr.substring(4, baseURLStr.indexOf("!/"));
 
         try {
-            System.setProperty("process.dashboard.codebase.url", baseURLStr);
-            // System.out.println("process.dashboard.codebase.url="+baseURLStr);
-            System.setProperty("java.security.policy", policyURLStr);
-            // System.out.println("java.security.policy="+policyURLStr);
+            System.setProperty(SECURE_CODEBASE_URL, baseURLStr);
+            logger.fine(SECURE_CODEBASE_URL + "=" + baseURLStr);
+            System.setProperty(JAVA_SECURITY_POLICY, policyURLStr);
+            logger.fine(JAVA_SECURITY_POLICY + "=" + policyURLStr);
+
             System.setSecurityManager(new DashboardSecurityManager());
             DashboardPermission.enableChecking();
+
+            RuntimeUtils.addPropagatedSystemProperty("java.security.manager",
+                "default");
+            RuntimeUtils.addPropagatedSystemProperty(SECURE_CODEBASE_URL,
+                baseURLStr);
+            RuntimeUtils.addPropagatedSystemProperty(JAVA_SECURITY_POLICY,
+                policyURLStr);
+            RuntimeUtils.setJvmArgsPermission(RUNTIME_JVM_ARGS_PERMISSION);
         } catch (Exception e) {
-            System.out.println("Caught exception - security manager not installed.");
+            logger.severe("Caught exception - security manager not installed.");
             e.printStackTrace();
         }
     }
