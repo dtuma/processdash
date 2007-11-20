@@ -256,7 +256,12 @@ public class TaskScheduleDialog
             totalWidth += width;
         }
         configureEditor(treeTable);
-        DataTipManager.get().register(treeTable);
+        try {
+            DataTipManager.get().register(treeTable);
+        } catch (Throwable t) {
+            // In some runtime environments, this call may fail with a
+            // security exception.  Gracefully degrade and display no datatips.
+        }
 
         model.addTreeModelWillChangeListener((TaskJTreeTable)treeTable);
         model.addTreeModelListener((TaskJTreeTable)treeTable);

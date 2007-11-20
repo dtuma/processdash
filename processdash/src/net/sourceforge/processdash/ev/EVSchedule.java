@@ -1102,8 +1102,15 @@ public class EVSchedule implements TableModel {
 
     public synchronized void addRow() {
         prepForEvents();
-        grow(false);
-        getLast().clearAutomaticFlag();
+        grow(true);
+        Period p = getLast();
+        while (p != null && p.isAutomatic()) {
+            p.planTotalTime = defaultPlanTotalTime;
+            p.planDirectTime = defaultPlanDirectTime;
+            p.automatic = false;
+            p = p.previous;
+        }
+        recalcCumPlanTimes();
         firePreparedEvents();
 
         // signal the need to recalculate all the schedule data.
