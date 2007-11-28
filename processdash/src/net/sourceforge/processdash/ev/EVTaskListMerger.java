@@ -1,4 +1,4 @@
-// Copyright (C) 2006 Tuma Solutions, LLC
+// Copyright (C) 2006-2007 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -653,18 +653,25 @@ public class EVTaskListMerger {
      */
     private String getRootChildName(TaskKey rootChild) {
         String rootChildName;
-        // first, use heuristics to determine the best task IDs, and
-        // use those to lookup a canonical name.
-        List bestTaskIDs = getBestTaskIDs(rootChild.getEvNodes());
-        rootChildName = EVTaskDependencyResolver.getInstance()
-                .getCanonicalTaskName(bestTaskIDs);
+        if (taskList instanceof EVTaskListData) {
+            // if we're just creating a merged view of a plain task list,
+            // there is no need to calculate a canonical name for the root.
+            rootChildName = null;
 
-        // if that fails, just try to look up any canonical name.
-        if (rootChildName == null)
+        } else {
+            // first, use heuristics to determine the best task IDs, and
+            // use those to lookup a canonical name.
+            List bestTaskIDs = getBestTaskIDs(rootChild.getEvNodes());
             rootChildName = EVTaskDependencyResolver.getInstance()
-                    .getCanonicalTaskName(rootChild.getTaskIDs());
+                    .getCanonicalTaskName(bestTaskIDs);
 
-        // wow, that failed too?  Just return any name at all.
+            // if that fails, just try to look up any canonical name.
+            if (rootChildName == null)
+                rootChildName = EVTaskDependencyResolver.getInstance()
+                        .getCanonicalTaskName(rootChild.getTaskIDs());
+        }
+
+        // If we don't have a canonical name, just return any name at all.
         if (rootChildName == null) {
             EVTask firstEVNode = (EVTask) rootChild.getEvNodes().iterator()
                     .next();
