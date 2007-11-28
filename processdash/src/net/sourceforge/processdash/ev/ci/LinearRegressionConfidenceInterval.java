@@ -1,5 +1,5 @@
+// Copyright (C) 2003-2007 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -27,6 +27,7 @@
 package net.sourceforge.processdash.ev.ci;
 
 import net.sourceforge.processdash.Settings;
+import net.sourceforge.processdash.util.TDistribution;
 
 public class LinearRegressionConfidenceInterval
     extends AbstractLinearConfidenceInterval
@@ -67,7 +68,7 @@ public class LinearRegressionConfidenceInterval
         double range = Math.abs(projection - independentForecast);
         double stud_t = range / stddev / rangeRadical;
         double prob =
-            2 * Math.abs(DistLib.t.cumulative(stud_t, numSamples - 2) - 0.5);
+            2 * Math.abs(TDistribution.cumulative(stud_t, numSamples - 2) - 0.5);
 
         // what percentage does the user find acceptable?
         double cutoff = Settings.getInt("linCI.cutoffProbability", 30) / 100.0;

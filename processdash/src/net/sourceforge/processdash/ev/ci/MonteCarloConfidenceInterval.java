@@ -1,5 +1,5 @@
+// Copyright (C) 2003-2007 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -26,7 +26,7 @@
 
 package net.sourceforge.processdash.ev.ci;
 
-import DistLib.uniform;
+import cern.jet.random.engine.RandomEngine;
 
 
 /** Construct a confidence interval using a Monte Carlo simulation
@@ -140,8 +140,8 @@ public class MonteCarloConfidenceInterval
         return getQuantile((1 + percentage) / 2);
     }
 
-    public double getRandomValue(uniform u) {
-        return getQuantile(u.random());
+    public double getRandomValue(RandomEngine u) {
+        return getQuantile(u.nextDouble());
     }
 
     public void calcViability(double expectedValue, double cutoffPercentile) {

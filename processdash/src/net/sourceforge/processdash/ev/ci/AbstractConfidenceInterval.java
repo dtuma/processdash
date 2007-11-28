@@ -1,5 +1,5 @@
+// Copyright (C) 2003-2007 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -35,7 +35,7 @@ import net.sourceforge.processdash.util.XMLUtils;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
-import DistLib.uniform;
+import cern.jet.random.engine.RandomEngine;
 
 public abstract class AbstractConfidenceInterval implements ConfidenceInterval
 {
@@ -170,8 +170,8 @@ public abstract class AbstractConfidenceInterval implements ConfidenceInterval
     /** Return a random value from the distribution upon which
      * this confidence interval is based.
      */
-    public double getRandomValue(uniform u) {
-        return getQuantile(u.random());
+    public double getRandomValue(RandomEngine u) {
+        return getQuantile(u.nextDouble());
     }
 
     private static final String PACKAGE = "net.sourceforge.processdash.ev.ci.";

@@ -25,8 +25,9 @@
   <mapID target="GPL" url="Topics/Overview/gpl.html" />
   <mapID target="LGPL" url="Topics/Overview/lgpl.html" />
   <mapID target="MIT" url="Topics/Overview/License-MIT.html" />
+  <mapID target="BSD" url="Topics/Overview/bsd.html" />
   <mapID target="SunBerkeley" url="Topics/Overview/License-SunBerkeley.html" />
-  <mapID target="VisualNumerics" url="Topics/Overview/License-Sfun.html" />
+  <mapID target="Colt" url="Topics/Overview/License-Colt.html" />
   <mapID target="JpegEncoder" url="Topics/Overview/License-Weeks.html" />
 
   <mapID target="Planning" url="Topics/Planning/Planning.html" />

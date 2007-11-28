@@ -1,5 +1,5 @@
+// Copyright (C) 2005-2007 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2005 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -27,10 +27,13 @@ package net.sourceforge.processdash.ev.ci;
 
 import java.text.NumberFormat;
 
-import DistLib.normal;
-import DistLib.uniform;
+import cern.jet.random.Normal;
+import cern.jet.random.engine.MersenneTwister;
 
 
+// This class is not used by production dashboard code.  It exists to
+// demonstrate and measure the effects of workload balancing on forecast
+// completion date prediction intervals.
 public class SimpleEVSimulation {
 
     private static NumberFormat FMT;
@@ -59,20 +62,20 @@ public class SimpleEVSimulation {
     }
 
     private static class EvInterval extends MonteCarloConfidenceInterval {
-        protected uniform u = new uniform();
+        protected Normal normal = new Normal(0, 1, new MersenneTwister());
         protected double costEstErrPercent = 0.5; // +/- 50 %
         protected double scheduleRatioEstErr = 0.25; // +/- 25%
         protected double planCost = 1;
         protected double planRate = 1;
 
         protected double getRandomCost() {
-            double actualCost = normal.random(planCost, planCost*costEstErrPercent, u);
+            double actualCost = normal.nextDouble(planCost, planCost*costEstErrPercent);
             actualCost = Math.max(planCost * 0.1, actualCost);
             return actualCost;
         }
 
         protected double getRandomRate() {
-            double actualRate = normal.random(planRate, planRate*scheduleRatioEstErr, u);
+            double actualRate = normal.nextDouble(planRate, planRate*scheduleRatioEstErr);
             actualRate = Math.min(planRate*2, Math.max(0, actualRate));
             return actualRate;
         }

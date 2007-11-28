@@ -1,5 +1,5 @@
+// Copyright (C) 2003-2007 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -98,12 +98,12 @@ public class LinearRegression {
             term = newX - x_avg;
             term = 1.0 + (1.0 / n) + (term * term) / x_var;
 
-        stud_t = DistLib.t.quantile(0.5 + p / 2.0, n - 2);
+            stud_t = TDistribution.quantile(0.5 + p / 2.0, n - 2);
 
             range = stud_t * stddev * Math.sqrt(term);
-            }
+        }
 
-            UPI = projection + range;
-            LPI = projection - range;
+        UPI = projection + range;
+        LPI = projection - range;
     }
 }

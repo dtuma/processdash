@@ -1,5 +1,5 @@
+// Copyright (C) 2003-2007 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -26,6 +26,7 @@
 
 package net.sourceforge.processdash.ev.ci;
 
+import net.sourceforge.processdash.util.TDistribution;
 import net.sourceforge.processdash.util.XMLUtils;
 
 import org.w3c.dom.Element;
@@ -152,7 +153,7 @@ public abstract class AbstractLinearConfidenceInterval
             range = Double.NaN;
 
         else {
-            double stud_t = DistLib.t.quantile(0.5 + rangeProb / 2.0,
+            double stud_t = TDistribution.quantile(0.5 + rangeProb / 2.0,
                                                numSamples - 2);
             range = stud_t * stddev * rangeRadical;
             lastRange = range;

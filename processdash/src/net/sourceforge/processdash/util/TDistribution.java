@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2007 Tuma Solutions, LLC
+// Copyright (C) 2007 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -23,25 +23,21 @@
 //
 // E-Mail POC:  processdash-devel@lists.sourceforge.net
 
-package net.sourceforge.processdash.ev;
+package net.sourceforge.processdash.util;
 
-import net.sourceforge.processdash.ev.ci.EVScheduleConfidenceIntervals;
+import cern.jet.stat.Probability;
 
-import cern.jet.random.engine.RandomEngine;
+public class TDistribution {
 
-public class EVScheduleRandom extends EVScheduleSplit
-    implements EVScheduleConfidenceIntervals.Randomizable
-{
-
-    public EVScheduleRandom(EVSchedule s) {
-        super(s);
-        this.metrics = new EVMetricsRandom(s.getMetrics());
+    public static double cumulative(double x, double dof) {
+        return Probability.studentT(dof, x);
     }
 
-    public void randomize(RandomEngine random) {
-        addAllPeriods(origPeriods, periods);
-        currentMultiplier = 1.0;
-        ((EVMetricsRandom) metrics).randomize(this, random);
+    public static double quantile(double p, int dof) {
+        double alpha = 1 - Math.abs(0.5 - p) * 2;
+        double result = Probability.studentTInverse(alpha, dof);
+        if (p < 0.5)
+            result = -result;
+        return result;
     }
-
 }

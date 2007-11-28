@@ -119,6 +119,7 @@ Authors:
   <property name="svg.jar"        value="${lib}/svgSalamander.jar"/>
   <property name="jcalendar.jar"  value="${lib}/jcalendar-1.3.2.jar"/>
   <property name="datatips.jar"   value="${lib}/datatips.jar"/>
+  <property name="colt.jar"       value="${lib}/colt.jar"/>
   <property name="l10n-tool.jar"  value="l10n-tool/dist/jrc-editor.jar"/>
 
   <property name="cvsroot"
@@ -133,14 +134,14 @@ Authors:
 	
   <path id="build.classpath">
     <pathelement location="${build}"/>
-    <pathelement location="${lib}/distlib.jar"/>
+    <pathelement location="${colt.jar}"/>
     <pathelement location="${jfreechart.jar}"/>
     <pathelement location="${jcommon.jar}"/>
     <pathelement location="${kxml.jar}"/>
     <pathelement location="${json.jar}"/>
     <pathelement location="${image4j.jar}"/>
     <pathelement location="${jcalendar.jar}"/>
-  	<pathelement location="${datatips.jar}"/>
+    <pathelement location="${datatips.jar}"/>
   </path>
 
 
@@ -452,7 +453,7 @@ Authors:
       <zipfileset src="${jcalendar.jar}"/>
       <zipfileset src="${lib}/jfreechart_ja.zip"/>
       <zipfileset src="${lib}/jfreechart_zh.zip"/>
-      <zipfileset src="${lib}/distlib.jar" excludes="**/*.java"/>
+      <zipfileset src="${colt.jar}" includesfile="${lib}/fileset-colt.txt"/>
       <zipfileset src="${l10n-tool.jar}"/>
       <zipfileset src="${datatips.jar}"/>
     </jar>

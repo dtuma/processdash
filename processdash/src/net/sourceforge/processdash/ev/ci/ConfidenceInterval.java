@@ -1,5 +1,5 @@
+// Copyright (C) 2003-2007 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -26,7 +26,7 @@
 
 package net.sourceforge.processdash.ev.ci;
 
-import DistLib.uniform;
+import cern.jet.random.engine.RandomEngine;
 
 public interface ConfidenceInterval {
 
@@ -55,7 +55,7 @@ public interface ConfidenceInterval {
     /** Return a random value from the distribution upon which
      * this confidence interval is based.
      */
-    public double getRandomValue(uniform u);
+    public double getRandomValue(RandomEngine u);
 
     /** Return a value indicating how viable this confidence interval
      * seems. Numbers less than 0 indicate invalid confidence

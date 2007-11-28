@@ -1,5 +1,5 @@
+// Copyright (C) 2003-2007 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -33,15 +33,14 @@ import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.ev.EVMetrics;
 import net.sourceforge.processdash.ev.EVMetricsRollup;
 import net.sourceforge.processdash.ev.EVSchedule;
-
-
-import DistLib.uniform;
+import cern.jet.random.engine.MersenneTwister;
+import cern.jet.random.engine.RandomEngine;
 
 
 public class EVScheduleConfidenceIntervals
 {
     public interface Randomizable {
-        public void randomize(uniform u);
+        public void randomize(RandomEngine u);
     }
 
     private static final int BOOTSTRAP_SIZE = 1000;
@@ -80,7 +79,7 @@ public class EVScheduleConfidenceIntervals
     private static final boolean USE_RATIO = true;
     private void runSimulation() {
         long start = System.currentTimeMillis();
-        uniform random = new uniform();
+        RandomEngine random = new MersenneTwister();
 
         int sampleCount = Settings.getInt("ev.simulationSize", BOOTSTRAP_SIZE);
         if (USE_RATIO) {
@@ -102,7 +101,7 @@ public class EVScheduleConfidenceIntervals
         if (optimizedDate != null) date.debug = true;
     }
 
-    private void runOneTest(uniform random) {
+    private void runOneTest(RandomEngine random) {
         randomizeAll(random);
 
         double forecastCost = metrics.independentForecastCost();
@@ -114,7 +113,7 @@ public class EVScheduleConfidenceIntervals
         }
     }
 
-    private void randomizeAll(uniform random) {
+    private void randomizeAll(RandomEngine random) {
         Iterator i = randomObjects.iterator();
         while (i.hasNext())
             ((Randomizable) i.next()).randomize(random);

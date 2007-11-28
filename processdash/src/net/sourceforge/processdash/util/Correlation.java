@@ -1,5 +1,5 @@
+// Copyright (C) 2003-2007 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -70,7 +70,7 @@ public class Correlation {
         else {
             double t = Math.abs(r) * Math.sqrt((n - 2) / (1.0 - r * r));
 
-            p = 2.0 * (1 - DistLib.t.cumulative(t, n-2));
+            p = 2.0 * (1 - TDistribution.cumulative(t, n-2));
         }
     }
 

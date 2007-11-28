@@ -1,5 +1,5 @@
+// Copyright (C) 2003-2007 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -27,7 +27,7 @@ package net.sourceforge.processdash.ev;
 
 import java.util.Date;
 
-import DistLib.uniform;
+import cern.jet.random.engine.RandomEngine;
 
 
 public class EVMetricsRandom extends EVMetrics {
@@ -47,7 +47,7 @@ public class EVMetricsRandom extends EVMetrics {
     }
 
 
-    public void randomize(EVSchedule s, uniform random) {
+    public void randomize(EVSchedule s, RandomEngine random) {
         randomDTPI = 1 / timeErrInterval.getRandomValue(random);
 
         double randomIncompleteCost = costInterval.getRandomValue(random);

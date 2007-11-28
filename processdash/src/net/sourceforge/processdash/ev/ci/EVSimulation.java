@@ -1,5 +1,5 @@
+// Copyright (C) 2004-2007 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2004 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -25,17 +25,15 @@
 
 package net.sourceforge.processdash.ev.ci;
 
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Random;
-
 import net.sourceforge.processdash.util.FormatUtil;
+import cern.jet.random.Normal;
+import cern.jet.random.engine.MersenneTwister;
+import cern.jet.random.engine.RandomEngine;
 
-import DistLib.lognormal;
-import DistLib.normal;
-import DistLib.uniform;
 
-
+// This class is not used by production dashboard code.  It exists to
+// demonstrate and measure the effects of workload balancing on forecast
+// completion date prediction intervals.
 public class EVSimulation {
     public static void main(String[] args) {
         EVSimulation s = new EVSimulation();
@@ -43,22 +41,18 @@ public class EVSimulation {
     }
 
 
-    private static final long WEEK_MILLIS =
-        7L /*days*/ * 24 /*hours*/ * 60 /*mins*/ * 60 /*secs*/ * 1000 /*ms*/;
-
     private int teamSize = 10;
     private double hoursPerWeek = 20;
     private int planNumWeeks = 1; // six months
-    private int costDOF;
     private double planCost;
 
     private double costEstErrPercent = 0.5; // +/- 50 %
     private double scheduleRatioEstErr = 0.25; // +/- 25%
-    private int timeDOF = 10;
 
 
     private TeamSchedule teamSchedule;
-    private uniform u = new uniform();
+    private RandomEngine u = new MersenneTwister();
+    private Normal normal = new Normal(0, 1, u);
     private MonteCarloConfidenceInterval optimizedDateInterval;
     private MonteCarloConfidenceInterval unoptimizedDateInterval;
     private MonteCarloConfidenceInterval optimizedVarInterval;
@@ -66,7 +60,6 @@ public class EVSimulation {
 
     public void simulate() {
         planCost = hoursPerWeek * planNumWeeks;
-        costDOF = planNumWeeks / 4;
         teamSchedule = new TeamSchedule();
         optimizedDateInterval = new MonteCarloConfidenceInterval();
         optimizedVarInterval = new MonteCarloConfidenceInterval();
@@ -89,7 +82,6 @@ public class EVSimulation {
         double varRatio = unoptVar / optVar;
 
         System.out.println("Team Size: " + teamSize);
-        /*
 
         System.out.println("Opt Weeks\t"+optWeeks);
         System.out.println("Unopt Weeks\t"+unoptWeeks);
@@ -117,8 +109,7 @@ public class EVSimulation {
         System.out.println();
         System.out.println("Optimized hist:");
         printRanges(optimizedDateInterval);
-     */
-        /*
+
         System.out.println(" \tOptimized\tUnoptimized");
         System.out.print("UPI 70%\t");
         System.out.print(1-optimizedDateInterval.getUPI(0.70));
@@ -149,7 +140,7 @@ public class EVSimulation {
         System.out.print("\t");
         System.out.print(1-unoptimizedDateInterval.getLPI(0.70));
         System.out.println();
-        */
+
         printBuckets(optimizedDateInterval, "Optimized");
         printBuckets(unoptimizedDateInterval, "Unoptimized");
     }
@@ -213,18 +204,18 @@ public class EVSimulation {
     }
 
     private double getRandomCost() {
-        double result = normal.random(planCost, planCost*costEstErrPercent, u);
+        double result = normal.nextDouble(planCost, planCost*costEstErrPercent);
         return Math.max(planCost * 0.1, result);
     }
 
-    private double getRandomRate2() {
-        double randomPct = u.random() / 2;
+    double getRandomRate2() {
+        double randomPct = u.nextDouble() / 2;
         double randomRatio = 0.75 + randomPct;
         return hoursPerWeek * randomRatio;
     }
 
     private double getRandomRate() {
-        double randomPct = normal.random(0, scheduleRatioEstErr, u);
+        double randomPct = normal.nextDouble(0, scheduleRatioEstErr);
         double randomRatio = Math.min(2, Math.max(0, randomPct + 1));
         return hoursPerWeek * randomRatio;
     }

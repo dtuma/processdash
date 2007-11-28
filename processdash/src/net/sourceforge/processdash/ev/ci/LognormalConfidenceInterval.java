@@ -1,5 +1,5 @@
+// Copyright (C) 2003-2007 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -33,9 +33,10 @@ import net.sourceforge.processdash.util.XMLUtils;
 
 import org.w3c.dom.Element;
 
-import DistLib.chisquare;
-import DistLib.normal;
-import DistLib.uniform;
+import cern.jet.random.ChiSquare;
+import cern.jet.random.Normal;
+import cern.jet.random.engine.MersenneTwister;
+import cern.jet.random.engine.RandomEngine;
 
 public class LognormalConfidenceInterval extends AbstractConfidenceInterval {
 
@@ -185,11 +186,14 @@ public class LognormalConfidenceInterval extends AbstractConfidenceInterval {
     }
 
     private double[] generateBootstrapSamples() {
-        uniform u = new uniform();
+        RandomEngine u = new MersenneTwister();
+        Normal normal = new Normal(0, 1, u);
+        ChiSquare chisquare = new ChiSquare(numSamples-1, u);
         int bootstrapSize = Settings.getInt("logCI.bootstrapSize", 2000);
         double[] samples = new double[bootstrapSize];
         for (int i = bootstrapSize;   i-- > 0; )
-             samples[i] = generateBootstrapSample(u, u, numSamples, logstd);
+             samples[i] = generateBootstrapSample(normal, chisquare, numSamples,
+                 logstd);
         Arrays.sort(samples);
         return samples;
     }
@@ -198,10 +202,10 @@ public class LognormalConfidenceInterval extends AbstractConfidenceInterval {
     /** Generate a single sample for the bootstrap algorithm.
      */
     private double generateBootstrapSample
-        (uniform u1, uniform u2, int n, double sigma)
+        (Normal normal, ChiSquare chisquare, int n, double sigma)
     {
-        double N = normal.random(u1);
-        double chi = chisquare.random(n-1, u2);
+        double N = normal.nextDouble();
+        double chi = chisquare.nextDouble();
         double chiRatio = chi / (n-1);
 
         double numerator = N + sigma * Math.sqrt(n) * (chiRatio - 1.0) / 2.0;

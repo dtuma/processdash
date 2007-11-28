@@ -1,0 +1,15 @@
+cern/colt/PersistentObject.class
+cern/colt/function/DoubleFunction.class
+cern/colt/function/IntFunction.class
+cern/jet/math/Arithmetic.class
+cern/jet/math/Constants.class
+cern/jet/math/Polynomial.class
+cern/jet/random/AbstractContinousDistribution.class
+cern/jet/random/AbstractDistribution.class
+cern/jet/random/ChiSquare.class
+cern/jet/random/Fun.class
+cern/jet/random/Normal.class
+cern/jet/random/engine/MersenneTwister.class
+cern/jet/random/engine/RandomEngine.class
+cern/jet/stat/Gamma.class
+cern/jet/stat/Probability.class
