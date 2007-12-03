@@ -183,7 +183,7 @@ public class CompressedInstanceLauncher extends DashboardInstance {
                 String prefix = filename.substring(0, prefixLen);
                 result.add(prepend + prefix);
             } else if (isCompressedInstanceFilename(filename)
-                    && filename.toLowerCase().indexOf("backup") == -1) {
+                    && filename.toLowerCase().indexOf("backup/") == -1) {
                 ZipInputStream subIn = openZipStream(in, filename);
                 collectDataDirectoryPrefixes(result, prepend + filename
                         + SUBZIP_SEPARATOR, subIn);
