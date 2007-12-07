@@ -455,7 +455,7 @@ Authors:
       <zipfileset src="${lib}/jfreechart_zh.zip"/>
       <zipfileset src="${colt.jar}" includesfile="${lib}/fileset-colt.txt"/>
       <zipfileset src="${l10n-tool.jar}"/>
-      <zipfileset src="${datatips.jar}"/>
+      <zipfileset src="${datatips.jar}" includes="**/*.class"/>
     </jar>
   </target>
 

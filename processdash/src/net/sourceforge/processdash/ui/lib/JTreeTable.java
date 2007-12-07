@@ -176,8 +176,11 @@ public class JTreeTable extends JTable {
      * editing row in this case, ensures the editor is never painted.
      */
     public int getEditingRow() {
-        return (getColumnClass(editingColumn) == TreeTableModel.class) ? -1 :
-                editingRow;
+        if (editingColumn != -1
+                && getColumnClass(editingColumn) == TreeTableModel.class)
+            return -1;
+        else
+            return editingRow;
     }
 
     /**
