@@ -1,5 +1,5 @@
+// Copyright (C) 2003-2007 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -62,7 +62,7 @@ public class LOCDiffReport extends TinyCGIBase implements TinyCGIHighVolume {
                     "</TITLE></HEAD><BODY><H1>" +
                     resources.getString("Options_Title") +
                     "</H1>\n");
-        List filters = TemplateFilterLocator.getFilters(getTinyWebServer());
+        List filters = TemplateFilterLocator.getFilters();
         LOCDiff.printFiltersAndOptions(filters, out);
         out.println("</BODY></HTML>");
     }
@@ -71,7 +71,7 @@ public class LOCDiffReport extends TinyCGIBase implements TinyCGIHighVolume {
         parseMultipartFormData();
 
         // Compare the two files in question.
-        List filters = TemplateFilterLocator.getFilters(getTinyWebServer());
+        List filters = TemplateFilterLocator.getFilters();
         LOCDiff diff = new LOCDiff(filters,
                                    getFileContents('A'),
                                    getFileContents('B'),

@@ -1,5 +1,5 @@
+// Copyright (C) 2005-2007 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2005 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -26,65 +26,48 @@
 package net.sourceforge.processdash.tool.diff;
 
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
-import net.sourceforge.processdash.i18n.Resources;
-import net.sourceforge.processdash.net.http.WebServer;
-import net.sourceforge.processdash.templates.TemplateLoader;
-import net.sourceforge.processdash.util.ResourcePool;
+import net.sourceforge.processdash.templates.ExtensionManager;
 
 
 public class TemplateFilterLocator {
 
-    private static List FILTER_CLASSES = null;
-    static final Resources resource = Resources.getDashBundle("LOCDiff");
+    public static final String EXTENSION_TAG = "locFilter";
 
-
-    public static List getFilters(WebServer web) {
-        if (FILTER_CLASSES == null)
-            FILTER_CLASSES = getFilterClasses(web);
-        return instantiateFilters(FILTER_CLASSES);
-    }
-
-    private static List getFilterClasses(WebServer web) {
+    public static List getFilters() {
         List result = new ArrayList();
 
-        List filterNames = TemplateLoader.getLanguageFilters();
-        Collections.sort(filterNames);
-        Iterator i = filterNames.iterator();
-        String filterName = null;
-        while (i.hasNext()) try {
-            filterName = (String) i.next();
+        // Retrieve the filters that are declared by dashboard add-ons
+        List addOnFilters = ExtensionManager.getExecutableExtensions(
+            EXTENSION_TAG, "class", ConfigurableLanguageFilter.class.getName(),
+            "requires", null);
 
-            try {
-                web.getRequest("/" + filterName, false);
-                ResourcePool pool = web.getCGIPool(filterName);
-                LanguageFilter filter = (LanguageFilter) pool.get();
-                result.add(filter.getClass());
-            } catch (Exception e) {
-                // This could be a null pointer exception, because there was
-                // no CGIPool for the given filter, or a class cast exception
-                // if the CGI script returned is not a LanguageFilter.
-                continue;
+        // Build a list of valid filters and their names
+        Set<String> addOnFilterNames = new HashSet<String>();
+        for (Iterator i = addOnFilters.iterator(); i.hasNext();) {
+            Object filter = i.next();
+            if (filter instanceof LanguageFilter) {
+                result.add(filter);
+                String name = AbstractLanguageFilter.getFilterName(filter);
+                addOnFilterNames.add(name);
             }
-
-        } catch (Exception e) {
-            System.err.println
-                (resource.format("PspDiffCouldNotInit_FMT", filterName));
-            e.printStackTrace();
         }
 
-        return result;
-    }
+        // Now, add any built-in filters whose names were not overriden
+        // by a contributed filter. (This allows someone to replace a
+        // built-in filter by contributing a replacement with the same name.)
+        List builtInFilters = HardcodedFilterLocator.getFilters();
+        for (Iterator i = builtInFilters.iterator(); i.hasNext();) {
+            Object filter = (Object) i.next();
+            String name = AbstractLanguageFilter.getFilterName(filter);
+            if (!addOnFilterNames.contains(name))
+                result.add(filter);
+        }
 
-    private static List instantiateFilters(List filterClasses) {
-        List result = new ArrayList();
-        for (Iterator i = filterClasses.iterator(); i.hasNext();) try {
-            Class clz = (Class) i.next();
-            result.add(clz.newInstance());
-        } catch (Exception e) {}
         return result;
     }
 

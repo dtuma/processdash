@@ -46,7 +46,7 @@ public class LOCDiffDialog extends TinyCGIBase {
     /** Generate CGI script output. */
     protected void writeContents() throws IOException {
         DashController.checkIP(env.get("REMOTE_ADDR"));
-        OpenLOCDiffAction.showDialog(getTinyWebServer());
+        OpenLOCDiffAction.showDialog();
         DashController.printNullDocument(out);
     }
 

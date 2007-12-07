@@ -189,7 +189,7 @@ public class ConfigureButton extends JMenuBar implements ActionListener, Hierarc
         }
         toolMenu.add(new SaveBackupAction(parent.getData()));
         maybeAddTranslationTool(toolMenu);
-        toolMenu.add(new OpenLOCDiffAction(parent));
+        toolMenu.add(new OpenLOCDiffAction());
         addToolExtensions(toolMenu);
     }
 

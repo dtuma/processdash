@@ -139,8 +139,6 @@ public class WebServer implements ContentSource {
         new DashboardPermission("webServer.setPassword");
     public static final DashboardPermission GET_SOCKET_PERMISSION =
         new DashboardPermission("webServer.getSocket");
-    public static final DashboardPermission GET_CGI_POOL_PERMISSION =
-        new DashboardPermission("webServer.getCGIPool");
     public static final DashboardPermission CREATE_PERMISSION =
         new DashboardPermission("webServer.create");
     public static final DashboardPermission SET_ROOTS_PERMISSION =
@@ -207,13 +205,6 @@ public class WebServer implements ContentSource {
         }
 
         return null;
-    }
-
-    public ResourcePool getCGIPool(String path) {
-        // REFACTOR: This method should be removed and some other
-        // mechanism should be created instead.
-        GET_CGI_POOL_PERMISSION.checkPermission();
-        return (ResourcePool) cgiCache.get(path);
     }
 
     private class TinyWebThread implements Runnable, HTTPHeaderWriter {
@@ -1821,7 +1812,7 @@ public class WebServer implements ContentSource {
             throw new IOException("Not a directory: " + directoryToServe);
 
         URL [] roots = new URL[1];
-        roots[0] = rootDir.toURL();
+        roots[0] = rootDir.toURI().toURL();
 
         init();
         addPort(port);

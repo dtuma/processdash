@@ -30,30 +30,25 @@ import java.util.List;
 
 import javax.swing.AbstractAction;
 
-import net.sourceforge.processdash.DashboardContext;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.net.http.WebServer;
 import net.sourceforge.processdash.tool.diff.TemplateFilterLocator;
 
 public class OpenLOCDiffAction extends AbstractAction {
 
-    private DashboardContext dashboardContext;
-
     private static final Resources resources = Resources
             .getDashBundle("LOCDiff.Dialog");
 
-    public OpenLOCDiffAction(DashboardContext dashboardContext) {
+    public OpenLOCDiffAction() {
         super(resources.getString("Menu_Text"));
-        this.dashboardContext = dashboardContext;
     }
 
     public void actionPerformed(ActionEvent e) {
-        WebServer webServer = dashboardContext.getWebServer();
-        showDialog(webServer);
+        showDialog();
     }
 
-    public static void showDialog(WebServer webServer) {
-        List filters = TemplateFilterLocator.getFilters(webServer);
+    public static void showDialog() {
+        List filters = TemplateFilterLocator.getFilters();
         FileSystemLOCDiffDialog dialog = new FileSystemLOCDiffDialog(filters);
         dialog.setOutputCharset(WebServer.getOutputCharset());
         dialog.showDialog();

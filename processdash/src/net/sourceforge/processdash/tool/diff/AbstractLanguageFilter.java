@@ -1,5 +1,5 @@
+// Copyright (C) 2003-2007 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -41,6 +41,10 @@ import net.sourceforge.processdash.util.StringUtils;
  */
 public class AbstractLanguageFilter implements LanguageFilter {
 
+    public interface NamedFilter {
+        public String getFilterName();
+    }
+
 
     static final Resources resources = Resources.getDashBundle("LOCDiff");
 
@@ -53,29 +57,34 @@ public class AbstractLanguageFilter implements LanguageFilter {
     private String charset = "iso-8859-1";
 
     public AbstractLanguageFilter() {
-        LANG_OPTION = "-lang=" + getFilterName(this).toLowerCase();
-        LANG_OPTION_SPACE = LANG_OPTION + " ";
+        setLangName(getFilterName(this));
+    }
+
+    protected void setLangName(String name) {
+        if (name != null) {
+            LANG_OPTION = "-lang=" + name.toLowerCase();
+            LANG_OPTION_SPACE = LANG_OPTION + " ";
+        }
     }
 
     /** Judge whether this filter is capable of acting as a filter for a
      *  particular file.
      *
-     * The default implementation gives the file 50 points if its filename
+     * The default implementation gives the file 100 points if its filename
      * matches, and 30 points if it begins with a matching comment. If
      * the options include the string "-lang=Foo" (where Foo is the first
-     * part of the name of this class), returns Integer.MAX_VALUE.
+     * part of the name of this class), returns 1000.
      */
     public int languageMatches(String filename, String contents,
                                String options) {
-        int result = 0, len;
-        String s;
+        int result = 0;
 
         if (filename != null && filename.length() > 0) {
             String[] filenameEndings = getFilenameEndings();
             if (filenameEndings != null)
                 for (int i = filenameEndings.length;   i-- > 0; )
                     if (endsWithIgnoreCase(filename, filenameEndings[i])) {
-                        result += 50;
+                        result += 100;
                         break;
                     }
         }
@@ -99,7 +108,7 @@ public class AbstractLanguageFilter implements LanguageFilter {
             String opts = options.trim().toLowerCase();
             if (opts.endsWith(LANG_OPTION) ||
                 opts.indexOf(LANG_OPTION_SPACE) != -1)
-                result = Integer.MAX_VALUE;
+                result = 1000;
         }
 
         if (result > 0)
@@ -214,6 +223,10 @@ public class AbstractLanguageFilter implements LanguageFilter {
 
 
     public static String getFilterName(Object filter) {
+        if (filter instanceof NamedFilter) {
+            return ((NamedFilter) filter).getFilterName();
+        }
+
         String className = filter.getClass().getName();
         if (endsWithIgnoreCase(className, "filter"))
             className = className.substring(0, className.length() - 6);

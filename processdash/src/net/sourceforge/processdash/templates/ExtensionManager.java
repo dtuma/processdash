@@ -25,6 +25,7 @@
 
 package net.sourceforge.processdash.templates;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.ArrayList;
@@ -43,6 +44,11 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
 public class ExtensionManager {
+
+    private static class InvalidExtensionException extends Exception {
+        public InvalidExtensionException(String m)    { super(m); }
+        public InvalidExtensionException(Throwable t) { super(t); }
+    }
 
     private static final Logger logger = Logger
             .getLogger(ExtensionManager.class.getName());
@@ -113,6 +119,13 @@ public class ExtensionManager {
     public static List getExecutableExtensions(String tagName,
             String classAttrName, String requiresAttrName,
             DashboardContext context) {
+        return getExecutableExtensions(tagName, classAttrName, null,
+            requiresAttrName, context);
+    }
+
+    public static List getExecutableExtensions(String tagName,
+            String classAttrName, String defaultClass, String requiresAttrName,
+            DashboardContext context) {
 
         List configElements = getXmlConfigurationElements(tagName);
         if (configElements.isEmpty())
@@ -130,7 +143,7 @@ public class ExtensionManager {
 
             try {
                 result.add(getExecutableExtension(configElem, classAttrName,
-                        context));
+                        defaultClass, context));
             } catch (Exception e) {
                 logger.log(Level.WARNING,
                         "Unable to create executable extension", e);
@@ -143,10 +156,17 @@ public class ExtensionManager {
 
     public static Object getExecutableExtension(Element configElement,
             String attrName, DashboardContext context) throws Exception {
+        return getExecutableExtension(configElement, attrName, null, context);
+    }
+
+    public static Object getExecutableExtension(Element configElement,
+            String attrName, String defaultClass, DashboardContext context)
+            throws Exception {
         if (configElement == null)
             throw new NullPointerException("configElement must not be null");
-        if (attrName == null)
-            throw new NullPointerException("attrName must not be null");
+        if (!XMLUtils.hasValue(attrName) && !XMLUtils.hasValue(defaultClass))
+            throw new IllegalArgumentException(
+                "Either attrName or defaultClass must have a value");
 
         Document configDoc = configElement.getOwnerDocument();
         ExtensionData metaData = (ExtensionData) extensionXmlDocs
@@ -156,7 +176,11 @@ public class ExtensionManager {
                     + "to any registered template.xml configuration document");
 
 
-        String className = configElement.getAttribute(attrName);
+        String className = null;
+        if (XMLUtils.hasValue(attrName))
+            className = configElement.getAttribute(attrName);
+        if (!XMLUtils.hasValue(className))
+            className = defaultClass;
         if (!XMLUtils.hasValue(className))
             throw new IllegalArgumentException("Error in config file '"
                     + metaData.filename + "': no value was supplied for the '"
@@ -172,13 +196,17 @@ public class ExtensionManager {
                     context);
             return result;
         } catch (Exception e) {
-            Exception re = new IllegalArgumentException(
+            Exception re = new InvalidExtensionException(
                     "Error in config file '" + metaData.filename
                             + "': could not create object of type '"
                             + className + "' specified by the '" + attrName
                             + "' attribute of the '"
                             + configElement.getTagName() + "' tag");
-            re.initCause(e);
+            if (e instanceof InvalidExtensionException) {
+                re.initCause(e.getCause());
+            } else {
+                re.initCause(e);
+            }
             throw re;
         }
     }
@@ -213,33 +241,39 @@ public class ExtensionManager {
     }
 
     private static void initializeExecutableExtension(Object obj, Element xml,
-            String attrName, DashboardContext context) {
+            String attrName, DashboardContext context)
+            throws InvalidExtensionException {
         Class clz = obj.getClass();
         try {
             Method[] methods = clz.getMethods();
             for (int i = 0; i < methods.length; i++) {
                 if (methods[i].getName().equals("setConfigElement"))
                     tryMethodCall(obj, methods[i], xml, attrName);
-                else if (methods[i].getName().equals("setDashboardContext"))
+                else if (methods[i].getName().equals("setDashboardContext")
+                        && context != null)
                     tryMethodCall(obj, methods[i], context);
             }
+        } catch (InvalidExtensionException iee) {
+            throw iee;
         } catch (Exception e) {
         }
     }
 
-    private static void tryMethodCall(Object result, Method m, Object arg) {
-        tryMethodCall(result, m, new Object[] { arg });
-    }
-
-    private static void tryMethodCall(Object result, Method m, Object arg1,
-            Object arg2) {
-        tryMethodCall(result, m, new Object[] { arg1, arg2 });
-    }
-
-    private static void tryMethodCall(Object result, Method m, Object[] args) {
+    private static void tryMethodCall(Object result, Method m, Object... args)
+            throws InvalidExtensionException {
         try {
             m.invoke(result, args);
+
+        } catch (InvocationTargetException ite) {
+            // the method call was made, and it threw an exception.  This is
+            // important information, indicating that the target object is not
+            // in a usable state for some reason.
+            throw new InvalidExtensionException(ite.getCause());
+
         } catch (Exception e) {
+            // the method call could not be made.  Since we haven't been very
+            // diligent in checking to see if the method matches our desired
+            // signature, this is probably our error and can be ignored.
         }
     }
 }
