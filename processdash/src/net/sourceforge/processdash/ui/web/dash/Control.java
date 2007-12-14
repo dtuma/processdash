@@ -1,5 +1,5 @@
+// Copyright (C) 2003-2007 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -35,6 +35,7 @@ import javax.swing.SwingUtilities;
 
 import net.sourceforge.processdash.DashController;
 import net.sourceforge.processdash.ui.ConsoleWindow;
+import net.sourceforge.processdash.ui.help.PCSH;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 
 
@@ -62,6 +63,7 @@ public class Control extends TinyCGIBase {
         startTiming();
         stopTiming();
         clearCGICache();
+        showHelp();
 
         if (printNullDocument)
             DashController.printNullDocument(out);
@@ -113,6 +115,11 @@ public class Control extends TinyCGIBase {
 
             printNullDocument = false;
         }
+    }
+
+    private void showHelp() {
+        if (isTask("showHelp"))
+            PCSH.displayHelpTopic(getParameter("topicID"));
     }
 
 

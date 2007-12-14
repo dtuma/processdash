@@ -76,9 +76,10 @@ Authors:
 
   <property file="${lib}/version.properties"/>
 
-  <property name="eng.version"     value="2.0"/><!-- VERSION -->
-  <property name="eng.requires"    value="1.6.1.1+"/><!-- VERSION -->
-  <property name="instr.requires"  value="1.7.1b.4+"/><!-- VERSION -->
+  <property name="eng.version"      value="2.0"/><!-- VERSION -->
+  <property name="eng.requires"     value="1.6.1.1+"/><!-- VERSION -->
+  <property name="l10nTool.version" value="1.0"/><!-- VERSION -->
+  <property name="instr.requires"   value="1.7.1b.4+"/><!-- VERSION -->
 
 
   <property name="applet.file" value="DataApplet${dashboardVersion}"/>
@@ -226,8 +227,25 @@ Authors:
       </fileset>
     </jar>
   </target>
+	
+	<target name="l10nTool-addon" depends="l10n-tool">
+		<jar destfile="${dist}/l10nTool.jar" duplicate="fail">
+		      <!-- specify the manifest file contents -->
+			<manifest>
+		        <attribute name="Dash-Pkg-ID" value="l10nTool"/>
+		        <attribute name="Dash-Pkg-Version" value="${l10nTool.version}"/>
+		        <attribute name="Dash-Pkg-Name"
+		                   value="Process Dashboard Localization Tool"/>
+		        <attribute name="Dash-Pkg-URL"
+		                   value="http://processdash.sourceforge.net/cgi-bin/update"/>
+		     </manifest>
 
-
+			<zipfileset src="${l10n-tool.jar}"/>
+			
+			<fileset dir="." includes="Templates/l10nTool-template.xml"/>
+			<fileset dir="${build}" includes="net/**/OpenLocalizationToolAction*.class"/>
+		    </jar>
+	</target>
 
   <target name="pspForEng-addon" depends="compile">
     <!-- build the jarfile for students -->
@@ -431,6 +449,7 @@ Authors:
           <include name="net/"/>
 	  <exclude name="**/*Test.class"/>
 	  <exclude name="net/**/PspForEngFilter.class"/>
+      <exclude name="net/**/OpenLocalizationToolAction*.class"/>
       </fileset>
 
       <!-- include important non-class files in the src directory -->
@@ -454,7 +473,7 @@ Authors:
       <zipfileset src="${lib}/jfreechart_ja.zip"/>
       <zipfileset src="${lib}/jfreechart_zh.zip"/>
       <zipfileset src="${colt.jar}" includesfile="${lib}/fileset-colt.txt"/>
-      <zipfileset src="${l10n-tool.jar}"/>
+      <zipfileset src="${l10n-tool.jar}" includes="**/jrc-editor*.properties"/>
       <zipfileset src="${datatips.jar}" includes="**/*.class"/>
     </jar>
   </target>
@@ -621,6 +640,7 @@ Authors:
     <delete quiet="true" file="${dist}/dashHelp.jar"/>
     <delete quiet="true" file="${dist}/importPSP.jar"/>
     <delete quiet="true" file="${dist}/pspForEng.jar"/>
+  	<delete quiet="true" file="${dist}/l10nTool.jar"/>
     <delete quiet="true" file="${dist}/pdash-src-*.zip"/>
     <delete><fileset dir="${libsrc}" includes="**/*.class"/></delete>
   </target>
@@ -630,7 +650,7 @@ Authors:
   <!-- Create distributable files                                          -->
   <!-- =================================================================== -->
   <target name="dist"
-      depends="jar,javahelp-addon,import-addon,pspForEng-addon"/>
+      depends="jar,javahelp-addon,import-addon,l10nTool-addon,pspForEng-addon"/>
 
   <target name="dist-src" depends="ant-tasks">
     <svnzip dir="." dest="${dist}/pdash-src-${dashboard-version}.zip"/>

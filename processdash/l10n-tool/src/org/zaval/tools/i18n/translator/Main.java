@@ -71,18 +71,22 @@ public class Main
       }
    }
    
-   static void setFilter(Comparator filter) {
+   public static void setFilter(Comparator filter) {
        if (t != null)
            t.setTranslationNeededTester(filter);
    }
 
-   static void setSaveListener(ActionListener saveListener) {
+   public static void setSaveListener(ActionListener saveListener) {
       if (t != null)
           t.setSaveListener(saveListener);
    }
 
-   static void setHelpListener(ActionListener helpListener) {
+   public static void setHelpListener(ActionListener helpListener) {
        if (t != null)
            t.setHelpListener(helpListener);       
+   }
+   
+   public static Translator getTranslator() {
+       return t;
    }
 }

@@ -29,11 +29,8 @@ package net.sourceforge.processdash.ui;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
-import java.lang.reflect.Constructor;
-import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Locale;
 import java.util.Properties;
 import java.util.logging.Logger;
 
@@ -49,9 +46,6 @@ import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.hier.ui.HierarchyEditor;
 import net.sourceforge.processdash.i18n.Resources;
-import net.sourceforge.processdash.i18n.TranslationFilter;
-import net.sourceforge.processdash.i18n.TranslationSorter;
-import net.sourceforge.processdash.i18n.TranslationsSavedListener;
 import net.sourceforge.processdash.log.time.DashboardTimeLog;
 import net.sourceforge.processdash.log.time.TimeLoggingApprover;
 import net.sourceforge.processdash.log.ui.DefectLogEditor;
@@ -188,40 +182,8 @@ public class ConfigureButton extends JMenuBar implements ActionListener, Hierarc
             toolMenu.add(new ShowExportWizardAction(resources.getString(EXPORT)));
         }
         toolMenu.add(new SaveBackupAction(parent.getData()));
-        maybeAddTranslationTool(toolMenu);
         toolMenu.add(new OpenLOCDiffAction());
         addToolExtensions(toolMenu);
-    }
-
-    private void maybeAddTranslationTool(JMenu toolMenu) {
-        try {
-            // don't display the translation tool for english users
-            Locale l = Locale.getDefault();
-            String lang = l.getLanguage();
-            if ("en".equals(lang)) return;
-
-            // ensure the translation tool is available
-            Class jrc = Class.forName
-                ("org.zaval.tools.i18n.translator.OpenTranslatorAction");
-            Constructor cstr = jrc.getConstructor
-                (new Class[] { String.class, String.class,
-                               Comparator.class, Comparator.class,
-                               ActionListener.class, ActionListener.class });
-
-            // get the name of the dashboard jar file
-            String jarfilename = getDashboardJarFileName();
-            if (jarfilename == null) return;
-
-            // create an instance of the action
-            String displayName = resources.getString("Localization_Tool");
-            TranslationFilter filter = new TranslationFilter();
-            TranslationSorter sorter = new TranslationSorter();
-            TranslationsSavedListener listener = new TranslationsSavedListener();
-            Action a = (Action) cstr.newInstance
-                (new Object[] { jarfilename, displayName, filter, sorter, listener, this });
-            toolMenu.add(a);
-
-        } catch (Throwable t) {}
     }
 
     private void addToolExtensions(JMenu toolMenu) {
@@ -390,10 +352,6 @@ public class ConfigureButton extends JMenuBar implements ActionListener, Hierarc
 
     public void showConsole () { ConsoleWindow.showInstalledConsole(); }
 
-    public void showLocalizationToolHelp() {
-        PCSH.displayHelpTopic("LocalizationTool");
-    }
-
     public void exitProgram() { parent.exitProgram(); }
 
     public void actionPerformed(ActionEvent e) {
@@ -427,8 +385,6 @@ public class ConfigureButton extends JMenuBar implements ActionListener, Hierarc
             showConsole ();
         } else if (cmd.equals(EXIT_PROGRAM)) {
             exitProgram ();
-        } else if (cmd.equals(L10N_TOOL)) {
-            showLocalizationToolHelp();
         }
     }
 

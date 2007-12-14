@@ -37,7 +37,7 @@ import java.io.IOException;
 
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.util.ResultSet;
-import net.sourceforge.processdash.i18n.*;
+import net.sourceforge.processdash.i18n.Translator;
 import net.sourceforge.processdash.ui.lib.JpegEncoder;
 
 import org.jfree.chart.JFreeChart;

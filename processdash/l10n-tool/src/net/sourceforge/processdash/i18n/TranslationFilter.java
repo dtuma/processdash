@@ -1,5 +1,5 @@
+// Copyright (C) 2003-2007 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -26,19 +26,11 @@
 package net.sourceforge.processdash.i18n;
 
 import java.util.Comparator;
-import java.util.Enumeration;
-import java.util.HashMap;
-
 
 public class TranslationFilter implements Comparator {
 
     private static final int NEEDS_NO_TRANSLATION = 0;
     private static final int NEEDS_TRANSLATION = 1;
-    private TranslationEngine engine;
-
-    public TranslationFilter() {
-        engine = createClobberingEngine();
-    }
 
     public int compare(Object key, Object value) {
         if (keyNeedsNoTranslation((String) key))
@@ -73,8 +65,6 @@ public class TranslationFilter implements Comparator {
             return true;
 
         value = removeVariables(value);
-        if (isTranslated)
-            value = removeTranslatables(value);
         return valueContainsNoCharacters(value);
     }
 
@@ -90,10 +80,6 @@ public class TranslationFilter implements Comparator {
         }
     }
 
-    private String removeTranslatables(String value) {
-        return engine.translateString(value);
-    }
-
     private static final String ALPHA = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
     private boolean valueContainsNoCharacters(String value) {
         for (int i = 0;   i < value.length();   i++) {
@@ -101,17 +87,5 @@ public class TranslationFilter implements Comparator {
                 return false;
         }
         return true;
-    }
-
-    private TranslationEngine createClobberingEngine() {
-        HashMap clobberingMap = new HashMap();
-        Resources r = Resources.getGlobalBundle();
-        Enumeration e = r.getKeys();
-        while (e.hasMoreElements()) {
-            String key = (String) e.nextElement();
-            clobberingMap.put(key, "");
-        }
-
-        return new DefaultEngine(clobberingMap);
     }
 }

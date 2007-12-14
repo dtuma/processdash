@@ -21,6 +21,7 @@ Templates/import/
 Templates/Insp.template
 Templates/psp1.0.1/
 Templates/PSP1_0_1-template.xml
+Templates/l10nTool-template.xml
 Templates/PSP1_0_1.template
 Templates/pspForEng*
 Templates/pspForEng/

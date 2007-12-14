@@ -1199,9 +1199,14 @@ implements TranslatorConstants
 
     private void onHelp() {
         if (helpListener != null) {
-            helpListener.actionPerformed
-                (new ActionEvent(this, ActionEvent.ACTION_PERFORMED, 
-                                 "l10nTool"));
+            try {
+                helpListener.actionPerformed(new ActionEvent(this,
+                        ActionEvent.ACTION_PERFORMED, "l10nTool"));
+            } catch (Exception e) {
+                // An exception would be thrown if the dashboard web
+                //  server is not accessible.
+                onAbout();
+            }
         } else {
             onAbout();
         }

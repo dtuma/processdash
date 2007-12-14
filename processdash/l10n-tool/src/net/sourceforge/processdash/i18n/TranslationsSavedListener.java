@@ -1,5 +1,5 @@
+// Copyright (C) 2003-2007 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -27,35 +27,23 @@ package net.sourceforge.processdash.i18n;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.File;
-import java.io.InputStream;
-import java.net.InetAddress;
-import java.net.URL;
+import java.util.Locale;
 
-import javax.swing.Box;
-import javax.swing.ButtonGroup;
-import javax.swing.JButton;
-import javax.swing.JComponent;
-import javax.swing.JLabel;
 import javax.swing.JOptionPane;
-import javax.swing.JRadioButton;
-import javax.swing.JTextField;
 
-import net.sourceforge.processdash.DashboardContext;
-import net.sourceforge.processdash.InternalSettings;
-import net.sourceforge.processdash.Settings;
-import net.sourceforge.processdash.util.ClientHttpRequest;
+import org.zaval.tools.i18n.translator.Translator;
+import org.zaval.util.SafeResourceBundle;
 
 
 public class TranslationsSavedListener implements ActionListener {
-
-
-    private static final Resources resources =
-        Resources.getDashBundle("ProcessDashboard.Translation");
-
+    
+    
+    private static final SafeResourceBundle resources = 
+        new SafeResourceBundle(Translator.BUNDLE_NAME, Locale.getDefault());
+    
     TranslationSharer sharer = new TranslationSharer();
-
-
+    
+    
     public void actionPerformed(ActionEvent e) {
         sharer.maybeShareTranslations(e.getActionCommand());
         showSaveMessage();
@@ -64,8 +52,8 @@ public class TranslationsSavedListener implements ActionListener {
 
     private void showSaveMessage() {
         JOptionPane.showMessageDialog
-            (null, resources.getStrings("Save.Message"),
-             resources.getString("Save.Title"), JOptionPane.PLAIN_MESSAGE);
+            (null, resources.getString("Translation.Save.Message"),
+             resources.getString("Translation.Save.Title"), JOptionPane.PLAIN_MESSAGE);        
     }
 
 }

@@ -1,5 +1,5 @@
+// Copyright (C) 2004-2007 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2004 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -29,6 +29,9 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.InputStream;
+import java.util.Locale;
+import java.util.prefs.BackingStoreException;
+import java.util.prefs.Preferences;
 
 import javax.swing.Box;
 import javax.swing.ButtonGroup;
@@ -38,10 +41,8 @@ import javax.swing.JOptionPane;
 import javax.swing.JRadioButton;
 import javax.swing.JTextField;
 
-import net.sourceforge.processdash.InternalSettings;
-import net.sourceforge.processdash.Settings;
-import net.sourceforge.processdash.util.ClientHttpRequest;
-
+import org.zaval.tools.i18n.translator.Translator;
+import org.zaval.util.SafeResourceBundle;
 
 public class TranslationSharer implements Runnable {
 
@@ -56,10 +57,16 @@ public class TranslationSharer implements Runnable {
     private static final String AUTHOR_FIELD_NAME = "author";
     private static final String FILE_FIELD_NAME = "file";
 
-    private static final Resources resources =
-        Resources.getDashBundle("ProcessDashboard.Translation.Sharing");
+    private static final SafeResourceBundle resources = 
+        new SafeResourceBundle(Translator.BUNDLE_NAME, Locale.getDefault());
 
     private String filename;
+    
+    private Preferences prefs;
+    
+    public TranslationSharer() {
+        prefs = Preferences.userNodeForPackage(this.getClass());
+    }
 
     public void maybeShareTranslations(String filename) {
         if (shouldShareTranslations()) {
@@ -80,59 +87,69 @@ public class TranslationSharer implements Runnable {
     private void postTranslations(String filename) throws Exception {
         ClientHttpRequest request = new ClientHttpRequest(POST_URL);
 
-        String email = Settings.getVal(EMAIL_SETTING);
+        String email = prefs.get(EMAIL_SETTING, null);
         if (email != null)
             request.setParameter(EMAIL_FIELD_NAME, email);
 
-        String author = Settings.getVal(AUTHOR_SETTING);
+        String author = prefs.get(AUTHOR_SETTING, null);
         if (author != null)
             request.setParameter(AUTHOR_FIELD_NAME, author);
-
+        
         request.setParameter(FILE_FIELD_NAME, new File(filename));
+        
         InputStream response = request.post();
+        
         int success = response.read();
         response.close();
     }
 
 
     private boolean shouldShareTranslations() {
-        String sharingEnabled = Settings.getVal(SHARE_ENABLED_SETTING);
-        if (sharingEnabled == null)
+        boolean sharingEnabled = prefs.getBoolean(SHARE_ENABLED_SETTING, false);
+        if (!sharingEnabled)
             sharingEnabled = promptToShareTranslations();
         return Boolean.valueOf(sharingEnabled).booleanValue();
     }
 
 
-    private String promptToShareTranslations() {
+    private boolean promptToShareTranslations() {
         // ask the user if they are willing to share their translations
         int userResponse = JOptionPane.showConfirmDialog
-            (null, resources.getStrings("Enable.Prompt"),
-             resources.getString("Enable.Title"), JOptionPane.YES_NO_OPTION);
+            (null, resources.getString("Translation.Sharing.Enable.Prompt"),
+             resources.getString("Translation.Sharing.Enable.Title"), JOptionPane.YES_NO_OPTION);
 
         if (userResponse != JOptionPane.YES_OPTION) {
             // InternalSettings.set(SHARE_ENABLED_SETTING, "false");
-            return "false";
+            return false;
         }
 
-        InternalSettings.set(SHARE_ENABLED_SETTING, "true");
+        prefs.putBoolean(SHARE_ENABLED_SETTING, true);
+        
+        try {
+            prefs.flush();
+        } catch (BackingStoreException e) {
+            System.out.println(resources.getString("Translation.Errors.Cant_Save_Preferences"));
+            e.printStackTrace();
+        }
+        
         promptForAuthorInfo();
-        return "true";
+        return true;
     }
 
 
     private void promptForAuthorInfo() {
         JLabel authorLabel = new JLabel
-            (resources.getString("Author.Name_Prompt"));
+            (resources.getString("Translation.Sharing.Author.Name_Prompt"));
         JTextField author = new JTextField(20);
 
         JLabel emailLabel = new JLabel
-            (resources.getString("Author.Email_Prompt"));
+            (resources.getString("Translation.Sharing.Author.Email_Prompt"));
         JTextField email = new JTextField(30);
 
         JRadioButton yesOption = new JRadioButton
-            (resources.getString("Author.Yes_Option"), true);
+            (resources.getString("Translation.Sharing.Author.Yes_Option"), true);
         JRadioButton noOption = new JRadioButton
-            (resources.getString("Author.No_Option"));
+            (resources.getString("Translation.Sharing.Author.No_Option"));
         ButtonGroup group = new ButtonGroup();
         group.add(yesOption);
         group.add(noOption);
@@ -150,18 +167,24 @@ public class TranslationSharer implements Runnable {
         buttonBox.add(Box.createHorizontalGlue());
 
         Object[] message = new Object[] {
-                resources.getStrings("Author.Prompt"),
+                resources.getString("Translation.Sharing.Author.Prompt"),
                 buttonBox,
                 inputBox(authorLabel, author),
                 inputBox(emailLabel, email)
          };
         JOptionPane.showMessageDialog
-            (null, message, resources.getString("Author.Title"),
+            (null, message, resources.getString("Translation.Sharing.Author.Title"),
              JOptionPane.OK_OPTION);
 
         if (yesOption.isSelected()) {
-            InternalSettings.set(AUTHOR_SETTING, author.getText());
-            InternalSettings.set(EMAIL_SETTING, email.getText());
+            prefs.put(AUTHOR_SETTING, author.getText());
+            prefs.put(EMAIL_SETTING, email.getText());
+            try {
+                prefs.flush();
+            } catch (BackingStoreException e) {
+                System.out.println(resources.getString("Translation.Errors.Cant_Save_Preferences"));
+                e.printStackTrace();
+            }
         }
     }
 

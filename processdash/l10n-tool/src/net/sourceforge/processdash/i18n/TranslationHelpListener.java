@@ -1,5 +1,5 @@
+// Copyright (C) 2007 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -25,35 +25,24 @@
 
 package net.sourceforge.processdash.i18n;
 
-import java.util.Comparator;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.net.URL;
 
-
-public class TranslationSorter implements Comparator {
-
-    String[] PREFERRED_ITEMS = {
-            "(Resources)",
-            "ProcessDashboard",
-            "HierarchyEditor",
-            "Time",
-            "Defects",
-            "EV",
-        };
-
-    public int compare(Object o1, Object o2) {
-        String s1 = (String) o1;
-        String s2 = (String) o2;
-        int i1 = indexOf(s1);
-        int i2 = indexOf(s2);
-        if (i1 != i2) return i1 - i2;
-        return String.CASE_INSENSITIVE_ORDER.compare(s1, s2);
+public class TranslationHelpListener implements ActionListener {
+    
+    private String helpURL;
+    
+    public TranslationHelpListener(String helpURL) {
+        this.helpURL = helpURL;
     }
 
-    private int indexOf(String s) {
-        for (int i = 0; i < PREFERRED_ITEMS.length; i++) {
-            if (s.startsWith(PREFERRED_ITEMS[i]))
-                return i;
+    public void actionPerformed(ActionEvent e) {
+        try {
+            new URL(helpURL).openConnection().getInputStream();
+        } catch (Exception ex) {
+            // Should happen if the dashboard web server is not accessible.
+            throw new IllegalStateException();
         }
-        return PREFERRED_ITEMS.length;
     }
-
 }

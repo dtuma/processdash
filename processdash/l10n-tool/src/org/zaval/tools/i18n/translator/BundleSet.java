@@ -46,7 +46,7 @@ import java.util.*;
 
 import org.zaval.io.PropertiesFile;
 
-class BundleSet
+public class BundleSet
 implements TranslatorConstants
 {
 
@@ -61,6 +61,10 @@ implements TranslatorConstants
     {
         items = new TreeMap(DEFAULT_COMPARATOR);
         lng = new Vector();
+    }
+    
+    public static void setDefaultComparator(Comparator comparator) {
+        DEFAULT_COMPARATOR = comparator;
     }
 
     void addLanguage(String slng, String desc)
