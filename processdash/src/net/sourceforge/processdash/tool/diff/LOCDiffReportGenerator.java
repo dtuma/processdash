@@ -36,7 +36,9 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.Reader;
+import java.text.SimpleDateFormat;
 import java.util.Collection;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -60,6 +62,10 @@ public abstract class LOCDiffReportGenerator {
     protected static final String HTML_STRICT_DOCTYPE =
         "<!DOCTYPE html PUBLIC \"-//W3C//DTD HTML 4.01//EN\"\n" +
         "    \"http://www.w3.org/TR/html4/strict.dtd\">\n";
+
+    // If the VM is launched with -DlocDiff.showTarStatement=true, a TAR command that can
+    //  be used to compress all changes will be shown.
+    private static final String ARG_TO_SHOW_TAR_BACKUP = "locDiff.showTarStatement";
 
     protected static Resources resources = Resources.getDashBundle("LOCDiff");
 
@@ -164,11 +170,35 @@ public abstract class LOCDiffReportGenerator {
         startTask(resources.getString("Dialog.Starting"));
 
         Collection filesToCompare = getFilesToCompare();
+
+        if (Boolean.getBoolean(ARG_TO_SHOW_TAR_BACKUP))
+            printTarCommand(filesToCompare);
+
         numTasksTotal += filesToCompare.size();
 
         generateDiffs(outFile, filesToCompare);
     }
 
+
+    private void printTarCommand(Collection filesToCompare) {
+        Date today = new Date();
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+        String fileName = "dash_bak_" + formatter.format(today);
+        int cptFile = 0;
+
+        while (new File(fileName + ".tar.bz2").exists()) {
+            fileName += "-" + ++cptFile;
+        }
+
+        String tarCommand = "tar cvfj " + fileName + ".tar.bz2";
+
+        for (Object file : filesToCompare) {
+            tarCommand += " " + ((FileToCompare) file).getFilename();
+        }
+
+        System.out.println("Tar command that can be used to compress all modifications : ");
+        System.out.println(tarCommand + '\n');
+    }
 
     public void generateDiffs(File outFile, Collection filesToCompare) throws IOException {
         setupForDiff();
