@@ -27,16 +27,15 @@ package net.sourceforge.processdash.i18n;
 
 import java.awt.event.ActionEvent;
 import java.io.IOException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.prefs.BackingStoreException;
-import java.util.prefs.Preferences;
+import java.util.Locale;
 
 import javax.swing.AbstractAction;
 import javax.swing.JOptionPane;
 
+import net.sourceforge.processdash.templates.ExtensionManager;
 import net.sourceforge.processdash.ui.Browser;
 import net.sourceforge.processdash.util.RuntimeUtils;
 
@@ -62,8 +61,26 @@ public class OpenLocalizationToolAction extends AbstractAction {
 
     private static final Resources resources = Resources.getDashBundle("ProcessDashboard");
 
+    String dashboardJar;
+
+
     public OpenLocalizationToolAction() {
         super(resources.getString("Menu.Localization_Tool"));
+
+        // if the current locale is English, don't display the menu item
+        // for the localization tool.
+        if (Locale.getDefault().getLanguage().equals("en"))
+            throw new ExtensionManager.DisabledExtensionException();
+
+        // We want the dashboard jar name. To get it, we get the classpath of a class in that
+        //  jar (here, ProcessDashboard).
+        Class processdashClass = net.sourceforge.processdash.ProcessDashboard.class;
+        dashboardJar = RuntimeUtils.getClasspathFile(processdashClass).getAbsolutePath();
+
+        // if the dashboard is running from unpackaged class files instead of
+        // a JAR, the localization tool won't work.  Disable the menu item.
+        if (!dashboardJar.toLowerCase().endsWith(".jar"))
+            throw new ExtensionManager.DisabledExtensionException();
     }
 
     public void actionPerformed(ActionEvent e) {
@@ -74,10 +91,6 @@ public class OpenLocalizationToolAction extends AbstractAction {
         String[] propagatedArgs = RuntimeUtils.getPropagatedJvmArgs();
         cmd.addAll(Arrays.asList (propagatedArgs));
 
-        // We want the dashboard jar name. To get it, we get the classpath of a class in that
-        //  jar (here, ProcessDashboard).
-        Class processdashClass = net.sourceforge.processdash.ProcessDashboard.class;
-        String dashboardJar = RuntimeUtils.getClasspathFile(processdashClass).getAbsolutePath();
         cmd.add("-D" + PROPERTY_RESOURCE_TO_TRANSLATE + "=" + dashboardJar);
 
         // The url that is used to accesss the help topics

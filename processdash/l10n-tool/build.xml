@@ -7,9 +7,12 @@
   <property name="dist"  value="dist"/>
   <property name="debug" value="on"/>
 
+  <property name="compile.target" value="1.5"/>
+
   <target name="compile">
     <mkdir dir="${bin}"/>
-    <javac srcdir="${src}" destdir="${bin}" debug="${debug}"/>
+    <javac srcdir="${src}" destdir="${bin}" debug="${debug}"
+           target="${compile.target}"/>
   </target>
 
   <target name="dist" depends="compile">

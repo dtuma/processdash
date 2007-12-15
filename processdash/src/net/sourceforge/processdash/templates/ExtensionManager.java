@@ -50,6 +50,8 @@ public class ExtensionManager {
         public InvalidExtensionException(Throwable t) { super(t); }
     }
 
+    public static class DisabledExtensionException extends RuntimeException {}
+
     private static final Logger logger = Logger
             .getLogger(ExtensionManager.class.getName());
 
@@ -144,6 +146,8 @@ public class ExtensionManager {
             try {
                 result.add(getExecutableExtension(configElem, classAttrName,
                         defaultClass, context));
+            } catch (DisabledExtensionException dee) {
+                // skip disabled extension - no action necessary
             } catch (Exception e) {
                 logger.log(Level.WARNING,
                         "Unable to create executable extension", e);
@@ -195,6 +199,8 @@ public class ExtensionManager {
             initializeExecutableExtension(result, configElement, attrName,
                     context);
             return result;
+        } catch (DisabledExtensionException dee) {
+            throw dee;
         } catch (Exception e) {
             Exception re = new InvalidExtensionException(
                     "Error in config file '" + metaData.filename
@@ -203,7 +209,10 @@ public class ExtensionManager {
                             + "' attribute of the '"
                             + configElement.getTagName() + "' tag");
             if (e instanceof InvalidExtensionException) {
-                re.initCause(e.getCause());
+                if (e.getCause() instanceof DisabledExtensionException)
+                    throw (DisabledExtensionException) e.getCause();
+                else
+                    re.initCause(e.getCause());
             } else {
                 re.initCause(e);
             }

@@ -66,9 +66,10 @@ Authors:
 
 <project default="dist" basedir=".">
 
+  <property environment="env"/>
+
   <property file="build.properties"/>
 
-  <property environment="env"/>
 
   <property name="build"      value="antbin"/>
   <property name="dist"       value="dist"/>
@@ -79,6 +80,7 @@ Authors:
   <property name="eng.version"      value="2.0"/><!-- VERSION -->
   <property name="eng.requires"     value="1.6.1.1+"/><!-- VERSION -->
   <property name="l10nTool.version" value="1.0"/><!-- VERSION -->
+  <property name="l10nTool.requires" value="1.9.2b+"/><!-- VERSION -->
   <property name="instr.requires"   value="1.7.1b.4+"/><!-- VERSION -->
 
 
@@ -126,13 +128,14 @@ Authors:
   <property name="cvsroot"
      value=":pserver:anonymous@cvs.sourceforge.net:/cvsroot/processdash"/>
 
+  <property name="javahelp.home" value="${env.JAVAHELP_HOME}"/>
 
 
   <!-- property name="build.sysclasspath" value="ignore"/ -->
   <!-- property name="build.compiler" value="javac1.4"/ -->
   <property name="compile.target" value="1.5"/>
   <property name="compile.degraded.target" value="1.2"/>
-	
+
   <path id="build.classpath">
     <pathelement location="${build}"/>
     <pathelement location="${colt.jar}"/>
@@ -157,11 +160,11 @@ Authors:
     <mkdir dir="${build}/Templates"/>
     <!-- Check to see if optional packages are present -->
     <available property="javahelp.jhindexerjar"
-               file ="${env.JAVAHELP_HOME}/javahelp/bin/jhindexer.jar"
-               value="${env.JAVAHELP_HOME}/javahelp/bin/jhindexer.jar"/>
+               file ="${javahelp.home}/javahelp/bin/jhindexer.jar"
+               value="${javahelp.home}/javahelp/bin/jhindexer.jar"/>
     <available property="javahelp.jhjar"
-               file ="${env.JAVAHELP_HOME}/javahelp/lib/jh.jar"
-               value="${env.JAVAHELP_HOME}/javahelp/lib/jh.jar"/>
+               file ="${javahelp.home}/javahelp/lib/jh.jar"
+               value="${javahelp.home}/javahelp/lib/jh.jar"/>
     <available property="commondom.support"
                classname="com.sun.java.browser.dom.DOMService"/>
     <available property="nsobject.support"
@@ -184,10 +187,10 @@ Authors:
       <excludesfile name="${lib}/fileset-ns.txt"/>
       <excludesfile name="${lib}/fileset-degraded-jre.txt"/>
     </javac>
-  	<!-- Compile classes supporting degraded JRE -->
+    <!-- Compile classes supporting degraded JRE -->
     <javac srcdir="${src}" destdir="${build}" debug="${debug}"
            classpathref="build.classpath"
-    	   target="${compile.degraded.target}" source="${compile.degraded.target}">
+           target="${compile.degraded.target}" source="${compile.degraded.target}">
       <includesfile name="${lib}/fileset-degraded-jre.txt"/>
     </javac>
   </target>
@@ -227,25 +230,27 @@ Authors:
       </fileset>
     </jar>
   </target>
-	
-	<target name="l10nTool-addon" depends="l10n-tool">
-		<jar destfile="${dist}/l10nTool.jar" duplicate="fail">
-		      <!-- specify the manifest file contents -->
-			<manifest>
-		        <attribute name="Dash-Pkg-ID" value="l10nTool"/>
-		        <attribute name="Dash-Pkg-Version" value="${l10nTool.version}"/>
-		        <attribute name="Dash-Pkg-Name"
-		                   value="Process Dashboard Localization Tool"/>
-		        <attribute name="Dash-Pkg-URL"
-		                   value="http://processdash.sourceforge.net/cgi-bin/update"/>
-		     </manifest>
 
-			<zipfileset src="${l10n-tool.jar}"/>
-			
-			<fileset dir="." includes="Templates/l10nTool-template.xml"/>
-			<fileset dir="${build}" includes="net/**/OpenLocalizationToolAction*.class"/>
-		    </jar>
-	</target>
+  <target name="l10nTool-addon" depends="l10n-tool,ant-tasks">
+    <jar destfile="${dist}/l10nTool.jar" duplicate="fail">
+      <!-- specify the manifest file contents -->
+      <manifest>
+        <attribute name="Dash-Pkg-ID" value="l10nTool"/>
+        <attribute name="Dash-Pkg-Version" value="${l10nTool.version}"/>
+        <attribute name="Dash-Pkg-Requires-Version" value="${l10nTool.requires}"/>
+        <attribute name="Dash-Pkg-Name"
+                   value="Process Dashboard Localization Tool"/>
+        <attribute name="Dash-Pkg-URL"
+                   value="http://processdash.sourceforge.net/cgi-bin/update"/>
+      </manifest>
+
+      <zipfileset src="${l10n-tool.jar}"/>
+
+      <fileset dir="." includes="Templates/l10nTool-template.xml"/>
+      <fileset dir="${build}" includes="net/**/OpenLocalizationToolAction*.class"/>
+    </jar>
+    <maybeSignJar jar="${dist}/l10nTool.jar" prefix="${l10nTool-signature}"/>
+  </target>
 
   <target name="pspForEng-addon" depends="compile">
     <!-- build the jarfile for students -->
@@ -264,10 +269,10 @@ Authors:
         <include name="Templates/pspForEng*"/>
         <include name="Templates/pspForEng/"/>
         <include name="Templates/pspForEng2/"/>
-	<exclude name="Templates/pspForEng/userdata/"/>
-	<exclude name="Templates/pspForEng2/userdata/"/>
-	<exclude name="Templates/pspForEng/repair.*"/>
-	<exclude name="Templates/pspForEng-instr*"/>
+        <exclude name="Templates/pspForEng/userdata/"/>
+        <exclude name="Templates/pspForEng2/userdata/"/>
+        <exclude name="Templates/pspForEng/repair.*"/>
+        <exclude name="Templates/pspForEng-instr*"/>
       </fileset>
       <fileset dir="${build}" includes="net/**/PspForEngFilter.class"/>
     </jar>
@@ -284,7 +289,7 @@ Authors:
       </manifest>
 
       <fileset dir=".">
-	<include name="Templates/pspForEng-instr*"/>
+        <include name="Templates/pspForEng-instr*"/>
       </fileset>
     </jar>
   </target>
@@ -361,8 +366,8 @@ Authors:
     <pathconvert property=".jarsurf_filelist" pathsep="&#x0a;" dirsep="/">
       <path>
         <fileset dir="${.buildbasedir}">
-	  <include name="${jarsurf}/*.class"/>
-	  <include name="${basePkg}/ui/lib/BrowserLauncher.class"/>
+          <include name="${jarsurf}/*.class"/>
+          <include name="${basePkg}/ui/lib/BrowserLauncher.class"/>
         </fileset>
       </path>
     </pathconvert>
@@ -375,11 +380,11 @@ Authors:
 
   <target name="translator" depends="ant-tasks,-translator-depend"
           description="Regenerate source code for the default translation engine if necessary."
-	  unless="translator.upToDate">
+          unless="translator.upToDate">
     <i18n-generateTranslator
         classname="net.sourceforge.processdash.i18n.DefaultEngine"
-	destdir="src"
-	dir="${resources}" includes="(Resources).properties"/>
+        destdir="src"
+        dir="${resources}" includes="(Resources).properties"/>
   </target>
 
   <target name="-translator-depend"
@@ -431,7 +436,7 @@ Authors:
       <!-- specify the manifest file contents -->
       <manifest>
         <attribute name="Main-Class"
-	    value="net.sourceforge.processdash.Main"/>
+                   value="net.sourceforge.processdash.Main"/>
         <attribute name="Dash-Pkg-ID" value="pspdash"/>
         <attribute name="Dash-Pkg-Version" value="${version}"/>
         <attribute name="Dash-Pkg-Name" value="Process Dashboard"/>
@@ -439,7 +444,7 @@ Authors:
                    value="http://processdash.sourceforge.net/cgi-bin/update"/>
         <attribute name="Dash-Svn-Revision" value="${svnRevision}"/>
 
-	<attribute name="Implementation-Version" value="${version}"/>
+        <attribute name="Implementation-Version" value="${version}"/>
       </manifest>
 
       <!-- include the compiled files and cgi scripts -->
@@ -447,9 +452,9 @@ Authors:
           <include name="org/"/>
           <include name="Templates/"/>
           <include name="net/"/>
-	  <exclude name="**/*Test.class"/>
-	  <exclude name="net/**/PspForEngFilter.class"/>
-      <exclude name="net/**/OpenLocalizationToolAction*.class"/>
+          <exclude name="**/*Test.class"/>
+          <exclude name="net/**/PspForEngFilter.class"/>
+          <exclude name="net/**/OpenLocalizationToolAction*.class"/>
       </fileset>
 
       <!-- include important non-class files in the src directory -->
@@ -500,8 +505,8 @@ Authors:
     <pathconvert property=".jhfilelist" pathsep=":" dirsep="/">
       <path>
         <fileset dir="${help}" includes="Topics/**/*.html">
-	  <exclude name="Topics/Overview/disc-eng.html"/>
-	  <exclude name="Topics/AdvancedTopics/ProcessDefinition/DataFileFunctions.html"/>
+          <exclude name="Topics/Overview/disc-eng.html"/>
+          <exclude name="Topics/AdvancedTopics/ProcessDefinition/DataFileFunctions.html"/>
         </fileset>
       </path>
     </pathconvert>
@@ -582,7 +587,7 @@ Authors:
     <jar destfile="${installer}/files/mergeSettings.jar" duplicate="fail">
       <manifest>
         <attribute name="Main-Class"
-	    value="net.sourceforge.processdash.InternalSettings"/>
+                   value="net.sourceforge.processdash.InternalSettings"/>
       </manifest>
       <fileset refid="installer-mergeJar-classes"/>
     </jar>
@@ -590,11 +595,11 @@ Authors:
 
   <target name="installer-langpacks" depends="ant-tasks">
     <i18n-updateLangpack resourcesDir="${resources}" javaLang="ja"
-	langpack="${langpacks}/jpn.xml"
-	textfile="${installer}/files/text-jpn.xml"/>
+        langpack="${langpacks}/jpn.xml"
+        textfile="${installer}/files/text-jpn.xml"/>
     <i18n-updateLangpack resourcesDir="${resources}" javaLang="zh"
-	langpack="${langpacks}/chn.xml"
-	textfile="${installer}/files/text-chn.xml"/>
+        langpack="${langpacks}/chn.xml"
+        textfile="${installer}/files/text-chn.xml"/>
   </target>
 
 
@@ -640,7 +645,7 @@ Authors:
     <delete quiet="true" file="${dist}/dashHelp.jar"/>
     <delete quiet="true" file="${dist}/importPSP.jar"/>
     <delete quiet="true" file="${dist}/pspForEng.jar"/>
-  	<delete quiet="true" file="${dist}/l10nTool.jar"/>
+    <delete quiet="true" file="${dist}/l10nTool.jar"/>
     <delete quiet="true" file="${dist}/pdash-src-*.zip"/>
     <delete><fileset dir="${libsrc}" includes="**/*.class"/></delete>
   </target>
@@ -705,7 +710,7 @@ Authors:
     <jar destfile="${dist}/p4diff.jar" duplicate="fail">
       <manifest>
         <attribute name="Main-Class"
-	    value="net.sourceforge.processdash.tool.diff.impl.PerforceLOCDiff"/>
+            value="net.sourceforge.processdash.tool.diff.impl.PerforceLOCDiff"/>
       </manifest>
       <fileset refid="p4locClasses"/>
       <fileset dir=".">
