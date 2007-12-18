@@ -200,6 +200,10 @@ public class TeamProject {
     /** Open the file containing the project settings (written by the team
      * project setup wizard) */
     protected void openProjectSettings() {
+        userSettings = new Properties();
+        loadProperties(userSettings, TeamProject.class.getResourceAsStream(
+            "default-user-settings.txt"));
+
         try {
             projectSettings = openXML(new File(directory, SETTINGS_FILENAME));
             String name = projectSettings.getAttribute("projectName");
@@ -223,10 +227,6 @@ public class TeamProject {
                 if (masterProjectDirectory != null)
                     masterProjectID = masterProjectDirectory.getName();
             }
-
-            userSettings = new Properties();
-            loadProperties(userSettings, TeamProject.class.getResourceAsStream(
-                "default-user-settings.txt"));
 
             File userSettingsFile = new File(directory, USER_SETTINGS_FILENAME);
             if (userSettingsFile.canRead()) {

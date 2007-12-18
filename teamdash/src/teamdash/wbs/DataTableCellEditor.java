@@ -15,13 +15,13 @@ import javax.swing.text.JTextComponent;
  * appropriate UndoList, and sends change notifications to that
  * UndoList when the user edits a table cell value.
  */
-class DataTableCellEditor extends DefaultCellEditor {
+public class DataTableCellEditor extends DefaultCellEditor {
 
     private Object startingValue;
     private String columnName;
-    private JTable table = null;
+    protected JTable table = null;
 
-    DataTableCellEditor() {
+    public DataTableCellEditor() {
         super(new JTextField());
     }
 

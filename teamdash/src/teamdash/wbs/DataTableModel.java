@@ -16,6 +16,7 @@ import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableColumnModel;
 
 import teamdash.team.TeamMemberList;
+import teamdash.wbs.columns.NotesColumn;
 import teamdash.wbs.columns.TaskLabelColumn;
 import teamdash.wbs.columns.NullDataColumn;
 import teamdash.wbs.columns.PhaseColumn;
@@ -26,9 +27,12 @@ import teamdash.wbs.columns.TaskSizeUnitsColumn;
 import teamdash.wbs.columns.TeamActualTimeColumn;
 import teamdash.wbs.columns.TeamMemberColumnManager;
 import teamdash.wbs.columns.TeamTimeColumn;
+import teamdash.wbs.columns.WBSNodeColumn;
 
 
 public class DataTableModel extends AbstractTableModel {
+
+    public static final int WBS_NODE_COLUMN = 0;
 
     /** The wbs model which this is displaying data for */
     protected WBSModel wbsModel;
@@ -53,7 +57,8 @@ public class DataTableModel extends AbstractTableModel {
 
     public DataTableModel(WBSModel wbsModel, TeamMemberList teamList,
                           TeamProcess teamProcess,
-                          TaskDependencySource dependencySource)
+                          TaskDependencySource dependencySource,
+                          String currentUser)
     {
         this.wbsModel = wbsModel;
         wbsModel.addTableModelListener(new TableModelEventRepeater());
@@ -65,7 +70,7 @@ public class DataTableModel extends AbstractTableModel {
         recalcJanitorTimer.setRepeats(false);
         recalcJanitorTimer.setInitialDelay(3000);
 
-        buildDataColumns(teamList, teamProcess, dependencySource);
+        buildDataColumns(teamList, teamProcess, dependencySource, currentUser);
         initializeColumnDependencies();
     }
 
@@ -257,11 +262,14 @@ public class DataTableModel extends AbstractTableModel {
     }
 
 
-    /** Create a set of data columns for this data model. */
+    /** Create a set of data columns for this data model.
+     * @param currentUser */
     protected void buildDataColumns(TeamMemberList teamList,
                                     TeamProcess teamProcess,
-                                    TaskDependencySource dependencySource)
+                                    TaskDependencySource dependencySource,
+                                    String currentUser)
     {
+        addDataColumn(new WBSNodeColumn(wbsModel));
         SizeTypeColumn.createSizeColumns(this, teamProcess);
         addDataColumn(new PhaseColumn(this, teamProcess));
         addDataColumn(new TaskSizeColumn(this, teamProcess));
@@ -271,6 +279,7 @@ public class DataTableModel extends AbstractTableModel {
         addDataColumn(new TaskLabelColumn(this));
         addDataColumn(new TaskDependencyColumn(this, dependencySource,
                 teamProcess.getIconMap()));
+        addDataColumn(new NotesColumn(currentUser));
         memberColumnManager = new TeamMemberColumnManager(this, teamList);
     }
 

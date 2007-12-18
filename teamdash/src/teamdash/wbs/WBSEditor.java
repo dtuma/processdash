@@ -114,7 +114,7 @@ public class WBSEditor implements WindowListener, SaveListener,
         TaskDependencySource taskDependencySource = getTaskDependencySource();
         DataTableModel data = new DataTableModel
             (model, teamProject.getTeamMemberList(),
-             teamProject.getTeamProcess(), taskDependencySource);
+             teamProject.getTeamProcess(), taskDependencySource, owner);
 
         if (isMode(MODE_PLAIN)) {
             reverseSynchronizer = new WBSSynchronizer(teamProject, data);
@@ -180,8 +180,8 @@ public class WBSEditor implements WindowListener, SaveListener,
                         "Completed", "%C", "%S", "Actual Time" });
 
         tabPanel.addTab("Task Details",
-                new String[] { "Labels", "Dependencies" },
-                new String[] { "Task Labels", "Task Dependencies" });
+                new String[] { "Labels", "Dependencies", "Notes" },
+                new String[] { "Task Labels", "Task Dependencies", "Notes" });
 
         if (showActualData)
             tabPanel.addTab("Actual Time",

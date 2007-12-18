@@ -4,7 +4,6 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.util.Date;
-import java.util.StringTokenizer;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -54,17 +53,24 @@ public class XMLUtils {
     }
 
     public static String escapeAttribute(String value) {
-        StringTokenizer tok = new StringTokenizer(value, "<>&'\"", true);
-        StringBuffer result = new StringBuffer();
-        String token;
-        while (tok.hasMoreTokens()) {
-            token = tok.nextToken();
-            if      ("<".equals(token))  result.append("&lt;");
-            else if (">".equals(token))  result.append("&gt;");
-            else if ("&".equals(token))  result.append("&amp;");
-            else if ("'".equals(token))  result.append("&apos;");
-            else if ("\"".equals(token)) result.append("&quot;");
-            else                         result.append(token);
+        if (value == null)
+            return "";
+
+        StringBuffer result = new StringBuffer(value.length());
+        char[] chars = value.toCharArray();
+        for (int i = 0; i < chars.length; i++) {
+            switch(chars[i]) {
+                case '<': result.append("&lt;"); break;
+                case '>': result.append("&gt;"); break;
+                case '&': result.append("&amp;"); break;
+                case '"': result.append("&quot;"); break;
+                case '\'': result.append("&apos;"); break;
+                default:
+                    if (chars[i] < 32)
+                        result.append("&#").append((int) chars[i]).append(";");
+                    else
+                        result.append(chars[i]);
+            }
         }
         return result.toString();
     }

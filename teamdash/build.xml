@@ -139,6 +139,7 @@
 
     <!-- also compute the classes needed from processdash packages -->
     <classfileset id="dashClasses" dir="${processdash.dir}/antbin">
+      <root classname="net.sourceforge.processdash.util.HTMLUtils"/>
       <root classname="net.sourceforge.processdash.util.PreferencesUtils"/>
       <root classname="net.sourceforge.processdash.util.RobustFileWriter"/>
       <root classname="net.sourceforge.processdash.util.RuntimeUtils"/>
@@ -150,7 +151,7 @@
       <mapper type="merge" to="X"/>
     </pathconvert>
     <condition property="dashClasses.overflowing">
-      <length string="${dashClasses.count}" when="greater" length="9"/>
+      <length string="${dashClasses.count}" when="greater" length="12"/>
     </condition>
 
     <!-- abort if the processdash class list was larger than expected -->
