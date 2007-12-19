@@ -26,6 +26,7 @@
 package net.sourceforge.processdash.i18n;
 
 import java.awt.event.ActionEvent;
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -72,14 +73,23 @@ public class OpenLocalizationToolAction extends AbstractAction {
         if (Locale.getDefault().getLanguage().equals("en"))
             throw new ExtensionManager.DisabledExtensionException();
 
-        // We want the dashboard jar name. To get it, we get the classpath of a class in that
-        //  jar (here, ProcessDashboard).
+        // We want the dashboard jar name. To get it, we get the classpath of a
+        // class in that jar (here, ProcessDashboard).
         Class processdashClass = net.sourceforge.processdash.ProcessDashboard.class;
-        dashboardJar = RuntimeUtils.getClasspathFile(processdashClass).getAbsolutePath();
+        File cp = RuntimeUtils.getClasspathFile(processdashClass);
 
-        // if the dashboard is running from unpackaged class files instead of
-        // a JAR, the localization tool won't work.  Disable the menu item.
-        if (!dashboardJar.toLowerCase().endsWith(".jar"))
+        // If the localization JAR file is unsigned and we are running in a
+        // security manager, we will be unable to find a classpath.  Indicate
+        // this with an appropriate exception
+        if (cp == null)
+            throw new SecurityException("Unable to calculate classpath");
+
+        // The localization tool requires the dashboard to be running from a
+        // JAR file.  If the dashboard is running from unpackaged class files
+        // instead, disable the menu item.
+        if (cp.isFile() && cp.getName().toLowerCase().endsWith(".jar"))
+            dashboardJar = cp.getAbsolutePath();
+        else
             throw new ExtensionManager.DisabledExtensionException();
     }
 
