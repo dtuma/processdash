@@ -64,6 +64,7 @@ public class Control extends TinyCGIBase {
         stopTiming();
         clearCGICache();
         showHelp();
+        saveDataFiles();
 
         if (printNullDocument)
             DashController.printNullDocument(out);
@@ -120,6 +121,11 @@ public class Control extends TinyCGIBase {
     private void showHelp() {
         if (isTask("showHelp"))
             PCSH.displayHelpTopic(getParameter("topicID"));
+    }
+
+    private void saveDataFiles() {
+        if (isTask("saveDataFiles"))
+            getDataRepository().saveAllDatafiles();
     }
 
 
