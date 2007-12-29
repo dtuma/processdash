@@ -118,8 +118,6 @@ public class DataImporter extends Thread {
     }
 
     public DataImporter(DataRepository data, String prefix, File directory) {
-        if (!directory.isDirectory()) return;
-
         this.data = data;
         this.importPrefix = prefix;
         this.directory = directory;
