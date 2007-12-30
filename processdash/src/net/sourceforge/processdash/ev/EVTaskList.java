@@ -832,6 +832,7 @@ public class EVTaskList extends AbstractTreeTableModel
     // pseudo column numbers for retrieving other extended task data
     public static final int EVTASK_NODE_COLUMN    = -99999;
     public static final int PROJ_DATE_COLUMN      = -1000;
+    public static final int ACT_START_DATE_COLUMN = -123;
 
     public static final int[] HIDABLE_COLUMN_LIST = { NODE_TYPE_COLUMN,
             PLAN_DTIME_COLUMN, ACT_DTIME_COLUMN, REPLAN_DATE_COLUMN,
@@ -1000,6 +1001,7 @@ public class EVTaskList extends AbstractTreeTableModel
         case ACT_DTIME_COLUMN:      return n.getActualDirectTime(totalActualTime);
         case -ACT_DTIME_COLUMN:     return new Double(n.actualDirectTime);
         case PLAN_VALUE_COLUMN:     return n.getPlanValue(totalPlanValue);
+        case -PLAN_VALUE_COLUMN:    return new Double(n.planValue/totalPlanValue);
         case PLAN_CUM_TIME_COLUMN:  return n.getCumPlanTime();
         case PLAN_CUM_VALUE_COLUMN: return n.getCumPlanValue(totalPlanValue);
         case ASSIGNED_TO_COLUMN:    return n.getAssignedToText();
@@ -1012,7 +1014,9 @@ public class EVTaskList extends AbstractTreeTableModel
         case DEPENDENCIES_COLUMN:   return n.getDependencies();
         case PCT_COMPLETE_COLUMN:   return n.getPercentComplete();
         case PCT_SPENT_COLUMN:      return n.getPercentSpent();
+        case -PCT_SPENT_COLUMN:     return new Double(n.actualTime/n.planTime);
         case VALUE_EARNED_COLUMN:   return n.getValueEarned(totalPlanValue);
+        case ACT_START_DATE_COLUMN: return n.getActualStartDate();
 
         case EVTASK_NODE_COLUMN:    return n;
         case PROJ_DATE_COLUMN:
