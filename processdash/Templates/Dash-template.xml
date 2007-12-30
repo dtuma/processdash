@@ -201,4 +201,8 @@ E-Mail POC:  processdash-devel@lists.sourceforge.net
     <uri>/reports/ev.class?tl=auto&amp;labelFilterAuto</uri>
   </snippet>
 
+  <!-- Other miscellaneous items provided by the dashboard -->
+
+  <noteFormat class="net.sourceforge.processdash.hier.ui.PlainTextNoteFormat"/>
+
 </dashboard-process-template>

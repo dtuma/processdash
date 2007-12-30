@@ -25,13 +25,11 @@
 
 package net.sourceforge.processdash.hier;
 
-import java.util.Collections;
 import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
 
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.StringData;
+import net.sourceforge.processdash.hier.ui.PlainTextNoteFormat;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.XMLUtils;
 
@@ -49,9 +47,6 @@ public class HierarchyNote {
         }
     }
 
-    /** Constant indicating that content is in plain text format */
-    public static final String FORMAT_PLAIN_TEXT = "text";
-
     /** The textual content of the note */
     private String content;
 
@@ -60,7 +55,7 @@ public class HierarchyNote {
      * 
      * @see #FORMAT_PLAIN_TEXT
      */
-    private String format = FORMAT_PLAIN_TEXT;
+    private String format = PlainTextNoteFormat.FORMAT_ID;
 
     /** What type of note does this represent */
     private String flavor;
@@ -106,8 +101,6 @@ public class HierarchyNote {
     public void setContent(String content, String format) {
         if (!XMLUtils.hasValue(format))
             throw new IllegalArgumentException("Format must be specified");
-        if (!RECOGNIZED_FORMATS.contains(format))
-            throw new IllegalArgumentException("Unrecognized note format");
 
         this.content = content;
         this.format = format;
@@ -163,6 +156,10 @@ public class HierarchyNote {
         return result.toString();
     }
 
+    public String getAsHTML() {
+        return HierarchyNoteManager.getNoteFormat(format).getAsHTML(this);
+    }
+
     public SimpleData getAsData() {
         return StringData.create(getAsXML());
     }
@@ -215,11 +212,5 @@ public class HierarchyNote {
     private static final String TIMESTAMP_ATTR = "timestamp";
 
     private static final String FORMAT_ATTR = "format";
-
-    private static final Set<String> RECOGNIZED_FORMATS = Collections
-            .synchronizedSet(new HashSet<String>());
-    static {
-        RECOGNIZED_FORMATS.add(FORMAT_PLAIN_TEXT);
-    }
 
 }

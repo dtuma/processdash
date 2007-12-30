@@ -25,13 +25,23 @@
 
 package net.sourceforge.processdash.hier;
 
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 
+import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.data.DataContext;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.hier.HierarchyNote.InvalidNoteSpecification;
+import net.sourceforge.processdash.hier.ui.HierarchyNoteFormat;
+import net.sourceforge.processdash.hier.ui.PlainTextNoteFormat;
+import net.sourceforge.processdash.templates.ExtensionManager;
 
 public class HierarchyNoteManager {
 
@@ -40,6 +50,10 @@ public class HierarchyNoteManager {
     public static final String NOTE_BASE_KEY = "Team_Note.Base";
 
     public static final String NOTE_CONFLICT_KEY = "Team_Note.Conflict";
+
+
+    private static Logger logger = Logger.getLogger(HierarchyNoteManager.class
+            .getName());
 
 
     public static Map<String, HierarchyNote> getNotesForPath(DataContext data,
@@ -89,13 +103,21 @@ public class HierarchyNoteManager {
             if (dataName != null) {
                 SimpleData val = null;
                 if (e.getValue() instanceof HierarchyNote) {
-                    val = ((HierarchyNote) e.getValue()).getAsData();
+                    HierarchyNote note = (HierarchyNote) e.getValue();
+                    // When saving the main note, fill in the author/timestamp
+                    // data if it is missing
+                    if (dataName == TEAM_NOTE_DATA_NAME) {
+                        if (note.getTimestamp() == null)
+                            note.setTimestamp(new Date());
+                        if (note.getAuthor() == null)
+                            note.setAuthor(ProcessDashboard.getOwnerName(data));
+                    }
+                    val = (note).getAsData();
                 }
                 String fullDataName = DataRepository.createDataName(path,
                     dataName);
                 data.putValue(fullDataName, val);
             }
-
         }
     }
 
@@ -107,5 +129,39 @@ public class HierarchyNoteManager {
 
     private static final String TEAM_NOTE_CONFLICT_DATA_NAME =
             TEAM_NOTE_DATA_NAME + "_Edit_Conflict_Val";
+
+
+
+    public static HierarchyNoteFormat getNoteFormat(String formatID) {
+        HierarchyNoteFormat result = getFormatters().get(formatID);
+        if (result == null) {
+            logger.severe("Unrecognized note format '" + formatID
+                    + "' - using plain text instead");
+            result = getFormatters().get(PlainTextNoteFormat.FORMAT_ID);
+        }
+        return result;
+    }
+
+    private static Map<String, HierarchyNoteFormat> NOTE_FORMATS = null;
+
+    private static synchronized Map<String, HierarchyNoteFormat> getFormatters() {
+        if (NOTE_FORMATS == null) {
+            Map<String, HierarchyNoteFormat> result =
+                new HashMap<String, HierarchyNoteFormat>();
+            List formats = ExtensionManager.getExecutableExtensions(
+                NOTE_FORMAT_EXTENSION_TAG, null);
+            for (Iterator i = formats.iterator(); i.hasNext();) {
+                Object o = (Object) i.next();
+                if (o instanceof HierarchyNoteFormat) {
+                    HierarchyNoteFormat nf = (HierarchyNoteFormat) o;
+                    result.put(nf.getID(), nf);
+                }
+            }
+            NOTE_FORMATS = Collections.synchronizedMap(result);
+        }
+        return NOTE_FORMATS;
+    }
+
+    private static final String NOTE_FORMAT_EXTENSION_TAG = "noteFormat";
 
 }
