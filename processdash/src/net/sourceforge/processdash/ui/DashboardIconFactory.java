@@ -36,6 +36,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 import java.util.Collection;
 import java.util.List;
 
@@ -136,76 +137,77 @@ public class DashboardIconFactory {
 
     private static Icon timingIcon = null;
     public static Icon getTimingIcon() {
-        if (timingIcon == null) {
-            timingIcon = loadNamedIcon("timing");
-            if (timingIcon == null)
-                timingIcon = new ImageIcon(loadImage("timing.png", null));
-        }
-        return timingIcon;
+        return timingIcon = loadNamedIcon("timing", timingIcon);
     }
 
     private static Icon timingDisabledIcon = null;
     public static Icon getTimingDisabledIcon() {
-        if (timingDisabledIcon == null) {
-            timingDisabledIcon = loadNamedIcon("timingDisabled");
-            if (timingDisabledIcon == null)
-                timingDisabledIcon = new ImageIcon(loadImage(
-                    "timingDisabled.png", null));
-        }
-        return timingDisabledIcon;
+        return timingDisabledIcon = loadNamedIcon("timingDisabled",
+            timingDisabledIcon);
     }
 
     private static Icon pausedIcon = null;
     public static Icon getPausedIcon() {
-        if (pausedIcon == null) {
-            pausedIcon = loadNamedIcon("paused");
-            if (pausedIcon == null)
-                pausedIcon = new ImageIcon(loadImage("paused.png", null));
-        }
-        return pausedIcon;
-    }
-
-    private static Image loadImage(String resourceName, Image current) {
-        if (current != null)
-            return current;
-        return Toolkit.getDefaultToolkit().createImage(
-                DashboardIconFactory.class.getResource(resourceName));
+        return pausedIcon = loadNamedIcon("paused", pausedIcon);
     }
 
     public static Icon getCheckIcon() {
-        Icon result = loadNamedIcon("check");
+        Icon result = loadNamedIcon("check", null);
         if (result == null) result = new CheckIcon();
         return result;
     }
 
     public static Icon getDefectIcon() {
-        Icon result = loadNamedIcon("defect");
+        Icon result = loadNamedIcon("defect", null);
         if (result == null) result = new DefectIcon();
         return result;
     }
 
     public static Icon getDisabledDefectIcon() {
-        Icon result = loadNamedIcon("defect-dis");
+        Icon result = loadNamedIcon("defect-dis", null);
         if (result == null) result = new DisabledDefectIcon();
         return result;
     }
 
     public static Icon getScriptIcon() {
-        Icon result = loadNamedIcon("script");
+        Icon result = loadNamedIcon("script", null);
         if (result == null) result = new ScriptIcon();
         return result;
     }
 
     public static Icon getDisabledScriptIcon() {
-        Icon result = loadNamedIcon("script-dis");
+        Icon result = loadNamedIcon("script-dis", null);
         if (result == null) result = new DisabledScriptIcon();
         return result;
     }
 
-    private static Icon loadNamedIcon(String name) {
+    private static Icon commentIcon = null;
+    public static Icon getCommentIcon() {
+        return commentIcon = loadNamedIcon("comment", commentIcon);
+    }
+
+    private static Icon noCommentIcon = null;
+    public static Icon getNoCommentIcon() {
+        return noCommentIcon = loadNamedIcon("commentNone", noCommentIcon);
+    }
+
+    private static Icon commentErrorIcon = null;
+    public static Icon getCommentErrorIcon() {
+        return commentErrorIcon = loadNamedIcon("commentError",
+            commentErrorIcon);
+    }
+
+    private static Icon loadNamedIcon(String name, Icon current) {
+        if (current != null)
+            return current;
+
         // TODO: try loading icons out of the Templates/resources directory,
         // to allow for localization of icons.
-        return null;
+
+        // look for the icon in the classpath
+        URL iconUrl = DashboardIconFactory.class.getResource(name + ".png");
+        if (iconUrl == null) return null;
+        return new ImageIcon(Toolkit.getDefaultToolkit().createImage(iconUrl));
     }
 
 
