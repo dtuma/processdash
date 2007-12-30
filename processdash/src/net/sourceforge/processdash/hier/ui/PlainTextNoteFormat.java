@@ -166,11 +166,6 @@ public class PlainTextNoteFormat implements HierarchyNoteFormat {
             ell.remove(ChangeListener.class, l);
         }
 
-        @Override
-        public boolean getScrollableTracksViewportWidth() {
-            return true;
-        }
-
     }
 
     private static final String BYLINE_CSS = "style='text-align:right; color:#808080; font-style:italic'";
