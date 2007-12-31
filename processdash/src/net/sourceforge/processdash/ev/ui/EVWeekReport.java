@@ -177,6 +177,8 @@ public class EVWeekReport extends TinyCGIBase {
         Date nextWeek = adjustDate(effDate, EVSchedule.WEEK_MILLIS);
         Date startDate = schedule.getStartDate();
         if (lastWeek.before(startDate)) lastWeek = startDate;
+        Date effDateDisplay = new Date(effDate.getTime() - 1000);
+        Date nextWeekDisplay = new Date(nextWeek.getTime() - 1000);
 
         // Calculate future cutoff dates for task dependency display
         Date dependDate = getFutureCutoffDate(effDate,
@@ -300,7 +302,7 @@ public class EVWeekReport extends TinyCGIBase {
             out.print(header);
 
             out.print("<h2>");
-            String endDateStr = encodeHTML(new Date(effDate.getTime() - 1000));
+            String endDateStr = encodeHTML(effDateDisplay);
             out.print(resources.format("Header_HTML_FMT", endDateStr));
             if (!isExporting()) {
                 if (lastWeek.compareTo(startDate) > 0)
@@ -441,7 +443,10 @@ public class EVWeekReport extends TinyCGIBase {
             tableWriter.setCellRenderer(EVTaskList.TASK_COLUMN,
                     EVReport.EV_CELL_RENDERER);
 
-            interpOut("<h3>${Completed_Tasks.Header}</h3>\n");
+            out.print("<h3 title='");
+            out.print(HTMLUtils.escapeEntities(resources.format(
+                "Completed_Tasks.Header_Tip_FMT", lastWeek, effDateDisplay)));
+            interpOut("'>${Completed_Tasks.Header}</h3>\n");
             if (!oneCompletedLastWeek)
                 interpOut("<p><i>${None}</i>\n");
             else {
@@ -458,7 +463,10 @@ public class EVWeekReport extends TinyCGIBase {
             // put the "task with timing icons" renderer back in place if necessary
             tableWriter.setCellRenderer(EVTaskList.TASK_COLUMN, taskRenderer);
 
-            interpOut("<h3>${Task_In_Progress.Header}</h3>\n");
+            out.print("<h3 title='");
+            out.print(HTMLUtils.escapeEntities(resources.format(
+                "Tasks_In_Progress.Header_Tip_FMT", effDateDisplay)));
+            interpOut("'>${Tasks_In_Progress.Header}</h3>\n");
             if (!oneInProgressThisWeek)
                 interpOut("<p><i>${None}</i>\n");
             else {
@@ -471,6 +479,9 @@ public class EVWeekReport extends TinyCGIBase {
                 double totalUnearnedValue = 0;
 
                 for (int i = 0; i < taskListLen; ++i) {
+                    if (!inProgressThisWeek[i])
+                        continue;
+
                     double taskPlannedTime =
                         parseTime(tasks.getValueAt(i, -EVTaskList.PLAN_TIME_COLUMN));
                     double taskActualTime =
@@ -493,16 +504,21 @@ public class EVWeekReport extends TinyCGIBase {
                                         showLabels, taskUnearnedValue);
                 }
 
-                interpOut("<tr class='sortbottom'><td><b>${Task_In_Progress.Total}"
+                interpOut("<tr class='sortbottom'><td><b>${Tasks_In_Progress.Total}"
                         + "&nbsp;</b></td><td class='timeFmt'>");
                 out.print(formatTime(totalPlannedTime) + "</td>");
                 out.print("<td class='timeFmt'>");
                 out.print(formatTime(totalActualTime) + "</td>");
                 out.print("<td>" + formatPercent(totalPlannedValue) + "</td>");
+                if (totalPlannedTime > 0) {
+                    double totalPctSpent = totalActualTime/totalPlannedTime;
+                    out.print("<td>" + formatPercent(totalPctSpent) + "</td>");
+                } else {
+                    out.print("<td>&nbsp;</td>");
+                }
 
-                // Empty td because there is no total for Percent Spent,
-                //  Planned Date and Dep.
-                int noSumCol = 3 + (showAssignedTo ? 1:0) + (showLabels ? 1:0);
+                // Empty td because there is no total for Planned Date and Dep.
+                int noSumCol = 2 + (showAssignedTo ? 1:0) + (showLabels ? 1:0);
                 for (int i = 0; i < noSumCol ; ++i)
                     out.print("<td>&nbsp;</td>");
 
@@ -513,7 +529,10 @@ public class EVWeekReport extends TinyCGIBase {
                 out.println("</tr>\n</table>");
             }
 
-            interpOut("<h3>${Due_Tasks.Header}</h3>\n");
+            out.print("<h3 title='");
+            out.print(HTMLUtils.escapeEntities(resources.format(
+                "Due_Tasks.Header_Tip_FMT", effDateDisplay, nextWeekDisplay)));
+            interpOut("'>${Due_Tasks.Header}</h3>\n");
             if (!oneDueNextWeek)
                 interpOut("<p><i>${None}</i>\n");
             else {
@@ -1128,7 +1147,8 @@ public class EVWeekReport extends TinyCGIBase {
         "<link rel=stylesheet type='text/css' href='/style.css'>\n" +
         "<style> td { text-align:right } td.left { text-align:left } "+
         "td.center { text-align: center } " +
-        "td.error  { font-style: italic;  color: red }\n" +
+        "td.error  { font-style: italic;  color: red; " +
+                           " text-align: left; padding-left: 1ex }\n" +
         "td.header { text-align:center; font-weight:bold; "+
                            " vertical-align:bottom }\n" +
         "td.modelErrors { text-align: left; background-color: #ff5050 }\n" +
@@ -1185,7 +1205,7 @@ public class EVWeekReport extends TinyCGIBase {
         return FormatUtil.formatTime(time);
     }
     private String formatPercent(double pct) {
-        return FormatUtil.formatPercent(pct);
+        return EVSchedule.formatPercent(pct);
     }
 
     /** translate an object to appropriate HTML */
