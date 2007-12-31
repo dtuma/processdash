@@ -18,6 +18,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellEditor;
@@ -279,6 +280,9 @@ public class NotesColumn extends AbstractDataColumn implements
             dialog.setSize(dialogWidth, dialogHeight);
             if (dialogX != -1)
                 dialog.setLocation(dialogX, dialogY);
+            else
+                dialog.setLocationRelativeTo(SwingUtilities
+                        .getWindowAncestor(button));
 
             dialog.setVisible(true);
 
