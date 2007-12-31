@@ -108,19 +108,19 @@ public abstract class SyncWorker implements DataContext {
                 double time = ((NumberData) actualTime).getDouble();
                 DoubleData estimatedTime = new DoubleData(time, true);
                 doPutValue(dataName(path, "Estimated Time"), estimatedTime);
-                doPutValue(dataName(path, "Estimated Time" + SYNC_VAL_SUFFIX),
+                doPutValue(dataName(path, syncDataName("Estimated Time")),
                         estimatedTime);
             }
             DateData now = new DateData();
             doPutValue(completionDataName, now);
-            doPutValue(completionDataName+SYNC_VAL_SUFFIX, now);
+            doPutValue(syncDataName(completionDataName), now);
             nodesCompleted.add(path);
         }
     }
 
     public boolean markLeafIncomplete(String path) {
         String completionDataName = dataName(path, "Completed");
-        String syncDataName = completionDataName + SYNC_VAL_SUFFIX;
+        String syncDataName = syncDataName(completionDataName);
         SimpleData completionDate = getSimpleValue(completionDataName);
         SimpleData syncDate = getSimpleValue(syncDataName);
         if (completionDate != null && dataEquals(completionDate, syncDate)) {
@@ -167,7 +167,7 @@ public abstract class SyncWorker implements DataContext {
         if (getSimpleValue(completionDataName) == null) {
             DateData now = new DateData();
             doPutValue(completionDataName, now);
-            doPutValue(completionDataName+SYNC_VAL_SUFFIX, now);
+            doPutValue(syncDataName(completionDataName), now);
         }
     }
     protected void noteDataChange(String dataName) {
@@ -184,6 +184,10 @@ public abstract class SyncWorker implements DataContext {
 
 
     private static final String SYNC_VAL_SUFFIX = "_Last_Synced_Val";
+
+    static String syncDataName(String dataName) {
+        return dataName + SYNC_VAL_SUFFIX;
+    }
 
     private SaveableData lastReverseSyncedValue = null;
 
@@ -218,7 +222,7 @@ public abstract class SyncWorker implements DataContext {
             }
         }
 
-        String syncName = name + SYNC_VAL_SUFFIX;
+        String syncName = syncDataName(name);
         SimpleData lastSyncVal = getSimpleValue(syncName);
 
         if (dataEquals(newValue, currVal) && (currVal instanceof SimpleData)) {

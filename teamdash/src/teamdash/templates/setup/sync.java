@@ -95,8 +95,8 @@ public class sync extends TinyCGIBase {
 
             // create a synchronization object.
             HierarchySynchronizer synch = new HierarchySynchronizer
-                (projectRoot, processID, wbsFile, initials, fullCopyMode,
-                 getPSPProperties(), getDataRepository());
+                (projectRoot, processID, wbsFile, initials, getOwner(),
+                 fullCopyMode, getPSPProperties(), getDataRepository());
 
             // start the synchronization process.
             if (parameters.containsKey(RUN_PARAM))

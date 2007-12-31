@@ -12,6 +12,8 @@ import javax.swing.Icon;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableCellRenderer;
 
+import teamdash.wbs.columns.NotesColumn;
+
 /** Custom table cell renderer for WBSNodes.
  */
 public class WBSNodeRenderer extends DefaultTableCellRenderer {
@@ -24,6 +26,8 @@ public class WBSNodeRenderer extends DefaultTableCellRenderer {
     private String iconToolTip;
     /** The error message to display as a tooltip for the node name */
     private String nameError;
+    /** Text to display as the normal tooltip for the node name */
+    private String nameToolTip;
     /** Fonts used in the display of the node name */
     private Font regular = null, bold = null;
     /** The icon displayed for this node */
@@ -75,9 +79,11 @@ public class WBSNodeRenderer extends DefaultTableCellRenderer {
             // if the node name is in error, print it in bold red text
             result.setFont(getFont(true, result));
             result.setForeground(Color.red);
+            nameToolTip = null;
         } else {
             result.setFont(getFont(false, result));
             result.setForeground(node.isReadOnly() ? Color.gray : Color.black);
+            nameToolTip = NotesColumn.getTooltipAt(node, false);
         }
 
         return result;
@@ -113,9 +119,12 @@ public class WBSNodeRenderer extends DefaultTableCellRenderer {
     /** Determine the appropriate tool tip based upon mouse location */
     public String getToolTipText(MouseEvent event) {
         int delta = event.getX() - expansionIcon.getIconWidth();
-        if (delta > 0) return nameError;
-        else if (delta > -ICON_HORIZ_SPACING) return iconToolTip;
-        return null;
+        if (delta > 0)
+            return (nameError != null ? nameError : nameToolTip);
+        else if (delta > -ICON_HORIZ_SPACING)
+            return iconToolTip;
+        else
+            return null;
     }
 
 

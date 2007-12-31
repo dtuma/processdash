@@ -3,6 +3,8 @@ package teamdash.templates.setup;
 import java.util.Date;
 import java.util.Map;
 
+import net.sourceforge.processdash.hier.HierarchyNote;
+
 public abstract class SyncDiscrepancy {
 
     public static final String DISCREPANCIES_DATANAME = "discrepancies_ //list";
@@ -11,6 +13,7 @@ public abstract class SyncDiscrepancy {
         public void visit(PlanTime p);
         public void visit(EVSchedule s);
         public void visit(NodeType n);
+        public void visit(ItemNote n);
     }
 
     public static class PlanTime extends SyncDiscrepancy {
@@ -64,6 +67,65 @@ public abstract class SyncDiscrepancy {
 
         public String getType() {
             return type;
+        }
+
+        @Override
+        public void visit(Visitor v) {
+            v.visit(this);
+        }
+
+    }
+
+    public static class ItemNote extends SyncDiscrepancy {
+        private String path;
+        private String wbsId;
+        private String text;
+        private String format;
+        private String author;
+        private Date timestamp;
+        private Date baseTimestamp;
+
+        public ItemNote(String path, String wbsId, HierarchyNote originalNote,
+                HierarchyNote modifiedNote) {
+            this.path = path;
+            this.wbsId = wbsId;
+            if (modifiedNote != null) {
+                this.text = modifiedNote.getContent();
+                this.format = modifiedNote.getFormat();
+                this.author = modifiedNote.getAuthor();
+                this.timestamp = modifiedNote.getTimestamp();
+            }
+            if (originalNote != null) {
+                this.baseTimestamp = originalNote.getTimestamp();
+            }
+        }
+
+        public String getPath() {
+            return path;
+        }
+
+        public String getWbsId() {
+            return wbsId;
+        }
+
+        public String getText() {
+            return text;
+        }
+
+        public String getFormat() {
+            return format;
+        }
+
+        public String getAuthor() {
+            return author;
+        }
+
+        public Date getTimestamp() {
+            return timestamp;
+        }
+
+        public Date getBaseTimestamp() {
+            return baseTimestamp;
         }
 
         @Override

@@ -17,8 +17,6 @@ import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-import net.sourceforge.processdash.util.StringUtils;
-
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -27,6 +25,7 @@ import org.xml.sax.SAXException;
 import teamdash.XMLUtils;
 import teamdash.team.TeamMember;
 import teamdash.team.WeeklySchedule;
+import teamdash.wbs.columns.NotesColumn;
 import teamdash.wbs.columns.TeamActualTimeColumn;
 import teamdash.wbs.columns.TeamCompletionDateColumn;
 import teamdash.wbs.columns.TeamMemberActualTimeColumn;
@@ -112,7 +111,7 @@ public class WBSSynchronizer {
      */
     private Element getDirectDumpData() {
         String revSyncURL = System.getProperty("teamdash.wbs.reverseSyncURL");
-        if (!StringUtils.hasValue(revSyncURL))
+        if (!XMLUtils.hasValue(revSyncURL))
             return null;
 
         try {
@@ -243,6 +242,8 @@ public class WBSSynchronizer {
             result.put(PLAN_TIME_CHANGE_TAG, new PlanTimeSynchronizer());
         if (isEnabled(NODE_TYPE_CHANGE_TAG))
             result.put(NODE_TYPE_CHANGE_TAG, new NodeTypeSynchronizer());
+        if (isEnabled(NOTE_CHANGE_TAG))
+            result.put(NOTE_CHANGE_TAG, new NoteSynchronizer());
         if (isEnabled(ACTUAL_DATA_TAG))
             result.put(ACTUAL_DATA_TAG, new ActualDataLoader());
         if (isEnabled(NEW_TASK_TAG))
@@ -355,6 +356,34 @@ public class WBSSynchronizer {
                 node.setType(newUserType);
                 node.setAttribute(SYNC_NODE_TYPE_ATTR, newUserType);
                 needsWbsEvent = true;
+            }
+        }
+
+    }
+
+    /**
+     * Class to read user changes to notes, and incorporate them into the WBS.
+     */
+    private class NoteSynchronizer implements SyncHandler {
+
+        public void sync(TeamProject teamProject, TeamMember individual,
+                Map<Integer, WBSNode> nodeMap, Element noteTag) {
+            int wbsId = XMLUtils.getXMLInt(noteTag, WBS_ID_ATTR);
+            WBSNode node = nodeMap.get(wbsId);
+            if (node == null)
+                return;
+
+            String wbsText = NotesColumn.getTextAt(node);
+            Date wbsTimestamp = NotesColumn.getTimestampAt(node);
+            Date baseTimestamp = XMLUtils.getXMLDate(noteTag, BASE_TIMESTAMP_ATTR);
+            if (!XMLUtils.hasValue(wbsText) || wbsTimestamp == null
+                    || wbsTimestamp.equals(baseTimestamp)) {
+                String text = XMLUtils.getTextContents(noteTag);
+                String author = noteTag.getAttribute(AUTHOR_ATTR);
+                if (!XMLUtils.hasValue(author))
+                    author = individual.getName();
+                Date timestamp = XMLUtils.getXMLDate(noteTag, TIMESTAMP_ATTR);
+                NotesColumn.saveSyncData(node, text, author, timestamp);
             }
         }
 
@@ -625,5 +654,11 @@ public class WBSSynchronizer {
     private static final String NODE_TYPE_ATTR = "nodeType";
 
     private static final String NODE_TYPE_CHANGE_TAG = "nodeTypeChange";
+
+    private static final String NOTE_CHANGE_TAG = "noteChange";
+
+    private static final String BASE_TIMESTAMP_ATTR = "baseTimestamp";
+
+    private static final String AUTHOR_ATTR = "author";
 
 }

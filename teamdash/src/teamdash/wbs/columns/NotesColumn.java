@@ -18,6 +18,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.SwingConstants;
+import javax.swing.Timer;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
@@ -69,7 +70,7 @@ public class NotesColumn extends AbstractDataColumn implements
     }
 
     public Object getValueAt(WBSNode node) {
-        return node.getAttribute(VALUE_ATTR);
+        return getTextAt(node);
     }
 
     public boolean isCellEditable(WBSNode node) {
@@ -85,12 +86,16 @@ public class NotesColumn extends AbstractDataColumn implements
         }
     }
 
-    public String getAuthorAt(WBSNode node) {
+    public static String getTextAt(WBSNode node) {
+        return (String) node.getAttribute(VALUE_ATTR);
+    }
+
+    public static String getAuthorAt(WBSNode node) {
         Object result = node.getAttribute(AUTHOR_ATTR);
         return (result == null ? null : result.toString());
     }
 
-    public Date getTimestampAt(WBSNode node) {
+    public static Date getTimestampAt(WBSNode node) {
         double val = node.getNumericAttribute(TIMESTAMP_ATTR);
         if (Double.isNaN(val))
             return null;
@@ -98,13 +103,47 @@ public class NotesColumn extends AbstractDataColumn implements
             return new Date((long) val);
     }
 
-    public String getByLineAt(WBSNode node) {
+    public static String getByLineAt(WBSNode node) {
         Date when = getTimestampAt(node);
         String who = getAuthorAt(node);
         if (when == null || who == null)
             return null;
         else
             return "- Last edited " + DATE_FMT.format(when) + " by " + who;
+    }
+
+    public static String getTooltipAt(WBSNode node, boolean includeByline) {
+        if (node == null)
+            return null;
+
+        String text = getTextAt(node);
+        if (text == null || text.trim().length() == 0)
+            return null;
+
+        StringBuffer html = new StringBuffer();
+        html.append("<html><body><div width='300'>");
+        text = HTMLUtils.escapeEntities(text);
+        text = StringUtils.findAndReplace(text, "\n", "<br>");
+        text = StringUtils.findAndReplace(text, "  ", "&nbsp;&nbsp;");
+        html.append(text);
+        html.append("</div>");
+        String byLine = (includeByline ? getByLineAt(node) : null);
+        if (byLine != null) {
+            html.append("<hr><div " + BYLINE_CSS + ">");
+            html.append(XMLUtils.escapeAttribute(byLine));
+            html.append("</div>");
+        }
+        html.append("</body></html>");
+        return html.toString();
+    }
+
+
+    public static void saveSyncData(WBSNode node, String text, String author,
+            Date timestamp) {
+        node.setAttribute(VALUE_ATTR, text);
+        node.setAttribute(AUTHOR_ATTR, author);
+        Long ts = (timestamp == null ? null : new Long(timestamp.getTime()));
+        node.setAttribute(TIMESTAMP_ATTR, ts);
     }
 
     private static String asString(Object o) {
@@ -144,28 +183,7 @@ public class NotesColumn extends AbstractDataColumn implements
             DataTableModel dtm = (DataTableModel) table.getModel();
             WBSNode node = (WBSNode) dtm.getValueAt(row,
                 DataTableModel.WBS_NODE_COLUMN);
-            if (node == null)
-                return null;
-
-            String text = (String) getValueAt(node);
-            if (text == null || text.trim().length() == 0)
-                return null;
-
-            StringBuffer html = new StringBuffer();
-            html.append("<html><body><div width='300'>");
-            text = HTMLUtils.escapeEntities(text);
-            text = StringUtils.findAndReplace(text, "\n", "<br>");
-            text = StringUtils.findAndReplace(text, "  ", "&nbsp;&nbsp;");
-            html.append(text);
-            html.append("</div>");
-            String byLine = getByLineAt(node);
-            if (byLine != null) {
-                html.append("<hr><div " + BYLINE_CSS + ">");
-                html.append(XMLUtils.escapeAttribute(byLine));
-                html.append("</div>");
-            }
-            html.append("</body></html>");
-            return html.toString();
+            return getTooltipAt(node, true);
         }
 
     }
@@ -252,7 +270,8 @@ public class NotesColumn extends AbstractDataColumn implements
                 byLine.add(Box.createHorizontalGlue());
                 byLine.add(l);
             }
-            Object message = new Object[] { nodeName, sp, byLine };
+            Object message = new Object[] { nodeName, sp, byLine,
+                    new FocusTweaker() };
             JOptionPane pane = new JOptionPane(message,
                     JOptionPane.PLAIN_MESSAGE, JOptionPane.OK_CANCEL_OPTION);
             JDialog dialog = pane.createDialog(table, "Edit Notes");
@@ -274,6 +293,19 @@ public class NotesColumn extends AbstractDataColumn implements
                 cancelCellEditing();
         }
 
+        private class FocusTweaker extends Component implements ActionListener {
+
+            public void addNotify() {
+                super.addNotify();
+                Timer t = new Timer(100, this);
+                t.setRepeats(false);
+                t.start();
+            }
+
+            public void actionPerformed(ActionEvent e) {
+                textArea.requestFocus();
+            }
+        }
     }
 
     private static final String BYLINE_CSS =

@@ -19,6 +19,7 @@ import net.sourceforge.processdash.util.XMLUtils;
 import org.xmlpull.v1.XmlSerializer;
 
 import teamdash.templates.setup.SyncDiscrepancy.EVSchedule;
+import teamdash.templates.setup.SyncDiscrepancy.ItemNote;
 import teamdash.templates.setup.SyncDiscrepancy.NodeType;
 import teamdash.templates.setup.SyncDiscrepancy.PlanTime;
 
@@ -368,6 +369,31 @@ public class UserDataWriter extends TinyCGIBase {
             }
         }
 
+        public void visit(ItemNote n) {
+            try {
+                ser.startTag(null, NOTE_CHANGE_TAG);
+                ser.attribute(null, WBS_ID_ATTR, n.getWbsId());
+                maybeWriteAttr(BASE_TIMESTAMP_ATTR, n.getBaseTimestamp());
+                maybeWriteAttr(TIMESTAMP_ATTR, n.getTimestamp());
+                maybeWriteAttr(AUTHOR_ATTR, n.getAuthor());
+                maybeWriteAttr(FORMAT_ATTR, n.getFormat());
+                if (StringUtils.hasValue(n.getText()))
+                    ser.text(n.getText());
+                ser.endTag(null, NOTE_CHANGE_TAG);
+            } catch (IOException e) {
+                throw new WrappedIOException(e);
+            }
+        }
+
+        private void maybeWriteAttr(String attrName, Object value)
+                throws IOException {
+            if (value instanceof Date) {
+                ser.attribute(null, attrName, XMLUtils.saveDate((Date) value));
+            } else if (value != null) {
+                ser.attribute(null, attrName, String.valueOf(value));
+            }
+        }
+
     }
 
     private static final long REFRESH_AGE_CUTOFF = 60 * 1000;
@@ -425,5 +451,13 @@ public class UserDataWriter extends TinyCGIBase {
     private static final String DEFAULT_HOURS_VAL = "DEFAULT";
 
     private static final String NODE_TYPE_CHANGE_TAG = "nodeTypeChange";
+
+    private static final String NOTE_CHANGE_TAG = "noteChange";
+
+    private static final String BASE_TIMESTAMP_ATTR = "baseTimestamp";
+
+    private static final String AUTHOR_ATTR = "author";
+
+    private static final String FORMAT_ATTR = "format";
 
 }

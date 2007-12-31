@@ -38,8 +38,10 @@ import net.sourceforge.processdash.ev.EVTaskListData;
 import net.sourceforge.processdash.ev.EVSchedule.Period;
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.Filter;
+import net.sourceforge.processdash.hier.HierarchyNote;
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.hier.HierarchyAlterer.HierarchyAlterationException;
+import net.sourceforge.processdash.hier.HierarchyNote.InvalidNoteSpecification;
 import net.sourceforge.processdash.templates.DashPackage;
 import net.sourceforge.processdash.util.StringUtils;
 import net.sourceforge.processdash.util.ThreadThrottler;
@@ -64,6 +66,7 @@ public class HierarchySynchronizer {
     private PropertyKey projectKey;
     private String processID;
     private String initials, initialsPattern;
+    private String ownerName;
     private boolean oldStyleSync;
     private Element projectXML;
     private String dumpFileVersion;
@@ -112,6 +115,7 @@ public class HierarchySynchronizer {
                                  String processID,
                                  File wbsFile,
                                  String initials,
+                                 String ownerName,
                                  boolean fullCopyMode,
                                  DashHierarchy hierarchy,
                                  DataRepository data) throws IOException {
@@ -134,6 +138,7 @@ public class HierarchySynchronizer {
         } else { // individual
             this.initials = initials;
             this.initialsPattern = "," + initials.toLowerCase() + "=";
+            this.ownerName = ownerName;
             String rootTemplate = getTemplateIDForKey(projectKey);
             if (rootTemplate.endsWith("/Indiv2Root")) {
                 this.readOnlyNodeID = processID + "/Indiv2ReadOnlyNode";
@@ -874,6 +879,12 @@ public class HierarchySynchronizer {
         return Math.abs(a - b) < 0.01;
     }
 
+    private static boolean eq(Object a, Object b) {
+        if (a == b) return true;
+        if (a == null) return false;
+        return a.equals(b);
+    }
+
     private boolean setsIntersect(Set a, Set b) {
         if (a == null || a.isEmpty() || b == null || b.isEmpty())
             return false;
@@ -1017,6 +1028,7 @@ public class HierarchySynchronizer {
     static final String PSP_TYPE = "psp";
     private static final String TASK_TYPE = "task";
     private static final String DEPENDENCY_TYPE = "dependency";
+    private static final String NOTE_TYPE = "note";
     static final List NODE_TYPES = Arrays.asList(new String[] {
         PROJECT_TYPE, SOFTWARE_TYPE, DOCUMENT_TYPE, PSP_TYPE, TASK_TYPE });
 
@@ -1035,6 +1047,11 @@ public class HierarchySynchronizer {
     private static final String EST_TIME_DATA_NAME = "Estimated Time";
     private static final String LABEL_LIST_DATA_NAME =
         "Synchronized_Task_Labels";
+    private static final String TEAM_NOTE_DATA_NAME = "Team_Note";
+    private static final String TEAM_NOTE_LAST_SYNC_DATA_NAME =
+        SyncWorker.syncDataName(TEAM_NOTE_DATA_NAME);
+    private static final String TEAM_NOTE_CONFLICT_DATA_NAME =
+        TEAM_NOTE_DATA_NAME + "_Edit_Conflict_Val";
     static final String MISC_CHANGE_COMMENT =
         "Updated miscellaneous project information";
 
@@ -1278,15 +1295,15 @@ public class HierarchySynchronizer {
             String nodeID = node.getAttribute(ID_ATTR);
             String taskID = node.getAttribute(TASK_ID_ATTR);
             try {
-                String dataName = DataRepository.createDataName(path,
-                    TeamDataConstants.WBS_ID_DATA_NAME);
-                worker.doPutValueForce(dataName, StringData.create(nodeID));
+                forceData(path, TeamDataConstants.WBS_ID_DATA_NAME,
+                    StringData.create(nodeID));
                 if (!isPrunedNode(node))
                     setTaskIDs(path, taskID);
             } catch (Exception e) {}
             if (!isTeam() && !isPrunedNode(node)) {
                 maybeSaveDocSize(path, node);
                 maybeSaveDependencies(path, node);
+                maybeSaveNote(path, node, nodeID);
             }
         }
 
@@ -1432,6 +1449,114 @@ public class HierarchySynchronizer {
 
             return result;
         }
+
+        protected void maybeSaveNote(String path, Element node, String nodeID) {
+            HierarchyNote wbsNote = getNoteData(node);
+            HierarchyNote localNote = getNoteData(path, TEAM_NOTE_DATA_NAME);
+            HierarchyNote lastSyncNote = getNoteData(path,
+                TEAM_NOTE_LAST_SYNC_DATA_NAME);
+
+            // if the value from the WBS has changed since last sync,
+            if (!eq(lastSyncNote, wbsNote)) {
+                SimpleData wbsVal = (wbsNote == null ? null : wbsNote.getAsData());
+
+                if (eq(localNote, lastSyncNote)) {
+                    // our local value agrees with the last synced value, so
+                    // we should propagate the new WBS value along.
+                    localNote = lastSyncNote = wbsNote;
+                    putData(path, TEAM_NOTE_DATA_NAME, wbsVal);
+                    putData(path, TEAM_NOTE_LAST_SYNC_DATA_NAME, wbsVal);
+                    putData(path, TEAM_NOTE_CONFLICT_DATA_NAME, null);
+
+                } else if (wbsNote == null) {
+                    // the note has been modified locally, but no longer exists
+                    // in the WBS (possibly because the WBS was restored from a
+                    // backup).  Clear conflict flags, and allow our local
+                    // modification to be reverse synced.
+                    forceData(path, TEAM_NOTE_CONFLICT_DATA_NAME, null);
+
+                } else if (!eq(ownerName, wbsNote.getAuthor())) {
+                    // our local value has been modified since the last sync,
+                    // but some other user has altered the note in the meantime.
+                    // record the new value of the note as a conflict.
+                    forceData(path, TEAM_NOTE_CONFLICT_DATA_NAME, wbsVal);
+
+                } else {
+                    // the note value in the WBS was written by the user who is
+                    // performing this sync.
+
+                    // it is possible that the user has locally edited the note
+                    // multiple times between sync operations.  In that case,
+                    // their local value might be more recent than the value
+                    // that has been reverse-synced to the WBS.  Check to see
+                    // whether this is true.
+                    boolean wbsIsOutOfDate = true;
+                    if (localNote != null && wbsNote != null
+                            && localNote.getTimestamp() != null
+                            && wbsNote.getTimestamp() != null)
+                        wbsIsOutOfDate = localNote.getTimestamp().after(
+                            wbsNote.getTimestamp());
+
+                    if (wbsIsOutOfDate) {
+                        // The current user has already modified the note since
+                        // the last reverse sync.  But it's still OK to clear
+                        // any conflict flags, and make a note that the WBS
+                        // now has a value we entered.  This is important to
+                        // allow our local modification to reverse sync properly.
+                        lastSyncNote = wbsNote;
+                        forceData(path, TEAM_NOTE_LAST_SYNC_DATA_NAME, wbsVal);
+                        forceData(path, TEAM_NOTE_CONFLICT_DATA_NAME, null);
+
+                    } else {
+                        // If the WBS is equal to the local value, it means
+                        // the local value has been reverse synced successfully.
+                        // If the WBS is more recent than the local value, it
+                        // means that the current user has opened the WBS and
+                        // edited the value there.  Either way, all values
+                        // should be synced to the WBS value.
+                        localNote = lastSyncNote = wbsNote;
+                        putData(path, TEAM_NOTE_DATA_NAME, wbsVal);
+                        putData(path, TEAM_NOTE_LAST_SYNC_DATA_NAME, wbsVal);
+                        putData(path, TEAM_NOTE_CONFLICT_DATA_NAME, null);
+                    }
+                }
+            }
+
+            if (!eq(localNote, lastSyncNote)) {
+                // add reverse sync data
+                discrepancies.add(new SyncDiscrepancy.ItemNote(path, nodeID,
+                        lastSyncNote, localNote));
+            }
+        }
+
+        protected HierarchyNote getNoteData(Element node) {
+            NodeList nl = node.getChildNodes();
+            for (int i = 0; i < nl.getLength(); i++) {
+                Node child = nl.item(i);
+                if (child instanceof Element) {
+                    Element childElem = (Element) child;
+                    if (childElem.getTagName().equals(NOTE_TYPE)) {
+                        try {
+                            return new HierarchyNote(childElem);
+                        } catch (InvalidNoteSpecification e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            }
+            return null;
+        }
+
+        protected HierarchyNote getNoteData(String prefix, String dataName) {
+            SimpleData data = getData(prefix, dataName);
+            if (data != null && data.test()) {
+                try {
+                    return new HierarchyNote(data);
+                } catch (Exception e) {}
+            }
+            return null;
+        }
+
     }
 
 
@@ -1461,6 +1586,16 @@ public class HierarchySynchronizer {
     protected void putData(String dataPrefix, String name, SimpleData value) {
         String dataName = DataRepository.createDataName(dataPrefix, name);
         data.putValue(dataName, value);
+    }
+
+    protected void forceData(String dataPrefix, String name, SimpleData value) {
+        String dataName = DataRepository.createDataName(dataPrefix, name);
+        if (data instanceof SyncWorker) {
+            SyncWorker worker = (SyncWorker) data;
+            worker.doPutValueForce(dataName, value);
+        } else {
+            data.putValue(dataName, value);
+        }
     }
 
     private String getStringData(SimpleData val) {

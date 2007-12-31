@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -13,6 +14,7 @@ import teamdash.XMLUtils;
 import teamdash.team.TeamMember;
 import teamdash.team.TeamMemberList;
 import teamdash.wbs.columns.DirectSizeTypeColumn;
+import teamdash.wbs.columns.NotesColumn;
 import teamdash.wbs.columns.SizeAccountingColumnSet;
 import teamdash.wbs.columns.TaskDependencyColumn;
 import teamdash.wbs.columns.TaskLabelColumn;
@@ -170,6 +172,7 @@ public class WBSDataWriter {
 
         if ((children == null || children.length == 0)
                 && (dependencies == null || dependencies.isEmpty())
+                && (NotesColumn.getTextAt(node) == null)
                 && (depth > 0)) {
             // if this node has no children and no dependencies, just close
             // the XML tag.
@@ -180,6 +183,7 @@ public class WBSDataWriter {
             if (depth == 0)
                 writeTeamMembers(out);
             writeDependencies(out, dependencies, depth+1);
+            writeNote(out, node, depth+1);
             if (children != null)
                 for (int i = 0;   i < children.length;   i++)
                     write(out, children[i], depth+1);
@@ -239,6 +243,24 @@ public class WBSDataWriter {
 
 
 
+    private void writeNote(Writer out, WBSNode node, int depth)
+            throws IOException {
+        String text = NotesColumn.getTextAt(node);
+        if (text == null)
+            return;
+
+        writeIndent(out, depth);
+        out.write("<" + NOTE_TAG);
+        writeAttr(out, AUTHOR_ATTR, NotesColumn.getAuthorAt(node));
+        writeAttr(out, TIMESTAMP_ATTR, NotesColumn.getTimestampAt(node));
+        writeAttr(out, FORMAT_ATTR, "text");
+        out.write(">");
+        out.write(XMLUtils.escapeAttribute(text));
+        out.write("</" + NOTE_TAG + ">\n");
+    }
+
+
+
     /** Determine which XML tag should be used to represent the given node.
      */
     private String getTagNameForNode(WBSNode node) {
@@ -278,6 +300,17 @@ public class WBSDataWriter {
         throws IOException
     {
         writeAttr(out, name, Integer.toString(value));
+    }
+
+
+
+    /** Convenience method for writing a date XML attribute
+     */
+    private void writeAttr(Writer out, String name, Date value)
+        throws IOException
+    {
+        if (value != null)
+            writeAttr(out, name, XMLUtils.saveDate(value));
     }
 
 
@@ -517,6 +550,7 @@ public class WBSDataWriter {
     private static final String PSP_TAG = "psp";
     private static final String TASK_TAG = "task";
     private static final String DEPENDENCY_TAG = "dependency";
+    private static final String NOTE_TAG = "note";
 
     /** A list of column IDs for the top-level size accounting columns */
     private static final String[] SIZE_COLUMN_IDS = new String[] {
@@ -543,6 +577,9 @@ public class WBSDataWriter {
     private static final String INSP_UNITS_ATTR = "inspUnits";
     private static final String INSP_SIZE_ATTR = "inspSize";
     private static final String VERSION_ATTR = "dumpFileVersion";
+    private static final String AUTHOR_ATTR = "author";
+    private static final String TIMESTAMP_ATTR = "timestamp";
+    private static final String FORMAT_ATTR = "format";
 
     /** A list of phase types for quality phases */
     private static final List QUALITY_PHASE_TYPES = Arrays.asList(new String[] {
