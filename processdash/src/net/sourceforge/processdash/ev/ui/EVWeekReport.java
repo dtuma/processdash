@@ -509,10 +509,12 @@ public class EVWeekReport extends TinyCGIBase {
                 out.print(formatTime(totalPlannedTime) + "</td>");
                 out.print("<td class='timeFmt'>");
                 out.print(formatTime(totalActualTime) + "</td>");
-                out.print("<td>" + formatPercent(totalPlannedValue) + "</td>");
+                out.print("<td>" + EVSchedule.formatPercent(totalPlannedValue)
+                        + "</td>");
                 if (totalPlannedTime > 0) {
                     double totalPctSpent = totalActualTime/totalPlannedTime;
-                    out.print("<td>" + formatPercent(totalPctSpent) + "</td>");
+                    out.print("<td>" + EVSchedule.formatPercent(totalPctSpent)
+                            + "</td>");
                 } else {
                     out.print("<td>&nbsp;</td>");
                 }
@@ -525,7 +527,8 @@ public class EVWeekReport extends TinyCGIBase {
                 out.print("<td class='timeFmt'>");
                 out.print(formatTime(totalPlannedTimeRemaining) + "</td>");
 
-                out.println("<td>" + formatPercent(totalUnearnedValue) + "</td>");
+                out.println("<td>" + EVSchedule.formatPercent(totalUnearnedValue)
+                        + "</td>");
                 out.println("</tr>\n</table>");
             }
 
@@ -961,7 +964,7 @@ public class EVWeekReport extends TinyCGIBase {
 
         if (inProgressThisWeek) {
             HTMLTableWriter.writeCell(out, EVReport.EV_CELL_RENDERER,
-                    formatPercent(unearnedValue), 0, 0);
+                    EVSchedule.formatPercent(unearnedValue), 0, 0);
         }
 
         out.println("</td></tr>");
@@ -1147,7 +1150,7 @@ public class EVWeekReport extends TinyCGIBase {
         "<link rel=stylesheet type='text/css' href='/style.css'>\n" +
         "<style> td { text-align:right } td.left { text-align:left } "+
         "td.center { text-align: center } " +
-        "td.error  { font-style: italic;  color: red; " +
+        "td.error  { font-style: italic; font-weight: bold; color: red; " +
                            " text-align: left; padding-left: 1ex }\n" +
         "td.header { text-align:center; font-weight:bold; "+
                            " vertical-align:bottom }\n" +
@@ -1205,7 +1208,7 @@ public class EVWeekReport extends TinyCGIBase {
         return FormatUtil.formatTime(time);
     }
     private String formatPercent(double pct) {
-        return EVSchedule.formatPercent(pct);
+        return FormatUtil.formatPercent(pct);
     }
 
     /** translate an object to appropriate HTML */
