@@ -1,17 +1,21 @@
 package teamdash.wbs;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
+import javax.swing.DefaultCellEditor;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JTextField;
 import javax.swing.JToolBar;
 import javax.swing.table.TableColumn;
 
@@ -44,11 +48,11 @@ public class WorkflowEditor {
         frame.getContentPane().add(toolBar, BorderLayout.NORTH);
         frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         frame.setSize(600, 400);
-        frame.show();
+        frame.setVisible(true);
     }
 
     public void show() {
-        frame.show();
+        frame.setVisible(true);
         frame.toFront();
     }
 
@@ -69,7 +73,7 @@ public class WorkflowEditor {
         // columns is meant to be read from left to right.
         table.getTableHeader().setReorderingAllowed(false);
         // install the default editor for table data.
-        table.setDefaultEditor(Object.class, new DataTableCellEditor());
+        table.setDefaultEditor(Object.class, new WorkflowCellEditor());
         table.selfName = "team workflow structure";
 
         TableColumn col;
@@ -138,6 +142,25 @@ public class WorkflowEditor {
         toolBar.add(button);
     }
 
+    private static class WorkflowCellEditor extends DefaultCellEditor {
+
+        public WorkflowCellEditor() {
+            super(new JTextField());
+        }
+
+        @Override
+        public Component getTableCellEditorComponent(JTable table,
+                Object value, boolean isSelected, int row, int column) {
+            Component result = super.getTableCellEditorComponent(table,
+                ErrorValue.unwrap(value), isSelected, row, column);
+
+            if (result instanceof JTextField)
+                ((JTextField) result).selectAll();
+
+            return result;
+        }
+
+    }
 
     private class ExportAction extends AbstractAction {
         public ExportAction() {

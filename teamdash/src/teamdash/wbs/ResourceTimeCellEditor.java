@@ -3,10 +3,12 @@ package teamdash.wbs;
 import java.awt.Component;
 import java.util.regex.Pattern;
 
+import javax.swing.DefaultCellEditor;
 import javax.swing.JTable;
+import javax.swing.JTextField;
 import javax.swing.text.JTextComponent;
 
-public class ResourceTimeCellEditor extends DataTableCellEditor {
+public class ResourceTimeCellEditor extends DefaultCellEditor {
 
     private DataTableModel dataModel;
     private int timePerPersonColumn = -1;
@@ -14,6 +16,7 @@ public class ResourceTimeCellEditor extends DataTableCellEditor {
     private Component editor;
 
     public ResourceTimeCellEditor(DataTableModel dataModel) {
+        super(new JTextField());
         this.dataModel = dataModel;
     }
 

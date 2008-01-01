@@ -6,11 +6,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import javax.swing.DefaultCellEditor;
 import javax.swing.JComboBox;
 import javax.swing.Timer;
 import javax.swing.table.TableCellEditor;
 
+import teamdash.wbs.AutocompletingDataTableCellEditor;
 import teamdash.wbs.CalculatedDataColumn;
 import teamdash.wbs.CustomEditedColumn;
 import teamdash.wbs.DataTableModel;
@@ -82,9 +82,7 @@ public class PhaseColumn extends AbstractDataColumn
         allowedTypes = new HashSet(nodeTypes);
 
         JComboBox comboBox = new JComboBox(nodeTypes.toArray());
-        DefaultCellEditor dce = new DefaultCellEditor(comboBox);
-        dce.setClickCountToStart(2);
-        this.cellEditor = dce;
+        this.cellEditor = new AutocompletingDataTableCellEditor(comboBox);
     }
 
     public TableCellEditor getCellEditor() {

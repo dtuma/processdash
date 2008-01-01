@@ -1,10 +1,19 @@
 package teamdash.wbs.columns;
 
+import java.awt.Component;
 import java.util.Arrays;
+import java.util.Iterator;
+import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
+import javax.swing.JTable;
+import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 
+import teamdash.wbs.AutocompletingDataTableCellEditor;
 import teamdash.wbs.CalculatedDataColumn;
+import teamdash.wbs.CustomEditedColumn;
 import teamdash.wbs.CustomRenderedColumn;
 import teamdash.wbs.DataTableModel;
 import teamdash.wbs.ErrorValue;
@@ -13,7 +22,7 @@ import teamdash.wbs.WBSModel;
 import teamdash.wbs.WBSNode;
 
 public class TaskLabelColumn extends AbstractDataColumn implements
-        CustomRenderedColumn, CalculatedDataColumn {
+        CustomRenderedColumn, CustomEditedColumn, CalculatedDataColumn {
 
     public static final String COLUMN_ID = "Labels";
 
@@ -97,6 +106,48 @@ public class TaskLabelColumn extends AbstractDataColumn implements
     public TableCellRenderer getCellRenderer() {
         return LABEL_RENDERER;
     }
+
+    public TableCellEditor getCellEditor() {
+        return new TaskLabelCellEditor();
+    }
+
+    private class TaskLabelCellEditor extends AutocompletingDataTableCellEditor {
+
+        @Override
+        public Component getTableCellEditorComponent(JTable table,
+                Object value, boolean isSelected, int row, int column) {
+
+            // refresh the data model with the current set of known labels.
+            Set labels = collectLabels(table);
+            getComboBox().removeAllItems();
+            for (Iterator i = labels.iterator(); i.hasNext();)
+                getComboBox().addItem(i.next());
+
+            // now defer to the parent for the rest of the work.
+            return super.getTableCellEditorComponent(table, ErrorValue
+                    .unwrap(value), isSelected, row, column);
+        }
+
+        private Set collectLabels(JTable table) {
+            DataTableModel dtm = (DataTableModel) table.getModel();
+            WBSModel wbs = dtm.getWBSModel();
+            SortedSet labels = new TreeSet();
+            collectLabels(labels, wbs.getRoot());
+            return labels;
+        }
+
+        private void collectLabels(Set labels, WBSNode node) {
+            String nodeValue = (String) node.getAttribute(EXPLICIT_VALUE_ATTR);
+            if (nodeValue != null)
+                labels.add(nodeValue);
+
+            WBSNode[] children = wbsModel.getChildren(node);
+            for (int i = 0; i < children.length; i++)
+                collectLabels(labels, children[i]);
+        }
+
+    }
+
 
     private static final String EFFECTIVE_LABEL_MESSAGE = "Inherited Value";
     private static final TableCellRenderer LABEL_RENDERER =

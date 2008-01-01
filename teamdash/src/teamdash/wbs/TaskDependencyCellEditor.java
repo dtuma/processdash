@@ -53,12 +53,6 @@ public class TaskDependencyCellEditor extends AbstractCellEditor implements
     /** The list of TaskDependencies that we are editing.  */
     private TaskDependencyList value;
 
-    /** The JTable we are currently editing */
-    private JTable table;
-
-    /** The name of the column we are currently editing */
-    private String columnName;
-
 
     public TaskDependencyCellEditor(TaskDependencySource dependencySource,
             Map iconMap) {
@@ -95,22 +89,8 @@ public class TaskDependencyCellEditor extends AbstractCellEditor implements
             loadUIData();
         }
 
-        this.columnName = table.getColumnName(column);
-        this.table = table;
         this.button.setText(this.value == null ? null : this.value.toString());
         return button;
-    }
-
-    public boolean stopCellEditing() {
-        // call our superclass to actually stop editing.
-        boolean result = super.stopCellEditing();
-
-        // if editing was stopped, notify the UndoList about the change.
-        if (result)
-            UndoList.madeChange
-                (table, "Editing value in '"+columnName+"' column");
-
-        return result;
     }
 
     public void buttonClicked() {
@@ -146,7 +126,7 @@ public class TaskDependencyCellEditor extends AbstractCellEditor implements
             prefSize.height = Math.max(prefSize.height, dialogSize.height);
         }
         dialog.setSize(prefSize);
-        dialog.show();  // this will block until the user finishes.
+        dialog.setVisible(true);  // this will block until the user finishes.
         dialogSize = dialog.getSize();
 
         Object value = optionPane.getValue();

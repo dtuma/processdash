@@ -8,6 +8,8 @@
   <property name="processdash.dir" value="../processdash"/>
   <property name="pspdash.jar" value="${processdash.dir}/dist/pspdash.jar"/>
   <property name="xmlpull.jar" value="${processdash.dir}/lib/kxml-2.2.1-mod.jar"/>
+  <property name="swingx.jar" value="lib/swingx-0.9.1.jar"/>
+  <property name="swingx-src.jar" value="lib/swingx-0.9.1-src.zip"/>
   <property name="TeamProcessCGI.jar"
       value="Templates/team/lib/TeamProcessCGI.jar"/>
   <property name="server.dir" value="generateProcess"/>
@@ -194,6 +196,14 @@ Unexpected number of processdash classes referenced by TeamTools.jar
         <include name="Templates/team/tools/OpenWBSEditor.class.link" />
         <include name="Templates/team/tools/TeamTools.jar.link" />
       </fileset>
+
+      <!-- include files from libraries we use -->
+      <zipfileset src="${swingx.jar}"
+          includes="org/jdesktop/swingx/autocomplete/"/>
+      <zipfileset src="${swingx-src.jar}">
+        <include name="swingx-src/COPYING"/>
+        <include name="swingx-src/src/java/org/jdesktop/swingx/autocomplete/"/>
+      </zipfileset>
     </jar>
 
     <antcall target="signjar">

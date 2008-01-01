@@ -10,6 +10,7 @@ import java.text.DateFormat;
 import java.util.Date;
 
 import javax.swing.Box;
+import javax.swing.DefaultCellEditor;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
@@ -17,6 +18,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
+import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
@@ -29,7 +31,6 @@ import net.sourceforge.processdash.util.StringUtils;
 import teamdash.XMLUtils;
 import teamdash.wbs.CustomEditedColumn;
 import teamdash.wbs.CustomRenderedColumn;
-import teamdash.wbs.DataTableCellEditor;
 import teamdash.wbs.DataTableModel;
 import teamdash.wbs.WBSNode;
 
@@ -189,7 +190,7 @@ public class NotesColumn extends AbstractDataColumn implements
 
     }
 
-    private class NotesCellEditor extends DataTableCellEditor implements
+    private class NotesCellEditor extends DefaultCellEditor implements
             ActionListener {
 
         private JButton button;
@@ -210,6 +211,10 @@ public class NotesColumn extends AbstractDataColumn implements
 
 
         public NotesCellEditor() {
+            // we have to supply a bogus, temporary component to make our
+            // superclass happy.  We'll change it below.
+            super(new JTextField());
+
             button = new JButton("");
             button.setHorizontalAlignment(SwingConstants.LEFT);
             button.setBackground(Color.white);
@@ -275,7 +280,7 @@ public class NotesColumn extends AbstractDataColumn implements
                     new FocusTweaker() };
             JOptionPane pane = new JOptionPane(message,
                     JOptionPane.PLAIN_MESSAGE, JOptionPane.OK_CANCEL_OPTION);
-            JDialog dialog = pane.createDialog(table, "Edit Notes");
+            JDialog dialog = pane.createDialog(button.getParent(), "Edit Notes");
             dialog.setResizable(true);
             dialog.setSize(dialogWidth, dialogHeight);
             if (dialogX != -1)
