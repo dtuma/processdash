@@ -53,6 +53,8 @@ import java.awt.image.BufferedImage;
 import java.awt.image.FilteredImageSource;
 import java.awt.image.ImageProducer;
 import java.awt.image.RGBImageFilter;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Arrays;
@@ -66,6 +68,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.prefs.Preferences;
 
+import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.DefaultCellEditor;
@@ -73,11 +76,15 @@ import javax.swing.Icon;
 import javax.swing.InputMap;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
@@ -110,8 +117,6 @@ import javax.swing.tree.TreeCellRenderer;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 
-import com.xduke.xswing.DataTipManager;
-
 import net.sourceforge.processdash.DashboardContext;
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.ListData;
@@ -131,12 +136,12 @@ import net.sourceforge.processdash.ui.Browser;
 import net.sourceforge.processdash.ui.DashboardIconFactory;
 import net.sourceforge.processdash.ui.NodeSelectionDialog;
 import net.sourceforge.processdash.ui.help.PCSH;
-import net.sourceforge.processdash.ui.lib.JDateTimeChooserCellEditor;
-import net.sourceforge.processdash.ui.lib.JOptionPaneClickHandler;
-import net.sourceforge.processdash.ui.lib.PaintUtils;
 import net.sourceforge.processdash.ui.lib.DeferredSelectAllExecutor;
 import net.sourceforge.processdash.ui.lib.ErrorReporter;
+import net.sourceforge.processdash.ui.lib.JDateTimeChooserCellEditor;
+import net.sourceforge.processdash.ui.lib.JOptionPaneClickHandler;
 import net.sourceforge.processdash.ui.lib.JTreeTable;
+import net.sourceforge.processdash.ui.lib.PaintUtils;
 import net.sourceforge.processdash.ui.lib.ToolTipTableCellRendererProxy;
 import net.sourceforge.processdash.ui.lib.ToolTipTimingCustomizer;
 import net.sourceforge.processdash.ui.lib.TreeModelWillChangeListener;
@@ -145,6 +150,8 @@ import net.sourceforge.processdash.util.BooleanArray;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.PreferencesUtils;
 import net.sourceforge.processdash.util.StringUtils;
+
+import com.xduke.xswing.DataTipManager;
 
 
 public class TaskScheduleDialog
@@ -168,13 +175,11 @@ public class TaskScheduleDialog
     private TableColumnModel treeColumnModel;
     private TableColumnModel flatColumnModel = null;
 
-    protected JButton addTaskButton, deleteTaskButton, moveUpButton,
-        moveDownButton, addPeriodButton, insertPeriodButton,
-        deletePeriodButton, chartButton, reportButton, closeButton,
-        saveButton, recalcButton, errorButton, filteredChartButton,
-        collaborateButton;
-    protected JCheckBox flatViewCheckbox;
-    protected JCheckBox mergedViewCheckbox;
+    private TSAction addTaskAction, deleteTaskAction, moveUpAction,
+            moveDownAction, flatViewAction, mergedViewAction, addPeriodAction,
+            insertPeriodAction, deletePeriodAction, chartAction, reportAction,
+            closeAction, saveAction, errorAction, filteredChartAction,
+            collaborateAction;
 
     protected boolean disableTaskPruning;
 
@@ -320,6 +325,8 @@ public class TaskScheduleDialog
         jsp.setResizeWeight(0.5);
         frame.getContentPane().add(jsp);
 
+        frame.setJMenuBar(buildMenuBar());
+
         setDirty(false);
 
 
@@ -351,93 +358,80 @@ public class TaskScheduleDialog
     }
 
     protected boolean isFlatView() {
-        return (flatViewCheckbox != null && flatViewCheckbox.isSelected());
+        return (flatViewAction != null && flatViewAction.isSelected());
     }
 
     protected boolean isMergedView() {
-        return (mergedViewCheckbox != null && mergedViewCheckbox.isSelected());
+        return (mergedViewAction != null && mergedViewAction.isSelected());
     }
 
     private boolean isDirty = false;
     protected void setDirty(boolean dirty) {
         isDirty = dirty;
-        saveButton.setEnabled(isDirty);
-        closeButton.setText(isDirty ? resources.getString("Cancel")
+        saveAction.setEnabled(isDirty);
+        closeAction.setText(isDirty ? resources.getString("Cancel")
                                     : resources.getString("Close"));
     }
 
     protected Component buildTaskButtons(boolean isRollup) {
         Box result = Box.createHorizontalBox();
         result.add(Box.createHorizontalGlue());
-        addTaskButton = new JButton
-            (isRollup ? resources.getString("Buttons.Add_Schedule")
-                      : resources.getString("Buttons.Add_Task"));
-        addTaskButton.addActionListener(new ActionListener() {
-                public void actionPerformed(ActionEvent e) {
-                    addTask(); }});
+        addTaskAction = new TSAction("Buttons.Add_Schedule", "Buttons.Add_Task") {
+            public void actionPerformed(ActionEvent e) {
+                addTask(); }};
         if (Settings.isReadWrite())
-            result.add(addTaskButton);
+            result.add(new JButton(addTaskAction));
         result.add(Box.createHorizontalGlue());
 
         // button margins: 2 pixels top and bottom, 14 left and right.
 
-        deleteTaskButton = new JButton
-            (isRollup ? resources.getString("Buttons.Remove_Schedule")
-                      : resources.getString("Buttons.Remove_Task"));
-        deleteTaskButton.addActionListener(new ActionListener() {
-                public void actionPerformed(ActionEvent e) {
-                    deleteTask(); }});
-        deleteTaskButton.setEnabled(false);
+        deleteTaskAction = new TSAction("Buttons.Remove_Schedule",
+                "Buttons.Remove_Task") {
+            public void actionPerformed(ActionEvent e) {
+                deleteTask(); }};
+        deleteTaskAction.setEnabled(false);
         if (Settings.isReadWrite())
-            result.add(deleteTaskButton);
+            result.add(new JButton(deleteTaskAction));
         result.add(Box.createHorizontalGlue());
 
 
-        moveUpButton = new JButton
-            (isRollup ? resources.getString("Buttons.Move_Schedule_Up")
-                      : resources.getString("Buttons.Move_Task_Up"));
-        moveUpButton.addActionListener(new ActionListener() {
-                public void actionPerformed(ActionEvent e) {
-                    moveTaskUp(); }});
-        moveUpButton.setEnabled(false);
-        moveUpButton.setMnemonic('U');
+        moveUpAction = new TSAction("Buttons.Move_Schedule_Up",
+                "Buttons.Move_Task_Up") {
+            public void actionPerformed(ActionEvent e) {
+                moveTaskUp(); }};
+        moveUpAction.setEnabled(false);
+        moveUpAction.setMnemonic('U');
         if (Settings.isReadWrite())
-            result.add(moveUpButton);
+            result.add(new JButton(moveUpAction));
         result.add(Box.createHorizontalGlue());
 
-        moveDownButton = new JButton
-            (isRollup ? resources.getString("Buttons.Move_Schedule_Down")
-                      : resources.getString("Buttons.Move_Task_Down"));
-        moveDownButton.addActionListener(new ActionListener() {
-                public void actionPerformed(ActionEvent e) {
-                    moveTaskDown(); }});
-        moveDownButton.setEnabled(false);
-        moveDownButton.setMnemonic('D');
+        moveDownAction = new TSAction("Buttons.Move_Schedule_Down",
+                "Buttons.Move_Task_Down") {
+            public void actionPerformed(ActionEvent e) {
+                moveTaskDown(); }};
+        moveDownAction.setEnabled(false);
+        moveDownAction.setMnemonic('D');
         if (Settings.isReadWrite())
-            result.add(moveDownButton);
+            result.add(new JButton(moveDownAction));
         result.add(Box.createHorizontalGlue());
 
-        flatViewCheckbox = mergedViewCheckbox = null;
+        flatViewAction = mergedViewAction = null;
         if (!isRollup) {
-            flatViewCheckbox = new JCheckBox
-                (resources.getString("Buttons.Flat_View"));
-            flatViewCheckbox.addActionListener(new ActionListener() {
-                    public void actionPerformed(ActionEvent e) {
-                        toggleFlatView(); }});
-            flatViewCheckbox.setSelected(false);
+            flatViewAction = new TSAction("Buttons.Flat_View") {
+                public void actionPerformed(ActionEvent e) {
+                    toggleFlatView(); }};
+            flatViewAction.setSelected(false);
+            JCheckBox flatViewCheckbox = new JCheckBox(flatViewAction);
             flatViewCheckbox.setFocusPainted(false);
-            flatViewCheckbox.setMnemonic('F');
             result.add(flatViewCheckbox);
             result.add(Box.createHorizontalGlue());
         } else {
-            mergedViewCheckbox = new JCheckBox
-                (resources.getString("Buttons.Merged_View"));
-            mergedViewCheckbox.addActionListener(new ActionListener() {
-                    public void actionPerformed(ActionEvent e) {
-                        toggleMergedView(); }});
-            mergedViewCheckbox.setSelected(false);
+            mergedViewAction = new TSAction("Buttons.Merged_View") {
+                public void actionPerformed(ActionEvent e) {
+                    toggleMergedView(); }};
+            mergedViewAction.setSelected(false);
+            JCheckBox mergedViewCheckbox = new JCheckBox(mergedViewAction);
             mergedViewCheckbox.setFocusPainted(false);
-            mergedViewCheckbox.setMnemonic('M');
             result.add(mergedViewCheckbox);
             result.add(Box.createHorizontalGlue());
         }
@@ -454,30 +448,24 @@ public class TaskScheduleDialog
         Box result = Box.createHorizontalBox();
         result.add(Box.createHorizontalGlue());
 
-        addPeriodButton = new JButton
-            (resources.getString("Buttons.Add_Schedule_Row"));
-        addPeriodButton.addActionListener(new ActionListener() {
-                public void actionPerformed(ActionEvent e) {
-                    addScheduleRow(); }});
-        result.add(addPeriodButton);
+        addPeriodAction = new TSAction("Buttons.Add_Schedule_Row") {
+            public void actionPerformed(ActionEvent e) {
+                addScheduleRow(); }};
+        result.add(new JButton(addPeriodAction));
         result.add(Box.createHorizontalGlue());
 
-        insertPeriodButton = new JButton
-            (resources.getString("Buttons.Insert_Schedule_Row"));
-        insertPeriodButton.addActionListener(new ActionListener() {
-                public void actionPerformed(ActionEvent e) {
-                    insertScheduleRow(); }});
-        insertPeriodButton.setEnabled(false);
-        result.add(insertPeriodButton);
+        insertPeriodAction = new TSAction("Buttons.Insert_Schedule_Row") {
+            public void actionPerformed(ActionEvent e) {
+                insertScheduleRow(); }};
+        insertPeriodAction.setEnabled(false);
+        result.add(new JButton(insertPeriodAction));
         result.add(Box.createHorizontalGlue());
 
-        deletePeriodButton = new JButton
-            (resources.getString("Buttons.Delete_Schedule_Row"));
-        deletePeriodButton.addActionListener(new ActionListener() {
-                public void actionPerformed(ActionEvent e) {
-                    deleteScheduleRows(); }});
-        deletePeriodButton.setEnabled(false);
-        result.add(deletePeriodButton);
+        deletePeriodAction = new TSAction("Buttons.Delete_Schedule_Row") {
+            public void actionPerformed(ActionEvent e) {
+                deleteScheduleRows(); }};
+        deletePeriodAction.setEnabled(false);
+        result.add(new JButton(deletePeriodAction));
         result.add(Box.createHorizontalGlue());
 
         scheduleTable.getSelectionModel().addListSelectionListener
@@ -498,13 +486,11 @@ public class TaskScheduleDialog
                            Box.createVerticalStrut(2)), BorderLayout.CENTER);
         box.add(Box.createHorizontalStrut(2));
 
-        collaborateButton = new JButton
-            (resources.getString("Buttons.Collaborate"));
-        collaborateButton.addActionListener(new ActionListener() {
-                public void actionPerformed(ActionEvent e) {
-                    showCollaborationWizard(); }});
+        collaborateAction = new TSAction("Buttons.Collaborate") {
+            public void actionPerformed(ActionEvent e) {
+                showCollaborationWizard(); }};
         if (Settings.isReadWrite())
-            box.add(collaborateButton);
+            box.add(new JButton(collaborateAction));
 
         box.add(Box.createHorizontalGlue());
 
@@ -518,52 +504,50 @@ public class TaskScheduleDialog
         }
         */
 
-        errorButton = new JButton(resources.getString("Buttons.Errors"));
-        errorButton.addActionListener(new ActionListener() {
-                public void actionPerformed(ActionEvent e) {
-                    displayErrorDialog(getErrors()); }});
+        errorAction = new TSAction("Buttons.Errors") {
+            public void actionPerformed(ActionEvent e) {
+                displayErrorDialog(getErrors()); }};
+        final JButton errorButton = new JButton(errorAction);
         errorButton.setBackground(Color.red);
         errorButton.setFocusPainted(false);
-        errorButton.setVisible(getErrors() != null);
+        errorAction.addPropertyChangeListener(new PropertyChangeListener(){
+            public void propertyChange(PropertyChangeEvent evt) {
+                errorButton.setVisible(errorAction.isEnabled());
+            }});
+        errorAction.setEnabled(getErrors() != null);
         box.add(errorButton);
         box.add(Box.createHorizontalStrut(2));
 
-        filteredChartButton = new JButton
-            (resources.getString("Buttons.Filtered_Chart"));
-        filteredChartButton.setEnabled(false);
-        filteredChartButton.addActionListener(new ActionListener() {
-                public void actionPerformed(ActionEvent e) {
-                    showFilteredChart(); }});
-        box.add(filteredChartButton);
+        filteredChartAction = new TSAction("Buttons.Filtered_Chart") {
+            public void actionPerformed(ActionEvent e) {
+                showFilteredChart(); }};
+        filteredChartAction.setEnabled(false);
+        box.add(new JButton(filteredChartAction));
         box.add(Box.createHorizontalStrut(2));
 
-        chartButton = new JButton(resources.getString("Buttons.Chart"));
-        chartButton.addActionListener(new ActionListener() {
-                public void actionPerformed(ActionEvent e) {
-                    showChart(); }});
-        box.add(chartButton);
+        chartAction = new TSAction("Buttons.Chart") {
+            public void actionPerformed(ActionEvent e) {
+                showChart(); }};
+        box.add(new JButton(chartAction));
         box.add(Box.createHorizontalStrut(2));
 
-        reportButton = new JButton(resources.getString("Buttons.Report"));
-        reportButton.addActionListener(new ActionListener() {
-                public void actionPerformed(ActionEvent e) {
-                    showHTML(); }});
-        box.add(reportButton);
+        reportAction = new TSAction("Buttons.Report") {
+            public void actionPerformed(ActionEvent e) {
+                showHTML(); }};
+        box.add(new JButton(reportAction));
         box.add(Box.createHorizontalStrut(2));
 
-        closeButton = new JButton(resources.getString("Close"));
-        closeButton.addActionListener(new ActionListener() {
-                public void actionPerformed(ActionEvent e) {
-                    confirmClose(true); }});
-        box.add(closeButton);
+        closeAction = new TSAction("Close") {
+            public void actionPerformed(ActionEvent e) {
+                confirmClose(true); }};
+        box.add(new JButton(closeAction));
         box.add(Box.createHorizontalStrut(2));
 
-        saveButton = new JButton(resources.getString("Save"));
-        saveButton.addActionListener(new ActionListener() {
-                public void actionPerformed(ActionEvent e) {
-                    save(); }});
+        saveAction = new TSAction("Save") {
+            public void actionPerformed(ActionEvent e) {
+                save(); }};
         if (Settings.isReadWrite()) {
-            box.add(saveButton);
+            box.add(new JButton(saveAction));
             box.add(Box.createHorizontalStrut(2));
         }
 
@@ -571,6 +555,75 @@ public class TaskScheduleDialog
         size.width = 2000;
         result.setMaximumSize(size);
 
+        return result;
+    }
+
+    private JMenuBar buildMenuBar() {
+        JMenuBar result = new JMenuBar();
+        boolean rw = Settings.isReadWrite();
+
+        // create the File menu
+        JMenu fileMenu = makeMenu("File");
+        fileMenu.add(closeAction);
+        if (rw) fileMenu.add(saveAction);
+        result.add(fileMenu);
+
+        // If we're in read-write mode, create the Edit menu.
+        if (rw) {
+            JMenu editMenu = makeMenu("Edit");
+            editMenu.add(addTaskAction);
+            editMenu.add(deleteTaskAction);
+            editMenu.add(moveUpAction);
+            editMenu.add(moveDownAction);
+            if (!isRollup()) {
+                editMenu.addSeparator();
+                editMenu.add(addPeriodAction);
+                editMenu.add(insertPeriodAction);
+                editMenu.add(deletePeriodAction);
+            }
+            result.add(editMenu);
+        }
+
+        // create the View menu
+        JMenu viewMenu = makeMenu("View");
+        viewMenu.add(chartAction);
+        viewMenu.add(filteredChartAction);
+        viewMenu.add(reportAction);
+        viewMenu.add(errorAction);
+        if (flatViewAction != null) {
+            viewMenu.addSeparator();
+            viewMenu.add(new JCheckBoxMenuItem(flatViewAction));
+        } else if (mergedViewAction != null) {
+            viewMenu.addSeparator();
+            viewMenu.add(new JCheckBoxMenuItem(mergedViewAction));
+        }
+        result.add(viewMenu);
+
+        // create the Tools menu
+        if (rw) {
+            JMenu toolsMenu = makeMenu("Tools");
+            toolsMenu.add(collaborateAction);
+            result.add(toolsMenu);
+        }
+
+        // create the Help menu
+        JMenu helpMenu = makeMenu("Help_Menu.Title");
+        JMenuItem usingTaskSchedule = new JMenuItem(resources
+                .getString("Help_Menu.Using_Item"));
+        usingTaskSchedule.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                PCSH.displayHelpTopic("UsingTaskSchedule"); }});
+        helpMenu.add(usingTaskSchedule);
+        result.add(helpMenu);
+
+        return result;
+    }
+
+
+    private JMenu makeMenu(String resKey) {
+        String text = resources.getString(resKey);
+        JMenu result = new JMenu(text);
+        result.setMnemonic(text.charAt(0));
         return result;
     }
 
@@ -627,6 +680,28 @@ public class TaskScheduleDialog
         err.done();
     }
 
+    abstract class TSAction extends AbstractAction {
+
+        public TSAction(String resKey) {
+            this(resKey, resKey);
+        }
+        public TSAction(String rollupKey, String plainKey) {
+            super(isRollup() ? resources.getString(rollupKey) : resources
+                    .getString(plainKey));
+        }
+        public void setText(String text) {
+            putValue(NAME, text);
+        }
+        public void setMnemonic(char c) {
+            putValue(MNEMONIC_KEY, new Integer(c));
+        }
+        public boolean isSelected() {
+            return Boolean.TRUE.equals(getValue(SELECTED_KEY));
+        }
+        public void setSelected(boolean selected) {
+            putValue(SELECTED_KEY, selected ? Boolean.TRUE : Boolean.FALSE);
+        }
+    }
 
     Color editableColor, selectedEditableColor;
     Color expandedColor, automaticColor;
@@ -1961,27 +2036,27 @@ public class TaskScheduleDialog
         boolean enableDelete = (disableTaskPruning == false
                 && firstRowNum > 0 && firstRowNum == lastRowNum);
 
-        boolean enableUp = (lastRowNum - treeTable.getSelectedRowCount() > 1);
+        boolean enableUp = (lastRowNum - treeTable.getSelectedRowCount() > 0);
         boolean enableDown = (lastRowNum > 0 && (firstRowNum + treeTable
                 .getSelectedRowCount()) < treeTable.getRowCount());
 
         //addTaskButton    .setEnabled(false);
-        deleteTaskButton .setEnabled(enableDelete);
-        deleteTaskButton .setText(resources.getString("Buttons.Remove_Task"));
-        moveUpButton     .setEnabled(enableUp);
-        moveDownButton   .setEnabled(enableDown);
-        filteredChartButton.setEnabled(false);
+        deleteTaskAction .setEnabled(enableDelete);
+        deleteTaskAction .setText(resources.getString("Buttons.Remove_Task"));
+        moveUpAction     .setEnabled(enableUp);
+        moveDownAction   .setEnabled(enableDown);
+        filteredChartAction.setEnabled(false);
     }
 
     private void enableTaskButtonsMergedView() {
-        addTaskButton    .setEnabled(false);
-        deleteTaskButton .setEnabled(false);
-        moveUpButton     .setEnabled(false);
-        moveDownButton   .setEnabled(false);
+        addTaskAction    .setEnabled(false);
+        deleteTaskAction .setEnabled(false);
+        moveUpAction     .setEnabled(false);
+        moveDownAction   .setEnabled(false);
 
         int firstRowNum = treeTable.getSelectionModel().getMinSelectionIndex();
         int lastRowNum = treeTable.getSelectionModel().getMaxSelectionIndex();
-        filteredChartButton.setEnabled(firstRowNum > 0 && firstRowNum == lastRowNum);
+        filteredChartAction.setEnabled(firstRowNum > 0 && firstRowNum == lastRowNum);
     }
 
 
@@ -2005,19 +2080,19 @@ public class TaskScheduleDialog
             enableDelete = isPruned || (disableTaskPruning == false);
         }
 
-        addTaskButton    .setEnabled(true);
-        deleteTaskButton .setEnabled(enableDelete);
+        addTaskAction    .setEnabled(true);
+        deleteTaskAction .setEnabled(enableDelete);
         if (!isRollup())
-            deleteTaskButton.setText
+            deleteTaskAction.setText
                 (isPruned
                  ? resources.getString("Buttons.Restore_Task")
                  : resources.getString("Buttons.Remove_Task"));
-        moveUpButton     .setEnabled(enableUp);
-        moveDownButton   .setEnabled(enableDown);
+        moveUpAction     .setEnabled(enableUp);
+        moveDownAction   .setEnabled(enableDown);
 
         int firstRowNum = treeTable.getSelectionModel().getMinSelectionIndex();
         int lastRowNum = treeTable.getSelectionModel().getMaxSelectionIndex();
-        filteredChartButton.setEnabled(firstRowNum > 0 && firstRowNum == lastRowNum);
+        filteredChartAction.setEnabled(firstRowNum > 0 && firstRowNum == lastRowNum);
     }
 
     protected void toggleFlatView() {
@@ -2193,12 +2268,12 @@ public class TaskScheduleDialog
             }
         }
 
-        insertPeriodButton.setEnabled(enableInsert);
-        deletePeriodButton.setEnabled(enableDelete);
+        insertPeriodAction.setEnabled(enableInsert);
+        deletePeriodAction.setEnabled(enableDelete);
     }
 
     protected void maybeDisplayErrorButton() {
-        errorButton.setVisible(getErrors() != null);
+        errorAction.setEnabled(getErrors() != null);
     }
 
     protected void close() {
