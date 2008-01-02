@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2007 Tuma Solutions, LLC
+// Copyright (C) 2003-2008 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -43,6 +43,7 @@ import net.sourceforge.processdash.data.ImmutableDoubleData;
 import net.sourceforge.processdash.data.ListData;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.StringData;
+import net.sourceforge.processdash.data.repository.DataNameFilter;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.data.util.TopDownBottomUpJanitor;
 import net.sourceforge.processdash.hier.DashHierarchy;
@@ -137,13 +138,14 @@ public class EVTaskListData extends EVTaskList
 
     public void save(String newName) {
         EVTask r = (EVTask) root;
+        boolean nameIsChanging = (!taskListName.equals(newName));
 
         // First, compile a list of all the elements in the datafile that
         // were previously used to save this task list.  (That way we'll
         // know what we need to delete.)
         String globalPrefix = MAIN_DATA_PREFIX + taskListName + "/";
         String ordinalPrefix = "/" + TASK_ORDINAL_PREFIX + taskListName;
-        Iterator i = data.getKeys();
+        Iterator i = data.getKeys(null, DataNameFilter.EXPLICIT_ONLY);
         Set oldNames = new HashSet();
         String dataName;
         while (i.hasNext()) {
@@ -177,14 +179,25 @@ public class EVTaskListData extends EVTaskList
             // save the task list unique ID and the metadata
             oldNames.remove(saveID(newName, data));
             oldNames.remove(saveMetadata(newName, data));
+            renameSnapshots(oldNames, newName, data);
 
             taskListName = newName;
         }
 
         // Finally, delete any old unused data elements.
         i = oldNames.iterator();
-        while (i.hasNext())
-            data.removeValue((String) i.next());
+        while (i.hasNext()) {
+            dataName = (String) i.next();
+            if (!nameIsChanging && dataName.startsWith(MAIN_DATA_PREFIX))
+                // when the task list name isn't changing, and the data element
+                // in question starts with the main data prefix, give it the
+                // benefit of the doubt and leave it alone.  It most likely
+                // represents some bit of schedule metadata we don't know about
+                // (introduced in a later version of the dashboard)
+                ;
+            else
+                data.removeValue(dataName);
+        }
 
         // allow our tasks to do the same thing.
         r.saveStructuralData(newName);
@@ -291,6 +304,16 @@ public class EVTaskListData extends EVTaskList
         super.setValueAt(value, node, column);
         if (column == PLAN_TIME_COLUMN)
             EST_TIME_JANITOR.cleanup(data, hierarchy);
+    }
+
+    @Override
+    public String saveSnapshot(String snapshotId, String snapshotName) {
+        return saveSnapshotToData(data, snapshotId, snapshotName);
+    }
+
+    @Override
+    public EVSnapshot getSnapshotById(String snapshotId) {
+        return getSnapshotFromData(data, snapshotId);
     }
 
     public void dispose() {

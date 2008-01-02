@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2007 Tuma Solutions, LLC
+// Copyright (C) 2003-2008 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -35,6 +35,7 @@ import java.util.Vector;
 import net.sourceforge.processdash.data.ListData;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.StringData;
+import net.sourceforge.processdash.data.repository.DataNameFilter;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.net.cache.ObjectCache;
@@ -131,10 +132,23 @@ public class EVTaskListRollup extends EVTaskList {
         saveTaskLists(newName, data);
         saveID(newName, data);
         saveMetadata(newName, data);
+        renameSnapshots(getPotentialDataNames(), newName, data);
 
         taskListName = newName;
 
         super.save(newName);
+    }
+
+    private Set getPotentialDataNames() {
+        String globalPrefix = MAIN_DATA_PREFIX + taskListName + "/";
+        Iterator i = data.getKeys(null, DataNameFilter.EXPLICIT_ONLY);
+        Set result = new HashSet();
+        while (i.hasNext()) {
+            String dataName = (String) i.next();
+            if (dataName.startsWith(globalPrefix))
+                result.add(dataName);
+        }
+        return result;
     }
 
     private void saveTaskLists(String newName, DataRepository data) {
@@ -225,6 +239,16 @@ public class EVTaskListRollup extends EVTaskList {
                                      childIndexes, children);
         }
         super.fireEvRecalculated();
+    }
+
+    @Override
+    public String saveSnapshot(String snapshotId, String snapshotName) {
+        return saveSnapshotToData(data, snapshotId, snapshotName);
+    }
+
+    @Override
+    public EVSnapshot getSnapshotById(String snapshotId) {
+        return getSnapshotFromData(data, snapshotId);
     }
 
 

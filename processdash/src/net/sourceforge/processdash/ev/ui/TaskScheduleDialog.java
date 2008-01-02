@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2007 Tuma Solutions, LLC
+// Copyright (C) 2003-2008 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -179,7 +179,7 @@ public class TaskScheduleDialog
             moveDownAction, flatViewAction, mergedViewAction, addPeriodAction,
             insertPeriodAction, deletePeriodAction, chartAction, reportAction,
             closeAction, saveAction, errorAction, filteredChartAction,
-            collaborateAction;
+            saveBaselineAction, collaborateAction;
 
     protected boolean disableTaskPruning;
 
@@ -602,6 +602,10 @@ public class TaskScheduleDialog
         // create the Tools menu
         if (rw) {
             JMenu toolsMenu = makeMenu("Tools");
+            saveBaselineAction = new TSAction("Buttons.Save_Baseline") {
+                public void actionPerformed(ActionEvent e) {
+                    saveBaseline(); }};
+            toolsMenu.add(saveBaselineAction);
             toolsMenu.add(collaborateAction);
             result.add(toolsMenu);
         }
@@ -2299,16 +2303,36 @@ public class TaskScheduleDialog
     }
 
     protected void configureEditor(JTable table) {
-        table.setDefaultEditor(Date.class, new JDateTimeChooserCellEditor(DATE_FORMAT));
+        table.setDefaultEditor(Date.class, new JDateTimeChooserCellEditor(
+                DATE_FORMAT));
+    }
 
-        //configureEditor(table.getDefaultEditor(String.class));
-        //configureEditor(table.getDefaultEditor(Date.class));
-    }/*
-    protected void configureEditor(TableCellEditor e) {
-        if (e instanceof DefaultCellEditor)
-            //((DefaultCellEditor)e).setClickCountToStart(1);
-            ((DefaultCellEditor)e).addCellEditorListener(this);
-            }*/
+    public void saveBaseline() {
+        String oldId = model.getMetadata(EVTaskList.BASELINE_METADATA_KEY);
+        String promptKey = (oldId == null ? "Prompt" : "Replace_Prompt");
+
+        if (JOptionPane.OK_OPTION != JOptionPane.showConfirmDialog(frame,
+            resources.getString("Save_Baseline.Confirm_Dialog." + promptKey),
+            resources.getString("Save_Baseline.Confirm_Dialog.Title"),
+            JOptionPane.OK_CANCEL_OPTION)) {
+            return;
+        }
+
+        if (isDirty) {
+            if (JOptionPane.OK_OPTION != JOptionPane.showConfirmDialog(frame,
+                resources.getString("Save_Baseline.Confirm_Save.Prompt"),
+                resources.getString("Save_Baseline.Confirm_Save.Title"),
+                JOptionPane.OK_CANCEL_OPTION))
+                return;
+        }
+
+        String snapshotName = resources.format(
+            "Save_Baseline.Snapshot_Name_FMT", new Date());
+        String snapshotId = model.saveSnapshot(null, snapshotName);
+        model.setMetadata(EVTaskList.BASELINE_METADATA_KEY, snapshotId);
+        model.save();
+        setDirty(false);
+    }
 
     public void showCollaborationWizard() {
         if (saveOrCancel(true))

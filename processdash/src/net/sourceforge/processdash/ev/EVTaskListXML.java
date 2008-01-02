@@ -1,5 +1,5 @@
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
+// Copyright (C) 2003-2008 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -32,6 +32,8 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.w3c.dom.Element;
+
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.StringData;
 import net.sourceforge.processdash.data.repository.DataRepository;
@@ -56,6 +58,17 @@ public class EVTaskListXML extends EVTaskListXMLAbstract {
                  resources.getString("TaskList.Missing_Error_Message"));
     }
 
+    public EVTaskListXML(String displayName, Element xml) {
+        super(displayName, null, false);
+
+        try {
+            openXML(xml, displayName, null);
+        } catch (Exception e) {
+            createErrorRootNode(displayName, resources
+                    .getString("TaskList.Invalid_Schedule_Error_Message"));
+        }
+    }
+
     private boolean openXML(DataRepository data, String taskListName) {
         String xmlDoc = getXMLString(data, taskListName);
         if (xmlDoc == null) return false;
@@ -64,7 +77,7 @@ public class EVTaskListXML extends EVTaskListXMLAbstract {
     }
 
     public void recalc() {
-        if (!openXML(data, taskListName))
+        if (data != null && !openXML(data, taskListName))
             createErrorRootNode
                 (cleanupName(taskListName),
                  resources.getString("TaskList.Missing_Error_Message"));

@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2006 Tuma Solutions, LLC
+// Copyright (C) 2003-2008 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -66,42 +66,10 @@ public class EVTaskListXMLAbstract extends EVTaskList {
             // parse the XML document.
             Document doc = XMLUtils.parse(xmlDoc);
             Element docRoot = doc.getDocumentElement();
-
-            // extract the task list and the schedule.
-            List children = XMLUtils.getChildElements(docRoot);
-            if (children.size() != 2)
-                throw new Exception("Expected two children of EVModel, but " +
-                        "found " + children.size());
-            root = new EVTask((Element) children.get(0));
-            schedule = new EVSchedule((Element) children.get(1));
-
-            // optionally set the display name.
-            if (displayName != null)
-                ((EVTask) root).name = displayName;
-
-            // optionally set an error message.
-            if (errorMessage != null) {
-                ((EVTask) root).setTaskError(errorMessage);
-                if (!errorMessage.startsWith(" "))
-                    schedule.getMetrics().addError
-                        (errorMessage, (EVTask) root);
-            }
-
-            // If this EV schedule was exported before task flags were
-            // introduced, set an arbitrary flag on the EVTask root to pass
-            // along our knowledge that it isn't a direct task node.
-            if (!XMLUtils.hasValue(((EVTask) root).getFlag()))
-                ((EVTask) root).flag = "xml/unknown";
-
-            // create a calculator to minimally recalculate the schedule.
-            boolean reorder = !"false".equals(docRoot.getAttribute("rct"));
-            calculator = new EVCalculatorXML((EVTask) root, schedule, reorder);
-            taskListID = docRoot.getAttribute("tlid");
+            openXML(docRoot, displayName, errorMessage);
 
             // keep a record of the xml doc we parsed for future efficiency.
             xmlSource = xmlDoc;
-            this.errorMessage = errorMessage;
-            this.displayName  = displayName;
             return true;
         } catch (Exception e) {
             System.err.println("Got exception: " +e);
@@ -112,6 +80,43 @@ public class EVTaskListXMLAbstract extends EVTaskList {
             createErrorRootNode(displayName, errorMessage);
             return false;
         }
+    }
+
+    protected void openXML(Element docRoot, String displayName,
+            String errorMessage) throws Exception {
+        // extract the task list and the schedule.
+        List children = XMLUtils.getChildElements(docRoot);
+        if (children.size() != 2)
+            throw new Exception("Expected two children of EVModel, but " +
+                    "found " + children.size());
+        root = new EVTask((Element) children.get(0));
+        schedule = new EVSchedule((Element) children.get(1));
+
+        // optionally set the display name.
+        if (displayName != null)
+            ((EVTask) root).name = displayName;
+
+        // optionally set an error message.
+        if (errorMessage != null) {
+            ((EVTask) root).setTaskError(errorMessage);
+            if (!errorMessage.startsWith(" "))
+                schedule.getMetrics().addError
+                    (errorMessage, (EVTask) root);
+        }
+
+        // If this EV schedule was exported before task flags were
+        // introduced, set an arbitrary flag on the EVTask root to pass
+        // along our knowledge that it isn't a direct task node.
+        if (!XMLUtils.hasValue(((EVTask) root).getFlag()))
+            ((EVTask) root).flag = "xml/unknown";
+
+        // create a calculator to minimally recalculate the schedule.
+        boolean reorder = !"false".equals(docRoot.getAttribute("rct"));
+        calculator = new EVCalculatorXML((EVTask) root, schedule, reorder);
+        taskListID = docRoot.getAttribute("tlid");
+
+        this.errorMessage = errorMessage;
+        this.displayName  = displayName;
     }
 
     private boolean stringEquals(String a, String b) {
