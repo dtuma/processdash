@@ -496,8 +496,10 @@ public class EVTaskDependency implements Cloneable {
                 EVTaskDependency d = (EVTaskDependency) i.next();
                 d.getAsXML(xml, false);
             }
-            xml.append("</list>");
-            value = new ImmutableStringData(xml.toString());
+            if (xml.length() > 6) {
+                xml.append("</list>");
+                value = new ImmutableStringData(xml.toString());
+            }
         }
 
         String dataName = DataRepository.createDataName(taskPath,
