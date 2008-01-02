@@ -88,7 +88,8 @@ public class PlainTextNoteFormat implements HierarchyNoteFormat {
             throw new RuntimeException("Not yet implemented!");
 
         Editor result = new Editor();
-        result.setText(note.getContent());
+        if (note != null)
+            result.setText(note.getContent());
         result.setDirty(false);
         return result;
     }
