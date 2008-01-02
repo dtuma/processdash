@@ -31,4 +31,8 @@ public interface DataNameFilter {
         public boolean acceptPrefixLocalName(String prefix, String localName);
     }
 
+    public interface ExplicitOnly extends DataNameFilter {}
+
+    public Object EXPLICIT_ONLY = new ExplicitOnly() {};
+
 }

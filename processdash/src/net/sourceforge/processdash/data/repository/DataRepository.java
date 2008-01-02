@@ -2217,7 +2217,9 @@ public class DataRepository implements Repository, DataContext,
 
                     try {
                         add(name, isDefaultName, value, isDefaultValue, f, DO_NOTIFY);
-                        if (!isDefaultValue && checkDatafileModification)
+                        if (!isDefaultValue
+                                && (isDefaultName || value != null)
+                                && checkDatafileModification)
                             datafileModified(f);
                     } catch (DataElementAlreadyExistsException e) {
                         // this rare occurrence means that some other thread created this
@@ -3243,8 +3245,12 @@ public class DataRepository implements Repository, DataContext,
                 synchronized (data) {
                     explicitDataNames = new HashSet(data.keySet());
                 }
-                synchronized (datafiles) {
-                    files = new LinkedList(datafiles);
+                if (hints instanceof DataNameFilter.ExplicitOnly) {
+                    files = Collections.EMPTY_LIST;
+                } else {
+                    synchronized (datafiles) {
+                        files = new LinkedList(datafiles);
+                    }
                 }
 
                 for (Iterator i = files.iterator(); i.hasNext();) {
