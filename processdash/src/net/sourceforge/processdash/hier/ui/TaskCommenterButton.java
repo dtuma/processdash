@@ -1,0 +1,174 @@
+// Copyright (C) 2007 Tuma Solutions, LLC
+// Process Dashboard - Data Automation Tool for high-maturity processes
+//
+// This program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License
+// as published by the Free Software Foundation; either version 2
+// of the License, or (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, write to the Free Software
+// Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+//
+// The author(s) may be contacted at:
+// Process Dashboard Group
+// c/o Ken Raisor
+// 6137 Wardleigh Road
+// Hill AFB, UT 84056-5843
+//
+// E-Mail POC:  processdash-devel@lists.sourceforge.net
+
+package net.sourceforge.processdash.hier.ui;
+
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.util.Map;
+
+import javax.swing.Icon;
+import javax.swing.JButton;
+
+import net.sourceforge.processdash.ProcessDashboard;
+import net.sourceforge.processdash.hier.ActiveTaskModel;
+import net.sourceforge.processdash.hier.DashHierarchy;
+import net.sourceforge.processdash.hier.HierarchyNote;
+import net.sourceforge.processdash.hier.HierarchyNoteManager;
+import net.sourceforge.processdash.hier.PropertyKey;
+import net.sourceforge.processdash.i18n.Resources;
+import net.sourceforge.processdash.ui.DashboardIconFactory;
+import net.sourceforge.processdash.ui.lib.ToolTipTimingCustomizer;
+
+public class TaskCommenterButton extends JButton implements ActionListener,
+        PropertyChangeListener {
+
+    ProcessDashboard context = null;
+    ActiveTaskModel taskModel = null;
+
+    Icon commentPresentIcon = null;
+    Icon commentErrorIcon = null;
+    Icon noCommentIcon = null;
+
+    // Will be shown only when there is a conflict for a comment in the current
+    //  hierarchy.
+    String conflictPresentTooltip = null;
+
+    // A tooltip informing the user that it's possible to edit comments
+    //  by clicking on the TaskCommenterButton
+    String editTooltip = null;
+
+    // A tooltip informing the user that there is no comment for any of the task
+    //  of the current hierarchy
+    String noCommentTooltip = null;
+
+    // We show the deepest comment of the hierarchy as a tooltip.
+    String deepestComment = null;
+
+    // Indicates if there is a comment conflict for either the current task or any
+    //  of its ancestors.
+    boolean commentConflictPresent = false;
+
+    // The path for which there is a comment conflict
+    String taskInConflict = null;
+
+    // The other person that has made a comment for the task that has a conflicting
+    //  comment
+    String conflictingCommentAuthor = null;
+
+    Resources resources = null;
+
+    public TaskCommenterButton(ProcessDashboard dash, ActiveTaskModel activeTaskModel) {
+        super();
+        context = dash;
+        taskModel = activeTaskModel;
+
+        // TODO : Help topic
+
+        resources = Resources.getDashBundle("Notes.TaskCommenter");
+        editTooltip = resources.getHTML("Edit_Tooltip");
+        noCommentTooltip = resources.getHTML("No_Comments_Tooltip");
+
+        commentPresentIcon = DashboardIconFactory.getCommentIcon();
+        commentErrorIcon = DashboardIconFactory.getCommentErrorIcon();
+        noCommentIcon = DashboardIconFactory.getNoCommentIcon();
+
+        this.setBorder(null);
+        addActionListener(this);
+        taskModel.addPropertyChangeListener(this);
+        new ToolTipTimingCustomizer().install(this);
+        updateAppearance();
+    }
+
+    private void updateAppearance() {
+        StringBuffer toolTipText = null;
+
+        deepestComment = null;
+        commentConflictPresent = false;
+        taskInConflict = null;
+        conflictingCommentAuthor = null;
+
+        setCommentTooltipAndConflict(taskModel.getNode());
+
+        if (deepestComment == null) {
+            toolTipText = new StringBuffer("<html><div>" + noCommentTooltip);
+            setIcon(noCommentIcon);
+        }
+        else {
+            toolTipText = new StringBuffer("<html><div width='300'>");
+
+            if (commentConflictPresent) {
+                toolTipText.append(
+                        resources.format("Conflict_Tooltip_FMT",
+                                         conflictingCommentAuthor,
+                                         taskInConflict));
+                setIcon(commentErrorIcon);
+            }
+            else {
+                toolTipText.append(deepestComment + "<hr>" + editTooltip);
+                setIcon(commentPresentIcon);
+            }
+        }
+
+        toolTipText.append("</div></html>");
+        setToolTipText(toolTipText.toString());
+    }
+
+    // Navigate through the task hierarchy from the currentNode to the top. If any
+    //  conflicting comments are found, "taskInConflict" and "conflictingCommentAuthor"
+    //  will be set accordingly.
+    private void setCommentTooltipAndConflict(PropertyKey currentNode) {
+        Map<String, HierarchyNote> notes = HierarchyNoteManager.getNotesForPath(
+                context.getDataRepository(), currentNode.path());
+
+        if (notes != null) {
+            if (deepestComment == null)
+                deepestComment = notes.get(HierarchyNoteManager.NOTE_KEY).getAsHTML();
+
+            if (notes.get(HierarchyNoteManager.NOTE_CONFLICT_KEY) != null) {
+                commentConflictPresent = true;
+                taskInConflict = currentNode.path();
+                conflictingCommentAuthor =
+                    notes.get(HierarchyNoteManager.NOTE_CONFLICT_KEY).getAuthor();
+            }
+        }
+
+        PropertyKey parent = currentNode.getParent();
+
+        if (parent != null)
+            setCommentTooltipAndConflict(parent);
+    }
+
+    public void actionPerformed(ActionEvent e) {
+        // TODO : Show comment editor
+        updateAppearance();
+    }
+
+    public void propertyChange(PropertyChangeEvent evt) {
+        updateAppearance();
+    }
+}

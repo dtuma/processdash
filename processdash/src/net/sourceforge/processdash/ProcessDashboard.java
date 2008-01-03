@@ -81,6 +81,7 @@ import net.sourceforge.processdash.hier.DefaultActiveTaskModel;
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.hier.DashHierarchy.Event;
 import net.sourceforge.processdash.hier.ui.HierarchyEditor;
+import net.sourceforge.processdash.hier.ui.TaskCommenterButton;
 import net.sourceforge.processdash.i18n.LookAndFeelSettings;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.i18n.Translator;
@@ -144,6 +145,7 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
     DefectButton defect_button = null;
     TaskNavigationSelector taskNav = null;
     CompletionButton completion_button = null;
+    TaskCommenterButton taskCommenterButton = null;
     JMenuBar hierarchy_menubar = null;
 
     DashHierarchy props;
@@ -459,6 +461,9 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
         completion_button = new CompletionButton(this, activeTaskModel);
         addToMainWindow(completion_button, 0);
         pt.click("Created completion button");
+        taskCommenterButton = new TaskCommenterButton(this, activeTaskModel);
+        addToMainWindow(taskCommenterButton, 0);
+        pt.click("Created task commenter button");
 
         ImportManager.init(data);
         pt.click("Initialized import manager");
