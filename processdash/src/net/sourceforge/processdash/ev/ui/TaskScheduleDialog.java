@@ -2332,6 +2332,8 @@ public class TaskScheduleDialog
         model.setMetadata(EVTaskList.BASELINE_METADATA_KEY, snapshotId);
         model.save();
         setDirty(false);
+
+        recalcAll();
     }
 
     public void showCollaborationWizard() {

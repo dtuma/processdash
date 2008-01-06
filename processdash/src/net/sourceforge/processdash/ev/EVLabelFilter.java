@@ -1,4 +1,4 @@
-// Copyright (C) 2006 Tuma Solutions, LLC
+// Copyright (C) 2006-2008 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -59,11 +59,9 @@ public class EVLabelFilter implements EVTaskFilter {
         boolean isLocal = (taskList instanceof EVTaskListData);
 
         Set labelPaths = new HashSet();
-        collectLabelPaths((EVTask) taskList.getRoot(), isLocal, labelPaths);
-
         List labelData = new ArrayList();
-        for (Iterator i = labelPaths.iterator(); i.hasNext();)
-            append(labelData, getLabelDataForPath(data, (String) i.next()));
+        collectLabelData(data, taskList.getTaskRoot(), isLocal, labelPaths,
+            labelData);
 
         if (labelData.isEmpty())
             throw new IllegalArgumentException("No labels found for task list");
@@ -71,27 +69,49 @@ public class EVLabelFilter implements EVTaskFilter {
         matchingTaskIDs = GlobEngine.search(filter, LABEL_TAG, labelData);
 
         matchingTasks = new HashSet();
-        collectMatchingTasks((EVTask) taskList.getRoot(), false);
+        collectMatchingTasks(taskList.getTaskRoot(), false);
     }
 
-    private static void collectLabelPaths(EVTask task, boolean isLocal,
-            Set paths) {
+    private static void collectLabelData(DataRepository data, EVTask task,
+            boolean isLocal, Set labelPaths, List labelData) {
+        boolean foundLabels = false;
         List ids = task.getTaskIDs();
         if (ids != null && !ids.isEmpty()) {
             if (isLocal) {
-                paths.add(task.getFullName());
+                foundLabels = addLabelData(data, task.getFullName(),
+                    labelPaths, labelData);
             } else {
                 for (Iterator i = ids.iterator(); i.hasNext();) {
                     String id = (String) i.next();
                     String path = EVTaskDependencyResolver.getInstance()
                             .getCanonicalTaskName(id);
-                    paths.add(path);
+                    if (addLabelData(data, path, labelPaths, labelData))
+                        foundLabels = true;
                 }
             }
+        }
 
-        } else {
+        if (!foundLabels) {
             for (int i = task.getNumChildren(); i-- > 0;)
-                collectLabelPaths(task.getChild(i), isLocal, paths);
+                collectLabelData(data, task.getChild(i), isLocal, labelPaths,
+                    labelData);
+        }
+    }
+
+    private static boolean addLabelData(DataRepository data, String path,
+            Set labelPaths, List labelData) {
+        if (path == null || path.length() == 0)
+            return false;
+        if (labelPaths.contains(path))
+            return true;
+
+        List labels = getLabelDataForPath(data, path);
+        if (labels != null) {
+            labelData.addAll(labels);
+            labelPaths.add(path);
+            return true;
+        } else {
+            return false;
         }
     }
 
@@ -109,11 +129,6 @@ public class EVLabelFilter implements EVTaskFilter {
         }
 
         return null;
-    }
-
-    private void append(List dest, List src) {
-        if (src != null)
-            dest.addAll(src);
     }
 
 
@@ -165,15 +180,10 @@ public class EVLabelFilter implements EVTaskFilter {
         boolean isLocal = (taskList instanceof EVTaskListData);
 
         Set labelPaths = new HashSet();
-        collectLabelPaths((EVTask) taskList.getRoot(), isLocal, labelPaths);
-
-        for (Iterator i = labelPaths.iterator(); i.hasNext();) {
-            List labelData = getLabelDataForPath(data, (String) i.next());
-            if (labelData != null && !labelData.isEmpty())
-                return true;
-        }
-
-        return false;
+        List labelData = new ArrayList();
+        collectLabelData(data, taskList.getTaskRoot(), isLocal, labelPaths,
+            labelData);
+        return !labelData.isEmpty();
     }
 
     public String getAttribute(String name) {

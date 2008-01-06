@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2006 Tuma Solutions, LLC
+// Copyright (C) 2003-2008 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -47,6 +47,9 @@ public class EVCalculatorXML extends EVCalculator {
 
 
     public void recalculate() {
+        // load the baseline data for the schedule
+        recalcBaselineData(taskRoot);
+
         // mark ANCESTOR_PRUNED nodes appropriately
         pruneNodes(taskRoot, false);
 
@@ -66,6 +69,7 @@ public class EVCalculatorXML extends EVCalculator {
         EVForecastDateCalculators.XML_FORECAST.calculateForecastDates(taskRoot,
                 schedule, schedule.getMetrics(), evLeaves);
         schedule.getMetrics().planDate = taskRoot.getPlanDate();
+        schedule.getMetrics().loadBaselineData(taskRoot);
         schedule.getMetrics().recalcComplete(schedule);
 
         // check for errors in the task list

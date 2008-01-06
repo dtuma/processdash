@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2007 Tuma Solutions, LLC
+// Copyright (C) 2003-2008 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -58,6 +58,9 @@ public class EVMetrics implements TableModel {
      * (aka Budget At Completion, or BAC) */
     protected double totalPlanTime = 0.0;
 
+    /** The total baselined cost for all tasks */
+    protected double totalBaselineTime = Double.NaN;
+
     /** The total planned time for all <b>completed</b> tasks in an EVModel,
      * in minutes.  (aka Budgeted Cost for Work Performed, or BCWP) */
     protected double earnedValueTime = 0.0;
@@ -79,6 +82,9 @@ public class EVMetrics implements TableModel {
 
     /** The planned completion date */
     protected Date planDate = null;
+
+    /** The baseline completion date */
+    protected Date baselineDate = null;
 
     /** The slip-driven, replan date */
     protected Date replanDate = null;
@@ -138,9 +144,10 @@ public class EVMetrics implements TableModel {
                       Date periodStart, Date periodEnd) {
         totalPlanTime = earnedValueTime = actualTime = planTime =
             indirectTime = totalScheduleActualTime = totalSchedulePlanTime = 0.0;
+        totalBaselineTime = Double.NaN;
         startDate = start;
         currentDate = current;
-        planDate = replanDate = forecastDate = null;
+        planDate = replanDate = forecastDate = baselineDate = null;
         this.periodEnd = periodEnd;
         errors = null;
         if (periodStart != null && periodEnd != null) {
@@ -189,6 +196,20 @@ public class EVMetrics implements TableModel {
     protected void recalcScheduleTime(EVSchedule s) {
         totalSchedulePlanTime = s.getScheduledPlanTime(currentDate);
         totalScheduleActualTime = s.getScheduledActualTime(currentDate);
+    }
+    public void loadBaselineData(EVTask taskRoot) {
+        Date date = null;
+        double cost = Double.NaN;
+        if (taskRoot != null) {
+            date = taskRoot.baselineDate;
+            if (taskRoot.baselineTime > 0 || taskRoot.baselineDate != null)
+                cost = taskRoot.baselineTime;
+        }
+        setBaselineData(date, cost);
+    }
+    public void setBaselineData(Date baselineDate, double baselineCost) {
+        this.baselineDate = baselineDate;
+        this.totalBaselineTime = baselineCost;
     }
     public void setReplanDate(Date d) {
         if (d == EVSchedule.NEVER)
@@ -299,17 +320,25 @@ public class EVMetrics implements TableModel {
     public Date startDate()     { return startDate;       }
     public Date currentDate()   { return currentDate;     }
     public Date planDate()      { return planDate;        }
+    public Date baselineDate()  { return baselineDate;    }
+    public double totalBaseline() { return totalBaselineTime; }
 
 
 
     public double costVariance() {
         return earnedValue() - actual();
     }
+    public double baselineGrowth() {
+        return totalPlan() - totalBaseline();
+    }
     public double scheduleVariance() {
         return earnedValue() - plan();
     }
     public double costVariancePercentage() {
         return costVariance() / earnedValue();
+    }
+    public double baselineGrowthPercentage() {
+        return baselineGrowth() / totalBaseline();
     }
     public double timeEstimatingError() {
         return  - costVariancePercentage();
@@ -631,6 +660,14 @@ public class EVMetrics implements TableModel {
                 double val() { return scheduleVarianceDuration(); } } );
         result.add(new DblMetricFormatter("Schedule_Performance_Index") {
                 double val() { return schedulePerformanceIndex(); } } );
+        result.add(new CostMetricFormatter("Baseline_Cost") {
+                double val() { return totalBaseline(); } } );
+        result.add(new CostMetricFormatter("Baseline_Growth") {
+                double val() { return baselineGrowth(); } } );
+        result.add(new AbsMetricFormatter("Baseline_Growth_Percent") {
+                double val() { return baselineGrowthPercentage(); } } );
+        result.add(new DateMetricFormatter("Baseline_Date") {
+                Date val() { return baselineDate(); } } );
         result.add(new DblMetricFormatter("Percent_Complete") {
                 double val() { return percentComplete(); } } );
         result.add(new DblMetricFormatter("Percent_Spent") {

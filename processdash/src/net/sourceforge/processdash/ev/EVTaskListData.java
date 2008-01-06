@@ -78,6 +78,7 @@ public class EVTaskListData extends EVTaskList
         loadMetadata(taskListName, data);
         assignToOwner();
         calculator = new EVCalculatorData((EVTask) root, schedule);
+        calculator.setBaselineDataSource(getBaselineSnapshot());
         ((EVTask) root).flag = TASK_LIST_FLAG;
         if (willNeedChangeNotification)
             hierarchy.addHierarchyListener(this);

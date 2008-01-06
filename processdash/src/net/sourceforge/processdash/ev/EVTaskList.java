@@ -96,6 +96,7 @@ public class EVTaskList extends AbstractTreeTableModel
     protected double totalPlanValue;
     protected double totalActualTime;
     protected boolean showDirectTimeColumns;
+    protected boolean showBaselineColumns;
     protected boolean showNodeTypeColumn;
     protected boolean showReplanColumn = Settings.getBool(
             "ev.showReplanColumn", true);
@@ -523,6 +524,7 @@ public class EVTaskList extends AbstractTreeTableModel
 
     public boolean isEmpty() { return ((EVTask) root).isLeaf(); }
     public boolean isEditable() { return false; }
+    public EVTask getTaskRoot() { return (EVTask) root; }
     public String getRootName() { return ((EVTask) root).name; }
     public String getID() { return taskListID; }
 
@@ -534,10 +536,16 @@ public class EVTaskList extends AbstractTreeTableModel
         if (metaData == null)
             metaData = new Properties();
 
+        String result;
         if (StringUtils.hasValue(value))
-            return (String) metaData.put(key, value);
+            result = (String) metaData.put(key, value);
         else
-            return (String) metaData.remove(key);
+            result = (String) metaData.remove(key);
+
+        if (BASELINE_METADATA_KEY.equals(key))
+            calculator.setBaselineDataSource(getBaselineSnapshot());
+
+        return result;
     }
 
 
@@ -728,6 +736,7 @@ public class EVTaskList extends AbstractTreeTableModel
 
         double directTimeDelta = taskRoot.planTime - taskRoot.planValue;
         showDirectTimeColumns = Math.abs(directTimeDelta) > 0.1;
+        showBaselineColumns = (calculator.getBaselineDataSource() != null);
         showNodeTypeColumn = taskRoot.nodeTypesAreInUse();
         showLabelsColumn = labelsAreInUse(taskRoot);
         nodeTypeSpecs = null;
@@ -739,6 +748,11 @@ public class EVTaskList extends AbstractTreeTableModel
 
     public void setDependencyCalculator(EVDependencyCalculator d) {
         this.dependencyCalculator = d;
+    }
+
+    public void disableBaselineData() {
+        this.calculator.setBaselineDataSource(null);
+        showBaselineColumns = false;
     }
 
     public void setTaskLabeler(TaskLabeler l) {
@@ -799,6 +813,14 @@ public class EVTaskList extends AbstractTreeTableModel
         return null;
     }
 
+    public EVSnapshot getBaselineSnapshot() {
+        String snapshotId = getMetadata(EVTaskList.BASELINE_METADATA_KEY);
+        if (!StringUtils.hasValue(snapshotId))
+            return null;
+        else
+            return getSnapshotById(snapshotId);
+    }
+
 
 
     //////////////////////////////////////////////////////////////////////
@@ -807,9 +829,9 @@ public class EVTaskList extends AbstractTreeTableModel
 
 
     private static final String[] COLUMN_KEYS = {
-        "Task", "NodeType", "PT", "PDT", "Time", "DTime", "PV", "CPT", "CPV",
-        "Who", "Plan_Date", "Replan_Date", "Forecast_Date", "Date", "Labels",
-        "Depn", "PctC", "PctS", "EV" };
+        "Task", "NodeType", "PT", "PDT", "BT", "Time", "DTime", "PV", "CPT",
+        "CPV", "Who", "Baseline_Date", "Plan_Date", "Replan_Date",
+        "Forecast_Date", "Date", "Labels", "Depn", "PctC", "PctS", "EV" };
 
     /** Names of the columns in the TreeTableModel. */
     protected static String[] colNames =
@@ -823,13 +845,15 @@ public class EVTaskList extends AbstractTreeTableModel
     public static final int NODE_TYPE_COLUMN      = TASK_COLUMN+1;
     public static final int PLAN_TIME_COLUMN      = NODE_TYPE_COLUMN+1;
     public static final int PLAN_DTIME_COLUMN     = PLAN_TIME_COLUMN+1;
-    public static final int ACT_TIME_COLUMN       = PLAN_DTIME_COLUMN+1;
+    public static final int BASELINE_TIME_COLUMN  = PLAN_DTIME_COLUMN+1;
+    public static final int ACT_TIME_COLUMN       = BASELINE_TIME_COLUMN+1;
     public static final int ACT_DTIME_COLUMN      = ACT_TIME_COLUMN+1;
     public static final int PLAN_VALUE_COLUMN     = ACT_DTIME_COLUMN+1;
     public static final int PLAN_CUM_TIME_COLUMN  = PLAN_VALUE_COLUMN+1;
     public static final int PLAN_CUM_VALUE_COLUMN = PLAN_CUM_TIME_COLUMN+1;
     public static final int ASSIGNED_TO_COLUMN    = PLAN_CUM_VALUE_COLUMN+1;
-    public static final int PLAN_DATE_COLUMN      = ASSIGNED_TO_COLUMN+1;
+    public static final int BASELINE_DATE_COLUMN  = ASSIGNED_TO_COLUMN+1;
+    public static final int PLAN_DATE_COLUMN      = BASELINE_DATE_COLUMN+1;
     public static final int REPLAN_DATE_COLUMN    = PLAN_DATE_COLUMN+1;
     public static final int FORECAST_DATE_COLUMN  = REPLAN_DATE_COLUMN+1;
     public static final int DATE_COMPLETE_COLUMN  = FORECAST_DATE_COLUMN+1;
@@ -845,8 +869,8 @@ public class EVTaskList extends AbstractTreeTableModel
     public static final int ACT_START_DATE_COLUMN = -123;
 
     public static final int[] HIDABLE_COLUMN_LIST = { NODE_TYPE_COLUMN,
-            PLAN_DTIME_COLUMN, ACT_DTIME_COLUMN, REPLAN_DATE_COLUMN,
-            LABELS_COLUMN };
+            PLAN_DTIME_COLUMN, ACT_DTIME_COLUMN, BASELINE_TIME_COLUMN,
+            BASELINE_DATE_COLUMN, REPLAN_DATE_COLUMN, LABELS_COLUMN };
 
     public static final String ID_DATA_NAME = "Task List ID";
     public static final String BASELINE_METADATA_KEY = "Baseline_Snapshot_ID";
@@ -861,12 +885,14 @@ public class EVTaskList extends AbstractTreeTableModel
         String.class,           // node type
         String.class,           // planned time
         String.class,           // planned direct time
+        String.class,           // baseline time
         String.class,           // actual time
         String.class,           // actual direct time
         String.class,           // planned value
         String.class,           // planned cumulative time
         String.class,           // planned cumulative value
         String.class,           // assigned to
+        Date.class,             // baseline date
         Date.class,             // planned date
         Date.class,             // replanned date
         Date.class,             // forecast date
@@ -888,12 +914,14 @@ public class EVTaskList extends AbstractTreeTableModel
         COLUMN_FMT_OTHER,     // node type
         COLUMN_FMT_TIME,      // planned time
         COLUMN_FMT_TIME,      // planned direct time
+        COLUMN_FMT_TIME,      // baseline time
         COLUMN_FMT_TIME,      // actual time
         COLUMN_FMT_TIME,      // actual direct time
         COLUMN_FMT_PERCENT,   // planned value
         COLUMN_FMT_TIME,      // planned cumulative time
         COLUMN_FMT_PERCENT,   // planned cumulative value
         COLUMN_FMT_OTHER,     // assigned to
+        COLUMN_FMT_DATE,      // baseline date
         COLUMN_FMT_DATE,      // planned date
         COLUMN_FMT_DATE,      // replanned date
         COLUMN_FMT_DATE,      // forecast date
@@ -981,6 +1009,9 @@ public class EVTaskList extends AbstractTreeTableModel
         boolean showColumn = true;
         if (column == PLAN_DTIME_COLUMN || column == ACT_DTIME_COLUMN)
             showColumn = showDirectTimeColumns;
+        else if (column == BASELINE_TIME_COLUMN
+                || column == BASELINE_DATE_COLUMN)
+            showColumn = showBaselineColumns;
         else if (column == NODE_TYPE_COLUMN)
             showColumn = showNodeTypeColumn;
         else if (column == REPLAN_DATE_COLUMN)
@@ -988,6 +1019,10 @@ public class EVTaskList extends AbstractTreeTableModel
         else if (column == LABELS_COLUMN)
             showColumn = showLabelsColumn;
 
+        return getColumnName(column, showColumn);
+    }
+
+    private String getColumnName(int column, boolean showColumn) {
         if (showColumn)
             return colNames[column];
         else
@@ -1018,6 +1053,9 @@ public class EVTaskList extends AbstractTreeTableModel
         case PLAN_CUM_VALUE_COLUMN: return n.getCumPlanValue(totalPlanValue);
         case ASSIGNED_TO_COLUMN:    return n.getAssignedToText();
         case -ASSIGNED_TO_COLUMN:   return n.getAssignedTo();
+        case BASELINE_TIME_COLUMN:  return n.getBaselineTime();
+        case -BASELINE_TIME_COLUMN: return new Double(n.baselineTime);
+        case BASELINE_DATE_COLUMN:  return n.getBaselineDate();
         case PLAN_DATE_COLUMN:      return n.getPlanDate();
         case REPLAN_DATE_COLUMN:    return n.getReplanDate();
         case FORECAST_DATE_COLUMN:  return n.getForecastDate();
@@ -1101,6 +1139,15 @@ public class EVTaskList extends AbstractTreeTableModel
                 data.putValue(dataName, StringData.create(taskListID));
             }
         }
+
+        setPseudoTaskIdForRoot();
+    }
+
+    // assign a pseudo task ID to the task root.
+    protected void setPseudoTaskIdForRoot() {
+        String rootTaskID = EVTaskDependencyResolver
+                .getPseudoTaskIdForTaskList(taskListID);
+        getTaskRoot().taskIDs = Collections.singletonList(rootTaskID);
     }
 
     /** Save the unique ID for this task list.

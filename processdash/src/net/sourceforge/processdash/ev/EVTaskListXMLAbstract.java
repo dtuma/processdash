@@ -114,6 +114,7 @@ public class EVTaskListXMLAbstract extends EVTaskList {
         boolean reorder = !"false".equals(docRoot.getAttribute("rct"));
         calculator = new EVCalculatorXML((EVTask) root, schedule, reorder);
         taskListID = docRoot.getAttribute("tlid");
+        setPseudoTaskIdForRoot();
 
         this.errorMessage = errorMessage;
         this.displayName  = displayName;

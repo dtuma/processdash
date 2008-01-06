@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2006 Tuma Solutions, LLC
+// Copyright (C) 2003-2008 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -43,7 +43,7 @@ import net.sourceforge.processdash.ev.ci.EVTimeErrConfidenceInterval;
 public class EVCalculatorRollup extends EVCalculator {
 
     private EVTask taskRoot;
-    private Vector evTaskLists;
+    private Vector<EVTaskList> evTaskLists;
     private EVScheduleRollup schedule;
 
     public EVCalculatorRollup(EVTask root, Vector evTaskLists,
@@ -78,6 +78,9 @@ public class EVCalculatorRollup extends EVCalculator {
         // Calculate confidence intervals, if possible.
         createConfidenceIntervals();
 
+        // set baseline data for the schedule
+        schedule.getMetrics().loadBaselineData(taskRoot);
+
         // Recalculate the rollup schedule.
         schedule.recalc();
 
@@ -85,6 +88,15 @@ public class EVCalculatorRollup extends EVCalculator {
         taskRoot.checkForNodeErrors(schedule.getMetrics(), 0,
                 new ArrayList(), new ArrayList(), true);
     }
+
+    @Override
+    public void setBaselineDataSource(EVSnapshot baselineDataSource) {
+        super.setBaselineDataSource(baselineDataSource);
+        for (EVTaskList tl : evTaskLists) {
+            tl.calculator.setBaselineDataSource(baselineDataSource);
+        }
+    }
+
 
     /** If this node is the root node of an EVTaskList rollup, this will
      *  recalculate it.
@@ -95,6 +107,12 @@ public class EVCalculatorRollup extends EVCalculator {
      */
     public void recalcRollupNode() {
         recalcRollupNode(taskRoot);
+        recalcRollupNodeBaseline(taskRoot);
+    }
+
+    private void recalcRollupNodeBaseline(EVTask taskRoot) {
+        EVTask baselineRoot = findBaselineTaskRoot(taskRoot);
+        copyBaselineData(taskRoot, baselineRoot, true);
     }
 
     protected static void recalcRollupNode(EVTask taskRoot) {

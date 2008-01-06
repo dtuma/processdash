@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2007 Tuma Solutions, LLC
+// Copyright (C) 2003-2008 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -152,6 +152,8 @@ public class EVTask implements Cloneable, DataListener {
     /** The plan time (minutes) for this node, determined intelligently from
      * the top down and bottom up times for this node. */
     double planTime;
+    /** The baselined plan time for this node. */
+    double baselineTime;
     /** The portion of the plan time that "counts" toward this schedule
      * (minutes) */
     double planValue;
@@ -181,6 +183,8 @@ public class EVTask implements Cloneable, DataListener {
     Date actualStartDate;
     /** The date we plan to complete this task */
     Date planDate;
+    /** The date we planned to complete this task in the baseline schedule */
+    Date baselineDate;
     /** The date the task could complete, based on current schedule slip */
     Date replanDate;
     /** The date this task is forecast to be completed */
@@ -863,6 +867,12 @@ public class EVTask implements Cloneable, DataListener {
     public double getPlanValue() {
         return planValue;
     }
+    public String getBaselineTime() {
+        if (!(baselineTime > 0) && baselineDate == null)
+            return "";
+        else
+            return FormatUtil.formatTime(baselineTime);
+    }
 
     public String getCumPlanTime() {
         if (isValuePruned() && cumPlanValue == 0) return "";
@@ -881,6 +891,9 @@ public class EVTask implements Cloneable, DataListener {
     public Date getPlanDate() {
         if (isValuePruned()) return null;
         return planDate;
+    }
+    public Date getBaselineDate() {
+        return baselineDate;
     }
     public Date getReplanDate() {
         if (isValuePruned()) return null;
@@ -997,6 +1010,34 @@ public class EVTask implements Cloneable, DataListener {
     }
 
 
+    /** Finds a task in this task tree with one of the given task IDs
+     * 
+     * @param ids a collection of task IDs
+     * @return an EVTask (either this task or one of its children) which
+     *    has a task ID matching one in the given collection
+     */
+    public EVTask findByTaskIDs(Collection ids) {
+        if (ids == null || ids.isEmpty())
+            return null;
+
+        if (this.taskIDs != null) {
+            for (Iterator i = this.taskIDs.iterator(); i.hasNext();) {
+                String oneID = (String) i.next();
+                if (ids.contains(oneID))
+                    return this;
+            }
+        }
+
+        for (int i = getNumChildren();  i-- > 0;) {
+            EVTask result = getChild(i).findByTaskIDs(ids);
+            if (result != null)
+                return result;
+        }
+
+        return null;
+    }
+
+
     /** Return a collection of all the descendants of this task */
     public Set getDescendants() {
         HashSet result = new HashSet();
@@ -1010,60 +1051,6 @@ public class EVTask implements Cloneable, DataListener {
             getChild(i).addSelfAndDescendants(dest);
     }
 
-
-/*
-    public void recalc(EVSchedule schedule, TimeLog log) {
-        resetRootValues();
-        recalcPlanTimes();
-        recalcPlanCumTime(0.0);
-        recalcActualTimes();
-        recalcDateCompleted();
-        recalcPlanValue();
-        schedule.prepForEvents();
-        schedule.cleanUp();
-        Date effDate = dateCompleted;
-        if (effDate == null) effDate = getTestingEffDate();
-        if (effDate == null) effDate = new Date();
-        recalcPlanDates(schedule);
-        for (int i = log.v.size();   i-- > 0;   )
-            saveTimeLogInfo(schedule, (TimeLogEntry) log.v.get(i));
-        schedule.setEffectiveDate(effDate);
-        schedule.getMetrics().reset(schedule.getStartDate(), effDate,
-                                    schedule.getPeriodStart(effDate),
-                                    schedule.getPeriodEnd(effDate));
-        checkForNodeErrors(schedule.getMetrics(), 0,
-                           new ArrayList(), new ArrayList());
-        checkForScheduleErrors(schedule.getMetrics(), schedule);
-        recalcMetrics(schedule.getMetrics());
-        schedule.getMetrics().recalcComplete(schedule);
-        schedule.firePreparedEvents();
-    }
-
-    public void simpleRecalc(EVSchedule schedule) {
-        recalcPlanTimes();
-        recalcPlanCumTime(0.0);
-        recalcPlanValue();
-        checkForNodeErrors(schedule.getMetrics(), 0,
-                           new ArrayList(), new ArrayList());
-//      checkForScheduleErrors(schedule.getMetrics(), schedule);
-    }
-
-    public Date getTestingEffDate() {
-        String setting = Settings.getVal("ev.effectiveDate");
-        if (setting == null) return null;
-        try {
-            return new Date(Long.parseLong(setting));
-        } catch (Exception e) {
-            return null;
-        }
-    }
-
-    protected void resetRootValues() {
-        planTime = cumPlanValue = actualTime = valueEarned =
-            topDownPlanTime = bottomUpPlanTime = 0;
-        planDate = dateCompleted = null;
-    }
-*/
 
     public double recalcPlanTimes() {
         if (isLeaf())
@@ -1084,56 +1071,6 @@ public class EVTask implements Cloneable, DataListener {
         }
         return bottomUpPlanTime;
     }
-
-/*
-    public double recalcPlanCumTime(double prevCumTime) {
-        if (isLeaf())
-            // for leaves, add our plan time to the total.
-            cumPlanValue = prevCumTime + planTime;
-        else if (isEVLeaf()) {
-            // if we aren't a leaf, but we're an EVLeaf, our children can't
-            // help us. Figure out cum time ourselves, then tell them what it
-            // is so they can display the same thing.
-            cumPlanValue = prevCumTime + planTime;
-            for (int i = 0;   i < getNumChildren();   i++)
-                getChild(i).recalcPlanCumTime(cumPlanValue);
-        } else {
-            // for nonleaves, ask each of our children to recalc.
-            cumPlanValue = prevCumTime;
-            for (int i = 0;   i < getNumChildren();   i++)
-                cumPlanValue = getChild(i).recalcPlanCumTime(cumPlanValue);
-        }
-        return cumPlanValue;
-    }
-
-    public double recalcActualTimes() {
-        actualTime = actualNodeTime;
-        if (!isLeaf()) {
-            // for nonleaves, ask each of our children to recalc.
-            for (int i = 0;   i < getNumChildren();   i++)
-                actualTime += getChild(i).recalcActualTimes();
-        }
-        return actualTime;
-    }
-
-    public void recalcPlanValue() {
-
-        if (isLeaf())
-            valueEarned = (dateCompleted == null ? 0 : planTime);
-        else if (isEVLeaf()) {
-            valueEarned = (dateCompleted == null ? 0 : planTime);
-            for (int i = 0;   i < getNumChildren();   i++)
-                getChild(i).recalcPlanValue();
-        } else {
-            valueEarned = 0;
-            // for nonleaves, ask each of our children to recalc.
-            for (int i = 0;   i < getNumChildren();   i++) {
-                getChild(i).recalcPlanValue();
-                valueEarned += getChild(i).valueEarned;
-            }
-        }
-    }
-*/
 
     public void recalcDateCompleted() {
         if (isLeaf()) return;
@@ -1167,25 +1104,6 @@ public class EVTask implements Cloneable, DataListener {
         dateCompleted = result;
     }
 
-/*
-    public void recalcPlanDates(EVSchedule schedule) {
-        if (isEVLeaf()) {
-            planDate = schedule.getPlannedCompletionDate
-                (cumPlanValue, cumPlanValue);
-            if (dateCompleted != null)
-                schedule.saveCompletedTask(dateCompleted, planTime);
-
-            if (!isLeaf())
-                for (int i = getNumChildren();   i-- > 0;   )
-                    getChild(i).recalcPlanDates(schedule);
-
-        } else {
-            for (int i = getNumChildren();   i-- > 0;   )
-                getChild(i).recalcPlanDates(schedule);
-            planDate = getChild(getNumChildren()-1).planDate;
-        }
-    }
-*/
 
     public void checkForNodeErrors(EVMetrics metrics, int depth,
                                    List rootChildList,
@@ -1256,58 +1174,7 @@ public class EVTask implements Cloneable, DataListener {
                     otherNodeList, rootNodesOnly);
     }
 
-/*
-    public void checkForScheduleErrors(EVMetrics metrics, EVSchedule sched) {
-        EVSchedule.Period p = sched.get(0);
-        if (p.actualDirectTime > 0.0)
-            metrics.addError("You have logged time to some of the tasks " +
-                             "in your task list before the start of the " +
-                             "first time period in your schedule. (Consider "+
-                             "modifying the schedule to begin earlier.)",
-                             this);
-        if (p.cumEarnedValue > 0.0)
-            metrics.addError("Some of the tasks in your task list were " +
-                             "completed before the start of the " +
-                             "first time period in your schedule. (Consider "+
-                             "modifying the schedule to begin earlier.)",
-                             this);
-    }
 
-    public void recalcMetrics(EVMetrics metrics) {
-        if (isEVLeaf())
-            metrics.addTask(planTime, actualTime, planDate, dateCompleted);
-        else {
-            for (int i = getNumChildren();   i-- > 0;   )
-                getChild(i).recalcMetrics(metrics);
-            // if they logged time against a non-leaf node, it counts
-            // against their metrics right away.  Treat it as an
-            // imaginary task with no planned time, which should have
-            // been completed instantaneously when the schedule started
-            if (actualNodeTime > 0)
-                metrics.addTask(0, actualNodeTime, null, metrics.startDate());
-        }
-    }
-
-    public boolean saveTimeLogInfo(EVSchedule schedule, TimeLogEntry e) {
-        String entryPath = e.getPath();
-        if (entryPath.equals(fullName)) {
-            schedule.saveActualTime(e.getStartTime(), e.getElapsedTime());
-            return true;
-        }
-
-        // If this is a parent node, and the time log entry begins
-        // with our full name, dispatch this to our children.
-        if (!isLeaf() &&
-            (fullName == null || fullName.length() == 0 ||
-             entryPath.startsWith(fullName)))
-
-            for (int i = children.size();   i-- > 0;  )  // dispatch loop
-                if (getChild(i).saveTimeLogInfo(schedule, e))
-                    return true;
-
-        return false;
-    }
-*/
 
     //
     // DataListener interface

@@ -1,4 +1,4 @@
-// Copyright (C) 2006-2007 Tuma Solutions, LLC
+// Copyright (C) 2006-2008 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -434,6 +434,9 @@ public class EVTaskListMerger {
 
         // recalculate the metrics on the merged root node.
         EVCalculatorRollup.recalcRollupNode(mergedRoot);
+
+        // lookup baseline data for all tasks in the merged task list
+        recalcBaselineData(mergedRoot);
     }
 
 
@@ -760,6 +763,35 @@ public class EVTaskListMerger {
     }
 
 
+    /** Find baseline data and load it into the merged schedule.
+     */
+    private void recalcBaselineData(EVTask mergedRoot) {
+        // at the moment, we refuse to calculate baselines for filtered data
+        if (filter != null)
+            return;
+
+        EVSnapshot baselineSnapshot = taskList.calculator
+                .getBaselineDataSource();
+        if (baselineSnapshot == null)
+            return;
+
+        EVTaskList mergedBaseline;
+        if (baselineSnapshot == lastSnapshot) {
+            mergedBaseline = lastMergedBaseline;
+        } else {
+            EVTaskList baselineTaskList = baselineSnapshot.getTaskList();
+            lastMergedBaseline = mergedBaseline = new EVTaskListMerged(
+                    baselineTaskList, false, null);
+            lastSnapshot = baselineSnapshot;
+        }
+
+        EVTask baselineRoot = mergedBaseline.getTaskRoot();
+        EVCalculator.calcBaselineTaskData(mergedRoot, baselineRoot);
+    }
+    private Object lastSnapshot = null;
+    private EVTaskList lastMergedBaseline = null;
+
+
     /** Collapse parent nodes that have only one child.
      */
     private void simplifyNodes(EVTask task) {
@@ -774,6 +806,11 @@ public class EVTaskListMerger {
             task.dependencies = mergeLists(task.dependencies, child.dependencies);
             task.taskIDs = mergeLists(task.taskIDs, child.taskIDs);
             task.name = pathConcat(task.name, child.name);
+
+            if (task.baselineDate == null)
+                task.baselineDate = child.baselineDate;
+            if (!(task.baselineTime > 0))
+                task.baselineTime = child.baselineTime;
 
             Set nm = new HashSet((Set) nodesMerged.get(task));
             nm.addAll((Set) nodesMerged.get(child));

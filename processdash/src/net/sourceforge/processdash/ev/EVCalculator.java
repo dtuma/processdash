@@ -1,4 +1,4 @@
-//Copyright (C) 2003-2007 Tuma Solutions, LLC
+//Copyright (C) 2003-2008 Tuma Solutions, LLC
 //Process Dashboard - Data Automation Tool for high-maturity processes
 //
 //This program is free software; you can redistribute it and/or
@@ -30,22 +30,20 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 
 public abstract class EVCalculator {
 
     protected List evLeaves;
     protected Date scheduleStartDate;
+    protected EVSnapshot baselineDataSource;
     protected boolean reorderCompletedTasks = true;
 
-    /*
-    public EVCalculator(String taskListName, EVTask root, EVSchedule schedule) {
-
-    }
-    */
 
     public abstract void recalculate();
 
@@ -232,4 +230,139 @@ public abstract class EVCalculator {
         }
     }
 
+
+    public void setBaselineDataSource(EVSnapshot baselineDataSource) {
+        this.baselineDataSource = baselineDataSource;
+    }
+
+    public EVSnapshot getBaselineDataSource() {
+        return baselineDataSource;
+    }
+
+    protected void recalcBaselineData(EVTask taskRoot) {
+        EVTask baselineTaskRoot = findBaselineTaskRoot(taskRoot);
+        calcBaselineTaskData(taskRoot, baselineTaskRoot);
+    }
+
+    protected EVTask findBaselineTaskRoot(EVTask taskRoot) {
+        if (baselineDataSource == null)
+            return null;
+        EVTask baselineDataRoot = baselineDataSource.getTaskList()
+                .getTaskRoot();
+        return baselineDataRoot.findByTaskIDs(taskRoot.getTaskIDs());
+    }
+
+    protected static void calcBaselineTaskData(EVTask taskRoot,
+            EVTask baselineRoot) {
+        if (baselineRoot == null) {
+            resetBaselineData(taskRoot);
+        } else {
+            Map<String, EVTask> baselineIdCache = new HashMap<String, EVTask>();
+            buildTaskIdCache(baselineIdCache, baselineRoot);
+            calcBaselineTaskData(taskRoot, baselineRoot, baselineIdCache);
+        }
+    }
+
+    private static void calcBaselineTaskData(EVTask task, EVTask baselineSrc,
+            Map<String, EVTask> baselineIdCache) {
+        for (int i = task.getNumChildren(); i-- > 0;)
+            calcBaselineTaskData(task.getChild(i), baselineIdCache, baselineSrc);
+
+        copyBaselineData(task, baselineSrc, true);
+    }
+
+    private static void calcBaselineTaskData(EVTask task,
+            Map<String, EVTask> baselineIdCache, EVTask baselineParent) {
+        EVTask baselineSrc = findInBaseline(task, baselineParent,
+            baselineIdCache);
+        calcBaselineTaskData(task, baselineSrc, baselineIdCache);
+    }
+
+    private static EVTask findInBaseline(EVTask task, EVTask baselineParent,
+            Map<String, EVTask> baselineIdCache) {
+        // sanity check on parameters
+        if (task == null)
+            return null;
+
+        // if the given task has task IDs, use the cache to look them up in the
+        // baseline.
+        List taskIDs = task.getTaskIDs();
+        if (taskIDs != null && baselineIdCache != null) {
+            for (Iterator i = taskIDs.iterator(); i.hasNext();) {
+                String taskID = (String) i.next();
+                EVTask result = baselineIdCache.get(taskID);
+                if (result != null)
+                    return result;
+            }
+        }
+
+        // the current task could not be found in the baseline ID cache.
+        // see if it can be located by name under the baseline parent.
+        if (baselineParent != null) {
+            for (int i = baselineParent.getNumChildren();  i-- > 0; ) {
+                EVTask baselineChild = baselineParent.getChild(i);
+                if (baselineChild.getName().equals(task.getName()))
+                    return baselineChild;
+            }
+        }
+
+        // no luck!  Return null.
+        return null;
+    }
+
+    /** Discard any baseline data for the given task, and all its children */
+    protected static void resetBaselineData(EVTask task) {
+        task.baselineDate = null;
+        task.baselineTime = 0;
+        for (int i = task.getNumChildren();   i-- > 0; )
+            resetBaselineData(task.getChild(i));
+    }
+
+    /** Initialize the baseline data for a task.
+     * 
+     * @param task the task whose baseline data should be set.
+     * @param baselineSrc the task in the baseline data source that corresponds
+     *       to the given task
+     * @param sum when baselineSrc is null, if this parameter is true, the
+     *       baseline data for the task will be summed from its children.
+     *       Otherwise, if this parameter is false, the baseline data for the
+     *       task will be reset.
+     */
+    protected static void copyBaselineData(EVTask task, EVTask baselineSrc,
+            boolean sum) {
+        if (baselineSrc == null) {
+            Date date = null;
+            double time = 0;
+
+            if (sum) {
+                for (int i = task.getNumChildren();   i-- > 0; ) {
+                    EVTask child = task.getChild(i);
+                    time += child.baselineTime;
+                    date = maxPlanDate(date, child.baselineDate);
+                }
+            }
+
+            task.baselineDate = date;
+            task.baselineTime = time;
+        } else {
+            task.baselineDate = baselineSrc.planDate;
+            task.baselineTime = baselineSrc.planTime;
+        }
+    }
+
+    /** Populate a Map so it can be used to look up EVTask objects by their
+     * task IDs.
+     */
+    protected static void buildTaskIdCache(Map<String, EVTask> cache,
+            EVTask task) {
+        List ids = task.getTaskIDs();
+        if (ids != null) {
+            for (Iterator i = ids.iterator(); i.hasNext();) {
+                String id = (String) i.next();
+                cache.put(id, task);
+            }
+        }
+        for (int i = task.getNumChildren(); i-- > 0;)
+            buildTaskIdCache(cache, task.getChild(i));
+    }
 }
