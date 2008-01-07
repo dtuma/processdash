@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2007 Tuma Solutions, LLC
+// Copyright (C) 2003-2008 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -208,6 +208,18 @@ public class DashController {
 
         return FileBackupManager.run(dash.property_directory,
                 FileBackupManager.RUNNING, null);
+    }
+
+    public static void saveAllData() {
+        PERMISSION.checkPermission();
+        try {
+            SwingUtilities.invokeAndWait(new Runnable() {
+                public void run() {
+                    dash.saveAllData();
+                }
+            });
+        } catch (Exception e) {
+        }
     }
 
     public static void startTiming() {

@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2007 Tuma Solutions, LLC
+// Copyright (C) 2003-2008 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -43,11 +43,8 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.util.HashSet;
 import java.util.Hashtable;
-import java.util.Iterator;
 import java.util.Map;
-import java.util.Set;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -104,7 +101,7 @@ public class TaskScheduleChooser
         return (dialog != null && dialog.isDisplayable());
     }
     public void toFront() {
-        if (dialog != null) { dialog.show(); dialog.toFront(); }
+        if (dialog != null) { dialog.setVisible(true); dialog.toFront(); }
     }
 
 
@@ -160,7 +157,7 @@ public class TaskScheduleChooser
                 (new Object[] { message, inputField },
                  JOptionPane.PLAIN_MESSAGE, JOptionPane.OK_CANCEL_OPTION,
                  null, options);
-            optionPane.createDialog(parentComponent, title).show();
+            optionPane.createDialog(parentComponent, title).setVisible(true);
 
             button = optionPane.getValue();
             if (!OK.equals(button))
@@ -271,7 +268,7 @@ public class TaskScheduleChooser
         dialog.addWindowListener(new ListenerCloser(this));
 
         dialog.pack();
-        dialog.show();
+        dialog.setVisible(true);
         dialog.toFront();
     }
 
@@ -428,13 +425,6 @@ public class TaskScheduleChooser
 
     protected void refreshList() {
         list.setListData(EVTaskList.findTaskLists(dash.getData()));
-    }
-
-    public static void closeAll() {
-        Set s = new HashSet(openWindows.values());
-        Iterator i = s.iterator();
-        while (i.hasNext())
-            ((TaskScheduleDialog) i.next()).confirmClose(false);
     }
 
     private class MultiLabel extends JLabel implements MouseListener {

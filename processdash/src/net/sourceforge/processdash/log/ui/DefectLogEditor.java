@@ -1,4 +1,4 @@
-// Copyright (C) 1999-2007 Tuma Solutions, LLC
+// Copyright (C) 1999-2008 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -75,6 +75,7 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 
+import net.sourceforge.processdash.ApplicationEventListener;
 import net.sourceforge.processdash.InternalSettings;
 import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.Settings;
@@ -97,10 +98,10 @@ import net.sourceforge.processdash.ui.lib.DropDownButton;
 import net.sourceforge.processdash.util.FormatUtil;
 
 
-public class DefectLogEditor extends Component
-    implements TreeSelectionListener, ListSelectionListener, ActionListener,
-               DashHierarchy.Listener, DefectLog.Listener
-{
+public class DefectLogEditor extends Component implements
+        TreeSelectionListener, ListSelectionListener, ActionListener,
+        DashHierarchy.Listener, DefectLog.Listener, ApplicationEventListener {
+
     public static final String IMPORT_ACTION_INVALID = "invalid";
     public static final String IMPORT_ACTION_SEL_PATH = "selectedPath";
     public static final String IMPORT_ACTION_DEF_PATH = "defectLogPath";
@@ -378,6 +379,11 @@ public class DefectLogEditor extends Component
         saveCustomDimensions();
     }
 
+    public void handleApplicationEvent(ActionEvent e) {
+        if (APP_EVENT_SAVE_ALL_DATA.equals(e.getActionCommand())) {
+            saveCustomDimensions();
+        }
+    }
 
     private static final String DIMENSION_SETTING_NAME = "defectlog.dimensions";
     private int frameWidth, frameHeight, dividerLocation = -1;

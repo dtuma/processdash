@@ -1,4 +1,4 @@
-// Copyright (C) 1999-2007 Tuma Solutions, LLC
+// Copyright (C) 1999-2008 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -1056,6 +1056,9 @@ public class DashHierarchy extends Hashtable implements ItemSelectable,
     public interface Listener {
         public void hierarchyChanged(Event e);
     }
+    public interface PrePostListener extends Listener {
+        public void hierarchyWillChange(Event e);
+    }
 
     Set listeners = null;
     public synchronized void addHierarchyListener(Listener l) {
@@ -1065,6 +1068,18 @@ public class DashHierarchy extends Hashtable implements ItemSelectable,
     }
     public void removeHierarchyListener(Listener l) {
         if (listeners != null) listeners.remove(l);
+    }
+    public void fireHierarchyWillChange() {
+        Event e = new Event(this, false);
+        Iterator i;
+        synchronized (listeners) {
+            i = new ArrayList(listeners).iterator();
+        }
+        while (i.hasNext()) {
+            Object listener = i.next();
+            if (listener instanceof PrePostListener)
+                ((PrePostListener) listener).hierarchyWillChange(e);
+        }
     }
     public void fireHierarchyChanged() {
         fireHierarchyChanged(false);

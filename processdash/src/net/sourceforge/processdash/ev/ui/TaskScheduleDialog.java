@@ -117,6 +117,8 @@ import javax.swing.tree.TreeCellRenderer;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 
+import net.sourceforge.processdash.ApplicationEventListener;
+import net.sourceforge.processdash.ApplicationEventSource;
 import net.sourceforge.processdash.DashboardContext;
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.ListData;
@@ -154,9 +156,9 @@ import net.sourceforge.processdash.util.StringUtils;
 import com.xduke.xswing.DataTipManager;
 
 
-public class TaskScheduleDialog
-    implements EVTask.Listener, EVTaskList.RecalcListener, EVSchedule.Listener
-{
+public class TaskScheduleDialog implements EVTask.Listener,
+        EVTaskList.RecalcListener, EVSchedule.Listener,
+        ApplicationEventListener {
 
     /** Model for the JTreeTable */
     protected EVTaskList model;
@@ -198,6 +200,10 @@ public class TaskScheduleDialog
                               boolean createRollup) {
         this.dash = dash;
         this.taskListName = taskListName;
+
+        if (dash instanceof ApplicationEventSource) {
+            ((ApplicationEventSource) dash).addApplicationEventListener(this);
+        }
 
         // Create the frame and set an appropriate icon
         frame = new JFrame(resources.getString("Window_Title"));
@@ -2282,6 +2288,9 @@ public class TaskScheduleDialog
 
     protected void close() {
         TaskScheduleChooser.close(taskListName);
+        if (dash instanceof ApplicationEventSource)
+            ((ApplicationEventSource) dash)
+                    .removeApplicationEventListener(this);
         frame.dispose();
 
         if (shouldUseExpandedNodesPref()) {
@@ -2457,6 +2466,13 @@ public class TaskScheduleDialog
     public static void showReport(String taskListName) {
         String uri = "/" + HTMLUtils.urlEncode(taskListName) + CHART_URL;
         Browser.launch(uri);
+    }
+
+
+    public void handleApplicationEvent(ActionEvent e) {
+        if (APP_EVENT_SAVE_ALL_DATA.equals(e.getActionCommand())) {
+            saveOrCancel(false);
+        }
     }
 
 

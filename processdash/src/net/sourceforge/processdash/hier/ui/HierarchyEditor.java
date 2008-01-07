@@ -1,4 +1,4 @@
-// Copyright (C) 1999-2007 Tuma Solutions, LLC
+// Copyright (C) 1999-2008 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -304,10 +304,11 @@ public class HierarchyEditor extends Object implements TreeModelListener, TreeSe
         if (Settings.isReadOnly())
             return;
 
+        dashboard.getHierarchy().fireHierarchyWillChange();
+
         // FIXME_TIMELOG: dashboard.releaseTimeLogEntry(null);
         // if the user is running their timer while they perform
         // renaming operations below, could bad things happen?
-        configureButton.saveOrRevertTimeLog();
 
         oldProps = new DashHierarchy(useProps.dataPath);
         oldProps.copy(readProps);

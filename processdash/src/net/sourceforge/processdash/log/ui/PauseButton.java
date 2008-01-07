@@ -1,5 +1,5 @@
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003-2006 Software Process Dashboard Initiative
+// Copyright (C) 2003-2008 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -41,6 +41,7 @@ import javax.swing.Icon;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 
+import net.sourceforge.processdash.ApplicationEventListener;
 import net.sourceforge.processdash.InternalSettings;
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.i18n.Resources;
@@ -51,7 +52,8 @@ import net.sourceforge.processdash.ui.help.PCSH;
 import net.sourceforge.processdash.ui.lib.DropDownButton;
 
 
-public class PauseButton extends DropDownButton implements ActionListener, PropertyChangeListener {
+public class PauseButton extends DropDownButton implements ActionListener,
+        PropertyChangeListener, ApplicationEventListener {
 
     private Icon pausedIcon;
     private Icon timingIcon;
@@ -178,8 +180,10 @@ public class PauseButton extends DropDownButton implements ActionListener, Prope
         }
     }
 
-    public void saveData() {
-        saveUserSettings();
+    public void handleApplicationEvent(ActionEvent e) {
+        if (APP_EVENT_SAVE_ALL_DATA.equals(e.getActionCommand())) {
+            saveUserSettings();
+        }
     }
 
 

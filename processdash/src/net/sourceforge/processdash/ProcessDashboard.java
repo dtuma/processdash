@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2007 Tuma Solutions, LLC
+// Copyright (C) 1998-2008 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -75,7 +75,6 @@ import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.ev.EVTaskDependencyResolver;
 import net.sourceforge.processdash.ev.ui.DependencyIndicator;
-import net.sourceforge.processdash.ev.ui.TaskScheduleChooser;
 import net.sourceforge.processdash.hier.ActiveTaskModel;
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.DefaultActiveTaskModel;
@@ -490,7 +489,11 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         pt.click("Created task navigation selector");
         dependencyIndicator.update();
         pt.click("Updated dependency indicator");
-        props.addHierarchyListener(new DashHierarchy.Listener() {
+        props.addHierarchyListener(new DashHierarchy.PrePostListener() {
+                public void hierarchyWillChange(Event e) {
+                    fireApplicationEvent(
+                        ApplicationEventListener.APP_EVENT_SAVE_ALL_DATA);
+                }
                 public void hierarchyChanged(Event e) {
                     saveHierarchy();
                     registerHierarchyDataElement();
@@ -510,22 +513,35 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         pt.click("Finished initializing Process Dashboard object");
     }
 
-    public synchronized void addApplicationListener(ActionListener l) {
-        if (ell == null)
-            ell = new EventListenerList();
-        ell.add(ActionListener.class, l);
+    public void addApplicationEventListener(ApplicationEventListener l) {
+        synchronized (this) {
+            if (ell == null)
+                ell = new EventListenerList();
+            ell.add(ApplicationEventListener.class, l);
+        }
     }
 
-    public void removeApplicationListener(ActionListener l) {
+    public void removeApplicationEventListener(ApplicationEventListener l) {
         if (ell != null)
-            ell.remove(ActionListener.class, l);
+            ell.remove(ApplicationEventListener.class, l);
     }
 
     protected void fireApplicationEvent(String message) {
         if (ell != null) {
             ActionEvent e = new ActionEvent(this, 0, message);
-            for (ActionListener l : ell.getListeners(ActionListener.class)) {
-                l.actionPerformed(e);
+            for (ApplicationEventListener l : ell
+                    .getListeners(ApplicationEventListener.class)) {
+                try {
+                    l.handleApplicationEvent(e);
+                } catch (Throwable t) {
+                    // application events are delivered to clients as a
+                    // courtesy during sensitive parts of the application
+                    // lifecycle.  We cannot allow those clients to thwart
+                    // the sensitive lifecycle events by throwing an
+                    // unchecked exception or error.
+                    logger.log(Level.SEVERE,
+                        "When sending application event, caught exception", t);
+                }
             }
         }
     }
@@ -558,6 +574,9 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         data.putValue(DashHierarchy.DATA_REPOSITORY_NAME, propItem);
     }
     private Component addToMainWindow(Component component, double weight) {
+        if (component instanceof ApplicationEventListener)
+            addApplicationEventListener((ApplicationEventListener) component);
+
         GridBagConstraints g = new GridBagConstraints();
         g.gridy = 0;
         g.gridx = getContentPane().getComponentCount();
@@ -946,14 +965,15 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         if (Settings.isReadOnly())
             return unsavedData;
 
-        fireApplicationEvent(SAVE_ALL_DATA);
+        // First, ask all GUIs to save their dirty data
+        fireApplicationEvent(ApplicationEventListener.APP_EVENT_SAVE_ALL_DATA);
 
-        TaskScheduleChooser.closeAll();
-
-        if (pause_button != null)
-            pause_button.saveData();
+        // Next, save and close the Hierarchy Editor if it is open/dirty
         if (configure_button != null)
-            configure_button.saveData();
+            configure_button.saveAndCloseHierarchyEditor();
+
+        // Now, flush all in-memory data to disk, recording whether any steps
+        // were unsuccessful.
 
         if (saveHierarchy() == false)
             recordUnsavedItem(unsavedData, "Hierarchy");

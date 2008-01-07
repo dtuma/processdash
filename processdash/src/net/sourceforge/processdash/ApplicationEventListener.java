@@ -25,11 +25,13 @@
 
 package net.sourceforge.processdash;
 
+import java.awt.event.ActionEvent;
+import java.util.EventListener;
 
-public interface ApplicationEventSource {
+public interface ApplicationEventListener extends EventListener {
 
-    public void addApplicationEventListener(ApplicationEventListener l);
+    public String APP_EVENT_SAVE_ALL_DATA = "saveAllData";
 
-    public void removeApplicationEventListener(ApplicationEventListener l);
+    public void handleApplicationEvent(ActionEvent e);
 
 }

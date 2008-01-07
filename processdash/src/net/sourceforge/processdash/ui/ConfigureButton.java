@@ -1,4 +1,4 @@
-// Copyright (C) 1999-2007 Tuma Solutions, LLC
+// Copyright (C) 1999-2008 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -28,7 +28,6 @@ package net.sourceforge.processdash.ui;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.File;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
@@ -57,7 +56,6 @@ import net.sourceforge.processdash.tool.export.ui.wizard.ShowExportWizardAction;
 import net.sourceforge.processdash.tool.export.ui.wizard.ShowImportWizardAction;
 import net.sourceforge.processdash.tool.probe.ProbeDialog;
 import net.sourceforge.processdash.ui.help.PCSH;
-import net.sourceforge.processdash.util.HTMLUtils;
 
 
 public class ConfigureButton extends JMenuBar implements ActionListener, HierarchyEditor.Listener {
@@ -201,23 +199,6 @@ public class ConfigureButton extends JMenuBar implements ActionListener, Hierarc
         }
     }
 
-    private String getDashboardJarFileName() {
-        String myURL = ConfigureButton.class.getResource
-            ("ConfigureButton.class").toString();
-        // we are expecting a URL like (Windows)
-        // jar:file:/D:/path/to/pspdash.jar!/net/.../ConfigureButton.class
-        // or (Unix)
-        // jar:file:/usr/path/to/pspdash.jar!/net/.../ConfigureButton.class
-        if (myURL.startsWith("jar:file:")) {
-            String jarFileName = myURL.substring(9,myURL.indexOf("!/net/"));
-            jarFileName = HTMLUtils.urlDecode(jarFileName);
-            File jarFile = new File(jarFileName);
-            return jarFile.getPath();
-        }
-
-        return null;
-    }
-
     private void addHelpMenu(JMenu menu) {
         JMenu helpMenu = new JMenu(resources.getString(HELP_MENU));
         JMenuItem search;
@@ -240,24 +221,11 @@ public class ConfigureButton extends JMenuBar implements ActionListener, Hierarc
     }
 
 
-    public void saveData () {
-        if (time_frame != null) {
-            time_frame.confirmClose(false);
-            time_frame = null;
-        }
+    public void saveAndCloseHierarchyEditor () {
         if (prop_frame != null) {
             prop_frame.confirmClose(false);
             prop_frame = null;
         }
-        if (defect_frame != null) {
-            defect_frame.quit();
-            defect_frame = null;
-        }
-    }
-
-    public void saveOrRevertTimeLog() {
-        if (time_frame != null)
-            time_frame.saveRevertOrCancel(false);
     }
 
     protected void startPropertyFrame () {
@@ -308,6 +276,7 @@ public class ConfigureButton extends JMenuBar implements ActionListener, Hierarc
                     (DashboardTimeLog) parent.getTimeLog();
                 TimeLoggingApprover approver = timeLog;
                 time_frame = new TimeLogEditor(timeLog, hier, approver, phase);
+                parent.addApplicationEventListener(time_frame);
             }
         }
     }
@@ -321,6 +290,7 @@ public class ConfigureButton extends JMenuBar implements ActionListener, Hierarc
                 defect_frame = new DefectLogEditor(parent,
                                                 this,
                                                 parent.getProperties());
+                parent.addApplicationEventListener(defect_frame);
         }
     }
 
