@@ -67,6 +67,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JRadioButton;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
+import javax.swing.event.EventListenerList;
 
 import net.sourceforge.processdash.data.DataContext;
 import net.sourceforge.processdash.data.ListData;
@@ -128,7 +129,8 @@ import net.sourceforge.processdash.util.ProfTimer;
 import net.sourceforge.processdash.util.StringUtils;
 
 
-public class ProcessDashboard extends JFrame implements WindowListener, DashboardContext {
+public class ProcessDashboard extends JFrame implements WindowListener,
+        DashboardContext, ApplicationEventSource {
 
     public static final String HTTP_PORT_SETTING = "http.port";
     private static final String DISABLE_AUTO_EXPORT_SETTING =
@@ -159,6 +161,7 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
     ObjectCache objectCache;
     private ErrorReporter brokenData;
     Resources resources;
+    EventListenerList ell;
 
     boolean paused = true;
     static final String DEFAULT_PROP_FILE = "state";
@@ -505,6 +508,26 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
         BackgroundTaskManager.initialize(this);
         initializeSystemTray();
         pt.click("Finished initializing Process Dashboard object");
+    }
+
+    public synchronized void addApplicationListener(ActionListener l) {
+        if (ell == null)
+            ell = new EventListenerList();
+        ell.add(ActionListener.class, l);
+    }
+
+    public void removeApplicationListener(ActionListener l) {
+        if (ell != null)
+            ell.remove(ActionListener.class, l);
+    }
+
+    protected void fireApplicationEvent(String message) {
+        if (ell != null) {
+            ActionEvent e = new ActionEvent(this, 0, message);
+            for (ActionListener l : ell.getListeners(ActionListener.class)) {
+                l.actionPerformed(e);
+            }
+        }
     }
 
     /**
@@ -922,6 +945,8 @@ public class ProcessDashboard extends JFrame implements WindowListener, Dashboar
         List unsavedData = new LinkedList();
         if (Settings.isReadOnly())
             return unsavedData;
+
+        fireApplicationEvent(SAVE_ALL_DATA);
 
         TaskScheduleChooser.closeAll();
 
