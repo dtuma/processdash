@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2007 Tuma Solutions, LLC
+// Copyright (C) 2003-2008 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -411,6 +411,7 @@ public class EVSchedule implements TableModel {
     Vector periods = new Vector();
     boolean datesLocked = false;
     EVMetrics metrics = new EVMetrics();
+    EVSnapshot baselineSnapshot = null;
 
     public EVSchedule() { this(20.0); }
     public EVSchedule(double hours) {
@@ -1403,6 +1404,10 @@ public class EVSchedule implements TableModel {
     // based on EVSchedules.
     //////////////////////////////////////////////////////////////////////
 
+    protected void setBaseline(EVSnapshot baseline) {
+        this.baselineSnapshot = baseline;
+    }
+
     protected static final Double ZERO = new Double(0.0);
     protected static final Double ONE_HUNDRED = new Double(100.0);
 
@@ -1445,14 +1450,25 @@ public class EVSchedule implements TableModel {
 
     private static final String PLAN_LABEL = resources.getString
         ("Schedule.Plan_Label");
+    private static final String BASELINE_LABEL = resources.getString
+        ("Schedule.Baseline_Label");
     private abstract class PlanChartSeries implements ChartSeries {
-        public String getSeriesName() { return PLAN_LABEL; }
-        public String getSeriesID()  { return "Plan"; }
+        protected boolean isBaseline = false;
+        public String getSeriesName() {
+            return (isBaseline ? BASELINE_LABEL : PLAN_LABEL);
+        }
+        public String getSeriesID() {
+            return (isBaseline ? "Baseline" : "Plan");
+        }
         public int getItemCount() {
             return findIndexOfFinalPlannedPeriod()+1;
         }
         public Number getXValue(int itemIndex) {
             return new Long(get(itemIndex).endDate.getTime()); }
+    }
+    protected PlanChartSeries markAsBaseline(PlanChartSeries s) {
+        s.isBaseline = true;
+        return s;
     }
 
     private static final String ACTUAL_LABEL =
@@ -1515,7 +1531,7 @@ public class EVSchedule implements TableModel {
                     !Double.isInfinite(n.doubleValue()));
         }
         private boolean notLessThan(Number a, Number b) {
-            if (a == null || b == null) return true;
+            if (!okayNumber(a) || !okayNumber(b)) return true;
             if (a.doubleValue() < b.doubleValue()) return false;
             return true;
         }
@@ -1541,29 +1557,38 @@ public class EVSchedule implements TableModel {
     private class ChartData extends AbstractDataset
         implements XYDataset, TableModelListener, IDSeriesDataset
     {
-        ChartSeries [] series;
+        List<ChartSeries> series = new ArrayList<ChartSeries>();
         boolean needsRecalc = true;
         protected void recalc() {}
         protected void maybeRecalc() {
             if (needsRecalc) { recalc(); needsRecalc = false; } }
         /** Returns the number of series in the data source. */
-        public int getSeriesCount() { maybeRecalc(); return series.length; }
+        public int getSeriesCount() {
+            maybeRecalc();
+            return series.size();
+        }
+        /** Append a data series if it appears viable */
+        void maybeAddSeries(ChartSeries s) {
+            if (s != null && s.getItemCount() > 0)
+                series.add(s);
+        }
         /** Returns the name of the specified series (zero-based). */
         public String getSeriesName(int seriesIndex) { maybeRecalc();
-            return series[seriesIndex].getSeriesName(); }
+            return series.get(seriesIndex).getSeriesName(); }
         public String getSeriesID(int seriesIndex) { maybeRecalc();
-            return series[seriesIndex].getSeriesID(); }
+            return series.get(seriesIndex).getSeriesID(); }
         /** Returns the number of items in the specified series */
         public int getItemCount(int seriesIndex) { maybeRecalc();
-            return series[seriesIndex].getItemCount(); }
+            return series.get(seriesIndex).getItemCount(); }
         /** Returns the x-value for the specified series and item */
         public Number getXValue(int seriesIndex, int itemIndex) {
-            maybeRecalc(); return series[seriesIndex].getXValue(itemIndex); }
+            maybeRecalc();
+            return series.get(seriesIndex).getXValue(itemIndex); }
         /** Returns the y-value for the specified series and item */
         public Number getYValue(int seriesIndex, int itemIndex) {
             maybeRecalc();
             if (itemIndex == -1) return null;
-            return series[seriesIndex].getYValue(itemIndex); }
+            return series.get(seriesIndex).getYValue(itemIndex); }
 
         // support DataSourceChangeListener notification
         private ArrayList listenerList = null;
@@ -1603,6 +1628,8 @@ public class EVSchedule implements TableModel {
     private class PlanTimeSeries extends PlanChartSeries {
         public Number getYValue(int itemIndex) {
             return new Double(get(itemIndex).cumPlanDirectTime / 60.0); } }
+    private ChartSeries getBaselineTimeSeries() {
+        return markAsBaseline(new PlanTimeSeries()); }
     private class ActualTimeSeries extends ActualChartSeries {
         public Number getYValue(int itemIndex) {
             return new Double(get(itemIndex).cumActualDirectTime / 60.0); } }
@@ -1614,30 +1641,37 @@ public class EVSchedule implements TableModel {
      */
     private class TimeChartData extends ChartData {
         public TimeChartData() {
-            series = new ChartSeries[3];
-            series[0] = new PlanTimeSeries();
-            series[1] = new ActualTimeSeries();
-            series[2] = forecast = new ForecastChartSeries();
+            plan = new PlanTimeSeries();
+            actual = new ActualTimeSeries();
+            forecast = new ForecastChartSeries();
         }
+        ChartSeries plan, actual;
         ForecastChartSeries forecast;
         public void recalc() {
+            series.clear();
+            recalcBaseline();
+            series.add(plan);
+            series.add(actual);
+            recalcForecast();
+        }
+        private void recalcBaseline() {
+            if (baselineSnapshot != null) {
+                EVSchedule baselineSchedule = baselineSnapshot.getTaskList()
+                        .getSchedule();
+                series.add(baselineSchedule.getBaselineTimeSeries());
+            }
+        }
+        private void recalcForecast() {
             forecast.currentYVal = makeTime(getLast().cumActualDirectTime);
-            forecast.forecastYVal = makeTime
-                (checkDouble(metrics.independentForecastCost()));
+            forecast.forecastYVal = makeTime(metrics.independentForecastCost());
             forecast.forecastYValLow = makeTime
                 (metrics.independentForecastCostLPI());
             forecast.forecastYValHigh = makeTime
                 (metrics.independentForecastCostUPI());
             forecast.recalc();
-            if (forecast.getItemCount() == 0) numSeries = 2;
+            maybeAddSeries(forecast);
         }
         private Number makeTime(double d) { return new Double(d / 60.0); }
-        private double checkDouble(double d) {
-            numSeries = ((Double.isNaN(d) || Double.isInfinite(d)) ? 2 : 3);
-            return d;
-        }
-        int numSeries = 3;
-        public int getSeriesCount() { maybeRecalc(); return numSeries; }
     }
     public XYDataset getTimeChartData() { return new TimeChartData(); }
 
@@ -1648,6 +1682,8 @@ public class EVSchedule implements TableModel {
         PlanValueSeries(double m) { mult = m; }
         public Number getYValue(int itemIndex) {
             return new Double(get(itemIndex).cumPlanValue * mult); } }
+    private ChartSeries getBaselineValueSeries(double mult) {
+        return markAsBaseline(new PlanValueSeries(mult)); }
     private class ActualValueSeries extends ActualChartSeries {
         double mult;
         ActualValueSeries(double m) { mult = m; }
@@ -1657,13 +1693,12 @@ public class EVSchedule implements TableModel {
 
     /** XYDataSource for charting plan vs actual earned value.
      */
-    protected class ValueChartData extends ChartData implements RangeInfo {
+    protected class ValueChartData extends ChartData {
         public ValueChartData() {
             double mult = 100.0 / totalPlan();
-            series = new ChartSeries[3];
-            series[0] = plan = new PlanValueSeries(mult);
-            series[1] = actual = new ActualValueSeries(mult);
-            series[2] = forecast = new ForecastChartSeries() {
+            plan = new PlanValueSeries(mult);
+            actual = new ActualValueSeries(mult);
+            forecast = new ForecastChartSeries() {
                     protected Date getForecastDateLPI() {
                         return metrics.independentForecastDateLPI(); }
                     protected Date getForecastDateUPI() {
@@ -1674,24 +1709,27 @@ public class EVSchedule implements TableModel {
         PlanValueSeries plan;
         ActualValueSeries actual;
         public void recalc() {
+            series.clear();
             double mult = 100.0 / totalPlan();
             if (Double.isInfinite(mult)) mult = 0;
             plan.mult = actual.mult = mult;
+            recalcBaseline(mult);
+            series.add(plan);
+            series.add(actual);
             recalcForecast(new Double(getLast().cumEarnedValue * mult));
+        }
+        protected void recalcBaseline(double mult) {
+            if (baselineSnapshot != null) {
+                EVSchedule baselineSchedule = baselineSnapshot.getTaskList()
+                        .getSchedule();
+                series.add(baselineSchedule.getBaselineValueSeries(mult));
+            }
         }
         protected void recalcForecast(Double currentYVal) {
             forecast.currentYVal = currentYVal;
             forecast.forecastYVal = ONE_HUNDRED;
             forecast.recalc();
-            numSeries = (forecast.getItemCount() == 0 ? 2 : 3);
-        }
-        int numSeries = 3;
-        public int getSeriesCount() { maybeRecalc(); return numSeries; }
-        public Number getMinimumRangeValue() { return ZERO; }
-        public Number getMaximumRangeValue() { return ONE_HUNDRED; }
-        public Range getValueRange() {
-            return new Range(getMinimumRangeValue().doubleValue(),
-                getMaximumRangeValue().doubleValue());
+            maybeAddSeries(forecast);
         }
     }
     public XYDataset getValueChartData() {
@@ -1712,19 +1750,18 @@ public class EVSchedule implements TableModel {
      */
     private class CombinedChartData extends ChartData {
         public CombinedChartData() {
-            series = new ChartSeries[3];
-            series[0] = new PlanValueSeries(1.0 / 60.0) {
+            series.add(new PlanValueSeries(1.0 / 60.0) {
                     public String getSeriesID()  { return "Plan_Value"; }
                     public String getSeriesName() {
-                        return PLAN_VALUE_LABEL; } };
-            series[1] = new ActualValueSeries(1.0 / 60.0) {
+                        return PLAN_VALUE_LABEL; } });
+            series.add(new ActualValueSeries(1.0 / 60.0) {
                     public String getSeriesID()  { return "Actual_Value"; }
                     public String getSeriesName() {
-                        return ACTUAL_VALUE_LABEL; } };
-            series[2] = new ActualCostSeries() {
+                        return ACTUAL_VALUE_LABEL; } });
+            series.add(new ActualCostSeries() {
                     public String getSeriesID()  { return "Actual_Cost"; }
                     public String getSeriesName() {
-                        return ACTUAL_COST_LABEL; } };
+                        return ACTUAL_COST_LABEL; } });
         }
     }
     public XYDataset getCombinedChartData() {

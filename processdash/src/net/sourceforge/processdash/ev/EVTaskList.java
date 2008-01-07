@@ -543,7 +543,7 @@ public class EVTaskList extends AbstractTreeTableModel
             result = (String) metaData.remove(key);
 
         if (BASELINE_METADATA_KEY.equals(key))
-            calculator.setBaselineDataSource(getBaselineSnapshot());
+            setBaselineDataSource(getBaselineSnapshot());
 
         return result;
     }
@@ -751,8 +751,10 @@ public class EVTaskList extends AbstractTreeTableModel
     }
 
     public void disableBaselineData() {
-        this.calculator.setBaselineDataSource(null);
+        setBaselineDataSource(null);
         showBaselineColumns = false;
+        schedule.getMetrics().discardMetrics(
+            new PatternList().addRegexp("Baseline"));
     }
 
     public void setTaskLabeler(TaskLabeler l) {
@@ -819,6 +821,11 @@ public class EVTaskList extends AbstractTreeTableModel
             return null;
         else
             return getSnapshotById(snapshotId);
+    }
+
+    protected void setBaselineDataSource(EVSnapshot snapshot) {
+        calculator.setBaselineDataSource(snapshot);
+        schedule.setBaseline(snapshot);
     }
 
 

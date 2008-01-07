@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2007 Tuma Solutions, LLC
+// Copyright (C) 2003-2008 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -394,12 +394,7 @@ public class EVScheduleRollup extends EVSchedule {
     private class RollupValueChartData extends ValueChartData {
         public RollupValueChartData() {
             super();
-            ChartSeries[] s = new ChartSeries[4];
-            s[0] = series[0];
-            s[1] = series[1];
-            s[2] = series[2];
-            s[3] = optForecast = new OptForecastChartSeries();
-            series = s;
+            optForecast = new OptForecastChartSeries();
         }
         OptForecastChartSeries optForecast;
         protected void recalcForecast(Double currentYVal) {
@@ -408,8 +403,7 @@ public class EVScheduleRollup extends EVSchedule {
             optForecast.currentYVal = currentYVal;
             optForecast.forecastYVal = ONE_HUNDRED;
             optForecast.recalc();
-            if (numSeries == 3 && optForecast.getItemCount() != 0)
-                numSeries = 4;
+            maybeAddSeries(optForecast);
         }
     }
     public XYDataset getValueChartData() {

@@ -101,6 +101,7 @@ public class EVReport extends CGIChartBase {
     public static final String COMBINED_CHART = "combined";
     public static final String FAKE_MODEL_NAME = "/  ";
     private static final String CUSTOMIZE_PARAM = "customize";
+    static final String CUSTOMIZE_HIDE_BASELINE = "hideBaseline";
     static final String CUSTOMIZE_HIDE_PLAN_LINE = "hidePlanLine";
     static final String CUSTOMIZE_HIDE_FORECAST_LINE = "hideForecastLine";
     static final String CUSTOMIZE_HIDE_NAMES = "hideAssignedTo";
@@ -243,6 +244,9 @@ public class EVReport extends CGIChartBase {
                 getDataRepository(), getPSPProperties(), getObjectCache());
         evModel.setDependencyCalculator(depCalc);
         evModel.setTaskLabeler(new DefaultTaskLabeler(getDashboardContext()));
+
+        if (settings.getBool(CUSTOMIZE_HIDE_BASELINE))
+            evModel.disableBaselineData();
 
         evModel.recalc();
 
@@ -696,6 +700,7 @@ public class EVReport extends CGIChartBase {
     public void storeCustomizationSettings() throws IOException {
         out.println("<html><head><script>");
         if (parameters.containsKey("OK")) {
+            settings.store(CUSTOMIZE_HIDE_BASELINE, true);
             settings.store(CUSTOMIZE_HIDE_PLAN_LINE, true);
             settings.store(CUSTOMIZE_HIDE_FORECAST_LINE, true);
             settings.store(CUSTOMIZE_HIDE_NAMES, true);
@@ -862,6 +867,8 @@ public class EVReport extends CGIChartBase {
                     && EVLabelFilter.taskListContainsLabelData(evModel,
                             getDataRepository()))
                 out.print("&showLabelFilter");
+            if (evModel.getMetadata(EVTaskList.BASELINE_METADATA_KEY) != null)
+                out.print("&hasBaseline");
             out.print("' target='customize' onClick='openCustomizeWindow();'>");
             out.print(HTMLUtils.escapeEntities(resources
                     .getDlgString("Customize")));
@@ -869,7 +876,7 @@ public class EVReport extends CGIChartBase {
             out.print("<script>\n" +
                     "function openCustomizeWindow() {\n" +
                     "    var newWind = window.open ('', 'customize',\n" +
-                    "        'scrollbars=yes,dependent=yes,resizable=yes,width=420,height=200');\n" +
+                    "        'scrollbars=yes,dependent=yes,resizable=yes,width=420,height=250');\n" +
                     "    newWind.focus();\n" +
                     "}\n" +
                     "</script>\n");

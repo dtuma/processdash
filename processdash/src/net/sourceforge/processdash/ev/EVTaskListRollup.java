@@ -69,7 +69,7 @@ public class EVTaskListRollup extends EVTaskList {
         loadMetadata(taskListName, data);
         calculator = new EVCalculatorRollup
             ((EVTask) root, evTaskLists, (EVScheduleRollup)schedule);
-        calculator.setBaselineDataSource(getBaselineSnapshot());
+        setBaselineDataSource(getBaselineSnapshot());
         ((EVTask) root).flag = TASK_LIST_FLAG;
     }
 

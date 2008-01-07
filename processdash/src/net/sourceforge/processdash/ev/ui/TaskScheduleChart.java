@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2007 Tuma Solutions, LLC
+// Copyright (C) 2003-2008 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -197,6 +197,7 @@ public class TaskScheduleChart extends JFrame
     private static final Map SERIES_PAINTS = new HashMap();
     private static final Map SERIES_STROKES = new HashMap();
     static {
+        SERIES_PAINTS.put("Baseline", new Color(159, 141, 114));
         SERIES_PAINTS.put("Plan", Color.red);
         SERIES_PAINTS.put("Replan", Color.red);
         SERIES_PAINTS.put("Actual", Color.blue);
