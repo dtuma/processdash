@@ -223,6 +223,40 @@ public class WBSTabPanel extends JPanel
         tabbedPane.remove(index);
     }
 
+    public LinkedHashMap<String, TableColumnModel> getTabData() {
+        LinkedHashMap<String, TableColumnModel> result =
+            new LinkedHashMap<String, TableColumnModel>();
+
+        for (int i = 0; i < tabbedPane.getTabCount(); i++) {
+            String tabName = tabbedPane.getTitleAt(i);
+            String key = tabName;
+            int j = 0;
+            while (result.containsKey(key)) {
+                key = tabName + " (" + (++j) + ")";
+            }
+
+            TableColumnModel colModel = (TableColumnModel) tableColumnModels
+                    .get(i);
+            result.put(key, colModel);
+        }
+        return result;
+    }
+
+    /** Get a list of file-related actions for the work breakdown structure */
+    public Action[] getFileActions() {
+        List<Action> result = new ArrayList<Action>();
+        try {
+            Class clazz = Class.forName("teamdash.wbs.excel.SaveAsExcelAction");
+            Action saveAsExcelAction = (Action) clazz.newInstance();
+            saveAsExcelAction.putValue(DataJTable.class.getName(), dataTable);
+            saveAsExcelAction.putValue(WBSTabPanel.class.getName(), this);
+            result.add(saveAsExcelAction);
+        } catch (Throwable t) {
+            t.printStackTrace();
+        }
+        return result.toArray(new Action[result.size()]);
+    }
+
     /** Get a list of actions for editing the work breakdown structure */
     public Action[] getEditingActions() {
         Action[] tableActions = wbsTable.getEditingActions();

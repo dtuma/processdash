@@ -375,7 +375,7 @@ public class WBSEditor implements WindowListener, SaveListener,
     private JMenuBar buildMenuBar(WBSTabPanel tabPanel, WBSModel workflows) {
         JMenuBar result = new JMenuBar();
 
-        result.add(buildFileMenu());
+        result.add(buildFileMenu(tabPanel.getFileActions()));
         result.add(buildEditMenu(tabPanel.getEditingActions()));
         result.add(buildTabMenu(tabPanel.getTabActions()));
         if (!isMode(MODE_BOTTOM_UP))
@@ -390,12 +390,16 @@ public class WBSEditor implements WindowListener, SaveListener,
         return result;
     }
     private Action saveAction, importFromCsvAction;
-    private JMenu buildFileMenu() {
+    private JMenu buildFileMenu(Action[] fileActions) {
         JMenu result = new JMenu("File");
         result.setMnemonic('F');
         result.add(saveAction = new SaveAction());
         if (!isMode(MODE_BOTTOM_UP))
             result.add(importFromCsvAction = new ImportFromCsvAction());
+        for (int i = 0; i < fileActions.length; i++) {
+            result.add(fileActions[i]);
+        }
+        result.addSeparator();
         result.add(new CloseAction());
         return result;
     }
@@ -742,7 +746,7 @@ public class WBSEditor implements WindowListener, SaveListener,
 
     private class ImportFromCsvAction extends AbstractAction {
         public ImportFromCsvAction() {
-            super("Import from MS Project CSV file");
+            super("Import from MS Project CSV file...");
             putValue(MNEMONIC_KEY, new Integer('I'));
             setEnabled(readOnly == false);
         }

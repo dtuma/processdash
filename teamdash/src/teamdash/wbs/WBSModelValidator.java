@@ -172,4 +172,17 @@ public class WBSModelValidator implements TableModelListener {
             result += " " + tok.nextToken().toLowerCase();
         return result;
     }
+
+    public static String getNodeNameError(WBSNode node) {
+        return (String) node.getAttribute(NODE_NAME_ERROR_ATTR_NAME);
+    }
+
+    public static String getNodeTypeError(WBSNode node) {
+        return (String) node.getAttribute(NODE_TYPE_ERROR_ATTR_NAME);
+    }
+
+    public static boolean hasNodeError(WBSNode node) {
+        return getNodeNameError(node) != null || getNodeTypeError(node) != null;
+    }
+
 }

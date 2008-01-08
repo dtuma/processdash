@@ -113,8 +113,10 @@ public class DataJTable extends JTable {
         public void focusLost(FocusEvent e) {
             if (e.getComponent() != DataJTable.this)
                 return;
-            if (SwingUtilities.isDescendingFrom(e.getOppositeComponent(),
-                DataJTable.this))
+            Component opposite = e.getOppositeComponent();
+            if (opposite == null
+                    || SwingUtilities.isDescendingFrom(opposite,
+                        DataJTable.this))
                 return;
             selectAllColumns();
         }

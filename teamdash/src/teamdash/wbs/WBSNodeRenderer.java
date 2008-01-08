@@ -73,8 +73,7 @@ public class WBSNodeRenderer extends DefaultTableCellRenderer {
         setIcon(expansionIcon);
 
         // check to see if the node name is in error
-        nameError = (String) node.getAttribute
-            (WBSModelValidator.NODE_NAME_ERROR_ATTR_NAME);
+        nameError = WBSModelValidator.getNodeNameError(node);
         if (nameError != null) {
             // if the node name is in error, print it in bold red text
             result.setFont(getFont(true, result));
@@ -97,8 +96,7 @@ public class WBSNodeRenderer extends DefaultTableCellRenderer {
         Icon icon = (Icon) iconMap.get(nodeType);
         if (icon == null) icon = (Icon) iconMap.get(null);
 
-        String iconError = (String) node.getAttribute
-            (WBSModelValidator.NODE_TYPE_ERROR_ATTR_NAME);
+        String iconError = WBSModelValidator.getNodeTypeError(node);
 
         int modFlags = 0;
         if (iconError != null)

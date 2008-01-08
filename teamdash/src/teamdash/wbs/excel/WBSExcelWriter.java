@@ -1,0 +1,203 @@
+package teamdash.wbs.excel;
+
+import java.awt.Color;
+import java.awt.Component;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+import javax.swing.JLabel;
+import javax.swing.table.TableCellRenderer;
+import javax.swing.table.TableColumn;
+import javax.swing.table.TableColumnModel;
+
+import org.apache.poi.hssf.usermodel.HSSFCell;
+import org.apache.poi.hssf.usermodel.HSSFDataFormat;
+import org.apache.poi.hssf.usermodel.HSSFRichTextString;
+import org.apache.poi.hssf.usermodel.HSSFRow;
+import org.apache.poi.hssf.usermodel.HSSFSheet;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+
+import teamdash.wbs.DataJTable;
+import teamdash.wbs.DataTableModel;
+import teamdash.wbs.NumericDataValue;
+import teamdash.wbs.WBSModel;
+import teamdash.wbs.WBSModelValidator;
+import teamdash.wbs.WBSNode;
+import teamdash.wbs.WrappedValue;
+
+public class WBSExcelWriter {
+
+    private DataJTable table;
+
+    private WBSModel wbs;
+
+    private DataTableModel data;
+
+    private HSSFWorkbook xls;
+
+    private StyleCache styleCache;
+
+
+    public WBSExcelWriter(DataJTable dataTable) {
+        this.table = dataTable;
+        this.data = (DataTableModel) dataTable.getModel();
+        this.wbs = data.getWBSModel();
+        this.xls = new HSSFWorkbook();
+        this.styleCache = new StyleCache(xls);
+    }
+
+    public void save(File f) throws IOException {
+        OutputStream out = new BufferedOutputStream(new FileOutputStream(f));
+        xls.write(out);
+        out.close();
+    }
+
+    public void addData(String tabName, TableColumnModel columns) {
+        HSSFSheet sheet = xls.createSheet(tabName);
+
+        // WORKAROUND, for POI bug
+        // ------ http://issues.apache.org/bugzilla/show_bug.cgi?id=30714
+        // We should have been able to use the next line...
+        // sheet.setRowSumsBelow(false);
+        sheet.setAlternativeExpression(false);
+
+        createHeaderRow(sheet, columns);
+        writeDataForNodes(sheet, 1, wbs.getRoot(), columns);
+        autoSizeColumns(sheet, columns);
+        sheet.createFreezePane(1, 1);
+    }
+
+    private void createHeaderRow(HSSFSheet sheet, TableColumnModel columns) {
+        HSSFRow row = sheet.createRow(0);
+        StyleKey style = new StyleKey();
+        style.bold = true;
+        for (int i = 0; i < columns.getColumnCount(); i++) {
+            TableColumn col = columns.getColumn(i);
+            String columnName = data.getColumnName(col.getModelIndex());
+            HSSFCell cell = row.createCell(s(i + 1));
+            cell.setCellValue(new HSSFRichTextString(columnName));
+            styleCache.applyStyle(cell, style);
+        }
+    }
+
+    private int writeDataForNodes(HSSFSheet sheet, int rowNum, WBSNode node,
+            TableColumnModel columns) {
+        HSSFRow row = sheet.createRow(rowNum);
+        writeCellForNodeName(node, row);
+        writeCellsForNodeData(row, node, columns);
+
+        WBSNode[] children = wbs.getChildren(node);
+        if (children.length == 0)
+            return rowNum;
+
+        int childRowPos = rowNum;
+        for (WBSNode child : children) {
+            childRowPos = writeDataForNodes(sheet, childRowPos + 1, child,
+                columns);
+        }
+
+        sheet.groupRow(rowNum + 1, childRowPos);
+        if (!node.isExpanded())
+            sheet.setRowGroupCollapsed(rowNum + 1, true);
+
+        return childRowPos;
+    }
+
+    private void writeCellForNodeName(WBSNode node, HSSFRow row) {
+        HSSFCell cell = row.createCell(s(0));
+        String name = node.getName();
+        if (name == null || name.trim().length() == 0)
+            name = "(empty)";
+        cell.setCellValue(new HSSFRichTextString(name));
+        StyleKey style = new StyleKey();
+        style.indent = s(node.getIndentLevel());
+        if (WBSModelValidator.hasNodeError(node)) {
+            style.setColor(Color.RED);
+            style.bold = true;
+        }
+        styleCache.applyStyle(cell, style);
+    }
+
+    private void writeCellsForNodeData(HSSFRow row, WBSNode node,
+            TableColumnModel columns) {
+        for (int c = 0; c < columns.getColumnCount(); c++) {
+            TableColumn col = columns.getColumn(c);
+            int columnIndex = col.getModelIndex();
+            Object value = data.getValueAt(node, columnIndex);
+
+            TableCellRenderer rend = col.getCellRenderer();
+            if (rend == null)
+                rend = table.getDefaultRenderer(data
+                        .getColumnClass(columnIndex));
+
+            Component comp = rend.getTableCellRendererComponent(table, value,
+                false, false, 99, 99);
+
+            HSSFCell cell = row.createCell(s(c + 1));
+            copyCellData(cell, rend, comp, value);
+        }
+
+    }
+
+    private void copyCellData(HSSFCell cell, TableCellRenderer rend,
+            Component comp, Object value) {
+        StyleKey style = new StyleKey();
+
+        String text = null;
+        if (comp instanceof JLabel) {
+            JLabel label = (JLabel) comp;
+            text = label.getText();
+        }
+
+        Object unwrapped = WrappedValue.unwrap(value);
+
+        if (unwrapped instanceof Date) {
+            // POI-exported dates seem to freak Excel out for some reason.
+            // to workaround, we export a string.
+            Date date = (Date) unwrapped;
+            text = DATE_FORMATTER.format(date);
+            cell.setCellValue(new HSSFRichTextString(text));
+
+        } else if (unwrapped instanceof NumericDataValue) {
+            NumericDataValue ndv = (NumericDataValue) unwrapped;
+            cell.setCellValue(ndv.value);
+            if (text == null || text.trim().length() == 0) {
+                style.setColor(Color.WHITE);
+            } else if (text.indexOf('%') != -1) {
+                style.format = PERCENT_FORMAT;
+            }
+
+        } else if (text == null || text.trim().length() == 0) {
+            return;
+
+        } else {
+            cell.setCellValue(new HSSFRichTextString(text));
+        }
+
+        style.loadFrom(comp);
+        styleCache.applyStyle(cell, style);
+    }
+
+    private void autoSizeColumns(HSSFSheet sheet, TableColumnModel columns) {
+        for (int i = 0; i <= columns.getColumnCount(); i++)
+            sheet.autoSizeColumn(s(i));
+    }
+
+
+    private static short s(int i) {
+        return (short) i;
+    }
+
+    private static final short PERCENT_FORMAT = HSSFDataFormat
+            .getBuiltinFormat("0%");
+
+    private static final DateFormat DATE_FORMATTER = new SimpleDateFormat(
+            "M/d/yyyy");
+
+}

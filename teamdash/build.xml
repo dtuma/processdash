@@ -10,6 +10,7 @@
   <property name="xmlpull.jar" value="${processdash.dir}/lib/kxml-2.2.1-mod.jar"/>
   <property name="swingx.jar" value="lib/swingx-0.9.1.jar"/>
   <property name="swingx-src.jar" value="lib/swingx-0.9.1-src.zip"/>
+  <property name="poi.jar" value="lib/poi-3.0.1-FINAL-20070705.jar"/>
   <property name="TeamProcessCGI.jar"
       value="Templates/team/lib/TeamProcessCGI.jar"/>
   <property name="server.dir" value="generateProcess"/>
@@ -184,6 +185,7 @@ Unexpected number of processdash classes referenced by TeamTools.jar
       <!-- include the compiled files -->
       <fileset refid="teamToolsClasses"/>
       <fileset dir="bin">
+        <include name="teamdash/wbs/excel/"/>
         <include name="teamdash/**/*.png"/>
         <include name="teamdash/**/*.gif"/>
         <include name="teamdash/**/default-user-settings.txt"/>
@@ -204,6 +206,7 @@ Unexpected number of processdash classes referenced by TeamTools.jar
         <include name="swingx-src/COPYING"/>
         <include name="swingx-src/src/java/org/jdesktop/swingx/autocomplete/"/>
       </zipfileset>
+      <zipfileset src="${poi.jar}" />
     </jar>
 
     <antcall target="signjar">

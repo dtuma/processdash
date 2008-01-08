@@ -13,8 +13,7 @@ import java.awt.Color;
  * also display erroneous values in a special color with a descriptive
  * tooltip.
  */
-
-class DataTableCellRenderer extends DefaultTableCellRenderer {
+public class DataTableCellRenderer extends DefaultTableCellRenderer {
 
     public DataTableCellRenderer() {
         //this.setFont()
@@ -42,7 +41,7 @@ class DataTableCellRenderer extends DefaultTableCellRenderer {
 
         // ask our superclass for an appropriate renderer component.
         Component result = super.getTableCellRendererComponent
-            (table, value, isSelected, hasFocus, row, column);
+            (table, format(value), isSelected, hasFocus, row, column);
 
         // change the foreground color for read-only or erroneous values.
         result.setForeground(getForegroundColor(errorValue, readOnly));
@@ -57,6 +56,10 @@ class DataTableCellRenderer extends DefaultTableCellRenderer {
                 (errorValue == null ? null : errorValue.error);
 
         return result;
+    }
+
+    protected Object format(Object value) {
+        return value;
     }
 
     /** Determine the appropriate foreground color based on the conditions
