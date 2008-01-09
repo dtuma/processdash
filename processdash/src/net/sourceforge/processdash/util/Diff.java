@@ -1,5 +1,5 @@
 
-package net.sourceforge.processdash.tool.diff;
+package net.sourceforge.processdash.util;
 
 // reused from JBossWiki project;  license information below
 

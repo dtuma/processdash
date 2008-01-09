@@ -10,6 +10,7 @@ public class AllUtilTests {
         TestSuite suite = new TestSuite(
                 "Test for net.sourceforge.processdash.util");
         //$JUnit-BEGIN$
+        suite.addTestSuite(ThreeWayDiffTest.class);
         suite.addTestSuite(HashTreeTest.class);
         suite.addTestSuite(StringUtilsTest.class);
         suite.addTestSuite(HTMLTableWriterTest.class);

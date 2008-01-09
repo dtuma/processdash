@@ -38,6 +38,7 @@ import java.util.regex.Pattern;
 
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.i18n.Resources;
+import net.sourceforge.processdash.util.Diff;
 import net.sourceforge.processdash.util.StringUtils;
 
 
