@@ -69,7 +69,7 @@ public class ThreeWayDiff<T> {
         public int bPos;
 
         public boolean isUnchanged() {
-            return basePos != -1 && aPos != -1 && bPos == -1;
+            return basePos != -1 && aPos != -1 && bPos != -1;
         }
 
         public boolean isInserted() {
@@ -132,15 +132,11 @@ public class ThreeWayDiff<T> {
                 bPos = addInsertions(result, insertedByB[i], bFactory);
 
             if (i < base.length) {
-                ResultItem<T> item = new ResultItem<T>(base[i], i, aPos, bPos);
-                if (deletedByA[i])
-                    item.aPos = -1;
-                else
-                    aPos++;
-                if (deletedByB[i])
-                    item.bPos = -1;
-                else
-                    bPos++;
+                ResultItem<T> item = new ResultItem<T>(base[i], i, -1, -1);
+                if (deletedByA[i] == false)
+                    item.aPos = aPos++;
+                if (deletedByB[i] == false)
+                    item.bPos = bPos++;
                 result.add(item);
             }
         }

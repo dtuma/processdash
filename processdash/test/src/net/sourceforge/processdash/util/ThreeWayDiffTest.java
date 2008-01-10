@@ -49,76 +49,80 @@ public class ThreeWayDiffTest extends TestCase {
     public void testMerge1() {
         ThreeWayDiff<String> diff = new ThreeWayDiff<String>(BASE, A, B);
         ResultItem<String>[] results = diff.getMergedResult();
-        assertMergeResults(MERGE1_RESULTS, results);
+        assertMergeResults(MERGE1_RESULTS, results, false);
+        assertTrue(results[0].isUnchanged());
+
     }
+    private static final int UNCHANGED = 0;
+    private static final int DELETED_BY_A = 1;
+    private static final int DELETED_BY_B = 2;
+    private static final int DELETED_BY_BOTH = 3;
+    private static final int INSERTED_BY_A = 4;
+    private static final int INSERTED_BY_B = 5;
 
     private static final Object[][] MERGE1_RESULTS = {
-        {"The", 0, 0, 0 },
-        {"quick", 1, -1, 1 },
-        {"brown", 2, -1, 2 },
-        {"QUICK", -1, 1, -1 },
-        {"fox", 3, 2, 3 },
-        {"jumped", 4, 3, 4 },
-        {"over", 5, 4, 5 },
-        {"the", 6, -1, 6 },
-        {"three", -1, 5, -1 },
-        {"lazy", 7, 6, -1 },
-        {"dogs.", 8, 7, -1 },
-        {"dog.", -1,-1, 7 },
+        {"The", 0, 0, 0, UNCHANGED },
+        {"quick", 1, -1, 1, DELETED_BY_A },
+        {"brown", 2, -1, 2, DELETED_BY_A },
+        {"QUICK", -1, 1, -1, INSERTED_BY_A },
+        {"fox", 3, 2, 3, UNCHANGED },
+        {"jumped", 4, 3, 4, UNCHANGED },
+        {"over", 5, 4, 5, UNCHANGED },
+        {"the", 6, -1, 6, DELETED_BY_A },
+        {"three", -1, 5, -1, INSERTED_BY_A },
+        {"lazy", 7, 6, -1, DELETED_BY_B },
+        {"dogs.", 8, 7, -1, DELETED_BY_B },
+        {"dog.", -1, -1, 7, INSERTED_BY_B },
     };
+
 
 
     public void testMerge2() {
         ThreeWayDiff<String> diff = new ThreeWayDiff<String>(BASE, B, B);
         ResultItem<String>[] results = diff.getMergedResult();
-        assertMergeResults(MERGE2_RESULTS, results);
+        assertMergeResults(MERGE2_RESULTS, results, false);
     }
 
     private static final Object[][] MERGE2_RESULTS = {
-        { "The", 0, 0, 0 },
-        { "quick", 1, 1, 1 },
-        { "brown", 2, 2, 2 },
-        { "fox", 3, 3, 3 },
-        { "jumped", 4, 4, 4 },
-        { "over", 5, 5, 5 },
-        { "the", 6, 6, 6 },
+        { "The", 0, 0, 0, UNCHANGED },
+        { "quick", 1, 1, 1, UNCHANGED },
+        { "brown", 2, 2, 2, UNCHANGED },
+        { "fox", 3, 3, 3, UNCHANGED },
+        { "jumped", 4, 4, 4, UNCHANGED },
+        { "over", 5, 5, 5, UNCHANGED },
+        { "the", 6, 6, 6, UNCHANGED },
         // here we detect that mutual deletion is detected correctly.
-        { "lazy", 7, -1, -1 },
-        { "dogs.", 8, -1, -1 },
+        { "lazy", 7, -1, -1, DELETED_BY_BOTH },
+        { "dogs.", 8, -1, -1, DELETED_BY_BOTH },
         // note: we do not currently provide support for detecting that both
         // people inserted the same thing...so the insertion is listed twice.
-        { "dog.", -1, 7, -1 },
-        { "dog.", -1, -1, 7 },
+        { "dog.", -1, 7, -1, INSERTED_BY_A },
+        { "dog.", -1, -1, 7, INSERTED_BY_B },
     };
 
 
     public void testMergeText() {
         ResultItem<String>[] results = ThreeWayTextDiff.compareTextByWords(
             "The quick brown fox jumped over the lazy dogs.",
-            "The    quick  brown fox jumped over three lazy dogs.",
+            "The    quick  brown fox jumped over three lazy\n\tdogs.",
             "The quick brown FOX jumped    over the lazy dogs.");
-        assertMergeResults(MERGE_TEXT_RESULTS, results, true);
+        assertMergeResults(MERGE_TEXT_RESULTS, results, false);
     }
 
     private static final Object[][] MERGE_TEXT_RESULTS = {
-        { "The", 0, 0, 0 },
-        { "    quick", 1, 1, 1 },
-        { "  brown", 2, 2, 2 },
-        { " fox", 3, 3, -1 },
-        { " FOX", -1, -1, 3 },
-        { " jumped", 4, 4, 4 },
-        { "    over", 5, 5, 5 },
-        { " the", 6, -1, 6 },
-        { " three", -1, 6, -1 },
-        { " lazy", 7, 7, 7 },
-        { " dogs.", 8, 8, 8 },
+        { "The", 0, 0, 0, UNCHANGED },
+        { "    quick", 1, 1, 1, UNCHANGED },
+        { "  brown", 2, 2, 2, UNCHANGED },
+        { " fox", 3, 3, -1, DELETED_BY_B },
+        { " FOX", -1, -1, 3, INSERTED_BY_B },
+        { " jumped", 4, 4, 4, UNCHANGED },
+        { "    over", 5, 5, 5, UNCHANGED },
+        { " the", 6, -1, 6, DELETED_BY_A },
+        { " three", -1, 6, -1, INSERTED_BY_A },
+        { " lazy", 7, 7, 7, UNCHANGED },
+        { "\n\tdogs.", 8, 8, 8, UNCHANGED },
     };
 
-
-    private void assertMergeResults(Object[][] expected,
-            ResultItem<String>[] actual) {
-        assertMergeResults(expected, actual, false);
-    }
 
     private void assertMergeResults(Object[][] expected,
             ResultItem<String>[] actual, boolean print) {
@@ -131,12 +135,40 @@ public class ThreeWayDiffTest extends TestCase {
                 assertEquals(expected[i][1], actual[i].basePos);
                 assertEquals(expected[i][2], actual[i].aPos);
                 assertEquals(expected[i][3], actual[i].bPos);
+                assertChangeFlags(expected[i][4], actual[i]);
             }
         }
     }
 
-    static void debugPrint(ResultItem ri) {
-        System.out.println(ri.item + "; basePos=" + ri.basePos + ", aPos="
-                + ri.aPos + ", bPos=" + ri.bPos);
+    private void assertChangeFlags(Object expectedFlag, ResultItem item) {
+        boolean[] expected = EXPECTED_FLAGS[((Integer)expectedFlag).intValue()];
+        assertEquals(expected[0], item.isUnchanged());
+        assertEquals(expected[1], item.isDeleted());
+        assertEquals(expected[2], item.isDeletedByA());
+        assertEquals(expected[3], item.isDeletedByB());
+        assertEquals(expected[4], item.isInserted());
+        assertEquals(expected[5], item.isInsertedByA());
+        assertEquals(expected[6], item.isInsertedByB());
     }
+
+    private static final boolean[][] EXPECTED_FLAGS = {
+        // UNCHANGED
+        { true, false, false, false, false, false, false },
+        // DELETED_BY_A
+        { false, true, true, false, false, false, false },
+        // DELETED_BY_B
+        { false, true, false, true, false, false, false },
+        // DELETED_BY_BOTH
+        { false, true, true, true, false, false, false },
+        // INSERTED_BY_A
+        { false, false, false, false, true, true, false },
+        // INSERTED_BY_B
+        { false, false, false, false, true, false, true},
+    };
+
+    static void debugPrint(ResultItem ri) {
+        System.out.println("{ \"" + ri.item + "\", " + ri.basePos + ", "
+                + ri.aPos + ", " + ri.bPos + ", ? },");
+    }
+
 }
