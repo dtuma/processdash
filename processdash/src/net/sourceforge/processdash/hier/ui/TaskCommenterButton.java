@@ -1,4 +1,4 @@
-// Copyright (C) 2007 Tuma Solutions, LLC
+// Copyright (C) 2007-2008 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -38,6 +38,7 @@ import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.hier.ActiveTaskModel;
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.HierarchyNote;
+import net.sourceforge.processdash.hier.HierarchyNoteListener;
 import net.sourceforge.processdash.hier.HierarchyNoteManager;
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.i18n.Resources;
@@ -45,7 +46,7 @@ import net.sourceforge.processdash.ui.DashboardIconFactory;
 import net.sourceforge.processdash.ui.lib.ToolTipTimingCustomizer;
 
 public class TaskCommenterButton extends JButton implements ActionListener,
-        PropertyChangeListener {
+        PropertyChangeListener, HierarchyNoteListener {
 
     ProcessDashboard context = null;
     ActiveTaskModel taskModel = null;
@@ -53,6 +54,8 @@ public class TaskCommenterButton extends JButton implements ActionListener,
     Icon commentPresentIcon = null;
     Icon commentErrorIcon = null;
     Icon noCommentIcon = null;
+
+    HierarchyNoteEditorDialog noteEditor = null;
 
     // Will be shown only when there is a conflict for a comment in the current
     //  hierarchy.
@@ -84,6 +87,7 @@ public class TaskCommenterButton extends JButton implements ActionListener,
 
     public TaskCommenterButton(ProcessDashboard dash, ActiveTaskModel activeTaskModel) {
         super();
+        HierarchyNoteManager.addHierarchyNoteListener(this);
         context = dash;
         taskModel = activeTaskModel;
 
@@ -164,11 +168,23 @@ public class TaskCommenterButton extends JButton implements ActionListener,
     }
 
     public void actionPerformed(ActionEvent e) {
-        // TODO : Show comment editor
-        updateAppearance();
+        PropertyKey currentPhase = context.getCurrentPhase();
+
+        if (noteEditor == null) {
+            DashHierarchy hier = context.getProperties();
+            noteEditor = new HierarchyNoteEditorDialog(hier, context, currentPhase);
+            context.addApplicationEventListener(noteEditor);
+        }
+        else {
+            noteEditor.showDialogForNode(currentPhase);
+        }
     }
 
     public void propertyChange(PropertyChangeEvent evt) {
+        updateAppearance();
+    }
+
+    public void notesChanged() {
         updateAppearance();
     }
 }

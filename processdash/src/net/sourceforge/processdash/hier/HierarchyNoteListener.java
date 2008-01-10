@@ -1,4 +1,4 @@
-// Copyright (C) 2007-2008 Tuma Solutions, LLC
+// Copyright (C) 2008 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -23,26 +23,14 @@
 //
 // E-Mail POC:  processdash-devel@lists.sourceforge.net
 
-package net.sourceforge.processdash.hier.ui;
+package net.sourceforge.processdash.hier;
 
-import java.awt.Component;
+/**
+ * The HierarchyNoteListener interface allows an object to receive notification
+ *  when changes are made to HierarchyNotes.
+ */
+public interface HierarchyNoteListener {
 
-import javax.swing.event.ChangeListener;
-
-public interface HierarchyNoteEditor {
-
-    public Component getNoteEditorComponent();
-
-    public String getContent();
-
-    public boolean isDirty();
-
-    public void addDirtyListener(ChangeListener l);
-
-    public void removeDirtyListener(ChangeListener l);
-
-    public void setDirty(boolean dirty);
-
-    public String getFormatID();
+    public void notesChanged();
 
 }

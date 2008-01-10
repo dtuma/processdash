@@ -1,4 +1,4 @@
-// Copyright (C) 2007 Tuma Solutions, LLC
+// Copyright (C) 2007-2008 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -25,6 +25,7 @@
 
 package net.sourceforge.processdash.hier;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -32,6 +33,7 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Observer;
 import java.util.logging.Logger;
 
 import net.sourceforge.processdash.ProcessDashboard;
@@ -51,6 +53,23 @@ public class HierarchyNoteManager {
 
     public static final String NOTE_CONFLICT_KEY = "Team_Note.Conflict";
 
+    // Contains all objects that want to be notified when changes are made to the notes.
+    private static ArrayList<HierarchyNoteListener> listeners =
+        new ArrayList<HierarchyNoteListener>();
+
+    public static void addHierarchyNoteListener(HierarchyNoteListener l) {
+        listeners.add(l);
+    }
+
+    public static void removeHierarchyNoteListener(HierarchyNoteListener l) {
+        listeners.remove(l);
+    }
+
+    private static void notifyListeners() {
+        for (HierarchyNoteListener o : new ArrayList<HierarchyNoteListener>(listeners)) {
+            o.notesChanged();
+        }
+    }
 
     private static Logger logger = Logger.getLogger(HierarchyNoteManager.class
             .getName());
@@ -119,6 +138,8 @@ public class HierarchyNoteManager {
                 data.putValue(fullDataName, val);
             }
         }
+
+        notifyListeners();
     }
 
 
