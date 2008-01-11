@@ -36,7 +36,11 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.Semaphore;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
+import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.log.defects.ImportedDefectManager;
 import net.sourceforge.processdash.log.time.ImportedTimeLogManager;
@@ -57,6 +61,8 @@ public class DataImporter extends Thread {
     private static Hashtable importers = new Hashtable();
     private static List initializingImporters = Collections
             .synchronizedList(new ArrayList());
+    private static Logger logger = Logger.getLogger(DataImporter.class
+            .getName());
 
     private DataRepository data;
     private String importPrefix;
@@ -148,6 +154,7 @@ public class DataImporter extends Thread {
 
     private void checkFiles(List feedback) {
         try {
+            FILE_IO_LOCK.acquireUninterruptibly();
             Set currentFiles = new HashSet(modTimes.keySet());
 
             // list the files in the import directory.
@@ -167,7 +174,11 @@ public class DataImporter extends Thread {
             while (i.hasNext())
                 closeFile((File) i.next());
 
-        } catch (IOException ioe) {}
+        } catch (IOException ioe) {
+            logger.log(Level.FINE, "IOException in DataImporter", ioe);
+        } finally {
+            FILE_IO_LOCK.release();
+        }
     }
 
     private File[] getFilesToImport() {
@@ -323,5 +334,11 @@ public class DataImporter extends Thread {
 
     private static String makeExtraPrefix(File f) throws IOException {
         return Integer.toString(Math.abs(f.getCanonicalFile().hashCode()));
+    }
+
+    private static final Semaphore FILE_IO_LOCK = makeFileIOLock();
+    private static Semaphore makeFileIOLock() {
+        int maxOperations = Settings.getInt("slowNetwork.numParallelReads", 10);
+        return new Semaphore(maxOperations);
     }
 }
