@@ -1,4 +1,4 @@
-// Copyright (C) 2005-2007 Tuma Solutions, LLC
+// Copyright (C) 2005-2008 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -58,5 +58,7 @@ public interface ArchiveMetricsXmlConstants extends XmlConstants {
     public static final String FILE_NAME_ATTR = "name";
 
     public static final String VERSION_ATTR = "version";
+
+    public static final String METADATA_DATA_NAME = "Import_Metadata";
 
 }

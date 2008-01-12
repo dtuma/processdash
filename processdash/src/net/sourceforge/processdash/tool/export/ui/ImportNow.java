@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2007 Tuma Solutions, LLC
+// Copyright (C) 2003-2008 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -52,6 +52,17 @@ public class ImportNow extends TinyCGIBase {
         // we'll just refresh all imported data.
         List refreshedFiles = DataImporter.refreshPrefixWithFeedback("/");
 
+        out.println("<html><head>");
+
+        if (parameters.containsKey("redirectToReferrer")) {
+            String referer = (String) env.get("HTTP_REFERER");
+            if (StringUtils.hasValue(referer)) {
+                String uri = HTMLUtils.appendQuery(referer, "rl");
+                out.println("<meta http-equiv='Refresh' content='4;URL=" + uri
+                        + "'>");
+            }
+        }
+
         String type = (refreshedFiles.isEmpty() ? "Not_Needed" : "Complete");
         String header = StringUtils.findAndReplace(HEADER_HTML, "TYPE", type);
         out.print(resources.interpolate(header, HTMLUtils.ESC_ENTITIES));
@@ -70,8 +81,8 @@ public class ImportNow extends TinyCGIBase {
         out.print("</body></html>");
     }
 
-    private static final String HEADER_HTML = "<html><head>"
-            + "<title>${Import.TYPE.Title}</title>\n"
+    private static final String HEADER_HTML =
+            "<title>${Import.TYPE.Title}</title>\n"
             + "<link rel='stylesheet' type='text/css' href='/style.css'>\n"
             + "</head><body>\n" //
             + "<h1>${Import.TYPE.Title}</h1>\n" //

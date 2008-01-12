@@ -1,4 +1,4 @@
-// Copyright (C) 2005-2007 Tuma Solutions, LLC
+// Copyright (C) 2005-2008 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -37,7 +37,11 @@ import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
+import net.sourceforge.processdash.data.DateData;
 import net.sourceforge.processdash.data.ImmutableDoubleData;
+import net.sourceforge.processdash.data.ListData;
+import net.sourceforge.processdash.data.StringData;
+import net.sourceforge.processdash.data.TagData;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.data.repository.InvalidDatafileFormat;
 import net.sourceforge.processdash.log.defects.ImportedDefectManager;
@@ -155,19 +159,28 @@ public class ArchiveMetricsFileImporter implements Runnable,
         ImportedDefectManager.closeDefects(prefix);
         ImportedTimeLogManager.getInstance().closeTimeLogs(prefix);
         defns = new HashMap();
+        Map<String, String> packageIDs = new HashMap<String, String>();
 
         while (parser.next() != XmlPullParser.END_DOCUMENT) {
-            if (parser.getEventType() == XmlPullParser.START_TAG
-                    && FILE_ELEM.equals(parser.getName())) {
-                String name = parser.getAttributeValue(null, FILE_NAME_ATTR);
-                String type = parser.getAttributeValue(null, TYPE_ATTR);
-                String version = parser.getAttributeValue(null, VERSION_ATTR);
-                readFile(zipFile, name, type, version);
+            if (parser.getEventType() == XmlPullParser.START_TAG) {
+                if (PACKAGE_ELEM.equals(parser.getName())) {
+                    String id = parser.getAttributeValue(null, PACKAGE_ID_ATTR);
+                    String version = parser.getAttributeValue(null, VERSION_ATTR);
+                    packageIDs.put(id, version);
+                } else if (FILE_ELEM.equals(parser.getName())) {
+                    String name = parser.getAttributeValue(null, FILE_NAME_ATTR);
+                    String type = parser.getAttributeValue(null, TYPE_ATTR);
+                    String version = parser.getAttributeValue(null, VERSION_ATTR);
+                    readFile(zipFile, name, type, version);
+                }
             }
         }
 
         // Protect this data from being viewed via external http requests.
         defns.put("_Password_", ImmutableDoubleData.READ_ONLY_ZERO);
+
+        // Save metadata about the import
+        addImportMetadata(packageIDs);
 
         try {
             data.mountImportedData(prefix, defns);
@@ -223,4 +236,28 @@ public class ArchiveMetricsFileImporter implements Runnable,
         throw new IOException("Unable to import '" + filename
                 + "'; not a valid archive file: " + message);
     }
+
+    private void addImportMetadata(Map<String, String> packageIDs) {
+        String prefix = METADATA_DATA_NAME + "/" + EXPORTED_TAG + ".";
+
+        defns.put(METADATA_DATA_NAME, TagData.getInstance());
+
+        if (owner != null)
+            defns.put(prefix + OWNER_ATTR, StringData.create(owner));
+
+        if (exportTimestamp != null)
+            defns.put(prefix + WHEN_ATTR, new DateData(exportTimestamp, false));
+
+        ListData packageList = new ListData();
+        String packagePrefix = prefix + PACKAGE_ELEM + "/";
+        for (Map.Entry<String, String> e : packageIDs.entrySet()) {
+            String id = e.getKey();
+            String version = e.getValue();
+            packageList.add(id);
+            packageList.add(version);
+            defns.put(packagePrefix + id, StringData.create(version));
+        }
+        defns.put(prefix + PACKAGE_ELEM, packageList);
+    }
+
 }
