@@ -92,6 +92,10 @@ public class HierarchyNoteEditorDialog implements DashHierarchy.Listener,
 
     private boolean changingSelectionProgrammatically = false;
 
+    // If the note currently being showed is in conflict, this member
+    //  will contain it's conflicting portion
+    private HierarchyNote noteInConflict = null;
+
     // The node for which the editor is showing comments.
     private PropertyKey nodeCommentShowedByEditor;
 
@@ -212,11 +216,17 @@ public class HierarchyNoteEditorDialog implements DashHierarchy.Listener,
         Map<String, HierarchyNote> noteData = new HashMap<String, HierarchyNote>();
         noteData.put(HierarchyNoteManager.NOTE_KEY, note);
 
+        if (noteInConflict != null) {
+            noteData.put(HierarchyNoteManager.NOTE_BASE_KEY, noteInConflict);
+            noteData.put(HierarchyNoteManager.NOTE_CONFLICT_KEY, null);
+        }
+
         HierarchyNoteManager.saveNotesForPath(data,
                 nodeCommentShowedByEditor.path(), noteData);
         treeModel.commentStatusChanged(nodeCommentShowedByEditor);
         noteEditor.setDirty(false);
-        updateButtons();
+        noteInConflict = null;
+        revertComment();
     }
 
     public void close() {
@@ -238,7 +248,7 @@ public class HierarchyNoteEditorDialog implements DashHierarchy.Listener,
                                         : JOptionPane.YES_NO_OPTION;
 
             int userChoice = JOptionPane.showConfirmDialog(frame,
-                    resources.format("Confirm_Close_Prompt", nodeCommentShowedByEditor.path()),
+                    resources.format("Confirm_Close_Prompt_FMT", nodeCommentShowedByEditor.path()),
                     resources.getString("Confirm_Close_Title"), optionType);
 
             switch (userChoice) {
@@ -368,10 +378,12 @@ public class HierarchyNoteEditorDialog implements DashHierarchy.Listener,
 
                 hierarchyNoteFormat = HierarchyNoteManager.getNoteFormat(noteFormat);
 
+                noteInConflict = notes.get(HierarchyNoteManager.NOTE_CONFLICT_KEY);
+
                 // We get the editor of the desired note, for its format
                 noteEditor = hierarchyNoteFormat.getEditor(
                         notes.get(HierarchyNoteManager.NOTE_KEY),
-                        notes.get(HierarchyNoteManager.NOTE_CONFLICT_KEY),
+                        noteInConflict,
                         notes.get(HierarchyNoteManager.NOTE_BASE_KEY));
             }
             else {
@@ -379,6 +391,8 @@ public class HierarchyNoteEditorDialog implements DashHierarchy.Listener,
                 //  the plain text note format, that's the one we use
                 hierarchyNoteFormat =
                     HierarchyNoteManager.getNoteFormat(PlainTextNoteFormat.FORMAT_ID);
+
+                noteInConflict = null;
 
                 // Since there's no note for this node, we can get an empty Editor for
                 //  the specified note format

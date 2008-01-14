@@ -76,8 +76,8 @@ public class TaskCommenterButton extends JButton implements ActionListener,
     //  of its ancestors.
     boolean commentConflictPresent = false;
 
-    // The path for which there is a comment conflict
-    String taskInConflict = null;
+    // The node for which there is a comment conflict
+    PropertyKey taskInConflict = null;
 
     // The other person that has made a comment for the task that has a conflicting
     //  comment
@@ -129,7 +129,7 @@ public class TaskCommenterButton extends JButton implements ActionListener,
                 toolTipText.append(
                         resources.format("Conflict_Tooltip_FMT",
                                          conflictingCommentAuthor,
-                                         taskInConflict));
+                                         taskInConflict.path()));
                 setIcon(commentErrorIcon);
             }
             else {
@@ -155,7 +155,7 @@ public class TaskCommenterButton extends JButton implements ActionListener,
 
             if (notes.get(HierarchyNoteManager.NOTE_CONFLICT_KEY) != null) {
                 commentConflictPresent = true;
-                taskInConflict = currentNode.path();
+                taskInConflict = currentNode;
                 conflictingCommentAuthor =
                     notes.get(HierarchyNoteManager.NOTE_CONFLICT_KEY).getAuthor();
             }
@@ -168,15 +168,16 @@ public class TaskCommenterButton extends JButton implements ActionListener,
     }
 
     public void actionPerformed(ActionEvent e) {
-        PropertyKey currentPhase = context.getCurrentPhase();
+        PropertyKey phaseToShow = (commentConflictPresent) ? taskInConflict
+                                    : context.getCurrentPhase();
 
         if (noteEditor == null) {
             DashHierarchy hier = context.getProperties();
-            noteEditor = new HierarchyNoteEditorDialog(hier, context, currentPhase);
+            noteEditor = new HierarchyNoteEditorDialog(hier, context, phaseToShow);
             context.addApplicationEventListener(noteEditor);
         }
         else {
-            noteEditor.showDialogForNode(currentPhase);
+            noteEditor.showDialogForNode(phaseToShow);
         }
     }
 
