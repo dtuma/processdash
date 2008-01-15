@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2007 Tuma Solutions, LLC
+// Copyright (C) 2003-2008 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -45,7 +45,6 @@ import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.ev.DefaultTaskLabeler;
 import net.sourceforge.processdash.ev.EVCalculator;
 import net.sourceforge.processdash.ev.EVDependencyCalculator;
-import net.sourceforge.processdash.ev.EVMetrics;
 import net.sourceforge.processdash.ev.EVSchedule;
 import net.sourceforge.processdash.ev.EVScheduleFiltered;
 import net.sourceforge.processdash.ev.EVScheduleRollup;
@@ -163,8 +162,7 @@ public class EVWeekReport extends TinyCGIBase {
             int purpose) throws IOException {
 
         EVSchedule schedule = evModel.getSchedule();
-        EVMetrics  metrics = schedule.getMetrics();
-        double totalPlanTime = metrics.totalPlan();
+        double totalPlanTime = schedule.getMetrics().totalPlan();
         boolean hideNames = settings.getBool(EVReport.CUSTOMIZE_HIDE_NAMES);
         boolean showAssignedTo = (evModel instanceof EVTaskListRollup)
                 && !hideNames;
@@ -187,8 +185,9 @@ public class EVWeekReport extends TinyCGIBase {
             Settings.getInt("ev.numReverseDependencyWeeks", 6));
 
         // Get a slice of the schedule representing the previous week.
+        EVSchedule filteredSchedule = getEvSchedule(evModel, taskFilter);
         EVSchedule.Period weekSlice = EVScheduleRollup.getSlice(
-                getEvSchedule(evModel, taskFilter), lastWeek, effDate);
+                filteredSchedule, lastWeek, effDate);
 
         // Now scan the task list looking for information we need.
         TableModel tasks = evModel.getSimpleTableModel(taskFilter);
@@ -291,7 +290,8 @@ public class EVWeekReport extends TinyCGIBase {
          */
 
         if (isTopLevel(purpose)) {
-            String titleHTML = resources.format("Title_FMT", taskListName);
+            String taskListDisplayName = EVTaskList.cleanupName(taskListName);
+            String titleHTML = resources.format("Title_FMT", taskListDisplayName);
             titleHTML = HTMLUtils.escapeEntities(titleHTML);
             StringBuffer header = new StringBuffer(HEADER_HTML);
             StringUtils.findAndReplace(header, TITLE_VAR, titleHTML);
@@ -313,7 +313,7 @@ public class EVWeekReport extends TinyCGIBase {
 
             EVReport.printFilterInfo(out, taskFilter, isExportingToExcel());
 
-            Map errors = metrics.getErrors();
+            Map errors = filteredSchedule.getMetrics().getErrors();
             if (errors != null && errors.size() > 0) {
                 out.print("<table border><tr><td class='modelErrors'><h2>");
                 out.print(getResource("Report.Errors_Heading"));

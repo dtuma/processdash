@@ -69,6 +69,8 @@ public class EVTaskListMerger {
 
     private EVTaskFilter filter;
 
+    private Set filteredNodes;
+
     private EVTask mergedRoot;
 
     private Map nodesMerged;
@@ -102,6 +104,9 @@ public class EVTaskListMerger {
      */
     public void recalculate() {
         clearChildren(mergedRoot);
+
+        // retrieve the list of nodes that pass the filter
+        filteredNodes = enumerateFilteredNodes();
 
         // find all the tasks that we'll want to represent in our merged tree.
         Map allTaskKeys = new HashMap();
@@ -142,6 +147,39 @@ public class EVTaskListMerger {
             getTasksMergedBeneath(result, t.getChild(i));
     }
 
+    /**
+     * If we are given a task filter, its {@link EVTaskFilter#include(EVTask)}
+     * method will only return true for tasks that should be included in
+     * calculations. However, those tasks could be scattered throughout the EV
+     * task tree. Since the calculations in this class are performed
+     * hierarchically, we also need to keep track of the nodes that form the
+     * ancestry tree above the filtered nodes. This method calculates the set of
+     * nodes that match our task filter, plus their ancestors.
+     * 
+     * If no task filter is in effect, returns null.
+     */
+    private Set enumerateFilteredNodes() {
+        if (filter == null)
+            return null;
+
+        Set result = new HashSet();
+        enumerateFilteredNodes(result, taskList.getTaskRoot());
+        return result;
+    }
+
+    private boolean enumerateFilteredNodes(Set result, EVTask task) {
+        boolean childrenWereIncluded = false;
+        for (int i = task.getNumChildren();  i-- > 0; )
+            if (enumerateFilteredNodes(result, task.getChild(i)))
+                childrenWereIncluded = true;
+
+        boolean includeTask = childrenWereIncluded || filter.include(task);
+        if (includeTask)
+            result.add(task);
+
+        return includeTask;
+    }
+
     /** Collect all the nodes that we want to include in our merged model,
      * and place them into a map.
      */
@@ -151,7 +189,7 @@ public class EVTaskListMerger {
             // merged result.
             return;
 
-        if (filter != null && !filter.include(task))
+        if (filteredNodes != null && !filteredNodes.contains(task))
             // if we have a filter, see if it includes this task.
             return;
 
@@ -264,7 +302,7 @@ public class EVTaskListMerger {
             // merged result.
             return;
 
-        if (filter != null && !filter.include(task))
+        if (filteredNodes != null && !filteredNodes.contains(task))
             // if we have a filter, see if it includes this task.
             return;
 
@@ -307,7 +345,7 @@ public class EVTaskListMerger {
             // we don't do level of effort tasks or pruned tasks, remember?
             return;
 
-        if (filter != null && !filter.include(task))
+        if (filteredNodes != null && !filteredNodes.contains(task))
             // skip filtered tasks, remember?
             return;
 
@@ -382,10 +420,24 @@ public class EVTaskListMerger {
 
     /** Filter a collection of EVTask objects to find only the leaf nodes. */
     private List getLeafNodes(Set evNodes) {
-        List result = new LinkedList();
+        List result = new ArrayList(evNodes.size());
         for (Iterator iter = evNodes.iterator(); iter.hasNext();) {
             EVTask t = (EVTask) iter.next();
             if (t.isLeaf())
+                result.add(t);
+        }
+        return result;
+    }
+
+    /** Filter a list of EVTask objects to find those that match our filter */
+    private List getFilteredNodes(List evNodes) {
+        if (filter == null)
+            return evNodes;
+
+        List result = new ArrayList(evNodes.size());
+        for (Iterator iter = evNodes.iterator(); iter.hasNext();) {
+            EVTask t = (EVTask) iter.next();
+            if (filter.include(t))
                 result.add(t);
         }
         return result;
@@ -457,7 +509,7 @@ public class EVTaskListMerger {
 
         // collect information about the descendants of this node.
         List childKeys = findChildrenOfKey(allTaskKeys, key);
-        List leafNodes = getLeafNodes(key.getEvNodes());
+        List leafNodes = getFilteredNodes(getLeafNodes(key.getEvNodes()));
 
         populateChild(newNode, key, childKeys, allTaskKeys, leafNodes);
     }
@@ -498,7 +550,7 @@ public class EVTaskListMerger {
         }
 
         // recalculate the merged metrics on the newly created node.
-        List allMergedNodes = new ArrayList(key.evNodes);
+        List allMergedNodes = getFilteredNodes(new ArrayList(key.getEvNodes()));
         allMergedNodes.addAll(leavesToMerge);
         rollupNode(newNode, allMergedNodes, leavesToMerge);
 
@@ -507,6 +559,7 @@ public class EVTaskListMerger {
         for (Iterator i = key.evNodes.iterator(); i.hasNext();) {
             EVTask subTask = (EVTask) i.next();
             if (!containsIdentity(leavesToMerge, subTask)
+                    && (filter == null || filter.include(subTask))
                     && !subTask.isUserPruned()) {
                 double subNodeTime = getActualNodeTime(subTask);
                 if (subNodeTime > 0) {

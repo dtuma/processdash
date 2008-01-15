@@ -41,7 +41,7 @@ import net.sourceforge.processdash.util.glob.GlobEngine;
 
 public class EVLabelFilter implements EVTaskFilter {
 
-    public static final String FILTER_ATTR = "filter";
+    public static final String LABEL_FILTER_ATTR = "labelFilter";
 
     public static final String LABEL_TAG = "label:";
 
@@ -132,7 +132,7 @@ public class EVLabelFilter implements EVTaskFilter {
     }
 
 
-    private boolean collectMatchingTasks(EVTask task, boolean parentMatches) {
+    private void collectMatchingTasks(EVTask task, boolean parentMatches) {
         boolean selfMatches;
         List taskIDs = task.getTaskIDs();
         if (taskIDs == null || taskIDs.isEmpty())
@@ -145,20 +145,11 @@ public class EVLabelFilter implements EVTaskFilter {
         else
             selfMatches = taskIDsMatch(taskIDs);
 
-        boolean childMatches = false;
         for (int i = task.getNumChildren(); i-- > 0;)
-            if (collectMatchingTasks(task.getChild(i), selfMatches))
-                childMatches = true;
+            collectMatchingTasks(task.getChild(i), selfMatches);
 
-        boolean isMatchingLeaf = (parentMatches && task.isLeaf()
-                && taskIDs == null);
-
-        boolean foundMatch = selfMatches || childMatches || isMatchingLeaf;
-
-        if (foundMatch)
+        if (selfMatches)
             matchingTasks.add(task);
-
-        return foundMatch;
     }
 
     private boolean taskIDsMatch(Collection taskIDs) {
@@ -187,7 +178,7 @@ public class EVLabelFilter implements EVTaskFilter {
     }
 
     public String getAttribute(String name) {
-        if (FILTER_ATTR.equals(name))
+        if (LABEL_FILTER_ATTR.equals(name))
             return filter;
         else
             return null;

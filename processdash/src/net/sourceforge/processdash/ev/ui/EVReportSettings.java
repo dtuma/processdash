@@ -35,6 +35,7 @@ import net.sourceforge.processdash.data.SaveableData;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.StringData;
 import net.sourceforge.processdash.data.repository.DataRepository;
+import net.sourceforge.processdash.ev.EVHierarchicalFilter;
 import net.sourceforge.processdash.ev.EVLabelFilter;
 import net.sourceforge.processdash.ev.EVTaskFilter;
 import net.sourceforge.processdash.ev.EVTaskList;
@@ -46,6 +47,9 @@ public class EVReportSettings {
     static final String TASKLIST_PARAM = "tl";
     static final String LABEL_FILTER_PARAM = "labelFilter";
     static final String LABEL_FILTER_AUTO_PARAM = "labelFilterAuto";
+    static final String PATH_FILTER_PARAM = "pathFilter";
+    static final String MERGED_PATH_FILTER_PARAM = "mergedPathFilter";
+    static final String PATH_FILTER_AUTO_PARAM = "pathFilterAuto";
 
     private DataRepository data;
     private Map parameters;
@@ -119,9 +123,22 @@ public class EVReportSettings {
                 && purpose != PURPOSE_IMAGE) {
             if (purpose == PURPOSE_WEEK)
                 HTMLUtils.appendQuery(query, LABEL_FILTER_AUTO_PARAM, "t");
-        } else if (StringUtils.hasValue(getParameter(LABEL_FILTER_PARAM)))
+        } else if (StringUtils.hasValue(getParameter(LABEL_FILTER_PARAM))) {
             HTMLUtils.appendQuery(query, LABEL_FILTER_PARAM,
                     getParameter(LABEL_FILTER_PARAM));
+        }
+
+        if (parameters.containsKey(PATH_FILTER_AUTO_PARAM)
+                && purpose != PURPOSE_IMAGE) {
+            if (purpose == PURPOSE_WEEK)
+                HTMLUtils.appendQuery(query, PATH_FILTER_AUTO_PARAM, "t");
+        } else if (StringUtils.hasValue(getParameter(PATH_FILTER_PARAM))) {
+            HTMLUtils.appendQuery(query, PATH_FILTER_PARAM,
+                    getParameter(PATH_FILTER_PARAM));
+        } else if (StringUtils.hasValue(getParameter(MERGED_PATH_FILTER_PARAM))) {
+            HTMLUtils.appendQuery(query, MERGED_PATH_FILTER_PARAM,
+                    getParameter(MERGED_PATH_FILTER_PARAM));
+        }
 
         return query.toString();
     }
@@ -146,25 +163,64 @@ public class EVReportSettings {
     /** Build a task filter object that should be used to display the report.
      */
     public EVTaskFilter getEffectiveFilter(EVTaskList evModel) {
-        String filter = null;
+        EVTaskFilter result = null;
+
+        // first, look up any applicable label filter
+        String labelFilter = null;
         if (parameters.containsKey(LABEL_FILTER_PARAM))
-            filter = getParameter(LABEL_FILTER_PARAM);
+            labelFilter = getParameter(LABEL_FILTER_PARAM);
         else if (usingCustomizationSettings) {
             SimpleData val = getValue("settings//" + LABEL_FILTER_PARAM);
-            filter = (val == null ? null : val.format());
+            labelFilter = (val == null ? null : val.format());
         }
 
-        if (StringUtils.hasValue(filter)) {
+        // if we found a label filter, apply it.
+        if (StringUtils.hasValue(labelFilter)) {
             try {
-                EVTaskFilter result = new EVLabelFilter(evModel, filter,
-                        data);
-                evModel.disableBaselineData();
-                return result;
+                result = new EVLabelFilter(evModel, labelFilter, data);
             } catch (Exception e) {
             }
         }
 
-        return null;
+        // next, look up any applicable path filter
+        String pathFilter = null;
+        if (parameters.containsKey(PATH_FILTER_PARAM))
+            pathFilter = getParameter(PATH_FILTER_PARAM);
+        else if (usingCustomizationSettings) {
+            SimpleData val = getValue("settings//" + PATH_FILTER_PARAM);
+            pathFilter = (val == null ? null : val.format());
+        }
+
+        // if we found a path filter, apply it
+        if (StringUtils.hasValue(pathFilter)) {
+            EVHierarchicalFilter hf = EVHierarchicalFilter.getFilter(evModel,
+                pathFilter);
+            if (hf != null)
+                result = hf.appendFilter(result);
+        } else {
+
+            // next, look for a merged path filter
+            String mergedPathFilter = null;
+            if (parameters.containsKey(MERGED_PATH_FILTER_PARAM))
+                mergedPathFilter = getParameter(MERGED_PATH_FILTER_PARAM);
+            else if (usingCustomizationSettings) {
+                SimpleData val = getValue("settings//" + MERGED_PATH_FILTER_PARAM);
+                mergedPathFilter = (val == null ? null : val.format());
+            }
+
+            // if we found a merged path filter, apply it
+            if (StringUtils.hasValue(mergedPathFilter)) {
+                EVHierarchicalFilter hf = EVHierarchicalFilter
+                        .getFilterForMerged(evModel, mergedPathFilter);
+                if (hf != null)
+                    result = hf.appendFilter(result);
+            }
+        }
+
+        if (result != null)
+            evModel.disableBaselineData();
+
+        return result;
     }
 
 
@@ -178,6 +234,8 @@ public class EVReportSettings {
 
         if (parameters.containsKey(LABEL_FILTER_AUTO_PARAM))
             lookupLabelFilter();
+        if (parameters.containsKey(PATH_FILTER_AUTO_PARAM))
+            lookupPathFilter();
 
         usingCustomizationSettings = isTimestampRecent();
     }
@@ -228,6 +286,18 @@ public class EVReportSettings {
         SaveableData sval = data.getInheritableValue(prefix, "Label//Filter");
         SimpleData val = (sval == null ? null : sval.getSimpleValue());
         parameters.put(LABEL_FILTER_PARAM, val == null ? "" : val.format());
+    }
+
+    private void lookupPathFilter() {
+        SaveableData sval = data.getInheritableValue(prefix, "Earned_Value//Path_Filter");
+        if (sval == null) sval = data.getInheritableValue(prefix, "Earned_Value_Path_Filter");
+        SimpleData val = (sval == null ? null : sval.getSimpleValue());
+        parameters.put(PATH_FILTER_PARAM, val == null ? "" : val.format());
+
+        sval = data.getInheritableValue(prefix, "Earned_Value//Merged_Path_Filter");
+        if (sval == null) sval = data.getInheritableValue(prefix, "Earned_Value_Merged_Path_Filter");
+        val = (sval == null ? null : sval.getSimpleValue());
+        parameters.put(MERGED_PATH_FILTER_PARAM, val == null ? "" : val.format());
     }
 
     private SimpleData getValue(String name) {

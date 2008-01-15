@@ -28,6 +28,7 @@ package net.sourceforge.processdash.ev;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import net.sourceforge.processdash.util.PatternList;
 
@@ -67,6 +68,8 @@ public class EVScheduleFiltered extends EVSchedule {
         EVTask taskRoot = (EVTask) taskList.getRoot();
         calculateActualNodeTimes(taskRoot);
         addTaskData(taskRoot, evLeaves);
+
+        copyErrors();
 
         setFakePeriodData();
 
@@ -115,6 +118,19 @@ public class EVScheduleFiltered extends EVSchedule {
         for (int i = task.getNumChildren(); i-- > 0;) {
             EVTask child = task.getChild(i);
             addTaskData(child, evLeaves);
+        }
+    }
+
+    private void copyErrors() {
+        Map origErrors = taskList.getSchedule().getMetrics().getErrors();
+        if (origErrors != null) {
+            for (Iterator i = origErrors.entrySet().iterator(); i.hasNext();) {
+                Map.Entry e = (Map.Entry) i.next();
+                String message = (String) e.getKey();
+                EVTask node = (EVTask) e.getValue();
+                if (filter.include(node))
+                    getMetrics().addError(message, node);
+            }
         }
     }
 

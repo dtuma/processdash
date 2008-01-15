@@ -56,6 +56,7 @@ import javax.swing.event.ListSelectionListener;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 
+import net.sourceforge.processdash.ev.EVHierarchicalFilter;
 import net.sourceforge.processdash.ev.EVMetrics;
 import net.sourceforge.processdash.ev.EVSchedule;
 import net.sourceforge.processdash.ev.EVScheduleFiltered;
@@ -80,8 +81,6 @@ import org.jfree.data.XYDataset;
 public class TaskScheduleChart extends JFrame
     implements EVTaskList.RecalcListener, ComponentListener {
 
-    static final String FILTER_DISPLAY_NAME = "filtDisplay";
-    static final String IS_INVALID = "isInvalid";
     static final Object NAME_POS_KEY = "namePos";
 
     EVTaskList taskList;
@@ -120,7 +119,8 @@ public class TaskScheduleChart extends JFrame
         if (filter == null)
             return resources.format("Window_Title_FMT", tl.getDisplayName());
 
-        String filterDescription = filter.getAttribute(FILTER_DISPLAY_NAME);
+        String filterDescription = filter
+                .getAttribute(EVHierarchicalFilter.HIER_FILTER_ATTR);
         if (filterDescription == null)
             return resources.format("Window_Title_Filtered", tl.getDisplayName());
         else
@@ -142,7 +142,7 @@ public class TaskScheduleChart extends JFrame
         if (schedule instanceof EVScheduleFiltered) {
             EVScheduleFiltered filtSched = (EVScheduleFiltered) schedule;
             EVTaskFilter filter = filtSched.getFilter();
-            String valid = filter.getAttribute(IS_INVALID);
+            String valid = filter.getAttribute(EVTaskFilter.IS_INVALID);
             if (valid == null)
                 filtSched.recalculate();
             else

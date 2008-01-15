@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2007 Tuma Solutions, LLC
+// Copyright (C) 2003-2008 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -50,6 +50,7 @@ import javax.swing.table.TableModel;
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.ev.DefaultTaskLabeler;
 import net.sourceforge.processdash.ev.EVDependencyCalculator;
+import net.sourceforge.processdash.ev.EVHierarchicalFilter;
 import net.sourceforge.processdash.ev.EVLabelFilter;
 import net.sourceforge.processdash.ev.EVMetrics;
 import net.sourceforge.processdash.ev.EVSchedule;
@@ -719,7 +720,8 @@ public class EVReport extends CGIChartBase {
      */
     public void writeHTML() throws IOException {
         isSnippet = (env.containsKey(SnippetEnvironment.SNIPPET_ID));
-        String taskListHTML = WebServer.encodeHtmlEntities(taskListName);
+        String taskListDisplayName = EVTaskList.cleanupName(taskListName);
+        String taskListHTML = WebServer.encodeHtmlEntities(taskListDisplayName);
         String title = resources.format("Report.Title_FMT", taskListHTML);
 
         EVTaskFilter taskFilter = settings.getEffectiveFilter(evModel);
@@ -840,9 +842,14 @@ public class EVReport extends CGIChartBase {
         if (filter == null)
             return;
 
-        String labelFilter = filter.getAttribute(EVLabelFilter.FILTER_ATTR);
+        String labelFilter = filter.getAttribute(EVLabelFilter.LABEL_FILTER_ATTR);
+        String pathFilter = filter.getAttribute(EVHierarchicalFilter.HIER_FILTER_ATTR);
+        if (labelFilter == null && pathFilter == null)
+            return;
+
+        out.print("<h2>");
+
         if (labelFilter != null) {
-            out.print("<h2>");
             if (!textOnly)
                 out.print("<img border=0 src='/Images/filter.png' "
                         + "style='margin-right:2px' "
@@ -850,8 +857,21 @@ public class EVReport extends CGIChartBase {
             out.print(resources.getHTML("Report.Filter_Tooltip"));
             out.print(textOnly ? " - " : "\">");
             out.print(HTMLUtils.escapeEntities(labelFilter));
-            out.println("</h2>");
         }
+
+        out.print(" ");
+
+        if (pathFilter != null) {
+            if (!textOnly)
+                out.print("<img border=0 src='/Images/hier.png' "
+                        + "style='margin-right:2px' "
+                        + "width='16' height='23' title=\"");
+            out.print(resources.getHTML("Report.Filter_Tooltip"));
+            out.print(textOnly ? " - " : "\">");
+            out.print(HTMLUtils.escapeEntities(pathFilter));
+        }
+
+        out.println("</h2>");
     }
 
 

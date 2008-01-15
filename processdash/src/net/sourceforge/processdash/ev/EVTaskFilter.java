@@ -1,4 +1,4 @@
-// Copyright (C) 2006 Tuma Solutions, LLC
+// Copyright (C) 2006-2008 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -27,8 +27,13 @@ package net.sourceforge.processdash.ev;
 
 public interface EVTaskFilter {
 
+    /** Return true if the given task should be included in calculations */
     public boolean include(EVTask t);
 
+    /** Return the value of an arbitrary attribute */
     public String getAttribute(String name);
+
+    /** Attribute name to query whether this task filter is invalid */
+    public static final String IS_INVALID = "isInvalid";
 
 }
