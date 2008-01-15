@@ -10,6 +10,12 @@
 </pageHeading>
 
 
+<snippet instanceId="50" type="pdash.sectionHeading" version="1.0" persister="xml.v1"><![CDATA[<parameters>
+  <param name="Name">Earned Value</param>
+</parameters>]]></snippet>
+
+<snippet instanceId="51" type="pdash.evReport" version="1.0" />
+
 <snippet instanceId="100" type="pdash.sectionHeading" version="1.0" persister="xml.v1"><![CDATA[<parameters>
   <param name="Name">Plan Summary</param>
 </parameters>]]></snippet>

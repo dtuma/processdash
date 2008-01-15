@@ -17,26 +17,35 @@ public class selectWBSIndiv extends selectWBS {
     private static final String REL_PATH_PARAM = "relPath";
     private static final String DEST_URI_PARAM = "destUri";
     private static final String WBS_FILTER_DATA_NAME = "Project_WBS_ID//Filter";
+    private static final String EV_FILTER_DATA_NAME = "Earned_Value//Path_Filter";
 
 
     protected void doPost() throws IOException {
         parseFormData();
 
+        // save the new value of the WBS filter
         String newId = getNewWBSFilter();
-        String dataName = DataRepository.createDataName(getPrefix(),
-                WBS_FILTER_DATA_NAME);
-        // save the value of the new WBS ID filter
-        getDataRepository().putValue(dataName, StringData.create(newId));
-        // add a listener to prevent the filter data element
-        // from being disposed
-        getDataRepository().addDataListener(dataName,
-                WBS_FILTER_KEEPER, false);
-        // allow the new filter to take effect
+        putValue(WBS_FILTER_DATA_NAME, newId);
+
+        // save the new value of the EV filter
+        String newPath = getNewEVPathFilter();
+        putValue(EV_FILTER_DATA_NAME, newPath);
+
+        // allow the new filters to take effect
         getDataRepository().waitForCalculations();
 
         out.print("Location: ");
         out.print(getParameter(DEST_URI_PARAM));
         out.print("\r\n\r\n");
+    }
+
+    private void putValue(String name, String value) {
+        String dataName = DataRepository.createDataName(getPrefix(), name);
+        // save the value of the new filter
+        StringData val = (value == null ? null :  StringData.create(value));
+        getDataRepository().putValue(dataName, val);
+        // add a listener to prevent the data element from being disposed
+        getDataRepository().addDataListener(dataName, WBS_FILTER_KEEPER, false);
     }
 
     protected String getNewWBSFilter() {
@@ -50,6 +59,14 @@ public class selectWBSIndiv extends selectWBS {
             result = result + "/" + relPath;
 
         return result;
+    }
+
+    protected String getNewEVPathFilter() {
+        String relPath = getParameter(REL_PATH_PARAM);
+        if (StringUtils.hasValue(relPath))
+            return getPrefix() + "/" + relPath;
+        else
+            return null;
     }
 
     protected String getScript() {

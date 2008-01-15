@@ -16,6 +16,9 @@ undefine([Simple Project Tag]);
 [Phase_Display_Filter_List] = [../Phase_Display_Filter_List];
 [Rollup_Namespaced_Phase_Metrics] = [../Rollup_Namespaced_Phase_Metrics];
 
+[EV Project Tag] = tag;
+[Earned_Value_Merged_Path_Filter] = index(0, [EV_Task_IDs]);
+
 
 /*
  * Redefine the rollup filter to include items from all subprojects.
