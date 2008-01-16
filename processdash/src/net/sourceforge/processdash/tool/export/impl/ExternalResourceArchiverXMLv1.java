@@ -1,4 +1,4 @@
-// Copyright (C) 2007 Tuma Solutions, LLC
+// Copyright (C) 2007-2008 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -39,7 +39,6 @@ import java.util.Map;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -47,6 +46,7 @@ import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.tool.export.DataImporter;
 import net.sourceforge.processdash.tool.export.mgr.ExternalResourceManager;
 import net.sourceforge.processdash.tool.export.mgr.ImportDirectoryInstruction;
+import net.sourceforge.processdash.util.DrainableExecutor;
 import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.XMLUtils;
 
@@ -77,10 +77,9 @@ public class ExternalResourceArchiverXMLv1 implements ExternalResourceArchiver,
 
     private void archiveDirectories(ZipOutputStream out) throws IOException {
         int numThreads = Settings.getInt("slowNetwork.numParallelReads", 10);
-        ExecutorService dirScanner = Executors.newFixedThreadPool(
-            Math.max(numThreads/2, 1));
-        ExecutorService fileScanner = Executors.newFixedThreadPool(
+        ExecutorService service = Executors.newFixedThreadPool(
             Math.max(numThreads, 1));
+        DrainableExecutor executor = new DrainableExecutor(service);
         exceptionEncountered = null;
         NumberFormat fmt = NumberFormat.getIntegerInstance();
         fmt.setMinimumIntegerDigits(3);
@@ -90,18 +89,11 @@ public class ExternalResourceArchiverXMLv1 implements ExternalResourceArchiver,
         for (int i = 0; i < importedDirNames.size(); i++) {
             String origPath = importedDirNames.get(i);
             String newPath = "extdir" + fmt.format(i + 1);
-            dirScanner.execute(new ArchiveDirectoryTask(fileScanner, out,
+            executor.execute(new ArchiveDirectoryTask(executor, out,
                     origPath, newPath));
         }
 
-        try {
-            dirScanner.shutdown();
-            dirScanner.awaitTermination(60*60, TimeUnit.SECONDS);
-            fileScanner.shutdown();
-            fileScanner.awaitTermination(60*60, TimeUnit.SECONDS);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        executor.drain();
 
         if (exceptionEncountered != null)
             throw exceptionEncountered;
