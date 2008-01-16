@@ -28,6 +28,7 @@ import net.sourceforge.processdash.data.DataContext;
 import net.sourceforge.processdash.data.DoubleData;
 import net.sourceforge.processdash.data.ListData;
 import net.sourceforge.processdash.data.NumberData;
+import net.sourceforge.processdash.data.SaveableData;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.StringData;
 import net.sourceforge.processdash.data.repository.DataRepository;
@@ -39,6 +40,7 @@ import net.sourceforge.processdash.ev.EVSchedule.Period;
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.Filter;
 import net.sourceforge.processdash.hier.HierarchyNote;
+import net.sourceforge.processdash.hier.HierarchyNoteManager;
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.hier.HierarchyAlterer.HierarchyAlterationException;
 import net.sourceforge.processdash.hier.HierarchyNote.InvalidNoteSpecification;
@@ -1047,11 +1049,11 @@ public class HierarchySynchronizer {
     private static final String EST_TIME_DATA_NAME = "Estimated Time";
     private static final String LABEL_LIST_DATA_NAME =
         "Synchronized_Task_Labels";
-    private static final String TEAM_NOTE_DATA_NAME = "Team_Note";
-    private static final String TEAM_NOTE_LAST_SYNC_DATA_NAME =
-        SyncWorker.syncDataName(TEAM_NOTE_DATA_NAME);
-    private static final String TEAM_NOTE_CONFLICT_DATA_NAME =
-        TEAM_NOTE_DATA_NAME + "_Edit_Conflict_Val";
+    private static final String TEAM_NOTE_KEY = HierarchyNoteManager.NOTE_KEY;
+    private static final String TEAM_NOTE_LAST_SYNC_KEY =
+        HierarchyNoteManager.NOTE_BASE_KEY;
+    private static final String TEAM_NOTE_CONFLICT_KEY =
+        HierarchyNoteManager.NOTE_CONFLICT_KEY;
     static final String MISC_CHANGE_COMMENT =
         "Updated miscellaneous project information";
 
@@ -1452,34 +1454,39 @@ public class HierarchySynchronizer {
 
         protected void maybeSaveNote(String path, Element node, String nodeID) {
             HierarchyNote wbsNote = getNoteData(node);
-            HierarchyNote localNote = getNoteData(path, TEAM_NOTE_DATA_NAME);
-            HierarchyNote lastSyncNote = getNoteData(path,
-                TEAM_NOTE_LAST_SYNC_DATA_NAME);
+            Map<String, HierarchyNote> currentNotes = HierarchyNoteManager
+                    .getNotesForPath(data, path);
+            HierarchyNote localNote = (currentNotes == null ? null
+                    : currentNotes.get(TEAM_NOTE_KEY));
+            HierarchyNote lastSyncNote = (currentNotes == null ? null
+                    : currentNotes.get(TEAM_NOTE_LAST_SYNC_KEY));
 
             // if the value from the WBS has changed since last sync,
             if (!eq(lastSyncNote, wbsNote)) {
-                SimpleData wbsVal = (wbsNote == null ? null : wbsNote.getAsData());
 
                 if (eq(localNote, lastSyncNote)) {
                     // our local value agrees with the last synced value, so
                     // we should propagate the new WBS value along.
                     localNote = lastSyncNote = wbsNote;
-                    putData(path, TEAM_NOTE_DATA_NAME, wbsVal);
-                    putData(path, TEAM_NOTE_LAST_SYNC_DATA_NAME, wbsVal);
-                    putData(path, TEAM_NOTE_CONFLICT_DATA_NAME, null);
+                    saveNoteData(data, path,
+                            TEAM_NOTE_KEY, wbsNote,
+                            TEAM_NOTE_LAST_SYNC_KEY, wbsNote,
+                            TEAM_NOTE_CONFLICT_KEY, null);
 
                 } else if (wbsNote == null) {
                     // the note has been modified locally, but no longer exists
                     // in the WBS (possibly because the WBS was restored from a
                     // backup).  Clear conflict flags, and allow our local
                     // modification to be reverse synced.
-                    forceData(path, TEAM_NOTE_CONFLICT_DATA_NAME, null);
+                    saveNoteData(forceData(), path, TEAM_NOTE_CONFLICT_KEY,
+                            null);
 
                 } else if (!eq(ownerName, wbsNote.getAuthor())) {
                     // our local value has been modified since the last sync,
                     // but some other user has altered the note in the meantime.
                     // record the new value of the note as a conflict.
-                    forceData(path, TEAM_NOTE_CONFLICT_DATA_NAME, wbsVal);
+                    saveNoteData(forceData(), path, TEAM_NOTE_CONFLICT_KEY,
+                            wbsNote);
 
                 } else {
                     // the note value in the WBS was written by the user who is
@@ -1504,8 +1511,9 @@ public class HierarchySynchronizer {
                         // now has a value we entered.  This is important to
                         // allow our local modification to reverse sync properly.
                         lastSyncNote = wbsNote;
-                        forceData(path, TEAM_NOTE_LAST_SYNC_DATA_NAME, wbsVal);
-                        forceData(path, TEAM_NOTE_CONFLICT_DATA_NAME, null);
+                        saveNoteData(forceData(), path,
+                                TEAM_NOTE_LAST_SYNC_KEY, wbsNote,
+                                TEAM_NOTE_CONFLICT_KEY, null);
 
                     } else {
                         // If the WBS is equal to the local value, it means
@@ -1515,9 +1523,10 @@ public class HierarchySynchronizer {
                         // edited the value there.  Either way, all values
                         // should be synced to the WBS value.
                         localNote = lastSyncNote = wbsNote;
-                        putData(path, TEAM_NOTE_DATA_NAME, wbsVal);
-                        putData(path, TEAM_NOTE_LAST_SYNC_DATA_NAME, wbsVal);
-                        putData(path, TEAM_NOTE_CONFLICT_DATA_NAME, null);
+                        saveNoteData(data, path,
+                                TEAM_NOTE_KEY, wbsNote,
+                                TEAM_NOTE_LAST_SYNC_KEY, wbsNote,
+                                TEAM_NOTE_CONFLICT_KEY, null);
                     }
                 }
             }
@@ -1547,14 +1556,11 @@ public class HierarchySynchronizer {
             return null;
         }
 
-        protected HierarchyNote getNoteData(String prefix, String dataName) {
-            SimpleData data = getData(prefix, dataName);
-            if (data != null && data.test()) {
-                try {
-                    return new HierarchyNote(data);
-                } catch (Exception e) {}
-            }
-            return null;
+        protected void saveNoteData(DataContext data, String path, Object... notes) {
+            Map<String, HierarchyNote> noteData = new HashMap<String, HierarchyNote>();
+            for (int i = 0;  i < notes.length;  i += 2)
+                noteData.put((String) notes[i], (HierarchyNote) notes[i+1]);
+            HierarchyNoteManager.saveNotesForPath(data, path, noteData);
         }
 
     }
@@ -1596,6 +1602,25 @@ public class HierarchySynchronizer {
         } else {
             data.putValue(dataName, value);
         }
+    }
+
+    private class ForceDataContext implements DataContext {
+        public SimpleData getSimpleValue(String name) {
+            return data.getSimpleValue(name);
+        }
+        public SaveableData getValue(String name) {
+            return data.getValue(name);
+        }
+        public void putValue(String name, SaveableData value) {
+            forceData("/", name, value.getSimpleValue());
+        }
+    }
+
+    protected DataContext forceData() {
+        if (whatIfMode)
+            return new ForceDataContext();
+        else
+            return data;
     }
 
     private String getStringData(SimpleData val) {
