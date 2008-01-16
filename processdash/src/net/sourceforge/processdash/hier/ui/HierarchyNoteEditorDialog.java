@@ -183,6 +183,7 @@ public class HierarchyNoteEditorDialog implements DashHierarchy.Listener,
         retPanel.setBorder(BorderFactory.createEmptyBorder(5,5,0,5));
 
         taskPathLabel = new JLabel();
+        taskPathLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 5, 0));
         retPanel.add(BorderLayout.NORTH, taskPathLabel);
 
         noteEditorScrollPane = new JScrollPane();
@@ -294,12 +295,14 @@ public class HierarchyNoteEditorDialog implements DashHierarchy.Listener,
     }
 
     public void showDialogForNode(PropertyKey path) {
-        if (!frame.isVisible()) {
-            setSelectedNode(path);
-            frame.setVisible(true);
-        }
-
+        if ((frame.getExtendedState() & JFrame.ICONIFIED) > 0)
+            frame.setState(JFrame.NORMAL);
+        frame.setVisible(true);
         frame.toFront();
+
+        if (path != null && !path.equals(nodeCommentShowedByEditor)
+                && saveRevertOrCancel(true))
+            setSelectedNode(path);
     }
 
     public void hierarchyChanged(Event e) { }
