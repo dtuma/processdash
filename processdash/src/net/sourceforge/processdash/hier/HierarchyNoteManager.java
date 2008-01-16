@@ -33,7 +33,6 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Observer;
 import java.util.logging.Logger;
 
 import net.sourceforge.processdash.ProcessDashboard;
@@ -77,6 +76,12 @@ public class HierarchyNoteManager {
 
     public static Map<String, HierarchyNote> getNotesForPath(DataContext data,
             String path) {
+        return getNotesForPath(data, path, true);
+    }
+
+    public static Map<String, HierarchyNote> getNotesForPath(DataContext data,
+            String path, boolean ignoreBlank) {
+
         String dataName = DataRepository.createDataName(path,
             TEAM_NOTE_DATA_NAME);
         SimpleData val = data.getSimpleValue(dataName);
@@ -100,12 +105,46 @@ public class HierarchyNoteManager {
             if (val != null)
                 result.put(NOTE_BASE_KEY, new HierarchyNote(val));
 
+            if (ignoreBlank && isOnlyIgnorableBlankNote(result))
+                return null;
+
             return result;
 
         } catch (InvalidNoteSpecification e) {
             e.printStackTrace();
             return null;
         }
+    }
+
+    /**
+     * Check to see if the given noteData map contains just an empty note.
+     * 
+     * When a user deletes all the text in a note, it becomes indistinguishable
+     * from the "no note present" scenario.  We cannot actually delete the
+     * note in that case (because doing so would cause us to lose important
+     * team synchronization information), but we can still treat the empty
+     * note as "blank" from an end-user perspective.  This method returns true
+     * in that case.
+     * 
+     * @param noteData the note data collected for a hierarchy node
+     * @return true if the data only contains an ignorable blank note
+     */
+    private static boolean isOnlyIgnorableBlankNote(
+            Map<String, HierarchyNote> noteData) {
+        // if the main note for this hierarchy path is empty of all text,
+        // treat that as synonymous with "no note present."  (Exception:
+        // if a conflict note is present, we can't ignore it.)
+
+        // we cannot ignore exception notes.  If one is present,
+        if (noteData.containsKey(NOTE_CONFLICT_KEY))
+            return false;
+
+        HierarchyNote note = noteData.get(NOTE_KEY);
+        if (note == null)
+            return true;
+
+        String content = note.getContent();
+        return (content == null || content.trim().length() == 0);
     }
 
     public static void saveNotesForPath(DataContext data, String path,
