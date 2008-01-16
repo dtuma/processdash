@@ -437,7 +437,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         pt.click("Set web server context objects");
 
         configure_button = new ConfigureButton(this);
-        addToMainWindow(configure_button, 0);
+        addToMainWindow(configure_button, 0, 2, 2);
         PCSH.enableHelpKey(this, "QuickOverview");
         pt.click("Created configure button");
         pause_button = new PauseButton(timeLog.getTimeLoggingModel());
@@ -458,13 +458,14 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         addToMainWindow(hierarchy_menubar, 1.0);
         DependencyIndicator dependencyIndicator = new DependencyIndicator(this,
                 activeTaskModel);
-        addToMainWindow(dependencyIndicator, 0);
+        addToMainWindow(dependencyIndicator, 0, 0, 0);
         pt.click("Created dependency indicator");
         completion_button = new CompletionButton(this, activeTaskModel);
         addToMainWindow(completion_button, 0);
         pt.click("Created completion button");
         taskCommenterButton = new TaskCommenterButton(this, activeTaskModel);
-        addToMainWindow(taskCommenterButton, 0);
+        addToMainWindow(taskCommenterButton, 0, 0,
+            Settings.getInt("mainWindow.paddingRight", 2));
         pt.click("Created task commenter button");
 
         ImportManager.init(data);
@@ -574,13 +575,17 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         data.putValue(DashHierarchy.DATA_REPOSITORY_NAME, propItem);
     }
     private Component addToMainWindow(Component component, double weight) {
+        return addToMainWindow(component, weight, 0, 2);
+    }
+    private Component addToMainWindow(Component component, double weight,
+            int padLeft, int padRight) {
         if (component instanceof ApplicationEventListener)
             addApplicationEventListener((ApplicationEventListener) component);
 
         GridBagConstraints g = new GridBagConstraints();
         g.gridy = 0;
         g.gridx = getContentPane().getComponentCount();
-        g.insets = new Insets(2, g.gridx == 0 ? 2 : 0, 2, 2);
+        g.insets = new Insets(2, padLeft, 2, padRight);
         g.weightx = weight;
         if (weight > 0)
             g.fill = GridBagConstraints.HORIZONTAL;

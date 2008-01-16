@@ -31,6 +31,7 @@ import java.beans.PropertyChangeListener;
 import java.util.Iterator;
 import java.util.List;
 
+import javax.swing.BorderFactory;
 import javax.swing.JLabel;
 
 import net.sourceforge.processdash.DashboardContext;
@@ -63,6 +64,7 @@ public class DependencyIndicator extends JLabel implements
         this.context = dash;
         this.taskModel = taskModel;
 
+        setBorder(BorderFactory.createEmptyBorder(0, 4, 0, 2));
         new ToolTipTimingCustomizer().install(this);
         taskModel.addPropertyChangeListener(this);
     }
@@ -71,6 +73,7 @@ public class DependencyIndicator extends JLabel implements
         setIcon(null);
         setText(null);
         setToolTipText(null);
+        setVisible(false);
 
         String taskPath = taskModel.getPath();
         currentWorker = null;
@@ -181,6 +184,7 @@ public class DependencyIndicator extends JLabel implements
             case TaskDependencyAnalyzer.HAS_REVERSE:
             case TaskDependencyAnalyzer.HAS_MISORDERED_REVERSE:
                 a.syncLabel(DependencyIndicator.this);
+                setVisible(true);
 
                 if (window instanceof ProcessDashboard)
                     ((ProcessDashboard)window).windowSizeRequirementsChanged();

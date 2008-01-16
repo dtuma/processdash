@@ -31,6 +31,7 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.Map;
 
+import javax.swing.BorderFactory;
 import javax.swing.Icon;
 import javax.swing.JButton;
 
@@ -101,7 +102,7 @@ public class TaskCommenterButton extends JButton implements ActionListener,
         commentErrorIcon = DashboardIconFactory.getCommentErrorIcon();
         noCommentIcon = DashboardIconFactory.getNoCommentIcon();
 
-        this.setBorder(null);
+        this.setBorder(BorderFactory.createEmptyBorder());
         addActionListener(this);
         taskModel.addPropertyChangeListener(this);
         new ToolTipTimingCustomizer().install(this);
