@@ -31,7 +31,6 @@ import java.awt.Font;
 import java.awt.Point;
 import java.awt.event.MouseEvent;
 import java.beans.EventHandler;
-import java.util.Date;
 
 import javax.swing.JEditorPane;
 import javax.swing.ToolTipManager;
@@ -75,21 +74,9 @@ public class PlainTextNoteFormat implements HierarchyNoteFormat {
             return null;
 
         StringBuffer html = new StringBuffer();
-
-        String text = HTMLUtils.escapeEntities(note.getContent());
-        text = StringUtils.findAndReplace(text, "\n", "<br>");
-        text = StringUtils.findAndReplace(text, "  ", "&nbsp;&nbsp;");
-        html.append(text);
-
-        Date when = note.getTimestamp();
-        String who = note.getAuthor();
-        if (when != null && who != null) {
-            html.append("<hr><div " + BYLINE_CSS + ">");
-            html.append(HTMLUtils.escapeEntities(resources.format("ByLine_FMT",
-                when, who)));
-            html.append("</div>");
-        }
-
+        html.append(HTMLUtils.escapeEntities(note.getContent()));
+        StringUtils.findAndReplace(html, "\n", "<br>");
+        StringUtils.findAndReplace(html, "  ", "&nbsp;&nbsp;");
         return html.toString();
     }
 
@@ -224,7 +211,7 @@ public class PlainTextNoteFormat implements HierarchyNoteFormat {
             try {
                 getContent(result, getDocument().getDefaultRootElement());
             } catch (BadLocationException e1) { /* shouldn't happen */}
-            return result.toString();
+            return result.toString().trim();
         }
 
         private void getContent(StringBuffer result, Element e) throws BadLocationException {
@@ -365,7 +352,5 @@ public class PlainTextNoteFormat implements HierarchyNoteFormat {
         }
 
     }
-
-    private static final String BYLINE_CSS = "style='text-align:right; color:#808080; font-style:italic'";
 
 }

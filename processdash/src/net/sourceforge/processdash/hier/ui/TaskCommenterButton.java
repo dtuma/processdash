@@ -29,6 +29,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.Date;
 import java.util.Map;
 
 import javax.swing.BorderFactory;
@@ -36,6 +37,7 @@ import javax.swing.Icon;
 import javax.swing.JButton;
 
 import net.sourceforge.processdash.ProcessDashboard;
+import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.hier.ActiveTaskModel;
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.HierarchyNote;
@@ -45,6 +47,7 @@ import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.ui.DashboardIconFactory;
 import net.sourceforge.processdash.ui.lib.ToolTipTimingCustomizer;
+import net.sourceforge.processdash.util.HTMLUtils;
 
 public class TaskCommenterButton extends JButton implements ActionListener,
         PropertyChangeListener, HierarchyNoteListener {
@@ -151,8 +154,11 @@ public class TaskCommenterButton extends JButton implements ActionListener,
                 context.getDataRepository(), currentNode.path());
 
         if (notes != null) {
-            if (deepestComment == null)
-                deepestComment = notes.get(HierarchyNoteManager.NOTE_KEY).getAsHTML();
+            if (deepestComment == null) {
+                HierarchyNote note = notes.get(HierarchyNoteManager.NOTE_KEY);
+                if (note != null)
+                    deepestComment = note.getAsHTML() + getBylineHTML(note);
+            }
 
             if (notes.get(HierarchyNoteManager.NOTE_CONFLICT_KEY) != null) {
                 commentConflictPresent = true;
@@ -166,6 +172,19 @@ public class TaskCommenterButton extends JButton implements ActionListener,
 
         if (parent != null)
             setCommentTooltipAndConflict(parent);
+    }
+
+    private String getBylineHTML(HierarchyNote note) {
+        Date when = note.getTimestamp();
+        String who = note.getAuthor();
+        if (when == null || who == null
+                || !Settings.getBool(ENABLE_BYLINE_SETTING, false))
+            return "";
+
+        String bylineText = resources.format("ByLine_FMT",when, who);
+        return "<hr><div " + BYLINE_CSS + ">"
+                + HTMLUtils.escapeEntities(bylineText)
+                + "</div>";
     }
 
     public void actionPerformed(ActionEvent e) {
@@ -189,4 +208,11 @@ public class TaskCommenterButton extends JButton implements ActionListener,
     public void notesChanged() {
         updateAppearance();
     }
+
+
+    private static final String ENABLE_BYLINE_SETTING = "comment.showByLine";
+
+    private static final String BYLINE_CSS =
+        "style='text-align:right; color:#808080; font-style:italic'";
+
 }
