@@ -102,7 +102,7 @@ public class HierarchyNote {
         if (!XMLUtils.hasValue(format))
             throw new IllegalArgumentException("Format must be specified");
 
-        this.content = content;
+        this.content = (content == null ? "" : content);
         this.format = format;
     }
 
@@ -150,7 +150,8 @@ public class HierarchyNote {
                 XMLUtils.escapeAttribute(format)).append("'");
 
         result.append(">");
-        result.append(HTMLUtils.escapeEntities(content));
+        if (content != null)
+            result.append(HTMLUtils.escapeEntities(content));
         result.append("</" + NOTE_TAG + ">");
 
         return result.toString();

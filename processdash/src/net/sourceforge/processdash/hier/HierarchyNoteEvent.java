@@ -25,14 +25,19 @@
 
 package net.sourceforge.processdash.hier;
 
-import java.util.EventListener;
+import java.util.EventObject;
 
-/**
- * The HierarchyNoteListener interface allows an object to receive notification
- *  when changes are made to HierarchyNotes.
- */
-public interface HierarchyNoteListener extends EventListener {
+public class HierarchyNoteEvent extends EventObject {
 
-    public void notesChanged(HierarchyNoteEvent e);
+    private String path;
+
+    public HierarchyNoteEvent(Object source, String path) {
+        super(source);
+        this.path = path;
+    }
+
+    public String getPath() {
+        return path;
+    }
 
 }

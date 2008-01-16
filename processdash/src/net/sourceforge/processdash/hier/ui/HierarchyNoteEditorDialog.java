@@ -69,6 +69,8 @@ import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.HierarchyNote;
+import net.sourceforge.processdash.hier.HierarchyNoteEvent;
+import net.sourceforge.processdash.hier.HierarchyNoteListener;
 import net.sourceforge.processdash.hier.HierarchyNoteManager;
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.hier.DashHierarchy.Event;
@@ -77,7 +79,8 @@ import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.ui.DashboardIconFactory;
 
 public class HierarchyNoteEditorDialog implements DashHierarchy.Listener,
-        TreeSelectionListener, ApplicationEventListener, ChangeListener {
+        TreeSelectionListener, ApplicationEventListener, ChangeListener,
+        HierarchyNoteListener {
 
     protected JFrame frame;
     protected JTree tree;
@@ -128,6 +131,7 @@ public class HierarchyNoteEditorDialog implements DashHierarchy.Listener,
 
         constructUserInterface();
         setSelectedNode(currentPhase);
+        HierarchyNoteManager.addHierarchyNoteListener(this);
 
         frame.setVisible(true);
     }
@@ -339,6 +343,16 @@ public class HierarchyNoteEditorDialog implements DashHierarchy.Listener,
         }
     }
 
+    public void notesChanged(HierarchyNoteEvent e) {
+        final String path = e.getPath();
+        SwingUtilities.invokeLater(new Runnable(){
+            public void run() {
+                treeModel.commentStatusChanged(path);
+                if (path.equals(nodeCommentShowedByEditor.path()) && !isDirty())
+                    revertComment();
+            }});
+    }
+
     private void updateButtons() {
         boolean enabledStatus = isDirty();
         saveButton.setEnabled(enabledStatus);
@@ -509,6 +523,11 @@ public class HierarchyNoteEditorDialog implements DashHierarchy.Listener,
             nodeChanged(getNodeForKey(key));
         }
 
+        public void commentStatusChanged(String path) {
+            PropertyKey key = tree.findExistingKey(path);
+            if (key != null)
+                commentStatusChanged(key);
+        }
 
     }
 

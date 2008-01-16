@@ -35,12 +35,15 @@ import java.util.Map;
 import javax.swing.BorderFactory;
 import javax.swing.Icon;
 import javax.swing.JButton;
+import javax.swing.SwingUtilities;
 
 import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.hier.ActiveTaskModel;
 import net.sourceforge.processdash.hier.DashHierarchy;
+import net.sourceforge.processdash.hier.Filter;
 import net.sourceforge.processdash.hier.HierarchyNote;
+import net.sourceforge.processdash.hier.HierarchyNoteEvent;
 import net.sourceforge.processdash.hier.HierarchyNoteListener;
 import net.sourceforge.processdash.hier.HierarchyNoteManager;
 import net.sourceforge.processdash.hier.PropertyKey;
@@ -205,8 +208,12 @@ public class TaskCommenterButton extends JButton implements ActionListener,
         updateAppearance();
     }
 
-    public void notesChanged() {
-        updateAppearance();
+    public void notesChanged(HierarchyNoteEvent e) {
+        if (Filter.pathMatches(taskModel.getPath(), e.getPath()))
+            SwingUtilities.invokeLater(new Runnable(){
+                public void run() {
+                    updateAppearance();
+                }});
     }
 
 

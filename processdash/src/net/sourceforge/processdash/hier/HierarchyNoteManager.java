@@ -64,9 +64,11 @@ public class HierarchyNoteManager {
         listeners.remove(l);
     }
 
-    private static void notifyListeners() {
+    private static void notifyListeners(String path) {
+        HierarchyNoteEvent e = new HierarchyNoteEvent(
+                HierarchyNoteManager.class, path);
         for (HierarchyNoteListener o : new ArrayList<HierarchyNoteListener>(listeners)) {
-            o.notesChanged();
+            o.notesChanged(e);
         }
     }
 
@@ -178,7 +180,7 @@ public class HierarchyNoteManager {
             }
         }
 
-        notifyListeners();
+        notifyListeners(path);
     }
 
 
