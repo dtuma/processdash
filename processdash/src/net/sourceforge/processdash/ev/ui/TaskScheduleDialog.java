@@ -492,14 +492,6 @@ public class TaskScheduleDialog implements EVTask.Listener,
         result.add(newVBox(Box.createVerticalStrut(2),
                            box,
                            Box.createVerticalStrut(2)), BorderLayout.CENTER);
-        box.add(Box.createHorizontalStrut(2));
-
-        collaborateAction = new TSAction("Buttons.Collaborate") {
-            public void actionPerformed(ActionEvent e) {
-                showCollaborationWizard(); }};
-        if (Settings.isReadWrite())
-            box.add(new JButton(collaborateAction));
-
         box.add(Box.createHorizontalGlue());
 
         /*
@@ -620,11 +612,17 @@ public class TaskScheduleDialog implements EVTask.Listener,
         // create the Tools menu
         if (rw) {
             JMenu toolsMenu = makeMenu("Tools");
+
             saveBaselineAction = new TSAction("Buttons.Save_Baseline") {
                 public void actionPerformed(ActionEvent e) {
                     saveBaseline(); }};
             toolsMenu.add(saveBaselineAction);
+
+            collaborateAction = new TSAction("Buttons.Collaborate") {
+                public void actionPerformed(ActionEvent e) {
+                    showCollaborationWizard(); }};
             toolsMenu.add(collaborateAction);
+
             result.add(toolsMenu);
         }
 
