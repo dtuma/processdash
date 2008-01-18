@@ -183,7 +183,8 @@ public class TaskScheduleDialog implements EVTask.Listener,
             moveDownAction, flatViewAction, mergedViewAction, addPeriodAction,
             insertPeriodAction, deletePeriodAction, chartAction, reportAction,
             closeAction, saveAction, errorAction, filteredChartAction,
-            saveBaselineAction, collaborateAction, filteredReportAction;
+            saveBaselineAction, collaborateAction, filteredReportAction,
+            weekReportAction;
 
     protected boolean disableTaskPruning;
 
@@ -528,6 +529,9 @@ public class TaskScheduleDialog implements EVTask.Listener,
         box.add(makeDropDownButton(chartAction, filteredChartAction));
         box.add(Box.createHorizontalStrut(2));
 
+        weekReportAction = new TSAction("Buttons.Weekly_Report") {
+            public void actionPerformed(ActionEvent e) {
+                showWeekReport(); }};
         filteredReportAction = new TSAction("Buttons.Filtered_Report") {
             public void actionPerformed(ActionEvent e) {
                 showFilteredHTML(); }};
@@ -535,7 +539,8 @@ public class TaskScheduleDialog implements EVTask.Listener,
         reportAction = new TSAction("Buttons.Report") {
             public void actionPerformed(ActionEvent e) {
                 showHTML(); }};
-        box.add(makeDropDownButton(reportAction, filteredReportAction));
+        box.add(makeDropDownButton(reportAction, weekReportAction,
+            filteredReportAction));
         box.add(Box.createHorizontalStrut(2));
 
         closeAction = new TSAction("Close") {
@@ -598,6 +603,7 @@ public class TaskScheduleDialog implements EVTask.Listener,
         viewMenu.add(chartAction);
         viewMenu.add(filteredChartAction);
         viewMenu.add(reportAction);
+        viewMenu.add(weekReportAction);
         viewMenu.add(filteredReportAction);
         viewMenu.add(errorAction);
         if (flatViewAction != null) {
@@ -2461,7 +2467,14 @@ public class TaskScheduleDialog implements EVTask.Listener,
 
     }
 
-    public static final String CHART_URL = "//reports/ev.class";
+    public static final String WEEK_URL = "//reports/week.class";
+    public void showWeekReport() {
+        if (saveOrCancel(true))
+            showReport(taskListName, null, WEEK_URL);
+    }
+
+
+    public static final String REPORT_URL = "//reports/ev.class";
     public void showHTML() {
         if (saveOrCancel(true))
             showReport(taskListName);
@@ -2495,7 +2508,7 @@ public class TaskScheduleDialog implements EVTask.Listener,
         if (isMergedView()) {
             String option = EVReportSettings.MERGED_PATH_FILTER_PARAM + "="
                     + HTMLUtils.urlEncode(getMergedPathFilterParam(task));
-            showReport(taskListName, option);
+            showReport(taskListName, option, REPORT_URL);
             return;
         }
 
@@ -2520,7 +2533,7 @@ public class TaskScheduleDialog implements EVTask.Listener,
             option = EVReportSettings.PATH_FILTER_PARAM + "="
                     + HTMLUtils.urlEncode(subPath);
         }
-        showReport(subSchedule.getTaskListName(), option);
+        showReport(subSchedule.getTaskListName(), option, REPORT_URL);
     }
 
     /** Calculate a merged path string to pass to the report logic.
@@ -2557,11 +2570,12 @@ public class TaskScheduleDialog implements EVTask.Listener,
 
 
     public static void showReport(String taskListName) {
-        showReport(taskListName, null);
+        showReport(taskListName, null, REPORT_URL);
     }
 
-    public static void showReport(String taskListName, String options) {
-        String uri = "/" + HTMLUtils.urlEncode(taskListName) + CHART_URL;
+    public static void showReport(String taskListName, String options,
+            String reportUri) {
+        String uri = "/" + HTMLUtils.urlEncode(taskListName) + reportUri;
         if (StringUtils.hasValue(options))
             uri = uri + "?" + options;
         Browser.launch(uri);
