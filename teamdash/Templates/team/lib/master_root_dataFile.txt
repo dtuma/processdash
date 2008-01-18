@@ -11,6 +11,8 @@ undefine([Simple Project Tag]);
 [EV Project Tag] = tag;
 [Show_Percent_Spent_Indicator] = 0;
 [Show_Task_Dependency_Indicator] = 0;
+[Team_Note_Default_Format] =
+     "<!--#echo Process_ID -->-ReadOnlyMessageNoteFormat";
 
 
 [Project_WBS_Subpath] = "";

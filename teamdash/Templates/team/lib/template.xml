@@ -686,4 +686,12 @@
     <uri>/PID/size_summary.shtm</uri>
   </snippet>
 
+
+<!--======================================================================
+    Misc extensions by the team process.
+  =======================================================================-->
+
+  <noteFormat formatID="PID-ReadOnlyMessageNoteFormat"
+          class="teamdash.templates.setup.ReadOnlyMessageNoteFormat"/>
+
 </dashboard-process-template>
