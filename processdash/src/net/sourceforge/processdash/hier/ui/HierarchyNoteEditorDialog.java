@@ -339,7 +339,8 @@ public class HierarchyNoteEditorDialog implements DashHierarchy.Listener,
 
     public void handleApplicationEvent(ActionEvent e) {
         if (APP_EVENT_SAVE_ALL_DATA.equals(e.getActionCommand())) {
-            saveRevertOrCancel(false);
+            if (frame.isVisible())
+                saveRevertOrCancel(false);
         }
     }
 
@@ -380,13 +381,14 @@ public class HierarchyNoteEditorDialog implements DashHierarchy.Listener,
         if (selectedNode == null)
             showEmptyEditor();
         else {
-            taskPathLabel.setText(selectedNode.path());
+            String path = selectedNode.path();
+            taskPathLabel.setText(path);
 
             HierarchyNoteFormat hierarchyNoteFormat = null;
             HierarchyNoteEditor noteEditor = null;
 
             Map<String, HierarchyNote> notes = HierarchyNoteManager.getNotesForPath(
-                    data, selectedNode.path());
+                    data, path);
 
             // The selected node as some notes
             if (notes != null) {
@@ -404,10 +406,8 @@ public class HierarchyNoteEditorDialog implements DashHierarchy.Listener,
                         notes.get(HierarchyNoteManager.NOTE_BASE_KEY));
             }
             else {
-                // Since the node has no notes, and we currently only support
-                //  the plain text note format, that's the one we use
                 hierarchyNoteFormat =
-                    HierarchyNoteManager.getNoteFormat(PlainTextNoteFormat.FORMAT_ID);
+                    HierarchyNoteManager.getDefaultNoteFormat(data, path);
 
                 noteInConflict = null;
 

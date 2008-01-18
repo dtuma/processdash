@@ -39,6 +39,7 @@ import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.data.DataContext;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.repository.DataRepository;
+import net.sourceforge.processdash.data.util.InheritedValue;
 import net.sourceforge.processdash.hier.HierarchyNote.InvalidNoteSpecification;
 import net.sourceforge.processdash.hier.ui.HierarchyNoteFormat;
 import net.sourceforge.processdash.hier.ui.PlainTextNoteFormat;
@@ -183,6 +184,21 @@ public class HierarchyNoteManager {
         notifyListeners(path);
     }
 
+    public static String getDefaultNoteFormatID(DataContext data,
+            String path) {
+        SimpleData val = InheritedValue.get(data, path,
+            TEAM_NOTE_FORMAT_DATA_NAME).getSimpleValue();
+        if (val != null && val.test())
+            return val.format();
+        else
+            return PlainTextNoteFormat.FORMAT_ID;
+    }
+
+    public static HierarchyNoteFormat getDefaultNoteFormat(DataContext data,
+            String path) {
+        String formatID = getDefaultNoteFormatID(data, path);
+        return getNoteFormat(formatID);
+    }
 
     private static final String TEAM_NOTE_DATA_NAME = NOTE_KEY;
 
@@ -192,6 +208,8 @@ public class HierarchyNoteManager {
     private static final String TEAM_NOTE_CONFLICT_DATA_NAME =
             TEAM_NOTE_DATA_NAME + "_Edit_Conflict_Val";
 
+    private static final String TEAM_NOTE_FORMAT_DATA_NAME =
+            TEAM_NOTE_DATA_NAME + "_Default_Format";
 
 
     public static HierarchyNoteFormat getNoteFormat(String formatID) {

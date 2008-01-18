@@ -456,17 +456,17 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         pt.click("Created script button");
         hierarchy_menubar = new JMenuBar();
         addToMainWindow(hierarchy_menubar, 1.0);
+        taskCommenterButton = new TaskCommenterButton(this, activeTaskModel);
+        addToMainWindow(taskCommenterButton, 0);
+        pt.click("Created task commenter button");
         DependencyIndicator dependencyIndicator = new DependencyIndicator(this,
                 activeTaskModel);
         addToMainWindow(dependencyIndicator, 0, 0, 0);
         pt.click("Created dependency indicator");
         completion_button = new CompletionButton(this, activeTaskModel);
-        addToMainWindow(completion_button, 0);
-        pt.click("Created completion button");
-        taskCommenterButton = new TaskCommenterButton(this, activeTaskModel);
-        addToMainWindow(taskCommenterButton, 0, 0,
+        addToMainWindow(completion_button, 0, 0,
             Settings.getInt("mainWindow.paddingRight", 2));
-        pt.click("Created task commenter button");
+        pt.click("Created completion button");
 
         ImportManager.init(data);
         pt.click("Initialized import manager");
