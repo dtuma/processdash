@@ -200,6 +200,10 @@ public class JTreeTable extends JTable {
         return tree;
     }
 
+    public void setPreferredTreeSizeFollowsRowSize(boolean p) {
+        tree.calculatePreferredSizeByRow = p;
+    }
+
     /**
      * Method to convert between table rows and tree rows - meant for
      * overriding in a subclass.
@@ -215,9 +219,13 @@ public class JTreeTable extends JTable {
                  TableCellRenderer {
         /** Last table/tree row asked to renderer. */
         protected int visibleRow;
+        /** True if we should report a preferred size based upon the size of
+         *  the visible row */
+        protected boolean calculatePreferredSizeByRow;
 
         public TreeTableCellRenderer(TreeModel model) {
             super(model);
+            calculatePreferredSizeByRow = true;
         }
 
         /**
@@ -298,6 +306,9 @@ public class JTreeTable extends JTable {
         }
 
         public Dimension getPreferredSize() {
+            if (!calculatePreferredSizeByRow)
+                return super.getPreferredSize();
+
             Rectangle visibleRowBounds = getRowBounds(visibleRow);
             double rightEdge = visibleRowBounds.getWidth() + visibleRowBounds.getX();
 

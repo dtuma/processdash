@@ -112,6 +112,7 @@ public class TimeCardDialog {
                                             treeTable.getForeground(), 0.8f)));
         treeTable.setShowGrid(true);
         treeTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+        treeTable.setPreferredTreeSizeFollowsRowSize(false);
         treeTable.getTableHeader().setReorderingAllowed(false);
         ToolTipTableCellRendererProxy.installHeaderToolTips
             (treeTable, model.dayNames);
