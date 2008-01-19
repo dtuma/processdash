@@ -27,7 +27,6 @@ package net.sourceforge.processdash.hier.ui;
 
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.Font;
 import java.awt.Point;
 import java.awt.event.MouseEvent;
 import java.beans.EventHandler;
@@ -187,7 +186,7 @@ public class PlainTextNoteFormat implements HierarchyNoteFormat {
                 if (doc instanceof StyledDocument) {
                     StyledDocument sd = (StyledDocument) doc;
                     Style style = sd.getStyle(StyleContext.DEFAULT_STYLE);
-                    StyleConstants.setFontFamily(style, Font.SANS_SERIF);
+                    StyleConstants.setFontFamily(style, "SansSerif");
 
                     attrNormal = style;
 

@@ -69,8 +69,10 @@ import java.util.Set;
 import java.util.prefs.Preferences;
 
 import javax.swing.AbstractAction;
+import javax.swing.AbstractButton;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
+import javax.swing.ButtonModel;
 import javax.swing.DefaultCellEditor;
 import javax.swing.Icon;
 import javax.swing.InputMap;
@@ -429,18 +431,20 @@ public class TaskScheduleDialog implements EVTask.Listener,
             flatViewAction = new TSAction("Buttons.Flat_View") {
                 public void actionPerformed(ActionEvent e) {
                     toggleFlatView(); }};
-            flatViewAction.setSelected(false);
             JCheckBox flatViewCheckbox = new JCheckBox(flatViewAction);
             flatViewCheckbox.setFocusPainted(false);
+            flatViewAction.useButtonModel(flatViewCheckbox);
+            flatViewAction.setSelected(false);
             result.add(flatViewCheckbox);
             result.add(Box.createHorizontalGlue());
         } else {
             mergedViewAction = new TSAction("Buttons.Merged_View") {
                 public void actionPerformed(ActionEvent e) {
                     toggleMergedView(); }};
-            mergedViewAction.setSelected(false);
             JCheckBox mergedViewCheckbox = new JCheckBox(mergedViewAction);
             mergedViewCheckbox.setFocusPainted(false);
+            mergedViewAction.useButtonModel(mergedViewCheckbox);
+            mergedViewAction.setSelected(false);
             result.add(mergedViewCheckbox);
             result.add(Box.createHorizontalGlue());
         }
@@ -608,10 +612,14 @@ public class TaskScheduleDialog implements EVTask.Listener,
         viewMenu.add(errorAction);
         if (flatViewAction != null) {
             viewMenu.addSeparator();
-            viewMenu.add(new JCheckBoxMenuItem(flatViewAction));
+            JCheckBoxMenuItem item = new JCheckBoxMenuItem(flatViewAction);
+            flatViewAction.installButtonModel(item);
+            viewMenu.add(item);
         } else if (mergedViewAction != null) {
             viewMenu.addSeparator();
-            viewMenu.add(new JCheckBoxMenuItem(mergedViewAction));
+            JCheckBoxMenuItem item = new JCheckBoxMenuItem(mergedViewAction);
+            mergedViewAction.installButtonModel(item);
+            viewMenu.add(item);
         }
         result.add(viewMenu);
 
@@ -721,11 +729,18 @@ public class TaskScheduleDialog implements EVTask.Listener,
         public void setMnemonic(char c) {
             putValue(MNEMONIC_KEY, new Integer(c));
         }
+        private ButtonModel buttonModel;
+        public void useButtonModel(AbstractButton b) {
+            this.buttonModel = b.getModel();
+        }
+        public void installButtonModel(AbstractButton b) {
+            b.setModel(buttonModel);
+        }
         public boolean isSelected() {
-            return Boolean.TRUE.equals(getValue(SELECTED_KEY));
+            return buttonModel.isSelected();
         }
         public void setSelected(boolean selected) {
-            putValue(SELECTED_KEY, selected ? Boolean.TRUE : Boolean.FALSE);
+            buttonModel.setSelected(selected);
         }
     }
 
