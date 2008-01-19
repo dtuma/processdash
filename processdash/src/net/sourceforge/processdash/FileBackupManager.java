@@ -113,14 +113,28 @@ public class FileBackupManager {
             stopLogging();
 
         File result = null;
+
+        ProfTimer pt = new ProfTimer(FileBackupManager.class,
+            "FileBackupManager.run");
         try {
-            ProfTimer pt = new ProfTimer(FileBackupManager.class,
-                "FileBackupManager.run");
-            result = backupFiles(dataDir, backupDir, when, who);
-            pt.click("Finished backup");
-        } catch (Exception e) {
-            printError(e);
+            result = backupFiles(dataDir, backupDir, when, who, false);
+        } catch (Exception e1) {
+            try {
+                // It is possible that the most recent backup file was corrupt
+                // or otherwise unreadable (for example, due to permissions
+                // problems). We still want to make a new backup! In particular,
+                // we CANNOT let a corrupt backup file prevent all future
+                // backups from occurring.  So if we encountered any sort of
+                // exception in our attempt to make a regular backup, try a
+                // second time, and ignore the most recent backup this time.
+                result = backupFiles(dataDir, backupDir, when, who, true);
+                printError("Unexpected error in FileBackupManager; " +
+                                "ignoring most recent backup", e1);
+            } catch (IOException e2) {
+                printError(e2);
+            }
         }
+        pt.click("Finished backup");
 
         if (loggingEnabled && when != SHUTDOWN)
             startLogging(dataDir);
@@ -147,7 +161,7 @@ public class FileBackupManager {
     // Rename the output files appropriately.
     // Delete old/outdated backup files.
     private static File backupFiles(File dataDir, File backupDir, int when,
-            final String who) throws IOException
+            final String who, boolean ignoreLastBackup) throws IOException
     {
         List dataFiles = getDataFiles(dataDir);
         if (dataFiles == null || dataFiles.size() == 0)
@@ -159,7 +173,8 @@ public class FileBackupManager {
             "FileBackupManager.backupFiles");
 
         File[] backupFiles = getBackupFiles(backupDir);
-        File mostRecentBackupFile = findMostRecentBackupFile(backupFiles);
+        File mostRecentBackupFile =
+            (ignoreLastBackup ? null : findMostRecentBackupFile(backupFiles));
         File oldBackupTempFile = new File(backupDir, OLD_BACKUP_TEMP_FILENAME);
         File newBackupTempFile = new File(backupDir, NEW_BACKUP_TEMP_FILENAME);
 
