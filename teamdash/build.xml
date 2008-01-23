@@ -3,7 +3,8 @@
 
   <property file="build.properties"/>
 
-  <property name="teamtools.version" value="3.2.0"/>
+  <property name="teamtools.version" value="3.3.0"/>
+  <property name="teamtools.requires" value="1.9.2+"/>
 
   <property name="processdash.dir" value="../processdash"/>
   <property name="pspdash.jar" value="${processdash.dir}/dist/pspdash.jar"/>
@@ -17,6 +18,16 @@
   <property name="server.jar" value="generateProcess.jar"/>
   <property name="jnlp.jar" value="FrameworkEditorJNLP.jar"/>
   <property environment="env"/>
+
+
+  <!-- if the "noBuild" property is set, set all other noBuild vars too -->
+  <target name="-noBuild-init" if="noBuild">
+    <property name="noBuild.filelist" value="true"/>
+    <property name="noBuild.server" value="true"/>
+    <property name="noBuild.TeamTools" value="true"/>
+    <property name="noBuild.TeamProcess" value="true"/>
+    <property name="noBuild.TeamProcessCGI" value="true"/>
+  </target>
 
 
   <target name="-defaultValues">
@@ -44,7 +55,8 @@
 
 
 
-  <target name="filelist.txt" unless="noBuild">
+  <target name="filelist.txt"
+          depends="-noBuild-init" unless="noBuild.filelist">
     <pathconvert property=".filelistbasedir" pathsep="," dirsep="/">
       <path id=".jhbasedir.path" path="Templates/team/setup"/>
     </pathconvert>
@@ -59,7 +71,8 @@
   </target>
 
 
-  <target name="TeamProcessCGI" unless="noBuild">
+  <target name="TeamProcessCGI"
+          depends="-noBuild-init" unless="noBuild.TeamProcessCGI">
     <!-- Create a signed jarfile of cgi scripts -->  
     <jar destfile="${TeamProcessCGI.jar}" duplicate="fail">
       <fileset dir="bin">
@@ -74,7 +87,8 @@
   </target>
 
 
-  <target name="server" depends="TeamProcessCGI,filelist.txt"
+  <target name="server" depends="-noBuild-init,TeamProcessCGI,filelist.txt"
+      unless="noBuild.server"
       description="Build a JAR file to deploy to the server, where the custom process generator will run">
 
     <!-- compute the classes needed for the custom process servlet -->
@@ -132,7 +146,8 @@
 
 
 
-  <target name="TeamTools" unless="noBuild">
+  <target name="TeamTools"
+          depends="-noBuild-init" unless="noBuild.TeamTools">
     <!-- compute the classes needed for the team tools jar file -->
     <classfileset id="teamToolsClasses" dir="bin">
       <root classname="teamdash.wbs.WBSEditor"/>
@@ -175,7 +190,8 @@ Unexpected number of processdash classes referenced by TeamTools.jar
         <attribute name="Main-Class" value="teamdash.wbs.WBSEditor"/>
 	<attribute name="Dash-Pkg-ID" value="teamTools"/>
 	<attribute name="Dash-Pkg-Version" value="${teamtools.version}"/>
-	<attribute name="Dash-Pkg-Requires-Version" value="1.7.rc1+"/>
+	<attribute name="Dash-Pkg-Requires-Version"
+                   value="${teamtools.requires}"/>
 	<attribute name="Dash-Pkg-Name" value="Advanced Team Tools"/>
 	<attribute name="Dash-Pkg-URL"
 	           value="http://processdash.sourceforge.net/cgi-bin/update"/>
@@ -215,7 +231,8 @@ Unexpected number of processdash classes referenced by TeamTools.jar
     </antcall>
   </target>
 
-  <target name="TeamProcess" depends="-defaultValues,server" unless="noBuild">
+  <target name="TeamProcess" depends="-defaultValues,-noBuild-init,server"
+          unless="noBuild.TeamProcess">
     <java classname="teamdash.process.GenerateProcess" fork="true">
       <classpath>
         <pathelement location="${server.dir}"/>
@@ -317,6 +334,8 @@ Unexpected number of processdash classes referenced by TeamTools.jar
 
   <target name="dist" depends="installer-cd"/>
   <target name="dist-all" depends="installer-cd"/>
+  <target name="os-dist" depends="installer-cd"/>
+  <target name="tsp-dist" depends="tsp,installer-cd"/>
 
   <target name="signjar" if="env.TDKSPW">
     <exec executable="c:/java/jdk1.4.2/bin/jarsigner.exe">
