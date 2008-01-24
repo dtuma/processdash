@@ -183,6 +183,11 @@ Unexpected number of processdash classes referenced by TeamTools.jar
     ${dashClasses.list}
     </fail>
 
+    <!-- Determine whether to exclude libs that are not GPLv2 compatible -->
+    <condition property="gpl.exclude" value="**/" else="none">
+      <isset property="GPLv2"/>
+    </condition>
+
     <!-- Now build the TeamTools.jar file -->
     <jar destfile="TeamTools.jar" duplicate="fail">
       <!-- specify the manifest file contents -->
@@ -222,7 +227,7 @@ Unexpected number of processdash classes referenced by TeamTools.jar
         <include name="swingx-src/COPYING"/>
         <include name="swingx-src/src/java/org/jdesktop/swingx/autocomplete/"/>
       </zipfileset>
-      <zipfileset src="${poi.jar}" />
+      <zipfileset src="${poi.jar}" excludes="${gpl.exclude}"/>
     </jar>
 
     <antcall target="signjar">
