@@ -299,14 +299,16 @@ public class DataTableModel extends AbstractTableModel {
                  e.getLastRow(), e.getColumn(), e.getType());
             fireTableChanged(newEvent);
 
-            // all calculated columns implicitly depend upon the structure
-            // of the WBS model, so we'll mark all of our calculated columns
-            // as dirty (this will schedule a deferred recalculation operation)
-            try {
-                beginChange();
-                dirtyColumns.addAll(calculatedColumns);
-            } finally {
-                endChange();
+            if (WBSModelEvent.isStructuralChange(e)) {
+                // all calculated columns implicitly depend upon the structure
+                // of the WBS model, so we'll mark all of our calculated columns
+                // as dirty (this will schedule a deferred recalculation operation)
+                try {
+                    beginChange();
+                    dirtyColumns.addAll(calculatedColumns);
+                } finally {
+                    endChange();
+                }
             }
         }
     }

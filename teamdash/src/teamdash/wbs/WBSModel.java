@@ -408,7 +408,9 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
 
 
     void recalcRows() { recalcRows(true); }
-    void recalcRows(boolean notify) {
+    void recalcRowsForExpansionEvent() { recalcRows(true, true); }
+    void recalcRows(boolean notify) { recalcRows(notify, false); }
+    void recalcRows(boolean notify, boolean isExpansionOnly) {
         clearCachedNodeData();
 
         IntList resultList = new IntList(wbsNodes.size());
@@ -416,9 +418,10 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
         int[] oldRows = rows;
         rows = resultList.getAsArray();
         if (notify)
-            if (oldRows != null && !fireSimpleRowChangeEvent(oldRows, rows)) {
+            if (oldRows != null
+                    && !fireSimpleRowChangeEvent(oldRows, rows, isExpansionOnly)) {
                 //System.out.println("firing table data changed");
-                fireTableDataChanged();
+                fireTableChanged(new WBSModelEvent(this, isExpansionOnly));
             }
     }
 
@@ -444,7 +447,8 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
         }
     }
 
-    private boolean fireSimpleRowChangeEvent(int[] oldRows, int[] newRows) {
+    private boolean fireSimpleRowChangeEvent(int[] oldRows, int[] newRows,
+            boolean isExpansionOnly) {
         int[] shortRows, longRows;
         if (oldRows.length < newRows.length) {
             shortRows = oldRows;   longRows = newRows;
@@ -477,18 +481,22 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
 
         // Send the resulting simple table change events.
         initialLen--;
-        //System.out.println("firing table row updated "+initialLen);
-        fireTableRowsUpdated(initialLen, initialLen);
+
+        // in response to a typical insertion or deletion of rows, it is common
+        // for the row immediately preceding the change to alter its appearance.
+        // for example, with an expansion/collapse event, the node will need to
+        // repaint its expansion icon. Send an UPDATE event for this purpose.
+        fireTableChanged(new WBSModelEvent(this, initialLen, initialLen,
+                WBSModelEvent.ALL_COLUMNS, WBSModelEvent.UPDATE,
+                isExpansionOnly));
+
+        // Now, send a change event for any inserted/deleted rows.
         if (diff > 0) {
-            if (oldRows == shortRows) {
-                //System.out.println("firing table rows inserted "+
-                //                   (initialLen+1)+","+(initialLen+diff));
-                fireTableRowsInserted(initialLen+1, initialLen+diff);
-            } else {
-                //System.out.println("firing table rows deleted "+(initialLen+1)+
-                //                   ","+ (initialLen+diff));
-                fireTableRowsDeleted(initialLen+1, initialLen+diff);
-            }
+            int changeType = (oldRows == shortRows
+                    ? WBSModelEvent.INSERT : WBSModelEvent.DELETE);
+            fireTableChanged(new WBSModelEvent(this, initialLen+1,
+                    initialLen+diff, WBSModelEvent.ALL_COLUMNS,
+                    changeType, isExpansionOnly));
         }
         return true;
     }
@@ -945,7 +953,7 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
             String nodeID = Integer.toString(node.getUniqueID());
             node.setExpanded(expandedNodes.contains(nodeID));
         }
-        recalcRows(true);
+        recalcRowsForExpansionEvent();
     }
 
     private static final String CACHED_CHILDREN = "_cached_child_list_";

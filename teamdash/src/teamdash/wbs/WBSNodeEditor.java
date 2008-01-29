@@ -171,7 +171,7 @@ public class WBSNodeEditor extends AbstractCellEditor
             // their request and don't begin editing.
             UndoList.stopCellEditing(table);
             clickedNode.setExpanded(!clickedNode.isExpanded());
-            wbsModel.recalcRows();
+            wbsModel.recalcRowsForExpansionEvent();
             return false;
 
         case CLICKED_ICON:

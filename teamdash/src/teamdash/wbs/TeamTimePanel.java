@@ -8,7 +8,9 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.Rectangle;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
+import java.beans.EventHandler;
 import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -19,6 +21,7 @@ import javax.swing.BorderFactory;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
+import javax.swing.Timer;
 import javax.swing.UIManager;
 import javax.swing.border.BevelBorder;
 import javax.swing.event.TableModelEvent;
@@ -73,6 +76,8 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
     private Font labelFont;
     /** The color to use for depicting overtasked time in a colored bar */
     private Color overtaskedColor = Color.red;
+    /** A timer used to recalc once after receiving multiple TableModelEvents */
+    private Timer recalcTimer;
 
     /** Create a team time panel.
      * @param teamList the list of team members to display.
@@ -84,6 +89,10 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
         this.teamMemberBars = new ArrayList<TeamMemberBar>();
         this.showBalancedBar = true;
         this.showRemainingWork = false;
+
+        this.recalcTimer = new Timer(100, EventHandler.create(
+            ActionListener.class, this, "recalc"));
+        this.recalcTimer.setRepeats(false);
 
         setLayout(layout = new GridBagLayout());
         rebuildPanelContents();
@@ -220,6 +229,7 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
         recalcTeam(totalTime);
         revalidate();
         repaintIndividuals();
+        repaint();
     }
 
 
@@ -291,8 +301,7 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
             rebuildPanelContents();
 
         // whenever data changes, recalculate and redisplay.
-        recalc();
-        repaint();
+        recalcTimer.restart();
     }
 
 
