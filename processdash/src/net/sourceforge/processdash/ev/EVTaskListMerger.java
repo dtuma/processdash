@@ -823,8 +823,9 @@ public class EVTaskListMerger {
         if (filter != null)
             return;
 
-        EVSnapshot baselineSnapshot = taskList.calculator
-                .getBaselineDataSource();
+        EVSnapshot baselineSnapshot = null;
+        if (taskList.calculator != null)
+            baselineSnapshot = taskList.calculator.getBaselineDataSource();
         if (baselineSnapshot == null)
             return;
 

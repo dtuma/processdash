@@ -736,7 +736,8 @@ public class EVTaskList extends AbstractTreeTableModel
 
         double directTimeDelta = taskRoot.planTime - taskRoot.planValue;
         showDirectTimeColumns = Math.abs(directTimeDelta) > 0.1;
-        showBaselineColumns = (calculator.getBaselineDataSource() != null);
+        showBaselineColumns = (calculator != null
+                && calculator.getBaselineDataSource() != null);
         showNodeTypeColumn = taskRoot.nodeTypesAreInUse();
         showLabelsColumn = labelsAreInUse(taskRoot);
         nodeTypeSpecs = null;
@@ -824,7 +825,8 @@ public class EVTaskList extends AbstractTreeTableModel
     }
 
     protected void setBaselineDataSource(EVSnapshot snapshot) {
-        calculator.setBaselineDataSource(snapshot);
+        if (calculator != null)
+            calculator.setBaselineDataSource(snapshot);
         schedule.setBaseline(snapshot);
     }
 

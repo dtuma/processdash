@@ -93,7 +93,8 @@ public class EVCalculatorRollup extends EVCalculator {
     public void setBaselineDataSource(EVSnapshot baselineDataSource) {
         super.setBaselineDataSource(baselineDataSource);
         for (EVTaskList tl : evTaskLists) {
-            tl.calculator.setBaselineDataSource(baselineDataSource);
+            if (tl != null && tl.calculator != null)
+                tl.calculator.setBaselineDataSource(baselineDataSource);
         }
     }
 
