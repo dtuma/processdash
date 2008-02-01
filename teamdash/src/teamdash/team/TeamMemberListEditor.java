@@ -10,6 +10,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
+import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JList;
@@ -42,7 +43,7 @@ public class TeamMemberListEditor implements WindowListener {
         JPanel buttons = buildButtons();
 
         frame = new JFrame(projectName + " - Team Members");
-        frame.getContentPane().add(new JScrollPane(table));
+        frame.getContentPane().add(makeScrollPane(table));
         frame.getContentPane().add(buttons, BorderLayout.SOUTH);
         frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         frame.addWindowListener(this);
@@ -148,6 +149,15 @@ public class TeamMemberListEditor implements WindowListener {
             button.setEnabled(false);
         buttons.add(button);
         return buttons;
+    }
+
+    private JScrollPane makeScrollPane(JTable table) {
+        JScrollPane result = new JScrollPane(table);
+        JPanel corner = new JPanel();
+        corner.setBorder(BorderFactory.createMatteBorder(0, 1, 1, 0,
+            table.getGridColor()));
+        result.setCorner(JScrollPane.UPPER_RIGHT_CORNER, corner);
+        return result;
     }
 
     public void windowOpened(WindowEvent e) {}
