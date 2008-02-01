@@ -915,13 +915,19 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         System.exit(0);
     }
 
-    protected boolean quit() {
+    boolean quit() {
         List unsavedData = saveAllData();
         if (unsavedData.isEmpty() == false
                 && warnUserAboutUnsavedData(unsavedData) == false) {
-            InternalSettings.setDisableChanges(false);
             return false;
         }
+
+        // If we reach this point, all data has been successfully saved, and
+        // we know for *certain* that we will be shutting down.  We disable
+        // further modifications to settings to prevent something in the
+        // shutdown sequence from spuriously altering them as a byproduct of
+        // dismantling objects/data structures.
+        InternalSettings.setDisableChanges(true);
 
         if (!Settings.getBool(DISABLE_AUTO_EXPORT_SETTING, false)) {
             logger.fine("Performing auto exports");
@@ -1026,7 +1032,6 @@ public class ProcessDashboard extends JFrame implements WindowListener,
     }
 
     public boolean saveSettingsData() {
-        InternalSettings.setDisableChanges(true);
         if (InternalSettings.isDirty())
             InternalSettings.saveSettings();
         return InternalSettings.isDirty() == false;
