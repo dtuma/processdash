@@ -189,6 +189,8 @@ public class TeamMemberList extends AbstractTableModel implements EffortCalendar
      * in the given list. */
     public void copyFrom(TeamMemberList newMembers) {
         this.teamMembers = copyTeamMemberList(newMembers.getTeamMembers());
+        this.startOnDayOfWeek = newMembers.startOnDayOfWeek;
+        recalcZeroDay();
         fireTableDataChanged();
     }
 
