@@ -31,6 +31,7 @@ import teamdash.team.TeamMember;
 import teamdash.team.TeamMemberList;
 import teamdash.wbs.columns.TeamActualTimeColumn;
 import teamdash.wbs.columns.TeamMemberTimeColumn;
+import teamdash.wbs.columns.UnassignedTimeColumn;
 
 /** Displays a panel containing dynamic bar charts for each team member. The
  * bars indicate the approximate bottom-up duration of the schedule for each
@@ -48,6 +49,8 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
     /** A list of the bar charts for each individual (each is a
      * TeamMemberBar object). */
     private List<TeamMemberBar> teamMemberBars;
+    /** The column number holding unassigned time data */
+    private int unassignedTimeColumn;
     /** The point in time when the first person is starting */
     private long teamStartTime;
     /** The team effective date for actual metrics collected so far */
@@ -69,6 +72,8 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
     private boolean showBalancedBar;
     /** Should the bars show total project data, or just remaining project data */
     private boolean showRemainingWork;
+    /** Should the balanced bar include unassigned work? */
+    private boolean includeUnassigned;
     /** The position of the balanced bar, in pixels from the left edge of the
      * area where colored bars are drawn */
     private int balancedBarPos;
@@ -89,6 +94,9 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
         this.teamMemberBars = new ArrayList<TeamMemberBar>();
         this.showBalancedBar = true;
         this.showRemainingWork = false;
+        this.includeUnassigned = true;
+        this.unassignedTimeColumn = dataModel
+                .findColumn(UnassignedTimeColumn.COLUMN_ID);
 
         this.recalcTimer = new Timer(100, EventHandler.create(
             ActionListener.class, this, "recalc"));
@@ -118,6 +126,17 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
         if (this.showRemainingWork != showRemaining) {
             this.showRemainingWork = showRemaining;
             rebuildPanelContents();
+            recalc();
+        }
+    }
+
+    public boolean isIncludeUnassigned() {
+        return includeUnassigned;
+    }
+
+    public void setIncludeUnassigned(boolean includeUnassigned) {
+        if (this.includeUnassigned != includeUnassigned) {
+            this.includeUnassigned = includeUnassigned;
             recalc();
         }
     }
@@ -214,8 +233,7 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
             Rectangle r = ((TeamMemberBar) teamMemberBars.get(0)).getBounds();
             balancedBarPos = (int) (r.width * balancedLength / maxScheduleLength);
             int pos = r.x + balancedBarPos;
-            balancedBar.setBounds(pos - BALANCED_BAR_WIDTH/2, 1,
-                                  BALANCED_BAR_WIDTH, getHeight());
+            balancedBar.setBounds(pos-BBHW, 1, BALANCED_BAR_WIDTH, getHeight());
         } else {
             balancedBarPos = -100;
         }
@@ -225,7 +243,7 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
 
     public void recalc() {
         recalcStartDate();
-        double totalTime = recalcIndividuals();
+        double totalTime = recalcIndividuals() + getUnassignedTime();
         recalcTeam(totalTime);
         revalidate();
         repaintIndividuals();
@@ -264,6 +282,20 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
         }
         maxScheduleLength = maxLen;
         return totalTime;
+    }
+
+    /** Retrieve the total amount of unassigned time in the WBS, if the user
+     * wants it to be included in the calculation; otherwise return 0.
+     */
+    protected double getUnassignedTime() {
+        if (includeUnassigned == false || unassignedTimeColumn == -1)
+            return 0;
+        NumericDataValue unassignedTime =
+            (NumericDataValue) dataModel.getValueAt(0, unassignedTimeColumn);
+        if (unassignedTime != null)
+            return unassignedTime.value;
+        else
+            return 0;
     }
 
     /** Recalculate the duration of a balanced team schedule.
@@ -556,12 +588,30 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
                 }
             }
 
+            // fourth preference: right aligned to the left of the colored bar
+            if (barLeft > 2 * PAD + labelWidth) {
+                int labelPos = barLeft - PAD - labelWidth;
+                if (!collidesWithBalancedBar(labelPos, labelWidth)) {
+                    labelIsLight = false;
+                    return labelPos;
+                }
+            }
+
+            // fifth preference: to the right of the balanced bar
+            if (balancedBarPos > 0 && barRight < balancedBarPos + BBHW) {
+                int labelPos = balancedBarPos + BBHW + PAD;
+                if (labelPos + labelWidth + PAD < totalWidth) {
+                    labelIsLight = false;
+                    return labelPos;
+                }
+            }
+
             // abort: draw at the left of the team member bar.
             if (barLeft < labelWidth / 2)
                 labelIsLight = barIsDark;
             else
                 labelIsLight = false;
-            return barLeft;
+            return PAD;
         }
 
         private boolean collidesWithBalancedBar(int labelPos, int labelWidth) {

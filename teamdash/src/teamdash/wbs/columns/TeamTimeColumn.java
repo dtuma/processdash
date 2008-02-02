@@ -35,6 +35,7 @@ public class TeamTimeColumn extends TopDownBottomUpColumn {
     NumPeopleColumn numPeopleColumn;
     ResourcesColumn resourcesColumn;
     TeamTimeNoErrorColumn noErrorColumn;
+    UnassignedTimeColumn unassignedTimeColumn;
 
 
     public TeamTimeColumn(DataTableModel m) {
@@ -49,6 +50,7 @@ public class TeamTimeColumn extends TopDownBottomUpColumn {
         m.addDataColumn(numPeopleColumn = new NumPeopleColumn());
         m.addDataColumn(resourcesColumn = new ResourcesColumn());
         m.addDataColumn(noErrorColumn = new TeamTimeNoErrorColumn());
+        m.addDataColumn(unassignedTimeColumn = new UnassignedTimeColumn(m));
     }
 
 
@@ -126,6 +128,8 @@ public class TeamTimeColumn extends TopDownBottomUpColumn {
                 node.setAttribute(topDownAttrName, null);
             else
                 node.setNumericAttribute(topDownAttrName, leafData.teamTime);
+        } else {
+            unassignedTimeColumn.clearUnassignedTime(node);
         }
 
         // Then, recalculate as usual.
@@ -276,7 +280,8 @@ public class TeamTimeColumn extends TopDownBottomUpColumn {
      * values. */
     private class LeafNodeData {
         WBSNode node;
-        double size, rate, timePerPerson, numPeople, actualNumPeople, teamTime;
+        double size, rate, timePerPerson, numPeople, actualNumPeople,
+                unassignedTime, teamTime;
         String units;
         IndivTime[] individualTimes;
 
@@ -323,8 +328,9 @@ public class TeamTimeColumn extends TopDownBottomUpColumn {
         }
 
         void figureTeamTime() {
-            teamTime = sumIndivTimes() +
-                (numPeople - actualNumPeople) * timePerPerson;
+            unassignedTime = (numPeople - actualNumPeople) * timePerPerson;
+            unassignedTimeColumn.setUnassignedTime(node, unassignedTime);
+            teamTime = sumIndivTimes() + unassignedTime;
         }
 
 

@@ -49,6 +49,7 @@ import teamdash.wbs.columns.SizeAccountingColumnSet;
 import teamdash.wbs.columns.TeamActualTimeColumn;
 import teamdash.wbs.columns.TeamCompletionDateColumn;
 import teamdash.wbs.columns.TeamTimeColumn;
+import teamdash.wbs.columns.UnassignedTimeColumn;
 
 public class WBSEditor implements WindowListener, SaveListener,
         ConcurrencyLock.Listener {
@@ -162,8 +163,9 @@ public class WBSEditor implements WindowListener, SaveListener,
         if (!isMode(MODE_MASTER))
             tabPanel.addTab((showActualData ? "Planned Time" : "Time"),
                      new String[] { TeamTimeColumn.COLUMN_ID,
-                                    WBSTabPanel.TEAM_MEMBER_PLAN_TIMES_ID },
-                     new String[] { "Team", "" });
+                                    WBSTabPanel.TEAM_MEMBER_PLAN_TIMES_ID,
+                                    UnassignedTimeColumn.COLUMN_ID },
+                     new String[] { "Team", "", "Unassigned" });
 
         tabPanel.addTab("Task Time",
                 new String[] { "Phase", "Task Size", "Task Size Units", "Rate",
@@ -451,6 +453,7 @@ public class WBSEditor implements WindowListener, SaveListener,
             result.add(new BottomUpShowReplanMenuItem(g));
             result.add(new BottomUpShowPlanMenuItem(g));
         }
+        result.add(new BottomUpIncludeUnassignedMenuItem());
         return result;
     }
 
@@ -884,6 +887,21 @@ public class WBSEditor implements WindowListener, SaveListener,
             setBorder(BorderFactory.createCompoundBorder(getBorder(),
                 new EmptyBorder(0, 15, 0, 0)));
             buttonGroup.add(this);
+        }
+    }
+
+    private class BottomUpIncludeUnassignedMenuItem extends JCheckBoxMenuItem
+            implements ChangeListener {
+        public BottomUpIncludeUnassignedMenuItem() {
+            super("Include Unassigned Effort in Balanced Team Calculation");
+            setSelected(true);
+            setBorder(BorderFactory.createCompoundBorder(getBorder(),
+                new EmptyBorder(0, 15, 0, 0)));
+            addChangeListener(this);
+        }
+
+        public void stateChanged(ChangeEvent e) {
+            teamTimePanel.setIncludeUnassigned(isSelected());
         }
     }
 
