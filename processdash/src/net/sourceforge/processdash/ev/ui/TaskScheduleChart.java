@@ -178,6 +178,7 @@ public class TaskScheduleChart extends JFrame
         RangeXYItemRenderer renderer = new RangeXYItemRenderer();
         configureRenderer(data, renderer);
         chart.getXYPlot().setRenderer(renderer);
+        data.addChangeListener(new RendererReconfigurer(data, renderer));
         return chart;
     }
     private static void configureRenderer(XYDataset xyData,
@@ -191,6 +192,21 @@ public class TaskScheduleChart extends JFrame
                 Stroke s = (Stroke) getPrefForSeries(SERIES_STROKES, seriesID);
                 if (s != null) renderer.setSeriesStroke(i, s);
             }
+        }
+    }
+
+    private static class RendererReconfigurer implements DatasetChangeListener {
+        private XYDataset xyData;
+        private RangeXYItemRenderer renderer;
+
+        public RendererReconfigurer(XYDataset xyData,
+                RangeXYItemRenderer renderer) {
+            this.xyData = xyData;
+            this.renderer = renderer;
+        }
+
+        public void datasetChanged(DatasetChangeEvent event) {
+            configureRenderer(xyData, renderer);
         }
     }
 

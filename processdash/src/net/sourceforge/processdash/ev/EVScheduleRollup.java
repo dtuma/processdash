@@ -397,11 +397,12 @@ public class EVScheduleRollup extends EVSchedule {
             optForecast = new OptForecastChartSeries();
         }
         OptForecastChartSeries optForecast;
-        protected void recalcForecast(Double currentYVal) {
-            super.recalcForecast(currentYVal);
+        @Override
+        protected void recalcForecast(Double currentYVal, Double forecastYVal) {
+            super.recalcForecast(currentYVal, forecastYVal);
 
             optForecast.currentYVal = currentYVal;
-            optForecast.forecastYVal = ONE_HUNDRED;
+            optForecast.forecastYVal = forecastYVal;
             optForecast.recalc();
             maybeAddSeries(optForecast);
         }

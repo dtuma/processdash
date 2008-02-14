@@ -1409,7 +1409,6 @@ public class EVSchedule implements TableModel {
     }
 
     protected static final Double ZERO = new Double(0.0);
-    protected static final Double ONE_HUNDRED = new Double(100.0);
 
     protected static class NumericRange extends Number implements RangeInfo {
 
@@ -1716,7 +1715,8 @@ public class EVSchedule implements TableModel {
             recalcBaseline(mult);
             series.add(plan);
             series.add(actual);
-            recalcForecast(new Double(getLast().cumEarnedValue * mult));
+            recalcForecast(new Double(getLast().cumEarnedValue * mult),
+                           new Double(getLast().cumPlanValue * mult));
         }
         protected void recalcBaseline(double mult) {
             if (baselineSnapshot != null) {
@@ -1725,9 +1725,9 @@ public class EVSchedule implements TableModel {
                 series.add(baselineSchedule.getBaselineValueSeries(mult));
             }
         }
-        protected void recalcForecast(Double currentYVal) {
+        protected void recalcForecast(Double currentYVal, Double forecastYVal) {
             forecast.currentYVal = currentYVal;
-            forecast.forecastYVal = ONE_HUNDRED;
+            forecast.forecastYVal = forecastYVal;
             forecast.recalc();
             maybeAddSeries(forecast);
         }
