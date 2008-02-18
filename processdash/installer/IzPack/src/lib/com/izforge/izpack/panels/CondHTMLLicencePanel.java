@@ -46,6 +46,7 @@ import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
+import javax.swing.SwingUtilities;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
 
@@ -380,7 +381,12 @@ public class CondHTMLLicencePanel extends IzPanel implements HyperlinkListener, 
         if (selectedPacks.isEmpty())
             parent.skipPanel ();
 
-        else if (!yesRadio.isSelected() && !noRadio.isSelected())
+        else if (!yesRadio.isSelected() && !noRadio.isSelected()) {
             parent.lockNextButton();
+            SwingUtilities.invokeLater(new Runnable() {
+                public void run() {
+                    yesRadio.requestFocusInWindow();
+                }});
+        }
     }
 }

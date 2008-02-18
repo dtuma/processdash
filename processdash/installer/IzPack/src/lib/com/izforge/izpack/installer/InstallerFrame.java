@@ -362,6 +362,8 @@ public class InstallerFrame extends JFrame
         l_panel.panelDeactivate();
         panel.panelActivate();
         panelsContainer.setVisible(true);
+        if (nextButton.isEnabled())
+            nextButton.requestFocusInWindow();
     }
 
 
@@ -642,6 +644,7 @@ public class InstallerFrame extends JFrame
     public void unlockNextButton()
     {
         nextButton.setEnabled(true);
+        nextButton.requestFocusInWindow();
     }
 
 
@@ -656,6 +659,12 @@ public class InstallerFrame extends JFrame
             installdata.curPanelNumber = newPanelNumber;
             switchPanel(installdata.curPanelNumber - skipDirection);
         }
+    }
+
+    /** Simulate a click on the next button */
+    public void nextPanel() {
+        if (nextButton.isEnabled())
+            nextButton.doClick();
     }
 
 

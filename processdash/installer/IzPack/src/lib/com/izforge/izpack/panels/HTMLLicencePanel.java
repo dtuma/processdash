@@ -36,6 +36,7 @@ import javax.swing.JEditorPane;
 import javax.swing.JLabel;
 import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
+import javax.swing.SwingUtilities;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
 
@@ -216,8 +217,13 @@ public class HTMLLicencePanel extends IzPanel implements HyperlinkListener, Acti
     /**  Called when the panel becomes active.  */
     public void panelActivate()
     {
-        if (!yesRadio.isSelected())
+        if (!yesRadio.isSelected()) {
             parent.lockNextButton();
+            SwingUtilities.invokeLater(new Runnable() {
+                public void run() {
+                    yesRadio.requestFocusInWindow();
+                }});
+        }
     }
 }
 

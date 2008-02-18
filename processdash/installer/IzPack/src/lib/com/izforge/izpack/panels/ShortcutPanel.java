@@ -456,9 +456,11 @@ public class ShortcutPanel extends IzPanel implements ActionListener,
             }
             else
             {
-                buildAlternateUI ();
-                parent.unlockNextButton ();
-                parent.lockPrevButton ();
+                // the alternate GUI is useless to users, and confusing.  Skip it.
+                parent.skipPanel ();
+//        buildAlternateUI ();
+//        parent.unlockNextButton ();
+//        parent.lockPrevButton ();
             }
         }
         else

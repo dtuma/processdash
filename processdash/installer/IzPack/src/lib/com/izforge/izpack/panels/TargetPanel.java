@@ -270,7 +270,11 @@ public class TargetPanel extends IzPanel implements ActionListener
     {
         Object source = e.getSource();
 
-        if (source != textField)
+        if (source == textField)
+        {
+            parent.nextPanel();
+        }
+        else
         {
             // The user wants to browse its filesystem
 
