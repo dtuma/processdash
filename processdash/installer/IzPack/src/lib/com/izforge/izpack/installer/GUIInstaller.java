@@ -297,6 +297,8 @@ public class GUIInstaller extends InstallerBase
      */
     protected void loadLookAndFeel() throws Exception
     {
+        if ("Mac OS X".equalsIgnoreCase(System.getProperty("os.name")))
+            return;
         if (this.installdata.kind.equalsIgnoreCase("standard") ||
             this.installdata.kind.equalsIgnoreCase("web"))
         {

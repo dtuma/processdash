@@ -169,6 +169,14 @@ public class InstallerBase
         }
         installdata.setVariable("MAX_MEMORY", maxMem);
 
+        // read the Mac OS X Application directory from the external configuration,
+        // or choose an appropriate default
+        String macAppDir = ExternalConfiguration.getConfig().getProperty(
+                "mac-os-x.applicationDir", "/Applications");
+        if (macAppDir.startsWith("~"))
+            macAppDir = System.getProperty("user.home") + macAppDir.substring(1);
+        installdata.setVariable("MAC_APPL", macAppDir);
+
         if (null != variables)
         {
             Enumeration enum_ = variables.keys();

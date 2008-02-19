@@ -38,9 +38,11 @@ import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.StringReader;
@@ -121,6 +123,8 @@ import net.sourceforge.processdash.ui.UserNotificationManager;
 import net.sourceforge.processdash.ui.help.PCSH;
 import net.sourceforge.processdash.ui.lib.ErrorReporter;
 import net.sourceforge.processdash.ui.systray.SystemTrayManagement;
+import net.sourceforge.processdash.util.Initializable;
+import net.sourceforge.processdash.util.FallbackObjectFactory;
 import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.FormatUtil;
 import net.sourceforge.processdash.util.HTTPUtils;
@@ -132,6 +136,8 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         DashboardContext, ApplicationEventSource {
 
     public static final String HTTP_PORT_SETTING = "http.port";
+    private static final String DATA_DIR_LINK_FILE_SETTING =
+        "net.sourceforge.processdash.dataDirLinkFile";
     private static final String DISABLE_AUTO_EXPORT_SETTING =
         "export.disableAutoExport";
     public static final String NOTIFY_ON_OPEN_PORT_PROPERTY =
@@ -148,6 +154,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
     CompletionButton completion_button = null;
     TaskCommenterButton taskCommenterButton = null;
     JMenuBar hierarchy_menubar = null;
+    Initializable osHelper = null;
 
     DashHierarchy props;
     DashHierarchy templates = null;
@@ -185,6 +192,9 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
         addWindowListener(this);
         ProfTimer pt = new ProfTimer(ProcessDashboard.class, "ProcessDashboard");
+
+        // adjust the working directory if necessary.
+        maybeChangeWorkingDirectory();
 
         // load app defaults and user settings.
         try {
@@ -511,7 +521,61 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         DashController.setDashboard(this);
         BackgroundTaskManager.initialize(this);
         initializeSystemTray();
+        initializeOsHelper();
         pt.click("Finished initializing Process Dashboard object");
+    }
+
+    private void maybeChangeWorkingDirectory() {
+        String linkFileName = System.getProperty(DATA_DIR_LINK_FILE_SETTING);
+        if (!StringUtils.hasValue(linkFileName))
+            return;
+
+        String dataDir = readDataDirLinkFile(linkFileName);
+        if (dataDir.startsWith("~"))
+            dataDir = System.getProperty("user.home") + dataDir.substring(1);
+
+        try {
+            File f = new File(dataDir);
+            if (f.isDirectory()) {
+                System.setProperty("user.dir", f.getAbsolutePath());
+                return;
+            } else {
+                System.err.println("Directory '" + dataDir
+                        + "' specified by link file '" + linkFileName
+                        + "' does not exist");
+            }
+        } catch (Exception e) {}
+        displayStartupIOError("Errors.Read_File_Error.Data_Directory", dataDir);
+        System.exit(1);
+    }
+
+    private String readDataDirLinkFile(String linkFileName) {
+        try {
+            File f = new File(linkFileName);
+            BufferedReader in = new BufferedReader(new FileReader(f));
+            String line = null;
+            while ((line = in.readLine()) != null) {
+                line = line.trim();
+                if (line.length() > 0 && !line.startsWith("#"))
+                    break;
+            }
+            in.close();
+            if (line != null)
+                return line;
+            else
+                System.err.println("No data directory info found in file '"
+                        + linkFileName + "' - aborting");
+        } catch (Exception e) {
+            System.err.println("Unexpected error reading dataDirLinkFile '"
+                    + linkFileName + "' - aborting");
+            e.printStackTrace();
+        }
+        displayStartupIOError("Errors.Read_File_Error.Data_Dir_Link_File",
+            linkFileName);
+        System.exit(1);
+        // the following line is not reached, but must be present to keep
+        // the compiler happy:
+        return null;
     }
 
     public void addApplicationEventListener(ApplicationEventListener l) {
@@ -566,6 +630,19 @@ public class ProcessDashboard extends JFrame implements WindowListener,
     private static boolean isSystemTrayEnabled() {
         return !Settings.getBool(SystemTrayManagement.DISABLED_SETTING, false);
     }
+
+    private void initializeOsHelper() {
+        try {
+            osHelper = new FallbackObjectFactory<Initializable>(Initializable.class)
+                    .add(MAC_OS_X_HELPER_CLASS)
+                    .get();
+            osHelper.initialize(this);
+        } catch (Throwable t) {
+            t.printStackTrace();
+        }
+    }
+    private static final String MAC_OS_X_HELPER_CLASS =
+        "net.sourceforge.processdash.ui.macosx.DashboardMacOSXHelper";
 
     private int hierChangeCount = 0;
     private void registerHierarchyDataElement() {
@@ -877,6 +954,9 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         }
     }
 
+    public void showAboutDialog() {
+        configure_button.startAboutDialog();
+    }
 
     public void windowOpened(WindowEvent w) {}
     public void windowClosed(WindowEvent w) {}
@@ -905,6 +985,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
             logErr("When shutting down, encountered the exception:", t);
         }
 
+        if (osHelper != null) osHelper.dispose();
         SystemTrayManagement.getIcon().dispose();
         setVisible(false);
         logger.fine("Backing up data directory");

@@ -58,6 +58,8 @@ import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.templates.DashPackage;
 import net.sourceforge.processdash.ui.DashboardIconFactory;
 import net.sourceforge.processdash.util.ConcurrencyLock;
+import net.sourceforge.processdash.util.FallbackObjectFactory;
+import net.sourceforge.processdash.util.Initializable;
 
 
 public class QuickLauncher {
@@ -125,6 +127,9 @@ public class QuickLauncher {
 
             if (fileToLaunch != null)
                 launchFilename(fileToLaunch);
+
+            new FallbackObjectFactory<Initializable>(Initializable.class)
+                .add(MAC_HELPER_CLASS).get().initialize(this);
 
         } catch (Exception e) {
             abortWithError(e.getMessage());
@@ -222,6 +227,11 @@ public class QuickLauncher {
         System.exit(1);
     }
 
+    public void quit() {
+        if (!launchInSameVm || frame.isVisible())
+            System.exit(0);
+    }
+
     public boolean useDashboardJarFile(File f) {
         if (!(processFactory instanceof DashboardProcessFactoryForking)) {
             JOptionPane.showMessageDialog(frame,
@@ -276,7 +286,7 @@ public class QuickLauncher {
         }
     }
 
-    private void launchFilename(String filename) {
+    public void launchFilename(String filename) {
         File f = new File(filename);
         DashboardInstance inst = launcherFactory.getLauncher(
                 frame.getContentPane(), f);
@@ -358,5 +368,8 @@ public class QuickLauncher {
         }
 
     }
+
+    private static final String MAC_HELPER_CLASS =
+        "net.sourceforge.processdash.ui.macosx.LauncherMacOSXHelper";
 
 }

@@ -221,6 +221,8 @@ public class Unpacker extends Thread
 
                         }
 
+                        // FIXME: special handling for JavaStub?
+
                         // We copy the file
                         out = new FileOutputStream(pathFile);
                         byte[] buffer = new byte[5120];

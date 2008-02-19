@@ -57,6 +57,12 @@ class DashboardProcessFactoryForking extends DashboardProcessFactory {
         // could be an unhelpful proliferation of identical icons
         addVmArg("-D" + Settings.SYS_PROP_PREFIX
                 + SystemTrayManagement.DISABLED_SETTING + "=true");
+
+        // for instances launched on Mac OS X, set the name to display in the
+        // dock/application menu
+        if ("Mac OS X".equalsIgnoreCase(System.getProperty("os.name")))
+            addVmArg("-Xdock:name="
+                    + resources.getString("/ProcessDashboard:Window_Title"));
     }
 
     public void setClasspath(String classpath) {

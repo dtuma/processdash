@@ -50,6 +50,7 @@ public class InternalSettings extends Settings {
 
     private static FileProperties fsettings = null;
     private static String settingsFile = null;
+    private static String settingsFileRename = null;
     private static PropertyChangeSupport propSupport =
         new PropertyChangeSupport(InternalSettings.class);
     public static final String sep = System.getProperty("file.separator");
@@ -105,7 +106,7 @@ public class InternalSettings extends Settings {
         //    * the user's home directory (specified by the system property
         //          "user.home")
         //
-        // on Windows systems, this will look for a file named "pspdash.ini".
+        // on Windows/Mac systems, this will look for a file named "pspdash.ini".
         // on all other platforms, it will look for a file named ".pspdash".
         //
         settings = fsettings = new FileProperties(defaults, propertyComments);
@@ -113,6 +114,10 @@ public class InternalSettings extends Settings {
 
         String filename = getSettingsFilename();
         dirty = disableChanges = false;
+
+        filename = checkForOldSettingsFile(cwd, filename);
+        if (settingsFileRename != null)
+            dirty = true;
 
         File settingsFile;
         if (settingsFilename != null && settingsFilename.length() != 0) {
@@ -163,7 +168,6 @@ public class InternalSettings extends Settings {
             }
         }
         InternalSettings.settingsFile = settingsFilename;
-        fsettings.setFilename(settingsFilename);
         fsettings.setHeader(PROPERTIES_FILE_HEADER);
         fsettings.setKeepingStrangeKeys(true);
 
@@ -186,7 +190,7 @@ public class InternalSettings extends Settings {
         String os = System.getProperty("os.name").toLowerCase();
         if (os.indexOf("windows") != -1)
             return "windows";
-        else if (System.getProperty("mrj.version") != null)
+        else if (os.startsWith("mac"))
             return "mac";
         else if (os.indexOf("linux") != -1)
             return "linux";
@@ -194,10 +198,45 @@ public class InternalSettings extends Settings {
             return "unix";
     }
     private static final String getSettingsFilename() {
-        if (System.getProperty("os.name").toUpperCase().startsWith("WIN"))
+        String osName = System.getProperty("os.name").toLowerCase();
+        if (osName.startsWith("win") || osName.startsWith("mac"))
             return "pspdash.ini";
         else
             return ".pspdash";
+    }
+    /**
+     * On Mac OS X, we have historically used ".pspdash" for the settings file.
+     * However, 'dot' files are nearly impossible for the average user to find.
+     * The method above has changed the default settings file name for the Mac -
+     * but if the user has a legacy file, we need to load it and migrate it to
+     * the new name.  This method checks for the existence of a legacy settings
+     * file, and possibly prepares for a file rename.
+     * 
+     * @param cwd the directory to look in
+     * @param desiredName the name we'd like the file to have
+     */
+    private static String checkForOldSettingsFile(String cwd, String desiredName) {
+        // not on a Mac? do nothing.
+        if (!System.getProperty("os.name").toLowerCase().startsWith("mac"))
+            return desiredName;
+
+        // if the settings file already exists with the new name, do nothing.
+        File desiredFile = new File(cwd, desiredName);
+        if (desiredFile.isFile())
+            return desiredName;
+
+        // look for an older settings file.  If it exists, tell our calling code
+        // to read from the older file.  But make a note of the name we prefer
+        // to use, so the save logic can rename the file later.
+        File oldFile = new File(cwd, ".pspdash");
+        if (oldFile.isFile()) {
+            settingsFileRename = desiredFile.getPath();
+            return ".pspdash";
+        }
+
+        // no settings file exists with either the new or the old name.  Just
+        // return the new name so our caller can use it to proceed.
+        return desiredName;
     }
     public static String getSettingsFileName() {
         checkPermission("getFileName");
@@ -268,9 +307,25 @@ public class InternalSettings extends Settings {
         AccessController.doPrivileged(new PrivilegedAction() {
             public Object run() {
                 if (fsettings != null) try {
-                    Writer out = new RobustFileWriter(fsettings.getFilename());
+                    String oldName, destName;
+                    if (settingsFileRename == null) {
+                        oldName = null;
+                        destName = settingsFile;
+                    } else {
+                        oldName = settingsFile;
+                        destName = settingsFileRename;
+                    }
+
+                    Writer out = new RobustFileWriter(destName);
                     fsettings.store(out);
                     out.close();
+
+                    if (oldName != null) {
+                        new File(oldName).delete();
+                        settingsFile = destName;
+                        settingsFileRename = null;
+                    }
+
                     dirty = false;
                 } catch (Exception e) {
                     logger.log(Level.SEVERE, "Unable to save settings file.", e);
@@ -331,9 +386,13 @@ public class InternalSettings extends Settings {
         if (!destDir.isDirectory())
             return;
 
-        File settingsFile = new File(destDir, getSettingsFilename());
+        String filename = checkForOldSettingsFile(destDir.getPath(),
+              getSettingsFilename());
+        String rename = settingsFileRename;
+        File settingsFile = new File(destDir, filename);
         try {
             initialize(settingsFile.getPath());
+            settingsFileRename = rename;
 
             for (int i = args.length;  i-- > 1;)
                 tryToMerge(args[i]);

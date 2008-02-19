@@ -107,6 +107,11 @@ public class OpenLocalizationToolAction extends AbstractAction {
         String helpURL = Browser.mapURL(HELP_URL);
         cmd.add("-D" + PROPERTY_HELP_URL + "=" + helpURL);
 
+        // set a reasonable application menu name on Mac OS X
+        if ("Mac OS X".equalsIgnoreCase(System.getProperty("os.name")))
+            cmd.add("-Xdock:name="
+                    + resources.getString("Menu.Localization_Tool"));
+
         // Classpath configuration
         cmd.add("-cp");
         cmd.add(RuntimeUtils.getClasspathFile(getClass()).getAbsolutePath());

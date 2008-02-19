@@ -53,6 +53,9 @@ public class ScriptParser
     /**  The user's data path. */
     public static final String DATA_PATH = "DATA_PATH";
 
+    /**  The user's data path, normalized with ~ if appropriate. */
+    public static final String DATA_PATH_NORMALIZED = "DATA_PATH_NORMALIZED";
+
     /**  The user's team data path. */
     public static final String TEAM_DATA_PATH = "TEAM_DATA_PATH";
 

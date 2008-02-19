@@ -123,6 +123,7 @@ Authors:
   <property name="jcalendar.jar"  value="${lib}/jcalendar-1.3.2.jar"/>
   <property name="datatips.jar"   value="${lib}/datatips.jar"/>
   <property name="colt.jar"       value="${lib}/colt.jar"/>
+  <property name="apple-eawt.jar" value="${lib}/com-apple-eawt.jar"/>
   <property name="l10n-tool.jar"  value="l10n-tool/dist/jrc-editor.jar"/>
 
   <property name="cvsroot"
@@ -146,6 +147,7 @@ Authors:
     <pathelement location="${image4j.jar}"/>
     <pathelement location="${jcalendar.jar}"/>
     <pathelement location="${datatips.jar}"/>
+    <pathelement location="${apple-eawt.jar}"/>
   </path>
 
 
@@ -573,7 +575,8 @@ Authors:
   <!-- Installer                                                           -->
   <!-- =================================================================== -->
 
-  <target name="installer" depends="installer-mergeJar,installer-langpacks">
+  <target name="installer"
+          depends="installer-mergeJar,installer-macData,installer-langpacks">
     <ant antfile="${installer}/build.xml" inheritAll="false">
       <property name="alreadyRebuilt" value="true"/>
       <property name="dontCleanDist" value="true"/>
@@ -590,6 +593,18 @@ Authors:
                    value="net.sourceforge.processdash.InternalSettings"/>
       </manifest>
       <fileset refid="installer-mergeJar-classes"/>
+    </jar>
+  </target>
+
+  <target name="installer-macData" depends="compile">
+    <classfileset id="installer-macData-classes" dir="${build}"
+      rootclass="net.sourceforge.processdash.ui.macosx.MacDataCleanup"/>
+    <jar destfile="${installer}/files/cleanupMacData.jar" duplicate="fail">
+      <manifest>
+        <attribute name="Main-Class"
+            value="net.sourceforge.processdash.ui.macosx.MacDataCleanup"/>
+      </manifest>
+      <fileset refid="installer-macData-classes"/>
     </jar>
   </target>
 

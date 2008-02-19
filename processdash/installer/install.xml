@@ -30,13 +30,18 @@
         <res src="files/DashLicense-jpn.html" id="HTMLLicencePanel.licence_jpn"/>
         <res src="files/DashLicense-chn.html" id="HTMLLicencePanel.licence_chn"/>
         <res src="files/DataDir-windows.txt" id="DataDirPanel.dir.windows"/>
+        <res src="files/DataDir-macosx.txt" id="DataDirPanel.dir.macosx"/>
+        <res src="files/TargetDir-macosx.txt" id="TargetPanel.dir.macosx"/>
         <res src="files/WebInstallers.txt" id="WebInstallers.url"/>
         <res src="files/shortcutSpec.xml" id="shortcutSpec.xml"/>
         <res src="files/AWLicense.html" id="CondHTMLLicencePanel0.licence"/>
         <res src="files/AWLicense-list.txt" id="CondHTMLLicencePanel0.packList"/>
         <res src="files/JHLicense.html" id="CondHTMLLicencePanel1.licence"/>
         <res src="files/JHLicense-list.txt" id="CondHTMLLicencePanel1.packList"/>
-        <res src="files/custom-install-internal.ini" id="custom-install.ini"/>
+        <res src="files/custom-install-internal.ini" id="custom-install.ini"
+             excludeIf="pspForEng"/>
+        <res src="files/custom-install-instr.ini" id="custom-install.ini"
+             includeIf="pspForEng"/>
         <res src="files/text-eng.xml" id="text.xml"/>
         <res src="files/text-jpn.xml" id="text.xml_jpn"/>
         <res src="files/text-chn.xml" id="text.xml_chn"/>
@@ -79,7 +84,29 @@
 	          src="../src/net/sourceforge/processdash/ui/launcher.ico"/>
             <file targetdir="$INSTALL_PATH" override="true"
 	          src="files/mergeSettings.jar"/>
+            <file targetdir="$INSTALL_PATH" override="true"
+	          src="files/cleanupMacData.jar">
+                <os name="Mac OS X"/>
+            </file>
 
+            <!-- Create an Application icon on Mac OS X -->
+            <fileset targetdir="$MAC_APPL/Process Dashboard.app"
+                  dir="files/dashboard_app" override="true">
+                <os name="Mac OS X"/>
+                <include name="Contents/"/>
+                <exclude name="**/JavaApplicationStub-License.rtf"/>
+            </fileset>
+            <parsable targetfile="$MAC_APPL/Process Dashboard.app/Contents/Info.plist">
+                <os name="Mac OS X"/>
+            </parsable>
+            <parsable targetfile="$MAC_APPL/Process Dashboard.app/Contents/Resources/dataLocation.txt">
+                <os name="Mac OS X"/>
+            </parsable>
+            <executable targetfile="/Applications/Process Dashboard.app/Contents/MacOS/JavaApplicationStub" stage="never">
+	        <os name="Mac OS X"/>
+	    </executable>
+
+            <!-- create a script file for unix variants -->
             <file targetdir="$DATA_PATH" src="files/run-dash.sh"
 	          override="false"/>
             <parsable targetfile="$DATA_PATH/run-dash.sh"/>
@@ -87,6 +114,16 @@
 	        <os family="unix"/>
 	    </executable>
 
+            <!-- migrate/cleanup data from old Mac installations -->
+            <executable targetfile="$INSTALL_PATH/cleanupMacData.jar"
+	         type="jar" stage="postinstall">
+                <os name="Mac OS X"/>
+		<args>
+		    <arg value="$DATA_PATH"/>
+		</args>
+	    </executable>
+
+            <!-- enhance user's config with externally provided settings -->
             <executable targetfile="$INSTALL_PATH/mergeSettings.jar"
 	         type="jar" stage="postinstall">
 		<args>

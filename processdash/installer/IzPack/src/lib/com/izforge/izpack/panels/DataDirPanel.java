@@ -50,6 +50,7 @@ import com.izforge.izpack.installer.InstallData;
 import com.izforge.izpack.installer.InstallerFrame;
 import com.izforge.izpack.installer.IzPanel;
 import com.izforge.izpack.installer.ScriptParser;
+import com.izforge.izpack.installer.VariableSubstitutor;
 
 /**
  *  The taget directory selection panel.
@@ -204,7 +205,9 @@ public class DataDirPanel extends IzPanel implements ActionListener
                 if (!line.equals(""))
                     break;
             }
-            defaultDir = line;
+            VariableSubstitutor vs = new VariableSubstitutor(idata
+                          .getVariableValueMap());
+            defaultDir = vs.substitute(line, "plain");
         }
         catch (Exception e)
         {
@@ -268,7 +271,13 @@ public class DataDirPanel extends IzPanel implements ActionListener
                 "\n" + dataPath);
         */
 
+        String normalizedPath = dataPath;
+        String userHome = idata.getVariable(ScriptParser.USER_HOME);
+        if (normalizedPath.startsWith(userHome))
+            normalizedPath = "~" + normalizedPath.substring(userHome.length());
+
         idata.setVariable(ScriptParser.DATA_PATH, dataPath);
+        idata.setVariable(ScriptParser.DATA_PATH_NORMALIZED, normalizedPath);
         return ok;
     }
 
@@ -282,7 +291,11 @@ public class DataDirPanel extends IzPanel implements ActionListener
     {
         Object source = e.getSource();
 
-        if (source != textField)
+        if (source == textField)
+        {
+            parent.nextPanel();
+        }
+        else
         {
             // The user wants to browse its filesystem
 
