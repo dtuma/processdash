@@ -170,6 +170,10 @@ public class OpenWBSEditor extends TinyCGIBase {
         if (StringUtils.hasValue(extraArgs))
             cmd.addAll(Arrays.asList(extraArgs.split("\\s+")));
 
+        // set a reasonable application menu name on Mac OS X
+        if ("Mac OS X".equalsIgnoreCase(System.getProperty("os.name")))
+            cmd.add("-Xdock:name=WBS Editor");
+
         if (bottomUp)
             cmd.add("-Dteamdash.wbs.bottomUp=true");
         if (showTeam)

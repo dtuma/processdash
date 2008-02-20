@@ -207,6 +207,9 @@ public class WBSEditor implements WindowListener, SaveListener,
             teamTimePanel.setShowBalancedBar(false);
         teamTimePanel.setShowRemainingWork(showActualData == true);
 
+        try {
+            new MacOSXWBSHelper(this);
+        } catch (Throwable t) {}
 
         frame = new JFrame(teamProject.getProjectName()
                 + " - Work Breakdown Structure"

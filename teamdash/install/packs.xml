@@ -13,6 +13,35 @@
             <file targetdir="$TEAM_DATA_PATH" override="false"
                   src="${teamdash.dir}/install/.pspdash" os="unix"/>
 
+            <!-- Create Team Dashboard application on Mac OS X --> 
+            <fileset targetdir="$MAC_APPL/Team Dashboard.app"
+                  dir="${teamdash.dir}/install/team_dash_app" override="true">
+                <os name="Mac OS X"/>
+                <include name="Contents/"/>
+            </fileset>
+            <parsable targetfile="$MAC_APPL/Team Dashboard.app/Contents/Info.plist">
+                <os name="Mac OS X"/>
+            </parsable>
+            <parsable targetfile="$MAC_APPL/Team Dashboard.app/Contents/Resources/dataLocation.txt">
+                <os name="Mac OS X"/>
+            </parsable>
+            <executable targetfile="/Applications/Team Dashboard.app/Contents/MacOS/JavaApplicationStub" stage="never">
+	        <os name="Mac OS X"/>
+	    </executable>
+
+            <!-- Create Quick Launcher application on Mac OS X --> 
+            <fileset targetdir="$MAC_APPL/Process Dashboard Quick Launcher.app"
+                  dir="${teamdash.dir}/install/launcher_app" override="true">
+                <os name="Mac OS X"/>
+                <include name="Contents/"/>
+            </fileset>
+            <parsable targetfile="$MAC_APPL/Process Dashboard Quick Launcher.app/Contents/Info.plist">
+                <os name="Mac OS X"/>
+            </parsable>
+            <executable targetfile="/Applications/Process Dashboard Quick Launcher.app/Contents/MacOS/JavaApplicationStub" stage="never">
+	        <os name="Mac OS X"/>
+	    </executable>
+
             <file targetdir="$TEAM_DATA_PATH" override="false"
                   src="${teamdash.dir}/install/run-dash.sh"/>
             <parsable targetfile="$TEAM_DATA_PATH/run-dash.sh"/>
