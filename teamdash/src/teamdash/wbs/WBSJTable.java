@@ -9,6 +9,7 @@ import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.ClipboardOwner;
 import java.awt.datatransfer.Transferable;
 import java.awt.event.ActionEvent;
+import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
@@ -36,6 +37,8 @@ import javax.swing.KeyStroke;
 import javax.swing.ListSelectionModel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+
+import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
 
 
 /** Displays the nodes of a WBSModel in a JTable, and installs custom
@@ -94,6 +97,7 @@ public class WBSJTable extends JTable {
         installTableActions();
         getSelectionModel().addListSelectionListener(SELECTION_LISTENER);
         addMouseMotionListener(MOTION_LISTENER);
+        MacGUIUtils.tweakTable(this);
     }
 
 
@@ -1038,6 +1042,7 @@ public class WBSJTable extends JTable {
 
     // convenience declarations
     private static final int SHIFT = Event.SHIFT_MASK;
-    private static final int CTRL  = Event.CTRL_MASK;
+    private static final int CTRL  = (MacGUIUtils.isMacOSX()
+            ? InputEvent.META_DOWN_MASK : InputEvent.CTRL_DOWN_MASK);
 
 }

@@ -35,6 +35,7 @@ import javax.swing.event.ChangeListener;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 
+import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
 import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.PreferencesUtils;
 import net.sourceforge.processdash.util.StringUtils;
@@ -96,6 +97,8 @@ public class WBSEditor implements WindowListener, SaveListener,
 
         this.teamProject = teamProject;
         acquireLock(intent, owner);
+
+        MacGUIUtils.tweakLookAndFeel();
 
         this.dataDumpFile = dumpFile;
         this.workflowDumpFile = workflowFile;

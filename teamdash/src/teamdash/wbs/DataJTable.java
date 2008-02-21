@@ -13,6 +13,8 @@ import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableColumnModel;
 import javax.swing.text.JTextComponent;
 
+import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
+
 /** Table to display data for a work breakdown structure.
  */
 public class DataJTable extends JTable {
@@ -39,6 +41,7 @@ public class DataJTable extends JTable {
 
         // work around Sun Java bug 4709394
         putClientProperty("terminateEditOnFocusLost", Boolean.TRUE);
+        MacGUIUtils.tweakTable(this);
     }
 
     private void selectAllColumns() {

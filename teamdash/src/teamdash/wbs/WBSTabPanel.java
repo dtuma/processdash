@@ -46,6 +46,7 @@ import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 
+import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
 import net.sourceforge.processdash.util.RobustFileWriter;
 
 import org.w3c.dom.Document;
@@ -636,7 +637,8 @@ public class WBSTabPanel extends JPanel
     /** Add a button to the beginning of the internal tool bar */
     private void addToolbarButton(Action a) {
         JButton button = new JButton(a);
-        button.setMargin(new Insets(0,0,0,0));
+        int p = (MacGUIUtils.isMacOSX() ? 2 : 0);
+        button.setMargin(new Insets(p,p,p,p));
         button.setFocusPainted(false);
         button.setToolTipText((String)a.getValue(Action.NAME));
         button.setText(null);

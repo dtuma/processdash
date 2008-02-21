@@ -162,6 +162,7 @@
       <root classname="net.sourceforge.processdash.util.RobustFileWriter"/>
       <root classname="net.sourceforge.processdash.util.RuntimeUtils"/>
       <root classname="net.sourceforge.processdash.util.StringUtils"/>
+      <root classname="net.sourceforge.processdash.ui.macosx.MacGUIUtils"/>
     </classfileset>
 
     <!-- count the number of processdash classes we are using -->
@@ -169,7 +170,7 @@
       <mapper type="merge" to="X"/>
     </pathconvert>
     <condition property="dashClasses.overflowing">
-      <length string="${dashClasses.count}" when="greater" length="12"/>
+      <length string="${dashClasses.count}" when="greater" length="14"/>
     </condition>
 
     <!-- abort if the processdash class list was larger than expected -->

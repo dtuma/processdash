@@ -5,6 +5,7 @@ import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
+import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 
 import javax.swing.AbstractAction;
@@ -12,9 +13,14 @@ import javax.swing.Action;
 import javax.swing.JTable;
 import javax.swing.KeyStroke;
 
+import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
+
 /** Copies and pastes data from JTables to the system clipboard.
  */
 public class ClipboardBridge {
+
+    private static final int KEY_MODIFIER = (MacGUIUtils.isMacOSX()
+            ? InputEvent.META_DOWN_MASK : InputEvent.CTRL_DOWN_MASK);
 
     private JTable table;
 
@@ -26,7 +32,7 @@ public class ClipboardBridge {
 
     private void setupAction(int keyChar, String token, Action action) {
         KeyStroke keyStroke = KeyStroke.getKeyStroke(keyChar,
-                ActionEvent.CTRL_MASK, false);
+                KEY_MODIFIER, false);
         table.getInputMap().put(keyStroke, token);
         table.getActionMap().put(token, action);
     }

@@ -1,8 +1,8 @@
 package teamdash.wbs;
 
 import java.awt.Component;
-import java.awt.Event;
 import java.awt.event.ActionEvent;
+import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -14,6 +14,8 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.CellEditor;
 import javax.swing.JComponent;
+
+import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
 
 
 /** Observes changes made to a {@link SnapshotSource}, and supports undo/redo
@@ -67,9 +69,9 @@ public class UndoList {
         undoAction = new UndoAction();
         redoAction = new RedoAction();
         customActions = new LinkedList();
-        customActions.add(new ActionMapping(KeyEvent.VK_Z, Event.CTRL_MASK,
+        customActions.add(new ActionMapping(KeyEvent.VK_Z, KEY_MODIFIER,
                 "Undo", undoAction));
-        customActions.add(new ActionMapping(KeyEvent.VK_Y, Event.CTRL_MASK,
+        customActions.add(new ActionMapping(KeyEvent.VK_Y, KEY_MODIFIER,
                 "Redo", redoAction));
         this.currentState = snapshotSource.getSnapshot();
     }
@@ -243,4 +245,7 @@ public class UndoList {
         UndoList l = findUndoList(source);
         if (l != null) l.stopEditors();
     }
+
+    private static final int KEY_MODIFIER = (MacGUIUtils.isMacOSX()
+            ? InputEvent.META_DOWN_MASK : InputEvent.CTRL_DOWN_MASK);
 }

@@ -151,7 +151,7 @@ public class WBSNodeEditor extends AbstractCellEditor
         if (e instanceof MouseEvent) {
             MouseEvent me = (MouseEvent)e;
             if (me.getID() == MouseEvent.MOUSE_DRAGGED ||
-                me.isShiftDown() || me.isControlDown())
+                me.isShiftDown() || me.isControlDown() || me.isMetaDown())
                 return false;
         }
 

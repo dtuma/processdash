@@ -1,5 +1,7 @@
 package teamdash.wbs;
 
+import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
+
 import com.apple.eawt.Application;
 import com.apple.eawt.ApplicationEvent;
 import com.apple.eawt.ApplicationListener;
@@ -9,6 +11,9 @@ public class MacOSXWBSHelper implements ApplicationListener {
     WBSEditor wbsEditor;
 
     public MacOSXWBSHelper(WBSEditor wbsEditor) {
+        if (!MacGUIUtils.isMacOSX())
+            throw new IllegalArgumentException("Not Mac OS X");
+
         this.wbsEditor = wbsEditor;
         Application.getApplication().addApplicationListener(this);
     }
