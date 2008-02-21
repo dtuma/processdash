@@ -47,6 +47,8 @@ import javax.swing.event.*;
 import javax.swing.tree.*;
 import javax.swing.table.*;
 
+import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
+
 import java.awt.Dimension;
 import java.awt.Component;
 import java.awt.Graphics;
@@ -366,6 +368,22 @@ public class JTreeTable extends JTable {
                                    me.getY(), me.getClickCount(),
                                    me.isPopupTrigger());
                         tree.dispatchEvent(newME);
+
+                        // The Mac look-and-feel doesn't expand/collapse
+                        // until a mouse released event is received.  But
+                        // mouse release events don't get routed through this
+                        // method, so we have to simulate one instead.
+                        if (MacGUIUtils.isMacOSX()
+                                && me.getID() == MouseEvent.MOUSE_PRESSED) {
+                            newME = new MouseEvent(tree,
+                                    MouseEvent.MOUSE_RELEASED,
+                                    me.getWhen(), me.getModifiers(),
+                                    me.getX() - getCellRect(0, counter, true).x,
+                                    me.getY(), me.getClickCount(),
+                                    me.isPopupTrigger());
+                            tree.dispatchEvent(newME);
+                        }
+
                         break;
                     }
                 }

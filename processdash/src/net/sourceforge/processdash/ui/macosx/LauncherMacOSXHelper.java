@@ -40,8 +40,7 @@ public class LauncherMacOSXHelper implements Initializable<QuickLauncher>,
     QuickLauncher launcher;
 
     public LauncherMacOSXHelper() {
-        String osName = System.getProperty("os.name");
-        if (!"Mac OS X".equalsIgnoreCase(osName))
+        if (!MacGUIUtils.isMacOSX())
             throw new IllegalArgumentException("Not Mac OS X");
     }
 

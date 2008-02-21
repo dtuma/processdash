@@ -1,5 +1,5 @@
+// Copyright (C) 2003-2008 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003-2008 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -50,6 +50,8 @@ import net.sourceforge.processdash.ui.DashboardIconFactory;
 import net.sourceforge.processdash.ui.SoundClip;
 import net.sourceforge.processdash.ui.help.PCSH;
 import net.sourceforge.processdash.ui.lib.DropDownButton;
+import net.sourceforge.processdash.ui.lib.PaddedIcon;
+import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
 
 
 public class PauseButton extends DropDownButton implements ActionListener,
@@ -79,11 +81,11 @@ public class PauseButton extends DropDownButton implements ActionListener,
         pausedTip = res.getString("Continue_Tip");
         disabledTip = res.getString("Disabled_Tip");
 
-        pausedIcon = DashboardIconFactory.getPausedIcon();
-        timingIcon = DashboardIconFactory.getTimingIcon();
+        setMainButtonMargin(new Insets(0,0,0,0));
+        pausedIcon = padIcon(DashboardIconFactory.getPausedIcon());
+        timingIcon = padIcon(DashboardIconFactory.getTimingIcon());
         getButton().setDisabledIcon(
-            DashboardIconFactory.getTimingDisabledIcon());
-        getButton().setMargin(new Insets(0,0,0,0));
+            padIcon(DashboardIconFactory.getTimingDisabledIcon()));
         getButton().setFocusPainted(false);
         getButton().addActionListener(this);
         setRunFirstMenuOption(false);
@@ -96,6 +98,12 @@ public class PauseButton extends DropDownButton implements ActionListener,
         } else {
             timingSound = new SoundClip(getClass().getResource("timing.wav"));
         }
+    }
+    private Icon padIcon(Icon icon) {
+        if (MacGUIUtils.isMacOSX())
+            return new PaddedIcon(icon, -1, 0, -1, -2);
+        else
+            return icon;
     }
 
     private void updateAppearance() {

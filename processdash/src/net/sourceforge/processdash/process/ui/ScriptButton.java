@@ -1,5 +1,5 @@
+// Copyright (C) 2003-2008 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003-2006 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -66,15 +66,11 @@ public class ScriptButton extends DropDownButton
         super();
         PCSH.enableHelp(this, "AccessingScripts");
         PCSH.enableHelpKey(getMenu(), "AccessingScripts");
-        try {
-            enabled_icon = DashboardIconFactory.getScriptIcon();
-            disabled_icon = DashboardIconFactory.getDisabledScriptIcon();
-            getButton().setIcon(enabled_icon);
-            getButton().setDisabledIcon(disabled_icon);
-        } catch (Exception e) {
-            getButton().setText("Script");
-        }
-        getButton().setMargin (new Insets (1,2,1,2));
+        setMainButtonMargin(new Insets (1,2,1,2));
+        enabled_icon = DashboardIconFactory.getScriptIcon();
+        disabled_icon = DashboardIconFactory.getDisabledScriptIcon();
+        getButton().setIcon(enabled_icon);
+        getButton().setDisabledIcon(disabled_icon);
         getButton().setFocusPainted(false);
         parent = dash;
 

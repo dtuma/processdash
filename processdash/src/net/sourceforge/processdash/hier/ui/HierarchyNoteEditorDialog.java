@@ -77,6 +77,7 @@ import net.sourceforge.processdash.hier.DashHierarchy.Event;
 import net.sourceforge.processdash.hier.ui.PlainTextNoteFormat.Editor;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.ui.DashboardIconFactory;
+import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
 
 public class HierarchyNoteEditorDialog implements DashHierarchy.Listener,
         TreeSelectionListener, ApplicationEventListener, ChangeListener,
@@ -355,9 +356,10 @@ public class HierarchyNoteEditorDialog implements DashHierarchy.Listener,
     }
 
     private void updateButtons() {
-        boolean enabledStatus = isDirty();
-        saveButton.setEnabled(enabledStatus);
-        revertButton.setEnabled(enabledStatus);
+        boolean isDirty = isDirty();
+        saveButton.setEnabled(isDirty);
+        revertButton.setEnabled(isDirty);
+        MacGUIUtils.setDirty(frame, isDirty);
     }
 
     private PropertyKey getSelectedNode() {

@@ -1,5 +1,5 @@
+// Copyright (C) 2003-2008 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003-2006 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -41,6 +41,8 @@ import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.log.defects.DefectLogID;
 import net.sourceforge.processdash.ui.DashboardIconFactory;
 import net.sourceforge.processdash.ui.help.PCSH;
+import net.sourceforge.processdash.ui.lib.PaddedIcon;
+import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
 
 public class DefectButton extends JButton implements ActionListener,
         PropertyChangeListener, DashHierarchy.Listener {
@@ -53,15 +55,17 @@ public class DefectButton extends JButton implements ActionListener,
     public DefectButton(ProcessDashboard dash) {
         super();
         PCSH.enableHelp(this, "EnteringDefects");
-        try {
-            enabled_icon = DashboardIconFactory.getDefectIcon();
-            disabled_icon = DashboardIconFactory.getDisabledDefectIcon();
-            setIcon(enabled_icon);
-            setDisabledIcon(disabled_icon);
-        } catch (Exception e) {
-            setText("Defect");
+        enabled_icon = DashboardIconFactory.getDefectIcon();
+        disabled_icon = DashboardIconFactory.getDisabledDefectIcon();
+        if (MacGUIUtils.isMacOSX()) {
+            enabled_icon = new PaddedIcon(enabled_icon, 2, 0, 0, 0);
+            disabled_icon = new PaddedIcon(disabled_icon, 2, 0, 0, 0);
+        } else {
+            setMargin(new Insets(1, 2, 1, 2));
         }
-        setMargin(new Insets(1, 2, 1, 2));
+        setIcon(enabled_icon);
+        setDisabledIcon(disabled_icon);
+
         parent = dash;
         setEnabled(false);
         setFocusPainted(false);
@@ -91,8 +95,7 @@ public class DefectButton extends JButton implements ActionListener,
     public void actionPerformed(ActionEvent e) {
         if (defectLogFileName != null) {
             // pop up a defect log dialog
-            DefectDialog d = new DefectDialog(parent, defectLogFileName,
-                    defectPath);
+            new DefectDialog(parent, defectLogFileName, defectPath);
         }
     }
 

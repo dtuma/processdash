@@ -27,12 +27,12 @@ package net.sourceforge.processdash.ui.macosx;
 
 import javax.swing.SwingUtilities;
 
+import net.sourceforge.processdash.ProcessDashboard;
+import net.sourceforge.processdash.util.Initializable;
+
 import com.apple.eawt.Application;
 import com.apple.eawt.ApplicationEvent;
 import com.apple.eawt.ApplicationListener;
-
-import net.sourceforge.processdash.ProcessDashboard;
-import net.sourceforge.processdash.util.Initializable;
 
 public class DashboardMacOSXHelper implements Initializable<ProcessDashboard>,
         ApplicationListener {
@@ -40,8 +40,7 @@ public class DashboardMacOSXHelper implements Initializable<ProcessDashboard>,
     ProcessDashboard pdash;
 
     public DashboardMacOSXHelper() {
-        String osName = System.getProperty("os.name");
-        if (!"Mac OS X".equalsIgnoreCase(osName))
+        if (!MacGUIUtils.isMacOSX())
             throw new IllegalArgumentException("Not Mac OS X");
     }
 

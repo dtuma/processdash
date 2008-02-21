@@ -122,6 +122,7 @@ import net.sourceforge.processdash.ui.TaskNavigationSelector;
 import net.sourceforge.processdash.ui.UserNotificationManager;
 import net.sourceforge.processdash.ui.help.PCSH;
 import net.sourceforge.processdash.ui.lib.ErrorReporter;
+import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
 import net.sourceforge.processdash.ui.systray.SystemTrayManagement;
 import net.sourceforge.processdash.util.Initializable;
 import net.sourceforge.processdash.util.FallbackObjectFactory;
@@ -1174,6 +1175,8 @@ public class ProcessDashboard extends JFrame implements WindowListener,
             InternalSettings.setReadOnly(true);
             pos++;
         }
+
+        MacGUIUtils.tweakLookAndFeel();
 
         ProcessDashboard dash = new ProcessDashboard
             (args.length > pos ? args[pos] : null);

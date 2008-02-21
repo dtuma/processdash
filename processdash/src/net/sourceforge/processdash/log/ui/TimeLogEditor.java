@@ -30,14 +30,12 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
-import java.awt.Event;
 import java.awt.Insets;
 import java.awt.datatransfer.Transferable;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
-import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
@@ -57,7 +55,6 @@ import java.util.TreeMap;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
-import javax.swing.InputMap;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
@@ -72,7 +69,6 @@ import javax.swing.JSplitPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.JTree;
-import javax.swing.KeyStroke;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.Timer;
 import javax.swing.TransferHandler;
@@ -111,6 +107,7 @@ import net.sourceforge.processdash.ui.help.PCSH;
 import net.sourceforge.processdash.ui.lib.DeferredSelectAllExecutor;
 import net.sourceforge.processdash.ui.lib.DropDownButton;
 import net.sourceforge.processdash.ui.lib.TableUtils;
+import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
 import net.sourceforge.processdash.util.EnumerIterator;
 import net.sourceforge.processdash.util.FormatUtil;
 
@@ -251,8 +248,10 @@ public class TimeLogEditor extends Object implements TreeSelectionListener,
     }
 
     public void tableChanged(TableModelEvent evt) {
-        saveButton.setEnabled(isDirty());
-        revertButton.setEnabled(isDirty());
+        boolean isDirty = isDirty();
+        saveButton.setEnabled(isDirty);
+        revertButton.setEnabled(isDirty);
+        MacGUIUtils.setDirty(frame, isDirty);
 
         tableContainsRows = (tableModel.getRowCount() > 0);
         addButton.setEnabled(tableContainsRows || selectedNodeLoggingAllowed);
@@ -997,6 +996,7 @@ public class TimeLogEditor extends Object implements TreeSelectionListener,
         public TimeLogJTable(TimeLogTableModel tableModel) {
             super(tableModel);
             setTransferHandler(new TransferSupport());
+            MacGUIUtils.tweakTable(this);
         }
 
         public boolean editCellAt(int row, int column, EventObject e) {
@@ -1023,14 +1023,6 @@ public class TimeLogEditor extends Object implements TreeSelectionListener,
         }
 
         private class TransferSupport extends TransferHandler {
-
-            public TransferSupport() {
-                InputMap inputMap = getInputMap();
-
-                inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_C,
-                        Event.CTRL_MASK), "CopyEntries");
-                getActionMap().put("CopyEntries", getCopyAction());
-            }
 
             public int getSourceActions(JComponent c) {
                 return COPY_OR_MOVE;

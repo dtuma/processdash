@@ -96,6 +96,7 @@ import net.sourceforge.processdash.log.ui.DefectLogEditor;
 import net.sourceforge.processdash.ui.ConfigureButton;
 import net.sourceforge.processdash.ui.DashboardIconFactory;
 import net.sourceforge.processdash.ui.help.PCSH;
+import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
 
 
 public class HierarchyEditor extends Object implements TreeModelListener, TreeSelectionListener, ItemListener
@@ -228,6 +229,7 @@ public class HierarchyEditor extends Object implements TreeModelListener, TreeSe
                          DashHierarchy templates) {
         dashboard        = dash;
         configureButton  = button;
+        frame = new JFrame(resource.getString("HierarchyEditor"));
         JMenuBar menuBar = constructMenuBar();
         JPanel   panel   = new JPanel(true);
 
@@ -237,7 +239,6 @@ public class HierarchyEditor extends Object implements TreeModelListener, TreeSe
         revertProperties ();
         updateTemplateMenu (null, null);
 
-        frame = new JFrame(resource.getString("HierarchyEditor"));
         frame.setTitle(resource.getString("HierarchyEditor"));
         DashboardIconFactory.setWindowIcon(frame);
         JToolBar toolBar = buildToolBar();
@@ -607,7 +608,6 @@ public class HierarchyEditor extends Object implements TreeModelListener, TreeSe
 
     private void addToolbarButton(JToolBar toolBar, Action a) {
         JButton button = new JButton(a);
-        button.setMargin(new Insets(1,1,1,1));
         button.setFocusPainted(false);
         button.setText(null);
         toolBar.add(button);
@@ -632,6 +632,7 @@ public class HierarchyEditor extends Object implements TreeModelListener, TreeSe
         dirtyFlag = isDirty;
         saveMenuItem.setEnabled (isDirty);
         revertMenuItem.setEnabled (isDirty);
+        MacGUIUtils.setDirty(frame, isDirty);
     }
 
     protected void adjustMenu (boolean siblings,

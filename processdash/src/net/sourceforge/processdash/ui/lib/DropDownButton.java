@@ -1,5 +1,5 @@
+// Copyright (C) 2003-2008 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -28,9 +28,12 @@ package net.sourceforge.processdash.ui.lib;
 
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Insets;
+import java.awt.LayoutManager;
+import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -38,17 +41,29 @@ import java.awt.event.ContainerEvent;
 import java.awt.event.ContainerListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import javax.swing.*;
+
+import javax.swing.Action;
+import javax.swing.BorderFactory;
+import javax.swing.Icon;
+import javax.swing.JButton;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JPanel;
+import javax.swing.SwingConstants;
 import javax.swing.border.Border;
 
+import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
+import net.sourceforge.processdash.util.StringUtils;
 
-public class DropDownButton extends Box {
+public class DropDownButton extends JPanel {
 
     public static final int NO_ACTION = 0;
     public static final int RUN_FIRST_MENU_OPTION = 1;
     public static final int OPEN_DROP_DOWN_MENU = 2;
 
-    private JButton mainButton;
+    private JMenuBar menuBar;
+    private DDMButton mainButton;
     private JButton dropDownButton;
     private boolean dropDownEnabled = false;
     private int mainButtonDefaultAction = RUN_FIRST_MENU_OPTION;
@@ -56,44 +71,83 @@ public class DropDownButton extends Box {
     private DropDownMenu menu;
     private MainButtonListener mainButtonListener = new MainButtonListener();
 
+    public DropDownButton()                 { this(new DDMButton());     }
+    public DropDownButton(Action a)         { this(new DDMButton(a));    }
+    public DropDownButton(String text)      { this(new DDMButton(text)); }
 
-    public DropDownButton(JButton mainButton) {
-        super(BoxLayout.X_AXIS);
-
+    private DropDownButton(DDMButton main_button) {
+        // create the drop down menu and register listeners
         menu = new DropDownMenu();
         menu.getPopupMenu().addContainerListener(new MenuContainerListener());
-        JMenuBar bar = new JMenuBar();
-        bar.add(menu);
-        bar.setMaximumSize(new Dimension(0,100));
-        bar.setMinimumSize(new Dimension(0,1));
-        bar.setPreferredSize(new Dimension(0,1));
-        add(bar);
+        menuBar = new JMenuBar();
+        menuBar.add(menu);
 
-        this.mainButton = mainButton;
+        // save the main button and register listeners
+        mainButton = main_button;
         mainButton.addActionListener(mainButtonListener);
-        mainButton.setBorder
-            (new RightChoppedBorder(mainButton.getBorder(), 2));
-        add(mainButton);
 
+        // create the drop-down button and register listeners
         enabledDownArrow = new SmallDownArrow();
         disDownArrow = new SmallDisabledDownArrow();
         dropDownButton = new JButton(disDownArrow);
         dropDownButton.setDisabledIcon(disDownArrow);
         dropDownButton.addMouseListener(new DropDownListener());
-        dropDownButton.setMaximumSize(new Dimension(11,100));
-        dropDownButton.setMinimumSize(new Dimension(11,10));
-        dropDownButton.setPreferredSize(new Dimension(11,10));
         dropDownButton.setFocusPainted(false);
+
+        // perform operating-system-specific tweaks on our components
+        configureGUI();
+
+        // add our elements to the component hierarchy
         add(dropDownButton);
+        add(mainButton);
+        add(menuBar);
 
         setEnabled(false);
     }
 
-    public DropDownButton()                 { this(new JButton());     }
-    public DropDownButton(Action a)         { this(new JButton(a));    }
-    public DropDownButton(Icon icon)        { this(new JButton(icon)); }
-    public DropDownButton(String text)      { this(new JButton(text)); }
-    public DropDownButton(String t, Icon i) { this(new JButton(t, i)); }
+    private void configureGUI() {
+        if (MacGUIUtils.isMacOSX())
+            configureMacGUI();
+        else
+            configureNormalGUI();
+    }
+
+    private void configureNormalGUI() {
+        setLayout(new NormalDropDownButtonLayout());
+
+        mainButton.setBorder(new RightChoppedBorder(mainButton.getBorder(), 2));
+    }
+
+    private void configureMacGUI() {
+        setLayout(new MacDropDownButtonLayout());
+
+        int leftBlank = (isTextButton() ?
+                DROP_DOWN_LEFT_PAD_TEXT : DROP_DOWN_LEFT_PAD_ICON);
+        dropDownButton.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createMatteBorder(0, 1, 0, 0, Color.gray),
+            BorderFactory.createEmptyBorder(0, leftBlank, 0, 0)));
+        dropDownButton.setHorizontalAlignment(SwingConstants.LEFT);
+    }
+
+    /** Return true if this button is displaying text, false if it is
+     * displaying an icon.  (Note that displaying BOTH is not supported
+     * by this class at this time.)
+     */
+    private boolean isTextButton() {
+        return StringUtils.hasValue(mainButton.getText());
+    }
+
+    /** Request a specific margin around the button contents.
+     * 
+     * NOTE: this method must be called before any icons are configured for
+     * this drop-down-button.
+     */
+    protected void setMainButtonMargin(Insets i) {
+        if (!MacGUIUtils.isMacOSX())
+            mainButton.setMargin(i);
+        mainButton.extraPadding = i.right;
+    }
+
 
     public JButton getButton()         { return mainButton;     }
     //public JButton getDropDownButton() { return dropDownButton; }
@@ -155,6 +209,11 @@ public class DropDownButton extends Box {
         dropDownButton.setIcon(enable ? enabledDownArrow : disDownArrow);
         if (mainButtonDefaultAction != NO_ACTION)
             setEnabled(enable);
+    }
+
+    @Override
+    public Dimension getMaximumSize() {
+        return super.getPreferredSize();
     }
 
     /** This object responds to events on the main button. */
@@ -278,4 +337,137 @@ public class DropDownButton extends Box {
             g.drawLine(x+3, y+3, x+5, y+1);
         }
     }
+
+    /** A specialized class for the main button; appends extra space to the
+     * right edge of the button on Mac OS X.  On other platforms, behaves
+     * exactly like a plain JButton.
+     */
+    private static class DDMButton extends JButton {
+
+        private int extraPadding = 2;
+
+        public DDMButton()            {}
+        public DDMButton(Action a)    { super(a); }
+        public DDMButton(Icon icon)   { super(icon); }
+        public DDMButton(String text) { super(text); }
+
+        @Override
+        public void setIcon(Icon icon) {
+            super.setIcon(padIcon(icon));
+        }
+
+        @Override
+        public void setDisabledIcon(Icon icon) {
+            super.setDisabledIcon(padIcon(icon));
+        }
+
+        @Override
+        public void setDisabledSelectedIcon(Icon icon) {
+            super.setDisabledSelectedIcon(padIcon(icon));
+        }
+
+        private Icon padIcon(Icon icon) {
+            if (MacGUIUtils.isMacOSX() && icon != null)
+                return new PaddedIcon(icon, 2, 0, 0,
+                    MAC_EXTRA_PAD_FOR_DROP_DOWN + extraPadding);
+            else
+                return icon;
+        }
+
+        @Override
+        public void setText(String text) {
+            if (MacGUIUtils.isMacOSX() && text != null) {
+                super.setText(text + "  ");
+            } else {
+                super.setText(text);
+            }
+        }
+
+    }
+
+    /** Custom layout manager to arrange our children on PC/Unix systems.
+     */
+    private class NormalDropDownButtonLayout implements LayoutManager {
+
+        private Rectangle bounds = new Rectangle();
+
+        public void layoutContainer(Container parent) {
+            parent.getBounds(bounds);
+            menuBar.setBounds(0, 0, 0, bounds.height);
+            mainButton.setBounds(0, 0, bounds.width - PC_DROP_DOWN_WIDTH,
+                bounds.height);
+            dropDownButton.setBounds(bounds.width - PC_DROP_DOWN_WIDTH, 0,
+                PC_DROP_DOWN_WIDTH, bounds.height);
+        }
+
+        public Dimension minimumLayoutSize(Container parent) {
+            Dimension result = mainButton.getMinimumSize();
+            result.width += PC_DROP_DOWN_WIDTH;
+            return result;
+        }
+
+        public Dimension preferredLayoutSize(Container parent) {
+            Dimension result = mainButton.getPreferredSize();
+            result.width += PC_DROP_DOWN_WIDTH;
+            return result;
+        }
+
+        public void addLayoutComponent(String name, Component comp) {}
+        public void removeLayoutComponent(Component comp) {}
+
+    }
+
+    /** Custom layout manager to arrange our children on Mac OS X systems.
+     */
+    private class MacDropDownButtonLayout implements LayoutManager {
+
+        private Rectangle bounds = new Rectangle();
+        private Insets mainInsets = new Insets(0,0,0,0);
+
+        public void layoutContainer(Container parent) {
+            parent.getBounds(bounds);
+
+            mainButton.setBounds(0, 0, bounds.width, bounds.height);
+            mainInsets = mainButton.getMargin();
+
+            int ddWidth, top, bottom;
+            if (isTextButton()) {
+                ddWidth = mainInsets.right + MAC_DROP_DOWN_LEFT_ADJUST_TEXT;
+                top = mainInsets.top;
+                bottom = mainInsets.bottom;
+            } else {
+                ddWidth = mainInsets.right + MAC_DROP_DOWN_LEFT_ADJUST_ICON;
+                top = mainInsets.top - MAC_ICON_BORDER_EXTRA_TOP;
+                bottom = mainInsets.bottom - MAC_ICON_BORDER_EXTRA_BOTTOM;
+            }
+            dropDownButton.setBounds(
+                bounds.width - ddWidth,        // left edge of drop down button
+                top,                           // top edge of drop down button
+                ddWidth,                       // width of drop down button
+                bounds.height - top - bottom); // height of drop down button
+
+            menuBar.setBounds(mainInsets.left, 0, 0, bounds.height - bottom);
+        }
+
+        public Dimension minimumLayoutSize(Container parent) {
+            return mainButton.getMinimumSize();
+        }
+
+        public Dimension preferredLayoutSize(Container parent) {
+            return mainButton.getPreferredSize();
+        }
+
+        public void addLayoutComponent(String name, Component comp) {}
+        public void removeLayoutComponent(Component comp) {}
+
+    }
+
+    private static final int PC_DROP_DOWN_WIDTH = 11;
+    private static final int DROP_DOWN_LEFT_PAD_ICON = 2;
+    private static final int DROP_DOWN_LEFT_PAD_TEXT = 3;
+    private static final int MAC_EXTRA_PAD_FOR_DROP_DOWN = 8;
+    private static final int MAC_DROP_DOWN_LEFT_ADJUST_TEXT = 1;
+    private static final int MAC_DROP_DOWN_LEFT_ADJUST_ICON = 6;
+    private static final int MAC_ICON_BORDER_EXTRA_TOP = 1;
+    private static final int MAC_ICON_BORDER_EXTRA_BOTTOM = 4;
 }
