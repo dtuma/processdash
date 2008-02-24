@@ -273,18 +273,37 @@ public class WBSNode implements Cloneable {
 
             // clone the attributes Map
             result.attributes = (Map) ((HashMap) result.attributes).clone();
-            // remove "transient" attributes from the copied Map.  These
-            // attributes will be recalculated as necessary.
-            Iterator i = result.attributes.keySet().iterator();
-            while (i.hasNext()) {
-                String attrName = (String) i.next();
-                if (attrName.indexOf('_') != -1 && attrName.indexOf('@') == -1)
-                    i.remove();
-            }
+            result.discardTransientAttributes(false);
+
             return result;
         } catch (CloneNotSupportedException cnse) {
             return null;        // can't happen?
         }
+    }
+
+
+
+    /** Remove calculated/derived/actual data attributes from this node.
+     * 
+     * @param discardActualData if true, attributes representing actual data
+     *     will be discarded along with other transient attributes.  (If false,
+     *     they will be retained.)
+     */
+    public void discardTransientAttributes(boolean discardActualData) {
+        Iterator i = attributes.keySet().iterator();
+        while (i.hasNext()) {
+            String attrName = (String) i.next();
+            if (isTransientAttribute(attrName)) {
+                if (discardActualData || !isActualDataAttribute(attrName))
+                    i.remove();
+            }
+        }
+    }
+    private boolean isTransientAttribute(String attrName) {
+        return (attrName.indexOf('_') != -1);
+    }
+    private boolean isActualDataAttribute(String attrName) {
+        return (attrName.indexOf('@') != -1);
     }
 
 
