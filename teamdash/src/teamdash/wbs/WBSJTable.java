@@ -614,6 +614,7 @@ public class WBSJTable extends JTable {
         WBSNode getLocation() {
             int rowNum = getSelectedRow();
             if (rowNum == -1) return null;
+            if (rowNum == 0) rowNum++;
             WBSNode result = wbsModel.getNodeForRow(rowNum);
             if (cutList != null && cutList.contains(result))
                 return null;
@@ -631,11 +632,65 @@ public class WBSJTable extends JTable {
                 nodesToInsert = WBSNode.cloneNodeList(nodesToInsert);
             cutList = null;
 
+            // Generally, we will insert the pasted nodes immediately before
+            // the designated node.  Exception: if the designated node was
+            // one of nodes originally copied to begin this copy/paste
+            // operation, insert the new nodes after the originally copied
+            // ones.  This behavior is easier for a user to follow.
             int pos = wbsModel.getRowForNode(beforeNode);
+            Set copiedIDs = getNodeIDs(nodesToInsert);
+            while (rowContainsCopiedNode(pos, copiedIDs))
+                pos++;
+
             int[] rowsInserted = wbsModel.insertNodes(nodesToInsert, pos);
             selectRows(rowsInserted);
+            if (rowsInserted != null && rowsInserted.length > 0) {
+                int firstRow = rowsInserted[0];
+                int lastRow = rowsInserted[rowsInserted.length-1];
+                if(maybeRenameCopiedNodes(nodesToInsert))
+                    wbsModel.fireTableRowsUpdated(firstRow, lastRow);
+                scrollRectToVisible(getCellRect(lastRow, 0, true));
+                scrollRectToVisible(getCellRect(firstRow-1, 0, true));
+            }
 
             UndoList.madeChange(WBSJTable.this, "Paste WBS elements");
+        }
+        boolean rowContainsCopiedNode(int row, Set copiedIDs) {
+            WBSNode destNode = wbsModel.getNodeForRow(row);
+            if (destNode == null)
+                return false;
+            String destNodeID = Integer.toString(destNode.getUniqueID());
+            return copiedIDs.contains(destNodeID);
+        }
+        boolean maybeRenameCopiedNodes(List insertedNodes) {
+            boolean renameOccurred = false;
+            for (Iterator i = insertedNodes.iterator(); i.hasNext();) {
+                if (maybeRenameCopiedNode((WBSNode) i.next()))
+                    renameOccurred = true;
+            }
+            return renameOccurred;
+        }
+        boolean maybeRenameCopiedNode(WBSNode node) {
+            String nodeName = node.getName();
+            WBSNode parent = wbsModel.getParent(node);
+            WBSNode[] children = wbsModel.getChildren(parent);
+            Set childNames = new HashSet();
+            for (int i = 0; i < children.length; i++) {
+                WBSNode child = children[i];
+                if (child != node)
+                    childNames.add(child.getName());
+            }
+            String finalName = nodeName;
+            int n = 2;
+            while (childNames.contains(finalName)) {
+                finalName = nodeName + " (" + (n++) + ")";
+            }
+            if (finalName == nodeName) {
+                return false;
+            } else {
+                node.setName(finalName);
+                return true;
+            }
         }
         public void recalculateEnablement(int[] selectedRows) {
             setEnabled(!disableEditing &&
