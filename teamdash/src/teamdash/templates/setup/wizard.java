@@ -14,6 +14,7 @@ import java.util.Vector;
 import java.util.logging.Logger;
 
 import net.sourceforge.processdash.DashController;
+import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.ImmutableDoubleData;
 import net.sourceforge.processdash.data.ImmutableStringData;
 import net.sourceforge.processdash.data.SimpleData;
@@ -807,6 +808,10 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
 
     protected boolean addScheduleToRollup(String teamScheduleName,
                                           String indivSchedPath) {
+        if (Settings.isReadOnly()) {
+            logger.fine("Cannot add schedule while in read-only mode.");
+            return false;
+        }
 
         EVTaskList rollup = EVTaskList.openExisting
             (teamScheduleName, getDataRepository(),
@@ -1022,11 +1027,21 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
 
         DataRepository data = getDataRepository();
         if (EVTaskListData.exists(data, scheduleName) ||
-            EVTaskListRollup.exists(data, scheduleName))
-            printRedirect(IND_SCHEDULE_URL + "?duplicate");
+            EVTaskListRollup.exists(data, scheduleName)) {
+            // if a task list already exists with this name, check to see if
+            // it is empty (i.e., contains no tasks or subschedules).  If it
+            // is empty, then it's OK to delete and replace it.  If not, we
+            // should display an error message indicating that this schedule
+            // name is already taken.
+            EVTaskList tl = EVTaskList.openExisting(scheduleName, data,
+                getPSPProperties(), getObjectCache(), false);
+            if (tl != null && !tl.getTaskRoot().isLeaf()) {
+                printRedirect(IND_SCHEDULE_URL + "?duplicate");
+                return;
+            }
+        }
 
-        else
-            showIndivConfirmPage();
+        showIndivConfirmPage();
     }
 
     /** Ensure that all the required individual data has been entered.
@@ -1064,7 +1079,7 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
         //System.out.println("buildTeamURLReference("+teamURL+","+ref+")");
         if (teamURL == null || teamURL.trim().length() == 0) return null;
 
-        teamURL = teamURL.trim();
+        teamURL = StringUtils.findAndReplace(teamURL.trim(), "/+/", "//");
         if (!teamURL.startsWith("http://")) return null;
         int pos = teamURL.indexOf("//", 7);
         if (pos != -1) pos = teamURL.indexOf('/', pos+2);
@@ -1248,6 +1263,14 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
     }
 
     protected String createIndivSchedule(String scheduleName) {
+        // if an older schedule exists with this same name, delete it.
+        // (Based on our checks above, the older task list should be empty
+        // anyway.  But we don't want to reuse its task list ID.)
+        EVTaskList oldList = EVTaskList.openExisting(scheduleName,
+            getDataRepository(), getPSPProperties(), getObjectCache(), false);
+        if (oldList != null)
+            oldList.save(null);
+
         EVTaskListData schedule = new EVTaskListData
             (scheduleName, getDataRepository(), getPSPProperties(), false);
         schedule.addTask(getPrefix(), getDataRepository(),

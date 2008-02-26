@@ -115,22 +115,31 @@ these hyperlinks will see a &quot;Page Not Found / Cannot Find
 Server&quot; error message.)</i></b>
 
 
-<p>You can view this page from another computer by visiting:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<script> writeToolsLink(); </script>
+<p style="margin-bottom:0pt">You can view this page from another
+computer by visiting:</p>
+<div style="margin-left:1in"><script> writeToolsLink(); </script></div>
 
 
-<p>Members of your team (and other interested individuals) can view
-the current plan summary for this project (including the current
-earned value status) by visiting:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<script> writePlanLink(); </script>
+<p style="margin-bottom:0pt">Members of your team (and other
+interested individuals) can view the current plan summary for this
+project (including the current earned value status) by visiting:</p>
+<div style="margin-left:1in"><script> writePlanLink(); </script></div>
 
 
-<p>Team members can join this project by pointing their web browser to:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<script> writeJoinLink(); </script>
+<p style="margin-bottom:0pt">Team members can join this project by
+pointing their web browser to:
+<div style="margin-left:1in"><script> writeJoinLink(); </script></div>
+[!--#if READ_ONLY --]
+<div style="margin-left:1in" class="error">Problem: this dashboard is
+currently running in read-only mode.  As a result, when individuals
+join, their personal schedules can not be added to the rolled-up team
+schedule.  To avoid this problem, please restart this dashboard in
+read-write mode before asking team members to join.</div>
+[!--#endif--]
 
-<br>To make it easy for individual team members to join this project,
+To make it easy for individual team members to join this project,
 you can <script> writeMailtoLink(); </script> to send them an email
-with instructions.
+with instructions.</p>
 
 
 </body>
