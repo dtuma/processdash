@@ -32,6 +32,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.Vector;
 
+import javax.swing.tree.TreePath;
+
 import net.sourceforge.processdash.data.ListData;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.StringData;
@@ -190,7 +192,19 @@ public class EVTaskListRollup extends EVTaskList {
         }
         if (taskList == null) return null;
 
-        EVTask newTask = (EVTask) taskList.getRoot();
+        // first, remove any existing child with the same name.  (This covers
+        // the common scenario where a child task list has been deleted and
+        // recreated, and we're attempting to replace the missing task list
+        // with the replacement.)
+        EVTask newTask = taskList.getTaskRoot();
+        int oldTaskIndex = getTaskRoot().getChildIndex(newTask);
+        if (oldTaskIndex != -1) {
+            EVTask oldTask = getTaskRoot().getChild(oldTaskIndex);
+            TreePath tp = new TreePath(new Object[] { getTaskRoot(), oldTask});
+            removeTask(tp);
+        }
+
+        // now, add the new task list to the end of our list.
         if (((EVTask) root).add(newTask)) {
             evTaskLists.add(taskList);
             ((EVScheduleRollup) schedule).addSchedule(taskList);
