@@ -29,6 +29,11 @@
 <head>
 <title>Team Project Setup Wizard</title>
 <link rel=stylesheet type='text/css' href='teamStart.css'>
+<!--#if errMsg eq 'neverAdd' -->
+<style>
+.showIfFixable { display: none }
+</style>
+<!--#endif-->
 </head>
 <body>
 
@@ -49,23 +54,41 @@ framework that controls how team data will be rolled up.</p>
 <div class=error>
 
 <p>This team project is based on a process that you have
-never used before.  The dashboard attempted to automatically load the
-definition for this process from the following location:
+never used before.
 
-<PRE>     <!--#echo [setup//Template_Path] --></PRE>
+<!--#if errMsg eq 'neverAdd' -->
 
-Unfortunately, <!--#echo errMsg -->. Please talk with your team leader for
-more help.</p>
+    Before you can join this team project, you must first install a
+    recent version of the <!--#echo [setup//Package_ID] --> process
+    package.  You may be able to resolve this problem by running a
+    recent copy of the Process Dashboard installer.
+
+<!--#else-->
+
+    The dashboard attempted to automatically load the
+    definition for this process from the following location:
+
+    <PRE>     <!--#echo [setup//Template_Path] --></PRE>
+
+    Unfortunately, <!--#echo errMsg -->. 
+
+<!--#endif-->
+
+Please talk with your team leader for more help.</p>
 
 </div>
 
-<p>After you address this problem, you can click the &quot;Retry&quot;
-button and the dashboard will try again.</p>
+<p class="showIfFixable">After you address this problem, you can click
+the &quot;Retry&quot; button and the dashboard will try again.</p>
 
 <input type="hidden" name="Team_URL"
        value="<!--#echo [setup//Team_URL] -->">
 <input type="hidden" name="Template_ID"
        value="<!--#echo [setup//Template_ID] -->">
+<input type="hidden" name="Package_ID"
+       value="<!--#echo [setup//Package_ID] -->">
+<input type="hidden" name="Package_Version"
+       value="<!--#echo [setup//Package_Version] -->">
 <input type="hidden" name="Template_Path"
        value="<!--#echo [setup//Template_Path] -->">
 <input type="hidden" name="Template_Path_UNC"
@@ -77,9 +100,9 @@ button and the dashboard will try again.</p>
 <table width='100%'><tr><td width='100%' align='right' nowrap>
 <input type=button name=cancel value='Cancel'
        onClick='window.close();'>&nbsp;&nbsp;
-<input type=button name=back value='Back'
+<input type=button name=back value='Back' class='showIfFixable'
        onClick='history.back();'>&nbsp;&nbsp;
-<input type=submit name=retry value='Retry'>
+<input type=submit name=retry value='Retry' class='showIfFixable'>
 </td></tr></table>
 
 </form>

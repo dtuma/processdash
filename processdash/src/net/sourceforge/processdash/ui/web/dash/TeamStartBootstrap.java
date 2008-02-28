@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2007 Tuma Solutions, LLC
+// Copyright (C) 2003-2008 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -104,6 +104,8 @@ public class TeamStartBootstrap extends TinyCGIBase {
     private static final String TEAM_PROC_NAME = "setup//Process_Name";
     private static final String TEAM_URL = "setup//Team_URL";
     private static final String TEMPLATE_ID = "setup//Template_ID";
+    private static final String PACKAGE_ID = "setup//Package_ID";
+    private static final String PACKAGE_VERSION = "setup//Package_Version";
     private static final String TEMPLATE_PATH = "setup//Template_Path";
     private static final String TEMPLATE_UNC = "setup//Template_Path_UNC";
     private static final String CONTINUATION_URI = "setup//Continuation_URI";
@@ -115,6 +117,12 @@ public class TeamStartBootstrap extends TinyCGIBase {
     private static final String JOIN_VERIFY_URL = "teamStartJoinVerify.shtm";
 
     private static Resources resources = Resources.getDashBundle("TeamStart");
+
+    private static final String TEMPLATE_PATH_FORCE = "alwaysAdd";
+    private static final String TEMPLATE_PATH_UPDATE = "addIfNewer";
+    private static final String TEMPLATE_PATH_NEVER = "neverAdd";
+    private static String TEMPLATE_PATH_SETTING = Settings.getVal(
+        "teamJoin.templateSearchPathPhilosophy", TEMPLATE_PATH_UPDATE);
 
     private static final Logger logger = Logger.getLogger(
             TeamStartBootstrap.class.getName());
@@ -369,6 +377,8 @@ public class TeamStartBootstrap extends TinyCGIBase {
         // downloaded.
         Element e = doc.getDocumentElement();
         putValue(TEMPLATE_ID, e.getAttribute("Template_ID"));
+        putValue(PACKAGE_ID, e.getAttribute("Package_ID"));
+        putValue(PACKAGE_VERSION, e.getAttribute("Package_Version"));
         putValue(TEMPLATE_PATH, e.getAttribute("Template_Path"));
         putValue(TEMPLATE_UNC, e.getAttribute("Template_Path_UNC"));
         putValue(CONTINUATION_URI, e.getAttribute("Continuation_URI"));
@@ -382,6 +392,8 @@ public class TeamStartBootstrap extends TinyCGIBase {
     protected void handleJoinPage() {
         putValue(TEAM_URL, getParameter("Team_URL"));
         putValue(TEMPLATE_ID, getParameter("Template_ID"));
+        putValue(PACKAGE_ID, getParameter("Package_ID"));
+        putValue(PACKAGE_VERSION, getParameter("Package_Version"));
         putValue(TEMPLATE_PATH, getParameter("Template_Path"));
         putValue(TEMPLATE_UNC, getParameter("Template_Path_UNC"));
         putValue(CONTINUATION_URI, getParameter("Continuation_URI"));
@@ -394,18 +406,23 @@ public class TeamStartBootstrap extends TinyCGIBase {
     protected void joinProject() {
         // String teamURL = getValue(TEAM_URL);
         String templateID = getValue(TEMPLATE_ID);
+        String packageID = getValue(PACKAGE_ID);
+        String packageVersion = getValue(PACKAGE_VERSION);
         String templatePath = getValue(TEMPLATE_PATH);
         String templatePathUNC = getValue(TEMPLATE_UNC);
         String continuationURI = getValue(CONTINUATION_URI);
         String relaxPathReq = getValue(RELAX_PATH_REQ);
         boolean requirePath = !StringUtils.hasValue(relaxPathReq);
 
+        if (!TEMPLATE_PATH_FORCE.equals(TEMPLATE_PATH_SETTING))
+            requirePath = false;
+
         String errorMessage = null;
         File templateFile = resolveTemplateLocation(templatePath,
                 templatePathUNC);
 
-        if (templateIsLoaded(templateID, templateFile, continuationURI,
-                requirePath)) {
+        if (templateIsLoaded(templateID, packageID, packageVersion, templateFile,
+                continuationURI, requirePath)) {
             // the template is already present in the dashboard.  Test to
             // make certain our dashboard can understand that template.
             errorMessage = testContinuation(getPrefix(), continuationURI);
@@ -413,6 +430,9 @@ public class TeamStartBootstrap extends TinyCGIBase {
             // If that went OK, redirect to the continuation URI.
             if (errorMessage == null)
                 printRedirect(getPrefix(), continuationURI);
+
+        } else if (TEMPLATE_PATH_NEVER.equals(TEMPLATE_PATH_SETTING)) {
+            errorMessage = TEMPLATE_PATH_NEVER;
 
         } else {
             errorMessage = initiateTemplateLoad
@@ -458,6 +478,8 @@ public class TeamStartBootstrap extends TinyCGIBase {
 
 
     private boolean templateIsLoaded(String templateID,
+                                     String packageID,
+                                     String packageVersion,
                                      File templateJarfile,
                                      String continuationURI,
                                      boolean requireDirInSearchPath)
@@ -480,10 +502,20 @@ public class TeamStartBootstrap extends TinyCGIBase {
         logger.log(Level.FINER, "url={0}", url);
         if (url == null) return false;
 
-        // if the file could not be located or does not exist, then we can't
-        // compare to see if we have an appropriate version. For now, we
-        // will choose to fail in that scenario. (In a later version of the
-        // dashboard, this decision might be revisited.)
+        // if we're allowed to use local templates, and the team project gave
+        // us a version number to compare against, check if we're up-to-date.
+        if (requireDirInSearchPath == false
+                && StringUtils.hasValue(packageID)
+                && StringUtils.hasValue(packageVersion)
+                && upgradeIsNeeded(packageID, packageVersion) == false)
+            return true;
+
+        // If we reach point, then one of the following is true:
+        //  * we're requiring the directory to be added to the search path, or
+        //  * the team process didn't tell us which version we need, or
+        //  * we might need to upgrade by adding the template to our path.
+        // Either way, we'll need the location of the template JAR file.  If
+        // that JAR could not be located or does not exist, return false.
         if (templateJarfile == null || !templateJarfile.exists())
             return false;
 
@@ -529,7 +561,7 @@ public class TeamStartBootstrap extends TinyCGIBase {
 
     private DashPackage getDashPackageForFile(File templateFile)
             throws MalformedURLException, InvalidDashPackage {
-        String jarURL = templateFile.toURL().toString();
+        String jarURL = templateFile.toURI().toURL().toString();
         URL url = new URL("jar:" + jarURL + "!/Templates/");
         DashPackage dashPackage = new DashPackage(url);
         return dashPackage;
@@ -539,6 +571,10 @@ public class TeamStartBootstrap extends TinyCGIBase {
     private boolean upgradeIsNeeded(DashPackage pkg) {
         String pkgId = pkg.id;
         String pkgVersion = pkg.version;
+        return upgradeIsNeeded(pkgId, pkgVersion);
+    }
+
+    private boolean upgradeIsNeeded(String pkgId, String pkgVersion) {
         String instVersion = TemplateLoader.getPackageVersion(pkgId);
         logger.log(Level.FINER, "template package ID={0}", pkgId);
         logger.log(Level.FINER, "template package version={0}", pkgVersion);
@@ -588,6 +624,9 @@ public class TeamStartBootstrap extends TinyCGIBase {
                                         File templateFile,
                                         String continuationURI)
     {
+        if (TEMPLATE_PATH_NEVER.equals(TEMPLATE_PATH_SETTING))
+            return TEMPLATE_PATH_NEVER;
+
         String templatePath = templateFile.getPath();
         String templateDir = templateFile.getParent();
 
