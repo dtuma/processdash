@@ -12,6 +12,8 @@ import java.net.URLConnection;
 import java.util.Map;
 import java.util.Vector;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import net.sourceforge.processdash.DashController;
 import net.sourceforge.processdash.Settings;
@@ -122,6 +124,9 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
     private static final String IND_CONFIRM_PAGE = "indivConfirm";
     private static final String IND_SHOW_CONFIRM_PAGE = "indivShowConfirm";
     private static final String IND_CONFIRM_URL = "indivConfirm.shtm";
+    // information for the page indicating that the user wishes to override
+    // the location of the team directory
+    private static final String IND_OVERRIDE_PAGE = "indivDirOverride";
     // URL of the page that is displayed when the wizard successfully
     // joins the individual to the team project
     private static final String IND_SUCCESS_URL = "indivSuccess.shtm";
@@ -136,6 +141,7 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
 
     // Names of session variables used to store user selections.
     private static final String TEAM_MASTER_FLAG = "setup//Is_Master";
+    private static final String TEAM_TEMPLATE_FLAG = "setup//Is_Importing_Template";
     private static final String SUGG_TEAM_DIR = "setup//Suggested_Team_Dir";
     private static final String TEAM_DIR = "setup//Team_Dir";
     private static final String TEAM_SCHEDULE = "setup//Team_Schedule";
@@ -145,6 +151,7 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
     private static final String IND_FULLNAME = "/Owner";
     private static final String IND_SCHEDULE = "setup//Indiv_Schedule";
     private static final String DATA_DIR = "setup//Data_Directory";
+    private static final String IND_DIR_OVERRIDE = "setup//Indiv_Team_Dir_Override";
 
     // the template ID of a "team project stub"
     private static final String TEAM_STUB_ID = "TeamProjectStub";
@@ -169,6 +176,7 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
         else if (IND_SHOW_CONFIRM_PAGE.equals(page))
                                                    showIndivConfirmPage();
         else if (IND_CONFIRM_PAGE.equals(page))    handleIndivConfirmPage();
+        else if (IND_OVERRIDE_PAGE.equals(page))   handleIndivDirOverridePage();
 
         else if (JOIN_TEAM_SCHED_PAGE.equals(page))
                                                    handleJoinTeamSchedPage();
@@ -200,7 +208,7 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
 
     /** Save a value into the data repository. */
     protected void putValue(String name, String value) {
-        putValue(name, new ImmutableStringData(value));
+        putValue(name, value == null ? null : new ImmutableStringData(value));
     }
 
     protected void putValue(String name, SimpleData dataValue) {
@@ -660,7 +668,12 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
         DashController.enableTeamSettings();
 
         // initiate the template directory adding task.
-        new TemplateDirAdder(teamDirectory);
+        String templatePathSetting = Settings.getVal(
+            "teamJoin.templateSearchPathPhilosophy");
+        if ("alwaysAdd".equalsIgnoreCase(templatePathSetting)) {
+            putValue(TEAM_TEMPLATE_FLAG, "t");
+            new TemplateDirAdder(teamDirectory);
+        }
     }
 
     private final class TemplateDirAdder extends Thread {
@@ -1097,7 +1110,32 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
         return u;
     }
 
-    /** Display the page for an individual to select a schedule name */
+    /** Handle data from the page that told the user that the team data
+     * directory could not be found.  (They may have entered a manual
+     * override value.)
+     */
+    protected void handleIndivDirOverridePage() {
+        String indivDirOverride = getParameter("indivTeamDirOverride");
+
+        if (StringUtils.hasValue(indivDirOverride)) {
+            indivDirOverride = indivDirOverride.trim();
+            // check to see if the user has given us a value all the way
+            // down in the alphanumeric subdirectory itself.  If so, strip
+            // off that information to leave the team data directory only.
+            Matcher m = DATA_SUBDIR_PATTERN.matcher(indivDirOverride);
+            if (m.find())
+                indivDirOverride = indivDirOverride.substring(0, m.start());
+        }
+
+        // save the value into the session, then attempt to retry the
+        // joining process.
+        putValue(IND_DIR_OVERRIDE, indivDirOverride);
+        handleIndivConfirmPage();
+    }
+    private static final Pattern DATA_SUBDIR_PATTERN = Pattern.compile(
+        "(/|\\\\)data((/|\\\\)[a-z0-9]{8,9})$", Pattern.CASE_INSENSITIVE);
+
+    /** Display the page for an individual to confirm their choices */
     protected void showIndivConfirmPage() {
         if (ensureIndivValues())
             printRedirect(IND_CONFIRM_URL);
@@ -1148,8 +1186,9 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
         // user. This involves file IO which could fail for various
         // reasons, so we attempt to get it out of the way first.
         String dataSubdir = "data"+File.separator+ projectID;
-        teamDirectory = resolveTeamDirectory(teamDirectory, teamDirectoryUNC,
-                                             dataSubdir);
+        String indivDirOverride = getValue(IND_DIR_OVERRIDE);
+        teamDirectory = resolveTeamDirectory(indivDirOverride, teamDirectory,
+            teamDirectoryUNC, dataSubdir);
         if (teamDirectory == null)
             // the error page will already have been displayed by now,
             // so just abort on failure.
@@ -1210,20 +1249,32 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
     /** Check to ensure that the team and data directories exist, and
      * resolve the team directory to something that will work for the
      * current user, if possible.  */
-    protected String resolveTeamDirectory(String teamDirectory,
+    protected String resolveTeamDirectory(String indivOverrideDirectory,
+                                          String teamDirectory,
                                           String teamDirectoryUNC,
                                           String dataSubdir) {
-        File f = new File(teamDirectory, dataSubdir);
-        if (f.isDirectory()) return teamDirectory;
+        File f;
 
-        // Try to find the data directory using the UNC path.
-        if (teamDirectoryUNC != null) {
-            NetworkDriveList networkDriveList = new NetworkDriveList();
-            String altTeamDirectory =
-                networkDriveList.fromUNCName(teamDirectoryUNC);
-            if (altTeamDirectory != null) {
-                File f2 = new File(altTeamDirectory, dataSubdir);
-                if (f2.isDirectory()) return altTeamDirectory;
+        if (StringUtils.hasValue(indivOverrideDirectory)) {
+            // If the user has specified a manual directory override, try that
+            // directory only.
+            f = new File(indivOverrideDirectory, dataSubdir);
+            if (f.isDirectory()) return indivOverrideDirectory;
+
+        } else {
+            // Otherwise, try the directory specified by the team project.
+            f = new File(teamDirectory, dataSubdir);
+            if (f.isDirectory()) return teamDirectory;
+
+            // Try to find the data directory using the UNC path.
+            if (teamDirectoryUNC != null) {
+                NetworkDriveList networkDriveList = new NetworkDriveList();
+                String altTeamDirectory =
+                    networkDriveList.fromUNCName(teamDirectoryUNC);
+                if (altTeamDirectory != null) {
+                    File f2 = new File(altTeamDirectory, dataSubdir);
+                    if (f2.isDirectory()) return altTeamDirectory;
+                }
             }
         }
 

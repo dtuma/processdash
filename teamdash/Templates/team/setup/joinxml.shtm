@@ -1,28 +1,33 @@
 <?xml version="1.0"?>
 <!--#do-not-translate-->
 
+<!--#echo defaultEncoding="xml" -->
 <!--#replace token=":" var=[file_sep] -->
+<!--#replace token="TPID" var=[Team_Process_PID] -->
 
 <join-team-project
 <!--#if [Individuals_Using_Stubless_Phases] || teamSync.noPhaseStubs -->
-    Template_ID="<!--#echo var=[Team_Process_PID] encoding=xml -->/Indiv2Root"
+    Template_ID="TPID/Indiv2Root"
 <!--#else-->
-    Template_ID="<!--#echo var=[Team_Process_PID] encoding=xml -->/IndivRoot"
+    Template_ID="TPID/IndivRoot"
 <!--#endif-->
 
-    Team_Directory="<!--#echo var=[Team_Directory] encoding=xml -->"
-    Template_Path="<!--#echo var=[Team_Directory] encoding=xml -->:Templates:<!--#echo var=[Team_Process_PID] encoding=xml -->.zip"
+    Package_ID="TPID"
+    Package_Version="<!--#echo Dash_Package_TPID -->"
+
+    Team_Directory="<!--#echo var=[Team_Directory] -->"
+    Template_Path="<!--#echo var=[Team_Directory] -->:Templates:TPID.zip"
 
 <!--#if [Team_Directory_UNC] -->
-    Team_Directory_UNC="<!--#echo var=[Team_Directory_UNC] encoding=xml -->"
-    Template_Path_UNC="<!--#echo var=[Team_Directory_UNC] encoding=xml -->:Templates:<!--#echo var=[Team_Process_PID] encoding=xml -->.zip"
+    Team_Directory_UNC="<!--#echo var=[Team_Directory_UNC] -->"
+    Template_Path_UNC="<!--#echo var=[Team_Directory_UNC] -->:Templates:TPID.zip"
 <!--#else-->
     Team_Directory_UNC=""
     Template_Path_UNC=""
 <!--#endif-->
 
     Project_ID="<!--#echo var=[Project_ID] encoding=xml -->"
-    Continuation_URI="/<!--#echo var=[Team_Process_PID] encoding=xml -->/setup/wizard.class?page=indiv"
+    Continuation_URI="/TPID/setup/wizard.class?page=indiv"
 
 />
 
