@@ -686,6 +686,8 @@ public class TeamTimeColumn extends TopDownBottomUpColumn {
         {
             StringBuffer result = new StringBuffer();
             StringBuffer annotatedResult = new StringBuffer();
+            annotatedResult.append(DEFAULT_TIME_MARKER + "(").append(
+                NumericDataValue.format(defaultTime)).append(")");
             for (int i = 0;   i < times.length;   i++)
                 if (times[i].isAssigned()) {
                     times[i].appendTimeString
@@ -698,25 +700,35 @@ public class TeamTimeColumn extends TopDownBottomUpColumn {
                 return UNASSIGNED;
             else if (ANNOTATE_ASSIGNMENT_VALUE)
                 return new AnnotatedValue(result.toString().substring(2),
-                        annotatedResult.toString().substring(2));
+                        annotatedResult.toString());
             else
                 return result.toString().substring(2);
         }
         public void setValueAt(Object aValue, WBSNode node) {
             LeafNodeData leafData = getLeafNodeData(node);
             if (leafData == null) return;
-            Double defaultTime = new Double(leafData.timePerPerson);
+            double defaultTime = leafData.timePerPerson;
+            double multiplier = 1;
 
             boolean foundData = false;
             HashMap times = new HashMap();
             if (aValue instanceof String) {
                 Matcher m = TIME_SETTING_PATTERN.matcher((String) aValue);
                 while (m.find()) {
-                    foundData = true;
-                    Object initials = m.group(1).toLowerCase();
-                    Object value = m.group(2);
-                    if (value == null) value = defaultTime;
-                    times.put(initials, value);
+                    String initials = m.group(1);
+                    String value = m.group(2);
+                    double timeVal = NumericDataValue.parse(value);
+                    if (DEFAULT_TIME_MARKER.equals(initials)) {
+                        if (timeVal > 0 && defaultTime > 0)
+                            multiplier = defaultTime / timeVal;
+                    } else {
+                        foundData = true;
+                        if (value == null)
+                            timeVal = defaultTime;
+                        else
+                            timeVal *= multiplier;
+                        times.put(initials.toLowerCase(), new Double(timeVal));
+                    }
                 }
             }
             if (aValue == null || "".equals(aValue))
@@ -731,7 +743,8 @@ public class TeamTimeColumn extends TopDownBottomUpColumn {
         ("???", "Task needs to be assigned to individual(s)");
     private static Pattern TIME_SETTING_PATTERN =
         Pattern.compile("([a-zA-Z]+)[^a-zA-Z0-9\\.]*([0-9\\.]+)?");
-    private static final boolean ANNOTATE_ASSIGNMENT_VALUE = false;
+    private static final boolean ANNOTATE_ASSIGNMENT_VALUE = true;
+    private static final String DEFAULT_TIME_MARKER = "DefaultTimePerPerson";
 
 
 
