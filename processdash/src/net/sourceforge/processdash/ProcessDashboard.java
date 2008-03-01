@@ -532,8 +532,12 @@ public class ProcessDashboard extends JFrame implements WindowListener,
             return;
 
         String dataDir = readDataDirLinkFile(linkFileName);
-        if (dataDir.startsWith("~"))
+        if (dataDir.startsWith("~")) {
             dataDir = System.getProperty("user.home") + dataDir.substring(1);
+            File dataDirFile = new File(dataDir);
+            if (!dataDirFile.isDirectory())
+                dataDirFile.mkdirs();
+        }
 
         try {
             File f = new File(dataDir);
