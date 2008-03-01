@@ -1193,6 +1193,10 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
             // the error page will already have been displayed by now,
             // so just abort on failure.
             return;
+        else if (teamDirectory.equals(indivDirOverride))
+            // if the user overrode the team directory, we should ignore any
+            // unreachable UNC path associated with the original team dir.
+            teamDirectoryUNC = null;
 
         if (teamDirectory.endsWith(File.separator))
             // remove any trailing file separator if present.
