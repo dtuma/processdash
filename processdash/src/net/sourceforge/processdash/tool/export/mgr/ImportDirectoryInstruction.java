@@ -1,5 +1,5 @@
+// Copyright (C) 2005-2008 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2005 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -33,6 +33,8 @@ public class ImportDirectoryInstruction extends AbstractInstruction {
 
     private static final String DIR_ATTR = "directory";
 
+    private static final String URL_ATTR = "url";
+
     private static final String PREFIX_ATTR = "prefix";
 
     public ImportDirectoryInstruction() {
@@ -53,6 +55,14 @@ public class ImportDirectoryInstruction extends AbstractInstruction {
 
     public void setDirectory(String directory) {
         setAttribute(DIR_ATTR, directory);
+    }
+
+    public String getURL() {
+        return getAttribute(URL_ATTR);
+    }
+
+    public void setURL(String url) {
+        setAttribute(URL_ATTR, url);
     }
 
     public String getPrefix() {

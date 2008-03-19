@@ -1,4 +1,4 @@
-// Copyright (C) 2006 Tuma Solutions, LLC
+// Copyright (C) 2006-2008 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -42,12 +42,14 @@ public class GlobEngineTest extends TestCase {
         assertTrue(GlobEngine.test("f?x", TEXT));
         assertTrue(GlobEngine.test("LAZY", TEXT));
         assertTrue(GlobEngine.test("jum*", TEXT));
+        assertTrue(GlobEngine.test("*ick", TEXT));
         assertFalse(GlobEngine.test("bar", TEXT));
         assertTrue(GlobEngine.test("q*k", TEXT));
         assertTrue(GlobEngine.test("fox the", TEXT));
         assertFalse(GlobEngine.test("fox -the", TEXT));
         assertTrue(GlobEngine.test("-qux", TEXT));
         assertFalse(GlobEngine.test("-q*", TEXT));
+        assertFalse(GlobEngine.test("*ing", TEXT));
 
         assertTrue(GlobEngine.test("foo | fox | blah", TEXT));
         assertFalse(GlobEngine.test("(foo fox) | blah", TEXT));

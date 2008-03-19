@@ -1,4 +1,4 @@
-// Copyright (C) 2005-2007 Tuma Solutions, LLC
+// Copyright (C) 2005-2008 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -31,11 +31,17 @@ import java.util.logging.Logger;
 
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.repository.DataRepository;
+import net.sourceforge.processdash.tool.bridge.client.BridgedImportDirectory;
+import net.sourceforge.processdash.tool.bridge.client.ImportDirectory;
+import net.sourceforge.processdash.tool.bridge.client.ImportDirectoryFactory;
 import net.sourceforge.processdash.tool.export.DataImporter;
+import net.sourceforge.processdash.util.StringUtils;
 
 import org.w3c.dom.Element;
 
 public class ImportManager extends AbstractManager {
+
+    public static final String SETTING_NAME = "import.instructions";
 
     private static final Logger logger = Logger.getLogger(ImportManager.class
             .getName());
@@ -50,12 +56,18 @@ public class ImportManager extends AbstractManager {
 
     public static void init(DataRepository dataRepository) {
         getInstance().setData(dataRepository, true);
+        if (getInstance().urlValueChanged)
+            getInstance().saveSetting();
         DataImporter.waitForAllInitialized();
     }
+
+    private boolean urlValueChanged = false;
 
     private ImportManager() {
         super();
         initialize();
+        if (urlValueChanged)
+            saveSetting();
 
         if (logger.isLoggable(Level.CONFIG))
             logger.config("ImportManager contents:\n" + getDebugContents());
@@ -66,7 +78,7 @@ public class ImportManager extends AbstractManager {
     }
 
     protected String getXmlSettingName() {
-        return "import.instructions";
+        return SETTING_NAME;
     }
 
     protected void parseXmlInstruction(Element element) {
@@ -83,11 +95,24 @@ public class ImportManager extends AbstractManager {
         doAddInstruction(new ImportDirectoryInstruction(dir, prefix));
     }
 
+    @Override
+    protected void saveSetting() {
+        super.saveSetting();
+        urlValueChanged = false;
+    }
+
     private String massagePrefix(String p) {
         p = p.replace(File.separatorChar, '/');
         if (!p.startsWith("/"))
             p = "/" + p;
         return p;
+    }
+
+    private String getDirInfo(ImportDirectoryInstruction instr) {
+        if (StringUtils.hasValue(instr.getDirectory()))
+            return instr.getDirectory();
+        else
+            return instr.getURL();
     }
 
     public void handleAddedInstruction(AbstractInstruction instr) {
@@ -108,10 +133,20 @@ public class ImportManager extends AbstractManager {
 
         public Object dispatch(ImportDirectoryInstruction instr) {
             String prefix = instr.getPrefix();
-            String origDir = instr.getDirectory();
-            String remappedDir = ExternalResourceManager.getInstance()
-                    .remapFilename(origDir);
-            DataImporter.addImport(data, prefix, remappedDir);
+            ImportDirectory importDir = ImportDirectoryFactory.getInstance()
+                    .get(instr);
+
+            if (importDir instanceof BridgedImportDirectory) {
+                BridgedImportDirectory bid = (BridgedImportDirectory) importDir;
+                String oldURL = instr.getURL();
+                String newURL = bid.getRemoteURL();
+                if (newURL != null && !newURL.equals(oldURL)) {
+                    instr.setURL(newURL);
+                    urlValueChanged = true;
+                }
+            }
+
+            DataImporter.addImport(data, prefix, getDirInfo(instr), importDir);
             return null;
         }
 
@@ -123,10 +158,7 @@ public class ImportManager extends AbstractManager {
 
         public Object dispatch(ImportDirectoryInstruction instr) {
             String prefix = instr.getPrefix();
-            String origDir = instr.getDirectory();
-            String remappedDir = ExternalResourceManager.getInstance()
-                    .remapFilename(origDir);
-            DataImporter.removeImport(prefix, remappedDir);
+            DataImporter.removeImport(prefix, getDirInfo(instr));
             return null;
         }
 

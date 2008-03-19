@@ -33,7 +33,6 @@ import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executor;
@@ -43,11 +42,14 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 import net.sourceforge.processdash.Settings;
+import net.sourceforge.processdash.tool.bridge.client.ImportDirectory;
+import net.sourceforge.processdash.tool.bridge.client.ImportDirectoryFactory;
+import net.sourceforge.processdash.tool.bridge.impl.TeamServerPointerFile;
 import net.sourceforge.processdash.tool.export.DataImporter;
-import net.sourceforge.processdash.tool.export.mgr.ExternalResourceManager;
 import net.sourceforge.processdash.tool.export.mgr.ImportDirectoryInstruction;
 import net.sourceforge.processdash.util.DrainableExecutor;
 import net.sourceforge.processdash.util.FileUtils;
+import net.sourceforge.processdash.util.StringUtils;
 import net.sourceforge.processdash.util.XMLUtils;
 
 import org.w3c.dom.Document;
@@ -61,12 +63,12 @@ public class ExternalResourceArchiverXMLv1 implements ExternalResourceArchiver,
     private boolean keepFileModificationTimes = Settings.getBool(
         "backup.keepExternalFileTimes", true);
 
-    private Map<String, String> importedDirs = Collections
-            .synchronizedMap(new HashMap<String, String>());
+    private Map<ImportDirectoryInstruction, String> importedDirs = Collections
+            .synchronizedMap(new HashMap<ImportDirectoryInstruction, String>());
     private IOException exceptionEncountered;
 
     public Object dispatch(ImportDirectoryInstruction instr) {
-        importedDirs.put(instr.getDirectory(), null);
+        importedDirs.put(instr, null);
         return null;
     }
 
@@ -84,13 +86,13 @@ public class ExternalResourceArchiverXMLv1 implements ExternalResourceArchiver,
         NumberFormat fmt = NumberFormat.getIntegerInstance();
         fmt.setMinimumIntegerDigits(3);
 
-        List<String> importedDirNames = new ArrayList<String>(importedDirs
-                .keySet());
-        for (int i = 0; i < importedDirNames.size(); i++) {
-            String origPath = importedDirNames.get(i);
+        List<ImportDirectoryInstruction> importInstructions =
+            new ArrayList<ImportDirectoryInstruction>(importedDirs.keySet());
+        for (int i = 0; i < importInstructions.size(); i++) {
+            ImportDirectoryInstruction instr = importInstructions.get(i);
             String newPath = "extdir" + fmt.format(i + 1);
-            executor.execute(new ArchiveDirectoryTask(executor, out,
-                    origPath, newPath));
+            executor.execute(new ArchiveDirectoryTask(executor, out, instr,
+                    newPath));
         }
 
         executor.drain();
@@ -103,26 +105,24 @@ public class ExternalResourceArchiverXMLv1 implements ExternalResourceArchiver,
 
         Executor taskRunner;
         ZipOutputStream out;
-        String origPath;
+        ImportDirectoryInstruction instr;
         String newPath;
 
         public ArchiveDirectoryTask(Executor taskRunner, ZipOutputStream out,
-                String origPath, String newPath) {
+                ImportDirectoryInstruction instr, String newPath) {
             this.taskRunner = taskRunner;
             this.out = out;
-            this.origPath = origPath;
+            this.instr = instr;
             this.newPath = newPath;
         }
 
         public void run() {
-            String remappedPath = ExternalResourceManager.getInstance()
-                    .remapFilename(origPath);
-            File sourceDir = new File(remappedPath);
-            if (sourceDir.isDirectory()) {
-                importedDirs.put(origPath, newPath);
-                archiveDirectory(taskRunner, out, sourceDir, newPath);
+            ImportDirectory dir = ImportDirectoryFactory.getInstance().get(instr);
+            if (dir != null && dir.getDirectory().isDirectory()) {
+                importedDirs.put(instr, newPath);
+                archiveDirectory(taskRunner, out, dir.getDirectory(), newPath);
             } else {
-                importedDirs.remove(origPath);
+                importedDirs.remove(instr);
             }
         }
     }
@@ -141,6 +141,8 @@ public class ExternalResourceArchiverXMLv1 implements ExternalResourceArchiver,
 
     private boolean isFileToArchive(String filename) {
         filename = filename.toLowerCase();
+        if (TeamServerPointerFile.FILE_NAME.equalsIgnoreCase(filename))
+            return false;
         return filename.endsWith(DataImporter.EXPORT_FILE_OLD_SUFFIX)
                 || filename.endsWith(DataImporter.EXPORT_FILE_SUFFIX)
                 || filename.endsWith(".xml");
@@ -201,12 +203,17 @@ public class ExternalResourceArchiverXMLv1 implements ExternalResourceArchiver,
         ser.startDocument(ENCODING, null);
         ser.startTag(null, DOC_ROOT_ELEM);
 
-        for (Iterator i = importedDirs.entrySet().iterator(); i.hasNext();) {
-            Map.Entry e = (Map.Entry) i.next();
-            String origPath = (String) e.getKey();
-            String newPath = (String) e.getValue();
+        for (Map.Entry<ImportDirectoryInstruction, String> e : importedDirs
+                .entrySet()) {
+            ImportDirectoryInstruction instr = e.getKey();
+            String origURL = instr.getURL();
+            String origPath = instr.getDirectory();
+            String newPath = e.getValue();
             ser.startTag(null, IMPORT_DIR_ELEM);
-            ser.attribute(null, ORIGINAL_PATH, origPath);
+            if (StringUtils.hasValue(origURL))
+                ser.attribute(null, ORIGINAL_URL, origURL);
+            if (StringUtils.hasValue(origPath))
+                ser.attribute(null, ORIGINAL_PATH, origPath);
             ser.attribute(null, NEW_PATH, newPath);
             ser.endTag(null, IMPORT_DIR_ELEM);
         }
@@ -239,9 +246,11 @@ public class ExternalResourceArchiverXMLv1 implements ExternalResourceArchiver,
         for (int i=0;  i < directories.getLength();  i++) {
             Element e = (Element) directories.item(i);
             String origPath = e.getAttribute(ORIGINAL_PATH);
+            String origURL = e.getAttribute(ORIGINAL_URL);
             String newPath = e.getAttribute(NEW_PATH);
             File newDir = new File(archiveDir, newPath);
             result.put(origPath, newDir.getAbsolutePath());
+            result.put(origURL, newDir.getAbsolutePath());
         }
         return result;
     }

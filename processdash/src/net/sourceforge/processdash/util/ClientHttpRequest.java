@@ -195,6 +195,7 @@ public class ClientHttpRequest {
             }
         }
         out.flush();
+        in.close();
         buf = null;
     }
 
@@ -240,6 +241,8 @@ public class ClientHttpRequest {
     public void setParameter(String name, Object object) throws IOException {
         if (object instanceof File) {
             setParameter(name, (File) object);
+        } else if (object instanceof InputStream) {
+            setParameter(name, name, (InputStream) object);
         } else {
             setParameter(name, object.toString());
         }
@@ -270,6 +273,13 @@ public class ClientHttpRequest {
                 setParameter(parameters[i].toString(), parameters[i + 1]);
             }
         }
+    }
+
+    /** 
+     * Return the underlying URLConnection.
+     */
+    public URLConnection getConnection() {
+        return _connection;
     }
 
     /**

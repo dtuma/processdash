@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2007 Tuma Solutions, LLC
+// Copyright (C) 2003-2008 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -28,32 +28,25 @@ package net.sourceforge.processdash;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.FilenameFilter;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.net.URL;
 import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
-import net.sourceforge.processdash.log.time.WorkingTimeLog;
+import net.sourceforge.processdash.tool.bridge.client.WorkingDirectory;
 import net.sourceforge.processdash.tool.export.mgr.ExternalResourceManager;
 import net.sourceforge.processdash.ui.ConsoleWindow;
+import net.sourceforge.processdash.util.DashboardBackupFactory;
 import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.ProfTimer;
+import net.sourceforge.processdash.util.StringUtils;
 import net.sourceforge.processdash.util.ThreadThrottler;
 
 
@@ -74,447 +67,163 @@ public class FileBackupManager {
 
     public static final String BACKUP_TIMES_SETTING = "backup.timesOfDay";
 
-    private static OutputStream logFile = null;
+    private WorkingDirectory workingDirectory;
+    private OutputStream logFile = null;
+
     private static final String LOG_FILE_NAME = "log.txt";
-    private static final String HIST_LOG_FILE_NAME = "histLog.txt";
-    private static final String OLD_BACKUP_TEMP_FILENAME = "temp_old.zip";
-    private static final String NEW_BACKUP_TEMP_FILENAME = "temp_new.zip";
-    private static final SimpleDateFormat DATE_FMT =
-        new SimpleDateFormat("yyyyMMddHHmmss");
-    private static final long DAY_MILLIS = 24L /*hours*/ * 60 /*minutes*/
-        * 60 /*seconds*/ * 1000 /*millis*/;
     private static final Logger logger = Logger
             .getLogger(FileBackupManager.class.getName());
 
+    public FileBackupManager(WorkingDirectory workingDirectory) {
+        this.workingDirectory = workingDirectory;
 
-    public static void maybeRun(String dataDirName, int when, String who) {
+        DashboardBackupFactory.setMaxHistLogSize(Settings.getInt(
+            "logging.maxHistLogSize", 500000));
+        DashboardBackupFactory.setKeepBackupsNumDays(Settings.getInt(
+            "backup.keepBackupsNumDays", -1));
+    }
+
+    public void maybeRun(int when, String who) {
         if (Settings.isReadOnly())
             return;
 
-        if (Settings.getBool("backup.enabled", true)) {
-            try {
-                run(dataDirName, when, who);
-            } catch (Throwable t) {}
-        } else if (when == STARTUP &&
-                   Settings.getBool("logging.enabled", false)) {
-            startLogging(new File(dataDirName));
-        }
-    }
-
-
-    public synchronized static File run(String dataDirName, int when, String who) {
-        File dataDir = new File(dataDirName);
-        File backupDir = new File(dataDir, "backup");
-        if (!backupDir.exists()) backupDir.mkdir();
-        if (!backupDir.exists()) return null;
-        boolean loggingEnabled = Settings.getBool("logging.enabled", false);
-
-        if (loggingEnabled)
+        if (loggingEnabled() && when == SHUTDOWN)
             stopLogging();
 
-        File result = null;
+        if (Settings.getBool("backup.enabled", true)) {
+            ProfTimer pt = new ProfTimer(FileBackupManager.class,
+                    "FileBackupManager.run");
+            try {
+                runImpl(when, who, false);
+            } catch (Throwable t) {}
+            pt.click("Finished backup");
+        }
 
+        if (loggingEnabled() && when == STARTUP)
+            startLogging(workingDirectory.getDirectory());
+    }
+
+
+    public synchronized File run() {
         ProfTimer pt = new ProfTimer(FileBackupManager.class,
             "FileBackupManager.run");
-        try {
-            result = backupFiles(dataDir, backupDir, when, who, false);
-        } catch (Exception e1) {
-            try {
-                // It is possible that the most recent backup file was corrupt
-                // or otherwise unreadable (for example, due to permissions
-                // problems). We still want to make a new backup! In particular,
-                // we CANNOT let a corrupt backup file prevent all future
-                // backups from occurring.  So if we encountered any sort of
-                // exception in our attempt to make a regular backup, try a
-                // second time, and ignore the most recent backup this time.
-                result = backupFiles(dataDir, backupDir, when, who, true);
-                printError("Unexpected error in FileBackupManager; " +
-                                "ignoring most recent backup", e1);
-            } catch (IOException e2) {
-                printError(e2);
-            }
-        }
+        File result = runImpl(RUNNING, null, true);
         pt.click("Finished backup");
 
-        if (loggingEnabled && when != SHUTDOWN)
-            startLogging(dataDir);
-
         return result;
     }
 
 
-    private static boolean oldBackupIsEmpty;
-    private static boolean oldBackupContainsTimeLogFile;
-    private static boolean oldBackupContainsTimeLogModFile;
+    private File runImpl(int when, String who, boolean externalCopyDesired) {
 
+        boolean needExternalCopy = externalCopyDesired;
 
-    // Find the most recent backup in the directory.  Open it for input.
-    // Open two zip output streams: one for the new backup, and one for
-    // the old backup.
-    // Retrieve all the files in the data directory. sort. iterate:
-    //   - write the contents to the new backup zipfile.
-    //   - compare the contents to the old backup zipfile.
-    //      - If the contents are identical, do nothing.
-    //      - If the file differ (or aren't present in both places), copy
-    //        contents from the old backup input to the old backup output.
-    // Close all files.
-    // Rename the output files appropriately.
-    // Delete old/outdated backup files.
-    private static File backupFiles(File dataDir, File backupDir, int when,
-            final String who, boolean ignoreLastBackup) throws IOException
-    {
-        List dataFiles = getDataFiles(dataDir);
-        if (dataFiles == null || dataFiles.size() == 0)
-            return null;        // nothing to do
+        String[] extraBackupDirs = getExtraBackupDirs();
+        if (StringUtils.hasValue(who) && extraBackupDirs != null)
+            needExternalCopy = true;
 
-        ExternalResourceManager extResourceMgr = ExternalResourceManager
-                .getInstance();
-        ProfTimer pt = new ProfTimer(FileBackupManager.class,
-            "FileBackupManager.backupFiles");
-
-        File[] backupFiles = getBackupFiles(backupDir);
-        File mostRecentBackupFile =
-            (ignoreLastBackup ? null : findMostRecentBackupFile(backupFiles));
-        File oldBackupTempFile = new File(backupDir, OLD_BACKUP_TEMP_FILENAME);
-        File newBackupTempFile = new File(backupDir, NEW_BACKUP_TEMP_FILENAME);
-
-        ZipOutputStream newBackupOut = new ZipOutputStream(
-                new BufferedOutputStream(
-                        new FileOutputStream(newBackupTempFile)));
-        newBackupOut.setLevel(9);
-
-        boolean wroteHistLog = false;
-
-        if (mostRecentBackupFile != null) {
-            ZipInputStream oldBackupIn = new ZipInputStream(
-                    new BufferedInputStream(new FileInputStream(
-                            mostRecentBackupFile)));
-            ZipOutputStream oldBackupOut = new ZipOutputStream(
-                    new BufferedOutputStream(new FileOutputStream(
-                            oldBackupTempFile)));
-            oldBackupOut.setLevel(9);
-            oldBackupIsEmpty = true;
-            oldBackupContainsTimeLogFile = false;
-            oldBackupContainsTimeLogModFile = false;
-
-            // iterate over all the entries in the old backup
-            ZipEntry oldEntry;
-            while ((oldEntry = oldBackupIn.getNextEntry()) != null) {
-                String filename = oldEntry.getName();
-                ThreadThrottler.tick();
-
-                if (extResourceMgr.isArchivedItem(filename))
-                    continue;
-
-                if (HIST_LOG_FILE_NAME.equals(filename)) {
-                    if (when == STARTUP)
-                        // at startup, just copy the file to the new backup.
-                        copyZipEntry(oldBackupIn, newBackupOut, oldEntry, null);
-                    else
-                        // other times, append the old file and the new log.
-                        writeHistLogFile(oldBackupIn, newBackupOut, dataDir);
-                    wroteHistLog = true;
-                    continue;
-                }
-
-                File file = new File(dataDir, filename);
-
-                if (dataFiles.remove(filename)) {
-                    // this file is in the old backup zipfile AND in the backup
-                    // directory.  Compare the two versions and back up the
-                    // file appropriately.
-                    backupFile(oldEntry, oldBackupIn, oldBackupOut,
-                               newBackupOut, file, filename);
-                } else {
-                    // this file is in the old backup, but is no longer present
-                    // in the backup directory.  Copy it over to the new version
-                    // of the old backup
-                    copyZipEntry(oldBackupIn, oldBackupOut, oldEntry, null);
-                    wroteEntryToOldBackup(filename);
-                }
-            }
-
-            // The two files that make up the time log must always be backed
-            // up and restored as an atomic pair - otherwise, Bad Things can
-            // happen.  If one of these files (but not the other) was written
-            // to the incremental old backup, add its partner (which presumably
-            // must be identical to the file in the dataDir).
-            if (oldBackupContainsTimeLogFile
-                    && !oldBackupContainsTimeLogModFile) {
-                String filename = WorkingTimeLog.TIME_LOG_MOD_FILENAME;
-                File file = new File(dataDir, filename);
-                backupFile(null, null, null, oldBackupOut, file, filename);
-            } else if (oldBackupContainsTimeLogModFile
-                    && !oldBackupContainsTimeLogFile) {
-                String filename = WorkingTimeLog.TIME_LOG_FILENAME;
-                File file = new File(dataDir, filename);
-                backupFile(null, null, null, oldBackupOut, file, filename);
-            }
-
-            oldBackupIn.close();
-            mostRecentBackupFile.delete();
-
-            if (oldBackupIsEmpty) {
-                // ZipOutputStream refuses to create an empty archive.
-                // Thus, we have to create a dummy entry to allow the
-                // subsequent close() call to succeed.
-                oldBackupOut.putNextEntry(new ZipEntry("foo"));
-                oldBackupOut.close();
-                oldBackupTempFile.delete();
-            } else {
-                oldBackupOut.close();
-                oldBackupTempFile.renameTo(mostRecentBackupFile);
-            }
-        }
-
-        // backup all the files that are present in the backup directory that
-        // weren't in the old backup zipfile.
-        for (Iterator iter = dataFiles.iterator(); iter.hasNext();) {
-            ThreadThrottler.tick();
-            String filename = (String) iter.next();
-            File file = new File(dataDir, filename);
-            backupFile(null, null, null, newBackupOut, file, filename);
-        }
-
-        // if the old backup didn't contain a historical log file, initialize
-        // it with the current log file
-        if (wroteHistLog == false)
-            writeHistLogFile(null, newBackupOut, dataDir);
-
-        pt.click("Backed up data files");
-
-        // Allow the external resource manager to save any items of interest.
-        extResourceMgr.addExternalResourcesToBackup(newBackupOut);
-        pt.click("Backed up external resources");
-
-        // finalize the new backup, and give it its final name.
-        newBackupOut.close();
-        String outputFilename = getOutputFilename(when, new Date());
-        final File newBackupFile = new File(backupDir, outputFilename);
-        newBackupTempFile.renameTo(newBackupFile);
-
-        if (when == SHUTDOWN) {
-            makeExtraBackupCopies(newBackupFile, who);
-            pt.click("Made extra backup copies");
-        } else {
-            Runnable makeExtraBackupCopiesTask = new Runnable() {
-                public void run() {
-                    makeExtraBackupCopies(newBackupFile, who);
-                }};
-            new Thread(makeExtraBackupCopiesTask).start();
-        }
-
-        cleanupOldBackupFiles(backupFiles);
-        return newBackupFile;
-    }
-
-
-    private static File[] getBackupFiles(File backupDir) {
-        File[] backupFiles = backupDir.listFiles(new FilenameFilter() {
-                public boolean accept(File dir, String name) {
-                    return BACKUP_FILENAME_PATTERN.matcher(name).matches();
-                }});
-        Arrays.sort(backupFiles);
-        return backupFiles;
-    }
-    private static final Pattern BACKUP_FILENAME_PATTERN =
-        Pattern.compile("pdash-\\d+-(startup|checkpoint|shutdown)\\.zip",
-                Pattern.CASE_INSENSITIVE);
-
-
-    private static File findMostRecentBackupFile(File[] backupFiles) {
-        if (backupFiles != null && backupFiles.length > 0)
-            return backupFiles[backupFiles.length - 1];
-        else
+        URL backupURL = null;
+        File result = null;
+        try{
+            backupURL = workingDirectory.doBackup(WHEN_STR[when]);
+            if (needExternalCopy)
+                result = createExternalizedBackupFile(backupURL);
+        } catch (IOException ioe) {
+            printError(ioe);
             return null;
-    }
+        }
 
+        if (result != null && who != null && extraBackupDirs != null) {
+            makeExtraBackupCopies(result, who, extraBackupDirs);
+        }
 
-    private static List getDataFiles(File dataDir) {
-        List result = new ArrayList();
-        String[] files = dataDir.list(new FilenameFilter() {
-            public boolean accept(File dir, String name) {
-                return inBackupSet(dir, name);
-            }});
-        if (files != null)
-            result.addAll(Arrays.asList(files));
-
-        File cmsDir = new File(dataDir, "cms");
-        if (cmsDir.isDirectory())
-            getCmsFiles(result, cmsDir, "cms");
-
-        Arrays.sort(files);
         return result;
     }
 
-    private static void getCmsFiles(List dest, File dir, String prefix) {
-        File[] files = dir.listFiles();
-        for (int i = 0; i < files.length; i++) {
-            String filename = prefix + "/" + files[i].getName();
-            if (files[i].isDirectory())
-                getCmsFiles(dest, files[i], filename);
-            else if (filename.toLowerCase().endsWith(".xml"))
-                dest.add(filename);
+    private static final String[] WHEN_STR = { "startup", "checkpoint",
+            "shutdown" };
+
+
+    private File createExternalizedBackupFile(URL backup) throws IOException {
+        // open the existing backup file as a ZIP stream
+        ZipInputStream zipIn = new ZipInputStream(new BufferedInputStream(
+                backup.openStream()));
+
+        // create a temporary file for externalizing purposes
+        File result = File.createTempFile("pdash-backup", ".zip");
+        result.deleteOnExit();
+        ZipOutputStream zipOut = new ZipOutputStream(new BufferedOutputStream(
+                new FileOutputStream(result)));
+
+        ExternalResourceManager extMgr = ExternalResourceManager.getInstance();
+
+        // copy all the files from the existing backup into the externalized
+        // backup (but skip any files that appear to be externalized)
+        ZipEntry e;
+        while ((e = zipIn.getNextEntry()) != null) {
+            String filename = e.getName();
+            if (extMgr.isArchivedItem(filename))
+                continue;
+
+            ZipEntry eOut = new ZipEntry(filename);
+            eOut.setTime(e.getTime());
+            zipOut.putNextEntry(eOut);
+            FileUtils.copyFile(zipIn, zipOut);
+            zipOut.closeEntry();
         }
+        zipIn.close();
+
+        // now, ask the external resource manager to augment the ZIP.
+        extMgr.addExternalResourcesToBackup(zipOut);
+        zipOut.finish();
+        zipOut.close();
+
+        return result;
     }
 
 
-    private static void copyZipEntry(InputStream oldBackupIn,
-                                     ZipOutputStream oldBackupOut,
-                                     ZipEntry e,
-                                     byte[] prepend)
-        throws IOException
-    {
-        ZipEntry eOut = new ZipEntry(e.getName());
-        eOut.setTime(e.getTime());
-        oldBackupOut.putNextEntry(eOut);
 
-        if (prepend != null)
-            oldBackupOut.write(prepend);
-
-        int bytesRead;
-        while ((bytesRead = oldBackupIn.read(copyBuf)) != -1) {
-            ThreadThrottler.tick();
-            oldBackupOut.write(copyBuf, 0, bytesRead);
-            ThreadThrottler.tick();
-        }
-        oldBackupOut.closeEntry();
-    }
-    private static byte[] copyBuf = new byte[1024];
-
-
-    private static void backupFile(ZipEntry oldEntry,
-                                   ZipInputStream oldBackupIn,
-                                   ZipOutputStream oldBackupOut,
-                                   ZipOutputStream newBackupOut,
-                                   File file, String filename)
-        throws IOException
-    {
-        ByteArrayOutputStream bytesSeen = null;
-        InputStream oldIn = null;
-
-        // if the old backup file contains an entry for this file,
-        if (oldEntry != null && oldBackupIn != null && oldBackupOut != null) {
-            // do the prep to start comparing it with the new file.
-            bytesSeen = new ByteArrayOutputStream();
-            oldIn = oldBackupIn;
-        }
-
-        // create an entry in the new backup archive for this file
-        ZipEntry e = new ZipEntry(filename);
-        e.setTime(file.lastModified());
-        e.setSize(file.length());
-        newBackupOut.putNextEntry(e);
-
-        InputStream fileIn = new BufferedInputStream(new FileInputStream(file));
-        OutputStream fileOut = newBackupOut;
-        int c, d;
-        while ((c = fileIn.read()) != -1) {
-            fileOut.write(c);
-
-            // if we are still comparing the two files for identity
-            //  (they've matched so far)
-            if (oldIn != null) {
-                // read the next byte from the old backup.
-                d = oldIn.read();
-                if (d != -1)
-                    bytesSeen.write(d);
-                // if we've found a mismatch between the current file and its
-                // old backup,
-                if (c != d) {
-                    // then eagerly copy the rest of the old backup.
-                    copyZipEntry(oldIn, oldBackupOut, oldEntry,
-                                 bytesSeen.toByteArray());
-                    oldIn = null;
-                    bytesSeen = null;
-                    oldBackupIn = null;
-                    oldBackupOut = null;
-                    wroteEntryToOldBackup(filename);
-                }
-            }
-            ThreadThrottler.tick();
-        }
-        fileIn.close();
-
-        if (oldIn != null) {
-            // read the next byte from the old backup.
-            d = oldIn.read();
-            if (d != -1) {
-                // if the old backup is longer than the current file, write it
-                // to the backup save archive.
-                bytesSeen.write(d);
-                copyZipEntry(oldIn, oldBackupOut, oldEntry, bytesSeen.
-                             toByteArray());
-                wroteEntryToOldBackup(filename);
-            }
-        }
-
-        // finish writing the file to the new backup archive.
-        fileOut.flush();
-        newBackupOut.closeEntry();
+    private void stopLogging() {
+        if (logFile != null) try {
+            ConsoleWindow.getInstalledConsole().setCopyOutputStream(null);
+            logFile.flush();
+            logFile.close();
+        } catch (IOException ioe) { printError(ioe); }
     }
 
-    private static void wroteEntryToOldBackup(String filename) {
-        oldBackupIsEmpty = false;
-        if (filename.equalsIgnoreCase(WorkingTimeLog.TIME_LOG_FILENAME))
-            oldBackupContainsTimeLogFile = true;
-        if (filename.equalsIgnoreCase(WorkingTimeLog.TIME_LOG_MOD_FILENAME))
-            oldBackupContainsTimeLogModFile = true;
+    private void startLogging(File dataDir) {
+        try {
+            File out = new File(dataDir, LOG_FILE_NAME);
+            logFile = new FileOutputStream(out);
+            ConsoleWindow.getInstalledConsole().setCopyOutputStream(logFile);
+            System.out.println("Process Dashboard - logging started at " +
+                               new Date());
+            System.out.println(System.getProperty("java.vendor") +
+                               " JRE " + System.getProperty("java.version") +
+                               "; " + System.getProperty("os.name"));
+        } catch (IOException ioe) { printError(ioe); }
     }
 
-
-    private static void writeHistLogFile(ZipInputStream oldBackupIn,
-            ZipOutputStream newBackupOut, File dataDir)
-            throws IOException {
-        File currentLog = new File(dataDir, LOG_FILE_NAME);
-        if (oldBackupIn == null && !currentLog.exists())
-            // if we have neither a historical log, nor a current log, there
-            // is nothing to do.
-            return;
-
-        // start an entry in the zip file for the historical log.
-        ZipEntry e = new ZipEntry(HIST_LOG_FILE_NAME);
-        e.setTime(System.currentTimeMillis());
-        newBackupOut.putNextEntry(e);
-
-        // read in the previous historical log, and copy appropriate portions
-        // to the output ZIP.
-        if (oldBackupIn != null) {
-            byte[] histLog = FileUtils.slurpContents(oldBackupIn, false);
-
-            long totalSize = histLog.length + currentLog.length();
-            int skip = (int) Math.max(0, totalSize - MAX_HIST_LOG_SIZE);
-
-            if (skip < histLog.length)
-                newBackupOut.write(histLog, skip, histLog.length - skip);
-        }
-
-        if (currentLog.exists() && currentLog.length() > 0) {
-            newBackupOut.write(HIST_SEPARATOR.getBytes());
-            FileUtils.copyFile(currentLog, newBackupOut);
-        }
-
-        newBackupOut.closeEntry();
+    private static boolean loggingEnabled() {
+        return Settings.getBool("logging.enabled", true);
     }
 
-    private static int MAX_HIST_LOG_SIZE = Settings.getInt(
-            "logging.maxHistLogSize", 500000);
-    private static final String HIST_SEPARATOR = "--------------------"
-            + "--------------------------------------------------"
-            + System.getProperty("line.separator");
-
-
-    private static void makeExtraBackupCopies(File backupFile, String who) {
-        if (who == null || who.length() == 0)
-            return;
-
+    private static String[] getExtraBackupDirs() {
         String extraBackupDirs = InternalSettings.getExtendableVal(
-                "backup.extraDirectories", ";");
-        if (extraBackupDirs == null)
+            "backup.extraDirectories", ";");
+        if (!StringUtils.hasValue(extraBackupDirs))
+            return null;
+        else
+            return extraBackupDirs.replace('/', File.separatorChar).split(";");
+    }
+
+    private static void makeExtraBackupCopies(File backupFile, String who,
+            String[] dirNames) {
+        if (backupFile == null
+                || who == null || who.length() == 0
+                || dirNames == null || dirNames.length == 0)
             return;
 
-        String[] dirNames = extraBackupDirs.replace('/', File.separatorChar)
-                .split(";");
         String filename = "backup-" + FileUtils.makeSafe(who) + ".zip";
         for (int i = 0; i < dirNames.length; i++) {
             ThreadThrottler.tick();
@@ -528,70 +237,8 @@ public class FileBackupManager {
         }
     }
 
-
-    private static void cleanupOldBackupFiles(File[] backupFiles) {
-        int maxBackupAge = Settings.getInt("backup.keepBackupsNumDays", -1);
-        if (maxBackupAge > 0) {
-            long delta = maxBackupAge * DAY_MILLIS;
-            Date oldAge = new Date(System.currentTimeMillis() - delta);
-            String filename = getOutputFilename(STARTUP, oldAge);
-            for (int i = 0; i < backupFiles.length-10; i++) {
-                File file = backupFiles[i];
-                if (file.getName().compareTo(filename) < 0)
-                    file.delete();
-            }
-        }
-    }
-
-
-    private static void stopLogging() {
-        if (logFile != null) try {
-            ConsoleWindow.getInstalledConsole().setCopyOutputStream(null);
-            logFile.flush();
-            logFile.close();
-        } catch (IOException ioe) { printError(ioe); }
-    }
-
-    private static void startLogging(File dataDir) {
-        try {
-            File out = new File(dataDir, LOG_FILE_NAME);
-            logFile = new FileOutputStream(out);
-            ConsoleWindow.getInstalledConsole().setCopyOutputStream(logFile);
-            System.out.println("Process Dashboard - logging started at " +
-                               new Date());
-            System.out.println(System.getProperty("java.vendor") +
-                               " JRE " + System.getProperty("java.version") +
-                               "; " + System.getProperty("os.name"));
-        } catch (IOException ioe) { printError(ioe); }
-    }
-
-
-    private static String getOutputFilename(int when, Date date) {
-        return "pdash-" + DATE_FMT.format(date) + WHEN_STR[when] + ".zip";
-    }
-
-    private static final String[] WHEN_STR = {
-        "-startup", "-checkpoint", "-shutdown"
-    };
-
     public static boolean inBackupSet(File dir, String name) {
-        if (name.equalsIgnoreCase(LOG_FILE_NAME)
-                && (new File(dir, name)).length() > 0)
-            // backup the log file if it contains anything.
-            return true;
-
-        name = name.toLowerCase();
-        if (name.endsWith(".dat") ||    // backup data files
-            name.endsWith(".def") ||    // backup defect logs
-            name.equals("time.log") ||  // backup the time log
-            name.equalsIgnoreCase(WorkingTimeLog.TIME_LOG_FILENAME) ||
-            name.equalsIgnoreCase(WorkingTimeLog.TIME_LOG_MOD_FILENAME) ||
-            name.equals("state") ||     // backup the state file
-            name.equals(".pspdash") ||  // backup the user settings
-            name.equals("pspdash.ini"))
-            return true;
-
-        return false;
+        return DashboardBackupFactory.DASH_FILE_FILTER.accept(dir, name);
     }
 
     private static void printError(Throwable t) {
@@ -615,11 +262,10 @@ public class FileBackupManager {
         public void run() {
             try {
                 ProcessDashboard dash = (ProcessDashboard) context;
-                String property_directory = dash.property_directory;
                 String ownerName = ProcessDashboard.getOwnerName(context
                         .getData());
-                FileBackupManager.maybeRun(property_directory,
-                        FileBackupManager.RUNNING, ownerName);
+                dash.fileBackupManager.maybeRun(FileBackupManager.RUNNING,
+                    ownerName);
             } catch (Exception e) {
                 logger.log(Level.SEVERE,
                         "Encountered exception when performing auto backup", e);

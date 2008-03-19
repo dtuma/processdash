@@ -1,4 +1,4 @@
-// Copyright (C) 2006-2007 Tuma Solutions, LLC
+// Copyright (C) 2006-2008 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -36,8 +36,11 @@ import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-import net.sourceforge.processdash.ConcurrencyLock;
 import net.sourceforge.processdash.Settings;
+import net.sourceforge.processdash.tool.bridge.client.AbstractWorkingDirectory;
+import net.sourceforge.processdash.tool.bridge.client.DirectoryPreferences;
+import net.sourceforge.processdash.tool.bridge.client.TeamServerSelector;
+import net.sourceforge.processdash.tool.bridge.impl.DashboardInstanceStrategy;
 import net.sourceforge.processdash.tool.export.mgr.ExternalResourceManager;
 import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.XorInputStream;
@@ -54,6 +57,10 @@ public class CompressedInstanceLauncher extends DashboardInstance {
             + ExternalResourceManager.INITIALIZATION_MODE_ARCHIVE;
     private static final String DISABLE_BACKUP = "-D"
             + Settings.SYS_PROP_PREFIX + "backup.enabled=false";
+    private static final String DISABLE_PROCESS_LOCK = "-D"
+            + AbstractWorkingDirectory.NO_PROCESS_LOCK_PROPERTY + "=true";
+    private static final String DISABLE_TEAM_SERVER = "-D"
+            + TeamServerSelector.DISABLE_TEAM_SERVER_PROPERTY + "=true";
 
     private File compressedData;
 
@@ -83,6 +90,8 @@ public class CompressedInstanceLauncher extends DashboardInstance {
         List vmArgs = new ArrayList();
         vmArgs.add(EXT_RES_MGR_ARG);
         vmArgs.add(DISABLE_BACKUP);
+        vmArgs.add(DISABLE_PROCESS_LOCK);
+        vmArgs.add(DISABLE_TEAM_SERVER);
         if (dataTimeStamp > 0)
             vmArgs.add("-D" + Settings.SYS_PROP_PREFIX + "ev.effectiveDate="
                     + dataTimeStamp);
@@ -96,7 +105,8 @@ public class CompressedInstanceLauncher extends DashboardInstance {
     }
 
     private File uncompressData() throws IOException {
-        File tempDir = File.createTempFile(TEMP_DIR_PREFIX, "");
+        File tempDir = File.createTempFile(TEMP_DIR_PREFIX, "",
+                DirectoryPreferences.getMasterWorkingDirectory());
         tempDir.delete();
         tempDir.mkdir();
         dataTimeStamp = 0;
@@ -210,19 +220,16 @@ public class CompressedInstanceLauncher extends DashboardInstance {
 
     public static void cleanupOldDirectories() {
         try {
-            File tempFile = File.createTempFile("foo", "");
-            File tempDirectory = tempFile.getParentFile();
-            tempFile.delete();
+            File tempDirectory = DirectoryPreferences
+                    .getMasterWorkingDirectory();
 
             File[] files = tempDirectory.listFiles();
             for (int i = 0; i < files.length; i++) {
                 if (files[i].isDirectory()
                         && files[i].getName().startsWith(TEMP_DIR_PREFIX)) {
                     File lockFile = new File(files[i],
-                            ConcurrencyLock.LOCK_FILE_NAME);
-                    File lockFile2 = new File(files[i],
-                            ConcurrencyLock.INFO_FILE_NAME);
-                    if (!lockFile.exists() && !lockFile2.exists())
+                            DashboardInstanceStrategy.LOCK_FILE_NAME);
+                    if (!lockFile.exists())
                         FileUtils.deleteDirectory(files[i], true);
                 }
             }

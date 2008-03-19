@@ -1,5 +1,5 @@
+// Copyright (C) 2004-2008 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2004 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -24,6 +24,9 @@
 // E-Mail POC:  processdash-devel@lists.sourceforge.net
 
 package net.sourceforge.processdash.util;
+
+import java.io.IOException;
+import java.net.URLConnection;
 
 
 public class HTTPUtils {
@@ -95,6 +98,19 @@ public class HTTPUtils {
         } while (i < max);
 
         return result.length;
+    }
+
+
+    /** Read the response from a connection and interpret it as a String,
+     * using the content type charset from the response headers.
+     */
+    public static String getResponseAsString(URLConnection conn) throws IOException {
+        String contentType = conn.getContentType();
+        if (contentType == null)
+            throw new IOException("No reponse, or no Content-Type");
+        String charset = getCharset(contentType);
+        byte[] rawData = FileUtils.slurpContents(conn.getInputStream(), true);
+        return new String(rawData, charset);
     }
 
 

@@ -36,6 +36,7 @@ import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
+import java.beans.EventHandler;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.BufferedReader;
@@ -59,6 +60,7 @@ import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
+import java.util.prefs.Preferences;
 
 import javax.swing.Action;
 import javax.swing.ButtonGroup;
@@ -106,6 +108,9 @@ import net.sourceforge.processdash.security.DashboardPermission;
 import net.sourceforge.processdash.security.DashboardSecurity;
 import net.sourceforge.processdash.templates.AutoUpdateManager;
 import net.sourceforge.processdash.templates.TemplateLoader;
+import net.sourceforge.processdash.tool.bridge.client.BridgedWorkingDirectory;
+import net.sourceforge.processdash.tool.bridge.client.WorkingDirectory;
+import net.sourceforge.processdash.tool.bridge.client.WorkingDirectoryFactory;
 import net.sourceforge.processdash.tool.export.mgr.ExportManager;
 import net.sourceforge.processdash.tool.export.mgr.ExternalResourceManager;
 import net.sourceforge.processdash.tool.export.mgr.ImportManager;
@@ -131,6 +136,12 @@ import net.sourceforge.processdash.util.FormatUtil;
 import net.sourceforge.processdash.util.HTTPUtils;
 import net.sourceforge.processdash.util.ProfTimer;
 import net.sourceforge.processdash.util.StringUtils;
+import net.sourceforge.processdash.util.lock.AlreadyLockedException;
+import net.sourceforge.processdash.util.lock.LockFailureException;
+import net.sourceforge.processdash.util.lock.LockMessage;
+import net.sourceforge.processdash.util.lock.LockMessageHandler;
+import net.sourceforge.processdash.util.lock.LockUncertainException;
+import net.sourceforge.processdash.util.lock.SentLockMessageException;
 
 
 public class ProcessDashboard extends JFrame implements WindowListener,
@@ -146,6 +157,9 @@ public class ProcessDashboard extends JFrame implements WindowListener,
     public static final String NOTIFY_ON_OPEN_ID_PROPERTY =
         ProcessDashboard.class.getName() + ".notifyOnOpen.id";
 
+    WorkingDirectory workingDirectory;
+    FileBackupManager fileBackupManager;
+    LockMessageHandler lockMessageHandler;
     ConfigureButton configure_button = null;
     PauseButton pause_button = null;
     PercentSpentIndicator pct_spent_indicator = null;
@@ -162,7 +176,6 @@ public class ProcessDashboard extends JFrame implements WindowListener,
     DashboardTimeLog timeLog = null;
     DataRepository data = null;
     WebServer webServer = null;
-    ConcurrencyLock concurrencyLock = null;
     AutoUpdateManager aum = null;
     ConsoleWindow consoleWindow = new ConsoleWindow();
     ObjectCache objectCache;
@@ -187,7 +200,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
 
     public static final int DEFAULT_WEB_PORT = 2468;
 
-    public ProcessDashboard(String title) {
+    public ProcessDashboard(String location, String title) {
         super();
         getContentPane().setLayout(new GridBagLayout());
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
@@ -195,7 +208,9 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         ProfTimer pt = new ProfTimer(ProcessDashboard.class, "ProcessDashboard");
 
         // adjust the working directory if necessary.
-        maybeChangeWorkingDirectory();
+        if (location == null)
+            location = maybeFollowDataDirLinkFile();
+        configureWorkingDirectory(location);
 
         // load app defaults and user settings.
         try {
@@ -238,6 +253,15 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         }
         pt.click("Set default directory");
 
+
+        //
+        maybeEnableReadOnlyMode();
+        pt.click("Checked read only mode");
+        if (!Settings.isReadOnly()) {
+            tryToLockDataForWriting();
+            pt.click("Tried to acquire write lock");
+        }
+
         // start the http server.
         try {
             int httpPort = Settings.getInt(HTTP_PORT_SETTING, DEFAULT_WEB_PORT);
@@ -251,22 +275,9 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         }
         pt.click("Started web server");
 
-        maybeEnableReadOnlyMode();
-        pt.click("Checked read only mode");
-
-        // ensure that we have exclusive control of the data in the
-        // property_directory
-        //
-        if (!Settings.isReadOnly()) {
-            concurrencyLock = new ConcurrencyLock(property_directory,
-                                                  webServer.getPort(),
-                                                  webServer.getTimestamp());
-            pt.click("Obtained concurrency lock");
-        }
-
         // run the backup process as soon as possible
-        FileBackupManager.maybeRun
-            (property_directory, FileBackupManager.STARTUP, null);
+        fileBackupManager = new FileBackupManager(workingDirectory);
+        fileBackupManager.maybeRun(FileBackupManager.STARTUP, null);
         pt.click("Ran file backup");
 
 
@@ -480,6 +491,9 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         pt.click("Created completion button");
 
         ImportManager.init(data);
+        InternalSettings.addPropertyChangeListener(ImportManager.SETTING_NAME,
+            EventHandler.create(PropertyChangeListener.class, this,
+                "flushWorkingData"));
         pt.click("Initialized import manager");
         data.finishInconsistency();
         ExportManager.init(data, this);
@@ -526,32 +540,38 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         pt.click("Finished initializing Process Dashboard object");
     }
 
-    private void maybeChangeWorkingDirectory() {
+    private String maybeFollowDataDirLinkFile() {
         String linkFileName = System.getProperty(DATA_DIR_LINK_FILE_SETTING);
         if (!StringUtils.hasValue(linkFileName))
-            return;
+            return null;
 
-        String dataDir = readDataDirLinkFile(linkFileName);
-        if (dataDir.startsWith("~")) {
-            dataDir = System.getProperty("user.home") + dataDir.substring(1);
-            File dataDirFile = new File(dataDir);
+        String location = readDataDirLinkFile(linkFileName);
+        if (location.startsWith("http"))
+            return location;
+
+        if (location.startsWith("~")) {
+            location = System.getProperty("user.home") + location.substring(1);
+            File dataDirFile = new File(location);
             if (!dataDirFile.isDirectory())
                 dataDirFile.mkdirs();
         }
 
         try {
-            File f = new File(dataDir);
+            File f = new File(location);
             if (f.isDirectory()) {
-                System.setProperty("user.dir", f.getAbsolutePath());
-                return;
+                return location;
             } else {
-                System.err.println("Directory '" + dataDir
+                System.err.println("Directory '" + location
                         + "' specified by link file '" + linkFileName
                         + "' does not exist");
             }
         } catch (Exception e) {}
-        displayStartupIOError("Errors.Read_File_Error.Data_Directory", dataDir);
+        displayStartupIOError("Errors.Read_File_Error.Data_Directory",
+            location);
         System.exit(1);
+        // the following line is not reached, but must be present to keep
+        // the compiler happy:
+        return null;
     }
 
     private String readDataDirLinkFile(String linkFileName) {
@@ -581,6 +601,55 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         // the following line is not reached, but must be present to keep
         // the compiler happy:
         return null;
+    }
+
+    private void configureWorkingDirectory(String location) {
+        workingDirectory = WorkingDirectoryFactory.getInstance().get(
+            location, WorkingDirectoryFactory.PURPOSE_DASHBOARD);
+        String locationDescr = workingDirectory.getDescription();
+
+        try {
+            lockMessageHandler = new LockMsgHandler();
+            workingDirectory.acquireProcessLock(lockMessageHandler);
+        } catch (SentLockMessageException e) {
+            System.exit(0);
+        } catch (LockFailureException e) {
+            displaySharingError(locationDescr);
+            System.exit(1);
+        }
+
+        try {
+            workingDirectory.prepare();
+        } catch (IOException e) {
+            String resKey;
+            if (workingDirectory instanceof BridgedWorkingDirectory) {
+                resKey = "Errors.Read_File_Error.Data_Server";
+            } else {
+                resKey = "Errors.Read_File_Error.Data_Directory";
+            }
+            displayStartupIOError(resKey, locationDescr);
+            System.exit(1);
+        }
+
+        File cwd = workingDirectory.getDirectory();
+        System.setProperty("user.dir", cwd.getAbsolutePath());
+    }
+
+    private class LockMsgHandler implements LockMessageHandler {
+        public String handleMessage(LockMessage e) {
+            String msg = e.getMessage();
+            if (WorkingDirectory.ACTIVATE_MESSAGE.equals(msg)) {
+                DashController.raiseWindow();
+                return "OK";
+            }
+            else if (LockMessageHandler.LOCK_LOST_MESSAGE.equals(msg)) {
+                showLostLockMessage("Ongoing_Advice");
+                return "OK";
+            }
+            else {
+                throw new IllegalArgumentException("Unrecognized message");
+            }
+        }
     }
 
     public void addApplicationEventListener(ApplicationEventListener l) {
@@ -794,15 +863,106 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         return false;
     }
 
+    private void tryToLockDataForWriting() {
+        String lockOwnerName = getOwnerName();
+        String otherUser = null;
+        try {
+            workingDirectory.acquireWriteLock(lockMessageHandler,
+                lockOwnerName);
+            return;
+        } catch (AlreadyLockedException e) {
+            otherUser = e.getExtraInfo();
+        } catch (LockFailureException e) {
+            otherUser = null;
+        }
+
+        ResourceBundle r = ResourceBundle
+                .getBundle("Templates.resources.ProcessDashboard");
+
+        if (!StringUtils.hasValue(otherUser))
+            otherUser = r.getString("Errors.Concurrent_Use_Someone_Else");
+        String title = r.getString("Errors.Concurrent_Use_Title");
+        String message = MessageFormat.format(r
+                .getString("Errors.Concurrent_Use_Message2_FMT"), otherUser);
+
+        if (JOptionPane.showConfirmDialog(null, message.split("\n"), title,
+            JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
+            InternalSettings.setReadOnly(true);
+        } else {
+            System.exit(0);
+        }
+    }
+
+    /**
+     * Get the name of the person running this dashboard.  This is <b>not</b>
+     * necessarily the same as the owner of the metrics data!  For example,
+     * a team leader might be opening an individual's data, or anyone might
+     * be opening a shared team dashboard instance.
+     */
+    private String getOwnerName() {
+        // check the preferences node for this class first.
+        Preferences prefs = Preferences
+                .userNodeForPackage(ProcessDashboard.class);
+        String result = prefs.get("ownerName", null);
+        if (result != null)
+            return result;
+
+        // If our preferences node didn't contain the data, try looking in
+        // the preferences node for the WBS editor.  Many people will already
+        // have a value stored there, so we will be able to avoid pestering
+        // them for their name again.
+        Preferences teamPrefs = Preferences.userRoot().node("/teamdash/wbs");
+        result = teamPrefs.get("ownerName", null);
+        if (result != null) {
+            prefs.put("ownerName", result);
+            return result;
+        }
+
+        // We really don't want to ask people for their name before they open
+        // their personal dashboard instance - that would strike users as odd.
+        // So if we get this far, we'll only prompt them for their name if
+        // they are opening a dashboard instance served by a remote server.
+        if (workingDirectory instanceof BridgedWorkingDirectory) {
+            ResourceBundle res = ResourceBundle
+                    .getBundle("Templates.resources.ProcessDashboard");
+            String title = res.getString("Enter_Name_Dialog.Title");
+            String message = res.getString("Enter_Name_Dialog.Prompt");
+            result = JOptionPane.showInputDialog(null, message, title,
+                JOptionPane.PLAIN_MESSAGE);
+            if (result != null) {
+                prefs.put("ownerName", result);
+                return result;
+            }
+        }
+
+        // if we make it all the way here, just look up the user's login
+        // username and go with that.
+        return System.getProperty("user.name");
+    }
+
+    private void displaySharingError(String location) {
+        if (resources == null)
+            resources = Resources.getDashBundle("ProcessDashboard");
+
+        String title = resources.getString("Errors.Data_Sharing_Violation_Title");
+        String[] message = resources.formatStrings(
+            "Errors.Data_Sharing_Violation_Message_FMT", location);
+        JOptionPane.showMessageDialog(null, message, title,
+            JOptionPane.ERROR_MESSAGE);
+    }
+
+
     private void displayStartupIOError(String resourceKey, String filename) {
         if (resources == null)
             resources = Resources.getDashBundle("ProcessDashboard");
 
-        try {
-            File f = new File(filename);
-            filename = f.getAbsolutePath();
-            filename = f.getCanonicalPath();
-        } catch (Exception e) {}
+        if (!filename.startsWith("http")) {
+            try {
+                File f = new File(filename);
+                filename = f.getAbsolutePath();
+                filename = f.getCanonicalPath();
+            } catch (Exception e) {}
+        }
 
         JOptionPane.showMessageDialog
             (null,
@@ -993,9 +1153,9 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         if (osHelper != null) osHelper.dispose();
         SystemTrayManagement.getIcon().dispose();
         setVisible(false);
+
         logger.fine("Backing up data directory");
-        FileBackupManager.maybeRun
-            (property_directory, FileBackupManager.SHUTDOWN, owner);
+        fileBackupManager.maybeRun(FileBackupManager.SHUTDOWN, owner);
 
         logger.fine("Shutdown complete");
         System.exit(0);
@@ -1029,12 +1189,8 @@ public class ProcessDashboard extends JFrame implements WindowListener,
             data.finalize();
             data = null;
         }
-
-        if (concurrencyLock != null) {
-            logger.fine("Removing concurrency lock");
-            concurrencyLock.unlock();
-            concurrencyLock = null;
-        }
+        logger.fine("Removing concurrency lock");
+        workingDirectory.releaseLocks();
 
         return true;
     }
@@ -1043,18 +1199,41 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         if (unsavedData.isEmpty())
             return true;
 
-        StringBuffer dataItems = new StringBuffer();
-        for (Iterator i = unsavedData.iterator(); i.hasNext();) {
-            String dataDescr = (String) i.next();
-            dataItems.append(BULLET).append(dataDescr).append("\n");
+        if (unsavedData.contains(FLUSH_FAILED_NO_LOCK)) {
+            InternalSettings.setReadOnly(true);
+            showLostLockMessage("Shutdown_Warning");
+            return true;
+        }
+
+        String[] message;
+        if (unsavedData.contains(FLUSH_FAILED_TRANSIENT_PROBLEM)) {
+            message = resources.getStrings("Errors.Save_Error.Remote_Message");
+
+        } else {
+            StringBuffer dataItems = new StringBuffer();
+            for (Iterator i = unsavedData.iterator(); i.hasNext();) {
+                String dataDescr = (String) i.next();
+                dataItems.append(BULLET).append(dataDescr).append("\n");
+            }
+            message = resources.formatStrings(
+                "Errors.Save_Error.Message_FMT", dataItems.toString());
         }
 
         String title = resources.getString("Errors.Save_Error.Title");
-        String[] message = resources.formatStrings(
-                "Errors.Save_Error.Message_FMT", dataItems.toString());
         int userChoice = JOptionPane.showConfirmDialog(this, message, title,
                 JOptionPane.YES_NO_OPTION);
         return userChoice == JOptionPane.YES_OPTION;
+    }
+
+    private void showLostLockMessage(String resKey) {
+        String title = resources.getString("Errors.Lost_Lock.Title");
+        Object[] message = {
+                resources.getStrings("Errors.Lost_Lock.Opening_Message"),
+                " ",
+                resources.getStrings("Errors.Lost_Lock." + resKey)
+        };
+        JOptionPane.showMessageDialog(this, message, title,
+            JOptionPane.ERROR_MESSAGE);
     }
 
     public List saveAllData() {
@@ -1083,6 +1262,10 @@ public class ProcessDashboard extends JFrame implements WindowListener,
 
         if (saveSettingsData() == false)
             recordUnsavedItem(unsavedData, "Settings_Data");
+
+        String flushResult = flushWorkingData();
+        if (flushResult != null)
+            unsavedData.add(flushResult);
 
         return unsavedData;
     }
@@ -1121,6 +1304,28 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         if (InternalSettings.isDirty())
             InternalSettings.saveSettings();
         return InternalSettings.isDirty() == false;
+    }
+
+    public static final String FLUSH_SUCCESSFUL = null;
+    public static final String FLUSH_FAILED_NO_LOCK = "flushNoLock";
+    public static final String FLUSH_FAILED_TRANSIENT_PROBLEM = "flushTransient";
+
+    public String flushWorkingData() {
+        if (Settings.isReadOnly())
+            return FLUSH_SUCCESSFUL;
+
+        try {
+            if (workingDirectory.flushData())
+                return FLUSH_SUCCESSFUL;
+            else
+                return FLUSH_FAILED_TRANSIENT_PROBLEM;
+        } catch (LockUncertainException lue) {
+            return FLUSH_FAILED_TRANSIENT_PROBLEM;
+        } catch (LockFailureException e) {
+            return FLUSH_FAILED_NO_LOCK;
+        } catch (IOException e) {
+            return FLUSH_FAILED_TRANSIENT_PROBLEM;
+        }
     }
 
 
@@ -1174,16 +1379,20 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         if (Boolean.getBoolean("readOnly"))
             InternalSettings.setReadOnly(true);
 
-        int pos = 0;
-        if (args.length > 0 && "readOnly".equalsIgnoreCase(args[0])) {
-            InternalSettings.setReadOnly(true);
-            pos++;
+        String title = null;
+        String location = null;
+        for (int i = 0;  i < args.length;  i++) {
+            if ("readOnly".equalsIgnoreCase(args[i]))
+                InternalSettings.setReadOnly(true);
+            else if (args[i].startsWith("http"))
+                location = args[i];
+            else
+                title = args[i];
         }
 
         MacGUIUtils.tweakLookAndFeel();
 
-        ProcessDashboard dash = new ProcessDashboard
-            (args.length > pos ? args[pos] : null);
+        ProcessDashboard dash = new ProcessDashboard(location, title);
 
         DashboardIconFactory.setWindowIcon(dash);
         dash.setVisible(true);

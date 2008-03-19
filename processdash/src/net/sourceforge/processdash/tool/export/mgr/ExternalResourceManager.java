@@ -1,4 +1,4 @@
-// Copyright (C) 2007 Tuma Solutions, LLC
+// Copyright (C) 2007-2008 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -39,8 +39,9 @@ import net.sourceforge.processdash.tool.export.impl.ExternalResourceArchiver;
 import net.sourceforge.processdash.tool.export.impl.ExternalResourceArchiverXMLv1;
 import net.sourceforge.processdash.tool.export.impl.ExternalResourceAutoLocator;
 import net.sourceforge.processdash.tool.export.impl.ExternalResourceXmlConstantsv1;
+import net.sourceforge.processdash.util.DirectoryBackup.ExtraContentSupplier;
 
-public class ExternalResourceManager {
+public class ExternalResourceManager implements ExtraContentSupplier {
 
     public static final String INITIALIZATION_MODE_PROPERTY_NAME = //
     ExternalResourceManager.class.getName() + ".initMode";
@@ -69,6 +70,10 @@ public class ExternalResourceManager {
 
     public boolean isArchivedItem(String filename) {
         return filename.indexOf(ExternalResourceXmlConstantsv1.ARCHIVE_PATH) != -1;
+    }
+
+    public void addExtraContentToBackup(ZipOutputStream out) throws IOException {
+        addExternalResourcesToBackup(out);
     }
 
     public void addExternalResourcesToBackup(ZipOutputStream out)

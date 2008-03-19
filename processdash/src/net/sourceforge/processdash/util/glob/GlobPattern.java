@@ -1,4 +1,4 @@
-// Copyright (C) 2006 Tuma Solutions, LLC
+// Copyright (C) 2006-2008 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -33,9 +33,12 @@ import java.util.regex.Pattern;
 /** Class for testing matches against expressions containing the glob
  * characters '?' and '*'
  * 
+ * Non-glob characters are compared in a case-insensitive manner.
+ * 
  * Special, efficient handling is provided for:<ul>
- *   <li>plain text expressions (containing neither '?' nor '*')
- *   <li>prefix expressions (regular text ending in '*')
+ *   <li>plain text expressions (containing neither '?' nor '*')</li>
+ *   <li>prefix expressions (regular text ending in '*')</li>
+ *   <li>suffix expressions (regular text starting with '*')</li>
  *   </ul>
  */
 public class GlobPattern {
@@ -74,12 +77,15 @@ public class GlobPattern {
 
     private static Evaluator buildEvaluator(String glob) {
         int splatPos = glob.indexOf('*');
+        int lastSplatPos = glob.lastIndexOf('*');
         int questPos = glob.indexOf('?');
 
         if (questPos == -1 && splatPos == -1)
             return new PlainTextEvaluator(glob);
         else if (questPos == -1 && splatPos == (glob.length()-1))
             return new PrefixEvaluator(glob);
+        else if (questPos == -1 && lastSplatPos == 0)
+            return new SuffixEvaluator(glob);
         else
             return new PatternEvaluator(glob);
     }
@@ -111,6 +117,20 @@ public class GlobPattern {
         public boolean test(String s) {
             return s != null
                 && s.regionMatches(true, 0, prefix, 0, prefix.length());
+        }
+    }
+
+    private static class SuffixEvaluator implements Evaluator {
+        String suffix;
+
+        public SuffixEvaluator(String glob) {
+            this.suffix = glob.substring(1);
+        }
+
+        public boolean test(String s) {
+            return s != null
+                && s.regionMatches(true, s.length() - suffix.length(),
+                        suffix, 0, suffix.length());
         }
     }
 

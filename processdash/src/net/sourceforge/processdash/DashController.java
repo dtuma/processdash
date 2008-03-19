@@ -100,7 +100,8 @@ public class DashController {
     }
 
     public static void raiseWindow() {
-        new WindowRaiser();
+        if (dash != null)
+            new WindowRaiser();
     }
 
     /** In Gnome/Linux, a single call to raiseWindowImpl doesn't seem to do the
@@ -206,8 +207,7 @@ public class DashController {
         if (!unsavedData.isEmpty())
             return null;
 
-        return FileBackupManager.run(dash.property_directory,
-                FileBackupManager.RUNNING, null);
+        return dash.fileBackupManager.run();
     }
 
     public static void saveAllData() {

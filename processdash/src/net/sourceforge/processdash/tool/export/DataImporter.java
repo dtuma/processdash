@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2007 Tuma Solutions, LLC
+// Copyright (C) 2003-2008 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -44,6 +44,7 @@ import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.log.defects.ImportedDefectManager;
 import net.sourceforge.processdash.log.time.ImportedTimeLogManager;
+import net.sourceforge.processdash.tool.bridge.client.ImportDirectory;
 import net.sourceforge.processdash.tool.export.impl.ArchiveMetricsFileImporter;
 import net.sourceforge.processdash.tool.export.impl.TextMetricsFileImporter;
 import net.sourceforge.processdash.util.RobustFileOutputStream;
@@ -66,18 +67,21 @@ public class DataImporter extends Thread {
 
     private DataRepository data;
     private String importPrefix;
-    private File directory;
+    private ImportDirectory directory;
     private volatile boolean isRunning = true;
     private HashMap modTimes = new HashMap();
     private HashMap prefixes = new HashMap();
 
 
-    public static void addImport(DataRepository data, String prefix, String dir) {
-        DataImporter i = new DataImporter(data, prefix, new File(dir));
-        importers.put(getKey(prefix, dir), i);
+    public static void addImport(DataRepository data, String prefix,
+            String dirInfo, ImportDirectory importDir) {
+        String key = getKey(prefix, dirInfo);
+        DataImporter i = new DataImporter(data, prefix, importDir);
+        importers.put(key, i);
     }
-    public static void removeImport(String prefix, String dir) {
-        DataImporter i = (DataImporter) importers.remove(getKey(prefix, dir));
+    public static void removeImport(String prefix, String dirInfo) {
+        String key = getKey(prefix, dirInfo);
+        DataImporter i = (DataImporter) importers.remove(key);
         if (i != null)
             i.dispose();
     }
@@ -123,10 +127,10 @@ public class DataImporter extends Thread {
         return result;
     }
 
-    public DataImporter(DataRepository data, String prefix, File directory) {
+    public DataImporter(DataRepository data, String prefix, ImportDirectory importDir) {
         this.data = data;
         this.importPrefix = prefix;
-        this.directory = directory;
+        this.directory = importDir;
 
         initializingImporters.add(this);
         this.setDaemon(true);
@@ -158,6 +162,7 @@ public class DataImporter extends Thread {
             Set currentFiles = new HashSet(modTimes.keySet());
 
             // list the files in the import directory.
+            directory.update();
             File [] files = getFilesToImport();
 
             // check them all to see if they need importing.
@@ -183,7 +188,7 @@ public class DataImporter extends Thread {
 
     private File[] getFilesToImport() {
         // get a list of files in the directory
-        File[] files = directory.listFiles();
+        File[] files = directory.getDirectory().listFiles();
         if (files == null)
             return new File[0];
 
