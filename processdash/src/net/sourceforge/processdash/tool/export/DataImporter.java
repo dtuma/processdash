@@ -132,7 +132,11 @@ public class DataImporter extends Thread {
         this.importPrefix = prefix;
         this.directory = importDir;
 
-        initializingImporters.add(this);
+        if (PARALLEL_INIT)
+            initializingImporters.add(this);
+        else
+            checkFiles(null);
+
         this.setDaemon(true);
         this.start();
     }
@@ -144,11 +148,13 @@ public class DataImporter extends Thread {
 
 
     public void run() {
-        checkFiles(null);
-        synchronized (initializingImporters) {
-            initializingImporters.remove(this);
-            if (initializingImporters.isEmpty())
-                initializingImporters.notifyAll();
+        if (PARALLEL_INIT) {
+            checkFiles(null);
+            synchronized (initializingImporters) {
+                initializingImporters.remove(this);
+                if (initializingImporters.isEmpty())
+                    initializingImporters.notifyAll();
+            }
         }
         while (isRunning) try {
             sleep(TIME_DELAY);
@@ -346,4 +352,6 @@ public class DataImporter extends Thread {
         int maxOperations = Settings.getInt("slowNetwork.numParallelReads", 10);
         return new Semaphore(maxOperations);
     }
+    private static final boolean PARALLEL_INIT = Settings.getBool(
+        "dataImporter.parallelInit", false);
 }
