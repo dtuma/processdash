@@ -34,7 +34,9 @@ import net.sourceforge.processdash.util.DirectoryBackup;
 public class DashboardInstanceStrategy implements
         FileResourceCollectionStrategy {
 
-    public static final DashboardInstanceStrategy INSTANCE = new DashboardInstanceStrategy();
+    public static final DashboardInstanceStrategy INSTANCE =
+            new DashboardInstanceStrategy();
+
     public static final String LOCK_FILE_NAME = "dashlock.txt";
 
     private DashboardInstanceStrategy() {}
@@ -48,8 +50,7 @@ public class DashboardInstanceStrategy implements
     }
 
     public String getLockFilename() {
-        return "dashlock.txt";
+        return LOCK_FILE_NAME;
     }
-
 
 }

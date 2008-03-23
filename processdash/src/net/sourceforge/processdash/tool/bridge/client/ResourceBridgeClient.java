@@ -66,7 +66,7 @@ import net.sourceforge.processdash.util.lock.NotLockedException;
 
 public class ResourceBridgeClient implements ResourceBridgeConstants {
 
-    private static final String CLIENT_VERSION = "1.0";
+    static final String CLIENT_VERSION = "1.0";
 
     ResourceCollection localCollection;
 
@@ -85,12 +85,15 @@ public class ResourceBridgeClient implements ResourceBridgeConstants {
     }
 
     public boolean syncDown() throws IOException {
-        ProfTimer pt = new ProfTimer(logger);
+        ProfTimer pt = new ProfTimer(logger, "ResourceBridgeClient.syncDown["
+                + remoteUrl + "]");
         // compare hashcodes to see if the local and remote directories have
         // identical contents
         if (hashesMatch()) {
+            pt.click("checked hashes - match");
             return false;
         }
+        pt.click("checked hashes - mismatch");
 
         // make a complete comparison of local-vs-remote changes.
         ResourceCollectionDiff diff = getDiff();
@@ -112,6 +115,7 @@ public class ResourceBridgeClient implements ResourceBridgeConstants {
         if (!includes.isEmpty())
             downloadFiles(makeGetRequest(DOWNLOAD_ACTION, includes));
 
+        pt.click("Copied down changes");
         return true;
     }
 
@@ -131,7 +135,10 @@ public class ResourceBridgeClient implements ResourceBridgeConstants {
         if (userName == null)
             throw new NotLockedException();
 
+        ProfTimer pt = new ProfTimer(logger, "ResourceBridgeClient.syncUp["
+                + remoteUrl + "]");
         ResourceCollectionDiff diff = getDiff();
+        pt.click("Computed local-vs-remote diff");
         if (diff == null || diff.noDifferencesFound()) {
             logger.finer("no changes to sync up");
             return false;
@@ -149,6 +156,7 @@ public class ResourceBridgeClient implements ResourceBridgeConstants {
                 params.add(resourceName);
             }
             doPostRequest(DELETE_ACTION, (Object[]) params.toArray());
+            pt.click("Deleted remote resources");
             madeChange = true;
         }
 
@@ -158,16 +166,17 @@ public class ResourceBridgeClient implements ResourceBridgeConstants {
             List params = new ArrayList();
             for (String resourceName : diff.getOnlyInA()) {
                 logger.fine("uploading new resource " + resourceName);
-                params.add(resourceName);
-                params.add(localCollection.getInputStream(resourceName));
+                addFileUploadParams(params, resourceName);
             }
             for (String resourceName : diff.getDiffering()) {
                 logger.fine("uploading modified resource " + resourceName);
-                params.add(resourceName);
-                params.add(localCollection.getInputStream(resourceName));
+                addFileUploadParams(params, resourceName);
             }
-            doPostRequest(UPLOAD_ACTION, (Object[]) params.toArray());
-            madeChange = true;
+            if (!params.isEmpty()) {
+                doPostRequest(UPLOAD_ACTION, (Object[]) params.toArray());
+                pt.click("Uploaded new/modified resources");
+                madeChange = true;
+            }
         }
 
         if (!madeChange) {
@@ -177,22 +186,30 @@ public class ResourceBridgeClient implements ResourceBridgeConstants {
         return madeChange;
     }
 
-    public void saveLogFile() throws IOException, LockFailureException {
+    public void saveDefaultExcludedFiles() throws IOException, LockFailureException {
         if (userName == null)
             throw new NotLockedException();
 
-        logger.fine("uploading log.txt file");
-        doPostRequest(UPLOAD_ACTION, "log.txt", localCollection
-                .getInputStream("log.txt"));
+        List params = new ArrayList();
+        for (String name : ResourceFilterFactory.DEFAULT_EXCLUDE_FILENAMES) {
+            addFileUploadParams(params, name);
+        }
+        if (!params.isEmpty()) {
+            doPostRequest(UPLOAD_ACTION, (Object[]) params.toArray());
+            logger.fine("Uploaded default excluded files");
+        }
     }
 
     public URL doBackup(String qualifier) throws IOException {
+        ProfTimer pt = new ProfTimer(logger, "ResourceBridgeClient.doBackup["
+                + remoteUrl + "]");
         try {
             doPostRequest(BACKUP_ACTION, BACKUP_QUALIFIER_PARAM, qualifier);
-            logger.fine("Backed up data, qualifer = " + qualifier);
+            pt.click("backup finished, qualifer = " + qualifier);
         } catch (LockFailureException e) {
             // shouldn't happen
             logger.log(Level.SEVERE, "Received unexpected exception", e);
+            pt.click("backup failed");
         }
         StringBuffer result = new StringBuffer(remoteUrl);
         HTMLUtils.appendQuery(result, VERSION_PARAM, CLIENT_VERSION);
@@ -201,10 +218,15 @@ public class ResourceBridgeClient implements ResourceBridgeConstants {
     }
 
     public void acquireLock(String userName) throws LockFailureException {
+        ProfTimer pt = new ProfTimer(logger, "ResourceBridgeClient.acquireLock["
+                + remoteUrl + "]");
         try {
             this.userName = userName;
             doPostRequest(ACQUIRE_LOCK_ACTION);
-            logger.fine("Acquired bridged lock");
+            pt.click("Acquired bridged lock");
+        } catch (LockFailureException lfe) {
+            this.userName = null;
+            throw lfe;
         } catch (Exception e) {
             this.userName = null;
             throw new LockFailureException(e);
@@ -215,9 +237,11 @@ public class ResourceBridgeClient implements ResourceBridgeConstants {
         if (userName == null)
             throw new NotLockedException();
 
+        ProfTimer pt = new ProfTimer(logger, "ResourceBridgeClient.pingLock["
+                + remoteUrl + "]");
         try {
             doPostRequest(PING_LOCK_ACTION);
-            logger.fine("Pinged bridged lock");
+            pt.click("Pinged bridged lock");
         } catch (LockFailureException lfe) {
             throw lfe;
         } catch (Exception e) {
@@ -229,9 +253,11 @@ public class ResourceBridgeClient implements ResourceBridgeConstants {
         if (userName == null)
             throw new NotLockedException();
 
+        ProfTimer pt = new ProfTimer(logger, "ResourceBridgeClient.assertLock["
+                + remoteUrl + "]");
         try {
             doPostRequest(ASSERT_LOCK_ACTION);
-            logger.fine("Asserted bridged lock");
+            pt.click("Asserted bridged lock");
         } catch (LockFailureException lfe) {
             throw lfe;
         } catch (Exception e) {
@@ -243,9 +269,11 @@ public class ResourceBridgeClient implements ResourceBridgeConstants {
         if (userName == null)
             return;
 
+        ProfTimer pt = new ProfTimer(logger,
+                "ResourceBridgeClient.releaseLock[" + remoteUrl + "]");
         try {
             doPostRequest(RELEASE_LOCK_ACTION);
-            logger.fine("Released bridged lock");
+            pt.click("Released bridged lock");
         } catch (Exception e) {
             // We don't throw any error here, because if we fail to release
             // the bridged lock, the worst case scenario is that it will time
@@ -290,6 +318,8 @@ public class ResourceBridgeClient implements ResourceBridgeConstants {
         ZipEntry e;
         while ((e = zipIn.getNextEntry()) != null) {
             String name = e.getName();
+            long modTime = e.getTime();
+
             if (ResourceContentStream.MANIFEST_FILENAME.equals(name)) {
                 InputStream infoIn = new ByteArrayInputStream(FileUtils
                         .slurpContents(zipIn, false));
@@ -297,18 +327,34 @@ public class ResourceBridgeClient implements ResourceBridgeConstants {
                 continue;
             }
 
-            logger.fine("downloading resource " + name);
-            OutputStream out = localCollection.getOutputStream(name);
+            OutputStream out = localCollection.getOutputStream(name, modTime);
             if (out == null)
                 // this would occur if we receive a file we don't recognize as
                 // a member of our collection. Discard it.
                 continue;
+            logger.fine("downloading resource " + name);
             FileUtils.copyFile(zipIn, out);
             out.close();
             zipIn.closeEntry();
         }
         zipIn.close();
         return info;
+    }
+
+    private void addFileUploadParams(List params, String resourceName)
+            throws IOException {
+        InputStream in = localCollection.getInputStream(resourceName);
+        if (in == null)
+            return;
+
+        params.add(resourceName);
+        params.add(in);
+
+        long modTime = localCollection.getLastModified(resourceName);
+        if (modTime > 0) {
+            params.add(UPLOAD_TIMESTAMP_PARAM_PREFIX + resourceName);
+            params.add(Long.toString(modTime));
+        }
     }
 
     private HttpURLConnection makeGetRequest(String action, List parameters)
@@ -405,8 +451,9 @@ public class ResourceBridgeClient implements ResourceBridgeConstants {
             try {
                 Class clazz = Class.forName(exceptionClass);
                 lfe = (LockFailureException) clazz.newInstance();
-            } catch (Exception e) {
-                lfe = new LockFailureException(http.getResponseMessage());
+            } catch (Throwable t) {
+                lfe = new LockFailureException(exceptionClass + ", "
+                        + http.getResponseMessage());
             }
             throw lfe;
         }

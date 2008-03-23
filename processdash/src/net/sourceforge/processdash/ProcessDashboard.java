@@ -141,6 +141,7 @@ import net.sourceforge.processdash.util.lock.LockFailureException;
 import net.sourceforge.processdash.util.lock.LockMessage;
 import net.sourceforge.processdash.util.lock.LockMessageHandler;
 import net.sourceforge.processdash.util.lock.LockUncertainException;
+import net.sourceforge.processdash.util.lock.ReadOnlyLockFailureException;
 import net.sourceforge.processdash.util.lock.SentLockMessageException;
 
 
@@ -148,6 +149,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         DashboardContext, ApplicationEventSource {
 
     public static final String HTTP_PORT_SETTING = "http.port";
+    private static final String LOCATION_ARG_PREFIX = "-location=";
     private static final String DATA_DIR_LINK_FILE_SETTING =
         "net.sourceforge.processdash.dataDirLinkFile";
     private static final String DISABLE_AUTO_EXPORT_SETTING =
@@ -254,13 +256,20 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         pt.click("Set default directory");
 
 
-        //
+        // configure the writability of the data and lock if applicable
         maybeEnableReadOnlyMode();
         pt.click("Checked read only mode");
         if (!Settings.isReadOnly()) {
             tryToLockDataForWriting();
             pt.click("Tried to acquire write lock");
         }
+
+
+        // run the backup process as soon as possible
+        fileBackupManager = new FileBackupManager(workingDirectory);
+        fileBackupManager.maybeRun(FileBackupManager.STARTUP, null);
+        pt.click("Ran file backup");
+
 
         // start the http server.
         try {
@@ -274,11 +283,6 @@ public class ProcessDashboard extends JFrame implements WindowListener,
             logErr("Couldn't start web server", ioe);
         }
         pt.click("Started web server");
-
-        // run the backup process as soon as possible
-        fileBackupManager = new FileBackupManager(workingDirectory);
-        fileBackupManager.maybeRun(FileBackupManager.STARTUP, null);
-        pt.click("Ran file backup");
 
 
         // create the data repository.
@@ -610,7 +614,8 @@ public class ProcessDashboard extends JFrame implements WindowListener,
 
         try {
             lockMessageHandler = new LockMsgHandler();
-            workingDirectory.acquireProcessLock(lockMessageHandler);
+            workingDirectory.acquireProcessLock(ACTIVATE_MESSAGE,
+                lockMessageHandler);
         } catch (SentLockMessageException e) {
             System.exit(0);
         } catch (LockFailureException e) {
@@ -638,11 +643,11 @@ public class ProcessDashboard extends JFrame implements WindowListener,
     private class LockMsgHandler implements LockMessageHandler {
         public String handleMessage(LockMessage e) {
             String msg = e.getMessage();
-            if (WorkingDirectory.ACTIVATE_MESSAGE.equals(msg)) {
+            if (ACTIVATE_MESSAGE.equals(msg)) {
                 DashController.raiseWindow();
                 return "OK";
             }
-            else if (LockMessageHandler.LOCK_LOST_MESSAGE.equals(msg)) {
+            else if (LockMessage.LOCK_LOST_MESSAGE.equals(msg)) {
                 showLostLockMessage("Ongoing_Advice");
                 return "OK";
             }
@@ -651,6 +656,8 @@ public class ProcessDashboard extends JFrame implements WindowListener,
             }
         }
     }
+    private static final String ACTIVATE_MESSAGE = "activate";
+
 
     public void addApplicationEventListener(ApplicationEventListener l) {
         synchronized (this) {
@@ -805,27 +812,6 @@ public class ProcessDashboard extends JFrame implements WindowListener,
             return;
         }
 
-        if (someDashboardFilesAreReadOnly()) {
-            // the user does not have write access to all of the files in
-            // the data directory.  They either need to open the dashboard
-            // in read only mode, or exit.
-            ResourceBundle res = ResourceBundle
-                    .getBundle("Templates.resources.ProcessDashboard");
-            String title = res.getString("ReadOnly.File_Permissions.Title");
-            Object message = MessageFormat.format(
-                    res.getString("ReadOnly.File_Permissions.Message_FMT"),
-                    new Object[] { property_directory }).split("\n");
-            int userResponse = JOptionPane.showConfirmDialog(null, message,
-                    title, JOptionPane.OK_CANCEL_OPTION,
-                    JOptionPane.ERROR_MESSAGE);
-            if (userResponse == JOptionPane.OK_OPTION) {
-                InternalSettings.setReadOnly(true);
-                return;
-            } else {
-                System.exit(1);
-            }
-        }
-
         String setting = Settings.getVal("readOnly");
         if (setting == null) return;
         if (setting.toLowerCase().startsWith("recommend")) {
@@ -851,17 +837,6 @@ public class ProcessDashboard extends JFrame implements WindowListener,
                 InternalSettings.setReadOnly(true);
         }
     }
-    private boolean someDashboardFilesAreReadOnly() {
-        File dataDir = new File(property_directory);
-        File[] files = dataDir.listFiles();
-        for (int i = 0; i < files.length; i++) {
-            if (FileBackupManager.inBackupSet(dataDir, files[i].getName())) {
-                if (!files[i].canWrite())
-                    return true;
-            }
-        }
-        return false;
-    }
 
     private void tryToLockDataForWriting() {
         String lockOwnerName = getOwnerName();
@@ -869,6 +844,9 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         try {
             workingDirectory.acquireWriteLock(lockMessageHandler,
                 lockOwnerName);
+            return;
+        } catch (ReadOnlyLockFailureException ro) {
+            showFilesAreReadOnlyMessage(workingDirectory.getDescription());
             return;
         } catch (AlreadyLockedException e) {
             otherUser = e.getExtraInfo();
@@ -938,6 +916,26 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         // if we make it all the way here, just look up the user's login
         // username and go with that.
         return System.getProperty("user.name");
+    }
+
+    private void showFilesAreReadOnlyMessage(String location) {
+        // the user does not have write access to all of the files in
+        // the data directory.  They either need to open the dashboard
+        // in read only mode, or exit.
+        ResourceBundle res = ResourceBundle
+                .getBundle("Templates.resources.ProcessDashboard");
+        String title = res.getString("ReadOnly.File_Permissions.Title");
+        Object message = MessageFormat.format(
+                res.getString("ReadOnly.File_Permissions.Message_FMT"),
+                new Object[] { location }).split("\n");
+        int userResponse = JOptionPane.showConfirmDialog(null, message,
+                title, JOptionPane.OK_CANCEL_OPTION,
+                JOptionPane.ERROR_MESSAGE);
+        if (userResponse == JOptionPane.OK_OPTION) {
+            InternalSettings.setReadOnly(true);
+        } else {
+            System.exit(1);
+        }
     }
 
     private void displaySharingError(String location) {
@@ -1384,8 +1382,8 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         for (int i = 0;  i < args.length;  i++) {
             if ("readOnly".equalsIgnoreCase(args[i]))
                 InternalSettings.setReadOnly(true);
-            else if (args[i].startsWith("http"))
-                location = args[i];
+            else if (args[i].startsWith(LOCATION_ARG_PREFIX))
+                location = args[i].substring(LOCATION_ARG_PREFIX.length());
             else
                 title = args[i];
         }

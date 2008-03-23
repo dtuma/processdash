@@ -36,8 +36,6 @@ import net.sourceforge.processdash.util.lock.SentLockMessageException;
 
 public interface WorkingDirectory {
 
-    public String ACTIVATE_MESSAGE = "activateWorkingDirectory";
-
     /**
      * Return a human-readable, user-friendly description of the location
      * this data is coming from.
@@ -52,6 +50,9 @@ public interface WorkingDirectory {
      * This method will return normally if a lock was sucessfully obtained;
      * otherwise, it will throw an appropriate exception.
      * 
+     * @param message
+     *                if another process has the lock, this message will be sent
+     *                to that process.
      * @param localHandler
      *                an object in the local process which can respond to
      *                messages from other processes when they attempt to acquire
@@ -64,8 +65,9 @@ public interface WorkingDirectory {
      *                 if we were unable to perform the coordination process for
      *                 any other reason.
      */
-    public void acquireProcessLock(LockMessageHandler localHandler)
-            throws SentLockMessageException, LockFailureException;
+    public void acquireProcessLock(String message,
+            LockMessageHandler localHandler) throws SentLockMessageException,
+            LockFailureException;
 
     /**
      * Prepare the contents of this working directory for use.
@@ -111,6 +113,13 @@ public interface WorkingDirectory {
     public void acquireWriteLock(LockMessageHandler lockHandler,
             String ownerName) throws AlreadyLockedException,
             LockFailureException;
+
+    /**
+     * Make certain that we still own the write lock on this directory.
+     * 
+     * @throws LockFailureException if we have lost the lock
+     */
+    public void assertWriteLock() throws LockFailureException;
 
     /**
      * Make certain all buffered data has been saved persistently.

@@ -78,10 +78,14 @@ public abstract class AbstractWorkingDirectory implements WorkingDirectory {
             return targetDirectory.getPath();
     }
 
-    public void acquireProcessLock(LockMessageHandler lockHandler)
+    public void acquireProcessLock(String msg, LockMessageHandler lockHandler)
             throws SentLockMessageException, LockFailureException {
         workingDirectory.mkdirs();
-        processLock.acquireLock(ACTIVATE_MESSAGE, lockHandler, null);
+        processLock.acquireLock(msg, lockHandler, null);
+    }
+
+    public String toString() {
+        return getClass().getSimpleName() + "[" + getDescription() + "]";
     }
 
     public static final String NO_PROCESS_LOCK_PROPERTY =

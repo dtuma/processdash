@@ -27,14 +27,10 @@ package net.sourceforge.processdash.tool.export.impl;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.text.NumberFormat;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -49,32 +45,27 @@ import net.sourceforge.processdash.tool.export.DataImporter;
 import net.sourceforge.processdash.tool.export.mgr.ImportDirectoryInstruction;
 import net.sourceforge.processdash.util.DrainableExecutor;
 import net.sourceforge.processdash.util.FileUtils;
-import net.sourceforge.processdash.util.StringUtils;
-import net.sourceforge.processdash.util.XMLUtils;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
-import org.xmlpull.v1.XmlSerializer;
 
 public class ExternalResourceArchiverXMLv1 implements ExternalResourceArchiver,
-        ExternalResourceMappingLoader, ExternalResourceXmlConstantsv1 {
+        ExternalResourceXmlConstantsv1 {
 
     private boolean keepFileModificationTimes = Settings.getBool(
         "backup.keepExternalFileTimes", true);
 
-    private Map<ImportDirectoryInstruction, String> importedDirs = Collections
-            .synchronizedMap(new HashMap<ImportDirectoryInstruction, String>());
+    private List<ImportDirectoryInstruction> importInstructions =
+        new ArrayList<ImportDirectoryInstruction>();
+    private ExternalResourceManifestXMLv1 manifest =
+        new ExternalResourceManifestXMLv1();
     private IOException exceptionEncountered;
 
     public Object dispatch(ImportDirectoryInstruction instr) {
-        importedDirs.put(instr, null);
+        importInstructions.add(instr);
         return null;
     }
 
     public void export(ZipOutputStream out) throws IOException {
         archiveDirectories(out);
-        writeManifest(out);
+        manifest.write(out);
     }
 
     private void archiveDirectories(ZipOutputStream out) throws IOException {
@@ -86,8 +77,6 @@ public class ExternalResourceArchiverXMLv1 implements ExternalResourceArchiver,
         NumberFormat fmt = NumberFormat.getIntegerInstance();
         fmt.setMinimumIntegerDigits(3);
 
-        List<ImportDirectoryInstruction> importInstructions =
-            new ArrayList<ImportDirectoryInstruction>(importedDirs.keySet());
         for (int i = 0; i < importInstructions.size(); i++) {
             ImportDirectoryInstruction instr = importInstructions.get(i);
             String newPath = "extdir" + fmt.format(i + 1);
@@ -117,12 +106,13 @@ public class ExternalResourceArchiverXMLv1 implements ExternalResourceArchiver,
         }
 
         public void run() {
-            ImportDirectory dir = ImportDirectoryFactory.getInstance().get(instr);
+            String origUrl = instr.getURL();
+            String origPath = instr.getDirectory();
+            ImportDirectory dir = ImportDirectoryFactory.getInstance().get(
+                origUrl, origPath);
             if (dir != null && dir.getDirectory().isDirectory()) {
-                importedDirs.put(instr, newPath);
+                manifest.addMapping(origPath, origUrl, newPath);
                 archiveDirectory(taskRunner, out, dir.getDirectory(), newPath);
-            } else {
-                importedDirs.remove(instr);
             }
         }
     }
@@ -186,73 +176,6 @@ public class ExternalResourceArchiverXMLv1 implements ExternalResourceArchiver,
                 out.closeEntry();
             }
         }
-    }
-
-    private void writeManifest(ZipOutputStream out) throws IOException {
-        if (importedDirs.isEmpty())
-            // none of the directories listed in the import instruction setting
-            // actually existed, so none of them were backed up into the ZIP
-            // archive.  There is no need to write a manifest file, either.
-            return;
-
-        XmlSerializer ser = XMLUtils.getXmlSerializer(true);
-
-        ZipEntry entry = new ZipEntry(ARCHIVE_PATH + "/" + MANIFEST_FILE_NAME);
-        out.putNextEntry(entry);
-        ser.setOutput(out, ENCODING);
-        ser.startDocument(ENCODING, null);
-        ser.startTag(null, DOC_ROOT_ELEM);
-
-        for (Map.Entry<ImportDirectoryInstruction, String> e : importedDirs
-                .entrySet()) {
-            ImportDirectoryInstruction instr = e.getKey();
-            String origURL = instr.getURL();
-            String origPath = instr.getDirectory();
-            String newPath = e.getValue();
-            ser.startTag(null, IMPORT_DIR_ELEM);
-            if (StringUtils.hasValue(origURL))
-                ser.attribute(null, ORIGINAL_URL, origURL);
-            if (StringUtils.hasValue(origPath))
-                ser.attribute(null, ORIGINAL_PATH, origPath);
-            ser.attribute(null, NEW_PATH, newPath);
-            ser.endTag(null, IMPORT_DIR_ELEM);
-        }
-
-        ser.endTag(null, DOC_ROOT_ELEM);
-        ser.endDocument();
-
-        out.closeEntry();
-    }
-
-
-    public Map load(File directory) {
-        File archiveDir = new File(directory, ARCHIVE_PATH);
-        if (!archiveDir.isDirectory())
-            return Collections.EMPTY_MAP;
-
-        File manifestFile = new File(archiveDir, MANIFEST_FILE_NAME);
-        if (!manifestFile.isFile())
-            return Collections.EMPTY_MAP;
-
-        Document doc;
-        try {
-            doc = XMLUtils.parse(new FileInputStream(manifestFile));
-        } catch (Exception e) {
-            return Collections.EMPTY_MAP;
-        }
-
-        Map result = new HashMap();
-        NodeList directories = doc.getElementsByTagName(IMPORT_DIR_ELEM);
-        for (int i=0;  i < directories.getLength();  i++) {
-            Element e = (Element) directories.item(i);
-            String origPath = e.getAttribute(ORIGINAL_PATH);
-            String origURL = e.getAttribute(ORIGINAL_URL);
-            String newPath = e.getAttribute(NEW_PATH);
-            File newDir = new File(archiveDir, newPath);
-            result.put(origPath, newDir.getAbsolutePath());
-            result.put(origURL, newDir.getAbsolutePath());
-        }
-        return result;
     }
 
     public static void cleanupBogusArchiveDirectory(File baseDir) {

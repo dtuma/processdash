@@ -134,7 +134,7 @@ public class ImportManager extends AbstractManager {
         public Object dispatch(ImportDirectoryInstruction instr) {
             String prefix = instr.getPrefix();
             ImportDirectory importDir = ImportDirectoryFactory.getInstance()
-                    .get(instr);
+                    .get(instr.getURL(), instr.getDirectory());
 
             if (importDir instanceof BridgedImportDirectory) {
                 BridgedImportDirectory bid = (BridgedImportDirectory) importDir;

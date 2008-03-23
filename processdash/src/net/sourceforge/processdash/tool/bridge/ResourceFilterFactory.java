@@ -32,9 +32,6 @@ import net.sourceforge.processdash.util.StringUtils;
 
 public class ResourceFilterFactory {
 
-    public static final ResourceFilter DEFAULT_FILTER =
-            getForRequest(Collections.EMPTY_MAP);
-
     public static final String LAST_MOD_PARAM = "ifModifiedAfter";
 
     public static final String INCLUDE_PARAM = "include";
@@ -42,6 +39,11 @@ public class ResourceFilterFactory {
     public static final String EXCLUDE_PARAM = "exclude";
 
     public static final String DEFAULT_EXCLUDES = "defaultExcludes";
+
+    public static final String[] DEFAULT_EXCLUDE_FILENAMES = { "log.txt" };
+
+    public static final ResourceFilter DEFAULT_FILTER =
+        getForRequest(Collections.EMPTY_MAP);
 
     public static ResourceFilter getForRequest(Map request) {
         ResourceFilter filter = new ResourceFilter();
@@ -75,7 +77,9 @@ public class ResourceFilterFactory {
         // add default excludes unless otherwise specified
         String defaultExcludes = getParameter(request, DEFAULT_EXCLUDES);
         if (!"no".equals(defaultExcludes)) {
-            filter.addExcludePattern("log.txt");
+            for (String name : DEFAULT_EXCLUDE_FILENAMES) {
+                filter.addExcludePattern(name);
+            }
         }
 
         return filter;

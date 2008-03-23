@@ -35,8 +35,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import net.sourceforge.processdash.tool.bridge.impl.TeamDataDirStrategy;
-import net.sourceforge.processdash.tool.export.mgr.ExternalResourceManager;
-import net.sourceforge.processdash.tool.export.mgr.ImportDirectoryInstruction;
+import net.sourceforge.processdash.tool.export.mgr.ExternalLocationMapper;
 import net.sourceforge.processdash.util.StringUtils;
 
 public class ImportDirectoryFactory {
@@ -59,24 +58,45 @@ public class ImportDirectoryFactory {
                 .synchronizedMap(new HashMap<String, ImportDirectory>());
     }
 
-    public ImportDirectory get(ImportDirectoryInstruction instr) {
-        return get(instr.getURL(), instr.getDirectory());
-    }
-
-    public synchronized ImportDirectory get(String... locations) {
+    /**
+     * Return an ImportDirectory object capable of serving data from a
+     * particular resource collection.
+     * 
+     * @param locations
+     *                a list of filenames or URLs that might point to the
+     *                desired resource collection. The first location that can
+     *                be successfully used will be returned. Note that URLs are
+     *                only considered successful if we can contact the server in
+     *                question, but if a filename is passed in, it will always
+     *                result in a "successful" ImportDirectory object, even if
+     *                the named directory does not exist.
+     * @return a resource collection, or null if no ImportDirectory object could
+     *         be successfully created from the list of locations
+     */
+    public ImportDirectory get(String... locations) {
         for (String location : locations) {
+            // ignore null or empty locations
             if (!StringUtils.hasValue(location))
                 continue;
 
+            // check to see if we have already created an ImportDirectory
+            // object for this location in the past.  If so, return it.
             ImportDirectory cached = cache.get(normalize(location));
             if (cached != null)
-                return cached;
+                return refresh(cached);
 
-            String remappedLocation = ExternalResourceManager.getInstance()
+            // If the location represents a directory that is being mapped to
+            // a specific location by the ExternalLocationMapper, then we
+            // should unequivocally serve files out of that directory. (The
+            // typical use case for this would be imported resources that
+            // were extracted from a data backup by the Quick Launcher.)
+            String remappedLocation = ExternalLocationMapper.getInstance()
                     .remapFilename(location);
             if (!normalizedEquals(remappedLocation, location))
                 return get(new File(remappedLocation), NO_REMOTE);
 
+            // If the location is a URL, try contacting that server and
+            // retrieving the data.
             if (location.startsWith("http")) {
                 URL remoteURL = TeamServerSelector.testServerURL(location);
                 if (remoteURL != null) {
@@ -88,8 +108,14 @@ public class ImportDirectoryFactory {
                                     + remoteURL, e);
                     }
                 }
+            }
 
-            } else {
+            // The location is a filename.  Create an ImportDirectory object
+            // to serve data from the named directory.  Note that the
+            // object we return could be a plain local directory, or could be
+            // a bridged directory if we discover that a team server is
+            // handling the named directory.
+            else {
                 File dir = new File(location);
                 return get(dir, CHECK_REMOTE);
             }
@@ -102,10 +128,11 @@ public class ImportDirectoryFactory {
         return get(dir, CHECK_REMOTE);
     }
 
-    private synchronized ImportDirectory get(File dir, boolean noRemote) {
+    private ImportDirectory get(File dir, boolean noRemote) {
         String path = normalize(dir.getPath());
-        if (cache.containsKey(path))
-            return cache.get(path);
+        ImportDirectory cached = cache.get(path);
+        if (cached != null)
+            return refresh(cached);
 
         ImportDirectory result = null;
         URL u = (noRemote ? null : TeamServerSelector.getServerURL(dir));
@@ -117,22 +144,37 @@ public class ImportDirectoryFactory {
                     "Encountered error when contacting server " + u, e);
             }
         }
-        if (result == null)
+        if (result == null) {
             result = new LocalImportDirectory(dir);
+            logger.fine("Using local import directory " + dir.getPath());
+        }
 
-        cache.put(path, result);
-        return result;
+        return putInCache(path, result);
     }
 
-    public synchronized ImportDirectory get(URL url) throws IOException {
+    public ImportDirectory get(URL url) throws IOException {
         String urlStr = url.toString();
-        if (cache.containsKey(urlStr))
-            return cache.get(urlStr);
+        ImportDirectory cached = cache.get(urlStr);
+        if (cached != null)
+            return refresh(cached);
 
         ImportDirectory result = new BridgedImportDirectory(urlStr,
                 TeamDataDirStrategy.INSTANCE);
-        cache.put(urlStr, result);
-        return result;
+        logger.fine("Using bridged import directory "
+                + result.getDirectory().getPath());
+
+        return putInCache(urlStr, result);
+    }
+
+    private ImportDirectory putInCache(String key, ImportDirectory dir) {
+        synchronized (cache) {
+            ImportDirectory cached = cache.get(key);
+            if (cached != null)
+                return cached;
+
+            cache.put(key, dir);
+            return dir;
+        }
     }
 
     private static String normalize(String path) {
@@ -143,6 +185,15 @@ public class ImportDirectoryFactory {
         if (a == b) return true;
         if (a == null || b == null) return false;
         return normalize(a).equals(normalize(b));
+    }
+
+    private static ImportDirectory refresh(ImportDirectory dir) {
+        if (dir != null) {
+            try {
+                dir.update();
+            } catch (IOException ioe) {}
+        }
+        return dir;
     }
 
     private static final boolean NO_REMOTE = true;

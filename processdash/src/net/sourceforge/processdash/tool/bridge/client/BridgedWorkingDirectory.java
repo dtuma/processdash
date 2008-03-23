@@ -87,15 +87,20 @@ public class BridgedWorkingDirectory extends AbstractWorkingDirectory {
         worker = new Worker(lockHandler);
     }
 
+    public void assertWriteLock() throws LockFailureException {
+        client.assertLock();
+    }
+
     public boolean flushData() throws LockFailureException, IOException {
         for (int numTries = 5; numTries-- > 0;) {
             if (client.syncUp() == false) {
                 if (worker != null)
                     worker.resetFlushFrequency();
                 try {
-                    client.saveLogFile();
+                    client.saveDefaultExcludedFiles();
                 } catch (Exception e) {
-                    logger.log(Level.FINE, "Unable to save log.txt file", e);
+                    logger.log(Level.FINE,
+                        "Unable to save default excluded files", e);
                 }
                 return true;
             }
@@ -111,7 +116,8 @@ public class BridgedWorkingDirectory extends AbstractWorkingDirectory {
         if (worker != null)
             worker.shutDown();
         client.releaseLock();
-        processLock.releaseLock();
+        if (processLock != null)
+            processLock.releaseLock();
     }
 
     private class Worker extends Thread {
@@ -123,7 +129,7 @@ public class BridgedWorkingDirectory extends AbstractWorkingDirectory {
         private volatile int flushCountdown;
 
         public Worker(LockMessageHandler lockHandler) {
-            super("WorkingDirBridge.Worker(" + client.remoteUrl + ")");
+            super("WorkingDirBridge.Worker(" + remoteURL + ")");
             setDaemon(true);
             this.isRunning = true;
             this.lockHandler = lockHandler;
@@ -152,7 +158,7 @@ public class BridgedWorkingDirectory extends AbstractWorkingDirectory {
                     }
                 } catch (LockUncertainException lue) {
                 } catch (LockFailureException lfe) {
-                    sendMessage(LockMessageHandler.LOCK_LOST_MESSAGE);
+                    sendMessage(LockMessage.LOCK_LOST_MESSAGE);
                 } catch (IOException ioe) {
                     // some problem has prevented us from contacting the
                     // server and syncing up our data.  The problem could

@@ -40,6 +40,8 @@ public class BridgedImportDirectory implements ImportDirectory {
 
     protected ResourceBridgeClient client;
 
+    protected long lastUpdateTime;
+
     protected BridgedImportDirectory(String remoteURL,
             FileResourceCollectionStrategy strategy) throws IOException {
         this.remoteURL = remoteURL;
@@ -53,6 +55,7 @@ public class BridgedImportDirectory implements ImportDirectory {
         this.client = new ResourceBridgeClient(localCollection, remoteURL);
 
         this.client.syncDown();
+        this.lastUpdateTime = System.currentTimeMillis();
     }
 
     protected String getImportId() {
@@ -72,7 +75,15 @@ public class BridgedImportDirectory implements ImportDirectory {
     }
 
     public void update() throws IOException {
-        client.syncDown();
+        // this method may get called overzealously by code in different layers
+        // of the application.  If it is called more than once within a few
+        // milliseconds, don't repeat the update.
+        long now = System.currentTimeMillis();
+        long lastUpdateAge = now - lastUpdateTime;
+        if (lastUpdateAge > 1000 || lastUpdateAge < 0) {
+            client.syncDown();
+            lastUpdateTime = System.currentTimeMillis();
+        }
     }
 
 }

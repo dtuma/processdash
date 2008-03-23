@@ -1,4 +1,4 @@
-// Copyright (C) 2007 Tuma Solutions, LLC
+// Copyright (C) 2007-2008 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -27,7 +27,7 @@ package net.sourceforge.processdash.tool.export.mgr;
 
 import junit.framework.TestCase;
 
-public class ExternalResourceManagerTest extends TestCase {
+public class ExternalLocationMapperTest extends TestCase {
 
     private static final String DATADIR1 = "/data/eqayjbq7";
 
@@ -68,7 +68,7 @@ public class ExternalResourceManagerTest extends TestCase {
     public void testAbsoluteRemapping() {
         for (int i = 0; i < ABSOLUTE_REMAPPING_TESTS.length; i++) {
             String[] test = ABSOLUTE_REMAPPING_TESTS[i];
-            assertEquals(test[3], ExternalResourceManager
+            assertEquals(test[3], ExternalLocationMapper
                     .performAbsoluteRemapping(test[0], test[1], test[2]));
         }
     }
@@ -100,7 +100,7 @@ public class ExternalResourceManagerTest extends TestCase {
     public void testGeneralizedRemapping() {
         for (int i = 0; i < GENERALIZED_REMAPPING_TESTS.length; i++) {
             String[] test = GENERALIZED_REMAPPING_TESTS[i];
-            assertEquals(test[3], ExternalResourceManager
+            assertEquals(test[3], ExternalLocationMapper
                     .performGeneralizedRemapping(test[0], test[1], test[2]));
         }
     }

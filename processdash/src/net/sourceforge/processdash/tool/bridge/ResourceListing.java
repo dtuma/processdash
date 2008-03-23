@@ -67,7 +67,8 @@ public class ResourceListing implements ResourceCollectionInfo {
     }
 
     public long getLastModified(String resourceName) {
-        return modTimes.get(resourceName);
+        Long result = modTimes.get(resourceName);
+        return (result == null ? 0 : result.longValue());
     }
 
     public List<String> listResourceNames() {

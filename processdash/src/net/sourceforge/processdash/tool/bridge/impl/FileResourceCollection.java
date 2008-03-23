@@ -43,9 +43,14 @@ import java.util.zip.Adler32;
 import net.sourceforge.processdash.tool.bridge.ResourceCollection;
 import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.RobustFileOutputStream;
+import net.sourceforge.processdash.util.lock.ConcurrencyLock;
+import net.sourceforge.processdash.util.lock.ConcurrencyLockApprover;
+import net.sourceforge.processdash.util.lock.LockFailureException;
+import net.sourceforge.processdash.util.lock.ReadOnlyLockFailureException;
 
 
-public class FileResourceCollection implements ResourceCollection {
+public class FileResourceCollection implements ResourceCollection,
+        ConcurrencyLockApprover {
 
     public static final String DELETED = "deleted";
 
@@ -115,7 +120,6 @@ public class FileResourceCollection implements ResourceCollection {
         if (!checkResourceName(resourceName))
             return null;
 
-        cachedData.remove(resourceName);
         return new BufferedOutputStream(new FDCOutputStream(resourceName,
                 modTime));
     }
@@ -140,7 +144,11 @@ public class FileResourceCollection implements ResourceCollection {
 
     public InputStream getBackupInputStream() throws IOException {
         if (mostRecentBackup != null)
-            // AAAFIX: this won't work!  Well, maybe it will.
+            // note: this strategy will only work if we KNOW that people have
+            // performed a "backupCollection" call immediately before calling
+            // this method.  If any time intervenes, a legacy dashboard could
+            // run a backup, and our "mostRecentBackup" could become an
+            // incremental backup instead of a full backup.
             return new FileInputStream(mostRecentBackup);
         else
             throw new IOException("No backup made since restart");
@@ -151,6 +159,14 @@ public class FileResourceCollection implements ResourceCollection {
         return new File(directory, strategy.getLockFilename());
     }
 
+    public void approveLock(ConcurrencyLock lock, String extraInfo)
+            throws LockFailureException {
+        for (String name : listResourceNames()) {
+            File f = new File(directory, name);
+            if (f.canWrite() == false)
+                throw new ReadOnlyLockFailureException();
+        }
+    }
 
     // Methods for resource change notification
 
@@ -249,7 +265,7 @@ public class FileResourceCollection implements ResourceCollection {
 
                 // Now look to see if the lastMod time is zero. That's an
                 // indication that the file doesn't exist.
-                if (lastMod == 0)
+                if (lastMod < 1)
                     return null;
 
                 // The file exists. If we have a valid checksum, return it.
@@ -295,6 +311,7 @@ public class FileResourceCollection implements ResourceCollection {
 
         @Override
         public void close() throws IOException {
+            cachedData.remove(resourceName);
             synchronized (writeLock) {
                 super.close();
             }

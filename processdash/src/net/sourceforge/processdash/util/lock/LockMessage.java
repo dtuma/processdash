@@ -29,6 +29,10 @@ import java.util.EventObject;
 
 public class LockMessage extends EventObject {
 
+    /** A message that is sent to the listener of a lock, if the lock was
+     * lost and could not be reclaimed. */
+    public static final String LOCK_LOST_MESSAGE = "lockWasLost";
+
     private String message;
 
     public LockMessage(Object source, String message) {

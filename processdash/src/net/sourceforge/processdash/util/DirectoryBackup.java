@@ -176,7 +176,7 @@ public abstract class DirectoryBackup {
 
     protected File getDestBackupFile(String qualifier) {
         String now = DATE_FMT.format(new Date());
-        Object[] fmtArgs = new Object[] { now, qualifier };
+        Object[] fmtArgs = new Object[] { now, FileUtils.makeSafe(qualifier) };
         String filename = backupFilenameFormat.format(fmtArgs);
         return new File(destDirectory, filename);
     }

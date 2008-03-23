@@ -80,7 +80,7 @@ public class FileBackupManager {
         DashboardBackupFactory.setMaxHistLogSize(Settings.getInt(
             "logging.maxHistLogSize", 500000));
         DashboardBackupFactory.setKeepBackupsNumDays(Settings.getInt(
-            "backup.keepBackupsNumDays", -1));
+            "backup.keepBackupsNumDays", 21));
     }
 
     public void maybeRun(int when, String who) {
@@ -122,10 +122,9 @@ public class FileBackupManager {
         if (StringUtils.hasValue(who) && extraBackupDirs != null)
             needExternalCopy = true;
 
-        URL backupURL = null;
         File result = null;
         try{
-            backupURL = workingDirectory.doBackup(WHEN_STR[when]);
+            URL backupURL = workingDirectory.doBackup(WHEN_STR[when]);
             if (needExternalCopy)
                 result = createExternalizedBackupFile(backupURL);
         } catch (IOException ioe) {
@@ -201,6 +200,7 @@ public class FileBackupManager {
             System.out.println(System.getProperty("java.vendor") +
                                " JRE " + System.getProperty("java.version") +
                                "; " + System.getProperty("os.name"));
+            System.out.println("Using " + workingDirectory);
         } catch (IOException ioe) { printError(ioe); }
     }
 

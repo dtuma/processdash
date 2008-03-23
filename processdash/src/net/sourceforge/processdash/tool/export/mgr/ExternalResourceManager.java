@@ -27,8 +27,7 @@ package net.sourceforge.processdash.tool.export.mgr;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Iterator;
+import java.util.Collections;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -38,6 +37,7 @@ import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.tool.export.impl.ExternalResourceArchiver;
 import net.sourceforge.processdash.tool.export.impl.ExternalResourceArchiverXMLv1;
 import net.sourceforge.processdash.tool.export.impl.ExternalResourceAutoLocator;
+import net.sourceforge.processdash.tool.export.impl.ExternalResourceManifestXMLv1;
 import net.sourceforge.processdash.tool.export.impl.ExternalResourceXmlConstantsv1;
 import net.sourceforge.processdash.util.DirectoryBackup.ExtraContentSupplier;
 
@@ -62,9 +62,9 @@ public class ExternalResourceManager implements ExtraContentSupplier {
         return INSTANCE;
     }
 
-    Map pathRemappings = null;
+    ExternalLocationMapper mapper = null;
 
-    Map generalizedRemappings = null;
+    File defaultMapDataSource = null;
 
     ExternalResourceManager() {}
 
@@ -84,7 +84,7 @@ public class ExternalResourceManager implements ExtraContentSupplier {
     }
 
     public void initializeMappings(File baseDir) {
-        pathRemappings = null;
+        mapper = ExternalLocationMapper.getInstance();
 
         String setting = System.getProperty(INITIALIZATION_MODE_PROPERTY_NAME);
         logger.log(Level.FINE, "initialization mode property is {0}", setting);
@@ -92,52 +92,29 @@ public class ExternalResourceManager implements ExtraContentSupplier {
         if (INITIALIZATION_MODE_ARCHIVE.equalsIgnoreCase(setting)) {
             // if this data was extracted from a ZIP File, check to see if
             // external resources were included in that ZIP.
-            ExternalResourceArchiverXMLv1 loader = new ExternalResourceArchiverXMLv1();
-            pathRemappings = normalizeMappings(loader.load(baseDir));
-            if (pathRemappings == null)
+            ExternalResourceManifestXMLv1 loader = new ExternalResourceManifestXMLv1();
+            if (mapper.loadMappings(loader.load(baseDir))) {
+                defaultMapDataSource = baseDir;
+            } else {
                 // the zip file did not contain any archived external resources.
                 // this might mean it wasn't created by the FileBackupManager,
                 // but by an individual zipping up a set of team data
                 // directories. Fall back to the auto-search mode.
                 setting = INITIALIZATION_MODE_AUTO;
+            }
         }
 
         if (INITIALIZATION_MODE_AUTO.equalsIgnoreCase(setting)) {
-            ExternalResourceAutoLocator loader = new ExternalResourceAutoLocator();
-            dispatchAllImportInstructions((ImportInstructionDispatcher) loader);
-            pathRemappings = normalizeMappings(loader.load(baseDir));
+            final ExternalResourceAutoLocator loader = new ExternalResourceAutoLocator();
+            dispatchAllImportInstructions(new ImportInstructionDispatcher() {
+                public Object dispatch(ImportDirectoryInstruction instr) {
+                    loader.addImportedPath(instr.getDirectory());
+                    return null;
+                }});
+            mapper.loadMappings(loader.load(baseDir));
+            // NOTE: this style of resource mapping is not supported by the
+            // "default map data source" functionality at this time.
         }
-
-        generalizedRemappings = ExternalResourceAutoLocator
-                .getGeneralizedMappings(pathRemappings);
-
-        if (setting != null) {
-            logger.config("Path remappings: " + pathRemappings);
-            logger.config("Generalized remappings: " + generalizedRemappings);
-        }
-    }
-
-    private Map normalizeMappings(Map mappings) {
-        if (mappings == null || mappings.isEmpty())
-            return null;
-
-        Map result = new HashMap();
-
-        for (Iterator i = mappings.entrySet().iterator(); i.hasNext();) {
-            Map.Entry e = (Map.Entry) i.next();
-            String origPath = (String) e.getKey();
-            String newPath = (String) e.getValue();
-            result.put(normalize(origPath), normalize(newPath));
-        }
-        return result;
-    }
-
-    private String normalize(String path) {
-        return path.replace('\\', '/');
-    }
-
-    private String denormalize(String path) {
-        return path.replace('/', File.separatorChar);
     }
 
     private void dispatchAllImportInstructions(ImportInstructionDispatcher d) {
@@ -147,63 +124,10 @@ public class ExternalResourceManager implements ExtraContentSupplier {
     }
 
     public String remapFilename(String origFile) {
-        if (pathRemappings == null || origFile == null)
+        if (mapper == null)
             return origFile;
-
-        String origNormalizedPath = normalize(origFile);
-
-        for (Iterator i = pathRemappings.entrySet().iterator(); i.hasNext();) {
-            String remappedPath = performAbsoluteRemapping(origNormalizedPath,
-                    (Map.Entry) i.next());
-            if (remappedPath != null)
-                return denormalize(remappedPath);
-        }
-
-        for (Iterator i = generalizedRemappings.entrySet().iterator(); i
-                .hasNext();) {
-            String remappedPath = performGeneralizedRemapping(
-                    origNormalizedPath, (Map.Entry) i.next());
-            if (remappedPath != null)
-                return denormalize(remappedPath);
-        }
-
-        return origFile;
-    }
-
-    static String performAbsoluteRemapping(String path, Map.Entry mapping) {
-        return performAbsoluteRemapping(path, (String) mapping.getKey(),
-                (String) mapping.getValue());
-    }
-
-    static String performAbsoluteRemapping(String origPath, String fromPath,
-            String toPath) {
-        if (origPath.equalsIgnoreCase(fromPath))
-            return toPath;
-        if (origPath.regionMatches(true, 0, fromPath, 0, fromPath.length())
-                && origPath.charAt(fromPath.length()) == '/')
-            return toPath + origPath.substring(fromPath.length());
-        return null;
-    }
-
-    static String performGeneralizedRemapping(String path, Map.Entry mapping) {
-        return performGeneralizedRemapping(path, (String) mapping.getKey(),
-                (String) mapping.getValue());
-    }
-
-    static String performGeneralizedRemapping(String origPath,
-            String generalizedPath, String toPath) {
-        String origLower = origPath.toLowerCase();
-        generalizedPath = generalizedPath.toLowerCase();
-
-        if (origLower.endsWith(generalizedPath))
-            return toPath;
-        int pos = origLower.indexOf(generalizedPath);
-        if (pos != -1) {
-            int end = pos + generalizedPath.length();
-            if (origPath.charAt(end) == '/')
-                return toPath + origPath.substring(end);
-        }
-        return null;
+        else
+            return mapper.remapFilename(origFile);
     }
 
     /**
@@ -241,4 +165,22 @@ public class ExternalResourceManager implements ExtraContentSupplier {
             ExternalResourceArchiverXMLv1.cleanupBogusArchiveDirectory(baseDir);
     }
 
+    /**
+     * Sometimes it is necessary to launch a child process that is aware of
+     * the mappings used by this class.  Call this method to retrieve a list
+     * of arguments, then pass them to the child JVM.  Then,
+     * {@link ExternalLocationMapper} will be able to load the mappings
+     * without using extensive classpath dependencies.
+     * 
+     * @return a list of JVM args for mapping.  If no mapping is needed, will
+     *     return an empty list.
+     */
+    public Map<String,String> getJvmArgsForMapping() {
+        if (defaultMapDataSource == null)
+            return Collections.EMPTY_MAP;
+        else
+            return Collections.singletonMap(
+                    ExternalLocationMapper.DEFAULT_MAP_DATA_SOURCE_PROPERTY,
+                    defaultMapDataSource.getAbsolutePath());
+    }
 }

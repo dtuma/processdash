@@ -119,6 +119,7 @@ public class DashboardBackupFactory {
         result.setSrcDirectory(wbsDir);
         result.setFileFilter(WBS_FILE_FILTER);
         result.setBackupFilenameFormat(WBS_BACKUP_FILENAME_FMT);
+        result.setAutoCleanupNumDays(keepBackupsNumDays);
         return result;
     }
 

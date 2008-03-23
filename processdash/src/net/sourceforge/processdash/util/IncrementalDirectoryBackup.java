@@ -478,6 +478,8 @@ public class IncrementalDirectoryBackup extends DirectoryBackup {
     }
 
     private boolean matches(byte[] a, int aPos, byte[] b, int bPos, int len) {
+        if (a == null || b == null)
+            return false;
         if (aPos < 0 || aPos + len > a.length)
             return false;
         if (bPos < 0 || bPos + len > b.length)

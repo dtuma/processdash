@@ -1,4 +1,4 @@
-// Copyright (C) 2007 Tuma Solutions, LLC
+// Copyright (C) 2007-2008 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -35,19 +35,15 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import net.sourceforge.processdash.tool.export.mgr.ImportDirectoryInstruction;
-import net.sourceforge.processdash.tool.export.mgr.ImportInstructionDispatcher;
-
 public class ExternalResourceAutoLocator implements
-        ImportInstructionDispatcher, ExternalResourceMappingLoader {
+        ExternalResourceMappingLoader {
 
     private Set importedDirs = new HashSet();
 
-    public Object dispatch(ImportDirectoryInstruction instr) {
-        String path = normalize(instr.getDirectory());
+    public void addImportedPath(String importedDirectory) {
+        String path = normalize(importedDirectory);
         if (getDataDirPortion(path) != null)
             importedDirs.add(path);
-        return null;
     }
 
     public Map load(File dir) {

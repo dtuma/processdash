@@ -28,21 +28,29 @@ package net.sourceforge.processdash.tool.bridge.client;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.util.List;
 
 import net.sourceforge.processdash.tool.bridge.impl.FileResourceCollectionStrategy;
+import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.lock.AlreadyLockedException;
+import net.sourceforge.processdash.util.lock.ConcurrencyLock;
+import net.sourceforge.processdash.util.lock.ConcurrencyLockApprover;
 import net.sourceforge.processdash.util.lock.FileConcurrencyLock;
 import net.sourceforge.processdash.util.lock.LockFailureException;
 import net.sourceforge.processdash.util.lock.LockMessageHandler;
+import net.sourceforge.processdash.util.lock.NotLockedException;
+import net.sourceforge.processdash.util.lock.ReadOnlyLockFailureException;
 import net.sourceforge.processdash.util.lock.SentLockMessageException;
 
-public class LocalWorkingDirectory extends AbstractWorkingDirectory {
+public class LocalWorkingDirectory extends AbstractWorkingDirectory implements
+        ConcurrencyLockApprover {
 
     protected FileResourceCollectionStrategy strategy;
 
     protected FileConcurrencyLock writeLock;
 
-    protected LocalWorkingDirectory(File targetDirectory, FileResourceCollectionStrategy strategy,
+    protected LocalWorkingDirectory(File targetDirectory,
+            FileResourceCollectionStrategy strategy,
             File workingDirectoryParent) {
         super(targetDirectory, null, strategy.getLockFilename(),
                 workingDirectoryParent);
@@ -51,10 +59,10 @@ public class LocalWorkingDirectory extends AbstractWorkingDirectory {
 
 
     @Override
-    public void acquireProcessLock(LockMessageHandler lockHandler)
+    public void acquireProcessLock(String msg, LockMessageHandler lockHandler)
             throws SentLockMessageException, LockFailureException {
         if (Boolean.getBoolean(NO_PROCESS_LOCK_PROPERTY) == false)
-            super.acquireProcessLock(lockHandler);
+            super.acquireProcessLock(msg, lockHandler);
     }
 
     public void prepare() throws IOException {}
@@ -64,7 +72,27 @@ public class LocalWorkingDirectory extends AbstractWorkingDirectory {
             LockFailureException {
         File lockFile = new File(targetDirectory, lockFilename);
         writeLock = new FileConcurrencyLock(lockFile);
+        writeLock.setApprover(this);
         writeLock.acquireLock(null, lockHandler, ownerName);
+    }
+
+    public void approveLock(ConcurrencyLock lock, String extraInfo)
+            throws LockFailureException {
+        List<String> filenames = FileUtils.listRecursively(targetDirectory,
+            strategy.getFilenameFilter());
+        for (String name : filenames) {
+            // AAAFIX: need to test and make certain this is still working properly
+            File f = new File(targetDirectory, name);
+            if (!f.canWrite())
+                throw new ReadOnlyLockFailureException();
+        }
+    }
+
+    public void assertWriteLock() throws LockFailureException {
+        if (writeLock == null)
+            throw new NotLockedException();
+        else
+            writeLock.assertLock();
     }
 
     public URL doBackup(String qualifier) throws IOException {
@@ -82,8 +110,10 @@ public class LocalWorkingDirectory extends AbstractWorkingDirectory {
     }
 
     public void releaseLocks() {
-        writeLock.releaseLock();
-        processLock.releaseLock();
+        if (writeLock != null)
+            writeLock.releaseLock();
+        if (processLock != null)
+            processLock.releaseLock();
 
         // if the working directory was created solely for the purpose of
         // holding the lock and is now empty, delete the directory.

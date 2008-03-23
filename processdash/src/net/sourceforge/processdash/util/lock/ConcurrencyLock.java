@@ -27,6 +27,8 @@ package net.sourceforge.processdash.util.lock;
 
 public interface ConcurrencyLock {
 
+    public void setApprover(ConcurrencyLockApprover approver);
+
     public String getLockToken();
 
     /**

@@ -32,10 +32,6 @@ package net.sourceforge.processdash.util.lock;
  */
 public interface LockMessageHandler {
 
-    /** A message that is sent to the listener of a lock, if the lock was
-     * lost and could not be reclaimed. */
-    public static final String LOCK_LOST_MESSAGE = "lockWasLost";
-
     /**
      * Called when some other process wanted to obtain a lock, and could not
      * because we own it.

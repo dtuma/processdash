@@ -51,6 +51,9 @@ public interface ResourceCollection extends ResourceCollectionInfo {
      * 
      * @param resourceName
      *                the name of a resource
+     * @param modTime
+     *                the desired modification timestamp for the resource; can
+     *                be 0 to indicate the current time
      * 
      * @return an <code>OutputStream</code> for writing data to the named
      *         resource. Note that data written to this stream is not guaranteed
@@ -61,7 +64,8 @@ public interface ResourceCollection extends ResourceCollectionInfo {
      *                 if the named resource can not be created/written, or if
      *                 any other IO error occurs when opening the resource
      */
-    public OutputStream getOutputStream(String resourceName) throws IOException;
+    public OutputStream getOutputStream(String resourceName, long modTime)
+            throws IOException;
 
     /**
      * Permanently remove a resource from this collection.

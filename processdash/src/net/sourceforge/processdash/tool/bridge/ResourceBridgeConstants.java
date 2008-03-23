@@ -27,14 +27,27 @@ package net.sourceforge.processdash.tool.bridge;
 
 public interface ResourceBridgeConstants {
 
-    /** name of request parameter indicating communications protocol version */
+    /** 
+     * name of request parameter indicating communications protocol version
+     */
     String VERSION_PARAM = "protocolVersion";
 
-    /** name of response header indicating communications protocol version */
+    /**
+     * name of response header indicating communications protocol version
+     */
     String VERSION_HEADER = "X-Process-Dashboard-Bridge-Protocol-Version";
 
-    /** name of request parameter indicating an action for the bridge to take */
+    /** 
+     * name of request parameter indicating an action for the bridge to take
+     */
     String ACTION_PARAM = "action";
+
+    /**
+     * value of action parameter indicating that a client might like to initiate
+     * a session with a particular server; the server should reply with an
+     * acknowledgement if it is accepting new sessions
+     */
+    String SESSION_START_INQUIRY = "newSessionInquiry";
 
     /**
      * value of action parameter indicating a collection hashcode should be
@@ -81,6 +94,12 @@ public interface ResourceBridgeConstants {
      * value of action parameter asking to store data to the collection
      */
     String UPLOAD_ACTION = "upload";
+
+    /**
+     * when uploading files, a prefix to append to filenames to produce a
+     * parameter name carrying the modification time of the file
+     */
+    String UPLOAD_TIMESTAMP_PARAM_PREFIX = "timestamp|";
 
     /**
      * value of action parameter requesting the deletion of data from the

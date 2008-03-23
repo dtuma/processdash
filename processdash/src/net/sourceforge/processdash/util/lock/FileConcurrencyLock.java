@@ -54,6 +54,7 @@ public class FileConcurrencyLock implements ConcurrencyLock {
 
     private String extraInfo;
 
+    private ConcurrencyLockApprover approver = null;
 
     private FileChannel lockChannel = null;
 
@@ -104,6 +105,14 @@ public class FileConcurrencyLock implements ConcurrencyLock {
         this.listenForLostLock = listenForLostLock;
     }
 
+    public ConcurrencyLockApprover getApprover() {
+        return approver;
+    }
+
+    public void setApprover(ConcurrencyLockApprover approver) {
+        this.approver = approver;
+    }
+
     public void acquireLock(String extraInfo) throws LockFailureException {
         acquireLock(null, null, extraInfo);
     }
@@ -140,6 +149,10 @@ public class FileConcurrencyLock implements ConcurrencyLock {
             LockFailureException {
 
         try {
+            // check with our approver first.
+            if (approver != null)
+                approver.approveLock(this, extraInfo);
+
             // Try to acquire a lock on the named lock file.
             lockChannel = new RandomAccessFile(lockFile, "rw").getChannel();
             lock = lockChannel.tryLock(0, 1, false);
@@ -221,7 +234,11 @@ public class FileConcurrencyLock implements ConcurrencyLock {
             // The lock file is still intact, and still contains our lock
             // token.  This is a sign that no one else has taken the lock
             // from us.
-            //
+
+            // check with the approver next to make certain we can proceed.
+            if (approver != null)
+                approver.approveLock(this, extraInfo);
+
             // There doesn't seem to be an API to determine whether we lost
             // the native lock.  The only way to test whether we still own
             // it, is to release and actively reestablish the lock.
@@ -513,7 +530,7 @@ public class FileConcurrencyLock implements ConcurrencyLock {
                         setCheckInterval(20);
                     } catch (Exception e) {
                         try {
-                            dispatchMessage(LockMessageHandler.LOCK_LOST_MESSAGE);
+                            dispatchMessage(LockMessage.LOCK_LOST_MESSAGE);
                         } catch (Exception e1) {}
                         setCheckInterval(0);
                     }

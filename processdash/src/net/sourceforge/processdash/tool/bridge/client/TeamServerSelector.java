@@ -36,6 +36,7 @@ import java.util.logging.Logger;
 
 import net.sourceforge.processdash.tool.bridge.ResourceBridgeConstants;
 import net.sourceforge.processdash.tool.bridge.impl.TeamServerPointerFile;
+import net.sourceforge.processdash.util.HTMLUtils;
 
 public class TeamServerSelector {
 
@@ -68,9 +69,11 @@ public class TeamServerSelector {
             long start = System.currentTimeMillis();
 
             URL u = testServerURL(serverURL);
-            if (u == null)
+            if (u == null) {
                 logger.log(Level.FINE,
                     "IOxception when contacting {0} - skipping", serverURL);
+                continue;
+            }
 
             long end = System.currentTimeMillis();
             long elapsed = end - start;
@@ -100,17 +103,35 @@ public class TeamServerSelector {
             return null;
 
         try {
-            URL u = new URL(serverURL);
+            // construct a URL telling the server that we would like to
+            // initiate a session, speaking a particular version of the
+            // communications protocol.
+            StringBuffer requestURL = new StringBuffer(serverURL);
+            HTMLUtils.appendQuery(requestURL,
+                ResourceBridgeConstants.ACTION_PARAM,
+                ResourceBridgeConstants.SESSION_START_INQUIRY);
+            HTMLUtils.appendQuery(requestURL,
+                ResourceBridgeConstants.VERSION_PARAM,
+                ResourceBridgeClient.CLIENT_VERSION);
+
+            // make a connection to the server and verify that we get a valid
+            // response back.
+            URL u = new URL(requestURL.toString());
             URLConnection conn = u.openConnection();
             InputStream in = new BufferedInputStream(conn.getInputStream());
             while ((in.read() != -1))
                 ;
+            in.close();
 
+            // make certain we're talking to a dashboard team server, and not
+            // some other random web server.
             if (conn.getHeaderField(ResourceBridgeConstants.VERSION_HEADER) == null)
                 return null;
 
-            return u;
+            return new URL(serverURL);
         } catch (IOException ioe) {
+            // if the server is not accepting new connections, it will send
+            // back an HTTP error code, and we'll catch the exception here.
             return null;
         }
     }
