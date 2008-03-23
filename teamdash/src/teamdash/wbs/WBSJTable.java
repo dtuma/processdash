@@ -27,8 +27,8 @@ import java.util.Set;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ActionMap;
-import javax.swing.InputMap;
 import javax.swing.Icon;
+import javax.swing.InputMap;
 import javax.swing.JComponent;
 import javax.swing.JMenu;
 import javax.swing.JOptionPane;
@@ -38,6 +38,8 @@ import javax.swing.ListSelectionModel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
+import net.sourceforge.processdash.tool.bridge.client.ImportDirectory;
+import net.sourceforge.processdash.tool.bridge.client.ImportDirectoryFactory;
 import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
 
 
@@ -911,7 +913,8 @@ public class WBSJTable extends JTable {
 
             UndoList.stopCellEditing(WBSJTable.this);
 
-            TeamProject masterProject = new TeamProject(dir, "");
+            ImportDirectory iDir = ImportDirectoryFactory.getInstance().get(dir);
+            TeamProject masterProject = new TeamProject(iDir.getDirectory(), "");
             String masterProjectID = masterProject.getProjectID();
             if (masterProjectID == null)
                 return;

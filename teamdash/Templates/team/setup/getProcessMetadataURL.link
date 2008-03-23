@@ -1,0 +1,2 @@
+class:teamdash.templates.setup.GetAddOnInternalURL
+absoluteUri=settings.xml

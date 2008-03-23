@@ -9,19 +9,22 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 import net.sourceforge.processdash.DashController;
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.net.http.WebServer;
+import net.sourceforge.processdash.tool.export.mgr.ExternalResourceManager;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.RuntimeUtils;
 import net.sourceforge.processdash.util.StringUtils;
+import net.sourceforge.processdash.util.XMLUtils;
 import teamdash.FilenameMapper;
-import teamdash.XMLUtils;
 import teamdash.wbs.WBSEditor;
 
 public class OpenWBSEditor extends TinyCGIBase {
@@ -60,19 +63,11 @@ public class OpenWBSEditor extends TinyCGIBase {
         parseFormData();
         String directory = getParameter("directory");
         directory = FilenameMapper.remap(directory);
-        boolean bottomUp = parameters.containsKey("bottomUp");
-        boolean showTeam = parameters.containsKey("team");
-        boolean readOnly = Settings.getBool("READ_ONLY", false)
-                || "true".equalsIgnoreCase(getParameter("forceReadOnly"));
-        String syncURL = getSyncURL();
-        String reverseSyncURL = getReverseSyncURL();
 
         if (useJNLP)
-            writeJnlpFile(directory, bottomUp, showTeam, readOnly, syncURL,
-                reverseSyncURL);
+            writeJnlpFile(directory);
         else
-            openInProcess(directory, bottomUp, showTeam, readOnly, syncURL,
-                reverseSyncURL);
+            openInProcess(directory);
     }
 
     private String getSyncURL() {
@@ -92,15 +87,12 @@ public class OpenWBSEditor extends TinyCGIBase {
         return "http://" + ws.getHostName(true) + ":" + ws.getPort() + uri;
     }
 
-    private void openInProcess(String directory, boolean bottomUp,
-            boolean showTeam, boolean readOnly, String syncURL,
-            String reverseSyncURL) {
+    private void openInProcess(String directory) {
         if (!checkEntryCriteria(directory))
             return;
 
         writeHtmlHeader();
-        if (launchEditorProcess(directory, bottomUp, showTeam, readOnly,
-                syncURL, reverseSyncURL)) {
+        if (launchEditorProcess(directory)) {
             // if we successfully opened the WBS, write the null document.
             DashController.printNullDocument(out);
         } else {
@@ -134,19 +126,44 @@ public class OpenWBSEditor extends TinyCGIBase {
         return true;
     }
 
+    public Map<String, String> getLaunchProperties() {
+        Map<String,String> result = new HashMap<String,String>();
+
+        if (parameters.containsKey("bottomUp"))
+            result.put("teamdash.wbs.bottomUp", "true");
+
+        if (parameters.containsKey("team"))
+            result.put("teamdash.wbs.showTeamMemberList", "true");
+
+        if (Settings.getBool("READ_ONLY", false)
+                || "true".equalsIgnoreCase(getParameter("forceReadOnly")))
+            result.put("teamdash.wbs.readOnly", "true");
+
+        result.put("teamdash.wbs.syncURL", getSyncURL());
+        result.put("teamdash.wbs.reverseSyncURL", getReverseSyncURL());
+        result.put("teamdash.wbs.owner", getOwner());
+        result.put("teamdash.wbs.processSpecURL", getProcessURL());
+
+        return result;
+    }
+
+    private String getProcessURL() {
+        Object processURL = parameters.get("processURL");
+        if (processURL instanceof String)
+            return (String) processURL;
+        else
+            return null;
+    }
+
     private static Hashtable editors = new Hashtable();
 
-    private boolean launchEditorProcess(String directory, boolean bottomUp,
-            boolean showTeam, boolean readOnly, String syncURL,
-            String reverseSyncURL) {
-        String[] cmdLine = getProcessCmdLine(directory, bottomUp, showTeam,
-                readOnly, syncURL, reverseSyncURL);
+    private boolean launchEditorProcess(String directory) {
+        String[] cmdLine = getProcessCmdLine(directory);
         if (cmdLine == null)
             return false;
 
         try {
-            Process p = Runtime.getRuntime().exec(cmdLine, null,
-                    new File(directory));
+            Process p = Runtime.getRuntime().exec(cmdLine);
             new OutputConsumer(p).start();
             return true;
         } catch (Exception e) {
@@ -155,9 +172,7 @@ public class OpenWBSEditor extends TinyCGIBase {
         }
     }
 
-    private String[] getProcessCmdLine(String directory, boolean bottomUp,
-            boolean showTeam, boolean readOnly, String syncURL,
-            String reverseSyncURL) {
+    private String[] getProcessCmdLine(String directory) {
         String jreExecutable = RuntimeUtils.getJreExecutable();
         File classpath = RuntimeUtils.getClasspathFile(getClass());
         if (jreExecutable == null || classpath == null)
@@ -170,24 +185,21 @@ public class OpenWBSEditor extends TinyCGIBase {
         if (StringUtils.hasValue(extraArgs))
             cmd.addAll(Arrays.asList(extraArgs.split("\\s+")));
 
+        // propagate security-related system properties
+        cmd.addAll(Arrays.asList(RuntimeUtils.getPropagatedJvmArgs()));
+
         // set a reasonable application menu name on Mac OS X
         if ("Mac OS X".equalsIgnoreCase(System.getProperty("os.name")))
             cmd.add("-Xdock:name=WBS Editor");
 
-        if (bottomUp)
-            cmd.add("-Dteamdash.wbs.bottomUp=true");
-        if (showTeam)
-            cmd.add("-Dteamdash.wbs.showTeamMemberList=true");
-        if (readOnly)
-            cmd.add("-Dteamdash.wbs.readOnly=true");
-        if (syncURL != null)
-            cmd.add("-Dteamdash.wbs.syncURL=" + syncURL);
-        if (reverseSyncURL != null)
-            cmd.add("-Dteamdash.wbs.reverseSyncURL=" + reverseSyncURL);
+        Map<String, String> props = getLaunchProperties();
+        props.putAll(ExternalResourceManager.getInstance()
+                .getJvmArgsForMapping());
 
-        String owner = getOwner();
-        if (owner != null)
-            cmd.add("-Dteamdash.wbs.owner=" + owner);
+        for (Map.Entry<String, String> e : props.entrySet()) {
+            if (e.getValue() != null)
+                cmd.add("-D" + e.getKey() + "=" + e.getValue());
+        }
 
         cmd.add("-jar");
         cmd.add(classpath.getAbsolutePath());
@@ -232,9 +244,7 @@ public class OpenWBSEditor extends TinyCGIBase {
         }
     }
 
-    private void writeJnlpFile(String directory, boolean bottomUp,
-            boolean showTeam, boolean readOnly, String syncURL,
-            String reverseSyncURL) {
+    private void writeJnlpFile(String directory) {
         out.print("Content-type: application/x-java-jnlp-file\r\n\r\n");
 
         WebServer ws = getTinyWebServer();
@@ -261,29 +271,17 @@ public class OpenWBSEditor extends TinyCGIBase {
         out.print("<jar href='");
         out.print(jarPath);
         out.print("'/>\n");
-        if (bottomUp)
-            out.print("<property name='teamdash.wbs.bottomUp' " +
-                        "value='true'/>\n");
-        if (showTeam)
-            out.print("<property name='teamdash.wbs.showTeamMemberList' " +
-                        "value='true'/>\n");
 
-        if (readOnly)
-            out.print("<property name='teamdash.wbs.readOnly' " +
-                        "value='true'/>\n");
-
-        if (syncURL != null)
-            out.print("<property name='teamdash.wbs.syncURL' value='"
-                    + XMLUtils.escapeAttribute(syncURL) + "'/>\n");
-
-        if (reverseSyncURL != null)
-            out.print("<property name='teamdash.wbs.reverseSyncURL' value='"
-                    + XMLUtils.escapeAttribute(reverseSyncURL) + "'/>\n");
-
-        String owner = getOwner();
-        if (owner != null)
-            out.print("<property name='teamdash.wbs.owner' value='"
-                    + XMLUtils.escapeAttribute(owner) + "'/>\n");
+        Map<String, String> props = getLaunchProperties();
+        for (Map.Entry<String, String> e : props.entrySet()) {
+            if (e.getValue() != null) {
+                out.print("<property name='");
+                out.print(e.getKey());
+                out.print("' value='");
+                out.print(XMLUtils.escapeAttribute(e.getValue()));
+                out.print("'/>\n");
+            }
+        }
 
         out.print("</resources>\n");
 

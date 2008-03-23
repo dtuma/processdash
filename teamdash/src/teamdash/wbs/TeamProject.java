@@ -5,6 +5,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.Collections;
@@ -12,13 +13,14 @@ import java.util.HashSet;
 import java.util.Properties;
 import java.util.Set;
 
+import net.sourceforge.processdash.tool.bridge.client.ImportDirectory;
 import net.sourceforge.processdash.util.RobustFileWriter;
+import net.sourceforge.processdash.util.XMLUtils;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
-import teamdash.XMLUtils;
 import teamdash.team.TeamMemberList;
 
 public class TeamProject {
@@ -37,6 +39,7 @@ public class TeamProject {
     private boolean readOnly;
     private boolean filesAreReadOnly;
     private Properties userSettings;
+    private ImportDirectory importDirectory;
 
 
     /** Create or open a team project */
@@ -69,6 +72,7 @@ public class TeamProject {
      * @return true if files were reloaded, false if no changes were made.
      */
     public boolean maybeReload() {
+        refreshImportDirectory();
         for (int i = 0; i < ALL_FILENAMES.length; i++) {
             File f = new File(directory, ALL_FILENAMES[i]);
             if (f.isFile() && f.lastModified() > fileModTime) {
@@ -162,11 +166,6 @@ public class TeamProject {
         return directory;
     }
 
-    /** Return a lock file for protecting this team project */
-    public File getLockFile() {
-        return new File(directory, "teamProject.lock");
-    }
-
     /** Return the project settings */
     protected Element getProjectSettings() {
         return projectSettings;
@@ -177,6 +176,19 @@ public class TeamProject {
         return userSettings.getProperty(name);
     }
 
+    public void setImportDirectory(ImportDirectory importDirectory) {
+        this.importDirectory = importDirectory;
+    }
+
+    protected void refreshImportDirectory() {
+        if (importDirectory != null) {
+            try {
+                importDirectory.update();
+            } catch (IOException ioe) {
+                ;
+            }
+        }
+    }
 
     /** Open and parse an XML file. @return null on error. */
     private Element openXML(File file) {
@@ -330,6 +342,14 @@ public class TeamProject {
         // first, try to open a file called "process.xml"
         try {
             xml = openXML(new File(directory, PROCESS_FILENAME));
+        } catch (Exception e) { }
+
+        // if that fails, see if a process spec has been provided in the
+        // system properties.
+        String specUrl = System.getProperty("teamdash.wbs.processSpecURL");
+        if (specUrl != null) try {
+            Document doc = XMLUtils.parse((new URL(specUrl)).openStream());
+            xml = doc.getDocumentElement();
         } catch (Exception e) { }
 
         // if that fails, see if the project settings include a pointer to a

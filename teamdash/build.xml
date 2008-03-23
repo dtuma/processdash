@@ -3,8 +3,8 @@
 
   <property file="build.properties"/>
 
-  <property name="teamtools.version" value="3.4.0"/>
-  <property name="teamtools.requires" value="1.9.3+"/>
+  <property name="teamtools.version" value="3.5.0"/>
+  <property name="teamtools.requires" value="1.9.4a+"/>
 
   <property name="processdash.dir" value="../processdash"/>
   <property name="pspdash.jar" value="${processdash.dir}/dist/pspdash.jar"/>
@@ -157,6 +157,9 @@
 
     <!-- also compute the classes needed from processdash packages -->
     <classfileset id="dashClasses" dir="${processdash.dir}/antbin">
+      <root classname="net.sourceforge.processdash.tool.bridge.client.WorkingDirectoryFactory"/>
+      <root classname="net.sourceforge.processdash.tool.bridge.client.ImportDirectoryFactory"/>
+      <root classname="net.sourceforge.processdash.tool.export.mgr.ExternalLocationMapper"/>
       <root classname="net.sourceforge.processdash.util.HTMLUtils"/>
       <root classname="net.sourceforge.processdash.util.PreferencesUtils"/>
       <root classname="net.sourceforge.processdash.util.RobustFileWriter"/>
@@ -166,22 +169,31 @@
     </classfileset>
 
     <!-- count the number of processdash classes we are using -->
-    <pathconvert property="dashClasses.count" refid="dashClasses" pathsep="">
-      <mapper type="merge" to="X"/>
+    <pathconvert property="dashClassesPath" refid="dashClasses" pathsep=";">
+        <regexpmapper from=".*/antbin/(.*).class" to="\1" handledirsep="true"/>
     </pathconvert>
-    <condition property="dashClasses.overflowing">
-      <length string="${dashClasses.count}" when="greater" length="14"/>
-    </condition>
+    <script language="javascript"> <![CDATA[
+        classCount = 0;
+        dashClassesList = dashClassesPath.split(";").sort();
+        dashClassesMsg = "";
+        for (i = 0;  i < dashClassesList.length;  i++) {
+            // do not count the number of inner classes
+            if (dashClassesList[i].indexOf("$") == -1) {
+	        classCount++;
+                dashClassesMsg = dashClassesMsg + "\n    " + dashClassesList[i];
+            }
+        }
+        if (classCount > 65) {
+            project.setProperty("dashClasses.overflowCount", classCount);
+            project.setProperty("dashClasses.overflowing", dashClassesMsg);
+        }
+    ]]> </script>
 
     <!-- abort if the processdash class list was larger than expected -->
-    <pathconvert property="dashClasses.list" refid="dashClasses" 
-        pathsep="&#10;    ">
-      <regexpmapper from=".*/antbin/(.*).class" to="\1" handledirsep="true"/>
-    </pathconvert>
-    <fail if="dashClasses.overflowing">
-Unexpected number of processdash classes referenced by TeamTools.jar
-(Perhaps a runaway class dependency has been added in a dashboard class?)
-    ${dashClasses.list}
+    <fail if="dashClasses.overflowing">Unexpected number of
+processdash classes (${dashClasses.overflowCount}) referenced by TeamTools.jar (Perhaps a runaway
+class dependency has been added in a dashboard class?)
+    ${dashClasses.overflowing}
     </fail>
 
     <!-- Determine whether to exclude libs that are not GPLv2 compatible -->
@@ -229,6 +241,7 @@ Unexpected number of processdash classes referenced by TeamTools.jar
         <include name="swingx-src/src/java/org/jdesktop/swingx/autocomplete/"/>
       </zipfileset>
       <zipfileset src="${poi.jar}" excludes="${gpl.exclude}"/>
+      <zipfileset src="${xmlpull.jar}"/>
     </jar>
 
     <antcall target="signjar">

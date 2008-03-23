@@ -12,6 +12,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import net.sourceforge.processdash.tool.bridge.client.ImportDirectory;
+import net.sourceforge.processdash.tool.bridge.client.ImportDirectoryFactory;
+
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
@@ -28,14 +31,22 @@ public class TeamProjectBottomUp extends TeamProject {
 
     private Set ignoredSubprojects;
 
-    public TeamProjectBottomUp(File directory, String projectName) {
-        this(directory, projectName, true, true, null);
+    public TeamProjectBottomUp(String location, String projectName) {
+        this(ImportDirectoryFactory.getInstance().get(location), projectName,
+                true, true, null);
     }
 
     protected TeamProjectBottomUp(File directory, String projectName,
             boolean mergeSimilar, boolean autoReload, Set ignoredSubprojects) {
-        super(directory, projectName);
+        this(ImportDirectoryFactory.getInstance().get(directory), projectName,
+                mergeSimilar, autoReload, ignoredSubprojects);
+    }
+
+    private TeamProjectBottomUp(ImportDirectory importDir, String projectName,
+            boolean mergeSimilar, boolean autoReload, Set ignoredSubprojects) {
+        super(importDir.getDirectory(), projectName);
         super.setReadOnly(true);
+        super.setImportDirectory(importDir);
         this.mergeSimilarNodes = mergeSimilar;
         this.ignoredSubprojects = (ignoredSubprojects != null
                 ? ignoredSubprojects : Collections.EMPTY_SET);
@@ -79,6 +90,7 @@ public class TeamProjectBottomUp extends TeamProject {
     }
 
     public boolean maybeReload() {
+        refreshImportDirectory();
         openProjectSettings();
         return reloadBottomUpData();
     }
@@ -116,7 +128,10 @@ public class TeamProjectBottomUp extends TeamProject {
             if (subproject == null) {
                 File dir = getProjectDataDirectory(subprojectElem, true);
                 if (dir != null) {
-                    subproject = new TeamProject(dir, shortName);
+                    ImportDirectory iDir = ImportDirectoryFactory.getInstance()
+                            .get(dir);
+                    subproject = new TeamProject(iDir.getDirectory(), shortName);
+                    subproject.setImportDirectory(iDir);
                     subprojects.put(shortName, subproject);
                     result = true;
                 }
@@ -275,7 +290,7 @@ public class TeamProjectBottomUp extends TeamProject {
                     Thread.sleep(10000);
                 } catch (InterruptedException e) {
                 }
-                reload();
+                maybeReload();
             }
         }
 

@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 import java.util.prefs.Preferences;
 
@@ -35,12 +36,22 @@ import javax.swing.event.ChangeListener;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 
+import net.sourceforge.processdash.tool.bridge.client.BridgedWorkingDirectory;
+import net.sourceforge.processdash.tool.bridge.client.WorkingDirectory;
+import net.sourceforge.processdash.tool.bridge.client.WorkingDirectoryFactory;
+import net.sourceforge.processdash.tool.export.mgr.ExternalLocationMapper;
 import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
+import net.sourceforge.processdash.util.DashboardBackupFactory;
 import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.PreferencesUtils;
 import net.sourceforge.processdash.util.StringUtils;
-import teamdash.ConcurrencyLock;
-import teamdash.DirectoryBackup;
+import net.sourceforge.processdash.util.lock.AlreadyLockedException;
+import net.sourceforge.processdash.util.lock.LockFailureException;
+import net.sourceforge.processdash.util.lock.LockMessage;
+import net.sourceforge.processdash.util.lock.LockMessageHandler;
+import net.sourceforge.processdash.util.lock.LockUncertainException;
+import net.sourceforge.processdash.util.lock.ReadOnlyLockFailureException;
+import net.sourceforge.processdash.util.lock.SentLockMessageException;
 import teamdash.SaveListener;
 import teamdash.team.TeamMemberListEditor;
 import teamdash.wbs.WBSTabPanel.LoadTabsException;
@@ -53,12 +64,12 @@ import teamdash.wbs.columns.TeamTimeColumn;
 import teamdash.wbs.columns.UnassignedTimeColumn;
 
 public class WBSEditor implements WindowListener, SaveListener,
-        ConcurrencyLock.Listener {
+        LockMessageHandler {
 
     public static final String INTENT_WBS_EDITOR = "showWbsEditor";
     public static final String INTENT_TEAM_EDITOR = "showTeamListEditor";
 
-    ConcurrencyLock concurrencyLock;
+    WorkingDirectory workingDirectory;
     TeamProject teamProject;
     JFrame frame;
     WBSTabPanel tabPanel;
@@ -67,7 +78,6 @@ public class WBSEditor implements WindowListener, SaveListener,
     File dataDumpFile;
     WBSDataWriter workflowWriter;
     File workflowDumpFile;
-    DirectoryBackup teamProjectBackup;
     WBSSynchronizer reverseSynchronizer;
     File customTabsFile;
     private String owner;
@@ -89,20 +99,23 @@ public class WBSEditor implements WindowListener, SaveListener,
     private static Preferences preferences = Preferences.userNodeForPackage(WBSEditor.class);
     private static final String EXPANDED_NODES_KEY_SUFFIX = "_EXPANDEDNODES";
     private static final String EXPANDED_NODES_DELIMITER = Character.toString('\u0001');
+    private static final String DATA_DUMP_FILE = "projDump.xml";
+    private static final String WORKFLOW_DUMP_FILE = "workflowDump.xml";
     private static final String CUSTOM_TABS_FILE = "tabs.xml";
 
-    public WBSEditor(TeamProject teamProject, File dumpFile, File workflowFile,
-            File customTabsFile, String intent, String owner)
-            throws ConcurrencyLock.FailureException {
+    public WBSEditor(WorkingDirectory workingDirectory,
+            TeamProject teamProject, String owner) throws LockFailureException {
 
+        this.workingDirectory = workingDirectory;
         this.teamProject = teamProject;
-        acquireLock(intent, owner);
+        acquireLock(owner);
 
         MacGUIUtils.tweakLookAndFeel();
 
-        this.dataDumpFile = dumpFile;
-        this.workflowDumpFile = workflowFile;
-        this.customTabsFile = customTabsFile;
+        File storageDir = teamProject.getStorageDirectory();
+        this.dataDumpFile = new File(storageDir, DATA_DUMP_FILE);
+        this.workflowDumpFile = new File(storageDir, WORKFLOW_DUMP_FILE);
+        this.customTabsFile = new File(storageDir, CUSTOM_TABS_FILE);
         this.readOnly = teamProject.isReadOnly();
 
         setMode(teamProject);
@@ -131,12 +144,9 @@ public class WBSEditor implements WindowListener, SaveListener,
                 teamProject.getTeamMemberList());
         workflowWriter = new WBSDataWriter(teamProject.getWorkflows(), null,
                 teamProject.getTeamProcess(), teamProject.getProjectID(), null);
-        if (!readOnly) {
-            teamProjectBackup = new DirectoryBackup(teamProject
-                    .getStorageDirectory(), "backup", TeamProject.FILE_FILTER);
-            teamProjectBackup.cleanupOldBackups(30);
+        if (!readOnly && workingDirectory != null) {
             try {
-                teamProjectBackup.backup("startup");
+                workingDirectory.doBackup("startup");
             } catch (IOException e) {}
         }
         this.owner = owner;
@@ -225,21 +235,20 @@ public class WBSEditor implements WindowListener, SaveListener,
         frame.pack();
     }
 
-    private void acquireLock(String intent, String owner)
-            throws ConcurrencyLock.FailureException {
-        if (teamProject.isReadOnly())
+    private void acquireLock(String owner) throws LockFailureException {
+        if (teamProject.isReadOnly() || workingDirectory == null)
             return;
 
         try {
-            this.concurrencyLock = new ConcurrencyLock(teamProject
-                    .getLockFile(), intent, this, owner);
-        } catch (ConcurrencyLock.SentMessageException sme) {
-            throw sme;
-        } catch (ConcurrencyLock.FailureException e) {
+            workingDirectory.acquireWriteLock(this, owner);
+        } catch (ReadOnlyLockFailureException e) {
+            if (showFilesAreReadOnlyMessage(teamProject, workingDirectory
+                    .getDescription()) == false)
+                throw e;
+        } catch (LockFailureException e) {
             String otherOwner = null;
-            if (e instanceof ConcurrencyLock.AlreadyLockedException)
-                otherOwner = ((ConcurrencyLock.AlreadyLockedException) e)
-                    .getExtraInfo();
+            if (e instanceof AlreadyLockedException)
+                otherOwner = ((AlreadyLockedException) e).getExtraInfo();
             if (otherOwner == null)
                 otherOwner = "someone on another machine";
             CONCURRENCY_MESSAGE[1] += (otherOwner + ".");
@@ -306,7 +315,8 @@ public class WBSEditor implements WindowListener, SaveListener,
         frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
     }
 
-    public String handleMessage(String message) {
+    public String handleMessage(LockMessage lockMessage) {
+        String message = lockMessage.getMessage();
         if (INTENT_TEAM_EDITOR.equals(message)) {
             SwingUtilities.invokeLater(new Runnable() {
                 public void run() {
@@ -321,7 +331,7 @@ public class WBSEditor implements WindowListener, SaveListener,
                 }});
             return "OK";
         }
-        if (ConcurrencyLock.LOCK_LOST_MESSAGE.equals(message)) {
+        if (LockMessage.LOCK_LOST_MESSAGE.equals(message)) {
             if (readOnly == false) {
                 readOnly = true;
                 SwingUtilities.invokeLater(new Runnable() {
@@ -464,52 +474,64 @@ public class WBSEditor implements WindowListener, SaveListener,
     }
 
     private boolean save() {
-        if (!readOnly) {
-            tabPanel.stopCellEditing();
+        if (readOnly)
+            return true;
 
-            try {
-                concurrencyLock.assertValidity();
-            } catch (ConcurrencyLock.LockUncertainException lue) {
-                showSaveErrorMessage();
-                return false;
-            } catch (ConcurrencyLock.FailureException fe) {
-                showLostLockMessage();
-                return false;
+        tabPanel.stopCellEditing();
+
+        try {
+            if (saveImpl()) {
+                maybeTriggerSyncOperation();
+                return true;
             }
 
-            if (teamProject.save() == false || writeData() == false) {
-                showSaveErrorMessage();
-                return false;
-            }
-
-            maybeTriggerSyncOperation();
+        } catch (LockUncertainException lue) {
+        } catch (LockFailureException fe) {
+            showLostLockMessage();
+            return false;
+        } catch (IOException e) {
+            e.printStackTrace();
         }
-        return true;
+
+        showSaveErrorMessage();
+        return false;
     }
 
-    private boolean writeData() {
-        if (!readOnly)
-            try {
-                dataWriter.write(dataDumpFile);
-                workflowWriter.write(workflowDumpFile);
+    private boolean saveImpl() throws LockFailureException, IOException {
+        if (readOnly || workingDirectory == null)
+            return true;
 
-                // write out custom tabs file
-                tabPanel.saveTabs(customTabsFile);
+        workingDirectory.assertWriteLock();
 
-                String qualifier = "saved";
-                if (owner != null && owner.trim().length() > 0)
-                    qualifier = "saved_by_" + FileUtils.makeSafe(owner.trim());
-                teamProjectBackup.backup(qualifier);
-            } catch (Exception e) {
-                e.printStackTrace();
-                return false;
-            }
+        if (teamProject.save() == false)
+            return false;
+
+        dataWriter.write(dataDumpFile);
+        workflowWriter.write(workflowDumpFile);
+
+        // write out custom tabs file
+        tabPanel.saveTabs(customTabsFile);
+
+        if (workingDirectory.flushData() == false)
+            return false;
+
+        String qualifier = "saved";
+        if (owner != null && owner.trim().length() > 0)
+            qualifier = "saved_by_" + FileUtils.makeSafe(owner.trim());
+        workingDirectory.doBackup(qualifier);
+
         return true;
     }
 
     private void showSaveErrorMessage() {
-        SAVE_ERROR_MSG[4] = "      "
-                + teamProject.getStorageDirectory().getAbsolutePath();
+        if (workingDirectory instanceof BridgedWorkingDirectory) {
+            SAVE_ERROR_MSG[3] = BRIDGED_ADVICE;
+            SAVE_ERROR_MSG[4] = "";
+        } else {
+            SAVE_ERROR_MSG[3] = LOCAL_ADVICE;
+            SAVE_ERROR_MSG[4] = "      " + workingDirectory.getDescription();
+        }
+
         JOptionPane.showMessageDialog(frame, SAVE_ERROR_MSG,
                 "Unable to Save", JOptionPane.ERROR_MESSAGE);
     }
@@ -518,13 +540,17 @@ public class WBSEditor implements WindowListener, SaveListener,
         "The Work Breakdown Structure Editor encountered an unexpected error",
         "and was unable to save data. This problem might have been caused by",
         "poor network connectivity, or by read-only file permissions. Please",
-        "check to ensure that you can write to the following location:",
+        "",
         "",
         " ",
         "Then, try saving again. If you shut down the Work Breakdown Structure",
         "Editor without resolving this problem, any changes you have made will",
         "be lost."
     };
+    private static final String LOCAL_ADVICE =
+        "check to ensure that you can write to the following location:";
+    private static final String BRIDGED_ADVICE =
+        "doublecheck your network connection.";
 
     private void maybeTriggerSyncOperation() {
         if (syncURL != null)
@@ -581,6 +607,9 @@ public class WBSEditor implements WindowListener, SaveListener,
             Set expandedNodes = teamProject.getWBS().getExpandedNodeIDs();
             setExpandedNodesPref(teamProject.getProjectID(), expandedNodes);
 
+            if (workingDirectory != null)
+                workingDirectory.releaseLocks();
+
             if (exitOnClose)
                 System.exit(0);
             else {
@@ -588,8 +617,6 @@ public class WBSEditor implements WindowListener, SaveListener,
                 if (workflowEditor != null) workflowEditor.hide();
                 frame.dispose();
                 disposed = true;
-                if (concurrencyLock != null)
-                    concurrencyLock.unlock();
             }
         }
     }
@@ -604,31 +631,45 @@ public class WBSEditor implements WindowListener, SaveListener,
     public void windowActivated(WindowEvent e) {}
     public void windowDeactivated(WindowEvent e) {}
 
-    public static WBSEditor createAndShowEditor(String directory,
+    public static WBSEditor createAndShowEditor(String location,
             boolean bottomUp, boolean showTeamList, String syncURL,
             boolean exitOnClose, boolean forceReadOnly, String owner) {
-        File dir = new File(directory);
-        File dumpFile = new File(dir, "projDump.xml");
-        File workflowFile = new File(dir, "workflowDump.xml");
-        File customTabsFile = new File(dir, CUSTOM_TABS_FILE);
 
+        LockMessageDispatcher dispatch;
+        WorkingDirectory workingDirectory;
+        File dir;
         TeamProject proj;
+
         if (bottomUp)
-            proj = new TeamProjectBottomUp(dir, "Team Project");
-        else
+        {
+            proj = new TeamProjectBottomUp(location, "Team Project");
+            dir = proj.getStorageDirectory();
+            if (!dir.isDirectory()) {
+                showBadFilenameError(location);
+                return null;
+            }
+            workingDirectory = null;
+            dispatch = null;
+        }
+        else // if not bottom up
+        {
+            String intent = showTeamList ? INTENT_TEAM_EDITOR : INTENT_WBS_EDITOR;
+            dispatch = new LockMessageDispatcher();
+            workingDirectory = configureWorkingDirectory(location, intent,
+                dispatch);
+            if (workingDirectory == null) return null;
+            dir = workingDirectory.getDirectory();
             proj = new TeamProject(dir, "Team Project");
+        }
+
         if (forceReadOnly)
             proj.setReadOnly(true);
-        else if (checkProjectEditability(proj, dumpFile, workflowFile, customTabsFile) == false)
-            return null;
 
-        String intent = showTeamList ? INTENT_TEAM_EDITOR : INTENT_WBS_EDITOR;
         if (owner == null && !forceReadOnly)
             owner = getOwnerName();
 
         try {
-            WBSEditor w = new WBSEditor(proj, dumpFile, workflowFile, customTabsFile,
-                    intent, owner);
+            WBSEditor w = new WBSEditor(workingDirectory, proj, owner);
             w.setExitOnClose(exitOnClose);
             w.setSyncURL(syncURL);
             if (showTeamList)
@@ -636,25 +677,123 @@ public class WBSEditor implements WindowListener, SaveListener,
             else
                 w.show();
 
+            if (dispatch != null)
+                dispatch.setEditor(w);
             return w;
-        } catch (ConcurrencyLock.FailureException e) {
+        } catch (LockFailureException e) {
+            workingDirectory.releaseLocks();
             if (exitOnClose)
                 System.exit(0);
             return null;
         }
     }
 
-    private static boolean checkProjectEditability(TeamProject teamProject,
-            File dumpFile, File workflowFile, File customTabsFile) {
-        if (teamProject.filesAreReadOnly() == false
-                && fileIsReadOnly(dumpFile) == false
-                && fileIsReadOnly(workflowFile) == false
-                && fileIsReadOnly(customTabsFile) == false)
-            // all of the files for the project are editable.
-            return true;
+    private static WorkingDirectory configureWorkingDirectory(String location,
+            String intent, LockMessageHandler handler) {
+        DashboardBackupFactory.setKeepBackupsNumDays(30);
+        WorkingDirectory workingDirectory = WorkingDirectoryFactory
+                .getInstance().get(location, WorkingDirectoryFactory.PURPOSE_WBS);
+        String locationDescr = workingDirectory.getDescription();
 
-        READ_ONLY_FILES_MESSAGE[2] = "      "
-            + teamProject.getStorageDirectory().getAbsolutePath();
+        try {
+            workingDirectory.acquireProcessLock(intent, handler);
+        } catch (SentLockMessageException s) {
+            // another WBS Editor is running, and it handled the request for us.
+            return null;
+        } catch (LockFailureException e) {
+            e.printStackTrace();
+            showLockFailureError();
+            return null;
+        }
+
+        boolean workingDirIsGood = false;
+        try {
+            workingDirectory.prepare();
+            File dir = workingDirectory.getDirectory();
+            workingDirIsGood = dir.isDirectory();
+        } catch (IOException e) {
+            // do nothing.  An exception means that "workingDirIsGood" will
+            // remain false, so we will display an error message below.
+        }
+
+        if (workingDirIsGood) {
+            return workingDirectory;
+        }
+        else {
+            if (workingDirectory instanceof BridgedWorkingDirectory) {
+                showBadServerError(locationDescr);
+            } else {
+                showBadFilenameError(locationDescr);
+            }
+            return null;
+        }
+    }
+
+    private static void showLockFailureError() {
+        String[] message = new String[] {
+                "The Work Breakdown Structure Editor encountered an",
+                "unexpected error during startup: another process",
+                "on this computer seems to be locking the WBS data",
+                "for this project.  To prevent data corruption, this",
+                "program must exit.",
+                " ",
+                "Try launching the WBS Editor again.  If you still",
+                "receive this message, it restarting your computer may",
+                "be necessary."
+        };
+        JOptionPane.showMessageDialog(null, message, "Data Locking Error",
+            JOptionPane.ERROR_MESSAGE);
+    }
+
+    private static void showBadServerError(String url) {
+        String[] message = new String[] {
+                "The Work Breakdown Structure Editor attempted to read",
+                "project data from the following location:",
+                "        " + url,
+                "Unfortunately, this server could not be contacted.  Make",
+                "certain you are connected to the network and try again." };
+        JOptionPane.showMessageDialog(null, message,
+                "Could not Open Project Files", JOptionPane.ERROR_MESSAGE);
+    }
+
+    private static void showBadFilenameError(String filename) {
+        String[] message = new String[] {
+                "The Work Breakdown Structure Editor attempted to open",
+                "project data located in the directory:",
+                "        " + filename,
+                "Unfortunately, this directory could not be found.  You",
+                "may need to map a network drive to edit this data." };
+        JOptionPane.showMessageDialog(null, message,
+                "Could not Open Project Files", JOptionPane.ERROR_MESSAGE);
+    }
+
+    private static class LockMessageDispatcher implements LockMessageHandler {
+
+        private List<LockMessage> missedMessages = new ArrayList<LockMessage>();
+
+        private WBSEditor editor = null;
+
+        public synchronized void setEditor(WBSEditor editor) {
+            this.editor = editor;
+            for (LockMessage msg : missedMessages) {
+                editor.handleMessage(msg);
+            }
+        }
+
+        public synchronized String handleMessage(LockMessage e) throws Exception {
+            if (editor != null) {
+                return editor.handleMessage(e);
+            } else {
+                missedMessages.add(e);
+                return "OK";
+            }
+        }
+
+    }
+
+    private static boolean showFilesAreReadOnlyMessage(TeamProject teamProject,
+            String location) {
+        READ_ONLY_FILES_MESSAGE[2] = "      " + location;
         int userResponse = JOptionPane.showConfirmDialog(null,
                 READ_ONLY_FILES_MESSAGE, "Open Project in Read-Only Mode",
                 JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
@@ -662,15 +801,11 @@ public class WBSEditor implements WindowListener, SaveListener,
             teamProject.setReadOnly(true);
             return true;
         }
-
         return false;
-    }
-    private static boolean fileIsReadOnly(File file) {
-        return (file.exists() && !file.canWrite());
     }
     private static final String[] READ_ONLY_FILES_MESSAGE = {
         "The Work Breakdown Structure Editor stores data for this project",
-        "into XML files located in the following directory:",
+        "into XML files located at:",
         "",
         " ",
         "Unfortunately, the current filesystem permissions do not allow",
@@ -713,34 +848,21 @@ public class WBSEditor implements WindowListener, SaveListener,
     }
 
     public static void main(String args[]) {
-        String filename = ".";
-        if (args.length > 0) {
-            filename = args[0];
-            if (new File(filename).isDirectory() == false) {
-                showBadFilenameError(filename);
-                return;
-            }
-        }
+        ExternalLocationMapper.getInstance().loadDefaultMappings();
+
+        String location = null;
+        if (args.length > 0)
+            location = args[0];
 
         boolean bottomUp = Boolean.getBoolean("teamdash.wbs.bottomUp");
         boolean showTeam = Boolean.getBoolean("teamdash.wbs.showTeamMemberList");
         boolean readOnly = Boolean.getBoolean("teamdash.wbs.readOnly");
         String syncURL = System.getProperty("teamdash.wbs.syncURL");
         String owner = System.getProperty("teamdash.wbs.owner");
-        createAndShowEditor(filename, bottomUp, showTeam, syncURL, true,
-                readOnly, owner);
+        createAndShowEditor(location, bottomUp, showTeam, syncURL, true,
+            readOnly, owner);
     }
 
-    private static void showBadFilenameError(String filename) {
-        String[] message = new String[] {
-                "The Work Breakdown Structure Editor attempted to open",
-                "project data located in the directory:",
-                "        " + filename,
-                "Unfortunately, this directory could not be found.  You",
-                "may need to map a network drive to edit this data." };
-        JOptionPane.showMessageDialog(null, message,
-                "Could not Open Project Files", JOptionPane.ERROR_MESSAGE);
-    }
 
     private class SaveAction extends AbstractAction {
         public SaveAction() {
