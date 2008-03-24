@@ -53,4 +53,8 @@ public class DashboardInstanceStrategy implements
         return LOCK_FILE_NAME;
     }
 
+    public FilenameFilter getUnlockedFilter() {
+        return null;
+    }
+
 }

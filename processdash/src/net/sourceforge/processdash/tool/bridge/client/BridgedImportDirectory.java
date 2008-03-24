@@ -52,7 +52,7 @@ public class BridgedImportDirectory implements ImportDirectory {
         FileResourceCollection localCollection = new FileResourceCollection(
                 importDirectory);
         localCollection.setStrategy(strategy);
-        this.client = new ResourceBridgeClient(localCollection, remoteURL);
+        this.client = new ResourceBridgeClient(localCollection, remoteURL, null);
 
         this.client.syncDown();
         this.lastUpdateTime = System.currentTimeMillis();

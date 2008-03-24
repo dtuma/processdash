@@ -59,7 +59,8 @@ public class BridgedWorkingDirectory extends AbstractWorkingDirectory {
                 workingDirectory);
         collection.setStrategy(strategy);
 
-        client = new ResourceBridgeClient(collection, remoteURL);
+        client = new ResourceBridgeClient(collection, remoteURL, strategy
+                .getUnlockedFilter());
     }
 
     public void prepare() throws IOException {

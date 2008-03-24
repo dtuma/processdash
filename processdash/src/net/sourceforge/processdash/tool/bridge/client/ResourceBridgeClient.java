@@ -31,6 +31,7 @@ import static net.sourceforge.processdash.tool.bridge.ResourceFilterFactory.INCL
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -70,6 +71,8 @@ public class ResourceBridgeClient implements ResourceBridgeConstants {
 
     ResourceCollection localCollection;
 
+    FilenameFilter syncDownOnlyFiles;
+
     String remoteUrl;
 
     String userName;
@@ -79,9 +82,10 @@ public class ResourceBridgeClient implements ResourceBridgeConstants {
 
 
     public ResourceBridgeClient(ResourceCollection localCollection,
-            String remoteUrl) {
+            String remoteUrl, FilenameFilter syncDownOnlyFiles) {
         this.localCollection = localCollection;
         this.remoteUrl = remoteUrl;
+        this.syncDownOnlyFiles = syncDownOnlyFiles;
     }
 
     public boolean syncDown() throws IOException {
@@ -145,19 +149,26 @@ public class ResourceBridgeClient implements ResourceBridgeConstants {
         }
 
         boolean madeChange = false;
+        List<String> filesToDownload = new ArrayList<String>();
 
-        // if any files are present only in the remote collection (but not in
-        // our local collection), delete the remote files.
+        // decide what to do for each file that is present only in the remote
+        // collection (but not in our local collection)
         if (!diff.getOnlyInB().isEmpty()) {
             List<String> params = new ArrayList<String>();
             for (String resourceName : diff.getOnlyInB()) {
-                logger.fine("deleting remote resource " + resourceName);
-                params.add(DELETE_FILE_PARAM);
-                params.add(resourceName);
+                if (isSyncDownOnly(resourceName)) {
+                    filesToDownload.add(resourceName);
+                } else {
+                    logger.fine("deleting remote resource " + resourceName);
+                    params.add(DELETE_FILE_PARAM);
+                    params.add(resourceName);
+                }
             }
-            doPostRequest(DELETE_ACTION, (Object[]) params.toArray());
-            pt.click("Deleted remote resources");
-            madeChange = true;
+            if (!params.isEmpty()) {
+                doPostRequest(DELETE_ACTION, (Object[]) params.toArray());
+                pt.click("Deleted remote resources");
+                madeChange = true;
+            }
         }
 
         // upload files that need to be created or updated in the remote
@@ -165,18 +176,34 @@ public class ResourceBridgeClient implements ResourceBridgeConstants {
         if (!diff.getOnlyInA().isEmpty() || !diff.getDiffering().isEmpty()) {
             List params = new ArrayList();
             for (String resourceName : diff.getOnlyInA()) {
-                logger.fine("uploading new resource " + resourceName);
-                addFileUploadParams(params, resourceName);
+                if (isSyncDownOnly(resourceName)) {
+                    logger.fine("deleting local resource " + resourceName);
+                    localCollection.deleteResource(resourceName);
+                    madeChange = true;
+                } else {
+                    logger.fine("uploading new resource " + resourceName);
+                    addFileUploadParams(params, resourceName);
+                }
             }
             for (String resourceName : diff.getDiffering()) {
-                logger.fine("uploading modified resource " + resourceName);
-                addFileUploadParams(params, resourceName);
+                if (isSyncDownOnly(resourceName)) {
+                    filesToDownload.add(resourceName);
+                } else {
+                    logger.fine("uploading modified resource " + resourceName);
+                    addFileUploadParams(params, resourceName);
+                }
             }
             if (!params.isEmpty()) {
                 doPostRequest(UPLOAD_ACTION, (Object[]) params.toArray());
                 pt.click("Uploaded new/modified resources");
                 madeChange = true;
             }
+        }
+
+        if (!filesToDownload.isEmpty()) {
+            List params = addMultiple(null, INCLUDE_PARAM, filesToDownload);
+            downloadFiles(makeGetRequest(DOWNLOAD_ACTION, params));
+            madeChange = true;
         }
 
         if (!madeChange) {
@@ -281,6 +308,11 @@ public class ResourceBridgeClient implements ResourceBridgeConstants {
             // posterity.
             logger.log(Level.FINE, "Unable to release bridged lock", e);
         }
+    }
+
+    private boolean isSyncDownOnly(String resourceName) {
+        return (syncDownOnlyFiles != null
+                && syncDownOnlyFiles.accept(null, resourceName));
     }
 
     private boolean hashesMatch() throws IOException {

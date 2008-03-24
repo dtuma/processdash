@@ -49,6 +49,10 @@ public class TeamDataDirStrategy implements FileResourceCollectionStrategy {
         return "teamProject.lock";
     }
 
+    public FilenameFilter getUnlockedFilter() {
+        return UNLOCKED_TEAM_DATA_FILE_FILTER;
+    }
+
     // The WBS_FILE_FILTER supplied by the dashboard backup factory is only
     // designed to pick up the *core* files that store WBS data (for backup
     // purposes).  Of course, we need to give our clients access to the other
@@ -74,5 +78,16 @@ public class TeamDataDirStrategy implements FileResourceCollectionStrategy {
 
     }
     private static final FilenameFilter TEAM_DATA_DIR_FILE_FILTER = new TeamDataDirFileFilter();
+
+    private static class UnlockedTeamDataFileFilter implements FilenameFilter {
+
+        public boolean accept(File dir, String name) {
+            name = name.toLowerCase();
+            return (name.equals("settings.xml")
+                    || name.endsWith("-data.pdash"));
+        }
+
+    }
+    private static final FilenameFilter UNLOCKED_TEAM_DATA_FILE_FILTER = new UnlockedTeamDataFileFilter();
 
 }

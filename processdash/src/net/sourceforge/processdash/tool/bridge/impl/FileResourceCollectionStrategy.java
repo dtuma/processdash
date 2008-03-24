@@ -38,4 +38,6 @@ public interface FileResourceCollectionStrategy {
 
     public String getLockFilename();
 
+    public FilenameFilter getUnlockedFilter();
+
 }
