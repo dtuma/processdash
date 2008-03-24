@@ -233,7 +233,11 @@ public class FileConcurrencyLock implements ConcurrencyLock {
 
             // The lock file is still intact, and still contains our lock
             // token.  This is a sign that no one else has taken the lock
-            // from us.
+            // from us.  Assume ownership of the physical lock file, and sync
+            // the extraInfo in this object with the value from that file.
+            // (This is important for the use case where a client creates this
+            // object and then calls assertLock rather than acquireLock.)
+            this.extraInfo = metaData.extraInfo;
 
             // check with the approver next to make certain we can proceed.
             if (approver != null)
