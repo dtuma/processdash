@@ -1,6 +1,7 @@
 package teamdash.wbs;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
@@ -21,13 +22,18 @@ import java.util.prefs.Preferences;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
+import javax.swing.Box;
 import javax.swing.ButtonGroup;
 import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JDialog;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JProgressBar;
 import javax.swing.JRadioButtonMenuItem;
 import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
@@ -479,8 +485,92 @@ public class WBSEditor implements WindowListener, SaveListener,
 
         tabPanel.stopCellEditing();
 
+        JDialog dialog = createWaitDialog(frame, "Saving Data...");
+        SaveThread saver = new SaveThread(dialog);
+        saver.start();
+        dialog.setVisible(true);
+        return saver.saveResult;
+    }
+
+    private static JDialog createWaitDialog(JFrame frame, String message) {
+        JDialog dialog = new JDialog(frame, "Please Wait", true);
+        dialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
+        dialog.getContentPane().add(buildWaitContents(message));
+        dialog.pack();
+        dialog.setLocationRelativeTo(frame);
+        return dialog;
+    }
+
+    private static JFrame createWaitFrame(String message) {
+        JFrame result = new JFrame("Please Wait");
+        result.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+        result.getContentPane().add(buildWaitContents(message));
+        result.pack();
+        result.setLocationRelativeTo(null);
+        return result;
+    }
+
+    private static JPanel buildWaitContents(String message) {
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setBorder(BorderFactory.createEmptyBorder(7, 7, 7, 7));
+
+        JLabel label = new JLabel(message);
+        label.setBorder(BorderFactory.createEmptyBorder(0, 0, 7, 10));
+        panel.add(label, BorderLayout.NORTH);
+
+        JProgressBar bar = new JProgressBar();
+        bar.setIndeterminate(true);
+        panel.add(bar, BorderLayout.CENTER);
+
+        panel.add(Box.createHorizontalStrut(200), BorderLayout.SOUTH);
+        return panel;
+    }
+
+    private class SaveThread extends Thread {
+        JDialog saveDialog;
+        boolean saveResult;
+
+        public SaveThread(JDialog saveDialog) {
+            this.saveDialog = saveDialog;
+        }
+
+        public void run() {
+            saveResult = saveImpl();
+            try {
+                SwingUtilities.invokeAndWait(new Runnable() {
+                    public void run() {
+                        JPanel panel = (JPanel) saveDialog.getContentPane()
+                                .getComponent(0);
+                        for (int i = 0;  i < panel.getComponentCount(); i++) {
+                            Component c = panel.getComponent(i);
+                            if (c instanceof JLabel) {
+                                JLabel label = (JLabel) c;
+                                label.setText("Data Saved.");
+                            } else if (c instanceof JProgressBar) {
+                                JProgressBar bar = (JProgressBar) c;
+                                bar.setIndeterminate(false);
+                                bar.setValue(bar.getMaximum());
+                            }
+                        }
+                        saveDialog.setTitle("Data Saved");
+                    }});
+                Thread.sleep(750);
+            } catch (Exception e) {}
+
+            SwingUtilities.invokeLater(new Runnable() {
+                public void run() {
+                    saveDialog.dispose();
+                }});
+        }
+
+    }
+
+    private boolean saveImpl() {
+        if (readOnly)
+            return true;
+
         try {
-            if (saveImpl()) {
+            if (saveData()) {
                 maybeTriggerSyncOperation();
                 return true;
             }
@@ -497,7 +587,7 @@ public class WBSEditor implements WindowListener, SaveListener,
         return false;
     }
 
-    private boolean saveImpl() throws LockFailureException, IOException {
+    private boolean saveData() throws LockFailureException, IOException {
         if (readOnly || workingDirectory == null)
             return true;
 
@@ -635,6 +725,12 @@ public class WBSEditor implements WindowListener, SaveListener,
             boolean bottomUp, boolean showTeamList, String syncURL,
             boolean exitOnClose, boolean forceReadOnly, String owner) {
 
+        String message = (showTeamList
+                ? "Opening Team Member List..."
+                : "Opening Work Breakdown Structure...");
+        JFrame waitFrame = createWaitFrame(message);
+        waitFrame.setVisible(true);
+
         LockMessageDispatcher dispatch;
         WorkingDirectory workingDirectory;
         File dir;
@@ -645,6 +741,7 @@ public class WBSEditor implements WindowListener, SaveListener,
             proj = new TeamProjectBottomUp(location, "Team Project");
             dir = proj.getStorageDirectory();
             if (!dir.isDirectory()) {
+                waitFrame.dispose();
                 showBadFilenameError(location);
                 return null;
             }
@@ -657,7 +754,10 @@ public class WBSEditor implements WindowListener, SaveListener,
             dispatch = new LockMessageDispatcher();
             workingDirectory = configureWorkingDirectory(location, intent,
                 dispatch);
-            if (workingDirectory == null) return null;
+            if (workingDirectory == null) {
+                waitFrame.dispose();
+                return null;
+            }
             dir = workingDirectory.getDirectory();
             proj = new TeamProject(dir, "Team Project");
         }
@@ -679,11 +779,13 @@ public class WBSEditor implements WindowListener, SaveListener,
 
             if (dispatch != null)
                 dispatch.setEditor(w);
+            waitFrame.dispose();
             return w;
         } catch (LockFailureException e) {
             workingDirectory.releaseLocks();
             if (exitOnClose)
                 System.exit(0);
+            waitFrame.dispose();
             return null;
         }
     }
