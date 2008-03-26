@@ -251,7 +251,9 @@ public class EVSchedule implements TableModel {
                     if (previous == null) {
                         long oldStart = endDate.getTime();
                         long newStart = ((Date) value).getTime();
-                        slideScheduleDates(newStart - oldStart);
+                        long delta = newStart - oldStart;
+                        delta += dstDifference(newStart, oldStart);
+                        slideScheduleDates(delta);
                         fireNeedsRecalc();
                         return;
                     }
