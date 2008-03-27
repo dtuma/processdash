@@ -53,7 +53,7 @@ public class ColorCellEditor extends DefaultCellEditor {
                                                  boolean isSelected,
                                                  int row,
                                                  int column) {
-        ((JButton)editorComponent).setText(value.toString());
+        // ((JButton)editorComponent).setText(value.toString());
         currentColor = (Color)value;
         return editorComponent;
     }
@@ -97,5 +97,12 @@ public class ColorCellEditor extends DefaultCellEditor {
                     dialog.setVisible(true);
                 }
             });
+    }
+
+    public static final String encodeColor(Color c) {
+        if (c == null)
+            return null;
+        else
+            return "#" + Integer.toHexString(c.getRGB()).substring(2);
     }
 }

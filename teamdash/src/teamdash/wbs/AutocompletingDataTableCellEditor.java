@@ -45,7 +45,7 @@ public class AutocompletingDataTableCellEditor extends ComboBoxCellEditor {
         this.comboBox.setEditable(true);
         AutoCompleteDecorator.decorate(comboBox);
 
-        this.setupEditor = new Timer(30, new ActionListener() {
+        this.setupEditor = new Timer(100, new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 setupEditor();
             }
@@ -66,8 +66,10 @@ public class AutocompletingDataTableCellEditor extends ComboBoxCellEditor {
 
     protected void setupEditor() {
         comboBox.getEditor().getEditorComponent().requestFocus();
-        comboBox.showPopup();
-        dispatchKeyEvent.restart();
+        if (comboBox.isShowing()) {
+            comboBox.showPopup();
+            dispatchKeyEvent.restart();
+        }
     }
 
     protected void dispatchKeyEvent() {

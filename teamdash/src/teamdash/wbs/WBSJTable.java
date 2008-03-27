@@ -68,6 +68,8 @@ public class WBSJTable extends JTable {
 
     /** Should editing of WBS nodes be disabled? */
     private boolean disableEditing = false;
+    /** Is indentation disabled for this WBS? */
+    private boolean disableIndentation = false;
 
     /** Create a JTable to display a WBS. Construct a default icon menu. */
     public WBSJTable(WBSModel model, Map iconMap) {
@@ -106,6 +108,11 @@ public class WBSJTable extends JTable {
     public void setEditingEnabled(boolean enable) {
         disableEditing = !enable;
         editor.setEditingEnabled(enable);
+        recalculateEnablement();
+    }
+
+    public void setIndentationDisabled(boolean disabled) {
+        disableIndentation = disabled;
         recalculateEnablement();
     }
 
@@ -438,6 +445,7 @@ public class WBSJTable extends JTable {
 
         public DemoteAction() {
             super("Demote", IconFactory.getDemoteIcon());
+            putValue(WBS_ACTION_CATEGORY, WBS_ACTION_CATEGORY_INDENT);
             enablementCalculations.add(this);
         }
         public void doAction(ActionEvent e) {
@@ -449,6 +457,7 @@ public class WBSJTable extends JTable {
         }
         public void recalculateEnablement(int[] selectedRows) {
             setEnabled(!disableEditing
+                    && !disableIndentation
                     && notJustRoot(selectedRows)
                     && !containsReadOnlyNode(selectedRows));
         }
@@ -462,6 +471,7 @@ public class WBSJTable extends JTable {
 
         public PromoteAction() {
             super("Promote", IconFactory.getPromoteIcon());
+            putValue(WBS_ACTION_CATEGORY, WBS_ACTION_CATEGORY_INDENT);
             enablementCalculations.add(this);
         }
         public void doAction(ActionEvent e) {
@@ -473,6 +483,7 @@ public class WBSJTable extends JTable {
         }
         public void recalculateEnablement(int[] selectedRows) {
             if (disableEditing
+                    || disableIndentation
                     || notJustRoot(selectedRows) == false
                     || containsReadOnlyNode(selectedRows))
                 setEnabled(false);
@@ -526,6 +537,7 @@ public class WBSJTable extends JTable {
 
         public CutAction() {
             super("Cut WBS Items", IconFactory.getCutIcon());
+            putValue(WBS_ACTION_CATEGORY, WBS_ACTION_CATEGORY_CLIPBOARD);
             enablementCalculations.add(this);
         }
         public void actionPerformed(ActionEvent e) {
@@ -565,6 +577,7 @@ public class WBSJTable extends JTable {
 
         public CopyAction() {
             super("Copy WBS Items", IconFactory.getCopyIcon());
+            putValue(WBS_ACTION_CATEGORY, WBS_ACTION_CATEGORY_CLIPBOARD);
             enablementCalculations.add(this);
         }
         public void actionPerformed(ActionEvent e) {
@@ -596,6 +609,7 @@ public class WBSJTable extends JTable {
 
         public PasteAction() {
             super("Paste WBS Items", IconFactory.getPasteIcon());
+            putValue(WBS_ACTION_CATEGORY, WBS_ACTION_CATEGORY_CLIPBOARD);
             enablementCalculations.add(this);
         }
         public void actionPerformed(ActionEvent e) {
@@ -710,6 +724,7 @@ public class WBSJTable extends JTable {
         public InsertAction() { this("Insert"); }
         public InsertAction(String name) {
             super(name);
+            putValue(WBS_ACTION_CATEGORY, WBS_ACTION_CATEGORY_STRUCTURE);
             editingFollowsSelection = true;
             enablementCalculations.add(this);
         }
@@ -793,6 +808,7 @@ public class WBSJTable extends JTable {
 
         public DeleteAction() {
             super("Delete", IconFactory.getDeleteIcon());
+            putValue(WBS_ACTION_CATEGORY, WBS_ACTION_CATEGORY_STRUCTURE);
             enablementCalculations.add(this);
         }
         public void actionPerformed(ActionEvent e) {
@@ -850,6 +866,7 @@ public class WBSJTable extends JTable {
 
         public InsertWorkflowAction(WBSModel workflows) {
             this.workflows = workflows;
+            putValue(WBS_ACTION_CATEGORY, WBS_ACTION_CATEGORY_WORKFLOW);
             setEnabled(false);
             enablementCalculations.add(this);
         }
@@ -940,6 +957,7 @@ public class WBSJTable extends JTable {
 
         public ExpandAction() {
             super("Expand", IconFactory.getExpandIcon());
+            putValue(WBS_ACTION_CATEGORY, WBS_ACTION_CATEGORY_EXPANSION);
             enablementCalculations.add(this);
         }
         public void actionPerformed(ActionEvent e) {
@@ -978,6 +996,7 @@ public class WBSJTable extends JTable {
 
         public ExpandAllAction() {
             super("Expand All", IconFactory.getExpandAllIcon());
+            putValue(WBS_ACTION_CATEGORY, WBS_ACTION_CATEGORY_EXPANSION);
             enablementCalculations.add(this);
         }
         public void actionPerformed(ActionEvent e) {
@@ -1015,6 +1034,7 @@ public class WBSJTable extends JTable {
 
         public CollapseAction() {
             super("Collapse", IconFactory.getCollapseIcon());
+            putValue(WBS_ACTION_CATEGORY, WBS_ACTION_CATEGORY_EXPANSION);
             enablementCalculations.add(this);
         }
         public void actionPerformed(ActionEvent e) {
@@ -1102,5 +1122,12 @@ public class WBSJTable extends JTable {
     private static final int SHIFT = Event.SHIFT_MASK;
     private static final int CTRL  = (MacGUIUtils.isMacOSX()
             ? InputEvent.META_DOWN_MASK : InputEvent.CTRL_DOWN_MASK);
+    public static final String WBS_ACTION_CATEGORY = WBSJTable.class.getName()
+            + ".actionCategory";
+    public static final String WBS_ACTION_CATEGORY_CLIPBOARD = "clipboard";
+    public static final String WBS_ACTION_CATEGORY_INDENT = "indent";
+    public static final String WBS_ACTION_CATEGORY_EXPANSION = "expansion";
+    public static final String WBS_ACTION_CATEGORY_STRUCTURE = "structure";
+    public static final String WBS_ACTION_CATEGORY_WORKFLOW = "workflow";
 
 }

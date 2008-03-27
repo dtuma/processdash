@@ -131,7 +131,7 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
     /** Add a node to the end of this work breakdown structure.
      */
     public synchronized void add(WBSNode node) {
-        wbsNodes.add(makeNodeIDUnique(node));
+        wbsNodes.add(prepareNodeForInsertion(node));
         recalcRows();
     }
 
@@ -155,7 +155,7 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
 
         } else {
             int beforePos = rows[beforeRow];
-            wbsNodes.add(beforePos, makeNodeIDUnique(newNode));
+            wbsNodes.add(beforePos, prepareNodeForInsertion(newNode));
             recalcRows();
             return beforeRow;
         }
@@ -352,6 +352,13 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
 
     private int maxID = 0;
 
+    private WBSNode prepareNodeForInsertion(WBSNode node) {
+        tweakNodeForInsertion(node);
+        return makeNodeIDUnique(node);
+    }
+
+    protected void tweakNodeForInsertion(WBSNode node) {}
+
     private synchronized WBSNode makeNodeIDUnique(WBSNode node) {
 
         int currentID = node.getUniqueID();
@@ -382,10 +389,10 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
 
         return node;
     }
-    private synchronized List makeNodesIDUnique(List nodes) {
+    private synchronized List prepareNodesForInsertion(List nodes) {
         Iterator i = nodes.iterator();
         while (i.hasNext())
-            makeNodeIDUnique((WBSNode) i.next());
+            prepareNodeForInsertion((WBSNode) i.next());
         return nodes;
     }
 
@@ -693,9 +700,9 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
         currentVisibleNodes.add(nodesToInsert.get(0));
 
         if (beforePos >= wbsNodes.size())
-            wbsNodes.addAll(makeNodesIDUnique(nodesToInsert));
+            wbsNodes.addAll(prepareNodesForInsertion(nodesToInsert));
         else
-            wbsNodes.addAll(beforePos, makeNodesIDUnique(nodesToInsert));
+            wbsNodes.addAll(beforePos, prepareNodesForInsertion(nodesToInsert));
 
         recalcRows(false);
         Iterator i = currentVisibleNodes.iterator();
@@ -793,7 +800,7 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
         int insertAfter = destPos;
         if (destDescendants != null && destDescendants.size() > 0)
             insertAfter = destDescendants.get(destDescendants.size() - 1);
-        wbsNodes.addAll(insertAfter + 1, makeNodesIDUnique(nodesToInsert));
+        wbsNodes.addAll(insertAfter + 1, prepareNodesForInsertion(nodesToInsert));
 
         // make certain some of the inserted nodes are visible.
         destNode.setExpanded(true);
@@ -903,7 +910,7 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
                     insertAfter = destDescendants.get(destDescendants.size() - 1);
 
                 destModel.wbsNodes.addAll(insertAfter + 1,
-                        destModel.makeNodesIDUnique(nodesToInsert));
+                        destModel.prepareNodesForInsertion(nodesToInsert));
                 insertedNodes.addAll(nodesToInsert);
             }
         }

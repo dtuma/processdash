@@ -77,6 +77,7 @@ public class WBSEditor implements WindowListener, SaveListener,
 
     WorkingDirectory workingDirectory;
     TeamProject teamProject;
+    MilestonesDataModel milestonesModel;
     JFrame frame;
     WBSTabPanel tabPanel;
     TeamTimePanel teamTimePanel;
@@ -96,6 +97,7 @@ public class WBSEditor implements WindowListener, SaveListener,
 
     private TeamMemberListEditor teamListEditor = null;
     private WorkflowEditor workflowEditor = null;
+    private MilestonesEditor milestonesEditor = null;
 
     private static final int MODE_PLAIN = 1;
     private static final int MODE_HAS_MASTER = 2;
@@ -137,7 +139,10 @@ public class WBSEditor implements WindowListener, SaveListener,
         TaskDependencySource taskDependencySource = getTaskDependencySource();
         DataTableModel data = new DataTableModel
             (model, teamProject.getTeamMemberList(),
-             teamProject.getTeamProcess(), taskDependencySource, owner);
+             teamProject.getTeamProcess(), teamProject.getMilestones(),
+             taskDependencySource, owner);
+
+        milestonesModel = new MilestonesDataModel(teamProject.getMilestones());
 
         if (isMode(MODE_PLAIN)) {
             reverseSynchronizer = new WBSSynchronizer(teamProject, data);
@@ -201,8 +206,8 @@ public class WBSEditor implements WindowListener, SaveListener,
                         "Completed", "%C", "%S", "Actual Time" });
 
         tabPanel.addTab("Task Details",
-                new String[] { "Labels", "Dependencies", "Notes" },
-                new String[] { "Task Labels", "Task Dependencies", "Notes" });
+                new String[] { "Milestone", "Labels", "Dependencies", "Notes" },
+                new String[] { "Milestone", "Task Labels", "Task Dependencies", "Notes" });
 
         if (showActualData)
             tabPanel.addTab("Actual Time",
@@ -220,7 +225,8 @@ public class WBSEditor implements WindowListener, SaveListener,
         }
 
         teamTimePanel =
-            new TeamTimePanel(teamProject.getTeamMemberList(), data);
+            new TeamTimePanel(teamProject.getTeamMemberList(), data,
+                milestonesModel);
         teamTimePanel.setVisible(isMode(MODE_BOTTOM_UP));
         if (isMode(MODE_BOTTOM_UP))
             teamTimePanel.setShowBalancedBar(false);
@@ -233,7 +239,8 @@ public class WBSEditor implements WindowListener, SaveListener,
         frame = new JFrame(teamProject.getProjectName()
                 + " - Work Breakdown Structure"
                 + (teamProject.isReadOnly() ? " (Read-Only)" : ""));
-        frame.setJMenuBar(buildMenuBar(tabPanel, teamProject.getWorkflows()));
+        frame.setJMenuBar(buildMenuBar(tabPanel, teamProject.getWorkflows(),
+            teamProject.getMilestones()));
         frame.getContentPane().add(tabPanel);
         frame.getContentPane().add(teamTimePanel, BorderLayout.SOUTH);
         frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
@@ -396,7 +403,17 @@ public class WBSEditor implements WindowListener, SaveListener,
         }
     }
 
-    private JMenuBar buildMenuBar(WBSTabPanel tabPanel, WBSModel workflows) {
+    private void showMilestonesEditor() {
+        if (milestonesEditor != null)
+            milestonesEditor.show();
+        else {
+            milestonesEditor = new MilestonesEditor(teamProject, milestonesModel);
+        }
+        milestonesEditor.show();
+    }
+
+    private JMenuBar buildMenuBar(WBSTabPanel tabPanel, WBSModel workflows,
+            WBSModel milestones) {
         JMenuBar result = new JMenuBar();
 
         result.add(buildFileMenu(tabPanel.getFileActions()));
@@ -405,6 +422,7 @@ public class WBSEditor implements WindowListener, SaveListener,
         if (!isMode(MODE_BOTTOM_UP))
             result.add(buildWorkflowMenu
                 (workflows, tabPanel.getInsertWorkflowAction(workflows)));
+        result.add(buildMilestonesMenu(milestones));
         if (isMode(MODE_HAS_MASTER))
             result.add(buildMasterMenu(tabPanel.getMasterActions(
                     teamProject.getMasterProjectDirectory())));
@@ -457,9 +475,15 @@ public class WBSEditor implements WindowListener, SaveListener,
         new WorkflowMenuBuilder(result, workflows, insertWorkflowAction);
         return result;
     }
+    private JMenu buildMilestonesMenu(WBSModel milestones) {
+        JMenu result = new JMenu("Milestones");
+        result.setMnemonic('M');
+        result.add(new MilestonesEditorAction());
+        return result;
+    }
     private JMenu buildMasterMenu(Action[] masterActions) {
         JMenu result = new JMenu("Master");
-        result.setMnemonic('M');
+        result.setMnemonic('S');
         for (int i = 0;   i < masterActions.length;   i++)
             result.add(masterActions[i]);
         return result;
@@ -705,6 +729,7 @@ public class WBSEditor implements WindowListener, SaveListener,
             else {
                 if (teamListEditor != null) teamListEditor.hide();
                 if (workflowEditor != null) workflowEditor.hide();
+                if (milestonesEditor != null) milestonesEditor.hide();
                 frame.dispose();
                 disposed = true;
             }
@@ -1008,6 +1033,16 @@ public class WBSEditor implements WindowListener, SaveListener,
         }
         public void actionPerformed(ActionEvent e) {
             showWorkflowEditor();
+        }
+    }
+
+    private class MilestonesEditorAction extends AbstractAction {
+        public MilestonesEditorAction() {
+            super("Edit Milestones");
+            putValue(MNEMONIC_KEY, new Integer('E'));
+        }
+        public void actionPerformed(ActionEvent e) {
+            showMilestonesEditor();
         }
     }
 

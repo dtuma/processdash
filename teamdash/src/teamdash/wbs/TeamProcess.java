@@ -434,6 +434,7 @@ public class TeamProcess {
     }
 
     public static boolean isOtherSizeType(String type) {
-        return (!isLOCNode(type) && !type.endsWith(" Task"));
+        return (!isLOCNode(type) && !type.endsWith(" Task")
+                && !type.endsWith("Milestone"));
     }
 }

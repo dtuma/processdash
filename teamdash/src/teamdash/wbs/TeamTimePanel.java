@@ -1,13 +1,16 @@
 package teamdash.wbs;
 
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.Rectangle;
+import java.awt.Stroke;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.beans.EventHandler;
@@ -22,6 +25,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
+import javax.swing.ToolTipManager;
 import javax.swing.UIManager;
 import javax.swing.border.BevelBorder;
 import javax.swing.event.TableModelEvent;
@@ -29,6 +33,8 @@ import javax.swing.event.TableModelListener;
 
 import teamdash.team.TeamMember;
 import teamdash.team.TeamMemberList;
+import teamdash.wbs.columns.MilestoneColorColumn;
+import teamdash.wbs.columns.MilestoneCommitDateColumn;
 import teamdash.wbs.columns.TeamActualTimeColumn;
 import teamdash.wbs.columns.TeamMemberTimeColumn;
 import teamdash.wbs.columns.UnassignedTimeColumn;
@@ -44,6 +50,8 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
     private TeamMemberList teamList;
     /** The data model containing time data. */
     private DataTableModel dataModel;
+    /** The data model containing milestone information */
+    private MilestonesDataModel milestonesModel;
     /** The layout object managing this panel */
     private GridBagLayout layout;
     /** A list of the bar charts for each individual (each is a
@@ -70,6 +78,8 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
     private JPanel balancedBar;
     /** Should the balanced bar be shown, or hidden */
     private boolean showBalancedBar;
+    /** The panel displaying milestone commit dates */
+    private CommitDatePane commitDatePane;
     /** Should the bars show total project data, or just remaining project data */
     private boolean showRemainingWork;
     /** Should the balanced bar include unassigned work? */
@@ -88,9 +98,11 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
      * @param teamList the list of team members to display.
      * @param dataModel the data model containing time data.
      */
-    public TeamTimePanel(TeamMemberList teamList, DataTableModel dataModel) {
+    public TeamTimePanel(TeamMemberList teamList, DataTableModel dataModel,
+            MilestonesDataModel milestones) {
         this.teamList = teamList;
         this.dataModel = dataModel;
+        this.milestonesModel = milestones;
         this.teamMemberBars = new ArrayList<TeamMemberBar>();
         this.showBalancedBar = true;
         this.showRemainingWork = false;
@@ -164,6 +176,17 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
         c.gridx = 2; c.gridy = 0;
         layout.setConstraints(balancedBar, c);
 
+        // create and add the panel displaying milestone commit dates.
+        commitDatePane = new CommitDatePane();
+        add(commitDatePane);
+        c = new GridBagConstraints();
+        c.gridx = 1; c.gridy = 0;
+        c.fill = GridBagConstraints.BOTH;
+        c.insets.left = c.insets.right = 5;
+        c.insets.top = c.insets.bottom = 0;
+        c.weightx = c.weighty = 1;
+        layout.setConstraints(commitDatePane, c);
+
         teamEffectiveDate = (Date) dataModel.getWBSModel().getRoot()
             .getAttribute(WBSSynchronizer.EFFECTIVE_DATE_ATTR);
         if (teamEffectiveDate == null)
@@ -184,7 +207,7 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
         bc.insets.left = bc.insets.right = 5;
         bc.insets.top = bc.insets.bottom = 0;
         bc.weightx = bc.weighty = 1;
-        int row = 0;
+        int row = 1;
         for (int i = 0;   i < teamMembers.size();   i++) {
             // for each team member, create a name label and a horizontal
             // progress bar.
@@ -237,6 +260,10 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
         } else {
             balancedBarPos = -100;
         }
+
+        // adjust the size of the commit date pane to be as tall as this panel.
+        Rectangle r = commitDatePane.getBounds();
+        commitDatePane.setBounds(r.x, r.y, r.width, getHeight());
     }
 
 
@@ -335,6 +362,155 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
         // whenever data changes, recalculate and redisplay.
         recalcTimer.restart();
     }
+
+
+    /**
+     * 
+     */
+    private class CommitDatePane extends JPanel {
+
+        private static final int GUTTER_HEIGHT = 10;
+        private static final int ARROW_WIDTH = 16;
+        private static final int ARROW_HEIGHT = 8;
+
+        private List<CommitDate> commitDates;
+
+        private CommitDatePane() {
+            setMinimumSize(new Dimension(0, GUTTER_HEIGHT));
+            setPreferredSize(new Dimension(10, GUTTER_HEIGHT));
+            setMaximumSize(new Dimension(Integer.MAX_VALUE, GUTTER_HEIGHT));
+            setOpaque(false);
+            ToolTipManager.sharedInstance().registerComponent(this);
+
+            milestonesModel.addTableModelListener(new TableModelListener() {
+                public void tableChanged(TableModelEvent e) {
+                    loadCommitDates();
+                }});
+            loadCommitDates();
+        }
+
+
+
+        @Override
+        public void setBounds(int x, int y, int width, int height) {
+            super.setBounds(x, y, width, height);
+            for (CommitDate cd : commitDates) {
+                cd.recalcXPos();
+            }
+        }
+
+
+
+        public void loadCommitDates() {
+            List<CommitDate> newDates = new ArrayList<CommitDate>();
+            WBSModel milestonesWBS = milestonesModel.getWBSModel();
+            WBSNode[] milestones = milestonesWBS
+                    .getDescendants(milestonesWBS.getRoot());
+            for (WBSNode node : milestones) {
+                newDates.add(new CommitDate(node));
+            }
+            commitDates = newDates;
+            repaint();
+        }
+
+        @Override
+        public void paint(Graphics g) {
+            Stroke plainStroke = null;
+            Graphics2D g2 = null;
+            if (g instanceof Graphics2D) {
+                g2 = (Graphics2D) g;
+                plainStroke = g2.getStroke();
+            }
+
+            int[] xPoints = new int[3];
+            int[] yPoints = new int[3];
+            for (CommitDate cd : commitDates) {
+                if (cd.xPos == -1)
+                    continue;
+
+                g.setColor(cd.color);
+                xPoints[0] = cd.xPos + 1 - ARROW_WIDTH/2;
+                xPoints[1] = cd.xPos + ARROW_WIDTH/2;
+                xPoints[2] = cd.xPos;
+                yPoints[0] = yPoints[1] = GUTTER_HEIGHT - ARROW_HEIGHT;
+                yPoints[2] = GUTTER_HEIGHT;
+                g.fillPolygon(xPoints, yPoints, xPoints.length);
+
+                g.setColor(Color.BLACK);
+                if (g2 != null)
+                    g2.setStroke(plainStroke);
+                xPoints[1]--; /*xPoints[2]--;*/ yPoints[2]--;
+                g.drawPolygon(xPoints, yPoints, xPoints.length);
+
+                if (g2 != null)
+                    g2.setStroke(COMMIT_DATE_LINE_STYLE);
+                g.drawLine(cd.xPos, GUTTER_HEIGHT-1, cd.xPos, getHeight());
+            }
+
+        }
+
+        @Override
+        public boolean contains(int x, int y) {
+            return y < GUTTER_HEIGHT;
+        }
+
+        @Override
+        public String getToolTipText(MouseEvent event) {
+            int xPos = event.getX();
+
+            int closestDistance = 2 + ARROW_WIDTH/2;
+            String tooltip = null;
+            for (CommitDate cd : commitDates) {
+                if (cd.xPos < 0 || cd.tooltip == null)
+                    continue;
+
+                int distance = Math.abs(xPos - cd.xPos);
+                if (distance < closestDistance) {
+                    closestDistance = distance;
+                    tooltip = cd.tooltip;
+                }
+            }
+
+            return tooltip;
+        }
+
+
+
+        private class CommitDate {
+            private String name;
+            private Date date;
+            private Color color;
+            private String tooltip;
+            private int xPos;
+            private CommitDate(WBSNode milestone) {
+                this.name = milestone.getName();
+                this.date = MilestoneCommitDateColumn.getCommitDate(milestone);
+                this.color = MilestoneColorColumn.getColor(milestone);
+                if (name != null && date != null)
+                    this.tooltip = name + " - Commit Date: "
+                            + dateFormat.format(date);
+                recalcXPos();
+            }
+            private void recalcXPos() {
+                this.xPos = calcXPos();
+            }
+            private int calcXPos() {
+                if (date == null || name == null || name.trim().length() == 0)
+                    return -1;
+                long xTime = date.getTime() - leftTimeBoundary;
+                if (xTime < 0 || xTime > maxScheduleLength)
+                    return -1;
+                else
+                    return (int) (getWidth() * xTime / maxScheduleLength);
+            }
+        }
+
+
+    }
+    private static final Stroke COMMIT_DATE_LINE_STYLE = new BasicStroke(1,
+            BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 1,
+            new float[] { 3, 3 }, 0);
+
 
 
     /** This class performs the calculations and the display of a

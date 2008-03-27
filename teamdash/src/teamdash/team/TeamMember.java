@@ -130,10 +130,8 @@ public class TeamMember implements Cloneable {
             out.write(XMLUtils.escapeAttribute(initials));
         if (!dumpMode) {
             out.write("' "+COLOR_ATTR+"='");
-            if (color != null) {
-                out.write("#");
-                out.write(Integer.toHexString(color.getRGB()).substring(2));
-            }
+            if (color != null)
+                out.write(ColorCellEditor.encodeColor(color));
         }
         out.write("'");
 

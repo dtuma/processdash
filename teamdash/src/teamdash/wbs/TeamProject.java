@@ -33,6 +33,7 @@ public class TeamProject {
     private TeamProcess teamProcess;
     private WBSModel wbs;
     private WBSModel workflows;
+    private MilestonesWBSModel milestones;
     private long fileModTime;
     private String masterProjectID;
     private File masterProjectDirectory;
@@ -63,6 +64,7 @@ public class TeamProject {
         openTeamList();
         openTeamProcess();
         openWorkflows();
+        openMilestones();
         openWBS();
     }
 
@@ -91,6 +93,7 @@ public class TeamProject {
             result = saveTeamList() && result;
             result = saveWBS() && result;
             result = saveWorkflows() && result;
+            result = saveMilestones() && result;
         }
         return result;
     }
@@ -123,6 +126,10 @@ public class TeamProject {
     /** Get the common workflows for this project */
     public WBSModel getWorkflows() {
         return workflows;
+    }
+
+    public MilestonesWBSModel getMilestones() {
+        return milestones;
     }
 
     /** If this project is part of a master project, get the directory where
@@ -454,6 +461,40 @@ public class TeamProject {
     }
 
 
+
+    /** Open the file containing the project milestones */
+    private void openMilestones() {
+        try {
+            Element xml = openXML(checkEditable(new File(directory,
+                MILESTONES_FILENAME)));
+            if (xml != null) milestones = new MilestonesWBSModel(xml);
+        } catch (Exception e) {
+        }
+        if (milestones == null) {
+            System.out.println("No "+MILESTONES_FILENAME+
+                               " file found; creating default milestones");
+            milestones = new MilestonesWBSModel("Project Milestones");
+        }
+    }
+
+    /** Save the project milestones */
+    boolean saveMilestones() {
+        if (!readOnly)
+            try {
+                File f = new File(directory, MILESTONES_FILENAME);
+                RobustFileWriter out = new RobustFileWriter(f, "UTF-8");
+                BufferedWriter buf = new BufferedWriter(out);
+                milestones.getAsXML(buf);
+                buf.flush();
+                out.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+                return false;
+            }
+        return true;
+    }
+
+
     private static class TeamProjectFileFilter implements FileFilter {
 
         private Set includedNames;
@@ -464,6 +505,7 @@ public class TeamProject {
             m.add(TEAM_LIST_FILENAME2.toLowerCase());
             m.add(WBS_FILENAME.toLowerCase());
             m.add(FLOW_FILENAME.toLowerCase());
+            m.add(MILESTONES_FILENAME.toLowerCase());
             this.includedNames = Collections.unmodifiableSet(m);
         }
 
@@ -500,6 +542,7 @@ public class TeamProject {
     private static final String TEAM_LIST_FILENAME2 = "team2.xml";
     private static final String WBS_FILENAME = "wbs.xml";
     private static final String FLOW_FILENAME = "workflow.xml";
+    private static final String MILESTONES_FILENAME = "milestones.xml";
     private static final String PROCESS_FILENAME = "process.xml";
     private static final String SETTINGS_FILENAME = "settings.xml";
     private static final String USER_SETTINGS_FILENAME = "user-settings.ini";
@@ -508,6 +551,7 @@ public class TeamProject {
         TEAM_LIST_FILENAME,
         WBS_FILENAME,
         FLOW_FILENAME,
+        MILESTONES_FILENAME,
         PROCESS_FILENAME,
         SETTINGS_FILENAME
     };

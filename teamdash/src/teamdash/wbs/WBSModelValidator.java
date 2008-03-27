@@ -73,7 +73,7 @@ public class WBSModelValidator implements TableModelListener {
                 if (childNames.contains(childName) &&
                     child.getAttribute(NODE_NAME_ERROR_ATTR_NAME) == null)
                     child.setAttribute(NODE_NAME_ERROR_ATTR_NAME,
-                                      "Duplicate WBS item name.");
+                                      "Duplicate name.");
 
                 childNames.add(childName);
             }

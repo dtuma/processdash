@@ -14,7 +14,7 @@ public class WorkflowModel extends DataTableModel {
 
 
     public WorkflowModel(WBSModel workflows, TeamProcess teamProcess) {
-        super(workflows, null, teamProcess, null, null);
+        super(workflows, null, teamProcess, null, null, null);
     }
 
     /** override and create only the columns we're interested in.
@@ -22,6 +22,7 @@ public class WorkflowModel extends DataTableModel {
     @Override
     protected void buildDataColumns(TeamMemberList teamList,
                                     TeamProcess teamProcess,
+                                    MilestonesWBSModel milestones,
                                     TaskDependencySource dependencySource,
                                     String currentUser)
     {

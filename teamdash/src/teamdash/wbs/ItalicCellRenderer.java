@@ -4,7 +4,10 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Font;
 
+import javax.swing.BorderFactory;
+import javax.swing.JComponent;
 import javax.swing.JTable;
+import javax.swing.border.Border;
 
 /** Special cell renderer for strings that can italicize displayed values.
  * 
@@ -17,9 +20,11 @@ public class ItalicCellRenderer extends DataTableCellRenderer {
 
     private Font italic = null;
     private String messageToItalicize;
+    private Border inheritedBorder;
 
     public ItalicCellRenderer(String messageToItalicize) {
         this.messageToItalicize = messageToItalicize;
+        inheritedBorder = BorderFactory.createEmptyBorder(0, 10, 0, 0);
     }
 
 
@@ -39,7 +44,10 @@ public class ItalicCellRenderer extends DataTableCellRenderer {
                 err.error.equals(messageToItalicize)) {
                 result.setForeground(Color.black);
                 result.setFont(getItalicFont(result));
+                ((JComponent) result).setBorder(inheritedBorder);
             }
+        } else {
+            ((JComponent) result).setBorder(null);
         }
 
         return result;

@@ -16,6 +16,7 @@ import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableColumnModel;
 
 import teamdash.team.TeamMemberList;
+import teamdash.wbs.columns.MilestoneColumn;
 import teamdash.wbs.columns.NotesColumn;
 import teamdash.wbs.columns.TaskLabelColumn;
 import teamdash.wbs.columns.NullDataColumn;
@@ -57,6 +58,7 @@ public class DataTableModel extends AbstractTableModel {
 
     public DataTableModel(WBSModel wbsModel, TeamMemberList teamList,
                           TeamProcess teamProcess,
+                          MilestonesWBSModel milestones,
                           TaskDependencySource dependencySource,
                           String currentUser)
     {
@@ -70,7 +72,8 @@ public class DataTableModel extends AbstractTableModel {
         recalcJanitorTimer.setRepeats(false);
         recalcJanitorTimer.setInitialDelay(3000);
 
-        buildDataColumns(teamList, teamProcess, dependencySource, currentUser);
+        buildDataColumns(teamList, teamProcess, milestones, dependencySource,
+            currentUser);
         initializeColumnDependencies();
     }
 
@@ -266,6 +269,7 @@ public class DataTableModel extends AbstractTableModel {
      * @param currentUser */
     protected void buildDataColumns(TeamMemberList teamList,
                                     TeamProcess teamProcess,
+                                    MilestonesWBSModel milestones,
                                     TaskDependencySource dependencySource,
                                     String currentUser)
     {
@@ -277,6 +281,7 @@ public class DataTableModel extends AbstractTableModel {
         addDataColumn(new TeamTimeColumn(this));
         addDataColumn(new TeamActualTimeColumn(this, teamList));
         addDataColumn(new TaskLabelColumn(this));
+        addDataColumn(new MilestoneColumn(this, milestones));
         addDataColumn(new TaskDependencyColumn(this, dependencySource,
                 teamProcess.getIconMap()));
         addDataColumn(new NotesColumn(currentUser));

@@ -64,6 +64,10 @@ public class IconFactory {
         return new PSPTaskIcon(fill);
     }
 
+    public static Icon getMilestoneIcon() {
+        return new MilestoneIcon(DEFAULT_COLOR);
+    }
+
 
 
     // Icons used in toolbars and menus
@@ -544,6 +548,32 @@ public class IconFactory {
             drawHighlight(g, 2,  0, -1); // bottom shadow
             drawHighlight(g, 3, -1,  0); // right shadow
         }
+    }
+
+    private static class MilestoneIcon extends PolygonIcon {
+
+        Color highlight, shadow;
+
+        public MilestoneIcon(Color fill) {
+            this.xPoints = new int[] { 7, 14, 7, 0, 7 };
+            this.yPoints = new int[] { 1, 8, 15, 8, 1 };
+            this.fillColor = fill;
+            this.highlight = mixColors(fill, Color.white, 0.3f);
+            this.shadow    = mixColors(fill, Color.black, 0.7f);
+        }
+
+        protected void doHighlights(Component c, Graphics g) {
+            g.setColor(Color.white);
+            g.drawLine(1, 8, 7, 2); // top left highlight
+
+            g.setColor(highlight);
+            g.drawLine(8, 3, 12, 7); // top right highlight
+            g.drawLine(2, 9, 6, 14); // bottom left highlight
+
+            g.setColor(shadow);
+            g.drawLine(7, 14, 13, 8); // bottom right shadow
+        }
+
     }
 
 
