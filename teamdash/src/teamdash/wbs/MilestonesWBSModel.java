@@ -25,7 +25,8 @@ public class MilestonesWBSModel extends WBSModel {
     }
 
     public MilestonesWBSModel(String rootNodeName) {
-        super(rootNodeName);
+        super(rootNodeName, true);
+        getNodeForRow(1).setName("");
     }
 
     public boolean isNodeTypeEditable(WBSNode node) {

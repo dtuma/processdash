@@ -471,9 +471,13 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
         public void loadCommitDates() {
             maxDate = 0;
             balanceThroughMilestoneName = null;
+            boolean hasCommitDates = false;
             List<CommitDate> newDates = new ArrayList<CommitDate>();
             for (WBSNode node : getMilestones()) {
-                newDates.add(new CommitDate(node));
+                CommitDate commitDate = new CommitDate(node);
+                if (commitDate.isEmpty() == false)
+                    hasCommitDates = true;
+                newDates.add(commitDate);
                 if (node.getUniqueID() == balanceThroughMilestone) {
                     balanceThroughMilestoneName = node.getName();
                     if (balanceThroughMilestoneName != null
@@ -485,7 +489,7 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
             if (balanceThroughMilestoneName == null)
                 balanceThroughMilestone = -1;
 
-            int height = (newDates.isEmpty() ? 0 : GUTTER_HEIGHT);
+            int height = (hasCommitDates ? GUTTER_HEIGHT : 0);
             setMinimumSize(new Dimension(0, height));
             setPreferredSize(new Dimension(10, height));
             setMaximumSize(new Dimension(Integer.MAX_VALUE, height));
@@ -570,6 +574,10 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
                 if (name != null && date != null)
                     this.tooltip = name + " - Commit Date: "
                             + dateFormat.format(date);
+            }
+            public boolean isEmpty() {
+                return name == null || name.trim().length() == 0
+                        || date == null;
             }
             private void recalcXPos(int width, int leftPad) {
                 this.xPos = calcXPos(width, leftPad);
