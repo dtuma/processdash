@@ -82,7 +82,17 @@ public class MilestoneColumn extends AbstractDataColumn implements
         return null;
     }
 
-    private Integer getIntegerAttr(WBSNode node, String attrName) {
+    public static int getMilestoneID(WBSNode node) {
+        Integer nodeValue = getIntegerAttr(node, EXPLICIT_VALUE_ATTR);
+        if (nodeValue != null)
+            return nodeValue.intValue();
+        Integer inheritedValue = getIntegerAttr(node, INHERITED_VALUE_ATTR);
+        if (inheritedValue != null)
+            return inheritedValue.intValue();
+        return -1;
+    }
+
+    private static Integer getIntegerAttr(WBSNode node, String attrName) {
         Object attrValue = node.getAttribute(attrName);
         if (attrValue instanceof Integer)
             return (Integer) attrValue;

@@ -3,7 +3,9 @@ package teamdash.wbs.columns;
 import java.beans.EventHandler;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.swing.event.TableModelListener;
 
@@ -23,6 +25,12 @@ public class TeamActualTimeColumn extends AbstractNumericColumn implements
 
     public static String getRemainingTimeAttr(TeamMember m) {
         return getRemainingTimeAttr(m.getInitials());
+    }
+    public static String getMilestonePlanTimeAttr(TeamMember m) {
+        return getMilestonePlanTimeAttr(m.getInitials());
+    }
+    public static String getMilestoneRemainingTimeAttr(TeamMember m) {
+        return getMilestoneRemainingTimeAttr(m.getInitials());
     }
 
     private static final String ACT_TIME_ATTR_NAME = "Actual_Team_Time";
@@ -49,7 +57,8 @@ public class TeamActualTimeColumn extends AbstractNumericColumn implements
         this.teamMembers = teamMembers;
         this.columnID = COLUMN_ID;
         this.columnName = "Actual Time";
-        this.dependentColumns = new String[] { TeamTimeColumn.COLUMN_ID };
+        this.dependentColumns = new String[] { TeamTimeColumn.COLUMN_ID,
+                MilestoneColumn.COLUMN_ID };
 
         dataModel.addDataColumn(new PercentSpentColumn());
         dataModel.addDataColumn(new PercentCompleteColumn());
@@ -104,16 +113,13 @@ public class TeamActualTimeColumn extends AbstractNumericColumn implements
     }
 
     public boolean recalculate() {
-        RemainingTimeCalculator[] remainingTime =
-            createRemainingTimeCalculators();
+        TimeCalculator[] timeCalculators = createTimeCalculators();
 
-        recalculate(wbsModel.getRoot(), new double[teamSize], remainingTime,
+        recalculate(wbsModel.getRoot(), new double[teamSize], timeCalculators,
             new double[1], new long[1]);
 
         for (int i = 0; i < teamSize; i++)
-            wbsModel.getRoot().setNumericAttribute(
-                getRemainingTimeAttr(initials[i]),
-                remainingTime[i].getTotalRemainingTime());
+            timeCalculators[i].saveCalculatedValues(initials[i]);
 
         return true;
     }
@@ -138,7 +144,7 @@ public class TeamActualTimeColumn extends AbstractNumericColumn implements
      *     and return the result in the single field of this array.
      */
     private void recalculate(WBSNode node, double[] actualTime,
-            RemainingTimeCalculator[] remainingTime, double[] earnedValue,
+            TimeCalculator[] timeCalc, double[] earnedValue,
             long[] completionDate) {
         // get the list of children underneath this node
         WBSNode[] children = wbsModel.getChildren(node);
@@ -151,6 +157,7 @@ public class TeamActualTimeColumn extends AbstractNumericColumn implements
         earnedValue[0] = 0;
         completionDate[0] = COMPL_DATE_NA;
         if (isLeaf) {
+            int milestone = MilestoneColumn.getMilestoneID(node);
             // accumulate EV and completion date information for this leaf
             for (int i = 0; i < teamSize; i++) {
                 // retrieve the planned time for one team member.
@@ -166,10 +173,13 @@ public class TeamActualTimeColumn extends AbstractNumericColumn implements
                         memberCompletionDate);
                     // if this individual has completed this task, then the
                     // team has earned the value associated with the task.
-                    if (memberCompletionDate != null)
+                    if (memberCompletionDate != null) {
                         earnedValue[0] += memberPlanTime;
-                    else
-                        remainingTime[i].addTask(memberPlanTime, actualTime[i]);
+                        timeCalc[i].addCompletedTask(memberPlanTime,
+                            actualTime[i], milestone);
+                    } else
+                        timeCalc[i].addRemainingTask(memberPlanTime,
+                            actualTime[i], milestone);
                 }
             }
 
@@ -179,7 +189,7 @@ public class TeamActualTimeColumn extends AbstractNumericColumn implements
             long[] childCompletionDate = new long[1];
             for (int i = 0; i < children.length; i++) {
                 // ask our child to compute its time data
-                recalculate(children[i], childTime, remainingTime,
+                recalculate(children[i], childTime, timeCalc,
                     childEarnedValue, childCompletionDate);
                 // now accumulate time from that child into our total
                 for (int j = 0; j < teamSize; j++)
@@ -236,36 +246,71 @@ public class TeamActualTimeColumn extends AbstractNumericColumn implements
             return Math.max(a, b.getTime());
     }
 
-    private RemainingTimeCalculator[] createRemainingTimeCalculators() {
-        RemainingTimeCalculator[] result = new RemainingTimeCalculator[teamSize];
+    private TimeCalculator[] createTimeCalculators() {
+        TimeCalculator[] result = new TimeCalculator[teamSize];
         for (int i = 0; i < result.length; i++)
-            result[i] = new RemainingTimeCalculator();
+            result[i] = new TimeCalculator();
         return result;
     }
 
-    private class RemainingTimeCalculator {
+    private class TimeCalculator {
 
+        private List<TaskData> completedTasks;
         private List<TaskData> remainingTasks;
         private double underspentTime;
         private double overspentTime;
 
-        public RemainingTimeCalculator() {
+        public TimeCalculator() {
+            completedTasks = new ArrayList<TaskData>();
             remainingTasks = new ArrayList<TaskData>();
             underspentTime = overspentTime = 0;
         }
 
-        public void addTask(double planTime, double actualTime) {
-            remainingTasks.add(new TaskData(planTime, actualTime));
+        public void addCompletedTask(double planTime, double actualTime, int milestone) {
+            completedTasks.add(new TaskData(planTime, actualTime, milestone));
         }
 
-        public double getTotalRemainingTime() {
+        public void addRemainingTask(double planTime, double actualTime, int milestone) {
+            remainingTasks.add(new TaskData(planTime, actualTime, milestone));
+        }
+
+        public void saveCalculatedValues(String initials) {
             double adjustmentRatio = - overspentTime / underspentTime;
             adjustmentRatio = Math.min(adjustmentRatio, MAX_ADJUSTMENT_RATIO);
 
             double cumRemainingTime = 0;
-            for (TaskData task : remainingTasks)
-                cumRemainingTime += task.getTimeRemaining(adjustmentRatio);
-            return cumRemainingTime;
+            Map<Integer, Double> milestonePlanTime = new HashMap<Integer, Double>();
+            Map<Integer, Double> milestoneRemainingTime = new HashMap<Integer, Double>();
+
+            for (TaskData task : completedTasks) {
+                addMilestoneData(milestonePlanTime, task.milestone,
+                    task.planTime);
+            }
+
+            for (TaskData task : remainingTasks) {
+                task.setDeltaRatio(adjustmentRatio);
+                addMilestoneData(milestonePlanTime, task.milestone,
+                    task.planTime);
+                addMilestoneData(milestoneRemainingTime, task.milestone,
+                    task.timeRemaining);
+                cumRemainingTime += task.timeRemaining;
+            }
+
+            wbsModel.getRoot().setNumericAttribute(
+                getRemainingTimeAttr(initials), cumRemainingTime);
+            wbsModel.getRoot().setAttribute(
+                getMilestonePlanTimeAttr(initials), milestonePlanTime);
+            wbsModel.getRoot().setAttribute(
+                getMilestoneRemainingTimeAttr(initials), milestoneRemainingTime);
+        }
+
+        private void addMilestoneData(Map<Integer, Double> data, int milestone,
+                double value) {
+            Double current = data.get(milestone);
+            if (current == null)
+                data.put(milestone, value);
+            else
+                data.put(milestone, current + value);
         }
 
         private class TaskData {
@@ -274,16 +319,20 @@ public class TeamActualTimeColumn extends AbstractNumericColumn implements
             private double planTime;
             /** The actual time logged against this task to date */
             private double actualTime;
+            /** The milestone this task is assigned to */
+            private int milestone;
 
             /** The projected cost for this task, calculated by assuming that
              * the task is "almost done" */
             double almostDoneCost;
             double delta;
+            double timeRemaining;
 
-            public TaskData(double planTime, double actualTime) {
+            public TaskData(double planTime, double actualTime, int milestone) {
 
                 this.planTime = planTime;
                 this.actualTime = actualTime;
+                this.milestone = milestone;
                 almostDoneCost = actualTime / ALMOST_DONE_PERCENTAGE;
                 delta = planTime - almostDoneCost;
                 if (delta > 0)
@@ -292,11 +341,11 @@ public class TeamActualTimeColumn extends AbstractNumericColumn implements
                     overspentTime += delta;
             }
 
-            public double getTimeRemaining(double deltaRatio) {
+            public void setDeltaRatio(double deltaRatio) {
                 if (delta > 0)
-                    return planTime - (delta * deltaRatio) - actualTime;
+                    timeRemaining = planTime - (delta * deltaRatio) - actualTime;
                 else
-                    return almostDoneCost - actualTime;
+                    timeRemaining = almostDoneCost - actualTime;
             }
 
         }
@@ -309,5 +358,11 @@ public class TeamActualTimeColumn extends AbstractNumericColumn implements
 
     private static String getRemainingTimeAttr(String initials) {
         return initials + "-Remaining_Time";
+    }
+    private static String getMilestonePlanTimeAttr(String initials) {
+        return initials + "-Milestone_Plan_Time";
+    }
+    private static String getMilestoneRemainingTimeAttr(String initials) {
+        return initials + "-Milestone_Remaining_Time";
     }
 }

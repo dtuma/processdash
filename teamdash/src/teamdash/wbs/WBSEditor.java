@@ -3,6 +3,7 @@ package teamdash.wbs;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.io.BufferedInputStream;
@@ -36,6 +37,7 @@ import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JRadioButtonMenuItem;
 import javax.swing.SwingUtilities;
+import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -479,6 +481,8 @@ public class WBSEditor implements WindowListener, SaveListener,
         JMenu result = new JMenu("Milestones");
         result.setMnemonic('M');
         result.add(new MilestonesEditorAction());
+        result.addSeparator();
+        new BalanceMilestoneMenuBuilder(result, milestones);
         return result;
     }
     private JMenu buildMasterMenu(Action[] masterActions) {
@@ -1036,17 +1040,6 @@ public class WBSEditor implements WindowListener, SaveListener,
         }
     }
 
-    private class MilestonesEditorAction extends AbstractAction {
-        public MilestonesEditorAction() {
-            super("Edit Milestones");
-            putValue(MNEMONIC_KEY, new Integer('E'));
-        }
-        public void actionPerformed(ActionEvent e) {
-            showMilestonesEditor();
-        }
-    }
-
-
     private class WorkflowMenuBuilder implements TableModelListener {
         private JMenu menu;
         private int initialMenuLength;
@@ -1099,6 +1092,83 @@ public class WBSEditor implements WindowListener, SaveListener,
     }
 
 
+    private class MilestonesEditorAction extends AbstractAction {
+        public MilestonesEditorAction() {
+            super("Edit Milestones");
+            putValue(MNEMONIC_KEY, new Integer('E'));
+        }
+        public void actionPerformed(ActionEvent e) {
+            showMilestonesEditor();
+        }
+    }
+
+    private class BalanceMilestoneMenuBuilder implements TableModelListener, ActionListener {
+        private JMenu menu;
+        private int initialMenuLength;
+        private WBSModel milestonesWbs;
+        private int selectedMilestoneID;
+        private ButtonGroup group;
+        private Border indentBorder;
+
+        public BalanceMilestoneMenuBuilder(JMenu menu, WBSModel milestones) {
+            this.menu = menu;
+            menu.add(new JMenuItem("Balance Work Through:"));
+            this.initialMenuLength = menu.getItemCount();
+            this.milestonesWbs = milestones;
+            this.selectedMilestoneID = -1;
+            rebuildMenu();
+            milestones.addTableModelListener(this);
+
+        }
+
+        private void rebuildMenu() {
+            WBSNode[] milestones =
+                milestonesWbs.getChildren(milestonesWbs.getRoot());
+
+            synchronized (menu) {
+                while (menu.getItemCount() > initialMenuLength)
+                    menu.remove(initialMenuLength);
+
+                group = new ButtonGroup();
+                addMenuItem("<Entire WBS>", -1);
+                for (WBSNode milestone : milestones) {
+                    String name = milestone.getName();
+                    int uniqueID = milestone.getUniqueID();
+                    if (name != null && name.trim().length() > 0)
+                        addMenuItem(name, uniqueID);
+                }
+            }
+        }
+
+        private void addMenuItem(String name, int uniqueID) {
+            JMenuItem menuItem = new JRadioButtonMenuItem(name);
+            menuItem.setActionCommand(Integer.toString(uniqueID));
+            group.add(menuItem);
+            if (uniqueID == selectedMilestoneID || uniqueID == -1)
+                menuItem.setSelected(true);
+
+            if (indentBorder == null)
+                indentBorder = BorderFactory.createCompoundBorder(
+                    menuItem.getBorder(), new EmptyBorder(0, 15, 0, 0));
+            menuItem.setBorder(indentBorder);
+
+            menuItem.addActionListener(this);
+            menu.add(menuItem);
+        }
+
+
+        public void tableChanged(TableModelEvent e) {
+            rebuildMenu();
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            try {
+                String newSelection = e.getActionCommand();
+                selectedMilestoneID = Integer.parseInt(newSelection);
+                teamTimePanel.setBalanceThroughMilestone(selectedMilestoneID);
+            } catch (Exception ex) {}
+        }
+    }
 
 
 

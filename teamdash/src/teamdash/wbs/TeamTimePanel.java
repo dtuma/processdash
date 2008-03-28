@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import javax.swing.BorderFactory;
 import javax.swing.JLabel;
@@ -84,6 +85,11 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
     private boolean showRemainingWork;
     /** Should the balanced bar include unassigned work? */
     private boolean includeUnassigned;
+    /** if not -1, the ID of a milestone to balance work through */
+    private int balanceThroughMilestone;
+    /** The name of the milestone we're balancing through, or null if we're
+     * balancing the entire schedule */
+    private String balanceThroughMilestoneName;
     /** The position of the balanced bar, in pixels from the left edge of the
      * area where colored bars are drawn */
     private int balancedBarPos;
@@ -107,6 +113,7 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
         this.showBalancedBar = true;
         this.showRemainingWork = false;
         this.includeUnassigned = true;
+        this.balanceThroughMilestone = -1;
         this.unassignedTimeColumn = dataModel
                 .findColumn(UnassignedTimeColumn.COLUMN_ID);
 
@@ -153,6 +160,17 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
         }
     }
 
+    public int getBalanceThroughMilestone() {
+        return balanceThroughMilestone;
+    }
+
+    public void setBalanceThroughMilestone(int milestoneID) {
+        if (this.balanceThroughMilestone != milestoneID) {
+            this.balanceThroughMilestone = milestoneID;
+            commitDatePane.loadCommitDates();
+        }
+    }
+
     private void rebuildPanelContents() {
         removeAll();  // remove all components from this container.
         teamMemberBars.clear();
@@ -182,7 +200,7 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
         c = new GridBagConstraints();
         c.gridx = 1; c.gridy = 0;
         c.fill = GridBagConstraints.BOTH;
-        c.insets.left = c.insets.right = 5;
+        c.insets.left = c.insets.right = 0;
         c.insets.top = c.insets.bottom = 0;
         c.weightx = c.weighty = 1;
         layout.setConstraints(commitDatePane, c);
@@ -204,7 +222,7 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
         GridBagConstraints bc = new GridBagConstraints();
         bc.gridx = 1;
         bc.fill = GridBagConstraints.BOTH;
-        bc.insets.left = bc.insets.right = 5;
+        bc.insets.left = bc.insets.right = COLORED_BAR_SIDE_INSET;
         bc.insets.top = bc.insets.bottom = 0;
         bc.weightx = bc.weighty = 1;
         int row = 1;
@@ -263,7 +281,7 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
 
         // adjust the size of the commit date pane to be as tall as this panel.
         Rectangle r = commitDatePane.getBounds();
-        commitDatePane.setBounds(r.x, r.y, r.width, getHeight());
+        commitDatePane.changeBounds(r.x, r.y, r.width, getHeight());
     }
 
 
@@ -315,7 +333,34 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
      * wants it to be included in the calculation; otherwise return 0.
      */
     protected double getUnassignedTime() {
-        if (includeUnassigned == false || unassignedTimeColumn == -1)
+        if (includeUnassigned == false)
+            return 0;
+        else if (balanceThroughMilestone > 0)
+            return getUnassignedTimeThroughMilestone();
+        else
+            return getTotalUnassignedTime();
+    }
+
+    protected double getUnassignedTimeThroughMilestone() {
+        WBSNode rootNode = dataModel.getWBSModel().getRoot();
+        Map<Integer, Double> unassignedMilestoneTime =
+                (Map<Integer, Double>) rootNode.getAttribute(
+                    UnassignedTimeColumn.MILESTONE_UNASSIGNED_TIME_ATTR);
+
+        double result = 0;
+        for (WBSNode milestone : getMilestones()) {
+            int id = milestone.getUniqueID();
+            Double time = unassignedMilestoneTime.get(id);
+            if (time != null)
+                result += time;
+            if (id == balanceThroughMilestone)
+                break;
+        }
+        return result;
+    }
+
+    protected double getTotalUnassignedTime() {
+        if (unassignedTimeColumn == -1)
             return 0;
         NumericDataValue unassignedTime =
             (NumericDataValue) dataModel.getValueAt(0, unassignedTimeColumn);
@@ -328,6 +373,8 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
     /** Recalculate the duration of a balanced team schedule.
      */
     protected void recalcTeam(double totalHours) {
+        maxScheduleLength = Math.max(maxScheduleLength,
+            commitDatePane.maxDate - leftTimeBoundary);
         // calculate the optimal finish time
         Date balancedDate = teamList.getDateForEffort(totalHours);
         if (balancedDate == null) {
@@ -335,8 +382,12 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
         } else {
             balancedLength = balancedDate.getTime() - leftTimeBoundary;
             maxScheduleLength = Math.max(maxScheduleLength, balancedLength);
-            balancedBar.setToolTipText("Balanced Team Duration - " +
-                dateFormat.format(balancedDate));
+            String message = "Balanced Team " + getDateQualifier() + ": " +
+                dateFormat.format(balancedDate);
+            if (balanceThroughMilestoneName != null) {
+                message = balanceThroughMilestoneName + " - Optimal " + message;
+            }
+            balancedBar.setToolTipText(message);
         }
     }
 
@@ -363,9 +414,20 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
         recalcTimer.restart();
     }
 
+    private WBSNode[] getMilestones() {
+        WBSModel milestonesWBS = milestonesModel.getWBSModel();
+        return milestonesWBS.getDescendants(milestonesWBS.getRoot());
+    }
+
+    private String getDateQualifier() {
+        return (showRemainingWork ? "Replan Date" : "Plan Date");
+    }
+
+
+
 
     /**
-     * 
+     * This panel displays arrows and dashed lines for milestone commit dates
      */
     private class CommitDatePane extends JPanel {
 
@@ -374,11 +436,9 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
         private static final int ARROW_HEIGHT = 8;
 
         private List<CommitDate> commitDates;
+        private long maxDate;
 
         private CommitDatePane() {
-            setMinimumSize(new Dimension(0, GUTTER_HEIGHT));
-            setPreferredSize(new Dimension(10, GUTTER_HEIGHT));
-            setMaximumSize(new Dimension(Integer.MAX_VALUE, GUTTER_HEIGHT));
             setOpaque(false);
             ToolTipManager.sharedInstance().registerComponent(this);
 
@@ -389,28 +449,49 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
             loadCommitDates();
         }
 
+        public void changeBounds(int x, int y, int width, int height) {
+            setBounds(x, y, width, height);
 
+            int w = width - 2 * COLORED_BAR_SIDE_INSET;
+            int l = COLORED_BAR_SIDE_INSET;
+            if (teamMemberBars != null && !teamMemberBars.isEmpty()) {
+                TeamMemberBar bar = (TeamMemberBar) teamMemberBars.get(0);
+                Insets i = bar.getInsets();
+                if (i != null) {
+                    w = w - i.left - i.right;
+                    l = l + i.left;
+                }
+            }
 
-        @Override
-        public void setBounds(int x, int y, int width, int height) {
-            super.setBounds(x, y, width, height);
             for (CommitDate cd : commitDates) {
-                cd.recalcXPos();
+                cd.recalcXPos(w, l);
             }
         }
 
-
-
         public void loadCommitDates() {
+            maxDate = 0;
+            balanceThroughMilestoneName = null;
             List<CommitDate> newDates = new ArrayList<CommitDate>();
-            WBSModel milestonesWBS = milestonesModel.getWBSModel();
-            WBSNode[] milestones = milestonesWBS
-                    .getDescendants(milestonesWBS.getRoot());
-            for (WBSNode node : milestones) {
+            for (WBSNode node : getMilestones()) {
                 newDates.add(new CommitDate(node));
+                if (node.getUniqueID() == balanceThroughMilestone) {
+                    balanceThroughMilestoneName = node.getName();
+                    if (balanceThroughMilestoneName != null
+                            && balanceThroughMilestoneName.trim().length() == 0)
+                        balanceThroughMilestoneName = null;
+                    break;
+                }
             }
+            if (balanceThroughMilestoneName == null)
+                balanceThroughMilestone = -1;
+
+            int height = (newDates.isEmpty() ? 0 : GUTTER_HEIGHT);
+            setMinimumSize(new Dimension(0, height));
+            setPreferredSize(new Dimension(10, height));
+            setMaximumSize(new Dimension(Integer.MAX_VALUE, height));
+
             commitDates = newDates;
-            repaint();
+            recalcTimer.restart();
         }
 
         @Override
@@ -474,8 +555,6 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
             return tooltip;
         }
 
-
-
         private class CommitDate {
             private String name;
             private Date date;
@@ -485,26 +564,26 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
             private CommitDate(WBSNode milestone) {
                 this.name = milestone.getName();
                 this.date = MilestoneCommitDateColumn.getCommitDate(milestone);
+                if (this.date != null)
+                    maxDate = Math.max(maxDate, this.date.getTime());
                 this.color = MilestoneColorColumn.getColor(milestone);
                 if (name != null && date != null)
                     this.tooltip = name + " - Commit Date: "
                             + dateFormat.format(date);
-                recalcXPos();
             }
-            private void recalcXPos() {
-                this.xPos = calcXPos();
+            private void recalcXPos(int width, int leftPad) {
+                this.xPos = calcXPos(width, leftPad);
             }
-            private int calcXPos() {
+            private int calcXPos(int width, int leftPad) {
                 if (date == null || name == null || name.trim().length() == 0)
                     return -1;
                 long xTime = date.getTime() - leftTimeBoundary;
                 if (xTime < 0 || xTime > maxScheduleLength)
                     return -1;
-                else
-                    return (int) (getWidth() * xTime / maxScheduleLength);
+
+                return (int) (width * xTime / maxScheduleLength) + leftPad;
             }
         }
-
 
     }
     private static final Stroke COMMIT_DATE_LINE_STYLE = new BasicStroke(1,
@@ -556,6 +635,8 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
         /** The pixel position of the start of the bar */
         private int startPos;
 
+        private List<MilestoneMark> milestoneMarks;
+
 
         public TeamMemberBar(TeamMember teamMember) {
             this.teamMember = teamMember;
@@ -598,20 +679,49 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
             else
                 endTime = endDate.getTime() - leftTimeBoundary;
 
-            totalHours = (showRemainingWork
-                    ? getEffectiveRemainingHours() : getTotalAssignedHours());
-            Date finishDate = teamMember.getSchedule().getDateForEffort(totalHours);
+            milestoneMarks = new ArrayList<MilestoneMark>();
+            Map<Integer, Double> milestoneEffort = getMilestoneEffort();
+            double cumMilestoneEffort =
+                    (showRemainingWork ? effectivePastHours : 0);
+            for (WBSNode milestone : getMilestones()) {
+                MilestoneMark mark = new MilestoneMark(milestone,
+                        milestoneEffort, cumMilestoneEffort);
+                if (mark.effort > 0) {
+                    cumMilestoneEffort = mark.cumEffort;
+                    if (mark.markTime > 0)
+                        milestoneMarks.add(mark);
+                }
+                if (milestone.getUniqueID() == balanceThroughMilestone)
+                    break;
+            }
+
+            String qualifier = getDateQualifier();
+            if (balanceThroughMilestone > 0) {
+                totalHours = cumMilestoneEffort;
+                qualifier = balanceThroughMilestoneName + " - Optimal "
+                        + qualifier;
+            } else if (showRemainingWork) {
+                totalHours = getEffectiveRemainingHours();
+            } else {
+                totalHours = getTotalAssignedHours();
+            }
+            Date finishDate = teamMember.getSchedule().getDateForEffort(
+                totalHours);
 
             if (finishDate == null) {
                 finishTime = -1;
                 String hoursString = NumericDataValue.format(totalHours + 0.049);
-                setLabel(hoursString + " total hours");
+                String message = hoursString + " total hours";
+                String postQual = "";
+                if (balanceThroughMilestoneName != null)
+                    postQual = " through " + balanceThroughMilestoneName;
+                setLabel("", message, postQual);
             } else {
                 finishTime = finishDate.getTime() - leftTimeBoundary;
                 String dateString = dateFormat.format(finishDate);
                 if (endTime > 0 && finishTime > endTime)
                     dateString = dateString + " - OVERTASKED";
-                setLabel(dateString);
+                setLabel(qualifier + ": ", dateString, "");
             }
         }
 
@@ -623,17 +733,23 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
             return finishTime;
         }
 
-        private void setLabel(String message) {
+        private void setLabel(String preQual, String message, String postQual) {
             this.label = message;
-            setToolTipText(teamMember.getName() + " - " + message);
+            setToolTipText(teamMember.getName() + " - " + preQual + message
+                    + postQual);
         }
 
         @Override
         public String getToolTipText(MouseEvent event) {
             if (Math.abs(event.getX() - startPos) < 5)
                 return startTooltip;
-            else
-                return super.getToolTipText(event);
+
+            for (MilestoneMark mark : milestoneMarks) {
+                if (event.getX() < mark.rightEdge)
+                    return mark.tooltip;
+            }
+
+            return super.getToolTipText(event);
         }
 
         private double getEffectiveRemainingHours() {
@@ -659,6 +775,18 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
                 return totalTime.value;
             else
                 return 0;
+        }
+
+        private Map<Integer, Double> getMilestoneEffort() {
+            String attrName;
+            if (showRemainingWork)
+                attrName = TeamActualTimeColumn
+                        .getMilestoneRemainingTimeAttr(teamMember);
+            else
+                attrName = TeamActualTimeColumn
+                        .getMilestonePlanTimeAttr(teamMember);
+            return (Map<Integer, Double>) dataModel.getWBSModel().getRoot()
+                    .getAttribute(attrName);
         }
 
         /** Look up the time column for this team member. */
@@ -701,6 +829,12 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
                     int overageWidth = barRight - overageLeft;
                     g.setColor(overtaskedColor);
                     g.fillRect(overageLeft, insets.top, overageWidth, barHeight);
+                }
+
+                // paint milestone marks from right to left, so earlier marks
+                // cover later overlapping marks.
+                for (int i = milestoneMarks.size();  i-- > 0; ) {
+                    milestoneMarks.get(i).paint(g, totalWidth, bounds.height);
                 }
 
                 if (label != null && label.length() > 0) {
@@ -798,13 +932,74 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
             return (leftEdge < balancedBarPos && balancedBarPos < rightEdge);
         }
 
+        private class MilestoneMark {
+            double effort;
+            double cumEffort;
+            long markTime;
+            Color color;
+            String tooltip;
+            int xPos, rightEdge, leftEdge;
+
+            public MilestoneMark(WBSNode milestone,
+                    Map<Integer, Double> milestoneEffort,
+                    double startingEffort) {
+                if (milestone == null || milestoneEffort == null)
+                    return;
+
+                int milestoneID = milestone.getUniqueID();
+                Double effortVal = milestoneEffort.get(milestoneID);
+                if (effortVal == null) {
+                    effort = 0;
+                    return;
+                }
+
+                effort = effortVal.doubleValue();
+                cumEffort = startingEffort + effort;
+                Date when = teamMember.getSchedule().getDateForEffort(cumEffort);
+                if (when == null) {
+                    markTime = -1;
+                    return;
+                }
+                markTime = when.getTime() - leftTimeBoundary;
+
+                color = MilestoneColorColumn.getColor(milestone);
+                tooltip = teamMember.getName() + " - " + milestone.getName()
+                        + " - Optimal " + getDateQualifier() + ": "
+                        + dateFormat.format(when);
+            }
+
+            public void paint(Graphics g, int totalWidth, int height) {
+                if (markTime < 0)
+                    return;
+
+                double markPos = markTime / maxScheduleLength;
+                xPos = (int) (markPos * totalWidth);
+                int hh = (height + 1) / 2;
+                for (int i = 0;  i < hh;  i++) {
+                    int d = (i + 1) / 2;
+                    int l = height - i - 1;
+                    leftEdge = xPos-d;
+                    rightEdge = xPos+d;
+                    g.setColor(Color.black);
+                    g.drawLine(leftEdge, i, rightEdge, i);
+                    g.drawLine(leftEdge, l, rightEdge, l);
+                    if (d > 0) {
+                        g.setColor(color);
+                        g.drawLine(leftEdge+1, i, rightEdge-1, i);
+                        g.drawLine(leftEdge+1, l, rightEdge-1, l);
+                    }
+                }
+
+            }
+        }
     }
 
     private DateFormat dateFormat = DateFormat.getDateInstance();
 
+    private static final int COLORED_BAR_SIDE_INSET = 5;
     private static final int BALANCED_BAR_WIDTH = 8;
     private static final int BBHW = BALANCED_BAR_WIDTH / 2;
-    private static final int PAD = 3;
+    private static final int PAD = 6;
     private static final Date A_LONG_TIME_AGO = new Date(0);
 
 }
