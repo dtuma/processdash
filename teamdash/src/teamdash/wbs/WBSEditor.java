@@ -131,6 +131,10 @@ public class WBSEditor implements WindowListener, SaveListener,
 
         setMode(teamProject);
 
+        if (isMode(MODE_HAS_MASTER) && !readOnly) {
+            MasterWBSUtil.mergeFromMaster(teamProject);
+        }
+
         WBSModel model = teamProject.getWBS();
 
         // set expanded nodes on model based on saved user preferences
@@ -426,9 +430,9 @@ public class WBSEditor implements WindowListener, SaveListener,
             result.add(buildWorkflowMenu
                 (workflows, tabPanel.getInsertWorkflowAction(workflows)));
         result.add(buildMilestonesMenu(milestones));
-        if (isMode(MODE_HAS_MASTER))
-            result.add(buildMasterMenu(tabPanel.getMasterActions(
-                    teamProject.getMasterProjectDirectory())));
+        if (isMode(MODE_HAS_MASTER)
+                && "true".equals(teamProject.getUserSetting("showMasterMenu")))
+            result.add(buildMasterMenu(tabPanel.getMasterActions(teamProject)));
         if (!isMode(MODE_MASTER))
             result.add(buildTeamMenu());
 

@@ -13,7 +13,6 @@ import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EventObject;
@@ -38,8 +37,6 @@ import javax.swing.ListSelectionModel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
-import net.sourceforge.processdash.tool.bridge.client.ImportDirectory;
-import net.sourceforge.processdash.tool.bridge.client.ImportDirectoryFactory;
 import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
 
 
@@ -183,8 +180,8 @@ public class WBSJTable extends JTable {
         return INSERT_WORKFLOW_ACTION;
     }
 
-    public Action[] getMasterActions(File dir) {
-        return new Action[] { new MergeMasterWBSAction(dir) };
+    public Action[] getMasterActions(TeamProject proj) {
+        return new Action[] { new MergeMasterWBSAction(proj) };
     }
 
 
@@ -915,11 +912,11 @@ public class WBSJTable extends JTable {
     private class MergeMasterWBSAction extends AbstractAction implements
             EnablementCalculation {
 
-        private File dir;
+        private TeamProject project;
 
-        public MergeMasterWBSAction(File dir) {
+        public MergeMasterWBSAction(TeamProject project) {
             super("Copy Core Work Items from Master Project");
-            this.dir = dir;
+            this.project = project;
             setEnabled(!disableEditing);
             enablementCalculations.add(this);
         }
@@ -930,15 +927,7 @@ public class WBSJTable extends JTable {
 
             UndoList.stopCellEditing(WBSJTable.this);
 
-            ImportDirectory iDir = ImportDirectoryFactory.getInstance().get(dir);
-            TeamProject masterProject = new TeamProject(iDir.getDirectory(), "");
-            String masterProjectID = masterProject.getProjectID();
-            if (masterProjectID == null)
-                return;
-
-            // make the change
-            int[] newRowsToSelect = MasterWBSUtil.mergeFromMaster(
-                    masterProject.getWBS(), masterProjectID, wbsModel);
+            int[] newRowsToSelect = MasterWBSUtil.mergeFromMaster(project);
             if (newRowsToSelect != null) {
                 editor.stopCellEditing();
                 selectRows(newRowsToSelect);

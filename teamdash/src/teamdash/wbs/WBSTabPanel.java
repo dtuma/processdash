@@ -279,8 +279,8 @@ public class WBSTabPanel extends JPanel
 
     /** Get an action capable of inserting a workflow into the work breakdown
      *  structure */
-    public Action[] getMasterActions(File masterProjectDir) {
-        return wbsTable.getMasterActions(masterProjectDir);
+    public Action[] getMasterActions(TeamProject project) {
+        return wbsTable.getMasterActions(project);
     }
 
     private interface EnablementCalculation {
