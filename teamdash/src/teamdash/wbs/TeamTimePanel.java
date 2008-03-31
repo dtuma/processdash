@@ -85,6 +85,10 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
     private boolean showRemainingWork;
     /** Should the balanced bar include unassigned work? */
     private boolean includeUnassigned;
+    /** Should we show lines for commit dates? */
+    private boolean showCommitDates;
+    /** Should we show milestone markers on individual bars? */
+    private boolean showMilestoneMarks;
     /** if not -1, the ID of a milestone to balance work through */
     private int balanceThroughMilestone;
     /** The name of the milestone we're balancing through, or null if we're
@@ -113,6 +117,8 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
         this.showBalancedBar = true;
         this.showRemainingWork = false;
         this.includeUnassigned = true;
+        this.showCommitDates = true;
+        this.showMilestoneMarks = true;
         this.balanceThroughMilestone = -1;
         this.unassignedTimeColumn = dataModel
                 .findColumn(UnassignedTimeColumn.COLUMN_ID);
@@ -156,6 +162,28 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
     public void setIncludeUnassigned(boolean includeUnassigned) {
         if (this.includeUnassigned != includeUnassigned) {
             this.includeUnassigned = includeUnassigned;
+            recalc();
+        }
+    }
+
+    public boolean isShowCommitDates() {
+        return showCommitDates;
+    }
+
+    public void setShowCommitDates(boolean showCommitDates) {
+        if (this.showCommitDates != showCommitDates) {
+            this.showCommitDates = showCommitDates;
+            commitDatePane.loadCommitDates();
+        }
+    }
+
+    public boolean isShowMilestoneMarks() {
+        return showMilestoneMarks;
+    }
+
+    public void setShowMilestoneMarks(boolean showMilestoneMarks) {
+        if (this.showMilestoneMarks != showMilestoneMarks) {
+            this.showMilestoneMarks = showMilestoneMarks;
             recalc();
         }
     }
@@ -373,8 +401,9 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
     /** Recalculate the duration of a balanced team schedule.
      */
     protected void recalcTeam(double totalHours) {
-        maxScheduleLength = Math.max(maxScheduleLength,
-            commitDatePane.maxDate - leftTimeBoundary);
+        if (showCommitDates)
+            maxScheduleLength = Math.max(maxScheduleLength,
+                commitDatePane.maxDate - leftTimeBoundary);
         // calculate the optimal finish time
         Date balancedDate = teamList.getDateForEffort(totalHours);
         if (balancedDate == null) {
@@ -489,7 +518,7 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
             if (balanceThroughMilestoneName == null)
                 balanceThroughMilestone = -1;
 
-            int height = (hasCommitDates ? GUTTER_HEIGHT : 0);
+            int height = (hasCommitDates && showCommitDates ? GUTTER_HEIGHT : 0);
             setMinimumSize(new Dimension(0, height));
             setPreferredSize(new Dimension(10, height));
             setMaximumSize(new Dimension(Integer.MAX_VALUE, height));
@@ -500,6 +529,9 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
 
         @Override
         public void paint(Graphics g) {
+            if (showCommitDates == false)
+                return;
+
             Stroke plainStroke = null;
             Graphics2D g2 = null;
             if (g instanceof Graphics2D) {
@@ -752,9 +784,11 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
             if (Math.abs(event.getX() - startPos) < 5)
                 return startTooltip;
 
-            for (MilestoneMark mark : milestoneMarks) {
-                if (event.getX() < mark.rightEdge)
-                    return mark.tooltip;
+            if (showMilestoneMarks) {
+                for (MilestoneMark mark : milestoneMarks) {
+                    if (event.getX() < mark.rightEdge)
+                        return mark.tooltip;
+                }
             }
 
             return super.getToolTipText(event);
@@ -841,8 +875,11 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
 
                 // paint milestone marks from right to left, so earlier marks
                 // cover later overlapping marks.
-                for (int i = milestoneMarks.size();  i-- > 0; ) {
-                    milestoneMarks.get(i).paint(g, totalWidth, bounds.height);
+                if (showMilestoneMarks) {
+                    for (int i = milestoneMarks.size(); i-- > 0;) {
+                        milestoneMarks.get(i).paint(g, insets.left, totalWidth,
+                            bounds.height);
+                    }
                 }
 
                 if (label != null && label.length() > 0) {
@@ -976,12 +1013,13 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
                         + dateFormat.format(when);
             }
 
-            public void paint(Graphics g, int totalWidth, int height) {
+            public void paint(Graphics g, int leftInset, int totalWidth,
+                    int height) {
                 if (markTime < 0)
                     return;
 
                 double markPos = markTime / maxScheduleLength;
-                xPos = (int) (markPos * totalWidth);
+                xPos = (int) (totalWidth * markPos) + leftInset;
                 int hh = (height + 1) / 2;
                 for (int i = 0;  i < hh;  i++) {
                     int d = (i + 1) / 2;

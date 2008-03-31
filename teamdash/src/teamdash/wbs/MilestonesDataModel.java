@@ -7,8 +7,8 @@ import teamdash.wbs.columns.WBSNodeColumn;
 
 public class MilestonesDataModel extends DataTableModel {
 
-    public MilestonesDataModel(WBSModel milestones) {
-        super(milestones, null, null, null, null, null);
+    public MilestonesDataModel(MilestonesWBSModel milestones) {
+        super(milestones, null, null, milestones, null, null);
     }
 
     /** override and create only the columns we're interested in.
@@ -20,9 +20,9 @@ public class MilestonesDataModel extends DataTableModel {
                                     TaskDependencySource dependencySource,
                                     String currentUser)
     {
-        addDataColumn(new WBSNodeColumn(wbsModel));
+        addDataColumn(new WBSNodeColumn(milestones));
         addDataColumn(new MilestoneCommitDateColumn());
-        addDataColumn(new MilestoneColorColumn());
+        addDataColumn(new MilestoneColorColumn(milestones));
     }
 
     @Override

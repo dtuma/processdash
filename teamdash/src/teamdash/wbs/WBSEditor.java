@@ -2,6 +2,7 @@ package teamdash.wbs;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
+import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
@@ -482,6 +483,8 @@ public class WBSEditor implements WindowListener, SaveListener,
         result.setMnemonic('M');
         result.add(new MilestonesEditorAction());
         result.addSeparator();
+        result.add(new ShowCommitDatesMenuItem());
+        result.add(new ShowMilestoneMarksMenuItem());
         new BalanceMilestoneMenuBuilder(result, milestones);
         return result;
     }
@@ -1097,12 +1100,40 @@ public class WBSEditor implements WindowListener, SaveListener,
             super("Edit Milestones");
             putValue(MNEMONIC_KEY, new Integer('E'));
         }
+
         public void actionPerformed(ActionEvent e) {
             showMilestonesEditor();
         }
     }
 
-    private class BalanceMilestoneMenuBuilder implements TableModelListener, ActionListener {
+    private class ShowCommitDatesMenuItem extends JCheckBoxMenuItem implements
+            ChangeListener {
+        public ShowCommitDatesMenuItem() {
+            super("Show Commit Dates on Balancing Panel");
+            setSelected(true);
+            addChangeListener(this);
+        }
+
+        public void stateChanged(ChangeEvent e) {
+            teamTimePanel.setShowCommitDates(getState());
+        }
+    }
+
+    private class ShowMilestoneMarksMenuItem extends JCheckBoxMenuItem
+            implements ChangeListener {
+        public ShowMilestoneMarksMenuItem() {
+            super("Show Milestone Marks for Team Members");
+            setSelected(true);
+            addChangeListener(this);
+        }
+
+        public void stateChanged(ChangeEvent e) {
+            teamTimePanel.setShowMilestoneMarks(getState());
+        }
+    }
+
+    private class BalanceMilestoneMenuBuilder implements TableModelListener,
+            ActionListener {
         private JMenu menu;
         private int initialMenuLength;
         private WBSModel milestonesWbs;
@@ -1130,7 +1161,7 @@ public class WBSEditor implements WindowListener, SaveListener,
                     menu.remove(initialMenuLength);
 
                 group = new ButtonGroup();
-                addMenuItem("<Entire WBS>", -1);
+                addMenuItem("( Entire WBS )", -1);
                 for (WBSNode milestone : milestones) {
                     String name = milestone.getName();
                     int uniqueID = milestone.getUniqueID();
@@ -1151,6 +1182,10 @@ public class WBSEditor implements WindowListener, SaveListener,
                 indentBorder = BorderFactory.createCompoundBorder(
                     menuItem.getBorder(), new EmptyBorder(0, 15, 0, 0));
             menuItem.setBorder(indentBorder);
+
+            if (uniqueID == -1)
+                menuItem.setFont(menuItem.getFont().deriveFont(
+                    Font.ITALIC + Font.BOLD));
 
             menuItem.addActionListener(this);
             menu.add(menuItem);

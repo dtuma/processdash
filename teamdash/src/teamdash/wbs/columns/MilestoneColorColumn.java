@@ -1,6 +1,7 @@
 package teamdash.wbs.columns;
 
 import java.awt.Color;
+import java.util.HashSet;
 
 import javax.swing.JButton;
 import javax.swing.table.TableCellEditor;
@@ -19,8 +20,11 @@ public class MilestoneColorColumn extends AbstractDataColumn implements
 
     private static final String CACHED_COLOR_ATTR = "Color_Object";
 
+    private MilestonesWBSModel milestones;
 
-    public MilestoneColorColumn() {
+
+    public MilestoneColorColumn(MilestonesWBSModel milestones) {
+        this.milestones = milestones;
         this.columnName = this.columnID = COLUMN_ID;
         this.preferredWidth = 65;
     }
@@ -30,13 +34,23 @@ public class MilestoneColorColumn extends AbstractDataColumn implements
     }
 
     public Object getValueAt(WBSNode node) {
-        return getColor(node);
+        if (node == milestones.getRoot())
+            return Color.white;
+
+        Color result = getColor(node);
+        if (result == null) {
+            String defaultVal = getFirstUnusedColor();
+            Color defaultColor = Color.decode(defaultVal);
+            node.setAttribute(VALUE_ATTR, defaultVal);
+            node.setAttribute(CACHED_COLOR_ATTR, defaultColor);
+            result = defaultColor;
+        }
+        return result;
     }
 
     public static Color getColor(WBSNode node) {
         Color result = (Color) node.getAttribute(CACHED_COLOR_ATTR);
         if (result == null) {
-            result = Color.white;
             String value = (String) node.getAttribute(VALUE_ATTR);
             if (value != null)
                 try {
@@ -70,6 +84,27 @@ public class MilestoneColorColumn extends AbstractDataColumn implements
         return CELL_EDITOR;
     }
 
+    private String getFirstUnusedColor() {
+        HashSet usedColors = new HashSet();
+        for (WBSNode node : milestones.getDescendants(milestones.getRoot()))
+            usedColors.add(node.getAttribute(VALUE_ATTR));
+
+        for (int j = 0; j < DEFAULT_COLORS.length; j++) {
+            if (!usedColors.contains(DEFAULT_COLORS[j]))
+                return DEFAULT_COLORS[j];
+        }
+
+         return "#ffffff";
+    }
+    private static final String[] DEFAULT_COLORS = {
+        "#00ffff", // aqua
+        "#e2931d", // dark orange
+        "#b400b4", // dark magenta
+        "#e7e730", // yellow
+        "#63d62a", // grass green
+        "#ff69b4", // hot pink
+        "#989797", // grey
+    };
 
     private static final TableCellEditor CELL_EDITOR = new ColorCellEditor(
             new JButton());
