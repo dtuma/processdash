@@ -253,7 +253,8 @@ public class WBSTabPanel extends JPanel
             saveAsExcelAction.putValue(WBSTabPanel.class.getName(), this);
             result.add(saveAsExcelAction);
         } catch (Throwable t) {
-            t.printStackTrace();
+            // a class not found error will be thrown if the apache libraries
+            // are not available - degrade gracefully
         }
         return result.toArray(new Action[result.size()]);
     }
