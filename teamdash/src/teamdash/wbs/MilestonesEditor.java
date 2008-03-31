@@ -91,6 +91,7 @@ public class MilestonesEditor {
         // customize the display and editing of the "Units" column.
         col = table.getColumn("Commit Date");
         col.setCellEditor(MilestoneCommitDateColumn.CELL_EDITOR);
+        col.setCellRenderer(MilestoneCommitDateColumn.CELL_RENDERER);
         col.setPreferredWidth(60);
 
         col = table.getColumn("Color");

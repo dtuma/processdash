@@ -486,10 +486,12 @@ public class WBSEditor implements WindowListener, SaveListener,
         JMenu result = new JMenu("Milestones");
         result.setMnemonic('M');
         result.add(new MilestonesEditorAction());
-        result.addSeparator();
-        result.add(new ShowCommitDatesMenuItem());
-        result.add(new ShowMilestoneMarksMenuItem());
-        new BalanceMilestoneMenuBuilder(result, milestones);
+        if (!isMode(MODE_MASTER)) {
+            result.addSeparator();
+            result.add(new ShowCommitDatesMenuItem());
+            result.add(new ShowMilestoneMarksMenuItem());
+            new BalanceMilestoneMenuBuilder(result, milestones);
+        }
         return result;
     }
     private JMenu buildMasterMenu(Action[] masterActions) {

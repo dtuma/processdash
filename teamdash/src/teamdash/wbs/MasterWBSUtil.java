@@ -6,7 +6,7 @@ import java.util.List;
 
 import net.sourceforge.processdash.tool.bridge.client.ImportDirectory;
 import net.sourceforge.processdash.tool.bridge.client.ImportDirectoryFactory;
-
+import teamdash.wbs.columns.MilestoneCommitDateColumn;
 import teamdash.wbs.columns.TaskDependencyColumn;
 
 
@@ -45,9 +45,13 @@ public class MasterWBSUtil {
         if (masterProjectID == null)
             return null;
 
+        // merge milestone information
+        mergeFromMaster(masterProject.getMilestones(), masterProjectID,
+                proj.getMilestones());
+
         // make the change
-        int[] insertedRows = MasterWBSUtil.mergeFromMaster(
-                masterProject.getWBS(), masterProjectID, proj.getWBS());
+        int[] insertedRows = mergeFromMaster(masterProject.getWBS(),
+            masterProjectID, proj.getWBS());
         return insertedRows;
     }
 
@@ -73,6 +77,7 @@ public class MasterWBSUtil {
             dest.setReadOnly(src != null);
             copyAttr(src, dest, MASTER_NODE_ID, true);
             copyAttr(src, dest, MASTER_PARENT_ID, true);
+            copyAttr(src, dest, MilestoneCommitDateColumn.MASTER_VALUE_ATTR, true);
             if (src != null) {
                 dest.setName(src.getName());
                 copyAttr(src, dest, TaskDependencyColumn.ID_LIST_ATTR, true);
@@ -115,6 +120,8 @@ public class MasterWBSUtil {
             }
             child.setReadOnly(true);
             child.setAttribute(MASTER_NODE_ID, id + ":" + child.getUniqueID());
+            child.setAttribute(MilestoneCommitDateColumn.MASTER_VALUE_ATTR,
+                child.getAttribute(MilestoneCommitDateColumn.VALUE_ATTR));
         }
 
     }
