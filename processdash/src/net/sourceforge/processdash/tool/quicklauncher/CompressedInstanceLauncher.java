@@ -224,6 +224,7 @@ public class CompressedInstanceLauncher extends DashboardInstance {
                     .getMasterWorkingDirectory();
 
             File[] files = tempDirectory.listFiles();
+            if (files == null) return;
             for (int i = 0; i < files.length; i++) {
                 if (files[i].isDirectory()
                         && files[i].getName().startsWith(TEMP_DIR_PREFIX)) {
