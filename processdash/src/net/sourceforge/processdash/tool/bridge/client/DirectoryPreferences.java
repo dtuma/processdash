@@ -69,21 +69,31 @@ public class DirectoryPreferences {
 
 
     public static File getMasterWorkingDirectory() {
+        File result;
+
         // check for a specific value, supplied by a system property
         String hardcodedResult = System.getProperty(WORKING_DIR_PROPERTY);
         if ((hardcodedResult != null && hardcodedResult.length() > 0))
-            return new File(hardcodedResult);
+            result = new File(hardcodedResult);
+        else
+            result = new File(getApplicationDirectory(), "working");
 
-        return new File(getApplicationDirectory(), "working");
+        result.mkdirs();
+        return result;
     }
 
 
     public static File getMasterImportDirectory() {
+        File result;
+
         // check for a specific value, supplied by a system property
         String hardcodedResult = System.getProperty(IMPORT_DIR_PROPERTY);
         if ((hardcodedResult != null && hardcodedResult.length() > 0))
-            return new File(hardcodedResult);
+            result = new File(hardcodedResult);
+        else
+            result = new File(getApplicationDirectory(), "import");
 
-        return new File(getApplicationDirectory(), "import");
+        result.mkdirs();
+        return result;
     }
 }
