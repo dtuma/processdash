@@ -86,7 +86,7 @@ public class MilestoneColorColumn extends AbstractDataColumn implements
 
     private String getFirstUnusedColor() {
         HashSet usedColors = new HashSet();
-        for (WBSNode node : milestones.getDescendants(milestones.getRoot()))
+        for (WBSNode node : milestones.getMilestones())
             usedColors.add(node.getAttribute(VALUE_ATTR));
 
         for (int j = 0; j < DEFAULT_COLORS.length; j++) {

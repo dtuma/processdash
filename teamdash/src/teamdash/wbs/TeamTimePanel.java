@@ -174,6 +174,7 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
         if (this.showCommitDates != showCommitDates) {
             this.showCommitDates = showCommitDates;
             commitDatePane.loadCommitDates();
+            recalc();
         }
     }
 
@@ -196,6 +197,7 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
         if (this.balanceThroughMilestone != milestoneID) {
             this.balanceThroughMilestone = milestoneID;
             commitDatePane.loadCommitDates();
+            recalc();
         }
     }
 
@@ -302,7 +304,9 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
             Rectangle r = ((TeamMemberBar) teamMemberBars.get(0)).getBounds();
             balancedBarPos = (int) (r.width * balancedLength / maxScheduleLength);
             int pos = r.x + balancedBarPos;
-            balancedBar.setBounds(pos-BBHW, 1, BALANCED_BAR_WIDTH, getHeight());
+            int yOff = r.y * 2 / 3;
+            balancedBar.setBounds(pos-BBHW, yOff, BALANCED_BAR_WIDTH,
+                getHeight() - yOff);
         } else {
             balancedBarPos = -100;
         }
@@ -315,6 +319,7 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
 
 
     public void recalc() {
+        recalcTimer.stop();
         recalcStartDate();
         double totalTime = recalcIndividuals() + getUnassignedTime();
         recalcTeam(totalTime);
@@ -444,8 +449,7 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
     }
 
     private WBSNode[] getMilestones() {
-        WBSModel milestonesWBS = milestonesModel.getWBSModel();
-        return milestonesWBS.getDescendants(milestonesWBS.getRoot());
+        return milestonesModel.getWBSModel().getMilestones();
     }
 
     private String getDateQualifier() {

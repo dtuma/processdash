@@ -159,9 +159,10 @@ public class WBSEditor implements WindowListener, SaveListener,
 
         dataWriter = new WBSDataWriter(model, data,
                 teamProject.getTeamProcess(), teamProject.getProjectID(),
-                teamProject.getTeamMemberList());
+                teamProject.getTeamMemberList(), teamProject.getMilestones());
         workflowWriter = new WBSDataWriter(teamProject.getWorkflows(), null,
-                teamProject.getTeamProcess(), teamProject.getProjectID(), null);
+                teamProject.getTeamProcess(), teamProject.getProjectID(), null,
+                null);
         if (!readOnly && workingDirectory != null) {
             try {
                 workingDirectory.doBackup("startup");
@@ -1207,6 +1208,8 @@ public class WBSEditor implements WindowListener, SaveListener,
                 String newSelection = e.getActionCommand();
                 selectedMilestoneID = Integer.parseInt(newSelection);
                 teamTimePanel.setBalanceThroughMilestone(selectedMilestoneID);
+                if (showTeamTimePanelMenuItem != null)
+                    showTeamTimePanelMenuItem.setSelected(true);
             } catch (Exception ex) {}
         }
     }
@@ -1231,12 +1234,14 @@ public class WBSEditor implements WindowListener, SaveListener,
             setMnemonic('B');
             setSelected(teamTimePanel.isVisible());
             addChangeListener(this);
+            showTeamTimePanelMenuItem = this;
         }
         public void stateChanged(ChangeEvent e) {
             teamTimePanel.setVisible(getState());
             frame.invalidate();
         }
     }
+    private ShowTeamTimePanelMenuItem showTeamTimePanelMenuItem;
 
     private class BottomUpShowReplanMenuItem extends JRadioButtonMenuItem
     implements ChangeListener {

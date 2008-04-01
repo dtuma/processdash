@@ -4,16 +4,21 @@ import java.io.File;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import net.sourceforge.processdash.util.RobustFileWriter;
 import teamdash.XMLUtils;
 import teamdash.team.TeamMember;
 import teamdash.team.TeamMemberList;
 import teamdash.wbs.columns.DirectSizeTypeColumn;
+import teamdash.wbs.columns.MilestoneColumn;
+import teamdash.wbs.columns.MilestoneDeferredColumn;
 import teamdash.wbs.columns.NotesColumn;
 import teamdash.wbs.columns.SizeAccountingColumnSet;
 import teamdash.wbs.columns.TaskDependencyColumn;
@@ -44,6 +49,10 @@ public class WBSDataWriter {
     private String projectID;
     /** The team member list for the project */
     private TeamMemberList teamList;
+    /** The list of project milestones */
+    private MilestonesWBSModel milestonesModel;
+    /** The list of milestone IDs which are deferred */
+    private Set deferredMilestoneIDs;
     /** The list of column numbers for each team member time column */
     private IntList teamMemberColumns;
     /** The initials for each team member */
@@ -73,12 +82,14 @@ public class WBSDataWriter {
      */
     public WBSDataWriter(WBSModel wbsModel, DataTableModel dataModel,
                          TeamProcess process, String projectID,
-                         TeamMemberList teamList) {
+                         TeamMemberList teamList,
+                         MilestonesWBSModel milestonesModel) {
         this.wbsModel = wbsModel;
         this.dataModel = dataModel;
         this.process = process;
         this.projectID = projectID;
         this.teamList = teamList;
+        this.milestonesModel = milestonesModel;
 
         if (dataModel != null) {
             for (int i = 0;   i < SIZE_COLUMN_IDS.length;   i++)
@@ -113,6 +124,7 @@ public class WBSDataWriter {
         if (dataModel == null) {
             teamMemberColumns = null;
             initials = syncAttrs = zeroAssignmentAttrs = null;
+            deferredMilestoneIDs = Collections.EMPTY_SET;
         } else {
             teamMemberColumns = dataModel.getTeamMemberColumnIDs();
             int numTeamMembers = teamMemberColumns.size();
@@ -130,6 +142,7 @@ public class WBSDataWriter {
                 zeroAssignmentAttrs[i] = TeamTimeColumn
                         .getMemberAssignedZeroAttrName(initials[i]);
             }
+            deferredMilestoneIDs = getDeferredMilestoneIDs();
         }
 
         // write XML header
@@ -194,12 +207,46 @@ public class WBSDataWriter {
 
 
 
+    /** Get the IDs of milestones that have been marked "deferred" */
+    private Set getDeferredMilestoneIDs() {
+        Set result = new HashSet();
+        if (milestonesModel != null) {
+            for (WBSNode milestone : milestonesModel.getMilestones()) {
+                if (MilestoneDeferredColumn.isDeferred(milestone))
+                    result.add(milestone.getUniqueID());
+            }
+        }
+        return result;
+    }
+
+    /** Return true if this WBS node represents a task or other item that has
+     * been assigned to a deferred milestone */
+    private boolean isNodeMilestoneDeferred(WBSNode node) {
+        int milestoneID = MilestoneColumn.getMilestoneID(node);
+        return milestoneID != -1
+                && deferredMilestoneIDs.contains(milestoneID);
+    }
+
+
+
     private String getLabelSaveString(WBSNode node) {
         if (dataModel == null)
             return null;
 
         String result = (String) WrappedValue.unwrap(dataModel.getValueAt(node,
                 labelsColumn));
+
+        if (milestonesModel != null) {
+            int milestoneID = MilestoneColumn.getMilestoneID(node);
+            String milestoneName = TaskLabelColumn.convertToLabel(
+                    milestonesModel.getNameForMilestone(milestoneID));
+            if (milestoneName != null) {
+                if (result == null)
+                    result = milestoneName;
+                else
+                    result = result + "," + milestoneName;
+            }
+        }
 
         if (result != null)
             result = result.replaceAll(", ", ",");
@@ -478,7 +525,7 @@ public class WBSDataWriter {
      * to spend in the given node.
      */
     private String getTeamMemberTimes(WBSNode node) {
-        if (teamMemberColumns == null)
+        if (teamMemberColumns == null || isNodeMilestoneDeferred(node))
             return null;
 
         StringBuffer result = new StringBuffer();

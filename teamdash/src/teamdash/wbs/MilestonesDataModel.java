@@ -3,6 +3,7 @@ package teamdash.wbs;
 import teamdash.team.TeamMemberList;
 import teamdash.wbs.columns.MilestoneColorColumn;
 import teamdash.wbs.columns.MilestoneCommitDateColumn;
+import teamdash.wbs.columns.MilestoneDeferredColumn;
 import teamdash.wbs.columns.WBSNodeColumn;
 
 public class MilestonesDataModel extends DataTableModel {
@@ -23,6 +24,7 @@ public class MilestonesDataModel extends DataTableModel {
         addDataColumn(new WBSNodeColumn(milestones));
         addDataColumn(new MilestoneCommitDateColumn());
         addDataColumn(new MilestoneColorColumn(milestones));
+        addDataColumn(new MilestoneDeferredColumn());
     }
 
     @Override
@@ -31,6 +33,9 @@ public class MilestonesDataModel extends DataTableModel {
         fireTableCellUpdated(rowIndex, columnIndex);
     }
 
-
+    @Override
+    public MilestonesWBSModel getWBSModel() {
+        return (MilestonesWBSModel) super.getWBSModel();
+    }
 
 }

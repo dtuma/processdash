@@ -46,6 +46,10 @@ public class MilestonesWBSModel extends WBSModel {
         }
     }
 
+    public WBSNode[] getMilestones() {
+        return getDescendants(getRoot());
+    }
+
     public List<String> getMilestoneNames() {
         List<String> result = new ArrayList<String>();
         getMilestoneNames(result, getRoot());

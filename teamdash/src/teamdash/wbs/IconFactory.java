@@ -108,11 +108,23 @@ public class IconFactory {
     }
     private static Icon COPY_ICON = null;
 
+    public static Icon getCopyMilestoneIcon() {
+        if (COPY_MS_ICON == null) COPY_MS_ICON = loadIconResource("copyms.png");
+        return COPY_MS_ICON;
+    }
+    private static Icon COPY_MS_ICON = null;
+
     public static Icon getPasteIcon() {
         if (PASTE_ICON == null) PASTE_ICON = loadIconResource("paste.png");
         return PASTE_ICON;
     }
     private static Icon PASTE_ICON = null;
+
+    public static Icon getPasteMilestoneIcon() {
+        if (PASTE_MS_ICON == null) PASTE_MS_ICON = loadIconResource("pastems.png");
+        return PASTE_MS_ICON;
+    }
+    private static Icon PASTE_MS_ICON = null;
 
     public static Icon getDeleteIcon() {
         if (DELETE_ICON == null) DELETE_ICON = loadIconResource("delete.png");
@@ -574,7 +586,7 @@ public class IconFactory {
 
             g.setColor(highlight);
             g.drawLine(8, 3, 12, 7); // top right highlight
-            g.drawLine(2, 9, 6, 14); // bottom left highlight
+            g.drawLine(2, 9, 6, 13); // bottom left highlight
 
             g.setColor(shadow);
             g.drawLine(7, 14, 13, 8); // bottom right shadow

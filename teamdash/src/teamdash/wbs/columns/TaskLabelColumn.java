@@ -11,6 +11,8 @@ import javax.swing.JTable;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 
+import net.sourceforge.processdash.util.StringUtils;
+
 import teamdash.wbs.AutocompletingDataTableCellEditor;
 import teamdash.wbs.CalculatedDataColumn;
 import teamdash.wbs.CustomEditedColumn;
@@ -83,7 +85,7 @@ public class TaskLabelColumn extends AbstractDataColumn implements
             // labels are separated by commas and/or whitespace.  They also
             // may not contain several other characters (which are reserved
             // for use by the search expression logic)
-            String[] labels = val.split("[,\u0000- |()]+");
+            String[] labels = val.split(NON_LABEL_CHARS_REGEXP);
             Arrays.sort(labels, String.CASE_INSENSITIVE_ORDER);
             StringBuffer result = new StringBuffer();
             for (int i = 0; i < labels.length; i++)
@@ -102,6 +104,16 @@ public class TaskLabelColumn extends AbstractDataColumn implements
 
         node.setAttribute(EXPLICIT_VALUE_ATTR, val);
     }
+
+    public static String convertToLabel(String text) {
+        if (text == null || text.length() == 0)
+            return null;
+
+        String[] tokens = text.split(NON_LABEL_CHARS_REGEXP);
+        return StringUtils.join(Arrays.asList(tokens), "_");
+    }
+
+    private static final String NON_LABEL_CHARS_REGEXP = "[,\u0000- |()]+";
 
     public TableCellRenderer getCellRenderer() {
         return LABEL_RENDERER;

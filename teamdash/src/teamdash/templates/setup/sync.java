@@ -346,8 +346,9 @@ public class sync extends TinyCGIBase {
         out.print("<form action='sync.class' method='post'>\n");
         out.print("<input type='hidden' name='"+SAVE_PERMS+"' value='1'/>\n");
         out.print("<p>Several of the tasks in your hierarchy have been "
-                + "deleted from the project's work breakdown structure, or "
-                + "have been reassigned to other individuals.  These tasks "
+                + "deleted from the project's work breakdown structure, "
+                + "have been reassigned to other individuals, or have "
+                + "been deferred until future iterations.  These tasks "
                 + "can be removed from your project automatically.</p>\n");
 
         if (!taskDeletions.isEmpty()) {

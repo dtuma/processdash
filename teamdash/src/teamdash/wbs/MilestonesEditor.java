@@ -25,6 +25,7 @@ import javax.swing.table.TableColumn;
 import teamdash.team.ColorCellEditor;
 import teamdash.team.ColorCellRenderer;
 import teamdash.wbs.columns.MilestoneCommitDateColumn;
+import teamdash.wbs.columns.MilestoneDeferredColumn;
 
 
 public class MilestonesEditor {
@@ -105,6 +106,10 @@ public class MilestonesEditor {
         ColorCellRenderer.setUpColorRenderer(table);
         col.setPreferredWidth(40);
 
+        col = table.getColumn("Defer Sync");
+        col.setCellRenderer(MilestoneDeferredColumn.CELL_RENDERER);
+        col.setPreferredWidth(35);
+
         undoList = new UndoList(milestonesModel.getWBSModel());
         undoList.setForComponent(table);
         milestonesModel.addTableModelListener(new UndoableEventRepeater());
@@ -131,26 +136,22 @@ public class MilestonesEditor {
 
         addToolbarButton(undoList.getUndoAction());
         addToolbarButton(undoList.getRedoAction());
-        addToolbarButtons(table.getEditingActions());
+        addToolbarButton(tweakAction(table.CUT_ACTION, "Cut Milestones", null));
+        addToolbarButton(tweakAction(table.COPY_ACTION, "Copy Milestones",
+            IconFactory.getCopyMilestoneIcon()));
+        addToolbarButton(tweakAction(table.PASTE_ACTION, "Paste Milestones",
+            IconFactory.getPasteMilestoneIcon()));
+        addToolbarButton(table.DELETE_ACTION);
         toolBar.addSeparator();
         addToolbarButton(new SortMilestonesAction());
     }
 
-    /** Add one or more buttons to the internal tool bar */
-    private void addToolbarButtons(Action[] actions) {
-        for (int i = 0; i < actions.length; i++)
-            if (actions[i].getValue(Action.SMALL_ICON) != null
-                    && actionIsApplicable(actions[i]))
-                addToolbarButton(actions[i]);
-    }
-
-    private boolean actionIsApplicable(Action a) {
-        String category = (String) a.getValue(WBSJTable.WBS_ACTION_CATEGORY);
-        if (category == WBSJTable.WBS_ACTION_CATEGORY_CLIPBOARD
-                || category == WBSJTable.WBS_ACTION_CATEGORY_STRUCTURE)
-            return true;
-        else
-            return false;
+    private Action tweakAction(AbstractAction a, String name, Icon icon) {
+        if (name != null)
+            a.putValue(Action.NAME, name);
+        if (icon != null)
+            a.putValue(Action.SMALL_ICON, icon);
+        return a;
     }
 
     /** Add a button to the internal tool bar */
@@ -177,8 +178,7 @@ public class MilestonesEditor {
         }
 
         public void actionPerformed(ActionEvent e) {
-            MilestonesWBSModel model = (MilestonesWBSModel) milestonesModel
-                    .getWBSModel();
+            MilestonesWBSModel model = milestonesModel.getWBSModel();
             loadSortDates(model);
             model.sortMilestones(this);
             sortDates = null;
@@ -194,7 +194,7 @@ public class MilestonesEditor {
 
         private void loadSortDates(MilestonesWBSModel model) {
             sortDates = new HashMap<WBSNode, Date>();
-            WBSNode[] milestones = model.getDescendants(model.getRoot());
+            WBSNode[] milestones = model.getMilestones();
             Date useDate = new Date(Long.MAX_VALUE);
             for (int i = milestones.length;  i-- > 0; ) {
                 WBSNode milestone = milestones[i];
