@@ -107,7 +107,12 @@ public class FileBackupManager {
     public synchronized File run() {
         ProfTimer pt = new ProfTimer(FileBackupManager.class,
             "FileBackupManager.run");
-        File result = runImpl(RUNNING, null, true);
+        File result = null;
+        try {
+            result = runImpl(RUNNING, null, true);
+        } catch (Throwable t) {
+            printError(t);
+        }
         pt.click("Finished backup");
 
         return result;
