@@ -436,7 +436,8 @@ public class ResourceBridgeClient implements ResourceBridgeConstants {
         ClientHttpRequest request = new ClientHttpRequest(remoteUrl);
         request.setParameter(VERSION_PARAM, CLIENT_VERSION);
         request.setParameter(ACTION_PARAM, action);
-        request.setParameter(EXTRA_INFO_PARAM, userName);
+        if (userName != null)
+            request.setParameter(EXTRA_INFO_PARAM, userName);
         try {
             InputStream in = request.post(params);
             FileUtils.slurpContents(in, true);
