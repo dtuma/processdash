@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -928,6 +930,13 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
         WBSNode[] descendants = destModel.getDescendants(destNode);
         for (int i = 0; i < descendants.length; i++)
             merger.mergeNodes(null, descendants[i]);
+    }
+
+    /** WARNING! Not for general use!! This operation is destructive to most
+     * types of WBSModels. */
+    void sortAllNonRootNodes(Comparator<WBSNode> c) {
+        Collections.sort(wbsNodes.subList(1, wbsNodes.size()), c);
+        fireTableDataChanged();
     }
 
     public void copyNodeExpansionStates(WBSModel src, WBSNodeComparator comp) {

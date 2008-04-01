@@ -1,6 +1,7 @@
 package teamdash.wbs;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -102,6 +103,10 @@ public class MilestonesWBSModel extends WBSModel {
         }
         this.nameMap = newNameMap;
         this.idMap = newIdMap;
+    }
+
+    public void sortMilestones(Comparator<WBSNode> c) {
+        sortAllNonRootNodes(c);
     }
 
 }

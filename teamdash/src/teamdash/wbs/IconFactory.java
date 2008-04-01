@@ -175,6 +175,12 @@ public class IconFactory {
     }
     private static Icon COLUMNS_ICON = null;
 
+    public static Icon getSortDatesIcon() {
+        if (SORT_DATES_ICON == null) SORT_DATES_ICON = loadIconResource("sortdates.png");
+        return SORT_DATES_ICON;
+    }
+    private static Icon SORT_DATES_ICON = null;
+
     /** Convenience method for mixing colors.
      * @param r the ratio to use when mixing; must be between 0.0 and 1.0 .
      *   A value of 1.0 would return a color equivalent to color a.

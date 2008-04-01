@@ -2,9 +2,13 @@ package teamdash.wbs;
 
 import java.awt.BorderLayout;
 import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.util.Comparator;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
@@ -14,6 +18,8 @@ import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JScrollPane;
 import javax.swing.JToolBar;
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
 import javax.swing.table.TableColumn;
 
 import teamdash.team.ColorCellEditor;
@@ -32,6 +38,9 @@ public class MilestonesEditor {
     /** The table to display the milestones in */
     WBSJTable table;
 
+    /** An object for tracking undo operations */
+    UndoList undoList;
+
     /** The frame containing this milestones editor */
     JFrame frame;
 
@@ -42,7 +51,7 @@ public class MilestonesEditor {
             MilestonesDataModel milestonesModel) {
         this.teamProject = teamProject;
         this.milestonesModel = milestonesModel;
-        table = createWorkflowJTable(milestonesModel);
+        table = createMilestonesJTable();
         table.setEditingEnabled(teamProject.isReadOnly() == false);
         buildToolbar();
         frame = new JFrame(teamProject.getProjectName()
@@ -63,12 +72,11 @@ public class MilestonesEditor {
     }
 
 
-    public static WBSJTable createWorkflowJTable(
-            MilestonesDataModel workflowModel) {
-        // create the WBSJTable, then set its model to the workflow data model.
-        WBSJTable table = new WBSJTable(workflowModel.getWBSModel(),
+    private WBSJTable createMilestonesJTable() {
+        // create the WBSJTable, then set its model to the milestones data model.
+        WBSJTable table = new WBSJTable(milestonesModel.getWBSModel(),
                 makeIconMap(), makeNodeTypeMenu());
-        table.setModel(workflowModel);
+        table.setModel(milestonesModel);
         // reset the row height, for proper display of wbs node icons.
         table.setRowHeight(19);
         // don't allow reordering, since the text displayed in several of the
@@ -77,8 +85,6 @@ public class MilestonesEditor {
         // the next line is necessary; WBSJTable sets this property and we need
         // it turned off.  Otherwise, date cell editor changes get canceled.
         table.putClientProperty("terminateEditOnFocusLost", null);
-        // install the default editor for table data.
-//        table.setDefaultEditor(Object.class, new WorkflowCellEditor());
         table.selfName = "project milestone list";
         table.setIndentationDisabled(true);
 
@@ -98,6 +104,10 @@ public class MilestonesEditor {
         ColorCellEditor.setUpColorEditor(table);
         ColorCellRenderer.setUpColorRenderer(table);
         col.setPreferredWidth(40);
+
+        undoList = new UndoList(milestonesModel.getWBSModel());
+        undoList.setForComponent(table);
+        milestonesModel.addTableModelListener(new UndoableEventRepeater());
 
         return table;
     }
@@ -119,9 +129,11 @@ public class MilestonesEditor {
         toolBar.setFloatable(false);
         toolBar.setMargin(new Insets(0, 0, 0, 0));
 
+        addToolbarButton(undoList.getUndoAction());
+        addToolbarButton(undoList.getRedoAction());
         addToolbarButtons(table.getEditingActions());
         toolBar.addSeparator();
-        addToolbarButtons(getMilestoneActions());
+        addToolbarButton(new SortMilestonesAction());
     }
 
     /** Add one or more buttons to the internal tool bar */
@@ -157,31 +169,39 @@ public class MilestonesEditor {
         toolBar.add(button);
     }
 
-//    private static class WorkflowCellEditor extends DefaultCellEditor {
-//
-//        public WorkflowCellEditor() {
-//            super(new JTextField());
-//        }
-//
-//        @Override
-//        public Component getTableCellEditorComponent(JTable table,
-//                Object value, boolean isSelected, int row, int column) {
-//            Component result = super.getTableCellEditorComponent(table,
-//                ErrorValue.unwrap(value), isSelected, row, column);
-//
-//            if (result instanceof JTextField)
-//                ((JTextField) result).selectAll();
-//
-//            return result;
-//        }
-//
-//    }
+    private class SortMilestonesAction extends AbstractAction implements
+            Comparator<WBSNode> {
 
+        public SortMilestonesAction() {
+            super("Sort by Commit Date", IconFactory.getSortDatesIcon());
+        }
 
+        public void actionPerformed(ActionEvent e) {
+            MilestonesWBSModel model = (MilestonesWBSModel) milestonesModel
+                    .getWBSModel();
+            model.sortMilestones(this);
+            undoList.madeChange("Sorted milestones");
+        }
 
-    public Action[] getMilestoneActions() {
-        return new Action[] {};
+        public int compare(WBSNode n1, WBSNode n2) {
+            Date d1 = MilestoneCommitDateColumn.getCommitDate(n1);
+            Date d2 = MilestoneCommitDateColumn.getCommitDate(n2);
+            if (d1 == d2) return 0;
+            if (d1 == null) return +1;
+            if (d2 == null) return -1;
+            return (d1.compareTo(d2));
+        }
+
     }
 
+    private class UndoableEventRepeater implements TableModelListener {
+
+        public void tableChanged(TableModelEvent e) {
+            if (e.getColumn() > 0 && e.getFirstRow() > 0
+                    && e.getFirstRow() == e.getLastRow())
+                undoList.madeChange("Edited value");
+        }
+
+    }
 
 }
