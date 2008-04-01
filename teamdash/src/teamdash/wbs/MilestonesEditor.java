@@ -179,17 +179,34 @@ public class MilestonesEditor {
         public void actionPerformed(ActionEvent e) {
             MilestonesWBSModel model = (MilestonesWBSModel) milestonesModel
                     .getWBSModel();
+            loadSortDates(model);
             model.sortMilestones(this);
+            sortDates = null;
             undoList.madeChange("Sorted milestones");
         }
 
+        // If we sort by the assigned date only, milestones with no commit date
+        // could get sorted to the end of the list.  Instead, we'd like to
+        // perform a more stable sort that mostly leaves uncommitted milestones
+        // in their original order within the list.  So we use this map to
+        // assign non-null dates to each milestone for sorting purposes.
+        private Map<WBSNode,Date> sortDates;
+
+        private void loadSortDates(MilestonesWBSModel model) {
+            sortDates = new HashMap<WBSNode, Date>();
+            WBSNode[] milestones = model.getDescendants(model.getRoot());
+            Date useDate = new Date(Long.MAX_VALUE);
+            for (int i = milestones.length;  i-- > 0; ) {
+                WBSNode milestone = milestones[i];
+                Date oneDate = MilestoneCommitDateColumn.getCommitDate(milestone);
+                if (oneDate != null)
+                    useDate = oneDate;
+                sortDates.put(milestone, useDate);
+            }
+        }
+
         public int compare(WBSNode n1, WBSNode n2) {
-            Date d1 = MilestoneCommitDateColumn.getCommitDate(n1);
-            Date d2 = MilestoneCommitDateColumn.getCommitDate(n2);
-            if (d1 == d2) return 0;
-            if (d1 == null) return +1;
-            if (d2 == null) return -1;
-            return (d1.compareTo(d2));
+            return sortDates.get(n1).compareTo(sortDates.get(n2));
         }
 
     }
