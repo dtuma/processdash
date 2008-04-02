@@ -7,9 +7,11 @@ import javax.swing.table.TableCellEditor;
 import teamdash.wbs.CalculatedDataColumn;
 import teamdash.wbs.CustomEditedColumn;
 import teamdash.wbs.DataTableModel;
+import teamdash.wbs.ReadOnlyValue;
 import teamdash.wbs.TeamProcess;
 import teamdash.wbs.WBSModel;
 import teamdash.wbs.WBSNode;
+import teamdash.wbs.WrappedValue;
 
 /** A column for displaying the units of size measurement for individual tasks.
  *
@@ -89,8 +91,13 @@ implements CalculatedDataColumn, CustomEditedColumn {
 
         } else if (mainSizeUnitsColumn != -1) {
             // for non-leaf tasks, defer to the wisdom of the main
-            // "Units" column.
-            return dataModel.getValueAt(node, mainSizeUnitsColumn);
+            // "Units" column.  If it comes up blank, try the default value.
+            Object result = WrappedValue.unwrap(dataModel.getValueAt(node,
+                mainSizeUnitsColumn));
+            if (valueIsEmpty(result))
+                result = getDefaultValue(node);
+            return new ReadOnlyValue(result);
+
         } else {
             // return null if we haven't been told the id of the
             // "Units" column yet.

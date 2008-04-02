@@ -3,18 +3,15 @@ package teamdash.wbs.columns;
 import teamdash.wbs.DataTableModel;
 import teamdash.wbs.NumericDataValue;
 import teamdash.wbs.TeamProcess;
-import teamdash.wbs.WBSModel;
 import teamdash.wbs.WBSNode;
 
 public class TaskSizeColumn extends SizeAliasColumn {
 
-    private WBSModel wbsModel;
     private int unitsColumn = -1;
 
     public TaskSizeColumn(DataTableModel dataModel, TeamProcess teamProcess) {
         super(dataModel, "Task Size", "N&C-", teamProcess.getSizeMetrics(),
                 teamProcess.getWorkProductSizeMap());
-        this.wbsModel = dataModel.getWBSModel();
 
         int len = this.dependentColumns.length;
         String [] dependentCols = new String[len+1];
@@ -41,42 +38,43 @@ public class TaskSizeColumn extends SizeAliasColumn {
         return (result == null ? null : String.valueOf(result));
     }
 
-    public boolean isCellEditable(WBSNode node) {
-        // if this isn't a leaf task, ask our superclass if the value is
-        // editable.
-        if (!TeamTimeColumn.isLeafTask(wbsModel, node))
-            return super.isCellEditable(node);
-
-        // if this leaf task is inheriting it's size from some standard
-        // size metrics (like LOC), we don't want to let the user edit the
-        // inherited value - that would behave in a manner completely unlike
-        // what they expected.  So we only let them edit this column if they
-        // have chosen a custom size metric for this task.
+    private boolean isCustomTaskSize(WBSNode node) {
         return getSizeColumn(node) == -1;
     }
 
+    public boolean isCellEditable(WBSNode node) {
+        // if the user has entered a custom size metric for this node, then
+        // the size value is editable.
+        if (isCustomTaskSize(node))
+            return true;
+
+        // otherwise, ask our superclass if the value is editable.
+        return super.isCellEditable(node);
+    }
+
     public Object getValueAt(WBSNode node) {
+        if (isCustomTaskSize(node)) {
+            double miscSize = node.getNumericAttribute(ATTR_NAME);
+            if (Double.isNaN(miscSize))
+                return null;
+            else
+                return new NumericDataValue(miscSize);
+        }
+
         Object result = super.getValueAt(node);
-
-        if (!TeamTimeColumn.isLeafTask(wbsModel, node))
-            return result;
-
-        if (result != BLANK)
-            return new NumericDataValue(NumericDataValue.parse(result), false);
-
-        double miscSize = node.getNumericAttribute(ATTR_NAME);
-        if (Double.isNaN(miscSize))
-            return null;
-        else
-            return new NumericDataValue(miscSize);
+        if (result instanceof NumericDataValue && result != BLANK) {
+            NumericDataValue ndv = (NumericDataValue) result;
+            result = new NumericDataValue(ndv.value, ndv.isEditable, false,
+                    ndv.errorMessage, ndv.expectedValue);
+        }
+        return result;
     }
 
     public void setValueAt(Object aValue, WBSNode node) {
-        if (!TeamTimeColumn.isLeafTask(wbsModel, node)) {
+        if (isCustomTaskSize(node)) {
+            node.setNumericAttribute(ATTR_NAME, NumericDataValue.parse(aValue));
+        } else {
             super.setValueAt(aValue, node);
-        } else if (isCellEditable(node)) {
-            node.setNumericAttribute
-                (ATTR_NAME, NumericDataValue.parse(aValue));
         }
     }
 
