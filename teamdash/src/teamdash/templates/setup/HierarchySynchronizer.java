@@ -1563,6 +1563,28 @@ public class HierarchySynchronizer {
             HierarchyNoteManager.saveNotesForPath(data, path, noteData);
         }
 
+        protected void maybeSaveLOCData(String path, Element node,
+                int startingSizeDataName) {
+            // ensure that this node has size data.
+            if (!"LOC".equals(node.getAttribute("sizeUnits")))
+                return;
+
+            // check to see if any size data exists for this project/task.
+            for (int i = startingSizeDataName; i < locSizeDataNames.length; i++) {
+                SimpleData d = getData(path, locSizeDataNames[i]);
+                if (d != null && d.test()) return;
+            }
+
+            // find out what percentage of this task the user will perform.
+            double ratio = getTimeRatio(node, "LOC");
+
+            // save the size data to the project.
+            for (int i = startingSizeDataName; i < sizeAttrNames.length; i++)
+                putNumber(path, locSizeDataNames[i],
+                          node.getAttribute(sizeAttrNames[i]),
+                          (locSizeDataNeedsRatio[i] ? ratio : 1.0));
+        }
+
     }
 
 
@@ -1707,8 +1729,11 @@ public class HierarchySynchronizer {
                 String effectivePhase = node.getAttribute(EFF_PHASE_ATTR);
                 syncTaskEffectivePhase(worker, node, path, effectivePhase);
                 return true;
-            } else
+            } else {
+                if ("Code".equalsIgnoreCase(phaseName))
+                    maybeSaveLOCData(path, node, COPY_NC_SIZE_DATA);
                 return syncTaskPhase(worker, node, path, phaseName);
+            }
         }
 
         protected boolean syncTaskPhase(SyncWorker worker, Element node,
@@ -1853,7 +1878,7 @@ public class HierarchySynchronizer {
             super.syncData(worker, path, node);
             if (!isPrunedNode(node)) {
                 maybeSaveTimeValue(worker, path, node);
-                maybeSaveSizeData(path, node);
+                maybeSaveLOCData(path, node, COPY_ALL_SIZE_DATA);
             }
         }
 
@@ -1863,27 +1888,6 @@ public class HierarchySynchronizer {
 
         protected boolean undoMarkTaskComplete(SyncWorker worker, String path) {
             return worker.markPSPTaskIncomplete(path);
-        }
-
-        private void maybeSaveSizeData(String path, Element node) {
-            // ensure that this node has size data.
-            if (!"LOC".equals(node.getAttribute("sizeUnits")))
-                return;
-
-            // check to see if any size data exists for this PSP2.1 project.
-            for (int i = 0;   i < locSizeDataNames.length;   i++) {
-                SimpleData d = getData(path, locSizeDataNames[i]);
-                if (d != null && d.test()) return;
-            }
-
-            // find out what percentage of this task the user will perform.
-            double ratio = getTimeRatio(node, "LOC");
-
-            // save the size data to the project.
-            for (int i = 0;   i < sizeAttrNames.length;   i++)
-                putNumber(path, locSizeDataNames[i],
-                          node.getAttribute(sizeAttrNames[i]),
-                          (locSizeDataNeedsRatio[i] ? ratio : 1.0));
         }
 
         protected void filterOutKnownChildren(Element node, List childrenToDelete) {
@@ -1906,6 +1910,8 @@ public class HierarchySynchronizer {
         "New Objects/0/LOC",
         "Reused Objects/0/LOC",
         "Estimated New & Changed LOC" };
+    private static final int COPY_ALL_SIZE_DATA = 0;
+    private static final int COPY_NC_SIZE_DATA = locSizeDataNames.length-1;
     public static final String[] PSP_PHASES = { "Planning", "Design",
         "Design Review", "Code", "Code Review", "Compile", "Test",
         "Postmortem" };

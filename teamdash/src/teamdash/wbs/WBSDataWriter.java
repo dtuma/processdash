@@ -432,7 +432,7 @@ public class WBSDataWriter {
         /** Write out XML attributes for size if a top-down size has been entered
          * for the given node.
          */
-        private void maybeWriteSizeAttrs(Writer out, WBSNode node)
+        protected void maybeWriteSizeAttrs(Writer out, WBSNode node)
             throws IOException
         {
             if (dataModel == null) return;
@@ -457,7 +457,7 @@ public class WBSDataWriter {
 
     /** AttributeWriter which writes information about a non-PSP leaf task.
      */
-    private class TaskAttributeWriter implements AttributeWriter {
+    private class TaskAttributeWriter extends SizeAttributeWriter {
         public void writeAttributes(Writer out, WBSNode node) throws IOException {
             String nodeType = node.getType();
             if (!nodeType.endsWith(" Task"))
@@ -479,7 +479,10 @@ public class WBSDataWriter {
             writeAttr(out, SYNC_PHASE_NAME_ATTR, syncPhaseName);
             writeAttr(out, TIME_ATTR, getTeamMemberTimes(node));
             writeAttr(out, SYNC_TIME_ATTR, getTeamMemberSyncTimes(node));
-            maybeWriteQualitySize(out, phaseName, phaseType, node);
+            if (TeamProcess.isCodeTask(nodeType))
+                maybeWriteSizeAttrs(out, node);
+            else
+                maybeWriteQualitySize(out, phaseName, phaseType, node);
         }
 
         private String removeTaskSuffix(String phaseName) {
