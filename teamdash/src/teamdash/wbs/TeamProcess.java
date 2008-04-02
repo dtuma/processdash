@@ -142,6 +142,7 @@ public class TeamProcess {
         workProductSizes.put(COMPONENT_TYPE, "LOC");
         workProductSizes.put(SOFTWARE_COMPONENT_TYPE, "LOC");
         workProductSizes.put(PSP_TASK_TYPE, "LOC");
+        workProductSizes.put(CODE_TASK_TYPE, "LOC");
 
         sizeMetrics = new ArrayList();
         sizeMetrics.add("LOC");
@@ -406,6 +407,7 @@ public class TeamProcess {
     static final String SOFTWARE_COMPONENT_TYPE = "Software Component";
     static final String WORKFLOW_TYPE = "Workflow";
     static final String PSP_TASK_TYPE = "PSP Task";
+    static final String CODE_TASK_TYPE = "Code Task";
     private static final String DLD_DOCUMENT_TYPE = "Detailed Design Document";
 
     private static final String INSPECTED_PREFIX = "Inspected ";
@@ -426,11 +428,16 @@ public class TeamProcess {
                 || COMPONENT_TYPE.equalsIgnoreCase(type)
                 || PROJECT_TYPE.equalsIgnoreCase(type)
                 || WORKFLOW_TYPE.equalsIgnoreCase(type)
-                || PSP_TASK_TYPE.equalsIgnoreCase(type);
+                || PSP_TASK_TYPE.equalsIgnoreCase(type)
+                || CODE_TASK_TYPE.equalsIgnoreCase(type);
     }
 
     public static boolean isPSPTask(String type) {
         return PSP_TASK_TYPE.equalsIgnoreCase(type);
+    }
+
+    public static boolean isCodeTask(String type) {
+        return CODE_TASK_TYPE.equalsIgnoreCase(type);
     }
 
     public static boolean isOtherSizeType(String type) {

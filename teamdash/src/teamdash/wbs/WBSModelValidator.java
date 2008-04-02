@@ -112,8 +112,9 @@ public class WBSModelValidator implements TableModelListener {
             // software component.
 
             if (! isLOCComponent(parentType))
-                return capitalize(type) + "s can only be children "+
-                    "of components or software components.";
+                return "This " + lowerCase(type) + " must be a child either"
+                + " of a component, a software component, or "
+                + (isCodeTask(type) ? "another" : "a") + " code task.";
 
         } else if (isOtherSizeComponent(type)) {
 
@@ -163,6 +164,11 @@ public class WBSModelValidator implements TableModelListener {
         return TeamProcess.isPSPTask(type);
     }
 
+    /** Convenience method to check for Code tasks */
+    protected boolean isCodeTask(String type) {
+        return TeamProcess.isCodeTask(type);
+    }
+
     /** Alter the capitalization of the given type so it can be used to
      * start a sentence. */
     protected String capitalize(String type) {
@@ -171,6 +177,13 @@ public class WBSModelValidator implements TableModelListener {
         while (tok.hasMoreTokens())
             result += " " + tok.nextToken().toLowerCase();
         return result;
+    }
+
+    protected String lowerCase(String type) {
+        if (isPSPTask(type))
+            return "PSP task";
+        else
+            return type.toLowerCase();
     }
 
     public static String getNodeNameError(WBSNode node) {
