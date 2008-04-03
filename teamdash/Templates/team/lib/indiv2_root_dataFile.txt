@@ -3,6 +3,7 @@
 //
 
 #include <<!--#echo Process_ID -->/rollup_dataFile.txt> exclude (
+    [Project_Component_List], ".*/% Defect Free",
     [Analyze Rollup Data/leaf], [Analyze Rollup Data/node]
 )
 #include <<!--#echo Process_ID -->/indiv_root_data.txt>

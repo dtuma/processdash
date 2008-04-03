@@ -34,8 +34,9 @@ undefine([Historical Data Tag]);
 /*
  * Count the number of distinct software projects in this rollup list.
  */
+[Project_Component_List] = hierleaves();
 [Software_Project_List] =
-    filter(indirect([_] &/ "New & Changed LOC") > 0, [Rollup_List]);
+    filter(indirect([_] &/ "New & Changed LOC") > 0, [Project_Component_List]);
 [Software_Project_Count] = count([Software_Project_List]);
 
 
