@@ -83,6 +83,10 @@ public class SystemTrayIconJDK6Impl implements SystemTrayIcon {
      */
     MouseHandler mouseHandler;
 
+    /**
+     * Object to generate reminders for the user
+     */
+    Reminder reminder;
 
     private static final Logger logger = Logger
             .getLogger(SystemTrayIconJDK6Impl.class.getName());
@@ -126,12 +130,17 @@ public class SystemTrayIconJDK6Impl implements SystemTrayIcon {
         }
 
         this.pdash = pdash;
+        reminder = new Reminder(icon, pdash);
 
         imageHandler = new IconImageHandler(pdash, icon);
         tooltipHandler =  new TooltipHandler(pdash, icon);
         windowHandler = new WindowHandler(pdash, icon);
-        menuHandler = new MenuHandler(pdash, icon);
+        menuHandler = new MenuHandler(pdash, icon, reminder);
         mouseHandler = new MouseHandler(pdash, icon, menuHandler, imageHandler);
+
+        // The next line is added to make the main window appear if the user
+        // clicks on the reminder message.
+        icon.addActionListener(menuHandler.getShowWindowAction());
     }
 
     /**

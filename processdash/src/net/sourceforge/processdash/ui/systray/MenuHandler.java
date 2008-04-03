@@ -65,7 +65,8 @@ public class MenuHandler {
             .getDashBundle("ProcessDashboard.SysTray.Menu");
 
 
-    public MenuHandler(ProcessDashboard pdash, TrayIcon icon) {
+    public MenuHandler(ProcessDashboard pdash, TrayIcon icon,
+            Reminder reminder) {
         this.popupMenu = new PopupMenu();
         icon.setPopupMenu(popupMenu);
 
@@ -73,7 +74,8 @@ public class MenuHandler {
 
         popupMenu.add(new DuplicatedMenu(pdash.getTitle(),
             pdash.getConfigurationMenu()));
-        popupMenu.add(new RemoveTrayIconAction(icon));
+        popupMenu.add(new ReminderMenu(reminder));
+        popupMenu.add(new RemoveTrayIconAction(icon, reminder));
         ScriptMenuReplicator.replicate(pdash, popupMenu);
         popupMenu.add(makeChangeTaskMenuItem());
         popupMenu.add(new PlayPauseMenuItem(pdash.getTimeLoggingModel()));
@@ -124,13 +126,13 @@ public class MenuHandler {
         return changeTaskItem;
     }
 
-
-
     public class RemoveTrayIconAction extends MenuItem {
 
         private TrayIcon icon;
 
-        public RemoveTrayIconAction(TrayIcon icon) {
+        private Reminder reminder;
+
+        public RemoveTrayIconAction(TrayIcon icon, Reminder reminder) {
             super(res.getString("Remove_Icon"));
             this.icon = icon;
             addActionListener(EventHandler.create(ActionListener.class, this,
@@ -143,6 +145,7 @@ public class MenuHandler {
             // back.  Raise the window to make certain that doesn't happen.
             DashController.raiseWindow();
             InternalSettings.set(SystemTrayManagement.DISABLED_SETTING, "true");
+            reminder.setDisabled(true);
             SystemTray.getSystemTray().remove(icon);
         }
     }
