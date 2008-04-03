@@ -1303,7 +1303,7 @@ public class HierarchySynchronizer {
                     setTaskIDs(path, taskID);
             } catch (Exception e) {}
             if (!isTeam() && !isPrunedNode(node)) {
-                maybeSaveDocSize(path, node);
+                maybeSaveNodeSize(path, node);
                 maybeSaveDependencies(path, node);
                 maybeSaveNote(path, node, nodeID);
             }
@@ -1393,24 +1393,31 @@ public class HierarchySynchronizer {
             } catch (Exception e) {}
         }
 
-        private void maybeSaveDocSize(String path, Element node) {
-            // see if this node has doc size data.
+        protected void maybeSaveNodeSize(String path, Element node) {
+            // see if this node has size data.
             String units = node.getAttribute("sizeUnits");
-            if (units == null || "LOC".equals(units))
+            if (units == null || units.length() == 0)
                 return;
 
-            // check to see if any doc size data exists for this node
+            // determine what units qualifier should be used to save the data.
+            String storeUnits = units;
+            if (units.equals("LOC")) {
+                if (!shouldSaveLOCData(path, node)) return;
+                storeUnits = "New & Changed LOC";
+            }
+
+            // check to see if any size data exists for this node
             SimpleData d = getData(path, EST_SIZE_DATA_NAME);
             if (d != null && d.test()) return;
             d = getData(path, SIZE_UNITS_DATA_NAME);
             if (d != null && d.test()) return;
 
             // find out whether this individual is a contributor to the
-            // construction of the given document
+            // construction of the given object
             double ratio = getTimeRatio(node, units);
             if (ratio == 0) return;
 
-            // calculate the percentage of the document construction time
+            // calculate the percentage of the object construction time
             // contributed by this individual
             double size;
             try {
@@ -1421,9 +1428,13 @@ public class HierarchySynchronizer {
                 return;
             }
 
-            // save the document size data to the project.
+            // save the size data to the project.
             putData(path, EST_SIZE_DATA_NAME, new DoubleData(size));
-            putData(path, SIZE_UNITS_DATA_NAME, StringData.create(units));
+            putData(path, SIZE_UNITS_DATA_NAME, StringData.create(storeUnits));
+        }
+
+        protected boolean shouldSaveLOCData(String path, Element node) {
+            return false;
         }
 
         protected void maybeSaveDependencies(String path, Element node) {
@@ -1561,28 +1572,6 @@ public class HierarchySynchronizer {
             for (int i = 0;  i < notes.length;  i += 2)
                 noteData.put((String) notes[i], (HierarchyNote) notes[i+1]);
             HierarchyNoteManager.saveNotesForPath(data, path, noteData);
-        }
-
-        protected void maybeSaveLOCData(String path, Element node,
-                int startingSizeDataName) {
-            // ensure that this node has size data.
-            if (!"LOC".equals(node.getAttribute("sizeUnits")))
-                return;
-
-            // check to see if any size data exists for this project/task.
-            for (int i = startingSizeDataName; i < locSizeDataNames.length; i++) {
-                SimpleData d = getData(path, locSizeDataNames[i]);
-                if (d != null && d.test()) return;
-            }
-
-            // find out what percentage of this task the user will perform.
-            double ratio = getTimeRatio(node, "LOC");
-
-            // save the size data to the project.
-            for (int i = startingSizeDataName; i < sizeAttrNames.length; i++)
-                putNumber(path, locSizeDataNames[i],
-                          node.getAttribute(sizeAttrNames[i]),
-                          (locSizeDataNeedsRatio[i] ? ratio : 1.0));
         }
 
     }
@@ -1729,11 +1718,8 @@ public class HierarchySynchronizer {
                 String effectivePhase = node.getAttribute(EFF_PHASE_ATTR);
                 syncTaskEffectivePhase(worker, node, path, effectivePhase);
                 return true;
-            } else {
-                if ("Code".equalsIgnoreCase(phaseName))
-                    maybeSaveLOCData(path, node, COPY_NC_SIZE_DATA);
+            } else
                 return syncTaskPhase(worker, node, path, phaseName);
-            }
         }
 
         protected boolean syncTaskPhase(SyncWorker worker, Element node,
@@ -1799,6 +1785,11 @@ public class HierarchySynchronizer {
 
             int numKids = hierarchy.getNumChildren(key);
             return (numKids == 0);
+        }
+
+        @Override
+        protected boolean shouldSaveLOCData(String path, Element node) {
+            return "Code".equalsIgnoreCase(node.getAttribute(PHASE_NAME_ATTR));
         }
 
     }
@@ -1878,7 +1869,6 @@ public class HierarchySynchronizer {
             super.syncData(worker, path, node);
             if (!isPrunedNode(node)) {
                 maybeSaveTimeValue(worker, path, node);
-                maybeSaveLOCData(path, node, COPY_ALL_SIZE_DATA);
             }
         }
 
@@ -1888,6 +1878,28 @@ public class HierarchySynchronizer {
 
         protected boolean undoMarkTaskComplete(SyncWorker worker, String path) {
             return worker.markPSPTaskIncomplete(path);
+        }
+
+        @Override
+        protected void maybeSaveNodeSize(String path, Element node) {
+            // ensure that this node has size data.
+            if (!"LOC".equals(node.getAttribute("sizeUnits")))
+                return;
+
+            // check to see if any size data exists for this PSP2.1 project.
+            for (int i = 0;   i < locSizeDataNames.length;   i++) {
+                SimpleData d = getData(path, locSizeDataNames[i]);
+                if (d != null && d.test()) return;
+            }
+
+            // find out what percentage of this task the user will perform.
+            double ratio = getTimeRatio(node, "LOC");
+
+            // save the size data to the project.
+            for (int i = 0;   i < sizeAttrNames.length;   i++)
+                putNumber(path, locSizeDataNames[i],
+                          node.getAttribute(sizeAttrNames[i]),
+                          (locSizeDataNeedsRatio[i] ? ratio : 1.0));
         }
 
         protected void filterOutKnownChildren(Element node, List childrenToDelete) {
@@ -1910,8 +1922,6 @@ public class HierarchySynchronizer {
         "New Objects/0/LOC",
         "Reused Objects/0/LOC",
         "Estimated New & Changed LOC" };
-    private static final int COPY_ALL_SIZE_DATA = 0;
-    private static final int COPY_NC_SIZE_DATA = locSizeDataNames.length-1;
     public static final String[] PSP_PHASES = { "Planning", "Design",
         "Design Review", "Code", "Code Review", "Compile", "Test",
         "Postmortem" };

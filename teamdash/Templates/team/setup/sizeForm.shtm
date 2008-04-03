@@ -20,6 +20,7 @@
 <td><select
     name="[!--#echo SUB_PATH_ --]Sized_Objects/NUM/Sized_Object_Units	s">
 <option>
+<option value="New & Changed LOC">New &amp; Changed LOC
 <!--#foreach name=Inspected_ values=",,Inspected ," #-->
 <!--#foreach name=Metric list=Size_Metric_List #-->
 <option value="Inspected_<!--#echo Metric_Name -->">Inspected_<!--#echo Metric_Long_Name -->
