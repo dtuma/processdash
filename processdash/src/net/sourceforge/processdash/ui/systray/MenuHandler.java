@@ -1,4 +1,4 @@
-// Copyright (C) 2007 Tuma Solutions, LLC
+// Copyright (C) 2007-2008 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -37,6 +37,7 @@ import java.beans.PropertyChangeListener;
 import net.sourceforge.processdash.DashController;
 import net.sourceforge.processdash.InternalSettings;
 import net.sourceforge.processdash.ProcessDashboard;
+import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.log.time.TimeLoggingModel;
 import net.sourceforge.processdash.ui.lib.DuplicatedMenu;
@@ -74,7 +75,8 @@ public class MenuHandler {
 
         popupMenu.add(new DuplicatedMenu(pdash.getTitle(),
             pdash.getConfigurationMenu()));
-        popupMenu.add(new ReminderMenu(reminder));
+        if (Settings.isReadWrite())
+            popupMenu.add(new ReminderMenu(reminder));
         popupMenu.add(new RemoveTrayIconAction(icon, reminder));
         ScriptMenuReplicator.replicate(pdash, popupMenu);
         popupMenu.add(makeChangeTaskMenuItem());

@@ -80,18 +80,16 @@ public class Reminder {
 
     private PropertyChangeSupport propertyChangeSupport;
 
-    // This property change listener restarts the timer (if it is running)
+    // This property change listener stops or restarts the timer if applicable
     // whenever the time logging model notifies it with a change in the active
     // task or the paused property.
     private PropertyChangeListener pcl = new PropertyChangeListener() {
 
         public void propertyChange(PropertyChangeEvent evt) {
-            Timer timer = Reminder.this.reminderTimer;
             String pName = evt.getPropertyName();
-            if (timer.isRunning() &&
-                    (pName.equals(TimeLoggingModel.ACTIVE_TASK_PROPERTY) ||
-                     pName.equals(TimeLoggingModel.PAUSED_PROPERTY))    ) {
-                timer.restart();
+            if (pName.equals(TimeLoggingModel.ACTIVE_TASK_PROPERTY)
+                    || pName.equals(TimeLoggingModel.PAUSED_PROPERTY)) {
+                stopOrRestartTimer();
             }
         }
 
@@ -106,9 +104,7 @@ public class Reminder {
         ActionListener al = EventHandler.create(ActionListener.class, this,
                 "remind");
         reminderTimer = new Timer(this.getTimeout() * 1000 * 60, al);
-        if (!Settings.getBool(Reminder.DISABLED_SETTING, false)) {
-            reminderTimer.start();
-        }
+        stopOrRestartTimer();
 
         // Restart the timer whenever the user uses the dashboard to stop/start
         // or change the currently active task
@@ -138,11 +134,7 @@ public class Reminder {
     public void setDisabled(boolean disabled) {
         boolean oldValue = isDisabled();
         InternalSettings.set(Reminder.DISABLED_SETTING, "" + disabled);
-        if (disabled) {
-            reminderTimer.stop();
-        } else {
-            reminderTimer.start();
-        }
+        stopOrRestartTimer();
         propertyChangeSupport.firePropertyChange(Reminder.DISABLED_PROPERTY,
                 oldValue, disabled);
     }
@@ -171,11 +163,19 @@ public class Reminder {
         InternalSettings.set(Reminder.TIMEOUT_SETTING, timeout + "");
         reminderTimer.setDelay(timeout * 1000 * 60);
         reminderTimer.setInitialDelay(timeout * 1000 * 60);
-        if (reminderTimer.isRunning()) {
-            reminderTimer.restart();
-        }
+        stopOrRestartTimer();
         propertyChangeSupport.firePropertyChange(Reminder.TIMEOUT_PROPERTY,
                 oldValue, timeout);
+    }
+
+    /**
+     * Stop or restart the timer, as applicable based on current environment.
+     */
+    private void stopOrRestartTimer() {
+        if (!isDisabled() && pdash.getTimeLoggingModel().isLoggingAllowed())
+            reminderTimer.restart();
+        else
+            reminderTimer.stop();
     }
 
     /**
@@ -184,13 +184,14 @@ public class Reminder {
     public void remind() {
         String messageKey;
         if (pdash.getTimeLoggingModel().isPaused()) {
-            messageKey = "Pause_Reminder";
+            messageKey = "Pause_Reminder_FMT";
         } else {
-            messageKey = "Active_Reminder";
+            messageKey = "Active_Reminder_FMT";
         }
-        String msgBody = Reminder.resource.format(messageKey, pdash
-                .getActiveTaskModel().getPath());
-        String msgTitle = Reminder.resource.getString("Title");
+        String windowTitle = pdash.getTitle();
+        String msgBody = Reminder.resource.format(messageKey, windowTitle,
+                pdash.getActiveTaskModel().getPath());
+        String msgTitle = Reminder.resource.format("Title_FMT", windowTitle);
         Reminder.this.icon.displayMessage(msgTitle, msgBody,
                 TrayIcon.MessageType.NONE);
     }

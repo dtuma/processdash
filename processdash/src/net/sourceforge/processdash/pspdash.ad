@@ -179,5 +179,7 @@ systemTray.tooltipMaxLen=64
 os-windows.systemTray.tooltipFormat={0}\u000A{1}\u000A{2}
 os-windows.systemTray.tooltipMaxLen=127
 
+reminder.disabled=true
+
 os-mac.mainWindow.paddingRight=6
 os-mac.datatips.disabled=true
