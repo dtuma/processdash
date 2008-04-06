@@ -38,6 +38,7 @@ public class WorkflowEditor {
         this.teamProject = teamProject;
         this.workflowModel = new WorkflowModel
             (teamProject.getWorkflows(), teamProject.getTeamProcess());
+        this.workflowModel.setEditingEnabled(teamProject.isReadOnly() == false);
         table = createWorkflowJTable
             (workflowModel, teamProject.getTeamProcess());
         table.setEditingEnabled(teamProject.isReadOnly() == false);

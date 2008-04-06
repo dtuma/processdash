@@ -15,7 +15,6 @@ import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
-import javax.swing.JMenuItem;
 import javax.swing.JScrollPane;
 import javax.swing.JToolBar;
 import javax.swing.event.TableModelEvent;
@@ -52,6 +51,7 @@ public class MilestonesEditor {
             MilestonesDataModel milestonesModel) {
         this.teamProject = teamProject;
         this.milestonesModel = milestonesModel;
+        this.milestonesModel.setEditingEnabled(teamProject.isReadOnly() == false);
         table = createMilestonesJTable();
         table.setEditingEnabled(teamProject.isReadOnly() == false);
         buildToolbar();
@@ -125,7 +125,8 @@ public class MilestonesEditor {
 
     private static JMenu makeNodeTypeMenu() {
         JMenu result = new JMenu();
-        result.add(new JMenuItem("FIXME")); // FIXME
+        // no need to put anything in this menu, because node types are not
+        // editable in the milestones model.
         return result;
     }
 
@@ -175,6 +176,8 @@ public class MilestonesEditor {
 
         public SortMilestonesAction() {
             super("Sort by Commit Date", IconFactory.getSortDatesIcon());
+            if (teamProject.isReadOnly())
+                setEnabled(false);
         }
 
         public void actionPerformed(ActionEvent e) {
