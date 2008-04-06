@@ -735,18 +735,22 @@ public class WBSEditor implements WindowListener, SaveListener,
             Set expandedNodes = teamProject.getWBS().getExpandedNodeIDs();
             setExpandedNodesPref(teamProject.getProjectID(), expandedNodes);
 
-            if (workingDirectory != null)
-                workingDirectory.releaseLocks();
+            shutDown();
+        }
+    }
 
-            if (exitOnClose)
-                System.exit(0);
-            else {
-                if (teamListEditor != null) teamListEditor.hide();
-                if (workflowEditor != null) workflowEditor.hide();
-                if (milestonesEditor != null) milestonesEditor.hide();
-                frame.dispose();
-                disposed = true;
-            }
+    private void shutDown() {
+        if (workingDirectory != null)
+            workingDirectory.releaseLocks();
+
+        if (exitOnClose)
+            System.exit(0);
+        else {
+            if (teamListEditor != null) teamListEditor.hide();
+            if (workflowEditor != null) workflowEditor.hide();
+            if (milestonesEditor != null) milestonesEditor.hide();
+            frame.dispose();
+            disposed = true;
         }
     }
 
@@ -1300,16 +1304,15 @@ public class WBSEditor implements WindowListener, SaveListener,
                 // not have been otherwise altered. Finally, since no GUI
                 // windows will be visible anymore, we should exit.
                 save();
-                if (exitOnClose)
-                    System.exit(0);
+                shutDown();
             }
         }
     }
 
     public void itemCancelled(Object item) {
         if (item == teamListEditor) {
-            if (exitOnClose && !frame.isVisible())
-                System.exit(0);
+            if (!frame.isVisible())
+                shutDown();
         }
     }
 
