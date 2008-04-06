@@ -2,6 +2,7 @@ package teamdash.wbs.columns;
 
 import java.awt.Color;
 import java.util.HashSet;
+import java.util.Random;
 
 import javax.swing.JButton;
 import javax.swing.table.TableCellEditor;
@@ -94,7 +95,9 @@ public class MilestoneColorColumn extends AbstractDataColumn implements
                 return DEFAULT_COLORS[j];
         }
 
-         return "#ffffff";
+        Random r = new Random();
+        Color c = new Color(r.nextInt());
+        return ColorCellEditor.encodeColor(c);
     }
     private static final String[] DEFAULT_COLORS = {
         "#00ffff", // aqua
