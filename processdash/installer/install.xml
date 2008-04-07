@@ -39,9 +39,9 @@
         <res src="files/JHLicense.html" id="CondHTMLLicencePanel1.licence"/>
         <res src="files/JHLicense-list.txt" id="CondHTMLLicencePanel1.packList"/>
         <res src="files/custom-install-internal.ini" id="custom-install.ini"
-             excludeIf="pspForEng"/>
+             excludeIf="pspForEngInstr"/>
         <res src="files/custom-install-instr.ini" id="custom-install.ini"
-             includeIf="pspForEng"/>
+             includeIf="pspForEngInstr"/>
         <res src="files/text-eng.xml" id="text.xml"/>
         <res src="files/text-jpn.xml" id="text.xml_jpn"/>
         <res src="files/text-chn.xml" id="text.xml_chn"/>

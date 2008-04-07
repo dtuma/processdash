@@ -166,7 +166,7 @@ Authors:
         <loadfile property="custom-inst-instr"
 		  srcFile="files/custom-install-instr.ini"/>
         <antcall target="install-CD">
-            <param name="install.flags" value="pspForEng,noProc"/>
+            <param name="install.flags" value="pspForEng,pspForEngInstr,noProc"/>
 	    <param name="qualifier" value="instr"/>
 	    <param name="custom-install.extra" value="${custom-inst-instr}"/>
 	</antcall>
