@@ -103,7 +103,7 @@ public class WorkflowLibraryEditor {
         dialog = new JDialog(parent, title, true);
         buildContents();
         dialog.setSize(800, 600);
-        dialog.show();
+        dialog.setVisible(true);
     }
 
 
@@ -398,7 +398,7 @@ public class WorkflowLibraryEditor {
             return false;
         }
 
-        if (result.compatible(teamProject.getTeamProcess())) {
+        if (!result.compatible(teamProject.getTeamProcess())) {
             String message =
                 "The workflow library contained in the file\n"+
                 "     "+file+"\n"+
