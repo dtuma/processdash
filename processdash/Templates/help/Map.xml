@@ -107,6 +107,7 @@
   <mapID target="QuickOverview.webServer" url="Topics/Overview/QuickOverview.html#webServer" />
   <mapID target="CompletionButton.freeze" url="Topics/Planning/DataFreezing.html" />
   <mapID target="AccessingScripts.scriptIcons" url="Topics/Execution/AccessingScripts.html#scriptIcons" />
+  <mapID target="CustomLOCCounter" url="Topics/AdvancedTopics/CustomLOCCounter.html"/>
   <mapID target="DefiningOwnProcesses" url="Topics/AdvancedTopics/ProcessDefinition/DefiningProcesses.html"/>
   <mapID target="DashboardFindsFiles" url="Topics/AdvancedTopics/ProcessDefinition/HowDashboardFindsFiles.html"/>
   <mapID target="DashboardFindsFiles.sharing" url="Topics/AdvancedTopics/ProcessDefinition/HowDashboardFindsFiles.html#sharing"/>
