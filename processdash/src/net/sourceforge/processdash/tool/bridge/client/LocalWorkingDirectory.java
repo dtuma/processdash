@@ -72,8 +72,21 @@ public class LocalWorkingDirectory extends AbstractWorkingDirectory implements
             LockFailureException {
         File lockFile = new File(targetDirectory, lockFilename);
         writeLock = new FileConcurrencyLock(lockFile);
+        writeLock.setListenForLostLock(shouldMonitorWriteLock(lockFile));
         writeLock.setApprover(this);
         writeLock.acquireLock(null, lockHandler, ownerName);
+    }
+
+    private boolean shouldMonitorWriteLock(File lockFile) {
+        String setting = System.getProperty(MONITOR_WRITE_LOCK_USER_SETTING);
+        if ("true".equalsIgnoreCase(setting))
+            return true;
+        else if ("false".equalsIgnoreCase(setting))
+            return false;
+        else if (lockFile.getAbsolutePath().toLowerCase().startsWith("c:"))
+            return false;
+        else
+            return true;
     }
 
     public void approveLock(ConcurrencyLock lock, String extraInfo)
@@ -81,7 +94,6 @@ public class LocalWorkingDirectory extends AbstractWorkingDirectory implements
         List<String> filenames = FileUtils.listRecursively(targetDirectory,
             strategy.getFilenameFilter());
         for (String name : filenames) {
-            // AAAFIX: need to test and make certain this is still working properly
             File f = new File(targetDirectory, name);
             if (!f.canWrite())
                 throw new ReadOnlyLockFailureException();
@@ -121,5 +133,8 @@ public class LocalWorkingDirectory extends AbstractWorkingDirectory implements
         if (files == null || files.length == 0)
             workingDirectory.delete();
     }
+
+    private static final String MONITOR_WRITE_LOCK_USER_SETTING =
+        LocalWorkingDirectory.class.getName() + ".monitorWriteLock";
 
 }
