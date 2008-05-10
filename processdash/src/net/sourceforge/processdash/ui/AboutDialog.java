@@ -21,17 +21,47 @@
 
 package net.sourceforge.processdash.ui;
 
-import java.io.IOException;
+import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.Container;
 import java.awt.Frame;
-import javax.swing.*;
-import javax.swing.event.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.IOException;
+import java.net.URL;
 
-import net.sourceforge.processdash.ui.help.*;
+import javax.swing.BoxLayout;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.JEditorPane;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTabbedPane;
+import javax.swing.event.HyperlinkEvent;
+import javax.swing.event.HyperlinkListener;
+
+import net.sourceforge.processdash.i18n.Resources;
+import net.sourceforge.processdash.ui.help.PCSH;
 
 /**
  * Displays information about an application in a JEditorPane.
  */
 public class AboutDialog extends JDialog implements HyperlinkListener {
+
+    private static final int WINDOW_WIDTH = 560;
+    private static final int WINDOW_HEIGHT = 350;
+
+    private static final String ABOUT_TEXT_LOCATION = "/help/Topics/Overview/about.htm";
+    private static final String CREDITS_TEXT_LOCATION = "/help/Topics/Overview/credits.htm";
+    private static final String CONFIGURATION_TEXT_LOCATION = "/control/showenv.class?brief";
+
+    private static final String ABOUT_LOGO_LOCATION = "about.png";
+
+    Resources resources = Resources.getDashBundle("ProcessDashboard.About");
 
     /**
      * Creates a new AboutDialog.
@@ -41,26 +71,76 @@ public class AboutDialog extends JDialog implements HyperlinkListener {
      */
     public AboutDialog(Frame parent, String title, String text) {
         super(parent, title);
-        setSize(400, 400);
+        setSize(WINDOW_WIDTH, WINDOW_HEIGHT);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
-        JEditorPane jep = new JEditorPane();
-        jep.setContentType("text/html");
-        jep.setEditable(false);
-        jep.addHyperlinkListener(this);
+        Container pane = this.getContentPane();
+
+        // The logo which is outside the tabbed pane
+        Icon dashLogoIcon = getDashLogo();
+        JLabel dashLogo = new JLabel(dashLogoIcon);
+        dashLogo.setAlignmentX(Component.CENTER_ALIGNMENT);
+        pane.add(new JLabel(dashLogoIcon), BorderLayout.PAGE_START);
+
+        // The about content
+        JTabbedPane tabbedPane = new JTabbedPane();
+        pane.add(tabbedPane, BorderLayout.CENTER);
+
+        tabbedPane.addTab(resources.getString("Tab.About"),
+                          getContentPanel(ABOUT_TEXT_LOCATION));
+        tabbedPane.addTab(resources.getString("Tab.Credits"),
+                          getContentPanel(CREDITS_TEXT_LOCATION));
+        tabbedPane.addTab(resources.getString("Tab.Configuration"),
+                          getContentPanel(CONFIGURATION_TEXT_LOCATION));
+
+        // The OK button, below the tabbed pane.
+        JPanel buttonPane = new JPanel();
+        JButton okButton = new JButton(resources.getString("OK"));
+        okButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                setVisible(false);
+            }
+            });
+        buttonPane.add(okButton);
+        pane.add(buttonPane, BorderLayout.PAGE_END);
+
+        setVisible(true);
+    }
+
+    private JPanel getContentPanel(String textLocation) {
+        JPanel panel = new JPanel();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+
+        JEditorPane editorPane = getEditorPane(textLocation);
+
+        panel.add(new JScrollPane(editorPane));
+        return panel;
+    }
+
+    private JEditorPane getEditorPane(String text) {
+        JEditorPane editorPane = new JEditorPane();
+
+        editorPane.setContentType("text/html");
+        editorPane.setEditable(false);
+        editorPane.addHyperlinkListener(this);
+        editorPane.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         if (text.toLowerCase().startsWith("<html>")) {
-            jep.setText(text);
+            editorPane.setText(text);
         } else {
             try {
-                jep.setPage(Browser.mapURL(text));
+                editorPane.setPage(Browser.mapURL(text));
             } catch (IOException ioe) {
                 System.err.println(ioe);
             }
         }
 
-        getContentPane().add(new JScrollPane(jep));
-        show();
+        return editorPane;
+    }
+
+    private static ImageIcon getDashLogo() {
+        URL url = AboutDialog.class.getResource(ABOUT_LOGO_LOCATION);
+        return new ImageIcon(url);
     }
 
     /**

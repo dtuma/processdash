@@ -70,43 +70,89 @@ public class DisplayConfig extends TinyCGIBase {
     }
 
     private void printUserConfig() {
-        printRes("<HTML><HEAD><TITLE>${Title}</TITLE>");
-        out.print("<STYLE> .indent { margin-left: 1cm } </STYLE></HEAD>");
-        printRes("<BODY><H1>${Header}</H1>");
+        boolean brief = parameters.containsKey("brief");
 
-        printRes("<P>${Config_File_Header}");
+        printRes("<HTML><HEAD><TITLE>${Title}</TITLE>");
+
+        double indentLeftMargin = brief ? 0.3 : 1;
+        out.print("<STYLE> .indent { margin-left: " + indentLeftMargin + "cm }");
+
+        if (brief) {
+            out.print("body { font-size: small }");
+            out.print("sup { font-size: small }");
+        }
+        out.print("</STYLE>");
+
+        out.print("<HEAD>");
+        out.print("<BODY>");
+
+        if (!brief) {
+            printRes("<H1>${Header}</H1>");
+        }
+
+        // When we want brief info, where're not showing any header. <P> inserts a
+        //  line break and if there's no header, the text starts with a line break.
+        //  Since it doesn't look so good, we use a <DIV>
+        out.print(brief ? "<DIV>" : "<P>");
+
+        printRes("${Config_File_Header}");
         out.print("<PRE class='indent'>");
         out.println(DashController.getSettingsFileName());
-        out.println("</PRE></P>");
+        out.println("</PRE>");
+
+        out.print(brief ? "</DIV>" : "</P>");
 
         printRes("<P>${Data_Dir_Header}");
         out.print("<PRE class='indent'>");
         out.println(ProcessDashboard.getDefaultDirectory());
         out.println("</PRE></P>");
 
-        printRes("<P>${Add_On.Header}<br>&nbsp;");
+        printRes("<P>${Add_On.Header}");
 
-        List packages = TemplateLoader.getPackages();
+        List<DashPackage> packages = TemplateLoader.getPackages();
+
         if (packages == null || packages.size() < 2)
-            printRes("<P class='indent'><i>${Add_On.None}</i>");
+            printRes("<PRE class='indent'><i>${Add_On.None}</i></PRE>");
         else {
-            printRes("<table border class='indent' cellpadding='5'><tr>"
-                    + "<th>${Add_On.Name}</th>" //
-                    + "<th>${Add_On.Version}</th>"
-                    + "<th>${Add_On.Filename}</th></tr>");
-            for (Iterator i = packages.iterator(); i.hasNext();) {
-                DashPackage pkg = (DashPackage) i.next();
+                printRes("<br />&nbsp;"
+                         + "<table border class='indent' cellpadding='5'><tr>"
+                         + "<th>${Add_On.Name}</th>"
+                         + "<th>${Add_On.Version}</th>");
+
+                // We want the brief layout to be as compact as possible so we
+                //  don't display the "location" column
+                if (!brief) {
+                    printRes("<th>${Add_On.Filename}</th></tr>");
+                }
+
+            for (Iterator<DashPackage> i = packages.iterator(); i.hasNext();) {
+                DashPackage pkg = i.next();
+
                 if ("pspdash".equals(pkg.id))
                     continue;
-                out.print("<tr><td>");
-                out.print(HTMLUtils.escapeEntities(pkg.name));
-                out.print("</td><td>");
-                out.print(HTMLUtils.escapeEntities(pkg.version));
-                out.print("</td><td>");
-                out.print(HTMLUtils
-                        .escapeEntities(cleanupFilename(pkg.filename)));
-                out.println("</td></tr>");
+
+                    out.print("<tr><td>");
+                    out.print(HTMLUtils.escapeEntities(pkg.name));
+                    out.print("</td><td>");
+                    out.print(HTMLUtils.escapeEntities(pkg.version));
+                    out.print("</td>");
+
+                    if (!brief) {
+                        out.print("<td>" +
+                                  HTMLUtils.escapeEntities(cleanupFilename(pkg.filename)) +
+                                  "</td>");
+                    }
+
+                    out.println("</tr>");
             }
+            out.print("</TABLE>");
+        }
+
+        out.println("</P>");
+
+        // Showing a link to "more details" if we are in brief mode
+        if (brief) {
+            printRes("<p><a href=\"/control/showenv.class\">${More_Details}</a></p>");
         }
 
         out.println("</BODY></HTML>");
