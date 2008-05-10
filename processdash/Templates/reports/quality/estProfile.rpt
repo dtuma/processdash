@@ -1,0 +1,9 @@
+= Planned Radar Quality Profile Chart
+
+qf=profile.rpt
+
+d1==Design vs Code/Estimated Time Ratio
+d2==Code Review vs Code/Estimated Time Ratio
+d3==Compile/Estimated Defect Density
+d4==Test/Estimated Defect Density
+d5==Design Review vs Design/Estimated Time Ratio
