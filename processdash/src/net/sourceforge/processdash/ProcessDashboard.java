@@ -114,7 +114,6 @@ import net.sourceforge.processdash.tool.bridge.client.WorkingDirectoryFactory;
 import net.sourceforge.processdash.tool.export.mgr.ExportManager;
 import net.sourceforge.processdash.tool.export.mgr.ExternalResourceManager;
 import net.sourceforge.processdash.tool.export.mgr.ImportManager;
-import net.sourceforge.processdash.ui.AboutDialog;
 import net.sourceforge.processdash.ui.BetaVersionSetup;
 import net.sourceforge.processdash.ui.Browser;
 import net.sourceforge.processdash.ui.CompletionButton;
@@ -122,6 +121,7 @@ import net.sourceforge.processdash.ui.ConfigureButton;
 import net.sourceforge.processdash.ui.ConsoleWindow;
 import net.sourceforge.processdash.ui.DashboardIconFactory;
 import net.sourceforge.processdash.ui.DashboardSplashScreen;
+import net.sourceforge.processdash.ui.DashboardWelcomePane;
 import net.sourceforge.processdash.ui.PercentSpentIndicator;
 import net.sourceforge.processdash.ui.TaskNavigationSelector;
 import net.sourceforge.processdash.ui.UserNotificationManager;
@@ -129,11 +129,11 @@ import net.sourceforge.processdash.ui.help.PCSH;
 import net.sourceforge.processdash.ui.lib.ErrorReporter;
 import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
 import net.sourceforge.processdash.ui.systray.SystemTrayManagement;
-import net.sourceforge.processdash.util.Initializable;
 import net.sourceforge.processdash.util.FallbackObjectFactory;
 import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.FormatUtil;
 import net.sourceforge.processdash.util.HTTPUtils;
+import net.sourceforge.processdash.util.Initializable;
 import net.sourceforge.processdash.util.ProfTimer;
 import net.sourceforge.processdash.util.StringUtils;
 import net.sourceforge.processdash.util.lock.AlreadyLockedException;
@@ -753,10 +753,8 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         return getContentPane().add(component);
     }
 
-    private static final String FIRST_TIME_HELP_URL = "/help/first-use.htm";
     private void displayFirstTimeUserHelp() {
-        new AboutDialog(null, resources.getString("Welcome_Dialog_Title"),
-                        FIRST_TIME_HELP_URL);
+        new DashboardWelcomePane(this);
     }
     private boolean safeInstanceof(Object c, String className) {
         Class clz = c.getClass();

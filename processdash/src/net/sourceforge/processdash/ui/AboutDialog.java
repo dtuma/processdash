@@ -70,11 +70,8 @@ public class AboutDialog extends JDialog implements HyperlinkListener {
 
     /**
      * Creates a new AboutDialog.
-     * @param text The text to display. If it begins with &lt;html&gt; it'll
-     *         display directly what you wrote or else it asumes that
-     *        you wanted it to display a location.
      */
-    public AboutDialog(Frame parent, String title, String text) {
+    public AboutDialog(Frame parent, String title) {
         super(parent, title);
         setSize(WINDOW_WIDTH, WINDOW_HEIGHT);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);

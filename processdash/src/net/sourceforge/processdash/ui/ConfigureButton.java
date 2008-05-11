@@ -313,7 +313,7 @@ public class ConfigureButton extends JMenuBar implements ActionListener, Hierarc
     public void showPrintableManual() { Browser.launch(PRINT_URL); }
 
     public void startAboutDialog() {
-        new AboutDialog(parent, resources.getString(HELP_ABOUT), ABOUT_URL);
+        new AboutDialog(parent, resources.getString(HELP_ABOUT));
     }
 
     public void submitBug () { Browser.launch(BUG_URL); }
