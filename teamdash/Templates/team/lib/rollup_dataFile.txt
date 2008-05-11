@@ -5,6 +5,7 @@
 #include <ROLLUP:PID>;
 undefine([Historical Data Tag]);
 [Exclude Children of Rollup_List for Defects] = tag;
+[Quality Profile Capable] = tag;
 
 /*
  * Store the list of phases, for use by other calculations.
