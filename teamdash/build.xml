@@ -3,7 +3,7 @@
 
   <property file="build.properties"/>
 
-  <property name="teamtools.version" value="3.5.1"/>
+  <property name="teamtools.version" value="3.5.2"/>
   <property name="teamtools.requires" value="1.9.4+"/>
 
   <property name="processdash.dir" value="../processdash"/>
@@ -41,6 +41,13 @@
     <property name="teamProcess.zip" value="TSP-v1.zip"/>
     <property name="install-flags" value="pspForEng"/>
     <property name="cd-qualifier" value="tsp"/>
+  </target>
+
+  <target name="sandia">
+    <property name="teamProcess.xml" value="RUPv1.xml"/>
+    <property name="teamProcess.zip" value="RUP-v1,0,0.zip"/>
+    <property name="install-flags" value="pspForEng"/>
+    <property name="cd-qualifier" value="sandia"/>
   </target>
 
   <target name="vvis">
@@ -358,6 +365,7 @@ class dependency has been added in a dashboard class?)
   <target name="dist-all" depends="installer-cd"/>
   <target name="os-dist" depends="installer-cd"/>
   <target name="tsp-dist" depends="tsp,installer-cd"/>
+  <target name="sandia-dist" depends="sandia,installer-cd"/>
 
   <target name="signjar" if="env.TDKSPW">
     <exec executable="c:/java/jdk1.4.2/bin/jarsigner.exe">
