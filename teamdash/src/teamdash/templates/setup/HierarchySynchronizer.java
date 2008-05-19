@@ -1297,7 +1297,7 @@ public class HierarchySynchronizer {
             String nodeID = node.getAttribute(ID_ATTR);
             String taskID = node.getAttribute(TASK_ID_ATTR);
             try {
-                forceData(path, TeamDataConstants.WBS_ID_DATA_NAME,
+                putData(path, TeamDataConstants.WBS_ID_DATA_NAME,
                     StringData.create(nodeID));
                 if (!isPrunedNode(node))
                     setTaskIDs(path, taskID);
