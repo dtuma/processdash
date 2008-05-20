@@ -283,6 +283,24 @@ public class WBSTabPanel extends JPanel
         return wbsTable.getMasterActions(project);
     }
 
+    public void addChangeListener(ChangeListener l) {
+        undoList.addChangeListener(l);
+    }
+
+    public void removeChangeListener(ChangeListener l) {
+        undoList.removeChangeListener(l);
+    }
+
+    /**
+     * We only keep one Listeners list and we keep it in the UndoList. The
+     *  UndoList will automatically notify listeners when a change is made to
+     *  the model. However, if we want to notify the listeners when a change
+     *  related to the view occurs, we have to "force" the notification.
+     */
+    private void notifyAllListeners() {
+        undoList.notifyAllChangeListeners();
+    }
+
     private interface EnablementCalculation {
         public void recalculateEnablement(int selectedTabIndex);
     }
@@ -318,6 +336,7 @@ public class WBSTabPanel extends JPanel
             int tabIndex = addTab(tabName, new DefaultTableColumnModel(), new TabProperties(true, false));
             tabbedPane.setSelectedIndex(tabIndex);
             showColumnSelector();
+            notifyAllListeners();
         }
     }
     final NewTabAction NEW_TAB_ACTION = new NewTabAction();
@@ -337,6 +356,7 @@ public class WBSTabPanel extends JPanel
                 return;
 
             tabbedPane.setTitleAt(tabbedPane.getSelectedIndex(), tabName);
+            notifyAllListeners();
         }
 
         public void recalculateEnablement(int selectedTabIndex) {
@@ -364,6 +384,7 @@ public class WBSTabPanel extends JPanel
             int tabIndex = addTab(tabName, columns, new TabProperties(true, false));
             tabbedPane.setSelectedIndex(tabIndex);
             showColumnSelector();
+            notifyAllListeners();
         }
 
         public void recalculateEnablement(int selectedTabIndex) {
@@ -388,6 +409,8 @@ public class WBSTabPanel extends JPanel
 
                 if (!editableTabsExist())
                     EXPORT_TABS_ACTION.setEnabled(false);
+
+                notifyAllListeners();
             }
         }
 
@@ -405,6 +428,7 @@ public class WBSTabPanel extends JPanel
 
         public void actionPerformed(ActionEvent e) {
             showColumnSelector();
+            notifyAllListeners();
         }
 
         public void recalculateEnablement(int selectedTabIndex) {
@@ -474,8 +498,10 @@ public class WBSTabPanel extends JPanel
         public void actionPerformed(ActionEvent e) {
             try {
                 File file = getFile();
-                if (null != file)
+                if (null != file) {
                     loadTabs(file);
+                    notifyAllListeners();
+                }
             } catch (LoadTabsException exception) {
                 JOptionPane.showMessageDialog(tabbedPane, exception.getMessage(),
                         "Import Tabs", JOptionPane.ERROR_MESSAGE);

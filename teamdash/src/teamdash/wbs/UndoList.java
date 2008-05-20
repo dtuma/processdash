@@ -14,6 +14,9 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.CellEditor;
 import javax.swing.JComponent;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+import javax.swing.event.EventListenerList;
 
 import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
 
@@ -59,6 +62,10 @@ public class UndoList {
      * table cell editing sessions. */
     private boolean currentlyCancelingEditors = false;
 
+    /** A list of ChangeListeners that should be notified when an undo or a
+     *  redo operation is made */
+    private EventListenerList changeListeners;
+
 
     /** Create a new UndoList for the given {@link SnapshotSource} */
     public UndoList(SnapshotSource snapshotSource) {
@@ -74,6 +81,7 @@ public class UndoList {
         customActions.add(new ActionMapping(KeyEvent.VK_Y, KEY_MODIFIER,
                 "Redo", redoAction));
         this.currentState = snapshotSource.getSnapshot();
+        this.changeListeners = new EventListenerList();
     }
 
     /** Retrieve an action that triggers an undo operation */
@@ -97,6 +105,7 @@ public class UndoList {
     private void refreshActions() {
         undoAction.setEnabled(isUndoAvailable());
         redoAction.setEnabled(isRedoAvailable());
+        notifyAllChangeListeners();
     }
 
     /** Cancel any editing sessions in progress for the
@@ -167,6 +176,22 @@ public class UndoList {
         redoList = null;
         currentState = snapshotSource.getSnapshot();
         refreshActions();
+    }
+
+    public void addChangeListener(ChangeListener l) {
+        changeListeners.add(ChangeListener.class, l);
+    }
+
+    public void removeChangeListener(ChangeListener l) {
+        changeListeners.remove(ChangeListener.class, l);
+    }
+
+    protected void notifyAllChangeListeners() {
+        ChangeEvent e = new ChangeEvent(this);
+
+        for (ChangeListener l : changeListeners.getListeners(ChangeListener.class)) {
+            l.stateChanged(e);
+        }
     }
 
     /** An action that can be used to trigger an undo operation */

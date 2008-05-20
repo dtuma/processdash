@@ -97,6 +97,8 @@ public class WBSEditor implements WindowListener, SaveListener,
     boolean exitOnClose = false;
     String syncURL = null;
     boolean disposed = false;
+    private boolean dirty = false;
+    private DirtyListener dirtyListener;
 
     private TeamMemberListEditor teamListEditor = null;
     private WorkflowEditor workflowEditor = null;
@@ -128,6 +130,8 @@ public class WBSEditor implements WindowListener, SaveListener,
         this.workflowDumpFile = new File(storageDir, WORKFLOW_DUMP_FILE);
         this.customTabsFile = new File(storageDir, CUSTOM_TABS_FILE);
         this.readOnly = teamProject.isReadOnly();
+        this.dirtyListener = new DirtyListener();
+        setDirty(false);
 
         setMode(teamProject);
 
@@ -231,6 +235,8 @@ public class WBSEditor implements WindowListener, SaveListener,
             tabPanel.loadTabs(customTabsFile);
         } catch (LoadTabsException e) {
         }
+
+        tabPanel.addChangeListener(this.dirtyListener);
 
         teamTimePanel =
             new TeamTimePanel(teamProject.getTeamMemberList(), data,
@@ -407,6 +413,7 @@ public class WBSEditor implements WindowListener, SaveListener,
             workflowEditor.show();
         else {
             workflowEditor = new WorkflowEditor(teamProject);
+            workflowEditor.addChangeListener(this.dirtyListener);
             //workflowEditor.addSaveListener(this);
         }
     }
@@ -416,6 +423,7 @@ public class WBSEditor implements WindowListener, SaveListener,
             milestonesEditor.show();
         else {
             milestonesEditor = new MilestonesEditor(teamProject, milestonesModel);
+            milestonesEditor.addChangeListener(this.dirtyListener);
         }
         milestonesEditor.show();
     }
@@ -527,6 +535,7 @@ public class WBSEditor implements WindowListener, SaveListener,
         SaveThread saver = new SaveThread(dialog);
         saver.start();
         dialog.setVisible(true);
+        setDirty(!saver.saveResult);
         return saver.saveResult;
     }
 
@@ -730,7 +739,7 @@ public class WBSEditor implements WindowListener, SaveListener,
 
     protected void maybeClose() {
         tabPanel.stopCellEditing();
-        if (maybeSave(true)) {
+        if (!isDirty() || maybeSave(true)) {
             // Set expanded nodes preference
             Set expandedNodes = teamProject.getWBS().getExpandedNodeIDs();
             setExpandedNodesPref(teamProject.getProjectID(), expandedNodes);
@@ -992,6 +1001,22 @@ public class WBSEditor implements WindowListener, SaveListener,
                 StringUtils.join(value, EXPANDED_NODES_DELIMITER));
     }
 
+    private void setDirty(boolean isDirty) {
+        this.dirty = isDirty;
+
+        if (frame != null) {
+            MacGUIUtils.setDirty(frame, isDirty);
+        }
+
+        if (this.saveAction != null) {
+            this.saveAction.setEnabled(!readOnly && isDirty());
+        }
+    }
+
+    private boolean isDirty() {
+        return this.dirty;
+    }
+
     public static void main(String args[]) {
         ExternalLocationMapper.getInstance().loadDefaultMappings();
 
@@ -1013,7 +1038,7 @@ public class WBSEditor implements WindowListener, SaveListener,
         public SaveAction() {
             super("Save");
             putValue(MNEMONIC_KEY, new Integer('S'));
-            setEnabled(!readOnly);
+            setEnabled(!readOnly && isDirty());
         }
         public void actionPerformed(ActionEvent e) {
             save();
@@ -1290,8 +1315,16 @@ public class WBSEditor implements WindowListener, SaveListener,
         }
     }
 
+    private class DirtyListener implements ChangeListener {
+        public void stateChanged(ChangeEvent e) {
+            setDirty(true);
+        }
+    }
+
     public void itemSaved(Object item) {
         if (item == teamListEditor) {
+            setDirty(true);
+
             if (!frame.isVisible()) {
                 // The frame containing the WBSEditor itself is not visible.
                 // Thus, the user must have just opened the team member list

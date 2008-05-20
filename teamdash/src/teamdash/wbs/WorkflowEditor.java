@@ -17,6 +17,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.JToolBar;
+import javax.swing.event.ChangeListener;
 import javax.swing.table.TableColumn;
 
 /** A graphical user interface for editing common workflows.
@@ -33,6 +34,8 @@ public class WorkflowEditor {
     JFrame frame;
     /** A toolbar for editing the workflows */
     JToolBar toolBar;
+    /** An object for tracking undo operations */
+    UndoList undoList;
 
     public WorkflowEditor(TeamProject teamProject) {
         this.teamProject = teamProject;
@@ -41,6 +44,10 @@ public class WorkflowEditor {
         this.workflowModel.setEditingEnabled(teamProject.isReadOnly() == false);
         table = createWorkflowJTable
             (workflowModel, teamProject.getTeamProcess());
+
+        undoList = new UndoList(workflowModel.getWBSModel());
+        undoList.setForComponent(table);
+
         table.setEditingEnabled(teamProject.isReadOnly() == false);
         buildToolbar();
         frame = new JFrame(teamProject.getProjectName() +
@@ -115,6 +122,8 @@ public class WorkflowEditor {
         toolBar.setFloatable(false);
         toolBar.setMargin(new Insets(0,0,0,0));
 
+        addToolbarButton(undoList.getUndoAction());
+        addToolbarButton(undoList.getRedoAction());
         addToolbarButtons(table.getEditingActions());
         toolBar.addSeparator();
         addToolbarButtons(getWorkflowActions());
@@ -141,6 +150,14 @@ public class WorkflowEditor {
                     IconFactory.DISABLED_ICON));
 
         toolBar.add(button);
+    }
+
+    public void addChangeListener(ChangeListener l) {
+        undoList.addChangeListener(l);
+    }
+
+    public void removeChangeListener(ChangeListener l) {
+        undoList.removeChangeListener(l);
     }
 
     private static class WorkflowCellEditor extends DefaultCellEditor {
@@ -189,6 +206,7 @@ public class WorkflowEditor {
         public void actionPerformed(ActionEvent e) {
             try {
                 new WorkflowLibraryEditor(teamProject, frame, false);
+                undoList.madeChange("Imported workflows");
             } catch (WorkflowLibraryEditor.UserCancelledException uce) {
             } catch (Exception ex) {
                 ex.printStackTrace();

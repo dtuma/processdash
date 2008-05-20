@@ -17,6 +17,7 @@ import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JToolBar;
+import javax.swing.event.ChangeListener;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.TableColumn;
@@ -169,6 +170,14 @@ public class MilestonesEditor {
                 IconFactory.DISABLED_ICON));
 
         toolBar.add(button);
+    }
+
+    public void addChangeListener(ChangeListener l) {
+        undoList.addChangeListener(l);
+    }
+
+    public void removeChangeListener(ChangeListener l) {
+        undoList.removeChangeListener(l);
     }
 
     private class SortMilestonesAction extends AbstractAction implements
