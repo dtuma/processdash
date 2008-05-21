@@ -448,6 +448,8 @@ public class ProcessDashboard extends JFrame implements WindowListener,
             logErr("when generating default datafile, caught exception", exc);
         }
         pt.click("Opened data files");
+        data.fixMisparentedData();
+        pt.click("Fixed misparented data");
 
         try {
             objectCache =

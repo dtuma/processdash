@@ -1604,6 +1604,66 @@ public class DataRepository implements Repository, DataContext,
             }
         }
 
+        public void fixMisparentedData() {
+            if (saveDisabled)
+                return;
+
+            for (Iterator i = getInternalKeys(); i.hasNext();) {
+                String dataName = (String) i.next();
+                DataElement d = (DataElement) data.get(dataName);
+                maybeReparent(dataName, d);
+            }
+        }
+
+        private void maybeReparent(String dataName, DataElement d) {
+            // don't reparent values that are inherited (or inheritable)
+            if (d.isDefaultName || d.isDefaultValue)
+                return;
+
+            // check the data file currently hosting the element. Make no
+            // changes unless this is a regular datafile that we can write to.
+            DataFile curr = d.datafile;
+            if (curr == null || curr.file == null || !curr.canWrite)
+                return;
+
+            // Take a look at the local name of the element within its current
+            // datafile.  If that local name contains no slash characters, the
+            // element can't belong to a child datafile.  Thus, we can avoid the
+            // expense of the guessDataFile call.
+            int currPrefixLength = curr.prefix.length() + 1;
+            if (dataName.indexOf('/', currPrefixLength) == -1)
+                return;
+
+            // Find out which datafile seems most appropriate for this element.
+            // Make no changes unless we find a writable datafile that is deeper
+            // in the hierarchy than the current datafile.
+            DataFile f = guessDataFile(dataName, REQUIRE_WRITABLE);
+            if (f == null || f == curr || f.file == null || !f.canWrite)
+                return;
+            int newPrefixLength = f.prefix.length() + 1;
+            if (newPrefixLength == 1 || newPrefixLength <= currPrefixLength
+                    || dataName.length() <= newPrefixLength)
+                return;
+
+            // At this point, we've decided we want to make the switch.  Check to
+            // see if the data element will be overwriting a default name inherited
+            // by the new datafile.
+            boolean isDefaultName = false;
+            if (f.inheritedDefinitions != null) {
+                String newLocalName = dataName.substring(newPrefixLength);
+                isDefaultName = f.inheritedDefinitions.containsKey(newLocalName);
+            }
+
+            // make the change.
+            d.datafile = f;
+            d.isDefaultName = isDefaultName;
+            logger.log(Level.INFO, "Reparented data element {0}", dataName);
+
+            // now mark both datafiles as modified, so they will be saved.
+            curr.dirtyCount++;
+            f.dirtyCount++;
+        }
+
 
         private static final boolean disableSerialization = true;
         private boolean definitionsDirty = true;
