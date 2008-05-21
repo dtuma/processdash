@@ -283,8 +283,8 @@ public class DataImporter extends Thread {
     }
 
     public void dispose() {
-        for (Iterator i = modTimes.keySet().iterator(); i.hasNext();) {
-            closeFile((File) i.next());
+        for (Object f : new ArrayList(modTimes.keySet())) {
+            closeFile((File) f);
         }
     }
 
