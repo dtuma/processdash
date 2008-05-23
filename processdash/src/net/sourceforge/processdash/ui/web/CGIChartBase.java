@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2007 Tuma Solutions, LLC
+// Copyright (C) 2003-2008 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -30,7 +30,6 @@ import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.GradientPaint;
 import java.awt.Graphics2D;
-import java.awt.Insets;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
@@ -41,13 +40,15 @@ import net.sourceforge.processdash.i18n.Translator;
 import net.sourceforge.processdash.ui.lib.JpegEncoder;
 
 import org.jfree.chart.JFreeChart;
-import org.jfree.chart.StandardLegend;
-import org.jfree.chart.TextTitle;
 import org.jfree.chart.axis.Axis;
 import org.jfree.chart.axis.CategoryAxis;
+import org.jfree.chart.axis.CategoryLabelPositions;
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.plot.CategoryPlot;
 import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.chart.title.LegendTitle;
+import org.jfree.chart.title.TextTitle;
+import org.jfree.ui.RectangleInsets;
 
 
 
@@ -60,6 +61,7 @@ public abstract class CGIChartBase extends net.sourceforge.processdash.ui.web.Ti
     private static Color INVISIBLE = new Color(1f, 1f, 1f, 0f);
 
     /** Write the CGI header. */
+    @Override
     protected void writeHeader() {
         out.print("Content-type: image/jpeg\r\n\r\n");
         out.flush();
@@ -81,6 +83,7 @@ public abstract class CGIChartBase extends net.sourceforge.processdash.ui.web.Ti
     }
 
     /** Generate CGI chart output. */
+    @Override
     protected void writeContents() throws IOException {
         buildData();            // get the data for display
 
@@ -110,9 +113,9 @@ public abstract class CGIChartBase extends net.sourceforge.processdash.ui.web.Ti
         }
 
         if (chromeless || parameters.get("hideLegend") != null)
-            chart.setLegend(null);
+            chart.removeLegend();
         else {
-            StandardLegend l = (StandardLegend) chart.getLegend();
+            LegendTitle l = chart.getLegend();
             String legendFontSize = getSetting("legendFontSize");
             if (l != null && legendFontSize != null) try {
                 float fontSize = Float.parseFloat(legendFontSize);
@@ -278,14 +281,14 @@ public abstract class CGIChartBase extends net.sourceforge.processdash.ui.web.Ti
             catAxis.setLabel(catAxisLabel);
             otherAxis.setLabel(otherAxisLabel);
             if ("vertical".equalsIgnoreCase(catLabels))
-                catAxis.setVerticalCategoryLabels(true);
+                catAxis.setCategoryLabelPositions(CategoryLabelPositions.UP_45);
             else if ("none".equalsIgnoreCase(catLabels))
                 catAxis.setTickLabelsVisible(false);
         }
 
         if (data.numCols() == 1) {
-            chart.setLegend(null);
-            chart.getPlot().setInsets(new Insets(5,2,2,5));
+            chart.removeLegend();
+            chart.getPlot().setInsets(new RectangleInsets(5,2,2,5));
         }
     }
 

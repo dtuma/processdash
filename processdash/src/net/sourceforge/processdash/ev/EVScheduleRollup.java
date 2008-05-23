@@ -25,9 +25,13 @@
 
 package net.sourceforge.processdash.ev;
 
-import java.util.*;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.Vector;
 
-import org.jfree.data.XYDataset;
+import org.jfree.data.xy.XYDataset;
 
 /** This class represents a schedule that has been rolled up from
  *  several subschedules.  The subschedules can be plain schedules OR
@@ -290,6 +294,7 @@ public class EVScheduleRollup extends EVSchedule {
 
 
 
+    @Override
     public Date getHypotheticalDate(double cumPlanTime, boolean useDTPI) {
         if (!calcHypotheticalDates) return null;
 
@@ -345,23 +350,32 @@ public class EVScheduleRollup extends EVSchedule {
 
     public void saveActualTaskInfo(Date when, double planValue,
                                    double actualTime) { }
+    @Override
     protected synchronized boolean addHours(double requiredCumPlanTime) {
         return false; }
+    @Override
     protected synchronized boolean grow(boolean automatic) {
         return false; }
+    @Override
     public synchronized void deleteRow(int row) { }
+    @Override
     public synchronized void insertRow(int row) { }
+    @Override
     public synchronized void addRow() { }
 
+    @Override
     public synchronized void cleanUp() {
         prepForEvents();
         defaultPlanDirectTime = defaultPlanTotalTime = 0;
     }
 
+    @Override
     public boolean isCellEditable(int rowIndex, int columnIndex) {
         return false;
     }
+    @Override
     public void setValueAt(Object aValue, int rowIndex, int columnIndex) { }
+    @Override
     public boolean rowIsAutomatic(int row) { return false; }
 
     static Date maxDate(Date a, Date b) {
@@ -375,17 +389,18 @@ public class EVScheduleRollup extends EVSchedule {
         return (a.before(b) ? a : b);
     }
 
-    private static final String OPTIMIZED_LABEL =
-        resources.getString("Schedule.Optimized_Label");
     private class OptForecastChartSeries extends ForecastChartSeries {
-        public String getSeriesName() { return OPTIMIZED_LABEL; }
-        public String getSeriesID()  { return "Optimized_Forecast"; }
+        @Override
+        public String getSeriesKey()  { return "Optimized_Forecast"; }
+        @Override
         protected Date getForecastDate() {
             return ((EVMetricsRollup) metrics).optimizedForecastDate();
         }
+        @Override
         protected Date getForecastDateLPI() {
             return  ((EVMetricsRollup) metrics).optimizedForecastDateLPI();
         }
+        @Override
         protected Date getForecastDateUPI() {
             return  ((EVMetricsRollup) metrics).optimizedForecastDateUPI();
         }
@@ -407,6 +422,7 @@ public class EVScheduleRollup extends EVSchedule {
             maybeAddSeries(optForecast);
         }
     }
+    @Override
     public XYDataset getValueChartData() {
         ValueChartData result = new RollupValueChartData();
         result.recalc();

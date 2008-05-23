@@ -1,5 +1,5 @@
+// Copyright (C) 2003-2008 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -31,15 +31,16 @@ import net.sourceforge.processdash.ui.web.CGIChartBase;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.plot.PiePlot;
-import org.jfree.data.CategoryDataset;
-import org.jfree.data.DatasetUtilities;
-import org.jfree.data.PieDataset;
+import org.jfree.data.category.CategoryDataset;
+import org.jfree.data.general.DatasetUtilities;
+import org.jfree.data.general.PieDataset;
 
 
 
 public class PieChart extends CGIChartBase {
 
     /** Create a  line chart. */
+    @Override
     public JFreeChart createChart() {
         CategoryDataset catData = data.catDataSource();
         PieDataset pieData = null;
@@ -50,7 +51,7 @@ public class PieChart extends CGIChartBase {
 
         JFreeChart chart = null;
         if (get3DSetting()) {
-            chart = ChartFactory.createPie3DChart
+            chart = ChartFactory.createPieChart3D
                 (null, pieData, true, false, false);
             chart.getPlot().setForegroundAlpha(ALPHA);
         } else {
@@ -60,12 +61,11 @@ public class PieChart extends CGIChartBase {
 
         PiePlot plot = (PiePlot) chart.getPlot();
         if (parameters.get("skipWedgeLabels") != null)
-            plot.setSectionLabelType(PiePlot.NO_LABELS);
+            plot.setLabelGenerator(null);
         else if (parameters.get("wedgeLabelFontSize") != null) try {
             float fontSize =
                 Float.parseFloat(getParameter("wedgeLabelFontSize"));
-            plot.setSeriesLabelFont
-                (plot.getSeriesLabelFont().deriveFont(fontSize));
+            plot.setLabelFont(plot.getLabelFont().deriveFont(fontSize));
         } catch (Exception lfe) {}
         if (parameters.get("ellipse") != null)
             plot.setCircular(true);
@@ -80,6 +80,11 @@ public class PieChart extends CGIChartBase {
         if (interiorSpacing != null) try {
             plot.setInteriorGap(Integer.parseInt(interiorSpacing) / 200.0);
         } catch (NumberFormatException e) {}
+
+        if (!parameters.containsKey("showZeroValues")) {
+            plot.setIgnoreZeroValues(true);
+            plot.setIgnoreNullValues(true);
+        }
 
         return chart;
     }

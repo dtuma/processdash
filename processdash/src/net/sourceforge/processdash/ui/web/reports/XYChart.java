@@ -1,5 +1,5 @@
+// Copyright (C) 2003-2008 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -35,14 +35,15 @@ import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.Axis;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
-import org.jfree.chart.renderer.StandardXYItemRenderer;
-import org.jfree.data.XYDataset;
+import org.jfree.chart.renderer.xy.StandardXYItemRenderer;
+import org.jfree.data.xy.XYDataset;
 
 
 
 public class XYChart extends CGIChartBase {
 
     /** Create a scatter plot. */
+    @Override
     public JFreeChart createChart() {
         JFreeChart chart;
         String xLabel = null, yLabel = null;
@@ -79,22 +80,24 @@ public class XYChart extends CGIChartBase {
         }
 
         if (data.numCols() == 2)
-            chart.setLegend(null);
+            chart.removeLegend();
 
         return chart;
     }
 
     private void addTrendLine(JFreeChart chart, XYDataset dataset) {
         XYPlot plot = chart.getXYPlot();
-        plot.setSecondaryDataset(0, dataset);
-        plot.setSecondaryRenderer
-            (0, new StandardXYItemRenderer(StandardXYItemRenderer.LINES));
+        plot.setDataset(1, dataset);
+        plot.setRenderer
+            (1, new StandardXYItemRenderer(StandardXYItemRenderer.LINES));
     }
 
+    @Override
     public void massageParameters() {
         //parameters.put("order", parameters.get("d1"));
     }
 
+    @Override
     protected Axis getAxis(JFreeChart chart, PlotOrientation dir) {
         try {
             XYPlot p = chart.getXYPlot();

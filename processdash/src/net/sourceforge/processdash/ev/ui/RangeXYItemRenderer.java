@@ -1,5 +1,5 @@
+// Copyright (C) 2003-2008 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -37,15 +37,15 @@ import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 
-import org.jfree.chart.plot.PlotRenderingInfo;
-import org.jfree.chart.CrosshairInfo;
 import org.jfree.chart.axis.ValueAxis;
+import org.jfree.chart.plot.CrosshairState;
 import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.chart.plot.PlotRenderingInfo;
 import org.jfree.chart.plot.XYPlot;
-import org.jfree.chart.renderer.StandardXYItemRenderer;
-import org.jfree.chart.renderer.XYItemRendererState;
+import org.jfree.chart.renderer.xy.StandardXYItemRenderer;
+import org.jfree.chart.renderer.xy.XYItemRendererState;
 import org.jfree.data.RangeInfo;
-import org.jfree.data.XYDataset;
+import org.jfree.data.xy.XYDataset;
 import org.jfree.ui.RectangleEdge;
 
 
@@ -61,6 +61,7 @@ public class RangeXYItemRenderer extends StandardXYItemRenderer {
 
     /** Draws the visual representation of a single data item.
      */
+    @Override
     public void drawItem(Graphics2D g2,
                          XYItemRendererState state,
                          Rectangle2D dataArea,
@@ -71,20 +72,8 @@ public class RangeXYItemRenderer extends StandardXYItemRenderer {
                          XYDataset dataset,
                          int series,
                          int item,
-                         CrosshairInfo crosshairInfo,
+                         CrosshairState crosshairInfo,
                          int pass) {
-
-        // the next two lines "pretend" to invoke the method in the superclass
-        // that we are overriding.  In reality this code vanishes due to the
-        // conditional compilation feature in Java (the FALSE_VALUE_... is
-        // a constant evaluating to false).  However, it must still compile
-        // or we'll get an error;  this error alerts us to the fact that the
-        // signature of the overridden method has changed (and we need to
-        // change to match).
-        if (FALSE_VALUE_FOR_OVERRIDE_CHECK)
-            super.drawItem
-                (g2, state, dataArea, info, plot, domainAxis, rangeAxis,
-                 dataset, series, item, crosshairInfo, pass);
 
         Paint paint = getItemPaint(series, item);
         Stroke seriesStroke = getItemStroke(series, item);
@@ -92,8 +81,8 @@ public class RangeXYItemRenderer extends StandardXYItemRenderer {
         g2.setStroke(seriesStroke);
 
         // get the data point...
-        Number x1n = dataset.getXValue(series, item);
-        Number y1n = dataset.getYValue(series, item);
+        Number x1n = dataset.getX(series, item);
+        Number y1n = dataset.getY(series, item);
         if (y1n == null || x1n == null) {
             return;
         }
@@ -102,22 +91,22 @@ public class RangeXYItemRenderer extends StandardXYItemRenderer {
         double y1 = y1n.doubleValue();
         final RectangleEdge xAxisLocation = plot.getDomainAxisEdge();
         final RectangleEdge yAxisLocation = plot.getRangeAxisEdge();
-        double transX1 = domainAxis.translateValueToJava2D
+        double transX1 = domainAxis.valueToJava2D
             (x1, dataArea, xAxisLocation);
-        double transY1 = rangeAxis.translateValueToJava2D
+        double transY1 = rangeAxis.valueToJava2D
             (y1, dataArea, yAxisLocation);
 
         if (item > 0) {
             // get the previous data point...
-            Number x0n = dataset.getXValue(series, item - 1);
-            Number y0n = dataset.getYValue(series, item - 1);
+            Number x0n = dataset.getX(series, item - 1);
+            Number y0n = dataset.getY(series, item - 1);
             if (y0n != null && x0n != null) {
                 double x0 = x0n.doubleValue();
                 double y0 = y0n.doubleValue();
 
-                double transX0 = domainAxis.translateValueToJava2D
+                double transX0 = domainAxis.valueToJava2D
                     (x0, dataArea, xAxisLocation);
-                double transY0 = rangeAxis.translateValueToJava2D
+                double transY0 = rangeAxis.valueToJava2D
                     (y0, dataArea, yAxisLocation);
 
                 // only draw if we have good values
@@ -136,11 +125,11 @@ public class RangeXYItemRenderer extends StandardXYItemRenderer {
 
                 if (y1n instanceof RangeInfo) {
                     RangeInfo y1r = (RangeInfo) y1n;
-                    double transY1low = rangeAxis.translateValueToJava2D
-                        (y1r.getMinimumRangeValue().doubleValue(),
+                    double transY1low = rangeAxis.valueToJava2D
+                        (y1r.getRangeLowerBound(false),
                          dataArea, yAxisLocation);
-                    double transY1high = rangeAxis.translateValueToJava2D
-                        (y1r.getMaximumRangeValue().doubleValue(),
+                    double transY1high = rangeAxis.valueToJava2D
+                        (y1r.getRangeUpperBound(false),
                          dataArea, yAxisLocation);
                     drawItemRangeGradient(g2, line, paint, seriesStroke,
                                           transX1, transY1low,
@@ -148,11 +137,11 @@ public class RangeXYItemRenderer extends StandardXYItemRenderer {
 
                 } else if (x1n instanceof RangeInfo) {
                     RangeInfo x1r = (RangeInfo) x1n;
-                    double transX1low = domainAxis.translateValueToJava2D
-                        (x1r.getMinimumRangeValue().doubleValue(),
+                    double transX1low = domainAxis.valueToJava2D
+                        (x1r.getRangeLowerBound(false),
                          dataArea, xAxisLocation);
-                    double transX1high = domainAxis.translateValueToJava2D
-                        (x1r.getMaximumRangeValue().doubleValue(),
+                    double transX1high = domainAxis.valueToJava2D
+                        (x1r.getRangeUpperBound(false),
                          dataArea, xAxisLocation);
                     drawItemRangeGradient(g2, line, paint, seriesStroke,
                                           transX1low, transY1,
@@ -265,5 +254,4 @@ public class RangeXYItemRenderer extends StandardXYItemRenderer {
         return new Point2D.Double(x1 + dx * fraction, y1 + dy * fraction);
     }
 
-    private static final boolean FALSE_VALUE_FOR_OVERRIDE_CHECK = false;
 }

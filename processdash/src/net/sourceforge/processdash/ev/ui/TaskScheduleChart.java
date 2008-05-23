@@ -65,17 +65,17 @@ import net.sourceforge.processdash.ev.EVTaskList;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.ui.DashboardIconFactory;
 import net.sourceforge.processdash.ui.help.PCSH;
-import net.sourceforge.processdash.ui.lib.EVDatasetFilter;
-import net.sourceforge.processdash.ui.lib.IDSeriesDataset;
+import net.sourceforge.processdash.ui.lib.XYDatasetFilter;
 
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
-import org.jfree.chart.Legend;
 import org.jfree.chart.axis.Axis;
-import org.jfree.data.DatasetChangeEvent;
-import org.jfree.data.DatasetChangeListener;
-import org.jfree.data.XYDataset;
+import org.jfree.chart.labels.XYSeriesLabelGenerator;
+import org.jfree.chart.title.LegendTitle;
+import org.jfree.data.general.DatasetChangeEvent;
+import org.jfree.data.general.DatasetChangeListener;
+import org.jfree.data.xy.XYDataset;
 
 
 public class TaskScheduleChart extends JFrame
@@ -133,6 +133,7 @@ public class TaskScheduleChart extends JFrame
         tabContent.putClientProperty(NAME_POS_KEY, new Integer(namePos));
     }
 
+    @Override
     public void dispose() {
         super.dispose();
         taskList.removeRecalcListener(this);
@@ -163,7 +164,7 @@ public class TaskScheduleChart extends JFrame
     }
 
     private ChartPanel buildChart(XYDataset data, String units) {
-        EVDatasetFilter filteredData = new EVDatasetFilter(data);
+        XYDatasetFilter filteredData = new XYDatasetFilter(data);
         JFreeChart chart = createChart(filteredData);
         if (units != null && units.length() != 0)
             chart.getXYPlot().getRangeAxis().setLabel(units);
@@ -182,17 +183,23 @@ public class TaskScheduleChart extends JFrame
         return chart;
     }
     private static void configureRenderer(XYDataset xyData,
-            RangeXYItemRenderer renderer) {
-        if (xyData instanceof IDSeriesDataset) {
-            IDSeriesDataset data = (IDSeriesDataset) xyData;
-            for (int i = 0;  i < data.getSeriesCount();  i++) {
-                String seriesID = data.getSeriesID(i);
-                Paint p = (Paint) getPrefForSeries(SERIES_PAINTS, seriesID);
-                if (p != null) renderer.setSeriesPaint(i, p);
-                Stroke s = (Stroke) getPrefForSeries(SERIES_STROKES, seriesID);
-                if (s != null) renderer.setSeriesStroke(i, s);
-            }
+        RangeXYItemRenderer renderer) {
+        for (int i = 0;  i < xyData.getSeriesCount();  i++) {
+            String seriesID = xyData.getSeriesKey(i).toString();
+            Paint p = (Paint) getPrefForSeries(SERIES_PAINTS, seriesID);
+            if (p != null) renderer.setSeriesPaint(i, p);
+            Stroke s = (Stroke) getPrefForSeries(SERIES_STROKES, seriesID);
+            if (s != null) renderer.setSeriesStroke(i, s);
         }
+        renderer.setLegendItemLabelGenerator(new SeriesNameGenerator());
+    }
+
+    private static class SeriesNameGenerator implements XYSeriesLabelGenerator {
+
+        public String generateLabel(XYDataset dataset, int series) {
+            return getNameForSeries(dataset, series);
+        }
+
     }
 
     private static class RendererReconfigurer implements DatasetChangeListener {
@@ -239,9 +246,15 @@ public class TaskScheduleChart extends JFrame
         }
         return null;
     }
+    public static String getNameForSeries(XYDataset d, int seriesNum) {
+        String seriesKey = d.getSeriesKey(seriesNum).toString();
+        String seriesName = resources.getString("Schedule." + seriesKey
+                + "_Label");
+        return seriesName;
+    }
 
     JFreeChart charts[] = new JFreeChart[3];
-    Legend legends[] = new Legend[3];
+    LegendTitle legends[] = new LegendTitle[3];
     int numCharts = 0;
 
     private JComponent buildStatsTable() {
@@ -325,7 +338,8 @@ public class TaskScheduleChart extends JFrame
         }
         for (int i=0;   i < charts.length;   i++) {
             if (charts[i] == null) continue;
-            charts[i].setLegend(style != FULL ? null : legends[i]);
+            charts[i].removeLegend();
+            if (style == FULL) charts[i].addLegend(legends[i]);
             adjustAxis(charts[i].getXYPlot().getRangeAxis(),
                        style != FULL, UNITS[i]);
             adjustAxis(charts[i].getXYPlot().getDomainAxis(),
@@ -340,8 +354,8 @@ public class TaskScheduleChart extends JFrame
 
 
     private class EVChartPanel extends ChartPanel {
-        private EVDatasetFilter filteredData;
-        public EVChartPanel(JFreeChart chart, EVDatasetFilter filteredData) {
+        private XYDatasetFilter filteredData;
+        public EVChartPanel(JFreeChart chart, XYDatasetFilter filteredData) {
             super(chart);
             setMouseZoomable(true, false);
 
@@ -368,15 +382,15 @@ public class TaskScheduleChart extends JFrame
     }
     private class ShowChartLineMenuItem extends JCheckBoxMenuItem implements
             ActionListener {
-        private EVDatasetFilter data;
+        private XYDatasetFilter data;
         private RangeXYItemRenderer renderer;
         private int seriesNum;
-        public ShowChartLineMenuItem(EVDatasetFilter data,
+        public ShowChartLineMenuItem(XYDatasetFilter data,
                 RangeXYItemRenderer renderer, int seriesNum) {
             this.data = data;
             this.renderer = renderer;
             this.seriesNum = seriesNum;
-            String seriesName = data.getSourceDataset().getSeriesName(seriesNum);
+            String seriesName = getNameForSeries(data, seriesNum);
             setText(resources.format("Show_Line_FMT", seriesName));
             setSelected(data.isSeriesHidden(seriesNum) == false);
             addActionListener(this);

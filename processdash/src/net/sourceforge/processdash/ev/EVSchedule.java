@@ -44,15 +44,14 @@ import javax.swing.table.TableModel;
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.ListData;
 import net.sourceforge.processdash.i18n.Resources;
-import net.sourceforge.processdash.ui.lib.IDSeriesDataset;
 import net.sourceforge.processdash.util.FormatUtil;
 
-import org.jfree.data.AbstractDataset;
-import org.jfree.data.DatasetChangeEvent;
-import org.jfree.data.DatasetChangeListener;
 import org.jfree.data.Range;
 import org.jfree.data.RangeInfo;
-import org.jfree.data.XYDataset;
+import org.jfree.data.general.DatasetChangeEvent;
+import org.jfree.data.general.DatasetChangeListener;
+import org.jfree.data.xy.AbstractXYDataset;
+import org.jfree.data.xy.XYDataset;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -366,6 +365,7 @@ public class EVSchedule implements TableModel {
             }
         }
 
+        @Override
         public Object clone() {
             try {
                 return super.clone();
@@ -1422,49 +1422,49 @@ public class EVSchedule implements TableModel {
             this.high = high;
         }
 
+        @Override
         public int intValue() { return value.intValue(); }
+        @Override
         public long longValue() { return value.longValue(); }
+        @Override
         public float floatValue() { return value.floatValue(); }
+        @Override
         public double doubleValue() { return value.doubleValue(); }
 
-        public Number getMinimumRangeValue() { return low; }
-
-        public Number getMaximumRangeValue() { return high; }
-
+        @Override
         public String toString() { return String.valueOf(value); }
 
-        public Range getValueRange() { return null; }
+        public Range getRangeBounds(boolean includeInterval) { return null; }
+
+        public double getRangeLowerBound(boolean includeInterval) {
+            return low.doubleValue();
+        }
+
+        public double getRangeUpperBound(boolean includeInterval) {
+            return high.doubleValue();
+        }
     }
 
     protected interface ChartSeries {
-        /** Returns the name of the specified series (zero-based). */
-        String getSeriesName();
         /** Returns the ID of the specified series (zero-based). */
-        String getSeriesID();
+        String getSeriesKey();
         /** Returns the number of items in the specified series */
         int getItemCount();
         /** Returns the x-value for the specified series and item */
-        Number getXValue(int itemIndex);
+        Number getX(int itemIndex);
         /** Returns the y-value for the specified series and item */
-        Number getYValue(int itemIndex);
+        Number getY(int itemIndex);
     }
 
-    private static final String PLAN_LABEL = resources.getString
-        ("Schedule.Plan_Label");
-    private static final String BASELINE_LABEL = resources.getString
-        ("Schedule.Baseline_Label");
     private abstract class PlanChartSeries implements ChartSeries {
         protected boolean isBaseline = false;
-        public String getSeriesName() {
-            return (isBaseline ? BASELINE_LABEL : PLAN_LABEL);
-        }
-        public String getSeriesID() {
+        public String getSeriesKey() {
             return (isBaseline ? "Baseline" : "Plan");
         }
         public int getItemCount() {
             return findIndexOfFinalPlannedPeriod()+1;
         }
-        public Number getXValue(int itemIndex) {
+        public Number getX(int itemIndex) {
             return new Long(get(itemIndex).endDate.getTime()); }
     }
     protected PlanChartSeries markAsBaseline(PlanChartSeries s) {
@@ -1472,17 +1472,14 @@ public class EVSchedule implements TableModel {
         return s;
     }
 
-    private static final String ACTUAL_LABEL =
-        resources.getString("Schedule.Actual_Label");
     private abstract class ActualChartSeries implements ChartSeries {
-        public String getSeriesName() { return ACTUAL_LABEL; }
-        public String getSeriesID()  { return "Actual"; }
+        public String getSeriesKey()  { return "Actual"; }
         public int getItemCount() {
             int result = getRowCount()+1;
             if (effectivePeriod < result) result = effectivePeriod+1;
             return result;
         }
-        public Number getXValue(int itemIndex) {
+        public Number getX(int itemIndex) {
             Date d;
             if (itemIndex < effectivePeriod)
                 d = get(itemIndex).endDate;
@@ -1492,19 +1489,16 @@ public class EVSchedule implements TableModel {
         }
     }
 
-    private static final String FORECAST_LABEL =
-        resources.getString("Schedule.Forecast_Label");
     protected class ForecastChartSeries implements ChartSeries {
         Number currentYVal, forecastYVal, forecastYValLow, forecastYValHigh;
         Number currentXVal, forecastXVal;
         int itemCount = 2;
-        public String getSeriesName() { return FORECAST_LABEL; }
-        public String getSeriesID()  { return "Forecast"; }
+        public String getSeriesKey()  { return "Forecast"; }
         public int getItemCount() { return itemCount; }
-        public Number getXValue(int itemIndex) {
+        public Number getX(int itemIndex) {
             return (itemIndex == 0 ? currentXVal : forecastXVal);
         }
-        public Number getYValue(int itemIndex) {
+        public Number getY(int itemIndex) {
             return (itemIndex == 0 ? currentYVal : forecastYVal);
         }
         public void recalc() {
@@ -1555,8 +1549,8 @@ public class EVSchedule implements TableModel {
 
     /** Base class for implementing XYDataSource funtionality.
      */
-    private class ChartData extends AbstractDataset
-        implements XYDataset, TableModelListener, IDSeriesDataset
+    private class ChartData extends AbstractXYDataset
+        implements TableModelListener
     {
         List<ChartSeries> series = new ArrayList<ChartSeries>();
         boolean needsRecalc = true;
@@ -1564,6 +1558,7 @@ public class EVSchedule implements TableModel {
         protected void maybeRecalc() {
             if (needsRecalc) { recalc(); needsRecalc = false; } }
         /** Returns the number of series in the data source. */
+        @Override
         public int getSeriesCount() {
             maybeRecalc();
             return series.size();
@@ -1574,25 +1569,25 @@ public class EVSchedule implements TableModel {
                 series.add(s);
         }
         /** Returns the name of the specified series (zero-based). */
-        public String getSeriesName(int seriesIndex) { maybeRecalc();
-            return series.get(seriesIndex).getSeriesName(); }
-        public String getSeriesID(int seriesIndex) { maybeRecalc();
-            return series.get(seriesIndex).getSeriesID(); }
+        @Override
+        public Comparable getSeriesKey(int seriesIndex) { maybeRecalc();
+            return series.get(seriesIndex).getSeriesKey(); }
         /** Returns the number of items in the specified series */
         public int getItemCount(int seriesIndex) { maybeRecalc();
             return series.get(seriesIndex).getItemCount(); }
         /** Returns the x-value for the specified series and item */
-        public Number getXValue(int seriesIndex, int itemIndex) {
+        public Number getX(int seriesIndex, int itemIndex) {
             maybeRecalc();
-            return series.get(seriesIndex).getXValue(itemIndex); }
+            return series.get(seriesIndex).getX(itemIndex); }
         /** Returns the y-value for the specified series and item */
-        public Number getYValue(int seriesIndex, int itemIndex) {
+        public Number getY(int seriesIndex, int itemIndex) {
             maybeRecalc();
             if (itemIndex == -1) return null;
-            return series.get(seriesIndex).getYValue(itemIndex); }
+            return series.get(seriesIndex).getY(itemIndex); }
 
         // support DataSourceChangeListener notification
         private ArrayList listenerList = null;
+        @Override
         public void addChangeListener(DatasetChangeListener l) {
             if (listenerList == null) listenerList = new ArrayList();
             synchronized (listenerList) {
@@ -1600,6 +1595,7 @@ public class EVSchedule implements TableModel {
                 if (!listenerList.contains(l)) listenerList.add(l);
             }
         }
+        @Override
         public void removeChangeListener(DatasetChangeListener l) {
             if (listenerList == null) return;
             synchronized (listenerList) {
@@ -1627,15 +1623,15 @@ public class EVSchedule implements TableModel {
     }
 
     private class PlanTimeSeries extends PlanChartSeries {
-        public Number getYValue(int itemIndex) {
+        public Number getY(int itemIndex) {
             return new Double(get(itemIndex).cumPlanDirectTime / 60.0); } }
     private ChartSeries getBaselineTimeSeries() {
         return markAsBaseline(new PlanTimeSeries()); }
     private class ActualTimeSeries extends ActualChartSeries {
-        public Number getYValue(int itemIndex) {
+        public Number getY(int itemIndex) {
             return new Double(get(itemIndex).cumActualDirectTime / 60.0); } }
     private class ActualCostSeries extends ActualChartSeries {
-        public Number getYValue(int itemIndex) {
+        public Number getY(int itemIndex) {
             return new Double(get(itemIndex).cumActualCost / 60.0); } }
 
     /** XYDataSource for charting plan vs actual direct hours.
@@ -1648,6 +1644,7 @@ public class EVSchedule implements TableModel {
         }
         ChartSeries plan, actual;
         ForecastChartSeries forecast;
+        @Override
         public void recalc() {
             series.clear();
             recalcBaseline();
@@ -1681,14 +1678,14 @@ public class EVSchedule implements TableModel {
     private class PlanValueSeries extends PlanChartSeries {
         double mult;
         PlanValueSeries(double m) { mult = m; }
-        public Number getYValue(int itemIndex) {
+        public Number getY(int itemIndex) {
             return new Double(get(itemIndex).cumPlanValue * mult); } }
     private ChartSeries getBaselineValueSeries(double mult) {
         return markAsBaseline(new PlanValueSeries(mult)); }
     private class ActualValueSeries extends ActualChartSeries {
         double mult;
         ActualValueSeries(double m) { mult = m; }
-        public Number getYValue(int itemIndex) {
+        public Number getY(int itemIndex) {
             return new Double(get(itemIndex).cumEarnedValue * mult); } };
 
 
@@ -1700,8 +1697,10 @@ public class EVSchedule implements TableModel {
             plan = new PlanValueSeries(mult);
             actual = new ActualValueSeries(mult);
             forecast = new ForecastChartSeries() {
+                    @Override
                     protected Date getForecastDateLPI() {
                         return metrics.independentForecastDateLPI(); }
+                    @Override
                     protected Date getForecastDateUPI() {
                         return metrics.independentForecastDateUPI(); }
                 };
@@ -1709,6 +1708,7 @@ public class EVSchedule implements TableModel {
         ForecastChartSeries forecast;
         PlanValueSeries plan;
         ActualValueSeries actual;
+        @Override
         public void recalc() {
             series.clear();
             double mult = 100.0 / totalPlan();
@@ -1740,30 +1740,20 @@ public class EVSchedule implements TableModel {
         return result;
     }
 
-    private static final String PLAN_VALUE_LABEL =
-        resources.getString("Schedule.Plan_Value_Label");
-    private static final String ACTUAL_VALUE_LABEL =
-        resources.getString("Schedule.Actual_Value_Label");
-    private static final String ACTUAL_COST_LABEL =
-        resources.getString("Schedule.Actual_Cost_Label");
-
 
     /** XYDataSource for charting cost and schedule on one chart.
      */
     private class CombinedChartData extends ChartData {
         public CombinedChartData() {
             series.add(new PlanValueSeries(1.0 / 60.0) {
-                    public String getSeriesID()  { return "Plan_Value"; }
-                    public String getSeriesName() {
-                        return PLAN_VALUE_LABEL; } });
+                    @Override
+                    public String getSeriesKey() { return "Plan_Value"; }});
             series.add(new ActualValueSeries(1.0 / 60.0) {
-                    public String getSeriesID()  { return "Actual_Value"; }
-                    public String getSeriesName() {
-                        return ACTUAL_VALUE_LABEL; } });
+                    @Override
+                    public String getSeriesKey() { return "Actual_Value"; }});
             series.add(new ActualCostSeries() {
-                    public String getSeriesID()  { return "Actual_Cost"; }
-                    public String getSeriesName() {
-                        return ACTUAL_COST_LABEL; } });
+                    @Override
+                    public String getSeriesKey() { return "Actual_Cost"; }});
         }
     }
     public XYDataset getCombinedChartData() {

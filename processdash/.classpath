@@ -7,8 +7,6 @@
 	<classpathentry kind="src" path="installer/IzPack/src/lib"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="lib" path="installer/IzPack/lib/kunststoff.jar"/>
-	<classpathentry kind="lib" path="lib/jcommon-0.9.0.jar" sourcepath="misc/zips/jcommon-0.9.0.zip"/>
-	<classpathentry kind="lib" path="lib/jfreechart-0.9.15.jar" sourcepath="misc/zips/jfreechart-0.9.15.zip"/>
 	<classpathentry kind="lib" path="lib/image4j.jar"/>
 	<classpathentry kind="var" path="JUNIT_HOME/junit.jar"/>
 	<classpathentry kind="var" path="ANT_HOME/lib/ant.jar"/>
@@ -20,5 +18,7 @@
 	<classpathentry kind="lib" path="lib/datatips.jar" sourcepath="lib/datatips.jar"/>
 	<classpathentry kind="lib" path="lib/colt.jar" sourcepath="lib/colt.jar"/>
 	<classpathentry kind="lib" path="lib/com-apple-eawt.jar"/>
+	<classpathentry kind="lib" path="lib/jcommon-1.0.12.jar" sourcepath="misc/zips/jcommon-1.0.12.zip"/>
+	<classpathentry kind="lib" path="lib/jfreechart-1.0.9.jar" sourcepath="misc/zips/jfreechart-1.0.9.zip"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

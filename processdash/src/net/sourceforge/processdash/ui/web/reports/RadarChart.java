@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2006 Tuma Solutions, LLC
+// Copyright (C) 2003-2008 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -35,9 +35,9 @@ import net.sourceforge.processdash.util.FormatUtil;
 import net.sourceforge.processdash.util.StringUtils;
 
 import org.jfree.chart.JFreeChart;
-import org.jfree.data.CategoryDataset;
-import org.jfree.data.DatasetUtilities;
-import org.jfree.data.PieDataset;
+import org.jfree.data.category.CategoryDataset;
+import org.jfree.data.general.DatasetUtilities;
+import org.jfree.data.general.PieDataset;
 
 
 
@@ -45,6 +45,7 @@ import org.jfree.data.PieDataset;
 public class RadarChart extends CGIChartBase {
 
     /** Create a radar chart. */
+    @Override
     public JFreeChart createChart() {
         maybeScaleDataAxes();
         CategoryDataset catData = data.catDataSource();

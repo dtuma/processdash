@@ -1,5 +1,5 @@
+// Copyright (C) 2003-2008 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -30,9 +30,10 @@ import java.util.Vector;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.util.LinearRegression;
 
-import org.jfree.data.DatasetChangeListener;
-import org.jfree.data.DatasetGroup;
-import org.jfree.data.XYDataset;
+import org.jfree.data.general.DatasetChangeListener;
+import org.jfree.data.general.DatasetGroup;
+import org.jfree.data.xy.AbstractXYDataset;
+import org.jfree.data.xy.XYDataset;
 
 
 
@@ -40,7 +41,7 @@ import org.jfree.data.XYDataset;
  *
  * Note: Change notification is not yet supported.
  */
-public class XYDataSourceTrendLine implements XYDataset {
+public class XYDataSourceTrendLine extends AbstractXYDataset {
 
     private static final Double ZERO = new Double(0);
 
@@ -81,31 +82,35 @@ public class XYDataSourceTrendLine implements XYDataset {
 
     // DataSource interface
 
+    @Override
     public int getSeriesCount() {
         return (badValue(minY.doubleValue()) ? 0 : 1);
     }
 
-    public String getSeriesName(int seriesIndex) {
+    @Override
+    public Comparable getSeriesKey(int seriesIndex) {
         return (seriesIndex == 0 ? lineName : null);
     }
 
+    @Override
     public void addChangeListener(DatasetChangeListener listener) {
         source.addChangeListener(listener);
     }
+    @Override
     public void removeChangeListener(DatasetChangeListener listener) {
         source.removeChangeListener(listener);
     }
 
     // XYDataSource interface
 
-    public Number getXValue(int seriesIndex, int itemIndex) {
+    public Number getX(int seriesIndex, int itemIndex) {
         if (seriesIndex == 0)
             return (itemIndex == 0 ? minX : maxX);
         else
             return null;
     }
 
-    public Number getYValue(int seriesIndex, int itemIndex) {
+    public Number getY(int seriesIndex, int itemIndex) {
         if (seriesIndex == 0)
             return (itemIndex == 0 ? minY : maxY);
         else
@@ -131,8 +136,8 @@ public class XYDataSourceTrendLine implements XYDataset {
             int i = src.getItemCount(seriesNum);
             while (i-- > 0) try {
                 double[] pair = new double[2];
-                pair[0] = src.getXValue(seriesNum, i).doubleValue();
-                pair[1] = src.getYValue(seriesNum, i).doubleValue();
+                pair[0] = src.getXValue(seriesNum, i);
+                pair[1] = src.getYValue(seriesNum, i);
                 if (Double.isNaN(pair[0]) || Double.isInfinite(pair[0]) ||
                     Double.isNaN(pair[1]) || Double.isInfinite(pair[1]))
                     continue;
@@ -164,6 +169,7 @@ public class XYDataSourceTrendLine implements XYDataset {
 
     private static class AverageLine extends RegressionLine {
         public AverageLine(XYDataset src, int num) { super(src, num); }
+        @Override
         protected void resetLine(LinearRegression regress,
                                  double minX, double maxX) {
             setLineSlope(0, regress.y_avg / regress.x_avg, minX, maxX);
@@ -178,10 +184,12 @@ public class XYDataSourceTrendLine implements XYDataset {
         return new AverageLine(src, seriesNum);
     }
 
+    @Override
     public DatasetGroup getGroup() {
         return source.getGroup();
     }
 
+    @Override
     public void setGroup(DatasetGroup group) {
         source.setGroup(group);
     }

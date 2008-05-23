@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2007 Tuma Solutions, LLC
+// Copyright (C) 2003-2008 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -26,9 +26,24 @@
 package net.sourceforge.processdash.data.util;
 
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.Hashtable;
+import java.util.List;
+import java.util.Map;
+import java.util.Vector;
 
-import net.sourceforge.processdash.data.*;
+import net.sourceforge.processdash.data.DataComparator;
+import net.sourceforge.processdash.data.DateData;
+import net.sourceforge.processdash.data.DoubleData;
+import net.sourceforge.processdash.data.ListData;
+import net.sourceforge.processdash.data.MalformedValueException;
+import net.sourceforge.processdash.data.NumberData;
+import net.sourceforge.processdash.data.SaveableData;
+import net.sourceforge.processdash.data.SimpleData;
+import net.sourceforge.processdash.data.StringData;
+import net.sourceforge.processdash.data.ValueFactory;
 import net.sourceforge.processdash.data.compiler.Compiler;
 import net.sourceforge.processdash.data.repository.DataEvent;
 import net.sourceforge.processdash.data.repository.DataListener;
@@ -36,11 +51,10 @@ import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.data.repository.SearchFunction;
 import net.sourceforge.processdash.i18n.Translator;
 
-import org.jfree.data.AbstractDataset;
-import org.jfree.data.CategoryDataset;
-import org.jfree.data.DatasetChangeListener;
-import org.jfree.data.DefaultCategoryDataset;
-import org.jfree.data.XYDataset;
+import org.jfree.data.category.CategoryDataset;
+import org.jfree.data.category.DefaultCategoryDataset;
+import org.jfree.data.xy.AbstractXYDataset;
+import org.jfree.data.xy.XYDataset;
 
 
 
@@ -271,6 +285,7 @@ public class ResultSet {
             this.conditions = conditions;
             this.orderBy = orderBy;
         }
+        @Override
         public boolean equals(Object obj) {
             if (!(obj instanceof ResultSetSearchExpression)) return false;
             ResultSetSearchExpression that = (ResultSetSearchExpression) obj;
@@ -291,6 +306,7 @@ public class ResultSet {
                 if (!compareStrings(a[i], b[i])) return false;
             return true;
         }
+        @Override
         public int hashCode() {
             if (hashCode == -1) {
                 int result = forList.hashCode();
@@ -718,15 +734,18 @@ public class ResultSet {
             this.ordinal = ord;
             this.value = val;
         }
+        @Override
         public String toString() {
             return value;
         }
         public int compareTo(Object o) {
             return ((Category) o).ordinal - ordinal;
         }
+        @Override
         public boolean equals(Object o) {
             return ordinal == ((Category) o).ordinal;
         }
+        @Override
         public int hashCode() {
             return ordinal;
         }
@@ -754,23 +773,22 @@ public class ResultSet {
         return new RSCategoryDataSource();
     }
 
-    protected class RSXYDataSource extends AbstractDataset
+    protected class RSXYDataSource extends AbstractXYDataset
         implements XYDataset
     {
         /** Returns the number of series in the data source. */
+        @Override
         public int getSeriesCount() { return numCols() - 1; }
         /** Returns the name of the specified series (zero-based). */
-        public String getSeriesName(int seriesIndex) {
+        @Override
+        public Comparable getSeriesKey(int seriesIndex) {
             return getColName(seriesIndex+2); }
-        /* The following methods are not applicable for us */
-        public void addChangeListener(DatasetChangeListener listener) {}
-        public void removeChangeListener(DatasetChangeListener listener) {}
 
         /** Returns the x-value for the specified series and item */
-        public Number getXValue(int seriesIndex, int itemIndex) {
+        public Number getX(int seriesIndex, int itemIndex) {
             return getNumber(itemIndex+1, 1); }
         /** Returns the y-value for the specified series and item */
-        public Number getYValue(int seriesIndex, int itemIndex) {
+        public Number getY(int seriesIndex, int itemIndex) {
             if (itemIndex == -1)
                 return (numRows() > 0 && numCols() > 0 &&
                         (getData(1,1) instanceof DateData)) ? null : ZERO;

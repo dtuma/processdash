@@ -1,5 +1,5 @@
+// Copyright (C) 2003-2008 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -32,7 +32,6 @@ import java.awt.Color;
 import java.awt.Composite;
 import java.awt.Font;
 import java.awt.Graphics2D;
-import java.awt.Insets;
 import java.awt.Paint;
 import java.awt.Shape;
 import java.awt.Stroke;
@@ -41,6 +40,7 @@ import java.awt.font.LineMetrics;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.GeneralPath;
 import java.awt.geom.Line2D;
+import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.Collection;
 import java.util.Collections;
@@ -51,7 +51,8 @@ import org.jfree.chart.event.PlotChangeEvent;
 import org.jfree.chart.plot.Plot;
 import org.jfree.chart.plot.PlotRenderingInfo;
 import org.jfree.chart.plot.PlotState;
-import org.jfree.data.PieDataset;
+import org.jfree.data.general.PieDataset;
+import org.jfree.ui.RectangleInsets;
 
 /**
  * A plot that displays data in the form of a radar chart, using data
@@ -173,7 +174,7 @@ public class RadarPlot extends Plot {
         this.gridLineStroke = DEFAULT_OUTLINE_STROKE;
         this.plotLineStroke = DEFAULT_LINE_STROKE;
         setForegroundAlpha(0.5f);
-        setInsets(new Insets(0, 5, 5, 5));
+        setInsets(new RectangleInsets(0, 5, 5, 5));
     }
 
     /**
@@ -437,15 +438,16 @@ public class RadarPlot extends Plot {
      * @param g2 The graphics device.
      * @param plotArea The area within which the plot should be drawn.
      */
-    public void draw(Graphics2D g2, Rectangle2D plotArea, PlotState state,
-                     PlotRenderingInfo info) {
+    @Override
+    public void draw(Graphics2D g2, Rectangle2D plotArea, Point2D anchor,
+            PlotState state, PlotRenderingInfo info) {
         // adjust for insets...
-        Insets insets = getInsets();
+        RectangleInsets insets = getInsets();
         if (insets!=null) {
-            plotArea.setRect(plotArea.getX()+insets.left,
-                             plotArea.getY()+insets.top,
-                             plotArea.getWidth()-insets.left-insets.right,
-                             plotArea.getHeight()-insets.top-insets.bottom);
+            plotArea.setRect(plotArea.getX()+insets.getLeft(),
+                             plotArea.getY()+insets.getTop(),
+                             plotArea.getWidth()-insets.getLeft()-insets.getRight(),
+                             plotArea.getHeight()-insets.getTop()-insets.getBottom());
         }
 
         if (info != null) {
@@ -666,6 +668,7 @@ public class RadarPlot extends Plot {
     /**
      * Returns a short string describing the type of plot.
      */
+    @Override
     public String getPlotType() {
         return "Radar Chart";
     }
@@ -680,6 +683,7 @@ public class RadarPlot extends Plot {
      *
      * @param percent The zoom percentage.
      */
+    @Override
     public void zoom(double percent) {
     }
 

@@ -68,7 +68,7 @@ import net.sourceforge.processdash.net.cache.CachedURLObject;
 import net.sourceforge.processdash.net.cms.SnippetEnvironment;
 import net.sourceforge.processdash.net.http.TinyCGIException;
 import net.sourceforge.processdash.net.http.WebServer;
-import net.sourceforge.processdash.ui.lib.EVDatasetFilter;
+import net.sourceforge.processdash.ui.lib.XYDatasetFilter;
 import net.sourceforge.processdash.ui.lib.HTMLTableWriter;
 import net.sourceforge.processdash.ui.lib.HTMLTreeTableWriter;
 import net.sourceforge.processdash.ui.lib.TreeTableModel;
@@ -80,9 +80,9 @@ import net.sourceforge.processdash.util.OrderedListMerger;
 import net.sourceforge.processdash.util.StringUtils;
 
 import org.jfree.chart.JFreeChart;
-import org.jfree.chart.Legend;
-import org.jfree.data.AbstractDataset;
-import org.jfree.data.XYDataset;
+import org.jfree.data.xy.AbstractXYDataset;
+import org.jfree.data.xy.XYDataset;
+import org.jfree.ui.RectangleEdge;
 
 
 
@@ -1176,7 +1176,7 @@ public class EVReport extends CGIChartBase {
         boolean hidePlan = settings.getBool(CUSTOMIZE_HIDE_PLAN_LINE);
         boolean hideForecast = settings.getBool(CUSTOMIZE_HIDE_FORECAST_LINE);
         if (hidePlan || hideForecast)
-            xydata = new EVDatasetFilter(xydata)
+            xydata = new XYDatasetFilter(xydata)
                 .setSeriesHidden("Plan", hidePlan)
                 .setSeriesHidden("Forecast", hideForecast)
                 .setSeriesHidden("Optimized_Forecast", hideForecast);
@@ -1197,7 +1197,7 @@ public class EVReport extends CGIChartBase {
         boolean hidePlan = settings.getBool(CUSTOMIZE_HIDE_PLAN_LINE);
         boolean hideForecast = settings.getBool(CUSTOMIZE_HIDE_FORECAST_LINE);
         if (hidePlan || hideForecast)
-            xydata = new EVDatasetFilter(xydata)
+            xydata = new XYDatasetFilter(xydata)
                 .setSeriesHidden("Plan", hidePlan)
                 .setSeriesHidden("Forecast", hideForecast)
                 .setSeriesHidden("Optimized_Forecast", hideForecast);
@@ -1216,7 +1216,7 @@ public class EVReport extends CGIChartBase {
         // possibly hide lines on the chart, at user request.
         boolean hidePlan = settings.getBool(CUSTOMIZE_HIDE_PLAN_LINE);
         if (hidePlan)
-            xydata = new EVDatasetFilter(xydata)
+            xydata = new XYDatasetFilter(xydata)
                 .setSeriesHidden("Plan_Value", hidePlan);
 
         // Alter the appearance of the chart.
@@ -1229,7 +1229,7 @@ public class EVReport extends CGIChartBase {
     public JFreeChart createChart() {
         JFreeChart chart = TaskScheduleChart.createChart(xydata);
         if (parameters.get("hideLegend") == null)
-            chart.getLegend().setAnchor(Legend.EAST);
+            chart.getLegend().setPosition(RectangleEdge.RIGHT);
         return chart;
     }
 
@@ -1280,7 +1280,8 @@ public class EVReport extends CGIChartBase {
             out.print("<tr><td>"+getResource("Schedule.Date_Label")+"</td>");
             // print out the series names in the data source.
             for (int i = 0;  i < seriesCount;   i++)
-                out.print("<td>" + xydata.getSeriesName(i) + "</td>");
+                out.print("<td>" + TaskScheduleChart.getNameForSeries(xydata, i)
+                    + "</td>");
 
             // if the data source came up short, fill in default
             // column headers.
@@ -1305,7 +1306,7 @@ public class EVReport extends CGIChartBase {
                 // print the date for the data item.
                 out.print("<tr><td>");
                 out.print(f.format(new Date
-                    (xydata.getXValue(series,item).longValue())));
+                    (xydata.getX(series,item).longValue())));
                 out.print("</td>");
 
                 // tab to the appropriate column
@@ -1323,7 +1324,7 @@ public class EVReport extends CGIChartBase {
         if (seriesCount < maxSeries) {
             Date d = new Date();
             if (seriesCount > 0)
-                d = new Date(xydata.getXValue(0,0).longValue());
+                d = new Date(xydata.getX(0,0).longValue());
             StringBuffer s = new StringBuffer();
             s.append("<tr><td>").append(f.format(d)).append("</td><td>");
             if (seriesCount < 1) s.append("0");
@@ -1523,7 +1524,7 @@ public class EVReport extends CGIChartBase {
                 + "\" src=\"/control/startTiming.png\"></A>";
     }
 
-    private class FakeChartData extends AbstractDataset implements XYDataset {
+    private class FakeChartData extends AbstractXYDataset {
 
         private String[] seriesNames;
 
@@ -1531,11 +1532,13 @@ public class EVReport extends CGIChartBase {
             this.seriesNames = seriesNames;
         }
 
+        @Override
         public int getSeriesCount() {
             return 4;
         }
 
-        public String getSeriesName(int series) {
+        @Override
+        public String getSeriesKey(int series) {
             return seriesNames[series];
         }
 
@@ -1543,14 +1546,14 @@ public class EVReport extends CGIChartBase {
             return 2;
         }
 
-        public Number getXValue(int series, int item) {
+        public Number getX(int series, int item) {
             if (item == 0)
                 return new Integer(0);
             else
                 return new Integer(24 * 60 * 60 * 1000);
         }
 
-        public Number getYValue(int series, int item) {
+        public Number getY(int series, int item) {
             if (item == 0)
                 return new Integer(0);
             else switch (series) {
