@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2006 Tuma Solutions, LLC
+// Copyright (C) 2003-2008 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -83,6 +83,12 @@ public class ListData implements SimpleData {
         if (immutable) throw new IllegalStateException();
         list.addElement(o); stringVersion = null; }
     public synchronized void addAll(Object o) {
+        addAll(o, true);
+    }
+    public synchronized void setAddAll(Object o) {
+        addAll(o, false);
+    }
+    private synchronized void addAll(Object o, boolean allowDuplicate) {
         if (immutable) throw new IllegalStateException();
         if (o == null) return;
         if (o instanceof SaveableData && !(o instanceof SimpleData))
@@ -91,9 +97,18 @@ public class ListData implements SimpleData {
             o = ((StringData) o).asList();
         if (o instanceof ListData) {
             ListData l = (ListData) o;
-            for (int i=0;  i<l.size();  i++) add(l.get(i));
-        } else
-            add(o);
+            for (int i=0;  i<l.size();  i++) {
+                if (allowDuplicate)
+                    add(l.get(i));
+                else
+                    setAdd(l.get(i));
+            }
+        } else {
+            if (allowDuplicate)
+                add(o);
+            else
+                setAdd(o);
+        }
     }
     public boolean contains(Object o) {
         return list.contains(o); }
