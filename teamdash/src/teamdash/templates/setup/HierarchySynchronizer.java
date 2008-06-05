@@ -351,6 +351,10 @@ public class HierarchySynchronizer {
         List children = XMLUtils.getChildElements(e);
         for (Iterator i = children.iterator(); i.hasNext();) {
             Element child = (Element) i.next();
+            String type = child.getTagName();
+            if (!NODE_TYPES.contains(type))
+                continue;
+
             String name = child.getAttribute(NAME_ATTR);
 
             String scrubbedName = scrubHierarchyName(name);
