@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2006 Tuma Solutions, LLC
+// Copyright (C) 2003-2008 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -69,6 +69,8 @@ public class PlanAnalysisPage extends AnalysisPage {
 
         // write time in phase chart
         writeChartHTML(PIE_CHART, PHASE_TIME_CHART);
+
+        out.write("</body></html>\n");
     }
 
 

@@ -33,17 +33,33 @@ import java.awt.Graphics2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.util.Iterator;
+import java.util.Map;
+
+import javax.imageio.ImageIO;
 
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.util.ResultSet;
+import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.i18n.Translator;
-import net.sourceforge.processdash.ui.lib.JpegEncoder;
+import net.sourceforge.processdash.util.HTMLUtils;
+import net.sourceforge.processdash.util.StringUtils;
 
+import org.jfree.chart.ChartRenderingInfo;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.Axis;
 import org.jfree.chart.axis.CategoryAxis;
 import org.jfree.chart.axis.CategoryLabelPositions;
 import org.jfree.chart.axis.ValueAxis;
+import org.jfree.chart.entity.ChartEntity;
+import org.jfree.chart.entity.EntityCollection;
+import org.jfree.chart.entity.StandardEntityCollection;
+import org.jfree.chart.imagemap.ImageMapUtilities;
+import org.jfree.chart.imagemap.OverLIBToolTipTagFragmentGenerator;
+import org.jfree.chart.imagemap.StandardToolTipTagFragmentGenerator;
+import org.jfree.chart.imagemap.StandardURLTagFragmentGenerator;
+import org.jfree.chart.imagemap.ToolTipTagFragmentGenerator;
 import org.jfree.chart.plot.CategoryPlot;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.title.LegendTitle;
@@ -60,16 +76,31 @@ public abstract class CGIChartBase extends net.sourceforge.processdash.ui.web.Ti
 
     private static Color INVISIBLE = new Color(1f, 1f, 1f, 0f);
 
-    /** Write the CGI header. */
-    @Override
-    protected void writeHeader() {
-        out.print("Content-type: image/jpeg\r\n\r\n");
-        out.flush();
+    private static final String HTML_PARAM = "html";
+
+    private static final Resources resources = Resources
+            .getDashBundle("Analysis");
+
+    protected boolean isHtmlMode() {
+        return parameters.containsKey(HTML_PARAM);
     }
 
     /** Write the CGI header. */
+    @Override
+    protected void writeHeader() {
+        if (isHtmlMode())
+            writeHtmlHeader();
+        else
+            writeImageHeader();
+    }
+
     protected void writeHtmlHeader() {
         super.writeHeader();
+    }
+
+    protected void writeImageHeader() {
+        out.print("Content-type: image/png\r\n\r\n");
+        out.flush();
     }
 
     /** create the data upon which this chart is based. */
@@ -164,19 +195,138 @@ public abstract class CGIChartBase extends net.sourceforge.processdash.ui.web.Ti
                 yAxis.setLabelFont(yAxis.getLabelFont().deriveFont(fontSize));
         } catch (Exception afs) {}
 
-
+        ChartRenderingInfo info =
+                (isHtmlMode() ? new ChartRenderingInfo() : null);
         BufferedImage img = new BufferedImage
             (width, height, BufferedImage.TYPE_INT_RGB);
         Graphics2D g2 = img.createGraphics();
         maybeAdjustFontSizes(chart, g2, width);
-        chart.draw(g2, new Rectangle2D.Double(0, 0, width, height));
+        chart.draw(g2, new Rectangle2D.Double(0, 0, width, height), info);
         g2.dispose();
 
-        int quality = (isExporting() ? 85 : 100);
-        JpegEncoder jpegEncoder = new JpegEncoder(img, quality, outStream);
-        jpegEncoder.Compress();
-        outStream.flush();
-        outStream.close();
+        String outputFormat = getSetting("outputFormat");
+        OutputStream imgOut;
+        if (isHtmlMode()) {
+            imgOut = PngCache.getOutputStream();
+            writeImageHtml(width, height, imgOut.hashCode(), info);
+        } else {
+            imgOut = outStream;
+        }
+        ImageIO.write(img, outputFormat, imgOut);
+        imgOut.flush();
+        imgOut.close();
+    }
+
+    private void writeImageHtml(int width, int height, int imgID,
+            ChartRenderingInfo info) throws IOException {
+        String tooltip = getParameter("tooltip");
+        if (!StringUtils.hasValue(tooltip))
+            tooltip = resources.getHTML("More_Detail_Here_Instruction");
+
+        String href = getParameter("href");
+        if (StringUtils.hasValue(href)) {
+            // create a copy of the entity collection, and place an entity for
+            // the entire chart at the beginning of the list.  This will
+            // make it appear last in the image map (which is important,
+            // because browsers process the image map areas in the order that
+            // they appear; having the entire chart area listed first would
+            // obscure all of the other image map areas).
+            EntityCollection entities = new StandardEntityCollection();
+            entities.add(new ChartEntity(info.getChartArea(), tooltip, href));
+            if (info.getEntityCollection() != null)
+                entities.addAll(info.getEntityCollection());
+
+            // Next: most of our chart entities will not have URLs. URL values
+            // don't inherit in the imagemap, so if we want the entire image
+            // to have a single URL, we need to assign that URL to every
+            // area in the chart.
+            for (Iterator i = entities.iterator(); i.hasNext();) {
+                ChartEntity ce = (ChartEntity) i.next();
+                // check for no-op chart entity - these won't appear in the
+                // image map anyway, so they don't need to be adjusted
+                if (ce.getToolTipText() == null && ce.getURLText() == null)
+                    continue;
+                // for other entities, add a tooltip and a URL as needed.
+                if (!StringUtils.hasValue(ce.getToolTipText()))
+                    ce.setToolTipText(tooltip);
+                if (!StringUtils.hasValue(ce.getURLText()))
+                    ce.setURLText(href);
+            }
+
+            // install our modified version of the entity collection into
+            // the chart info object, so it will be used when generating
+            // the image map later.
+            info.setEntityCollection(entities);
+        }
+
+        // write the image tag
+        out.write("<img width=\"" + width + "\" height=\"" + height +
+            "\" src=\"/reports/pngCache?id=" + imgID +
+            "\" usemap=\"#IMG" + imgID + '"');
+
+        // imagemaps have hyperlink borders by default, even if we don't
+        // have a URL we're pointing to.  Turn that border off.
+        if (!StringUtils.hasValue(href))
+            out.write(" border=\"0\"");
+
+        // Our client might want to add attributes to the image tag. Look
+        // through the query parameters we received for arbitrary attributes
+        // starting with the prefix "img", and copy them into the tag.
+        for (Iterator i = parameters.entrySet().iterator(); i.hasNext();) {
+            Map.Entry e = (Map.Entry) i.next();
+            String attrName = (String) e.getKey();
+            if (attrName.startsWith("img") && !attrName.endsWith("_ALL")) {
+                out.write(" " + attrName.substring(3) + "=\"");
+                out.write(HTMLUtils.escapeEntities(e.getValue().toString()));
+                out.write('"');
+            }
+        }
+
+        out.write(">");
+
+        // finally, write the image map.  Note that we have to strip line
+        // break characters from the resulting HTML, otherwise firefox seems
+        // to decide that the <map> tag actually takes up space on the page
+        StringBuffer imageMapHtml = new StringBuffer(ImageMapUtilities
+                .getImageMap("IMG" + imgID, info, getToolTipGenerator(tooltip),
+                    new StandardURLTagFragmentGenerator()));
+        StringUtils.findAndReplace(imageMapHtml, "\r", "");
+        StringUtils.findAndReplace(imageMapHtml, "\n", "");
+        out.write(imageMapHtml.toString());
+        out.flush();
+    }
+
+    protected ToolTipTagFragmentGenerator getToolTipGenerator(String defaultTooltip) {
+        String tooltipType = getSetting("tooltips");
+        if ("overlib".equalsIgnoreCase(tooltipType))
+            return new CustomOverlibFragmentGenerator(defaultTooltip);
+        else if ("plain".equalsIgnoreCase(tooltipType))
+            return new StandardToolTipTagFragmentGenerator();
+        else
+            return null;
+    }
+
+    private static class CustomOverlibFragmentGenerator extends
+            OverLIBToolTipTagFragmentGenerator {
+
+        private String defaultTooltip;
+
+        public CustomOverlibFragmentGenerator(String tooltip) {
+            this.defaultTooltip = tooltip;
+        }
+
+        @Override
+        public String generateToolTipFragment(String toolTipText) {
+            if (defaultTooltip != null && defaultTooltip.equals(toolTipText)) {
+                return " onMouseOver=\"return overlib('"
+                + ImageMapUtilities.htmlEscape(toolTipText)
+                + "', DELAY, 1000, FOLLOWMOUSE, FGCOLOR, '#FFFFCC');\""
+                + " onMouseOut=\"return nd();\"";
+            } else {
+                return super.generateToolTipFragment(toolTipText);
+            }
+        }
+
     }
 
     protected void maybeAdjustFontSizes(JFreeChart chart,

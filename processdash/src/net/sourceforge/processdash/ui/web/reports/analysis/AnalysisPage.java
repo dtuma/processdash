@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2006 Tuma Solutions, LLC
+// Copyright (C) 2003-2008 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -58,6 +58,7 @@ public abstract class AnalysisPage extends TinyCGIBase implements StringMapper {
 
     protected static final String PAGE_HEADER = "<html><head>\n"
         + "<link rel=stylesheet type=\"text/css\" href=\"/style.css\">\n"
+        + "<script type='text/javascript' src='/lib/overlib.js'></script>\n"
         + "<title>%TITLE%</title>\n"
         + "</head><body>\n"
         + "<h1>%PATH%</h1>\n"
@@ -188,11 +189,13 @@ public abstract class AnalysisPage extends TinyCGIBase implements StringMapper {
         return name + "=" + HTMLUtils.urlEncode((String) value);
     }
 
-    protected void writeChartHTML(String chartType, String chartKey) {
+    protected void writeChartHTML(String chartType, String chartKey)
+            throws IOException {
         writeChartHTML(chartType, chartKey, null);
     }
 
-    protected void writeChartHTML(String chartType, String chartKey, String extraArgs) {
+    protected void writeChartHTML(String chartType, String chartKey,
+            String extraArgs) throws IOException {
         String script = (String) env.get("SCRIPT_NAME");
         int pos = script.lastIndexOf("/reports/");
         script = script.substring(pos+9) + "?type=" + chartKey;
@@ -208,15 +211,14 @@ public abstract class AnalysisPage extends TinyCGIBase implements StringMapper {
             args = args + "&chart=" + chartType;
         }
 
-        out.write("<a href=\"" + PATH_TO_REPORTS);
-        out.write(fullURL);
-        out.write("?");
-        out.write(args);
-        out.write("\"><img src=\"" + PATH_TO_REPORTS);
-        out.write(chartType);
-        out.write(".class?");
-        out.write(args);
-        out.write("&qf=small.rpt\"></a>\n");
+        String href = PATH_TO_REPORTS + fullURL + "?" + args;
+
+        String relImageUri = PATH_TO_REPORTS + chartType + ".class?" + args
+                + "&qf=small.rpt&html&href=" + HTMLUtils.urlEncode(href);
+        String absImageUri = resolveRelativeURI(relImageUri);
+        String imageHtml = getRequestAsString(absImageUri);
+        out.write(imageHtml);
+        out.write(" \n");
     }
 
     protected void writeSimpleChartArgs(String title, String label, String comments, String dataElem) {

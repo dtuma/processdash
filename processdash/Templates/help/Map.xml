@@ -28,7 +28,7 @@
   <mapID target="BSD" url="Topics/Overview/bsd.html" />
   <mapID target="SunBerkeley" url="Topics/Overview/License-SunBerkeley.html" />
   <mapID target="Colt" url="Topics/Overview/License-Colt.html" />
-  <mapID target="JpegEncoder" url="Topics/Overview/License-Weeks.html" />
+  <mapID target="Overlib" url="Topics/Overview/License-Overlib.html" />
 
   <mapID target="Planning" url="Topics/Planning/Planning.html" />
   <mapID target="EnteringData" url="Topics/Planning/EnteringData.html" />

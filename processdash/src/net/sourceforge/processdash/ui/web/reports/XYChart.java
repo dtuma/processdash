@@ -33,6 +33,7 @@ import net.sourceforge.processdash.ui.web.CGIChartBase;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.Axis;
+import org.jfree.chart.labels.XYToolTipGenerator;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.StandardXYItemRenderer;
@@ -67,7 +68,11 @@ public class XYChart extends CGIChartBase {
             XYDataset src = data.xyDataSource();
             chart = ChartFactory.createScatterPlot
                 (null, xLabel, yLabel, src, PlotOrientation.VERTICAL,
-                 true, false, false);
+                 true, true, false);
+            if (src instanceof XYToolTipGenerator) {
+                chart.getXYPlot().getRenderer().setBaseToolTipGenerator(
+                    (XYToolTipGenerator) src);
+            }
 
             String trendLine = getParameter("trend");
             if ("none".equalsIgnoreCase(trendLine))

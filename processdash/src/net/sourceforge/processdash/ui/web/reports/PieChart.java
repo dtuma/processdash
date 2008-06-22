@@ -52,11 +52,11 @@ public class PieChart extends CGIChartBase {
         JFreeChart chart = null;
         if (get3DSetting()) {
             chart = ChartFactory.createPieChart3D
-                (null, pieData, true, false, false);
+                (null, pieData, true, true, false);
             chart.getPlot().setForegroundAlpha(ALPHA);
         } else {
             chart = ChartFactory.createPieChart
-                (null, pieData, true, false, false);
+                (null, pieData, true, true, false);
         }
 
         PiePlot plot = (PiePlot) chart.getPlot();

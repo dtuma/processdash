@@ -1,4 +1,4 @@
-// Copyright (C) 2006 Tuma Solutions, LLC
+// Copyright (C) 2006-2008 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -25,6 +25,7 @@
 
 package net.sourceforge.processdash.ui.web.reports.snippets;
 
+import java.io.IOException;
 import java.util.Map;
 
 import net.sourceforge.processdash.i18n.Resources;
@@ -72,34 +73,34 @@ public class AbstractChartSnippet extends TinyCGIBase {
         }
     }
 
-    protected void writeSmallChart(String chartType, String query) {
+    protected void writeSmallChart(String chartType, String query)
+            throws IOException {
         writeSmallChart(chartType, query, "");
     }
     protected void writeSmallChart(String chartType, String query,
-            String extraQueryForSmallVersion) {
+            String extraQueryForSmallVersion) throws IOException {
         Object exporting = parameters.get("EXPORT");
         if ("excel".equals(exporting)) return;
 
-        query = HTMLUtils.escapeEntities(query);
-        extraQueryForSmallVersion = HTMLUtils
-                .escapeEntities(extraQueryForSmallVersion);
-
-        out.write("<a href=\"../../reports/");
+        StringBuffer href = new StringBuffer("../../reports/");
         if (exporting != null)
-            out.write("table.class");
+            href.append("table.class");
         else
-            out.write("full.htm");
-        out.write("?chart=");
-        out.write(chartType);
-        out.write(query);
-        out.write("\" title=\"");
-        out.write(resources.getHTML("More_Detail_Here_Instruction"));
-        out.write("\"><img src=\"../../reports/");
-        out.write(chartType);
-        out.write(".class?qf=small.rpt");
-        out.write(query);
-        out.write(extraQueryForSmallVersion);
-        out.write("\"/></a>\n");
+            href.append("full.htm");
+        href.append("?chart=").append(chartType).append(query);
+
+        String imageUri = "../../reports/" + chartType
+                + ".class?html&qf=small.rpt" + query
+                + extraQueryForSmallVersion
+                + "&href=" + HTMLUtils.urlEncode(href.toString());
+        String imageHtml = getRequestAsString(resolveRelativeURI(imageUri));
+        out.write(OVERLIB_HEADER_HTML);
+        out.write(imageHtml);
+        out.write("\n</body></html>\n");
     }
+
+    private static final String OVERLIB_HEADER_HTML = "<html><head>"
+        + "<script type='text/javascript' src='/lib/overlib.js'></script>"
+        + "</head><body>";
 
 }

@@ -51,6 +51,7 @@ import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.data.repository.SearchFunction;
 import net.sourceforge.processdash.i18n.Translator;
 
+import org.jfree.chart.labels.XYToolTipGenerator;
 import org.jfree.data.category.CategoryDataset;
 import org.jfree.data.category.DefaultCategoryDataset;
 import org.jfree.data.xy.AbstractXYDataset;
@@ -774,7 +775,7 @@ public class ResultSet {
     }
 
     protected class RSXYDataSource extends AbstractXYDataset
-        implements XYDataset
+        implements XYDataset, XYToolTipGenerator
     {
         /** Returns the number of series in the data source. */
         @Override
@@ -795,6 +796,12 @@ public class ResultSet {
             return getNumber(itemIndex+1, seriesIndex+2); }
         /** Returns the number of items in the specified series */
         public int getItemCount(int seriesIndex) { return numRows(); }
+
+        public String generateToolTip(XYDataset dataset, int series, int item) {
+                return getRowName(item+1) + ": ("
+                    + format(item+1, 1) + ", "
+                    + format(item+1, series+2) + ")";
+        }
     }
     private static Double ZERO = new Double(0.0);
 

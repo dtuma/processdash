@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2006 Tuma Solutions, LLC
+// Copyright (C) 2003-2008 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -89,33 +89,45 @@ public class Report5 extends CGIChartBase implements DefectAnalyzer.Task {
             super.writeContents();
     }
 
-    private void writeSnippet() {
+    private void writeSnippet() throws IOException {
         if ("excel".equals(parameters.get("EXPORT")))
             return;
 
+        out.print(SNIPPET_HEADER);
         for (int i = 0; i < KEYS.length; i++) {
             String paramName = "Show_" + KEYS[i];
             Object paramVal = parameters.get(paramName);
             if (paramVal != null && !"".equals(paramVal)) {
-                out.print("<p><img width='500' height='400' src=\"");
-                out.print(getScriptName());
-                out.print("?for=auto&amp;width=500&amp;height=400&amp;type=");
-                out.print(PARAM_FLAG[i]);
-                out.print("&amp;categoryLabels=vertical\"></p>\n\n");
+                String imageUri = getScriptName() + "?for=auto&html"
+                        + "&width=500&height=400&categoryLabels=vertical"
+                        + "&type=" + PARAM_FLAG[i];
+
+                String absImageUri = resolveRelativeURI(imageUri);
+                String imageHtml = getRequestAsString(absImageUri);
+                out.print("<p>");
+                out.print(imageHtml);
+                out.print("</p>\n\n");
             }
         }
+        out.print("</body></html>");
     }
+
+    private static final String SNIPPET_HEADER =
+        "<HTML><head>\n" +
+        "<script type='text/javascript' src='/lib/overlib.js'></script>\n" +
+        "</head><body>\n";
 
     private static final String HTML_HEADER =
         "<HTML><head>\n" +
         "<link rel=stylesheet type='text/css' href='/style.css'>\n" +
+        "<script type='text/javascript' src='/lib/overlib.js'></script>\n" +
         "<title>${Title_Long}</title>\n" +
         "</head><BODY>\n" +
         "<H1>%PATH%</H1>\n";
     private static final String TITLE_TEXT =
         "<H2>${Title_Long}</H2>\n";
 
-    private void writeHtmlContents() {
+    private void writeHtmlContents() throws IOException {
         if (!parameters.containsKey(AnalysisPage.INCLUDABLE_PARAM)) {
             String text = HTML_HEADER;
             text = StringUtils.findAndReplace
@@ -130,14 +142,18 @@ public class Report5 extends CGIChartBase implements DefectAnalyzer.Task {
         boolean nokids = parameters.containsKey(DefectAnalyzer.NO_CHILDREN_PARAM);
 
         for (int i = 0;   i < PARAM_FLAG.length;   i++) {
-            out.print("<P><IMG WIDTH=500 HEIGHT=400 SRC=\"");
-            out.print(getScriptName());
-            out.print("?type=");
-            out.print(PARAM_FLAG[i]);
-            if (strict) out.print("&strict");
-            if (nokids) out.print("&" + DefectAnalyzer.NO_CHILDREN_PARAM);
-            out.print("&qf="+PATH_TO_REPORTS+"compProj.rpt");
-            out.print("&categoryLabels=vertical&width=500&height=400\"></P>");
+            StringBuffer imageUri = new StringBuffer(getScriptName());
+            imageUri.append("?html&type=").append(PARAM_FLAG[i]);
+            if (strict) imageUri.append("&strict");
+            if (nokids) imageUri.append("&"+DefectAnalyzer.NO_CHILDREN_PARAM);
+            imageUri.append("&qf="+PATH_TO_REPORTS+"compProj.rpt")
+                    .append("&categoryLabels=vertical&width=500&height=400");
+
+            String absImageUri = resolveRelativeURI(imageUri.toString());
+            String imageHtml = getRequestAsString(absImageUri);
+            out.print("<P>");
+            out.print(imageHtml);
+            out.print("</P>\n");
         }
 
         if (!parameters.containsKey(AnalysisPage.INCLUDABLE_PARAM))
@@ -157,13 +173,13 @@ public class Report5 extends CGIChartBase implements DefectAnalyzer.Task {
         if (get3DSetting()) {
             chart = ChartFactory.createBarChart3D
                 (null, null, null, data.catDataSource(),
-                 PlotOrientation.VERTICAL, false, false, false);
+                 PlotOrientation.VERTICAL, false, true, false);
             chart.getPlot().setForegroundAlpha(ALPHA);
 
         } else {
             chart = ChartFactory.createBarChart
                 (null, null, null, data.catDataSource(),
-                 PlotOrientation.VERTICAL, false, false, false);
+                 PlotOrientation.VERTICAL, false, true, false);
         }
 
         setupCategoryChart(chart);

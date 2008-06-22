@@ -1,6 +1,6 @@
 <!--#server-parsed --><!--
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003-2006 Tuma Solutions, LLC
+// Copyright (C) 2003-2008 Tuma Solutions, LLC
 // 
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -29,6 +29,14 @@
 <head>
 <title>Chart</title>
 
+<style>
+body { margin: 0pt; padding: 0pt }
+div  { margin: 0pt; padding: 0pt }
+img  { margin: 0pt; padding: 0pt; border: 0pt }
+</style>
+
+<script type='text/javascript' src='/lib/prototype.js'></script>
+<script type='text/javascript' src='/lib/overlib.js'></script>
 <script language="JavaScript">
 
 // Construct a value for the SRC attribute of an image.
@@ -58,10 +66,17 @@ function imgSrc() {
     return (chart + window.location.search + "&width="+w + "&height="+h);
 }
 
+function imgHtmlSrc() {
+    var href = "table.class" + window.location.search;
+    return imgSrc() + "&html&href=" + encodeURIComponent(href)
+            +  "&imgid=chart&tooltip=" 
+            + encodeURIComponent("<!--#echo var='Full_Page_Detail_Instruction'
+                                       encoding='html,javaStr' -->");
+}
+
 // Resize the chart, in response to the window/frame being resized.
-function resizeChart() { 
-    var image = document.getElementsByTagName("IMG")[0];
-    image.src = imgSrc();
+function resizeChart() {
+    new Ajax.Updater('chart', imgHtmlSrc());
 }
 window.onresize = resizeChart;
 
@@ -69,12 +84,6 @@ window.onresize = resizeChart;
 
 </head>
 
-<BODY LEFTMARGIN="0" TOPMARGIN="0" MARGINHEIGHT="0" MARGINWIDTH="0" SCROLL="no">
-
-<SCRIPT>
-    document.write("<A HREF='table.class" + window.location.search + "' ");
-    document.write(" title=\"<!--#echo var=Full_Page_Detail_Instruction encoding='html,javaStr' -->\">");
-    document.write("<IMG BORDER=0 SRC='" + imgSrc() + "'></A>");
-</SCRIPT>
-</BODY>
-</HTML>
+<body scroll="no"><div id="chart"></div><script>
+    resizeChart();
+</script></body></html>

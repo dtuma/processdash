@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2006 Tuma Solutions, LLC
+// Copyright (C) 2003-2008 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -65,6 +65,8 @@ public class ProcessAnalysisPage extends AnalysisPage {
             if (hasYield)
                 writeChartHTML(XY_CHART, DEF_VS_YIELD_CHART, phaseArg);
         }
+
+        out.write("</body></html>\n");
     }
 
 

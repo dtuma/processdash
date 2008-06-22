@@ -1,5 +1,5 @@
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
+// Copyright (C) 2003-2008 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -48,7 +48,7 @@ public class BarChart extends CGIChartBase {
         chart = ChartFactory.createBarChart3D
             (null, null, null, data.catDataSource(),
              (vertical ? PlotOrientation.VERTICAL : PlotOrientation.HORIZONTAL),
-             true, false, false);
+             true, true, false);
 
         setupCategoryChart(chart);
 

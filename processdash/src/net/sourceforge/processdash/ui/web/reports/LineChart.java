@@ -1,5 +1,5 @@
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003 Software Process Dashboard Initiative
+// Copyright (C) 2003-2008 Software Process Dashboard Initiative
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -40,7 +40,7 @@ public class LineChart extends CGIChartBase {
     public JFreeChart createChart() {
         JFreeChart chart = ChartFactory.createLineChart
             (null, null, null, data.catDataSource(),
-             PlotOrientation.VERTICAL, true, false, false);
+             PlotOrientation.VERTICAL, true, true, false);
         setupCategoryChart(chart);
 
         return chart;

@@ -25,7 +25,7 @@
         <tocitem image="PageIcon" target="BSD" text="BSD License"/>
         <tocitem image="PageIcon" target="SunBerkeley" text="Sun Microsystems"/>
         <tocitem image="PageIcon" target="Colt" text="Colt License"/>
-        <tocitem image="PageIcon" target="JpegEncoder" text="Jpeg Encoder"/>
+        <tocitem image="PageIcon" target="Overlib" text="Overlib License"/>
         <tocitem image="BookIcon" target="Separation" text="PSP Processes">
           <tocitem image="PageIcon" target="RequestLetter" text="PSP Request Letter"/>
           <tocitem image="PageIcon" target="PermissionLetter" text="PSP Permission Letter"/>
