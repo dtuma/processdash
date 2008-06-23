@@ -102,6 +102,10 @@ public class DropDownButton extends JPanel {
         add(mainButton);
         add(menuBar);
 
+        // configure the enclosing JPanel
+        this.setBackground(null);
+        this.setOpaque(false);
+
         setEnabled(false);
     }
 
