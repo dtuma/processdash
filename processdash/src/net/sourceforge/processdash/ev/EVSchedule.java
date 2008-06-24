@@ -1028,6 +1028,7 @@ public class EVSchedule implements TableModel {
         z.cumPlanValue = y.cumPlanValue;
         z.cumEarnedValue = y.cumEarnedValue;
         z.cumActualCost = y.cumActualCost;
+        z.cumActualDirectTime = y.cumActualDirectTime;
         z.automatic = automatic;
 
         add(z);
