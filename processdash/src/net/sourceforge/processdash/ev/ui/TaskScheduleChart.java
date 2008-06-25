@@ -35,7 +35,9 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
+import java.text.DateFormat;
 import java.text.DecimalFormatSymbols;
+import java.text.NumberFormat;
 import java.util.EventObject;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -51,6 +53,7 @@ import javax.swing.JTabbedPane;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.ListSelectionModel;
+import javax.swing.ToolTipManager;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.event.TableModelEvent;
@@ -65,12 +68,14 @@ import net.sourceforge.processdash.ev.EVTaskList;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.ui.DashboardIconFactory;
 import net.sourceforge.processdash.ui.help.PCSH;
+import net.sourceforge.processdash.ui.lib.ToolTipTimingCustomizer;
 import net.sourceforge.processdash.ui.lib.XYDatasetFilter;
 
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.Axis;
+import org.jfree.chart.labels.StandardXYToolTipGenerator;
 import org.jfree.chart.labels.XYSeriesLabelGenerator;
 import org.jfree.chart.title.LegendTitle;
 import org.jfree.data.general.DatasetChangeEvent;
@@ -192,6 +197,7 @@ public class TaskScheduleChart extends JFrame
             if (s != null) renderer.setSeriesStroke(i, s);
         }
         renderer.setLegendItemLabelGenerator(new SeriesNameGenerator());
+        renderer.setBaseToolTipGenerator(new TooltipGenerator());
     }
 
     private static class SeriesNameGenerator implements XYSeriesLabelGenerator {
@@ -215,6 +221,30 @@ public class TaskScheduleChart extends JFrame
         public void datasetChanged(DatasetChangeEvent event) {
             configureRenderer(xyData, renderer);
         }
+    }
+
+    private static class TooltipGenerator extends StandardXYToolTipGenerator {
+
+        public TooltipGenerator() {
+            super("{0}: ({1}, {2})",
+                    DateFormat.getDateInstance(DateFormat.SHORT),
+                    getNumberFormat());
+        }
+
+        static NumberFormat getNumberFormat() {
+            NumberFormat result = NumberFormat.getInstance();
+            result.setMaximumFractionDigits(1);
+            return result;
+        }
+
+        @Override
+        protected Object[] createItemArray(XYDataset dataset, int series,
+                int item) {
+            Object[] result = super.createItemArray(dataset, series, item);
+            result[0] = getNameForSeries(dataset, series);
+            return result;
+        }
+
     }
 
     private static final Map SERIES_PAINTS = new HashMap();
@@ -367,6 +397,8 @@ public class TaskScheduleChart extends JFrame
                             reloadSeriesMenus();
                         }});
             reloadSeriesMenus();
+            ToolTipManager.sharedInstance().registerComponent(this);
+            new ToolTipTimingCustomizer().install(this);
         }
         private void reloadSeriesMenus() {
             JPopupMenu menu = getPopupMenu();

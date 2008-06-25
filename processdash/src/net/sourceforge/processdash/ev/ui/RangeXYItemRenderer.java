@@ -38,6 +38,7 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 
 import org.jfree.chart.axis.ValueAxis;
+import org.jfree.chart.entity.EntityCollection;
 import org.jfree.chart.plot.CrosshairState;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.PlotRenderingInfo;
@@ -74,6 +75,12 @@ public class RangeXYItemRenderer extends StandardXYItemRenderer {
                          int item,
                          CrosshairState crosshairInfo,
                          int pass) {
+
+        // setup for collecting optional entity info...
+        EntityCollection entities = null;
+        if (info != null) {
+            entities = info.getOwner().getEntityCollection();
+        }
 
         Paint paint = getItemPaint(series, item);
         Stroke seriesStroke = getItemStroke(series, item);
@@ -152,6 +159,11 @@ public class RangeXYItemRenderer extends StandardXYItemRenderer {
                 }
             }
         }
+
+        if (entities != null && dataArea.contains(transX1, transY1)) {
+            addEntity(entities, null, dataset, series, item, transX1, transY1);
+        }
+
     }
 
     private void drawItemRangeGradient(Graphics2D g2, Line2D line,

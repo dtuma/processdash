@@ -743,10 +743,7 @@ public class EVReport extends CGIChartBase {
             printFilterInfo(out, taskFilter, exportingToExcel());
 
         if (!exportingToExcel()) {
-            String imgHtml = (taskFilter == null
-                    ? SEPARATE_CHARTS_HTML
-                    : COMBINED_CHARTS_HTML);
-            interpOutLink(imgHtml, EVReportSettings.PURPOSE_IMAGE);
+            writeImageHtml(taskFilter != null);
             out.print(HTMLTreeTableWriter.TREE_ICON_HEADER);
         }
 
@@ -807,6 +804,34 @@ public class EVReport extends CGIChartBase {
 
         out.print("</p>");
         out.print("</body></html>");
+    }
+
+
+    private void writeImageHtml(boolean showCombined) throws IOException {
+        Map realParameters = this.parameters;
+        Map imgParams = new HashMap();
+        this.parameters = imgParams;
+
+        imgParams.put("initGradColor", "#bebdff");
+        imgParams.put("finalGradColor", "#bebdff");
+        imgParams.put("html", "t");
+
+        out.write("<pre>");
+        if (showCombined) {
+            imgParams.put("width", "720");
+            writeCombinedChart();
+
+        } else {
+            writeValueChart();
+
+            imgParams.put("width", "320");
+            imgParams.put("hideLegend", "t");
+            imgParams.remove("title");
+            writeTimeChart();
+        }
+        out.write("</pre>\n");
+
+        this.parameters = realParameters;
     }
 
 
@@ -1023,6 +1048,7 @@ public class EVReport extends CGIChartBase {
     static final String HEADER_HTML =
         "<html><head><title>%title%</title>\n" +
         "<link rel=stylesheet type='text/css' href='/style.css'>\n" +
+        "<script type='text/javascript' src='/lib/overlib.js'></script>\n" +
         HTMLTreeTableWriter.TREE_HEADER_ITEMS +
         REDUNDANT_EXCEL_HEADER +
         POPUP_HEADER +
@@ -1033,16 +1059,6 @@ public class EVReport extends CGIChartBase {
         "<link rel=stylesheet type='text/css' href='/reports/filter-style.css'>\n";
     static final String HEADER_LINK_STYLE = " style='font-size: medium; " +
         "font-style: italic; font-weight: normal; margin-left: 0.5cm' ";
-    static final String COLOR_PARAMS =
-        "&initGradColor=%23bebdff&finalGradColor=%23bebdff";
-    static final String SEPARATE_CHARTS_HTML =
-        "<pre>"+
-        "<img src='ev.class??&"+CHART_PARAM+"="+VALUE_CHART+COLOR_PARAMS+"'>" +
-        "<img src='ev.class??&"+CHART_PARAM+"="+TIME_CHART+COLOR_PARAMS+
-        "&width=320&hideLegend'></pre>\n";
-    static final String COMBINED_CHARTS_HTML =
-        "<img src='ev.class??&"+CHART_PARAM+"="+COMBINED_CHART+COLOR_PARAMS+
-        "&width=720'><br>\n";
     static final String EXPORT_TEXT_LINK = "<a href=\"@@@excel.iqy\"><i>"
             + "${Report.Export_Text}</i></a>&nbsp; &nbsp; &nbsp; &nbsp;";
     static final String EXPORT_CHARTS_LINK = "<a href='@@@ev.xls'><i>"
