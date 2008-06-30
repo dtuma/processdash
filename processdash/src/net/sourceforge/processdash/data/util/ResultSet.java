@@ -684,23 +684,6 @@ public class ResultSet {
     }
 
 
-    /** Make certain that we have at least one row of data, even if it is
-     * bogus.
-     * This is necessary because the charting library doesn't like drawing
-     * charts with no data in them.
-     */
-    private void ensureOneRow() {
-        if (numRows() > 0) return;
-
-        Object[][] newData = new Object[2][numCols()+1];
-        for (int i=numCols();  i>=0; i--) {
-            newData[0][i] = data[0][i]; // copy column headers.
-            newData[1][i] = null; // make all data elements in row 1 null.
-        }
-        data = newData;
-        setRowName(1, "No data to display");
-    }
-
     private static String fixupName(String name) {
         return "anonymousChart" + name.hashCode();
     }
@@ -770,7 +753,6 @@ public class ResultSet {
     }
 
     public CategoryDataset catDataSource() {
-        ensureOneRow();
         return new RSCategoryDataSource();
     }
 
@@ -806,7 +788,6 @@ public class ResultSet {
     private static Double ZERO = new Double(0.0);
 
     public XYDataset xyDataSource() {
-        ensureOneRow();         // ensure SOME data exists.
         sortBy(1, false);       // ensure data is sorted by X, ascending.
         return new RSXYDataSource();
     }

@@ -1,4 +1,4 @@
-// Copyright (C) 2007 Tuma Solutions, LLC
+// Copyright (C) 2007-2008 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -61,6 +61,35 @@ public class PaintUtils {
         }
 
         return result;
+    }
+
+    public static double toGray(Color c) {
+        return (0.30 * c.getRed() +
+                0.59 * c.getGreen() +
+                0.11 * c.getBlue());
+    }
+
+    public static Color adjustForContrast(Color fg, Color bg) {
+        float[] hsb = new float[3];
+        Color.RGBtoHSB(bg.getRed(), bg.getGreen(), bg.getBlue(), hsb);
+        float bgBright = hsb[2];
+        Color.RGBtoHSB(fg.getRed(), fg.getGreen(), fg.getBlue(), hsb);
+        float fgBright = hsb[2];
+        float brightDelta = Math.abs(fgBright - bgBright);
+        if (brightDelta > 0.1)
+            return fg;
+
+        float resultBright;
+        if (bgBright <= 0.1)
+            resultBright = bgBright + 0.1f;
+        else if (bgBright >= 230)
+            resultBright = bgBright - 0.1f;
+        else if (fgBright > bgBright)
+            resultBright = bgBright + 0.1f;
+        else
+            resultBright = bgBright - 0.1f;
+        hsb[2] = resultBright;
+        return Color.getHSBColor(hsb[0], hsb[1], hsb[2]);
     }
 
 }

@@ -29,27 +29,29 @@ package net.sourceforge.processdash.ui.web.reports;
 import java.util.Map;
 
 import net.sourceforge.processdash.data.util.ResultSet;
+import net.sourceforge.processdash.ui.lib.chart.DiscPlot;
+import net.sourceforge.processdash.ui.lib.chart.DrawingSupplierFactory;
+import net.sourceforge.processdash.ui.lib.chart.StandardDiscItemDistributor;
 import net.sourceforge.processdash.ui.web.CGIChartBase;
 
-import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
-import org.jfree.chart.plot.PiePlot;
 import org.jfree.data.category.CategoryDataset;
 import org.jfree.data.general.DatasetUtilities;
 import org.jfree.data.general.PieDataset;
+import org.jfree.ui.RectangleInsets;
 
 
 
-public class PieChart extends CGIChartBase {
+public class DiscChart extends CGIChartBase {
 
     /** Create a  line chart. */
     @Override
     public JFreeChart createChart() {
-        return createPieChart(data, parameters, get3DSetting());
+        return createDiscChart(data, parameters);
     }
 
-    public static JFreeChart createPieChart(ResultSet data, Map parameters,
-            boolean threeDimensional) {
+    public static JFreeChart createDiscChart(ResultSet data, Map parameters) {
+        // data.sortBy(1, true);
         CategoryDataset catData = data.catDataSource();
         PieDataset pieData = null;
         if (catData.getColumnCount() == 1)
@@ -57,29 +59,23 @@ public class PieChart extends CGIChartBase {
         else
             pieData = DatasetUtilities.createPieDatasetForRow(catData, 0);
 
-        JFreeChart chart = null;
-        if (threeDimensional) {
-            chart = ChartFactory.createPieChart3D
-                (null, pieData, true, true, false);
-            chart.getPlot().setForegroundAlpha(ALPHA);
-        } else {
-            chart = ChartFactory.createPieChart
-                (null, pieData, true, true, false);
-        }
+        DiscPlot plot = new DiscPlot(pieData);
+        plot.setInsets(new RectangleInsets(0.0, 5.0, 5.0, 5.0));
+        plot.setDrawingSupplier(DRAWING_SUPPLIER_FACTORY.newDrawingSupplier());
+        JFreeChart chart = new JFreeChart(null, JFreeChart.DEFAULT_TITLE_FONT,
+                plot, false);
 
-        PiePlot plot = (PiePlot) chart.getPlot();
         if (parameters.get("skipItemLabels") != null
-                || parameters.get("skipWedgeLabels") != null)
+                || parameters.get("skipDiscLabels") != null)
             plot.setLabelGenerator(null);
-        else if (parameters.get("wedgeLabelFontSize") != null) try {
+        else if (parameters.get("discLabelFontSize") != null) try {
             float fontSize =
-                Float.parseFloat((String) parameters.get("wedgeLabelFontSize"));
+                Float.parseFloat((String) parameters.get("discLabelFontSize"));
             plot.setLabelFont(plot.getLabelFont().deriveFont(fontSize));
         } catch (Exception lfe) {}
         if (parameters.get("ellipse") != null)
-            plot.setCircular(true);
-        else
-            plot.setCircular(false);
+            ((StandardDiscItemDistributor) plot.getDiscDistributor())
+                    .setCircular(false);
 
         String interiorGap = (String) parameters.get("interiorGap");
         if (interiorGap != null) try {
@@ -90,12 +86,12 @@ public class PieChart extends CGIChartBase {
             plot.setInteriorGap(Integer.parseInt(interiorSpacing) / 200.0);
         } catch (NumberFormatException e) {}
 
-        if (!parameters.containsKey("showZeroValues")) {
-            plot.setIgnoreZeroValues(true);
-            plot.setIgnoreNullValues(true);
-        }
-
         return chart;
     }
 
+    private static final DrawingSupplierFactory DRAWING_SUPPLIER_FACTORY =
+        new DrawingSupplierFactory()
+            .setPaintSequence(DrawingSupplierFactory.PALETTE1)
+            .setFillPaintSequence(DrawingSupplierFactory.PALETTE1)
+            .setOutlinePaintSequence(DrawingSupplierFactory.PALETTE1);
 }

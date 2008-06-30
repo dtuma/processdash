@@ -41,6 +41,7 @@ import net.sourceforge.processdash.log.defects.Defect;
 import net.sourceforge.processdash.log.defects.DefectAnalyzer;
 import net.sourceforge.processdash.process.DefectTypeStandard;
 import net.sourceforge.processdash.ui.web.CGIChartBase;
+import net.sourceforge.processdash.ui.web.reports.DiscChart;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.StringUtils;
 
@@ -93,6 +94,10 @@ public class Report5 extends CGIChartBase implements DefectAnalyzer.Task {
         if ("excel".equals(parameters.get("EXPORT")))
             return;
 
+        String chartStyleParam = "";
+        if ("Disc".equals(getParameter("ChartType")))
+            chartStyleParam = "&disc";
+
         out.print(SNIPPET_HEADER);
         for (int i = 0; i < KEYS.length; i++) {
             String paramName = "Show_" + KEYS[i];
@@ -100,7 +105,7 @@ public class Report5 extends CGIChartBase implements DefectAnalyzer.Task {
             if (paramVal != null && !"".equals(paramVal)) {
                 String imageUri = getScriptName() + "?for=auto&html"
                         + "&width=500&height=400&categoryLabels=vertical"
-                        + "&type=" + PARAM_FLAG[i];
+                        + chartStyleParam + "&type=" + PARAM_FLAG[i];
 
                 String absImageUri = resolveRelativeURI(imageUri);
                 String imageHtml = getRequestAsString(absImageUri);
@@ -140,12 +145,14 @@ public class Report5 extends CGIChartBase implements DefectAnalyzer.Task {
 
         boolean strict = parameters.containsKey("strict");
         boolean nokids = parameters.containsKey(DefectAnalyzer.NO_CHILDREN_PARAM);
+        boolean disc = parameters.containsKey("disc");
 
         for (int i = 0;   i < PARAM_FLAG.length;   i++) {
             StringBuffer imageUri = new StringBuffer(getScriptName());
             imageUri.append("?html&type=").append(PARAM_FLAG[i]);
             if (strict) imageUri.append("&strict");
             if (nokids) imageUri.append("&"+DefectAnalyzer.NO_CHILDREN_PARAM);
+            if (disc) imageUri.append("&disc");
             imageUri.append("&qf="+PATH_TO_REPORTS+"compProj.rpt")
                     .append("&categoryLabels=vertical&width=500&height=400");
 
@@ -169,6 +176,13 @@ public class Report5 extends CGIChartBase implements DefectAnalyzer.Task {
 
     /** Create a vertical bar chart. */
     public JFreeChart createChart() {
+        if (parameters.containsKey("disc"))
+            return DiscChart.createDiscChart(data, parameters);
+        else
+            return createBarChart();
+    }
+
+    private JFreeChart createBarChart() {
         JFreeChart chart = null;
         if (get3DSetting()) {
             chart = ChartFactory.createBarChart3D
