@@ -1,4 +1,4 @@
-// Copyright (C) 2007 Tuma Solutions, LLC
+// Copyright (C) 2008 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -25,15 +25,11 @@
 
 package net.sourceforge.processdash.util;
 
-
-/**
- * Interface for an object that can be initialized and disposed.
- */
-public interface Initializable<T> extends Disposable {
+public interface Disposable {
 
     /**
-     * Perform any activity required to initialize this object.
+     * Perform and activity required to dispose this object.
      */
-    public void initialize(T obj);
+    public void dispose();
 
 }

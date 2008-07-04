@@ -1,4 +1,4 @@
-// Copyright (C) 2007 Tuma Solutions, LLC
+// Copyright (C) 2006-2008 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -23,17 +23,24 @@
 //
 // E-Mail POC:  processdash-devel@lists.sourceforge.net
 
-package net.sourceforge.processdash.util;
+package net.sourceforge.processdash.ui.snippet;
 
+public class InvalidSnippetDefinitionException extends Exception {
 
-/**
- * Interface for an object that can be initialized and disposed.
- */
-public interface Initializable<T> extends Disposable {
+    public InvalidSnippetDefinitionException() {
+        super();
+    }
 
-    /**
-     * Perform any activity required to initialize this object.
-     */
-    public void initialize(T obj);
+    public InvalidSnippetDefinitionException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
+    public InvalidSnippetDefinitionException(String message) {
+        super(message);
+    }
+
+    public InvalidSnippetDefinitionException(Throwable cause) {
+        super(cause);
+    }
 
 }

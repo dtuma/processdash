@@ -1,4 +1,4 @@
-// Copyright (C) 2006 Tuma Solutions, LLC
+// Copyright (C) 2006-2008 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -527,14 +527,14 @@ public class FramesetPageAssemblers {
      * of a PageAssembler that is displaying content in frames.
      */
     private static void setFrameUriParams(Map params) {
-        String frameUri = (String) params.get(SnippetEnvironment.CURRENT_FRAME_URI);
+        String frameUri = (String) params.get(CMSSnippetEnvironment.CURRENT_FRAME_URI);
         StringBuffer uri = new StringBuffer(frameUri);
         HTMLUtils.removeParam(uri, FRAME_PARAM);
         HTMLUtils.appendQuery(uri, FRAME_PARAM, FRAME_TOP);
         if (params.containsKey("EXPORT"))
             HTMLUtils.removeParam(uri, SECTION_ID_PARAM);
-        params.put(SnippetEnvironment.FULL_PAGE_URI, uri.toString());
-        params.put(SnippetEnvironment.FULL_PAGE_TARGET, TOP_FRAME_NAME);
+        params.put(CMSSnippetEnvironment.FULL_PAGE_URI, uri.toString());
+        params.put(CMSSnippetEnvironment.FULL_PAGE_TARGET, TOP_FRAME_NAME);
     }
 
 

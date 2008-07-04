@@ -23,7 +23,7 @@
 //
 // E-Mail POC:  processdash-devel@lists.sourceforge.net
 
-package net.sourceforge.processdash.ui.lib;
+package net.sourceforge.processdash.ui.lib.chart;
 
 import java.util.ArrayList;
 import java.util.Arrays;

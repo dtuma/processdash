@@ -1,4 +1,4 @@
-// Copyright (C) 2006 Tuma Solutions, LLC
+// Copyright (C) 2006-2008 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -44,14 +44,15 @@ import java.util.Set;
 import net.sourceforge.processdash.data.DataContext;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.net.http.WebServer;
+import net.sourceforge.processdash.ui.snippet.SnippetDefinitionManager;
 import net.sourceforge.processdash.ui.web.reports.analysis.AnalysisPage;
 import net.sourceforge.processdash.util.HTMLUtils;
 
 /** Abstract base class for renderers that generate a single page of content.
  */
 public abstract class AbstractPageAssembler implements PageAssembler,
-        SnippetEnvironment, Needs.Environment, Needs.Parameters, Needs.Prefix,
-        Needs.Data {
+        CMSSnippetEnvironment, Needs.Environment, Needs.Parameters,
+        Needs.Prefix, Needs.Data {
 
     protected static final String AUTO_HEADER_INSTANCE_ID = "auto";
     protected static final Resources resources = Resources

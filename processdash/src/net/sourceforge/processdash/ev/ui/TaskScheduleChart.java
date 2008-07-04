@@ -26,41 +26,36 @@
 
 package net.sourceforge.processdash.ev.ui;
 
-import java.awt.BasicStroke;
-import java.awt.Color;
+import java.awt.CardLayout;
+import java.awt.Component;
 import java.awt.Dimension;
-import java.awt.Paint;
-import java.awt.Stroke;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.ComponentEvent;
-import java.awt.event.ComponentListener;
-import java.text.DateFormat;
-import java.text.DecimalFormatSymbols;
-import java.text.NumberFormat;
+import java.awt.Font;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.EventObject;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.swing.Box;
-import javax.swing.JCheckBoxMenuItem;
+import javax.swing.DefaultListCellRenderer;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
-import javax.swing.JPopupMenu;
+import javax.swing.JList;
+import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JTabbedPane;
-import javax.swing.JTable;
-import javax.swing.JTextArea;
+import javax.swing.JSplitPane;
 import javax.swing.ListSelectionModel;
-import javax.swing.ToolTipManager;
+import javax.swing.border.EmptyBorder;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
-import javax.swing.event.TableModelEvent;
-import javax.swing.event.TableModelListener;
 
+import net.sourceforge.processdash.data.TagData;
+import net.sourceforge.processdash.data.util.SimpleDataContext;
 import net.sourceforge.processdash.ev.EVHierarchicalFilter;
-import net.sourceforge.processdash.ev.EVMetrics;
 import net.sourceforge.processdash.ev.EVSchedule;
 import net.sourceforge.processdash.ev.EVScheduleFiltered;
 import net.sourceforge.processdash.ev.EVTaskFilter;
@@ -68,31 +63,24 @@ import net.sourceforge.processdash.ev.EVTaskList;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.ui.DashboardIconFactory;
 import net.sourceforge.processdash.ui.help.PCSH;
-import net.sourceforge.processdash.ui.lib.ToolTipTimingCustomizer;
-import net.sourceforge.processdash.ui.lib.XYDatasetFilter;
-
-import org.jfree.chart.ChartFactory;
-import org.jfree.chart.ChartPanel;
-import org.jfree.chart.JFreeChart;
-import org.jfree.chart.axis.Axis;
-import org.jfree.chart.labels.StandardXYToolTipGenerator;
-import org.jfree.chart.labels.XYSeriesLabelGenerator;
-import org.jfree.chart.title.LegendTitle;
-import org.jfree.data.general.DatasetChangeEvent;
-import org.jfree.data.general.DatasetChangeListener;
-import org.jfree.data.xy.XYDataset;
+import net.sourceforge.processdash.ui.lib.WrappingText;
+import net.sourceforge.processdash.ui.snippet.SnippetDefinition;
+import net.sourceforge.processdash.ui.snippet.SnippetDefinitionManager;
+import net.sourceforge.processdash.ui.snippet.SnippetWidget;
+import net.sourceforge.processdash.util.Disposable;
 
 
 public class TaskScheduleChart extends JFrame
-    implements EVTaskList.RecalcListener, ComponentListener {
-
-    static final Object NAME_POS_KEY = "namePos";
+    implements EVTaskList.RecalcListener {
 
     EVTaskList taskList;
     EVSchedule schedule;
-    JTabbedPane tabPane;
+    Map<String, SnippetChartItem> widgets;
+    JPanel displayArea;
+    CardLayout cardLayout;
 
     static Resources resources = Resources.getDashBundle("EV.Chart");
+    static Logger logger = Logger.getLogger(TaskScheduleChart.class.getName());
 
     public TaskScheduleChart(EVTaskList tl, EVTaskFilter filter) {
         super(formatWindowTitle(tl, filter));
@@ -100,23 +88,27 @@ public class TaskScheduleChart extends JFrame
         DashboardIconFactory.setWindowIcon(this);
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         taskList = tl;
-        taskList.addRecalcListener(this);
         if (filter == null)
             schedule = taskList.getSchedule();
-        else
+        else {
             schedule = new EVScheduleFiltered(tl, filter);
+            taskList.addRecalcListener(this);
+        }
 
-        tabPane = new JTabbedPane();
-        addTab(0, buildValueChart());
-        if (filter == null)
-            addTab(1, buildTimeChart());
-        addTab(2, buildCombinedChart());
-        addTab(3, buildStatsTable());
-        tabPane.addComponentListener(this);
+        widgets = getChartWidgets(filter != null);
 
-        getContentPane().add(tabPane);
-        pack();
-        adjustTabNames(getWidth());
+        cardLayout = new CardLayout(0, 5);
+        displayArea = new JPanel(cardLayout);
+        displayArea.setMinimumSize(new Dimension(0, 0));
+        displayArea.setPreferredSize(new Dimension(400, 300));
+
+        JSplitPane sp = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
+            createChooserComponent(), displayArea);
+        sp.setOneTouchExpandable(true);
+        getContentPane().add(sp);
+
+        setSize(600, 300);
+        sp.setDividerLocation(160);
         setVisible(true);
     }
 
@@ -133,14 +125,61 @@ public class TaskScheduleChart extends JFrame
                     tl.getDisplayName(), filterDescription);
     }
 
-    private void addTab(int namePos, JComponent tabContent) {
-        tabPane.addTab(TAB_NAMES[FULL][namePos], tabContent);
-        tabContent.putClientProperty(NAME_POS_KEY, new Integer(namePos));
+    private Map<String, SnippetChartItem> getChartWidgets(boolean filterInEffect) {
+        Map<String, SnippetChartItem> result = new HashMap<String, SnippetChartItem>();
+
+        SimpleDataContext ctx = new SimpleDataContext();
+        TagData tag = TagData.getInstance();
+        ctx.put(EVSnippetEnvironment.EV_CONTEXT_KEY, tag);
+        if (filterInEffect)
+            ctx.put(EVSnippetEnvironment.FILTERED_EV_CONTEXT_KEY, tag);
+        else
+            ctx.put(EVSnippetEnvironment.UNFILTERED_EV_CONTEXT_KEY, tag);
+
+        SnippetDefinitionManager.initialize();
+        Set snippets = SnippetDefinitionManager.getAllSnippets();
+        for (Iterator i = snippets.iterator(); i.hasNext();) {
+            SnippetDefinition snip = (SnippetDefinition) i.next();
+            if (snip.getCategory().startsWith("ev")
+                    && snip.matchesContext(ctx)) {
+                try {
+                    SnippetChartItem item = new SnippetChartItem(snip);
+                    result.put(snip.getId(), item);
+                } catch (Exception e) {
+                    logger.log(Level.WARNING, "Problem with EV Chart Snippet '"
+                            + snip.getId() + "'", e);
+                }
+            }
+        }
+
+        return result;
     }
+
+    private JComponent createChooserComponent() {
+        ArrayList items = new ArrayList(widgets.values());
+        Collections.sort(items);
+        final JList list = new JList(items.toArray());
+        list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        list.setCellRenderer(new SnippetChartItemListRenderer());
+        list.addListSelectionListener(new ListSelectionListener() {
+            public void valueChanged(ListSelectionEvent e) {
+                SnippetChartItem item = (SnippetChartItem) list.getSelectedValue();
+                item.display();
+            }});
+        list.setSelectedIndex(0);
+
+        return new JScrollPane(list);
+    }
+
 
     @Override
     public void dispose() {
         super.dispose();
+        for (int i = displayArea.getComponentCount();  i-- > 0; ) {
+            Component c = displayArea.getComponent(i);
+            if (c instanceof Disposable)
+                ((Disposable) c).dispose();
+        }
         taskList.removeRecalcListener(this);
     }
 
@@ -156,315 +195,103 @@ public class TaskScheduleChart extends JFrame
         }
     }
 
-    private ChartPanel buildTimeChart() {
-        return buildChart(schedule.getTimeChartData(), UNITS[1]);
-    }
 
-    private ChartPanel buildValueChart() {
-        return buildChart(schedule.getValueChartData(), UNITS[0]);
-    }
+    private class SnippetChartItem implements Comparable<SnippetChartItem> {
 
-    private ChartPanel buildCombinedChart() {
-        return buildChart(schedule.getCombinedChartData(), UNITS[2]);
-    }
+        private SnippetDefinition snip;
 
-    private ChartPanel buildChart(XYDataset data, String units) {
-        XYDatasetFilter filteredData = new XYDatasetFilter(data);
-        JFreeChart chart = createChart(filteredData);
-        if (units != null && units.length() != 0)
-            chart.getXYPlot().getRangeAxis().setLabel(units);
-        charts[numCharts]    = chart;
-        legends[numCharts++] = chart.getLegend();
-        return new EVChartPanel(chart, filteredData);
-    }
+        private String id;
 
-    public static JFreeChart createChart(XYDataset data) {
-        JFreeChart chart = ChartFactory.createTimeSeriesChart
-                    (null, null, null, data, true, true, false);
-        RangeXYItemRenderer renderer = new RangeXYItemRenderer();
-        configureRenderer(data, renderer);
-        chart.getXYPlot().setRenderer(renderer);
-        data.addChangeListener(new RendererReconfigurer(data, renderer));
-        return chart;
-    }
-    private static void configureRenderer(XYDataset xyData,
-        RangeXYItemRenderer renderer) {
-        for (int i = 0;  i < xyData.getSeriesCount();  i++) {
-            String seriesID = xyData.getSeriesKey(i).toString();
-            Paint p = (Paint) getPrefForSeries(SERIES_PAINTS, seriesID);
-            if (p != null) renderer.setSeriesPaint(i, p);
-            Stroke s = (Stroke) getPrefForSeries(SERIES_STROKES, seriesID);
-            if (s != null) renderer.setSeriesStroke(i, s);
-        }
-        renderer.setLegendItemLabelGenerator(new SeriesNameGenerator());
-        renderer.setBaseToolTipGenerator(new TooltipGenerator());
-    }
+        private String name;
 
-    private static class SeriesNameGenerator implements XYSeriesLabelGenerator {
+        private String description;
 
-        public String generateLabel(XYDataset dataset, int series) {
-            return getNameForSeries(dataset, series);
+        private boolean initialized;
+
+
+        public SnippetChartItem(SnippetDefinition snip) {
+            this.snip = snip;
+            this.id = snip.getId();
+            this.name = snip.getName();
+            try {
+                this.description = snip.getDescription();
+            } catch (Exception e) {}
+            this.initialized = false;
         }
 
+        public void display() {
+            if (!initialized) {
+                Component comp = getComponent();
+                displayArea.add(id, comp);
+                initialized = true;
+            }
+            cardLayout.show(displayArea, id);
+        }
+
+        private Component getComponent() {
+            try {
+                SnippetWidget w = snip.getWidget("view", null);
+
+                Map environment = new HashMap();
+                environment.put(EVSnippetEnvironment.TASK_LIST_KEY, taskList);
+                environment.put(EVSnippetEnvironment.SCHEDULE_KEY, schedule);
+                environment.put(EVSnippetEnvironment.RESOURCES, snip
+                        .getResources());
+
+                HashMap params = new HashMap();
+
+                return w.getWidgetComponent(environment, params);
+
+            } catch (Exception e) {
+                WrappingText label = new WrappingText(resources
+                        .getString("Widget_Error"));
+                label.setFont(label.getFont().deriveFont(Font.ITALIC));
+
+                Box b = Box.createVerticalBox();
+                b.add(Box.createVerticalGlue());
+                b.add(label);
+                b.add(Box.createVerticalGlue());
+                b.setBorder(new EmptyBorder(30, 30, 30, 30));
+                return b;
+            }
+
+        }
+
+        public String getDescription() {
+            return description;
+        }
+
+        public String toString() {
+            return name;
+        }
+
+        public int compareTo(SnippetChartItem that) {
+            return this.name.compareTo(that.name);
+        }
+
     }
 
-    private static class RendererReconfigurer implements DatasetChangeListener {
-        private XYDataset xyData;
-        private RangeXYItemRenderer renderer;
+    private class SnippetChartItemListRenderer extends DefaultListCellRenderer {
 
-        public RendererReconfigurer(XYDataset xyData,
-                RangeXYItemRenderer renderer) {
-            this.xyData = xyData;
-            this.renderer = renderer;
-        }
+        private SnippetChartItem item;
 
-        public void datasetChanged(DatasetChangeEvent event) {
-            configureRenderer(xyData, renderer);
-        }
-    }
-
-    private static class TooltipGenerator extends StandardXYToolTipGenerator {
-
-        public TooltipGenerator() {
-            super("{0}: ({1}, {2})",
-                    DateFormat.getDateInstance(DateFormat.SHORT),
-                    getNumberFormat());
-        }
-
-        static NumberFormat getNumberFormat() {
-            NumberFormat result = NumberFormat.getInstance();
-            result.setMaximumFractionDigits(1);
-            return result;
+        @Override
+        public Component getListCellRendererComponent(JList list,
+                Object value, int index, boolean isSelected,
+                boolean cellHasFocus) {
+            this.item = (SnippetChartItem) value;
+            return super.getListCellRendererComponent(list, value, index,
+                isSelected, cellHasFocus);
         }
 
         @Override
-        protected Object[] createItemArray(XYDataset dataset, int series,
-                int item) {
-            Object[] result = super.createItemArray(dataset, series, item);
-            result[0] = getNameForSeries(dataset, series);
-            return result;
+        public String getToolTipText() {
+            if (item != null)
+                return item.getDescription();
+            else
+                return null;
         }
 
-    }
-
-    private static final Map SERIES_PAINTS = new HashMap();
-    private static final Map SERIES_STROKES = new HashMap();
-    static {
-        SERIES_PAINTS.put("Baseline", new Color(159, 141, 114));
-        SERIES_PAINTS.put("Plan", Color.red);
-        SERIES_PAINTS.put("Replan", Color.red);
-        SERIES_PAINTS.put("Actual", Color.blue);
-        SERIES_PAINTS.put("Forecast", Color.green);
-        SERIES_PAINTS.put("Optimized_Forecast", Color.orange);
-
-        SERIES_PAINTS.put("Plan_Value", Color.red);
-        SERIES_PAINTS.put("Actual_Value", Color.blue);
-        SERIES_PAINTS.put("Actual_Cost", Color.green);
-        SERIES_PAINTS.put("Actual_Time", Color.orange);
-
-        BasicStroke dashed = new BasicStroke(1.0f, BasicStroke.CAP_SQUARE,
-                BasicStroke.JOIN_MITER, 10.0f, new float[] { 10.0f, 5.0f },
-                0.0f);
-        SERIES_STROKES.put("Schedule.Replan_Label", dashed);
-    }
-    private static Object getPrefForSeries(Map prefs, String seriesID) {
-        for (Iterator i = prefs.entrySet().iterator(); i.hasNext();) {
-            Map.Entry e = (Map.Entry) i.next();
-            String id = (String) e.getKey();
-            if (id.equals(seriesID))
-                return e.getValue();
-        }
-        return null;
-    }
-    public static String getNameForSeries(XYDataset d, int seriesNum) {
-        String seriesKey = d.getSeriesKey(seriesNum).toString();
-        String seriesName = resources.getString("Schedule." + seriesKey
-                + "_Label");
-        return seriesName;
-    }
-
-    JFreeChart charts[] = new JFreeChart[3];
-    LegendTitle legends[] = new LegendTitle[3];
-    int numCharts = 0;
-
-    private JComponent buildStatsTable() {
-        EVMetrics m = schedule.getMetrics();
-
-        JTable table = new JTable(m);
-        table.removeColumn(table.getColumnModel().getColumn(3));
-        JScrollPane scrollPane = new JScrollPane(table);
-        scrollPane.setPreferredSize(new Dimension(100, 100));
-
-        DescriptionPane descr =
-            new DescriptionPane(m, table.getSelectionModel());
-
-        Box result = Box.createVerticalBox();
-        result.add(scrollPane);
-        result.add(Box.createVerticalStrut(2));
-        result.add(descr);
-        return result;
-    }
-
-
-
-
-
-    public void componentMoved(ComponentEvent e) {}
-    public void componentShown(ComponentEvent e) {}
-    public void componentHidden(ComponentEvent e) {}
-    public void componentResized(ComponentEvent e) {
-        adjustTabNames(tabPane.getWidth());
-    }
-
-
-    private static final int FULL = 2;
-    private static final int MED = 1;
-    private static final int SHORT = 0;
-    private int currentStyle = FULL;
-    private static int MED_WINDOW_WIDTH = 325;
-    private static int SHORT_WINDOW_WIDTH = 170;
-
-    private static final String[][] TAB_NAMES;
-    private static final String[] UNITS;
-    static {
-        String[] colKeys = new String[]
-            { "Earned_Value_Chart", "Direct_Hours_Chart",
-                  "Combined_Chart", "Statistics" };
-        TAB_NAMES = new String[3][0];
-        TAB_NAMES[FULL] = resources.getStrings("Tabs.", colKeys, ".Full_Name");
-        TAB_NAMES[MED]  = resources.getStrings("Tabs.", colKeys, ".Med_Name");
-        TAB_NAMES[SHORT]= resources.getStrings("Tabs.", colKeys, ".Short_Name");
-        String[] chartColKeys = new String[3];
-        System.arraycopy(colKeys, 0, chartColKeys, 0, 3);
-        UNITS = resources.getStrings("Tabs.", chartColKeys, ".Units");
-
-        if ("CURRENCY".equals(TAB_NAMES[SHORT][1]))
-            TAB_NAMES[SHORT][1] =
-                (new DecimalFormatSymbols()).getCurrencySymbol();
-        try {
-            MED_WINDOW_WIDTH = Integer.parseInt
-                (resources.getString("Window_Width_Med_Name"));
-        } catch (NumberFormatException nfe) {}
-        try {
-            SHORT_WINDOW_WIDTH = Integer.parseInt
-                (resources.getString("Window_Width_Short_Name"));
-        } catch (NumberFormatException nfe) {}
-    }
-
-    private void adjustTabNames(int width) {
-        int style;
-        if (width > MED_WINDOW_WIDTH)         style = FULL;
-        else if (width > SHORT_WINDOW_WIDTH)  style = MED;
-        else                                  style = SHORT;
-        synchronized (this) {
-            if (style == currentStyle) return;
-            currentStyle = style;
-        }
-
-        for (int i=tabPane.getTabCount();  i-- > 0; ) {
-            JComponent c = (JComponent) tabPane.getComponentAt(i);
-            Integer namePos = (Integer) c.getClientProperty(NAME_POS_KEY);
-            tabPane.setTitleAt(i, TAB_NAMES[style][namePos.intValue()]);
-        }
-        for (int i=0;   i < charts.length;   i++) {
-            if (charts[i] == null) continue;
-            charts[i].removeLegend();
-            if (style == FULL) charts[i].addLegend(legends[i]);
-            adjustAxis(charts[i].getXYPlot().getRangeAxis(),
-                       style != FULL, UNITS[i]);
-            adjustAxis(charts[i].getXYPlot().getDomainAxis(),
-                       style == SHORT, null);
-        }
-    }
-    private void adjustAxis(Axis a, boolean chromeless, String units) {
-        a.setTickLabelsVisible(!chromeless);
-        a.setTickMarksVisible(!chromeless);
-        a.setLabel(chromeless ? null : units);
-    }
-
-
-    private class EVChartPanel extends ChartPanel {
-        private XYDatasetFilter filteredData;
-        public EVChartPanel(JFreeChart chart, XYDatasetFilter filteredData) {
-            super(chart);
-            setMouseZoomable(true, false);
-
-            this.filteredData = filteredData;
-            getPopupMenu().insert(new JPopupMenu.Separator(), 0);
-            filteredData.getSourceDataset().addChangeListener(
-                    new DatasetChangeListener() {
-                        public void datasetChanged(DatasetChangeEvent event) {
-                            reloadSeriesMenus();
-                        }});
-            reloadSeriesMenus();
-            ToolTipManager.sharedInstance().registerComponent(this);
-            new ToolTipTimingCustomizer().install(this);
-        }
-        private void reloadSeriesMenus() {
-            JPopupMenu menu = getPopupMenu();
-            while (menu.getComponent(0) instanceof ShowChartLineMenuItem)
-                menu.remove(0);
-            XYDataset data = filteredData.getSourceDataset();
-            RangeXYItemRenderer renderer = (RangeXYItemRenderer) getChart()
-                    .getXYPlot().getRenderer();
-            for (int i = data.getSeriesCount();   i-- > 0; )
-                menu.insert(new ShowChartLineMenuItem(filteredData, renderer,
-                        i), 0);
-        }
-    }
-    private class ShowChartLineMenuItem extends JCheckBoxMenuItem implements
-            ActionListener {
-        private XYDatasetFilter data;
-        private RangeXYItemRenderer renderer;
-        private int seriesNum;
-        public ShowChartLineMenuItem(XYDatasetFilter data,
-                RangeXYItemRenderer renderer, int seriesNum) {
-            this.data = data;
-            this.renderer = renderer;
-            this.seriesNum = seriesNum;
-            String seriesName = getNameForSeries(data, seriesNum);
-            setText(resources.format("Show_Line_FMT", seriesName));
-            setSelected(data.isSeriesHidden(seriesNum) == false);
-            addActionListener(this);
-        }
-        public void actionPerformed(ActionEvent e) {
-            data.setSeriesHidden(seriesNum, isSelected() == false);
-            configureRenderer(data, renderer);
-        }
-    }
-
-
-
-    private class DescriptionPane extends JTextArea
-        implements ListSelectionListener, TableModelListener
-    {
-        EVMetrics metrics;
-        ListSelectionModel selectionModel;
-        public DescriptionPane(EVMetrics m, ListSelectionModel sm) {
-            super(resources.getString("Choose_Metric_Instruction"));
-            setBackground(null);
-            setLineWrap(true); setWrapStyleWord(true); setEditable(false);
-            doResize();
-            metrics = m;
-            metrics.addTableModelListener(this);
-            selectionModel = sm;
-            selectionModel.addListSelectionListener(this);
-        }
-
-        public void valueChanged(ListSelectionEvent e) { refreshText(); }
-        public void tableChanged(TableModelEvent e)    { refreshText(); }
-        public void refreshText() {
-            String descr = (String) metrics.getValueAt
-                (selectionModel.getMinSelectionIndex(), EVMetrics.FULL);
-            setText(descr);
-            doResize();
-        }
-        private void doResize() {
-            Dimension d = getPreferredSize();
-            setMinimumSize(d);
-            d.width = 10000;
-            setMaximumSize(d);
-        }
     }
 
 }

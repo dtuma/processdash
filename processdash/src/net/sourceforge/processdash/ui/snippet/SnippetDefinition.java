@@ -1,4 +1,4 @@
-// Copyright (C) 2006 Tuma Solutions, LLC
+// Copyright (C) 2006-2008 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -23,7 +23,7 @@
 //
 // E-Mail POC:  processdash-devel@lists.sourceforge.net
 
-package net.sourceforge.processdash.net.cms;
+package net.sourceforge.processdash.ui.snippet;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -33,6 +33,7 @@ import java.util.Set;
 import net.sourceforge.processdash.data.DataContext;
 import net.sourceforge.processdash.data.TagData;
 import net.sourceforge.processdash.i18n.Resources;
+import net.sourceforge.processdash.templates.ExtensionManager;
 import net.sourceforge.processdash.util.XMLUtils;
 
 import org.w3c.dom.Element;
@@ -47,6 +48,8 @@ import org.w3c.dom.NodeList;
 public class SnippetDefinition {
 
     public static final String SNIPPET_TAG = "snippet";
+
+    private Element xml;
 
     private String id;
 
@@ -67,6 +70,8 @@ public class SnippetDefinition {
     private Set modes;
 
     private Set uris;
+
+    private Set widgets;
 
     /** Read a snippet definition from an XML declaration
      * 
@@ -114,9 +119,14 @@ public class SnippetDefinition {
         modes = readSet(xml, "mode", false);
 
         uris = readSet(xml, "uri", true);
-        if (uris.isEmpty())
+
+        widgets = readSet(xml, "widget", true);
+        if (!widgets.isEmpty())
+            this.xml = xml;
+
+        if (uris.isEmpty() && widgets.isEmpty())
             throw new InvalidSnippetDefinitionException(
-                    "The uri must be specified");
+                    "At least one uri or widget must be specified");
     }
 
 
@@ -199,9 +209,19 @@ public class SnippetDefinition {
         return Resources.getDashBundle(resourceBundleName);
     }
 
+    /** Return a user-friendly name for this snippet */
+    public String getName() {
+        return getResources().getString("Snippet_Name");
+    }
+
     /** Return a user-friendly name for this snippet, in HTML format */
     public String getNameHtml() {
         return getResources().getHTML("Snippet_Name");
+    }
+
+    /** Return a user-friendly description for this snippet */
+    public String getDescription() {
+        return getResources().getString("Snippet_Description");
     }
 
     /** Return a user-friendly description for this snippet, in HTML format */
@@ -216,18 +236,52 @@ public class SnippetDefinition {
      * @param action the current action being executed, or null for no action
      */
     public String getUri(String mode, String action) {
-        String result = lookupUri(mode, action);
-        if (result == null)
-            result = lookupUri(mode, null);
-        if (result == null)
-            result = lookupUri(null, null);
+        String result = findModeSpecificValue(uris, mode, action);
         if (result == null || result.startsWith("/"))
             return result;
         else
             return "/" + result;
     }
-    private String lookupUri(String mode, String action) {
-        for (Iterator i = uris.iterator(); i.hasNext();) {
+
+    /**
+     * Get a widget that can be used to produce components for display in
+     * the dashboard.
+     * 
+     * @param mode the current mode in effect
+     * @param action the current action being executed, or null for no action
+     * @return a {@link SnippetWidget} to produce components, or null if no
+     *     matching widget declaration was found
+     * @throws InvalidSnippetDefinitionException if the widget declaration names
+     *     a class that does not implement <code>SnippetWidget</code>
+     * @throws Exception if an exception occurs when attempting to instantiate
+     *     the specified <code>SnippetWidget</code>
+     */
+    public SnippetWidget getWidget(String mode, String action)
+            throws InvalidSnippetDefinitionException, Exception {
+        String className = findModeSpecificValue(widgets, mode, action);
+        if (className == null)
+            return null;
+
+        Object result = ExtensionManager.getExecutableExtension(xml, null,
+            className, null);
+        if (result instanceof SnippetWidget)
+            return (SnippetWidget) result;
+        else
+            throw new InvalidSnippetDefinitionException("The class '"
+                    + className + "' is not a SnippetWidget");
+    }
+
+    private String findModeSpecificValue(Set items, String mode, String action) {
+        String result = lookupModeSpecificValue(items, mode, action);
+        if (result == null)
+            result = lookupModeSpecificValue(items, mode, null);
+        if (result == null)
+            result = lookupModeSpecificValue(items, null, null);
+        return result;
+    }
+
+    private String lookupModeSpecificValue(Set items, String mode, String action) {
+        for (Iterator i = items.iterator(); i.hasNext();) {
             ModeSpecificValue v = (ModeSpecificValue) i.next();
             if (v.isMatch(mode, action))
                 return v.getValue();

@@ -1,4 +1,4 @@
-// Copyright (C) 2007 Tuma Solutions, LLC
+// Copyright (C) 2008 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -23,17 +23,27 @@
 //
 // E-Mail POC:  processdash-devel@lists.sourceforge.net
 
-package net.sourceforge.processdash.util;
+package net.sourceforge.processdash.ev.ui;
 
+import net.sourceforge.processdash.ui.snippet.SnippetEnvironment;
 
-/**
- * Interface for an object that can be initialized and disposed.
- */
-public interface Initializable<T> extends Disposable {
+public interface EVSnippetEnvironment extends SnippetEnvironment {
 
-    /**
-     * Perform any activity required to initialize this object.
-     */
-    public void initialize(T obj);
+    /** Key that maps to the earned value task list being displayed. */
+    String TASK_LIST_KEY = "evTaskList";
+
+    /** Key that maps to the earned value schedule being displayed. */
+    String SCHEDULE_KEY = "evSchedule";
+
+    /** Data context key indicating that earned value data is being drawn */
+    String EV_CONTEXT_KEY = "Earned Value Context";
+
+    /** Data context key indicating that earned value data is being drawn for
+     * an unfiltered task list */
+    String UNFILTERED_EV_CONTEXT_KEY = "Unfiltered Earned Value Context";
+
+    /** Data context key indicating that earned value data is being drawn for
+     * a filtered task list */
+    String FILTERED_EV_CONTEXT_KEY = "Filtered Earned Value Context";
 
 }

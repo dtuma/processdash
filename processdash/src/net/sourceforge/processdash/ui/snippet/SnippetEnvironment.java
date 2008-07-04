@@ -1,4 +1,4 @@
-// Copyright (C) 2006 Tuma Solutions, LLC
+// Copyright (C) 2008 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -23,24 +23,22 @@
 //
 // E-Mail POC:  processdash-devel@lists.sourceforge.net
 
-package net.sourceforge.processdash.net.cms;
+package net.sourceforge.processdash.ui.snippet;
 
-public class InvalidSnippetDefinitionException extends Exception {
+import net.sourceforge.processdash.net.http.HTMLPreprocessor;
 
-    public InvalidSnippetDefinitionException() {
-        super();
-    }
+public interface SnippetEnvironment {
 
-    public InvalidSnippetDefinitionException(String message, Throwable cause) {
-        super(message, cause);
-    }
+    /** Key that maps to the text persisted by a former snippet instance. */
+    public String PERSISTED_TEXT = "cmsSnippetPersistedText";
 
-    public InvalidSnippetDefinitionException(String message) {
-        super(message);
-    }
+    /** Key that maps to the id of the snippet that created persisted text */
+    public String SNIPPET_ID = "cmsSnippetID";
 
-    public InvalidSnippetDefinitionException(Throwable cause) {
-        super(cause);
-    }
+    /** Key that maps to the version the snippet that created persisted text */
+    public String SNIPPET_VERSION = "cmsSnippetVersion";
+
+    /** Key that maps to the resource bundle named by the snippet declaration */
+    public String RESOURCES = HTMLPreprocessor.RESOURCES_PARAM;
 
 }

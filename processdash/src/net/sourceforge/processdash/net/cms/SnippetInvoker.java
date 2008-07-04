@@ -1,4 +1,4 @@
-// Copyright (C) 2006 Tuma Solutions, LLC
+// Copyright (C) 2006-2008 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -35,12 +35,13 @@ import net.sourceforge.processdash.data.DataContext;
 import net.sourceforge.processdash.net.http.HTMLPreprocessor;
 import net.sourceforge.processdash.net.http.TinyCGI;
 import net.sourceforge.processdash.net.http.WebServer;
+import net.sourceforge.processdash.ui.snippet.SnippetDefinition;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.XMLUtils;
 
 /** Object which can invoke snippets, and capture the results.
  */
-public class SnippetInvoker implements SnippetEnvironment {
+public class SnippetInvoker implements CMSSnippetEnvironment {
 
     /** Status indicating that a snippet has been hidden */
     public static final int STATUS_HIDDEN = -2;

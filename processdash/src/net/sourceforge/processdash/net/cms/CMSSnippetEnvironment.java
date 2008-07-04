@@ -1,4 +1,4 @@
-// Copyright (C) 2006 Tuma Solutions, LLC
+// Copyright (C) 2006-2008 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -25,24 +25,11 @@
 
 package net.sourceforge.processdash.net.cms;
 
-import net.sourceforge.processdash.net.http.HTMLPreprocessor;
+import net.sourceforge.processdash.ui.snippet.SnippetEnvironment;
 
 /** Constants for values placed in the environment when invoking a snippet.
  */
-public interface SnippetEnvironment {
-
-    /** Key that maps to the text persisted by a former snippet instance. */
-    public String PERSISTED_TEXT = "cmsSnippetPersistedText";
-
-    /** Key that maps to the id of the snippet that created persisted text */
-    public String SNIPPET_ID = "cmsSnippetID";
-
-    /** Key that mapps to the version the snippet that created persisted text */
-    public String SNIPPET_VERSION = "cmsSnippetVersion";
-
-    /** Key that maps to the resource bundle named by the snippet declaration */
-    public String RESOURCES = HTMLPreprocessor.RESOURCES_PARAM;
-
+public interface CMSSnippetEnvironment extends SnippetEnvironment {
 
     /** Key that maps to the title of the current page, as designated by the
      * user */

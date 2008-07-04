@@ -65,13 +65,14 @@ import net.sourceforge.processdash.ev.EVTaskListMerged;
 import net.sourceforge.processdash.ev.EVTaskListRollup;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.net.cache.CachedURLObject;
-import net.sourceforge.processdash.net.cms.SnippetEnvironment;
+import net.sourceforge.processdash.net.cms.CMSSnippetEnvironment;
 import net.sourceforge.processdash.net.http.TinyCGIException;
 import net.sourceforge.processdash.net.http.WebServer;
-import net.sourceforge.processdash.ui.lib.XYDatasetFilter;
 import net.sourceforge.processdash.ui.lib.HTMLTableWriter;
 import net.sourceforge.processdash.ui.lib.HTMLTreeTableWriter;
 import net.sourceforge.processdash.ui.lib.TreeTableModel;
+import net.sourceforge.processdash.ui.lib.chart.XYDatasetFilter;
+import net.sourceforge.processdash.ui.snippet.SnippetEnvironment;
 import net.sourceforge.processdash.ui.web.CGIChartBase;
 import net.sourceforge.processdash.ui.web.reports.ExcelReport;
 import net.sourceforge.processdash.util.FileUtils;
@@ -938,7 +939,7 @@ public class EVReport extends CGIChartBase {
 
             StringBuffer href = new StringBuffer();
 
-            String uri = (String) env.get(SnippetEnvironment.CURRENT_FRAME_URI);
+            String uri = (String) env.get(CMSSnippetEnvironment.CURRENT_FRAME_URI);
             href.append(uri == null ? "ev.class" : uri);
 
             if (isFlat) {
@@ -1243,7 +1244,7 @@ public class EVReport extends CGIChartBase {
 
     /** Create a time series chart. */
     public JFreeChart createChart() {
-        JFreeChart chart = TaskScheduleChart.createChart(xydata);
+        JFreeChart chart = AbstractEVChart.createChart(xydata);
         if (parameters.get("hideLegend") == null)
             chart.getLegend().setPosition(RectangleEdge.RIGHT);
         return chart;
@@ -1296,7 +1297,7 @@ public class EVReport extends CGIChartBase {
             out.print("<tr><td>"+getResource("Schedule.Date_Label")+"</td>");
             // print out the series names in the data source.
             for (int i = 0;  i < seriesCount;   i++)
-                out.print("<td>" + TaskScheduleChart.getNameForSeries(xydata, i)
+                out.print("<td>" + AbstractEVChart.getNameForSeries(xydata, i)
                     + "</td>");
 
             // if the data source came up short, fill in default

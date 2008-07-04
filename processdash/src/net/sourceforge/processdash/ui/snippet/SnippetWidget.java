@@ -1,4 +1,4 @@
-// Copyright (C) 2007 Tuma Solutions, LLC
+// Copyright (C) 2008 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -23,17 +23,19 @@
 //
 // E-Mail POC:  processdash-devel@lists.sourceforge.net
 
-package net.sourceforge.processdash.util;
+package net.sourceforge.processdash.ui.snippet;
 
+import java.awt.Component;
+import java.util.Map;
 
-/**
- * Interface for an object that can be initialized and disposed.
- */
-public interface Initializable<T> extends Disposable {
+public interface SnippetWidget {
 
-    /**
-     * Perform any activity required to initialize this object.
+    /** Create a component that can be displayed in a Java GUI.
+     * 
+     * @param environment the environment for the component
+     * @param parameters parameters for customizing the component
+     * @return a component
      */
-    public void initialize(T obj);
+    public Component getWidgetComponent(Map environment, Map parameters);
 
 }

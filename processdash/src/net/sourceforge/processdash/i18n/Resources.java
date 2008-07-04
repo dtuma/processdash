@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2007 Tuma Solutions, LLC
+// Copyright (C) 2003-2008 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -213,7 +213,7 @@ public class Resources extends ResourceBundle implements StringMapper {
     }
 
     private static final boolean TIME_LOADING = false;
-    private static final char PREFIX_SEPARATOR = '_';
+    private static final char PREFIX_SEPARATOR = '\u0000';
 
     public static Resources getDashBundle(String bundleName) {
         initGlobalResources();

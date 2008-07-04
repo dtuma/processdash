@@ -36,7 +36,10 @@ import java.awt.Stroke;
 import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.util.Map;
 
+import org.jfree.chart.PaintMap;
+import org.jfree.chart.StrokeMap;
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.entity.EntityCollection;
 import org.jfree.chart.plot.CrosshairState;
@@ -55,9 +58,54 @@ public class RangeXYItemRenderer extends StandardXYItemRenderer {
     /** A working line (to save creating thousands of instances). */
     private transient Line2D line;
 
+    private PaintMap paintMap;
+
+    private StrokeMap strokeMap;
+
     public RangeXYItemRenderer() {
         super();
         this.line = new Line2D.Double(0.0, 0.0, 0.0, 0.0);
+        this.paintMap = new PaintMap();
+        this.strokeMap = new StrokeMap();
+    }
+
+    public void setSeriesPaint(Comparable key, Paint paint) {
+        paintMap.put(key, paint);
+    }
+
+    public void putAllSeriesPaints(Map<Comparable, Paint> paintData) {
+        for (Map.Entry<Comparable, Paint> e : paintData.entrySet()) {
+            setSeriesPaint(e.getKey(), e.getValue());
+        }
+    }
+
+    @Override
+    public Paint lookupSeriesPaint(int series) {
+        Comparable key = getPlot().getDataset(0).getSeriesKey(series);
+        Paint result = paintMap.getPaint(key);
+        if (result == null)
+            result = super.lookupSeriesPaint(series);
+        return result;
+    }
+
+    public void setSeriesStroke(Comparable key, Stroke stroke) {
+        strokeMap.put(key, stroke);
+    }
+
+    public void putAllSeriesStrokes(Map<Comparable, Stroke> strokeData) {
+        for (Map.Entry<Comparable, Stroke> e : strokeData.entrySet()) {
+            setSeriesStroke(e.getKey(), e.getValue());
+        }
+
+    }
+
+    @Override
+    public Stroke lookupSeriesStroke(int series) {
+        Comparable key = getPlot().getDataset(0).getSeriesKey(series);
+        Stroke result = strokeMap.getStroke(key);
+        if (result == null)
+            result = super.lookupSeriesStroke(series);
+        return result;
     }
 
     /** Draws the visual representation of a single data item.
