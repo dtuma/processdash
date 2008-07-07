@@ -4,8 +4,8 @@ import java.io.IOException;
 
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.hier.PropertyKey;
-import net.sourceforge.processdash.net.cms.SnippetEnvironment;
 import net.sourceforge.processdash.net.http.WebServer;
+import net.sourceforge.processdash.ui.snippet.SnippetEnvironment;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.StringUtils;
 
