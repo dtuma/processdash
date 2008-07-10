@@ -14,6 +14,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -54,6 +57,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
+import teamdash.ActionCategoryComparator;
 import teamdash.XMLUtils;
 import teamdash.team.TeamMemberList;
 
@@ -75,6 +79,15 @@ public class WBSTabPanel extends JPanel
     private static final String TAB_ELEMENT = "tab";
     private static final String WBS_TABS_ELEMENT = "wbstabs";
     private static final String COLUMN_SELECTOR_DIALOG_TITLE = "Select Tab Columns";
+
+    /** The order in which the Actions should appear in the Edit menu. */
+    private static final List<String> editMenuActionOrder =
+        Arrays.asList(UndoList.UNDO_ACTION_CATEGORY_UNDO_REDO,
+                      WBSJTable.WBS_ACTION_CATEGORY_CLIPBOARD,
+                      DataJTable.DATA_ACTION_CATEGORY_CLIPBOARD,
+                      WBSJTable.WBS_ACTION_CATEGORY_INDENT,
+                      WBSJTable.WBS_ACTION_CATEGORY_EXPANSION,
+                      WBSJTable.WBS_ACTION_CATEGORY_STRUCTURE);
 
     public static final String TEAM_MEMBER_PLAN_TIMES_ID = "TeamMemberTimes";
     public static final String TEAM_MEMBER_ACTUAL_TIMES_ID = "TeamMemberActualTimes";
@@ -261,12 +274,17 @@ public class WBSTabPanel extends JPanel
 
     /** Get a list of actions for editing the work breakdown structure */
     public Action[] getEditingActions() {
-        Action[] tableActions = wbsTable.getEditingActions();
-        Action[] result = new Action[tableActions.length + 2];
-        System.arraycopy(tableActions, 0, result, 2, tableActions.length);
-        result[0] = undoList.getUndoAction();
-        result[1] = undoList.getRedoAction();
-        return result;
+        List<Action> result = new ArrayList<Action>();
+
+        result.add(undoList.getUndoAction());
+        result.add(undoList.getRedoAction());
+        result.addAll(Arrays.asList(wbsTable.getEditingActions()));
+        result.addAll(Arrays.asList(dataTable.getEditingActions()));
+
+        Comparator<Action> comparator = new ActionCategoryComparator(editMenuActionOrder);
+        Collections.sort(result, comparator);
+
+        return result.toArray(new Action[0]);
     }
 
 

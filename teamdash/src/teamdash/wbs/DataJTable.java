@@ -4,6 +4,7 @@ import java.awt.Component;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
 
+import javax.swing.Action;
 import javax.swing.DefaultCellEditor;
 import javax.swing.JTable;
 import javax.swing.JTextField;
@@ -13,11 +14,18 @@ import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableColumnModel;
 import javax.swing.text.JTextComponent;
 
+import teamdash.ActionCategoryComparator;
+
 import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
 
 /** Table to display data for a work breakdown structure.
  */
 public class DataJTable extends JTable {
+
+    /** Copy and Paste Actions' categories */
+    public static final String DATA_ACTION_CATEGORY =
+        ActionCategoryComparator.ACTION_CATEGORY;
+    public static final String DATA_ACTION_CATEGORY_CLIPBOARD = "dataClipboard";
 
     /** True if getValueAt() should unwrap values before returning them */
     boolean unwrapQueriedValues = false;
@@ -26,6 +34,9 @@ public class DataJTable extends JTable {
      * the cell editor when editing began */
     private Object valueBeforeEditing;
 
+    /** Allows data to be copied and pasted from this DataJTable to the system clipboard */
+    private Action copyAction;
+    private Action pasteAction;
 
     public DataJTable(DataTableModel model) {
         super(model);
@@ -36,7 +47,16 @@ public class DataJTable extends JTable {
         setDefaultRenderer(NumericDataValue.class,
                            new DataTableCellNumericRenderer());
 
-        new ClipboardBridge(this);
+        ClipboardBridge clipboardBridge = new ClipboardBridge(this);
+
+        copyAction = clipboardBridge.getCopyAction();
+        copyAction.putValue(Action.NAME, "Copy WBS Data");
+        copyAction.putValue(DATA_ACTION_CATEGORY, DATA_ACTION_CATEGORY_CLIPBOARD);
+
+        pasteAction = clipboardBridge.getPasteAction();
+        pasteAction.putValue(Action.NAME, "Paste WBS Data");
+        pasteAction.putValue(DATA_ACTION_CATEGORY, DATA_ACTION_CATEGORY_CLIPBOARD);
+
         addFocusListener(new FocusWatcher());
 
         // work around Sun Java bug 4709394
@@ -54,6 +74,11 @@ public class DataJTable extends JTable {
 
         setCellSelectionEnabled(true);
         selectAllColumns();
+    }
+
+    public Action[] getEditingActions() {
+        return new Action[] { this.copyAction,
+                              this.pasteAction };
     }
 
     @Override
@@ -114,7 +139,7 @@ public class DataJTable extends JTable {
     private class FocusWatcher extends FocusAdapter {
 
         public void focusLost(FocusEvent e) {
-            if (e.getComponent() != DataJTable.this)
+            if (e.isTemporary() || e.getComponent() != DataJTable.this)
                 return;
             Component opposite = e.getOppositeComponent();
             if (opposite == null

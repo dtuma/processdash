@@ -23,11 +23,16 @@ public class ClipboardBridge {
             ? InputEvent.META_DOWN_MASK : InputEvent.CTRL_DOWN_MASK);
 
     private JTable table;
+    private Action copyAction;
+    private Action pasteAction;
 
     public ClipboardBridge(JTable table) {
         this.table = table;
-        setupAction(KeyEvent.VK_C, "CopyToClipboard", new CopyAction());
-        setupAction(KeyEvent.VK_V, "PasteFromClipboard", new PasteAction());
+        this.copyAction = new CopyAction();
+        this.pasteAction = new PasteAction();
+
+        setupAction(KeyEvent.VK_C, "CopyToClipboard", this.copyAction);
+        setupAction(KeyEvent.VK_V, "PasteFromClipboard", this.pasteAction);
     }
 
     private void setupAction(int keyChar, String token, Action action) {
@@ -43,6 +48,14 @@ public class ClipboardBridge {
 
     public void setJTable(JTable table) {
         this.table = table;
+    }
+
+    public Action getCopyAction() {
+        return copyAction;
+    }
+
+    public Action getPasteAction() {
+        return pasteAction;
     }
 
     private class CopyAction extends AbstractAction {

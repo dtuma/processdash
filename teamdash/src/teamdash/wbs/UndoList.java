@@ -18,6 +18,8 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.EventListenerList;
 
+import teamdash.ActionCategoryComparator;
+
 import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
 
 
@@ -28,6 +30,11 @@ public class UndoList {
 
     /** How many levels of undo should be maintained? */
     public static final int MAX_LEVELS = 20;
+
+    /** The Undo/Redo Actions category */
+    public static final String UNDO_ACTION_CATEGORY =
+        ActionCategoryComparator.ACTION_CATEGORY;
+    public static final String UNDO_ACTION_CATEGORY_UNDO_REDO = "undo/redo";
 
     /** Support the ability to undo/redo changes made to this object */
     private SnapshotSource snapshotSource;
@@ -198,6 +205,7 @@ public class UndoList {
     private class UndoAction extends AbstractAction {
         public UndoAction() {
             super("Undo", IconFactory.getUndoIcon());
+            putValue(UNDO_ACTION_CATEGORY, UNDO_ACTION_CATEGORY_UNDO_REDO);
             setEnabled(isUndoAvailable());
         }
         public void actionPerformed(ActionEvent e) {
@@ -209,6 +217,7 @@ public class UndoList {
     private class RedoAction extends AbstractAction {
         public RedoAction() {
             super("Redo", IconFactory.getRedoIcon());
+            putValue(UNDO_ACTION_CATEGORY, UNDO_ACTION_CATEGORY_UNDO_REDO);
             setEnabled(isRedoAvailable());
         }
         public void actionPerformed(ActionEvent e) {

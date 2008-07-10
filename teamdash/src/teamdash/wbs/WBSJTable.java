@@ -37,6 +37,8 @@ import javax.swing.ListSelectionModel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
+import teamdash.ActionCategoryComparator;
+
 import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
 
 
@@ -778,6 +780,7 @@ public class WBSJTable extends JTable {
         private Action alternateAction;
         public InsertAfterAction() {
             super("Insert After");
+            putValue(WBS_ACTION_CATEGORY, WBS_ACTION_CATEGORY_STRUCTURE);
 
             try {
                 Object actionKey = getInputMap(
@@ -1111,9 +1114,8 @@ public class WBSJTable extends JTable {
     private static final int SHIFT = Event.SHIFT_MASK;
     private static final int CTRL  = (MacGUIUtils.isMacOSX()
             ? InputEvent.META_DOWN_MASK : InputEvent.CTRL_DOWN_MASK);
-    public static final String WBS_ACTION_CATEGORY = WBSJTable.class.getName()
-            + ".actionCategory";
-    public static final String WBS_ACTION_CATEGORY_CLIPBOARD = "clipboard";
+    public static final String WBS_ACTION_CATEGORY = ActionCategoryComparator.ACTION_CATEGORY;
+    public static final String WBS_ACTION_CATEGORY_CLIPBOARD = "WBSClipboard";
     public static final String WBS_ACTION_CATEGORY_INDENT = "indent";
     public static final String WBS_ACTION_CATEGORY_EXPANSION = "expansion";
     public static final String WBS_ACTION_CATEGORY_STRUCTURE = "structure";
