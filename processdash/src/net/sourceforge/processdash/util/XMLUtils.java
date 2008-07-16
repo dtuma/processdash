@@ -326,7 +326,7 @@ public class XMLUtils {
     /** Return a list of the elements that are direct children of the given
      * node.
      */
-    public static List getChildElements(Node node) {
+    public static List<Element> getChildElements(Node node) {
         NodeList childNodes = node.getChildNodes();
         List result = new ArrayList(childNodes.getLength());
         for (int i= 0;  i < childNodes.getLength();  i++) {

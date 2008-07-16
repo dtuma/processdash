@@ -424,6 +424,7 @@ Authors:
     <javac srcdir="${libsrc}" destdir="${libsrc}" debug="true"
            includeAntRuntime="yes" classpath="${svg.jar}">
       <exclude name="net/sourceforge/processdash/ExtractAllBackups.java"/>
+      <exclude name="net/sourceforge/processdash/PatchXmlTask.java"/>
     </javac>
     <taskdef file="${libsrc}/net/sourceforge/processdash/taskdef.properties"
              classpath="${libsrc};${svg.jar}"/>
