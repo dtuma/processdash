@@ -106,6 +106,9 @@
 [Design vs Code/Estimated Time Ratio] = 
     [Design/Estimated Time] / [Code/Estimated Time];
 
+[Estimated Quality_Profile_1] = iff([Code/Estimated Time], 
+    [Design/Estimated Time] / ([Code/Estimated Time] * 
+                          inherit("Target Design/Code Ratio")), 1);
 [Quality_Profile_1] = iff([Code/Time], 
     [Design/Time] / ([Code/Time] * inherit("Target Design/Code Ratio")), 1);
 
@@ -113,14 +116,25 @@
 [Code Review vs Code/Estimated Time Ratio] =
     [Code Review/Estimated Time] / [Code/Estimated Time];
 
+[Estimated Quality_Profile_2] = iff([Code/Estimated Time],
+    [Code Review/Estimated Time] / ([Code/Estimated Time] *
+			  inherit("Target Code Review/Code Ratio")), 1);
 [Quality_Profile_2] = iff([Code/Time],
     [Code Review/Time] / ([Code/Time] *
 			  inherit("Target Code Review/Code Ratio")), 1);
 
+[Estimated Quality_Profile_3] = iff(
+    [Compile/Estimated Defects Removed] and [Estimated Size], 
+    2 / (1 + [Compile/Estimated Defect Density] /
+	 inherit("Target Compile Defect Density")), 1);
 [Quality_Profile_3] = iff([Compile/Defects Removed] and [Size], 
     2 / (1 + [Compile/Defect Density] /
 	 inherit("Target Compile Defect Density")), 1);
 
+[Estimated Quality_Profile_4] = iff(
+    [Test/Estimated Defects Removed] and [Estimated Size],
+    2 / (1 + [Test/Estimated Defect Density] /
+	 inherit("Target Test Defect Density")), 1);
 [Quality_Profile_4] = iff([Test/Defects Removed] and [Size],
     2 / (1 + [Test/Defect Density] /
 	 inherit("Target Test Defect Density")), 1);
@@ -129,9 +143,18 @@
 [Design Review vs Design/Estimated Time Ratio] =
     [Design Review/Estimated Time] / [Design/Estimated Time];
 
+[Estimated Quality_Profile_5] = iff([Design/Estimated Time], 
+    [Design Review/Estimated Time]  / ([Design/Estimated Time] *
+			     inherit("Target Design Review/Design Ratio")), 1);
 [Quality_Profile_5] = iff([Design/Time], 
     [Design Review/Time]  / ([Design/Time] *
 			     inherit("Target Design Review/Design Ratio")), 1);
+
+[Estimated PQI] = [Estimated Quality_Profile_1] * 
+    [Estimated Quality_Profile_2] * [Estimated Quality_Profile_3] *
+    [Estimated Quality_Profile_4] * [Estimated Quality_Profile_5];
+[PQI] = [Quality_Profile_1] * [Quality_Profile_2] * [Quality_Profile_3] *
+    [Quality_Profile_4] * [Quality_Profile_5];
 
 
 // Additional ratios that might be useful for quality analysis
