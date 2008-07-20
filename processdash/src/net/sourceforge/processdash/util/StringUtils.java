@@ -13,13 +13,12 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 Lesser General Public License for more details.
 
 You should have received a copy of the GNU Lesser General Public
-License along with this library; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+License along with this library; if not, see <http://www.gnu.org/licenses/>.
 
 To further contact the author please email jpmccar@gjt.org
 
 
-Modifications, copyright 2003-2006 Tuma Solutions, LLC; distributed under the
+Modifications, copyright 2001-2006 Tuma Solutions, LLC; distributed under the
 LGPL, as described above.
 
 */

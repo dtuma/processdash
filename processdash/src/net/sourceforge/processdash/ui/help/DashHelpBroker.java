@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2007 Tuma Solutions, LLC
+// Copyright (C) 2001-2007 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This library is free software; you can redistribute it and/or
@@ -12,16 +12,11 @@
 // Lesser General Public License for more details.
 //
 // You should have received a copy of the GNU Lesser General Public
-// License along with this library; if not, write to the Free Software
-//Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+// License along with this library; if not, see <http://www.gnu.org/licenses/>.
 //
 // The author(s) may be contacted at:
-// Process Dashboard Group
-// c/o Ken Raisor
-// 6137 Wardleigh Road
-// Hill AFB, UT 84056-5843
-//
-// E-Mail POC:  processdash-devel@lists.sourceforge.net
+//     processdash@tuma-solutions.com
+//     processdash-devel@lists.sourceforge.net
 
 
 package net.sourceforge.processdash.ui.help;
