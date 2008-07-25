@@ -1,0 +1,51 @@
+<?xml version='1.0' encoding='ISO-8859-1' ?>
+
+<map version="1.0">
+  <mapID target="BookIcon" url="Images/book.gif" />
+  <mapID target="PageIcon" url="Images/page.gif" />
+  <mapID target="TeamIcon" url="Images/team16.png" />
+
+  <mapID target="TeamUseOverview" url="Topics/Overview.html" />
+  <mapID target="TeamObtain" url="Topics/Obtaining.html" />
+  <mapID target="TeamInstall" url="Topics/Installing.html" />
+  <mapID target="TeamTailoring" url="Topics/Tailoring.html" />
+  <mapID target="TeamMCF" url="Topics/MetricsCollectionFramework.html" />
+  <mapID target="TeamFormsReports" url="Topics/FormsReports.html" />
+  <mapID target="TeamLaunchPrep" url="Topics/LaunchPrep.html" />
+  <mapID target="TeamDataDir" url="Topics/TeamDataDir.html" />
+  <mapID target="TeamMakeProj" url="Topics/MakeTeamProject.html" />
+  <mapID target="TeamInviteJoin" url="Topics/InviteJoin.html" />
+  <mapID target="TeamMemberJoin" url="Topics/MembersJoin.html" />
+  <mapID target="TeamAddSchedule" url="Topics/AddSchedules.html" />
+  <mapID target="TeamGetForms" url="Topics/GetForms.html" />
+  <mapID target="TeamNetworkTrouble" url="Topics/NetworkTroubleshooting.html"/>
+  <mapID target="TeamMakeMaster" url="Topics/MakeMasterProject.html" />
+  <mapID target="TeamAddToMaster" url="Topics/AddToMaster.html" />
+  <mapID target="TeamTopDownMaster" url="Topics/TopDownMasterTasks.html" />
+
+  <mapID target="TeamLaunchUse" url="Topics/LaunchUse.html" />
+  <mapID target="TeamEditMembers" url="Topics/EditTeamMemberList.html" />
+  <mapID target="TeamPlanStrategy" url="Topics/PlanProjectStrategy.html" />
+  <mapID target="TeamPlanProcess" url="Topics/EditWorkflows.html" />
+  <mapID target="TeamPlanSupport" url="Topics/PlanSupportTasks.html" />
+  <mapID target="TeamPlanTasks" url="Topics/CreatedBalancedPlan.html" />
+  <mapID target="TeamMasterCoord" url="Topics/MasterProjectPlanning.html" />
+  <mapID target="TeamIndivPlans" url="Topics/CreateMemberPlans.html" />
+  <mapID target="TeamBottomUp" url="Topics/ViewBottomUpPlan.html" />
+  <mapID target="TeamQualityPlan" url="Topics/CreateQualityPlan.html" />
+  <mapID target="TeamLaunchSnapshot" url="Topics/SaveLaunchSnapshot.html" />
+  <mapID target="TeamEditWBS" url="Topics/EditingTheWBS.html" />
+  <mapID target="TeamInsertWorkflow" url="Topics/InsertingWorkflows.html" />
+  <mapID target="TeamImportMSProj" url="Topics/ImportFromMSProject.html" />
+  <mapID target="TeamEditWBSMetrics" url="Topics/EditingWBSMetrics.html" />
+  <mapID target="TeamWBSUnderstanding" url="Topics/UnderstandingWBS.html" />
+
+  <mapID target="TeamRunningProj" url="Topics/RunningTheProject.html" />
+  <mapID target="TeamMemberCollectEV" url="Topics/CollectingEVMetrics.html" />
+  <mapID target="TeamMemberRefine" url="Topics/RefinePersonalPlan.html" />
+  <mapID target="TeamMemberManageEV" url="Topics/ManagingPersonalSched.html" />
+  <mapID target="TeamMemberManageData" url="Topics/ManagingPersonalMetrics.html" />
+  <mapID target="TeamLeader" url="Topics/TeamLeader.html" />
+
+
+</map>

@@ -1,0 +1,137 @@
+<html>
+<head>
+<title>Installing the Process Dashboard with Team Features</title>
+<link rel="stylesheet" type="text/css" href="../style.css">
+</head>
+<body>
+
+<h1>Install Process Dashboard</h1>
+
+<p>Run the installation program by following the steps
+described below:</p>
+
+<h2>Installing on Windows</h2>
+
+<ol>
+
+<li>If you have a CD-ROM containing the software, insert it into your
+computer. The installation process should start automatically. If it
+does not start automatically, double-click the file <tt>setup.exe</tt>
+on the CD-ROM. If you have a ZIP file containing the software, unzip
+it and double-click the extracted file <tt>setup.exe</tt>.<br>&nbsp;</li>
+
+<li>The Process Dashboard requires a recent version of the Java
+Runtime Environment (JRE) to operate. If the JRE is not already
+installed on your computer, it will be installed. Choosing the default
+values at all prompts is recommended.<br>&nbsp;</li>
+
+<li><a name="installSteps"></a>The Process Dashboard installer will
+open:
+
+<p class="figure"><img src="../Images/installer-startup.png"></p></li>
+
+<li>You may accept the default values for each prompt. When you reach
+the page asking which packs you wish to install, team leaders and
+process mentors should select the &quot;Tools for Team Leaders&quot;
+option. Individual team members <b><u>do not</u></b> need to select
+this option.
+
+<p class="figure"><img src="../Images/installer-packs-desel.png"></p></li>
+
+<li>The installer will allow you to select a directory where personal
+metrics data will be stored. You may accept the default value.<br>&nbsp;</li>
+
+<li>Team leaders and process mentors will be prompted to identify a
+directory where team configuration information will be
+stored. Choosing a directory on a shared network server is generally
+required. The team leader or program manager should identify a shared
+network directory that all individuals can access. Then, the program
+manager and all team leads should select that <b><u>same
+directory</u></b> at this prompt.<br>&nbsp;</li>
+
+<li>At the end of the installation, you will be given the opportunity
+to create shortcuts for starting the Process Dashboard. Click the
+Create Shortcuts button.
+
+<p class="figure"><img src="../Images/installer-shortcuts.png"></p>
+
+<a name="twoInstances"></a>This will create application shortcuts for
+your use:
+
+    <ul style="margin-top: .5em; margin-bottom: .5em">
+
+    <li>A <b>Process Dashboard</b> shortcut will always be created,
+    which allows you to manage your own personal data. (Even team
+    leaders and process mentors will typically have some project tasks
+    assigned to them; they should use this <i>personal instance</i> of
+    the dashboard to perform that work.)</li>
+
+    <li>Team leaders and process mentors will also receive a <b>Team
+    Dashboard</b> shortcut, which allows you to manage rolled-up team
+    data.  Clicking this shortcut will launch a <i>team instance</i>
+    of the dashboard.</li>
+
+    </ul>
+
+These two shortcuts launch dashboard <i>instances</i> which are
+independent of each other. It is important to be cognizant of the
+difference between these two instances.</li>
+
+</ol>
+
+<h2>Installing on Unix/Linux</h2>
+
+<p>Installing the Process Dashboard on Unix requires a few
+additional steps.</p>
+
+<ol>
+
+<li>Download the Java Runtime Environment (JRE) from Sun Microsystems
+by visiting their Website <u>http://java.sun.com/</u>;.  Install the
+software. Edit your executable path to include the <tt>java</tt>
+program.<br>&nbsp;</li>
+
+<li>Install Netscape on your system if it is not already
+installed. Edit your executable path to include the <tt>netscape</tt>
+program.<br>&nbsp;</li>
+
+<li>Either insert the CD-ROM into your computer, or unzip the ZIP file
+containing the software. Find the file called
+<tt>pdash-install-team-#_#_#.jar</tt> (it will be in a <i>data</i>
+subdirectory; the file will contain an actual version number rather
+than <tt>#_#_#</tt>). At a shell prompt, change to the directory
+containing that file, and type:
+
+<pre style='margin-left:.5in'>java -jar pdash-install-team-*.jar</pre></li>
+
+<li>The Process Dashboard installer will appear.<br>&nbsp;</li>
+
+<li>Follow the installer directions as described in the <a
+href="#installSteps">section above</a>.<br>&nbsp;</li>
+
+<li>Due to the variety of window managers on Unix platforms, the
+Process Dashboard installer cannot automatically create
+icons/shortcuts that you can use to run the program. At the end of the
+installation, a window will advise you of this limitation.
+
+<p class="figure"><img src="../Images/installer-unix-shortcuts.png"></p>
+
+Although icons/shortcuts are not created, the installer will create
+draft shell scripts that you may use to launch the Process
+Dashboard. In the directory you designated as your <i>data
+directory</i> (defaults to <tt>~/.pspdata</tt>), you will find the
+file <tt>run-dash.sh</tt>. In the directory you designated as your
+<i>team configuration directory</i>, you will also find a file called
+<tt>run-dash.sh</tt>.  (These launch two different <i>dashboard
+instances;</i> see the <a href="#twoInstances">section above</a> for
+an explanation of the two instances.)  Review the contents of these
+scripts; in particular, you may wish to uncomment and edit the line
+that adds <tt>java</tt> and <tt>netscape</tt> to the executable
+path. For convenience, you may wish to manually create icons/shortcuts
+for launching the dashboard.</li>
+
+</ol>
+
+
+</body>
+</html>

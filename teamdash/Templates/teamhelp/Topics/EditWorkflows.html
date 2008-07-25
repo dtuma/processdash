@@ -1,0 +1,184 @@
+<html>
+<head>
+<title>Plan Project Development Process</title>
+<link rel="stylesheet" type="text/css" href="../style.css">
+</head>
+<body>
+
+<h1>Plan Project Development Process</h1>
+<b>(TSP Launch Meeting No. 3)</b>
+
+<p>In the next step of the project launch process, the team typically
+formalizes the steps in their development process. To do this, you may
+draw upon existing organizational processes, or you may define new
+processes as a team during the launch. The team may create defined
+processes, or they may simply identify common, repeatable workflows.
+The Process Dashboard provides tools that assist with this task.</p>
+
+<ol>
+
+<li style='margin-top:12.0pt'>If your team is defining new processes
+from scratch, it is often a good idea to use a whiteboard, easel, and
+other traditional meeting aids to capture the team's ideas, as this
+helps to promote the free flow of ideas. When the team processes begin
+to solidify, it is helpful to have an individual enter these into the
+dashboard. (On the other hand, if your process definitions take a long
+time to solidify, it may be more helpful to wait until after the
+meeting is over to enter the process steps into the dashboard.)</li>
+
+<li style='margin-top:12.0pt'>Processes and workflows are entered into
+the Common Team Workflows Editor. From the Work Breakdown Structure
+Editor window, you can access the Common Team Workflows Editor by
+selecting the Workflow menu and choosing Edit Workflows.
+
+<p class="figure"><img src="../Images/workflows-empty.png"></p></li>
+
+
+<li style='margin-top:12.0pt'>Processes and workflows are once again
+displayed hierarchically and edited in an outline format. (For more
+in-depth information on editing this outline, see the section titled
+&quot;Editing the Work Breakdown Structure&quot; on page 44.) In this
+hierarchical outline, each item that is a direct child of the Common
+Workflows node represents a single <i>process</i> or <i>workflow</i>.
+These items are displayed with an icon depicting a structured bundle
+(<img border=0 width=15 height=15 src="../Images/icon-process.png">).
+You can designate a given node as a process or workflow by
+un-indenting it as far to the left as possible.</li>
+
+<li style='margin-top:12.0pt'>Define the steps in a process or
+workflow by creating items hierarchically underneath it. Underneath a
+process or workflow, you can define documents that will be created and
+tasks that will be performed. To define the type of each item you
+create, click on its icon to display a menu. When defining a
+high-maturity process, make certain to select the most appropriate
+process phase for each task you create. </li>
+
+
+<li style='margin-top:12.0pt'>You are not limited in the number of
+processes/workflows you can create. Each process/workflow, however,
+should be given a unique name.</li>
+
+<li style='margin-top:12.0pt'>The four columns on the right are
+completely optional, but entering data can save you a great deal of
+time later. 
+
+    <ul>
+
+    <li style='margin-top:1em'>The Rate and Units columns allow you to
+    include typical productivity rates (based on historical or
+    estimated team averages) for a given task. For example, you might
+    wish to state that a Code Review task takes place at a rate of 200
+    LOC/Hr, or that a PSP Task completes at a rate of 20 LOC/Hr. <i>If
+    you do not have any idea of the expected productivity for a given
+    task, enter a zero in the rate column</i>.</li>
+
+
+    <li style='margin-top:1em'>The % column provides a convenient way
+    to divide a larger task proportionately. Often, you may know the
+    historical end-to-end productivity rate for an entire process, and
+    you may know the percentage breakdowns for the steps in that
+    process. In that case, you can use the % column to designate that
+    breakdown.
+
+    <p>An example can illustrate this best. Imagine a hypothetical
+    organizational process for crisis management. The phases in this
+    process are named Planning, Stop, Drop, Roll, and
+    Postmortem. Historical data indicates that an individual enacting
+    the process can address three crises per hour. Furthermore, the
+    data indicates that the phases take 5%, 10%, 10%, 40%, and 35% of
+    the total time, respectively. Then the correct way to capture the
+    process would be as follows:</p>
+
+    <p class="figure"><img src="../Images/workflow-rate-example.png"></p>
+
+    <p>It is worth noting, however, that the % column is strictly
+    provided for convenience. In particular, there is no requirement
+    that percentages must add to 100. If you do not need to use the
+    percentage column to capture your productivity historical data,
+    you can leave it at the default value of 100%.</p></li>
+
+
+    <li style='margin-top:1em'>The # People column allows you to
+    indicate that a particular task is generally performed by a group
+    of individuals. For example, if you created a Code Review task in
+    your process, you might wish to indicate that five people
+    typically participate in a Code Review.
+
+    <p>It is worth noting that this column is completely independent
+    of the previous three columns. Thus, if you know that your team
+    historically spends 15% of a project in code review, but five
+    people are typically involved in that review, you would observe
+    that each person is actually spending 3% of the overall time. In
+    this case, 3 would be the correct value to put in the %
+    column.</p></li>
+
+    </ul></li>
+
+
+<li style='margin-top:12.0pt'>There is not a Save button on the Common
+Team Workflows Editor. Instead, workflow definitions are automatically
+saved when you save the main work breakdown structure. To save, switch
+back to the main Work Breakdown Structure Editor window and select
+Save from the File menu.</li>
+
+</ol>
+
+<p>Two buttons on the toolbar provide the ability to import (<img
+border=0 width=61 height=28 src="../Images/workflow-import-button.png">) and
+export (<img border=0 width=61 height=28
+src="../Images/workflow-export-button.png">) workflows. This makes it
+possible to share workflows between projects and between project
+teams. When you click one of these buttons, the workflow editor will
+ask you to identify the name of a workflow library file. You can
+export workflows to a new or existing library file, or import
+workflows from an existing file. After choosing a file, the
+Import/Export Team Workflows window will appear. This window shows the
+workflows from the current project in a table on the left, and the
+workflows from the library in a table on the right.</p>
+
+<p class="figure"><img src="../Images/workflow-import-export-dialog.png"></p>
+
+<p>When exporting, you can select a workflow in the table on the left
+and click the Add button to export it to the library on the
+right. When importing, you can select a workflow in the library table
+on the right and click the Add button to import it to the project
+workflows on the left.</p>
+
+<p class="figure"><img src="../Images/workflow-import-add-example.png"></p>
+
+<p>Workflows are identified by their names (for example, &quot;Crisis
+Management&quot; in the image below). If you import or export a
+workflow which has the same name as an existing workflow in the
+destination table, the existing workflow will be overwritten. For
+example, in the image below, the user is importing workflows from an
+existing library.  They have selected the &quot;Crisis
+Management&quot; workflow in the library on the right. Since there is
+already a workflow by that name in the project workflow list on the
+left, the application has automatically highlighted it, and changed
+the text on the Add button to &quot;Overwrite,&quot; indicating that
+if this workflow is imported it will overwrite the workflow that is
+highlighted on the left.</p>
+
+<p class="figure"><img
+   src="../Images/workflow-import-overwrite-example.png"></p>
+
+<p>At times, you may wish to import all the workflows in a library, or
+export all of the workflows in your project. The Add All button will
+perform this task. Keep in mind that any existing workflows with the
+same names will be overwritten, as described in the paragraph
+above.</p>
+
+<p>The changes you make in the Import/Export Team Workflows window
+will not be saved until you click the Import or Export button at the
+bottom of the window. (Only one of these buttons will appear,
+depending on whether you chose to import workflows or export
+workflows.) When you click the Export button, the changes you made to
+the workflow library will be saved to the named file. When you click
+the Import button, the changes you made to the project workflows will
+be applied to the contents of the Common Team Workflows Editor. When
+importing or exporting, if you make a mistake or change your mind,
+just click the Cancel button and no changes will be saved.</p>
+
+
+</body>
+</html>

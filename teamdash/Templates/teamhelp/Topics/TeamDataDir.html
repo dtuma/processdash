@@ -1,0 +1,40 @@
+<html>
+<head>
+<title>Create Team Data Directory (Team Leader)</title>
+<link rel="stylesheet" type="text/css" href="../style.css">
+</head>
+<body>
+
+<h1>Create Team Data Directory (Team Leader)</h1>
+
+<p>The team support add-on for the Process Dashboard currently uses a
+shared network directory to facilitate team collaboration.  Before you
+begin your first team project, it will be necessary to create this
+directory. <b>This &quot;Team Data Directory&quot; is different from
+the team configuration directory that you selected during dashboard
+installation.</b></p>
+
+<p>The primary purpose of this directory is to hold exported snapshots
+of individual data; the team dashboard instance imports this data and
+uses it to compute rolled-up team data. The <i>team directory</i> must
+be accessible, readable, and writable by all team members.  Because of
+this, it should generally be a shared network directory. Since the
+directory will hold PSP data collected by individuals, you may wish to
+configure it with permissions that forbid file access by non-team
+members.</p>
+
+<p>Any number of projects can share the same team directory; the
+Process Dashboard will still be able to track which data belongs to
+which project. Thus, if your team is performing several projects (or
+project iterations) one after another, it is not necessary to create a
+new team directory for each project/iteration.</p>
+
+<p>Many projects will already have a shared network directory that is
+used to hold project documents. If this is true for your project,
+simply create a subdirectory for dashboard metrics data.  If your
+project does not already have a shared project directory, work with
+your information technology (IT) support staff to create one, ensuring
+all team members have read/write access.</p>
+
+</body>
+</html>

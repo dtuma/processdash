@@ -160,6 +160,7 @@
     <classfileset id="teamToolsClasses" dir="bin">
       <root classname="teamdash.wbs.WBSEditor"/>
       <root classname="teamdash.templates.tools.OpenWBSEditor"/>
+      <root classname="teamdash.templates.tools.MaybeResizeImage"/>
       <root classname="teamdash.FilenameMapperExtResMgr"/>
     </classfileset>
 
@@ -235,11 +236,17 @@ class dependency has been added in a dashboard class?)
       </fileset>
       <fileset refid="dashClasses"/>
 
-      <!-- include the wbs-editor-related templates -->
+      <!-- include the wbs-editor-related templates and helpset -->
       <fileset dir=".">
         <include name="Templates/team/tools/index.shtm" />
         <include name="Templates/team/tools/OpenWBSEditor.class.link" />
         <include name="Templates/team/tools/TeamTools.jar.link" />
+      </fileset>
+
+      <!-- include the wbs-editor-related templates and helpset -->
+      <fileset dir=".">
+        <include name="Templates/TeamTools-template.xml" />
+        <include name="Templates/teamhelp/" />
       </fileset>
 
       <!-- include files from libraries we use -->

@@ -1,0 +1,219 @@
+<html>
+<head>
+<title>Managing Team Data (Team Leader)</title>
+<link rel="stylesheet" type="text/css" href="../style.css">
+</head>
+<body>
+
+<h1>Managing Team Data (Team Leader)</h1>
+
+<p>As a member of the team, the team leader will need to use his or
+her <i>personal instance</i> of the Process Dashboard to perform
+project tasks, following the general instructions provided above for
+all team members. The <i>team instance</i> of the Process Dashboard
+requires minimal attention and requires no data entry. When running,
+it provides many useful features for project planning and
+tracking.</p>
+
+<h2>Project Plan Summary</h2>
+
+<p>The Team Project Plan Summary is a very useful tool for tracking
+team progress. You can open the team plan summary by selecting it from
+the drop-down menu on the Script button of the Team Dashboard
+window. The Team Project Plan Summary contains earned value reports
+for the project, quality reports and charts, and reports of overall
+project metrics.</p>
+
+<p>The Team Project Plan Summary can be very helpful in weekly team
+meetings. As long as the Team Dashboard is running on a computer that
+is connected to the network, you can view the team plan summary in a
+Web browser on any other computer on the network (for example, a
+computer in your conference room). The Team Project Tools and Settings
+page will provide you with the URL you can use to remotely access the
+plan summary.</p>
+
+<h2>Earned Value Reports</h2>
+
+<p>The Team Project Plan Summary includes earned value reports for the
+project. These reports roll up the individual earned value plans owned
+by each team member into a single earned value plan for the entire
+team.</p>
+
+<p>Near the top of the team earned value report, you will find a
+<i>Show Weekly View</i> hyperlink. Clicking this hyperlink will
+display a chronological cross section of the project schedule that
+summarizes the accomplishments of the previous week and lists the
+tasks scheduled to be completed in the coming week. This is very
+useful in the weekly team meeting.</p>
+
+<p>Once the team has collected a minimum amount of earned value data,
+these earned value reports will include forecasts for overall project
+cost and completion date. You will notice that the team earned value
+plan typically includes two different forecasts for the project
+completion date.</p>
+
+<ul>
+
+<li style='margin-top:12.0pt'><b>Forecast Completion Date</b> is the
+date the project is forecast to finish if no tasks are reassigned. If
+the workload becomes unbalanced and tasks are not reassigned, then
+some team members will finish earlier than others. Accordingly,
+Forecast Completion Date is calculated by looking at each team
+member's schedule and identifying the date the last person is
+projected to finish. </li>
+
+<li style='margin-top:12.0pt'><b>Optimized Forecast Completion
+Date</b> is the date the project is forecast to finish if tasks are
+rebalanced optimally. If you were able to reassign work perfectly so
+every team member finished at the same time, the project might
+complete on the calculated date.</li>
+
+</ul>
+
+<p>Practically speaking, it is rarely possible to keep the workload
+perfectly balanced, so a realistic forecast completion date would fall
+between the two dates provided above. When the two forecast dates
+differ significantly, the project workload is unbalanced and tasks
+likely need to be reassigned.</p>
+
+<p>When you determine that the team workload is unbalanced, you need
+to determine which team members are over-tasked and which are
+under-tasked. You can determine this by examining the sub-schedules
+using the Task and Schedule tool. Open the Team Dashboard window and
+select Task and Schedule from the C menu. Open the schedule for the
+team project. The Forecast column will indicate the dates when each
+individual is projected to finish. If you highlight the sub-schedule
+for a particular individual, you can click the Filtered Chart button
+to see graphical and statistical views of that individual's earned
+value plan.</p>
+
+<h2>Analyzing Filtered Data Using Labels</h2>
+
+<p>Although the project planning summary allows you to drill down into
+subcomponents in your team plan, sometimes you will have a need to
+analyze a subset of data that slices across those hierarchical
+boundaries. To support this need, the dashboard has a powerful feature
+for analyzing arbitrary subsets of team data based on keywords called
+&quot;labels.&quot;</p>
+
+<p>Labels can be associated with tasks using the Work Breakdown
+Structure editor. During the team launch, you may not wish to spend
+the entire team's time entering these labels. But after the launch is
+complete, you might want to open the WBS and attach keywords to
+various tasks. This is done by entering values in the &quot;Task
+Labels&quot; column on the &quot;Task Details&quot; tab. Each task can
+have any number of labels, separated by commas or spaces. Tasks will
+inherit the labels of their WBS parent unless you request
+otherwise.</p>
+
+<p>After you edit labels and save the Work Breakdown Structure, you
+can apply a label filter from any page of your Team Project Plan
+Summary. To apply a label filter, click the filter icon that appears
+at the top of the plan summary page (<img
+src="../Images/icon-filter.png">). A form will be displayed, prompting
+you for the label filter expression you wish to use. The syntax of
+this expression is similar to familiar search engines like Google; the
+form includes an explanation of the syntax.</p>
+
+<p>When you apply the label filter, all the metrics you see in your
+customized forms, charts, and reports will be filtered to include only
+the tasks that match your filter expression. </p>
+
+<h2>Backing Up Project Data</h2>
+
+<p>Over the course of the project, you should periodically save a backup of
+the data in the Team Dashboard (saving a backup each week is recommended).
+Just choose C&nbsp;&#8594;&nbsp;Tools&nbsp;&#8594;&nbsp;Save Data Backup
+from the main Team Dashboard window. If you retain these backups, you can
+open them later in the Quick Launcher to see a historical view of the
+project's progress.</p>
+
+<h2>Importing/Exporting Data</h2>
+
+<p>During the project, the <i>individual dashboard instances</i>
+belonging to each team member export metrics data to the shared team
+directory. This exported data is then imported into the <i>team
+dashboard instance</i> to calculate rolled up team data.</p>
+
+<p>This export/import mechanism is generally fully automatic. The
+<i>individual instances</i> automatically export their data each
+night, and each time they are shut down. The <i>team instance</i>
+checks for new data every ten minutes, and imports any new data it
+finds. As a result, you generally will not need to interact with the
+export/import mechanism.</p>
+
+<p>At times, however, you may wish to have a team member correct a
+piece of erroneous data and quickly see the change reflected in the
+team rollup. At these times, you can ask the individual to select
+Export My Data Now from the script menu in their personal dashboard
+instance. Once their export is complete, you can select Import All
+Data Now from the script menu in the team dashboard instance.</p>
+
+<p>In addition, if you are using task dependencies to coordinate work
+between individuals, then you should open the team dashboard at least
+once daily. This will allow the team dashboard to recompute the
+completion status of dependent tasks, and communicate this data to
+individual dashboard instances.</p>
+
+<h2>Reassigning Tasks</h2>
+
+<p>Workload balancing is an important part of team project
+management. When you determine that you need to reassign a task, take
+these steps.</p>
+
+<ol>
+
+<li style='margin-top:6.0pt'>Select the team project in the team
+dashboard, and choose Edit Work Breakdown Structure from the script
+menu.</li>
+
+<li style='margin-top:6.0pt'>Switch to the Task Time tab of the Work
+Breakdown Structure Editor. Edit values in the Assigned To column to
+reassign the task(s) in question. Save the changes and close the Work
+Breakdown Structure Editor.</li>
+
+<li style='margin-top:6.0pt'>Any team member who was affected by the
+change should take the following steps:
+
+    <ol type=a>
+
+    <li style='margin-top:4.0pt'>Follow the instructions in the
+    section titled &quot;Synchronize Work Breakdown Structure&quot; on
+    page 38. The synchronization logic will display a list of items
+    added; review this list to ensure that the expected changes were
+    made.</li>
+
+    <li style='margin-top:4.0pt'>Open your earned value plan in the
+    Task and Schedule dialog. For each newly assigned task, enter your
+    best estimate of the task time remaining in the Planned Time (PT)
+    column.</li>
+
+    </ol></li>
+
+</ol>
+
+<h2>Using the Quick Launcher</h2>
+
+<p>When you install the Process Dashboard, it creates a shortcut that
+opens your own personal dashboard instance (and possibly a second
+shortcut to open the team dashboard).  Sometimes, however, you need to
+look at data from a different dashboard. For example, the quality
+manager may need to look at data collected by a single individual, or
+the team coach may need to view the team plan from a remote
+location. The Quick Launcher makes this possible. If you select the
+Tools for Team Leaders option during installation, a Process Dashboard
+Quick Launcher shortcut will be created for your use.</p>
+
+<p>Individuals and teams can create data backup files by opening their
+personal or team dashboard, and choosing C&nbsp;&#8594;&nbsp;Tools&nbsp;&#8594;&nbsp;Save Data Backup. Drag-and-drop a
+data backup file onto the Quick Launcher window, and a dashboard
+window will open displaying the data exactly as it appeared when the
+backup was made.</p>
+
+<p>For more information on the creation and use of data backups, view
+the dashboard's online user manual by choosing Help from the C
+menu.</p>
+
+
+</body>
+</html>

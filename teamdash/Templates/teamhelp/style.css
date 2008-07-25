@@ -1,0 +1,7 @@
+sup { font-size: smaller }
+sub { font-size: smaller }
+.figure {
+	margin-top: 10px;
+	margin-bottom: 10px;
+	text-align:center;
+}
