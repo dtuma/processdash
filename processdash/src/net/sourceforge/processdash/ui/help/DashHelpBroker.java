@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2007 Tuma Solutions, LLC
+// Copyright (C) 2001-2008 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This library is free software; you can redistribute it and/or
@@ -34,7 +34,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import net.sourceforge.processdash.net.http.WebServer;
+import net.sourceforge.processdash.net.http.DashboardHelpURLConnection;
 import net.sourceforge.processdash.templates.DashPackage;
 import net.sourceforge.processdash.templates.ExtensionManager;
 import net.sourceforge.processdash.templates.TemplateLoader;
@@ -47,7 +47,7 @@ import org.w3c.dom.Element;
 public class DashHelpBroker implements DashHelpProvider {
 
     private static final String ROOT_HELPSET_URL =
-        WebServer.DASHBOARD_PROTOCOL + ":/help/PSPDash.hs";
+        DashboardHelpURLConnection.DASHHELP_PROTOCOL + ":/help/PSPDash.hs";
     private static final String HELPSET_TAG = "helpSet";
     private static final String HREF_ATTR = "href";
 
@@ -93,7 +93,8 @@ public class DashHelpBroker implements DashHelpProvider {
             String href = config.getAttribute(HREF_ATTR);
             try {
                 if (href.startsWith("/")) href = href.substring(1);
-                String url = WebServer.DASHBOARD_PROTOCOL + ":/" + href;
+                String url = DashboardHelpURLConnection.DASHHELP_PROTOCOL
+                        + ":/" + href;
                 args[1] = new URL(url);
                 Object subHelpSet = cstr.newInstance(args);
                 invoke(rootHelpSet, "add", subHelpSet);

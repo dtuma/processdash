@@ -1,4 +1,4 @@
-// Copyright (C) 2004 Tuma Solutions, LLC
+// Copyright (C) 2004-2008 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -66,7 +66,8 @@ public class DashboardURLStreamHandlerFactory extends URLStreamHandler
 
 
     public URLStreamHandler createURLStreamHandler(String protocol) {
-        if (WebServer.DASHBOARD_PROTOCOL.equals(protocol))
+        if (protocol != null
+                && protocol.startsWith(WebServer.DASHBOARD_PROTOCOL))
             return this;
         else
             return null;
@@ -74,7 +75,11 @@ public class DashboardURLStreamHandlerFactory extends URLStreamHandler
 
 
     protected URLConnection openConnection(URL u) throws IOException {
-        return new DashboardURLConnection(webServer, u);
+        String protocol = u.getProtocol();
+        if (DashboardHelpURLConnection.DASHHELP_PROTOCOL.equals(protocol))
+            return new DashboardHelpURLConnection(webServer, u);
+        else
+            return new DashboardURLConnection(webServer, u);
     }
 
 }

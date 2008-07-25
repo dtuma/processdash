@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2006 Tuma Solutions, LLC
+// Copyright (C) 2003-2008 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -61,11 +61,14 @@ public class DashboardURLConnection extends URLConnection {
             int headerLen = HTTPUtils.getHeaderLength(results);
             parseHeader(headerLen);
 
-            int contentLen = results.length - headerLen;
-            inputStream = new ByteArrayInputStream(results, headerLen, contentLen);
-
             connected = true;
+            inputStream = createResponseStream(results, headerLen);
         }
+    }
+
+    protected InputStream createResponseStream(byte[] rawData, int headerLen) {
+        int contentLen = rawData.length - headerLen;
+        return new ByteArrayInputStream(rawData, headerLen, contentLen);
     }
 
     private void parseHeader(int headerLen) throws IOException {
