@@ -38,6 +38,8 @@
       <dict>
         <key>net.sourceforge.processdash.dataDirLinkFile</key>
         <string>$JAVAROOT/../dataLocation.txt</string>
+        <key>net.sourceforge.processdash.tool.bridge.client.LocalWorkingDirectory.monitorWriteLock</key>
+        <string>false</string>
       </dict>
       <key>VMOptions</key>
       <string>-Xmx${MAX_MEMORY}m</string>
