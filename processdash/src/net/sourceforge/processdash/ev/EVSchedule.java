@@ -41,14 +41,14 @@ import javax.swing.table.TableModel;
 
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.ListData;
+import net.sourceforge.processdash.ev.ui.chart.ChartEventAdapter;
+import net.sourceforge.processdash.ev.ui.chart.XYChartData;
+import net.sourceforge.processdash.ev.ui.chart.XYChartSeries;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.util.FormatUtil;
 
 import org.jfree.data.Range;
 import org.jfree.data.RangeInfo;
-import org.jfree.data.general.DatasetChangeEvent;
-import org.jfree.data.general.DatasetChangeListener;
-import org.jfree.data.xy.AbstractXYDataset;
 import org.jfree.data.xy.XYDataset;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -1444,18 +1444,7 @@ public class EVSchedule implements TableModel {
         }
     }
 
-    protected interface ChartSeries {
-        /** Returns the ID of the specified series (zero-based). */
-        String getSeriesKey();
-        /** Returns the number of items in the specified series */
-        int getItemCount();
-        /** Returns the x-value for the specified series and item */
-        Number getX(int itemIndex);
-        /** Returns the y-value for the specified series and item */
-        Number getY(int itemIndex);
-    }
-
-    private abstract class PlanChartSeries implements ChartSeries {
+    private abstract class PlanChartSeries implements XYChartSeries {
         protected boolean isBaseline = false;
         public String getSeriesKey() {
             return (isBaseline ? "Baseline" : "Plan");
@@ -1471,7 +1460,7 @@ public class EVSchedule implements TableModel {
         return s;
     }
 
-    private abstract class ActualChartSeries implements ChartSeries {
+    private abstract class ActualChartSeries implements XYChartSeries {
         public String getSeriesKey()  { return "Actual"; }
         public int getItemCount() {
             int result = getRowCount()+1;
@@ -1488,7 +1477,7 @@ public class EVSchedule implements TableModel {
         }
     }
 
-    protected class ForecastChartSeries implements ChartSeries {
+    protected class ForecastChartSeries implements XYChartSeries {
         Number currentYVal, forecastYVal, forecastYValLow, forecastYValHigh;
         Number currentXVal, forecastXVal;
         int itemCount = 2;
@@ -1545,86 +1534,19 @@ public class EVSchedule implements TableModel {
         }
     }
 
+    protected class EVScheduleChartEventAdapter extends ChartEventAdapter
+            implements TableModelListener {
 
-    /** Base class for implementing XYDataSource funtionality.
-     */
-    private class ChartData extends AbstractXYDataset
-        implements TableModelListener
-    {
-        List<ChartSeries> series = new ArrayList<ChartSeries>();
-        boolean needsRecalc = true;
-        protected void recalc() {}
-        protected void maybeRecalc() {
-            if (needsRecalc) { recalc(); needsRecalc = false; } }
-        /** Returns the number of series in the data source. */
-        @Override
-        public int getSeriesCount() {
-            maybeRecalc();
-            return series.size();
-        }
-        /** Append a data series if it appears viable */
-        void maybeAddSeries(ChartSeries s) {
-            if (s != null && s.getItemCount() > 0)
-                series.add(s);
-        }
-        /** Returns the name of the specified series (zero-based). */
-        @Override
-        public Comparable getSeriesKey(int seriesIndex) { maybeRecalc();
-            return series.get(seriesIndex).getSeriesKey(); }
-        /** Returns the number of items in the specified series */
-        public int getItemCount(int seriesIndex) { maybeRecalc();
-            return series.get(seriesIndex).getItemCount(); }
-        /** Returns the x-value for the specified series and item */
-        public Number getX(int seriesIndex, int itemIndex) {
-            maybeRecalc();
-            return series.get(seriesIndex).getX(itemIndex); }
-        /** Returns the y-value for the specified series and item */
-        public Number getY(int seriesIndex, int itemIndex) {
-            maybeRecalc();
-            if (itemIndex == -1) return null;
-            return series.get(seriesIndex).getY(itemIndex); }
+        public void registerForUnderlyingDataEvents() { addTableModelListener(this); }
+        public void deregisterForUnderlyingDataEvents() { removeTableModelListener(this); }
 
-        // support DataSourceChangeListener notification
-        private ArrayList listenerList = null;
-        @Override
-        public void addChangeListener(DatasetChangeListener l) {
-            if (listenerList == null) listenerList = new ArrayList();
-            synchronized (listenerList) {
-                if (listenerList.size() == 0) addTableModelListener(this);
-                if (!listenerList.contains(l)) listenerList.add(l);
-            }
-        }
-        @Override
-        public void removeChangeListener(DatasetChangeListener l) {
-            if (listenerList == null) return;
-            synchronized (listenerList) {
-                if (listenerList.remove(l) && listenerList.size() == 0)
-                    removeTableModelListener(this);
-            }
-        }
-        public void fireChangeEvent() {
-            if (listenerList == null) return;
-            DatasetChangeEvent e = null;
-            Object [] listeners = listenerList.toArray();
-            // Process the listeners last to first, notifying
-            // those that are interested in this event
-            for (int i = listeners.length; i-- > 0; ) {
-                if (e == null) e = new DatasetChangeEvent(this, this);
-                ((DatasetChangeListener)listeners[i]).datasetChanged(e);
-            }
-        }
-
-        // TableModelListener implementation
-        public void tableChanged(TableModelEvent e) {
-            needsRecalc = true;
-            fireChangeEvent();
-        }
+        public void tableChanged(TableModelEvent e) { chartData.dataChanged(); }
     }
 
     private class PlanTimeSeries extends PlanChartSeries {
         public Number getY(int itemIndex) {
             return new Double(get(itemIndex).cumPlanDirectTime / 60.0); } }
-    private ChartSeries getBaselineTimeSeries() {
+    private XYChartSeries getBaselineTimeSeries() {
         return markAsBaseline(new PlanTimeSeries()); }
     private class ActualTimeSeries extends ActualChartSeries {
         public Number getY(int itemIndex) {
@@ -1635,13 +1557,14 @@ public class EVSchedule implements TableModel {
 
     /** XYDataSource for charting plan vs actual direct hours.
      */
-    private class TimeChartData extends ChartData {
-        public TimeChartData() {
+    private class TimeChartData extends XYChartData {
+        public TimeChartData(ChartEventAdapter eventAdapter) {
+            super(eventAdapter);
             plan = new PlanTimeSeries();
             actual = new ActualTimeSeries();
             forecast = new ForecastChartSeries();
         }
-        ChartSeries plan, actual;
+        XYChartSeries plan, actual;
         ForecastChartSeries forecast;
         @Override
         public void recalc() {
@@ -1670,8 +1593,9 @@ public class EVSchedule implements TableModel {
         }
         private Number makeTime(double d) { return new Double(d / 60.0); }
     }
-    public XYDataset getTimeChartData() { return new TimeChartData(); }
-
+    public XYDataset getTimeChartData() {
+        return new TimeChartData(new EVScheduleChartEventAdapter());
+    }
 
 
     private class PlanValueSeries extends PlanChartSeries {
@@ -1679,7 +1603,7 @@ public class EVSchedule implements TableModel {
         PlanValueSeries(double m) { mult = m; }
         public Number getY(int itemIndex) {
             return new Double(get(itemIndex).cumPlanValue * mult); } }
-    private ChartSeries getBaselineValueSeries(double mult) {
+    private XYChartSeries getBaselineValueSeries(double mult) {
         return markAsBaseline(new PlanValueSeries(mult)); }
     private class ActualValueSeries extends ActualChartSeries {
         double mult;
@@ -1690,8 +1614,9 @@ public class EVSchedule implements TableModel {
 
     /** XYDataSource for charting plan vs actual earned value.
      */
-    protected class ValueChartData extends ChartData {
-        public ValueChartData() {
+    protected class ValueChartData extends XYChartData {
+        public ValueChartData(ChartEventAdapter eventAdapter) {
+            super(eventAdapter);
             double mult = 100.0 / totalPlan();
             plan = new PlanValueSeries(mult);
             actual = new ActualValueSeries(mult);
@@ -1734,7 +1659,7 @@ public class EVSchedule implements TableModel {
         }
     }
     public XYDataset getValueChartData() {
-        ValueChartData result = new ValueChartData();
+        ValueChartData result = new ValueChartData(new EVScheduleChartEventAdapter());
         result.recalc();
         return result;
     }
@@ -1742,8 +1667,9 @@ public class EVSchedule implements TableModel {
 
     /** XYDataSource for charting cost and schedule on one chart.
      */
-    private class CombinedChartData extends ChartData {
-        public CombinedChartData() {
+    private class CombinedChartData extends XYChartData {
+        public CombinedChartData(ChartEventAdapter eventAdapter) {
+            super(eventAdapter);
             series.add(new PlanValueSeries(1.0 / 60.0) {
                     @Override
                     public String getSeriesKey() { return "Plan_Value"; }});
@@ -1756,5 +1682,5 @@ public class EVSchedule implements TableModel {
         }
     }
     public XYDataset getCombinedChartData() {
-        return new CombinedChartData(); }
+        return new CombinedChartData(new EVScheduleChartEventAdapter()); }
 }

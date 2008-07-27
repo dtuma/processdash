@@ -29,6 +29,8 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.Vector;
 
+import net.sourceforge.processdash.ev.ui.chart.ChartEventAdapter;
+
 import org.jfree.data.xy.XYDataset;
 
 /** This class represents a schedule that has been rolled up from
@@ -405,8 +407,8 @@ public class EVScheduleRollup extends EVSchedule {
     }
 
     private class RollupValueChartData extends ValueChartData {
-        public RollupValueChartData() {
-            super();
+        public RollupValueChartData(ChartEventAdapter eventAdapter) {
+            super(eventAdapter);
             optForecast = new OptForecastChartSeries();
         }
         OptForecastChartSeries optForecast;
@@ -422,7 +424,7 @@ public class EVScheduleRollup extends EVSchedule {
     }
     @Override
     public XYDataset getValueChartData() {
-        ValueChartData result = new RollupValueChartData();
+        ValueChartData result = new RollupValueChartData(new EVScheduleChartEventAdapter());
         result.recalc();
         return result;
     }

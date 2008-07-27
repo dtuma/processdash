@@ -22,7 +22,7 @@
 //     processdash-devel@lists.sourceforge.net
 
 
-package net.sourceforge.processdash.ev.ui;
+package net.sourceforge.processdash.ev.ui.chart;
 
 import java.awt.BasicStroke;
 import java.awt.Color;

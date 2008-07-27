@@ -40,13 +40,14 @@ import javax.swing.event.TableModelListener;
 
 import net.sourceforge.processdash.ev.EVMetrics;
 import net.sourceforge.processdash.ev.EVSchedule;
+import net.sourceforge.processdash.ev.ui.chart.AbstractEVChart;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.ui.snippet.SnippetWidget;
 
 
 public class EVMetricsWidget implements SnippetWidget {
 
-    private static final Resources resources = AbstractEVChart.resources;
+    private static final Resources resources = AbstractEVChart.getResources();
 
     public Component getWidgetComponent(Map environment, Map parameters) {
         EVSchedule schedule = (EVSchedule) environment

@@ -61,6 +61,8 @@ import net.sourceforge.processdash.ev.EVTaskList;
 import net.sourceforge.processdash.ev.EVTaskListData;
 import net.sourceforge.processdash.ev.EVTaskListMerged;
 import net.sourceforge.processdash.ev.EVTaskListRollup;
+import net.sourceforge.processdash.ev.ui.chart.AbstractEVChart;
+import net.sourceforge.processdash.ev.ui.chart.AbstractEVTimeSeriesChart;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.net.cache.CachedURLObject;
 import net.sourceforge.processdash.net.cms.CMSSnippetEnvironment;
@@ -1242,7 +1244,7 @@ public class EVReport extends CGIChartBase {
 
     /** Create a time series chart. */
     public JFreeChart createChart() {
-        JFreeChart chart = AbstractEVChart.createChart(xydata);
+        JFreeChart chart = AbstractEVTimeSeriesChart.createChart(xydata);
         if (parameters.get("hideLegend") == null)
             chart.getLegend().setPosition(RectangleEdge.RIGHT);
         return chart;
