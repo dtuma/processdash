@@ -21,30 +21,15 @@
 //     processdash@tuma-solutions.com
 //     processdash-devel@lists.sourceforge.net
 
-package net.sourceforge.processdash.ev.ui;
+package net.sourceforge.processdash.ev.ui.chart;
 
-import net.sourceforge.processdash.ui.snippet.SnippetEnvironment;
+import org.jfree.data.xy.XYDataset;
 
-public interface EVSnippetEnvironment extends SnippetEnvironment {
+public interface XYNameDataset extends XYDataset {
 
-    /** Key that maps to the earned value task list being displayed. */
-    String TASK_LIST_KEY = "evTaskList";
-
-    /** Key that maps to the earned value schedule being displayed. */
-    String SCHEDULE_KEY = "evSchedule";
-
-    /** Key that maps to the task filter in effect . */
-    String TASK_FILTER_KEY = "evTaskFilter";
-
-    /** Data context key indicating that earned value data is being drawn */
-    String EV_CONTEXT_KEY = "Earned Value Context";
-
-    /** Data context key indicating that earned value data is being drawn for
-     * an unfiltered task list */
-    String UNFILTERED_EV_CONTEXT_KEY = "Unfiltered Earned Value Context";
-
-    /** Data context key indicating that earned value data is being drawn for
-     * a filtered task list */
-    String FILTERED_EV_CONTEXT_KEY = "Filtered Earned Value Context";
+    /**
+     * Return a descriptive name for a particular data point.
+     */
+    public String getName(int series, int item);
 
 }

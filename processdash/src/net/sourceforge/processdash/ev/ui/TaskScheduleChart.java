@@ -73,6 +73,7 @@ public class TaskScheduleChart extends JFrame
 
     EVTaskList taskList;
     EVSchedule schedule;
+    EVTaskFilter filter;
     Map<String, SnippetChartItem> widgets;
     JPanel displayArea;
     CardLayout cardLayout;
@@ -85,7 +86,8 @@ public class TaskScheduleChart extends JFrame
         PCSH.enableHelpKey(this, "UsingTaskSchedule.chart");
         DashboardIconFactory.setWindowIcon(this);
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-        taskList = tl;
+        this.taskList = tl;
+        this.filter = filter;
         if (filter == null)
             schedule = taskList.getSchedule();
         else {
@@ -233,6 +235,7 @@ public class TaskScheduleChart extends JFrame
                 Map environment = new HashMap();
                 environment.put(EVSnippetEnvironment.TASK_LIST_KEY, taskList);
                 environment.put(EVSnippetEnvironment.SCHEDULE_KEY, schedule);
+                environment.put(EVSnippetEnvironment.TASK_FILTER_KEY, filter);
                 environment.put(EVSnippetEnvironment.RESOURCES, snip
                         .getResources());
 
@@ -241,6 +244,9 @@ public class TaskScheduleChart extends JFrame
                 return w.getWidgetComponent(environment, params);
 
             } catch (Exception e) {
+                logger.log(Level.SEVERE,
+                    "Unexpected error when displaying EV snippet widget with id '"
+                            + id + "'", e);
                 WrappingText label = new WrappingText(resources
                         .getString("Widget_Error"));
                 label.setFont(label.getFont().deriveFont(Font.ITALIC));

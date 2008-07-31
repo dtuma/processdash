@@ -49,7 +49,7 @@ public abstract class AbstractEVTimeSeriesChart extends AbstractEVChart {
         if (yLabel != null && yLabel.length() != 0)
             chart.getXYPlot().getRangeAxis().setLabel(yLabel);
 
-        return new EVHiddenOrShownSeriesXYChartPanel(chart, filteredData, yLabel);
+        return new EVHiddenOrShownSeriesXYChartPanel(chart, filteredData);
     }
 
     public static JFreeChart createChart(XYDataset data) {

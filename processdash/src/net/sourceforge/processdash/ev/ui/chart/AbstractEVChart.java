@@ -35,6 +35,7 @@ import java.util.Map;
 import java.util.MissingResourceException;
 
 import net.sourceforge.processdash.ev.EVSchedule;
+import net.sourceforge.processdash.ev.EVTaskFilter;
 import net.sourceforge.processdash.ev.EVTaskList;
 import net.sourceforge.processdash.ev.ui.EVSnippetEnvironment;
 import net.sourceforge.processdash.i18n.Resources;
@@ -77,16 +78,6 @@ public abstract class AbstractEVChart implements SnippetWidget {
         return axisLabel;
     }
 
-    protected String getUnits(Map environment, Map parameters) {
-        String units = null;
-
-        try{
-            units = getResources(environment).getString("Chart_Units");
-        } catch (MissingResourceException e) { }
-
-        return units;
-    }
-
     private Resources getResources(Map environment) {
         return (Resources) environment.get(EVSnippetEnvironment.RESOURCES);
     }
@@ -97,6 +88,10 @@ public abstract class AbstractEVChart implements SnippetWidget {
 
     protected EVTaskList getTaskList(Map environment) {
         return (EVTaskList) environment.get(EVSnippetEnvironment.TASK_LIST_KEY);
+    }
+
+    protected EVTaskFilter getTaskFilter(Map environment) {
+        return (EVTaskFilter) environment.get(EVSnippetEnvironment.TASK_FILTER_KEY);
     }
 
     public static class SeriesNameGenerator implements XYSeriesLabelGenerator {

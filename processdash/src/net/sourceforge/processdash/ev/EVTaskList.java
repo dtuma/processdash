@@ -35,7 +35,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.EventObject;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
@@ -64,12 +63,12 @@ import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.ev.ui.chart.ChartEventAdapter;
 import net.sourceforge.processdash.ev.ui.chart.XYChartData;
 import net.sourceforge.processdash.ev.ui.chart.XYChartSeries;
+import net.sourceforge.processdash.ev.ui.chart.XYNameDataset;
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.net.cache.ObjectCache;
 import net.sourceforge.processdash.ui.lib.AbstractTreeTableModel;
 import net.sourceforge.processdash.ui.lib.TreeTableModel;
-import net.sourceforge.processdash.util.FormatUtil;
 import net.sourceforge.processdash.util.PatternList;
 import net.sourceforge.processdash.util.StringUtils;
 
@@ -1346,6 +1345,27 @@ public class EVTaskList extends AbstractTreeTableModel
         return result;
     }
 
+    public List<EVTask> getFilteredLeaves(EVTaskFilter filter) {
+        List allLeaves = null;
+        if (calculator != null)
+            allLeaves = calculator.getEVLeaves();
+        if (allLeaves == null || allLeaves.isEmpty())
+            allLeaves = ((EVTask) root).getLeafTasks();
+
+        List<EVTask> result = new ArrayList<EVTask>();
+        for (Iterator i = allLeaves.iterator(); i.hasNext();) {
+            EVTask task = (EVTask) i.next();
+            if (task.isChronologicallyPruned() &&
+                task.actualDirectTime == 0)
+                continue;
+            else if (filter != null && !filter.include(task))
+                continue;
+            else
+                result.add(task);
+        }
+        return result;
+    }
+
     public TableModel getSimpleTableModel() {
         return getSimpleTableModel(null);
     }
@@ -1354,30 +1374,10 @@ public class EVTaskList extends AbstractTreeTableModel
     }
 
     private class SimpleTableModel implements TableModel {
-        private EVTaskFilter filter;
         private List rowList = null;
 
         public SimpleTableModel(EVTaskFilter filter) {
-            this.filter = filter;
-            if (calculator != null)
-                rowList = calculator.getEVLeaves();
-            if (rowList == null || rowList.isEmpty())
-                rowList = ((EVTask) root).getLeafTasks();
-            rowList = filterRowList(rowList);
-        }
-
-        private List filterRowList(List rowList) {
-            List result = new ArrayList(rowList);
-            Iterator i = result.iterator();
-            while (i.hasNext()) {
-                EVTask task = (EVTask) i.next();
-                if (task.isChronologicallyPruned() &&
-                    task.actualDirectTime == 0)
-                    i.remove();
-                else if (filter != null && !filter.include(task))
-                    i.remove();
-            }
-            return result;
+            rowList = getFilteredLeaves(filter);
         }
 
         public int getRowCount() { return rowList.size(); }
@@ -1757,101 +1757,98 @@ public class EVTaskList extends AbstractTreeTableModel
 
     }
 
-    /** The series representing completed tasks. The X value is the planned time
-     *   and the Y value is the actual time for a specific task
-     */
-    private class CompletedTasksSeries implements XYChartSeries {
-        // Those maps have this structure :
-        //  key = the task index
-        //  value = the time for the index.
-        // The 2 maps will always be in sync.
-        HashMap<Integer, Number> plannedTimes = new HashMap<Integer, Number>();
-        HashMap<Integer, Number> actualTimes = new HashMap<Integer, Number>();
+    /** A chart series where each EV leaf provides one data point */
+    private abstract class EVLeavesChartSeries {
 
-        public int getItemCount() {
-            return plannedTimes.size();
+        private String seriesKey;
+
+        private EVTaskFilter filter;
+
+        protected List<EVTask> evLeaves;
+
+        public EVLeavesChartSeries(String seriesKey, EVTaskFilter filter) {
+            this.seriesKey = seriesKey;
+            this.filter = filter;
+        }
+
+        public void recalc() {
+            evLeaves = getFilteredLeaves(filter);
         }
 
         public String getSeriesKey() {
-            return "Completed_Task";
+            return seriesKey;
         }
 
-        public Number getX(int itemIndex) {
-            return plannedTimes.get(itemIndex);
+        public int getItemCount() {
+            return evLeaves.size();
         }
 
-        public Number getY(int itemIndex) {
-            return actualTimes.get(itemIndex);
+        protected EVTask get(int itemIndex) {
+            return evLeaves.get(itemIndex);
         }
 
-        public void addData(int itemIndex,
-                            double taskPlannedTime,
-                            double taskActualTime) {
-            plannedTimes.put(itemIndex, taskPlannedTime);
-            actualTimes.put(itemIndex, taskActualTime);
+        public String getItemName(int itemIndex) {
+            return get(itemIndex).getFullName();
         }
 
     }
 
-    /** XYDataSource for charting plan vs actual completed time of a task
-     */
-    private class CompletedTaskData extends XYChartData {
-        private EVTaskList evModel;
+    private abstract class EVLeavesXYChartSeries extends EVLeavesChartSeries
+            implements XYChartSeries {
 
-        public CompletedTaskData(EVTaskList evModel, ChartEventAdapter eventAdapter) {
+        public EVLeavesXYChartSeries(String seriesKey, EVTaskFilter filter) {
+            super(seriesKey, filter);
+        }
+
+    }
+
+    private class EVLeavesXYChartData extends XYChartData implements
+            XYNameDataset {
+
+        private EVLeavesXYChartSeries[] allSeries;
+
+        public EVLeavesXYChartData(ChartEventAdapter eventAdapter,
+                EVLeavesXYChartSeries... series) {
             super(eventAdapter);
-            this.evModel = evModel;
-            series.add(getChartData(evModel));
-        }
-
-        private CompletedTasksSeries getChartData(EVTaskList evModel) {
-            CompletedTasksSeries chartData = new CompletedTasksSeries();
-
-            // We get the task list.
-            TableModel tasks = evModel.getSimpleTableModel();
-            int taskListLen = tasks.getRowCount();
-
-            // We look at each task. If it is completed, we add it, along with it's
-            //  planned and actual time, to the series.
-            for (int i = 0; i < taskListLen; ++i) {
-                Date completed =
-                    (Date) tasks.getValueAt(i, EVTaskList.DATE_COMPLETE_COLUMN);
-
-                if (completed != null) {
-                    double taskPlannedTime =
-                        parseTimeInHours(tasks.getValueAt(i, -EVTaskList.PLAN_DTIME_COLUMN));
-                    double taskActualTime =
-                        parseTimeInHours(tasks.getValueAt(i, -EVTaskList.ACT_DTIME_COLUMN));
-
-                    chartData.addData(i, taskPlannedTime, taskActualTime);
-                }
-            }
-            return chartData;
-        }
-
-        private double parseTimeInHours(Object time) {
-            double parsedTime = 0;
-
-            if (time != null) {
-                if (time instanceof Number)
-                    parsedTime = ((Number) time).doubleValue();
-                else
-                    parsedTime = FormatUtil.parseTime(time.toString());
-            }
-
-            // We divide by 60 because the time is given in minutes and we want it
-            //  in hours.
-            return parsedTime < 0 ? 0 : parsedTime / 60;
+            this.allSeries = series;
         }
 
         @Override
         protected void recalc() {
             series.clear();
-            series.add(getChartData(evModel));
+            for (EVLeavesXYChartSeries s : allSeries) {
+                s.recalc();
+                maybeAddSeries(s);
+            }
         }
+
+        public String getName(int seriesIndex, int itemIndex) {
+            EVLeavesXYChartSeries s = (EVLeavesXYChartSeries) series
+                    .get(seriesIndex);
+            return s.getItemName(itemIndex);
+        }
+
     }
 
-    public XYDataset getCompletedTaskData() {
-        return new CompletedTaskData(this, new EVTaskChartEventAdapter());
+
+    private class PlanVsActualChartSeries extends EVLeavesXYChartSeries {
+
+        public PlanVsActualChartSeries(EVTaskFilter filter) {
+            super("Completed_Task", filter);
+        }
+
+        public Number getX(int itemIndex) {
+            return get(itemIndex).planTime / 60.0;
+        }
+
+        public Number getY(int itemIndex) {
+            return get(itemIndex).actualTime / 60.0;
+        }
+
+    }
+
+    public XYDataset getPlanVsActualTimeData(EVTaskFilter filter) {
+        return new EVLeavesXYChartData(new EVTaskChartEventAdapter(),
+                new PlanVsActualChartSeries(filter));
     }
 }

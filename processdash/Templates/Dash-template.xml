@@ -210,19 +210,19 @@ The author(s) may be contacted at:
   <snippet id="pdash.ev.cumValueChart" version="1.0" category="ev">
     <resources>EV.Snippet.Earned_Value_Chart</resources>
     <context>Earned Value Context</context>
-    <widget>net.sourceforge.processdash.ev.ui.EVCharts$Value</widget>
+    <widget>net.sourceforge.processdash.ev.ui.chart.EVCharts$Value</widget>
   </snippet>
 
   <snippet id="pdash.ev.cumDirectTimeChart" version="1.0" category="ev">
     <resources>EV.Snippet.Direct_Hours_Chart</resources>
     <context>Unfiltered Earned Value Context</context>
-    <widget>net.sourceforge.processdash.ev.ui.EVCharts$DirectTime</widget>
+    <widget>net.sourceforge.processdash.ev.ui.chart.EVCharts$DirectTime</widget>
   </snippet>
 
   <snippet id="pdash.ev.cumCombinedChart" version="1.0" category="ev">
     <resources>EV.Snippet.Combined_Chart</resources>
     <context>Earned Value Context</context>
-    <widget>net.sourceforge.processdash.ev.ui.EVCharts$Combined</widget>
+    <widget>net.sourceforge.processdash.ev.ui.chart.EVCharts$Combined</widget>
   </snippet>
 
   <snippet id="pdash.ev.statisticsTable" version="1.0" category="ev">

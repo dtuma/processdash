@@ -40,14 +40,11 @@ public class EVHiddenOrShownSeriesXYChartPanel extends EVXYChartPanel
         implements DatasetChangeListener {
 
     private XYDatasetFilter filteredData;
-    private String units;
 
     public EVHiddenOrShownSeriesXYChartPanel(JFreeChart chart,
-                                    XYDatasetFilter filteredData,
-                                    String units) {
+                                    XYDatasetFilter filteredData) {
         super(chart);
         this.filteredData = filteredData;
-        this.units = units;
 
         filteredData.getSourceDataset().addChangeListener(this);
         getPopupMenu().insert(new JPopupMenu.Separator(), 0);

@@ -23,7 +23,6 @@
 
 package net.sourceforge.processdash.ev.ui.chart;
 
-import javax.swing.JPopupMenu;
 import javax.swing.ToolTipManager;
 
 import net.sourceforge.processdash.i18n.Resources;

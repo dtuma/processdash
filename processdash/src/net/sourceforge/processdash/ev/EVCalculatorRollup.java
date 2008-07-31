@@ -52,11 +52,11 @@ public class EVCalculatorRollup extends EVCalculator {
     }
 
     public void recalculate() {
-        EVTaskList taskList;
+        evLeaves = null;
 
         // Recalculate all the subschedules.
         for (int i = evTaskLists.size();   i-- > 0; ) {
-            taskList = (EVTaskList) evTaskLists.get(i);
+            EVTaskList taskList = (EVTaskList) evTaskLists.get(i);
             taskList.recalc();
 
             // Some types of task lists perform a recalc by completely
