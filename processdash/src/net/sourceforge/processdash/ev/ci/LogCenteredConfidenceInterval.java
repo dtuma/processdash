@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2007 Tuma Solutions, LLC
+// Copyright (C) 2003-2008 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -54,7 +54,7 @@ public class LogCenteredConfidenceInterval
      * confidence interval, and translate the input value using that
      * number.
      */
-    protected double getQuantile(double percentage) {
+    public double getQuantile(double percentage) {
         if (viability > ACCEPTABLE) {
             double logRange = TDistribution.quantile(percentage, numSamples-2) * logstd;
             double logRatio = logmean + logRange;

@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2007 Tuma Solutions, LLC
+// Copyright (C) 2003-2008 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -39,6 +39,10 @@ public class DelegatingConfidenceInterval implements ConfidenceInterval,
 
     public double getPrediction() {
         return (delegate == null ? Double.NaN : delegate.getPrediction());
+    }
+
+    public double getQuantile(double percentage) {
+        return (delegate == null ? Double.NaN : delegate.getQuantile(percentage));
     }
 
     public double getLPI(double percentage) {

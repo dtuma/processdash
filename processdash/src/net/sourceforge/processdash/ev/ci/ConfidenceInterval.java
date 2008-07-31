@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2007 Tuma Solutions, LLC
+// Copyright (C) 2003-2008 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -39,6 +39,15 @@ public interface ConfidenceInterval {
      * confidence interval.
      */
     public double getPrediction();
+
+    /**
+     * Return the value of the confidence interval at a specific percentage
+     * point in the cumulative probability distribution.
+     * 
+     * @param percentage a number greater than 0.0 and less than 1.0
+     * @return the value of the distribution at the given percentage
+     */
+    public double getQuantile(double percentage);
 
     /** Return the lower end of the confidence interval for a
      * particular confidence percentage.

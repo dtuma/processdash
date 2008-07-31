@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2007 Tuma Solutions, LLC
+// Copyright (C) 2003-2008 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -137,7 +137,7 @@ public abstract class AbstractLinearConfidenceInterval
         rangeRadical = Math.sqrt(term);
     }
 
-    protected double getQuantile(double p) {
+    public double getQuantile(double p) {
         double range;
 
         double rangeProb = 2 * Math.abs(0.5 - p);

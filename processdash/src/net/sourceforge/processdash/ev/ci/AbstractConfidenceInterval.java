@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2007 Tuma Solutions, LLC
+// Copyright (C) 2003-2008 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -140,7 +140,7 @@ public abstract class AbstractConfidenceInterval implements ConfidenceInterval
      * definitions for getLPI, getUPI, getRandomValue, and getPrediction.
      * Alternatively, they can choose to directly override those methods.
      */
-    protected double getQuantile(double percentage) {
+    public double getQuantile(double percentage) {
         return Double.NaN;
     }
 

@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2007 Tuma Solutions, LLC
+// Copyright (C) 2003-2008 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -102,7 +102,7 @@ public class MonteCarloConfidenceInterval
             System.out.println("\t"+samples.get(i));
     }
 
-    protected double getQuantile(double percentage) {
+    public double getQuantile(double percentage) {
         if (samples == null) return Double.NaN;
         if (!(percentage >= 0 && percentage <= 1)) return Double.NaN;
 
