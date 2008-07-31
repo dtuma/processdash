@@ -23,6 +23,6 @@
 
 package net.sourceforge.processdash.ev;
 
-public interface EVTaskTest {
+public interface EVTaskFilterCondition {
     public boolean include(EVTask task);
 }

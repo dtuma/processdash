@@ -29,13 +29,13 @@ import java.util.Map;
 
 public class EVLeafTaskFilter implements EVTaskFilter {
 
-    protected EVTaskTest[] leafTests;
+    protected EVTaskFilterCondition[] leafTests;
 
     protected EVTaskFilter nextFilter;
 
     protected Map<String, String> attributes;
 
-    public EVLeafTaskFilter(EVTaskTest... tests) {
+    public EVLeafTaskFilter(EVTaskFilterCondition... tests) {
         this.leafTests = tests;
     }
 
@@ -63,7 +63,7 @@ public class EVLeafTaskFilter implements EVTaskFilter {
     protected boolean isIncludedByLeafTests(EVTask t) {
         if (t.isLeaf()) {
             // iterate over all of the leaf tests we're checking.
-            for (EVTaskTest oneTest : leafTests) {
+            for (EVTaskFilterCondition oneTest : leafTests) {
                 // All tests must pass for the leaf to be included; so if
                 // any of them fails, the leaf should be excluded.
                 if (oneTest.include(t) == false)
@@ -89,7 +89,7 @@ public class EVLeafTaskFilter implements EVTaskFilter {
             return null;
     }
 
-    public static final EVTaskTest COMPLETED = new EVTaskTest() {
+    public static final EVTaskFilterCondition COMPLETED = new EVTaskFilterCondition() {
         public boolean include(EVTask task) {
             return task.getDateCompleted() != null;
         }
