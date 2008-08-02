@@ -58,6 +58,7 @@ import net.sourceforge.processdash.ev.EVSchedule;
 import net.sourceforge.processdash.ev.EVScheduleFiltered;
 import net.sourceforge.processdash.ev.EVTaskFilter;
 import net.sourceforge.processdash.ev.EVTaskList;
+import net.sourceforge.processdash.ev.EVTaskListRollup;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.ui.DashboardIconFactory;
 import net.sourceforge.processdash.ui.help.PCSH;
@@ -95,7 +96,9 @@ public class TaskScheduleChart extends JFrame
             taskList.addRecalcListener(this);
         }
 
-        widgets = getChartWidgets(filter != null);
+        boolean isFiltered = (filter != null);
+        boolean isRollup = (tl instanceof EVTaskListRollup);
+        widgets = getChartWidgets(isFiltered, isRollup);
 
         cardLayout = new CardLayout(0, 5);
         displayArea = new JPanel(cardLayout);
@@ -125,16 +128,11 @@ public class TaskScheduleChart extends JFrame
                     tl.getDisplayName(), filterDescription);
     }
 
-    private Map<String, SnippetChartItem> getChartWidgets(boolean filterInEffect) {
+    private Map<String, SnippetChartItem> getChartWidgets(
+            boolean filterInEffect, boolean isRollup) {
         Map<String, SnippetChartItem> result = new HashMap<String, SnippetChartItem>();
 
-        SimpleDataContext ctx = new SimpleDataContext();
-        TagData tag = TagData.getInstance();
-        ctx.put(EVSnippetEnvironment.EV_CONTEXT_KEY, tag);
-        if (filterInEffect)
-            ctx.put(EVSnippetEnvironment.FILTERED_EV_CONTEXT_KEY, tag);
-        else
-            ctx.put(EVSnippetEnvironment.UNFILTERED_EV_CONTEXT_KEY, tag);
+        SimpleDataContext ctx = getContextTags(filterInEffect, isRollup);
 
         SnippetDefinitionManager.initialize();
         Set snippets = SnippetDefinitionManager.getAllSnippets();
@@ -153,6 +151,31 @@ public class TaskScheduleChart extends JFrame
         }
 
         return result;
+    }
+
+    private SimpleDataContext getContextTags(boolean filterInEffect,
+            boolean isRollup) {
+        SimpleDataContext ctx = new SimpleDataContext();
+        TagData tag = TagData.getInstance();
+
+        ctx.put(EVSnippetEnvironment.EV_CONTEXT_KEY, tag);
+        if (isRollup)
+            ctx.put(EVSnippetEnvironment.ROLLUP_EV_CONTEXT_KEY, tag);
+
+        if (filterInEffect) {
+            ctx.put(EVSnippetEnvironment.FILTERED_EV_CONTEXT_KEY, tag);
+            if (isRollup)
+                ctx.put(EVSnippetEnvironment.FILTERED_ROLLUP_EV_CONTEXT_KEY,
+                    tag);
+
+        } else {
+            ctx.put(EVSnippetEnvironment.UNFILTERED_EV_CONTEXT_KEY, tag);
+            if (isRollup)
+                ctx.put(EVSnippetEnvironment.UNFILTERED_ROLLUP_EV_CONTEXT_KEY,
+                    tag);
+        }
+
+        return ctx;
     }
 
     private JComponent createChooserComponent() {

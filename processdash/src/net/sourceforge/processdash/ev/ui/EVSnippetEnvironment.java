@@ -39,12 +39,24 @@ public interface EVSnippetEnvironment extends SnippetEnvironment {
     /** Data context key indicating that earned value data is being drawn */
     String EV_CONTEXT_KEY = "Earned Value Context";
 
+    /** Data context key indicating that earned value data is being drawn
+     * for a rollup task list */
+    String ROLLUP_EV_CONTEXT_KEY = "Rollup Earned Value Context";
+
     /** Data context key indicating that earned value data is being drawn for
      * an unfiltered task list */
     String UNFILTERED_EV_CONTEXT_KEY = "Unfiltered Earned Value Context";
 
     /** Data context key indicating that earned value data is being drawn for
+     * an unfiltered, rolled up task list */
+    String UNFILTERED_ROLLUP_EV_CONTEXT_KEY = "Unfiltered Rollup Earned Value Context";
+
+    /** Data context key indicating that earned value data is being drawn for
      * a filtered task list */
     String FILTERED_EV_CONTEXT_KEY = "Filtered Earned Value Context";
+
+    /** Data context key indicating that earned value data is being drawn for
+     * a filtered, rolled-up task list */
+    String FILTERED_ROLLUP_EV_CONTEXT_KEY = "Filtered Rollup Earned Value Context";
 
 }
