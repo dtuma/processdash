@@ -184,7 +184,12 @@ public class FileConcurrencyLock implements ConcurrencyLock {
     }
 
 
-    public synchronized void assertLock() throws LockFailureException {
+    public void assertLock() throws LockFailureException {
+        assertLock(true);
+    }
+
+    private synchronized void assertLock(boolean forceNativeReassert)
+            throws LockFailureException {
         if (!lockFile.getParentFile().isDirectory()) {
             // the parent directory of the lock doesn't exist.  This probably
             // means that we have temporarily lost our connection to the
@@ -206,7 +211,8 @@ public class FileConcurrencyLock implements ConcurrencyLock {
 
         try {
             FileChannel oldLockChannel = lockChannel;
-            lockChannel = new RandomAccessFile(lockFile, "rw").getChannel();
+            FileChannel newLockChannel =
+                lockChannel = new RandomAccessFile(lockFile, "rw").getChannel();
 
             LockMetaData metaData = readLockMetaData(false);
             if (metaData == null) {
@@ -240,12 +246,31 @@ public class FileConcurrencyLock implements ConcurrencyLock {
 
             // There doesn't seem to be an API to determine whether we lost
             // the native lock.  The only way to test whether we still own
-            // it, is to release and actively reestablish the lock.
-            try {
-                if (lock != null) lock.release();
-                closeChannel(oldLockChannel);
-            } catch (Exception e) {}
-            lock = lockChannel.tryLock(0, 1, false);
+            // it, is to release and actively reestablish the lock.  But this
+            // level of paranoia isn't always desirable, so we only do it if
+            // requested.
+            if (forceNativeReassert) {
+                try {
+                    if (lock != null) lock.release();
+                    closeChannel(oldLockChannel);
+                    Thread.sleep(100);
+                } catch (Exception e) {}
+                lock = null;
+            }
+
+            if (lock == null) {
+                lock = lockChannel.tryLock(0, 1, false);
+
+            } else {
+                // for this branch, we're retaining the old lock that was
+                // obtained long ago, and still held by this object.  That
+                // means that we need to restore the old value of the
+                // lockChannel field, and close the new channel that we just
+                // opened temporarily.
+                this.lockChannel = oldLockChannel;
+                closeChannel(newLockChannel);
+            }
+
             if (lock == null) {
                 logger.log(Level.FINE, "Lock could not be reestablished: {0}",
                         lockFile);
@@ -256,6 +281,8 @@ public class FileConcurrencyLock implements ConcurrencyLock {
         } catch (LockFailureException fe) {
             throw fe;
         } catch (Exception e) {
+            logger.log(Level.WARNING,
+                "Unexpected exception when asserting file lock", e);
             throw new LockFailureException(e);
         }
     }
@@ -519,7 +546,7 @@ public class FileConcurrencyLock implements ConcurrencyLock {
                         long start = System.currentTimeMillis();
                         synchronized (FileConcurrencyLock.this) {
                             if (isRunning == false) break;
-                            assertLock();
+                            assertLock(false);
                         }
                         long end = System.currentTimeMillis();
                         logger.log(Level.FINEST, "assertValidity took {0} ms",
