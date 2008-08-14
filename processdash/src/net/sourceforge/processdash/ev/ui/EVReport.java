@@ -1244,7 +1244,7 @@ public class EVReport extends CGIChartBase {
 
     /** Create a time series chart. */
     public JFreeChart createChart() {
-        JFreeChart chart = AbstractEVTimeSeriesChart.createChart(xydata);
+        JFreeChart chart = AbstractEVTimeSeriesChart.createEVReportChart(xydata);
         if (parameters.get("hideLegend") == null)
             chart.getLegend().setPosition(RectangleEdge.RIGHT);
         return chart;

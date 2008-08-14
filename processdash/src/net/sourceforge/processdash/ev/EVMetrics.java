@@ -305,6 +305,9 @@ public class EVMetrics implements TableModel {
     public void setDateConfidenceInterval(ConfidenceInterval completionDate) {
         completionDateInterval = completionDate;
     }
+    public ConfidenceInterval getDateConfidenceInterval() {
+        return completionDateInterval;
+    }
 
 
     /** BCWP */

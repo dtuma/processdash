@@ -42,7 +42,11 @@ import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.ui.snippet.SnippetWidget;
 
 import org.jfree.chart.ChartPanel;
+import org.jfree.chart.JFreeChart;
 import org.jfree.chart.labels.XYSeriesLabelGenerator;
+import org.jfree.chart.labels.XYToolTipGenerator;
+import org.jfree.chart.plot.XYPlot;
+import org.jfree.chart.renderer.xy.XYItemRenderer;
 import org.jfree.data.xy.XYDataset;
 
 
@@ -55,9 +59,64 @@ public abstract class AbstractEVChart implements SnippetWidget {
     private static Resources resources = Resources.getDashBundle("EV.Chart");
 
     protected abstract XYDataset createDataset(Map env, Map params);
-    protected abstract ChartPanel buildChart(XYDataset data,
-                                             String xLabel,
-                                             String yLabel);
+
+    private ChartPanel buildChart(XYDataset data,
+                                  String xLabel,
+                                  String yLabel) {
+        data = getAdjustedData(data);
+        JFreeChart chart = createChart(data);
+        adjustPlot(chart.getXYPlot(), xLabel, yLabel);
+        ChartPanel panel = getChartPanel(chart, data);
+
+        return panel;
+    }
+
+    /** This method has to be overridden to perform changes on the data
+        before creating the chart */
+    protected XYDataset getAdjustedData(XYDataset data) { return data; }
+
+    protected void adjustPlot(XYPlot plot, String xLabel, String yLabel) {
+        setPlotAxisLabels(plot, xLabel, yLabel);
+    }
+
+    /** This method has to be overridden to return the appropriate chart panel */
+    protected abstract ChartPanel getChartPanel(JFreeChart chart, XYDataset data);
+
+    protected JFreeChart createChart(XYDataset data) {
+        JFreeChart chart = getChartObject(data);
+        chart.getXYPlot().setRenderer(createRenderer(chart));
+        return chart;
+    }
+
+    /** This method has to be overridden to return the appropriate JFreeChart
+        chart */
+    protected abstract JFreeChart getChartObject(XYDataset data);
+    protected XYItemRenderer createRenderer(JFreeChart chart) {
+        return chart.getXYPlot().getRenderer();
+    }
+
+    /** Used to create a chart RangeXYItemRenderer with the appropriate
+        TooltipGenerator */
+    protected RangeXYItemRenderer createRangeXYItemRenderer() {
+        RangeXYItemRenderer renderer = new RangeXYItemRenderer();
+        renderer.putAllSeriesPaints(SERIES_PAINTS);
+        renderer.putAllSeriesStrokes(SERIES_STROKES);
+        renderer.setLegendItemLabelGenerator(new SeriesNameGenerator());
+        renderer.setBaseToolTipGenerator(getTooltipGenerator());
+        return renderer;
+    }
+    protected abstract XYToolTipGenerator getTooltipGenerator();
+
+    protected void setPlotAxisLabels(XYPlot plot,
+                                     String xLabel,
+                                     String yLabel) {
+
+        if (xLabel != null && xLabel.length() != 0)
+            plot.getDomainAxis().setLabel(xLabel);
+
+        if (yLabel != null && yLabel.length() != 0)
+            plot.getRangeAxis().setLabel(yLabel);
+    }
 
     public Component getWidgetComponent(Map environment, Map parameters) {
         XYDataset dataset = createDataset(environment, parameters);
@@ -110,9 +169,14 @@ public abstract class AbstractEVChart implements SnippetWidget {
         SERIES_PAINTS.put("Plan", Color.red);
         SERIES_PAINTS.put("Replan", Color.red);
         SERIES_PAINTS.put("Actual", Color.blue);
-        SERIES_PAINTS.put("Completed_Task", Color.green);
+        SERIES_PAINTS.put("Total_Cost", Color.red);
+        SERIES_PAINTS.put("Completion_Date", Color.red);
         SERIES_PAINTS.put("Forecast", Color.green);
         SERIES_PAINTS.put("Optimized_Forecast", Color.orange);
+
+        // The renderer used for this chart automatically chooses the right
+        //  color for this series
+        SERIES_PAINTS.put("Completed_Task", null);
 
         SERIES_PAINTS.put("Plan_Value", Color.red);
         SERIES_PAINTS.put("Actual_Value", Color.blue);

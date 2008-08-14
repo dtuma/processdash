@@ -30,6 +30,8 @@ import net.sourceforge.processdash.ui.lib.chart.XYDatasetFilter;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
+import org.jfree.chart.labels.XYToolTipGenerator;
+import org.jfree.chart.renderer.xy.XYItemRenderer;
 import org.jfree.data.xy.XYDataset;
 
 
@@ -37,35 +39,46 @@ import org.jfree.data.xy.XYDataset;
 public abstract class AbstractEVTimeSeriesChart extends AbstractEVChart {
 
     @Override
-    protected ChartPanel buildChart(XYDataset data,
-                                    String xLabel,
-                                    String yLabel) {
-        XYDatasetFilter filteredData = new XYDatasetFilter(data);
-        JFreeChart chart = createChart(filteredData);
-
-        if (xLabel != null && xLabel.length() != 0)
-            chart.getXYPlot().getDomainAxis().setLabel(xLabel);
-
-        if (yLabel != null && yLabel.length() != 0)
-            chart.getXYPlot().getRangeAxis().setLabel(yLabel);
-
-        return new EVHiddenOrShownSeriesXYChartPanel(chart, filteredData);
+    protected JFreeChart getChartObject(XYDataset data) {
+        return ChartFactory.createTimeSeriesChart(null, null, null, data,
+                                                  true, true, false);
     }
 
-    public static JFreeChart createChart(XYDataset data) {
+    @Override
+    protected XYItemRenderer createRenderer(JFreeChart chart) {
+        return createRangeXYItemRenderer();
+    }
+
+    @Override
+    protected XYDataset getAdjustedData(XYDataset data) {
+        return new XYDatasetFilter(data);
+    }
+
+    @Override
+    protected ChartPanel getChartPanel(JFreeChart chart, XYDataset data) {
+        return new EVHiddenOrShownSeriesXYChartPanel(chart, (XYDatasetFilter) data);
+    }
+
+    @Override
+    protected XYToolTipGenerator getTooltipGenerator() {
+        return new EVTimeSeriesTooltipGenerator();
+    }
+
+    /**
+     * Temporary method used by EVReport to build a chart
+     */
+    public static JFreeChart createEVReportChart(XYDataset data) {
         JFreeChart chart = ChartFactory.createTimeSeriesChart
                     (null, null, null, data, true, true, false);
-        chart.getXYPlot().setRenderer(createRenderer());
-        return chart;
-    }
 
-    protected static RangeXYItemRenderer createRenderer() {
         RangeXYItemRenderer renderer = new RangeXYItemRenderer();
         renderer.putAllSeriesPaints(SERIES_PAINTS);
         renderer.putAllSeriesStrokes(SERIES_STROKES);
         renderer.setLegendItemLabelGenerator(new SeriesNameGenerator());
         renderer.setBaseToolTipGenerator(new EVTimeSeriesTooltipGenerator());
-        return renderer;
+
+        chart.getXYPlot().setRenderer(renderer);
+        return chart;
     }
 
     public static class EVTimeSeriesTooltipGenerator extends EVXYToolTipGenerator {

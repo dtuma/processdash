@@ -54,9 +54,10 @@ public abstract class XYChartData extends AbstractXYDataset {
         return series.size();
     }
     /** Append a data series if it appears viable */
-    protected void maybeAddSeries(XYChartSeries s) {
+    protected boolean maybeAddSeries(XYChartSeries s) {
         if (s != null && s.getItemCount() > 0)
-            series.add(s);
+            return series.add(s);
+        return false;
     }
     /** Returns the name of the specified series (zero-based). */
     @Override

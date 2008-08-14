@@ -30,15 +30,27 @@ import org.jfree.chart.labels.StandardXYToolTipGenerator;
 import org.jfree.data.xy.XYDataset;
 
 public abstract class EVXYToolTipGenerator extends StandardXYToolTipGenerator {
-    private static final String TOOLTIP_FORMAT = "{0}: ({1}, {2})";
+    private static final String DEFAULT_TOOLTIP_FORMAT = "{0}: ({1}, {2})";
 
 
     public EVXYToolTipGenerator(DateFormat xFormat, NumberFormat yFormat) {
-        super(TOOLTIP_FORMAT, xFormat, yFormat);
+        super(DEFAULT_TOOLTIP_FORMAT, xFormat, yFormat);
     }
 
     public EVXYToolTipGenerator(NumberFormat xFormat, NumberFormat yFormat) {
-        super(TOOLTIP_FORMAT, xFormat, yFormat);
+        super(DEFAULT_TOOLTIP_FORMAT, xFormat, yFormat);
+    }
+
+    public EVXYToolTipGenerator(String tooltipFormat,
+                                DateFormat xFormat,
+                                NumberFormat yFormat) {
+        super(tooltipFormat, xFormat, yFormat);
+    }
+
+    public EVXYToolTipGenerator(String tooltipFormat,
+                                NumberFormat xFormat,
+                                NumberFormat yFormat) {
+        super(tooltipFormat, xFormat, yFormat);
     }
 
     protected static NumberFormat getNumberFormat() {

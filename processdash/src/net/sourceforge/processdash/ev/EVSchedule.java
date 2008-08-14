@@ -42,6 +42,10 @@ import javax.swing.table.TableModel;
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.ListData;
 import net.sourceforge.processdash.ev.ui.chart.ChartEventAdapter;
+import net.sourceforge.processdash.ev.ui.chart.ConfidenceIntervalChartData;
+import net.sourceforge.processdash.ev.ui.chart.ConfidenceIntervalChartSeries;
+import net.sourceforge.processdash.ev.ui.chart.ConfidenceIntervalCompletionDateChartData;
+import net.sourceforge.processdash.ev.ui.chart.ConfidenceIntervalTotalCostChartData;
 import net.sourceforge.processdash.ev.ui.chart.XYChartData;
 import net.sourceforge.processdash.ev.ui.chart.XYChartSeries;
 import net.sourceforge.processdash.i18n.Resources;
@@ -1683,4 +1687,14 @@ public class EVSchedule implements TableModel {
     }
     public XYDataset getCombinedChartData() {
         return new CombinedChartData(new EVScheduleChartEventAdapter()); }
+
+
+    public XYDataset getConfidenceIntervalTotalCostChartData() {
+        return new ConfidenceIntervalTotalCostChartData(new EVScheduleChartEventAdapter(),
+                                                        metrics);
+    }
+    public XYDataset getConfidenceIntervalCompletionDateChartData() {
+        return new ConfidenceIntervalCompletionDateChartData(new EVScheduleChartEventAdapter(),
+                                                             metrics);
+    }
 }
