@@ -86,6 +86,10 @@ public class DashboardBackupFactory {
                         && (name.endsWith("/") || name.endsWith(".xml"));
             }
 
+            // don't back up invisible operating system files on Unix/Linux/Mac
+            if (name.startsWith("."))
+                return name.equals(".pspdash");
+
             if (name.equals("log.txt") || // backup the log file
                 name.endsWith(".dat") || // backup data files
                 name.endsWith(".def") || // backup defect logs

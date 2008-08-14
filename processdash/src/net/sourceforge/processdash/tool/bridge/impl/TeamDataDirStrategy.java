@@ -66,6 +66,9 @@ public class TeamDataDirStrategy implements FileResourceCollectionStrategy {
             if (name.indexOf('/') != -1)
                 return false; // don't support subdirectories!
 
+            if (name.startsWith("."))
+                return false; // don't copy invisible unix files
+
             if (name.equalsIgnoreCase(TeamServerPointerFile.FILE_NAME))
                 return false; // don't copy around any teamServer file!
 

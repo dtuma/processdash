@@ -171,10 +171,18 @@ public class DataImporter extends Thread {
 
             // check them all to see if they need importing.
             for (int i = files.length;  i-- > 0;  ) {
-                if (checkFile(files[i]))
-                    if (feedback != null)
-                        feedback.add(files[i]);
-                currentFiles.remove(files[i]);
+                try {
+                    if (checkFile(files[i]))
+                        if (feedback != null)
+                            feedback.add(files[i]);
+                    currentFiles.remove(files[i]);
+                } catch (Throwable t) {
+                    // if an error is encountered when trying to import one
+                    // of the files, log a message and attempt to continue
+                    // with the remaining files.
+                    String errMsg = "Error importing file '" + files[i] +"'";
+                    logger.log(Level.SEVERE, errMsg, t);
+                }
             }
 
             // if any previously imported files no longer exist, close
@@ -233,6 +241,10 @@ public class DataImporter extends Thread {
 
         if (filename.startsWith(RobustFileOutputStream.OUT_PREFIX))
             // ignore temporary files created by the RobustFileWriter class.
+            return null;
+
+        else if (filename.startsWith("."))
+            // ignore invisible system files created on Unix or Mac systems.
             return null;
 
         else if (filename.endsWith(EXPORT_FILE_OLD_SUFFIX))

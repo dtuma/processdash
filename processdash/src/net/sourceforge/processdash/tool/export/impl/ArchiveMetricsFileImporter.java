@@ -96,7 +96,7 @@ public class ArchiveMetricsFileImporter implements Runnable,
     public void doImport() throws IOException {
         try {
             readAndProcessArchive();
-        } catch (XmlPullParserException e) {
+        } catch (Exception e) {
             IOException ioe = new IOException();
             ioe.initCause(e);
             throw ioe;
@@ -104,7 +104,10 @@ public class ArchiveMetricsFileImporter implements Runnable,
             owner = null;
             exportTimestamp = null;
             defns = null;
-            zipFile.close();
+            if (zipFile != null)
+                try {
+                    zipFile.close();
+                } catch (Exception e) {}
             zipFile = null;
         }
     }
