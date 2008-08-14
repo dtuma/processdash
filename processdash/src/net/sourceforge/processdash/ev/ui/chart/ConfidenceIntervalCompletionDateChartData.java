@@ -24,19 +24,29 @@
 package net.sourceforge.processdash.ev.ui.chart;
 
 import net.sourceforge.processdash.ev.EVMetrics;
+import net.sourceforge.processdash.ev.EVMetricsRollup;
 
 public class ConfidenceIntervalCompletionDateChartData extends
         ConfidenceIntervalChartData {
 
-    public ConfidenceIntervalCompletionDateChartData(ChartEventAdapter eventAdapter,
-                                                     EVMetrics... seriesMetrics) {
-        super(eventAdapter, seriesMetrics);
+    private EVMetrics evMetrics;
+
+    public ConfidenceIntervalCompletionDateChartData(
+            ChartEventAdapter eventAdapter, EVMetrics evMetrics) {
+        super(eventAdapter);
+        this.evMetrics = evMetrics;
     }
 
-    @Override
-    protected ConfidenceIntervalChartSeries getSeries(EVMetrics metrics) {
-        return new ConfidenceIntervalChartSeries(metrics.getDateConfidenceInterval(),
-                                                 "Completion_Date");
+    protected void recalc() {
+        this.series.clear();
+
+        maybeAddSeries(evMetrics.getDateConfidenceInterval(), "Forecast");
+
+        if (evMetrics instanceof EVMetricsRollup) {
+            EVMetricsRollup rollupMetrics = (EVMetricsRollup) evMetrics;
+            maybeAddSeries(rollupMetrics.getOptimizedDateConfidenceInterval(),
+                "Optimized_Forecast");
+        }
     }
 
 }

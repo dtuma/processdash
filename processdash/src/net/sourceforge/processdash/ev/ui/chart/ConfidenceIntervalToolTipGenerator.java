@@ -24,80 +24,62 @@
 package net.sourceforge.processdash.ev.ui.chart;
 
 import java.text.DateFormat;
-import java.text.MessageFormat;
+import java.text.FieldPosition;
 import java.text.NumberFormat;
+import java.text.ParsePosition;
 
 import net.sourceforge.processdash.i18n.Resources;
 
-import org.jfree.data.xy.XYDataset;
+public class ConfidenceIntervalToolTipGenerator extends EVXYToolTipGenerator {
 
-public abstract class ConfidenceIntervalToolTipGenerator extends EVXYToolTipGenerator {
     private static Resources resources =
         Resources.getDashBundle("EV.Snippet.Confidence_Interval_Chart");
 
-    protected static final String TOOLTIP_FORMAT = "{0} {1} {2} = {3}";
+    protected static final String TOOLTIP_FORMAT = "{0} {2} = {1}";
 
-    /** The formatter used to format the percentage value */
-    private NumberFormat percentageFormat = null;
-
-    public ConfidenceIntervalToolTipGenerator(DateFormat xFormat,
-                                              NumberFormat percentageFormat) {
-        super(TOOLTIP_FORMAT, xFormat, getNumberFormat());
-        this.percentageFormat = percentageFormat;
+    public ConfidenceIntervalToolTipGenerator() {
+        this(getNumberFormat());
     }
 
-    public ConfidenceIntervalToolTipGenerator(NumberFormat xFormat,
-                                              NumberFormat percentageFormat) {
-        super(TOOLTIP_FORMAT, xFormat, getNumberFormat());
-        this.percentageFormat = percentageFormat;
+    public ConfidenceIntervalToolTipGenerator(NumberFormat xFormat) {
+        super(TOOLTIP_FORMAT, xFormat, PROBABILITY_FORMAT);
     }
 
-    @Override
-    protected Object[] createItemArray(XYDataset dataset, int series, int item) {
-        // The result array has this format :
-        //  [0] : Series name
-        //  [1] : X value
-        //  [2] : Y value as percentage (between 0 and 100)
-        //
-        // What we want to return is a object array with this format :
-        //  [0] : Series name
-        //  [1] : Percentage value
-        //  [2] : Either LPI or UPI
-        //  [3] : X value
-        Object[] itemArray = super.createItemArray(dataset, series, item);
-        double yValue = new Double((String)itemArray[2]).doubleValue();
-
-        double percentageValue = (2 * Math.abs(50 - yValue)) / 100;
-        String percentageInterval = yValue < 50 ? resources.getString("LPI") :
-                                                  resources.getString("UPI");
-
-        Object[] result = new Object[4];
-        result[0] = itemArray[0];
-        result[1] = this.percentageFormat.format(percentageValue);
-        result[2] = percentageInterval;
-        result[3] = itemArray[1];
-
-        return result;
+    public ConfidenceIntervalToolTipGenerator(DateFormat xFormat) {
+        super(TOOLTIP_FORMAT, xFormat, PROBABILITY_FORMAT);
     }
 
-    @Override
-    public String generateLabelString(XYDataset dataset, int series, int item) {
-        String result = null;
-        Object[] items = createItemArray(dataset, series, item);
-        double yValue = dataset.getYValue(series, item);
 
-        if (yValue == 50) {
-            // If the Y value is 50%, we return
-            //  "(Series Name) Most Likely Value = (X value)".
-            //  items[0] contains the series name
-            //  items[3] contains the formatted X value
-            result = items[0] + " " +
-                     resources.getString("Most_Likely_Value") + " = " + items[3];
-        }
-        else {
-            result = MessageFormat.format(getFormatString(), items);
+    private static class ProbabilityFormatter extends NumberFormat {
+
+        @Override
+        public StringBuffer format(double number, StringBuffer toAppendTo,
+                FieldPosition notUsed) {
+            double percentageValue = (2 * Math.abs(50 - number)) / 100;
+
+            if (Math.abs(number - 50) < 0.01)
+                toAppendTo.append(resources.getString("Most_Likely_Value"));
+            else if (number < 50)
+                toAppendTo.append(resources.format("LPI_FMT", percentageValue));
+            else
+                toAppendTo.append(resources.format("UPI_FMT", percentageValue));
+
+            return toAppendTo;
         }
 
-        return result;
+        @Override
+        public StringBuffer format(long number, StringBuffer toAppendTo,
+                FieldPosition notUsed) {
+            return format(number, toAppendTo, notUsed);
+        }
+
+        @Override
+        public Number parse(String source, ParsePosition parsePosition) {
+            throw new UnsupportedOperationException();
+        }
+
     }
+
+    private static final NumberFormat PROBABILITY_FORMAT = new ProbabilityFormatter();
+
 }

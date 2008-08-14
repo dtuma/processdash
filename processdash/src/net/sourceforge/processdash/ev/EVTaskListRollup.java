@@ -32,11 +32,14 @@ import java.util.Vector;
 
 import javax.swing.tree.TreePath;
 
+import org.jfree.data.xy.XYDataset;
+
 import net.sourceforge.processdash.data.ListData;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.StringData;
 import net.sourceforge.processdash.data.repository.DataNameFilter;
 import net.sourceforge.processdash.data.repository.DataRepository;
+import net.sourceforge.processdash.ev.ui.chart.ConfidenceIntervalMemberCompletionDateChartData;
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.net.cache.ObjectCache;
 
@@ -262,6 +265,11 @@ public class EVTaskListRollup extends EVTaskList {
     @Override
     public EVSnapshot getSnapshotById(String snapshotId) {
         return getSnapshotFromData(data, snapshotId);
+    }
+
+    public XYDataset getTeamMemberCompletionDateData() {
+        return new ConfidenceIntervalMemberCompletionDateChartData(
+                new EVTaskChartEventAdapter(), this);
     }
 
 

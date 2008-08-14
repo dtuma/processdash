@@ -65,6 +65,7 @@ public abstract class AbstractEVChart implements SnippetWidget {
                                   String yLabel) {
         data = getAdjustedData(data);
         JFreeChart chart = createChart(data);
+        chart.getPlot().setNoDataMessage(resources.getString("No_Data_Message"));
         adjustPlot(chart.getXYPlot(), xLabel, yLabel);
         ChartPanel panel = getChartPanel(chart, data);
 
@@ -170,7 +171,6 @@ public abstract class AbstractEVChart implements SnippetWidget {
         SERIES_PAINTS.put("Replan", Color.red);
         SERIES_PAINTS.put("Actual", Color.blue);
         SERIES_PAINTS.put("Total_Cost", Color.red);
-        SERIES_PAINTS.put("Completion_Date", Color.red);
         SERIES_PAINTS.put("Forecast", Color.green);
         SERIES_PAINTS.put("Optimized_Forecast", Color.orange);
 

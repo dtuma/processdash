@@ -54,6 +54,7 @@ public class ConfidenceIntervalChartSeries implements XYChartSeries {
         if (this.confidenceInterval != null) {
             // The chart will display 39 quantile values (1/0.025 - 1 = 439)
             this.numberOfQuantiles = (int) (1 / QUANTILE_PERCENTAGE_INCREMENT - 1);
+            recalc();
         }
     }
 

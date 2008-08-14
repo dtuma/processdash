@@ -23,19 +23,37 @@
 
 package net.sourceforge.processdash.ev.ui.chart;
 
-import net.sourceforge.processdash.ev.ci.ConfidenceInterval;
+import net.sourceforge.processdash.ev.EVTaskList;
+import net.sourceforge.processdash.ev.EVTaskListRollup;
 
-/** This XYChartData subclass contains one date series, for a
-    particular confidenceInterval */
-public abstract class ConfidenceIntervalChartData extends XYChartData {
+public class ConfidenceIntervalMemberCompletionDateChartData extends
+        ConfidenceIntervalChartData {
 
-    public ConfidenceIntervalChartData(ChartEventAdapter eventAdapter) {
+    private EVTaskListRollup rollup;
+
+    public ConfidenceIntervalMemberCompletionDateChartData(
+            ChartEventAdapter eventAdapter, EVTaskListRollup rollup) {
         super(eventAdapter);
+        this.rollup = rollup;
     }
 
-    protected void maybeAddSeries(ConfidenceInterval ci, String seriesKey) {
-        if (ci != null && ci.getViability() >= ConfidenceInterval.ACCEPTABLE)
-            maybeAddSeries(new ConfidenceIntervalChartSeries(ci, seriesKey));
+    protected void recalc() {
+        this.series.clear();
+
+        for (int i = 0; i < rollup.getSubScheduleCount(); i++) {
+            EVTaskList tl = rollup.getSubSchedule(i);
+            maybeAddSeries(tl.getSchedule().getMetrics()
+                    .getDateConfidenceInterval(), getSeriesName(tl));
+        }
+    }
+
+    private String getSeriesName(EVTaskList tl) {
+        String name = tl.getDisplayName();
+        if (name.endsWith(")")) {
+            int parenPos = name.lastIndexOf('(');
+            return name.substring(parenPos + 1, name.length() - 1);
+        } else
+            return name;
     }
 
 }

@@ -52,7 +52,6 @@ public class EVXYChartPanel extends ChartPanel implements Disposable {
     private int currentStyle;
     private String xLabel;
     private String yLabel;
-    private boolean chartContainsData;
 
     public EVXYChartPanel(JFreeChart chart) {
         super(chart);
@@ -61,7 +60,6 @@ public class EVXYChartPanel extends ChartPanel implements Disposable {
         this.legend = getChart().getLegend();
         this.xLabel = getChart().getXYPlot().getDomainAxis().getLabel();
         this.yLabel = getChart().getXYPlot().getRangeAxis().getLabel();
-        this.chartContainsData = chart.getXYPlot().getSeriesCount() > 0;
 
         try {
             medium_window_width =
@@ -109,6 +107,9 @@ public class EVXYChartPanel extends ChartPanel implements Disposable {
     }
 
     protected void adjustAxis(Axis a, boolean chromeless, String label) {
+        // FIXME: to correctly respond to series changes, we should register
+        // a DatasetChangeListener
+        boolean chartContainsData = getChart().getXYPlot().getSeriesCount() > 0;
         boolean showAxisTickLabels = !chromeless && chartContainsData;
 
         a.setTickLabelsVisible(showAxisTickLabels);

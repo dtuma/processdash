@@ -1745,7 +1745,7 @@ public class EVTaskList extends AbstractTreeTableModel
     //////////////////////////////////////////////////////////////////////
 
 
-    private class EVTaskChartEventAdapter extends ChartEventAdapter
+    protected class EVTaskChartEventAdapter extends ChartEventAdapter
             implements RecalcListener {
 
         @Override

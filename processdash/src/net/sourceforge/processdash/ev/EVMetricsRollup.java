@@ -203,6 +203,10 @@ public class EVMetricsRollup extends EVMetrics {
         optCompletionDateInterval = optCompletionDate;
     }
 
+    public ConfidenceInterval getOptimizedDateConfidenceInterval() {
+        return optCompletionDateInterval;
+    }
+
 
     public double independentForecastCost() {
         return independentForecastCost;

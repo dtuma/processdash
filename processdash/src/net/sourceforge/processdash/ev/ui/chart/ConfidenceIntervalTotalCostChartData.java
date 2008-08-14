@@ -28,21 +28,24 @@ import net.sourceforge.processdash.ev.EVMetrics;
 public class ConfidenceIntervalTotalCostChartData extends
         ConfidenceIntervalChartData {
 
+    EVMetrics evMetrics;
+
     public ConfidenceIntervalTotalCostChartData(ChartEventAdapter eventAdapter,
-                                                EVMetrics... seriesMetrics) {
-        super(eventAdapter, seriesMetrics);
+            EVMetrics evMetrics) {
+        super(eventAdapter);
+        this.evMetrics = evMetrics;
     }
 
-    @Override
-    protected ConfidenceIntervalChartSeries getSeries(EVMetrics metrics) {
-        return new ConfidenceIntervalChartSeries(metrics.getCostConfidenceInterval(),
-                                                 "Total_Cost");
+    protected void recalc() {
+        series.clear();
+        maybeAddSeries(evMetrics.getCostConfidenceInterval(), "Total_Cost");
     }
 
     @Override
     public Number getX(int seriesIndex, int itemIndex) {
-        return super.getX(seriesIndex, itemIndex).doubleValue() +
-                addedSeriesMetrics.get(seriesIndex).actual();
+        double incompleteCost = super.getX(seriesIndex, itemIndex).doubleValue();
+        double totalCost = incompleteCost + evMetrics.actual();
+        return totalCost / 60.0; // convert to hours
     }
 
 }
