@@ -1627,7 +1627,10 @@ public class HierarchySynchronizer {
             return data.getValue(name);
         }
         public void putValue(String name, SaveableData value) {
-            forceData("/", name, value.getSimpleValue());
+            SimpleData v = null;
+            if (value != null)
+                v = value.getSimpleValue();
+            forceData("/", name, v);
         }
     }
 
