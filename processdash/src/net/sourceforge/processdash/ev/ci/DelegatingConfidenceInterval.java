@@ -27,7 +27,7 @@ package net.sourceforge.processdash.ev.ci;
 import cern.jet.random.engine.RandomEngine;
 
 public class DelegatingConfidenceInterval implements ConfidenceInterval,
-     TargetedConfidenceInterval
+     TargetedConfidenceInterval, XMLPersistableConfidenceInterval
 {
 
     protected ConfidenceInterval delegate;
@@ -65,6 +65,14 @@ public class DelegatingConfidenceInterval implements ConfidenceInterval,
         if (delegate instanceof TargetedConfidenceInterval)
             ((TargetedConfidenceInterval) delegate).calcViability
                 (target, minimumProb);
+    }
+
+    public void saveToXML(String tagName, StringBuffer result) {
+        if (delegate instanceof XMLPersistableConfidenceInterval) {
+            XMLPersistableConfidenceInterval xpci =
+                (XMLPersistableConfidenceInterval) delegate;
+            xpci.saveToXML(tagName, result);
+        }
     }
 
 }

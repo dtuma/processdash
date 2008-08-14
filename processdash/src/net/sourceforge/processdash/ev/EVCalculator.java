@@ -33,14 +33,25 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
+
+import net.sourceforge.processdash.Settings;
+import net.sourceforge.processdash.ev.ci.ConfidenceInterval;
+import net.sourceforge.processdash.ev.ci.ConfidenceIntervalProvider;
+import net.sourceforge.processdash.ev.ci.EVConfidenceIntervalUtils;
+import net.sourceforge.processdash.ev.ci.LogCenteredConfidenceInterval;
+import net.sourceforge.processdash.util.StringUtils;
 
 
 public abstract class EVCalculator {
 
     protected List evLeaves;
     protected Date scheduleStartDate;
+    protected ConfidenceIntervalProvider costIntervalProvider;
+    protected ConfidenceIntervalProvider timeErrIntervalProvider;
     protected EVSnapshot baselineDataSource;
     protected boolean reorderCompletedTasks = true;
+    protected Properties metadata;
 
 
     public abstract void recalculate();
@@ -162,6 +173,24 @@ public abstract class EVCalculator {
     }
 
 
+    protected String getSetting(String name, String defaultValue) {
+        String result = null;
+        if (metadata != null)
+            result = metadata.getProperty(name);
+        if (!StringUtils.hasValue(result))
+            result = Settings.getVal("ev." + name, defaultValue);
+        return result;
+    }
+
+    protected boolean getBoolSetting(String name, boolean defaultVal) {
+        String value = getSetting(name, null);
+        if (StringUtils.hasValue(value))
+            return Boolean.valueOf(value);
+        else
+            return defaultVal;
+    }
+
+
     public static Date minStartDate(Date a, Date b) {
         if (a == null) return b;
         if (b == null) return a;
@@ -191,6 +220,10 @@ public abstract class EVCalculator {
         if (a == null || b == null) return null;
         if (a.compareTo(b) > 0) return a;
         return b;
+    }
+
+    protected static boolean badDouble(double d) {
+        return Double.isInfinite(d) || Double.isNaN(d);
     }
 
 
@@ -227,6 +260,126 @@ public abstract class EVCalculator {
                 getEVLeaves(task.getChild(i));
         }
     }
+
+    protected class HistoricalCostIntervalProvider implements
+            ConfidenceIntervalProvider {
+
+        public ConfidenceInterval getConfidenceInterval(EVTaskList taskList) {
+            double cpi = taskList.getSchedule().getMetrics()
+                    .costPerformanceIndex();
+            return fetchHistoricalInterval(
+                EVConfidenceIntervalUtils.Purpose.TASK_COST, 1.0 / cpi);
+        }
+    }
+
+    protected class HistoricalTimeErrIntervalProvider implements
+            ConfidenceIntervalProvider {
+
+        public ConfidenceInterval getConfidenceInterval(EVTaskList taskList) {
+            double dtpi = taskList.getSchedule().getMetrics()
+                    .directTimePerformanceIndex();
+            return fetchHistoricalInterval(
+                EVConfidenceIntervalUtils.Purpose.SCHEDULE_TIME_ERR, 1.0 / dtpi);
+        }
+    }
+
+    protected ConfidenceInterval fetchHistoricalInterval(
+            EVConfidenceIntervalUtils.Purpose purpose, double newRatio) {
+        String histData = getSetting(
+            EVMetadata.Forecast.Ranges.SAVED_HIST_DATA, null);
+        ConfidenceInterval result = EVConfidenceIntervalUtils
+                .getConfidenceInterval(histData, purpose);
+        if (result == null)
+            return null;
+
+        if (!badDouble(newRatio) && newRatio > 0
+                && result instanceof LogCenteredConfidenceInterval) {
+            ((LogCenteredConfidenceInterval) result).recenter(newRatio);
+        }
+        return result;
+    }
+
+    protected abstract class MetadataDrivenCIProvider implements
+            ConfidenceIntervalProvider {
+
+        ConfidenceIntervalProvider currentPlanProvider;
+
+        ConfidenceIntervalProvider histDataProvider;
+
+        private MetadataDrivenCIProvider(
+                ConfidenceIntervalProvider currentPlanProvider,
+                ConfidenceIntervalProvider histDataProvider) {
+            this.currentPlanProvider = currentPlanProvider;
+            this.histDataProvider = histDataProvider;
+        }
+
+        public ConfidenceInterval getConfidenceInterval(EVTaskList taskList) {
+            Double input = getInput(taskList);
+
+            if (currentPlanProvider != null
+                    && getBoolSetting(
+                        EVMetadata.Forecast.Ranges.USE_CURRENT_PLAN, true)) {
+                ConfidenceInterval currentInterval =  checkInterval(
+                    currentPlanProvider.getConfidenceInterval(taskList), input);
+                if (currentInterval != null)
+                    return currentInterval;
+            }
+
+            if (histDataProvider != null
+                    && getBoolSetting(
+                        EVMetadata.Forecast.Ranges.USE_HIST_DATA, false)) {
+                ConfidenceInterval histInterval = checkInterval(
+                    histDataProvider.getConfidenceInterval(taskList), input);
+                if (histInterval != null)
+                    return histInterval;
+            }
+
+            return null;
+        }
+
+        protected ConfidenceInterval checkInterval(ConfidenceInterval ci,
+                Double input) {
+            if (ci == null)
+                return null;
+
+            if (input != null)
+                ci.setInput(input);
+
+            if (ci.getViability() < ConfidenceInterval.ACCEPTABLE)
+                return null;
+
+            return ci;
+        }
+
+        protected abstract Double getInput(EVTaskList taskList);
+    }
+
+    protected class CostIntervalProvider extends MetadataDrivenCIProvider {
+
+        protected CostIntervalProvider(ConfidenceIntervalProvider current) {
+            super(current, new HistoricalCostIntervalProvider());
+        }
+
+        @Override
+        protected Double getInput(EVTaskList taskList) {
+            return taskList.getSchedule().getMetrics().incompleteTaskPlanTime();
+        }
+
+    }
+
+    protected class TimeIntervalProvider extends MetadataDrivenCIProvider {
+
+        protected TimeIntervalProvider(ConfidenceIntervalProvider current) {
+            super(current, new HistoricalTimeErrIntervalProvider());
+        }
+
+        @Override
+        protected Double getInput(EVTaskList taskList) {
+            return null;
+        }
+
+    }
+
 
 
     public void setBaselineDataSource(EVSnapshot baselineDataSource) {

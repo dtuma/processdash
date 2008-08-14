@@ -42,7 +42,9 @@ import javax.swing.table.TableModel;
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.ev.ci.AbstractConfidenceInterval;
 import net.sourceforge.processdash.ev.ci.ConfidenceInterval;
+import net.sourceforge.processdash.ev.ci.ConfidenceIntervalWithRatio;
 import net.sourceforge.processdash.ev.ci.TargetedConfidenceInterval;
+import net.sourceforge.processdash.ev.ci.XMLPersistableConfidenceInterval;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.util.FormatUtil;
 import net.sourceforge.processdash.util.PatternList;
@@ -249,9 +251,18 @@ public class EVMetrics implements TableModel {
         return false;
     }
     protected void recalcViability(EVSchedule s) {
-        if (costInterval instanceof TargetedConfidenceInterval)
-            retargetViability(s, (TargetedConfidenceInterval) costInterval,
-                              independentForecastCost() - actual());
+        if (costInterval instanceof TargetedConfidenceInterval) {
+            // retarget the viability of the forecast cost interval based upon
+            // the independent forecast cost.
+            double targetCost = independentForecastCost() - actual();
+            // if we computed the cost interval from historical data instead
+            // of data in this schedule, we may have a viable interval but no
+            // independent forecast cost.  In that case, do not retarget the
+            // viability of the confidence interval.
+            if (!badDouble(targetCost))
+                retargetViability(s, (TargetedConfidenceInterval) costInterval,
+                    targetCost);
+        }
         if (unviable(costInterval)) {
             // System.out.println("cost interval is not viable");
             costInterval = null;
@@ -350,11 +361,37 @@ public class EVMetrics implements TableModel {
     public double costPerformanceIndex() {
         return earnedValue() / actual();
     }
+    /**
+     * Returns the effective CPI.
+     * 
+     * This is equal to the CPI of the current plan, or alternatively the CPI
+     * of the user-designated historical dataset.
+     */
+    public double costPerformanceIndexEff() {
+        return getPerformanceIndex(costPerformanceIndex(), costInterval);
+    }
     public double schedulePerformanceIndex() {
         return earnedValue() / plan();
     }
     public double directTimePerformanceIndex() {
         return totalSchedulePlanTime / totalScheduleActualTime;
+    }
+    /**
+     * Returns the effective DTPI.
+     * 
+     * This is equal to the DTPI of the current plan, or alternatively the DTPI
+     * of the user-designated historical dataset.
+     */
+    public double directTimePerformanceIndexEff() {
+        return getPerformanceIndex(directTimePerformanceIndex(),
+            timeErrInterval);
+    }
+    private double getPerformanceIndex(double idx, ConfidenceInterval ci) {
+        if (badDouble(idx) && ci instanceof ConfidenceIntervalWithRatio) {
+            ConfidenceIntervalWithRatio ciwr = (ConfidenceIntervalWithRatio) ci;
+            return 1.0 / ciwr.getActualVsPlanRatio();
+        }
+        return idx;
     }
     public double percentComplete() {
         return earnedValue() / totalPlan();
@@ -365,6 +402,9 @@ public class EVMetrics implements TableModel {
     public double percentSpent() {
         return actual() / totalPlan();
     }
+    public double incompleteTaskPlanTime() {
+        return totalPlan() - earnedValue();
+    }
     public double toCompletePerformanceIndex() {
         return (totalPlan() - earnedValue()) / (totalPlan() - actual());
     }
@@ -373,6 +413,20 @@ public class EVMetrics implements TableModel {
     }
     public double independentForecastCost() {
         return totalPlan() / costPerformanceIndex();
+    }
+    /**
+     * Returns the effective forecast cost.
+     * 
+     * This is equal to the independent forecast cost of the current plan, or
+     * alternatively the cost forecast by the user-designated historical
+     * dataset.
+     */
+    public double independentForecastCostEff() {
+        double result = independentForecastCost();
+        if (badDouble(result) && costInterval != null) {
+            result = actualTime + costInterval.getPrediction();
+        }
+        return result;
     }
     public double independentForecastCostLPI() {
         if (costInterval == null)
@@ -678,7 +732,7 @@ public class EVMetrics implements TableModel {
         result.add(new AbsMetricFormatter("Improvement_Ratio") {
                 double val() { return improvementRatio(); } } );
         result.add(new CostMetricFormatter("Forecast_Cost") {
-                double val() { return independentForecastCost(); } } );
+                double val() { return independentForecastCostEff(); } } );
         result.add(new CostRangeMetricFormatter("Forecast_Cost_Range") {
                 double lpi() { return independentForecastCostLPI(); }
                 double upi() { return independentForecastCostUPI(); } } );
@@ -907,11 +961,11 @@ public class EVMetrics implements TableModel {
     }
     private void saveOneIntervalToXml(ConfidenceInterval interval,
             String intervalName, StringBuffer result, boolean whitespace) {
-        if (interval instanceof AbstractConfidenceInterval) {
+        if (interval instanceof XMLPersistableConfidenceInterval) {
             if (whitespace)
                 result.append("    ");
-            ((AbstractConfidenceInterval) interval).saveToXML(intervalName,
-                    result);
+            ((XMLPersistableConfidenceInterval) interval).saveToXML(
+                intervalName, result);
             if (whitespace)
                 result.append("\n");
         }
@@ -929,7 +983,7 @@ public class EVMetrics implements TableModel {
         costInterval = AbstractConfidenceInterval.readFromXML
             (e.getElementsByTagName("costInterval"));
         if (costInterval != null)
-            costInterval.setInput(totalPlanTime - earnedValueTime);
+            costInterval.setInput(incompleteTaskPlanTime());
         timeErrInterval = AbstractConfidenceInterval.readFromXML
             (e.getElementsByTagName("timeErrInterval"));
     }

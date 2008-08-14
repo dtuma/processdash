@@ -24,6 +24,7 @@
 
 package net.sourceforge.processdash.ev;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -71,7 +72,7 @@ public class EVTaskListRollup extends EVTaskList {
         loadID(taskListName, data, TASK_LISTS_DATA_NAME);
         loadMetadata(taskListName, data);
         calculator = new EVCalculatorRollup
-            ((EVTask) root, evTaskLists, (EVScheduleRollup)schedule);
+            ((EVTask) root, evTaskLists, (EVScheduleRollup)schedule, metaData);
         setBaselineDataSource(getBaselineSnapshot());
         ((EVTask) root).flag = TASK_LIST_FLAG;
     }
@@ -89,7 +90,7 @@ public class EVTaskListRollup extends EVTaskList {
         }
         schedule = new EVScheduleRollup(evTaskLists);
         calculator = new EVCalculatorRollup
-            ((EVTask) root, evTaskLists, (EVScheduleRollup)schedule);
+            ((EVTask) root, evTaskLists, (EVScheduleRollup)schedule, null);
     }
 
     private void addTaskListsFromData(DataRepository data,
@@ -165,6 +166,10 @@ public class EVTaskListRollup extends EVTaskList {
         }
 
         persistDataValue(newName, data, TASK_LISTS_DATA_NAME, list);
+    }
+
+    public List getSubSchedules() {
+        return Collections.unmodifiableList(evTaskLists);
     }
 
     public int getSubScheduleCount() {

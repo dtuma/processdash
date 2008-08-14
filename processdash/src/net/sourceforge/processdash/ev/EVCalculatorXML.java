@@ -28,19 +28,25 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
+import net.sourceforge.processdash.ev.ci.ConfidenceInterval;
+import net.sourceforge.processdash.ev.ci.ConfidenceIntervalProvider;
+
 
 public class EVCalculatorXML extends EVCalculator {
 
 
+    private EVTaskList taskList;
     private EVTask taskRoot;
     private EVSchedule schedule;
 
 
-    public EVCalculatorXML(EVTask root, EVSchedule schedule,
-                           boolean reorderCompletedTasks) {
-        this.taskRoot = root;
-        this.schedule = schedule;
+    public EVCalculatorXML(EVTaskList taskList, boolean reorderCompletedTasks) {
+        this.taskList = taskList;
+        this.taskRoot = taskList.getTaskRoot();
+        this.schedule = taskList.getSchedule();
         this.reorderCompletedTasks = reorderCompletedTasks;
+        this.costIntervalProvider = new XmlCostIntervalProvider();
+        this.timeErrIntervalProvider = new XmlTimeErrIntervalProvider();
     }
 
 
@@ -64,6 +70,13 @@ public class EVCalculatorXML extends EVCalculator {
         calcTaskValues(evLeaves);
         recalcValueEarned(taskRoot);
         schedule.getMetrics().recalcScheduleTime(schedule);
+
+        // reinitialize the confidence intervals from our providers
+        schedule.getMetrics().setCostConfidenceInterval(
+            costIntervalProvider.getConfidenceInterval(taskList));
+        schedule.getMetrics().setTimeErrConfidenceInterval(
+            timeErrIntervalProvider.getConfidenceInterval(taskList));
+
         EVForecastDateCalculators.XML_FORECAST.calculateForecastDates(taskRoot,
                 schedule, schedule.getMetrics(), evLeaves);
         schedule.getMetrics().planDate = taskRoot.getPlanDate();
@@ -105,4 +118,28 @@ public class EVCalculatorXML extends EVCalculator {
         }
     }
 
+    private class XmlIntervalProvider implements ConfidenceIntervalProvider {
+
+        private ConfidenceInterval interval;
+
+        XmlIntervalProvider(ConfidenceInterval interval) {
+            this.interval = interval;
+        }
+
+        public ConfidenceInterval getConfidenceInterval(EVTaskList taskList) {
+            return interval;
+        }
+    }
+
+    private class XmlCostIntervalProvider extends XmlIntervalProvider {
+        XmlCostIntervalProvider() {
+            super(schedule.getMetrics().getCostConfidenceInterval());
+        }
+    }
+
+    private class XmlTimeErrIntervalProvider extends XmlIntervalProvider {
+        XmlTimeErrIntervalProvider() {
+            super(schedule.getMetrics().getTimeErrConfidenceInterval());
+        }
+    }
 }

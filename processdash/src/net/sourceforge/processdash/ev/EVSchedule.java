@@ -517,6 +517,9 @@ public class EVSchedule implements TableModel {
     public EVSchedule(EVSchedule s) {
         addAllPeriods(s.periods, periods);
         directPercentage = s.directPercentage;
+        metrics.costInterval = s.metrics.costInterval;
+        metrics.timeErrInterval = s.metrics.timeErrInterval;
+        metrics.completionDateInterval = s.metrics.completionDateInterval;
     }
     public void copyFrom(EVSchedule that) {
         addAllPeriods(that.periods, this.periods);
@@ -770,7 +773,7 @@ public class EVSchedule implements TableModel {
     public Date getHypotheticalDate(double cumPlanTime, boolean useDTPI) {
         EVSchedule s = new EVSchedule(this);
         s.cleanUp();
-        if (useDTPI) s.multiply(1 / metrics.directTimePerformanceIndex());
+        if (useDTPI) s.multiply(1 / metrics.directTimePerformanceIndexEff());
         double extra = cumPlanTime + s.defaultPlanDirectTime;
         s.getPlannedCompletionDate(extra, extra);
         return s.extrapolateWithinSchedule(cumPlanTime);
@@ -1587,7 +1590,7 @@ public class EVSchedule implements TableModel {
         }
         private void recalcForecast() {
             forecast.currentYVal = makeTime(getLast().cumActualDirectTime);
-            forecast.forecastYVal = makeTime(metrics.independentForecastCost());
+            forecast.forecastYVal = makeTime(metrics.independentForecastCostEff());
             forecast.forecastYValLow = makeTime
                 (metrics.independentForecastCostLPI());
             forecast.forecastYValHigh = makeTime

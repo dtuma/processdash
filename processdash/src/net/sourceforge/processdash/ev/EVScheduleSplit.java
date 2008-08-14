@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2006 Tuma Solutions, LLC
+// Copyright (C) 2003-2008 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -58,8 +58,14 @@ public class EVScheduleSplit extends EVSchedule {
 
         // grow the schedule until the final schedule period falls
         // after the effective date.
-        if (defaultPlanDirectTime != 0)
+        if (defaultPlanDirectTime != 0) {
+            int added = 0;
             while (true) {
+                if (added < 5) {
+                    added++;
+                } else {
+                    maybeSimplifyPeriod(get(periods.size()-3), effDate);
+                }
                 p = get(periods.size()-1);
                 if (p.getBeginDate().compareTo(effDate) >= 0)
                     break;
@@ -68,6 +74,7 @@ public class EVScheduleSplit extends EVSchedule {
                     p.cumPlanDirectTime + defaultPlanDirectTime;
                 super.getPlannedCompletionDate(newCumTime, newCumTime);
             }
+        }
 
         p = getLast();
         lastPeriodEnd = p.endDate.getTime();
@@ -79,6 +86,7 @@ public class EVScheduleSplit extends EVSchedule {
         recalcCumPlanTimes();
         lastPeriodCumPlanTime = p.cumPlanDirectTime;
         simplifyPeriods(effDate);
+        clearAutomaticFlags();
         addAllPeriods(periods, origPeriods);
     }
 
@@ -210,6 +218,12 @@ public class EVScheduleSplit extends EVSchedule {
         return b.planDirectTime / duration;  // direct time (minutes) per hour
     }
 
+    private void clearAutomaticFlags() {
+        for (Iterator i = periods.iterator(); i.hasNext();) {
+            ((Period) i.next()).automatic = false;
+        }
+    }
+
     protected void rewriteFuture(double timeErrRatio) {
         Date effDate = getEffectiveDate();
         double cumPlanDirectTime = 0;
@@ -250,7 +264,7 @@ public class EVScheduleSplit extends EVSchedule {
         if (Double.isNaN(cumPlanTime) || Double.isInfinite(cumPlanTime))
             return NEVER;
 
-        if (useDTPI) multiply(1 / metrics.directTimePerformanceIndex());
+        if (useDTPI) multiply(1 / metrics.directTimePerformanceIndexEff());
         if (cumPlanTime < lastPeriodCumPlanTime)
             return extrapolateWithinSchedule(cumPlanTime);
         else if (defaultPlanDirectTime > 0) {

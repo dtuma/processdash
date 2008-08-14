@@ -1,4 +1,4 @@
-// Copyright (C) 2003 Tuma Solutions, LLC
+// Copyright (C) 2003-2008 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -24,9 +24,16 @@
 
 package net.sourceforge.processdash.ev.ci;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 import net.sourceforge.processdash.ev.EVSchedule;
+import net.sourceforge.processdash.ev.EVTaskList;
+import net.sourceforge.processdash.ev.EVTaskListRollup;
+import net.sourceforge.processdash.util.StringUtils;
 
 
 
@@ -34,6 +41,15 @@ public class EVTimeErrConfidenceInterval extends DelegatingConfidenceInterval {
 
 
     public EVTimeErrConfidenceInterval(EVSchedule sched, boolean center) {
+        this(Collections.singletonList(sched), true);
+    }
+
+    public EVTimeErrConfidenceInterval(Collection<EVTaskList> taskLists) {
+        this(getSchedulesForTaskLists(taskLists), true);
+    }
+
+    public EVTimeErrConfidenceInterval(Collection<EVSchedule> schedules,
+            boolean center) {
         AbstractConfidenceInterval interval = null;
         if (center)
             // if it is more important to reduce the bias of the resulting
@@ -51,29 +67,63 @@ public class EVTimeErrConfidenceInterval extends DelegatingConfidenceInterval {
             interval = new LognormalConfidenceInterval();
         delegate = interval;
 
-        Date effDate = sched.getEffectiveDate();
+        for (EVSchedule sched : schedules) {
+            if (sched == null)
+                continue;
 
-        double plan, act, autoPlan = 0;
-        for (int i = 0;   i < sched.getRowCount();   i++) {
-            EVSchedule.Period p = sched.get(i);
+            Date effDate = sched.getEffectiveDate();
+            if (effDate == null)
+                continue;
 
-            // only use completed periods.  If the period in question
-            // ends after the effective date, we're done.
-            if (p.getEndDate(false).compareTo(effDate) > 0)
-                break;
+            double plan, act, autoPlan = 0;
+            for (int i = 0;   i < sched.getRowCount();   i++) {
+                EVSchedule.Period p = sched.get(i);
 
-            if (p.planDirectTime() > 0 || p.actualDirectTime() > 0) {
-                plan = p.planDirectTime();
-                act = p.actualDirectTime();
-                if (p.isAutomatic())
-                    plan = autoPlan;
-                else
-                    autoPlan = plan;
+                // only use completed periods.  If the period in question
+                // ends after the effective date, we're done.
+                if (p.getEndDate(false).compareTo(effDate) > 0)
+                    break;
 
-                interval.addDataPoint(plan, act);
+                if (p.planDirectTime() > 0 || p.actualDirectTime() > 0) {
+                    plan = p.planDirectTime();
+                    act = p.actualDirectTime();
+                    if (p.isAutomatic())
+                        plan = autoPlan;
+                    else
+                        autoPlan = plan;
+
+                    interval.addDataPoint(plan, act);
+                }
             }
         }
+
         interval.dataPointsComplete();
+    }
+
+    private static Collection<EVSchedule> getSchedulesForTaskLists(
+            Collection<EVTaskList> taskLists) {
+        Map<String, EVSchedule> results = new HashMap<String, EVSchedule>();
+        getUniqueSchedules(taskLists, results);
+        return results.values();
+    }
+
+    private static void getUniqueSchedules(Collection<EVTaskList> taskLists,
+            Map<String, EVSchedule> results) {
+        for (EVTaskList taskList : taskLists) {
+
+            if (taskList instanceof EVTaskListRollup) {
+                EVTaskListRollup rollup = (EVTaskListRollup) taskList;
+                Collection<EVTaskList> subTaskLists = rollup.getSubSchedules();
+                getUniqueSchedules(subTaskLists, results);
+
+            } else {
+                String key = taskList.getID();
+                if (!StringUtils.hasValue(key))
+                    key = taskList.getTaskListName();
+                results.put(key, taskList.getSchedule());
+            }
+        }
+
     }
 
 }

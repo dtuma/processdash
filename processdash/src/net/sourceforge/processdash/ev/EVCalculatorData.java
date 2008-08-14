@@ -33,7 +33,9 @@ import java.util.LinkedList;
 import java.util.List;
 
 import net.sourceforge.processdash.Settings;
+import net.sourceforge.processdash.ev.ci.AbstractConfidenceInterval;
 import net.sourceforge.processdash.ev.ci.ConfidenceInterval;
+import net.sourceforge.processdash.ev.ci.ConfidenceIntervalProvider;
 import net.sourceforge.processdash.ev.ci.EVCostConfidenceInterval;
 import net.sourceforge.processdash.ev.ci.EVScheduleConfidenceIntervals;
 import net.sourceforge.processdash.ev.ci.EVTimeErrConfidenceInterval;
@@ -45,6 +47,7 @@ import net.sourceforge.processdash.log.time.TimeLogEntry;
 
 public class EVCalculatorData extends EVCalculator {
 
+    private EVTaskList taskList;
     private EVTask taskRoot;
     private EVSchedule schedule;
     private TimeLog timeLog;
@@ -52,10 +55,16 @@ public class EVCalculatorData extends EVCalculator {
     private EVForecastDateCalculator replanDateCalculator;
     private EVForecastDateCalculator forecastDateCalculator;
 
-    public EVCalculatorData(EVTask root, EVSchedule schedule) {
-        this.taskRoot = root;
-        this.schedule = schedule;
+    public EVCalculatorData(EVTaskList taskList) {
+        this.taskList = taskList;
+        this.taskRoot = taskList.getTaskRoot();
+        this.schedule = taskList.getSchedule();
+        this.metadata = taskList.metaData;
         this.timeLog = DashboardTimeLog.getDefault();
+        this.costIntervalProvider = new CostIntervalProvider(
+                new CurrentPlanCostIntervalProvider());
+        this.timeErrIntervalProvider = new TimeIntervalProvider(
+                new CurrentPlanTimeErrIntervalProvider());
         this.replanDateCalculator =
             new EVForecastDateCalculators.ScheduleTaskReplanner();
         this.forecastDateCalculator = createForecastCalculator();
@@ -125,6 +134,11 @@ public class EVCalculatorData extends EVCalculator {
         recalcMetrics(taskRoot, schedule.getMetrics());
 
         schedule.getMetrics().recalcScheduleTime(schedule);
+
+        // create confidence intervals for cost and time
+        createCostConfidenceInterval();
+        createTimeErrConfidenceInterval();
+
         replanDateCalculator.calculateForecastDates(taskRoot, schedule,
                 schedule.getMetrics(), evLeaves);
         forecastDateCalculator.calculateForecastDates(taskRoot, schedule,
@@ -134,9 +148,7 @@ public class EVCalculatorData extends EVCalculator {
 
         saveCompletedTaskCosts(evLeaves);
 
-        // create confidence intervals for cost, time, and schedule
-        createCostConfidenceInterval();
-        createTimeErrConfidenceInterval();
+        // create confidence interval for schedule
         createScheduleConfidenceInterval();
 
         schedule.getMetrics().recalcComplete(schedule);
@@ -442,50 +454,65 @@ Value to recalculate
         return result;
     }
 
-
-
     private void createCostConfidenceInterval() {
         ConfidenceInterval costInterval = null;
-        if (completionDate == null) {
-            costInterval = new EVCostConfidenceInterval
-                (getConfidenceIntervalTasks());
-            double totalPlan = schedule.getMetrics().totalPlan();
-            double completedTasks = schedule.getMetrics().earnedValue();
-            double incompleteTime = totalPlan - completedTasks;
-            costInterval.setInput(incompleteTime);
-
-            if (!(costInterval.getViability() > ConfidenceInterval.ACCEPTABLE))
-                costInterval = null;
-        }
-
+        if (completionDate == null)
+            costInterval = costIntervalProvider.getConfidenceInterval(taskList);
         schedule.getMetrics().setCostConfidenceInterval(costInterval);
     }
 
-    private List getConfidenceIntervalTasks() {
-        List result = new LinkedList(getEVLeaves());
-        addHistoricalTaskLiability(taskRoot, result);
-        return result;
-    }
+    private class CurrentPlanCostIntervalProvider implements
+            ConfidenceIntervalProvider {
 
-    private void addHistoricalTaskLiability(EVTask task, List tasks) {
-        if (task.actualNodeTime > 0 &&
-            !task.isLevelOfEffortTask() && !task.isUserPruned() &&
-            !tasks.contains(task))
-            tasks.add(task);
-        for (int i = 0;   i < task.getNumChildren();   i++)
-            addHistoricalTaskLiability(task.getChild(i), tasks);
+        public ConfidenceInterval getConfidenceInterval(EVTaskList taskList) {
+            return new EVCostConfidenceInterval(getConfidenceIntervalTaskData());
+        }
+
+        private List getConfidenceIntervalTaskData() {
+            List result = new LinkedList();
+            List evLeaves = getEVLeaves();
+            for (Iterator i = evLeaves.iterator(); i.hasNext();) {
+                EVTask task = (EVTask) i.next();
+                if (task.getDateCompleted() != null) {
+                    result.add(new AbstractConfidenceInterval.DataPoint(
+                            task.planValue, task.actualNodeTime));
+                }
+            }
+            addNonLeafTaskLiability(taskRoot, evLeaves, result);
+            return result;
+        }
+
+        private void addNonLeafTaskLiability(EVTask task, List leaves,
+                List results) {
+            if (task.actualNodeTime > 0 &&
+                !task.isLevelOfEffortTask() && !task.isUserPruned() &&
+                !leaves.contains(task))
+                results.add(new AbstractConfidenceInterval.DataPoint(0,
+                        task.actualNodeTime));
+
+            for (int i = 0; i < task.getNumChildren(); i++)
+                addNonLeafTaskLiability(task.getChild(i), leaves, results);
+        }
+
     }
 
 
 
     private void createTimeErrConfidenceInterval() {
         ConfidenceInterval timeErrInterval =
-            new EVTimeErrConfidenceInterval(schedule, false);
-        if (!(timeErrInterval.getViability() > ConfidenceInterval.ACCEPTABLE))
-            timeErrInterval = null;
+            timeErrIntervalProvider.getConfidenceInterval(taskList);
         schedule.getMetrics().setTimeErrConfidenceInterval(timeErrInterval);
     }
 
+    protected class CurrentPlanTimeErrIntervalProvider implements
+            ConfidenceIntervalProvider {
+
+        public ConfidenceInterval getConfidenceInterval(EVTaskList taskList) {
+            return new EVTimeErrConfidenceInterval(taskList.getSchedule(),
+                    false);
+        }
+
+    }
 
     private void createScheduleConfidenceInterval() {
         EVMetrics metrics = schedule.getMetrics();

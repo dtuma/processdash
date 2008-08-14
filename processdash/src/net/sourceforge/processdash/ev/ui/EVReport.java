@@ -50,6 +50,7 @@ import net.sourceforge.processdash.ev.DefaultTaskLabeler;
 import net.sourceforge.processdash.ev.EVDependencyCalculator;
 import net.sourceforge.processdash.ev.EVHierarchicalFilter;
 import net.sourceforge.processdash.ev.EVLabelFilter;
+import net.sourceforge.processdash.ev.EVMetadata;
 import net.sourceforge.processdash.ev.EVMetrics;
 import net.sourceforge.processdash.ev.EVSchedule;
 import net.sourceforge.processdash.ev.EVScheduleFiltered;
@@ -913,7 +914,7 @@ public class EVReport extends CGIChartBase {
                     && EVLabelFilter.taskListContainsLabelData(evModel,
                             getDataRepository()))
                 out.print("&showLabelFilter");
-            if (evModel.getMetadata(EVTaskList.BASELINE_METADATA_KEY) != null)
+            if (evModel.getMetadata(EVMetadata.Baseline.SNAPSHOT_ID) != null)
                 out.print("&hasBaseline");
             out.print("' target='customize' onClick='openCustomizeWindow();'>");
             out.print(HTMLUtils.escapeEntities(resources

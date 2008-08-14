@@ -146,6 +146,8 @@ ev.enableRollup=true
 ev.forecast.method=task
 ev.forecast.task.almostDonePct=90
 ev.forecast.task.maxCpiCorrectionPct=20
+ev.Forecast.Range.Use_Current=true
+ev.Forecast.Range.Use_Historical_Data=false
 
 
 

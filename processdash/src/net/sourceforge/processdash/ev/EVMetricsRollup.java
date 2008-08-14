@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2007 Tuma Solutions, LLC
+// Copyright (C) 2002-2008 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -86,7 +86,7 @@ public class EVMetricsRollup extends EVMetrics {
         this.planTime        += that.planTime;
         this.totalSchedulePlanTime += that.totalSchedulePlanTime;
         this.totalScheduleActualTime += that.totalScheduleActualTime;
-        this.independentForecastCost += that.independentForecastCost();
+        this.independentForecastCost += that.independentForecastCostEff();
         this.startDate =
             EVScheduleRollup.minDate(this.startDate, that.startDate);
         this.planDate =

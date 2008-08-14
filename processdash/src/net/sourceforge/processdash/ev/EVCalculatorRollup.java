@@ -31,12 +31,15 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Properties;
 import java.util.Vector;
 
 import net.sourceforge.processdash.ev.ci.ConfidenceInterval;
+import net.sourceforge.processdash.ev.ci.ConfidenceIntervalProvider;
 import net.sourceforge.processdash.ev.ci.ConfidenceIntervalSum;
 import net.sourceforge.processdash.ev.ci.EVScheduleConfidenceIntervals;
 import net.sourceforge.processdash.ev.ci.EVTimeErrConfidenceInterval;
+import net.sourceforge.processdash.ev.ci.SingleValueConfidenceInterval;
 
 public class EVCalculatorRollup extends EVCalculator {
 
@@ -45,10 +48,11 @@ public class EVCalculatorRollup extends EVCalculator {
     private EVScheduleRollup schedule;
 
     public EVCalculatorRollup(EVTask root, Vector evTaskLists,
-                              EVScheduleRollup schedule) {
+                              EVScheduleRollup schedule, Properties metadata) {
         this.taskRoot = root;
         this.evTaskLists = evTaskLists;
         this.schedule = schedule;
+        this.metadata = metadata;
     }
 
     public void recalculate() {
@@ -57,7 +61,17 @@ public class EVCalculatorRollup extends EVCalculator {
         // Recalculate all the subschedules.
         for (int i = evTaskLists.size();   i-- > 0; ) {
             EVTaskList taskList = (EVTaskList) evTaskLists.get(i);
+
+            // install rollup-level confidence interval providers, then ask
+            // the task list to recalculate.
+            tweakConfidenceIntervalProviders(taskList);
             taskList.recalc();
+
+            // On rare occasions, some task lists might create a new calculator
+            // as a result of a recalc operation. If this has occurred,
+            // reinstall our interval providers and recalc again.
+            if (tweakConfidenceIntervalProviders(taskList))
+                taskList.recalc();
 
             // Some types of task lists perform a recalc by completely
             // replacing their root task and schedule. Give them the
@@ -67,14 +81,14 @@ public class EVCalculatorRollup extends EVCalculator {
             schedule.replaceSchedule(i, taskList);
         }
 
+        // Calculate confidence intervals, if possible.
+        createConfidenceIntervals();
+
         // Recalculate the root node.
         recalcRollupNode();
 
         // adjust level of effort percentages
         calculateLevelOfEffort();
-
-        // Calculate confidence intervals, if possible.
-        createConfidenceIntervals();
 
         // set baseline data for the schedule
         schedule.getMetrics().loadBaselineData(taskRoot);
@@ -194,6 +208,87 @@ public class EVCalculatorRollup extends EVCalculator {
         return evLeaves;
     }
 
+    private boolean tweakConfidenceIntervalProviders(EVTaskList taskList) {
+        if (taskList instanceof EVTaskListRollup)
+            return false;
+
+        EVCalculator c = taskList.calculator;
+        if (c == null)
+            return false;
+
+        boolean madeChange = false;
+
+        if (!(c.costIntervalProvider instanceof RollupCostIntervalProvider)) {
+            ConfidenceIntervalProvider newCIP =
+                new RollupCostIntervalProvider(c.costIntervalProvider);
+            c.costIntervalProvider = newCIP;
+            madeChange = true;
+        }
+
+        if (!(c.timeErrIntervalProvider instanceof RollupTimeErrIntervalProvider)) {
+            ConfidenceIntervalProvider newCIP =
+                new RollupTimeErrIntervalProvider();
+            c.timeErrIntervalProvider = newCIP;
+            madeChange = true;
+        }
+
+        return madeChange;
+    }
+
+    private class RollupCostIntervalProvider extends CostIntervalProvider {
+
+        protected RollupCostIntervalProvider(
+                ConfidenceIntervalProvider current) {
+            super(current);
+        }
+
+        @Override
+        public ConfidenceInterval getConfidenceInterval(EVTaskList taskList) {
+            // If this individual is finished with all of their tasks, the
+            // "time left" will be 0.  In that case, assign them a cost
+            // confidence interval that states "zero time remaining" with
+            // 100% certainty.
+            Double input = getInput(taskList);
+            if (input != null && input.doubleValue() < 0.001)
+                return new SingleValueConfidenceInterval(0.0);
+
+            return super.getConfidenceInterval(taskList);
+        }
+
+    }
+
+    private class RollupTimeErrIntervalProvider extends TimeIntervalProvider {
+
+        protected RollupTimeErrIntervalProvider() {
+            super(new RollupCurrentPlanTimeErrIntervalProvider());
+        }
+
+        @Override
+        public ConfidenceInterval getConfidenceInterval(EVTaskList taskList) {
+            // a null effective date is generally a sign of a deeply flawed
+            // schedule - like a missing task list, for example.  If such a
+            // schedule is present, we can't generate any interval for it.
+            if (taskList.getSchedule().getEffectiveDate() == null)
+                return null;
+
+            return super.getConfidenceInterval(taskList);
+        }
+
+    }
+
+    protected class RollupCurrentPlanTimeErrIntervalProvider implements
+            ConfidenceIntervalProvider {
+
+        public ConfidenceInterval getConfidenceInterval(EVTaskList taskList) {
+            // always recenter the time error interval - wide intervals are
+            // of little consequence for rollups.  Bias causes bigger
+            // problems.
+            return new EVTimeErrConfidenceInterval(taskList.getSchedule(),
+                    RECENTER);
+        }
+
+    }
+
     private boolean allSchedulesHaveCostInterval() {
         if (schedule.subSchedules.isEmpty())
             return false;
@@ -285,12 +380,6 @@ public class EVCalculatorRollup extends EVCalculator {
         Iterator i = schedule.subSchedules.iterator();
         while (i.hasNext()) {
             EVSchedule s = (EVSchedule) i.next();
-            // recenter the time error interval - wide intervals are
-            // of little consequence for rollups.  Bias causes bigger
-            // problems.
-            s.getMetrics().setTimeErrConfidenceInterval
-                (new EVTimeErrConfidenceInterval(s, RECENTER));
-
             ConfidenceInterval ci =
                 s.getMetrics().getTimeErrConfidenceInterval();
             if (ci == null)

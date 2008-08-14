@@ -110,7 +110,7 @@ public class EVTaskListXMLAbstract extends EVTaskList {
 
         // create a calculator to minimally recalculate the schedule.
         boolean reorder = !"false".equals(docRoot.getAttribute("rct"));
-        calculator = new EVCalculatorXML((EVTask) root, schedule, reorder);
+        calculator = new EVCalculatorXML(this, reorder);
         taskListID = docRoot.getAttribute("tlid");
         setPseudoTaskIdForRoot();
 

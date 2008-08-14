@@ -121,6 +121,7 @@ import net.sourceforge.processdash.data.ListData;
 import net.sourceforge.processdash.ev.DefaultTaskLabeler;
 import net.sourceforge.processdash.ev.EVDependencyCalculator;
 import net.sourceforge.processdash.ev.EVHierarchicalFilter;
+import net.sourceforge.processdash.ev.EVMetadata;
 import net.sourceforge.processdash.ev.EVSchedule;
 import net.sourceforge.processdash.ev.EVTask;
 import net.sourceforge.processdash.ev.EVTaskFilter;
@@ -181,11 +182,13 @@ public class TaskScheduleDialog implements EVTask.Listener,
             insertPeriodAction, deletePeriodAction, chartAction, reportAction,
             closeAction, saveAction, errorAction, filteredChartAction,
             saveBaselineAction, collaborateAction, filteredReportAction,
-            weekReportAction;
+            weekReportAction, scheduleOptionsAction;
 
     protected boolean disableTaskPruning;
 
     protected JFrame chartDialog = null;
+
+    protected TaskScheduleOptions optionsDialog = null;
 
     protected Resources resources = Resources.getDashBundle("EV");
 
@@ -632,6 +635,12 @@ public class TaskScheduleDialog implements EVTask.Listener,
                 public void actionPerformed(ActionEvent e) {
                     showCollaborationWizard(); }};
             toolsMenu.add(collaborateAction);
+
+            scheduleOptionsAction = new TSAction("Buttons.Schedule_Options") {
+                public void actionPerformed(ActionEvent e) {
+                    showOptionsDialog();
+                }};
+            toolsMenu.add(scheduleOptionsAction);
 
             result.add(toolsMenu);
         }
@@ -2335,7 +2344,7 @@ public class TaskScheduleDialog implements EVTask.Listener,
     }
 
     public void saveBaseline() {
-        String oldId = model.getMetadata(EVTaskList.BASELINE_METADATA_KEY);
+        String oldId = model.getMetadata(EVMetadata.Baseline.SNAPSHOT_ID);
         String promptKey = (oldId == null ? "Prompt" : "Replace_Prompt");
 
         if (JOptionPane.OK_OPTION != JOptionPane.showConfirmDialog(frame,
@@ -2356,7 +2365,7 @@ public class TaskScheduleDialog implements EVTask.Listener,
         String snapshotName = resources.format(
             "Save_Baseline.Snapshot_Name_FMT", new Date());
         String snapshotId = model.saveSnapshot(null, snapshotName);
-        model.setMetadata(EVTaskList.BASELINE_METADATA_KEY, snapshotId);
+        model.setMetadata(EVMetadata.Baseline.SNAPSHOT_ID, snapshotId);
         model.save();
         setDirty(false);
 
@@ -2366,6 +2375,14 @@ public class TaskScheduleDialog implements EVTask.Listener,
     public void showCollaborationWizard() {
         if (saveOrCancel(true))
             new TaskScheduleCollaborationWizard(dash, taskListName);
+    }
+
+    protected void showOptionsDialog() {
+        if (optionsDialog != null) {
+            optionsDialog.show();
+        } else {
+            optionsDialog = new TaskScheduleOptions(this);
+        }
     }
 
     public void showChart() {

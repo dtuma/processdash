@@ -310,7 +310,7 @@ public class EVScheduleRollup extends EVSchedule {
             s = (EVSchedule) i.next();
             s.cleanUp();
             if (useDTPI)
-                s.multiply(1 / s.getMetrics().directTimePerformanceIndex());
+                s.multiply(1 / s.getMetrics().directTimePerformanceIndexEff());
             s.getPlannedCompletionDate(cumPlanTime, cumPlanTime);
         }
 

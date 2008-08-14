@@ -24,11 +24,14 @@
 
 package net.sourceforge.processdash.ev.ci;
 
+import org.w3c.dom.Element;
+
 import net.sourceforge.processdash.util.TDistribution;
+import net.sourceforge.processdash.util.XMLUtils;
 
 
-public class LogCenteredConfidenceInterval
-    extends AbstractConfidenceInterval {
+public class LogCenteredConfidenceInterval extends AbstractConfidenceInterval
+        implements ConfidenceIntervalWithRatio {
 
     public LogCenteredConfidenceInterval() {
         // since this object is typically used to compare planned
@@ -141,6 +144,30 @@ public class LogCenteredConfidenceInterval
         logstd = Math.sqrt(sum * numSamples / ((numSamples - 1) * totalPlan));
     }
 
+    /**
+     * Move this interval, so it is centered around a different mean.
+     * 
+     * This could be used, for example, if we want to reuse the variability
+     * from a historical dataset, but center it around a different ratio for
+     * use in a new earned value schedule.
+     * 
+     * @param newRatio the desired ratio of "actual divided by plan" values.
+     */
+    public void recenter(double newRatio) {
+        this.ratio = newRatio;
+        this.logmean = Math.log(newRatio);
+    }
+
+    /**
+     * Return the effective data ratio for this confidence interval
+     * 
+     * @return the ratio of total actual vs total planned data in the
+     *     dataset that was used to construct this confidence interval.
+     */
+    public double getActualVsPlanRatio() {
+        return ratio;
+    }
+
 
     /** Heuristically estimate how viable this confidence interval appears
      * to be.
@@ -155,5 +182,26 @@ public class LogCenteredConfidenceInterval
 
         viability = NOMINAL;
     }
+
+
+    @Override
+    protected void saveXMLAttributes(StringBuffer result) {
+        result.append(" mean='").append(logmean)
+            .append("' std='").append(logstd)
+            .append("' ratio='").append(ratio)
+            .append("' n='").append(numSamples)
+            .append("'");
+    }
+
+    public LogCenteredConfidenceInterval(Element xml) {
+        logmean = XMLUtils.getXMLNum(xml, "mean");
+        logstd = XMLUtils.getXMLNum(xml, "std");
+        ratio = XMLUtils.getXMLNum(xml, "ratio");
+        numSamples = XMLUtils.getXMLInt(xml, "n");
+
+        setInput(1.0);
+        calcViability();
+    }
+
 
 }

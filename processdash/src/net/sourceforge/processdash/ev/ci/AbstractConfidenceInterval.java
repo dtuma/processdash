@@ -35,8 +35,8 @@ import org.w3c.dom.NodeList;
 
 import cern.jet.random.engine.RandomEngine;
 
-public abstract class AbstractConfidenceInterval implements ConfidenceInterval
-{
+public abstract class AbstractConfidenceInterval implements
+        XMLPersistableConfidenceInterval {
 
     protected double input;
 
@@ -53,7 +53,7 @@ public abstract class AbstractConfidenceInterval implements ConfidenceInterval
     /** Data structure to hold a pair of numbers indicating a historical
      * value.
      */
-    protected static class DataPoint {
+    public static class DataPoint {
 
         // Note: it is conceivable that some confidence intervals
         // (such as those based on multiple regression techniques)

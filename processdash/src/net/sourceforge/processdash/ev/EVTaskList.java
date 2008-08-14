@@ -31,6 +31,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -546,11 +547,20 @@ public class EVTaskList extends AbstractTreeTableModel
         else
             result = (String) metaData.remove(key);
 
-        if (BASELINE_METADATA_KEY.equals(key))
+        if (EVMetadata.Baseline.SNAPSHOT_ID.equals(key))
             setBaselineDataSource(getBaselineSnapshot());
+
+        if (RECALC_METDATADATA.contains(key))
+            recalcTimer.restart();
 
         return result;
     }
+    private static final Set<String> RECALC_METDATADATA =
+        Collections.unmodifiableSet(new HashSet<String>(Arrays.asList(
+            EVMetadata.Forecast.Ranges.USE_CURRENT_PLAN,
+            EVMetadata.Forecast.Ranges.USE_HIST_DATA,
+            EVMetadata.Forecast.Ranges.SAVED_HIST_DATA
+            )));
 
 
     public void save() { save(taskListName); }
@@ -821,7 +831,7 @@ public class EVTaskList extends AbstractTreeTableModel
     }
 
     public EVSnapshot getBaselineSnapshot() {
-        String snapshotId = getMetadata(EVTaskList.BASELINE_METADATA_KEY);
+        String snapshotId = getMetadata(EVMetadata.Baseline.SNAPSHOT_ID);
         if (!StringUtils.hasValue(snapshotId))
             return null;
         else
@@ -886,7 +896,6 @@ public class EVTaskList extends AbstractTreeTableModel
             BASELINE_DATE_COLUMN, REPLAN_DATE_COLUMN, LABELS_COLUMN };
 
     public static final String ID_DATA_NAME = "Task List ID";
-    public static final String BASELINE_METADATA_KEY = "Baseline_Snapshot_ID";
     private static final String METADATA_DATA_NAME = "Task_List_Metadata";
     private static final String PROJECT_SCHEDULE_ID = "Project_Schedule_ID";
     private static final String PROJECT_SCHEDULE_NAME = "Project_Schedule_Name";
@@ -1177,6 +1186,8 @@ public class EVTaskList extends AbstractTreeTableModel
      * @param data the DataRepository
     */
     protected void loadMetadata(String taskListName, DataRepository data) {
+        metaData = new Properties();
+
         String globalPrefix = MAIN_DATA_PREFIX + taskListName;
         String dataName = DataRepository.createDataName
             (globalPrefix, METADATA_DATA_NAME);
@@ -1185,7 +1196,6 @@ public class EVTaskList extends AbstractTreeTableModel
         String val = (d == null ? null : d.format());
         if (StringUtils.hasValue(val)) {
             try {
-                metaData = new Properties();
                 metaData.load(new ByteArrayInputStream(val.getBytes("ISO-8859-1")));
             } catch (Exception e) {
                 e.printStackTrace();

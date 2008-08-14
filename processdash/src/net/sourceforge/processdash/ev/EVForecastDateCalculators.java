@@ -1,4 +1,4 @@
-// Copyright (C) 2006-2007 Tuma Solutions, LLC
+// Copyright (C) 2006-2008 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -136,7 +136,7 @@ public class EVForecastDateCalculators {
         public void calculateForecastDates(EVTask taskRoot,
                 EVSchedule schedule, EVMetrics metrics, List evLeaves) {
 
-            double forecastCost = metrics.independentForecastCost();
+            double forecastCost = metrics.independentForecastCostEff();
             Date forecastDate = schedule.getHypotheticalDate(forecastCost, true);
             if (forecastDate == EVSchedule.NEVER)
                 forecastDate = null;
@@ -256,10 +256,12 @@ public class EVForecastDateCalculators {
                 return null;
 
             boolean usePerformanceIndexes = usePerformanceIndexes();
-            double cpi = (usePerformanceIndexes
-                    ? metrics.costPerformanceIndex() : 1.0);
-            double dtpi = (usePerformanceIndexes
-                    ? metrics.directTimePerformanceIndex() : 1.0);
+            double cpi = 1.0;
+            double dtpi = 1.0;
+            if (usePerformanceIndexes) {
+                cpi = metrics.costPerformanceIndexEff();
+                dtpi = metrics.directTimePerformanceIndexEff();
+            }
             if (isBadRatio(cpi) || isBadRatio(dtpi))
                 return null;
 

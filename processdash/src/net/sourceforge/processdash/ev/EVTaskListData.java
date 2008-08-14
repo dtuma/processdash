@@ -75,7 +75,7 @@ public class EVTaskListData extends EVTaskList
         loadID(taskListName, data, EST_HOURS_DATA_NAME);
         loadMetadata(taskListName, data);
         assignToOwner();
-        calculator = new EVCalculatorData((EVTask) root, schedule);
+        calculator = new EVCalculatorData(this);
         setBaselineDataSource(getBaselineSnapshot());
         ((EVTask) root).flag = TASK_LIST_FLAG;
         if (willNeedChangeNotification)

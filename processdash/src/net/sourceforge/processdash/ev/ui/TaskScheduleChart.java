@@ -266,7 +266,7 @@ public class TaskScheduleChart extends JFrame
 
                 return w.getWidgetComponent(environment, params);
 
-            } catch (Exception e) {
+            } catch (Throwable e) {
                 logger.log(Level.SEVERE,
                     "Unexpected error when displaying EV snippet widget with id '"
                             + id + "'", e);

@@ -36,7 +36,8 @@ import cern.jet.random.Normal;
 import cern.jet.random.engine.MersenneTwister;
 import cern.jet.random.engine.RandomEngine;
 
-public class LognormalConfidenceInterval extends AbstractConfidenceInterval {
+public class LognormalConfidenceInterval extends AbstractConfidenceInterval
+        implements ConfidenceIntervalWithRatio {
 
     public LognormalConfidenceInterval() {
         // since this object is typically used to compare planned
@@ -79,6 +80,17 @@ public class LognormalConfidenceInterval extends AbstractConfidenceInterval {
      */
     public double getViability() {
         return viability;
+    }
+
+
+    /**
+     * Return the effective data ratio for this confidence interval
+     * 
+     * @return the ratio of total actual vs total planned data in the
+     *     dataset that was used to construct this confidence interval.
+     */
+    public double getActualVsPlanRatio() {
+        return ratio;
     }
 
 
