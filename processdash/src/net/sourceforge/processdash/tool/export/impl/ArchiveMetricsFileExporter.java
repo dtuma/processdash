@@ -138,7 +138,7 @@ public class ArchiveMetricsFileExporter implements Runnable,
     }
 
     private void doExport() throws IOException {
-        outStream = new RobustFileOutputStream(dest);
+        outStream = new RobustFileOutputStream(dest, false);
         ZipOutputStream zipOut = new ZipOutputStream(new BufferedOutputStream(
                 outStream));
 
