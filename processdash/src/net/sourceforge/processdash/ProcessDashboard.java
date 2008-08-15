@@ -50,9 +50,11 @@ import java.net.InetAddress;
 import java.net.Socket;
 import java.net.URL;
 import java.text.MessageFormat;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.Vector;
 import java.util.logging.Level;
@@ -72,9 +74,12 @@ import javax.swing.Timer;
 import javax.swing.event.EventListenerList;
 
 import net.sourceforge.processdash.data.DataContext;
+import net.sourceforge.processdash.data.ImmutableDoubleData;
+import net.sourceforge.processdash.data.ImmutableStringData;
 import net.sourceforge.processdash.data.ListData;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.repository.DataRepository;
+import net.sourceforge.processdash.data.repository.InvalidDatafileFormat;
 import net.sourceforge.processdash.ev.EVTaskDependencyResolver;
 import net.sourceforge.processdash.ev.ui.DependencyIndicator;
 import net.sourceforge.processdash.hier.ActiveTaskModel;
@@ -445,6 +450,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         } catch (Exception exc) {
             logErr("when generating default datafile, caught exception", exc);
         }
+        registerEnvironmentalData();
         pt.click("Opened data files");
         data.fixMisparentedData();
         pt.click("Fixed misparented data");
@@ -979,6 +985,22 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         } catch (Exception exc) {
             logErr("when opening datafile, '" + dataFile + "' for path '"
                     + prefix + "', caught exception:", exc);
+        }
+    }
+
+    private void registerEnvironmentalData() {
+        try {
+            Map env = new HashMap();
+
+            String os = InternalSettings.getOSPrefix();
+            env.put("OS.TYPE", new ImmutableStringData(os, false, true));
+            env.put("OS.IS_" + os.toUpperCase(), ImmutableDoubleData.TRUE);
+            if (!os.equals("windows"))
+                env.put("OS.IS_UNIX", ImmutableDoubleData.TRUE);
+
+            data.mountPhantomData("//Env", env);
+        } catch (InvalidDatafileFormat e) {
+            logger.log(Level.WARNING, "Unexpected error", e);
         }
     }
 

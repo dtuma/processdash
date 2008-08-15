@@ -1997,7 +1997,7 @@ public class DataRepository implements Repository, DataContext,
             "Local_Sized_Object_List"
         };
         private static final String[] LEGACY_DOUBLE_SLASH_SUFFIXES = {
-            "Export_Manager"
+            "Export_Manager", "Env"
         };
 
         /** Return the datafile whose prefix exactly matches the given prefix.
