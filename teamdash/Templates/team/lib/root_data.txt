@@ -62,11 +62,25 @@
 [Team_Directory] = "Enter network directory path";
 [Team_URL] = null;
 
-[file_sep] = iff(match("|\\\\|", [Team_Directory]), "\\", "/");
+/*
+ * Determine the effective team directory that should be used.
+ *   - If the current operating system is Windows and a UNC path is available,
+ *     use that UNC path.
+ *   - Otherwise, if a regular directory has been entered, use that.
+ *   - Otherwise, this will be the empty string.
+ */
+[Team_Directory_Eff] =
+    iff([Team_Directory_UNC] && [//Env/OS.IS_WINDOWS],
+            [Team_Directory_UNC],
+        iff([Team_Directory] != "Enter network directory path",
+            [Team_Directory],
+            ""));
+
+[file_sep] = iff(match("|\\\\|", [Team_Directory_Eff]), "\\", "/");
 
 [Team_Data_Directory] = 
-    iff([Team_Directory] && [Team_Directory] != "Enter network directory path",
-        [Team_Directory] & [file_sep] & "data" & [file_sep] & [Project_ID],
+    iff([Team_Directory_Eff] && [Project_ID],
+        [Team_Directory_Eff] & [file_sep] & "data" & [file_sep] & [Project_ID],
 	"");
 
 

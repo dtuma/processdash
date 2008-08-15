@@ -10,8 +10,7 @@
 [Indiv_Initials] = "tttt";
 [EXPORT_FILE] = 
     iff([Team_Data_Directory] == "", "",
-        [Team_Data_Directory] & [file_sep] & [Indiv_Initials] & "-data" &
-        iff([//Export_Manager/Supports_pdash_format], ".pdash", ".txt"));
+        [Team_Data_Directory] & [file_sep] & [Indiv_Initials] & "-data.pdash");
 [EXPORT_FILE/Instructions] = iff(
     [Exporting_Namespaced_Phase_Metrics],
         "file:/<!--#echo Process_ID -->/metricsExportFilter.xml",

@@ -44,18 +44,11 @@ public class inclTeamTools extends TinyCGIBase {
     }
 
     private String getTeamDataDirectory() {
-        String teamDir = getValue("Team_Directory_UNC");
-        if (teamDir == null)
-            teamDir = getValue("Team_Directory");
-        if (teamDir == null)
+        String result = getValue("Team_Data_Directory");
+        if (result == null || result.trim().length() == 0)
             return null;
 
-        String projectID = getValue("Project_ID");
-        if (projectID == null || projectID.trim().length() == 0)
-            return null;
-
-        File f = new File(teamDir, "data");
-        f = new File(f, projectID);
+        File f = new File(result);
         return f.getPath();
     }
 
