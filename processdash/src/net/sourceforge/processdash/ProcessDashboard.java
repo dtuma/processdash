@@ -54,8 +54,10 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.ResourceBundle;
+import java.util.TimeZone;
 import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
@@ -244,6 +246,26 @@ public class ProcessDashboard extends JFrame implements WindowListener,
                 LogManager.getLogManager().readConfiguration(
                     new FileInputStream(logConfig));
             } catch (Exception e) {}
+        }
+
+        // potentially reset locale-specific defaults based on user settings
+        String altTimeZone = Settings.getVal("timezone");
+        if (StringUtils.hasValue(altTimeZone)) {
+            try {
+                TimeZone.setDefault(TimeZone.getTimeZone(altTimeZone));
+            } catch (Exception e) {
+                logger.warning("Could not apply user-selected timezone '"
+                        + altTimeZone + "'");
+            }
+        }
+        String altLanguage = Settings.getVal("language");
+        if (StringUtils.hasValue(altLanguage)) {
+            try {
+                Locale.setDefault(new Locale(altLanguage));
+            } catch (Exception e) {
+                logger.warning("Could not apply user-selected language '"
+                        + altLanguage + "'");
+            }
         }
         pt.click("Read settings");
 
