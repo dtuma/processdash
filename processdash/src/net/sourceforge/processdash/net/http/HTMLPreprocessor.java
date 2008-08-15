@@ -679,6 +679,21 @@ public class HTMLPreprocessor {
                 return false;
             }
 
+            // if the expression contains multiple AND clauses, evaluate
+            // them individually and return false if one is false.
+            int andPos = expression.indexOf(" && ");
+            if (andPos != -1) {
+                expression = expression + " && ";
+                String subExpr;
+                while (andPos != -1) {
+                    subExpr = expression.substring(0, andPos);
+                    if (!ifTest(subExpr)) return false;
+                    expression = expression.substring(andPos+4);
+                    andPos = expression.indexOf(" && ");
+                }
+                return true;
+            }
+
             RelationalExpression re = parseRelationalExpression(expression);
             if (re != null) {
                 test = re.test();
