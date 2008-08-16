@@ -226,7 +226,7 @@ public class EVMetrics implements TableModel {
     public void recalcComplete(EVSchedule s) {
         recalcForecastDate(s);
         recalcViability(s);
-        recalcMetricsFormatters();
+        resetValidMetrics();
     }
     private static boolean RETARGET_INTERVALS =
         !Settings.getBool("ev.disableRetarget", false);
@@ -286,16 +286,19 @@ public class EVMetrics implements TableModel {
             completionDateInterval = null;
         }
     }
-    protected void recalcMetricsFormatters() {
-        validMetrics.clear();
+
+
+    private void recalcMetricsFormatters() {
+        validMetrics = new ArrayList();
         Iterator i = metrics.iterator();
         while (i.hasNext()) {
             MetricFormatter f = (MetricFormatter) i.next();
+            if (discardedMetrics != null && discardedMetrics.matches(f.key))
+                continue;
             f.recalc();
             if (f.isValid())
                 validMetrics.add(f);
         }
-        fireTableChanged(new TableModelEvent(this));
     }
     protected void recalcForecastDate(EVSchedule s) {
         // Do nothing by default; our calculator will normally handle this.
@@ -747,14 +750,10 @@ public class EVMetrics implements TableModel {
     }
 
     public void discardMetrics(PatternList patterns) {
-        for (Iterator i = metrics.iterator(); i.hasNext();) {
-            MetricFormatter fmt = (MetricFormatter) i.next();
-            if (patterns.matches(fmt.key)) {
-                i.remove();
-                validMetrics.remove(fmt);
-            }
-        }
+        discardedMetrics = patterns;
+        resetValidMetrics();
     }
+    protected PatternList discardedMetrics = null;
 
     private static String ONE_YEAR = resources.getString("Metrics.One_Year");
     private static MessageFormat YEARS_FMT =
@@ -897,9 +896,21 @@ public class EVMetrics implements TableModel {
     public int getColumnCount() { return 4; }
 
     protected List metrics;
-    protected ArrayList validMetrics = new ArrayList();
+    protected ArrayList validMetrics = null;
+
+    protected void resetValidMetrics() {
+        validMetrics = null;
+        fireTableChanged(new TableModelEvent(this));
+    }
+
+    protected ArrayList getValidMetrics() {
+        if (validMetrics == null)
+            recalcMetricsFormatters();
+        return validMetrics;
+    }
 
     public Object getValueAt(int row, int col) {
+        ArrayList validMetrics = getValidMetrics();
         if (row < 0 || row >= validMetrics.size()) return null;
         MetricFormatter f = (MetricFormatter) validMetrics.get(row);
         switch (col) {
@@ -912,7 +923,7 @@ public class EVMetrics implements TableModel {
         return null;
     }
     public int getRowCount() {
-        return validMetrics.size();
+        return getValidMetrics().size();
     }
 
 
