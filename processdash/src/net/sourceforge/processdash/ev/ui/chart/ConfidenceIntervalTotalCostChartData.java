@@ -32,7 +32,7 @@ public class ConfidenceIntervalTotalCostChartData extends
 
     public ConfidenceIntervalTotalCostChartData(ChartEventAdapter eventAdapter,
             EVMetrics evMetrics) {
-        super(eventAdapter);
+        super(eventAdapter, 0, Double.NaN);
         this.evMetrics = evMetrics;
     }
 

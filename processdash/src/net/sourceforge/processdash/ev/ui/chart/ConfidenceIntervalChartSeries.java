@@ -40,6 +40,17 @@ public class ConfidenceIntervalChartSeries implements XYChartSeries {
     /** The series key associated with the ConfidenceInterval */
     private String seriesKey = null;
 
+    /** The minimum quantile value to display in the chart. Data points with
+     * smaller values will be excluded from the resulting dataset. */
+    private double minValue;
+
+    /** The maximum quantile value to display in the chart. Data points with
+     * larger values will be excluded from the resulting dataset. */
+    private double maxValue;
+
+    /** The percentages values */
+    private double[] percentages;
+
     /** The quantiles values */
     private double[] quantiles;
 
@@ -47,24 +58,40 @@ public class ConfidenceIntervalChartSeries implements XYChartSeries {
     private int numberOfQuantiles = 0;
 
     public ConfidenceIntervalChartSeries(ConfidenceInterval confidenceInterval,
-                                         String seriesKey) {
+            String seriesKey, double minValue, double maxValue) {
         this.confidenceInterval = confidenceInterval;
         this.seriesKey = seriesKey;
+        this.minValue = minValue;
+        this.maxValue = maxValue;
 
-        if (this.confidenceInterval != null) {
-            // The chart will display 39 quantile values (1/0.025 - 1 = 439)
-            this.numberOfQuantiles = (int) (1 / QUANTILE_PERCENTAGE_INCREMENT - 1);
-            recalc();
-        }
+        recalc();
     }
 
     public void recalc() {
-        quantiles = new double[numberOfQuantiles];
-
-        for (int i = 0; i < numberOfQuantiles; ++i) {
-            quantiles[i] =
-                confidenceInterval.getQuantile((i+1)*QUANTILE_PERCENTAGE_INCREMENT);
+        if (this.confidenceInterval == null) {
+            this.numberOfQuantiles = 0;
+            return;
         }
+
+        // The chart will display 39 quantile values (1/0.025 - 1 = 439)
+        int maxNumPoints = (int) (1 / QUANTILE_PERCENTAGE_INCREMENT - 1);
+
+        quantiles = new double[maxNumPoints];
+        percentages = new double[maxNumPoints];
+
+        int j = 0;
+        for (int i = 0; i < maxNumPoints; ++i) {
+            double percentage = (i+1) * QUANTILE_PERCENTAGE_INCREMENT;
+            double value = confidenceInterval.getQuantile(percentage);
+            if (value < minValue || value > maxValue)
+                continue;
+
+            percentages[j] = 200 * (percentage - 0.5);
+            quantiles[j] = value;
+            j++;
+        }
+
+        this.numberOfQuantiles = j;
     }
 
     public int getItemCount() {
@@ -80,7 +107,7 @@ public class ConfidenceIntervalChartSeries implements XYChartSeries {
     }
 
     public Number getY(int itemIndex) {
-        return (1 + itemIndex) * QUANTILE_PERCENTAGE_INCREMENT * 100;
+        return percentages[itemIndex];
     }
 
 }

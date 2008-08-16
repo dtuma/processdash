@@ -55,14 +55,12 @@ public class ConfidenceIntervalToolTipGenerator extends EVXYToolTipGenerator {
         @Override
         public StringBuffer format(double number, StringBuffer toAppendTo,
                 FieldPosition notUsed) {
-            double percentageValue = (2 * Math.abs(50 - number)) / 100;
-
-            if (Math.abs(number - 50) < 0.01)
+            if (Math.abs(number) < 0.01)
                 toAppendTo.append(resources.getString("Most_Likely_Value"));
-            else if (number < 50)
-                toAppendTo.append(resources.format("LPI_FMT", percentageValue));
+            else if (number < 0)
+                toAppendTo.append(resources.format("LPI_FMT", -number/100.0));
             else
-                toAppendTo.append(resources.format("UPI_FMT", percentageValue));
+                toAppendTo.append(resources.format("UPI_FMT", number/100.0));
 
             return toAppendTo;
         }

@@ -23,37 +23,92 @@
 
 package net.sourceforge.processdash.ev.ui.chart;
 
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
+
+import net.sourceforge.processdash.ev.EVSchedule;
 import net.sourceforge.processdash.ev.EVTaskList;
 import net.sourceforge.processdash.ev.EVTaskListRollup;
+import net.sourceforge.processdash.ev.ci.SingleValueConfidenceInterval;
 
 public class ConfidenceIntervalMemberCompletionDateChartData extends
-        ConfidenceIntervalChartData {
+    ConfidenceIntervalChartData {
 
     private EVTaskListRollup rollup;
 
     public ConfidenceIntervalMemberCompletionDateChartData(
             ChartEventAdapter eventAdapter, EVTaskListRollup rollup) {
-        super(eventAdapter);
+        super(eventAdapter, 0, Long.MAX_VALUE >> 2);
         this.rollup = rollup;
     }
 
     protected void recalc() {
         this.series.clear();
 
+        Set<String> ambiguousNames = getRepeatedPersonNames();
+
         for (int i = 0; i < rollup.getSubScheduleCount(); i++) {
             EVTaskList tl = rollup.getSubSchedule(i);
-            maybeAddSeries(tl.getSchedule().getMetrics()
-                    .getDateConfidenceInterval(), getSeriesName(tl));
+            String seriesName = getSeriesName(tl, ambiguousNames);
+
+            // by default, attempt to add a series based on the forecast date
+            // confidence interval
+            if (maybeAddSeries(tl.getSchedule().getMetrics()
+                    .getDateConfidenceInterval(), seriesName))
+                continue;
+
+            // if no confidence interval is available, see if this schedule
+            // is 100% complete.  If so, draw a vertical line on the chart.
+            Date completionDate = tl.getTaskRoot().getActualDate();
+            if (completionDate != null
+                    && maybeAddSeries(new SingleValueConfidenceInterval(
+                            completionDate.getTime()), seriesName))
+                continue;
+
+            // if no interval is available and we're less than 100% complete,
+            // see if they have a forecast date, and draw that as a single
+            // point on the chart.
+            Date forecastDate = tl.getSchedule().getMetrics()
+                    .independentForecastDate();
+            if (forecastDate != null && !forecastDate.equals(EVSchedule.NEVER))
+                maybeAddSeries(new SinglePointXYChartSeries(seriesName,
+                        forecastDate.getTime(), 0));
         }
     }
 
-    private String getSeriesName(EVTaskList tl) {
+    private String getSeriesName(EVTaskList tl, Set<String> namesToAvoid) {
         String name = tl.getDisplayName();
-        if (name.endsWith(")")) {
-            int parenPos = name.lastIndexOf('(');
-            return name.substring(parenPos + 1, name.length() - 1);
-        } else
+        String personName = extractPersonName(name);
+        if (personName != null && !namesToAvoid.contains(personName))
+            return personName;
+        else
             return name;
+    }
+
+    private Set<String> getRepeatedPersonNames() {
+        Set<String> namesSeen = new HashSet<String>();
+        Set<String> repeatedNames = new HashSet<String>();
+        for (int i = 0; i < rollup.getSubScheduleCount(); i++) {
+            EVTaskList tl = rollup.getSubSchedule(i);
+            String personName = extractPersonName(tl.getDisplayName());
+            if (namesSeen.contains(personName))
+                repeatedNames.add(personName);
+            else
+                namesSeen.add(personName);
+        }
+        return repeatedNames;
+    }
+
+    private String extractPersonName(String taskListName) {
+        if (!taskListName.endsWith(")"))
+            return null;
+
+        int parenPos = taskListName.lastIndexOf('(');
+        if (parenPos == -1)
+            return null;
+
+        return taskListName.substring(parenPos + 1, taskListName.length() - 1);
     }
 
 }

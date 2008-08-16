@@ -29,13 +29,23 @@ import net.sourceforge.processdash.ev.ci.ConfidenceInterval;
     particular confidenceInterval */
 public abstract class ConfidenceIntervalChartData extends XYChartData {
 
-    public ConfidenceIntervalChartData(ChartEventAdapter eventAdapter) {
+    private double minValue;
+
+    private double maxValue;
+
+    protected ConfidenceIntervalChartData(ChartEventAdapter eventAdapter,
+            double minValue, double maxValue) {
         super(eventAdapter);
+        this.minValue = minValue;
+        this.maxValue = maxValue;
     }
 
-    protected void maybeAddSeries(ConfidenceInterval ci, String seriesKey) {
+    protected boolean maybeAddSeries(ConfidenceInterval ci, String seriesKey) {
         if (ci != null && ci.getViability() >= ConfidenceInterval.ACCEPTABLE)
-            maybeAddSeries(new ConfidenceIntervalChartSeries(ci, seriesKey));
+            return maybeAddSeries(new ConfidenceIntervalChartSeries(ci,
+                    seriesKey, minValue, maxValue));
+        else
+            return false;
     }
 
 }

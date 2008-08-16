@@ -23,30 +23,34 @@
 
 package net.sourceforge.processdash.ev.ui.chart;
 
-import net.sourceforge.processdash.ev.EVMetrics;
-import net.sourceforge.processdash.ev.EVMetricsRollup;
+public class SinglePointXYChartSeries implements XYChartSeries {
 
-public class ConfidenceIntervalCompletionDateChartData extends
-        ConfidenceIntervalChartData {
+    private String seriesKey;
 
-    private EVMetrics evMetrics;
+    private double x;
 
-    public ConfidenceIntervalCompletionDateChartData(
-            ChartEventAdapter eventAdapter, EVMetrics evMetrics) {
-        super(eventAdapter, 0, Long.MAX_VALUE >> 2);
-        this.evMetrics = evMetrics;
+    private double y;
+
+    public SinglePointXYChartSeries(String seriesKey, double x, double y) {
+        this.seriesKey = seriesKey;
+        this.x = x;
+        this.y = y;
     }
 
-    protected void recalc() {
-        this.series.clear();
+    public String getSeriesKey() {
+        return seriesKey;
+    }
 
-        maybeAddSeries(evMetrics.getDateConfidenceInterval(), "Forecast");
+    public int getItemCount() {
+        return 1;
+    }
 
-        if (evMetrics instanceof EVMetricsRollup) {
-            EVMetricsRollup rollupMetrics = (EVMetricsRollup) evMetrics;
-            maybeAddSeries(rollupMetrics.getOptimizedDateConfidenceInterval(),
-                "Optimized_Forecast");
-        }
+    public Number getX(int itemIndex) {
+        return x;
+    }
+
+    public Number getY(int itemIndex) {
+        return y;
     }
 
 }

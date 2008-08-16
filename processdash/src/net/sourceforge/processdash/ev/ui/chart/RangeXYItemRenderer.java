@@ -30,6 +30,7 @@ import java.awt.GradientPaint;
 import java.awt.Graphics2D;
 import java.awt.Paint;
 import java.awt.Polygon;
+import java.awt.Shape;
 import java.awt.Stroke;
 import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
@@ -49,6 +50,7 @@ import org.jfree.chart.renderer.xy.XYItemRendererState;
 import org.jfree.data.RangeInfo;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.ui.RectangleEdge;
+import org.jfree.util.ShapeUtilities;
 
 
 public class RangeXYItemRenderer extends StandardXYItemRenderer {
@@ -127,6 +129,7 @@ public class RangeXYItemRenderer extends StandardXYItemRenderer {
         if (info != null) {
             entities = info.getOwner().getEntityCollection();
         }
+        Shape entityArea = null;
 
         Paint paint = getItemPaint(series, item);
         Stroke seriesStroke = getItemStroke(series, item);
@@ -148,6 +151,7 @@ public class RangeXYItemRenderer extends StandardXYItemRenderer {
             (x1, dataArea, xAxisLocation);
         double transY1 = rangeAxis.valueToJava2D
             (y1, dataArea, yAxisLocation);
+        PlotOrientation orientation = plot.getOrientation();
 
         if (item > 0) {
             // get the previous data point...
@@ -168,7 +172,6 @@ public class RangeXYItemRenderer extends StandardXYItemRenderer {
                     return;
                 }
 
-                PlotOrientation orientation = plot.getOrientation();
                 if (orientation == PlotOrientation.HORIZONTAL) {
                     line.setLine(transY0, transX0, transY1, transX1);
                 }
@@ -204,10 +207,30 @@ public class RangeXYItemRenderer extends StandardXYItemRenderer {
                     g2.draw(line);
                 }
             }
+        } else if (dataset.getItemCount(series) == 1) {
+            Shape shape = getItemShape(series, item);
+            if (orientation == PlotOrientation.HORIZONTAL) {
+                shape = ShapeUtilities.createTranslatedShape(shape, transY1,
+                        transX1);
+            } else if (orientation == PlotOrientation.VERTICAL) {
+                shape = ShapeUtilities.createTranslatedShape(shape, transX1,
+                        transY1);
+            }
+            if (shape.intersects(dataArea)) {
+                if (getItemShapeFilled(series, item)) {
+                    g2.fill(shape);
+                }
+                else {
+                    g2.draw(shape);
+                }
+            }
+            entityArea = shape;
         }
 
-        if (entities != null && dataArea.contains(transX1, transY1)) {
-            addEntity(entities, null, dataset, series, item, transX1, transY1);
+        if (entities != null &&
+                (dataArea.contains(transX1, transY1) || entityArea != null)) {
+            addEntity(entities, entityArea, dataset, series, item, transX1,
+                transY1);
         }
 
     }
