@@ -46,7 +46,6 @@ public class CheckboxList extends JTable {
         setShowGrid(false);
         setIntercellSpacing(new Dimension(0, 1));
         getColumnModel().getColumn(0).setMaxWidth(30);
-        setFillsViewportHeight(true);
         rendererMap = new HashMap<TableCellRenderer, TableCellRenderer>();
     }
 

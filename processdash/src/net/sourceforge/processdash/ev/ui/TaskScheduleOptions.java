@@ -44,7 +44,6 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.SwingWorker;
 
 import net.sourceforge.processdash.DashboardContext;
 import net.sourceforge.processdash.ev.EVMetadata;
@@ -53,6 +52,7 @@ import net.sourceforge.processdash.ev.ci.EVConfidenceIntervalUtils;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.ui.lib.CheckboxList;
 import net.sourceforge.processdash.ui.lib.JLinkLabel;
+import net.sourceforge.processdash.ui.lib.SwingWorker;
 
 public class TaskScheduleOptions {
 
@@ -124,10 +124,10 @@ public class TaskScheduleOptions {
         final List<String> newTaskLists = selectTaskLists(dialog, parent.dash,
             taskList.getTaskListName(), histTaskLists);
         if (newTaskLists != null)
-            new HistoricalDataAnalyzer(newTaskLists).execute();
+            new HistoricalDataAnalyzer(newTaskLists).start();
     }
 
-    private class HistoricalDataAnalyzer extends SwingWorker<String, Object> {
+    private class HistoricalDataAnalyzer extends SwingWorker {
 
         List<String> newTaskLists;
 
@@ -136,14 +136,17 @@ public class TaskScheduleOptions {
             dialog.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
         }
 
-        protected String doInBackground() throws Exception {
+        @Override
+        public Object construct() {
             return EVConfidenceIntervalUtils.makeHistoricalConfidenceIntervals(
                 parent.dash, newTaskLists);
         }
 
-        protected void done() {
+
+        @Override
+        public void finished() {
             try {
-                String newHistData = get();
+                String newHistData = (String) getValue();
                 taskList.setMetadata(
                     EVMetadata.Forecast.Ranges.SAVED_HIST_DATA, newHistData);
                 parent.setDirty(true);
@@ -154,6 +157,7 @@ public class TaskScheduleOptions {
             }
             dialog.setCursor(null);
         }
+
     }
 
 // public void editEstimatingErrors() {
@@ -278,6 +282,7 @@ public class TaskScheduleOptions {
         }
 
         JScrollPane sp = new JScrollPane(cbl);
+        sp.getViewport().setBackground(cbl.getBackground());
         sp.setPreferredSize(new Dimension(200, 200));
         Object message = new Object[] {
             resources.getString("Forecast_Ranges.Historical_Data.Prompt"), sp };
