@@ -294,6 +294,14 @@ Authors:
     </jar>
   </target>
 
+  <target name="extras-addon" depends="compile" if="extras.dir">
+    <pathconvert property="extras.processdash.dir" dirSep="/">
+      <path location="."/>
+    </pathconvert>
+    <ant dir="${extras.dir}" inheritAll="false">
+      <property name="processdash" value="${extras.processdash.dir}"/>
+    </ant>
+  </target>
 
 
   <target name="parser" depends="init,-parser-depend"
@@ -660,6 +668,7 @@ Authors:
     <delete quiet="true" file="${dist}/importPSP.jar"/>
     <delete quiet="true" file="${dist}/pspForEng.jar"/>
     <delete quiet="true" file="${dist}/l10nTool.jar"/>
+    <delete quiet="true" file="${dist}/extras.jar"/>
     <delete quiet="true" file="${dist}/pdash-src-*.zip"/>
     <delete><fileset dir="${libsrc}" includes="**/*.class"/></delete>
   </target>
@@ -669,7 +678,8 @@ Authors:
   <!-- Create distributable files                                          -->
   <!-- =================================================================== -->
   <target name="dist"
-      depends="jar,javahelp-addon,import-addon,l10nTool-addon,pspForEng-addon"/>
+      depends="jar,javahelp-addon,import-addon,l10nTool-addon,
+               pspForEng-addon,extras-addon"/>
 
   <target name="dist-src" depends="ant-tasks">
     <svnzip dir="." dest="${dist}/pdash-src-${dashboard-version}.zip"/>

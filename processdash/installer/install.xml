@@ -79,6 +79,8 @@
             <file targetdir="$INSTALL_PATH" override="true"
 	          src="../dist/l10nTool.jar"/>
             <file targetdir="$INSTALL_PATH" override="true"
+	          src="../dist/extras.jar" includeIf="extras"/>
+            <file targetdir="$INSTALL_PATH" override="true"
 	          src="../src/net/sourceforge/processdash/ui/dashicon.ico"/>
             <file targetdir="$INSTALL_PATH" override="true"
 	          src="../src/net/sourceforge/processdash/ui/launcher.ico"/>
