@@ -47,9 +47,14 @@ public class EVScheduleConfidenceIntervals
     List randomObjects;
     EVMetrics metrics;
     MonteCarloConfidenceInterval cost, date, optimizedDate;
+    MonteCarloConfidenceInterval[] indivDates;
+
+    public EVScheduleConfidenceIntervals(EVSchedule sched, List randomObjects) {
+        this(sched, randomObjects, false);
+    }
 
     public EVScheduleConfidenceIntervals(EVSchedule sched,
-                                         List randomObjects) {
+            List randomObjects, boolean keepIndivDates) {
         this.schedule = sched;
         this.randomObjects = randomObjects;
         this.metrics = sched.getMetrics();
@@ -57,6 +62,12 @@ public class EVScheduleConfidenceIntervals
         date = new MonteCarloConfidenceInterval();
         if (metrics instanceof EVMetricsRollup)
             optimizedDate = new MonteCarloConfidenceInterval();
+        if (keepIndivDates) {
+            indivDates = new MonteCarloConfidenceInterval[randomObjects.size()];
+            for (int i = 0; i < indivDates.length; i++) {
+                indivDates[i] = new MonteCarloConfidenceInterval();
+            }
+        }
 
         runSimulation();
     }
@@ -73,6 +84,9 @@ public class EVScheduleConfidenceIntervals
         return optimizedDate;
     }
 
+    public ConfidenceInterval getIndividualDateInterval(int i) {
+        return (indivDates == null ? null : indivDates[i]);
+    }
 
     private static final boolean USE_RATIO = true;
     private void runSimulation() {
@@ -80,7 +94,7 @@ public class EVScheduleConfidenceIntervals
         RandomEngine random = new MersenneTwister();
 
         int sampleCount = Settings.getInt("ev.simulationSize", BOOTSTRAP_SIZE);
-        if (USE_RATIO) {
+        if (USE_RATIO && indivDates == null) {
             double factor = Math.exp(0.75 * Math.log(randomObjects.size()));
             sampleCount = (int) (sampleCount / factor);
             if (sampleCount < 100) sampleCount = 100;
@@ -92,6 +106,9 @@ public class EVScheduleConfidenceIntervals
         date.samplesDone();
         if (optimizedDate != null)
             optimizedDate.samplesDone();
+        if (indivDates != null)
+            for (int i = 0; i < indivDates.length; i++)
+                indivDates[i].samplesDone();
 
         long finish = System.currentTimeMillis();
         long elapsed = finish - start;
@@ -101,6 +118,9 @@ public class EVScheduleConfidenceIntervals
 
     private void runOneTest(RandomEngine random) {
         randomizeAll(random);
+
+        if (indivDates != null)
+            addIndivDateSamples();
 
         double forecastCost = metrics.independentForecastCost();
         cost.addSample(forecastCost-metrics.actual());
@@ -115,6 +135,17 @@ public class EVScheduleConfidenceIntervals
         Iterator i = randomObjects.iterator();
         while (i.hasNext())
             ((Randomizable) i.next()).randomize(random);
+    }
+
+    private void addIndivDateSamples() {
+        for (int i = 0;  i < randomObjects.size(); i++) {
+            Object o = randomObjects.get(i);
+            if (o instanceof EVSchedule) {
+                EVSchedule s = (EVSchedule) o;
+                Date forecast = s.getMetrics().independentForecastDate();
+                indivDates[i].addSample(getTime(forecast));
+            }
+        }
     }
 
     private double getTime(Date d) {
