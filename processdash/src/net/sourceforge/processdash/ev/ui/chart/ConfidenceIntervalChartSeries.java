@@ -83,7 +83,7 @@ public class ConfidenceIntervalChartSeries implements XYChartSeries {
         for (int i = 0; i < maxNumPoints; ++i) {
             double percentage = (i+1) * QUANTILE_PERCENTAGE_INCREMENT;
             double value = confidenceInterval.getQuantile(percentage);
-            if (value < minValue || value > maxValue)
+            if (Double.isNaN(value) || value < minValue || value > maxValue)
                 continue;
 
             percentages[j] = 200 * (percentage - 0.5);

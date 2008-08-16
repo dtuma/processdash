@@ -32,42 +32,50 @@ public class DelegatingConfidenceInterval implements ConfidenceInterval,
 
     protected ConfidenceInterval delegate;
 
+    protected ConfidenceInterval getDelegate() {
+        if (delegate == null)
+            return NULL_DELEGATE;
+        else
+            return delegate;
+    }
+
     public void setInput(double input) {
-        if (delegate != null)
-            delegate.setInput(input);
+        getDelegate().setInput(input);
     }
 
     public double getPrediction() {
-        return (delegate == null ? Double.NaN : delegate.getPrediction());
+        return getDelegate().getPrediction();
     }
 
     public double getQuantile(double percentage) {
-        return (delegate == null ? Double.NaN : delegate.getQuantile(percentage));
+        return getDelegate().getQuantile(percentage);
     }
 
     public double getLPI(double percentage) {
-        return (delegate == null ? Double.NaN : delegate.getLPI(percentage));
+        return getDelegate().getLPI(percentage);
     }
 
     public double getUPI(double percentage) {
-        return (delegate == null ? Double.NaN : delegate.getUPI(percentage));
+        return getDelegate().getUPI(percentage);
     }
 
     public double getRandomValue(RandomEngine u) {
-        return (delegate == null ? Double.NaN : delegate.getRandomValue(u));
+        return getDelegate().getRandomValue(u);
     }
 
     public double getViability() {
-        return (delegate == null ? CANNOT_CALCULATE : delegate.getViability());
+        return getDelegate().getViability();
     }
 
     public void calcViability(double target, double minimumProb) {
+        ConfidenceInterval delegate = getDelegate();
         if (delegate instanceof TargetedConfidenceInterval)
             ((TargetedConfidenceInterval) delegate).calcViability
                 (target, minimumProb);
     }
 
     public void saveToXML(String tagName, StringBuffer result) {
+        ConfidenceInterval delegate = getDelegate();
         if (delegate instanceof XMLPersistableConfidenceInterval) {
             XMLPersistableConfidenceInterval xpci =
                 (XMLPersistableConfidenceInterval) delegate;
@@ -75,4 +83,6 @@ public class DelegatingConfidenceInterval implements ConfidenceInterval,
         }
     }
 
+    private static final ConfidenceInterval NULL_DELEGATE =
+        new SingleValueConfidenceInterval(Double.NaN, CANNOT_CALCULATE);
 }

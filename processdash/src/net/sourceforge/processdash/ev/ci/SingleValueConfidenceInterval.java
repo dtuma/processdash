@@ -29,9 +29,17 @@ public class SingleValueConfidenceInterval implements ConfidenceInterval {
 
     private double singleValue;
 
+    private double viability;
+
     public SingleValueConfidenceInterval(double singleValue) {
-        this.singleValue = singleValue;
+        this(singleValue, NOMINAL);
     }
+
+    public SingleValueConfidenceInterval(double singleValue, double viability) {
+        this.singleValue = singleValue;
+        this.viability = viability;
+    }
+
 
     public double getLPI(double percentage) {
         return singleValue;
@@ -54,7 +62,7 @@ public class SingleValueConfidenceInterval implements ConfidenceInterval {
     }
 
     public double getViability() {
-        return NOMINAL;
+        return viability;
     }
 
     public void setInput(double input) {}

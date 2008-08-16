@@ -24,12 +24,16 @@
 package net.sourceforge.processdash.ev;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
 import net.sourceforge.processdash.ev.ci.ConfidenceInterval;
 import net.sourceforge.processdash.ev.ci.ConfidenceIntervalProvider;
+import net.sourceforge.processdash.ev.ci.DelegatingConfidenceInterval;
+import net.sourceforge.processdash.ev.ci.EVScheduleConfidenceIntervals;
+import net.sourceforge.processdash.ev.ci.TargetedConfidenceInterval;
 
 
 public class EVCalculatorXML extends EVCalculator {
@@ -76,6 +80,8 @@ public class EVCalculatorXML extends EVCalculator {
             costIntervalProvider.getConfidenceInterval(taskList));
         schedule.getMetrics().setTimeErrConfidenceInterval(
             timeErrIntervalProvider.getConfidenceInterval(taskList));
+        schedule.getMetrics().setDateConfidenceInterval(
+            new DeferredDateConfidenceInterval());
 
         EVForecastDateCalculators.XML_FORECAST.calculateForecastDates(taskRoot,
                 schedule, schedule.getMetrics(), evLeaves);
@@ -141,5 +147,76 @@ public class EVCalculatorXML extends EVCalculator {
         XmlTimeErrIntervalProvider() {
             super(schedule.getMetrics().getTimeErrConfidenceInterval());
         }
+    }
+
+    private class DeferredDateConfidenceInterval extends
+            DelegatingConfidenceInterval {
+
+        private boolean initialized = false;
+        private double viabilityTarget = Double.NaN;
+        private double viabilityProb;
+
+        @Override
+        protected ConfidenceInterval getDelegate() {
+            if (!initialized) {
+                delegate = buildDelegate();
+                if (delegate != null && delegate.getViability() < ACCEPTABLE)
+                    delegate = null;
+                initialized = true;
+            }
+
+            return super.getDelegate();
+        }
+
+        private ConfidenceInterval buildDelegate() {
+            EVMetrics metrics = schedule.getMetrics();
+            if (metrics.percentComplete() > 0.995)
+                return null;
+
+            try {
+                ConfidenceInterval costInterval =
+                    metrics.getCostConfidenceInterval();
+                ConfidenceInterval timeErrInterval =
+                    metrics.getTimeErrConfidenceInterval();
+
+                ConfidenceInterval completionDate = null;
+                if (costInterval != null && timeErrInterval != null) {
+                    EVScheduleRandom sr = new EVScheduleRandom(schedule);
+                    EVScheduleConfidenceIntervals ci =
+                        new EVScheduleConfidenceIntervals
+                            (sr, Collections.singletonList(sr));
+                    completionDate = ci.getForecastDateInterval();
+                }
+
+                if (completionDate instanceof TargetedConfidenceInterval
+                        && !Double.isNaN(viabilityTarget)) {
+                    ((TargetedConfidenceInterval) completionDate)
+                            .calcViability(viabilityTarget, viabilityProb);
+                }
+
+                return completionDate;
+            } catch (Exception e) {
+                metrics.setDateConfidenceInterval(null);
+                System.out.println("Error calculating schedule interval:");
+                e.printStackTrace();
+                return null;
+            }
+        }
+
+        @Override
+        public void calcViability(double target, double minimumProb) {
+            if (initialized)
+                super.calcViability(target, minimumProb);
+            else {
+                viabilityTarget = target;
+                viabilityProb = minimumProb;
+            }
+        }
+
+        @Override
+        public double getViability() {
+            return (initialized ? super.getViability() : NOMINAL);
+        }
+
     }
 }
