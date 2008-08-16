@@ -26,6 +26,7 @@ package net.sourceforge.processdash.ev.ui;
 
 import java.awt.CardLayout;
 import java.awt.Component;
+import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.util.ArrayList;
@@ -33,10 +34,12 @@ import java.util.Collections;
 import java.util.EventObject;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.prefs.Preferences;
 
 import javax.swing.Box;
 import javax.swing.DefaultListCellRenderer;
@@ -62,6 +65,7 @@ import net.sourceforge.processdash.ev.EVTaskListRollup;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.ui.DashboardIconFactory;
 import net.sourceforge.processdash.ui.help.PCSH;
+import net.sourceforge.processdash.ui.lib.SwingWorker;
 import net.sourceforge.processdash.ui.lib.WrappingText;
 import net.sourceforge.processdash.ui.snippet.SnippetDefinition;
 import net.sourceforge.processdash.ui.snippet.SnippetDefinitionManager;
@@ -78,6 +82,7 @@ public class TaskScheduleChart extends JFrame
     Map<String, SnippetChartItem> widgets;
     JPanel displayArea;
     CardLayout cardLayout;
+    SnippetChartItem currentItem;
 
     static Resources resources = Resources.getDashBundle("EV.Chart");
     static Logger logger = Logger.getLogger(TaskScheduleChart.class.getName());
@@ -104,6 +109,7 @@ public class TaskScheduleChart extends JFrame
         displayArea = new JPanel(cardLayout);
         displayArea.setMinimumSize(new Dimension(0, 0));
         displayArea.setPreferredSize(new Dimension(400, 300));
+        displayArea.add(new JPanel(), " ");
 
         JSplitPane sp = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
             createChooserComponent(), displayArea);
@@ -186,18 +192,32 @@ public class TaskScheduleChart extends JFrame
         list.setCellRenderer(new SnippetChartItemListRenderer());
         list.addListSelectionListener(new ListSelectionListener() {
             public void valueChanged(ListSelectionEvent e) {
-                SnippetChartItem item = (SnippetChartItem) list.getSelectedValue();
-                item.display();
+                currentItem = (SnippetChartItem) list.getSelectedValue();
+                currentItem.display();
             }});
-        list.setSelectedIndex(0);
+        list.setSelectedIndex(getDefaultChartIndex(items));
 
         return new JScrollPane(list);
+    }
+    private int getDefaultChartIndex(List items) {
+        String defaultChartId = PREFS.get(DEFAULT_CHART_PREF, null);
+        int fallbackItem = 0;
+        for (int i = 0;  i < items.size();  i++) {
+            SnippetChartItem item = (SnippetChartItem) items.get(i);
+            if (item.id.equals(defaultChartId))
+                return i;
+            else if (item.id.equals(DEFAULT_CHART_ID))
+                fallbackItem = i;
+        }
+        return fallbackItem;
     }
 
 
     @Override
     public void dispose() {
         super.dispose();
+        if (currentItem != null)
+            PREFS.put(DEFAULT_CHART_PREF, currentItem.id);
         for (int i = displayArea.getComponentCount();  i-- > 0; ) {
             Component c = displayArea.getComponent(i);
             if (c instanceof Disposable)
@@ -219,6 +239,8 @@ public class TaskScheduleChart extends JFrame
     }
 
 
+    private enum ChartItemState { START, INITIALIZING, READY };
+
     private class SnippetChartItem implements Comparable<SnippetChartItem> {
 
         private SnippetDefinition snip;
@@ -229,7 +251,7 @@ public class TaskScheduleChart extends JFrame
 
         private String description;
 
-        private boolean initialized;
+        private ChartItemState state;
 
 
         public SnippetChartItem(SnippetDefinition snip) {
@@ -239,16 +261,16 @@ public class TaskScheduleChart extends JFrame
             try {
                 this.description = snip.getDescription();
             } catch (Exception e) {}
-            this.initialized = false;
+            this.state = ChartItemState.START;
         }
 
         public void display() {
-            if (!initialized) {
-                Component comp = getComponent();
-                displayArea.add(id, comp);
-                initialized = true;
+            if (state == ChartItemState.START) {
+                new ComponentBuilder().start();
+            } else if (state == ChartItemState.READY) {
+                cardLayout.show(displayArea, id);
+                TaskScheduleChart.this.setCursor(null);
             }
-            cardLayout.show(displayArea, id);
         }
 
         private Component getComponent() {
@@ -296,6 +318,32 @@ public class TaskScheduleChart extends JFrame
             return this.name.compareTo(that.name);
         }
 
+        private class ComponentBuilder extends SwingWorker {
+
+            public ComponentBuilder() {
+                state = ChartItemState.INITIALIZING;
+                TaskScheduleChart.this.setCursor(Cursor
+                        .getPredefinedCursor(Cursor.WAIT_CURSOR));
+            }
+
+            @Override
+            public Object construct() {
+                return getComponent();
+            }
+
+            @Override
+            public void finished() {
+                Component c = (Component) getValue();
+                displayArea.add(c, id);
+                state = ChartItemState.READY;
+                if (currentItem == SnippetChartItem.this) {
+                    cardLayout.show(displayArea, id);
+                    TaskScheduleChart.this.setCursor(null);
+                }
+            }
+
+        }
+
     }
 
     private class SnippetChartItemListRenderer extends DefaultListCellRenderer {
@@ -320,5 +368,10 @@ public class TaskScheduleChart extends JFrame
         }
 
     }
+
+    private static final Preferences PREFS = Preferences
+            .userNodeForPackage(TaskScheduleChart.class);
+    private static final String DEFAULT_CHART_PREF = "TaskScheduleChart.DefaultChartId";
+    private static final String DEFAULT_CHART_ID = "pdash.ev.cumValueChart";
 
 }
