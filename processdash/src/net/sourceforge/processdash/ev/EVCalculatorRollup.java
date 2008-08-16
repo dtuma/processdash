@@ -39,6 +39,8 @@ import net.sourceforge.processdash.ev.ci.ConfidenceIntervalProvider;
 import net.sourceforge.processdash.ev.ci.ConfidenceIntervalSum;
 import net.sourceforge.processdash.ev.ci.EVScheduleConfidenceIntervals;
 import net.sourceforge.processdash.ev.ci.EVTimeErrConfidenceInterval;
+import net.sourceforge.processdash.ev.ci.LinearRatioConfidenceInterval;
+import net.sourceforge.processdash.ev.ci.LogCenteredConfidenceInterval;
 import net.sourceforge.processdash.ev.ci.SingleValueConfidenceInterval;
 
 public class EVCalculatorRollup extends EVCalculator {
@@ -227,7 +229,7 @@ public class EVCalculatorRollup extends EVCalculator {
 
         if (!(c.timeErrIntervalProvider instanceof RollupTimeErrIntervalProvider)) {
             ConfidenceIntervalProvider newCIP =
-                new RollupTimeErrIntervalProvider();
+                new RollupTimeErrIntervalProvider(c.timeErrIntervalProvider);
             c.timeErrIntervalProvider = newCIP;
             madeChange = true;
         }
@@ -259,8 +261,9 @@ public class EVCalculatorRollup extends EVCalculator {
 
     private class RollupTimeErrIntervalProvider extends TimeIntervalProvider {
 
-        protected RollupTimeErrIntervalProvider() {
-            super(new RollupCurrentPlanTimeErrIntervalProvider());
+        protected RollupTimeErrIntervalProvider(
+                ConfidenceIntervalProvider current) {
+            super(current);
         }
 
         @Override
@@ -271,20 +274,29 @@ public class EVCalculatorRollup extends EVCalculator {
             if (taskList.getSchedule().getEffectiveDate() == null)
                 return null;
 
-            return super.getConfidenceInterval(taskList);
-        }
+            ConfidenceInterval result = super.getConfidenceInterval(taskList);
 
-    }
-
-    protected class RollupCurrentPlanTimeErrIntervalProvider implements
-            ConfidenceIntervalProvider {
-
-        public ConfidenceInterval getConfidenceInterval(EVTaskList taskList) {
             // always recenter the time error interval - wide intervals are
             // of little consequence for rollups.  Bias causes bigger
             // problems.
-            return new EVTimeErrConfidenceInterval(taskList.getSchedule(),
+            if (isCentered(result) == false)
+                result = new EVTimeErrConfidenceInterval(taskList.getSchedule(),
                     RECENTER);
+
+            return result;
+        }
+
+        private boolean isCentered(ConfidenceInterval result) {
+            if (result instanceof LogCenteredConfidenceInterval)
+                return true;
+
+            if (result instanceof LinearRatioConfidenceInterval)
+                return true;
+
+            if (result instanceof EVTimeErrConfidenceInterval)
+                return ((EVTimeErrConfidenceInterval) result).isCentered();
+
+            return false;
         }
 
     }

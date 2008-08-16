@@ -39,6 +39,7 @@ import net.sourceforge.processdash.util.StringUtils;
 
 public class EVTimeErrConfidenceInterval extends DelegatingConfidenceInterval {
 
+    private boolean centered;
 
     public EVTimeErrConfidenceInterval(EVSchedule sched, boolean center) {
         this(Collections.singletonList(sched), true);
@@ -50,6 +51,8 @@ public class EVTimeErrConfidenceInterval extends DelegatingConfidenceInterval {
 
     public EVTimeErrConfidenceInterval(Collection<EVSchedule> schedules,
             boolean center) {
+        this.centered = center;
+
         AbstractConfidenceInterval interval = null;
         if (center)
             // if it is more important to reduce the bias of the resulting
@@ -98,6 +101,10 @@ public class EVTimeErrConfidenceInterval extends DelegatingConfidenceInterval {
         }
 
         interval.dataPointsComplete();
+    }
+
+    public boolean isCentered() {
+        return centered;
     }
 
     private static Collection<EVSchedule> getSchedulesForTaskLists(
