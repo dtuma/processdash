@@ -46,6 +46,8 @@
   <target name="sandia">
     <property name="teamProcess.xml" value="RUPv1.xml"/>
     <property name="teamProcess.zip" value="RUP-v1,0,0.zip"/>
+    <property name="teamProcess2.zip" value="TSP-v1.zip"/>
+    <property name="extraCore.xml" value="install/extraCore2.xml"/>
     <property name="install-flags" value="pspForEng"/>
     <property name="cd-qualifier" value="sandia"/>
   </target>
@@ -300,7 +302,8 @@ class dependency has been added in a dashboard class?)
     <loadfile property="extraIni" srcFile="install/custom-install.ini">
       <filterchain><expandproperties/></filterchain>
     </loadfile>
-    <loadfile property="extraCoreFiles" srcFile="install/extraCore.xml">
+    <property name="extraCore.xml" value="install/extraCore.xml"/>
+    <loadfile property="extraCoreFiles" srcFile="${extraCore.xml}">
       <filterchain><expandproperties/></filterchain>
     </loadfile>
     <property name="install-flags" value=""/>
@@ -355,6 +358,12 @@ class dependency has been added in a dashboard class?)
     </copy>
   </target>
 
+  <target name="sandia-depend" unless="noBuild.TSP">
+    <antcall target="TeamProcess">
+      <param name="teamProcess.xml" value="tsp/settings.xml"/>
+    </antcall>
+  </target>
+
   <target name="vvis-dist">
     <!-- build version 1 of the VVGDP -->
     <antcall target="TeamProcess">
@@ -378,7 +387,7 @@ class dependency has been added in a dashboard class?)
   <target name="dist-all" depends="installer-cd"/>
   <target name="os-dist" depends="installer-cd"/>
   <target name="tsp-dist" depends="tsp,installer-cd"/>
-  <target name="sandia-dist" depends="sandia,installer-cd"/>
+  <target name="sandia-dist" depends="sandia,sandia-depend,installer-cd"/>
   <target name="davis-dist" depends="davis,installer-cd"/>
 
   <target name="signjar" if="env.TDKSPW">
