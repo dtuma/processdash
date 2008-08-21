@@ -74,6 +74,17 @@ public interface ResourceCollection extends ResourceCollectionInfo {
     public void deleteResource(String resourceName);
 
     /**
+     * Returns true if a lock should be obtained before modifying or deleting a
+     * particular resource.
+     * 
+     * @param resourceName
+     *                the name of a resource in the collection
+     * @return true if a lock must be obtained before modifying or deleting the
+     *         named resource
+     */
+    public boolean requiresWriteLock(String resourceName);
+
+    /**
      * Return an object that can be used to obtain a lock on this collection.
      */
     public Object getLockTarget();

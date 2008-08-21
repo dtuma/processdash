@@ -29,6 +29,7 @@ import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -152,6 +153,13 @@ public class FileResourceCollection implements ResourceCollection,
             throw new IOException("No backup made since restart");
     }
 
+    public boolean requiresWriteLock(String resourceName) {
+        FilenameFilter unlocked = strategy.getUnlockedFilter();
+        if (unlocked == null)
+            return true;
+        else
+            return !unlocked.accept(null, resourceName);
+    }
 
     public Object getLockTarget() {
         return new File(directory, strategy.getLockFilename());

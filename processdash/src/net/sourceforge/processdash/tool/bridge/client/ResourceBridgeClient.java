@@ -308,6 +308,27 @@ public class ResourceBridgeClient implements ResourceBridgeConstants {
         }
     }
 
+    /**
+     * Save a single file to the server.
+     * 
+     * @param remoteUrl the url of the team server
+     * @param resourceName the name of the resource to save the data as
+     * @param data the data to save to the server
+     * @return the checksum of the file, as written to the server
+     * @throws IOException if an IO error occurs
+     * @throws LockFailureException if the team server rejects the request
+     *      because a lock is required.
+     */
+    public static Long uploadSingleFile(URL remoteUrl, String resourceName,
+            InputStream data) throws IOException,
+            LockFailureException {
+        byte[] response = doPostRequest(remoteUrl, null, UPLOAD_ACTION,
+            resourceName, data);
+        ResourceCollectionInfo remoteList = XmlCollectionListing
+                .parseListing(new ByteArrayInputStream(response));
+        return remoteList.getChecksum(resourceName);
+    }
+
     private boolean isSyncDownOnly(String resourceName) {
         return (syncDownOnlyFiles != null
                 && syncDownOnlyFiles.accept(null, resourceName));
@@ -431,6 +452,12 @@ public class ResourceBridgeClient implements ResourceBridgeConstants {
 
     private void doPostRequest(String action, Object... params)
             throws IOException, LockFailureException {
+        doPostRequest(new URL(remoteUrl), userName, action, params);
+    }
+
+    private static byte[] doPostRequest(URL remoteUrl, String userName,
+            String action, Object... params) throws IOException,
+            LockFailureException {
         ClientHttpRequest request = new ClientHttpRequest(remoteUrl);
         request.setParameter(VERSION_PARAM, CLIENT_VERSION);
         request.setParameter(ACTION_PARAM, action);
@@ -438,7 +465,7 @@ public class ResourceBridgeClient implements ResourceBridgeConstants {
             request.setParameter(EXTRA_INFO_PARAM, userName);
         try {
             InputStream in = request.post(params);
-            FileUtils.slurpContents(in, true);
+            return FileUtils.slurpContents(in, true);
         } catch (IOException ioe) {
             checkForLockException(request.getConnection());
             throw ioe;
@@ -461,8 +488,8 @@ public class ResourceBridgeClient implements ResourceBridgeConstants {
      *                 if an error occurred when attempting to examine the
      *                 response headers
      */
-    private void checkForLockException(URLConnection conn) throws IOException,
-            LockFailureException {
+    private static void checkForLockException(URLConnection conn)
+            throws IOException, LockFailureException {
         if (conn instanceof HttpURLConnection) {
             HttpURLConnection http = (HttpURLConnection) conn;
             int code = http.getResponseCode();

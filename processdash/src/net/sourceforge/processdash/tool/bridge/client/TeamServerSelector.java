@@ -55,6 +55,24 @@ public class TeamServerSelector {
      *         that directory
      */
     public static URL getServerURL(File dir) {
+        return getServerURL(dir, null);
+    }
+
+    /**
+     * Look in a particular real directory, and see if its contents are
+     * available through one or more team servers. If so, return the URL of the
+     * server which appears to be closest / most responsive, and which is
+     * running a particular minimum version of the software.
+     * 
+     * @param dir
+     *                a directory on the filesystem
+     * @param minVersion
+     *                the minimum acceptable version number of the server
+     *                software
+     * @return the URL of a team server data collection representing the data in
+     *         that directory
+     */
+    public static URL getServerURL(File dir, String minVersion) {
         if (Boolean.getBoolean(DISABLE_TEAM_SERVER_PROPERTY))
             return null;
 
@@ -66,7 +84,7 @@ public class TeamServerSelector {
         for (String serverURL : pointerFile.getInstanceURLs()) {
             long start = System.currentTimeMillis();
 
-            URL u = testServerURL(serverURL);
+            URL u = testServerURL(serverURL, minVersion);
             if (u == null) {
                 logger.log(Level.FINE,
                     "IOxception when contacting {0} - skipping", serverURL);
@@ -97,6 +115,25 @@ public class TeamServerSelector {
      *         Otherwise, returns null.
      */
     public static URL testServerURL(String serverURL) {
+        return testServerURL(serverURL, null);
+    }
+
+    /**
+     * Validate that a given URL points to a team dashboard server running
+     * a particular minimum version of the software
+     * 
+     * @param serverURL
+     *                the URL to validate, in string form
+     * @param minVersion
+     *                the minimum acceptable version number of the server
+     *                software
+     * @return if validation was successful, returns the original URL.
+     *         Otherwise, returns null.
+     */
+    public static URL testServerURL(String serverURL, String minVersion) {
+        if (serverURL == null || serverURL.trim().length() == 0)
+            return null;
+
         if (Boolean.getBoolean(DISABLE_TEAM_SERVER_PROPERTY))
             return null;
 
@@ -123,7 +160,13 @@ public class TeamServerSelector {
 
             // make certain we're talking to a dashboard team server, and not
             // some other random web server.
-            if (conn.getHeaderField(ResourceBridgeConstants.VERSION_HEADER) == null)
+            String version = conn.getHeaderField(
+                    ResourceBridgeConstants.VERSION_HEADER);
+            if (version == null)
+                return null;
+
+            // if a minimum version number was stated, check that constraint
+            if (minVersion != null && compareVersions(version, minVersion) < 0)
                 return null;
 
             return new URL(serverURL);
@@ -134,4 +177,17 @@ public class TeamServerSelector {
         }
     }
 
+    private static int compareVersions(String a, String b) {
+        return normalizeVersion(a).compareTo(normalizeVersion(b));
+    }
+
+    private static String normalizeVersion(String version) {
+        StringBuffer result = new StringBuffer();
+        for (String component : version.split("\\.")) {
+            for (int i = component.length();  i < 5;  i++)
+                result.append('0');
+            result.append(component).append('.');
+        }
+        return result.toString();
+    }
 }

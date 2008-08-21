@@ -26,6 +26,7 @@ package net.sourceforge.processdash.tool.export.impl;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -50,7 +51,6 @@ import net.sourceforge.processdash.tool.export.mgr.Cancellable;
 import net.sourceforge.processdash.tool.export.mgr.CompletionStatus;
 import net.sourceforge.processdash.tool.export.mgr.ExportFileEntry;
 import net.sourceforge.processdash.util.HTMLUtils;
-import net.sourceforge.processdash.util.RobustFileOutputStream;
 import net.sourceforge.processdash.util.StringUtils;
 import net.sourceforge.processdash.util.ThreadThrottler;
 import net.sourceforge.processdash.util.XMLUtils;
@@ -75,7 +75,7 @@ public class ArchiveMetricsFileExporter implements Runnable,
 
     private DashboardContext ctx;
 
-    private File dest;
+    private ExportFileStream dest;
 
     private Collection filter;
 
@@ -85,8 +85,6 @@ public class ArchiveMetricsFileExporter implements Runnable,
 
     private List additionalEntries;
 
-    private RobustFileOutputStream outStream;
-
     private CompletionStatus completionStatus = CompletionStatus.NOT_RUN_STATUS;
 
     private static final Logger logger = Logger
@@ -95,14 +93,14 @@ public class ArchiveMetricsFileExporter implements Runnable,
 
     public ArchiveMetricsFileExporter(DashboardContext ctx, File dest,
             Collection filter) {
-        this(ctx, dest, filter, null, null, null);
+        this(ctx, dest, null, filter, null, null, null);
     }
 
     public ArchiveMetricsFileExporter(DashboardContext ctx, File dest,
-            Collection filter, List metricsIncludes, List metricsExcludes,
-            List additionalEntries) {
+            String url, Collection filter, List metricsIncludes,
+            List metricsExcludes, List additionalEntries) {
         this.ctx = ctx;
-        this.dest = dest;
+        this.dest = new ExportFileStream(url, dest);
         this.filter = filter;
         this.metricsIncludes = metricsIncludes;
         this.metricsExcludes = metricsExcludes;
@@ -114,22 +112,17 @@ public class ArchiveMetricsFileExporter implements Runnable,
     }
 
     public void tryCancel() {
-        RobustFileOutputStream os = outStream;
-        if (os != null) {
-            try {
-                os.abort();
-            } catch (Exception e) {}
-        }
+        dest.abort();
     }
 
     public void run() {
         try {
             doExport();
             completionStatus = new CompletionStatus(CompletionStatus.SUCCESS,
-                    dest, null);
+                    dest.getTarget(), null);
         } catch (Exception ioe) {
             completionStatus = new CompletionStatus(CompletionStatus.ERROR,
-                    dest, ioe);
+                    dest.getTarget(), ioe);
             ioe.printStackTrace();
             tryCancel();
         }
@@ -138,7 +131,7 @@ public class ArchiveMetricsFileExporter implements Runnable,
     }
 
     private void doExport() throws IOException {
-        outStream = new RobustFileOutputStream(dest, false);
+        OutputStream outStream = dest.getOutputStream();
         ZipOutputStream zipOut = new ZipOutputStream(new BufferedOutputStream(
                 outStream));
 
@@ -152,7 +145,7 @@ public class ArchiveMetricsFileExporter implements Runnable,
         writeManifest(zipOut, !taskListNames.isEmpty());
 
         zipOut.close();
-        outStream = null;
+        dest.finish();
     }
 
     private void writeManifest(ZipOutputStream zipOut, boolean includeTaskLists)

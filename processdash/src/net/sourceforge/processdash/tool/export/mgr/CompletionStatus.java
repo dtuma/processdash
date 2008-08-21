@@ -1,4 +1,4 @@
-// Copyright (C) 2006 Tuma Solutions, LLC
+// Copyright (C) 2006-2008 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -23,6 +23,8 @@
 
 package net.sourceforge.processdash.tool.export.mgr;
 
+import java.util.EventObject;
+
 public class CompletionStatus {
 
     /** Interface that is implemented by objects which are capable of
@@ -31,6 +33,25 @@ public class CompletionStatus {
     public interface Capable {
         /** Return the completion status of an operation (never null). */
         public CompletionStatus getCompletionStatus();
+    }
+
+    /** Interface that is implemented by objects which are interested in
+     * hearing the results of a CompletionStatus.Capable event. */
+    public interface Listener {
+        public void completionStatusReady(Event event);
+    }
+
+    /** Event object used by the Listener interface above */
+    public static class Event extends EventObject {
+
+        public Event(Capable source) {
+            super(source);
+        }
+
+        @Override
+        public Capable getSource() {
+            return (Capable) super.getSource();
+        }
     }
 
     public static final String NOT_RUN = "Not_Run";

@@ -42,6 +42,7 @@ import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.ImmutableDoubleData;
 import net.sourceforge.processdash.data.ListData;
 import net.sourceforge.processdash.data.SimpleData;
+import net.sourceforge.processdash.data.StringData;
 import net.sourceforge.processdash.data.repository.DataNameFilter;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.data.repository.InvalidDatafileFormat;
@@ -51,6 +52,7 @@ import net.sourceforge.processdash.tool.export.DataImporter;
 import net.sourceforge.processdash.tool.export.impl.ArchiveMetricsFileExporter;
 import net.sourceforge.processdash.tool.export.impl.TextMetricsFileExporter;
 import net.sourceforge.processdash.ui.lib.ProgressDialog;
+import net.sourceforge.processdash.util.StringUtils;
 import net.sourceforge.processdash.util.XMLUtils;
 
 import org.w3c.dom.Element;
@@ -72,6 +74,8 @@ public class ExportManager extends AbstractManager {
 
     private static final String EXPORT_INSTRUCTIONS_SUFFIX = "/Instructions";
     private static final String EXPORT_DISABLED_SUFFIX = "/Disabled";
+    private static final String EXPORT_URL_SUFFIX = "/Server_Url";
+    private static final String DATANAME_ATTR = "_Instruction_Data_Name";
 
     private static ExportManager INSTANCE = null;
 
@@ -166,12 +170,32 @@ public class ExportManager extends AbstractManager {
 
     private InstructionRemover instructionRemover = new InstructionRemover();
 
+    private class InstructionUpdater implements ExportInstructionDispatcher {
+
+        public Object dispatch(ExportMetricsFileInstruction instr) {
+            String dataName = instr.getAttribute(DATANAME_ATTR);
+            if (!StringUtils.hasValue(dataName)) return null;
+
+            String serverUrl = instr.getServerUrl();
+            if (!StringUtils.hasValue(serverUrl)) return null;
+
+            String urlDataname = dataName + EXPORT_URL_SUFFIX;
+            data.userPutValue(urlDataname, StringData.create(serverUrl));
+
+            return null;
+        }
+
+    }
+
+    private InstructionUpdater instructionUpdater = new InstructionUpdater();
+
     private class InstructionExecutorFactory implements
             ExportInstructionDispatcher {
 
         public Object dispatch(ExportMetricsFileInstruction instr) {
             String dest = instr.getFile();
             dest = ExternalResourceManager.getInstance().remapFilename(dest);
+            String url = instr.getServerUrl();
             Vector paths = instr.getPaths();
 
             File destFile = new File(dest);
@@ -180,9 +204,9 @@ public class ExportManager extends AbstractManager {
                         dashboard, destFile, paths));
             else
                 return new ExportTask(destFile, new ArchiveMetricsFileExporter(
-                        dashboard, destFile, paths, instr.getMetricsIncludes(),
-                        instr.getMetricsExcludes(),
-                        instr.getAdditionalFileEntries()));
+                        dashboard, destFile, url, paths,
+                        instr.getMetricsIncludes(), instr.getMetricsExcludes(),
+                        instr.getAdditionalFileEntries()), instr);
         }
 
     }
@@ -190,7 +214,27 @@ public class ExportManager extends AbstractManager {
     private InstructionExecutorFactory instructionExecutorFactory = new InstructionExecutorFactory();
 
     public Runnable getExporter(AbstractInstruction instr) {
-        return (Runnable) instr.dispatch(instructionExecutorFactory);
+        if (instr == null)
+            return null;
+        else
+            return (Runnable) instr.dispatch(instructionExecutorFactory);
+    }
+
+    public CompletionStatus exportDataForPrefix(String prefix) {
+        String dataName = DataRepository.createDataName(prefix,
+            ExportManager.EXPORT_DATANAME);
+        AbstractInstruction instr = getExportInstructionFromData(dataName);
+        Runnable task = getExporter(instr);
+        if (task == null)
+            return new CompletionStatus(CompletionStatus.NO_WORK_NEEDED,
+                    null, null);
+
+        task.run();
+
+        if (task instanceof CompletionStatus.Capable)
+            return ((CompletionStatus.Capable) task).getCompletionStatus();
+
+        return new CompletionStatus(CompletionStatus.SUCCESS, null, null);
     }
 
     public void exportAll(Object window, DashboardContext parent) {
@@ -318,7 +362,7 @@ public class ExportManager extends AbstractManager {
         return result;
     }
 
-    public AbstractInstruction getExportInstructionFromData(String name) {
+    private AbstractInstruction getExportInstructionFromData(String name) {
         if (!name.endsWith("/"+EXPORT_DATANAME))
             return null;
         SimpleData dataVal = data.getSimpleValue(name);
@@ -331,8 +375,9 @@ public class ExportManager extends AbstractManager {
         Vector filter = new Vector();
         filter.add(path);
 
-        AbstractInstruction instr = new ExportMetricsFileInstruction(
+        ExportMetricsFileInstruction instr = new ExportMetricsFileInstruction(
                 filename, filter);
+        instr.setAttribute(DATANAME_ATTR, name);
 
         String instrDataname = name + EXPORT_INSTRUCTIONS_SUFFIX;
         SimpleData instrVal = data.getSimpleValue(instrDataname);
@@ -343,6 +388,11 @@ public class ExportManager extends AbstractManager {
         SimpleData disableVal = data.getSimpleValue(disableDataname);
         if (disableVal != null && disableVal.test())
             instr.setEnabled(false);
+
+        String urlDataname = name + EXPORT_URL_SUFFIX;
+        SimpleData urlVal = data.getSimpleValue(urlDataname);
+        if (urlVal != null && urlVal.test())
+            instr.setServerUrl(urlVal.format());
 
         return instr;
     }
@@ -437,9 +487,20 @@ public class ExportManager extends AbstractManager {
 
         private Runnable target;
 
+        private AbstractInstruction instr;
+
+        private int origHashCode;
+
         public ExportTask(File dest, Runnable target) {
+            this(dest, target, null);
+        }
+
+        public ExportTask(File dest, Runnable target, AbstractInstruction instr) {
             this.dest = dest;
             this.target = target;
+            this.instr = instr;
+            if (instr != null)
+                this.origHashCode = instr.hashCode();
             recordExportedFile(dest, CURRENT_EXPORTED_FILES_DATANAME);
         }
 
@@ -447,6 +508,7 @@ public class ExportManager extends AbstractManager {
             exportTaskStarting();
             target.run();
             exportTaskFinished();
+            maybeUpdateInstruction();
 
             // The file has been successfully exported. We can record it in the
             //  HISTORICAL list
@@ -512,6 +574,21 @@ public class ExportManager extends AbstractManager {
             }
         }
 
+        private void maybeUpdateInstruction() {
+            if (instr == null)
+                return;
+
+            if (instr instanceof CompletionStatus.Listener
+                    && target instanceof CompletionStatus.Capable) {
+                CompletionStatus.Listener l = (CompletionStatus.Listener) instr;
+                CompletionStatus.Capable t = (CompletionStatus.Capable) target;
+                l.completionStatusReady(new CompletionStatus.Event(t));
+            }
+
+            int finalHashCode = instr.hashCode();
+            if (finalHashCode != origHashCode)
+                instr.dispatch(instructionUpdater);
+        }
     }
 
     private static final Map EXPORT_TASKS_IN_PROGRESS = Collections

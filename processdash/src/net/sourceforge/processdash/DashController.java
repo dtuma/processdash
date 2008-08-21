@@ -40,7 +40,6 @@ import java.util.logging.Logger;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 
-import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.ev.EVTaskList;
 import net.sourceforge.processdash.ev.ui.TaskScheduleChooser;
 import net.sourceforge.processdash.hier.HierarchyAlterer;
@@ -51,7 +50,6 @@ import net.sourceforge.processdash.net.http.WebServer;
 import net.sourceforge.processdash.process.ui.TriggerURI;
 import net.sourceforge.processdash.security.DashboardPermission;
 import net.sourceforge.processdash.templates.ui.ImportTemplatePermissionDialog;
-import net.sourceforge.processdash.tool.export.mgr.AbstractInstruction;
 import net.sourceforge.processdash.tool.export.mgr.CompletionStatus;
 import net.sourceforge.processdash.tool.export.mgr.ExportManager;
 import net.sourceforge.processdash.tool.export.mgr.ImportDirectoryInstruction;
@@ -171,29 +169,14 @@ public class DashController {
         exportDataForPrefix(prefix);
     }
     public static CompletionStatus exportDataForPrefix(String prefix) {
-        String dataName = DataRepository.createDataName
-            (prefix, ExportManager.EXPORT_DATANAME);
-        AbstractInstruction instr = ExportManager.getInstance()
-                .getExportInstructionFromData(dataName);
-        Runnable task = null;
-        if (instr != null)
-            task = ExportManager.getInstance().getExporter(instr);
-        if (task == null)
-            return new CompletionStatus(CompletionStatus.NO_WORK_NEEDED,
-                    null, null);
+        CompletionStatus result = ExportManager.getInstance()
+                .exportDataForPrefix(prefix);
 
-        task.run();
+        if (result != null && result.getException() != null)
+            logger.log(Level.WARNING, "Error exporting data for '" + prefix
+                    + "'", result.getException());
 
-        if (task instanceof CompletionStatus.Capable) {
-            CompletionStatus result = ((CompletionStatus.Capable) task)
-                    .getCompletionStatus();
-            if (result != null && result.getException() != null)
-                logger.log(Level.WARNING, "Error exporting data for '" + prefix
-                        + "'", result.getException());
-            return result;
-        }
-
-        return new CompletionStatus(CompletionStatus.SUCCESS, null, null);
+        return result;
     }
 
     public static void exportAllData() {

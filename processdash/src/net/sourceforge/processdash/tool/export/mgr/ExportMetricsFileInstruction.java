@@ -1,4 +1,4 @@
-// Copyright (C) 2005-2007 Tuma Solutions, LLC
+// Copyright (C) 2005-2008 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -33,11 +33,14 @@ import net.sourceforge.processdash.util.XMLUtils;
 
 import org.w3c.dom.Element;
 
-public class ExportMetricsFileInstruction extends AbstractInstruction {
+public class ExportMetricsFileInstruction extends AbstractInstruction implements
+        CompletionStatus.Listener {
 
     private static final String TAG_NAME = "exportMetricsFile";
 
     private static final String FILE_ATTR = "file";
+
+    private static final String URL_ATTR = "serverUrl";
 
     private static final String PATHS_TAG = "paths";
 
@@ -129,6 +132,14 @@ public class ExportMetricsFileInstruction extends AbstractInstruction {
         setAttribute(FILE_ATTR, file);
     }
 
+    public String getServerUrl() {
+        return getAttribute(URL_ATTR);
+    }
+
+    public void setServerUrl(String url) {
+        setAttribute(URL_ATTR, url);
+    }
+
     public Vector getPaths() {
         return paths;
     }
@@ -186,6 +197,20 @@ public class ExportMetricsFileInstruction extends AbstractInstruction {
 
     public Object dispatch(ExportInstructionDispatcher dispatcher) {
         return dispatcher.dispatch(this);
+    }
+
+    public void completionStatusReady(CompletionStatus.Event event) {
+        CompletionStatus s = event.getSource().getCompletionStatus();
+        if (s.getStatus() != CompletionStatus.SUCCESS)
+            return;
+
+        Object target = s.getTarget();
+        if (target == null)
+            return;
+
+        String targetString = target.toString();
+        if (targetString.startsWith("http"))
+            setServerUrl(targetString);
     }
 
 
