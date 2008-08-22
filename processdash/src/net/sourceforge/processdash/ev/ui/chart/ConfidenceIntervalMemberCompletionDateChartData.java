@@ -39,7 +39,8 @@ public class ConfidenceIntervalMemberCompletionDateChartData extends
 
     public ConfidenceIntervalMemberCompletionDateChartData(
             ChartEventAdapter eventAdapter, EVTaskListRollup rollup) {
-        super(eventAdapter, 0, Long.MAX_VALUE >> 2);
+        super(eventAdapter, 0, ConfidenceIntervalCompletionDateChartData
+                .getMaxChartDate());
         this.rollup = rollup;
     }
 

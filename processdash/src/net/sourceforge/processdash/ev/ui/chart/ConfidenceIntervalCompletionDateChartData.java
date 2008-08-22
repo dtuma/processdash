@@ -33,7 +33,7 @@ public class ConfidenceIntervalCompletionDateChartData extends
 
     public ConfidenceIntervalCompletionDateChartData(
             ChartEventAdapter eventAdapter, EVMetrics evMetrics) {
-        super(eventAdapter, 0, Long.MAX_VALUE >> 2);
+        super(eventAdapter, 0, getMaxChartDate());
         this.evMetrics = evMetrics;
     }
 
@@ -49,4 +49,12 @@ public class ConfidenceIntervalCompletionDateChartData extends
         }
     }
 
+    private static final long HOUR_MILLIS =
+        60L /*minutes*/ * 60L /*seconds*/ * 1000L /*milliseconds*/;
+    private static final long DAY_MILLIS = 24L /*hours*/ * HOUR_MILLIS;
+    private static final long YEAR_MILLIS = 365L /*days*/ * DAY_MILLIS;
+    private static final long MAX_CHART_WIDTH = 50L /*years*/ * YEAR_MILLIS;
+    static long getMaxChartDate() {
+        return System.currentTimeMillis() + MAX_CHART_WIDTH;
+    }
 }
