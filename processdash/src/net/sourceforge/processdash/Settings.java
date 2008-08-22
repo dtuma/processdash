@@ -23,6 +23,8 @@
 
 package net.sourceforge.processdash;
 
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.util.Enumeration;
 import java.util.Properties;
 import java.util.StringTokenizer;
@@ -64,8 +66,13 @@ public class Settings {
             settings = newSettings;
     }
 
-    public static String getVal(String name) {
-        String result = System.getProperty(SYS_PROP_PREFIX + name);
+    public static String getVal(final String name) {
+        String result = AccessController.doPrivileged(
+            new PrivilegedAction<String>() {
+                public String run() {
+                    return System.getProperty(SYS_PROP_PREFIX + name);
+                }});
+
         if (result != null)
             return result;
 
