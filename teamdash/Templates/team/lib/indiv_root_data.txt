@@ -11,6 +11,7 @@
 [EXPORT_FILE] = 
     iff([Team_Data_Directory] == "", "",
         [Team_Data_Directory] & [file_sep] & [Indiv_Initials] & "-data.pdash");
+[EXPORT_FILE/Server_URL] = [Team_Data_Directory_URL];
 [EXPORT_FILE/Instructions] = iff(
     [Exporting_Namespaced_Phase_Metrics],
         "file:/<!--#echo Process_ID -->/metricsExportFilter.xml",
