@@ -74,7 +74,7 @@ public class ExportManager extends AbstractManager {
 
     private static final String EXPORT_INSTRUCTIONS_SUFFIX = "/Instructions";
     private static final String EXPORT_DISABLED_SUFFIX = "/Disabled";
-    private static final String EXPORT_URL_SUFFIX = "/Server_Url";
+    private static final String EXPORT_URL_SUFFIX = "/Server_URL";
     private static final String DATANAME_ATTR = "_Instruction_Data_Name";
 
     private static ExportManager INSTANCE = null;
