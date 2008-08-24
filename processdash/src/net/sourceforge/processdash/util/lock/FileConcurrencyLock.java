@@ -531,6 +531,7 @@ public class FileConcurrencyLock implements ConcurrencyLock {
         }
 
         public void run() {
+            boolean nativeReassertNeeded = false;
             setCheckInterval(60);
 
             while (isRunning) {
@@ -546,13 +547,22 @@ public class FileConcurrencyLock implements ConcurrencyLock {
                         long start = System.currentTimeMillis();
                         synchronized (FileConcurrencyLock.this) {
                             if (isRunning == false) break;
-                            assertLock(false);
+                            assertLock(nativeReassertNeeded);
                         }
                         long end = System.currentTimeMillis();
                         logger.log(Level.FINEST, "assertValidity took {0} ms",
                                 new Long(end-start));
+                        nativeReassertNeeded = false;
                         setCheckInterval(60);
                     } catch (LockUncertainException lue) {
+                        // the "lock uncertain" exception indicates that we
+                        // were momentarily unable to see the directory
+                        // containing the lock file.  This problem is typical
+                        // of broken network connectivity - which can also
+                        // cause us to lose the native lock.  So when this
+                        // problem occurs, we'll try to reassert the native
+                        // lock at our next opportunity.
+                        nativeReassertNeeded = true;
                         setCheckInterval(20);
                     } catch (Exception e) {
                         try {

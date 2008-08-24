@@ -77,11 +77,7 @@ public class LocalWorkingDirectory extends AbstractWorkingDirectory implements
 
     private boolean shouldMonitorWriteLock(File lockFile) {
         String setting = System.getProperty(MONITOR_WRITE_LOCK_USER_SETTING);
-        if ("true".equalsIgnoreCase(setting))
-            return true;
-        else if ("false".equalsIgnoreCase(setting))
-            return false;
-        else if (lockFile.getAbsolutePath().toLowerCase().startsWith("c:"))
+        if ("false".equalsIgnoreCase(setting))
             return false;
         else
             return true;
