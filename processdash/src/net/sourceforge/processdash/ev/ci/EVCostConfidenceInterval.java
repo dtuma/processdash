@@ -106,10 +106,12 @@ public class EVCostConfidenceInterval extends DelegatingConfidenceInterval
     @Override
     public double getRandomValue(RandomEngine u) {
         double result;
-        do {
+        for (int trialCount = 20;  trialCount-- > 0; ) {
             result = super.getRandomValue(u);
-        } while (result <= 0);
-        return result;
+            if (result >= 0 || Double.isNaN(result))
+                return result;
+        }
+        return 0;
     }
 
 
