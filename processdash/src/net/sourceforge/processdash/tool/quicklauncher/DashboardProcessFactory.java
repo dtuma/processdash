@@ -49,6 +49,10 @@ abstract class DashboardProcessFactory {
             vmArgs.remove(arg);
     }
 
+    public boolean hasVmArg(String arg) {
+        return (vmArgs != null && arg != null && vmArgs.contains(arg));
+    }
+
     public abstract Process launchDashboard(File pspdataDir, List extraVmArgs,
             List extraArgs) throws Exception;
 

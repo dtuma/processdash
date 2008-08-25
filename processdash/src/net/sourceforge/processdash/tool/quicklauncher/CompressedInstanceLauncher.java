@@ -59,6 +59,8 @@ public class CompressedInstanceLauncher extends DashboardInstance {
             + AbstractWorkingDirectory.NO_PROCESS_LOCK_PROPERTY + "=true";
     private static final String DISABLE_TEAM_SERVER = "-D"
             + TeamServerSelector.DISABLE_TEAM_SERVER_PROPERTY + "=true";
+    private static final String READ_WRITE_ARG = "-D"
+            + Settings.SYS_PROP_PREFIX + "readOnly=false";
 
     private File compressedData;
 
@@ -93,6 +95,8 @@ public class CompressedInstanceLauncher extends DashboardInstance {
         if (dataTimeStamp > 0)
             vmArgs.add("-D" + Settings.SYS_PROP_PREFIX + "ev.effectiveDate="
                     + dataTimeStamp);
+        if (processFactory.hasVmArg("-DreadOnly=true") == false)
+            vmArgs.add(READ_WRITE_ARG);
 
         launchApp(processFactory, vmArgs, pspdataDir);
 
