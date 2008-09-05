@@ -104,10 +104,10 @@ public class ExportFileStream {
         if (serverUrl != null)
             return serverUrl;
 
-        if (directFile.canWrite())
-            return directFile;
-        else
+        if (directFile.exists() && !directFile.canWrite())
             throw new FileNotFoundException(directFile.getPath());
+
+        return directFile;
     }
 
     public void finish() throws IOException {
