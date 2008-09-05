@@ -27,19 +27,22 @@ package net.sourceforge.processdash.ui.lib;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dialog;
+import java.awt.Dimension;
 import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Vector;
-import javax.swing.event.ChangeListener;
-import javax.swing.event.ChangeEvent;
 
+import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
+import javax.swing.SwingUtilities;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 
 /** A useful class which displays a dialog box with a progress bar,
@@ -83,11 +86,15 @@ public class ProgressDialog extends JDialog {
     }
     private void init(Component parent, String message) {
         setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
+        JPanel dialogContents = new JPanel(new BorderLayout(5, 5));
+        dialogContents.setBorder(BorderFactory.createEmptyBorder(5,5,5,5));
+        getContentPane().add(dialogContents);
+
         if (message == null) message = "Please wait...";
         messageLabel = new JLabel(message);
         progressBar = new JProgressBar();
-        getContentPane().add(messageLabel, BorderLayout.NORTH);
-        getContentPane().add(progressBar,  BorderLayout.CENTER);
+        dialogContents.add(messageLabel, BorderLayout.NORTH);
+        dialogContents.add(progressBar,  BorderLayout.CENTER);
 
         closeButton = new JButton("Cancel");
         closeButton.addActionListener(new ActionListener() {
@@ -99,7 +106,7 @@ public class ProgressDialog extends JDialog {
             }});
         closePanel = borderComponent(closeButton);
         closePanel.setVisible(false);
-        getContentPane().add(closePanel, BorderLayout.SOUTH);
+        dialogContents.add(closePanel, BorderLayout.SOUTH);
 
         pack();
         setLocationRelativeTo(parent);
@@ -119,13 +126,7 @@ public class ProgressDialog extends JDialog {
         horizBox.add(Box.createHorizontalGlue());
         horizBox.add(comp);
         horizBox.add(Box.createHorizontalGlue());
-
-        Box vertBox = Box.createVerticalBox();
-        vertBox.add(Box.createVerticalStrut(5));
-        vertBox.add(horizBox);
-        vertBox.add(Box.createVerticalStrut(5));
-
-        return vertBox;
+        return horizBox;
     }
 
     /** Add a task for this dialog to perform.
@@ -176,7 +177,7 @@ public class ProgressDialog extends JDialog {
         progressBar.setMaximum(tasks.size() * 100);
         WorkThread w = new WorkThread();
         w.start();
-        show();         // this will block until the work thread finishes
+        setVisible(true);   // this will block until the work thread finishes
     }
 
 
@@ -189,13 +190,33 @@ public class ProgressDialog extends JDialog {
         else {
             messageLabel.setText(completionMessage);
 
-            getContentPane().remove(progressBar);
+            progressBar.setValue(progressBar.getMaximum());
             closeButton.setText(closeText);
             closePanel.setVisible(true);
             setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
             invalidate();
-            pack();
+            Dimension d = getSize();
+            Dimension p = getPreferredSize();
+            d.height = Math.max(d.height, p.height);
+            d.width = Math.max(d.width, p.width);
+            setSize(d);
         }
+    }
+
+    private void invokeOnSwingThread(Runnable r) {
+        try {
+            SwingUtilities.invokeAndWait(r);
+        } catch (Exception ie) {}
+    }
+
+    private void updateProgressBar(final int value, final String msg) {
+        invokeOnSwingThread(new Runnable() {
+            public void run() {
+                progressBar.setValue(value);
+                progressBar.setString(msg);
+                progressBar.setStringPainted(msg != null);
+            }
+        });
     }
 
     private class WorkThread extends Thread implements ChangeListener {
@@ -204,24 +225,28 @@ public class ProgressDialog extends JDialog {
 
         public void run() {
             running = true;
-            for (i = 0;   i < tasks.size();   progressBar.setValue(++i*100)) {
+            for (i = 0;   i < tasks.size();   ++i) {
                 if (cancelled)
                     break;
 
                 try {
                     task = (Runnable) tasks.get(i);
+                    String msg = null;
                     if (task instanceof Task) {
-                        String msg = ((Task) task).getMessage();
-                        progressBar.setString(msg);
-                        progressBar.setStringPainted(msg != null);
-
+                        msg = ((Task) task).getMessage();
                         ((Task) task).addChangeListener(this);
                     }
+                    updateProgressBar(i * 100, msg);
                     task.run();
                 } catch (Throwable t) { }
             }
+            updateProgressBar(tasks.size() * 100, null);
             running = false;
-            finished();
+            invokeOnSwingThread(new Runnable() {
+                public void run() {
+                    finished();
+                }
+            });
         }
 
         public void stateChanged(ChangeEvent e) {
@@ -230,11 +255,9 @@ public class ProgressDialog extends JDialog {
 
             try {
                 int percent = ((Task) task).getPercentComplete() % 100;
-                progressBar.setValue(i*100 + percent);
-
                 String msg = ((Task) task).getMessage();
-                progressBar.setStringPainted(msg != null);
-                progressBar.setString(msg);
+
+                updateProgressBar(i*100 + percent, msg);
             } catch (Exception ex) {}
         }
     }
