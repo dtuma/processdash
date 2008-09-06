@@ -53,12 +53,6 @@ public abstract class EVXYToolTipGenerator extends StandardXYToolTipGenerator {
         super(tooltipFormat, xFormat, yFormat);
     }
 
-    protected static NumberFormat getNumberFormat() {
-        NumberFormat result = NumberFormat.getInstance();
-        result.setMaximumFractionDigits(1);
-        return result;
-    }
-
     @Override
     protected Object[] createItemArray(XYDataset dataset, int series,
             int item) {

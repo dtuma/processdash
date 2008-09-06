@@ -29,6 +29,7 @@ import java.text.NumberFormat;
 import java.text.ParsePosition;
 
 import net.sourceforge.processdash.i18n.Resources;
+import net.sourceforge.processdash.util.FormatUtil;
 
 public class ConfidenceIntervalToolTipGenerator extends EVXYToolTipGenerator {
 
@@ -38,7 +39,7 @@ public class ConfidenceIntervalToolTipGenerator extends EVXYToolTipGenerator {
     protected static final String TOOLTIP_FORMAT = "{0} {2} = {1}";
 
     public ConfidenceIntervalToolTipGenerator() {
-        this(getNumberFormat());
+        this(FormatUtil.getOneFractionDigitNumberFormat());
     }
 
     public ConfidenceIntervalToolTipGenerator(NumberFormat xFormat) {

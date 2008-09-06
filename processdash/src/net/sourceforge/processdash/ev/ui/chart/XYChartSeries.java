@@ -23,11 +23,8 @@
 
 package net.sourceforge.processdash.ev.ui.chart;
 
-/**
- * Basic interface for JFreeChart series
- */
 public interface XYChartSeries {
-    /** Returns the ID of the specified series (zero-based). */
+    /** Returns the key of the specified series */
     String getSeriesKey();
     /** Returns the number of items in the specified series */
     int getItemCount();

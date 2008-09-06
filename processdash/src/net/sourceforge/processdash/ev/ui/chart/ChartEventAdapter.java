@@ -28,10 +28,10 @@ package net.sourceforge.processdash.ev.ui.chart;
  * Class used to listen to changes in a chart underlying data model.
  */
 public abstract class ChartEventAdapter {
-    protected XYChartData chartData = null;
+    protected ChartDataEventRecalcHelper chartDataRecalcHelper = null;
 
-    public void setChartData(XYChartData chartData) {
-        this.chartData = chartData;
+    public void setChartData(ChartDataEventRecalcHelper chartDataRecalcHelper) {
+        this.chartDataRecalcHelper = chartDataRecalcHelper;
     }
 
     public abstract void registerForUnderlyingDataEvents();

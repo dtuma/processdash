@@ -42,8 +42,6 @@ import javax.swing.table.TableModel;
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.ListData;
 import net.sourceforge.processdash.ev.ui.chart.ChartEventAdapter;
-import net.sourceforge.processdash.ev.ui.chart.ConfidenceIntervalChartData;
-import net.sourceforge.processdash.ev.ui.chart.ConfidenceIntervalChartSeries;
 import net.sourceforge.processdash.ev.ui.chart.ConfidenceIntervalCompletionDateChartData;
 import net.sourceforge.processdash.ev.ui.chart.ConfidenceIntervalTotalCostChartData;
 import net.sourceforge.processdash.ev.ui.chart.XYChartData;
@@ -1547,7 +1545,7 @@ public class EVSchedule implements TableModel {
         public void registerForUnderlyingDataEvents() { addTableModelListener(this); }
         public void deregisterForUnderlyingDataEvents() { removeTableModelListener(this); }
 
-        public void tableChanged(TableModelEvent e) { chartData.dataChanged(); }
+        public void tableChanged(TableModelEvent e) { chartDataRecalcHelper.dataChanged(); }
     }
 
     private class PlanTimeSeries extends PlanChartSeries {
@@ -1575,17 +1573,17 @@ public class EVSchedule implements TableModel {
         ForecastChartSeries forecast;
         @Override
         public void recalc() {
-            series.clear();
+            clearSeries();
             recalcBaseline();
-            series.add(plan);
-            series.add(actual);
+            maybeAddSeries(plan);
+            maybeAddSeries(actual);
             recalcForecast();
         }
         private void recalcBaseline() {
             if (baselineSnapshot != null) {
                 EVSchedule baselineSchedule = baselineSnapshot.getTaskList()
                         .getSchedule();
-                series.add(baselineSchedule.getBaselineTimeSeries());
+                maybeAddSeries(baselineSchedule.getBaselineTimeSeries());
             }
         }
         private void recalcForecast() {
@@ -1641,13 +1639,13 @@ public class EVSchedule implements TableModel {
         ActualValueSeries actual;
         @Override
         public void recalc() {
-            series.clear();
+            clearSeries();
             double mult = 100.0 / totalPlan();
             if (Double.isInfinite(mult)) mult = 0;
             plan.mult = actual.mult = mult;
             recalcBaseline(mult);
-            series.add(plan);
-            series.add(actual);
+            maybeAddSeries(plan);
+            maybeAddSeries(actual);
             recalcForecast(new Double(getLast().cumEarnedValue * mult),
                            new Double(getLast().cumPlanValue * mult));
         }
@@ -1655,7 +1653,7 @@ public class EVSchedule implements TableModel {
             if (baselineSnapshot != null) {
                 EVSchedule baselineSchedule = baselineSnapshot.getTaskList()
                         .getSchedule();
-                series.add(baselineSchedule.getBaselineValueSeries(mult));
+                maybeAddSeries(baselineSchedule.getBaselineValueSeries(mult));
             }
         }
         protected void recalcForecast(Double currentYVal, Double forecastYVal) {
@@ -1677,13 +1675,13 @@ public class EVSchedule implements TableModel {
     private class CombinedChartData extends XYChartData {
         public CombinedChartData(ChartEventAdapter eventAdapter) {
             super(eventAdapter);
-            series.add(new PlanValueSeries(1.0 / 60.0) {
+            maybeAddSeries(new PlanValueSeries(1.0 / 60.0) {
                     @Override
                     public String getSeriesKey() { return "Plan_Value"; }});
-            series.add(new ActualValueSeries(1.0 / 60.0) {
+            maybeAddSeries(new ActualValueSeries(1.0 / 60.0) {
                     @Override
                     public String getSeriesKey() { return "Actual_Value"; }});
-            series.add(new ActualCostSeries() {
+            maybeAddSeries(new ActualCostSeries() {
                     @Override
                     public String getSeriesKey() { return "Actual_Cost"; }});
         }

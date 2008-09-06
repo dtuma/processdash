@@ -392,22 +392,9 @@ public class StandardDiscItemRenderer implements DiscItemRenderer {
         Comparable key = dataset.getKey(item);
         Paint discPaint = lookupDiscPaint(key, true);
 
-        g2.setPaint(discPaint);
-        g2.fill(shape);
-
-        Paint labelPaint = lookupLabelPaint(key, discPaint);
-        Font labelFont = plot.getLabelFont();
-        String label = lookupDiscLabel(dataset, key);
-        if (labelPaint != null && labelFont != null && label != null) {
-            drawDiscLabel(g2, shape, labelPaint, labelFont, label);
-        }
-
-        Paint outlinePaint = lookupOutlinePaint(key);
-        Stroke stroke = lookupOutlineStroke(key);
-        if (outlinePaint != null && stroke != null) {
-            g2.setPaint(outlinePaint);
-            g2.draw(shape);
-        }
+        drawDisc(g2, shape, discPaint, item);
+        drawLabel(g2, plot, dataset, shape, key, discPaint);
+        drawOutline(g2, shape, key);
 
         if (info != null) {
             EntityCollection entities = state.getEntityCollection();
@@ -428,6 +415,30 @@ public class StandardDiscItemRenderer implements DiscItemRenderer {
             }
         }
 
+    }
+
+    protected void drawOutline(Graphics2D g2, Ellipse2D shape, Comparable key) {
+        Paint outlinePaint = lookupOutlinePaint(key);
+        Stroke outlineStroke = lookupOutlineStroke(key);
+        if (outlinePaint != null && outlineStroke != null) {
+            g2.setPaint(outlinePaint);
+            g2.draw(shape);
+        }
+    }
+
+    protected void drawLabel(Graphics2D g2, DiscPlot plot, PieDataset dataset,
+            Ellipse2D shape, Comparable key, Paint discPaint) {
+        Paint labelPaint = lookupLabelPaint(key, discPaint);
+        Font labelFont = plot.getLabelFont();
+        String label = lookupDiscLabel(dataset, key);
+        if (labelPaint != null && labelFont != null && label != null) {
+            drawDiscLabel(g2, shape, labelPaint, labelFont, label);
+        }
+    }
+
+    protected void drawDisc(Graphics2D g2, Ellipse2D shape, Paint discPaint, int item) {
+        g2.setPaint(discPaint);
+        g2.fill(shape);
     }
 
     protected void drawDiscLabel(Graphics2D g2, Ellipse2D shape,

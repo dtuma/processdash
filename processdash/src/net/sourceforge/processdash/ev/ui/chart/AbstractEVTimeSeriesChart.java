@@ -26,6 +26,7 @@ package net.sourceforge.processdash.ev.ui.chart;
 import java.text.DateFormat;
 
 import net.sourceforge.processdash.ui.lib.chart.XYDatasetFilter;
+import net.sourceforge.processdash.util.FormatUtil;
 
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
@@ -36,10 +37,10 @@ import org.jfree.data.xy.XYDataset;
 
 
 
-public abstract class AbstractEVTimeSeriesChart extends AbstractEVChart {
+public abstract class AbstractEVTimeSeriesChart extends AbstractEVXYChart {
 
     @Override
-    protected JFreeChart getChartObject(XYDataset data) {
+    protected JFreeChart getXYChartObject(XYDataset data) {
         return ChartFactory.createTimeSeriesChart(null, null, null, data,
                                                   true, true, false);
     }
@@ -85,7 +86,7 @@ public abstract class AbstractEVTimeSeriesChart extends AbstractEVChart {
 
         public EVTimeSeriesTooltipGenerator() {
             super(DateFormat.getDateInstance(DateFormat.SHORT),
-                  getNumberFormat());
+                  FormatUtil.getOneFractionDigitNumberFormat());
         }
 
     }

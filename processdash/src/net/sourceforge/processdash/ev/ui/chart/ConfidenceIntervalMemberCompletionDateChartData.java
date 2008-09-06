@@ -44,8 +44,8 @@ public class ConfidenceIntervalMemberCompletionDateChartData extends
         this.rollup = rollup;
     }
 
-    protected void recalc() {
-        this.series.clear();
+    public void recalc() {
+        clearSeries();
 
         Set<String> ambiguousNames = getRepeatedPersonNames();
 

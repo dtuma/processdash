@@ -30,6 +30,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -61,7 +62,10 @@ import net.sourceforge.processdash.data.SaveableData;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.StringData;
 import net.sourceforge.processdash.data.repository.DataRepository;
+import net.sourceforge.processdash.ev.ui.chart.CategoryChartData;
+import net.sourceforge.processdash.ev.ui.chart.CategoryChartSeries;
 import net.sourceforge.processdash.ev.ui.chart.ChartEventAdapter;
+import net.sourceforge.processdash.ev.ui.chart.EVTaskKey;
 import net.sourceforge.processdash.ev.ui.chart.XYChartData;
 import net.sourceforge.processdash.ev.ui.chart.XYChartSeries;
 import net.sourceforge.processdash.ev.ui.chart.XYNameDataset;
@@ -73,6 +77,7 @@ import net.sourceforge.processdash.ui.lib.TreeTableModel;
 import net.sourceforge.processdash.util.PatternList;
 import net.sourceforge.processdash.util.StringUtils;
 
+import org.jfree.data.category.CategoryDataset;
 import org.jfree.data.xy.XYDataset;
 
 
@@ -887,6 +892,7 @@ public class EVTaskList extends AbstractTreeTableModel
     public static final int VALUE_EARNED_COLUMN   = PCT_SPENT_COLUMN+1;
 
     // pseudo column numbers for retrieving other extended task data
+    public static final int TASK_FULLNAME_COLUMN  = -88888;
     public static final int EVTASK_NODE_COLUMN    = -99999;
     public static final int PROJ_DATE_COLUMN      = -1000;
     public static final int ACT_START_DATE_COLUMN = -123;
@@ -1060,6 +1066,7 @@ public class EVTaskList extends AbstractTreeTableModel
         EVTask n = (EVTask) node;
         switch (column) {
         case TASK_COLUMN:           return n.getName();
+        case TASK_FULLNAME_COLUMN:  return n.getFullName();
         case NODE_TYPE_COLUMN:      return n.getNodeType();
         case PLAN_TIME_COLUMN:      return n.getPlanTime();
         case -PLAN_TIME_COLUMN:     return new Double(n.planTime);
@@ -1763,12 +1770,12 @@ public class EVTaskList extends AbstractTreeTableModel
         @Override
         public void deregisterForUnderlyingDataEvents() { removeRecalcListener(this); }
 
-        public void evRecalculated(EventObject e) { chartData.dataChanged(); }
+        public void evRecalculated(EventObject e) { chartDataRecalcHelper.dataChanged(); }
 
     }
 
     /** A chart series where each EV leaf provides one data point */
-    private abstract class EVLeavesChartSeries {
+    public abstract class EVLeavesChartSeries {
 
         private String seriesKey;
 
@@ -1793,7 +1800,7 @@ public class EVTaskList extends AbstractTreeTableModel
             return evLeaves.size();
         }
 
-        protected EVTask get(int itemIndex) {
+        public EVTask get(int itemIndex) {
             return evLeaves.get(itemIndex);
         }
 
@@ -1824,8 +1831,8 @@ public class EVTaskList extends AbstractTreeTableModel
         }
 
         @Override
-        protected void recalc() {
-            series.clear();
+        public void recalc() {
+            clearSeries();
             for (EVLeavesXYChartSeries s : allSeries) {
                 s.recalc();
                 maybeAddSeries(s);
@@ -1833,7 +1840,7 @@ public class EVTaskList extends AbstractTreeTableModel
         }
 
         public String getName(int seriesIndex, int itemIndex) {
-            EVLeavesXYChartSeries s = (EVLeavesXYChartSeries) series
+            EVLeavesXYChartSeries s = (EVLeavesXYChartSeries) getSeries()
                     .get(seriesIndex);
             return s.getItemName(itemIndex);
         }
@@ -1841,9 +1848,9 @@ public class EVTaskList extends AbstractTreeTableModel
     }
 
 
-    private class PlanVsActualChartSeries extends EVLeavesXYChartSeries {
+    private class PlanVsActualXYChartSeries extends EVLeavesXYChartSeries {
 
-        public PlanVsActualChartSeries(EVTaskFilter filter) {
+        public PlanVsActualXYChartSeries(EVTaskFilter filter) {
             super("Completed_Task", filter);
         }
 
@@ -1857,8 +1864,124 @@ public class EVTaskList extends AbstractTreeTableModel
 
     }
 
+    public class GenericCategoryChartSeries extends EVLeavesCategoryChartSeries {
+
+        protected int[] columnIndexes;
+        protected List<Comparable> columnKeys;
+
+        public GenericCategoryChartSeries(String seriesKey,
+                EVTaskFilter filter, int[] columnIndexes,
+                Comparable[] columnKeys) {
+            super(seriesKey, filter);
+            this.columnIndexes = columnIndexes;
+            this.columnKeys = Arrays.asList(columnKeys);;
+        }
+
+        public Number getValue(int rowNum, int columnNum) {
+            Number value = null;
+
+            Object objValue = getValueAt(get(rowNum), columnIndexes[columnNum]);
+
+            if (objValue instanceof Number)
+                value = (Number) objValue;
+
+            return value;
+        }
+
+        public List<Comparable> getColumnsKeys() {
+            return columnKeys;
+        }
+
+    }
+
+    public class PlanVsActualCategoryChartSeries extends GenericCategoryChartSeries {
+        /** The column positions */
+        public static final int ACTUAL_DIRECT_TIME_COLUMN_POS = 0;
+        public static final int PLANNED_TIME_COLUMN_POS = 1;
+
+        public PlanVsActualCategoryChartSeries(EVTaskFilter filter) {
+            super("Tasks_In_Progress", filter, new int[] { -ACT_DTIME_COLUMN, -PLAN_TIME_COLUMN },
+                    new String[] { toolTips[ACT_DTIME_COLUMN], toolTips[PLAN_TIME_COLUMN] });
+        }
+
+    }
+
+    private abstract class EVLeavesCategoryChartSeries extends EVLeavesChartSeries
+            implements CategoryChartSeries {
+
+        private List<EVTaskKey> taskKeys;
+
+        public EVLeavesCategoryChartSeries(String seriesKey, EVTaskFilter filter) {
+            super(seriesKey, filter);
+        }
+
+        @Override
+        public void recalc() {
+            super.recalc();
+            taskKeys = new ArrayList<EVTaskKey>();
+
+            EVTaskKey taskKey;
+
+            int i = 0;
+            for (EVTask task : evLeaves) {
+                taskKey = new EVTaskKey(i++, task);
+                taskKeys.add(taskKey);
+            }
+        }
+
+        public List<? extends Comparable> getRowKeys() {
+            return taskKeys;
+        }
+
+    }
+
+
     public XYDataset getPlanVsActualTimeData(EVTaskFilter filter) {
         return new EVLeavesXYChartData(new EVTaskChartEventAdapter(),
-                new PlanVsActualChartSeries(filter));
+                new PlanVsActualXYChartSeries(filter));
+    }
+
+    public CategoryDataset getPlanVsActualDirectTimeData(EVTaskFilter filter) {
+        EVLeavesCategoryChartSeries series = new PlanVsActualCategoryChartSeries(filter);
+        return new CategoryChartData(new EVTaskChartEventAdapter(), series);
+    }
+
+
+    ///////////////////////////////////////////////////////////////////////
+    // The methods/classes below assist in the generation of chart's tooltip
+    ///////////////////////////////////////////////////////////////////////
+
+    public EVTaskTooltipGenerator getTooltipGenerator(String format, int[] columns) {
+        return new EVTaskTooltipGenerator(format, columns);
+    }
+
+    /**
+     * Class used to create a formatted tooltip for an EVTask
+     */
+    public class EVTaskTooltipGenerator {
+
+        /** The tooltip format */
+        private String format;
+
+        /** The data columns that will be extracted from the task to generate the tooltip */
+        private int[] columns;
+
+        public EVTaskTooltipGenerator(String format, int[] columns) {
+            this.format = format;
+            this.columns = columns;
+        }
+
+        /**
+         * Generates and returns a formatted tooltip for a specific task
+         */
+        public String getTooltip(EVTask task) {
+            Object[] values = new Object[columns.length];
+
+            for (int i = 0; i < columns.length; ++i) {
+                values[i] = EVTaskList.this.getValueAt(task, columns[i]);
+            }
+
+            return MessageFormat.format(format, values);
+        }
     }
 }

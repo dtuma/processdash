@@ -42,8 +42,8 @@ public class EVHiddenOrShownSeriesXYChartPanel extends EVXYChartPanel
     private XYDatasetFilter filteredData;
 
     public EVHiddenOrShownSeriesXYChartPanel(JFreeChart chart,
-                                    XYDatasetFilter filteredData) {
-        super(chart);
+                                             XYDatasetFilter filteredData) {
+        super(chart, filteredData);
         this.filteredData = filteredData;
 
         filteredData.getSourceDataset().addChangeListener(this);
@@ -66,9 +66,18 @@ public class EVHiddenOrShownSeriesXYChartPanel extends EVXYChartPanel
             menu.insert(new ShowChartLineMenuItem(filteredData, i), 0);
     }
 
-    public void datasetChanged(DatasetChangeEvent arg0) {
-        reloadSeriesMenus();
+    public void datasetChanged(DatasetChangeEvent event) {
+        super.datasetChanged(event);
+
+        // The class' superclass has registered as a change listener to the
+        //  XYDatasetFilter. However, we don't want to reload the series menu
+        //  when the XYDatasetFilter is changed, only when its source dataset is.
+        if (!(event.getSource() instanceof XYDatasetFilter)) {
+            reloadSeriesMenus();
+        }
     }
+
+
 
     private class ShowChartLineMenuItem extends JCheckBoxMenuItem
             implements ActionListener {

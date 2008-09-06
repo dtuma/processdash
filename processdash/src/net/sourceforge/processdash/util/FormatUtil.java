@@ -172,4 +172,10 @@ public class FormatUtil {
     }
 
 
+    public static NumberFormat getOneFractionDigitNumberFormat() {
+        NumberFormat result = NumberFormat.getInstance();
+        result.setMaximumFractionDigits(1);
+        return result;
+    }
+
 }

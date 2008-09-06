@@ -32,7 +32,6 @@ import java.awt.Stroke;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.MissingResourceException;
 
 import net.sourceforge.processdash.ev.EVSchedule;
 import net.sourceforge.processdash.ev.EVTaskFilter;
@@ -44,29 +43,26 @@ import net.sourceforge.processdash.ui.snippet.SnippetWidget;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.labels.XYSeriesLabelGenerator;
-import org.jfree.chart.labels.XYToolTipGenerator;
-import org.jfree.chart.plot.XYPlot;
-import org.jfree.chart.renderer.xy.XYItemRenderer;
+import org.jfree.chart.plot.Plot;
+import org.jfree.data.general.Dataset;
 import org.jfree.data.xy.XYDataset;
 
 
-public abstract class AbstractEVChart implements SnippetWidget {
-
-    // The properties used for the axis labels
-    private static final String X_AXIS_LABEL = "X_Axis_Label";
-    private static final String Y_AXIS_LABEL = "Y_Axis_Label";
-
+public abstract class AbstractEVChart<D extends Dataset, P extends Plot>
+        implements SnippetWidget {
     private static Resources resources = Resources.getDashBundle("EV.Chart");
 
-    protected abstract XYDataset createDataset(Map env, Map params);
+    protected abstract D createDataset(Map env, Map params);
 
-    private ChartPanel buildChart(XYDataset data,
-                                  String xLabel,
-                                  String yLabel) {
+    private ChartPanel buildChart(D data, Map environment, Map parameters) {
         data = getAdjustedData(data);
         JFreeChart chart = createChart(data);
-        chart.getPlot().setNoDataMessage(resources.getString("No_Data_Message"));
-        adjustPlot(chart.getXYPlot(), xLabel, yLabel);
+
+        if (chart != null) {
+            chart.getPlot().setNoDataMessage(resources.getString("No_Data_Message"));
+            adjustPlot((P) chart.getPlot(), data, environment, parameters);
+        }
+
         ChartPanel panel = getChartPanel(chart, data);
 
         return panel;
@@ -74,71 +70,24 @@ public abstract class AbstractEVChart implements SnippetWidget {
 
     /** This method has to be overridden to perform changes on the data
         before creating the chart */
-    protected XYDataset getAdjustedData(XYDataset data) { return data; }
+    protected D getAdjustedData(D data) { return data; }
 
-    protected void adjustPlot(XYPlot plot, String xLabel, String yLabel) {
-        setPlotAxisLabels(plot, xLabel, yLabel);
-    }
+    protected void adjustPlot(P plot, D data, Map environment, Map parameters) { }
 
-    /** This method has to be overridden to return the appropriate chart panel */
-    protected abstract ChartPanel getChartPanel(JFreeChart chart, XYDataset data);
-
-    protected JFreeChart createChart(XYDataset data) {
-        JFreeChart chart = getChartObject(data);
-        chart.getXYPlot().setRenderer(createRenderer(chart));
-        return chart;
+    protected ChartPanel getChartPanel(JFreeChart chart, D data) {
+        return new ChartPanel(chart);
     }
 
     /** This method has to be overridden to return the appropriate JFreeChart
         chart */
-    protected abstract JFreeChart getChartObject(XYDataset data);
-    protected XYItemRenderer createRenderer(JFreeChart chart) {
-        return chart.getXYPlot().getRenderer();
-    }
-
-    /** Used to create a chart RangeXYItemRenderer with the appropriate
-        TooltipGenerator */
-    protected RangeXYItemRenderer createRangeXYItemRenderer() {
-        RangeXYItemRenderer renderer = new RangeXYItemRenderer();
-        renderer.putAllSeriesPaints(SERIES_PAINTS);
-        renderer.putAllSeriesStrokes(SERIES_STROKES);
-        renderer.setLegendItemLabelGenerator(new SeriesNameGenerator());
-        renderer.setBaseToolTipGenerator(getTooltipGenerator());
-        return renderer;
-    }
-    protected abstract XYToolTipGenerator getTooltipGenerator();
-
-    protected void setPlotAxisLabels(XYPlot plot,
-                                     String xLabel,
-                                     String yLabel) {
-
-        if (xLabel != null && xLabel.length() != 0)
-            plot.getDomainAxis().setLabel(xLabel);
-
-        if (yLabel != null && yLabel.length() != 0)
-            plot.getRangeAxis().setLabel(yLabel);
-    }
+    protected abstract JFreeChart createChart(D data);
 
     public Component getWidgetComponent(Map environment, Map parameters) {
-        XYDataset dataset = createDataset(environment, parameters);
-        String xLabel = getAxisLabel(environment, parameters, X_AXIS_LABEL);
-        String yLabel = getAxisLabel(environment, parameters, Y_AXIS_LABEL);
-        return buildChart(dataset, xLabel, yLabel);
+        D dataset = createDataset(environment, parameters);
+        return buildChart(dataset, environment, parameters);
     }
 
-    private String getAxisLabel(Map environment,
-                                Map parameters,
-                                String axis) {
-        String axisLabel = null;
-
-        try {
-            axisLabel = getResources(environment).getString(axis);
-        } catch (MissingResourceException e) { }
-
-        return axisLabel;
-    }
-
-    private Resources getResources(Map environment) {
+    protected Resources getResources(Map environment) {
         return (Resources) environment.get(EVSnippetEnvironment.RESOURCES);
     }
 

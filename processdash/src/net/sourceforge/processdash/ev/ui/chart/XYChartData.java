@@ -26,39 +26,51 @@ package net.sourceforge.processdash.ev.ui.chart;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.jfree.data.general.DatasetChangeEvent;
 import org.jfree.data.general.DatasetChangeListener;
 import org.jfree.data.xy.AbstractXYDataset;
 
 /**
  * Base class for implementing XYDataSource functionality.
  */
-public abstract class XYChartData extends AbstractXYDataset {
+public abstract class XYChartData extends AbstractXYDataset
+            implements RecalculableChartData {
+
+    /** Used to handle event-driven chart recalculation */
+    private ChartDataEventRecalcHelper chartDataRecalcHelper;
 
     protected List<XYChartSeries> series = new ArrayList<XYChartSeries>();
-    private boolean needsRecalc = true;
-    private ChartEventAdapter eventAdapter;
 
     public XYChartData(ChartEventAdapter eventAdapter) {
-        this.eventAdapter = eventAdapter;
-        this.eventAdapter.setChartData(this);
+        this.chartDataRecalcHelper = new ChartDataEventRecalcHelper(this, eventAdapter);
     }
 
-    protected void recalc() {}
-    protected void maybeRecalc() {
-        if (needsRecalc) { recalc(); needsRecalc = false; } }
+    public void recalc() {}
+    public void maybeRecalc() {
+        chartDataRecalcHelper.maybeRecalc();
+    }
+
     /** Returns the number of series in the data source. */
     @Override
     public int getSeriesCount() {
         maybeRecalc();
         return series.size();
     }
+
+    public List<XYChartSeries> getSeries() {
+        return series;
+    }
+
     /** Append a data series if it appears viable */
     protected boolean maybeAddSeries(XYChartSeries s) {
         if (s != null && s.getItemCount() > 0)
             return series.add(s);
         return false;
     }
+
+    public void clearSeries() {
+        series.clear();
+    }
+
     /** Returns the name of the specified series (zero-based). */
     @Override
     public Comparable getSeriesKey(int seriesIndex) { maybeRecalc();
@@ -76,38 +88,13 @@ public abstract class XYChartData extends AbstractXYDataset {
         if (itemIndex == -1) return null;
         return series.get(seriesIndex).getY(itemIndex); }
 
-    // support DataSourceChangeListener notification
-    private ArrayList<DatasetChangeListener> listenerList = null;
     @Override
     public void addChangeListener(DatasetChangeListener l) {
-        if (listenerList == null) listenerList = new ArrayList<DatasetChangeListener>();
-        synchronized (listenerList) {
-            if (listenerList.size() == 0) eventAdapter.registerForUnderlyingDataEvents();
-            if (!listenerList.contains(l)) listenerList.add(l);
-        }
+        chartDataRecalcHelper.addChangeListener(l);
     }
     @Override
     public void removeChangeListener(DatasetChangeListener l) {
-        if (listenerList == null) return;
-        synchronized (listenerList) {
-            if (listenerList.remove(l) && listenerList.size() == 0)
-                eventAdapter.deregisterForUnderlyingDataEvents();
-        }
-    }
-    private void fireChangeEvent() {
-        if (listenerList == null) return;
-        DatasetChangeEvent e = null;
-        Object [] listeners = listenerList.toArray();
-        // Process the listeners last to first, notifying
-        // those that are interested in this event
-        for (int i = listeners.length; i-- > 0; ) {
-            if (e == null) e = new DatasetChangeEvent(this, this);
-            ((DatasetChangeListener)listeners[i]).datasetChanged(e);
-        }
+        chartDataRecalcHelper.removeChangeListener(l);
     }
 
-    public void dataChanged() {
-        needsRecalc = true;
-        fireChangeEvent();
-    }
 }

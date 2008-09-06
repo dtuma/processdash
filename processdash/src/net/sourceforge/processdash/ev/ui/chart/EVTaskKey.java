@@ -23,29 +23,42 @@
 
 package net.sourceforge.processdash.ev.ui.chart;
 
-import net.sourceforge.processdash.ev.EVMetrics;
+import net.sourceforge.processdash.ev.EVTask;
 
-public class ConfidenceIntervalTotalCostChartData extends
-        ConfidenceIntervalChartData {
+public class EVTaskKey implements Comparable<EVTaskKey> {
 
-    EVMetrics evMetrics;
+    private int ordinal;
+    private EVTask task;
 
-    public ConfidenceIntervalTotalCostChartData(ChartEventAdapter eventAdapter,
-            EVMetrics evMetrics) {
-        super(eventAdapter, 0, Double.NaN);
-        this.evMetrics = evMetrics;
-    }
-
-    public void recalc() {
-        clearSeries();
-        maybeAddSeries(evMetrics.getCostConfidenceInterval(), "Total_Cost");
+    public EVTaskKey(int ordinal, EVTask task) {
+        this.ordinal = ordinal;
+        this.task = task;
     }
 
     @Override
-    public Number getX(int seriesIndex, int itemIndex) {
-        double incompleteCost = super.getX(seriesIndex, itemIndex).doubleValue();
-        double totalCost = incompleteCost + evMetrics.actual();
-        return totalCost / 60.0; // convert to hours
+    public String toString() {
+        return task.getFullName();
+    }
+
+    public EVTask getTask() {
+        return task;
+    }
+
+    public int compareTo(EVTaskKey o) {
+        return this.ordinal - o.ordinal;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof EVTaskKey)
+            return ((EVTaskKey) obj).ordinal == this.ordinal;
+
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        return ordinal;
     }
 
 }

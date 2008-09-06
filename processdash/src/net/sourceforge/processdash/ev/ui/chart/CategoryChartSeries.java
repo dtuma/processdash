@@ -23,29 +23,16 @@
 
 package net.sourceforge.processdash.ev.ui.chart;
 
-import net.sourceforge.processdash.ev.EVMetrics;
+import java.util.List;
 
-public class ConfidenceIntervalTotalCostChartData extends
-        ConfidenceIntervalChartData {
+public interface CategoryChartSeries {
+    /** Returns the key of the specified series */
+    String getSeriesKey();
 
-    EVMetrics evMetrics;
+    List<? extends Comparable> getRowKeys();
+    List<? extends Comparable> getColumnsKeys();
+    Number getValue(int row, int column);
 
-    public ConfidenceIntervalTotalCostChartData(ChartEventAdapter eventAdapter,
-            EVMetrics evMetrics) {
-        super(eventAdapter, 0, Double.NaN);
-        this.evMetrics = evMetrics;
-    }
-
-    public void recalc() {
-        clearSeries();
-        maybeAddSeries(evMetrics.getCostConfidenceInterval(), "Total_Cost");
-    }
-
-    @Override
-    public Number getX(int seriesIndex, int itemIndex) {
-        double incompleteCost = super.getX(seriesIndex, itemIndex).doubleValue();
-        double totalCost = incompleteCost + evMetrics.actual();
-        return totalCost / 60.0; // convert to hours
-    }
+    void recalc();
 
 }

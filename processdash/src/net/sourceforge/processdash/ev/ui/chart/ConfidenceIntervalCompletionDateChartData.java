@@ -37,8 +37,8 @@ public class ConfidenceIntervalCompletionDateChartData extends
         this.evMetrics = evMetrics;
     }
 
-    protected void recalc() {
-        this.series.clear();
+    public void recalc() {
+        clearSeries();
 
         maybeAddSeries(evMetrics.getDateConfidenceInterval(), "Forecast");
 

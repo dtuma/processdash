@@ -42,7 +42,7 @@ import org.jfree.ui.RectangleInsets;
 
 public class DiscChart extends CGIChartBase {
 
-    /** Create a  line chart. */
+    /** Create disc chart. */
     @Override
     public JFreeChart createChart() {
         return createDiscChart(data, parameters);
@@ -87,7 +87,7 @@ public class DiscChart extends CGIChartBase {
         return chart;
     }
 
-    private static final DrawingSupplierFactory DRAWING_SUPPLIER_FACTORY =
+    public static final DrawingSupplierFactory DRAWING_SUPPLIER_FACTORY =
         new DrawingSupplierFactory()
             .setPaintSequence(DrawingSupplierFactory.PALETTE1)
             .setFillPaintSequence(DrawingSupplierFactory.PALETTE1)

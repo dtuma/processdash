@@ -95,4 +95,11 @@ public class EVLeafTaskFilter implements EVTaskFilter {
         }
     };
 
+    public static final EVTaskFilterCondition IN_PROGRESS = new EVTaskFilterCondition() {
+        public boolean include(EVTask task) {
+            return task.getActualDirectTime() > 0 &&
+                    task.getDateCompleted() == null;
+        }
+    };
+
 }

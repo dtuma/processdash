@@ -33,8 +33,12 @@ import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.Axis;
 import org.jfree.chart.title.LegendTitle;
+import org.jfree.data.general.Dataset;
+import org.jfree.data.general.DatasetChangeEvent;
+import org.jfree.data.general.DatasetChangeListener;
 
-public class EVXYChartPanel extends ChartPanel implements Disposable {
+public class EVXYChartPanel extends ChartPanel
+        implements Disposable, DatasetChangeListener {
     protected static Resources resources = Resources.getDashBundle("EV.Chart");
 
     // Used to indicate if the window has FULL width, MED width or short width.
@@ -49,32 +53,40 @@ public class EVXYChartPanel extends ChartPanel implements Disposable {
     private int short_window_width;
 
     private LegendTitle legend;
-    private int currentStyle;
     private String xLabel;
     private String yLabel;
+    private boolean chartContainsData;
+    private Dataset data;
 
-    public EVXYChartPanel(JFreeChart chart) {
+    public EVXYChartPanel(JFreeChart chart, Dataset data) {
         super(chart);
-        setMouseZoomable(true, false);
+        this.data = data;
+        this.data.addChangeListener(this);
 
-        this.legend = getChart().getLegend();
-        this.xLabel = getChart().getXYPlot().getDomainAxis().getLabel();
-        this.yLabel = getChart().getXYPlot().getRangeAxis().getLabel();
+        if (getChart() != null) {
+            updateChartContainsData();
+            setMouseZoomable(true, false);
 
-        try {
-            medium_window_width =
-                Integer.parseInt(resources.getString("Window_Width_Med_Name"));
-        } catch (NumberFormatException nfe) {}
-        try {
-            short_window_width =
-                Integer.parseInt(resources.getString("Window_Width_Short_Name"));
-        } catch (NumberFormatException nfe) {}
+            this.legend = getChart().getLegend();
+            this.xLabel = getChart().getXYPlot().getDomainAxis().getLabel();
+            this.yLabel = getChart().getXYPlot().getRangeAxis().getLabel();
 
-        ToolTipManager.sharedInstance().registerComponent(this);
-        new ToolTipTimingCustomizer().install(this);
+            try {
+                medium_window_width =
+                    Integer.parseInt(resources.getString("Window_Width_Med_Name"));
+            } catch (NumberFormatException nfe) {}
+            try {
+                short_window_width =
+                    Integer.parseInt(resources.getString("Window_Width_Short_Name"));
+            } catch (NumberFormatException nfe) {}
+
+            ToolTipManager.sharedInstance().registerComponent(this);
+            new ToolTipTimingCustomizer().install(this);
+        }
     }
 
     public void dispose() {
+        this.data.removeChangeListener(this);
         getChart().getXYPlot().setDataset(null);
     }
 
@@ -90,9 +102,6 @@ public class EVXYChartPanel extends ChartPanel implements Disposable {
         else if (width > short_window_width)  style = MED;
         else                                  style = SHORT;
 
-        if (style == currentStyle) return;
-        currentStyle = style;
-
         JFreeChart chart = getChart();
         chart.removeLegend();
         if (style == FULL) chart.addLegend(legend);
@@ -107,14 +116,20 @@ public class EVXYChartPanel extends ChartPanel implements Disposable {
     }
 
     protected void adjustAxis(Axis a, boolean chromeless, String label) {
-        // FIXME: to correctly respond to series changes, we should register
-        // a DatasetChangeListener
-        boolean chartContainsData = getChart().getXYPlot().getSeriesCount() > 0;
         boolean showAxisTickLabels = !chromeless && chartContainsData;
 
         a.setTickLabelsVisible(showAxisTickLabels);
         a.setTickMarksVisible(showAxisTickLabels);
         a.setLabel(chromeless ? null : label);
+    }
+
+    public void datasetChanged(DatasetChangeEvent event) {
+        updateChartContainsData();
+        adjustStyle(this.getWidth());
+    }
+
+    private void updateChartContainsData() {
+        chartContainsData = getChart().getXYPlot().getSeriesCount() > 0;
     }
 
 }
