@@ -1,0 +1,16 @@
+<html><!--#do-not-translate-->
+<head>
+<title>Migrating Team Project</title>
+</head>
+<body>
+
+<h1>Migrating Team Project</h1>
+
+<p>The Process Dashboard will now shut down to begin the migration
+process for the project &quot;<!--#echo PATH_TRANSLATED -->&quot;.
+When the migration process is complete, the dashboard will restart.
+After the dashboard restarts, you should synchronize this project to
+the team Work Breakdown Structure.</p>
+
+</body>
+</html>

@@ -71,6 +71,9 @@ undefine([Simple Project Tag]);
  */
 [Team_Settings] = TAG;
 
+[Team_Settings /Is_New_Style_Team_Project] =
+    [Individuals_Using_Stubless_Phases];
+
 [Team_Settings /Defect_Type_Standard] =
     iff([Defect Type Standard] && ([Defect Type Standard] != " "),
         [Defect Type Standard] & ", imported from team project:::" &

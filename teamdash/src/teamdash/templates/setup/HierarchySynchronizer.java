@@ -44,6 +44,8 @@ import net.sourceforge.processdash.hier.HierarchyNoteManager;
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.hier.HierarchyAlterer.HierarchyAlterationException;
 import net.sourceforge.processdash.hier.HierarchyNote.InvalidNoteSpecification;
+import net.sourceforge.processdash.log.defects.Defect;
+import net.sourceforge.processdash.log.defects.DefectAnalyzer;
 import net.sourceforge.processdash.templates.DashPackage;
 import net.sourceforge.processdash.util.StringUtils;
 import net.sourceforge.processdash.util.ThreadThrottler;
@@ -488,16 +490,31 @@ public class HierarchySynchronizer {
         // We don't delete nodes that were manually created by a user.
         isDeletable = isDeletable && !isUserCreatedNode(key);
 
-        // this node is only deletable if no time/defects have been logged here
-        isDeletable = isDeletable
-                && isZero(getData(path, "Time"))
-                && isZero(getData(path, "Defects Injected"))
-                && isZero(getData(path, "Defects Removed"));
+        // this node is only deletable if no time has been logged here
+        isDeletable = isDeletable && isZero(getData(path, "Time"));
+
+        // this node is only deletable if no defects have been logged here
+        DefectCounter c = new DefectCounter();
+        DefectAnalyzer.run(hierarchy, key, false, c);
+        isDeletable = isDeletable && !c.hasDefects();
 
         if (isDeletable)
             results.add(path);
 
         return isDeletable;
+    }
+
+    private static class DefectCounter implements DefectAnalyzer.Task {
+        private int count = 0;
+        public void analyze(String path, Defect d) {
+            count++;
+        }
+        public int getCount() {
+            return count;
+        }
+        public boolean hasDefects() {
+            return count > 0;
+        }
     }
 
 

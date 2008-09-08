@@ -1,0 +1,55 @@
+<html><!--#do-not-translate-->
+<head>
+<title>Team Project Migration Needed</title>
+</head>
+<body>
+
+<h1>Team Project Migration Needed</h1>
+
+<p>Your team leader has chosen to migrate this team project to a new,
+streamlined data format.  This will provide several benefits for you,
+such as a reduction in memory usage and faster export operations on
+shutdown.</p>
+
+<p>Your cooperation is needed for this effort.  When you click the
+"Continue" button below, the dashboard will take the following
+steps:</p>
+
+<ul>
+
+<li style='margin-top:1em; margin-bottom:1em'>First, your personal
+plan will be scanned for potential problems that could interfere with
+the migration.  If any problems are found, the dashboard will display
+a list of corrective actions that you need to take.  In most cases, no
+problems will be detected, so the migration will begin right
+away.</li>
+
+<li style='margin-top:1em; margin-bottom:1em'>Next, your personal
+Process Dashboard will be shut down to perform the migration.  The
+migration tool will upgrade your personal plan to the new data format,
+then restart your dashboard.</li>
+
+<li style='margin-top:1em; margin-bottom:1em'>After the dashboard
+restarts, it may be necessary for you to perform a final "Synchronize
+to WBS" operation. The dashboard will alert you if this sync is
+needed.</li>
+
+</ul>
+
+<p><b>Please note:</b> Until you complete the steps above, the
+dashboard will not be able to copy new task assignments from the team
+work breakdown structure.  Thus, you should attempt to migrate your
+data as soon as possible.  If you encounter any problems during the
+migration, contact your team leader right away for help.</p>
+
+<p>If you are ready to begin the migration process, click the
+"Continue" button below.</p>
+
+<form action="migrate">
+
+<input type="submit" name="run" value="Continue">
+
+</form>
+
+</body>
+</html>

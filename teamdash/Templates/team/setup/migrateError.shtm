@@ -1,0 +1,79 @@
+<html><!--#do-not-translate-->
+<head>
+<title>Team Project Migration Error</title>
+</head>
+<body>
+
+<h1>Team Project Migration Error</h1>
+
+<!--#if notTeamProject -->
+    <p>&quot;<!--#echo PATH_TRANSLATED -->&quot; does not appear to be
+    a team project.</p>
+
+<!--#elif notNeededMaster -->
+    <p>&quot;<!--#echo PATH_TRANSLATED -->&quot; is a <u>master</u>
+    project.  Master projects do not need to be migrated.</p>
+
+<!--#elif alreadyUpgraded -->
+    <p>&quot;<!--#echo PATH_TRANSLATED -->&quot; has already been
+    upgraded to the new-style data format.</p>
+
+<!--#elif upgradeNotNeeded -->
+    <p>&quot;<!--#echo PATH_TRANSLATED -->&quot; is already in the
+    new-style data format.  It does not need to be upgraded.</p>
+
+<!--#elif cannotMigrate -->
+    <p>&quot;<!--#echo PATH_TRANSLATED -->&quot; can not be migrated
+    
+    <!--#if bridgedMode -->because the dashboard is currently running
+        in bridged mode through a team server.  The migration tool
+        does not support the migration of bridged dashboard instances
+	at this time.
+
+    <!--#elif dirClasspath -->because the dashboard is currently
+        running from unpackaged class files instead of a packaged
+	JAR file.
+
+    <!--#endif-->
+
+<!--#elif failedPreconditions -->
+    <p>&quot;<!--#echo PATH_TRANSLATED -->&quot; can not be migrated
+    until the following problem(s) are resolved:</p>
+
+    <ul>
+        <!--#foreach name=errorMessage list=[Failed_Migration_Preconditions] #-->
+            <li style='margin-top:1em; margin-bottom:1em'>errorMessage</li>
+        <!--#endfor-->
+    </ul>
+
+    <!--#if showDeleteAdvice -->
+	When resolving these problems, please examine the task(s) above
+	in your personal plan. If you have <b>not</b> collected actual
+	data against these tasks, you can safely delete them using the
+	Hierarchy Editor. If estimated or actual time has been
+	recorded against these tasks, you may need to move the data to
+	other tasks in your plan before you delete the tasks.
+    <!--#endif-->
+
+    <p>It is very important for you to successfully migrate your
+    personal plan.  Please resolve the issues above, then click the
+    Continue button to to retry the migration.</p>
+
+    <form action="migrate"><div style="text-align: right">
+    <input type="submit" name="run" value="Continue">
+    </div></form>
+
+<!--#elif generalError -->
+    <p>&quot;<!--#echo PATH_TRANSLATED -->&quot; could not be migrated
+    due to internal errors.</p>
+
+    <table border><tr><td bgcolor='#ff5050'><b>
+    It is strongly recommended that you restart the dashboard to avoid
+    residual problems from these internal errors, and send a data
+    backup to the Process Dashboard development team for analysis.
+    </b></td></tr></table>
+
+<!--#endif-->
+
+</body>
+</html>

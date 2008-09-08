@@ -1,0 +1,153 @@
+<html><!--#do-not-translate-->
+<head>
+<title>Confirm Team Project Migration</title>
+<script src="/lib/prototype.js" type="text/javascript"></script>
+<script type="text/javascript">
+    function chk() {
+        var allChecked = $("Q1").checked
+            && $("Q2").checked
+            && $("Q3").checked
+            && $("Q4").checked;
+        $("Next").disabled = (allChecked ? null : "true");
+    }
+</script>
+</head>
+<body>
+
+<h1>Confirm Team Project Migration</h1>
+
+<div style="background-color: #ff5050; text-align:center; font-weight: bold; border: 1px solid black; padding:5px">
+Please read all of the important information below before proceeding!
+</div>
+
+<p>The Process Dashboard has introduced a new, streamlined data format for
+team projects.  When you create a new team project with this version of the
+Process Dashboard or later, it will use the streamlined new data format.
+Older team projects will continue to use the previous data format.  Both
+formats are equally acceptable; historical data can be rolled up from new-
+and old-style team projects without difficulty.</p>
+
+<p>Most teams should plan on using their current, old-style team project
+until the end of an iteration.  When performing a launch or relaunch, you are
+encouraged to create a new team project.  This will allow you to benefit from
+new functionality, such as:</p>
+
+<ul>
+
+<li>Round-trip synchronization of plan data between the WBS and the personal
+    plans of each team member</li>
+
+<li>Display of actual metrics (time, % complete, % spent, completion date)
+    for the tasks in the WBS Editor</li>
+
+<li>The ability to rebalance "remaining work" in the WBS Editor</li>
+
+<li>A reduction in memory footprint for personal dashboards, and faster
+    export times for personal data</li>
+
+</ul>
+
+<p>In certain circumstances, a team may want to take advantage of this new
+functionality, but they may not be in a position to start fresh with a new
+team project.  In those cases, they may choose to migrate their current
+project from the old data format to the new data format.  This
+<b>provisional</b> tool is provided to perform that migration.</p>
+
+<p>Migration will require participation from all of the team members:</p>
+
+<ol>
+
+<li style='margin-top:1em; margin-bottom:1em'>First, the team leader will
+click the "Continue" button below.  This will immediately and
+<u>irreversably</u> migrate the project data that resides in the Team
+Dashboard.</li>
+
+<li style='margin-top:1em; margin-bottom:1em'>Next, <u>each</u> team member
+will receive an alert in their personal dashboard, advising them that a team
+sync is needed.<ul>
+
+  <li>When they acknowledge the alert, they will be told that the team
+      project is migrating to a new data format, and that their cooperation
+      is needed to facilitate this migration.</li>
+
+  <li>Next, their personal plan will be scanned for potential problems that
+      could interfere with the migration.  The migration tool will print a
+      list of any problems that are found, and the team member will need to
+      correct these problems before they can continue.  Depending on their
+      familiarity with the dashboard, individuals may need assistance to
+      correct some of these problems.</li>
+
+  <li>If no problems are found (or when no problems remain), the migration
+      will begin:
+
+      <ul>
+      <li>Their data will be backed up;</li>
+      <li>Their personal dashboard will be shut down.</li>
+      <li>The migration tool will streamline their personal plan.</li>
+      <li>Finally, their dashboard will be restarted.</li>
+      <li>They may need to perform a final "Sync to WBS" to finish the migration.</li>
+      </ul>
+      </li>
+
+  </ul>
+
+</li></ol>
+
+
+<p>Once the migration has started, it should be a high priority for
+individuals to successfully migrate their data.  <b>Team members will be
+unable to perform a regular "Sync to WBS" operation until their data has been
+successfully migrated.</b></p>
+
+<p>One other point is worth mentioning: if the team has old members who are
+no longer involved in the project, it may be difficult to launch their
+personal dashboard and migrate their personal plan.  Although this scenario
+is less than ideal, it isn't a showstopper.  The old-style data from those
+individuals will still roll up into the new-style team project.  However,
+vestiges of the old-style data format will still be visible in various
+reports and tools.  (For example, their actual data will not flow back into
+the WBS, so in the WBS their tasks will never appear to be complete.)</p>
+
+<p>Finally, this migration tool is provisional in nature.  If any problems
+occur during the migration process, it may be necessary to contact the
+Process Dashboard development team for immediate support.  Therefore, you
+should not initiate the migration process during a time-sensitive phase
+of your team project.  Make contact with the Process Dashboard development
+team before starting migration; select a timeframe when team members can
+set aside an hour or so to migrate their personal data; then initiate the
+migration process.</p>
+
+
+<p>Clicking the "Continue" button below will irreversably start this
+ migration process.</p>
+
+
+
+
+<form action="migrateTeamWait.shtm">
+
+<div style="margin-left: 1cm">
+
+<input id="Q1" type="checkbox" name="box1" onclick="chk()">I have read and
+understand all of the information above.<br>
+
+<input id="Q2" type="checkbox" name="box2" onclick="chk()">I am in contact
+with the Process Dashboard development team regarding this migration.<br>
+
+<input id="Q3" type="checkbox" name="box3" onclick="chk()">Our team is not in
+a time-critical phase of the project.  Individuals have time to spend on the
+migration, and unexpected downtime will not threaten project
+deliverables.<br>
+
+<input id="Q4" type="checkbox" name="box4" onclick="chk()">I am ready to
+begin the team data migration.<br>&nbsp;<br>
+
+<input id="Next" type="submit" name="confirm" value="Continue" disabled="true">
+
+</div>
+
+</form>
+
+
+</body>
+</html>

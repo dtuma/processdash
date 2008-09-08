@@ -262,7 +262,6 @@
       name="PID-Indiv2:!*!:<!--#echo Full_Name --> Project"
       ID="PID/Indiv2Root"
       defineRollup="no"
-      defectLog="false"
       dataFile="PID/indiv2_root_dataFile.txt"
       autoData="none"
       constraints="<!--#echo creatable_indiv2_nodes --><!--#echo phase_stubs -->}"
@@ -557,7 +556,7 @@
       ID="PID/PHASE/<!--#echo Phase_ID -->"
       dataFile="none"
       href="none"
-      constraints="ME{}" />
+      constraints="MED{}" />
 
   <template
       name="PID-phase<!--#echo Phase_Pos -->:!*!:<!--#echo Phase_Name --> Task"

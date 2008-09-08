@@ -69,6 +69,9 @@ public class sync extends TinyCGIBase {
     private boolean isTeam;
     /** True if this is a master project rollup */
     private boolean isMaster;
+    /** true if this is an old-style individual project that needs to be
+     * upgraded to the new-style format */
+    private boolean migrationNeeded;
     /** true if the user wants us to copy all software component and document
      * nodes in the WBS, even if they aren't assigned to them */
     private boolean fullCopyMode;
@@ -92,6 +95,12 @@ public class sync extends TinyCGIBase {
 
             // load data values from that project.
             loadValues();
+
+            // possibly redirect to the migration page.
+            if (migrationNeeded) {
+                printMigrationRedirect();
+                return;
+            }
 
             // create a synchronization object.
             HierarchySynchronizer synch = new HierarchySynchronizer
@@ -220,6 +229,7 @@ public class sync extends TinyCGIBase {
         if (isTeam) {
             initials = (isMaster ? HierarchySynchronizer.SYNC_MASTER
                     : HierarchySynchronizer.SYNC_TEAM);
+            migrationNeeded = false;
         } else {
             // get the initials of the current team member.
             d = data.getSimpleValue(DataRepository.createDataName
@@ -227,12 +237,27 @@ public class sync extends TinyCGIBase {
             if (d == null || !d.test() ||
                 "tttt".equals(initials = d.format()))
                 signalError(INITIALS_MISSING);
+
+            d = data.getSimpleValue(DataRepository.createDataName
+                                    (projectRoot, MIGRATE_DATA_NAME));
+            migrationNeeded = (d != null && d.test());
         }
 
         // check to see whether the user wants us to perform a full wbs sync.
         d = data.getSimpleValue(DataRepository.createDataName
                                 (projectRoot, FULLCOPY_DATA_NAME));
         fullCopyMode = (d != null && d.test());
+    }
+
+
+
+    /** Redirect to the team project migration page */
+    private void printMigrationRedirect() {
+        out.write("<!-- SYNC-IS-NEEDED -->");
+        out.write("<html><head>");
+        out.write("<meta http-equiv='Refresh' CONTENT='0;URL="
+                + "migrateIndivConfirm.shtm'>");
+        out.write("</head><body></body></html>");
     }
 
 
@@ -294,8 +319,7 @@ public class sync extends TinyCGIBase {
             if (printChanges(synch.getChanges())
                     && !parameters.containsKey("noExport")
                     && !Settings.getBool("export.disableAutoExport", false))
-                BackgroundTaskManager.getInstance().addTask(
-                        new AsyncExporter(projectRoot));
+                startBackgroundExport(projectRoot);
 
             UserNotificationManager.getInstance().removeNotification(
                     SyncScanner.getScanTaskID(projectRoot));
@@ -525,6 +549,11 @@ public class sync extends TinyCGIBase {
 
     }
 
+    static void startBackgroundExport(String projectRoot) {
+        BackgroundTaskManager.getInstance().addTask(
+                new AsyncExporter(projectRoot));
+    }
+
 
 
     /** Throw an exception that will stop processing and redirect to an
@@ -562,6 +591,7 @@ public class sync extends TinyCGIBase {
     private static final String TEAMDIR_DATA_NAME = "Team_Data_Directory";
     private static final String PROJECT_ID_DATA_NAME = "Project_ID";
     private static final String INITIALS_DATA_NAME = "Indiv_Initials";
+    private static final String MIGRATE_DATA_NAME = "Team_Project_Migration_Needed";
     private static final String FULLCOPY_DATA_NAME = "Sync_Full_WBS";
     private static final String HIER_FILENAME = "projDump.xml";
     private static final String WORKFLOW_FILENAME = "workflowDump.xml";
