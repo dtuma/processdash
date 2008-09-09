@@ -35,6 +35,7 @@ import java.util.logging.Logger;
 import java.util.zip.Adler32;
 import java.util.zip.CheckedOutputStream;
 
+import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.tool.bridge.client.ResourceBridgeClient;
 import net.sourceforge.processdash.tool.bridge.client.TeamServerSelector;
 import net.sourceforge.processdash.util.FileUtils;
@@ -57,6 +58,9 @@ public class ExportFileStream {
 
     private static final Logger logger = Logger
             .getLogger(ExportFileStream.class.getName());
+
+    private static final boolean exportViaTeamServer = Settings.getBool(
+        "teamServer.useForDataExport", false);
 
 
     public ExportFileStream(String lastUrl, File directFile) {
@@ -90,19 +94,23 @@ public class ExportFileStream {
     }
 
     private Object validateTarget() throws IOException {
-        serverUrl = TeamServerSelector.testServerURL(lastUrl,
-            MIN_SERVER_VERSION);
-        if (serverUrl != null)
-            return serverUrl;
+        if (exportViaTeamServer) {
+            serverUrl = TeamServerSelector.testServerURL(lastUrl,
+                MIN_SERVER_VERSION);
+            if (serverUrl != null)
+                return serverUrl;
+        }
 
         File exportDirectory = directFile.getParentFile();
         if (!exportDirectory.isDirectory())
             throw new FileNotFoundException(directFile.getPath());
 
-        serverUrl = TeamServerSelector.getServerURL(exportDirectory,
-            MIN_SERVER_VERSION);
-        if (serverUrl != null)
-            return serverUrl;
+        if (exportViaTeamServer) {
+            serverUrl = TeamServerSelector.getServerURL(exportDirectory,
+                MIN_SERVER_VERSION);
+            if (serverUrl != null)
+                return serverUrl;
+        }
 
         if (directFile.exists() && !directFile.canWrite())
             throw new FileNotFoundException(directFile.getPath());
