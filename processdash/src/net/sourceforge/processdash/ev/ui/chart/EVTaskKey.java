@@ -50,15 +50,32 @@ public class EVTaskKey implements Comparable<EVTaskKey> {
 
     @Override
     public boolean equals(Object obj) {
-        if (obj instanceof EVTaskKey)
-            return ((EVTaskKey) obj).ordinal == this.ordinal;
+        if (obj == this)
+            return true;
+
+        if (obj instanceof EVTaskKey) {
+            EVTaskKey that = (EVTaskKey) obj;
+            return this.task.sameNode(that.task)
+                    && this.task.getAssignedToText().equals(
+                        that.task.getAssignedToText());
+        }
 
         return false;
     }
 
     @Override
     public int hashCode() {
-        return ordinal;
+        int result = 0;
+
+        String fullName = task.getFullName();
+        if (fullName != null)
+            result = fullName.hashCode();
+
+        String assignedTo = task.getAssignedToText();
+        if (assignedTo != null)
+            result = result ^ assignedTo.hashCode();
+
+        return result;
     }
 
 }

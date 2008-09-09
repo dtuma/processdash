@@ -27,6 +27,8 @@ import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Paint;
+import java.awt.Stroke;
+import java.awt.geom.Arc2D;
 import java.awt.geom.Ellipse2D;
 
 import net.sourceforge.processdash.ev.EVTaskList.PlanVsActualCategoryChartSeries;
@@ -65,12 +67,34 @@ public class OverspentDiscItemRenderer extends StandardDiscItemRenderer {
         gradient better looking */
     private static final double EXPONENT = 2;
 
+    /** The paint to use when drawing the quantiles */
+    private static final Paint QUANTILE_PAINT = Color.white;
+
+    /** The stroke to use when drawing the quantiles */
+    private static final Stroke QUANTILE_STROKE = new BasicStroke(1f);
+
+    /** The width of the quantile arc, in degrees */
+    private static final int QUANTILE_ARC_DEGREES = 30;
+
     /** The CategoryDataset that contains all columns we need to draw the ovserspent
         section on the disc chart */
     private CategoryDataset underlyingDataset;
 
+    /** True if quantiles should be drawn on the disc */
+    private boolean showQuantiles;
+
     public OverspentDiscItemRenderer(CategoryDataset underlyingDataset) {
         this.underlyingDataset = underlyingDataset;
+
+        this.showQuantiles = true;
+    }
+
+    public boolean isShowQuantiles() {
+        return showQuantiles;
+    }
+
+    public void setShowQuantiles(boolean showQuantiles) {
+        this.showQuantiles = showQuantiles;
     }
 
     @Override
@@ -82,10 +106,13 @@ public class OverspentDiscItemRenderer extends StandardDiscItemRenderer {
         Number plannedTime = underlyingDataset.getValue(item,
                 PlanVsActualCategoryChartSeries.PLANNED_TIME_COLUMN_POS);
 
+        double scale = getScale(discShape, actualDirectTime);
+        double discWidth = discShape.getWidth();
+
+
         if (plannedTime.doubleValue() < actualDirectTime.doubleValue()) {
             // The task is overspent.
 
-            double scale = getScale(discShape, actualDirectTime);
             g2.setColor(OVERSPENT_SECTION_COLOR);
 
             // We draw multiple red ellipses to represent the overspent section. The first
@@ -98,7 +125,6 @@ public class OverspentDiscItemRenderer extends StandardDiscItemRenderer {
             //  multiplicative alpha blending, we calculate the width of the ellipses in
             //  a exponential manner, so they are farther apart near the center.
             double overspentCircleWidth = (Math.sqrt(plannedTime.doubleValue()) * scale) * 2;
-            double discWidth = discShape.getWidth();
             Ellipse2D shape = null;
             double width = discWidth;
             double x = 0;
@@ -122,6 +148,23 @@ public class OverspentDiscItemRenderer extends StandardDiscItemRenderer {
             g2.setColor(OVERSPENT_COLOR);
             g2.setStroke(OVERSPENT_CIRCLE_STROKE);
             g2.draw(shape);
+        }
+
+        if (showQuantiles) {
+            g2.setPaint(QUANTILE_PAINT);
+            g2.setStroke(QUANTILE_STROKE);
+            for (int i = 1;  i < 4;  i++) {
+                double percent = i / 4.0;
+                double quantileTime = plannedTime.doubleValue() * percent;
+                double radius = Math.sqrt(quantileTime) * scale;
+                double width = radius * 2;
+                if (width > discWidth)
+                    break;
+                g2.draw(new Arc2D.Double(discShape.getCenterX() - radius,
+                        discShape.getCenterY() - radius, width, width,
+                        90 - QUANTILE_ARC_DEGREES / 2, QUANTILE_ARC_DEGREES,
+                        Arc2D.OPEN));
+            }
         }
     }
 

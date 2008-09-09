@@ -23,10 +23,7 @@
 
 package net.sourceforge.processdash.ev.ui.chart;
 
-import javax.swing.ToolTipManager;
-
 import net.sourceforge.processdash.i18n.Resources;
-import net.sourceforge.processdash.ui.lib.ToolTipTimingCustomizer;
 import net.sourceforge.processdash.util.Disposable;
 
 import org.jfree.chart.ChartPanel;
@@ -79,9 +76,6 @@ public class EVXYChartPanel extends ChartPanel
                 short_window_width =
                     Integer.parseInt(resources.getString("Window_Width_Short_Name"));
             } catch (NumberFormatException nfe) {}
-
-            ToolTipManager.sharedInstance().registerComponent(this);
-            new ToolTipTimingCustomizer().install(this);
         }
     }
 

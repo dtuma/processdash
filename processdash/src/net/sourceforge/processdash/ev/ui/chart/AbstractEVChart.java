@@ -64,6 +64,8 @@ public abstract class AbstractEVChart<D extends Dataset, P extends Plot>
         }
 
         ChartPanel panel = getChartPanel(chart, data);
+        panel.setInitialDelay(50);
+        panel.setDismissDelay(60000);
 
         return panel;
     }

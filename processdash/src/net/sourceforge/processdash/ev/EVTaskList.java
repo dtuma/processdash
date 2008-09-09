@@ -74,6 +74,7 @@ import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.net.cache.ObjectCache;
 import net.sourceforge.processdash.ui.lib.AbstractTreeTableModel;
 import net.sourceforge.processdash.ui.lib.TreeTableModel;
+import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.PatternList;
 import net.sourceforge.processdash.util.StringUtils;
 
@@ -1966,9 +1967,13 @@ public class EVTaskList extends AbstractTreeTableModel
         /** The data columns that will be extracted from the task to generate the tooltip */
         private int[] columns;
 
+        /** True if we are generating an HTML formatted tooltip */
+        private boolean html;
+
         public EVTaskTooltipGenerator(String format, int[] columns) {
             this.format = format;
             this.columns = columns;
+            this.html = format.regionMatches(true, 0, "<html>", 0, 6);
         }
 
         /**
@@ -1978,7 +1983,10 @@ public class EVTaskList extends AbstractTreeTableModel
             Object[] values = new Object[columns.length];
 
             for (int i = 0; i < columns.length; ++i) {
-                values[i] = EVTaskList.this.getValueAt(task, columns[i]);
+                Object v = EVTaskList.this.getValueAt(task, columns[i]);
+                if (html && v instanceof String)
+                    v = HTMLUtils.escapeEntities((String) v);
+                values[i] = v;
             }
 
             return MessageFormat.format(format, values);
