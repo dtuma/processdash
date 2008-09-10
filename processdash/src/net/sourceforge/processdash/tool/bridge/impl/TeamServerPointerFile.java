@@ -28,6 +28,7 @@ import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.ArrayList;
@@ -57,6 +58,8 @@ public class TeamServerPointerFile {
 
     private Map<String, ServerEntry> serverEntries;
 
+    private long entriesAsOf;
+
 
     public TeamServerPointerFile(File dir) {
         this.file = new File(dir, FILE_NAME);
@@ -81,6 +84,12 @@ public class TeamServerPointerFile {
 
 
     public void addServerEntry(Map<String, String> attrs) throws IOException {
+        // if this object has been in existence for a long period of time,
+        // it is possible that some other team server has modified the pointer
+        // file on the filesystem since we read its contents.  Check for that
+        // possibility, so we don't clobber the other team server's changes.
+        maybeRereadFile();
+
         ServerEntry e = new ServerEntry(attrs);
         String baseURL = e.getBaseURL();
         if (baseURL == null)
@@ -90,6 +99,12 @@ public class TeamServerPointerFile {
     }
 
     public void removeServerEntry(Map<String, String> attrs) throws IOException {
+        // if this object has been in existence for a long period of time,
+        // it is possible that some other team server has modified the pointer
+        // file on the filesystem since we read its contents.  Check for that
+        // possibility, so we don't clobber the other team server's changes.
+        maybeRereadFile();
+
         ServerEntry e = new ServerEntry(attrs);
         String baseURL = e.getBaseURL();
         if (serverEntries.remove(baseURL) != null) {
@@ -101,9 +116,17 @@ public class TeamServerPointerFile {
     }
 
     private void readFile() throws Exception {
-        Element doc = XMLUtils.parse(
-            new BufferedInputStream(new FileInputStream(file)))
-                .getDocumentElement();
+        InputStream in = new BufferedInputStream(new FileInputStream(file));
+        Element doc;
+        try {
+            doc = XMLUtils.parse(in).getDocumentElement();
+        } catch (Exception e) {
+            // if the XML is invalid, close the input stream anyway so we don't hold
+            // an open handle on the native resource
+            in.close();
+            throw e;
+        }
+
         Map<String, ServerEntry> entriesRead = new HashMap<String, ServerEntry>();
         NodeList nl = doc.getElementsByTagName(SERVER_ENTRY_TAG);
         for (int i = 0; i < nl.getLength(); i++) {
@@ -111,12 +134,26 @@ public class TeamServerPointerFile {
             entriesRead.put(se.getBaseURL(), se);
         }
         serverEntries = entriesRead;
+        entriesAsOf = file.lastModified();
+    }
+
+    private void maybeRereadFile() throws IOException {
+        long currentFileTimestamp = file.lastModified();
+        if (currentFileTimestamp > entriesAsOf) {
+            try {
+                readFile();
+            } catch (Exception e) {
+                // exceptions from readFile are common - for example, they
+                // will be thrown if the file does not exist or is corrupt.
+                // ignore and go with the data we already have loaded.
+            }
+        }
     }
 
     private void writeFile() throws IOException {
         try {
             Writer out = new OutputStreamWriter(new BufferedOutputStream(
-                    new RobustFileOutputStream(file)), "UTF-8");
+                    new RobustFileOutputStream(file, false)), "UTF-8");
             out.write("<?xml version='1.0' encoding='UTF-8'?>\r\n\r\n");
             out.write("<" + SERVER_DOCUMENT_TAG + ">\r\n");
             for (ServerEntry se : serverEntries.values()) {
@@ -124,6 +161,7 @@ public class TeamServerPointerFile {
             }
             out.write("</" + SERVER_DOCUMENT_TAG + ">\r\n");
             out.close();
+            entriesAsOf = file.lastModified();
         } catch (IOException ioe) {
             IOException ioee = new IOException("Could not write to file "
                     + file.getPath());
