@@ -28,6 +28,7 @@ import java.util.Vector;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.util.LinearRegression;
 
+import org.jfree.data.general.DatasetChangeEvent;
 import org.jfree.data.general.DatasetChangeListener;
 import org.jfree.data.general.DatasetGroup;
 import org.jfree.data.xy.AbstractXYDataset;
@@ -40,6 +41,10 @@ import org.jfree.data.xy.XYDataset;
  * Note: Change notification is not yet supported.
  */
 public class XYDataSourceTrendLine extends AbstractXYDataset {
+
+    /** Used to specify if the trend line should start for 0 or from the first
+        data point. */
+    public static final boolean USE_ZERO_AS_MIN_X = true;
 
     private static final Double ZERO = new Double(0);
 
@@ -125,23 +130,40 @@ public class XYDataSourceTrendLine extends AbstractXYDataset {
     private static final String DEFAULT_NAME =
         Resources.getGlobalBundle().getString("Trend");
 
-    private static class RegressionLine extends XYDataSourceTrendLine {
-        public RegressionLine(XYDataset src, int seriesNum) {
-            super(src, DEFAULT_NAME);
+    private static class RegressionLine extends XYDataSourceTrendLine
+            implements DatasetChangeListener{
 
+        /** The series number of the underlying dataset for which we calculate the regression
+            line */
+        private int seriesNum;
+
+        /** Used to indicate if the regression line should start for 0 or from the first
+            data point. */
+        public  boolean useZeroAsMinX;
+
+        public RegressionLine(XYDataset src, int seriesNum, boolean useZeroAsMinX) {
+            super(src, DEFAULT_NAME);
+            super.addChangeListener(this);
+            this.seriesNum = seriesNum;
+            this.useZeroAsMinX = useZeroAsMinX;
+            calculateLine();
+        }
+
+        private void calculateLine() {
             Vector data = new Vector();
-            double minX = Double.NaN, maxX = Double.NaN;
-            int i = src.getItemCount(seriesNum);
+            double minX = useZeroAsMinX ? 0 : Double.NaN;
+            double maxX = Double.NaN;
+            int i = source.getItemCount(seriesNum);
             while (i-- > 0) try {
                 double[] pair = new double[2];
-                pair[0] = src.getXValue(seriesNum, i);
-                pair[1] = src.getYValue(seriesNum, i);
+                pair[0] = source.getXValue(seriesNum, i);
+                pair[1] = source.getYValue(seriesNum, i);
                 if (Double.isNaN(pair[0]) || Double.isInfinite(pair[0]) ||
                     Double.isNaN(pair[1]) || Double.isInfinite(pair[1]))
                     continue;
                 else {
                     data.add(pair);
-                    if (!(minX < pair[0])) minX = pair[0];
+                    if (!(minX < pair[0]) && !useZeroAsMinX) minX = pair[0];
                     if (!(maxX > pair[0])) maxX = pair[0];
                 }
             } catch (NullPointerException e) {}
@@ -155,6 +177,10 @@ public class XYDataSourceTrendLine extends AbstractXYDataset {
                                  double minX, double maxX) {
             setLineSlope(regress.beta0, regress.beta1, minX, maxX);
         }
+
+        public void datasetChanged(DatasetChangeEvent event) {
+            calculateLine();
+        }
     }
 
 
@@ -162,11 +188,19 @@ public class XYDataSourceTrendLine extends AbstractXYDataset {
         return getRegressionLine(src, 0);
     }
     public static XYDataset getRegressionLine(XYDataset src, int seriesNum) {
-        return new RegressionLine(src, seriesNum);
+        return getRegressionLine(src, seriesNum, false);
+    }
+    public static XYDataset getRegressionLine(XYDataset src,
+                                              int seriesNum,
+                                              boolean useZeroAsMinX) {
+        return new RegressionLine(src, seriesNum, useZeroAsMinX);
     }
 
     private static class AverageLine extends RegressionLine {
-        public AverageLine(XYDataset src, int num) { super(src, num); }
+        public AverageLine(XYDataset src, int num, boolean useZeroAsMinX) {
+            super(src, num, useZeroAsMinX);
+        }
+
         @Override
         protected void resetLine(LinearRegression regress,
                                  double minX, double maxX) {
@@ -178,8 +212,16 @@ public class XYDataSourceTrendLine extends AbstractXYDataset {
     public static XYDataset getAverageLine(XYDataset src) {
         return getAverageLine(src, 0);
     }
+    public static XYDataset getAverageLine(XYDataset src, boolean useZeroAsMinX) {
+        return getAverageLine(src, 0, useZeroAsMinX);
+    }
     public static XYDataset getAverageLine(XYDataset src, int seriesNum) {
-        return new AverageLine(src, seriesNum);
+        return getAverageLine(src, seriesNum, false);
+    }
+    public static XYDataset getAverageLine(XYDataset src,
+                                           int seriesNum,
+                                           boolean useZeroAsMinX) {
+        return new AverageLine(src, seriesNum, useZeroAsMinX);
     }
 
     @Override
