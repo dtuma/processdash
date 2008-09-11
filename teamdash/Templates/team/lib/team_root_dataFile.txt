@@ -86,6 +86,9 @@ undefine([Simple Project Tag]);
 [Disable_Indiv_Auto_Sync] = 0;
 [Team_Settings /Disable_Indiv_Auto_Sync] = [Disable_Indiv_Auto_Sync];
 
+[Disable_Indiv_Auto_Export] = 0;
+[Team_Settings /Disable_Indiv_Auto_Export] = [Disable_Indiv_Auto_Export];
+
 [Team_Settings /Phase_Display_Filter_List] = [Phase_Display_Filter_List];
 
 <!--#foreach name=PHASE list=Phase_List #-->
