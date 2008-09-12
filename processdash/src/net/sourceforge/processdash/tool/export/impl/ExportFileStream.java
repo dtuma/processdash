@@ -60,7 +60,7 @@ public class ExportFileStream {
             .getLogger(ExportFileStream.class.getName());
 
     private static final boolean exportViaTeamServer = Settings.getBool(
-        "teamServer.useForDataExport", false);
+        "teamServer.useForDataExport", true);
 
 
     public ExportFileStream(String lastUrl, File directFile) {
