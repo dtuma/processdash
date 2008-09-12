@@ -134,19 +134,49 @@ public class DashboardIconFactory {
 
 
     private static Icon timingIcon = null;
-    public static Icon getTimingIcon() {
-        return timingIcon = loadNamedIcon("timing", timingIcon);
+    public static Icon getCompactTimingIcon() {
+        return timingIcon = loadNamedIcon("timingCompact", timingIcon);
     }
 
     private static Icon timingDisabledIcon = null;
-    public static Icon getTimingDisabledIcon() {
-        return timingDisabledIcon = loadNamedIcon("timingDisabled",
+    public static Icon getCompactTimingDisabledIcon() {
+        return timingDisabledIcon = loadNamedIcon("timingDisabledCompact",
             timingDisabledIcon);
     }
 
     private static Icon pausedIcon = null;
-    public static Icon getPausedIcon() {
-        return pausedIcon = loadNamedIcon("paused", pausedIcon);
+    public static Icon getCompactPausedIcon() {
+        return pausedIcon = loadNamedIcon("pausedCompact", pausedIcon);
+    }
+
+    private static Icon pauseDisabled = null;
+    public static Icon getPauseDisabledIcon() {
+        return pauseDisabled = loadNamedIcon("pauseDisabled", pauseDisabled);
+    }
+
+    private static Icon pauseBlack = null;
+    public static Icon getPauseBlackIcon() {
+        return pauseBlack = loadNamedIcon("pauseBlack", pauseBlack);
+    }
+
+    private static Icon pauseGlowing = null;
+    public static Icon getPauseGlowingIcon() {
+        return pauseGlowing = loadNamedIcon("pauseGlowing", pauseGlowing);
+    }
+
+    private static Icon playDisabled = null;
+    public static Icon getPlayDisabledIcon() {
+        return playDisabled = loadNamedIcon("playDisabled", playDisabled);
+    }
+
+    private static Icon playBlack = null;
+    public static Icon getPlayBlackIcon() {
+        return playBlack = loadNamedIcon("playBlack", playBlack);
+    }
+
+    private static Icon playGlowing = null;
+    public static Icon getPlayGlowingIcon() {
+        return playGlowing = loadNamedIcon("playGlowing", playGlowing);
     }
 
     public static Icon getCheckIcon() {

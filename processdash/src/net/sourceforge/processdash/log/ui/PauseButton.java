@@ -35,9 +35,11 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
+import javax.swing.AbstractButton;
 import javax.swing.Icon;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
+import javax.swing.JToggleButton;
 
 import net.sourceforge.processdash.ApplicationEventListener;
 import net.sourceforge.processdash.InternalSettings;
@@ -55,10 +57,11 @@ import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
 public class PauseButton extends DropDownButton implements ActionListener,
         PropertyChangeListener, ApplicationEventListener {
 
-    private Icon pausedIcon;
-    private Icon timingIcon;
+    private ButtonManager buttonManager;
     private String timingTip;
+    private String timingTipBrief;
     private String pausedTip;
+    private String pausedTipBrief;
     private String disabledTip;
     private SoundClip timingSound = null;
 
@@ -67,7 +70,7 @@ public class PauseButton extends DropDownButton implements ActionListener,
     private TimeLoggingModel loggingModel;
 
     public PauseButton(TimeLoggingModel loggingModel) {
-        super();
+        super(shouldUseToggleButtons());
         this.loggingModel = loggingModel;
         loggingModel.addPropertyChangeListener(this);
 
@@ -76,20 +79,19 @@ public class PauseButton extends DropDownButton implements ActionListener,
 
         Resources res = Resources.getDashBundle("ProcessDashboard.Pause");
         timingTip = res.getString("Pause_Tip");
+        timingTipBrief = res.getString("Pause_Tip_Brief");
         pausedTip = res.getString("Continue_Tip");
+        pausedTipBrief = res.getString("Continue_Tip_Brief");
         disabledTip = res.getString("Disabled_Tip");
 
-        setMainButtonMargin(new Insets(0,0,0,0));
-        pausedIcon = padIcon(DashboardIconFactory.getPausedIcon());
-        timingIcon = padIcon(DashboardIconFactory.getTimingIcon());
-        getButton().setDisabledIcon(
-            padIcon(DashboardIconFactory.getTimingDisabledIcon()));
-        getButton().setFocusPainted(false);
-        getButton().addActionListener(this);
         setRunFirstMenuOption(false);
 
         loadUserSettings();
-        updateAppearance();
+
+        if (shouldUseToggleButtons())
+            buttonManager = new ToggleButtonManager();
+        else
+            buttonManager = new CompactButtonManager();
 
         if (quiet) {
             timingSound = new SoundClip(null);
@@ -97,25 +99,131 @@ public class PauseButton extends DropDownButton implements ActionListener,
             timingSound = new SoundClip(getClass().getResource("timing.wav"));
         }
     }
-    private Icon padIcon(Icon icon) {
+    private static boolean shouldUseToggleButtons() {
         if (MacGUIUtils.isMacOSX())
-            return new PaddedIcon(icon, -1, 0, -1, -2);
+            // DropDownButton can't handle toggle buttons on Mac OS X.
+            return false;
+        else if (Settings.getBool("pauseButton.compact", false))
+            return false;
         else
-            return icon;
+            return true;
     }
 
-    private void updateAppearance() {
-        boolean paused = loggingModel.isPaused();
-        getButton().setIcon(paused ? pausedIcon : timingIcon);
-        if (loggingModel.isLoggingAllowed()) {
-            getButton().setToolTipText(paused ? pausedTip : timingTip);
-            setEnabled(true);
-        } else {
-            getButton().setToolTipText(disabledTip);
-            setEnabled(false);
+    private interface ButtonManager {
+        void updateAppearance();
+    }
+
+    private class CompactButtonManager implements ButtonManager, ActionListener {
+
+        private Icon pausedIcon;
+
+        private Icon timingIcon;
+
+        public CompactButtonManager() {
+            setMainButtonMargin(new Insets(0,0,0,0));
+            pausedIcon = padIcon(DashboardIconFactory.getCompactPausedIcon());
+            timingIcon = padIcon(DashboardIconFactory.getCompactTimingIcon());
+            getButton().setDisabledIcon(
+                padIcon(DashboardIconFactory.getCompactTimingDisabledIcon()));
+            getButton().setFocusPainted(false);
+            getButton().addActionListener(this);
+
+            updateAppearance();
         }
+
+        private Icon padIcon(Icon icon) {
+            if (MacGUIUtils.isMacOSX())
+                return new PaddedIcon(icon, -1, 0, -1, -2);
+            else
+                return icon;
+        }
+
+        public void updateAppearance() {
+            boolean paused = loggingModel.isPaused();
+            getButton().setIcon(paused ? pausedIcon : timingIcon);
+            if (loggingModel.isLoggingAllowed()) {
+                getButton().setToolTipText(paused ? pausedTip : timingTip);
+                setEnabled(true);
+            } else {
+                getButton().setToolTipText(disabledTip);
+                setEnabled(false);
+            }
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            loggingModel.setPaused(!loggingModel.isPaused());
+        }
+
     }
 
+    private class ToggleButtonManager implements ButtonManager, ActionListener {
+
+        private AbstractButton pauseButton;
+
+        private AbstractButton playButton;
+
+        public ToggleButtonManager() {
+            pauseButton = new JToggleButton();
+            pauseButton.setMargin(new Insets(0,0,0,0));
+            pauseButton.setIcon(DashboardIconFactory.getPauseBlackIcon());
+            pauseButton.setSelectedIcon(DashboardIconFactory.getPauseGlowingIcon());
+            pauseButton.setDisabledIcon(DashboardIconFactory.getPauseDisabledIcon());
+            pauseButton.setFocusPainted(false);
+            pauseButton.addActionListener(this);
+            setLeftWidget(pauseButton);
+
+            playButton = getButton();
+            playButton.setMargin(new Insets(0,0,0,0));
+            playButton.setIcon(DashboardIconFactory.getPlayBlackIcon());
+            playButton.setSelectedIcon(DashboardIconFactory.getPlayGlowingIcon());
+            playButton.setDisabledIcon(DashboardIconFactory.getPlayDisabledIcon());
+            playButton.setFocusPainted(false);
+            playButton.addActionListener(this);
+
+            updateAppearance();
+        }
+
+        public void updateAppearance() {
+            if (!loggingModel.isLoggingAllowed()) {
+                disableButton(pauseButton);
+                disableButton(playButton);
+            } else if (loggingModel.isPaused()) {
+                enableButton(pauseButton, SELECTED, pausedTipBrief);
+                enableButton(playButton, UNSELECTED, pausedTip);
+            } else {
+                enableButton(pauseButton, UNSELECTED, timingTip);
+                enableButton(playButton, SELECTED, timingTipBrief);
+            }
+        }
+
+        private static final boolean SELECTED = true;
+        private static final boolean UNSELECTED = false;
+
+        private void disableButton(AbstractButton b) {
+            updateButton(b, false, false, disabledTip);
+        }
+
+        private void enableButton(AbstractButton b, boolean selected,
+                String tooltip) {
+            updateButton(b, true, selected, tooltip);
+        }
+
+        private void updateButton(AbstractButton b, boolean enabled,
+                boolean selected, String tooltip) {
+            b.setEnabled(enabled);
+            b.setSelected(selected);
+            b.setToolTipText(tooltip);
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            if (e.getSource() == pauseButton)
+                loggingModel.setPaused(true);
+            else if (e.getSource() == playButton)
+                loggingModel.setPaused(false);
+            updateAppearance();
+        }
+
+    }
 
     public void actionPerformed(ActionEvent e) {
         if (e.getSource() instanceof JMenuItem) {
@@ -124,8 +232,6 @@ public class PauseButton extends DropDownButton implements ActionListener,
                 loggingModel.setPaused(false);
             else
                 getMenu().remove(item);
-        } else {
-            loggingModel.setPaused(!loggingModel.isPaused());
         }
     }
 
@@ -135,7 +241,7 @@ public class PauseButton extends DropDownButton implements ActionListener,
                 || TimeLoggingModel.ACTIVE_TASK_PROPERTY.equals(propertyName)) {
             if (loggingModel.isPaused() == false)
                 timingSound.play();
-            updateAppearance();
+            buttonManager.updateAppearance();
         } else if (TimeLoggingModel.RECENT_PATHS_PROPERTY.equals(propertyName)) {
             reloadPaths();
         }
