@@ -34,6 +34,9 @@ import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.templates.DashPackage;
 import net.sourceforge.processdash.templates.TemplateLoader;
+import net.sourceforge.processdash.tool.bridge.client.BridgedWorkingDirectory;
+import net.sourceforge.processdash.tool.bridge.client.LocalWorkingDirectory;
+import net.sourceforge.processdash.tool.bridge.client.WorkingDirectory;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.HTMLUtils;
 
@@ -64,7 +67,9 @@ public class DisplayConfig extends TinyCGIBase {
     }
 
     private void printConfigFile() {
-        out.print(DashController.getSettingsFileName());
+        loadConfigurationInformation();
+        if (configFile != null)
+            out.print(configFile.getPath());
     }
 
     private void printUserConfig() {
@@ -88,24 +93,30 @@ public class DisplayConfig extends TinyCGIBase {
             printRes("<H1>${Header}</H1>");
         }
 
-        // When we want brief info, where're not showing any header. <P> inserts a
-        //  line break and if there's no header, the text starts with a line break.
-        //  Since it doesn't look so good, we use a <DIV>
-        out.print(brief ? "<DIV>" : "<P>");
+        loadConfigurationInformation();
 
-        printRes("${Config_File_Header}");
-        out.print("<PRE class='indent'>");
-        out.println(DashController.getSettingsFileName());
-        out.println("</PRE>");
+        if (dataDirectory != null) {
+            printRes("<DIV>${Data_Dir_Header}");
+            out.print("<PRE class='indent'>");
+            out.println(HTMLUtils.escapeEntities(dataDirectory.getPath()));
+            out.println("   </PRE></DIV>");
+        }
 
-        out.print(brief ? "</DIV>" : "</P>");
+        if (configFile != null) {
+            printRes("<DIV>${Config_File_Header}");
+            out.print("<PRE class='indent'>");
+            out.println(HTMLUtils.escapeEntities(configFile.getPath()));
+            out.println("   </PRE></DIV>");
+        }
 
-        printRes("<P>${Data_Dir_Header}");
-        out.print("<PRE class='indent'>");
-        out.println(ProcessDashboard.getDefaultDirectory());
-        out.println("</PRE></P>");
+        if (dataURL != null) {
+            printRes("<DIV>${Data_Url_Header}");
+            out.print("<PRE class='indent'>");
+            out.println(HTMLUtils.escapeEntities(dataURL));
+            out.println("   </PRE></DIV>");
+        }
 
-        printRes("<P>${Add_On.Header}");
+        printRes("<DIV>${Add_On.Header}");
 
         List<DashPackage> packages = TemplateLoader.getPackages();
 
@@ -146,7 +157,7 @@ public class DisplayConfig extends TinyCGIBase {
             out.print("</TABLE>");
         }
 
-        out.println("</P>");
+        out.println("</DIV>");
 
         // Showing a link to "more details" if we are in brief mode
         if (brief) {
@@ -154,6 +165,32 @@ public class DisplayConfig extends TinyCGIBase {
         }
 
         out.println("</BODY></HTML>");
+    }
+
+    File dataDirectory;
+    File configFile;
+    String dataURL;
+
+    private void loadConfigurationInformation() {
+        dataDirectory = null;
+        dataURL = null;
+        configFile = new File(DashController.getSettingsFileName());
+
+        WorkingDirectory workingDir = ((ProcessDashboard) getDashboardContext())
+                .getWorkingDirectory();
+        if (workingDir instanceof BridgedWorkingDirectory) {
+            BridgedWorkingDirectory bwd = (BridgedWorkingDirectory) workingDir;
+            dataURL = bwd.getDescription();
+            dataDirectory = bwd.getTargetDirectory();
+            if (dataDirectory == null)
+                configFile = null;
+            else
+                configFile = new File(dataDirectory, configFile.getName());
+
+        } else if (workingDir instanceof LocalWorkingDirectory) {
+            LocalWorkingDirectory lwd = (LocalWorkingDirectory) workingDir;
+            dataDirectory = lwd.getTargetDirectory();
+        }
     }
 
     private String cleanupFilename(String filename) {

@@ -69,6 +69,10 @@ public abstract class AbstractWorkingDirectory implements WorkingDirectory {
         }
     }
 
+    public File getTargetDirectory() {
+        return targetDirectory;
+    }
+
     public String getDescription() {
         if (remoteURL != null)
             return remoteURL;

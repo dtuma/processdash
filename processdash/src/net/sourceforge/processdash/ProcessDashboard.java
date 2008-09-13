@@ -1368,6 +1368,11 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         }
     }
 
+    public WorkingDirectory getWorkingDirectory() {
+        new DashboardPermission("getWorkingDirectory").checkPermission();
+        return workingDirectory;
+    }
+
 
     public static String getVersionNumber() { return versionNumber; }
 
