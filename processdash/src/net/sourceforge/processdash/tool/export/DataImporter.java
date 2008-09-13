@@ -108,8 +108,8 @@ public class DataImporter extends Thread {
     public static void refreshPrefix(String prefix) {
         refreshPrefixWithFeedback(prefix);
     }
-    public static List refreshPrefixWithFeedback(String prefix) {
-        List result = new ArrayList();
+    public static List<String> refreshPrefixWithFeedback(String prefix) {
+        List<String> result = new ArrayList<String>();
         prefix = massagePrefix(prefix);
         Iterator i = importers.values().iterator();
         DataImporter importer;
@@ -160,7 +160,7 @@ public class DataImporter extends Thread {
         } catch (InterruptedException e) {}
     }
 
-    private void checkFiles(List feedback) {
+    private void checkFiles(List<String> feedback) {
         try {
             FILE_IO_LOCK.acquireUninterruptibly();
             Set currentFiles = new HashSet(modTimes.keySet());
@@ -174,7 +174,7 @@ public class DataImporter extends Thread {
                 try {
                     if (checkFile(files[i]))
                         if (feedback != null)
-                            feedback.add(files[i]);
+                            feedback.add(getDescription(files[i]));
                     currentFiles.remove(files[i]);
                 } catch (Throwable t) {
                     // if an error is encountered when trying to import one
@@ -290,6 +290,16 @@ public class DataImporter extends Thread {
         }
 
         return result;
+    }
+
+    private String getDescription(File file) {
+        String directoryDescription = directory.getDescription();
+        if (directoryDescription == null)
+            return file.getAbsolutePath();
+        else if (directoryDescription.indexOf('/') != -1)
+            return directoryDescription + "/" + file.getName();
+        else
+            return directoryDescription + "\\"  + file.getName();
     }
 
     public void dispose() {

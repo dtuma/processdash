@@ -24,9 +24,7 @@
 package net.sourceforge.processdash.tool.export.ui;
 
 
-import java.io.File;
 import java.io.IOException;
-import java.util.Iterator;
 import java.util.List;
 
 import net.sourceforge.processdash.i18n.Resources;
@@ -48,7 +46,7 @@ public class ImportNow extends TinyCGIBase {
         // input - instead, it wants an import prefix (e.g. "/Import_sf7a7s").
         // We don't have a consistent means of determining that prefix, so
         // we'll just refresh all imported data.
-        List refreshedFiles = DataImporter.refreshPrefixWithFeedback("/");
+        List<String> refreshedFiles = DataImporter.refreshPrefixWithFeedback("/");
 
         out.println("<html><head>");
 
@@ -67,10 +65,9 @@ public class ImportNow extends TinyCGIBase {
 
         if (!refreshedFiles.isEmpty()) {
             out.print("<ul>\n");
-            for (Iterator i = refreshedFiles.iterator(); i.hasNext();) {
-                File f = (File) i.next();
+            for (String file : refreshedFiles) {
                 out.print("<li>");
-                out.print(HTMLUtils.escapeEntities(f.getAbsolutePath()));
+                out.print(HTMLUtils.escapeEntities(file));
                 out.print("</li>\n");
             }
             out.print("</ul>\n");

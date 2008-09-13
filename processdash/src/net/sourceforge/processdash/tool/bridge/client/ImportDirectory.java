@@ -29,6 +29,13 @@ import java.io.IOException;
 public interface ImportDirectory {
 
     /**
+     * Returns a user-friendly description of this import location.
+     * 
+     * @return a user-friendly description of this import location.
+     */
+    public String getDescription();
+
+    /**
      * Returns the directory on the filesystem where imported files are stored.
      * 
      * @return the directory on the filesystem where imported files are stored.

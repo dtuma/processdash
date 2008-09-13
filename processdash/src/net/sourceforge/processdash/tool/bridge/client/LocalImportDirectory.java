@@ -37,6 +37,10 @@ public class LocalImportDirectory implements ImportDirectory {
         return targetDirectory;
     }
 
+    public String getDescription() {
+        return targetDirectory.getAbsolutePath();
+    }
+
     public void update() {}
 
 }

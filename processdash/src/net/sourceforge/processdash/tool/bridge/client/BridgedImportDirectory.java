@@ -64,6 +64,10 @@ public class BridgedImportDirectory implements ImportDirectory {
     }
 
 
+    public String getDescription() {
+        return remoteURL;
+    }
+
     public File getDirectory() {
         return importDirectory;
     }
