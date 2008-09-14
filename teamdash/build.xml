@@ -18,7 +18,11 @@
   <property name="server.dir" value="generateProcess"/>
   <property name="server.jar" value="generateProcess.jar"/>
   <property name="jnlp.jar" value="FrameworkEditorJNLP.jar"/>
+  <property name="teamhelp" value="Templates/teamhelp"/>
+  <property name="teamhelp.search" value="${teamhelp}/JavaHelpSearch"/>
   <property environment="env"/>
+
+  <property name="javahelp.home" value="${env.JAVAHELP_HOME}"/>
 
 
   <!-- if the "noBuild" property is set, set all other noBuild vars too -->
@@ -163,8 +167,80 @@
 
 
 
+  <!-- Targets to rebuild the javahelp content -->
+
+  <target name="javahelp"
+          depends="-javahelp-depend,-javahelp-index,-javahelp-book"/>
+
+  <!-- check to see if help needs updating -->
+  <target name="-javahelp-depend">
+    <uptodate property="javahelp.upToDate" targetfile="${teamhelp}/book.html">
+      <srcfiles dir="${teamhelp}">
+        <include name="**/*.html"/>
+        <include name="**/*.htm"/>
+        <include name="**/*.svg"/>
+        <include name="**/constr/*.png"/>
+        <include name="*.xml"/>
+        <include name="TeamDash.hs"/>
+        <exclude name="TOC.html"/>
+        <exclude name="Skeleton.html"/>
+        <exclude name="book.html"/>
+      </srcfiles>
+    </uptodate>
+    <!-- Check to see if optional packages are present -->
+    <available property="javahelp.jhindexerjar"
+               file ="${javahelp.home}/javahelp/bin/jhindexer.jar"
+               value="${javahelp.home}/javahelp/bin/jhindexer.jar"/>
+    <available property="javahelp.jhjar"
+               file ="${javahelp.home}/javahelp/lib/jh.jar"
+               value="${javahelp.home}/javahelp/lib/jh.jar"/>
+  </target>
+
+
+  <!-- invoke the jhindexer -->
+  <target name="-javahelp-index" depends="-javahelp-depend"
+          if="javahelp.jhindexerjar" unless="javahelp.upToDate">
+    <!-- delete the previous contents of the JavaHelpSearch dir -->
+    <delete dir="${teamhelp.search}" quiet="true"/>
+    <mkdir dir="${teamhelp.search}"/>
+
+    <!-- refresh the help.config file -->
+    <pathconvert property=".jhbasedir" pathsep=":" dirsep="/">
+      <path id=".jhbasedir.path" path="${teamhelp}"/>
+    </pathconvert>
+    <pathconvert property=".jhfilelist" pathsep="&#10;" dirsep="/">
+      <path><fileset dir="${teamhelp}" includes="Topics/**/*.html" /></path>
+    </pathconvert>
+    <echo message="${.jhfilelist}" file="${teamhelp}/help.config"/>
+    <replace file="${teamhelp}/help.config" token="${.jhbasedir}/"
+             value="File "/>
+
+    <!-- invoke jhindexer to rebuild the help indexes -->
+    <java jar="${javahelp.jhindexerjar}" dir="${teamhelp}" fork="true">
+      <arg value="-c"/>
+      <arg value="help.config"/>
+    </java>
+  </target>
+
+  <!-- regenerate the 'book.html' file -->
+  <target name="-javahelp-book" depends="-javahelp-depend"
+          unless="javahelp.upToDate">
+    <xslt in="${teamhelp}/TOC.xml" out="${teamhelp}/Skeleton.html"
+          style="${teamhelp}/makeSkeleton.xslt"/>
+
+    <java classpath="${processdash.dir}/lib/DocSpider.jar"
+          classname="DocSpider" fork="true" dir="${teamhelp}">
+      <arg value="Skeleton.html"/>
+      <arg value="book.html"/>
+      <arg value="none"/>
+      <arg value="-nostatus"/>
+    </java>
+    <delete file="${teamhelp}/Skeleton.html"/>
+  </target>
+
+
   <target name="TeamTools"
-          depends="-noBuild-init" unless="noBuild.TeamTools">
+          depends="-noBuild-init,javahelp" unless="noBuild.TeamTools">
     <!-- compute the classes needed for the team tools jar file -->
     <classfileset id="teamToolsClasses" dir="bin">
       <root classname="teamdash.wbs.WBSEditor"/>
@@ -252,10 +328,12 @@ class dependency has been added in a dashboard class?)
       </fileset>
 
       <!-- include the helpset for team functionality -->
-      <!-- fileset dir=".">
+      <fileset dir=".">
         <include name="Templates/TeamTools-template.xml" />
-        <include name="Templates/teamhelp/" />
-      </fileset-->
+        <include name="${teamhelp}/" />
+        <exclude name="${teamhelp}/help.config" />
+        <exclude name="${teamhelp}/makeSkeleton.xslt" />
+      </fileset>
 
       <!-- include files from libraries we use -->
       <zipfileset src="${swingx.jar}"
@@ -274,6 +352,7 @@ class dependency has been added in a dashboard class?)
 	<param name="sign.alias" value="tuma-solutions-2008"/>
     </antcall>
   </target>
+  <target name="TeamTools.jar" depends="TeamTools"/>
 
   <target name="TeamProcess" depends="-defaultValues,-noBuild-init,server"
           unless="noBuild.TeamProcess">
