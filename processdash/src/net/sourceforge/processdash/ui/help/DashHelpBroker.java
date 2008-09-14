@@ -33,12 +33,14 @@ import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 import net.sourceforge.processdash.net.http.DashboardHelpURLConnection;
 import net.sourceforge.processdash.templates.DashPackage;
 import net.sourceforge.processdash.templates.ExtensionManager;
 import net.sourceforge.processdash.templates.TemplateLoader;
 import net.sourceforge.processdash.ui.DashboardIconFactory;
+import net.sourceforge.processdash.util.StringUtils;
 
 import org.w3c.dom.Element;
 
@@ -50,6 +52,8 @@ public class DashHelpBroker implements DashHelpProvider {
         DashboardHelpURLConnection.DASHHELP_PROTOCOL + ":/help/PSPDash.hs";
     private static final String HELPSET_TAG = "helpSet";
     private static final String HREF_ATTR = "href";
+    private static final String BOOK_ATTR = "book";
+    private static final String BOOKNAME_ATTR = "bookTitle";
 
     /** The classloader we should use to load javahelp classes */
     private static ClassLoader classloader = null;
@@ -176,6 +180,18 @@ public class DashHelpBroker implements DashHelpProvider {
         }
     }
 
+    public static Map<String, String> getExternalPrintableManuals() {
+        Map<String, String> result = new TreeMap<String, String>();
+        List ce = ExtensionManager.getXmlConfigurationElements(HELPSET_TAG);
+        for (Iterator i = ce.iterator(); i.hasNext();) {
+            Element config = (Element) i.next();
+            String title = config.getAttribute(BOOKNAME_ATTR);
+            String url = config.getAttribute(BOOK_ATTR);
+            if (StringUtils.hasValue(title) && StringUtils.hasValue(url))
+                result.put(title, url);
+        }
+        return result;
+    }
 
 
     /** Create a classloader for loading from the javahelp library */

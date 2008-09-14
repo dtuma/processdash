@@ -28,9 +28,11 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.logging.Logger;
 
+import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
@@ -53,6 +55,7 @@ import net.sourceforge.processdash.tool.export.ui.SaveBackupAction;
 import net.sourceforge.processdash.tool.export.ui.wizard.ShowExportWizardAction;
 import net.sourceforge.processdash.tool.export.ui.wizard.ShowImportWizardAction;
 import net.sourceforge.processdash.tool.probe.ProbeDialog;
+import net.sourceforge.processdash.ui.help.DashHelpBroker;
 import net.sourceforge.processdash.ui.help.PCSH;
 
 
@@ -70,7 +73,6 @@ public class ConfigureButton extends JMenuBar implements ActionListener, Hierarc
     static String FILE_SEP = null;
     static final String ANALYSIS_URL =
         "/To+Date/PSP/All//reports/analysis/index.htm";
-    static final String ABOUT_URL    = "/help/Topics/Overview/about.htm";
     static final String PRINT_URL    = "/help/book.html";
     static final String BUG_URL =
         "http://sourceforge.net/tracker/?group_id=9858&atid=109858";
@@ -208,6 +210,7 @@ public class ConfigureButton extends JMenuBar implements ActionListener, Hierarc
         helpMenu.add(makeMenuItem(HELP_FRAME));
         helpMenu.add(search = makeMenuItem(HELP_SEARCH));
         helpMenu.add(makeMenuItem(HELP_PRINT));
+        addExternalPrintableManuals(helpMenu);
         helpMenu.add(makeMenuItem(HELP_ABOUT));
         helpMenu.addSeparator();
         helpMenu.add(makeMenuItem(HELP_BUG));
@@ -218,6 +221,31 @@ public class ConfigureButton extends JMenuBar implements ActionListener, Hierarc
             search.setEnabled(false);
     }
 
+
+    private void addExternalPrintableManuals(JMenu helpMenu) {
+        Map<String, String> manuals = DashHelpBroker.getExternalPrintableManuals();
+        for (Map.Entry<String, String> e : manuals.entrySet()) {
+            String title = e.getKey();
+            String url = e.getValue();
+            helpMenu.add(new ShowExternalManualAction(title, url));
+        }
+    }
+
+    private class ShowExternalManualAction extends AbstractAction {
+        private String url;
+
+        private ShowExternalManualAction(String title, String url) {
+            super(title);
+            if (url.startsWith("/"))
+                this.url = url;
+            else
+                this.url = "/" + url;
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            Browser.launch(url);
+        }
+    }
 
     public void saveAndCloseHierarchyEditor () {
         if (prop_frame != null) {
