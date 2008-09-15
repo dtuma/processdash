@@ -24,20 +24,15 @@
 package net.sourceforge.processdash.tool.export.ui.wizard;
 
 import java.awt.Dimension;
-import java.awt.GridBagLayout;
 import java.awt.event.ActionListener;
 import java.beans.EventHandler;
 
 import javax.swing.Box;
-import javax.swing.BoxLayout;
 import javax.swing.JButton;
-import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
-import javax.swing.SwingConstants;
 import javax.swing.event.ListSelectionListener;
-import javax.swing.table.TableModel;
 
 import net.sourceforge.processdash.tool.export.mgr.AbstractInstruction;
 import net.sourceforge.processdash.tool.export.mgr.AbstractManager;
@@ -69,6 +64,8 @@ public abstract class ManagePanel extends WizardPanel implements
         tableBox.add(horizSpace(2));
 
         Box editButtonBox = Box.createVerticalBox();
+        editButtonBox.add(Box.createVerticalGlue());
+
         addButton = createManageButton("Add_Button", "addCallback");
         editButtonBox.add(addButton);
         editButtonBox.add(Box.createVerticalGlue());
@@ -79,9 +76,12 @@ public abstract class ManagePanel extends WizardPanel implements
 
         deleteButton = createManageButton("Delete_Button", "deleteCallback");
         editButtonBox.add(deleteButton);
+        editButtonBox.add(Box.createVerticalGlue());
+
         Dimension d = editButtonBox.getPreferredSize();
         editButtonBox.setMinimumSize(d);
         editButtonBox.setPreferredSize(d);
+        editButtonBox.setMaximumSize(new Dimension(d.width, 10000));
 
         recalcEnablement();
         tableBox.add(editButtonBox);
@@ -98,6 +98,9 @@ public abstract class ManagePanel extends WizardPanel implements
         result.setMaximumSize(d);
         return result;
     }
+
+    @Override
+    protected void addBottomPadding(Box verticalBox) { }
 
     public void addCallback() {
         add();
@@ -160,6 +163,7 @@ public abstract class ManagePanel extends WizardPanel implements
 
     private JTable createTable() {
         instructionTable = new InstructionTable(manager.getTableModel());
+        instructionTable.getColumnModel().getColumn(0).setMaxWidth(70);
         instructionTable.getSelectionModel().addListSelectionListener(
                 (ListSelectionListener) EventHandler.create(
                         ListSelectionListener.class, this, "recalcEnablement"));
