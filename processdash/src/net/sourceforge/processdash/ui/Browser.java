@@ -95,20 +95,8 @@ public class Browser {
                     throw ble;
                 }
             } else {
-                String windowName = ",window" + System.currentTimeMillis();
-                cmd = "netscape -remote openURL(" + url + windowName + ")";
-
-                Process p = Runtime.getRuntime().exec(cmd);
-
-                int exitcode = p.waitFor();
-
-                if (exitcode != 0) {
-                    cmd = "netscape " + url;
-
-                    Runtime.getRuntime().exec(cmd);
-                }
+                Runtime.getRuntime().exec(new String[] { "firefox", url });
             }
-        } catch (InterruptedException ie) {
         } catch (IOException ioe) {
             JOptionPane.showMessageDialog
                 (null, errorMessage(), "Error", JOptionPane.ERROR_MESSAGE);
@@ -129,11 +117,11 @@ public class Browser {
     private static String[] ERROR_MESSAGE = {
         "The Process Dashboard was unable to launch a web browser;",
         "",
-        "To solve this problem, create or edit the file, ",
+        "To solve this problem, exit the dashboard. Then edit the file, ",
         "",
         "Add a line of the form, 'browser.command=command-to-run-browser',",
         "where command-to-run-browser is the complete path to a web browser",
-        "executable such as Internet Explorer or Netscape.  Then restart",
+        "executable such as Internet Explorer or Firefox.  Then restart",
         "the Process Dashboard." };
 
     /*
@@ -186,9 +174,5 @@ public class Browser {
      */
     private static boolean isMac() {
         return (System.getProperty("mrj.version") != null);
-    }
-
-    private static void debug(String msg) {
-        // System.out.println("Browser: " + msg);
     }
 }
