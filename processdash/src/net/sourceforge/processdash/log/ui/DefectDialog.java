@@ -147,6 +147,7 @@ public class DefectDialog extends JDialog
         g.gridy = 1;
         g.insets = bottom_margin;
         g.anchor = GridBagConstraints.NORTHWEST;
+        g.fill = GridBagConstraints.HORIZONTAL;
         g.gridwidth = 1;
         defect_type = DefectTypeStandard.get
             (defectPath.path(), dash.getData()).getAsComboBox();
@@ -167,6 +168,7 @@ public class DefectDialog extends JDialog
         fixDefectButton = new JButton
             (DashboardIconFactory.getDefectIcon());
         fixDefectButton.addActionListener(this);
+        g.fill = GridBagConstraints.NONE;
         g.gridx = 2;   layout.setConstraints(fixDefectButton, g);
         panel.add(fixDefectButton);
 
@@ -174,6 +176,8 @@ public class DefectDialog extends JDialog
         g.gridy = 2;
         g.insets = small_margin;
         g.anchor = GridBagConstraints.WEST;
+        g.weightx = 1;
+        g.fill = GridBagConstraints.HORIZONTAL;
 
         c = new JLabel(resources.getString("Injected_Label"));
         g.gridx = 0;   layout.setConstraints(c, g);
@@ -240,7 +244,8 @@ public class DefectDialog extends JDialog
         defectTimerButton.addActionListener(this);
         g.gridx = 1;
         g.gridwidth = 2;
-        g.anchor = GridBagConstraints.NORTH;
+        g.fill = GridBagConstraints.NONE;
+        g.anchor = GridBagConstraints.NORTHWEST;
         layout.setConstraints(defectTimerButton, g);
         panel.add(defectTimerButton);
 
@@ -263,22 +268,20 @@ public class DefectDialog extends JDialog
         description.setWrapStyleWord(true);
 
         JScrollPane scroller = new
-            JScrollPane(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
-                        JScrollPane.HORIZONTAL_SCROLLBAR_NEVER) {
-                public Dimension getPreferredSize() {
-                    return new Dimension(100, 100);
-                }
-            };
-        scroller.getViewport().add(description);
+            JScrollPane(description, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
+                        JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        scroller.setPreferredSize(new Dimension(100, 100));
 
         JPanel textWrapper = new JPanel(new BorderLayout());
 //      textWrapper.setAlignmentX(LEFT_ALIGNMENT);
         textWrapper.setBorder(new BevelBorder(BevelBorder.LOWERED));
         textWrapper.add("Center", scroller);
 
+        g.weighty = 100;
         g.gridwidth = 3;   layout.setConstraints(textWrapper, g);
         panel.add(textWrapper);
         g.gridwidth = 1;
+        g.weighty = 0;
 
                                 // ninth row
         g.gridy = 8;
