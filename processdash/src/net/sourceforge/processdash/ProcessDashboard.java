@@ -330,6 +330,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         versionNumber = TemplateLoader.getPackageVersion("pspdash"); // legacy
         logger.info("Process Dashboard version " + versionNumber);
 
+        title = Settings.getVal("window.forcedTitle", title);
         if (title == null)
             title = Settings.getVal("window.title");
         if (title == null)
