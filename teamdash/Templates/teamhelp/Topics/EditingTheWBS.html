@@ -68,8 +68,7 @@ provided for rearranging the WBS. Highlight one or more WBS items and
 click the copy button on the toolbar (<img
 src="../Images/icon-copy.png">) to copy them to the clipboard. Select
 the desired destination and click the paste button on the toolbar
-(<img src="../Images/icon-paste.png">); the copied items will be
-inserted <i>before</i> the highlighted WBS item. To move items instead
+(<img src="../Images/icon-paste.png">). To move items instead
 of copying them, use the cut button (<img
 src="../Images/icon-cut.png">) instead of the copy button.
 
@@ -80,43 +79,49 @@ defining a common workflow instead.</p></li>
 
 <li style='margin-top:12.0pt'>Each WBS item is represented by an icon
 to the left of the item name. This icon indicates whether the item is
-a software component, document, or task. To change the type of a WBS
-item, click on the icon to display a menu of options.
+a software component, document, or task. If you hover the mouse
+pointer over an icon, a tool tip will display the name of the item
+type depicted by the icon. For example, hovering over a WBS item with
+the floppy disk icon (<img src="../Images/icon-floppy.png">) would
+display a tool tip that reads "Software Component."  To change the
+type of a WBS item, click on the icon to display a menu of
+options.</li>
+
+</ul>
 
 <p class="figure"><img  src="../Images/wbs-icon-menu.png"></p>
 
-<p>If you hover the mouse pointer over an icon, a tool tip will
-display the name of the item type depicted by the icon. For example,
-hovering over a WBS item with the floppy disk icon (<img
-src="../Images/icon-floppy.png">) would display a tool tip that reads
-Software Component.</p>
+<ul>
 
-<p>To change the types of many nodes simultaneously, it is more
-efficient to use the right hand side of the window.  Select the Task
-Time tab, select a cell in the Phase/Type column, and type Ctrl-C to
-copy the value to the clipboard. Then select a range of cells in the
-Phase/Type column and type Ctrl-V to paste the node type into all
-cells at once.</p>
+<li>To change the types of <i>many</i> nodes simultaneously, it is
+more efficient to use the right hand side of the window.  Select the
+Task Time tab, select a cell in the Phase/Type column, and type Ctrl-C
+to copy the value to the clipboard. Then select a range of cells in
+the Phase/Type column and type Ctrl-V to paste the node type into all
+cells at once.</li>
 
-<p>To calculate metrics correctly, the Work Breakdown Structure Editor
-must enforce certain rules/restrictions on the structure of the
-hierarchy. If you violate one of these rules, the icon will turn
-red. Hovering over a red icon will display a tool tip explaining the
-problem that needs correcting. For example, in the picture below,
-there is a problem with one of the WBS items - its floppy disk icon
-has turned red. The tool tip explains the specific problem
-encountered.</p>
+<li style='margin-top:12.0pt'>To calculate metrics correctly, the Work
+Breakdown Structure Editor must enforce certain rules/restrictions on
+the structure of the hierarchy. If you violate one of these rules, the
+icon will turn red. Hovering over a red icon will display a tool tip
+explaining the problem that needs correcting. For example, in the
+picture below, there is a problem with one of the WBS items - its
+floppy disk icon has turned red. The tool tip explains the specific
+problem encountered.</li>
 
-<p class="figure"><img src="../Images/wbs-node-error.png"></p></li>
+</ul>
 
+<p class="figure"><img src="../Images/wbs-node-error.png"></p>
 
-<li style='margin-top:12.0pt'>You can insert a list of tasks into the
-WBS by copying and pasting task names from another program such as
-Excel or Word. Arrange the task names in a vertical column in Excel
-(or place one task name on each line in Word), and copy the names to
-the clipboard. Then, highlight a row in the WBS, and click the paste
-button on the toolbar&nbsp;(<img src="../Images/icon-paste.png">). The
-tasks will be inserted before the selected row.</li>
+<ul>
+
+<li>You can insert a list of tasks into the WBS by copying and pasting
+task names from another program such as Excel or Word. Arrange the
+task names in a vertical column in Excel (or place one task name on
+each line in Word), and copy the names to the clipboard. Then,
+highlight a row in the WBS, and click the paste button on the
+toolbar&nbsp;(<img src="../Images/icon-paste.png">). The tasks will be
+inserted before the selected row.</li>
 
 <li style='margin-top:12.0pt'>The Work Breakdown Structure Editor
 provides extensive undo and redo support via the undo (<img
@@ -128,9 +133,6 @@ includes <i>metrics</i> changes made in the tabs on the right-hand
 side of the screen.</li>
 
 </ul>
-
-
-
 
 </body>
 </html>

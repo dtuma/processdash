@@ -32,6 +32,14 @@ computer in your conference room). The Team Project Tools and Settings
 page will provide you with the URL you can use to remotely access the
 plan summary.</p>
 
+<p>Also, remember that the Project Plan Summary is editable.  If you
+don't find a particular metric or chart on your report, put the report
+into editing mode and add it.  If you don't find the metric you're
+looking for in the list of provided items, please contact the Process
+Dashboard development team.  We're always open to suggestions on how
+to make the dashboard better!</p>
+
+
 <h2>Earned Value Reports</h2>
 
 <p>The Team Project Plan Summary includes earned value reports for the
@@ -76,18 +84,16 @@ between the two dates provided above. When the two forecast dates
 differ significantly, the project workload is unbalanced and tasks
 likely need to be reassigned.</p>
 
-<p>When you determine that the team workload is unbalanced, you need
-to determine which team members are over-tasked and which are
-under-tasked. You can determine this by examining the sub-schedules
-using the Task and Schedule tool. Open the Team Dashboard window and
-select Task and Schedule from the C menu. Open the schedule for the
-team project. The Forecast column will indicate the dates when each
-individual is projected to finish. If you highlight the sub-schedule
-for a particular individual, you can click the Filtered Chart button
-to see graphical and statistical views of that individual's earned
-value plan.</p>
+<p>At times, you may need to drill down into the earned value schedule
+for a particular team member.  To do this, open Team Dashboard window
+and select Task and Schedule from the C menu. Open the schedule for
+the team project. If you highlight the sub-schedule for a particular
+individual, you can click the Filtered Chart button to see graphical
+and statistical views of that individual's earned value plan.</p>
 
-<h2>Analyzing Filtered Data Using Labels</h2>
+
+
+<h2><a name="labelFiltering"></a>Analyzing Filtered Data Using Labels</h2>
 
 <p>Although the project planning summary allows you to drill down into
 subcomponents in your team plan, sometimes you will have a need to
@@ -124,9 +130,12 @@ the tasks that match your filter expression. </p>
 <p>Over the course of the project, you should periodically save a backup of
 the data in the Team Dashboard (saving a backup each week is recommended).
 Just choose C&nbsp;&#8594;&nbsp;Tools&nbsp;&#8594;&nbsp;Save Data Backup
-from the main Team Dashboard window. If you retain these backups, you can
-open them later in the Quick Launcher to see a historical view of the
-project's progress.</p>
+from the main Team Dashboard window.</p>
+
+<p class="figure"><img src="../Images/team-save-data-backup.png"></p>
+
+<p>If you retain these backups, you can open them later in the Quick
+Launcher to see a historical view of the project's progress.</p>
 
 <h2>Importing/Exporting Data</h2>
 
@@ -155,10 +164,17 @@ once daily. This will allow the team dashboard to recompute the
 completion status of dependent tasks, and communicate this data to
 individual dashboard instances.</p>
 
+<p>Finally, when the team project is complete and you no longer expect
+individuals to be collecting project metrics, open the Team Project
+Parameters and Settings page and put a check mark in the box labelled,
+"Turn off automatic data exports from individual dashboards."  This
+will save time for the members of your team.</p>
+
+
 <h2>Reassigning Tasks</h2>
 
 <p>Workload balancing is an important part of team project
-management. When you determine that you need to reassign a task, take
+management. When you determine that you need to reassign tasks, take
 these steps.</p>
 
 <ol>
@@ -166,6 +182,13 @@ these steps.</p>
 <li style='margin-top:6.0pt'>Select the team project in the team
 dashboard, and choose Edit Work Breakdown Structure from the script
 menu.</li>
+
+<li style='margin-top:6.0pt'>On the Team menu, turn on the Show Bottom
+Up Time Panel option.  After individuals have begun collecting actual
+data for the project, the colored balancing bars will update to
+reflect planned time <i>remaining</i>.  You can use the colored bars
+to balance the remaining work, and their end dates will correspond to
+the "Replan" dates in each team members earned value schedule.</li>
 
 <li style='margin-top:6.0pt'>Switch to the Task Time tab of the Work
 Breakdown Structure Editor. Edit values in the Assigned To column to
@@ -177,11 +200,11 @@ change should take the following steps:
 
     <ol type=a>
 
-    <li style='margin-top:4.0pt'>Follow the instructions in the
-    section titled &quot;Synchronize Work Breakdown Structure&quot; on
-    page 38. The synchronization logic will display a list of items
-    added; review this list to ensure that the expected changes were
-    made.</li>
+    <li style='margin-top:4.0pt'>Follow the instructions in the <a
+    href="CreateMemberPlans.html#syncWBS">Synchronize Work Breakdown
+    Structure</a> help topic.  The synchronization logic will display
+    a list of items added; review this list to ensure that the
+    expected changes were made.</li>
 
     <li style='margin-top:4.0pt'>Open your earned value plan in the
     Task and Schedule dialog. For each newly assigned task, enter your
@@ -210,9 +233,9 @@ data backup file onto the Quick Launcher window, and a dashboard
 window will open displaying the data exactly as it appeared when the
 backup was made.</p>
 
-<p>For more information on the creation and use of data backups, view
-the dashboard's online user manual by choosing Help from the C
-menu.</p>
+<p>For more information on the creation and use of data backups, see
+the <a href="../../help/Topics/AdvancedTopics/BackupData.html">data
+backup</a> help topic.</p>
 
 
 </body>

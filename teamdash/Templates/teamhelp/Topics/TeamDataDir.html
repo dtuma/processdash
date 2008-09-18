@@ -10,9 +10,10 @@
 <p>The team support add-on for the Process Dashboard currently uses a
 shared network directory to facilitate team collaboration.  Before you
 begin your first team project, it will be necessary to create this
-directory. <b>This &quot;Team Data Directory&quot; is different from
-the team configuration directory that you selected during dashboard
-installation.</b></p>
+directory. <b>Note:</b> this &quot;Team Data Directory&quot; can be
+the same as the team configuration directory that you selected during
+team dashboard installation, or it can be different - either is
+allowed.</b></p>
 
 <p>The primary purpose of this directory is to hold exported snapshots
 of individual data; the team dashboard instance imports this data and
@@ -33,8 +34,19 @@ new team directory for each project/iteration.</p>
 used to hold project documents. If this is true for your project,
 simply create a subdirectory for dashboard metrics data.  If your
 project does not already have a shared project directory, work with
-your information technology (IT) support staff to create one, ensuring
-all team members have read/write access.</p>
+your information technology (IT) support staff to create one. Either
+way, it is critical to ensure that the following file permissions are
+in place:</p>
+
+<ul>
+
+<li>All team members must be able to read/write all files</li>
+
+<li>Permissions must be set to "inherit" - so that when new files and
+subdirectories are created, all team members can read/write them as
+well.</li>
+
+</ul>
 
 </body>
 </html>

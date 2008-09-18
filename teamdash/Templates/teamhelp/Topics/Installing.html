@@ -39,7 +39,12 @@ this option.
 <p class="figure"><img src="../Images/installer-packs-desel.png"></p></li>
 
 <li>The installer will allow you to select a directory where personal
-metrics data will be stored. You may accept the default value.<br>&nbsp;</li>
+metrics data will be stored. You may accept the default value.
+<b>Note:</b> if you are upgrading the dashboard from an earlier version,
+and you previously chose to place your personal data in some other
+location, it is important to enter the true location of your personal data
+in this field.  If you neglect to do this, you can run the installer a
+second time to set the data location correctly.<br>&nbsp;</li>
 
 <li>Team leaders and process mentors will be prompted to identify a
 directory where team configuration information will be
@@ -79,6 +84,33 @@ difference between these two instances.</li>
 
 </ol>
 
+<h2>Installing on Mac OS X</h2>
+
+<p>Installing the Process Dashboard on Mac OS X requires a slightly
+different process.</p>
+
+<ol>
+
+<li>If you received a ZIP file of the Process Dashboard software, unzip
+it. Find the file called <tt>pdash-install-team-#_#_#.jar</tt> (it will be
+in a <i>data</i> subdirectory; the file will contain an actual version
+number rather than <tt>#_#_#</tt>).  Alternately, you may have downloaded
+this JAR file directly; if that is the case, you can skip this unzip
+step.<br>&nbsp;</li>
+
+<li>Double-click the <tt>pdash-install-team-#_#_#.jar</tt> file to begin
+the installation process.<br>&nbsp;</li>
+
+<li>Follow the installer directions as described in the <a
+href="#installSteps">section above</a>.<br>&nbsp;</li>
+
+<li>An icon will be created in the <tt>Applications</tt> folder for the
+Process Dashboard.  (If you chose to install the Tools for Team Leaders
+option, a Team Dashboard shortcut will be created as well.)
+
+</ol>
+
+
 <h2>Installing on Unix/Linux</h2>
 
 <p>Installing the Process Dashboard on Unix requires a few
@@ -91,8 +123,8 @@ by visiting their Website <u>http://java.sun.com/</u>;.  Install the
 software. Edit your executable path to include the <tt>java</tt>
 program.<br>&nbsp;</li>
 
-<li>Install Netscape on your system if it is not already
-installed. Edit your executable path to include the <tt>netscape</tt>
+<li>Install Firefox on your system if it is not already
+installed. Edit your executable path to include the <tt>firefox</tt>
 program.<br>&nbsp;</li>
 
 <li>Either insert the CD-ROM into your computer, or unzip the ZIP file
@@ -111,13 +143,9 @@ href="#installSteps">section above</a>.<br>&nbsp;</li>
 
 <li>Due to the variety of window managers on Unix platforms, the
 Process Dashboard installer cannot automatically create
-icons/shortcuts that you can use to run the program. At the end of the
-installation, a window will advise you of this limitation.
-
-<p class="figure"><img src="../Images/installer-unix-shortcuts.png"></p>
-
-Although icons/shortcuts are not created, the installer will create
-draft shell scripts that you may use to launch the Process
+icons/shortcuts that you can use to run the program.
+Although icons/shortcuts are not created, the installer <b>will</b>
+create draft shell scripts that you may use to launch the Process
 Dashboard. In the directory you designated as your <i>data
 directory</i> (defaults to <tt>~/.pspdata</tt>), you will find the
 file <tt>run-dash.sh</tt>. In the directory you designated as your
@@ -126,7 +154,7 @@ file <tt>run-dash.sh</tt>. In the directory you designated as your
 instances;</i> see the <a href="#twoInstances">section above</a> for
 an explanation of the two instances.)  Review the contents of these
 scripts; in particular, you may wish to uncomment and edit the line
-that adds <tt>java</tt> and <tt>netscape</tt> to the executable
+that adds <tt>java</tt> and <tt>firefox</tt> to the executable
 path. For convenience, you may wish to manually create icons/shortcuts
 for launching the dashboard.</li>
 

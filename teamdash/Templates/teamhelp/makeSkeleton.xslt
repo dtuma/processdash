@@ -86,10 +86,26 @@ TABLE_OF_CONTENTS
 <xsl:if test="$depth = 1">
     <hr class="doNotPrint" />
 </xsl:if>
-<A demoteTo="{$depth}" HREF="{$targetHref}" CLASS="includeDoc">
-<xsl:value-of select="@text"/>
-</A><xsl:text>
+
+<xsl:choose>
+
+<xsl:when test="string-length($targetHref)">
+    <A demoteTo="{$depth}" HREF="{$targetHref}" CLASS="includeDoc">
+    <xsl:value-of select="@text"/>
+    </A>
+</xsl:when>
+
+<xsl:otherwise>
+    <xsl:element name="{concat('h', $depth)}">
+    <xsl:value-of select="@text"/>
+    </xsl:element>
+</xsl:otherwise>
+
+</xsl:choose>
+
+<xsl:text>
 </xsl:text>
+
 <xsl:apply-templates select="tocitem" />
 </xsl:template>
 

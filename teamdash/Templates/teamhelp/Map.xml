@@ -28,7 +28,7 @@
   <mapID target="TeamPlanStrategy" url="Topics/PlanProjectStrategy.html" />
   <mapID target="TeamPlanProcess" url="Topics/EditWorkflows.html" />
   <mapID target="TeamPlanSupport" url="Topics/PlanSupportTasks.html" />
-  <mapID target="TeamPlanTasks" url="Topics/CreatedBalancedPlan.html" />
+  <mapID target="TeamPlanTasks" url="Topics/CreateBalancedPlan.html" />
   <mapID target="TeamMasterCoord" url="Topics/MasterProjectPlanning.html" />
   <mapID target="TeamIndivPlans" url="Topics/CreateMemberPlans.html" />
   <mapID target="TeamBottomUp" url="Topics/ViewBottomUpPlan.html" />

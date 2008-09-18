@@ -7,9 +7,12 @@
   <property name="teamtools.requires" value="1.9.4+"/>
 
   <property name="processdash.dir" value="../processdash"/>
+  <property name="processdash.lib" value="${processdash.dir}/lib"/>
   <property name="pspdash.jar" value="${processdash.dir}/dist/pspdash.jar"/>
-  <property name="xmlpull.jar" value="${processdash.dir}/lib/kxml-2.2.1-mod.jar"/>
-  <property name="jcalendar.jar" value="${processdash.dir}/lib/jcalendar-1.3.2.jar"/>
+  <property name="xmlpull.jar" value="${processdash.lib}/kxml-2.2.1-mod.jar"/>
+  <property name="jcalendar.jar" value="${processdash.lib}/jcalendar-1.3.2.jar"/>
+  <property name="svg.jar" value="${processdash.lib}/svgSalamander.jar"/>
+  <property name="dashlibsrc" value="${processdash.lib}/src"/>
   <property name="swingx.jar" value="lib/swingx-0.9.1.jar"/>
   <property name="swingx-src.jar" value="lib/swingx-0.9.1-src.zip"/>
   <property name="poi.jar" value="lib/poi-3.0.1-FINAL-20070705.jar"/>
@@ -20,6 +23,10 @@
   <property name="jnlp.jar" value="FrameworkEditorJNLP.jar"/>
   <property name="teamhelp" value="Templates/teamhelp"/>
   <property name="teamhelp.search" value="${teamhelp}/JavaHelpSearch"/>
+  <property name="teamhelp.images" value="${teamhelp}/Images"/>
+  <property name="teamhelp.imgsrc" value="${teamhelp}/Images/constr"/>
+
+
   <property environment="env"/>
 
   <property name="javahelp.home" value="${env.JAVAHELP_HOME}"/>
@@ -170,7 +177,7 @@
   <!-- Targets to rebuild the javahelp content -->
 
   <target name="javahelp"
-          depends="-javahelp-depend,-javahelp-index,-javahelp-book"/>
+          depends="-javahelp-depend,-javahelp-index,-javahelp-images,-javahelp-book"/>
 
   <!-- check to see if help needs updating -->
   <target name="-javahelp-depend">
@@ -216,7 +223,8 @@
              value="File "/>
 
     <!-- invoke jhindexer to rebuild the help indexes -->
-    <java jar="${javahelp.jhindexerjar}" dir="${teamhelp}" fork="true">
+    <java jar="${javahelp.jhindexerjar}" dir="${teamhelp}"
+          fork="true" inputstring="">
       <arg value="-c"/>
       <arg value="help.config"/>
     </java>
@@ -229,13 +237,25 @@
           style="${teamhelp}/makeSkeleton.xslt"/>
 
     <java classpath="${processdash.dir}/lib/DocSpider.jar"
-          classname="DocSpider" fork="true" dir="${teamhelp}">
+          classname="DocSpider" fork="true" dir="${teamhelp}"
+	  inputstring="">
       <arg value="Skeleton.html"/>
       <arg value="book.html"/>
       <arg value="none"/>
       <arg value="-nostatus"/>
     </java>
     <delete file="${teamhelp}/Skeleton.html"/>
+  </target>
+
+  <target name="-javahelp-images" depends="-javahelp-depend"
+          unless="javahelp.upToDate">
+    <taskdef name="svgToImage"
+             classname="net.sourceforge.processdash.SVGToImage"
+	     classpath="${dashlibsrc};${svg.jar}"/>
+    <svgToImage maxWidth="740" bg="#ffffff" verbose="true"
+                destdir="${teamhelp.images}">
+      <fileset dir="${teamhelp.imgsrc}" includes="*.svg"/>
+    </svgToImage>
   </target>
 
 
@@ -333,6 +353,8 @@ class dependency has been added in a dashboard class?)
         <include name="${teamhelp}/" />
         <exclude name="${teamhelp}/help.config" />
         <exclude name="${teamhelp}/makeSkeleton.xslt" />
+        <exclude name="${teamhelp.imgsrc}/" />
+        <exclude name="${teamhelp.images}/Thumbs.db" />
       </fileset>
 
       <!-- include files from libraries we use -->
@@ -356,7 +378,8 @@ class dependency has been added in a dashboard class?)
 
   <target name="TeamProcess" depends="-defaultValues,-noBuild-init,server"
           unless="noBuild.TeamProcess">
-    <java classname="teamdash.process.GenerateProcess" fork="true">
+    <java classname="teamdash.process.GenerateProcess"
+          fork="true" inputstring="">
       <classpath>
         <pathelement location="${server.dir}"/>
         <pathelement location="${server.jar}"/>
@@ -470,7 +493,8 @@ class dependency has been added in a dashboard class?)
   <target name="davis-dist" depends="davis,installer-cd"/>
 
   <target name="signjar" if="env.TDKSPW">
-    <exec executable="c:/java/jdk1.4.2/bin/jarsigner.exe">
+    <exec executable="c:/java/jdk1.4.2/bin/jarsigner.exe"
+          inputstring="">
         <arg value="-storepass"/>
         <arg value="${env.TDKSPW}"/>
         <arg value="${sign.jar}"/>

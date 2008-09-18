@@ -29,20 +29,23 @@ possible.</p>
 the data in regular dashboard instances. This offline approach allows
 dramatic changes to be made to the hierarchy of the WBS quickly,
 without waiting for those changes to be applied to an entire database
-of existing project metrics. (The tradeoff, of course, is that
-individuals must occasionally use the &quot;Sync to WBS&quot; buttons
-to copy project planning metrics to their personal dashboard.)</p>
+of existing project metrics.</p>
 
-<p>However, it is also important to realize that &quot;Sync to
-WBS&quot; operations are one-way. Data is copied from the WBS to
-individual dashboard instances, but no data ever flows in the opposite
-direction. As a result, the estimates in the WBS will quickly become
-out-of-date.&nbsp; You can refer to the WBS in the future if you're
-curious about your original baseline.&nbsp; Also, you can use it to
-add new features, or reassign tasks.&nbsp; But it is not kept in sync
-with changes made elsewhere, and thus is not designed to be an ongoing
-tracking tool. For ongoing tracking, the Team Project Planning Summary
-is designed to show you accurate, up-to-date project metrics.</p>
+<p>The tradeoff, of course, is that individuals must occasionally use
+the &quot;Sync to WBS&quot; buttons to copy project planning metrics
+to their personal dashboard. The &quot;Sync to WBS&quot; operation
+searches for changes that have been made in the WBS, and copies those
+changes into the personal plan.  In addition, when individuals make
+changes to their personal plan, &quot;Sync to WBS&quot; will attempt
+to copy those changes back as well.</p>
+
+<p>However, it is important to realize that the individual plans are
+the &quot;gold standard&quot; used to compute rolled up project
+metrics and reports.  When you view the team earned value plan or the
+team rollup plan summary, you are viewing data that has been rolled up
+from the personal plans of each team member.  If the team member plans
+are not in sync with the WBS, the rollup will reflect the data in the
+team member plans - not the data in the WBS.</p>
 
 
 </body>

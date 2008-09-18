@@ -53,9 +53,10 @@ is properly configured.
     <p class="figure"><img src="../Images/proxy-ie.png"></p></li>
 
 
-    <li>If you are using <b>Netscape</b> or <b>Mozilla</b>, choose
-    Edit&nbsp;&#8594;&nbsp;Preferences. Open the
-    Advanced&nbsp;&#8594;&nbsp;Proxies preference page, and add the
+    <li>If you are using <b>Netscape</b> or <b>Firefox</b>, choose
+    Tools&nbsp;&#8594;&nbsp;Options. Open the
+    Advanced&nbsp;&#8594;&nbsp;Network preference page, click on the
+    Connection Settings button, and add the
     team computer name to the <i>No Proxy for:</i> field.
 
     <p class="figure"><img src="../Images/proxy-moz.png"></p></li>
@@ -74,47 +75,52 @@ and type the following command:
 <pre style="margin-left:1cm">ping <span style='background:yellow'>team-computer</span></pre>
 
 replacing the highlighted letters with the name of the team computer
-you copied from the team project URL.
+you copied from the team project URL.  If you see the message,
 
-    <ul>
+<pre style="margin-left:1cm">Unknown host <span style='background:yellow'>team-computer</span></pre>
 
-    <li style="margin-top:12pt">If you see a message like,
+then your computer is having trouble finding the IP address of the
+team computer.  You may be able to work around the problem by
+using an IP address directly.  Contact your local support staff
+and ask them to help you look up the IP address of your team
+leader's computer - it will be a number like
+<tt>10.20.30.40</tt>. Then edit the URL you are trying to visit,
+replacing the computer name with the IP address:
 
+<pre style="margin-left:1cm">http://<span style='background:yellow'>10.20.30.40</span>:3000/...</pre>
 
-    <pre style="margin-left:1cm">Reply from 10.20.30.41: bytes=32 time&lt;10ms TTL=128</pre>
-
-    then more serious network connectivity issues are most likely
-    to blame. Contact your local IT support staff for help.</li>
-
-
-    <li style="margin-top:12pt">If you see this message,
-
-    <pre style="margin-left:1cm">Unknown host <span style='background:yellow'>team-computer</span></pre>
-
-    then your computer is having trouble finding the IP address of the
-    team computer.  You may be able to work around the problem by
-    using an IP address directly.  Contact your local support staff
-    and ask them to help you look up the IP address of your team
-    leader's computer - it will be a number like
-    <tt>10.20.30.40</tt>. Then edit the URL you are trying to visit,
-    replacing the computer name with the IP address:
-
-    <pre style="margin-left:1cm">http://<span style='background:yellow'>10.20.30.40</span>:3000/...</pre>
-
-    </li>
+If the page still does not appear, continue to the next step.</li>
 
 
-    <li style="margin-top:12pt">If you see this message,
+<li style='margin-top:12.0pt'>If none of the above approaches work,
+your organization's network may be configured to block peer-to-peer
+traffic.  To work around the problem, each team member can take these
+steps:
 
-    <pre style="margin-left:1cm">Request timed out.</pre>
+<ul>
 
-    then there is no network connectivity between your computer and
-    the team leader's computer. If the team leader indicates that
-    their computer <b><u>is connected</u></b> to the network, then
-    more serious network connectivity issues are most likely to
-    blame. Contact your local IT support staff for help.</li>
+<li>Install the Process Dashboard, choose the "Tools for Team Leaders"
+installation option, and enter the correct location of the Team
+Configuration Directory when prompted. See the <a
+href="Installing.html">installation</a> help topic for more
+information.</li>
 
-    </ul>
+<li>Simultaneously open your Personal Dashboard <b>and</b> the Team
+Dashboard on your local computer.  (Note: only one team member can
+have the Team Dashboard open at a time, so some inter-team
+coordination will be needed.)</li>
+
+<li>In the Team Dashboard, use the Script Button menu to open the
+Team Project Tools and Settings page, then click on the link to
+join the team project.</li>
+
+<li>Walk through the steps in the Team Project Setup Wizard to
+join the team project.</li>
+
+<li>Shut down the Team Dashboard, to give other team members a
+chance to join.</li>
+
+</ul>
 
 </li>
 
