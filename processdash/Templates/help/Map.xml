@@ -4,7 +4,6 @@
   <mapID target="DashIcon" url="Images/pspdash-16.png" />
   <mapID target="BookIcon" url="Images/book.gif" />
   <mapID target="PageIcon" url="Images/page.gif" />
-  <mapID target="TopLevelIcon" url="Images/toplevel.gif" />
 
   <mapID target="QuickOverview" url="Topics/Overview/QuickOverview.html" />
   <mapID target="HowToInstall" url="Topics/Overview/HowToInstall.html" />
@@ -41,6 +40,7 @@
   <mapID target="AccessingScripts" url="Topics/Execution/AccessingScripts.html" />
   <mapID target="PlayPause" url="Topics/Execution/PlayPause.html" />
   <mapID target="PercentSpentIndicator" url="Topics/Execution/PercentSpent.html" />
+  <mapID target="NoteIndicator" url="Topics/Execution/NoteIndicator.html" />
   <mapID target="CompletionButton" url="Topics/Execution/CompletionButton.html" />
   <mapID target="UsingTimeLogEditor" url="Topics/Execution/UsingTimeLogEditor.html" />
   <mapID target="UsingTimeLogEditor.TimeCardView" url="Topics/Execution/UsingTimeLogEditor.html#TimeCardView" />
@@ -84,7 +84,6 @@
   <mapID target="UsingSizeEstimatingTemplate.objectLOC" url="Topics/Planning/UsingSizeEstimatingTemplate.html#objectLOC" />
   <mapID target="ConfigurationFile.pauseButton.historySize" url="Topics/AdvancedTopics/ConfigurationFile.html#pauseButtonHistorySize" />
   <mapID target="ConfigurationFile.pauseButton.quiet" url="Topics/AdvancedTopics/ConfigurationFile.html#pauseButtonQuiet" />
-  <mapID target="ConfigurationFile.pauseButton.showCurrent" url="Topics/AdvancedTopics/ConfigurationFile.html#pauseButtonShowCurrent" />
   <mapID target="PlayPause.pullDown" url="Topics/Execution/PlayPause.html#pullDown" />
   <mapID target="UsingProbeTool.interval" url="Topics/Planning/UsingProbeTool.html#interval" />
   <mapID target="UsingProbeTool.chart" url="Topics/Planning/UsingProbeTool.html#probeDialogChart" />

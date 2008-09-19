@@ -9,15 +9,14 @@
    xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="487"
+   width="507"
    height="90"
    id="svg5776"
    sodipodi:version="0.32"
-   inkscape:version="0.45.1"
+   inkscape:version="0.44"
    version="1.0"
-   sodipodi:docbase="/home/rognon/travail/pspdash/new screens/svg"
+   sodipodi:docbase="C:\Tuma\projects\processdash\Templates\help\Images\constr"
    sodipodi:docname="QSDesigning.svg"
-   inkscape:output_extension="org.inkscape.output.svg.inkscape"
    inkscape:export-filename="/home/rognon/travail/pspdash/new screens/final/QSDesigning.png"
    inkscape:export-xdpi="90"
    inkscape:export-ydpi="90">
@@ -39,7 +38,7 @@
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      height="90px"
-     width="487px"
+     width="507px"
      inkscape:window-width="1045"
      inkscape:window-height="688"
      inkscape:window-x="311"
@@ -61,41 +60,41 @@
      id="layer1">
     <image
        y="2"
-       x="2"
+       x="0"
        id="image5875"
        height="54"
        sodipodi:absref="c:\Tuma\projects\processdash\Templates\help\Images\constr\QSDesigning.png"
        xlink:href="QSDesigning.png"
-       width="485" />
+       width="507" />
     <text
        xml:space="preserve"
-       style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
-       x="335.57477"
+       style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
+       x="353.57477"
        y="83.197029"
        id="text5827"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
          id="tspan5829"
-         x="335.57477"
+         x="353.57477"
          y="83.197029">Click to complete</tspan></text>
     <path
-       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="M 471.22107,48.211337 L 448.20417,71.228242"
+       style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="M 489.22107,48.211337 L 466.20417,71.228242"
        id="path5833" />
     <text
        xml:space="preserve"
-       style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
-       x="25.027308"
-       y="83.197029"
+       style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
+       x="33.027306"
+       y="81.197029"
        id="text5878"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
          id="tspan5880"
-         x="25.027308"
-         y="83.197029">Timer is running</tspan></text>
+         x="33.027306"
+         y="81.197029">Timer is running</tspan></text>
     <path
-       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="M 49.578674,47.648895 L 72.595579,70.6658"
+       style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="M 57.578674,45.648895 L 80.595579,68.6658"
        id="path5882" />
   </g>
 </svg>

@@ -1,4 +1,4 @@
 #include <psp2.1/dataFile.txt>
 = Data for /Project/My Project/Release 1/Component B
+EV_Task_Dependencies="<list><dependency tid='TL-9lith0.erv1uhdz/Project/My Project/Architectural Design' name='/My Project, Release 1/Project/My Project/Architectural Design' taskList='My Project, Release 1'/></list>
 Estimated Time=1080.0
-node==TAG

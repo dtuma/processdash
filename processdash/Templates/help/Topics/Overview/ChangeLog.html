@@ -7,11 +7,171 @@
 
 <H1>Change History</H1>
 
+<h2>Features new in version 1.10</h2>
+
+<ul>
+
+<li>The Process Dashboard is now released under version 3 of the GNU
+General Public License.</li>
+
+
+<li><a name="newStyle"></a>For new team projects, created after the
+installation of this update, a new task structure will be used:
+
+  <ul>
+
+  <li>Previously, the process phase of a task (e.g. Planning, Code, Test,
+      etc) was recorded via a final "stub" that appeared at the end of each
+      task in the hierarchy.  Now, these stubs are no longer created.  This
+      change reduces clutter, makes it easier to subdivide existing tasks,
+      and reduces the memory usage of the Process Dashboard.</li>
+
+  <li>In a new-style team project, individuals will have a project plan
+      summary report similar to the one on the team side: it can be edited
+      to include custom charts, reports, and tables of data.</li>
+
+  <li><b>Important:</b> Data from new-style and old-style team projects
+      <b>can</b> still be rolled up together into master projects.</li>
+
+  </ul></li>
+
+
+<li>For a <a href="#newStyle">new-style</a> team project that is underway,
+new columns will appear in the Work Breakdown Structure Editor to display
+actual metrics:
+
+  <ul class="tight">
+  <li>Actual time spent on each task</li>
+  <li>Actual completion date</li>
+  <li>Percent complete </li>
+  <li>Percent spent</li>
+  </ul>
+
+Among other things, this makes it possible to see which tasks have been
+completed, which are in progress, and which have not yet started.</li>
+
+
+<li>When changes are made in the WBS, individuals use the "Sync to WBS"
+operation to copy those changes into their personal plan.  In a <a
+href="#newStyle">new-style</a> team project, the synchronization is now
+bidirectional.  When individuals make changes to the following data in
+their personal plan, the changes will be propagated back into the WBS
+automatically:
+
+  <ul class="tight">
+  <li>Changes to the planned time for tasks</li>
+  <li>Changes to the planned hours in the schedule</li>
+  <li>Changes to task notes/comments</li>
+  <li>Changes to the phase type of a task (e.g. Planning, Code, etc.)</li>
+  </ul></li>
+
+
+<li>The colored bars in the WBS Editor are a useful tool for balancing work
+between team members.  For a <a href="#newStyle">new-style</a> team project
+that is underway, these bars can now be toggled between two modes:
+
+  <ul class="tight">
+
+  <li><u>Show End-to-End Plan</u>: This mode takes all tasks into account.
+      The dates calculated for each team member will correspond to the
+      "Planned Completion Date" for that individual in their personal
+      earned value schedule.</li>
+
+  <li><u>Show Remaining Work</u>: This mode subtracts out tasks that have
+      already been completed, as well as effort spent on in-progress work.
+      The dates calculated for each team member will correspond to the
+      "Replanned Completion Date" for that individual in their personal
+      earned value schedule.</li>
+
+  </ul>
+
+The new "Remaining Work" mode is a powerful way to rebalance work during a
+relaunch.  Teams can also use it throughout a project iteration to
+continually rebalance work.</li>
+
+<li>The Process Dashboard now supports baselines for earned value data.
+You can save a baseline for any earned value schedule, then view baseline
+metrics in the task list and EV charts.</li>
+
+<li>The WBS Editor now includes support for project milestones:
+
+  <ul class="tight">
+
+  <li>It is possible to define a list of project milestones, and
+      optionally enter commit dates</li>
+
+  <li>Each component and/or task in the WBS can be assigned to a
+      particular milestone</li>
+
+  <li>Marks appear on the colored balancing bars to indicate when
+      each individual could potentially finish their work for each
+      milestone</li>
+
+  <li>The colored balancing bars can be configured to balance work
+      for the entire project or just for the next milestone(s)</li>
+
+  <li>Future milestones can be marked as "deferred," and the sync
+      operation will not copy the associated tasks into team member
+      plans.</li>
+
+  </ul></li>
+
+<li id="taskNotes">A new icon on the main toolbar makes it easy to attach
+free-text notes to any component or task in the Process Dashboard.  On a
+team project, these notes are shared by the team, and accessible in the WBS
+Editor.</li>
+
+<li>Play and pause now appear as separate toggle buttons.</li>
+
+<li>A new "timing reminder" feature is available.  This feature can
+periodically display pop-up alerts, reminding the user to start or stop
+their timer or to change the active task.  <i>(This feature is not enabled
+by default, but can be turned on by individuals who wish to use it. To
+enable this feature, right-click on the tray icon and choose "Reminder &gt;
+Enable Reminder.")</i></li>
+
+<li>The WBS Editor now allows you to enter detailed schedules for each team
+member, to include start dates, end dates, and planned time exceptions on
+specific weeks.  This information is bidirectionally synchronized with each
+individual's personal earned value schedule.</li>
+
+<li>Previously, the WBS Editor would not allow you to assign a task to an
+individual until a time estimate had been entered for the task.  Now, it is
+possible to assign a task to an individual even while the task's time
+estimate is still zero.  Agile project teams may use this feature to
+support on-the-fly cost estimation.</li>
+
+<li>The Team Dashboard Users Manual is now included in the dashboard's
+searchable online help.</li>
+
+<li>When starting a new project or iteration, you can now bring forward the
+data from historical earned value schedules.  As a result, the dashboard
+can calculate forecast dates and prediction ranges during a team project
+launch, even before any actual data has been collected.</li>
+
+<li>The weekly earned value report now includes a "Tasks In Progress"
+section.  This section displays tasks that have been started but not yet
+completed, making it easier to spot problems such as overspent tasks.</li>
+
+
+<li>Historically, "PSP Tasks" were required if a team wanted to capture
+planned and actual LOC for their project.  Now, LOC can be captured for
+"code" tasks as well.</li>
+
+<li>Installation and operation of the dashboard on Mac OS X is greatly
+improved.</li>
+
+<li>On Unix/Linux systems, the default web browser has been changed from
+Netscape to Firefox.</li>
+
+</ul>
+
+
 <h2>Features new in version 1.9</h2>
 
 <ul>
 
-<li>The Process Dashboard now displays an icon in the system tray:</li>
+<li>The Process Dashboard now displays an icon in the system tray:
 
   <ul>
 
@@ -24,7 +184,7 @@
   <li>The popup menu on the tray icon provides quick access to many commonly
       used dashboard features.</li>
 
-  </ul>
+  </ul></li>
 
 <li>In the Team Dashboard, you can now expand the weekly earned value
 report to show data for each individual team member.  This resulting

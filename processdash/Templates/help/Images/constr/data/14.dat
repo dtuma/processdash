@@ -1,4 +1,5 @@
 #include <psp2.1/dataFile.txt>
 = Data for /Project/My Project/Release 1/Component C
 Estimated Time=1140.0
-node==TAG
+Team_Note="<note author='My Name' timestamp='@1221847269093' format='text'>Remember to:\n * Verify against the requirements document at\n    T:\\TeamDocs\\Component-C-Reqts.doc\n * Send to customer POC for review</note>
+new/Estimated Time=1860.0

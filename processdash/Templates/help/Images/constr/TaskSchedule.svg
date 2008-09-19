@@ -30,16 +30,16 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="1"
-     inkscape:cx="441.42857"
-     inkscape:cy="446.58084"
+     inkscape:cx="380.63261"
+     inkscape:cy="388.50371"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      height="780px"
      width="676px"
      inkscape:window-width="980"
-     inkscape:window-height="925"
+     inkscape:window-height="1030"
      inkscape:window-x="389"
-     inkscape:window-y="107" />
+     inkscape:window-y="2" />
   <metadata
      id="metadata11924">
     <rdf:RDF>
@@ -56,10 +56,10 @@
      inkscape:groupmode="layer"
      id="layer1">
     <image
-       y="37"
+       y="39"
        x="2"
        id="image11967"
-       height="705"
+       height="703"
        width="672"
        sodipodi:absref="c:\Tuma\projects\processdash\Templates\help\Images\constr\TaskSchedule.png"
        xlink:href="TaskSchedule.png" />

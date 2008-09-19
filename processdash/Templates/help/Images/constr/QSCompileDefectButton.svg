@@ -9,15 +9,14 @@
    xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="495"
+   width="515"
    height="90"
    id="svg5776"
    sodipodi:version="0.32"
-   inkscape:version="0.45.1"
+   inkscape:version="0.44"
    version="1.0"
-   sodipodi:docbase="/home/rognon/travail/pspdash/new screens/svg"
+   sodipodi:docbase="C:\Tuma\projects\processdash\Templates\help\Images\constr"
    sodipodi:docname="QSCompileDefectButton.svg"
-   inkscape:output_extension="org.inkscape.output.svg.inkscape"
    inkscape:export-filename="/home/rognon/travail/pspdash/new screens/final/QSCompileDefectButton.png"
    inkscape:export-xdpi="90"
    inkscape:export-ydpi="90">
@@ -39,7 +38,7 @@
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      height="90px"
-     width="495px"
+     width="515px"
      inkscape:window-width="1045"
      inkscape:window-height="688"
      inkscape:window-x="395"
@@ -61,26 +60,26 @@
      id="layer1">
     <image
        y="2"
-       x="2"
+       x="0"
        id="image5969"
        height="54"
        sodipodi:absref="c:\Tuma\projects\processdash\Templates\help\Images\constr\QSCompiling.png"
        xlink:href="QSCompiling.png"
-       width="493" />
+       width="515" />
     <text
        xml:space="preserve"
-       style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
-       x="112.61248"
+       style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
+       x="116.61248"
        y="83.197029"
        id="text5878"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
          id="tspan5880"
-         x="112.61248"
+         x="116.61248"
          y="83.197029">Defect button</tspan></text>
     <path
-       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="M 105.86086,47.035111 L 127.6502,68.824447"
+       style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="M 109.86086,47.035111 L 131.6502,68.824447"
        id="path5927" />
   </g>
 </svg>

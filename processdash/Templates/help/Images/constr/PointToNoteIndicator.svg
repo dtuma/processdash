@@ -9,16 +9,19 @@
    xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="676"
-   height="743"
-   id="svg11919"
+   width="555"
+   height="90"
+   id="svg5776"
    sodipodi:version="0.32"
    inkscape:version="0.44"
    version="1.0"
    sodipodi:docbase="C:\Tuma\projects\processdash\Templates\help\Images\constr"
-   sodipodi:docname="TaskScheduleCollaborationButton.svg">
+   sodipodi:docname="PointToNoteIndicator.svg"
+   inkscape:export-filename="/home/rognon/travail/pspdash/new screens/final/PointToPlayPauseButton.png"
+   inkscape:export-xdpi="90"
+   inkscape:export-ydpi="90">
   <defs
-     id="defs11921" />
+     id="defs5778" />
   <sodipodi:namedview
      id="base"
      pagecolor="#ffffff"
@@ -30,18 +33,18 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="1"
-     inkscape:cx="327.5"
-     inkscape:cy="356.31978"
+     inkscape:cx="246.42857"
+     inkscape:cy="67.158093"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
-     height="743px"
-     width="676px"
-     inkscape:window-width="853"
-     inkscape:window-height="961"
-     inkscape:window-x="433"
-     inkscape:window-y="24" />
+     height="90px"
+     width="555px"
+     inkscape:window-width="1045"
+     inkscape:window-height="688"
+     inkscape:window-x="296"
+     inkscape:window-y="141" />
   <metadata
-     id="metadata11924">
+     id="metadata5781">
     <rdf:RDF>
       <cc:Work
          rdf:about="">
@@ -57,26 +60,26 @@
      id="layer1">
     <image
        y="2"
-       x="2"
-       id="image11967"
-       height="705"
-       width="672"
-       sodipodi:absref="c:\Tuma\projects\processdash\Templates\help\Images\constr\TaskSchedule.png"
-       xlink:href="TaskSchedule.png" />
+       x="0"
+       id="image15501"
+       height="54"
+       sodipodi:absref="c:\Tuma\projects\processdash\Templates\help\Images\constr\ShowHierarchyMenus.png"
+       xlink:href="ShowHierarchyMenus.png"
+       width="555" />
     <text
        xml:space="preserve"
-       style="font-size:18px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
-       x="120.72723"
-       y="739.33197"
-       id="text12873"
+       style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
+       x="424.82706"
+       y="85.810814"
+       id="text5878"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
-         id="tspan12875"
-         x="120.72723"
-         y="739.33197">Collaborate button</tspan></text>
+         id="tspan5880"
+         x="424.82706"
+         y="85.810814">Note Indicator</tspan></text>
     <path
-       style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:2;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       d="M 102.05118,687.2262 L 138.58086,723.75588"
-       id="path13005" />
+       style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:0.99999994px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="M 516.5785,45.807543 L 498.0376,72.58348"
+       id="path17393" />
   </g>
 </svg>

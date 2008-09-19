@@ -9,15 +9,14 @@
    xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="535"
+   width="555"
    height="254"
    id="svg15504"
    sodipodi:version="0.32"
-   inkscape:version="0.45.1"
+   inkscape:version="0.44"
    version="1.0"
-   sodipodi:docbase="/home/rognon/travail/pspdash/new screens/svg"
+   sodipodi:docbase="C:\Tuma\projects\processdash\Templates\help\Images\constr"
    sodipodi:docname="PointToScriptPullDownShowMenu.svg"
-   inkscape:output_extension="org.inkscape.output.svg.inkscape"
    inkscape:export-filename="/home/rognon/travail/pspdash/new screens/final/PointToScriptPullDownShowMenu.png"
    inkscape:export-xdpi="90"
    inkscape:export-ydpi="90">
@@ -39,9 +38,9 @@
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      height="254px"
-     width="535px"
-     inkscape:window-width="853"
-     inkscape:window-height="599"
+     width="555px"
+     inkscape:window-width="1078"
+     inkscape:window-height="656"
      inkscape:window-x="347"
      inkscape:window-y="174" />
   <metadata
@@ -61,26 +60,26 @@
      id="layer1">
     <image
        y="2"
-       x="2"
+       x="0"
        id="image15552"
        height="226"
        sodipodi:absref="c:\Tuma\projects\processdash\Templates\help\Images\constr\PointToScriptPullDownShowMenu.png"
        xlink:href="PointToScriptPullDownShowMenu.png"
-       width="533" />
+       width="555" />
     <text
        xml:space="preserve"
-       style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
-       x="26"
+       style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
+       x="44"
        y="248.13995"
        id="text15555"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
          id="tspan15557"
-         x="26"
+         x="44"
          y="248.13995">Scripts button pull-down tab</tspan></text>
     <path
-       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:2;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       d="M 133.33333,43.473294 L 43.333333,235.69552"
+       style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:2;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="M 151.33333,43.473294 L 61.333333,235.69552"
        id="path15559" />
   </g>
 </svg>

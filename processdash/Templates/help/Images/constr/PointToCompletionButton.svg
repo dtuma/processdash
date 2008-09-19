@@ -13,11 +13,10 @@
    height="90"
    id="svg5776"
    sodipodi:version="0.32"
-   inkscape:version="0.45.1"
+   inkscape:version="0.44"
    version="1.0"
-   sodipodi:docbase="/home/rognon/travail/pspdash/new screens/svg"
+   sodipodi:docbase="C:\Tuma\projects\processdash\Templates\help\Images\constr"
    sodipodi:docname="PointToCompletionButton.svg"
-   inkscape:output_extension="org.inkscape.output.svg.inkscape"
    inkscape:export-filename="/home/rognon/travail/pspdash/new screens/final/PointToCompletionButton.png"
    inkscape:export-xdpi="90"
    inkscape:export-ydpi="90">
@@ -34,16 +33,16 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="1"
-     inkscape:cx="246.42857"
-     inkscape:cy="67.158093"
+     inkscape:cx="192.88702"
+     inkscape:cy="85"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      height="90px"
      width="555px"
      inkscape:window-width="1045"
      inkscape:window-height="688"
-     inkscape:window-x="296"
-     inkscape:window-y="153" />
+     inkscape:window-x="220"
+     inkscape:window-y="138" />
   <metadata
      id="metadata5781">
     <rdf:RDF>
@@ -67,21 +66,21 @@
        height="54"
        sodipodi:absref="c:\Tuma\projects\processdash\Templates\help\Images\constr\MainDashboardWindow.png"
        xlink:href="MainDashboardWindow.png"
-       width="553" />
+       width="555" />
     <text
        xml:space="preserve"
-       style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
-       x="390.90506"
+       style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
+       x="392.90494"
        y="83.810814"
        id="text5878"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
          id="tspan5880"
-         x="390.90506"
+         x="392.90494"
          y="83.810814">Completion checkbox</tspan></text>
     <path
-       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="M 537.59948,44.579974 L 509.36541,72.814044"
+       style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="M 539.59935,44.579974 L 511.36528,72.814044"
        id="path18306" />
   </g>
 </svg>

@@ -1,4 +1,5 @@
 #include <dataFile.txt>
+Historically_Exported_Filenames=="T:\\Team-Directory\\data\\My-Data-File.pdash
 Non Project/Email/Time==0.0
 Non Project/Email/leaf==TAG
 Non Project/Email/node==TAG
@@ -75,11 +76,8 @@ Project/My Project/Prototype/Component D/leaf==TAG
 Project/My Project/Prototype/Component D/node==TAG
 Project/My Project/Prototype/EV_Task_Dependencies="<list><dependency tid='TL-9lith0.erv1uhdz/Project/My Project/Requirements' name='/My Project, Release 1/Project/My Project/Requirements' taskList='My Project, Release 1'/></list>
 Project/My Project/Prototype/node==TAG
-Project/My Project/Release 1/Component B/EV_Task_Dependencies="<list><dependency tid='TL-9lith0.erv1uhdz/Project/My Project/Architectural Design' name='/My Project, Release 1/Project/My Project/Architectural Design' taskList='My Project, Release 1'/></list>
 Project/My Project/Release 1/Component B/node==TAG
-Project/My Project/Release 1/Component C/new/Estimated Time=1860.0
 Project/My Project/Release 1/Component C/node==TAG
-Project/My Project/Release 1/Component D/new/Estimated Time=1500.0
 Project/My Project/Release 1/node==TAG
 Project/My Project/Requirements/Component A/Completed=@1136854015000
 Project/My Project/Requirements/Component A/Estimated Time=540.0

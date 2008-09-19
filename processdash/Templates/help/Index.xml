@@ -76,7 +76,6 @@
   <indexitem text="historySize" target="ConfigurationFile.pauseButton.historySize"/>
   <indexitem text="pull down" target="PlayPause.pullDown"/>
   <indexitem text="quiet" target="ConfigurationFile.pauseButton.quiet"/>
-  <indexitem text="showCurrent" target="ConfigurationFile.pauseButton.showCurrent"/>
  </indexitem>
  <indexitem text="postmortem" target="PostmortemAnalysis"/>
  <indexitem text="prediction interval" target="UsingProbeTool.interval"/>

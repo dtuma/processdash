@@ -14,8 +14,8 @@
       </node>
       <node name="Architectural Design">
         <node name="Draft"/>
-        <node name="Review" selected="true"/>
-        <node name="Rework"/>
+        <node name="Review"/>
+        <node name="Rework" selected="true"/>
       </node>
       <node name="Prototype">
         <node name="Component A" selected="true"/>
@@ -25,10 +25,10 @@
       </node>
       <node name="Release 1" selected="true">
         <node name="Component A" templateID="PSP2.1" dataFile="0.dat" defectLog="0.def" selected="true">
-          <node name="Planning" selected="true"/>
+          <node name="Planning"/>
           <node name="Design"/>
           <node name="Design Review"/>
-          <node name="Code"/>
+          <node name="Code" selected="true"/>
           <node name="Code Review"/>
           <node name="Compile"/>
           <node name="Test"/>
@@ -45,10 +45,10 @@
           <node name="Postmortem"/>
         </node>
         <node name="Component C" templateID="PSP2.1" dataFile="14.dat" defectLog="14.def">
-          <node name="Planning" selected="true"/>
+          <node name="Planning"/>
           <node name="Design"/>
           <node name="Design Review"/>
-          <node name="Code"/>
+          <node name="Code" selected="true"/>
           <node name="Code Review"/>
           <node name="Compile"/>
           <node name="Test"/>

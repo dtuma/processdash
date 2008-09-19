@@ -1,3 +1,4 @@
+<!--#server-parsed -->
 <HTML>
 <head>
 <TITLE>Team Use</TITLE>
@@ -12,168 +13,28 @@ high-maturity project teams.  This functionality will be most useful and
 intuitive to projects that are applying the Team Software
 Process<sup>(SM)</sup>.  However, since the dashboard's team functionality is
 general-purpose, it can be used effectively by non-TSP<sup>(SM)</sup> and
-non-software teams.<a name="teamUsersManual"></a></p>
-
-<p><table border cellpadding=5><tr><td bgcolor="#ffc0c0">The information below
-provides a <u>very</u> abbreviated, high-level overview of the team
-functionality in the dashboard.  A more thorough, step-by-step manual is
-available; please visit <u
-class="url">http://www.tuma-solutions.com/</u></td></tr></table></p>
-
-<h2>Overview</h2>
-
-<p>Before you begin, it is helpful to the dashboard's approach to team
-support.  In this approach, each team member runs their own personal
-instance of the dashboard, which they use to capture and track their own
-personal metrics.  In addition, a team instance of the dashboard is run.
-This team instance aggregates team data, calculates rolled-up metrics, and
-displays charts and reports of team project data.</p>
-
-<p><center><img src="../../Images/TeamRollupDataFlow.png"></center></p>
-
-<p>To simplify ongoing communication, the dashboard uses a shared network
-directory (labeled &quot;Team Data Directory&quot; in the diagram above).
-Data is exported by personal dashboard instances into this network folder,
-and imported by the team dashboard instance.  The resulting imported data
-is then rolled up using existing mechanisms already present in the Process
-Dashboard.</p>
-
-<!--
-<p>To use the Process Dashboard on a team project, follow the steps
-below.</p>
--->
-
-<h2>Setup and Preparation</h2>
-
-<p>To prepare for a team project, take the steps below.  It is recommended
-that you perform these steps <b>before</b> your project launch planning
-meeting.</p>
-
-<h3>Install the Process Dashboard</h3>
-
-<p>Each individual on the team will need to install the Process Dashboard.
-When installing, the team leader should choose to install the &quot;Tools
-for Team Leaders&quot; component.  On Windows systems, when you select this
-optional component, the installer will create a second shortcut for
-launching the &quot;Team Dashboard&quot; instance.</p>
-
-<h3>Create Team Data Directory</h3>
-
-Most teams have a folder on a shared network drive where project documents
-are stored.  Create a subdirectory specifically for dashboard metrics data.
-The main requirement is that all team members should have the ability to
-save files to this directory.  In a Windows environment, each team member
-will most likely want to map the network drive so the folder is accessible
-via a simple filename.
-
-<p>Depending on your organizational culture, you may also wish to tighten
-permissions to prevent non-team members from viewing the data.</p>
-
-<h3>Create Team Project</h3>
-
-<p>The team leader should:<ul>
-
-<li>Launch the &quot;Team Dashboard&quot; instance.</li>
-
-<li>Open the Hierarchy Editor.  Use &quot;Edit <img border="0"
-src="../../Images/rarrow.png" width="12" height="9"> Add Template <img
-border="0" src="../../Images/rarrow.png" width="12" height="9"> Team
-Project&quot; to create a team project.  Give the new team project an
-appropriate name.  Then, save these changes and close the hierarchy
-editor.</li>
-
-<li>Use the hierarchy menus to navigate to the team project that was just
-created.  Click the script button.  A Team Project Setup Wizard will be
-displayed in your web browser.  Follow the instructions in the wizard to
-set up the team project.</li>
-
-</ul>
-
-<h3>Invite Individuals to Join Team Project</h3>
-
-<p>After creating the team project and completing the Team Project Setup
-Wizard, the team leader should use the script button to open the &quot;Team
-Project Tools and Settings&quot; page.  Use the hyperlink near the bottom
-of the page to invite individuals to join this team project.</p>
-
-<p>Individuals should use the hyperlink they receive from the team leader
-to join the team project.  (For this to succeed, the team leader must leave
-the team dashboard running while individuals join the project.  If the team
-leader's computer is protected by a personal firewall, they should ensure
-that incoming connections on port 3000 are permitted.)</p>
+non-software teams.</p>
 
 
+<!--#if Dash_Package_teamTools -->
 
-<h2>Plan Project Work</h2>
+<p>For more information and step-by-step instructions, see the
+<a href="../../../teamhelp/Topics/Overview.html">Team Use</a> section of
+the Users Manual.</p>
 
-<p>Project teams using the TSP typically perform a project launch planning
-meeting.</p>
-
-<h3>Enter List of Team Members</h3>
-
-<p>Open the &quot;Team Project Tools and Settings&quot page, and click on
-the Edit Team Member List button.  Enter a line for each team member.  The
-initials entered here should match the initials each team member used when
-they joined the team project.  Save these changes.</p>
-
-<h3>Plan Project Work</h3>
-
-<p>Open the &quot;Team Project Tools and Settings&quot page, and click on
-the Edit Work Breakdown Structure button.  The Work Breakdown Structure
-Editor will be displayed, allowing you to:<ul>
-
-<li>describe the high-level components and documents you will create for
-    your project, and estimate their size</li>
-
-<li>enter the tasks you will perform to produce those components</li>
-
-<li>estimate the time for each task, and assign the tasks to
-    individuals</li>
-
-<li>describe the dependencies between tasks</li>
-
-</ul></p>
-
-<p>The Work Breakdown Structure Editor is a very powerful tool for rapidly
-developing detailed, balanced team project plans.  It contains many
-advanced features that are not described here.  For more information on
-these features, obtain the <a href="#teamUsersManual">Team Users
-Manual</a>.</p>
-
-<h3>Synchronize Work Breakdown Structure</h3>
-
-<p>After making and saving changes to the work breakdown structure, it is
-necessary to copy this planning data to the dashboard instances for the
-team and for each individual.  This step is performed by pressing the
-&quot;Sync Work Breakdown Structure&quot; button on the &quot;Team
-Project Tools and Settings&quot; page.</p>
-
-<h2>Running the Project</h2>
-
-<p>During project execution, individuals should use the dashboard to log
-time and defects against the tasks assigned to them.  When tasks are
-finished, mark them complete using the completion checkbox.</p>
-
-<p>Data is exported from individual dashboard instances on a daily basis,
-then imported automatically by the team dashboard instance.  In the team
-dashboard, the Rollup Plan Summary form can be built dynamically to include
-the charts and reports of interest to the team;  these will display data
-rolled up from individuals on the project.</p>
-
-<p><table border cellpadding=5><tr><td bgcolor="#ffc0c0">This has been an
-abbreviated description of the steps required to use the team
-functionality in the dashboard.  For more detailed instructions,
-advanced tips/tricks, and troubleshooting help, obtain the Team Users
-Manual from <u class="url">http://www.tuma-solutions.com/</u></td></tr>
-</table></p>
+<!--#endif-->
 
 <div class="hideInBook">
+
+<p></p>
 
 <hr>
 
 <p>Team Software Process<sup>(SM)</sup> and TSP<sup>(SM)</sup> are service
 marks of Carnegie Mellon University.  The open source team that writes the
-Process Dashboard is not affiliated with Carnegie Mellon University.</p>
+Process Dashboard is not affiliated with Carnegie Mellon University.
+Neither Carnegie Mellon University nor the Software Engineering Institute
+have reviewed or endorsed the Process Dashboard.</p>
 
 </div>
 
