@@ -313,7 +313,7 @@ Authors:
     <delete quiet="true" dir="${compiler}/node"/>
     <delete quiet="true" dir="${compiler}/analysis"/>
     <!-- run the sablecc code generator -->
-    <java classpath="${lib}/sablecc.jar" fork="true"
+    <java classpath="${lib}/sablecc.jar" fork="true" inputstring=""
           classname="org.sablecc.sablecc.SableCC">
       <arg value="-d"/>
       <arg file="${src}"/>
@@ -344,7 +344,7 @@ Authors:
     <delete quiet="true" dir="${glob}/node"/>
     <delete quiet="true" dir="${glob}/analysis"/>
     <!-- run the sablecc code generator -->
-    <java classpath="${lib}/sablecc.jar" fork="true"
+    <java classpath="${lib}/sablecc.jar" fork="true" inputstring=""
           classname="org.sablecc.sablecc.SableCC">
       <arg value="-d"/>
       <arg file="${src}"/>
@@ -528,7 +528,8 @@ Authors:
     </replace>
 
     <!-- invoke jhindexer to rebuild the help indexes -->
-    <java jar="${javahelp.jhindexerjar}" dir="${help}" fork="true">
+    <java jar="${javahelp.jhindexerjar}" dir="${help}"
+          fork="true" inputstring="">
       <arg value="-c"/>
       <arg value="help.config"/>
     </java>
@@ -543,7 +544,7 @@ Authors:
           style="${help}/makeSkeleton.xslt"/>
 
     <java classpath="${lib}/DocSpider.jar" classname="DocSpider"
-          fork="true" dir="${help}">
+          fork="true" dir="${help}" inputstring="">
       <arg value="Skeleton.html"/>
       <arg value="book.html"/>
       <arg value="none"/>
