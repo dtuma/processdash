@@ -18,6 +18,8 @@ import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.JToolBar;
 import javax.swing.event.ChangeListener;
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
 import javax.swing.table.TableColumn;
 
 /** A graphical user interface for editing common workflows.
@@ -47,6 +49,7 @@ public class WorkflowEditor {
 
         undoList = new UndoList(workflowModel.getWBSModel());
         undoList.setForComponent(table);
+        workflowModel.addTableModelListener(new UndoableEventRepeater());
 
         table.setEditingEnabled(teamProject.isReadOnly() == false);
         buildToolbar();
@@ -221,6 +224,16 @@ public class WorkflowEditor {
         if (teamProject.isReadOnly())
             IMPORT.setEnabled(false);
         return new Action[] { IMPORT, EXPORT };
+    }
+
+    private class UndoableEventRepeater implements TableModelListener {
+
+        public void tableChanged(TableModelEvent e) {
+            if (e.getColumn() > 0 && e.getFirstRow() > 0
+                    && e.getFirstRow() == e.getLastRow())
+                undoList.madeChange("Edited value");
+        }
+
     }
 
     /*

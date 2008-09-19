@@ -33,4 +33,10 @@ public class WorkflowModel extends DataTableModel {
         addDataColumn(new WorkflowNumPeopleColumn(wbsModel));
     }
 
+    @Override
+    public void setValueAt(Object value, int rowIndex, int columnIndex) {
+        super.setValueAt(value, rowIndex, columnIndex);
+        fireTableCellUpdated(rowIndex, columnIndex);
+    }
+
 }
