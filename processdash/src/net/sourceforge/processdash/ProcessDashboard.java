@@ -262,6 +262,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         if (StringUtils.hasValue(altLanguage)) {
             try {
                 Locale.setDefault(new Locale(altLanguage));
+                System.setProperty("user.language", altLanguage);
             } catch (Exception e) {
                 logger.warning("Could not apply user-selected language '"
                         + altLanguage + "'");
