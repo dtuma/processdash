@@ -66,8 +66,8 @@ public class XYControlLimitDataset extends AbstractXYDataset
     private int seriesNum;
 
     /** The smallest and biggest X value of the source dataset */
-    private double minX = Double.MAX_VALUE;
-    private double maxX = Double.MIN_VALUE;
+    private double minX;
+    private double maxX;
 
     public XYControlLimitDataset(XYDataset source, int seriesNum) {
         this.source = source;
@@ -88,7 +88,12 @@ public class XYControlLimitDataset extends AbstractXYDataset
         // The sum of the square of the natural log of all data point values
         double squareSumOfLog = 0;
 
-        int n = source.getItemCount(seriesNum);
+        minX = Double.MAX_VALUE;
+        maxX = Double.MIN_VALUE;
+
+        int n = 0;
+        if (source.getSeriesCount() > seriesNum)
+            n = source.getItemCount(seriesNum);
 
         // Since need to go through all the source dataset value, we might as well calculate
         //  all the values that we need in one pass.

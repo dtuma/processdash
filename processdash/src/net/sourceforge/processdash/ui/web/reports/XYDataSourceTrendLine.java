@@ -152,7 +152,9 @@ public class XYDataSourceTrendLine extends AbstractXYDataset {
             Vector data = new Vector();
             double minX = useZeroAsMinX ? 0 : Double.NaN;
             double maxX = Double.NaN;
-            int i = source.getItemCount(seriesNum);
+            int i = 0;
+            if (source.getSeriesCount() > seriesNum)
+                i = source.getItemCount(seriesNum);
             while (i-- > 0) try {
                 double[] pair = new double[2];
                 pair[0] = source.getXValue(seriesNum, i);
