@@ -233,6 +233,8 @@
   <!-- regenerate the 'book.html' file -->
   <target name="-javahelp-book" depends="-javahelp-depend"
           unless="javahelp.upToDate">
+    <xslt in="${teamhelp}/TOC.xml" out="${teamhelp}/TOC.html"
+          style="${teamhelp}/makeTOC.xslt"/>
     <xslt in="${teamhelp}/TOC.xml" out="${teamhelp}/Skeleton.html"
           style="${teamhelp}/makeSkeleton.xslt"/>
 
