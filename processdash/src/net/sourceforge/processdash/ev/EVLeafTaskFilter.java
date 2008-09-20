@@ -102,4 +102,16 @@ public class EVLeafTaskFilter implements EVTaskFilter {
         }
     };
 
+    public static final EVTaskFilterCondition HAS_PLAN_TIME = new EVTaskFilterCondition() {
+        public boolean include(EVTask task) {
+            return task.getPlanTimeValue() > 0;
+        }
+    };
+
+    public static final EVTaskFilterCondition HAS_ACTUAL_TIME = new EVTaskFilterCondition() {
+        public boolean include(EVTask task) {
+            return task.getActualTime() > 0;
+        }
+    };
+
 }

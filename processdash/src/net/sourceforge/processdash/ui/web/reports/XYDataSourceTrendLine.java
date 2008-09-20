@@ -36,9 +36,8 @@ import org.jfree.data.xy.XYDataset;
 
 
 
-/** Add a line to an XYDataSource.
- *
- * Note: Change notification is not yet supported.
+/** 
+ * Add a line to an XYDataSource.
  */
 public class XYDataSourceTrendLine extends AbstractXYDataset {
 
@@ -139,7 +138,7 @@ public class XYDataSourceTrendLine extends AbstractXYDataset {
 
         /** Used to indicate if the regression line should start for 0 or from the first
             data point. */
-        public  boolean useZeroAsMinX;
+        public boolean useZeroAsMinX;
 
         public RegressionLine(XYDataset src, int seriesNum, boolean useZeroAsMinX) {
             super(src, DEFAULT_NAME);

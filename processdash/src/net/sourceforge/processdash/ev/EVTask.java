@@ -821,6 +821,9 @@ public class EVTask implements Cloneable, DataListener {
             return formatPercent(planLevelOfEffort);
         else return FormatUtil.formatTime(planTime);
     }
+    public double getPlanTimeValue() {
+        return planTime;
+    }
     public String getPlanDirectTime() {
         if (isValuePruned() && planValue == 0) return "";
         else return FormatUtil.formatTime(planValue);
@@ -849,6 +852,9 @@ public class EVTask implements Cloneable, DataListener {
         if (isLevelOfEffortTask())
             return formatPercent(actualTime / totalActualTime);
         else return FormatUtil.formatTime(actualTime);
+    }
+    public double getActualTime() {
+        return actualTime;
     }
     public String getActualDirectTime(double totalActualTime) {
         if (//isLevelOfEffortTask() || isTotallyPruned() ||

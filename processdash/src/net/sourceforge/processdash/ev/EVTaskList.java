@@ -1865,6 +1865,22 @@ public class EVTaskList extends AbstractTreeTableModel
 
     }
 
+    private class CPIXYChartSeries extends EVLeavesXYChartSeries {
+
+        public CPIXYChartSeries(EVTaskFilter filter) {
+            super("Completed_Task", filter);
+        }
+
+        public Number getX(int itemIndex) {
+            return get(itemIndex).getDateCompleted().getTime();
+        }
+
+        public Number getY(int itemIndex) {
+            return get(itemIndex).planTime / get(itemIndex).actualTime;
+        }
+
+    }
+
     public class GenericCategoryChartSeries extends EVLeavesCategoryChartSeries {
 
         protected int[] columnIndexes;
@@ -1945,6 +1961,11 @@ public class EVTaskList extends AbstractTreeTableModel
     public CategoryDataset getPlanVsActualDirectTimeData(EVTaskFilter filter) {
         EVLeavesCategoryChartSeries series = new PlanVsActualCategoryChartSeries(filter);
         return new CategoryChartData(new EVTaskChartEventAdapter(), series);
+    }
+
+    public XYDataset getCPIData(EVTaskFilter filter) {
+        return new EVLeavesXYChartData(new EVTaskChartEventAdapter(),
+                new CPIXYChartSeries(filter));
     }
 
 

@@ -30,6 +30,7 @@ import org.jfree.chart.JFreeChart;
 import org.jfree.chart.labels.XYToolTipGenerator;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYItemRenderer;
+import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.data.xy.XYDataset;
 
 
@@ -65,6 +66,19 @@ public abstract class AbstractEVXYChart extends AbstractEVChart<XYDataset, XYPlo
         renderer.setBaseToolTipGenerator(getTooltipGenerator());
         return renderer;
     }
+    /** Used to create a chart XYLineAndShapeRenderer with the appropriate
+        tooltipGenerator */
+    public static final boolean LINES = true;
+    public static final boolean NO_LINES = false;
+    public static final boolean SHAPES = true;
+    public static final boolean NO_SHAPES = false;
+    protected XYItemRenderer createXYLineAndShapeRenderer(boolean lines, boolean shapes) {
+        XYItemRenderer renderer = new XYLineAndShapeRenderer(lines, shapes);
+        renderer.setLegendItemLabelGenerator(new SeriesNameGenerator());
+        renderer.setBaseToolTipGenerator(getTooltipGenerator());
+        return renderer;
+    }
+
     protected abstract XYToolTipGenerator getTooltipGenerator();
 
     @Override
