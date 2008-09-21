@@ -294,7 +294,8 @@ Authors:
     </jar>
   </target>
 
-  <target name="extras-addon" depends="compile" if="extras.dir">
+  <target name="extras-addon" depends="compile" if="extras.dir"
+          unless="extras.skip">
     <pathconvert property="extras.processdash.dir" dirSep="/">
       <path location="."/>
     </pathconvert>
