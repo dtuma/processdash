@@ -27,8 +27,8 @@ import java.awt.BasicStroke;
 import java.awt.Graphics2D;
 import java.awt.Shape;
 import java.awt.Stroke;
+import java.awt.geom.GeneralPath;
 import java.awt.geom.Line2D;
-import java.awt.geom.Path2D;
 import java.awt.geom.Rectangle2D;
 
 import org.jfree.chart.axis.ValueAxis;
@@ -78,14 +78,14 @@ public class TooltipLineXYLineAndShapeRenderer extends XYLineAndShapeRenderer {
      *  as a parameter, but ticker so it can be used as a mouse-over tooltip area
      */
     private Shape getTooltipArea(Line2D line, int series) {
-        Path2D.Float area = new Path2D.Float();
+        GeneralPath area = new GeneralPath();
 
         float areaWidth = getAreaWidth(series);
 
-        area.moveTo(line.getX1(), line.getY1() + areaWidth/2);
-        area.lineTo(line.getX2(), line.getY2() + areaWidth/2);
-        area.lineTo(line.getX2(), line.getY2() - areaWidth/2);
-        area.lineTo(line.getX1(), line.getY1() - areaWidth/2);
+        area.moveTo((float)line.getX1(), (float) (line.getY1() + areaWidth/2));
+        area.lineTo((float)line.getX2(), (float) (line.getY2() + areaWidth/2));
+        area.lineTo((float)line.getX2(), (float) (line.getY2() - areaWidth/2));
+        area.lineTo((float)line.getX1(), (float) (line.getY1() - areaWidth/2));
         area.closePath();
 
         return area;
