@@ -3,7 +3,7 @@
 
   <property file="build.properties"/>
 
-  <property name="teamtools.version" value="3.5.5"/>
+  <property name="teamtools.version" value="3.6"/>
   <property name="teamtools.requires" value="1.9.4+"/>
 
   <property name="processdash.dir" value="../processdash"/>
