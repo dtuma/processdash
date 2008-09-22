@@ -22,7 +22,7 @@ public class CustomProcessServlet extends HttpServlet {
             throws ServletException, IOException {
         response.setContentType("text/plain");
 
-        String prefix = getInitParameter("prefix");
+        String prefix = getProcessTemplatePrefix(request);
         String resName = prefix + "/team/lib/script-v1.xml";
         try {
             URL u = CustomProcessServlet.class.getResource(resName);
@@ -53,10 +53,20 @@ public class CustomProcessServlet extends HttpServlet {
         try {
             Document settings = XMLUtils.parse(in);
             CustomProcess process = new CustomProcess(settings);
+            String prefix = getProcessTemplatePrefix(request);
             CustomProcessPublisher.publish(process, response.getOutputStream(),
-                    new ClasspathContentProvider(getInitParameter("prefix")));
+                    new ClasspathContentProvider(prefix));
         } catch (SAXException e) {
             e.printStackTrace();
         }
     }
+
+    private String getProcessTemplatePrefix(HttpServletRequest request) {
+        String pathInfo = request.getPathInfo();
+        if (pathInfo != null && pathInfo.startsWith("/Templates"))
+            return pathInfo;
+        else
+            return getInitParameter("prefix");
+    }
+
 }
