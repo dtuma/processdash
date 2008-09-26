@@ -530,7 +530,7 @@ public class MigrationToolIndiv {
         }
 
         if (hasValue(phase)) {
-            String effPhaseLine = processID + " /Effective_Phase=="
+            String effPhaseLine = processID + " /Effective_Phase="
                     + StringData.saveString(phase);
             data.add(new StringBuffer(effPhaseLine));
         }
