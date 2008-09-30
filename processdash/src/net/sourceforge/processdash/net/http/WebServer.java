@@ -1340,10 +1340,10 @@ public class WebServer implements ContentSource {
     }
 
     private String getLocaleVariant(String url) {
-        if (!Translator.isTranslating())
+        String lang = Locale.getDefault().getLanguage();
+        if ("en".equals(lang))
             return null;
 
-        String lang = Locale.getDefault().getLanguage();
         int lastSlashPos = url.lastIndexOf('/');
         int dotPos = url.indexOf('.', lastSlashPos+1);
         if (dotPos == -1)

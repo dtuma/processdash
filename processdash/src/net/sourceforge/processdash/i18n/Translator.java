@@ -96,9 +96,14 @@ public class Translator {
 
 
     public static void init() {
-        if (TRANSLATOR == null) createDefaultEngine();
-        STRICT_STRING_TRANSLATION = Settings.getBool
-            ("i18n.strictTranslation", false);
+        String mode = Settings.getVal("i18n.translationMode", "auto");
+        if ("off".equals(mode)) {
+            TRANSLATOR = null;
+        } else {
+            if (TRANSLATOR == null)
+                createDefaultEngine();
+            STRICT_STRING_TRANSLATION = "strict".equals(mode);
+        }
     }
 
     private static void createDefaultEngine() {

@@ -822,9 +822,12 @@ public class ProcessDashboard extends JFrame implements WindowListener,
 
         if (charsetName == null)
             charsetName = HTTPUtils.DEFAULT_CHARSET;
-        else if ("auto".equals(charsetName))
-            charsetName = (Translator.isTranslating() ? "UTF-8"
-                    : HTTPUtils.DEFAULT_CHARSET);
+        else if ("auto".equals(charsetName)) {
+            if ("en".equals(Locale.getDefault().getLanguage()))
+                charsetName = HTTPUtils.DEFAULT_CHARSET;
+            else
+                charsetName = "UTF-8";
+        }
 
         return charsetName;
     }
