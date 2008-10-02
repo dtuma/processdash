@@ -3,7 +3,7 @@
 
   <property file="build.properties"/>
 
-  <property name="teamtools.version" value="3.6"/>
+  <property name="teamtools.version" value="3.6.1"/>
   <property name="teamtools.requires" value="1.9.4+"/>
 
   <property name="processdash.dir" value="../processdash"/>
@@ -458,7 +458,10 @@ class dependency has been added in a dashboard class?)
 
   <target name="publish" depends="TeamProcess">
     <copy todir="${processdash.dir}/dist">
-      <fileset dir="." includes="${teamProcess.zip} TeamTools.jar"/>
+      <fileset dir=".">
+        <include name="${teamProcess.zip}"/>
+	<include name="TeamTools.jar"/>
+      </fileset>
     </copy>
   </target>
 
