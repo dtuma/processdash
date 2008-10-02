@@ -64,7 +64,11 @@ public class MigrationToolIndiv {
 
     static final String PROJECT_PATH = PROP_PREFIX + "projectPath";
 
+    static final String MIGRATION_NEEDED = PROP_PREFIX + "migrationNeeded";
+
     static final String PROCESS_ID = PROP_PREFIX + "processID";
+
+    static final String TARGET_PROCESS_ID = PROP_PREFIX + "targetPID";
 
     static final String PHASE_LIST = PROP_PREFIX + "phaseList";
 
@@ -84,7 +88,13 @@ public class MigrationToolIndiv {
 
     private String projectPath;
 
+    private boolean migrationNeeded;
+
     private String processID;
+
+    private String targetPID;
+
+    private boolean conversionNeeded;
 
     private List<String> phases;
 
@@ -118,7 +128,10 @@ public class MigrationToolIndiv {
         projectPath = System.getProperty(PROJECT_PATH);
         if (!projectPath.startsWith("/"))
             projectPath = "/" + projectPath;
+        migrationNeeded = Boolean.getBoolean(MIGRATION_NEEDED);
         processID = System.getProperty(PROCESS_ID);
+        targetPID = System.getProperty(TARGET_PROCESS_ID);
+        conversionNeeded = hasValue(targetPID) && !targetPID.equals(processID);
         phases = Arrays.asList(System.getProperty(PHASE_LIST).split("/"));
 
         fileLock = new FileConcurrencyLock(
@@ -127,12 +140,14 @@ public class MigrationToolIndiv {
     }
 
     private void createTasks() throws Exception {
+        String operation = (migrationNeeded ? "Migration" : "Conversion");
+        String action = (migrationNeeded ? "Migrating" : "Converting");
         progressDialog = new ProgressDialog((Frame) null,
-                "Personal Plan Migration Tool",
-                "Migrating data, please wait...");
+                "Personal Plan " + operation + " Tool",
+                action + " data, please wait...");
         progressDialog.setSize(400, progressDialog.getHeight());
-        progressDialog.setCompletionMessage("Migration Complete. Press OK to "
-                + "restart the Process Dashboard.");
+        progressDialog.setCompletionMessage(operation
+                + " Complete. Press OK to restart the Process Dashboard.");
         progressDialog.setCloseText("OK");
 
         progressDialog.addTask(new WaitForLockTask());
@@ -322,7 +337,10 @@ public class MigrationToolIndiv {
     }
 
     private String streamlineHierarchy(Element node, String parentPath) {
-        changeTemplateID(node);
+        if (migrationNeeded)
+            migrateTemplateID(node);
+        if (conversionNeeded)
+            convertTemplateID(node);
 
         String myOrigName = node.getAttribute(NAME_ATTR);
         String myPath = parentPath + "/" + myOrigName;
@@ -353,7 +371,7 @@ public class MigrationToolIndiv {
         return null;
     }
 
-    private void changeTemplateID(Element node) {
+    private void migrateTemplateID(Element node) {
         String templateID = node.getAttribute(TEMPLATE_ATTR);
         if (!hasValue(templateID) || !templateID.startsWith(processID + "/"))
             return;
@@ -378,7 +396,19 @@ public class MigrationToolIndiv {
             node.setAttribute(TEMPLATE_ATTR, newTemplateID);
     }
 
+    private void convertTemplateID(Element node) {
+        String templateID = node.getAttribute(TEMPLATE_ATTR);
+        if (templateID != null && templateID.startsWith(processID + "/")) {
+            String templateSuffix = templateID.substring(processID.length());
+            String newTemplateID = targetPID + templateSuffix;
+            node.setAttribute(TEMPLATE_ATTR, newTemplateID);
+        }
+    }
+
     private String changeNodeName(Element node) {
+        if (!migrationNeeded)
+            return null;
+
         String origName = node.getAttribute(NAME_ATTR);
 
         String templateID = node.getAttribute(TEMPLATE_ATTR);
@@ -433,7 +463,8 @@ public class MigrationToolIndiv {
 
     private void tweakData(Element node, String path) throws IOException {
         String templateID = node.getAttribute(TEMPLATE_ATTR);
-        if (templateID != null && templateID.startsWith(processID))
+        String pidPrefix = (conversionNeeded ? targetPID : processID) + "/";
+        if (templateID != null && templateID.startsWith(pidPrefix))
             tweakDataFile(node, path);
 
         for (Element child : XMLUtils.getChildElements(node)) {
@@ -451,14 +482,19 @@ public class MigrationToolIndiv {
         File dataFile = file(dataFileName);
 
         List<StringBuffer> data = readDataFile(dataFile);
-        int origHashCode = data.hashCode();
+        int origHashCode = data.toString().hashCode();
 
         changeIncludeLine(data);
-        namespaceDefectData(data);
-        filterPhaseData(node, data);
-        setNodesAndLeaves(node, data);
+        if (migrationNeeded) {
+            namespaceDefectData(data);
+            filterPhaseData(node, data);
+        }
+        if (conversionNeeded)
+            reNamespaceData(data);
+        if (migrationNeeded)
+            setNodesAndLeaves(node, data);
 
-        int finalHashCode = data.hashCode();
+        int finalHashCode = data.toString().hashCode();
         if (origHashCode != finalHashCode)
             saveDataFile(dataFile, data);
     }
@@ -491,6 +527,12 @@ public class MigrationToolIndiv {
         for (int i = 0; i < INCLUDE_CHANGES.length; i++) {
             StringUtils.findAndReplace(includeLine,
                 INCLUDE_CHANGES[i][0], INCLUDE_CHANGES[i][1]);
+        }
+        if (conversionNeeded) {
+            String oldIncludeStr = "#include <" + processID + "/";
+            String newIncludeStr = "#include <" + targetPID + "/";
+            StringUtils.findAndReplace(includeLine, oldIncludeStr,
+                newIncludeStr);
         }
     }
     private static final String[][] INCLUDE_CHANGES = {
@@ -533,6 +575,9 @@ public class MigrationToolIndiv {
             String effPhaseLine = processID + " /Effective_Phase="
                     + StringData.saveString(phase);
             data.add(new StringBuffer(effPhaseLine));
+            effPhaseLine = processID + " /Effective_Phase_Last_Synced_Val="
+                    + StringData.saveString(phase);
+            data.add(new StringBuffer(effPhaseLine));
         }
     }
 
@@ -555,6 +600,15 @@ public class MigrationToolIndiv {
             return result;
         else
             return null;
+    }
+
+    private void reNamespaceData(List<StringBuffer> data) {
+        for (int i = 1;  i < data.size();  i++) {
+            StringBuffer line = data.get(i);
+            if (StringUtils.startsWith(line, processID + " /")) {
+                line.replace(0, processID.length(), targetPID);
+            }
+        }
     }
 
     private void setNodesAndLeaves(Element node, List<StringBuffer> data) {

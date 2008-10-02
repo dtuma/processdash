@@ -106,11 +106,19 @@
 <input type=submit name="submit" value="Show Status of Team Member Metrics">
 </form>
 
-[!--#if migrate || enableTeamProjectMigrationTool --]
+[!--#if migrate || convert || enableTeamProjectMigrationTool --]
+
 [!--#if ![Individuals_Using_Stubless_Phases] --]
 <p><form action="setup/migrate" method="POST">
 <input type=submit name="submit" value="Migrate Project to New-Style Data Format">
 </form>
+
+[!--#else--]
+
+<p><form action="setup/convert" method="POST">
+<input type=submit name="submit" value="Convert Project to Different Metrics Collection Framework">
+</form>
+
 [!--#endif--][!--#endif--]
 
 

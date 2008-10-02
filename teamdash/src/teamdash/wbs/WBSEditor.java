@@ -161,6 +161,10 @@ public class WBSEditor implements WindowListener, SaveListener,
             showActualData = reverseSynchronizer.getFoundActualData();
         }
 
+        // record the valid task types in this process.
+        recordValidTaskTypes(model);
+        recordValidTaskTypes(teamProject.getWorkflows());
+
         dataWriter = new WBSDataWriter(model, data,
                 teamProject.getTeamProcess(), teamProject.getProjectID(),
                 teamProject.getTeamMemberList(), teamProject.getMilestones());
@@ -323,6 +327,16 @@ public class WBSEditor implements WindowListener, SaveListener,
             return new TaskDependencySourceMaster(teamProject);
         else
             return new TaskDependencySourceSimple(teamProject);
+    }
+
+    private void recordValidTaskTypes(WBSModel model) {
+        Set taskTypes = new HashSet();
+        for (Object phase : teamProject.getTeamProcess().getPhases())
+            taskTypes.add(phase + " Task");
+
+        model.getRoot().setAttribute(
+            WBSModelValidator.VALID_TASK_TYPES_ATTR_NAME, taskTypes);
+        model.fireTableCellUpdated(0, 0);
     }
 
     public void setExitOnClose(boolean exitOnClose) {

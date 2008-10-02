@@ -1,6 +1,7 @@
 
 package teamdash.wbs;
 
+import java.util.Collection;
 import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.HashSet;
@@ -21,6 +22,11 @@ public class WBSModelValidator implements TableModelListener {
      */
     public static final String NODE_NAME_ERROR_ATTR_NAME = "Node_Name_Error";
 
+    /** The node attribute used on the WBS root node to record a set of valid
+     * task types.
+     */
+    public static final String VALID_TASK_TYPES_ATTR_NAME = "Valid_Task_Types";
+
     /** The wbs model to validate */
     protected WBSModel wbsModel;
 
@@ -32,7 +38,12 @@ public class WBSModelValidator implements TableModelListener {
 
     public void tableChanged(TableModelEvent e) { recalc(); }
 
+
+    private Collection validTaskTypes;
+
     public void recalc() {
+        validTaskTypes = (Collection) wbsModel.getRoot().getAttribute(
+            VALID_TASK_TYPES_ATTR_NAME);
         recalc(wbsModel.getRoot());
     }
 
@@ -135,6 +146,13 @@ public class WBSModelValidator implements TableModelListener {
 
         if (WBSNode.UNKNOWN_TYPE.equals(type)) {
             return "You must define the type of this item.";
+        }
+
+        if (validTaskTypes != null
+                && type.endsWith(" Task")
+                && !validTaskTypes.contains(type)) {
+            String taskType = type.substring(0, type.length() - 5);
+            return "'" + taskType + "' is not a valid task type.";
         }
 
         // No problems detected.

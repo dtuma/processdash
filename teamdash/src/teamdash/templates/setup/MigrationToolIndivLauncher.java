@@ -12,6 +12,7 @@ import java.util.ResourceBundle;
 
 import javax.swing.JOptionPane;
 
+import net.sourceforge.processdash.DashController;
 import net.sourceforge.processdash.DashboardContext;
 import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.Settings;
@@ -35,6 +36,8 @@ public class MigrationToolIndivLauncher {
     private PropertyKey projectRoot;
 
     private File targetDir;
+
+    private String targetPID;
 
     private Map<String, String> args;
 
@@ -87,9 +90,21 @@ public class MigrationToolIndivLauncher {
         if (!backupSubdir.isDirectory())
             throw new MigrationException("cannotMigrate").add("bridgedMode");
 
+        // check to see if we are performing a migration
+        String rootTemplateID = ctx.getHierarchy().pget(projectRoot).getID();
+        if (!rootTemplateID.endsWith(INDIV2_ROOT))
+            args.put(MigrationToolIndiv.MIGRATION_NEEDED, "true");
+
         // add the process ID to the args
         String processId = getValue("Team_Process_PID").format();
         args.put(MigrationToolIndiv.PROCESS_ID, processId);
+
+        // for a conversion, add the target process ID to the args
+        SimpleData sd = getValue("Team_Project_Conversion_Needed");
+        if (sd != null && sd.test()) {
+            targetPID = sd.format();
+            args.put(MigrationToolIndiv.TARGET_PROCESS_ID, targetPID);
+        }
 
         // add the phase list to the args
         ProcessUtil proc = new ProcessUtil(ctx.getData(), projectPath);
@@ -101,6 +116,7 @@ public class MigrationToolIndivLauncher {
         failedPreconditions = new ListData();
         showDeleteAdvice = false;
 
+        assertTargetProcessInstalled();
         assertNoRootDefects();
         assertNoRootPhases();
         assertNoMultiplePhases();
@@ -112,6 +128,19 @@ public class MigrationToolIndivLauncher {
                 me.add("showDeleteAdvice");
             throw me;
         }
+    }
+
+    private void assertTargetProcessInstalled() {
+        if (targetPID == null)
+            return;
+
+        String targetRootTemplateID = targetPID + INDIV2_ROOT;
+        if (DashController.getTemplates().containsKey(targetRootTemplateID))
+            return;
+
+        String message = getRes("Error.Target_Process_Not_Found_FMT",
+            esc(targetPID));
+        failedPreconditions.add(message);
     }
 
     private void assertNoRootDefects() {
@@ -279,5 +308,6 @@ public class MigrationToolIndivLauncher {
         return HTMLUtils.escapeEntities(onePath);
     }
 
+    private static final String INDIV2_ROOT = "/Indiv2Root";
 
 }

@@ -72,6 +72,9 @@ public class sync extends TinyCGIBase {
     /** true if this is an old-style individual project that needs to be
      * upgraded to the new-style format */
     private boolean migrationNeeded;
+    /** true if this is an individual project that needs to be converted
+     * to a different metrics collection framework */
+    private boolean conversionNeeded;
     /** true if the user wants us to copy all software component and document
      * nodes in the WBS, even if they aren't assigned to them */
     private boolean fullCopyMode;
@@ -96,8 +99,8 @@ public class sync extends TinyCGIBase {
             // load data values from that project.
             loadValues();
 
-            // possibly redirect to the migration page.
-            if (migrationNeeded) {
+            // possibly redirect to the migration/conversion page.
+            if (migrationNeeded || conversionNeeded) {
                 printMigrationRedirect();
                 return;
             }
@@ -229,7 +232,7 @@ public class sync extends TinyCGIBase {
         if (isTeam) {
             initials = (isMaster ? HierarchySynchronizer.SYNC_MASTER
                     : HierarchySynchronizer.SYNC_TEAM);
-            migrationNeeded = false;
+            migrationNeeded = conversionNeeded = false;
         } else {
             // get the initials of the current team member.
             d = data.getSimpleValue(DataRepository.createDataName
@@ -241,6 +244,10 @@ public class sync extends TinyCGIBase {
             d = data.getSimpleValue(DataRepository.createDataName
                                     (projectRoot, MIGRATE_DATA_NAME));
             migrationNeeded = (d != null && d.test());
+
+            d = data.getSimpleValue(DataRepository.createDataName
+                                    (projectRoot, CONVERT_DATA_NAME));
+            conversionNeeded = (d != null && d.test());
         }
 
         // check to see whether the user wants us to perform a full wbs sync.
@@ -592,6 +599,7 @@ public class sync extends TinyCGIBase {
     private static final String PROJECT_ID_DATA_NAME = "Project_ID";
     private static final String INITIALS_DATA_NAME = "Indiv_Initials";
     private static final String MIGRATE_DATA_NAME = "Team_Project_Migration_Needed";
+    private static final String CONVERT_DATA_NAME = "Team_Project_Conversion_Needed";
     private static final String FULLCOPY_DATA_NAME = "Sync_Full_WBS";
     private static final String HIER_FILENAME = "projDump.xml";
     private static final String WORKFLOW_FILENAME = "workflowDump.xml";

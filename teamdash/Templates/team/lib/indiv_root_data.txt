@@ -27,6 +27,10 @@
 
 [Effective_Defect_Phase_List] = "<!--#foreach name=Phase list=Phase_List --><!--#if Phase_Is_Defect_Injection --><!--#echo Phase_Name --><!--#endif--><!--#endfor-->";
 
+[Team_Project_Conversion_Needed] =
+    iff([Team_Project_Target_PID] != [Team_Process_PID],
+        [Team_Project_Target_PID], null);
+
 // find sized objects in this project
 
 [Sized_Object_List] = search(".", "Sized_Object_Units");
@@ -47,6 +51,9 @@
 
 [WBS_Read_Only] = 
     not lookup([Team_Settings_Node] & "Allow_Indiv_WBS_Editing");
+
+[Team_Project_Target_PID] =
+    lookup([Team_Settings_Node] & "Team_Process_PID");
 
 [Phase_Display_Filter_List] =
     lookup([Team_Settings_Node] & "Phase_Display_Filter_List");

@@ -7,6 +7,7 @@ import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
+import net.sourceforge.processdash.util.StringUtils;
 
 /**
  * This class initiates the process to migrate a team project from the old
@@ -19,6 +20,9 @@ public class migrate extends TinyCGIBase {
 
     /** The processID used by the enclosing team project */
     private String processID;
+
+    /** The processID that the project should be converted to, if applicable */
+    private String convertToProcessID;
 
     /** True if this is the team rollup side of the project */
     private boolean isTeam;
@@ -45,7 +49,7 @@ public class migrate extends TinyCGIBase {
 
         if (me != null) {
             me.printStackTrace();
-            sendRedirect(me.getURL());
+            sendRedirect(me.getURL("migrateError.shtm"));
         }
     }
 
@@ -54,7 +58,7 @@ public class migrate extends TinyCGIBase {
             return "migrateTeamConfirm.shtm";
         } else {
             MigrationToolTeam mtt = new MigrationToolTeam(
-                    getDashboardContext(), projectRoot);
+                    getDashboardContext(), projectRoot, null);
             mtt.migrate();
             sync.startBackgroundExport(projectRoot);
             return "migrateTeamSuccess.shtm";
@@ -92,6 +96,7 @@ public class migrate extends TinyCGIBase {
                 processID = templateID.substring(0, templateID.length()
                         - TEAM_ROOT.length());
                 isTeam = true;
+                convertToProcessID = null;
 
                 if (getBooleanValue("Team_Project_Migration_Complete"))
                     throw new MigrationException("alreadyUpgraded");
@@ -104,11 +109,19 @@ public class migrate extends TinyCGIBase {
                 projectRoot = key.path();
                 processID = templateID.substring(0, templateID.length()
                         - INDIV_ROOT.length());
+                convertToProcessID = getStringValue(CONVERT_DATA_NAME);
                 isTeam = false;
                 return;
             }
 
             if (templateID != null && templateID.endsWith(INDIV2_ROOT)) {
+                projectRoot = key.path();
+                processID = templateID.substring(0, templateID.length()
+                        - INDIV2_ROOT.length());
+                convertToProcessID = getStringValue(CONVERT_DATA_NAME);
+                if (StringUtils.hasValue(convertToProcessID))
+                    return;
+
                 if (getBooleanValue("Team_Project_Migration_Complete"))
                     throw new MigrationException("alreadyUpgraded");
                 else
@@ -133,6 +146,11 @@ public class migrate extends TinyCGIBase {
         return (d == null ? false : d.test());
     }
 
+    private String getStringValue(String name) {
+        SimpleData d = getSimpleValue(name);
+        return (d == null ? null : d.format());
+    }
+
     private SimpleData getSimpleValue(String name) {
         String dataName = DataRepository.createDataName(projectRoot, name);
         return getDataRepository().getSimpleValue(dataName);
@@ -145,6 +163,8 @@ public class migrate extends TinyCGIBase {
     private static final String INDIV_ROOT = "/IndivRoot";
 
     private static final String INDIV2_ROOT = "/Indiv2Root";
+
+    private static final String CONVERT_DATA_NAME = "Team_Project_Conversion_Needed";
 
     private static final String CONFIRM_PARAM = "run";
 

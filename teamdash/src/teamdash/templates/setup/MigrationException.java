@@ -6,8 +6,10 @@ class MigrationException extends Exception {
 
     private StringBuffer url;
 
+    private static final String BASENAME = "base";
+
     MigrationException() {
-        this.url = new StringBuffer("migrateError.shtm");
+        this.url = new StringBuffer(BASENAME);
     }
 
     MigrationException(String query) {
@@ -30,8 +32,8 @@ class MigrationException extends Exception {
         return this;
     }
 
-    public String getURL() {
-        return url.toString();
+    public String getURL(String baseName) {
+        return baseName + url.substring(BASENAME.length());
     }
 
 }

@@ -305,8 +305,9 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
     /** Try to locate the jarfile containing the definition for the
      * given process, and return the path to the file.
      */
-    private String findTeamProcessJarfile(String processID) {
+    static String findTeamProcessJarfile(String processID) {
         Vector scripts = TemplateLoader.getScriptIDs(processID, null);
+        if (scripts == null) scripts = new Vector();
         scripts.add(new ScriptID(processID + "-template.xml", null, null));
         for (int i = scripts.size();   i-- > 0; ) {
             String scriptURL = ((ScriptID) scripts.get(i)).getScript();
