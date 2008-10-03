@@ -23,13 +23,15 @@
 
 package net.sourceforge.processdash.hier.ui;
 
-import javax.swing.tree.DefaultTreeModel;
+import javax.swing.event.TreeModelListener;
 import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.MutableTreeNode;
 import javax.swing.tree.TreeNode;
-import javax.swing.event.TreeModelListener;
 
-import net.sourceforge.processdash.hier.*;
+import net.sourceforge.processdash.hier.DashHierarchy;
+import net.sourceforge.processdash.hier.Prop;
+import net.sourceforge.processdash.hier.PropertyKey;
 
 
 public class PropTreeModel extends DefaultTreeModel
@@ -125,14 +127,20 @@ public class PropTreeModel extends DefaultTreeModel
             return null;
         if (rootKey.equals(key))
             return (TreeNode) getRoot();
+
         PropertyKey parentKey = key.getParent();
+        int numChildren = props.getNumChildren(parentKey);
         TreeNode parent = getNodeForKey(props, parentKey);
+        if (parent == null || parent.getChildCount() != numChildren)
+            return null;
+
         PropertyKey childKey;
-        for (int i = props.getNumChildren(parentKey);  i-- > 0; ) {
+        for (int i = numChildren;  i-- > 0; ) {
             childKey = props.getChildKey(parentKey, i);
             if (childKey.equals(key))
                 return parent.getChildAt(i);
         }
+
         return null;
     }
 
