@@ -2325,6 +2325,8 @@ public class TaskScheduleDialog implements EVTask.Listener,
         }
         model.setNodeListener(null);
         model.removeRecalcListener(this);
+        model.removeTreeModelWillChangeListener((TaskJTreeTable)treeTable);
+        model.removeTreeModelListener((TaskJTreeTable)treeTable);
         model.getSchedule().setListener(null);
         model = null;
         treeTable.dispose();
@@ -2647,6 +2649,10 @@ public class TaskScheduleDialog implements EVTask.Listener,
     }
 
     private void saveExpandedNodesPref(String taskListId) {
+        if (treeTable == null || treeTable.getTree() == null
+                || treeTable.getTree().getModel() == null)
+            return;
+
         Set expandedNodes = new HashSet();
         getExpandedNodes(expandedNodes, (EVTask) treeTable.getTree().getModel().getRoot());
         setExpandedNodesPref(taskListId, expandedNodes);
