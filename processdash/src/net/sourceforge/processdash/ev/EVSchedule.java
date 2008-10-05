@@ -1698,4 +1698,82 @@ public class EVSchedule implements TableModel {
         return new ConfidenceIntervalCompletionDateChartData(new EVScheduleChartEventAdapter(),
                                                              metrics);
     }
+
+    /**
+     * XYDatasource for charting planned-vs-actual time on completed periods
+     */
+    private class CompletedPeriodsXYChartSeries implements XYChartSeries {
+
+        private List<Period> completedPeriods;
+        private List<Double> ratios;
+        private String seriesKey;
+
+        public CompletedPeriodsXYChartSeries(String seriesKey) {
+            this.seriesKey = seriesKey;
+            this.completedPeriods = new ArrayList<Period>();
+            this.ratios = new ArrayList<Double>();
+        }
+
+        public int getItemCount() {
+            return completedPeriods.size();
+        }
+
+        public String getSeriesKey() {
+            return seriesKey;
+        }
+
+        /**
+         * Iterates through all periods an adds the completed ones to the
+         *  completedPeriods List. The periods are discarted if they have an
+         *  invalid planned-vs-actual time ratio.
+         */
+        public void recalc() {
+            completedPeriods.clear();
+            double ratio = 0;
+
+            for (Object o : periods) {
+                Period p = (Period) o;
+
+                ratio = p.planDirectTime() / p.actualDirectTime();
+
+                if ((p.getEndDate().before(getEffectiveDate())
+                    || p.getEndDate().equals(getEffectiveDate()))
+                    && (!Double.isNaN(ratio) && !Double.isInfinite(ratio) && ratio > 0)) {
+                    ratios.add(ratio);
+                    completedPeriods.add(p);
+                }
+            }
+        }
+
+        public Number getX(int itemIndex) {
+            return completedPeriods.get(itemIndex).getEndDate().getTime();
+        }
+
+        public Number getY(int itemIndex) {
+            return ratios.get(itemIndex);
+        }
+
+    }
+    private class CompletedPeriodChartData extends XYChartData {
+
+        private CompletedPeriodsXYChartSeries series;
+
+        public CompletedPeriodChartData(ChartEventAdapter eventAdapter,
+                                   CompletedPeriodsXYChartSeries series) {
+            super(eventAdapter);
+            this.series = series;
+        }
+
+        @Override
+        public void recalc() {
+            clearSeries();
+            this.series.recalc();
+            maybeAddSeries(series);
+        }
+
+    }
+    public XYDataset getCompletedPeriodsData() {
+        return new CompletedPeriodChartData(new EVScheduleChartEventAdapter(),
+                                       new CompletedPeriodsXYChartSeries("Completed_Period"));
+    }
 }

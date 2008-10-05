@@ -125,9 +125,10 @@ public abstract class AbstractEVChart<D extends Dataset, P extends Plot>
         SERIES_PAINTS.put("Forecast", Color.green);
         SERIES_PAINTS.put("Optimized_Forecast", Color.orange);
 
-        // The renderer used for this chart automatically chooses the right
-        //  color for this series
+        // The renderer used for those charts automatically chooses the right
+        //  color for the series
         SERIES_PAINTS.put("Completed_Task", null);
+        SERIES_PAINTS.put("Completed_Period", null);
 
         SERIES_PAINTS.put("Plan_Value", Color.red);
         SERIES_PAINTS.put("Actual_Value", Color.blue);
