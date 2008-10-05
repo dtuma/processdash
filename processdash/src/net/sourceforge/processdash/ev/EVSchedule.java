@@ -1734,7 +1734,7 @@ public class EVSchedule implements TableModel {
             for (Object o : periods) {
                 Period p = (Period) o;
 
-                ratio = p.planDirectTime() / p.actualDirectTime();
+                ratio = p.actualDirectTime() / p.planDirectTime();
 
                 if ((p.getEndDate().before(getEffectiveDate())
                     || p.getEndDate().equals(getEffectiveDate()))

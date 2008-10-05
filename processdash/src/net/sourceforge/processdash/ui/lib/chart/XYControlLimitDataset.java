@@ -38,7 +38,7 @@ public class XYControlLimitDataset extends AbstractXYDataset
         implements DatasetChangeListener {
     /** The resources keys */
     public static final String[] SERIES_RES_KEYS =
-        new String[] { "Mean", "UCI", "LCI" };
+        new String[] { "Mean", "UCL", "LCL" };
 
     private final Resources resources =
         Resources.getDashBundle("Analysis.Snippet.Charts.Control_limit");
@@ -48,8 +48,8 @@ public class XYControlLimitDataset extends AbstractXYDataset
 
     /** The array indexes where data related to different series are stored */
     public static final int MEAN_POS = 0;
-    public static final int UCI_POS = 1;
-    public static final int LCI_POS = 2;
+    public static final int UCL_POS = 1;
+    public static final int LCL_POS = 2;
 
     /** The different series keys */
     private String[] seriesKey = new String[3];
@@ -77,8 +77,8 @@ public class XYControlLimitDataset extends AbstractXYDataset
         updateData();
 
         seriesKey[MEAN_POS] = resources.getString(SERIES_RES_KEYS[MEAN_POS]);
-        seriesKey[UCI_POS] = resources.getString(SERIES_RES_KEYS[UCI_POS]);
-        seriesKey[LCI_POS] = resources.getString(SERIES_RES_KEYS[LCI_POS]);
+        seriesKey[UCL_POS] = resources.getString(SERIES_RES_KEYS[UCL_POS]);
+        seriesKey[LCL_POS] = resources.getString(SERIES_RES_KEYS[LCL_POS]);
     }
 
     private void updateData() {
@@ -126,8 +126,8 @@ public class XYControlLimitDataset extends AbstractXYDataset
             }
             else {
                 this.seriesCount = 3;
-                values[UCI_POS] = Math.exp(logMean + 3 * logStd);
-                values[LCI_POS] = Math.exp(logMean - 3 * logStd);
+                values[UCL_POS] = Math.exp(logMean + 3 * logStd);
+                values[LCL_POS] = Math.exp(logMean - 3 * logStd);
             }
         }
     }
