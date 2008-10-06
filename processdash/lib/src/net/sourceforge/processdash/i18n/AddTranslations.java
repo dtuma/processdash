@@ -48,6 +48,7 @@ import org.apache.tools.ant.taskdefs.MatchingTask;
  */
 public class AddTranslations extends MatchingTask {
 
+    private static final String BROKEN_SUFFIX = "!broken";
     private boolean verbose = false;
     private File dir;
 
@@ -210,7 +211,19 @@ public class AddTranslations extends MatchingTask {
 
         Properties merged = new SortedProperties();
         merged.putAll(original);
-        merged.putAll(incoming);
+
+        for (Iterator i = incoming.entrySet().iterator(); i.hasNext();) {
+            Map.Entry e = (Map.Entry) i.next();
+            String key = (String) e.getKey();
+            String value = (String) e.getValue();
+            if (key.endsWith(BROKEN_SUFFIX)) {
+                String intendedKey = key.substring(0, key.length()
+                        - BROKEN_SUFFIX.length());
+                if (original.containsKey(intendedKey))
+                    continue;
+            }
+            merged.put(key, value);
+        }
 
         if (original.equals(merged)) {
             if (verbose)
