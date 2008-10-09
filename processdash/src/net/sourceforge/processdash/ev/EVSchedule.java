@@ -1702,16 +1702,13 @@ public class EVSchedule implements TableModel {
     /**
      * XYDatasource for charting planned-vs-actual time on completed periods
      */
-    private class CompletedPeriodsXYChartSeries implements XYChartSeries {
-
-        private List<Period> completedPeriods;
-        private List<Double> ratios;
-        private String seriesKey;
+    private abstract class CompletedPeriodsXYChartSeries implements XYChartSeries {
+        protected List<Period> completedPeriods;
+        protected String seriesKey;
 
         public CompletedPeriodsXYChartSeries(String seriesKey) {
             this.seriesKey = seriesKey;
             this.completedPeriods = new ArrayList<Period>();
-            this.ratios = new ArrayList<Double>();
         }
 
         public int getItemCount() {
@@ -1722,6 +1719,22 @@ public class EVSchedule implements TableModel {
             return seriesKey;
         }
 
+        public Number getX(int itemIndex) {
+            return completedPeriods.get(itemIndex).getEndDate().getTime();
+        }
+
+        abstract void recalc();
+    }
+
+    private class CompletedPeriodsPlanVsActXYChartSeries extends CompletedPeriodsXYChartSeries {
+
+        private List<Double> ratios;
+
+        public CompletedPeriodsPlanVsActXYChartSeries(String seriesKey) {
+            super(seriesKey);
+            this.ratios = new ArrayList<Double>();
+        }
+
         /**
          * Iterates through all periods an adds the completed ones to the
          *  completedPeriods List. The periods are discarted if they have an
@@ -1729,6 +1742,7 @@ public class EVSchedule implements TableModel {
          */
         public void recalc() {
             completedPeriods.clear();
+            ratios.clear();
             double ratio = 0;
 
             for (Object o : periods) {
@@ -1745,12 +1759,35 @@ public class EVSchedule implements TableModel {
             }
         }
 
-        public Number getX(int itemIndex) {
-            return completedPeriods.get(itemIndex).getEndDate().getTime();
+        public Number getY(int itemIndex) {
+            return ratios.get(itemIndex);
+        }
+
+    }
+    private class CompletedPeriodsDirectTimeVarianceXYChartSeries extends CompletedPeriodsXYChartSeries {
+
+        public CompletedPeriodsDirectTimeVarianceXYChartSeries(String seriesKey) {
+            super(seriesKey);
         }
 
         public Number getY(int itemIndex) {
-            return ratios.get(itemIndex);
+            Period period = completedPeriods.get(itemIndex);
+
+            // The units are in minutes and we want them in hours so we divide by 60
+            return (period.actualDirectTime() - period.planDirectTime()) / 60;
+        }
+
+        public void recalc() {
+            completedPeriods.clear();
+
+            for (Object o : periods) {
+                Period p = (Period) o;
+
+                if ((p.getEndDate().before(getEffectiveDate())
+                    || p.getEndDate().equals(getEffectiveDate()))) {
+                    completedPeriods.add(p);
+                }
+            }
         }
 
     }
@@ -1772,8 +1809,12 @@ public class EVSchedule implements TableModel {
         }
 
     }
-    public XYDataset getCompletedPeriodsData() {
+    public XYDataset getCompletedPeriodsPlanVsActData() {
         return new CompletedPeriodChartData(new EVScheduleChartEventAdapter(),
-                                       new CompletedPeriodsXYChartSeries("Completed_Period"));
+                                       new CompletedPeriodsPlanVsActXYChartSeries("Completed_Period"));
+    }
+    public XYDataset getCompletedPeriodsDirectTimeVarianceData() {
+        return new CompletedPeriodChartData(new EVScheduleChartEventAdapter(),
+                new CompletedPeriodsDirectTimeVarianceXYChartSeries("Completed_Period"));
     }
 }

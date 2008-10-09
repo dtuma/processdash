@@ -69,10 +69,17 @@ public class XYControlLimitDataset extends AbstractXYDataset
     private double minX;
     private double maxX;
 
-    public XYControlLimitDataset(XYDataset source, int seriesNum) {
+    /** Used to specify if the control limits should be calculated with
+         logarithms */
+    private boolean useLog = false;
+    public static final boolean USE_LOG = true;
+    public static final boolean DONT_USE_LOG = false;
+
+    public XYControlLimitDataset(XYDataset source, int seriesNum, boolean useLog) {
         this.source = source;
         this.source.addChangeListener(this);
         this.seriesNum = seriesNum;
+        this.useLog = useLog;
 
         updateData();
 
@@ -82,11 +89,11 @@ public class XYControlLimitDataset extends AbstractXYDataset
     }
 
     private void updateData() {
-        // The sum of the natural log of all data point values
-        double sumOfLog = 0;
+        // The sum of all data point values
+        double sum = 0;
 
-        // The sum of the square of the natural log of all data point values
-        double squareSumOfLog = 0;
+        // The sum of the square of all data point values
+        double squareSum = 0;
 
         minX = Double.MAX_VALUE;
         maxX = Double.MIN_VALUE;
@@ -97,37 +104,43 @@ public class XYControlLimitDataset extends AbstractXYDataset
 
         // Since need to go through all the source dataset value, we might as well calculate
         //  all the values that we need in one pass.
-        double logOfValue;
+        double value;
         double xValue;
         for (int i = 0; i < n; ++i) {
-            logOfValue = Math.log(source.getYValue(seriesNum, i));
-            sumOfLog += logOfValue;
-            squareSumOfLog += Math.pow(logOfValue, 2);
+            value = source.getYValue(seriesNum, i);
+
+            if (useLog)
+                value = Math.log(value);
+
+            sum += value;
+            squareSum += Math.pow(value, 2);
 
             xValue = source.getXValue(seriesNum, i);
             if (xValue < minX) { minX = xValue; }
             if (xValue > maxX) { maxX = xValue; }
         }
 
-        // The mean of the natural log of all data point values
-        double logMean = sumOfLog / n;
+        // The mean of all data point values
+        double mean = sum / n;
 
-        // The standard deviation of the natural log of all data point values
-        double logStd = Math.sqrt((squareSumOfLog - n * Math.pow(logMean, 2)) / (n-1));
+        // The standard deviation of all data point values
+        double stdDev = Math.sqrt((squareSum - n * Math.pow(mean, 2)) / (n-1));
 
-        if (Double.isNaN(logMean) || Double.isInfinite(logMean)) {
+        if (Double.isNaN(mean) || Double.isInfinite(mean)) {
             this.seriesCount = 0;
         }
         else {
-            values[MEAN_POS] = Math.exp(logMean);
+            values[MEAN_POS] = useLog ? Math.exp(mean) : mean;
 
-            if (Double.isNaN(logStd) || logStd <= 0 || Double.isInfinite(logStd)) {
+            if (Double.isNaN(stdDev) || stdDev <= 0 || Double.isInfinite(stdDev)) {
                 this.seriesCount = 1;
             }
             else {
                 this.seriesCount = 3;
-                values[UCL_POS] = Math.exp(logMean + 3 * logStd);
-                values[LCL_POS] = Math.exp(logMean - 3 * logStd);
+                double ucl = mean + 3 * stdDev;
+                double lcl = mean - 3 * stdDev;
+                values[UCL_POS] = useLog ? Math.exp(ucl) : ucl;
+                values[LCL_POS] = useLog ? Math.exp(lcl) : lcl;
             }
         }
     }
@@ -178,7 +191,13 @@ public class XYControlLimitDataset extends AbstractXYDataset
         return getControlLimit(source, 0);
     }
     public static XYDataset getControlLimit(XYDataset source, int seriesNum) {
-        return new XYControlLimitDataset(source, seriesNum);
+        return getControlLimit(source, seriesNum, DONT_USE_LOG);
+    }
+    public static XYDataset getControlLimit(XYDataset source, boolean useLog) {
+        return getControlLimit(source, 0, useLog);
+    }
+    public static XYDataset getControlLimit(XYDataset source, int seriesNum, boolean useLog) {
+        return new XYControlLimitDataset(source, seriesNum, useLog);
     }
 
 }
