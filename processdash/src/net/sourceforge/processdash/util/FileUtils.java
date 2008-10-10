@@ -211,6 +211,9 @@ public class FileUtils {
             FilenameFilter filter, File dir, String prefix) {
 
         File[] files = dir.listFiles();
+        if (files == null)
+            return;
+
         for (int i = 0; i < files.length; i++) {
             File f = files[i];
             String name = prefix + f.getName();
