@@ -94,6 +94,7 @@ public class ExportFileStream {
     }
 
     private Object validateTarget() throws IOException {
+        // First, see if the "last known good URL" is still operational
         if (exportViaTeamServer) {
             serverUrl = TeamServerSelector.testServerURL(lastUrl,
                 MIN_SERVER_VERSION);
@@ -101,10 +102,9 @@ public class ExportFileStream {
                 return serverUrl;
         }
 
+        // Retrieve the "target directory" where the file would be written,
+        // and see if a URL can be found for that target directory
         File exportDirectory = directFile.getParentFile();
-        if (!exportDirectory.isDirectory())
-            throw new FileNotFoundException(directFile.getPath());
-
         if (exportViaTeamServer) {
             serverUrl = TeamServerSelector.getServerURL(exportDirectory,
                 MIN_SERVER_VERSION);
@@ -112,7 +112,11 @@ public class ExportFileStream {
                 return serverUrl;
         }
 
-        if (directFile.exists() && !directFile.canWrite())
+        // No URL-based approach was found, so we will be exporting the file
+        // directly to the filesystem. If the destination directory does
+        // not exist, or if the file exists and is read-only, abort.
+        if ((exportDirectory == null || !exportDirectory.isDirectory())
+                || (directFile.exists() && !directFile.canWrite()))
             throw new FileNotFoundException(directFile.getPath());
 
         return directFile;

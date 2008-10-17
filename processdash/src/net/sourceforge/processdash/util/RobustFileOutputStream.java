@@ -51,8 +51,9 @@ public class RobustFileOutputStream extends OutputStream {
     public RobustFileOutputStream(File destFile,
             boolean createMissingParentDirectory) throws IOException {
         File parentDir = destFile.getParentFile();
-        if (!parentDir.isDirectory())
-            if ((createMissingParentDirectory && parentDir.mkdirs()) == false)
+        if (parentDir == null || !parentDir.isDirectory())
+            if ((createMissingParentDirectory
+                    && parentDir != null && parentDir.mkdirs()) == false)
                 throw new IOException("Cannot write to file '" + destFile
                         + "' - parent directory does not exist, "
                         + "and could not be created.");

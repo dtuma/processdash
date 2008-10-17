@@ -26,6 +26,8 @@ package net.sourceforge.processdash.tool.bridge.client;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Logger;
 
 import net.sourceforge.processdash.tool.bridge.impl.DashboardInstanceStrategy;
@@ -51,13 +53,62 @@ public class WorkingDirectoryFactory {
     private WorkingDirectoryFactory() {}
 
     public WorkingDirectory get(String location, int purpose) {
-        if (location == null)
-            return get(new File(System.getProperty("user.dir")), purpose);
-// NOT YET SUPPORTED
-//        else if (location.startsWith("http"))
-//            return get(new URL(location), purpose);
+        return get(purpose, location);
+    }
+
+    public WorkingDirectory get(int purpose, String... locations_) {
+        List<String> locations = filterLocations(locations_);
+        File fileLocation = findFirstFileLocation(locations);
+
+        // look through each location until we find one that works.
+        for (String loc : locations) {
+            if (loc.startsWith("http")) {
+                // test "http" locations to see if a team server is actually
+                // present
+                URL u = TeamServerSelector.testServerURL(loc);
+                if (u != null)
+                    return get(fileLocation, loc, purpose);
+
+            } else {
+                // test "regular" locations to see if the directory exists
+                File dir = new File(loc);
+                if (dir.isDirectory())
+                    return get(dir, purpose);
+            }
+        }
+
+        // at this point, we believe that none of the locations were viable.
+        // return *something* pointing to a broken location, so our client
+        // will have a WorkingDirectory object to complain about to the user.
+        if (fileLocation != null)
+            return get(fileLocation, null, purpose);
         else
-            return get(new File(location), purpose);
+            return get(null, locations.get(locations.size() - 1), purpose);
+    }
+
+    private List<String> filterLocations(String[] locations) {
+        List<String> result = new ArrayList<String>();
+
+        // add all non-null entries from "locations" to the list
+        if (locations != null) {
+            for (String loc : locations)
+                if (loc != null && loc.length() > 0)
+                    result.add(loc);
+        }
+
+        // no locations provided? use default of "current working dir"
+        if (result.isEmpty())
+            result.add(System.getProperty("user.dir"));
+
+        return result;
+    }
+
+    private File findFirstFileLocation(List<String> locations) {
+        for (String loc : locations) {
+            if (!loc.startsWith("http"))
+                return new File(loc);
+        }
+        return null;
     }
 
     public WorkingDirectory get(File targetDirectory, int purpose) {

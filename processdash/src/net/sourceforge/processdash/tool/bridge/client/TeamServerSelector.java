@@ -27,8 +27,12 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.net.URLEncoder;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -40,6 +44,9 @@ public class TeamServerSelector {
 
     public static final String DISABLE_TEAM_SERVER_PROPERTY =
         TeamServerSelector.class.getName() + ".disabled";
+
+    public static final String DEFAULT_TEAM_SERVER_PROPERTY =
+        TeamServerSelector.class.getName() + ".defaultURL";
 
     private static final Logger logger = Logger
             .getLogger(TeamServerSelector.class.getName());
@@ -73,18 +80,26 @@ public class TeamServerSelector {
      *         that directory
      */
     public static URL getServerURL(File dir, String minVersion) {
-        if (Boolean.getBoolean(DISABLE_TEAM_SERVER_PROPERTY))
+        if (Boolean.getBoolean(DISABLE_TEAM_SERVER_PROPERTY) || dir == null)
             return null;
 
+        Map<String, String> urlsToTry = new HashMap<String, String>();
+        addDefaultURL(urlsToTry, dir, minVersion);
+
         TeamServerPointerFile pointerFile = new TeamServerPointerFile(dir);
+        for (String url : pointerFile.getInstanceURLs())
+            urlsToTry.put(url, minVersion);
 
         URL result = null;
         long bestTimeSoFar = Integer.MAX_VALUE;
 
-        for (String serverURL : pointerFile.getInstanceURLs()) {
+        for (Map.Entry<String, String> e : urlsToTry.entrySet()) {
+            String serverURL = e.getKey();
+            String requiredVersion = e.getValue();
+
             long start = System.currentTimeMillis();
 
-            URL u = testServerURL(serverURL, minVersion);
+            URL u = testServerURL(serverURL, requiredVersion);
             if (u == null) {
                 logger.log(Level.FINE,
                     "IOxception when contacting {0} - skipping", serverURL);
@@ -104,6 +119,32 @@ public class TeamServerSelector {
         }
 
         return result;
+    }
+
+    private static void addDefaultURL(Map<String, String> destMap, File dir,
+            String minVersion) {
+        if (dir == null)
+            return;
+
+        String baseUrl = System.getProperty(DEFAULT_TEAM_SERVER_PROPERTY);
+        if (baseUrl == null || baseUrl.length() == 0)
+            return;
+
+        String dirName = dir.getName();
+        if ("disseminate".equalsIgnoreCase(dirName))
+            dirName = dir.getParentFile().getName() + "-disseminate";
+
+        String requiredVersion = "1.4";
+        if (minVersion != null
+                && compareVersions(minVersion, requiredVersion) > 0)
+            requiredVersion = minVersion;
+
+        try {
+            String url = baseUrl + "/" + URLEncoder.encode(dirName, "UTF-8");
+            destMap.put(url, requiredVersion);
+        } catch (UnsupportedEncodingException e) {
+            // "can't happen"
+        }
     }
 
     /**
