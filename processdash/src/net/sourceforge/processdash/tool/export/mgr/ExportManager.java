@@ -338,7 +338,8 @@ public class ExportManager extends AbstractManager {
             //  In that case, the deletion is successful, not because we did it, but
             //  because it has already been made.
 
-            deletionSuccessful = file.getParentFile().exists();
+            deletionSuccessful = file.getParentFile() != null
+                    && file.getParentFile().exists();
         }
 
         return deletionSuccessful;

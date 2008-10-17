@@ -131,7 +131,8 @@ public class TeamServerSelector {
             return;
 
         String dirName = dir.getName();
-        if ("disseminate".equalsIgnoreCase(dirName))
+        if ("disseminate".equalsIgnoreCase(dirName)
+                && dir.getParentFile() != null)
             dirName = dir.getParentFile().getName() + "-disseminate";
 
         String requiredVersion = "1.4";

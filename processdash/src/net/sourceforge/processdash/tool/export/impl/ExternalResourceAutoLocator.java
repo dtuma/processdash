@@ -52,6 +52,9 @@ public class ExternalResourceAutoLocator implements
     }
 
     private void scanForDirectories(Map result, File dir, String prefix) {
+        if (dir == null)
+            return;
+
         File[] files = dir.listFiles();
         if (files == null || files.length == 0)
             return;
