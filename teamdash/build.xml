@@ -4,7 +4,7 @@
   <property file="build.properties"/>
 
   <property name="teamtools.version" value="3.6.1"/>
-  <property name="teamtools.requires" value="1.9.4+"/>
+  <property name="teamtools.requires" value="1.10+"/>
 
   <property name="processdash.dir" value="../processdash"/>
   <property name="processdash.lib" value="${processdash.dir}/lib"/>

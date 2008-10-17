@@ -1,11 +1,9 @@
 package teamdash.wbs;
 
-import java.io.File;
 import java.util.Iterator;
 import java.util.List;
 
 import net.sourceforge.processdash.tool.bridge.client.ImportDirectory;
-import net.sourceforge.processdash.tool.bridge.client.ImportDirectoryFactory;
 import teamdash.wbs.columns.MilestoneCommitDateColumn;
 import teamdash.wbs.columns.TaskDependencyColumn;
 
@@ -35,11 +33,10 @@ public class MasterWBSUtil {
 
 
     public static int[] mergeFromMaster(TeamProject proj) {
-        File dir = proj.getMasterProjectDirectory();
-        if (dir == null)
+        ImportDirectory iDir = proj.getMasterProjectDirectory();
+        if (iDir == null)
             return null;
 
-        ImportDirectory iDir = ImportDirectoryFactory.getInstance().get(dir);
         TeamProject masterProject = new TeamProject(iDir.getDirectory(), "");
         String masterProjectID = masterProject.getProjectID();
         if (masterProjectID == null)

@@ -20,6 +20,9 @@ undefine([Simple Project Tag]);
     iff([Team_Data_Directory] == "", "",
         [Team_Data_Directory] & [file_sep] & "disseminate" &
         [file_sep] & "team-data.pdash");
+[EXPORT_FILE/Server_URL] =
+    iff([Team_Data_Directory_URL],
+        [Team_Data_Directory_URL] & "-disseminate", "");
 [EXPORT_FILE/Instructions] = 
     "file:/<!--#echo Process_ID -->/disseminationExportFilter.xml";
 

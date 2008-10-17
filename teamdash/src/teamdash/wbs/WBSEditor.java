@@ -787,7 +787,7 @@ public class WBSEditor implements WindowListener, SaveListener,
     public void windowActivated(WindowEvent e) {}
     public void windowDeactivated(WindowEvent e) {}
 
-    public static WBSEditor createAndShowEditor(String location,
+    public static WBSEditor createAndShowEditor(String[] locations,
             boolean bottomUp, boolean showTeamList, String syncURL,
             boolean exitOnClose, boolean forceReadOnly, String owner) {
 
@@ -804,11 +804,11 @@ public class WBSEditor implements WindowListener, SaveListener,
 
         if (bottomUp)
         {
-            proj = new TeamProjectBottomUp(location, "Team Project");
+            proj = new TeamProjectBottomUp(locations, "Team Project");
             dir = proj.getStorageDirectory();
             if (!dir.isDirectory()) {
                 waitFrame.dispose();
-                showBadFilenameError(location);
+                showBadFilenameError(locations[locations.length-1]);
                 return null;
             }
             workingDirectory = null;
@@ -818,7 +818,7 @@ public class WBSEditor implements WindowListener, SaveListener,
         {
             String intent = showTeamList ? INTENT_TEAM_EDITOR : INTENT_WBS_EDITOR;
             dispatch = new LockMessageDispatcher();
-            workingDirectory = configureWorkingDirectory(location, intent,
+            workingDirectory = configureWorkingDirectory(locations, intent,
                 dispatch);
             if (workingDirectory == null) {
                 waitFrame.dispose();
@@ -856,11 +856,12 @@ public class WBSEditor implements WindowListener, SaveListener,
         }
     }
 
-    private static WorkingDirectory configureWorkingDirectory(String location,
+    private static WorkingDirectory configureWorkingDirectory(String[] locations,
             String intent, LockMessageHandler handler) {
         DashboardBackupFactory.setKeepBackupsNumDays(30);
         WorkingDirectory workingDirectory = WorkingDirectoryFactory
-                .getInstance().get(location, WorkingDirectoryFactory.PURPOSE_WBS);
+                .getInstance().get(WorkingDirectoryFactory.PURPOSE_WBS,
+                    locations);
         String locationDescr = workingDirectory.getDescription();
 
         try {
@@ -1034,16 +1035,14 @@ public class WBSEditor implements WindowListener, SaveListener,
     public static void main(String args[]) {
         ExternalLocationMapper.getInstance().loadDefaultMappings();
 
-        String location = null;
-        if (args.length > 0)
-            location = args[0];
+        String[] locations = args;
 
         boolean bottomUp = Boolean.getBoolean("teamdash.wbs.bottomUp");
         boolean showTeam = Boolean.getBoolean("teamdash.wbs.showTeamMemberList");
         boolean readOnly = Boolean.getBoolean("teamdash.wbs.readOnly");
         String syncURL = System.getProperty("teamdash.wbs.syncURL");
         String owner = System.getProperty("teamdash.wbs.owner");
-        createAndShowEditor(location, bottomUp, showTeam, syncURL, true,
+        createAndShowEditor(locations, bottomUp, showTeam, syncURL, true,
             readOnly, owner);
     }
 

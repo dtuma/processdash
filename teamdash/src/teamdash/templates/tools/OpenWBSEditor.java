@@ -18,6 +18,7 @@ import java.util.Map;
 import net.sourceforge.processdash.DashController;
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.net.http.WebServer;
+import net.sourceforge.processdash.tool.bridge.client.TeamServerSelector;
 import net.sourceforge.processdash.tool.export.mgr.ExternalResourceManager;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.HTMLUtils;
@@ -61,13 +62,30 @@ public class OpenWBSEditor extends TinyCGIBase {
         }
 
         parseFormData();
-        String directory = getParameter("directory");
+        String url = getStringParameter("directoryURL");
+        String directory = getStringParameter("directory");
         directory = FilenameMapper.remap(directory);
 
+        if (url == null && directory == null) {
+            writeHtmlHeader();
+            out.print(LOCATION_MISSING_MSG);
+            return;
+        }
+
         if (useJNLP)
-            writeJnlpFile(directory);
+            writeJnlpFile(url, directory);
         else
-            openInProcess(directory);
+            openInProcess(url, directory);
+    }
+
+    private String getStringParameter(String name) {
+        Object o = parameters.get(name);
+        if (o instanceof String) {
+            String s = (String) o;
+            return (s.length() > 0 ? s : null);
+        } else {
+            return null;
+        }
     }
 
     private String getSyncURL() {
@@ -87,12 +105,12 @@ public class OpenWBSEditor extends TinyCGIBase {
         return "http://" + ws.getHostName(true) + ":" + ws.getPort() + uri;
     }
 
-    private void openInProcess(String directory) {
-        if (!checkEntryCriteria(directory))
+    private void openInProcess(String url, String directory) {
+        if (!checkEntryCriteria(url, directory))
             return;
 
         writeHtmlHeader();
-        if (launchEditorProcess(directory)) {
+        if (launchEditorProcess(url, directory)) {
             // if we successfully opened the WBS, write the null document.
             DashController.printNullDocument(out);
         } else {
@@ -107,7 +125,7 @@ public class OpenWBSEditor extends TinyCGIBase {
         }
     }
 
-    private boolean checkEntryCriteria(String directory) {
+    private boolean checkEntryCriteria(String url, String directory) {
         String javaVersion = System.getProperty("java.version");
         if (javaVersion.startsWith("1.3")) {
             writeHtmlHeader();
@@ -115,6 +133,22 @@ public class OpenWBSEditor extends TinyCGIBase {
             return false;
         }
 
+        // If a URL was provided and it maps to a valid team server
+        // collection, we'll be fine in terms of opening the WBS.
+        if (TeamServerSelector.testServerURL(url) != null)
+            return true;
+
+        // If the URL was bad and no directory was given, display a "server
+        // unavailable" error message.
+        if (directory == null) {
+            writeHtmlHeader();
+            out.print(SERVER_UNAVAILABLE_MSG1 + HTMLUtils.escapeEntities(url)
+                    + SERVER_UNAVAILABLE_MSG2);
+            return false;
+        }
+
+        // If the directory supplied does not exist, display a "cannot find
+        // directory" error message.
         File dir = new File(directory);
         if (!dir.isDirectory()) {
             writeHtmlHeader();
@@ -126,7 +160,7 @@ public class OpenWBSEditor extends TinyCGIBase {
         return true;
     }
 
-    public Map<String, String> getLaunchProperties() {
+    public Map<String, String> getLaunchProperties(String url) {
         Map<String,String> result = new HashMap<String,String>();
 
         if (parameters.containsKey("bottomUp"))
@@ -138,6 +172,13 @@ public class OpenWBSEditor extends TinyCGIBase {
         if (Settings.getBool("READ_ONLY", false)
                 || "true".equalsIgnoreCase(getParameter("forceReadOnly")))
             result.put("teamdash.wbs.readOnly", "true");
+
+        if (url != null && url.indexOf('/') > 0) {
+            int lastSlash = url.lastIndexOf('/');
+            String baseUrl = url.substring(0, lastSlash);
+            result.put(TeamServerSelector.DEFAULT_TEAM_SERVER_PROPERTY,
+                    baseUrl);
+        }
 
         result.put("teamdash.wbs.syncURL", getSyncURL());
         result.put("teamdash.wbs.reverseSyncURL", getReverseSyncURL());
@@ -157,8 +198,8 @@ public class OpenWBSEditor extends TinyCGIBase {
 
     private static Hashtable editors = new Hashtable();
 
-    private boolean launchEditorProcess(String directory) {
-        String[] cmdLine = getProcessCmdLine(directory);
+    private boolean launchEditorProcess(String url, String directory) {
+        String[] cmdLine = getProcessCmdLine(url, directory);
         if (cmdLine == null)
             return false;
 
@@ -172,7 +213,7 @@ public class OpenWBSEditor extends TinyCGIBase {
         }
     }
 
-    private String[] getProcessCmdLine(String directory) {
+    private String[] getProcessCmdLine(String url, String directory) {
         String jreExecutable = RuntimeUtils.getJreExecutable();
         File classpath = RuntimeUtils.getClasspathFile(getClass());
         if (jreExecutable == null || classpath == null)
@@ -192,7 +233,7 @@ public class OpenWBSEditor extends TinyCGIBase {
         if ("Mac OS X".equalsIgnoreCase(System.getProperty("os.name")))
             cmd.add("-Xdock:name=WBS Editor");
 
-        Map<String, String> props = getLaunchProperties();
+        Map<String, String> props = getLaunchProperties(url);
         props.putAll(ExternalResourceManager.getInstance()
                 .getJvmArgsForMapping());
 
@@ -204,7 +245,10 @@ public class OpenWBSEditor extends TinyCGIBase {
         cmd.add("-jar");
         cmd.add(classpath.getAbsolutePath());
 
-        cmd.add(directory);
+        if (url != null)
+            cmd.add(url);
+        if (directory != null)
+            cmd.add(directory);
 
         return (String[]) cmd.toArray(new String[cmd.size()]);
     }
@@ -235,8 +279,8 @@ public class OpenWBSEditor extends TinyCGIBase {
                 editor.raiseWindow();
 
         } else {
-            editor = WBSEditor.createAndShowEditor(directory, bottomUp,
-                    showTeam, syncURL, false, readOnly, getOwner());
+            editor = WBSEditor.createAndShowEditor(new String[] { directory },
+                bottomUp, showTeam, syncURL, false, readOnly, getOwner());
             if (editor != null)
                 editors.put(key, editor);
             else
@@ -244,7 +288,7 @@ public class OpenWBSEditor extends TinyCGIBase {
         }
     }
 
-    private void writeJnlpFile(String directory) {
+    private void writeJnlpFile(String url, String directory) {
         out.print("Content-type: application/x-java-jnlp-file\r\n\r\n");
 
         WebServer ws = getTinyWebServer();
@@ -272,7 +316,7 @@ public class OpenWBSEditor extends TinyCGIBase {
         out.print(jarPath);
         out.print("'/>\n");
 
-        Map<String, String> props = getLaunchProperties();
+        Map<String, String> props = getLaunchProperties(url);
         for (Map.Entry<String, String> e : props.entrySet()) {
             if (e.getValue() != null) {
                 out.print("<property name='");
@@ -286,9 +330,16 @@ public class OpenWBSEditor extends TinyCGIBase {
         out.print("</resources>\n");
 
         out.print("<application-desc>\n");
-        out.print("<argument>");
-        out.print(XMLUtils.escapeAttribute(directory));
-        out.print("</argument>\n");
+        if (url != null) {
+            out.print("<argument>");
+            out.print(XMLUtils.escapeAttribute(url));
+            out.print("</argument>\n");
+        }
+        if (directory != null) {
+            out.print("<argument>");
+            out.print(XMLUtils.escapeAttribute(directory));
+            out.print("</argument>\n");
+        }
         out.print("</application-desc>\n");
 
         out.print("</jnlp>\n");
@@ -327,6 +378,14 @@ public class OpenWBSEditor extends TinyCGIBase {
                            // Tue, 05 Dec 2000 17:28:07 GMT
         new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz", Locale.ENGLISH);
 
+    private static final String LOCATION_MISSING_MSG =
+        "<html><head><title>Team Directory Missing</title></head><body>" +
+        "<h1>Team Directory Missing</h1>" +
+        "<p>The Work Breakdown Structure Editor cannot be used until you " +
+        "specify a team data directory on the Project Parameters and " +
+        "Settings page.</p></body></html>";
+
+
     private static final String JAVA_VERSION_MSG1 =
         "<html><body><h1>Incorrect Java Version</h1>" +
         "Sorry, but the team planning tools require version 1.4 or higher " +
@@ -336,6 +395,17 @@ public class OpenWBSEditor extends TinyCGIBase {
         " of the JRE.  To use the team planning tools, please upgrade the " +
         "Java Runtime Environment on your computer, restart the dashboard, " +
         "and try again.</body></html>";
+
+
+    private static final String SERVER_UNAVAILABLE_MSG1 =
+        "<html><body><h1>Team Data Server Unavailable</h1>" +
+        "The team planning tools need access to the team server that hosts " +
+        "data for this project.  According to your current project settings, " +
+        "that server is <pre>";
+    private static final String SERVER_UNAVAILABLE_MSG2 =
+        "</pre>  Unfortunately, this server is unavailable.  Please check " +
+        "your network connection, or contact your system administrator to " +
+        "see if the Team Server is running.</body></html>";
 
 
     private static final String DIR_MISSING_MSG1 =

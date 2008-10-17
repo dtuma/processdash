@@ -1,6 +1,5 @@
 package teamdash.wbs;
 
-import java.io.File;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
@@ -31,18 +30,12 @@ public class TeamProjectBottomUp extends TeamProject {
 
     private Set ignoredSubprojects;
 
-    public TeamProjectBottomUp(String location, String projectName) {
-        this(ImportDirectoryFactory.getInstance().get(location), projectName,
+    public TeamProjectBottomUp(String[] locations, String projectName) {
+        this(ImportDirectoryFactory.getInstance().get(locations), projectName,
                 true, true, null);
     }
 
-    protected TeamProjectBottomUp(File directory, String projectName,
-            boolean mergeSimilar, boolean autoReload, Set ignoredSubprojects) {
-        this(ImportDirectoryFactory.getInstance().get(directory), projectName,
-                mergeSimilar, autoReload, ignoredSubprojects);
-    }
-
-    private TeamProjectBottomUp(ImportDirectory importDir, String projectName,
+    public TeamProjectBottomUp(ImportDirectory importDir, String projectName,
             boolean mergeSimilar, boolean autoReload, Set ignoredSubprojects) {
         super(importDir.getDirectory(), projectName);
         super.setReadOnly(true);
@@ -126,10 +119,8 @@ public class TeamProjectBottomUp extends TeamProject {
 
             TeamProject subproject = (TeamProject) subprojects.get(shortName);
             if (subproject == null) {
-                File dir = getProjectDataDirectory(subprojectElem, true);
-                if (dir != null) {
-                    ImportDirectory iDir = ImportDirectoryFactory.getInstance()
-                            .get(dir);
+                ImportDirectory iDir = getProjectDataDirectory(subprojectElem, true);
+                if (iDir != null) {
                     subproject = new TeamProject(iDir.getDirectory(), shortName);
                     subproject.setImportDirectory(iDir);
                     subprojects.put(shortName, subproject);

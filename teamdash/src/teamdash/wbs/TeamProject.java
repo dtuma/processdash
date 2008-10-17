@@ -14,6 +14,7 @@ import java.util.Properties;
 import java.util.Set;
 
 import net.sourceforge.processdash.tool.bridge.client.ImportDirectory;
+import net.sourceforge.processdash.tool.bridge.client.ImportDirectoryFactory;
 import net.sourceforge.processdash.util.RobustFileWriter;
 import net.sourceforge.processdash.util.XMLUtils;
 
@@ -36,7 +37,7 @@ public class TeamProject {
     private MilestonesWBSModel milestones;
     private long fileModTime;
     private String masterProjectID;
-    private File masterProjectDirectory;
+    private ImportDirectory masterProjectDirectory;
     private boolean readOnly;
     private boolean filesAreReadOnly;
     private Properties userSettings;
@@ -137,7 +138,7 @@ public class TeamProject {
      * @return the master project's data directory, or null if this project is
      *     not part of a master project.
      */
-    public File getMasterProjectDirectory() {
+    public ImportDirectory getMasterProjectDirectory() {
         return masterProjectDirectory;
     }
 
@@ -241,10 +242,10 @@ public class TeamProject {
             if (nl == null || nl.getLength() == 0)
                 masterProjectDirectory = null;
             else {
-                masterProjectDirectory = getProjectDataDirectory(
-                        (Element) nl.item(0), true);
+                Element elem = (Element) nl.item(0);
+                masterProjectDirectory = getProjectDataDirectory(elem, true);
                 if (masterProjectDirectory != null)
-                    masterProjectID = masterProjectDirectory.getName();
+                    masterProjectID = elem.getAttribute("projectID");
             }
 
             File userSettingsFile = new File(directory, USER_SETTINGS_FILENAME);
@@ -269,7 +270,7 @@ public class TeamProject {
         }
     }
 
-    protected File getProjectDataDirectory(Element e, boolean checkExists) {
+    protected ImportDirectory getProjectDataDirectory(Element e, boolean checkExists) {
         // first, lookup the master project team directory.
         String mastTeamDirName =  e.getAttribute("teamDirectoryUNC");
         if (!XMLUtils.hasValue(mastTeamDirName))
@@ -288,10 +289,14 @@ public class TeamProject {
         File dataDir = new File(mastTeamDir, "data");
         File mastProjDir = new File(dataDir, mastProjectID);
 
-        if (checkExists == false || mastProjDir.isDirectory())
-            return mastProjDir;
-        else
-            return null;
+        ImportDirectory result = ImportDirectoryFactory.getInstance().get(
+            mastProjDir.getPath());
+
+        if (checkExists && result != null
+                && !result.getDirectory().isDirectory())
+            result = null;
+
+        return result;
     }
 
     /** Open the file containing the list of team members */
