@@ -240,8 +240,10 @@ public class FileConcurrencyLock implements ConcurrencyLock {
             // object and then calls assertLock rather than acquireLock.)
             this.extraInfo = metaData.extraInfo;
 
-            // check with the approver next to make certain we can proceed.
-            if (approver != null)
+            // if we're obtaining the lock for the first time, check with the
+            // approver next to make certain we can proceed.  (The approver
+            // doesn't get to say whether we keep an existing lock.)
+            if (lock == null && approver != null)
                 approver.approveLock(this, extraInfo);
 
             // There doesn't seem to be an API to determine whether we lost
@@ -254,7 +256,10 @@ public class FileConcurrencyLock implements ConcurrencyLock {
                     if (lock != null) lock.release();
                     closeChannel(oldLockChannel);
                     Thread.sleep(100);
-                } catch (Exception e) {}
+                } catch (Exception e) {
+                    logger.log(Level.FINE,
+                        "Exception when releasing lock for native reassert", e);
+                }
                 lock = null;
             }
 
@@ -291,7 +296,9 @@ public class FileConcurrencyLock implements ConcurrencyLock {
         if (c != null)
             try {
                 c.close();
-            } catch (Exception e) {}
+            } catch (Exception e) {
+                logger.log(Level.FINE, "Exception when closing channel", e);
+            }
     }
 
 
@@ -565,6 +572,8 @@ public class FileConcurrencyLock implements ConcurrencyLock {
                         nativeReassertNeeded = true;
                         setCheckInterval(20);
                     } catch (Exception e) {
+                        logger.log(Level.FINER,
+                            "Exception when listening for lost lock", e);
                         try {
                             dispatchMessage(LockMessage.LOCK_LOST_MESSAGE);
                         } catch (Exception e1) {}
