@@ -42,7 +42,6 @@ import java.awt.event.MouseEvent;
 
 import javax.swing.AbstractButton;
 import javax.swing.Action;
-import javax.swing.BorderFactory;
 import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -51,7 +50,6 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JToggleButton;
-import javax.swing.SwingConstants;
 import javax.swing.border.Border;
 
 import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
@@ -73,9 +71,9 @@ public class DropDownButton extends JPanel {
     private DropDownMenu menu;
     private MainButtonListener mainButtonListener = new MainButtonListener();
 
-    public DropDownButton()                 { this(new DDMButton());     }
-    public DropDownButton(Action a)         { this(new DDMButton(a));    }
-    public DropDownButton(String text)      { this(new DDMButton(text)); }
+    public DropDownButton()                 { this(new JButton());     }
+    public DropDownButton(Action a)         { this(new JButton(a));    }
+    public DropDownButton(String text)      { this(new JButton(text)); }
     public DropDownButton(boolean toggle)   { this(maybeMakeToggle(toggle)); }
 
     private DropDownButton(AbstractButton main_button) {
@@ -126,14 +124,17 @@ public class DropDownButton extends JPanel {
     }
 
     private void configureMacGUI() {
-        setLayout(new MacDropDownButtonLayout());
+        setLayout(new MacDropDownButtonLayout(isTextButton()));
 
-        int leftBlank = (isTextButton() ?
-                DROP_DOWN_LEFT_PAD_TEXT : DROP_DOWN_LEFT_PAD_ICON);
-        dropDownButton.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createMatteBorder(0, 1, 0, 0, Color.gray),
-            BorderFactory.createEmptyBorder(0, leftBlank, 0, 0)));
-        dropDownButton.setHorizontalAlignment(SwingConstants.LEFT);
+        String buttonType = getMacButtonType();
+        mainButton.putClientProperty("JButton.buttonType", buttonType);
+        mainButton.putClientProperty("JButton.segmentPosition", "first");
+        dropDownButton.putClientProperty("JButton.buttonType", buttonType);
+        dropDownButton.putClientProperty("JButton.segmentPosition", "last");
+    }
+
+    private String getMacButtonType() {
+        return (isTextButton() ? "segmentedRoundRect" : "segmented");
     }
 
     /** Return true if this button is displaying text, false if it is
@@ -150,17 +151,12 @@ public class DropDownButton extends JPanel {
      * this drop-down-button.
      */
     protected void setMainButtonMargin(Insets i) {
-        if (!MacGUIUtils.isMacOSX())
-            mainButton.setMargin(i);
-        if (mainButton instanceof DDMButton) {
-            DDMButton ddm = (DDMButton) mainButton;
-            ddm.extraPadding = i.right;
-        }
+        mainButton.setMargin(i);
     }
 
     private static AbstractButton maybeMakeToggle(boolean toggle) {
         if (toggle == false)
-            return new DDMButton();
+            return new JButton();
         else if (MacGUIUtils.isMacOSX())
             throw new UnsupportedOperationException(
                     "Drop-down toggle buttons not supported on Mac OS X");
@@ -383,53 +379,6 @@ public class DropDownButton extends JPanel {
         }
     }
 
-    /** A specialized class for the main button; appends extra space to the
-     * right edge of the button on Mac OS X.  On other platforms, behaves
-     * exactly like a plain JButton.
-     */
-    private static class DDMButton extends JButton {
-
-        private int extraPadding = 2;
-
-        public DDMButton()            {}
-        public DDMButton(Action a)    { super(a); }
-        public DDMButton(Icon icon)   { super(icon); }
-        public DDMButton(String text) { super(text); }
-
-        @Override
-        public void setIcon(Icon icon) {
-            super.setIcon(padIcon(icon));
-        }
-
-        @Override
-        public void setDisabledIcon(Icon icon) {
-            super.setDisabledIcon(padIcon(icon));
-        }
-
-        @Override
-        public void setDisabledSelectedIcon(Icon icon) {
-            super.setDisabledSelectedIcon(padIcon(icon));
-        }
-
-        private Icon padIcon(Icon icon) {
-            if (MacGUIUtils.isMacOSX() && icon != null)
-                return new PaddedIcon(icon, 2, 0, 0,
-                    MAC_EXTRA_PAD_FOR_DROP_DOWN + extraPadding);
-            else
-                return icon;
-        }
-
-        @Override
-        public void setText(String text) {
-            if (MacGUIUtils.isMacOSX() && text != null) {
-                super.setText(text + "  ");
-            } else {
-                super.setText(text);
-            }
-        }
-
-    }
-
     /** Custom layout manager to arrange our children on PC/Unix systems.
      */
     private class NormalDropDownButtonLayout implements LayoutManager {
@@ -478,40 +427,46 @@ public class DropDownButton extends JPanel {
      */
     private class MacDropDownButtonLayout implements LayoutManager {
 
+        private int remMainPad, remDropDownPad;
         private Rectangle bounds = new Rectangle();
         private Insets mainInsets = new Insets(0,0,0,0);
+
+        private MacDropDownButtonLayout(boolean textButton) {
+            if (textButton) {
+                remMainPad = remDropDownPad = 0;
+            } else {
+                remMainPad = 14;
+                remDropDownPad = 18;
+            }
+        }
 
         public void layoutContainer(Container parent) {
             parent.getBounds(bounds);
 
-            mainButton.setBounds(0, 0, bounds.width, bounds.height);
-            mainInsets = mainButton.getMargin();
+            int ddw = dropDownButton.getMinimumSize().width - remDropDownPad;
+            int mainW = bounds.width - ddw;
+            mainButton.setBounds(0, 0, mainW, bounds.height);
+            dropDownButton.setBounds(mainW, 0, ddw, bounds.height);
 
-            int ddWidth, top, bottom;
-            if (isTextButton()) {
-                ddWidth = mainInsets.right + MAC_DROP_DOWN_LEFT_ADJUST_TEXT;
-                top = mainInsets.top;
-                bottom = mainInsets.bottom;
-            } else {
-                ddWidth = mainInsets.right + MAC_DROP_DOWN_LEFT_ADJUST_ICON;
-                top = mainInsets.top - MAC_ICON_BORDER_EXTRA_TOP;
-                bottom = mainInsets.bottom - MAC_ICON_BORDER_EXTRA_BOTTOM;
-            }
-            dropDownButton.setBounds(
-                bounds.width - ddWidth,        // left edge of drop down button
-                top,                           // top edge of drop down button
-                ddWidth,                       // width of drop down button
-                bounds.height - top - bottom); // height of drop down button
+            mainInsets = mainButton.getBorder().getBorderInsets(mainButton);
 
-            menuBar.setBounds(mainInsets.left, 0, 0, bounds.height - bottom);
+            int bottom = mainInsets.bottom;
+            int left = mainInsets.left - remMainPad / 2;
+            menuBar.setBounds(left, 0, 0, bounds.height - bottom);
         }
 
         public Dimension minimumLayoutSize(Container parent) {
-            return mainButton.getMinimumSize();
+            Dimension result = mainButton.getMinimumSize();
+            result.width += dropDownButton.getMinimumSize().width;
+            result.width -= (remMainPad + remDropDownPad);
+            return result;
         }
 
         public Dimension preferredLayoutSize(Container parent) {
-            return mainButton.getPreferredSize();
+            Dimension result = mainButton.getPreferredSize();
+            result.width += dropDownButton.getMinimumSize().width;
+            result.width -= (remMainPad + remDropDownPad);
+            return result;
         }
 
         public void addLayoutComponent(String name, Component comp) {}
@@ -520,11 +475,5 @@ public class DropDownButton extends JPanel {
     }
 
     private static final int PC_DROP_DOWN_WIDTH = 11;
-    private static final int DROP_DOWN_LEFT_PAD_ICON = 2;
-    private static final int DROP_DOWN_LEFT_PAD_TEXT = 3;
-    private static final int MAC_EXTRA_PAD_FOR_DROP_DOWN = 8;
-    private static final int MAC_DROP_DOWN_LEFT_ADJUST_TEXT = 1;
-    private static final int MAC_DROP_DOWN_LEFT_ADJUST_ICON = 6;
-    private static final int MAC_ICON_BORDER_EXTRA_TOP = 1;
-    private static final int MAC_ICON_BORDER_EXTRA_BOTTOM = 4;
+
 }

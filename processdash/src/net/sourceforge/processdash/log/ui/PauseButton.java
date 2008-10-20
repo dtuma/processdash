@@ -50,7 +50,6 @@ import net.sourceforge.processdash.ui.DashboardIconFactory;
 import net.sourceforge.processdash.ui.SoundClip;
 import net.sourceforge.processdash.ui.help.PCSH;
 import net.sourceforge.processdash.ui.lib.DropDownButton;
-import net.sourceforge.processdash.ui.lib.PaddedIcon;
 import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
 
 
@@ -132,10 +131,7 @@ public class PauseButton extends DropDownButton implements ActionListener,
         }
 
         private Icon padIcon(Icon icon) {
-            if (MacGUIUtils.isMacOSX())
-                return new PaddedIcon(icon, -1, 0, -1, -2);
-            else
-                return icon;
+            return icon;
         }
 
         public void updateAppearance() {
