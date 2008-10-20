@@ -2,6 +2,8 @@ package teamdash.templates.setup;
 import java.awt.Component;
 import java.io.File;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -13,12 +15,14 @@ import net.sourceforge.processdash.DashController;
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.ListData;
 import net.sourceforge.processdash.data.SimpleData;
+import net.sourceforge.processdash.data.StringData;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.hier.HierarchyAlterer.HierarchyAlterationException;
 import net.sourceforge.processdash.net.http.TinyCGIException;
 import net.sourceforge.processdash.process.ui.TriggerURI;
+import net.sourceforge.processdash.tool.bridge.client.TeamServerSelector;
 import net.sourceforge.processdash.ui.UserNotificationManager;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.HTMLUtils;
@@ -57,8 +61,8 @@ public class sync extends TinyCGIBase {
     private String projectID;
     /** The processID used by the enclosing team project */
     private String processID;
-    /** The wbs dump file, written by a WBSDataWriter */
-    private File wbsFile;
+    /** The location of the wbs dump file */
+    private URL wbsLocation;
     /** The workflow dump file, written by a WBSDataWriter */
     private File workflowFile;
     /** The templates directory for the project */
@@ -107,7 +111,7 @@ public class sync extends TinyCGIBase {
 
             // create a synchronization object.
             HierarchySynchronizer synch = new HierarchySynchronizer
-                (projectRoot, processID, wbsFile, initials, getOwner(),
+                (projectRoot, processID, wbsLocation, initials, getOwner(),
                  fullCopyMode, getPSPProperties(), getDataRepository());
 
             // start the synchronization process.
@@ -198,34 +202,13 @@ public class sync extends TinyCGIBase {
             signalError(NOT_TEAM_PROJECT);
 
         DataRepository data = getDataRepository();
+        workflowFile = null;
+        templatesDir = null;
 
-        // find the data directory for this team project.
-        String teamDirectory = null;
-        SimpleData d = data.getSimpleValue
-            (DataRepository.createDataName(projectRoot, TEAMDIR_DATA_NAME));
-        if (d == null || !d.test() ||
-            "Enter network directory path".equals(teamDirectory = d.format()))
-            signalError(TEAM_DIR_MISSING);
-        teamDirectory = FilenameMapper.remap(teamDirectory);
-        File teamDir = new File(teamDirectory);
-        if (!teamDir.isDirectory())
-            signalError(TEAM_DIR_MISSING);
-
-        // locate the wbs file in the team data directory.
-        wbsFile = new File(teamDirectory, HIER_FILENAME);
-        if (!wbsFile.exists())
-            signalError(WBS_FILE_MISSING + "&wbsFile", wbsFile.toString());
-        if (!wbsFile.canRead())
-            signalError(WBS_FILE_INACCESSIBLE + "&wbsFile",
-                        wbsFile.toString());
-
-        // locate the workflow file and the templates directory
-        workflowFile = new File(teamDirectory, WORKFLOW_FILENAME);
-        templatesDir = new File(teamDir.getParentFile().getParentFile(),
-                "Templates");
+        wbsLocation = getWBSLocation(data);
 
         // look up the unique ID for this project.
-        d = data.getSimpleValue(DataRepository.createDataName
+        SimpleData d = data.getSimpleValue(DataRepository.createDataName
                 (projectRoot, PROJECT_ID_DATA_NAME));
         projectID = (d == null ? "" : d.format());
 
@@ -257,6 +240,73 @@ public class sync extends TinyCGIBase {
     }
 
 
+
+    private URL getWBSLocation(DataRepository data)
+            throws MalformedURLException, TinyCGIException {
+
+        String urlDataName = DataRepository.createDataName(projectRoot, URL_DATA_NAME);
+        SimpleData d = data.getSimpleValue(urlDataName);
+
+        URL wbsLocation = null;
+
+        if (d != null)
+            wbsLocation = getWBSLocationFromURL(d);
+
+        if (wbsLocation == null) {
+            // find the data directory for this team project.
+            String teamDirectoryLocation = null;
+            File teamDirectory = null;
+
+            d = data.getSimpleValue(
+                DataRepository.createDataName(projectRoot, TEAMDIR_DATA_NAME));
+
+            if (d == null || !d.test() ||
+                 "Enter network directory path".equals(teamDirectoryLocation = d.format()))
+                signalError(TEAM_DIR_MISSING);
+
+            teamDirectoryLocation = FilenameMapper.remap(teamDirectoryLocation);
+            teamDirectory = new File(teamDirectoryLocation);
+
+            if (!teamDirectory.isDirectory())
+                signalError(TEAM_DIR_MISSING);
+
+            URL serverURL = TeamServerSelector.getServerURL(teamDirectory);
+
+            if (serverURL != null) {
+                data.putValue(urlDataName, StringData.create(serverURL.toString()));
+                wbsLocation = new URL(serverURL.toString() + "/projDump.xml");
+            }
+            else {
+                // locate the wbs file in the team data directory.
+                File wbsFile = new File(teamDirectoryLocation, HIER_FILENAME);
+
+                if (!wbsFile.exists())
+                    signalError(WBS_FILE_MISSING + "&wbsFile", wbsFile.toString());
+                if (!wbsFile.canRead())
+                    signalError(WBS_FILE_INACCESSIBLE + "&wbsFile", wbsFile.toString());
+
+                // locate the workflow file and the templates directory
+                workflowFile = new File(teamDirectoryLocation, WORKFLOW_FILENAME);
+                templatesDir = new File(teamDirectory.getParentFile().getParentFile(),
+                                        "Templates");
+
+                wbsLocation = wbsFile.toURI().toURL();
+            }
+        }
+
+        return wbsLocation;
+    }
+
+    private URL getWBSLocationFromURL(SimpleData d) throws MalformedURLException {
+        URL wbsLocation = null;
+
+        String serverUrlStr = d.format();
+
+        if (TeamServerSelector.testServerURL(serverUrlStr) != null)
+            wbsLocation = new URL(serverUrlStr + "/projDump.xml");
+
+        return wbsLocation;
+    }
 
     /** Redirect to the team project migration page */
     private void printMigrationRedirect() {
@@ -335,7 +385,7 @@ public class sync extends TinyCGIBase {
 
 
     private void syncTemplates(HierarchySynchronizer sync) {
-        if (isTeam) {
+        if (isTeam && workflowFile != null && templatesDir != null) {
             String templateURI = "/" + processID + "-template.xml";
             TemplateSynchronizer tSync = new TemplateSynchronizer(projectRoot,
                     processID, projectID, templateURI, workflowFile,
@@ -601,6 +651,7 @@ public class sync extends TinyCGIBase {
     private static final String MIGRATE_DATA_NAME = "Team_Project_Migration_Needed";
     private static final String CONVERT_DATA_NAME = "Team_Project_Conversion_Needed";
     private static final String FULLCOPY_DATA_NAME = "Sync_Full_WBS";
+    private static final String URL_DATA_NAME = "Team_Data_Directory_URL";
     private static final String HIER_FILENAME = "projDump.xml";
     private static final String WORKFLOW_FILENAME = "workflowDump.xml";
 

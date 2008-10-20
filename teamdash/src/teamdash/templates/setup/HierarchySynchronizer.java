@@ -1,11 +1,10 @@
 package teamdash.templates.setup;
 import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.Writer;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -117,7 +116,7 @@ public class HierarchySynchronizer {
     /** Create a hierarchy synchronizer for a team project */
     public HierarchySynchronizer(String projectPath,
                                  String processID,
-                                 File wbsFile,
+                                 URL wbsLocation,
                                  String initials,
                                  String ownerName,
                                  boolean fullCopyMode,
@@ -159,7 +158,7 @@ public class HierarchySynchronizer {
         }
 
         loadProcessData();
-        openWBS(wbsFile);
+        openWBS(wbsLocation);
         if (isTeam()) fullCopyMode = true;
         this.fullCopyMode = fullCopyMode;
     }
@@ -244,15 +243,10 @@ public class HierarchySynchronizer {
         allConstrPhases.addAll(codePhases);
     }
 
-    private void openWBS(File wbsFile) throws IOException {
-        if (wbsFile == null || !wbsFile.exists())
-            throw new IOException
-                ("Could not find the file containing the work breakdown " +
-                 "structure for this team project.");
-
+    private void openWBS(URL wbsLocation) throws IOException {
         InputStream in = null;
         try {
-            in = new BufferedInputStream(new FileInputStream(wbsFile));
+            in = new BufferedInputStream(wbsLocation.openStream());
             Document doc = XMLUtils.parse(in);
             projectXML = doc.getDocumentElement();
 
