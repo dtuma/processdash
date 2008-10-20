@@ -157,9 +157,6 @@ public class DropDownButton extends JPanel {
     private static AbstractButton maybeMakeToggle(boolean toggle) {
         if (toggle == false)
             return new JButton();
-        else if (MacGUIUtils.isMacOSX())
-            throw new UnsupportedOperationException(
-                    "Drop-down toggle buttons not supported on Mac OS X");
         else
             return new JToggleButton();
     }
@@ -173,20 +170,27 @@ public class DropDownButton extends JPanel {
     }
 
     public void setLeftWidget(JComponent newWidget) {
-        if (MacGUIUtils.isMacOSX())
-            throw new UnsupportedOperationException(
-                    "Drop-down button left widget not supported on Mac OS X");
-
         if (leftWidget != null)
             remove(leftWidget);
 
         leftWidget = newWidget;
 
-        if (leftWidget != null) {
-            if (leftWidget instanceof AbstractButton)
+        if (leftWidget != null)
+            add(leftWidget);
+
+        if (leftWidget instanceof AbstractButton) {
+            if (MacGUIUtils.isMacOSX()) {
+                leftWidget.putClientProperty("JButton.buttonType", getMacButtonType());
+                leftWidget.putClientProperty("JButton.segmentPosition", "first");
+                mainButton.putClientProperty("JButton.segmentPosition", "middle");
+            } else {
                 leftWidget.setBorder(new RightChoppedBorder(leftWidget
                         .getBorder(), 2));
-            add(leftWidget);
+            }
+        } else {
+            if (MacGUIUtils.isMacOSX()) {
+                mainButton.putClientProperty("JButton.segmentPosition", "first");
+            }
         }
 
         invalidate();
@@ -387,14 +391,17 @@ public class DropDownButton extends JPanel {
 
         public void layoutContainer(Container parent) {
             parent.getBounds(bounds);
-            menuBar.setBounds(0, 0, 0, bounds.height);
+
             int lww = getLeftWidgetWidth();
+            int ddw = PC_DROP_DOWN_WIDTH;
+            int mainW = bounds.width - ddw - lww;
+
             if (leftWidget != null)
                 leftWidget.setBounds(0, 0, lww, bounds.height);
-            mainButton.setBounds(lww, 0, bounds.width - PC_DROP_DOWN_WIDTH
-                    - lww, bounds.height);
-            dropDownButton.setBounds(bounds.width - PC_DROP_DOWN_WIDTH, 0,
-                PC_DROP_DOWN_WIDTH, bounds.height);
+            mainButton.setBounds(lww, 0, mainW, bounds.height);
+            dropDownButton.setBounds(lww + mainW, 0, ddw, bounds.height);
+
+            menuBar.setBounds(0, 0, 0, bounds.height);
         }
 
         public Dimension minimumLayoutSize(Container parent) {
@@ -427,15 +434,14 @@ public class DropDownButton extends JPanel {
      */
     private class MacDropDownButtonLayout implements LayoutManager {
 
-        private int remMainPad, remDropDownPad;
+        private int remLeftPad, remMainPad, remDropDownPad;
         private Rectangle bounds = new Rectangle();
-        private Insets mainInsets = new Insets(0,0,0,0);
 
         private MacDropDownButtonLayout(boolean textButton) {
             if (textButton) {
-                remMainPad = remDropDownPad = 0;
+                remLeftPad = remMainPad = remDropDownPad = 0;
             } else {
-                remMainPad = 14;
+                remLeftPad = remMainPad = 14;
                 remDropDownPad = 18;
             }
         }
@@ -443,20 +449,31 @@ public class DropDownButton extends JPanel {
         public void layoutContainer(Container parent) {
             parent.getBounds(bounds);
 
+            int lww = getLeftWidgetWidth();
             int ddw = dropDownButton.getMinimumSize().width - remDropDownPad;
-            int mainW = bounds.width - ddw;
-            mainButton.setBounds(0, 0, mainW, bounds.height);
-            dropDownButton.setBounds(mainW, 0, ddw, bounds.height);
+            int mainW = bounds.width - ddw - lww;
 
-            mainInsets = mainButton.getBorder().getBorderInsets(mainButton);
+            if (leftWidget != null)
+                leftWidget.setBounds(0, 0, lww, bounds.height);
+            mainButton.setBounds(lww, 0, mainW, bounds.height);
+            dropDownButton.setBounds(lww + mainW, 0, ddw, bounds.height);
 
-            int bottom = mainInsets.bottom;
-            int left = mainInsets.left - remMainPad / 2;
-            menuBar.setBounds(left, 0, 0, bounds.height - bottom);
+            Insets leftInsets;
+            if (leftWidget == null) {
+                leftInsets = mainButton.getBorder().getBorderInsets(mainButton);
+                leftInsets.left -= remMainPad/2;
+            } else {
+                leftInsets = leftWidget.getBorder().getBorderInsets(leftWidget);
+                if (leftWidget instanceof AbstractButton)
+                    leftInsets.left -= remLeftPad/2;
+            }
+            menuBar.setBounds(leftInsets.left, 0, 0, bounds.height
+                    - leftInsets.bottom);
         }
 
         public Dimension minimumLayoutSize(Container parent) {
             Dimension result = mainButton.getMinimumSize();
+            result.width += getLeftWidgetWidth();
             result.width += dropDownButton.getMinimumSize().width;
             result.width -= (remMainPad + remDropDownPad);
             return result;
@@ -464,8 +481,20 @@ public class DropDownButton extends JPanel {
 
         public Dimension preferredLayoutSize(Container parent) {
             Dimension result = mainButton.getPreferredSize();
+            result.width += getLeftWidgetWidth();
             result.width += dropDownButton.getMinimumSize().width;
             result.width -= (remMainPad + remDropDownPad);
+            return result;
+        }
+
+        private int getLeftWidgetWidth() {
+            if (leftWidget == null)
+                return 0;
+
+            int result = leftWidget.getPreferredSize().width;
+            if (leftWidget instanceof AbstractButton)
+                result -= remLeftPad;
+
             return result;
         }
 

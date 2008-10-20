@@ -50,7 +50,6 @@ import net.sourceforge.processdash.ui.DashboardIconFactory;
 import net.sourceforge.processdash.ui.SoundClip;
 import net.sourceforge.processdash.ui.help.PCSH;
 import net.sourceforge.processdash.ui.lib.DropDownButton;
-import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
 
 
 public class PauseButton extends DropDownButton implements ActionListener,
@@ -99,10 +98,7 @@ public class PauseButton extends DropDownButton implements ActionListener,
         }
     }
     private static boolean shouldUseToggleButtons() {
-        if (MacGUIUtils.isMacOSX())
-            // DropDownButton can't handle toggle buttons on Mac OS X.
-            return false;
-        else if (Settings.getBool("pauseButton.compact", false))
+        if (Settings.getBool("pauseButton.compact", false))
             return false;
         else
             return true;
