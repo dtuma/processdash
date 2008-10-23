@@ -124,17 +124,17 @@ public class DropDownButton extends JPanel {
     }
 
     private void configureMacGUI() {
-        setLayout(new MacDropDownButtonLayout(isTextButton()));
+        setLayout(new MacDropDownButtonLayout());
 
         String buttonType = getMacButtonType();
-        mainButton.putClientProperty("JButton.buttonType", buttonType);
-        mainButton.putClientProperty("JButton.segmentPosition", "first");
-        dropDownButton.putClientProperty("JButton.buttonType", buttonType);
-        dropDownButton.putClientProperty("JButton.segmentPosition", "last");
+        mainButton.putClientProperty(MAC_BUTTON_TYPE, buttonType);
+        mainButton.putClientProperty(MAC_SEGMENT_POSITION, MAC_FIRST_SEGMENT);
+        dropDownButton.putClientProperty(MAC_BUTTON_TYPE, buttonType);
+        dropDownButton.putClientProperty(MAC_SEGMENT_POSITION, MAC_LAST_SEGMENT);
     }
 
     private String getMacButtonType() {
-        return (isTextButton() ? "segmentedRoundRect" : "segmented");
+        return (isTextButton() ? MAC_TEXT_BUTTON_TYPE : MAC_ICON_BUTTON_TYPE);
     }
 
     /** Return true if this button is displaying text, false if it is
@@ -180,16 +180,16 @@ public class DropDownButton extends JPanel {
 
         if (leftWidget instanceof AbstractButton) {
             if (MacGUIUtils.isMacOSX()) {
-                leftWidget.putClientProperty("JButton.buttonType", getMacButtonType());
-                leftWidget.putClientProperty("JButton.segmentPosition", "first");
-                mainButton.putClientProperty("JButton.segmentPosition", "middle");
+                leftWidget.putClientProperty(MAC_BUTTON_TYPE, getMacButtonType());
+                leftWidget.putClientProperty(MAC_SEGMENT_POSITION, MAC_FIRST_SEGMENT);
+                mainButton.putClientProperty(MAC_SEGMENT_POSITION, MAC_MIDDLE_SEGMENT);
             } else {
                 leftWidget.setBorder(new RightChoppedBorder(leftWidget
                         .getBorder(), 2));
             }
         } else {
             if (MacGUIUtils.isMacOSX()) {
-                mainButton.putClientProperty("JButton.segmentPosition", "first");
+                mainButton.putClientProperty(MAC_SEGMENT_POSITION, MAC_FIRST_SEGMENT);
             }
         }
 
@@ -434,23 +434,13 @@ public class DropDownButton extends JPanel {
      */
     private class MacDropDownButtonLayout implements LayoutManager {
 
-        private int remLeftPad, remMainPad, remDropDownPad;
         private Rectangle bounds = new Rectangle();
-
-        private MacDropDownButtonLayout(boolean textButton) {
-            if (textButton) {
-                remLeftPad = remMainPad = remDropDownPad = 0;
-            } else {
-                remLeftPad = remMainPad = 14;
-                remDropDownPad = 18;
-            }
-        }
 
         public void layoutContainer(Container parent) {
             parent.getBounds(bounds);
 
-            int lww = getLeftWidgetWidth();
-            int ddw = dropDownButton.getMinimumSize().width - remDropDownPad;
+            int lww = getConstrainedWidth(leftWidget);
+            int ddw = getConstrainedWidth(dropDownButton);
             int mainW = bounds.width - ddw - lww;
 
             if (leftWidget != null)
@@ -459,44 +449,69 @@ public class DropDownButton extends JPanel {
             dropDownButton.setBounds(lww + mainW, 0, ddw, bounds.height);
 
             Insets leftInsets;
+            int removedPadding;
             if (leftWidget == null) {
                 leftInsets = mainButton.getBorder().getBorderInsets(mainButton);
-                leftInsets.left -= remMainPad/2;
+                removedPadding = mainButton.getPreferredSize().width - mainW;
             } else {
                 leftInsets = leftWidget.getBorder().getBorderInsets(leftWidget);
-                if (leftWidget instanceof AbstractButton)
-                    leftInsets.left -= remLeftPad/2;
+                removedPadding = leftWidget.getMinimumSize().width - lww;
             }
+            if (removedPadding > 0)
+                leftInsets.left -= removedPadding / 2;
             menuBar.setBounds(leftInsets.left, 0, 0, bounds.height
                     - leftInsets.bottom);
         }
 
         public Dimension minimumLayoutSize(Container parent) {
             Dimension result = mainButton.getMinimumSize();
-            result.width += getLeftWidgetWidth();
-            result.width += dropDownButton.getMinimumSize().width;
-            result.width -= (remMainPad + remDropDownPad);
+            result.width = getConstrainedWidth(leftWidget)
+                    + getConstrainedWidth(mainButton)
+                    + getConstrainedWidth(dropDownButton);
             return result;
         }
 
         public Dimension preferredLayoutSize(Container parent) {
             Dimension result = mainButton.getPreferredSize();
-            result.width += getLeftWidgetWidth();
-            result.width += dropDownButton.getMinimumSize().width;
-            result.width -= (remMainPad + remDropDownPad);
+            result.width = getConstrainedWidth(leftWidget)
+                    + getConstrainedWidth(mainButton)
+                    + getConstrainedWidth(dropDownButton);
             return result;
         }
 
-        private int getLeftWidgetWidth() {
-            if (leftWidget == null)
+        private int getConstrainedWidth(JComponent c) {
+            if (c == null)
                 return 0;
 
-            int result = leftWidget.getPreferredSize().width;
-            if (leftWidget instanceof AbstractButton)
-                result -= remLeftPad;
-
-            return result;
+            int width = c.getMinimumSize().width;
+            int widthLimit = getIconBasedWidthLimit(c);
+            return Math.min(width, widthLimit);
         }
+
+        private int getIconBasedWidthLimit(JComponent c) {
+            if ((c instanceof AbstractButton) == false)
+                return NO_LIMIT;
+
+            Object buttonType = c.getClientProperty(MAC_BUTTON_TYPE);
+            if (! MAC_ICON_BUTTON_TYPE.equals(buttonType))
+                return NO_LIMIT;
+
+            AbstractButton button = (AbstractButton) c;
+            Icon i = button.getIcon();
+            if (i == null)
+                return NO_LIMIT;
+
+            int iconWidth = i.getIconWidth();
+
+            Object segmentPos = c.getClientProperty(MAC_SEGMENT_POSITION);
+            if (MAC_LAST_SEGMENT.equals(segmentPos))
+                return iconWidth + 10;
+            else if (MAC_MIDDLE_SEGMENT.equals(segmentPos))
+                return iconWidth + 4;
+            else
+                return iconWidth + 12;
+        }
+        private static final int NO_LIMIT = 9999;
 
         public void addLayoutComponent(String name, Component comp) {}
         public void removeLayoutComponent(Component comp) {}
@@ -504,5 +519,14 @@ public class DropDownButton extends JPanel {
     }
 
     private static final int PC_DROP_DOWN_WIDTH = 11;
+
+    private static final String MAC_BUTTON_TYPE = "JButton.buttonType";
+    private static final String MAC_ICON_BUTTON_TYPE = "segmented";
+    private static final String MAC_TEXT_BUTTON_TYPE = "segmentedRoundRect";
+
+    private static final String MAC_SEGMENT_POSITION = "JButton.segmentPosition";
+    private static final String MAC_FIRST_SEGMENT = "first";
+    private static final String MAC_MIDDLE_SEGMENT = "middle";
+    private static final String MAC_LAST_SEGMENT = "last";
 
 }

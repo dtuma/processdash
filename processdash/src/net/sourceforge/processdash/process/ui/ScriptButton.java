@@ -42,6 +42,8 @@ import net.sourceforge.processdash.process.ScriptID;
 import net.sourceforge.processdash.ui.DashboardIconFactory;
 import net.sourceforge.processdash.ui.help.PCSH;
 import net.sourceforge.processdash.ui.lib.DropDownButton;
+import net.sourceforge.processdash.ui.lib.PaddedIcon;
+import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
 
 /** The scriptButton class activates a browser loaded with the current phase's
  * script when it is pressed.  A right click can activate a popup menu with
@@ -67,8 +69,8 @@ public class ScriptButton extends DropDownButton
         setMainButtonMargin(new Insets (1,2,1,2));
         enabled_icon = DashboardIconFactory.getScriptIcon();
         disabled_icon = DashboardIconFactory.getDisabledScriptIcon();
-        getButton().setIcon(enabled_icon);
-        getButton().setDisabledIcon(disabled_icon);
+        getButton().setIcon(padIcon(enabled_icon));
+        getButton().setDisabledIcon(padIcon(disabled_icon));
         getButton().setFocusPainted(false);
         parent = dash;
 
@@ -80,6 +82,13 @@ public class ScriptButton extends DropDownButton
         dash.getActiveTaskModel().addPropertyChangeListener(this);
         dash.getHierarchy().addHierarchyListener(this);
         updateAll();
+    }
+
+    private Icon padIcon(Icon icon) {
+        if (MacGUIUtils.isMacOSX())
+            return new PaddedIcon(icon, 0, 2, 0, 2);
+        else
+            return icon;
     }
 
     private void updateAll() {
