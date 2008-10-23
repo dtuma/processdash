@@ -43,6 +43,20 @@ public interface ImportDirectory {
     public File getDirectory();
 
     /**
+     * Returns a string describing the remote source of this import directory,
+     * or null if this import directory is not from a remote source.
+     * 
+     * @return If this import directory originates from a remote location, this
+     *         will return a string describing that location. The resulting
+     *         string would be suitable as a parameter to
+     *         {@link ImportDirectoryFactory#get(String...)}, enabling the
+     *         reconstruction of this object in the future. If this import
+     *         directory does not originate from a remote location, this will
+     *         return null.
+     */
+    public String getRemoteLocation();
+
+    /**
      * Update the contents of this import directory if any data has changed.
      * 
      * @throws IOException

@@ -26,27 +26,32 @@ package net.sourceforge.processdash.tool.bridge.client;
 import java.io.File;
 
 /**
- * An {@link ImportDirectory} object that reads files directly from their
- * original source directory on the filesystem.
+ * Bridged import directories copy the files in a collection to a local
+ * directory for quick access.  This class provides access to those locally
+ * cached files, even when no network is available.
  */
-public class LocalImportDirectory implements ImportDirectory {
+public class CachedImportDirectory implements ImportDirectory {
 
-    private File targetDirectory;
+    protected String remoteURL;
 
-    protected LocalImportDirectory(File targetDirectory) {
-        this.targetDirectory = targetDirectory;
-    }
+    protected File importDirectory;
 
-    public File getDirectory() {
-        return targetDirectory;
-    }
-
-    public String getRemoteLocation() {
-        return null;
+    protected CachedImportDirectory(String remoteURL) {
+        this.remoteURL = remoteURL;
+        this.importDirectory = BridgedImportDirectory
+                .getCacheDirectoryForBridgedImport(remoteURL);
     }
 
     public String getDescription() {
-        return targetDirectory.getAbsolutePath();
+        return remoteURL;
+    }
+
+    public File getDirectory() {
+        return importDirectory;
+    }
+
+    public String getRemoteLocation() {
+        return remoteURL;
     }
 
     public void update() {}

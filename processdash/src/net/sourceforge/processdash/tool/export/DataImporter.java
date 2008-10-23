@@ -67,8 +67,8 @@ public class DataImporter extends Thread {
     private String importPrefix;
     private ImportDirectory directory;
     private volatile boolean isRunning = true;
-    private HashMap modTimes = new HashMap();
-    private HashMap prefixes = new HashMap();
+    private Map<String, Long> modTimes = new HashMap<String, Long>();
+    private Map<String, String> prefixes = new HashMap<String, String>();
 
 
     public static void addImport(DataRepository data, String prefix,
@@ -117,8 +117,8 @@ public class DataImporter extends Thread {
             importer = (DataImporter) i.next();
             if (importer.importPrefix != null &&
                 importer.importPrefix.startsWith(prefix)) {
-                System.out.println("checking "+importer.importPrefix+
-                                   "=>"+importer.directory);
+                logger.info("checking " + importer.importPrefix + "=>"
+                        + importer.directory.getDescription());
                 importer.checkFiles(result);
             }
         }
@@ -163,7 +163,8 @@ public class DataImporter extends Thread {
     private void checkFiles(List<String> feedback) {
         try {
             FILE_IO_LOCK.acquireUninterruptibly();
-            Set currentFiles = new HashSet(modTimes.keySet());
+            Set<String> currentFilenames = new HashSet<String>(modTimes
+                    .keySet());
 
             // list the files in the import directory.
             directory.update();
@@ -171,11 +172,12 @@ public class DataImporter extends Thread {
 
             // check them all to see if they need importing.
             for (int i = files.length;  i-- > 0;  ) {
+                String filename = files[i].getName();
                 try {
                     if (checkFile(files[i]))
                         if (feedback != null)
                             feedback.add(getDescription(files[i]));
-                    currentFiles.remove(files[i]);
+                    currentFilenames.remove(filename);
                 } catch (Throwable t) {
                     // if an error is encountered when trying to import one
                     // of the files, log a message and attempt to continue
@@ -187,9 +189,8 @@ public class DataImporter extends Thread {
 
             // if any previously imported files no longer exist, close
             // the corresponding datafiles.
-            Iterator i = currentFiles.iterator();
-            while (i.hasNext())
-                closeFile((File) i.next());
+            for (String filename : currentFilenames)
+                closeFile(filename);
 
         } catch (IOException ioe) {
             logger.log(Level.FINE, "IOException in DataImporter", ioe);
@@ -293,45 +294,50 @@ public class DataImporter extends Thread {
     }
 
     private String getDescription(File file) {
+        return getDescription(file.getName());
+    }
+
+    private String getDescription(String filename) {
         String directoryDescription = directory.getDescription();
         if (directoryDescription == null)
-            return file.getAbsolutePath();
+            return filename;
         else if (directoryDescription.indexOf('/') != -1)
-            return directoryDescription + "/" + file.getName();
+            return directoryDescription + "/" + filename;
         else
-            return directoryDescription + "\\"  + file.getName();
+            return directoryDescription + "\\"  + filename;
     }
 
     public void dispose() {
-        for (Object f : new ArrayList(modTimes.keySet())) {
-            closeFile((File) f);
+        for (String filename : new ArrayList<String>(modTimes.keySet())) {
+            closeFile(filename);
         }
     }
 
 
     private boolean checkFile(File f) throws IOException {
-        Long prevModTime = (Long) modTimes.get(f);
+        String filename = f.getName();
+        Long prevModTime = modTimes.get(filename);
         long modTime = f.lastModified();
 
         // If this file is new (we've never seen it before), or if has
         // been modified since we imported it last,
         if (prevModTime == null || prevModTime.longValue() < modTime) {
             importData(f, data);                   // import it, and
-            modTimes.put(f, new Long(modTime));    // save its mod time
+            modTimes.put(filename, modTime);       // save its mod time
             return true;
         }
 
         return false;
     }
 
-    private void closeFile(File f) {
-        String prefix = (String) prefixes.get(f);
+    private void closeFile(String filename) {
+        String prefix = prefixes.get(filename);
         if (prefix == null) return;
-        System.out.println("closing import " + f);
+        logger.info("closing import " + getDescription(filename));
         data.closeDatafile(prefix);
         ImportedDefectManager.closeDefects(prefix);
         ImportedTimeLogManager.getInstance().closeTimeLogs(prefix);
-        modTimes.remove(f);
+        modTimes.remove(filename);
     }
 
 
@@ -339,7 +345,7 @@ public class DataImporter extends Thread {
         throws IOException
     {
         String prefix = makePrefix(f);
-        System.out.println("importing " + f);
+        logger.info("importing " + f);
 
         String filename = f.getName().toLowerCase();
         if (filename.endsWith(EXPORT_FILE_OLD_SUFFIX)) {
@@ -350,7 +356,7 @@ public class DataImporter extends Thread {
             task.doImport();
         }
 
-        prefixes.put(f, prefix);
+        prefixes.put(f.getName(), prefix);
     }
 
     public String makePrefix(File f) throws IOException {

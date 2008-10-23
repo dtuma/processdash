@@ -30,6 +30,10 @@ import net.sourceforge.processdash.tool.bridge.impl.FileResourceCollection;
 import net.sourceforge.processdash.tool.bridge.impl.FileResourceCollectionStrategy;
 import net.sourceforge.processdash.util.FileUtils;
 
+/**
+ * An {@link ImportDirectory} object that retrieves files from a Team Server
+ * and caches them locally for quick access.
+ */
 public class BridgedImportDirectory implements ImportDirectory {
 
     protected String remoteURL;
@@ -43,8 +47,7 @@ public class BridgedImportDirectory implements ImportDirectory {
     protected BridgedImportDirectory(String remoteURL,
             FileResourceCollectionStrategy strategy) throws IOException {
         this.remoteURL = remoteURL;
-        this.importDirectory = new File(DirectoryPreferences
-                .getMasterImportDirectory(), getImportId());
+        this.importDirectory = getCacheDirectoryForBridgedImport(remoteURL);
         this.importDirectory.mkdirs();
 
         FileResourceCollection localCollection = new FileResourceCollection(
@@ -56,13 +59,22 @@ public class BridgedImportDirectory implements ImportDirectory {
         this.lastUpdateTime = System.currentTimeMillis();
     }
 
-    protected String getImportId() {
+    /**
+     * When an import directory originates from a remote location, it is cached
+     * locally for quick access. This method returns the canonical location
+     * where files should be cached for a particular URL.
+     */
+    protected static File getCacheDirectoryForBridgedImport(String remoteURL) {
+        return new File(DirectoryPreferences.getMasterImportDirectory(),
+                getImportId(remoteURL));
+    }
+
+    protected static String getImportId(String remoteURL) {
         String url = remoteURL;
         if (url.startsWith("https"))
             url = "http" + url.substring(5);
         return FileUtils.makeSafeIdentifier(url);
     }
-
 
     public String getDescription() {
         return remoteURL;
@@ -72,7 +84,7 @@ public class BridgedImportDirectory implements ImportDirectory {
         return importDirectory;
     }
 
-    public String getRemoteURL() {
+    public String getRemoteLocation() {
         return remoteURL;
     }
 

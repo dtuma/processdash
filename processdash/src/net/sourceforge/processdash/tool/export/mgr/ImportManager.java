@@ -29,7 +29,6 @@ import java.util.logging.Logger;
 
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.repository.DataRepository;
-import net.sourceforge.processdash.tool.bridge.client.BridgedImportDirectory;
 import net.sourceforge.processdash.tool.bridge.client.ImportDirectory;
 import net.sourceforge.processdash.tool.bridge.client.ImportDirectoryFactory;
 import net.sourceforge.processdash.tool.export.DataImporter;
@@ -134,14 +133,11 @@ public class ImportManager extends AbstractManager {
             ImportDirectory importDir = ImportDirectoryFactory.getInstance()
                     .get(instr.getURL(), instr.getDirectory());
 
-            if (importDir instanceof BridgedImportDirectory) {
-                BridgedImportDirectory bid = (BridgedImportDirectory) importDir;
-                String oldURL = instr.getURL();
-                String newURL = bid.getRemoteURL();
-                if (newURL != null && !newURL.equals(oldURL)) {
-                    instr.setURL(newURL);
-                    urlValueChanged = true;
-                }
+            String oldURL = instr.getURL();
+            String newURL = importDir.getRemoteLocation();
+            if (newURL != null && !newURL.equals(oldURL)) {
+                instr.setURL(newURL);
+                urlValueChanged = true;
             }
 
             DataImporter.addImport(data, prefix, getDirInfo(instr), importDir);

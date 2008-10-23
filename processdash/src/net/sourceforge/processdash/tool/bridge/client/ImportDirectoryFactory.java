@@ -62,26 +62,37 @@ public class ImportDirectoryFactory {
      * 
      * @param locations
      *                a list of filenames or URLs that might point to the
+     *                desired resource collection.
+     * @return an {@link ImportDirectory} object that can be used to read from
+     *         the specified resource collection, or null if no ImportDirectory
+     *         object could be successfully created from the list of locations
+     */
+    public ImportDirectory get(String... locations) {
+        try {
+            return new DynamicImportDirectory(locations);
+        } catch (IOException e) {
+            return null;
+        }
+    }
+
+    /**
+     * Return an ImportDirectory object capable of serving data from a
+     * particular resource collection.
+     * 
+     * @param locations
+     *                a list of filenames or URLs that might point to the
      *                desired resource collection. The first location that can
-     *                be successfully used will be returned. Note that URLs are
-     *                only considered successful if we can contact the server in
-     *                question, but if a filename is passed in, it will always
-     *                result in a "successful" ImportDirectory object, even if
-     *                the named directory does not exist.
+     *                be successfully used will be returned.
      * @return a resource collection, or null if no ImportDirectory object could
      *         be successfully created from the list of locations
      */
-    public ImportDirectory get(String... locations) {
+    ImportDirectory getImpl(String[] locations) {
+        ImportDirectory fallbackResult = null;
+
         for (String location : locations) {
             // ignore null or empty locations
             if (!StringUtils.hasValue(location))
                 continue;
-
-            // check to see if we have already created an ImportDirectory
-            // object for this location in the past.  If so, return it.
-            ImportDirectory cached = cache.get(normalize(location));
-            if (cached != null)
-                return refresh(cached);
 
             // If the location represents a directory that is being mapped to
             // a specific location by the ExternalLocationMapper, then we
@@ -106,20 +117,29 @@ public class ImportDirectoryFactory {
                                     + remoteURL, e);
                     }
                 }
+                // If we couldn't contact the server, see if we happen to
+                // have a cached copy of that directory from the server.
+                CachedImportDirectory c = new CachedImportDirectory(location);
+                if (isViable(c, REQUIRE_CONTENTS))
+                    fallbackResult = c;
             }
 
             // The location is a filename.  Create an ImportDirectory object
             // to serve data from the named directory.  Note that the
-            // object we return could be a plain local directory, or could be
+            // resulting object could be a plain local directory, or could be
             // a bridged directory if we discover that a team server is
             // handling the named directory.
             else {
                 File dir = new File(location);
-                return get(dir, CHECK_REMOTE);
+                ImportDirectory fileResult = get(dir, CHECK_REMOTE);
+                if (isViable(fileResult, NO_CONTENTS_REQUIRED))
+                    return fileResult;
+                else if (fallbackResult == null)
+                    fallbackResult = fileResult;
             }
         }
 
-        return null;
+        return fallbackResult;
     }
 
     public ImportDirectory get(File dir) {
@@ -132,21 +152,17 @@ public class ImportDirectoryFactory {
         if (cached != null)
             return refresh(cached);
 
-        ImportDirectory result = null;
         URL u = (noRemote ? null : TeamServerSelector.getServerURL(dir));
         if (u != null) {
             try {
-                result = get(u);
+                return get(u);
             } catch (IOException e) {
                 logger.log(Level.WARNING,
                     "Encountered error when contacting server " + u, e);
             }
         }
-        if (result == null) {
-            result = new LocalImportDirectory(dir);
-            logger.fine("Using local import directory " + dir.getPath());
-        }
 
+        ImportDirectory result = new LocalImportDirectory(dir);
         return putInCache(path, result);
     }
 
@@ -158,9 +174,6 @@ public class ImportDirectoryFactory {
 
         ImportDirectory result = new BridgedImportDirectory(urlStr,
                 TeamDataDirStrategy.INSTANCE);
-        logger.fine("Using bridged import directory "
-                + result.getDirectory().getPath());
-
         return putInCache(urlStr, result);
     }
 
@@ -194,6 +207,25 @@ public class ImportDirectoryFactory {
         return dir;
     }
 
+    private static boolean isViable(ImportDirectory d, boolean requireContents) {
+        if (d == null)
+            return false;
+
+        File dir = d.getDirectory();
+        if (dir == null || !dir.isDirectory())
+            return false;
+
+        if (requireContents) {
+            String[] files = dir.list();
+            if (files == null || files.length == 0)
+                return false;
+        }
+
+        return true;
+    }
+
     private static final boolean NO_REMOTE = true;
     private static final boolean CHECK_REMOTE = false;
+    private static final boolean REQUIRE_CONTENTS = true;
+    private static final boolean NO_CONTENTS_REQUIRED = false;
 }
