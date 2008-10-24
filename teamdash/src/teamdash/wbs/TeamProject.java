@@ -192,6 +192,7 @@ public class TeamProject {
         if (importDirectory != null) {
             try {
                 importDirectory.update();
+                directory = importDirectory.getDirectory();
             } catch (IOException ioe) {
                 ;
             }
