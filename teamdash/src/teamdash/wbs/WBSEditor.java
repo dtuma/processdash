@@ -597,26 +597,28 @@ public class WBSEditor implements WindowListener, SaveListener,
 
         public void run() {
             saveResult = saveImpl();
-            try {
-                SwingUtilities.invokeAndWait(new Runnable() {
-                    public void run() {
-                        JPanel panel = (JPanel) saveDialog.getContentPane()
-                                .getComponent(0);
-                        for (int i = 0;  i < panel.getComponentCount(); i++) {
-                            Component c = panel.getComponent(i);
-                            if (c instanceof JLabel) {
-                                JLabel label = (JLabel) c;
-                                label.setText("Data Saved.");
-                            } else if (c instanceof JProgressBar) {
-                                JProgressBar bar = (JProgressBar) c;
-                                bar.setIndeterminate(false);
-                                bar.setValue(bar.getMaximum());
+            if (saveResult) {
+                try {
+                    SwingUtilities.invokeAndWait(new Runnable() {
+                        public void run() {
+                            JPanel panel = (JPanel) saveDialog.getContentPane()
+                                    .getComponent(0);
+                            for (int i = 0;  i < panel.getComponentCount(); i++) {
+                                Component c = panel.getComponent(i);
+                                if (c instanceof JLabel) {
+                                    JLabel label = (JLabel) c;
+                                    label.setText("Data Saved.");
+                                } else if (c instanceof JProgressBar) {
+                                    JProgressBar bar = (JProgressBar) c;
+                                    bar.setIndeterminate(false);
+                                    bar.setValue(bar.getMaximum());
+                                }
                             }
-                        }
-                        saveDialog.setTitle("Data Saved");
-                    }});
-                Thread.sleep(750);
-            } catch (Exception e) {}
+                            saveDialog.setTitle("Data Saved");
+                        }});
+                    Thread.sleep(750);
+                } catch (Exception e) {}
+            }
 
             SwingUtilities.invokeLater(new Runnable() {
                 public void run() {
