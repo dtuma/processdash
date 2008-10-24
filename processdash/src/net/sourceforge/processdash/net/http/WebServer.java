@@ -1472,7 +1472,10 @@ public class WebServer implements ContentSource {
 
         // if we need a name for use by a different computer, look it up.
         if (forRemoteUse) try {
-            return InetAddress.getLocalHost().getHostName();
+            if (Settings.getBool("http.hostname.useIP", false))
+                return InetAddress.getLocalHost().getHostAddress();
+            else
+                return InetAddress.getLocalHost().getHostName();
         } catch (UnknownHostException uhe) {}
 
         // return the default value
