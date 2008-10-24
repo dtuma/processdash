@@ -117,13 +117,24 @@ public class DynamicImportDirectory implements ImportDirectory {
 
         // If we're using a LocalImportDirectory with a nonexistent target,
         // we'd prefer to update the delegate and get something useful instead.
-        // But such an update could only produce a different result if our
-        // "locations" list has more than one location option to try.
-        // Including that check will prevent this class from excessive
-        // rechecking when no Team Server is in use (the most common case).
+        // But in the most common case (when no Team Server is in use),
+        // rechecking can't have any useful effect. So we only consider updating
+        // if (a) there is more than one location in our "locations" list,
+        // leading to the possibility that a different location might better,
+        // or (b) a default team server is in effect, leading to the
+        // possibility that we might be able to access the location through
+        // an implicitly constructed URL. Note that at this time, we don't
+        // consider the possibility of transitioning to bridged mode when
+        // we have a valid local directory with no prior knowledge of Team
+        // Server support. That is a rare transition, and is better handled
+        // elsewhere as a configuration change, rather than being checked every
+        // time the ImportDirectory.update() is called.
         if (delegate instanceof LocalImportDirectory) {
-            if (locations.length > 1 && !delegate.getDirectory().isDirectory())
-                return true;
+            if (locations.length == 1
+                    && !TeamServerSelector.isDefaultTeamServerConfigured())
+                return false;
+            else
+                return !delegate.getDirectory().isDirectory();
         }
 
         return false;

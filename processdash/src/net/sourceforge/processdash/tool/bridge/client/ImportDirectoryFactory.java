@@ -119,7 +119,7 @@ public class ImportDirectoryFactory {
                 }
                 // If we couldn't contact the server, see if we happen to
                 // have a cached copy of that directory from the server.
-                CachedImportDirectory c = new CachedImportDirectory(location);
+                ImportDirectory c = getCachedImportDirectory(location);
                 if (isViable(c, REQUIRE_CONTENTS))
                     fallbackResult = c;
             }
@@ -134,8 +134,24 @@ public class ImportDirectoryFactory {
                 ImportDirectory fileResult = get(dir, CHECK_REMOTE);
                 if (isViable(fileResult, NO_CONTENTS_REQUIRED))
                     return fileResult;
-                else if (fallbackResult == null)
+
+                // if the local directory doesn't exist, see if there is a
+                // cached import directory that appears to correspond to the
+                // desired directory
+                String possibleURL = TeamServerSelector.getDefaultURL(dir);
+                if (possibleURL != null) {
+                    ImportDirectory c = getCachedImportDirectory(possibleURL);
+                    if (isViable(c, REQUIRE_CONTENTS))
+                        fallbackResult = c;
+                }
+
+                // The desired local directory is nonexistent, no team server
+                // is filling in, and no cached directory is available.  There
+                // isn't much we can do but save the local directory away in
+                // case we have no other options.
+                else if (fallbackResult == null) {
                     fallbackResult = fileResult;
+                }
             }
         }
 
@@ -147,11 +163,6 @@ public class ImportDirectoryFactory {
     }
 
     private ImportDirectory get(File dir, boolean noRemote) {
-        String path = normalize(dir.getPath());
-        ImportDirectory cached = cache.get(path);
-        if (cached != null)
-            return refresh(cached);
-
         URL u = (noRemote ? null : TeamServerSelector.getServerURL(dir));
         if (u != null) {
             try {
@@ -161,6 +172,11 @@ public class ImportDirectoryFactory {
                     "Encountered error when contacting server " + u, e);
             }
         }
+
+        String path = normalize(dir.getPath());
+        ImportDirectory cached = cache.get(path);
+        if (cached != null)
+            return refresh(cached);
 
         ImportDirectory result = new LocalImportDirectory(dir);
         return putInCache(path, result);
@@ -175,6 +191,16 @@ public class ImportDirectoryFactory {
         ImportDirectory result = new BridgedImportDirectory(urlStr,
                 TeamDataDirStrategy.INSTANCE);
         return putInCache(urlStr, result);
+    }
+
+    private ImportDirectory getCachedImportDirectory(String url) {
+        String key = "[CACHED]:" + url;
+        ImportDirectory cached = cache.get(key);
+        if (cached != null)
+            return refresh(cached);
+
+        ImportDirectory result = new CachedImportDirectory(url);
+        return putInCache(key, result);
     }
 
     private ImportDirectory putInCache(String key, ImportDirectory dir) {

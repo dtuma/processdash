@@ -52,6 +52,35 @@ public class TeamServerSelector {
             .getLogger(TeamServerSelector.class.getName());
 
     /**
+     * Test whether Team Server usage has been disabled.
+     * 
+     * As an example, Team Server usage is typically disabled when a data
+     * backup is opened in the Quick Launcher; in that case, the data from
+     * inside the backup should be used, and no Team Server should be contacted.
+     * 
+     * @return true if Team Servers should not be contacted by this application.
+     */
+    public static boolean isTeamServerUseDisabled() {
+        return Boolean.getBoolean(DISABLE_TEAM_SERVER_PROPERTY);
+    }
+
+    /**
+     * Test whether a default team server is in effect.
+     * 
+     * If Team Server usage is disabled, this will always return false.
+     * 
+     * @return true if a default Team Server has been configured for this
+     *         application.
+     */
+    public static boolean isDefaultTeamServerConfigured() {
+        if (isTeamServerUseDisabled())
+            return false;
+
+        String baseUrl = System.getProperty(DEFAULT_TEAM_SERVER_PROPERTY);
+        return (baseUrl != null && baseUrl.length() > 0);
+    }
+
+    /**
      * Look in a particular real directory, and see if its contents are
      * available through one or more team servers. If so, return the URL of the
      * server which appears to be closest / most responsive.
@@ -80,7 +109,7 @@ public class TeamServerSelector {
      *         that directory
      */
     public static URL getServerURL(File dir, String minVersion) {
-        if (Boolean.getBoolean(DISABLE_TEAM_SERVER_PROPERTY) || dir == null)
+        if (isTeamServerUseDisabled() || dir == null)
             return null;
 
         Map<String, String> urlsToTry = new HashMap<String, String>();
@@ -123,28 +152,46 @@ public class TeamServerSelector {
 
     private static void addDefaultURL(Map<String, String> destMap, File dir,
             String minVersion) {
-        if (dir == null)
+        String url = getDefaultURL(dir);
+        if (url == null)
             return;
-
-        String baseUrl = System.getProperty(DEFAULT_TEAM_SERVER_PROPERTY);
-        if (baseUrl == null || baseUrl.length() == 0)
-            return;
-
-        String dirName = dir.getName();
-        if ("disseminate".equalsIgnoreCase(dirName)
-                && dir.getParentFile() != null)
-            dirName = dir.getParentFile().getName() + "-disseminate";
 
         String requiredVersion = "1.4";
         if (minVersion != null
                 && compareVersions(minVersion, requiredVersion) > 0)
             requiredVersion = minVersion;
 
+        destMap.put(url, requiredVersion);
+    }
+
+    /**
+     * If a default Team Server has been configured, return the hypothetical URL
+     * that would be used to look up that directory in the default Team Server.
+     * 
+     * @param dir
+     *                the directory of a resource collection
+     * @return the URL that might be used to look up that resource collection
+     *         through the default team server, or null if no default team
+     *         server has been configured
+     */
+    static String getDefaultURL(File dir) {
+        if (dir == null)
+            return null;
+
+        String baseUrl = System.getProperty(DEFAULT_TEAM_SERVER_PROPERTY);
+        if (baseUrl == null || baseUrl.length() == 0)
+            return null;
+
+        String dirName = dir.getName();
+        if ("disseminate".equalsIgnoreCase(dirName)
+                && dir.getParentFile() != null)
+            dirName = dir.getParentFile().getName() + "-disseminate";
+
         try {
-            String url = baseUrl + "/" + URLEncoder.encode(dirName, "UTF-8");
-            destMap.put(url, requiredVersion);
+            return baseUrl + "/" + URLEncoder.encode(dirName, "UTF-8");
         } catch (UnsupportedEncodingException e) {
             // "can't happen"
+            return null;
         }
     }
 
@@ -176,7 +223,7 @@ public class TeamServerSelector {
         if (serverURL == null || serverURL.trim().length() == 0)
             return null;
 
-        if (Boolean.getBoolean(DISABLE_TEAM_SERVER_PROPERTY))
+        if (isTeamServerUseDisabled())
             return null;
 
         try {
