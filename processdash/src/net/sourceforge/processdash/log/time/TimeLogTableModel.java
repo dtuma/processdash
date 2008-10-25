@@ -160,7 +160,7 @@ public class TimeLogTableModel extends AbstractTableModel implements
         case COL_PATH:
             return tle.getPath();
         case COL_START_TIME:
-            return FormatUtil.formatDateTime(tle.getStartTime());
+            return tle.getStartTime();
         case COL_ELAPSED:
             return FormatUtil.formatTime(tle.getElapsedTime());
         case COL_INTERRUPT:
@@ -178,12 +178,11 @@ public class TimeLogTableModel extends AbstractTableModel implements
         return isEditable;
     }
 
-    public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
+    public void setValueAt(Object newValue, int rowIndex, int columnIndex) {
         if (noSuchRow(rowIndex))
             return;
 
-        String newValue = (aValue == null ? null : String.valueOf(aValue));
-        String oldValue = (String) getValueAt(rowIndex, columnIndex);
+        Object oldValue = getValueAt(rowIndex, columnIndex);
         if (oldValue == newValue
                 || (oldValue != null && oldValue.equals(newValue)))
             return; // no changes to make
@@ -193,20 +192,23 @@ public class TimeLogTableModel extends AbstractTableModel implements
         switch (columnIndex) {
 
         case COL_PATH:
-            if (approver == null || approver.isTimeLoggingAllowed(newValue))
-                diff = new TimeLogEntryVO(tle.getID(), newValue, null, 0, 0,
-                        null, ChangeFlagged.MODIFIED);
+            String path = String.valueOf(newValue);
+
+            if (approver == null || approver.isTimeLoggingAllowed(path)) {
+                diff = new TimeLogEntryVO(tle.getID(), path, null, 0, 0,
+                                          null, ChangeFlagged.MODIFIED);
+            }
             break;
 
         case COL_START_TIME:
-            Date startTime = FormatUtil.parseDateTime(newValue);
+            Date startTime = (Date) newValue;
             if (startTime != null)
                 diff = new TimeLogEntryVO(tle.getID(), null, startTime, 0, 0,
                         null, ChangeFlagged.MODIFIED);
             break;
 
         case COL_ELAPSED:
-            long newElapsed = FormatUtil.parseTime(newValue);
+            long newElapsed = FormatUtil.parseTime(String.valueOf(newValue));
             if (newElapsed != -1) {
                 long elapsedDiff = newElapsed - tle.getElapsedTime();
                 if (elapsedDiff != 0)
@@ -216,7 +218,7 @@ public class TimeLogTableModel extends AbstractTableModel implements
             break;
 
         case COL_INTERRUPT:
-            long newInterrupt = FormatUtil.parseTime(newValue);
+            long newInterrupt = FormatUtil.parseTime(String.valueOf(newValue));
             if (newInterrupt != -1) {
                 long interruptDiff = newInterrupt - tle.getInterruptTime();
                 if (interruptDiff != 0) {
@@ -230,9 +232,10 @@ public class TimeLogTableModel extends AbstractTableModel implements
             break;
 
         case COL_COMMENT:
+            String comment = String.valueOf(newValue);
             if (newValue == null)
-                newValue = "";   // user deleted the existing comment
-            diff = new TimeLogEntryVO(tle.getID(), null, null, 0, 0, newValue,
+                comment = "";   // user deleted the existing comment
+            diff = new TimeLogEntryVO(tle.getID(), null, null, 0, 0, comment,
                     ChangeFlagged.MODIFIED);
             break;
         }

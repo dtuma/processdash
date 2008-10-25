@@ -24,7 +24,6 @@
 package net.sourceforge.processdash.log.ui;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
@@ -32,8 +31,6 @@ import java.awt.Insets;
 import java.awt.datatransfer.Transferable;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.FocusEvent;
-import java.awt.event.FocusListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
@@ -65,7 +62,6 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTable;
-import javax.swing.JTextField;
 import javax.swing.JTree;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.Timer;
@@ -77,6 +73,7 @@ import javax.swing.event.TableModelListener;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.table.TableCellEditor;
+import javax.swing.table.TableColumn;
 import javax.swing.text.JTextComponent;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreeNode;
@@ -104,10 +101,13 @@ import net.sourceforge.processdash.ui.DashboardIconFactory;
 import net.sourceforge.processdash.ui.help.PCSH;
 import net.sourceforge.processdash.ui.lib.DeferredSelectAllExecutor;
 import net.sourceforge.processdash.ui.lib.DropDownButton;
+import net.sourceforge.processdash.ui.lib.JDateTimeChooserCellEditor;
 import net.sourceforge.processdash.ui.lib.TableUtils;
 import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
 import net.sourceforge.processdash.util.EnumerIterator;
 import net.sourceforge.processdash.util.FormatUtil;
+
+import com.toedter.calendar.JDateChooser;
 
 public class TimeLogEditor extends Object implements TreeSelectionListener,
         DashHierarchy.Listener, TableModelListener, TimeLogListener,
@@ -136,9 +136,9 @@ public class TimeLogEditor extends Object implements TreeSelectionListener,
 
     protected boolean forceReadOnly;
 
-    JTextField toDate = null;
+    JDateChooser toDate = null;
 
-    JTextField fromDate = null;
+    JDateChooser fromDate = null;
 
     JButton revertButton = null;
 
@@ -153,6 +153,14 @@ public class TimeLogEditor extends Object implements TreeSelectionListener,
     private Timer recalcTimer;
 
     static final long DAY_IN_MILLIS = 24 * 60 * 60 * 1000;
+
+    /**  The formats of the string used to validate dates entered manually in
+          a JDateTimeChooserCellEditor field */
+    private static final String DATE_TIME_FORMAT = "yyyy-MM-dd h:mm:ss aa";
+    private static final String DATE_FORMAT = "yyyy-MM-dd";
+
+    /** The size of the JDateChoosers in the "Filter" section */
+    private static final int DATE_CHOOSER_WIDTH = 120;
 
     boolean tableContainsRows = false;
 
@@ -338,8 +346,8 @@ public class TimeLogEditor extends Object implements TreeSelectionListener,
     }
 
     public void setTimes() {
-        Date fd = FormatUtil.parseDate(fromDate.getText());
-        Date td = FormatUtil.parseDate(toDate.getText());
+        Date fd = fromDate.getDate();
+        Date td = toDate.getDate();
         if (td != null) // need to add a day so search is inclusive
             td = new Date(td.getTime() + DAY_IN_MILLIS);
 
@@ -436,8 +444,8 @@ public class TimeLogEditor extends Object implements TreeSelectionListener,
         if (selected != null) {
             path = treeModel.getPropKey(useProps, selected.getPath()).path();
         }
-        Date from = FormatUtil.parseDate(fromDate.getText());
-        Date to = FormatUtil.parseDate(toDate.getText());
+        Date from = fromDate.getDate();
+        Date to = toDate.getDate();
         if (to != null) // need to add a day so search is inclusive
             to = new Date(to.getTime() + DAY_IN_MILLIS);
 
@@ -451,8 +459,8 @@ public class TimeLogEditor extends Object implements TreeSelectionListener,
     }
 
     private void setFilter(Date from, Date to) {
-        fromDate.setText(FormatUtil.formatDate(from));
-        toDate.setText(FormatUtil.formatDate(to));
+        fromDate.setDate(from);
+        toDate.setDate(to);
         applyFilter();
     }
 
@@ -488,8 +496,9 @@ public class TimeLogEditor extends Object implements TreeSelectionListener,
     }
 
     public void scrollFilterForward() {
-        Date fd = FormatUtil.parseDate(fromDate.getText());
-        Date td = FormatUtil.parseDate(toDate.getText());
+        Date fd = fromDate.getDate();
+        Date td = toDate.getDate();
+
         if (fd == null)
             return;
         if (td == null)
@@ -507,8 +516,9 @@ public class TimeLogEditor extends Object implements TreeSelectionListener,
     }
 
     public void scrollFilterBackward() {
-        Date fd = FormatUtil.parseDate(fromDate.getText());
-        Date td = FormatUtil.parseDate(toDate.getText());
+        Date fd = fromDate.getDate();
+        Date td = toDate.getDate();
+
         if (fd == null)
             return;
         if (td == null)
@@ -525,8 +535,8 @@ public class TimeLogEditor extends Object implements TreeSelectionListener,
     }
 
     public void clearFilter() {
-        fromDate.setText("");
-        toDate.setText("");
+        fromDate.setDate(null);
+        toDate.setDate(null);
         applyFilter();
     }
 
@@ -711,54 +721,6 @@ public class TimeLogEditor extends Object implements TreeSelectionListener,
             && approver.isTimeLoggingAllowed(key.path());
     }
 
-    // DateChangeAction responds to user input in a date field.
-    class DateChangeAction implements ActionListener, FocusListener {
-        JTextComponent widget;
-
-        String text = null;
-
-        Color background;
-
-        public DateChangeAction(JTextComponent src) {
-            widget = src;
-            text = widget.getText();
-            background = new Color(widget.getBackground().getRGB());
-        }
-
-        protected void validate() {
-            String newText = widget.getText();
-
-            Date d = FormatUtil.parseDate(newText);
-            if (d == null) {
-                if ((newText != null) && (newText.length() > 0))
-                    widget.setBackground(Color.red);
-                else {
-                    widget.setBackground(background);
-                    text = newText;
-                    widget.setText(text);
-                }
-            } else {
-                widget.setBackground(background);
-                text = FormatUtil.formatDate(d);
-                widget.setText(text);
-            }
-            widget.repaint(widget.getVisibleRect());
-        }
-
-        public void actionPerformed(ActionEvent e) { // hit return
-            validate();
-        }
-
-        public void focusGained(FocusEvent e) {
-            widget.selectAll();
-        }
-
-        public void focusLost(FocusEvent e) {
-            validate();
-        }
-
-    } // End of TimeLogEditor.DateChangeAction
-
     /**
      * Expand the hierarchy so that the given node is visible and selected.
      */
@@ -852,6 +814,8 @@ public class TimeLogEditor extends Object implements TreeSelectionListener,
         table = new TimeLogJTable(tableModel);
         TableUtils.configureTable(table, TimeLogTableModel.COLUMN_WIDTHS,
                 TimeLogTableModel.COLUMN_TOOLTIPS);
+        TableColumn startTimeCol = table.getColumnModel().getColumn(TimeLogTableModel.COL_START_TIME);
+        startTimeCol.setCellEditor(new JDateTimeChooserCellEditor(DATE_TIME_FORMAT));
         retPanel.add("Center", new JScrollPane(table));
 
         JPanel btnPanel = new JPanel(false);
@@ -944,17 +908,16 @@ public class TimeLogEditor extends Object implements TreeSelectionListener,
         retPanel.add(Box.createHorizontalStrut(5));
     }
 
-    private JTextField addDateField(JPanel retPanel, String labelKey) {
+    private JDateChooser addDateField(JPanel retPanel, String labelKey) {
         JLabel label = new JLabel(getResource(labelKey) + " ");
         retPanel.add(label);
         retPanel.add(Box.createHorizontalStrut(5));
 
-        JTextField result = new JTextField("", 10);
+        JDateChooser result = new JDateChooser(null, DATE_FORMAT);
+        result.setPreferredSize(new Dimension(DATE_CHOOSER_WIDTH,
+                                              result.getPreferredSize().height));
         label.setLabelFor(result);
         result.setMaximumSize(result.getPreferredSize());
-        DateChangeAction l = new DateChangeAction(result);
-        result.addActionListener(l);
-        result.addFocusListener(l);
         retPanel.add(result);
         retPanel.add(Box.createHorizontalStrut(5));
 
