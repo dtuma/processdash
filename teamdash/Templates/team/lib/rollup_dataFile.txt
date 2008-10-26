@@ -48,9 +48,19 @@ undefine([Historical Data Tag]);
 <!--#foreach name=Phase list=Phase_List #-->
 <!--#if Phase_Is_Failure #-->
 
-[<!--#echo Phase_Name -->/% Defect Free] = count(filter(
+[<!--#echo Phase_Name -->/% Defect Free] = 
+
+<!--#if Calculate_Pct_Defect_Free #-->
+
+count(filter(
     !(indirect([_] &/ "<!--#echo Phase_Name -->/Defects Removed") > 0),
     [Software_Project_List])) / [Software_Project_Count];
+
+<!--#else-->
+
+    "This calculation is disabled; see " & "http://sourceforge.net/tracker/?func=detail&atid=109858&aid=2185683&group_id=9858";
+
+<!--#endif-->
 
 <!--#endif--><!--#endfor-->
 
