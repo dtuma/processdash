@@ -1,5 +1,4 @@
 /*
- *  $Id$
  *  IzPack
  *  Copyright (C) 2001-2003 Julien Ponge
  *
@@ -186,10 +185,11 @@ public class InstallPanel extends IzPanel implements AbstractUIProgressHandler
     {
         parent.releaseGUI();
         parent.lockPrevButton();
-        this.overallProgressBar.setValue(this.overallProgressBar.getValue() + 1);
+        this.packProgressBar.setValue(this.packProgressBar.getMaximum());
         this.packProgressBar.setString(parent.langpack.getString("InstallPanel.finished"));
         this.packProgressBar.setEnabled(false);
         String no_of_packs = Integer.toString (this.noOfPacks);
+        this.overallProgressBar.setValue(this.overallProgressBar.getMaximum());
         this.overallProgressBar.setString (no_of_packs + " / " + no_of_packs);
         this.overallProgressBar.setEnabled (false);
         this.packOpLabel.setText(" ");

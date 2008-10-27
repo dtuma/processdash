@@ -6,6 +6,7 @@
         <authors>
             <author email="ken_raisor@users.sourceforge.net" name="Ken Raisor"/>
             <author email="rickreynolds@users.sourceforge.net" name="Rick Reynolds"/>
+            <author email="rognon@users.sourceforge.net" name="Jonathan Tellier"/>
             <author email="tuma@users.sourceforge.net" name="David Tuma"/>
         </authors>
         <url>http://processdash.sourceforge.net</url>
@@ -166,6 +167,18 @@
                 <include name="state"/>
                 <include name="time.log"/>
             </fileset>
+        </pack>
+
+        <pack name="PSP(SM) Instructor Tools" id="pspInstrTools" required="no"
+              includeIf="pspInstrTools">
+            <description>Tools to assist instructors of the PSP for Engineers course</description>
+
+            <file targetdir="$INSTALL_PATH" override="true"
+	          src="../dist/pspProc.jar" />
+            <file targetdir="$INSTALL_PATH" override="true"
+	          src="../dist/pspForEng.jar" />
+            <file targetdir="$INSTALL_PATH" override="true"
+	          src="../dist/pspForEng-instr.jar"/>
         </pack>
 
         <pack name="JavaHelp(TM) Help Browser" id="javaHelp" required="no"

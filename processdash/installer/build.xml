@@ -160,7 +160,8 @@ Authors:
     </target>
 
     <target name="instructor" depends="init"
-            description="Create an installation CD for PSP instructors">
+            description="Create materials for use by PSP instructors">
+        <!-- Create a CD that instructors can give to students -->
         <loadfile property="custom-inst-instr"
 		  srcFile="files/custom-install-instr.ini"/>
         <antcall target="install-CD">
@@ -168,6 +169,18 @@ Authors:
 	    <param name="qualifier" value="instr"/>
 	    <param name="custom-install.extra" value="${custom-inst-instr}"/>
 	</antcall>
+
+	<!-- Create an installer that installs instructor tools -->
+        <antcall target="install.xml">
+            <param name="install.file" value="install-instr.xml"/>
+            <param name="install.flags"
+                   value="pspForEng,pspForEngInstr,pspInstrTools,noProc"/>
+	</antcall>
+        <izpack input="install-instr.xml"
+	    output="${dist}/pdash-install-instrTools-${dashboard-version}.jar"
+            installerType="standard-kunststoff"
+            basedir="." izPackDir="${izpack.dir}/"/>
+	<delete file="install-instr.xml"/>
     </target>
 
 
