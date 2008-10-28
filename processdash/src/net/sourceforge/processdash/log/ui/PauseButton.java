@@ -208,10 +208,13 @@ public class PauseButton extends DropDownButton implements ActionListener,
         }
 
         public void actionPerformed(ActionEvent e) {
-            if (e.getSource() == pauseButton)
+            if (e.getSource() == pauseButton) {
                 loggingModel.setPaused(true);
-            else if (e.getSource() == playButton)
+                playButton.requestFocusInWindow();
+            } else if (e.getSource() == playButton) {
                 loggingModel.setPaused(false);
+                pauseButton.requestFocusInWindow();
+            }
             updateAppearance();
         }
 
