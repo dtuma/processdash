@@ -491,9 +491,14 @@ public class EVSchedule implements TableModel {
                 .intValue();
         if (maxTweakWeek != endWeek)
             maxTweakWeek++;
-        double totalTime = hoursPerWeek * (maxTweakWeek + 1) * 60.0;
-        getPlannedCompletionDate(totalTime, totalTime);
-        getLast().clearAutomaticFlag();
+        if (hoursPerWeek > 0) {
+            double totalTime = hoursPerWeek * (maxTweakWeek + 1) * 60.0;
+            getPlannedCompletionDate(totalTime, totalTime);
+            getLast().clearAutomaticFlag();
+        } else {
+            while (periods.size() < maxTweakWeek+2)
+                grow(false);
+        }
 
         if (exceptions != null) {
             for (Iterator i = exceptions.entrySet().iterator(); i
