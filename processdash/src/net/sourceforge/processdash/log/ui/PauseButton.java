@@ -50,6 +50,7 @@ import net.sourceforge.processdash.ui.DashboardIconFactory;
 import net.sourceforge.processdash.ui.SoundClip;
 import net.sourceforge.processdash.ui.help.PCSH;
 import net.sourceforge.processdash.ui.lib.DropDownButton;
+import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
 
 
 public class PauseButton extends DropDownButton implements ActionListener,
@@ -156,7 +157,8 @@ public class PauseButton extends DropDownButton implements ActionListener,
 
         public ToggleButtonManager() {
             pauseButton = new JToggleButton();
-            pauseButton.setMargin(new Insets(0,0,0,0));
+            if (!MacGUIUtils.isMacOSX())
+                pauseButton.setMargin(new Insets(0,0,0,0));
             pauseButton.setIcon(DashboardIconFactory.getPauseBlackIcon());
             pauseButton.setSelectedIcon(DashboardIconFactory.getPauseGlowingIcon());
             pauseButton.setDisabledIcon(DashboardIconFactory.getPauseDisabledIcon());
@@ -165,7 +167,8 @@ public class PauseButton extends DropDownButton implements ActionListener,
             setLeftWidget(pauseButton);
 
             playButton = getButton();
-            playButton.setMargin(new Insets(0,0,0,0));
+            if (!MacGUIUtils.isMacOSX())
+                playButton.setMargin(new Insets(0,0,0,0));
             playButton.setIcon(DashboardIconFactory.getPlayBlackIcon());
             playButton.setSelectedIcon(DashboardIconFactory.getPlayGlowingIcon());
             playButton.setDisabledIcon(DashboardIconFactory.getPlayDisabledIcon());

@@ -147,11 +147,14 @@ public class DropDownButton extends JPanel {
 
     /** Request a specific margin around the button contents.
      * 
-     * NOTE: this method must be called before any icons are configured for
-     * this drop-down-button.
+     * This is programmed to be a no-op on the Mac, because it causes very
+     * bad behavior for some Mac releases of Java.  Clients of DropDownButton
+     * should be aware of this, and refrain from setting margins on the main
+     * button or the left widget.
      */
     protected void setMainButtonMargin(Insets i) {
-        mainButton.setMargin(i);
+        if (!MacGUIUtils.isMacOSX())
+            mainButton.setMargin(i);
     }
 
     private static AbstractButton maybeMakeToggle(boolean toggle) {
