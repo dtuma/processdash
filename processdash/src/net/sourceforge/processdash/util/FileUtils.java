@@ -46,9 +46,12 @@ public class FileUtils {
             throws IOException {
         InputStream in = new BufferedInputStream(new CheckedInputStream(
                 new FileInputStream(file), verify));
-        while (in.read() != -1)
-            ; // do nothing
-        in.close();
+        try {
+            while (in.read() != -1)
+                ; // do nothing
+        } finally {
+            in.close();
+        }
 
         return verify.getValue();
     }
@@ -73,20 +76,29 @@ public class FileUtils {
 
     public static void copyFile(File src, File dest) throws IOException {
         InputStream inputStream = new FileInputStream(src);
-        copyFile(inputStream, dest);
-        inputStream.close();
+        try {
+            copyFile(inputStream, dest);
+        } finally {
+            inputStream.close();
+        }
     }
 
     public static void copyFile(InputStream src, File dest) throws IOException {
         OutputStream outputStream = new FileOutputStream(dest);
-        copyFile(src, outputStream);
-        outputStream.close();
+        try {
+            copyFile(src, outputStream);
+        } finally {
+            outputStream.close();
+        }
     }
 
     public static void copyFile(File src, OutputStream dest) throws IOException {
         InputStream inputStream = new FileInputStream(src);
-        copyFile(inputStream, dest);
-        inputStream.close();
+        try {
+            copyFile(inputStream, dest);
+        } finally {
+            inputStream.close();
+        }
     }
 
     public static void copyFile(InputStream src, OutputStream dest) throws IOException {

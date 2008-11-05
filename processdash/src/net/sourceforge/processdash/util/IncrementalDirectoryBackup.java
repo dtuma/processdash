@@ -153,8 +153,8 @@ public class IncrementalDirectoryBackup extends DirectoryBackup {
 
         if (mostRecentBackupFile != null) {
             ZipInputStream oldBackupIn = new ZipInputStream(
-                    new BufferedInputStream(new FileInputStream(
-                            mostRecentBackupFile)));
+                    new TimedInputStream(new BufferedInputStream(
+                            new FileInputStream(mostRecentBackupFile)), 60000));
             ZipOutputStream oldBackupOut = new ZipOutputStream(
                     new BufferedOutputStream(new FileOutputStream(
                             oldBackupTempFile)));
@@ -325,32 +325,35 @@ public class IncrementalDirectoryBackup extends DirectoryBackup {
         InputStream fileIn = new BufferedInputStream(new FileInputStream(file));
         OutputStream fileOut = newBackupOut;
         int c, d;
-        while ((c = fileIn.read()) != -1) {
-            fileOut.write(c);
+        try {
+            while ((c = fileIn.read()) != -1) {
+                fileOut.write(c);
 
-            // if we are still comparing the two files for identity
-            //  (they've matched so far)
-            if (oldIn != null) {
-                // read the next byte from the old backup.
-                d = oldIn.read();
-                if (d != -1)
-                    bytesSeen.write(d);
-                // if we've found a mismatch between the current file and its
-                // old backup,
-                if (c != d) {
-                    // then eagerly copy the rest of the old backup.
-                    copyZipEntry(oldIn, oldBackupOut, oldEntry,
-                                 bytesSeen.toByteArray());
-                    oldIn = null;
-                    bytesSeen = null;
-                    oldBackupIn = null;
-                    oldBackupOut = null;
-                    wroteEntryToOldBackup(filename);
+                // if we are still comparing the two files for identity
+                //  (they've matched so far)
+                if (oldIn != null) {
+                    // read the next byte from the old backup.
+                    d = oldIn.read();
+                    if (d != -1)
+                        bytesSeen.write(d);
+                    // if we've found a mismatch between the current file and its
+                    // old backup,
+                    if (c != d) {
+                        // then eagerly copy the rest of the old backup.
+                        copyZipEntry(oldIn, oldBackupOut, oldEntry,
+                                     bytesSeen.toByteArray());
+                        oldIn = null;
+                        bytesSeen = null;
+                        oldBackupIn = null;
+                        oldBackupOut = null;
+                        wroteEntryToOldBackup(filename);
+                    }
                 }
+                ThreadThrottler.tick();
             }
-            ThreadThrottler.tick();
+        } finally {
+            fileIn.close();
         }
-        fileIn.close();
 
         if (oldIn != null) {
             // read the next byte from the old backup.
@@ -422,32 +425,35 @@ public class IncrementalDirectoryBackup extends DirectoryBackup {
             // read in the first few bytes of the current log.
             InputStream currentLogIn = new BufferedInputStream(
                     new FileInputStream(currentLog));
-            byte[] currLogStart = new byte[100];
-            int matchLen = currentLogIn.read(currLogStart);
+            try {
+                byte[] currLogStart = new byte[100];
+                int matchLen = currentLogIn.read(currLogStart);
 
-            // see if the most recent entry in the historical log begins with
-            // the same characters as the current log.  Since our logs always
-            // begin with a full timestamp, a match will indicate that the
-            // initial part of the current time log is already present in the
-            // historical log file.
-            int lastLogEntryPos = findLastLogEntryStart(histLog);
-            if (matches(histLog, lastLogEntryPos, currLogStart, 0, matchLen)) {
-                // the two match! Skip over the portion of the current log
-                // that already appears in the historical log file.
-                int duplicateLen = histLog.length - lastLogEntryPos;
-                int skip = duplicateLen - matchLen;
-                if (skip > 0)
-                    currentLogIn.skip(skip);
-            } else {
-                // the two do not match.  Start a new entry in the historical
-                // log file, and write the first bytes of the current log
-                newBackupOut.write(HIST_SEPARATOR.getBytes());
-                newBackupOut.write(currLogStart, 0, matchLen);
+                // see if the most recent entry in the historical log begins with
+                // the same characters as the current log.  Since our logs always
+                // begin with a full timestamp, a match will indicate that the
+                // initial part of the current time log is already present in the
+                // historical log file.
+                int lastLogEntryPos = findLastLogEntryStart(histLog);
+                if (matches(histLog, lastLogEntryPos, currLogStart, 0, matchLen)) {
+                    // the two match! Skip over the portion of the current log
+                    // that already appears in the historical log file.
+                    int duplicateLen = histLog.length - lastLogEntryPos;
+                    int skip = duplicateLen - matchLen;
+                    if (skip > 0)
+                        currentLogIn.skip(skip);
+                } else {
+                    // the two do not match.  Start a new entry in the historical
+                    // log file, and write the first bytes of the current log
+                    newBackupOut.write(HIST_SEPARATOR.getBytes());
+                    newBackupOut.write(currLogStart, 0, matchLen);
+                }
+
+                // finally, copy any remaining portion of the current log file.
+                FileUtils.copyFile(currentLogIn, newBackupOut);
+            } finally {
+                currentLogIn.close();
             }
-
-            // finally, copy any remaining portion of the current log file.
-            FileUtils.copyFile(currentLogIn, newBackupOut);
-            currentLogIn.close();
         }
 
         newBackupOut.closeEntry();

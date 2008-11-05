@@ -42,6 +42,7 @@ import java.util.zip.Adler32;
 import net.sourceforge.processdash.tool.bridge.ResourceCollection;
 import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.RobustFileOutputStream;
+import net.sourceforge.processdash.util.TimedInputStream;
 import net.sourceforge.processdash.util.lock.ConcurrencyLock;
 import net.sourceforge.processdash.util.lock.ConcurrencyLockApprover;
 import net.sourceforge.processdash.util.lock.LockFailureException;
@@ -107,7 +108,8 @@ public class FileResourceCollection implements ResourceCollection,
             return null;
 
         File f = new File(directory, resourceName);
-        return new BufferedInputStream(new FileInputStream(f));
+        return new TimedInputStream(new BufferedInputStream(
+                new FileInputStream(f)));
     }
 
     public OutputStream getOutputStream(String resourceName) throws IOException {
@@ -148,7 +150,8 @@ public class FileResourceCollection implements ResourceCollection,
             // this method.  If any time intervenes, a legacy dashboard could
             // run a backup, and our "mostRecentBackup" could become an
             // incremental backup instead of a full backup.
-            return new FileInputStream(mostRecentBackup);
+            return new TimedInputStream(new BufferedInputStream(
+                    new FileInputStream(mostRecentBackup)));
         else
             throw new IOException("No backup made since restart");
     }
