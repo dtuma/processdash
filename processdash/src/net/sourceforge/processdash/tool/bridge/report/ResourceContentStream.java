@@ -71,8 +71,11 @@ public class ResourceContentStream implements CollectionReport {
             e.setTime(lastMod);
             zipOut.putNextEntry(e);
             InputStream resourceContent = c.getInputStream(resourceName);
-            FileUtils.copyFile(resourceContent, zipOut);
-            resourceContent.close();
+            try {
+                FileUtils.copyFile(resourceContent, zipOut);
+            } finally {
+                resourceContent.close();
+            }
             zipOut.closeEntry();
         }
 
