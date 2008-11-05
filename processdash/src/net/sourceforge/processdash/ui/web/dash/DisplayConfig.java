@@ -123,7 +123,7 @@ public class DisplayConfig extends TinyCGIBase {
         if (packages == null || packages.size() < 2)
             printRes("<PRE class='indent'><i>${Add_On.None}</i></PRE>");
         else {
-                printRes("<br />&nbsp;"
+                printRes("<br>&nbsp;"
                          + "<table border class='indent' cellpadding='5'><tr>"
                          + "<th>${Add_On.Name}</th>"
                          + "<th>${Add_On.Version}</th>");
