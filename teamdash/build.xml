@@ -3,7 +3,7 @@
 
   <property file="build.properties"/>
 
-  <property name="teamtools.version" value="3.7"/>
+  <property name="teamtools.version" value="3.7.1"/>
   <property name="teamtools.requires" value="1.10+"/>
 
   <property name="processdash.dir" value="../processdash"/>
@@ -299,7 +299,7 @@
                 dashClassesMsg = dashClassesMsg + "\n    " + dashClassesList[i];
             }
         }
-        if (classCount > 68) {
+        if (classCount > 69) {
             project.setProperty("dashClasses.overflowCount", classCount);
             project.setProperty("dashClasses.overflowing", dashClassesMsg);
         }
