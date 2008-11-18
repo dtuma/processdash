@@ -34,6 +34,7 @@ import java.awt.geom.Ellipse2D;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 
+import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.event.PlotChangeEvent;
 import org.jfree.chart.labels.PieSectionLabelGenerator;
 import org.jfree.chart.labels.PieToolTipGenerator;
@@ -42,12 +43,17 @@ import org.jfree.chart.labels.StandardPieToolTipGenerator;
 import org.jfree.chart.plot.Plot;
 import org.jfree.chart.plot.PlotRenderingInfo;
 import org.jfree.chart.plot.PlotState;
+import org.jfree.chart.plot.ValueAxisPlot;
 import org.jfree.chart.urls.PieURLGenerator;
+import org.jfree.data.Range;
+import org.jfree.data.category.CategoryDataset;
 import org.jfree.data.general.DatasetChangeEvent;
+import org.jfree.data.general.DatasetUtilities;
 import org.jfree.data.general.PieDataset;
+import org.jfree.ui.RectangleEdge;
 import org.jfree.ui.RectangleInsets;
 
-public class DiscPlot extends Plot {
+public class DiscPlot extends Plot implements ValueAxisPlot {
 
     /** The default interior gap. */
     public static final double DEFAULT_INTERIOR_GAP = 0.03;
@@ -65,6 +71,10 @@ public class DiscPlot extends Plot {
 
     /** The default section label paint. */
     public static final Paint DEFAULT_LABEL_PAINT = LABEL_PAINT_AUTO;
+
+    /** We want the legend axis to be drawn at 1/15 of the chart data area
+     *   total width */
+    private static final double LEGEND_DATA_AREA_PROPORTION = 1.0/15.0;
 
     /** The dataset for the pie chart. */
     private PieDataset dataset;
@@ -94,6 +104,8 @@ public class DiscPlot extends Plot {
     /** The URL generator. */
     private PieURLGenerator urlGenerator;
 
+    /** The legend axis */
+    private DiscLegendAxis legendAxis;
 
     public DiscPlot() {
         this(null);
@@ -308,6 +320,19 @@ public class DiscPlot extends Plot {
 
     }
 
+    public DiscLegendAxis getLegendAxis() {
+        return this.legendAxis;
+    }
+
+    public void setLegendAxis(DiscLegendAxis legendAxis) {
+        this.legendAxis = legendAxis;
+
+        if (this.legendAxis != null) {
+            this.legendAxis.setPlot(this);
+            this.legendAxis.addChangeListener(this);
+            this.legendAxis.setDiscItemDistributor(getDiscDistributor());
+        }
+    }
 
     @Override
     public void draw(Graphics2D g2, Rectangle2D area, Point2D anchor,
@@ -333,7 +358,9 @@ public class DiscPlot extends Plot {
                 getForegroundAlpha()));
 
         if (!getDiscDistributor().isDatasetEmpty()) {
-            drawDiscs(g2, area, info);
+            Rectangle2D dataArea = getDataArea(area);
+            drawDiscs(g2, dataArea, info);
+            drawLegendAxis(g2, dataArea, info);
         }
         else {
             drawNoDataMessage(g2, area);
@@ -345,19 +372,24 @@ public class DiscPlot extends Plot {
         drawOutline(g2, area);
     }
 
-    private void drawDiscs(Graphics2D g2, Rectangle2D plotArea,
-            PlotRenderingInfo info) {
+    private void drawLegendAxis(Graphics2D g2,
+                                Rectangle2D dataArea,
+                                PlotRenderingInfo info) {
+        if (legendAxis != null) {
+            double cursor = dataArea.getMinX();
+            legendAxis.draw(g2, cursor, dataArea, dataArea,
+                            RectangleEdge.RIGHT, info);
+        }
+    }
 
-        double hGap = plotArea.getWidth() * this.interiorGap;
-        double vGap = plotArea.getHeight() * this.interiorGap;
+    private void drawDiscs(Graphics2D g2, Rectangle2D dataArea,
+                           PlotRenderingInfo info) {
 
-        Rectangle2D dataArea = new Rectangle2D.Double(plotArea.getX() + hGap,
-                plotArea.getY() + vGap, plotArea.getWidth() - 2 * hGap,
-                plotArea.getHeight() - 2 * vGap);
         getDiscDistributor().setDiscDataArea(dataArea);
 
         DiscItemRendererState state = getDiscRenderer().initialise(g2,
             dataArea, this, dataset, info);
+
         for (int item = 0;  item < dataset.getItemCount();  item++) {
             Ellipse2D discLocation = getDiscDistributor().getDiscLocation(item);
             getDiscRenderer().drawItem(g2, state, dataArea, discLocation, info,
@@ -366,9 +398,35 @@ public class DiscPlot extends Plot {
 
     }
 
+    private Rectangle2D getDataArea(Rectangle2D plotArea) {
+        double hGap = plotArea.getWidth() * this.interiorGap;
+        double vGap = plotArea.getHeight() * this.interiorGap;
+
+        return new Rectangle2D.Double(plotArea.getX() + hGap,
+                                      plotArea.getY() + vGap,
+                                      plotArea.getWidth() - 2 * hGap,
+                                      plotArea.getHeight() - 2 * vGap);
+    }
+
     @Override
     public String getPlotType() {
         return "Disc Plot";
     }
+
+    public Range getDataRange(ValueAxis axis) {
+        CategoryDataset categoryDataset =
+            DatasetUtilities.createCategoryDataset("data", dataset);
+        return DatasetUtilities.findRangeBounds(categoryDataset);
+    }
+
+    @Override
+    public void datasetChanged(DatasetChangeEvent event) {
+        super.datasetChanged(event);
+
+        if (this.legendAxis != null)
+            this.legendAxis.configure();
+    }
+
+
 
 }

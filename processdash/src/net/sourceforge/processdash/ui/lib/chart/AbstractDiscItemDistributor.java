@@ -41,6 +41,10 @@ public abstract class AbstractDiscItemDistributor implements
 
     DiscItemRecord[] discs;
 
+    /** The conversions ratio used to make sure that the discs fit
+         inside the plot area */
+    double scale = 0;
+
     public AbstractDiscItemDistributor() {
         this(null);
     }
@@ -86,6 +90,10 @@ public abstract class AbstractDiscItemDistributor implements
         // send a dataset change event to self...
         DatasetChangeEvent event = new DatasetChangeEvent(this, dataset);
         datasetChanged(event);
+    }
+
+    public double getScale() {
+        return scale;
     }
 
     public boolean isSkipNegativeValues() {
@@ -145,7 +153,7 @@ public abstract class AbstractDiscItemDistributor implements
             Comparable key = dataset.getKey(i);
             Number value = dataset.getValue(i);
             double dbl = interpretValue(value);
-            newDiscs[i] = newDiscItemRecord(key, Math.sqrt(dbl));
+            newDiscs[i] = newDiscItemRecord(key, Math.sqrt(dbl / Math.PI));
         }
         return newDiscs;
     }
@@ -185,7 +193,7 @@ public abstract class AbstractDiscItemDistributor implements
 
         double xScale = discDataArea.getWidth() / (right - left);
         double yScale = discDataArea.getHeight() / (bottom - top);
-        double scale = Math.min(xScale, yScale);
+        scale = Math.min(xScale, yScale);
 
         double dx = discDataArea.getCenterX() - xMid * scale;
         double dy = discDataArea.getCenterY() - yMid * scale;
