@@ -115,6 +115,8 @@ public class SyncScanner implements Runnable {
                     String msg = "The project '" + path + "' needs to be "
                             + "synchronized to the team work breakdown "
                             + "structure.";
+                    if (fullUri.endsWith("brief"))
+                        fullUri = fullUri.substring(0, fullUri.length() - 5);
                     UserNotificationManager.getInstance().addNotification(id,
                             msg, new LaunchBrowserWindow(fullUri));
                 }

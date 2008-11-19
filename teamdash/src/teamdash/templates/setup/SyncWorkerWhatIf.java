@@ -11,7 +11,7 @@ import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.HierarchyAlterer;
 import net.sourceforge.processdash.hier.HierarchyAlterer.HierarchyAlterationException;
 
-public class SyncWorkerWhatIf extends SyncWorker {
+public class SyncWorkerWhatIf extends AbstractSyncWorker {
 
     private DataContext data;
     private DashHierarchy hier;
@@ -67,7 +67,7 @@ public class SyncWorkerWhatIf extends SyncWorker {
         localData.put(name, value);
     }
 
-    protected void doPutValueForce(String name, SaveableData value) {
+    public void doPutValueForce(String name, SaveableData value) {
         name = getOriginalPath(name);
         data.putValue(name, value);
     }

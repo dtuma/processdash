@@ -101,6 +101,9 @@ public class HierarchySynchronizer {
      * needed. */
     private boolean whatIfBrief = false;
 
+    /** A list that holds optional debugging data */
+    private List<String> debugLogInfo = null;
+
     /** Does the caller want to copy all nontask WBS items? */
     private boolean fullCopyMode;
 
@@ -179,6 +182,14 @@ public class HierarchySynchronizer {
         this.whatIfBrief = whatIfBrief;
         if (whatIfBrief)
             this.whatIfMode = true;
+    }
+
+    public void enableDebugLogging() {
+        this.debugLogInfo = new ArrayList<String>();
+    }
+
+    public List<String> getDebugLogInfo() {
+        return this.debugLogInfo;
     }
 
     public void setDeletionPermissions(List p) {
@@ -587,9 +598,14 @@ public class HierarchySynchronizer {
             mockHierarchy.copy(this.hierarchy);
             this.hierarchy = mockHierarchy;
             syncWorker = new SyncWorkerWhatIf(dataRepository, mockHierarchy);
-        } else
+        } else {
             syncWorker = new SyncWorkerLive(dataRepository,
                     deletionPermissions, completionPermissions);
+        }
+
+        if (debugLogInfo != null)
+            syncWorker = SyncWorkerLogger.wrapWorker(syncWorker, debugLogInfo);
+
         this.data = syncWorker;
 
         putData(projectPath, LABEL_LIST_DATA_NAME, labelData);
@@ -973,11 +989,11 @@ public class HierarchySynchronizer {
     }
 
     private void readChangesFromWorker(SyncWorker worker) {
-        deletionsPerformed = worker.getOriginalPaths(worker.nodesDeleted);
+        deletionsPerformed = worker.getOriginalPaths(worker.getNodesDeleted());
         for (Iterator i = deletionsPerformed.iterator(); i.hasNext();)
             changes.add("Deleted '" + i.next() + "'");
 
-        completionsPerformed = worker.getOriginalPaths(worker.nodesCompleted);
+        completionsPerformed = worker.getOriginalPaths(worker.getNodesCompleted());
         for (Iterator i = completionsPerformed.iterator(); i.hasNext();)
             changes.add("Marked '" + i.next() + "' complete");
 
@@ -986,7 +1002,7 @@ public class HierarchySynchronizer {
             foundNullChangeTokens = true;
 
         if (changes.isEmpty()
-                && (foundNullChangeTokens || !worker.dataChanged.isEmpty()))
+                && (foundNullChangeTokens || !worker.getDataChanged().isEmpty()))
             changes.add(MISC_CHANGE_COMMENT);
     }
 

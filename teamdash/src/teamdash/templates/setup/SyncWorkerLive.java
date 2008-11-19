@@ -9,7 +9,7 @@ import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.hier.HierarchyAlterer.HierarchyAlterationException;
 
-public class SyncWorkerLive extends SyncWorker {
+public class SyncWorkerLive extends AbstractSyncWorker {
 
     private DataRepository data;
 

@@ -2,8 +2,12 @@ package teamdash.templates.setup;
 import java.awt.Component;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.PrintWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -25,7 +29,9 @@ import net.sourceforge.processdash.process.ui.TriggerURI;
 import net.sourceforge.processdash.tool.bridge.client.TeamServerSelector;
 import net.sourceforge.processdash.ui.UserNotificationManager;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
+import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.HTMLUtils;
+import net.sourceforge.processdash.util.StringUtils;
 import net.sourceforge.processdash.util.ThreadThrottler;
 import net.sourceforge.processdash.util.XMLUtils;
 import teamdash.FilenameMapper;
@@ -83,6 +89,9 @@ public class sync extends TinyCGIBase {
      * nodes in the WBS, even if they aren't assigned to them */
     private boolean fullCopyMode;
 
+
+    private static boolean ENABLE_DELETION_LOGGING = Settings.getBool(
+        "sync.enableDeletionLogging", true);
 
 
     protected void doPost() throws IOException {
@@ -329,17 +338,34 @@ public class sync extends TinyCGIBase {
         if (parameters.containsKey(TriggerURI.IS_TRIGGERING)
                 || parameters.containsKey(BRIEF_PARAM))
             synch.setWhatIfBrief(true);
+        else if (ENABLE_DELETION_LOGGING)
+            synch.enableDebugLogging();
+
         synch.sync();
         syncTemplates(synch);
-        if (synch.getChanges().isEmpty())
+
+        if (synch.getChanges().isEmpty()) {
             printChanges(synch.getChanges());
-        else if (isTeam == false
+
+        } else if (isTeam == false
                 && (synch.getTaskDeletions().isEmpty() == false ||
-                    synch.getTaskCompletions().isEmpty() == false))
+                    synch.getTaskCompletions().isEmpty() == false)) {
+
             printPermissionsPage(synch.getTaskDeletions(),
                     synch.getTaskCompletions());
-        else
+
+            try {
+                int delTaskCount = synch.getTaskDeletions().size()
+                        + synch.getTaskCompletions().size();
+                if (synch.getDebugLogInfo() != null && delTaskCount > 5)
+                    dumpDebugLog(synch, "sync-delete-");
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+        } else {
             printWaitPage();
+        }
     }
 
 
@@ -584,6 +610,65 @@ public class sync extends TinyCGIBase {
         else
             return null;
     }
+
+
+
+    private void dumpDebugLog(HierarchySynchronizer synch, String dumpPrefix)
+            throws Exception {
+        // determine the location of the data directory
+        File dataDir = null;
+        String settingsFile = DashController.getSettingsFileName();
+        if (StringUtils.hasValue(settingsFile))
+            dataDir = new File(settingsFile).getParentFile();
+        if (dataDir == null || !dataDir.isDirectory())
+            dataDir = new File(".");
+
+        // save debug info to the data directory
+        List<String> debugInfo = synch.getDebugLogInfo();
+        File debugInfoFile = new File(dataDir, "debugInfo.dat");
+        if (debugInfo != null) {
+            PrintWriter out = new PrintWriter(debugInfoFile);
+            for (String line : debugInfo)
+                out.println(line);
+            out.close();
+        }
+
+        // copy the wbs dump file into the data directory
+        InputStream wbsIn = wbsLocation.openStream();
+        File wbsDumpFile = new File(dataDir, "wbsDump.dat");
+        FileUtils.copyFile(wbsIn, wbsDumpFile);
+        wbsIn.close();
+
+        // perform a backup of the data directory (which will include the
+        // two files created above)
+        File backup = DashController.backupData();
+        File backupDir = new File(dataDir, "backup");
+        if (!backupDir.isDirectory())
+            backupDir = dataDir;
+        SimpleDateFormat fmt = new SimpleDateFormat("yyyy-MM-dd-HHmmss'.zip'");
+        String newFilename = dumpPrefix + fmt.format(new Date());
+        File saved = new File(backupDir, newFilename);
+        FileUtils.copyFile(backup, saved);
+
+        // cleanup the temporary dump files we created
+        debugInfoFile.delete();
+        wbsDumpFile.delete();
+
+        // cleanup older dump files
+        Date cutoffDate = new Date(System.currentTimeMillis() - DUMP_CLEANUP_AGE);
+        String oldName = dumpPrefix + fmt.format(cutoffDate);
+        File[] files = backupDir.listFiles();
+        if (files != null) {
+            for (File f : files) {
+                String name = f.getName();
+                if (name.startsWith(dumpPrefix) && name.compareTo(oldName) < 0)
+                    f.delete();
+            }
+        }
+    }
+    private static final long DUMP_CLEANUP_AGE = 14L /*days*/ * 24 /*hours*/
+            * 60 /*minutes*/ * 60 /*seconds*/ * 1000 /*milliseconds*/;
+
 
 
     /** Asynchronously export the user's data.
