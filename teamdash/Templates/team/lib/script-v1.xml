@@ -5,7 +5,7 @@
 -->
 
 <generation-script name="script-v2"
-      id="Team" version="3.7.1"
+      id="Team" version="3.7.2"
       requiresDashboard="1.9.4.4+"
       startingJar="/team/lib/TeamProcessCGI.jar"
       inDirectory="/team/lib"
