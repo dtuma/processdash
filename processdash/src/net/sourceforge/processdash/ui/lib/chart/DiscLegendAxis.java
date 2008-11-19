@@ -32,19 +32,12 @@ import org.jfree.chart.axis.AxisState;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.NumberTickUnit;
 import org.jfree.chart.axis.TickUnitSource;
+import org.jfree.data.Range;
 import org.jfree.ui.RectangleEdge;
 
 /** An axis used by the disc chart to show which value correspond to
  *   a certain disc size */
 public class DiscLegendAxis extends NumberAxis {
-
-    /**  The ticks marks' position for the legend axis are relative to the disc area.
-     *    By definition, the space between the ticks will shrink exponentially
-     *    (discSarea = discRadius * discRadius). That means that we have to come up
-     *    with a different way of calculating the space between tick marks. If we
-     *    multiply 1/dataArea by 11000, the ticks marks are properly spaced and do not
-     *    overlap. */
-    private static final double DATA_AREA_MULTIPLIER = 11000.0;
 
     /** The DiscItemDistributor that is used to fetch information on
          the disc, for instance, the scale at which they are drawn.*/
@@ -108,8 +101,30 @@ public class DiscLegendAxis extends NumberAxis {
     protected void selectVerticalAutoTickUnit(Graphics2D g2,
                                               Rectangle2D dataArea,
                                               RectangleEdge edge) {
-        // This division seems to generate a good looking result
-        double amountBetweenTicks = 1 / dataArea.getHeight() * DATA_AREA_MULTIPLIER;
+
+        // the font used to display tick marks requires labels to be placed
+        // at least this far apart.
+        double tickLabelHeight = estimateMaximumTickLabelHeight(g2);
+
+        // our tick marks get closer together as the values get larger. So
+        // if we have a collision, it would be at the very top end of the
+        // axis. We want to calculate a tick unit that will avoid that
+        // collision. So first, we will find the pixel position of a
+        // hypothetical tick mark drawn for the largest domain value.
+        Range r = getRange();
+        double maxValue = r.getUpperBound();
+        double maxY = valueToJava2D(maxValue, dataArea, edge);
+
+        // So far, we've identified a hypothetical tick mark placed at the
+        // highest known domain value. If we drew another tick mark just
+        // underneath it (one tick label height away), what domain value would
+        // that hypothetical second-to-largest tick mark represent?
+        double nextY = maxY + tickLabelHeight;
+        double nextValue = java2DToValue(nextY, dataArea, edge);
+
+        // calculate the numerical difference between these two domain values.
+        // Then pick the tick unit that is larger, to avoid collisions.
+        double amountBetweenTicks = maxValue - nextValue;
         NumberTickUnit unit = (NumberTickUnit) getStandardTickUnits().
                                 getCeilingTickUnit(amountBetweenTicks);
 
