@@ -37,6 +37,7 @@ import net.sourceforge.processdash.data.StringData;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.data.repository.SimplePrefixLocalDataNameFilter;
 import net.sourceforge.processdash.util.PatternList;
+import net.sourceforge.processdash.util.StringUtils;
 
 
 public class EVTaskListXML extends EVTaskListXMLAbstract {
@@ -186,6 +187,7 @@ public class EVTaskListXML extends EVTaskListXMLAbstract {
         if (!(value instanceof StringData)) return null;
 
         String xmlDoc = value.format();
+        if (!StringUtils.hasValue(xmlDoc)) return null;
 
         Matcher m = XMLID_PATTERN.matcher(xmlDoc);
         if (!m.find()) return null;
