@@ -1,8 +1,10 @@
 package teamdash.templates.setup;
 import java.awt.Component;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -90,8 +92,8 @@ public class sync extends TinyCGIBase {
     private boolean fullCopyMode;
 
 
-    private static boolean ENABLE_DELETION_LOGGING = Settings.getBool(
-        "sync.enableDeletionLogging", true);
+    private static String ENABLE_SYNC_LOGGING = Settings
+            .getVal("syncWBS.enableLogging", "forDelete");
 
 
     protected void doPost() throws IOException {
@@ -338,7 +340,7 @@ public class sync extends TinyCGIBase {
         if (parameters.containsKey(TriggerURI.IS_TRIGGERING)
                 || parameters.containsKey(BRIEF_PARAM))
             synch.setWhatIfBrief(true);
-        else if (ENABLE_DELETION_LOGGING)
+        else if (ENABLE_SYNC_LOGGING != null)
             synch.enableDebugLogging();
 
         synch.sync();
@@ -354,18 +356,12 @@ public class sync extends TinyCGIBase {
             printPermissionsPage(synch.getTaskDeletions(),
                     synch.getTaskCompletions());
 
-            try {
-                int delTaskCount = synch.getTaskDeletions().size()
-                        + synch.getTaskCompletions().size();
-                if (synch.getDebugLogInfo() != null && delTaskCount > 5)
-                    dumpDebugLog(synch, "sync-delete-");
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-
         } else {
             printWaitPage();
         }
+
+        if (synch.getDebugLogInfo() != null)
+            maybeDumpDebugLog(synch);
     }
 
 
@@ -613,6 +609,30 @@ public class sync extends TinyCGIBase {
 
 
 
+    private void maybeDumpDebugLog(HierarchySynchronizer synch) {
+        String prefix = null;
+
+        if ("always".equalsIgnoreCase(ENABLE_SYNC_LOGGING)) {
+            prefix = "sync-debug-";
+
+        } else if ("forDelete".equalsIgnoreCase(ENABLE_SYNC_LOGGING)) {
+            int delTaskCount = synch.getTaskDeletions().size()
+                    + synch.getTaskCompletions().size();
+            if (delTaskCount > 5)
+                prefix = "sync-delete-";
+        }
+
+        if (prefix != null) {
+            try {
+                dumpDebugLog(synch, prefix);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+
+
     private void dumpDebugLog(HierarchySynchronizer synch, String dumpPrefix)
             throws Exception {
         // determine the location of the data directory
@@ -625,7 +645,7 @@ public class sync extends TinyCGIBase {
 
         // save debug info to the data directory
         List<String> debugInfo = synch.getDebugLogInfo();
-        File debugInfoFile = new File(dataDir, "debugInfo.dat");
+        File debugInfoFile = new File(dataDir, "syncDebugInfo.dat");
         if (debugInfo != null) {
             PrintWriter out = new PrintWriter(debugInfoFile);
             for (String line : debugInfo)
@@ -638,6 +658,19 @@ public class sync extends TinyCGIBase {
         File wbsDumpFile = new File(dataDir, "wbsDump.dat");
         FileUtils.copyFile(wbsIn, wbsDumpFile);
         wbsIn.close();
+
+        // copy the wbs xml file into the data directory
+        wbsIn = new URL(wbsLocation, "wbs.xml").openStream();
+        File wbsXmlFile = new File(dataDir, "wbsXml.dat");
+        FileUtils.copyFile(wbsIn, wbsXmlFile);
+        wbsIn.close();
+
+        // copy the modified wbs xml data into the data directory
+        File wbsModFile = new File(dataDir, "wbsDumpPruned.dat");
+        OutputStreamWriter w = new OutputStreamWriter(new FileOutputStream(
+                wbsModFile), "UTF-8");
+        w.write(XMLUtils.getAsText(synch.getProjectXML()));
+        w.close();
 
         // perform a backup of the data directory (which will include the
         // two files created above)
@@ -653,6 +686,8 @@ public class sync extends TinyCGIBase {
         // cleanup the temporary dump files we created
         debugInfoFile.delete();
         wbsDumpFile.delete();
+        wbsXmlFile.delete();
+        wbsModFile.delete();
 
         // cleanup older dump files
         Date cutoffDate = new Date(System.currentTimeMillis() - DUMP_CLEANUP_AGE);

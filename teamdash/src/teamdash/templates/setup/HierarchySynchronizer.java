@@ -279,6 +279,10 @@ public class HierarchySynchronizer {
         }
     }
 
+    public Element getProjectXML() {
+        return projectXML;
+    }
+
     private static final int NOT_A_NODE = -1;
     private static final int PRUNE = 0;
     private static final int QUASI_PRUNE = 1;
