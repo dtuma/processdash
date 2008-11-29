@@ -32,6 +32,14 @@ package net.sourceforge.processdash.ev;
  */
 public interface EVMetadata {
 
+    public interface TimeZone {
+
+        /** Metadata key for the timezone ID */
+        String ID = "Timezone";
+
+        String ROLLUP_STRATEGY = "Timezone.Rollup_Strategy";
+    }
+
     /** EVTaskList metadata keys associated with earned value baselines */
     public interface Baseline {
         String SNAPSHOT_ID = "Baseline_Snapshot_ID";

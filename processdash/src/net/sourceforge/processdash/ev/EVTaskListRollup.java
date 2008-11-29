@@ -29,6 +29,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.TimeZone;
 import java.util.Vector;
 
 import javax.swing.tree.TreePath;
@@ -174,6 +175,13 @@ public class EVTaskListRollup extends EVTaskList {
 
     public int getSubScheduleCount() {
         return evTaskLists.size();
+    }
+
+    @Override
+    public String getTimezoneID() {
+        // rollups are typically rolling up data from the default, local time
+        // zone.  So we should explicitly state this for our relative time zone
+        return TimeZone.getDefault().getID();
     }
 
     public EVTaskList getSubSchedule(int pos) {

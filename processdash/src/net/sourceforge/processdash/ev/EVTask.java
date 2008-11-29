@@ -49,6 +49,7 @@ import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.i18n.Resources;
+import net.sourceforge.processdash.util.DateAdjuster;
 import net.sourceforge.processdash.util.FormatUtil;
 import net.sourceforge.processdash.util.StringUtils;
 import net.sourceforge.processdash.util.XMLUtils;
@@ -946,6 +947,19 @@ public class EVTask implements Cloneable, DataListener {
     public boolean hasTaskError() { return taskError != null; }
     public String getTaskError() { return taskError; }
     public void setTaskError(String err) { taskError = err; }
+
+    public void adjustDates(DateAdjuster adj) {
+        planStartDate = adj.adjust(planStartDate);
+        actualStartDate = adj.adjust(actualStartDate);
+        planDate = adj.adjust(planDate);
+        baselineDate = adj.adjust(baselineDate);
+        replanDate = adj.adjust(replanDate);
+        forecastDate = adj.adjust(forecastDate);
+        dateCompleted = adj.adjust(dateCompleted);
+
+        for (int i = children.size();   i-- > 0;  )
+            getChild(i).adjustDates(adj);
+    }
 
 
     /** Gets the path from the root to the receiver. */

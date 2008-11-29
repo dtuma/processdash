@@ -30,6 +30,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.SortedMap;
+import java.util.TimeZone;
 import java.util.TreeMap;
 
 import javax.swing.tree.TreePath;
@@ -74,6 +75,7 @@ public class EVTaskListData extends EVTaskList
         schedule = getSchedule(data, taskListName);
         loadID(taskListName, data, EST_HOURS_DATA_NAME);
         loadMetadata(taskListName, data);
+        setupTimeZone();
         assignToOwner();
         calculator = new EVCalculatorData(this);
         setBaselineDataSource(getBaselineSnapshot());
@@ -124,6 +126,12 @@ public class EVTaskListData extends EVTaskList
             return new EVSchedule((ListData) d, locked);
         } else
             return new EVSchedule();
+    }
+    protected void setupTimeZone() {
+        // check and see whether this schedule has a time zone set.
+        // If not, set it to the default local time zone.
+        if (getTimezoneID() == null)
+            setTimezoneID(TimeZone.getDefault().getID());
     }
     protected void assignToOwner() {
         String owner = ProcessDashboard.getOwnerName(data);

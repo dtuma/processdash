@@ -45,6 +45,7 @@ import java.util.List;
 import java.util.Properties;
 import java.util.Random;
 import java.util.Set;
+import java.util.TimeZone;
 import java.util.TreeSet;
 import java.util.Vector;
 import java.util.logging.Logger;
@@ -74,9 +75,11 @@ import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.net.cache.ObjectCache;
 import net.sourceforge.processdash.ui.lib.AbstractTreeTableModel;
 import net.sourceforge.processdash.ui.lib.TreeTableModel;
+import net.sourceforge.processdash.util.DateAdjuster;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.PatternList;
 import net.sourceforge.processdash.util.StringUtils;
+import net.sourceforge.processdash.util.XMLUtils;
 
 import org.jfree.data.category.CategoryDataset;
 import org.jfree.data.xy.XYDataset;
@@ -568,6 +571,14 @@ public class EVTaskList extends AbstractTreeTableModel
             EVMetadata.Forecast.Ranges.SAVED_HIST_DATA
             )));
 
+    public String getTimezoneID() {
+        return getMetadata(EVMetadata.TimeZone.ID);
+    }
+
+    public void setTimezoneID(String id) {
+        setMetadata(EVMetadata.TimeZone.ID, id);
+    }
+
 
     public void save() { save(taskListName); }
     public void save(String newName) {
@@ -584,6 +595,9 @@ public class EVTaskList extends AbstractTreeTableModel
             .append(calculator.reorderCompletedTasks);
         if (getID() != null)
             result.append("' tlid='").append(getID());
+        String timezone = getTimezoneID();
+        if (timezone != null)
+            result.append("' tz='").append(XMLUtils.escapeAttribute(timezone));
         result.append("'>").append(newline);
         ((EVTask) root).saveToXML(result, whitespace);
         schedule.saveToXML(result, whitespace);
@@ -850,6 +864,21 @@ public class EVTaskList extends AbstractTreeTableModel
         schedule.setBaseline(snapshot);
     }
 
+    protected void realignScheduleFrom(TimeZone timezone) {
+        TimeZone current = TimeZone.getDefault();
+        if (current.hasSameRules(timezone))
+            return;
+
+        // how many milliseconds different is the current time zone from the
+        // source time zone?
+        int offset = timezone.getRawOffset() - current.getRawOffset();
+        // normalize the dates in the schedule, using that offset as the
+        // nominal adjustment.
+        DateAdjuster adj = schedule.normalizeDates(offset);
+        // now, take the timestamp adjustments that were made to the schedule,
+        // and apply them to the tasks in the task list as well.
+        getTaskRoot().adjustDates(adj);
+    }
 
 
     //////////////////////////////////////////////////////////////////////

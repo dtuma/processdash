@@ -32,6 +32,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.TimeZone;
 import java.util.Vector;
 
 import javax.swing.event.EventListenerList;
@@ -47,6 +48,7 @@ import net.sourceforge.processdash.ev.ui.chart.ConfidenceIntervalTotalCostChartD
 import net.sourceforge.processdash.ev.ui.chart.XYChartData;
 import net.sourceforge.processdash.ev.ui.chart.XYChartSeries;
 import net.sourceforge.processdash.i18n.Resources;
+import net.sourceforge.processdash.util.DateAdjuster;
 import net.sourceforge.processdash.util.FormatUtil;
 
 import org.jfree.data.Range;
@@ -436,14 +438,6 @@ public class EVSchedule implements TableModel {
         c.set(Calendar.SECOND, 0); c.set(Calendar.MILLISECOND, 0);
         return c.getTime();
     }
-    private static Date roundDate(Date d) {
-        Calendar c = Calendar.getInstance();
-        c.setTime(d);
-        c.add(Calendar.HOUR_OF_DAY, 12);
-        c.set(Calendar.HOUR_OF_DAY, 0); c.set(Calendar.MINUTE, 0);
-        c.set(Calendar.SECOND, 0); c.set(Calendar.MILLISECOND, 0);
-        return c.getTime();
-    }
 
 
     public EVSchedule(Date start, Date end, double minutes) {
@@ -561,7 +555,6 @@ public class EVSchedule implements TableModel {
                 "period".equals(((Element) n).getTagName()))
                 add(new Period((Element) n));
         }
-        maybeNormalizeDates();
         recalcCumPlanTimes();
         recalcCumActualTimes();
         setEffectiveDate(getXMLDate(e, "eff"));
@@ -602,21 +595,63 @@ public class EVSchedule implements TableModel {
         }
     }
 
-    protected void maybeNormalizeDates() {
-        long scheduleStart = get(0).getEndDate(false).getTime();
-        long scheduleEnd = getLast().getEndDate(false).getTime();
-        long avgPeriodLen = scheduleEnd - scheduleStart / getRowCount();
-        double avgPeriodDays = (avgPeriodLen * 7.0) / WEEK_MILLIS;
-        if (avgPeriodDays > 5)
-            normalizeDates();
+    public TimeZone guessTimeZone() {
+        // retrieve the start date of the schedule
+        Date scheduleStart = get(0).getEndDate(false);
+
+        // calculate the time relative to GMT
+        Calendar c = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
+        c.setTime(scheduleStart);
+        int hour = c.get(Calendar.HOUR_OF_DAY);
+        int minute = c.get(Calendar.MINUTE);
+
+        String zone;
+        if (hour == 0 && minute == 0) {
+            zone = "GMT";
+        } else if (hour < 12) {
+            zone = "GMT-" + hour;
+            if (minute == 30)
+                zone += ":30";
+        } else if (minute == 30) {
+            zone = "GMT+" + (24-hour-1) + ":30";
+        } else {
+            zone = "GMT+" + (24-hour);
+        }
+        return TimeZone.getTimeZone(zone);
     }
 
-    /** Align all periods to begin on day boundaries (i.e., at midnight) */
-    public void normalizeDates() {
+    protected DateAdjuster normalizeDates(int offset) {
+        DateAdjuster result = new DateAdjuster();
+
+        Calendar c = Calendar.getInstance();
+
         for (Iterator i = periods.iterator(); i.hasNext();) {
             Period p = (Period) i.next();
-            p.endDate = roundDate(p.endDate);
+            Date origDate = p.endDate;
+
+            c.setTime(origDate);
+            // add the offset.  This should get us "close to" midnight in the
+            // target time zone.
+            c.add(Calendar.MILLISECOND, offset);
+            // now add four hours, and then truncate the date.  This will
+            // account for differences due to daylight savings time.
+            c.add(Calendar.HOUR_OF_DAY, 4);
+            c.set(Calendar.HOUR_OF_DAY, 0);
+            c.set(Calendar.MINUTE, 0);
+            c.set(Calendar.SECOND, 0);
+            c.set(Calendar.MILLISECOND, 0);
+            Date newDate = c.getTime();
+
+            p.endDate = newDate;
+            result.add(origDate, newDate);
         }
+
+        // we are returning a DateAdjuster that alters timestamps for various
+        // calendar periods.  But the special date "NEVER" should not be
+        // altered, so we add a specific statement not to alter that timestamp.
+        result.add(EVSchedule.NEVER, 0);
+
+        return result;
     }
 
     public boolean areDatesLocked() {
