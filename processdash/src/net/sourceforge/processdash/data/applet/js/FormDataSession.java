@@ -74,6 +74,7 @@ public class FormDataSession implements FormDataListener {
         log.entering("FormDataSession", "registerField",
                      new Object[] { id, name, type });
         mgr.registerElement(id, name, type);
+        touch();
     }
 
     public String getSessionID() {
