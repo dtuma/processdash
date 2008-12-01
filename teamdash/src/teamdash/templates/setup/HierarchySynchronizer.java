@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.StringTokenizer;
+import java.util.TimeZone;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
@@ -31,6 +32,7 @@ import net.sourceforge.processdash.data.SaveableData;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.StringData;
 import net.sourceforge.processdash.data.repository.DataRepository;
+import net.sourceforge.processdash.ev.EVMetadata;
 import net.sourceforge.processdash.ev.EVSchedule;
 import net.sourceforge.processdash.ev.EVTaskDependency;
 import net.sourceforge.processdash.ev.EVTaskList;
@@ -814,6 +816,9 @@ public class HierarchySynchronizer {
             Double.toString(hoursPerWeek * 60));
 
         if (madeChange) {
+            // record the timezone that we've used to sync the schedule
+            String tz = TimeZone.getDefault().getID();
+            tl.setMetadata(EVMetadata.TimeZone.ID, tz);
             // save the task list
             if (!whatIfMode)
                 tl.save();
