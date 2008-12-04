@@ -1,4 +1,4 @@
-// Copyright (C) 2005 Tuma Solutions, LLC
+// Copyright (C) 2005-2008 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -41,6 +41,7 @@ public class FileSystemLOCDiff extends LOCDiffReportGenerator {
 
     private File compareA;
     private File compareB;
+    private boolean caseInsensitive;
 
     public FileSystemLOCDiff(List languageFilters) {
         super(languageFilters);
@@ -63,9 +64,10 @@ public class FileSystemLOCDiff extends LOCDiffReportGenerator {
     protected Collection getFilesToCompare() {
         if (compareB.isDirectory()) {
             showIdenticalRedlines = false;
+            caseInsensitive = testCaseInsensitive();
             TreeSet result = new TreeSet();
-            listAllFiles(result, compareA, compareA);
             listAllFiles(result, compareB, compareB);
+            listAllFiles(result, compareA, compareA);
             return result;
         } else {
             skipIdentical = false;
@@ -73,6 +75,12 @@ public class FileSystemLOCDiff extends LOCDiffReportGenerator {
             return Collections.singleton
                 (new SimpleFileComparison(compareA, compareB));
         }
+    }
+
+    private boolean testCaseInsensitive() {
+        File test1 = new File(compareB, "test.txt");
+        File test2 = new File(compareB, "TEST.TXT");
+        return test1.equals(test2);
     }
 
     private void listAllFiles(TreeSet result, File dir, File baseDir) {
@@ -130,12 +138,19 @@ public class FileSystemLOCDiff extends LOCDiffReportGenerator {
         }
     }
 
-    private class FileInDirectory implements FileToCompare, Comparable {
+    private class FileInDirectory implements FileToCompare,
+            Comparable<FileInDirectory> {
 
         private String filename;
+        private String cmpName;
 
         public FileInDirectory(String filename) {
             this.filename = filename;
+
+            if (caseInsensitive)
+                cmpName = filename.toLowerCase();
+            else
+                cmpName = filename;
         }
 
         public String getFilename() {
@@ -165,14 +180,15 @@ public class FileSystemLOCDiff extends LOCDiffReportGenerator {
             if (obj == this) return true;
             if (!(obj instanceof FileInDirectory)) return false;
             FileInDirectory that = (FileInDirectory) obj;
-            return (filename.equals(that.filename));
-        }
-        public int hashCode() {
-            return filename.hashCode();
+            return this.cmpName.equals(that.cmpName);
         }
 
-        public int compareTo(Object o) {
-            return filename.compareTo(((FileInDirectory)o).filename);
+        public int hashCode() {
+            return cmpName.hashCode();
+        }
+
+        public int compareTo(FileInDirectory that) {
+            return this.cmpName.compareTo(that.cmpName);
         }
     }
 
@@ -202,7 +218,7 @@ public class FileSystemLOCDiff extends LOCDiffReportGenerator {
 
         try {
             File out = diff.generateDiffs();
-            Browser.launch(out.toURL().toString());
+            Browser.launch(out.toURI().toURL().toString());
         } catch (IOException ioe) {
             ioe.printStackTrace();
         }

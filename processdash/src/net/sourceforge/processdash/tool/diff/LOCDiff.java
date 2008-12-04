@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2007 Tuma Solutions, LLC
+// Copyright (C) 2001-2008 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -208,10 +208,14 @@ public class LOCDiff {
         while (lineCount-- > 0) {
             line = lines[firstLineNum + lineCount].toString();
             line = stripComments(line);
-            if (filter.isSignificant(line))
+            if (isLineSignificant(filter, line))
                 result++;
         }
         return result;
+    }
+
+    protected boolean isLineSignificant(LanguageFilter filter, String line) {
+        return filter.isSignificant(line);
     }
 
 
