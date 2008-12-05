@@ -51,7 +51,15 @@ public class TeamMemberList extends AbstractTableModel implements EffortCalendar
      * for the DAY_OF_WEEK field. */
     private int startOnDayOfWeek;
 
-    /** A date/time in the middle of the "zero week" of the schedule */
+    /** A date/time in the middle of the "zero week" of the schedule.
+     * 
+     * The reference date is not used directly by calculations;  instead, those
+     * use the zero date.  Instead, the reference date exists solely to help us
+     * produce the zero date.  The reference date is read and written to XML
+     * by the load/save logic.  Then by definition, the zero date always falls
+     * on the user-selected day of the week, in the 7-day period immediately
+     * preceding the reference date.
+     */
     private Date referenceDate;
 
     /** A date/time on the first day of the "zero week" of the schedule.
@@ -71,7 +79,7 @@ public class TeamMemberList extends AbstractTableModel implements EffortCalendar
     /** Creates an empty team member list. */
     public TeamMemberList() {
         startOnDayOfWeek = Calendar.SUNDAY;
-        referenceDate = getDefaultReferenceDate();
+        referenceDate = new Date();
         weekOffset = getDefaultWeekOffset();
         recalcZeroDay();
     }
@@ -395,10 +403,9 @@ public class TeamMemberList extends AbstractTableModel implements EffortCalendar
          return Color.darkGray;
     }
 
-    private Date getDefaultReferenceDate() {
-        return getDefaultReferenceDate(new Date());
-    }
-
+    /** When we open a legacy team project with no reference date information,
+     * this method calculates an appropriate reference date for the project.
+     */
     private Date getDefaultReferenceDate(Element xml) {
         long when = System.currentTimeMillis();
         NodeList nodes = xml.getElementsByTagName(TeamMember.TAG_NAME);
@@ -408,32 +415,7 @@ public class TeamMemberList extends AbstractTableModel implements EffortCalendar
             if (d != null && d.getTime() < when)
                 when = d.getTime();
         }
-        return getDefaultReferenceDate(new Date(when));
-    }
-
-    /** Calculate a reference date to use when normalizing schedules.
-     * 
-     * The reference date is not used directly by calculations;  instead, those
-     * use the zero date.  Thus, the reference date exists solely to help us
-     * produce the zero date.
-     * 
-     * The zero date always falls in the week immediately preceeding the
-     * reference date.  The exact day of the week is chosen by the user;
-     * however, Sunday and Monday are the most common values.
-     * 
-     * When the user changes the preferred day of the week, we would prefer
-     * for the zero date NOT to move very far.  So we put the reference date
-     * on Wednesday at noon.  This value is sufficiently far away from the most
-     * commonly used day of week values, so that changing the day of the week
-     * will generally have a tiny effect.
-     */
-    private Date getDefaultReferenceDate(Date when) {
-        Calendar c = Calendar.getInstance();
-        c.setTime(when);
-        c.set(Calendar.DAY_OF_WEEK, Calendar.WEDNESDAY);
-        c.set(Calendar.HOUR_OF_DAY, 12); c.set(Calendar.MINUTE, 0); // 12:00 PM
-        c.set(Calendar.SECOND, 0); c.set(Calendar.MILLISECOND, 0);
-        return c.getTime();
+        return new Date(when + WEEK_MILLIS/2);
     }
 
     /**
@@ -449,6 +431,22 @@ public class TeamMemberList extends AbstractTableModel implements EffortCalendar
      * week without worrying about daylight savings time.  Our resulting
      * timestamps may fall at 3:00 AM or 5:00 AM, but will still format as
      * the correct day on the calendar.
+     * 
+     * After determining the zero date, this method will also recalculate the
+     * reference date to be 3.5 days later.  This accomplishes two things:
+     * <ul>
+
+     *     <li>When the user changes the preferred day of the week, the zero
+     *     date will move to the nearest occurrence of that day (no more than
+     *     3 days in either direction)</li>
+     * 
+     *     <li>When users from various time zones open the WBS, the reference
+     *     date can be reliably used to calculate the appropriate zero date in
+     *     their timezone.  Since the reference date is over 24 hours away from
+     *     the zero date, there is no danger that a timezone difference will
+     *     accidentally shift the zero date by a week.</li>
+     *
+     * </ul>
      */
     private void recalcZeroDay() {
         Calendar c = Calendar.getInstance();
@@ -458,10 +456,10 @@ public class TeamMemberList extends AbstractTableModel implements EffortCalendar
         c.set(Calendar.SECOND, 0); c.set(Calendar.MILLISECOND, 0);
         Date result = c.getTime();
         if (result.after(referenceDate)) {
-            c.add(Calendar.DATE, -7);
-            result = c.getTime();
+            result = new Date(result.getTime() - WEEK_MILLIS);
         }
         this.zeroDay = result;
+        this.referenceDate = new Date(result.getTime() + WEEK_MILLIS/2);
 
         for (int i = getRowCount();  i-- > 0; )
             getScheduleAt(i).setZeroDay(result);

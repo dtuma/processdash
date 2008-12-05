@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.Writer;
 import java.net.URL;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -693,7 +694,15 @@ public class HierarchySynchronizer {
     }
 
     private void saveScheduleData(Element e) {
-        startDate = roundDate(XMLUtils.getXMLDate(e, START_DATE_ATTR));
+        startDate = null;
+        if (e.hasAttribute(START_CALENDAR_DATE_ATTR)) {
+            try {
+                startDate = new SimpleDateFormat("yyyy-MM-dd").parse(e
+                        .getAttribute(START_CALENDAR_DATE_ATTR));
+            } catch (Exception ex) {}
+        }
+        if (startDate == null)
+            startDate = roundDate(XMLUtils.getXMLDate(e, START_DATE_ATTR));
         if (e.hasAttribute(END_WEEK_ATTR))
             endWeek = XMLUtils.getXMLInt(e, END_WEEK_ATTR);
         hoursPerWeek = XMLUtils.getXMLNum(e, HOURS_PER_WEEK_ATTR);
@@ -1077,6 +1086,7 @@ public class HierarchySynchronizer {
     private static final String TEAM_MEMBER_TYPE = "teamMember";
     private static final String INITIALS_ATTR = "initials";
     private static final String START_DATE_ATTR = "startDate";
+    private static final String START_CALENDAR_DATE_ATTR = "startCalendarDate";
     private static final String END_WEEK_ATTR = "endWeek";
     private static final String HOURS_PER_WEEK_ATTR = "hoursPerWeek";
     private static final String SCHEDULE_EXCEPTION_TAG = "scheduleException";

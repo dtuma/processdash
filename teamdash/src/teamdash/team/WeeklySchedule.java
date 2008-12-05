@@ -2,11 +2,14 @@ package teamdash.team;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.TimeZone;
 
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -269,8 +272,13 @@ public class WeeklySchedule implements EffortCalendar {
         // write the start date.  This is used by the dump/sync, and also used
         // by legacy WBS Editor code (which doesn't use week numbers)
         out.write(" " + START_DATE_ATTR + "='");
-        out.write(XMLUtils.saveDate(truncDate(getStartDate())));
-        if (!dumpMode) {
+        Date startDate = getStartDate();
+        out.write(XMLUtils.saveDate(truncToGMT(startDate)));
+        if (dumpMode) {
+            // write out the calendar start date
+            out.write("' " + START_CALENDAR_ATTR + "='");
+            out.write(CALENDAR_DATE_FMT.format(startDate));
+        } else {
             // write out the schedule start week
             out.write("' " + START_WEEK_ATTR + "='");
             out.write(Integer.toString(startWeek));
@@ -338,16 +346,25 @@ public class WeeklySchedule implements EffortCalendar {
 
     private static final long WEEK_MILLIS = 7l * 24 * 60 * 60 * 1000;
 
-    private static Date truncDate(Date d) {
+    private static Date truncToGMT(Date d) {
+        // begin by truncating the time to midnight in the local time zone.
         Calendar c = Calendar.getInstance();
         c.setTime(d);
         c.set(Calendar.HOUR_OF_DAY, 0); c.set(Calendar.MINUTE, 0);
         c.set(Calendar.SECOND, 0); c.set(Calendar.MILLISECOND, 0);
+        // now, add the effective time zone offset to convert to GMT.
+        int offset = TimeZone.getDefault().getOffset(c.getTimeInMillis());
+        c.add(Calendar.MILLISECOND, offset);
         return c.getTime();
     }
 
+    private static final DateFormat CALENDAR_DATE_FMT =
+        new SimpleDateFormat("yyyy-MM-dd");
+
 
     private static final String START_DATE_ATTR = "startDate";
+
+    private static final String START_CALENDAR_ATTR = "startCalendarDate";
 
     private static final String START_WEEK_ATTR = "startWeek";
 
