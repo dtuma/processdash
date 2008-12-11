@@ -33,6 +33,8 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.net.URLConnection;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -799,9 +801,20 @@ public class TemplateLoader {
      *  the package is not installed. */
     public static String getPackageVersion(String packageID) {
         if (packageID == null) return null;
+        if ("java".equalsIgnoreCase(packageID))
+            return getJREVersion();
 
         DashPackage pkg = getPackage(packageID);
         return (pkg != null ? pkg.version : null);
+    }
+
+    private static String getJREVersion() {
+        String result = AccessController.doPrivileged(
+            new PrivilegedAction<String>() {
+                public String run() {
+                    return System.getProperty("java.version");
+                }});
+        return result;
     }
 
     /** Return the DashPackage object for an installed package, or null if
