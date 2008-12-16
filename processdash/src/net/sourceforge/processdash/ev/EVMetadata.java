@@ -37,7 +37,16 @@ public interface EVMetadata {
         /** Metadata key for the timezone ID */
         String ID = "Timezone";
 
-        String ROLLUP_STRATEGY = "Timezone.Rollup_Strategy";
+        public interface RollupStrategy {
+
+            String SETTING = "Timezone.Rollup_Strategy";
+
+            String NO_CHANGE = "noChange";
+
+            String REALIGN_TO_CALENDAR = "alignToCalendar";
+
+        }
+
     }
 
     /** EVTaskList metadata keys associated with earned value baselines */

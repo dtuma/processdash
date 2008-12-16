@@ -24,89 +24,9 @@
 package net.sourceforge.processdash.util;
 
 import java.util.Date;
-import java.util.Iterator;
-import java.util.SortedSet;
-import java.util.TreeSet;
 
-public class DateAdjuster {
+public interface DateAdjuster {
 
-    private SortedSet<Adjustment> adjustments;
-
-    public DateAdjuster() {
-        this.adjustments = new TreeSet<Adjustment>();
-    }
-
-    public void add(Date adjustFrom, Date adjustTo) {
-        long delta = adjustTo.getTime() - adjustFrom.getTime();
-        add(adjustFrom, delta);
-    }
-
-    public void add(Date d, long adjustment) {
-        adjustments.add(new Adjustment(d, adjustment));
-    }
-
-    public Date adjust(Date d) {
-        if (d == null || adjustments.isEmpty())
-            return d;
-
-        Iterator<Adjustment> i = adjustments.iterator();
-        Adjustment adj = i.next();
-
-        while (i.hasNext()) {
-            Adjustment a = i.next();
-            if (a.matches(d))
-                adj = a;
-            else
-                break;
-        }
-
-        return adj.adjust(d);
-    }
-
-
-
-    private static class Adjustment implements Comparable<Adjustment> {
-
-        Date start;
-
-        long offset;
-
-        private Adjustment(Date start, long offset) {
-            this.start = start;
-            this.offset = offset;
-        }
-
-        public boolean matches(Date d) {
-            return start.compareTo(d) <= 0;
-        }
-
-        public Date adjust(Date d) {
-            if (offset == 0)
-                return d;
-
-            long time = d.getTime();
-            time += offset;
-            return new Date(time);
-        }
-
-        public int compareTo(Adjustment that) {
-            return this.start.compareTo(that.start);
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            if (obj instanceof Adjustment) {
-                Adjustment that = (Adjustment) obj;
-                return this.start.equals(that.start);
-            }
-            return false;
-        }
-
-        @Override
-        public int hashCode() {
-            return start.hashCode();
-        }
-
-    }
+    public Date adjust(Date d);
 
 }

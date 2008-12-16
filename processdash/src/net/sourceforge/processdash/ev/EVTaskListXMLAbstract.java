@@ -25,9 +25,7 @@
 package net.sourceforge.processdash.ev;
 
 import java.util.List;
-import java.util.TimeZone;
 
-import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.util.XMLUtils;
 
 import org.w3c.dom.Document;
@@ -91,7 +89,8 @@ public class EVTaskListXMLAbstract extends EVTaskList {
                     "found " + children.size());
         root = new EVTask((Element) children.get(0));
         schedule = new EVSchedule((Element) children.get(1));
-        configureTimeZone(docRoot);
+        setupTimeZone(docRoot);
+        maybeRetargetTimezone();
 
         // optionally set the display name.
         if (displayName != null)
@@ -121,21 +120,11 @@ public class EVTaskListXMLAbstract extends EVTaskList {
         this.displayName  = displayName;
     }
 
-    protected void configureTimeZone(Element docRoot) {
-        TimeZone timezone;
+    protected void setupTimeZone(Element docRoot) {
+        // read the time zone data from the XML document if it is present
         String timezoneID = docRoot.getAttribute("tz");
-        if (XMLUtils.hasValue(timezoneID)) {
-            timezone = TimeZone.getTimeZone(timezoneID);
-        } else {
-            timezone = schedule.guessTimeZone();
-            timezoneID = timezone.getID();
-        }
-        setTimezoneID(timezoneID);
-
-        String userSetting = Settings.getVal("ev."
-                + EVMetadata.TimeZone.ROLLUP_STRATEGY, REALIGN_TO_CALENDAR);
-        if (REALIGN_TO_CALENDAR.equalsIgnoreCase(userSetting))
-            realignScheduleFrom(timezone);
+        if (XMLUtils.hasValue(timezoneID))
+            setTimezoneID(timezoneID);
     }
 
     private boolean stringEquals(String a, String b) {
@@ -143,7 +132,5 @@ public class EVTaskListXMLAbstract extends EVTaskList {
         if (a == null || b == null) return false;
         return a.equals(b);
     }
-
-    private static final String REALIGN_TO_CALENDAR = "alignToCalendar";
 
 }

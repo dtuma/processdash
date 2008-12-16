@@ -49,7 +49,9 @@ import net.sourceforge.processdash.ev.ui.chart.XYChartData;
 import net.sourceforge.processdash.ev.ui.chart.XYChartSeries;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.util.DateAdjuster;
+import net.sourceforge.processdash.util.RangeDateAdjuster;
 import net.sourceforge.processdash.util.FormatUtil;
+import net.sourceforge.processdash.util.TimeZoneUtils;
 
 import org.jfree.data.Range;
 import org.jfree.data.RangeInfo;
@@ -596,32 +598,21 @@ public class EVSchedule implements TableModel {
     }
 
     public TimeZone guessTimeZone() {
-        // retrieve the start date of the schedule
         Date scheduleStart = get(0).getEndDate(false);
+        return TimeZoneUtils.inferTimeZoneFromDate(scheduleStart);
+    }
 
-        // calculate the time relative to GMT
-        Calendar c = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
-        c.setTime(scheduleStart);
-        int hour = c.get(Calendar.HOUR_OF_DAY);
-        int minute = c.get(Calendar.MINUTE);
-
-        String zone;
-        if (hour == 0 && minute == 0) {
-            zone = "GMT";
-        } else if (hour < 12) {
-            zone = "GMT-" + hour;
-            if (minute == 30)
-                zone += ":30";
-        } else if (minute == 30) {
-            zone = "GMT+" + (24-hour-1) + ":30";
-        } else {
-            zone = "GMT+" + (24-hour);
+    protected void adjustDates(DateAdjuster adj) {
+        for (Iterator i = periods.iterator(); i.hasNext();) {
+            Period p = (Period) i.next();
+            Date origDate = p.endDate;
+            Date newDate = adj.adjust(origDate);
+            p.endDate = newDate;
         }
-        return TimeZone.getTimeZone(zone);
     }
 
     protected DateAdjuster normalizeDates(int offset) {
-        DateAdjuster result = new DateAdjuster();
+        RangeDateAdjuster result = new RangeDateAdjuster();
 
         Calendar c = Calendar.getInstance();
 
@@ -652,6 +643,15 @@ public class EVSchedule implements TableModel {
         result.add(EVSchedule.NEVER, 0);
 
         return result;
+    }
+
+    /** Return the average number of days in the periods in this schedule. */
+    protected double getAverageDaysPerPeriod() {
+        long scheduleStart = get(0).getEndDate(false).getTime();
+        long scheduleEnd = getLast().getEndDate(false).getTime();
+        long avgPeriodLen = scheduleEnd - scheduleStart / getRowCount();
+        double avgPeriodDays = (avgPeriodLen * 7.0) / WEEK_MILLIS;
+        return avgPeriodDays;
     }
 
     public boolean areDatesLocked() {

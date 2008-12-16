@@ -79,6 +79,8 @@ import net.sourceforge.processdash.util.DateAdjuster;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.PatternList;
 import net.sourceforge.processdash.util.StringUtils;
+import net.sourceforge.processdash.util.TimeZoneDateAdjuster;
+import net.sourceforge.processdash.util.TimeZoneUtils;
 import net.sourceforge.processdash.util.XMLUtils;
 
 import org.jfree.data.category.CategoryDataset;
@@ -864,20 +866,78 @@ public class EVTaskList extends AbstractTreeTableModel
         schedule.setBaseline(snapshot);
     }
 
-    protected void realignScheduleFrom(TimeZone timezone) {
+    /** Possibly shift this task list from its original time zone into the
+     * default local time zone.
+     */
+    protected void maybeRetargetTimezone() {
+        // retrieve the user preference for time zone alignment.
+        String userSetting = Settings.getVal("ev."
+                + EVMetadata.TimeZone.RollupStrategy.SETTING,
+            EVMetadata.TimeZone.RollupStrategy.REALIGN_TO_CALENDAR);
+
+        // if the user wants no changes to be made, return.
+        if (EVMetadata.TimeZone.RollupStrategy.NO_CHANGE.equals(userSetting))
+            return;
+
+        // look up the time zone specified for this task list.
+        TimeZone timezone = TimeZoneUtils.getTimeZone(getTimezoneID());
+        boolean isTimeZonePrecise = (timezone != null);
+
+        // by default, the dashboard creates schedules with periods that are
+        // a week long, and that start/end at midnight. However, individuals can
+        // alter the From/To dates to create alternative schedules (such as
+        // daily or hourly schedules).  Perform a quick check to see if this
+        // schedule appears to be "weekly."
+        boolean isWeeklySchedule = (schedule.getAverageDaysPerPeriod() > 5);
+
+        // if the schedule has odd periods (not a week long), then we can't
+        // assume its periods start/end at midnight.  So if no time zone info
+        // was provided and the schedule isn't "weekly," do nothing.
+        if (!isTimeZonePrecise && !isWeeklySchedule)
+            return;
+
+        // if no time zone information was associated with this "weekly"
+        // schedule, infer the time zone from the start time of the EV schedule.
+        if (timezone == null)
+            timezone = schedule.guessTimeZone();
+
+        realignScheduleFrom(timezone, isTimeZonePrecise, isWeeklySchedule);
+    }
+
+    private void realignScheduleFrom(TimeZone timezone,
+            boolean isTimeZonePrecise, boolean normalizePeriods) {
+
+        // if the current time zone has the same rules as the original time
+        // zone, no changes need to be made.
         TimeZone current = TimeZone.getDefault();
         if (current.hasSameRules(timezone))
             return;
 
-        // how many milliseconds different is the current time zone from the
-        // source time zone?
-        int offset = timezone.getRawOffset() - current.getRawOffset();
-        // normalize the dates in the schedule, using that offset as the
-        // nominal adjustment.
-        DateAdjuster adj = schedule.normalizeDates(offset);
-        // now, take the timestamp adjustments that were made to the schedule,
-        // and apply them to the tasks in the task list as well.
-        getTaskRoot().adjustDates(adj);
+        DateAdjuster timeZoneAdjustment = new TimeZoneDateAdjuster(timezone,
+                current);
+        DateAdjuster normalizationAdjustment = null;
+
+        if (normalizePeriods) {
+            // how many milliseconds different is the current time zone from
+            // the source time zone?
+            int offset = timezone.getRawOffset() - current.getRawOffset();
+            // normalize the dates in the schedule, using that offset as the
+            // nominal adjustment.
+            normalizationAdjustment = schedule.normalizeDates(offset);
+        } else {
+            schedule.adjustDates(timeZoneAdjustment);
+        }
+
+        // now, apply timestamp adjustments to the task list as well.
+        if (isTimeZonePrecise || normalizationAdjustment == null)
+            // if the source timezone is exact, or if normalization was not
+            // feasible, perform exact time zone math on the dates in the
+            // task list.
+            getTaskRoot().adjustDates(timeZoneAdjustment);
+        else
+            // if the source timezone was inferred, just apply the same
+            // adjustments that were made to the schedule.
+            getTaskRoot().adjustDates(normalizationAdjustment);
     }
 
 
