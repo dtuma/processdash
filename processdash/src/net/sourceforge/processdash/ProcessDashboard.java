@@ -1231,7 +1231,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         }
         if (data != null) {
             logger.fine("Finalizing data repository");
-            data.finalize();
+            data.shutDown();
             data = null;
         }
         logger.fine("Removing concurrency lock");

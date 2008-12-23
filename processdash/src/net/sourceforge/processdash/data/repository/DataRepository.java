@@ -1,4 +1,4 @@
-// Copyright (C) 1998-2007 Tuma Solutions, LLC
+// Copyright (C) 1998-2008 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -151,13 +151,14 @@ public class DataRepository implements Repository, DataContext,
 
 
         private class DataSaver extends Thread implements DataConsistencyObserver {
+            private volatile boolean running = true;
             public DataSaver() {
                 super("DataSaver");
                 setDaemon(true);
                 start();
             }
             public void run() {
-                while (true) try {
+                while (running) try {
                     sleep(120000);         // save dirty datafiles every 2 minutes
                     addDataConsistencyObserver(this);
                 } catch (InterruptedException ie) {}
@@ -165,6 +166,10 @@ public class DataRepository implements Repository, DataContext,
             public void dataIsConsistent() {
                 saveAllDatafiles();
                 System.gc();
+            }
+            public void quit() {
+                running = false;
+                interrupt();
             }
         }
 
@@ -394,6 +399,8 @@ public class DataRepository implements Repository, DataContext,
 
             private volatile boolean suspended = false;
 
+            private volatile boolean running = true;
+
             public DataNotifier() {
                 super("DataNotifier");
                 notifications = new Hashtable();
@@ -621,7 +628,7 @@ public class DataRepository implements Repository, DataContext,
             }
 
             public void run() {
-                while (true) try {
+                while (running) try {
                     if (fireEvent())
                         yield();
                     else
@@ -639,6 +646,11 @@ public class DataRepository implements Repository, DataContext,
                 boolean result = false;
                 while (fireEvent()) { result = true; }
                 return result;
+            }
+
+            public void quit() {
+                running = false;
+                interrupt();
             }
         }
         private static final String CIRCULARITY_TOKEN = "CIRCULARITY_TOKEN";
@@ -1273,6 +1285,8 @@ public class DataRepository implements Repository, DataContext,
 
             volatile boolean workToDo = false;
 
+            volatile boolean running = true;
+
             private Logger logger = Logger.getLogger(DataRepository.class.getName()
                     + ".Janitor");
 
@@ -1284,7 +1298,7 @@ public class DataRepository implements Repository, DataContext,
             }
 
             public void run() {
-                while (true) {
+                while (running) {
                     if (!workToDo)
                         waitForWork(JANITOR_GENERATION_TIME);
 
@@ -1292,6 +1306,11 @@ public class DataRepository implements Repository, DataContext,
 
                     runCleanup();
                 }
+            }
+
+            public synchronized void quit() {
+                running = false;
+                notifyAll();
             }
 
             /** Perform an explicitly requested, complete cleaning of the elements
@@ -1489,7 +1508,7 @@ public class DataRepository implements Repository, DataContext,
             }
         }
 
-        public void finalize() {
+        public void shutDown() {
             logger.fine("Finalizing DataRepository");
             waitForCalculations();
             // Command the data freezer to terminate.
@@ -1505,6 +1524,12 @@ public class DataRepository implements Repository, DataContext,
                 dataServer.quit();
             if (secondaryDataServer != null)
                 secondaryDataServer.quit();
+            if (janitor != null)
+                janitor.quit();
+            if (dataSaver != null)
+                dataSaver.quit();
+            if (dataNotifier != null)
+                dataNotifier.quit();
         }
 
         /** Set this flag to true when performing memory measurement testing.

@@ -42,6 +42,7 @@ import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.log.defects.ImportedDefectManager;
 import net.sourceforge.processdash.log.time.ImportedTimeLogManager;
+import net.sourceforge.processdash.security.DashboardPermission;
 import net.sourceforge.processdash.tool.bridge.client.ImportDirectory;
 import net.sourceforge.processdash.tool.export.impl.ArchiveMetricsFileImporter;
 import net.sourceforge.processdash.tool.export.impl.TextMetricsFileImporter;
@@ -60,6 +61,13 @@ public class DataImporter extends Thread {
     private static Hashtable importers = new Hashtable();
     private static List initializingImporters = Collections
             .synchronizedList(new ArrayList());
+    private static boolean DYNAMIC_IMPORT = true;
+    private static DashboardPermission SET_DYNAMIC_PERMISSION =
+        new DashboardPermission("dataImporter.setDynamic");
+    private static DashboardPermission ADD_IMPORT_PERMISSION =
+        new DashboardPermission("dataImporter.addImport");
+    private static DashboardPermission REMOVE_IMPORT_PERMISSION =
+        new DashboardPermission("dataImporter.addImport");
     private static Logger logger = Logger.getLogger(DataImporter.class
             .getName());
 
@@ -71,13 +79,26 @@ public class DataImporter extends Thread {
     private Map<String, String> prefixes = new HashMap<String, String>();
 
 
+    public static void setDynamic(boolean d) throws IllegalStateException {
+        if (DYNAMIC_IMPORT == d)
+            return;
+
+        SET_DYNAMIC_PERMISSION.checkPermission();
+        if (!importers.isEmpty())
+            throw new IllegalStateException(
+                    "setDynamic must be called before any imports are registered");
+
+        DYNAMIC_IMPORT = d;
+    }
     public static void addImport(DataRepository data, String prefix,
             String dirInfo, ImportDirectory importDir) {
+        ADD_IMPORT_PERMISSION.checkPermission();
         String key = getKey(prefix, dirInfo);
         DataImporter i = new DataImporter(data, prefix, importDir);
         importers.put(key, i);
     }
     public static void removeImport(String prefix, String dirInfo) {
+        REMOVE_IMPORT_PERMISSION.checkPermission();
         String key = getKey(prefix, dirInfo);
         DataImporter i = (DataImporter) importers.remove(key);
         if (i != null)
@@ -91,6 +112,13 @@ public class DataImporter extends Thread {
                 } catch (InterruptedException e) {
                 }
         }
+    }
+    public static void shutDown() {
+        for (Iterator i = importers.values().iterator(); i.hasNext();) {
+            DataImporter imp = (DataImporter) i.next();
+            imp.quit();
+        }
+        importers.clear();
     }
 
     private static String getKey(String prefix, String dir) {
@@ -130,13 +158,14 @@ public class DataImporter extends Thread {
         this.importPrefix = prefix;
         this.directory = importDir;
 
-        if (PARALLEL_INIT)
+        if (PARALLEL_INIT && DYNAMIC_IMPORT)
             initializingImporters.add(this);
         else
             checkFiles(null);
 
         this.setDaemon(true);
-        this.start();
+        if (DYNAMIC_IMPORT)
+            this.start();
     }
 
     public void quit() {
