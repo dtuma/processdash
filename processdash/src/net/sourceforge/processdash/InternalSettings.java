@@ -195,7 +195,7 @@ public class InternalSettings extends Settings {
         else
             return "unix";
     }
-    private static final String getSettingsFilename() {
+    public static final String getSettingsFilename() {
         String osName = System.getProperty("os.name").toLowerCase();
         if (osName.startsWith("win") || osName.startsWith("mac"))
             return "pspdash.ini";
@@ -336,7 +336,8 @@ public class InternalSettings extends Settings {
         return dirty;
     }
 
-    static void setReadOnly(boolean ro) {
+    public static void setReadOnly(boolean ro) {
+        checkPermission("setReadOnly");
         Settings.readOnly = ro;
         if (defaults != null) {
             if (ro)
