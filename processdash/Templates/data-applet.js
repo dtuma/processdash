@@ -228,7 +228,6 @@ function writeExportHTML() {
     document.writeln("<A HREF='/reports/form2html.class'>" +
                      "<!--#echo Export_To_HTML --></A>");
     var url = urlEncode(window.location.pathname +
-                        window.location.hash +
                         window.location.search);
     url = "/reports/form2html.class?uri=" + url;
     url = urlEncode(url);
@@ -260,7 +259,6 @@ function writeExcelOnlyFooter() {
     document.write('<span class=doNotPrint>');
 
     var url = urlEncode(window.location.pathname +
-                        window.location.hash +
                         window.location.search);
     url = "/reports/form2html.class?uri=" + url;
     url = urlEncode(url);
