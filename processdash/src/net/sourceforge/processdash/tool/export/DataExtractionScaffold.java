@@ -1,4 +1,4 @@
-// Copyright (C) 2008 Tuma Solutions, LLC
+// Copyright (C) 2008-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -37,7 +37,9 @@ import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.data.repository.InvalidDatafileFormat;
 import net.sourceforge.processdash.ev.EVTaskDependencyResolver;
 import net.sourceforge.processdash.ev.EVTaskList;
+import net.sourceforge.processdash.ev.EVTaskListData;
 import net.sourceforge.processdash.ev.EVTaskListMerged;
+import net.sourceforge.processdash.ev.EVTaskListRollup;
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.Prop;
 import net.sourceforge.processdash.hier.PropertyKey;
@@ -134,6 +136,7 @@ public class DataExtractionScaffold implements DashboardContext {
         InternalSettings.initialize(settingsFilename);
         InternalSettings.setReadOnly(true);
         InternalSettings.set("templates.disableSearchPath", "true");
+        InternalSettings.set("export.disableAutoExport", "true");
         InternalSettings.set("slowNetwork", "true");
 
         // reset the template loader search path
@@ -178,7 +181,7 @@ public class DataExtractionScaffold implements DashboardContext {
         String dataFile = val.getDataFile();
 
         if (shouldLoadDataFile(id, dataFile)) {
-            System.out.println("opening datafile for " + key.path());
+            // System.out.println("opening datafile for " + key.path());
             data.openDatafile(key.path(), property_directory + dataFile);
         }
 
@@ -209,6 +212,15 @@ public class DataExtractionScaffold implements DashboardContext {
 
 
     public List<EVTaskList> getEVTaskLists() {
+        return getEVTaskLists(true, true);
+    }
+
+    public List<EVTaskList> getRollupEVTaskLists() {
+        return getEVTaskLists(false, true);
+    }
+
+    private List<EVTaskList> getEVTaskLists(boolean includePersonal,
+            boolean includeRollups) {
         String[] taskListNames = EVTaskList.findTaskLists(data);
         List<EVTaskList> result = new ArrayList<EVTaskList>(
                 taskListNames.length);
@@ -216,6 +228,10 @@ public class DataExtractionScaffold implements DashboardContext {
         for (String taskListName : taskListNames) {
             EVTaskList tl = EVTaskList.openExisting(taskListName, data,
                 hierarchy, null, false);
+            if (tl instanceof EVTaskListData && !includePersonal)
+                continue;
+            if (tl instanceof EVTaskListRollup && !includeRollups)
+                continue;
             tl.recalc();
             tl = new EVTaskListMerged(tl, false, null);
             result.add(tl);

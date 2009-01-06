@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2008 Tuma Solutions, LLC
+// Copyright (C) 2001-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -479,7 +479,7 @@ public class EVReport extends CGIChartBase {
             }
 
             public void writeLeaf(EVTask node, int depth) {
-                out.print(cleanupPercentComplete(node.getPercentComplete()));
+                out.print(cleanupPercentComplete(node.getPercentCompleteText()));
             }
         });
 
@@ -573,7 +573,7 @@ public class EVReport extends CGIChartBase {
             }
 
             public void writeLeaf(EVTask node, int depth) {
-                out.print(cleanupPercentComplete(node.getPercentComplete()));
+                out.print(cleanupPercentComplete(node.getPercentCompleteText()));
             }
         });
 

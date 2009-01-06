@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2008 Tuma Solutions, LLC
+// Copyright (C) 2001-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -138,46 +138,73 @@ public class EVSchedule implements TableModel {
         }
         public boolean isAutomatic() { return automatic; }
 
-        public String getPlanTime() {
+        public String getPlanTotalTimeText() {
             if (isScheduleEnd())
                 return END_TOKEN;
             else
                 return formatTime(planTotalTime);
         }
-        public String getPlanDirectTime() {
+
+        public String getPlanDirectTimeText() {
             if (isScheduleEnd())
                 return END_TOKEN;
             else
                 return formatTime(planDirectTime);
         }
+        public double getPlanDirectTime() {
+            return planDirectTime;
+        }
+        // note: this method must remain for legacy binary compatibility
         public double planDirectTime() { return planDirectTime; }
-        public String getCumPlanTime() { return formatTime(cumPlanDirectTime); }
-        public double cumPlanDirectTime() { return cumPlanDirectTime; }
-        public String getCumPlanValue(double totalPlanTime) {
-            return formatPercent(cumPlanValue/totalPlanTime); }
-        public double cumPlanValue() { return cumPlanValue; }
-        public String getActualTime() {
+
+        public String getCumPlanDirectTimeText() {
+            return formatTime(cumPlanDirectTime);
+        }
+        public double getCumPlanDirectTime() {
+            return cumPlanDirectTime;
+        }
+
+        public String getCumPlanValueText(double totalPlanTime) {
+            return formatPercent(cumPlanValue/totalPlanTime);
+        }
+        public double getCumPlanValue() {
+            return cumPlanValue;
+        }
+
+        public String getActualTotalTimeText() {
             return formatTime(actualDirectTime + actualIndirectTime);
         }
-        public String getActualDirectTime() {
+
+        public String getActualDirectTimeText() {
             return formatTime(actualDirectTime);
         }
-        public double actualDirectTime() {
+        public double getActualDirectTime() {
             return actualDirectTime;
         }
-        public String getActualIndirectPercentage() {
+
+        public String getActualIndirectPercentageText() {
             double totalTime = actualDirectTime + actualIndirectTime;
             if (totalTime == 0) return "";
             return formatPercent(actualIndirectTime / totalTime);
         }
-        public String getCumActualTime() {
+
+        public String getCumActualDirectTimeText() {
             return formatTime(cumActualDirectTime);
         }
-        public double cumActualDirectTime() { return cumActualDirectTime; }
-        public String getCumEarnedValue(double totalPlanTime) {
+        public double getCumActualDirectTime() {
+            return cumActualDirectTime;
+        }
+
+        public String getCumEarnedValueText(double totalPlanTime) {
             return formatPercent(cumEarnedValue/totalPlanTime);
         }
-        public double cumEarnedValue() { return cumEarnedValue; }
+        public double getCumEarnedValue() {
+            return cumEarnedValue;
+        }
+
+        public double getCumActualCost() {
+            return cumActualCost;
+        }
 
         public void setBeginDate(Object value) {
             if (previous != null && !previous.endDate.equals(value)) {
@@ -759,6 +786,10 @@ public class EVSchedule implements TableModel {
         return null;
     }
 
+    public synchronized List<Period> getPeriods() {
+        return new ArrayList<Period>(periods);
+    }
+
     public synchronized Date getPeriodStart(Date when) {
         Period p = get(when);
         return (p == null ? null : p.getBeginDate());
@@ -1001,11 +1032,11 @@ public class EVSchedule implements TableModel {
     public Date getEndDate() {
         if (defaultPlanDirectTime > 0
                 || getLast().isAutomatic()
-                || getLast().planDirectTime() > 0)
+                || getLast().getPlanDirectTime() > 0)
             return null;
         for (int i = periods.size();  i-- > 0; ) {
             Period p = get(i);
-            if (p.planDirectTime() > 0)
+            if (p.getPlanDirectTime() > 0)
                 return p.getEndDate(false);
         }
         return null;
@@ -1082,7 +1113,7 @@ public class EVSchedule implements TableModel {
     protected int findIndexOfFinalPlannedPeriod() {
         for (int i = periods.size();   i-- > 1; ) {
             Period p = get(i);
-            if (p != null && p.planDirectTime() > 0)
+            if (p != null && p.getPlanDirectTime() > 0)
                 return i;
         }
         return 1;
@@ -1388,15 +1419,15 @@ public class EVSchedule implements TableModel {
         switch(columnIndex) {
         case FROM_COLUMN:           return p.getBeginDate();
         case TO_COLUMN:             return p.getEndDate();
-        case PLAN_TIME_COLUMN:      return p.getPlanTime();
-        case PLAN_DTIME_COLUMN:     return p.getPlanDirectTime();
-        case PLAN_CUM_TIME_COLUMN:  return p.getCumPlanTime();
-        case PLAN_CUM_VALUE_COLUMN: return p.getCumPlanValue(totalPlan());
-        case TIME_COLUMN:           return p.getActualTime();
-        case IPERCENT_COLUMN:       return p.getActualIndirectPercentage();
-        case DTIME_COLUMN:          return p.getActualDirectTime();
-        case CUM_TIME_COLUMN:       return p.getCumActualTime();
-        case CUM_VALUE_COLUMN:      return p.getCumEarnedValue(totalPlan());
+        case PLAN_TIME_COLUMN:      return p.getPlanTotalTimeText();
+        case PLAN_DTIME_COLUMN:     return p.getPlanDirectTimeText();
+        case PLAN_CUM_TIME_COLUMN:  return p.getCumPlanDirectTimeText();
+        case PLAN_CUM_VALUE_COLUMN: return p.getCumPlanValueText(totalPlan());
+        case TIME_COLUMN:           return p.getActualTotalTimeText();
+        case IPERCENT_COLUMN:       return p.getActualIndirectPercentageText();
+        case DTIME_COLUMN:          return p.getActualDirectTimeText();
+        case CUM_TIME_COLUMN:       return p.getCumActualDirectTimeText();
+        case CUM_VALUE_COLUMN:      return p.getCumEarnedValueText(totalPlan());
         }
         return null;
     }
@@ -1788,7 +1819,7 @@ public class EVSchedule implements TableModel {
             for (Object o : periods) {
                 Period p = (Period) o;
 
-                ratio = p.actualDirectTime() / p.planDirectTime();
+                ratio = p.getActualDirectTime() / p.getPlanDirectTime();
 
                 if ((p.getEndDate().before(getEffectiveDate())
                     || p.getEndDate().equals(getEffectiveDate()))
@@ -1814,7 +1845,7 @@ public class EVSchedule implements TableModel {
             Period period = completedPeriods.get(itemIndex);
 
             // The units are in minutes and we want them in hours so we divide by 60
-            return (period.actualDirectTime() - period.planDirectTime()) / 60;
+            return (period.getActualDirectTime() - period.getPlanDirectTime()) / 60;
         }
 
         public void recalc() {

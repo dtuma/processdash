@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2008 Tuma Solutions, LLC
+// Copyright (C) 2001-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -774,7 +774,7 @@ public class EVTaskList extends AbstractTreeTableModel
         showDirectTimeColumns = Math.abs(directTimeDelta) > 0.1;
         showBaselineColumns = (calculator != null
                 && calculator.getBaselineDataSource() != null);
-        showNodeTypeColumn = taskRoot.nodeTypesAreInUse();
+        showNodeTypeColumn = taskRoot.isUsingNodeTypes();
         showLabelsColumn = labelsAreInUse(taskRoot);
         nodeTypeSpecs = null;
 
@@ -1097,15 +1097,15 @@ public class EVTaskList extends AbstractTreeTableModel
 
         case NODE_TYPE_COLUMN:
             return Settings.isReadWrite()
-                    && ((EVTask) node).nodeTypeIsEditable();
+                    && ((EVTask) node).isNodeTypeEditable();
 
         case PLAN_TIME_COLUMN:
             return Settings.isReadWrite()
-                    && ((EVTask) node).plannedTimeIsEditable();
+                    && ((EVTask) node).isPlannedTimeEditable();
 
         case DATE_COMPLETE_COLUMN:
             return Settings.isReadWrite()
-                    && ((EVTask) node).completionDateIsEditable();
+                    && ((EVTask) node).isCompletionDateEditable();
 
         case DEPENDENCIES_COLUMN:
             return (Settings.isReadWrite()
@@ -1158,22 +1158,22 @@ public class EVTaskList extends AbstractTreeTableModel
         case TASK_COLUMN:           return n.getName();
         case TASK_FULLNAME_COLUMN:  return n.getFullName();
         case NODE_TYPE_COLUMN:      return n.getNodeType();
-        case PLAN_TIME_COLUMN:      return n.getPlanTime();
-        case -PLAN_TIME_COLUMN:     return new Double(n.planTime);
-        case PLAN_DTIME_COLUMN:     return n.getPlanDirectTime();
-        case -PLAN_DTIME_COLUMN:    return new Double(n.planValue);
-        case ACT_TIME_COLUMN:       return n.getActualTime(totalActualTime);
-        case -ACT_TIME_COLUMN:      return new Double(n.actualTime);
-        case ACT_DTIME_COLUMN:      return n.getActualDirectTime(totalActualTime);
-        case -ACT_DTIME_COLUMN:     return new Double(n.actualDirectTime);
-        case PLAN_VALUE_COLUMN:     return n.getPlanValue(totalPlanValue);
-        case -PLAN_VALUE_COLUMN:    return new Double(n.planValue/totalPlanValue);
-        case PLAN_CUM_TIME_COLUMN:  return n.getCumPlanTime();
-        case PLAN_CUM_VALUE_COLUMN: return n.getCumPlanValue(totalPlanValue);
+        case PLAN_TIME_COLUMN:      return n.getPlanTimeText();
+        case -PLAN_TIME_COLUMN:     return n.getPlanTime();
+        case PLAN_DTIME_COLUMN:     return n.getPlanDirectTimeText();
+        case -PLAN_DTIME_COLUMN:    return n.getPlanDirectTime();
+        case ACT_TIME_COLUMN:       return n.getActualTimeText(totalActualTime);
+        case -ACT_TIME_COLUMN:      return n.getActualTime();
+        case ACT_DTIME_COLUMN:      return n.getActualDirectTimeText();
+        case -ACT_DTIME_COLUMN:     return n.getActualDirectTime();
+        case PLAN_VALUE_COLUMN:     return n.getPlanValueText(totalPlanValue);
+        case -PLAN_VALUE_COLUMN:    return n.getPlanValuePercent(totalPlanValue);
+        case PLAN_CUM_TIME_COLUMN:  return n.getCumPlanTimeText();
+        case PLAN_CUM_VALUE_COLUMN: return n.getCumPlanValueText(totalPlanValue);
         case ASSIGNED_TO_COLUMN:    return n.getAssignedToText();
         case -ASSIGNED_TO_COLUMN:   return n.getAssignedTo();
-        case BASELINE_TIME_COLUMN:  return n.getBaselineTime();
-        case -BASELINE_TIME_COLUMN: return new Double(n.baselineTime);
+        case BASELINE_TIME_COLUMN:  return n.getBaselineTimeText();
+        case -BASELINE_TIME_COLUMN: return n.getBaselineTime();
         case BASELINE_DATE_COLUMN:  return n.getBaselineDate();
         case PLAN_DATE_COLUMN:      return n.getPlanDate();
         case REPLAN_DATE_COLUMN:    return n.getReplanDate();
@@ -1181,10 +1181,10 @@ public class EVTaskList extends AbstractTreeTableModel
         case DATE_COMPLETE_COLUMN:  return n.getActualDate();
         case LABELS_COLUMN:         return getTaskLabels(n);
         case DEPENDENCIES_COLUMN:   return n.getDependencies();
-        case PCT_COMPLETE_COLUMN:   return n.getPercentComplete();
-        case PCT_SPENT_COLUMN:      return n.getPercentSpent();
-        case -PCT_SPENT_COLUMN:     return new Double(n.actualTime/n.planTime);
-        case VALUE_EARNED_COLUMN:   return n.getValueEarned(totalPlanValue);
+        case PCT_COMPLETE_COLUMN:   return n.getPercentCompleteText();
+        case PCT_SPENT_COLUMN:      return n.getPercentSpentText();
+        case -PCT_SPENT_COLUMN:     return n.getPercentSpent();
+        case VALUE_EARNED_COLUMN:   return n.getValueEarnedText(totalPlanValue);
         case ACT_START_DATE_COLUMN: return n.getActualStartDate();
 
         case EVTASK_NODE_COLUMN:    return n;

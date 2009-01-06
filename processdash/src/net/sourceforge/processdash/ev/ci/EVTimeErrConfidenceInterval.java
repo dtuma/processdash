@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2008 Tuma Solutions, LLC
+// Copyright (C) 2003-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -87,9 +87,9 @@ public class EVTimeErrConfidenceInterval extends DelegatingConfidenceInterval {
                 if (p.getEndDate(false).compareTo(effDate) > 0)
                     break;
 
-                if (p.planDirectTime() > 0 || p.actualDirectTime() > 0) {
-                    plan = p.planDirectTime();
-                    act = p.actualDirectTime();
+                if (p.getPlanDirectTime() > 0 || p.getActualDirectTime() > 0) {
+                    plan = p.getPlanDirectTime();
+                    act = p.getActualDirectTime();
                     if (p.isAutomatic())
                         plan = autoPlan;
                     else

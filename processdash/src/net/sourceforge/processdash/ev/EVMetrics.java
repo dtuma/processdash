@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2008 Tuma Solutions, LLC
+// Copyright (C) 2001-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -599,12 +599,18 @@ public class EVMetrics implements TableModel {
         public String getFull() { return fullFormat.format(args); }
         public String getKey() { return key; }
 
+        public abstract Object getValue();
         protected abstract void recalc();
     }
 
-    protected abstract class AbsMetricFormatter extends MetricFormatter {
-        public AbsMetricFormatter(String key) { super(key); }
+    protected abstract class NumberMetricFormatter extends MetricFormatter {
+        public NumberMetricFormatter(String key) { super(key); }
+        public Object getValue() { return val(); }
         abstract double val();
+    }
+
+    protected abstract class AbsMetricFormatter extends NumberMetricFormatter {
+        public AbsMetricFormatter(String key) { super(key); }
         protected void recalc() {
             double d = val();
             if (badDouble(d))
@@ -615,9 +621,8 @@ public class EVMetrics implements TableModel {
         }
     }
 
-    protected abstract class CostMetricFormatter extends MetricFormatter {
+    protected abstract class CostMetricFormatter extends NumberMetricFormatter {
         public CostMetricFormatter(String key) { super(key); }
-        abstract double val();
         protected void recalc() {
             double d = val();
             if (badDouble(d))
@@ -630,6 +635,7 @@ public class EVMetrics implements TableModel {
 
     protected abstract class DateMetricFormatter extends MetricFormatter {
         public DateMetricFormatter(String key) { super(key); }
+        public Object getValue() { return val(); }
         abstract Date val();
         protected void recalc() {
             Date d = val();
@@ -641,9 +647,8 @@ public class EVMetrics implements TableModel {
         }
     }
 
-    protected abstract class DblMetricFormatter extends MetricFormatter {
+    protected abstract class DblMetricFormatter extends NumberMetricFormatter {
         public DblMetricFormatter(String key) { super(key); }
-        abstract double val();
         protected void recalc() {
             double d = val();
             if (badDouble(d))
@@ -653,9 +658,9 @@ public class EVMetrics implements TableModel {
         }
     }
 
-    protected abstract class DurationMetricFormatter extends MetricFormatter {
+    protected abstract class DurationMetricFormatter extends NumberMetricFormatter {
         public DurationMetricFormatter(String key) { super(key); }
-        abstract double val();
+        public Object getValue() { return val() / DAY_MINUTES; }
         protected void recalc() {
             double d = val();
             if (badDouble(d))
@@ -668,6 +673,7 @@ public class EVMetrics implements TableModel {
 
     protected abstract class CostRangeMetricFormatter extends MetricFormatter {
         public CostRangeMetricFormatter(String key) { super(key); }
+        public Object getValue() { return new Double[] { lpi(), upi() }; }
         abstract double lpi();
         abstract double upi();
         protected void recalc() {
@@ -685,6 +691,7 @@ public class EVMetrics implements TableModel {
 
     protected abstract class DateRangeMetricFormatter extends MetricFormatter {
         public DateRangeMetricFormatter(String key) { super(key); }
+        public Object getValue() { return new Date[] { lpi(), upi() }; }
         abstract Date lpi();
         abstract Date upi();
         protected void recalc() {
@@ -903,7 +910,7 @@ public class EVMetrics implements TableModel {
         fireTableChanged(new TableModelEvent(this));
     }
 
-    protected ArrayList getValidMetrics() {
+    public ArrayList getValidMetrics() {
         if (validMetrics == null)
             recalcMetricsFormatters();
         return validMetrics;

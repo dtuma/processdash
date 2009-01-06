@@ -1,4 +1,4 @@
-// Copyright (C) 2006-2007 Tuma Solutions, LLC
+// Copyright (C) 2006-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -356,7 +356,7 @@ public class EVTaskDependency implements Cloneable {
             boolean whatIfMode) {
 
         boolean madeChange = false;
-        List list = getDependencies(data, taskPath);
+        List<EVTaskDependency> list = getDependencies(data, taskPath);
         if (list == null || list.isEmpty()) {
             // there are currently no dependencies for the given node.  Adopt
             // the incoming dependencies as the definitive list.
@@ -460,14 +460,15 @@ public class EVTaskDependency implements Cloneable {
         return resultList;
     }
 
-    public static List getDependencies(DataContext data, String taskPath) {
+    public static List<EVTaskDependency> getDependencies(DataContext data,
+            String taskPath) {
         String dataName = DataRepository.createDataName(taskPath,
                 TASK_DEPENDENCIES_DATA_NAME);
         SimpleData currentValue = data.getSimpleValue(dataName);
         if (currentValue == null || !currentValue.test())
             return null;
 
-        List result = new LinkedList();
+        List<EVTaskDependency> result = new LinkedList<EVTaskDependency>();
         try {
             Element e = XMLUtils.parse(currentValue.format())
                     .getDocumentElement();
@@ -484,14 +485,13 @@ public class EVTaskDependency implements Cloneable {
     }
 
     public static void saveDependencies(DataContext data, String taskPath,
-            Collection dependencies) {
+            Collection<EVTaskDependency> dependencies) {
         SimpleData value = null;
 
         if (dependencies != null && !dependencies.isEmpty()) {
             StringBuffer xml = new StringBuffer();
             xml.append("<list>");
-            for (Iterator i = dependencies.iterator(); i.hasNext();) {
-                EVTaskDependency d = (EVTaskDependency) i.next();
+            for (EVTaskDependency d : dependencies) {
                 d.getAsXML(xml, false);
             }
             if (xml.length() > 6) {

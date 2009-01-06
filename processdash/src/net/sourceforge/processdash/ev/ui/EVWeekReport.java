@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2008 Tuma Solutions, LLC
+// Copyright (C) 2002-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -376,8 +376,8 @@ public class EVWeekReport extends TinyCGIBase {
 
         interpOut("<tr><td class=left>${Summary.This_Week}</td><td></td>");
         if (taskFilter == null) {
-            printTimeData(weekSlice.planDirectTime(),
-                    weekSlice.actualDirectTime());
+            printTimeData(weekSlice.getPlanDirectTime(),
+                    weekSlice.getActualDirectTime());
             out.print("<td></td>");
         }
         printPctData(weekSlice.planValue()/totalPlanTime,
@@ -387,12 +387,12 @@ public class EVWeekReport extends TinyCGIBase {
         interpOut("<tr" + indivDetail
                 + "><td class=left>${Summary.To_Date}</td><td></td>");
         if (taskFilter == null) {
-            printTimeData(weekSlice.cumPlanDirectTime(),
-                          weekSlice.cumActualDirectTime());
+            printTimeData(weekSlice.getCumPlanDirectTime(),
+                          weekSlice.getCumActualDirectTime());
             out.print("<td></td>");
         }
-        printPctData(weekSlice.cumPlanValue()/totalPlanTime,
-                     weekSlice.cumEarnedValue()/totalPlanTime);
+        printPctData(weekSlice.getCumPlanValue()/totalPlanTime,
+                     weekSlice.getCumEarnedValue()/totalPlanTime);
         out.print("</tr>\n");
 
         double numWeeks = Double.NaN;
@@ -403,16 +403,16 @@ public class EVWeekReport extends TinyCGIBase {
         interpOut("<tr" + indivDetail
                 + "><td class=left>${Summary.Average_per_Week}</td><td></td>");
         if (taskFilter == null) {
-            double planTimePerWeek = weekSlice.cumPlanDirectTime() / numWeeks;
+            double planTimePerWeek = weekSlice.getCumPlanDirectTime() / numWeeks;
             double actualTimePerWeek =
-                weekSlice.cumActualDirectTime() / numWeeks;
+                weekSlice.getCumActualDirectTime() / numWeeks;
             printTimeData(planTimePerWeek, actualTimePerWeek);
             out.print("<td></td>");
         }
         double planEVPerWeek =
-            weekSlice.cumPlanValue() / (totalPlanTime * numWeeks);
+            weekSlice.getCumPlanValue() / (totalPlanTime * numWeeks);
         double actualEVPerWeek =
-            weekSlice.cumEarnedValue() / (totalPlanTime * numWeeks);
+            weekSlice.getCumEarnedValue() / (totalPlanTime * numWeeks);
         printPctData(planEVPerWeek, actualEVPerWeek);
         out.print("</tr>\n");
 

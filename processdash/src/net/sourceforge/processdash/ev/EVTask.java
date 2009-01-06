@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2008 Tuma Solutions, LLC
+// Copyright (C) 2001-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -75,11 +75,11 @@ public class EVTask implements Cloneable, DataListener {
     }
 
     EVTask parent = null;
-    ArrayList children = new ArrayList();
+    ArrayList<EVTask> children = new ArrayList<EVTask>();
     String flag;
-    List taskIDs = null;
-    List dependencies = null;
-    List assignedTo = null;
+    List<String> taskIDs = null;
+    List<EVTaskDependency> dependencies = null;
+    List<String> assignedTo = null;
 
     String name, fullName, taskListName;
     Listener listener;
@@ -253,8 +253,8 @@ public class EVTask implements Cloneable, DataListener {
 
     public void moveUp(int childPos) {
         if (childPos > 0 && childPos < children.size()) {
-            Object a = children.get(childPos-1);
-            Object b = children.get(childPos);
+            EVTask a = children.get(childPos-1);
+            EVTask b = children.get(childPos);
 
             children.set(childPos-1, b);
             children.set(childPos,   a);
@@ -394,12 +394,12 @@ public class EVTask implements Cloneable, DataListener {
         }
     }
 
-    private List parseListAttr(Element e, String attrName) {
+    private List<String> parseListAttr(Element e, String attrName) {
         String value = e.getAttribute(attrName);
         if (!XMLUtils.hasValue(value))
             return null;
         String[] items = value.split(",");
-        return new ArrayList(Arrays.asList(items));
+        return new ArrayList<String>(Arrays.asList(items));
     }
     protected boolean hasValue(Collection c) {
         return (c != null && c.isEmpty() == false);
@@ -419,11 +419,17 @@ public class EVTask implements Cloneable, DataListener {
     private Set listeningToData = null;
 
 
-    public boolean plannedTimeIsEditable() {
+    /** Returns true if the planned time for this task is a user-editable value.
+     */
+    public boolean isPlannedTimeEditable() {
         return (planTimeEditable &&
                 (planLevelOfEffort != ANCESTOR_LEVEL_OF_EFFORT));
     }
-    public boolean completionDateIsEditable() {
+
+    /** Returns true if the actual completion date for this task is a
+     * user-editable value.
+     */
+    public boolean isCompletionDateEditable() {
         return dateCompletedEditable &&
             !isLevelOfEffortTask() && !isUserPruned();
     }
@@ -458,6 +464,9 @@ public class EVTask implements Cloneable, DataListener {
         return LEVEL_OF_EFFORT_PREFIX + taskListName;
     }
 
+    /** Returns true if this task represents "level of effort" work instead of
+     * earned value work
+     */
     public boolean isLevelOfEffortTask() {
         return (planLevelOfEffort >= 0);
     }
@@ -609,11 +618,16 @@ public class EVTask implements Cloneable, DataListener {
         }
     }
 
+    /** Messaged to indicate that the user has entered a new value for the
+     * planned time of this task.
+     * 
+     * @param aValue the value entered by the user (a String is expected)
+     */
     public void userSetPlanTime(Object aValue) {
         if ((aValue instanceof String && ((String) aValue).trim().endsWith("%")) ||
             (isLevelOfEffortTask() && (aValue == null || "".equals(aValue)))) {
             userSetLevelOfEffort((String) aValue);
-        } else if (plannedTimeIsEditable() && aValue instanceof String) {
+        } else if (isPlannedTimeEditable() && aValue instanceof String) {
             long planTime = -1;
 
             // parse the value to obtain a number of minutes
@@ -647,8 +661,13 @@ public class EVTask implements Cloneable, DataListener {
         }
     }
 
+    /** Messaged to indicate that the user has entered a new value for the
+     * actual completion date of this task.
+     * 
+     * @param aValue the value entered by the user (a Date is expected)
+     */
     public void userSetActualDate(Object aValue) {
-        if (!completionDateIsEditable())
+        if (!isCompletionDateEditable())
             return;
 
         if (isLeaf()) {
@@ -670,8 +689,13 @@ public class EVTask implements Cloneable, DataListener {
         }
     }
 
+    /** Messaged to indicate that the user has entered a new value for the
+     * node type of this task.
+     * 
+     * @param aValue the value entered by the user (a String is expected)
+     */
     public void userSetNodeType(Object aValue) {
-        if (!nodeTypeIsEditable() || aValue == null)
+        if (!isNodeTypeEditable() || aValue == null)
             return;
         String newType = aValue.toString();
 
@@ -702,32 +726,102 @@ public class EVTask implements Cloneable, DataListener {
             return percentFormatter.format(percent);
     }
     static String formatIntPercent(double percent) {
-        if (Double.isNaN(percent) || Double.isInfinite(percent))
-            percent = 0;
-        return intPercentFormatter.format(percent);
+        if (Double.isNaN(percent) || Double.isInfinite(percent) || percent == 0)
+            return "";
+        else
+            return intPercentFormatter.format(percent);
     }
 
 
-    public int getNumChildren() { return children.size(); }
+    /** Returns a list of the subtasks underneath this task.
+     * 
+     * @return the children of this task. If this task has no children, returns
+     *     an empty list.
+     */
+    public List<EVTask> getChildren() {
+        return new ArrayList<EVTask>(children);
+    }
+
+    /** Returns the number of subtasks underneath this task. */
+    public int getNumChildren() {
+        return children.size();
+    }
+
+    /** Finds a particular subtask and returns its position.
+     * 
+     * @param child the subtask to find (an EVTask object is expected)
+     * @return the index of the given subtask. If the given object is not an
+     *     EVTask, or if it is not an immediate child of this task, returns -1.
+     *     If this method return a number >= 0, an immediate call to
+     *     {@link #getChild(int)} with that number would return the subtask
+     *     correponding to the parameter value.
+     */
     public int getChildIndex(Object child) {
         if (child instanceof EVTask)
             return indexOfNode(children, (EVTask) child);
         else
             return -1;
     }
+
+    /** Returns true if this task has no subtasks. */
     public boolean isLeaf() { return children.isEmpty(); }
-    public EVTask getChild(int pos) { return (EVTask) children.get(pos); }
+
+    /** Returns a single subtask of this node.
+     * 
+     * @param pos the index of the subtask, must be less than
+     *          {@link #getNumChildren()}
+     * @return the child at that position
+     */
+    public EVTask getChild(int pos) {
+        return children.get(pos);
+    }
+
+    /** Returns the parent of this task, if one exists.
+     * 
+     * @return the parent of this task.  The root node of a task list has no
+     *     parent.
+     */
     public EVTask getParent() { return parent; }
-    public String toString() { return name; }
+
+    /** Returns the name of this task. */
     public String getName() { return name; }
-    public List getTaskIDs() { return taskIDs; }
+    public String toString() { return name; }
+
+    /** Returns the task IDs associated with this task. */
+    public List<String> getTaskIDs() { return taskIDs; }
+
+    /** Returns the flag associated with this task node.
+     * 
+     * A task list is generally composed of one or more structural root nodes
+     * (representing the task list itself) with children underneath
+     * (representing the actual work to be performed).  Structural nodes are
+     * given a flag to indicate their structural purpose, while work nodes will
+     * have no flag.
+     * 
+     * @return the flag associated with this task node, or null if this node
+     *     represents actual work to be performed.
+     */
     public String getFlag() { return flag; }
+
+    /** Returns the type of this node.
+     * 
+     * Some dashboard processes allow a "type" to be associated with work
+     * tasks.  (For example, the type might capture a process phase for
+     * high-maturity metrics collection purposes.)
+     * 
+     * @return the type of this node, or null if it has no type.
+     */
     public String getNodeType() {
-        if (nodeTypeIsImplicit())
+        if (isNodeTypeImplicit())
             return nodeType.substring(1, nodeType.length()-1);
         else
             return nodeType;
     }
+
+    /** Set the type of this node.
+     *
+     * @param type the new type for this task node.
+     */
     public void setNodeType(SimpleData type) {
         if (type == null) {
             this.nodeType = null;
@@ -737,31 +831,64 @@ public class EVTask implements Cloneable, DataListener {
             this.nodeTypeEditable = type.isEditable();
         }
     }
-    public boolean nodeTypeIsEditable() {
+
+    /** Returns true if the user should be allowed to edit the type of this
+     * task node.
+     */
+    public boolean isNodeTypeEditable() {
         return nodeType != null && nodeTypeEditable;
     }
-    public boolean nodeTypeIsMissing() {
+
+    /** Returns true if this node is <i>supposed</i> to have a type, but none
+     * is present.
+     */
+    public boolean isNodeTypeMissing() {
         return MISSING_NODE_TYPE.equals(nodeType);
     }
-    public boolean nodeTypeIsInvalid() {
-        if (nodeType == null || nodeType.length() == 0 || nodeTypeIsImplicit())
+
+    /** Returns true if this node has a type that is not a legal value
+     * (according to the rules established by the controlling process
+     * definition).
+     */
+    public boolean isNodeTypeInvalid() {
+        if (nodeType == null || nodeType.length() == 0 || isNodeTypeImplicit())
             return false;
 
         ListData l = getAcceptableNodeTypes();
         return (l != null && !l.contains(nodeType));
     }
-    public boolean nodeTypeIsImplicit() {
+
+    /** Returns true if this node has an implicit node type.
+     * 
+     * The controlling process definition may implicitly assign types to
+     * certain task nodes.  This method will detect those implicitly assigned
+     * nodes.
+     * 
+     * @return true if this node has an implicitly assigned type.
+     */
+    public boolean isNodeTypeImplicit() {
         return (nodeType != null
                 && nodeType.startsWith("(")
                 && nodeType.endsWith(")"));
     }
+
+    /** Return any applicable error message associated with the type of this
+     * node.
+     * 
+     * @return a user-friendly string describing the error associated with
+     *      the type of this node, or null if no error is present.
+     */
     public String getNodeTypeError() {
-        if (nodeTypeIsMissing())
+        if (isNodeTypeMissing())
             return resources.getString("Task.Node_Type_Missing.Error");
-        if (nodeTypeIsInvalid())
+        if (isNodeTypeInvalid())
             return resources.getString("Task.Node_Type_Invalid.Error");
         return null;
     }
+
+    /** Returns the list of node types that would be acceptable for this
+     * node, according to the controlling process definition.
+     */
     public ListData getAcceptableNodeTypes() {
         if (nodeTypeSpec != null)
             return nodeTypeSpec;
@@ -770,7 +897,7 @@ public class EVTask implements Cloneable, DataListener {
         else
             return parent.getAcceptableNodeTypes();
     }
-    public String getNodeTypeSpecValue(String key, String defaulVal) {
+    protected String getNodeTypeSpecValue(String key, String defaulVal) {
         ListData spec = getAcceptableNodeTypes();
         if (spec == null)
             return defaulVal;
@@ -784,19 +911,29 @@ public class EVTask implements Cloneable, DataListener {
 
         return defaulVal;
     }
-    public boolean nodeTypesAreInUse() {
-        if (XMLUtils.hasValue(nodeType) && !nodeTypeIsImplicit())
+
+    /** Returns true if this task or any of its children has a non-null
+     * node type.
+     */
+    public boolean isUsingNodeTypes() {
+        if (XMLUtils.hasValue(nodeType) && !isNodeTypeImplicit())
             return true;
         for (int i = getNumChildren();  i-- > 0; ) {
-            if (getChild(i).nodeTypesAreInUse())
+            if (getChild(i).isUsingNodeTypes())
                 return true;
         }
         return false;
     }
+
+    /** Returns the list of individuals assigned to this task, formatted for
+     * display.
+     */
     public String getAssignedToText() {
         return StringUtils.join(getAssignedTo(), ", ");
     }
-    public List getAssignedTo() {
+
+    /** Returns a list of the names of individuals assigned to this task. */
+    public List<String> getAssignedTo() {
         if (assignedTo != null)
             return assignedTo;
         else if (parent != null)
@@ -804,8 +941,13 @@ public class EVTask implements Cloneable, DataListener {
         else
             return null;
     }
-    public List getDependencies() { return getDependencies(false); }
-    public List getDependencies(boolean create) {
+
+    /** Returns the list of forward and reverse dependencies for this task. */
+    public List<EVTaskDependency> getDependencies() {
+        return getDependencies(false);
+    }
+
+    protected List<EVTaskDependency> getDependencies(boolean create) {
         if (dependencies == null && create)
             dependencies = new ArrayList();
         return dependencies;
@@ -813,8 +955,18 @@ public class EVTask implements Cloneable, DataListener {
     public void setDependencies(Collection dependencies) {
         this.dependencies = new ArrayList(dependencies);
     }
+
+    /** Returns the full name of this task.
+     * 
+     * Each task has a name; the full name of a task contains the names of
+     * all parents, plus this task, concatentated with the "/" character.
+     */
     public String getFullName() { return fullName; }
-    public String getPlanTime() {
+
+    /** Returns a formatted string, appropriate for display in the planned time
+     * column of a task list.
+     */
+    public String getPlanTimeText() {
         if (planLevelOfEffort == ANCESTOR_LEVEL_OF_EFFORT) return "";
         else if (rollupLevelOfEffort > 0)
             return formatPercent(rollupLevelOfEffort);
@@ -822,13 +974,23 @@ public class EVTask implements Cloneable, DataListener {
             return formatPercent(planLevelOfEffort);
         else return FormatUtil.formatTime(planTime);
     }
-    public double getPlanTimeValue() {
+
+    /** Returns the planned time (in minutes) for this task and all subtasks */
+    public double getPlanTime() {
         return planTime;
     }
-    public String getPlanDirectTime() {
+
+    public String getPlanDirectTimeText() {
         if (isValuePruned() && planValue == 0) return "";
         else return FormatUtil.formatTime(planValue);
     }
+
+    /** Returns the portion of the plan time that "counts" toward this schedule
+     * (minutes) */
+    public double getPlanDirectTime() {
+        return planValue;
+    }
+
     public boolean hasPlanTimeError() {
         return (hasTopDownBottomUpError() || planTimeIsMissing());
     }
@@ -849,62 +1011,103 @@ public class EVTask implements Cloneable, DataListener {
             return resources.getString("Task.Plan_Time_Missing.Error");
         return null;
     }
-    public String getActualTime(double totalActualTime) {
+
+    public String getActualTimeText(double totalActualTime) {
         if (isLevelOfEffortTask())
             return formatPercent(actualTime / totalActualTime);
         else return FormatUtil.formatTime(actualTime);
     }
+
+    /** Returns the total time (minutes) actually spent in this node and its
+     * children, both before and during this schedule
+     */
     public double getActualTime() {
         return actualTime;
     }
-    public String getActualDirectTime(double totalActualTime) {
+
+    public String getActualDirectTimeText() {
         if (//isLevelOfEffortTask() || isTotallyPruned() ||
             (isValuePruned() && actualDirectTime == 0)) return "";
         else return FormatUtil.formatTime(actualDirectTime);
     }
+
+    /** Returns the total time (minutes) actually spent during this schedule
+     * in this node and its children on tasks that count toward earned value
+     */
     public double getActualDirectTime() {
         return actualDirectTime;
     }
-    public String getPlanValue(double totalPlanValue) {
+
+    public String getPlanValueText(double totalPlanValue) {
         if (isValuePruned() && planValue == 0) return "";
         return formatPercent(planValue/totalPlanValue);
     }
-    public double getPlanValue() {
+
+    /** Returns the portion of the plan time (minutes) that "counts" toward
+     * this schedule */
+     public double getPlanValue() {
         return planValue;
-    }
-    public String getBaselineTime() {
+     }
+
+     /** Returns the plan value as a percentage of the total value */
+     public double getPlanValuePercent(double totalPlanValue) {
+         return planValue / totalPlanValue;
+     }
+
+     public String getBaselineTimeText() {
         if (!(baselineTime > 0) && baselineDate == null)
             return "";
         else
             return FormatUtil.formatTime(baselineTime);
     }
 
-    public String getCumPlanTime() {
+    /** Returns the amount of time planned for this task in the baseline
+     * schedule. */
+    public double getBaselineTime() {
+        return baselineTime;
+    }
+
+    public String getCumPlanTimeText() {
         if (isValuePruned() && cumPlanValue == 0) return "";
         return FormatUtil.formatTime(cumPlanValue);
     }
-    public String getCumPlanValue(double totalPlanValue) {
+
+    public String getCumPlanValueText(double totalPlanValue) {
         if (isValuePruned() && cumPlanValue == 0) return "";
         return formatPercent(cumPlanValue/totalPlanValue);
     }
+
+    /** Returns the approximate date this task is planned to start */
     public Date getPlanStartDate() {
         return planStartDate;
     }
+
+    /** Returns the date work was actually started on this task. */
     public Date getActualStartDate() {
         return actualStartDate;
     }
+
+    /** Returns the date this task is planned to be completed. */
     public Date getPlanDate() {
         if (isValuePruned()) return null;
         return planDate;
     }
+
+    /** Returns the date we planned to complete this task in the baseline
+     * schedule */
     public Date getBaselineDate() {
         return baselineDate;
     }
+
+    /** Returns the date the task could complete, based on current
+     * schedule slip */
     public Date getReplanDate() {
         if (isValuePruned()) return null;
         if (dateCompleted != null) return dateCompleted;
         return replanDate;
     }
+
+    /** Returns the date the task is forecast to complete. */
     public Date getForecastDate() {
         if (isValuePruned()) return null;
         if (dateCompleted != null) return dateCompleted;
@@ -915,34 +1118,58 @@ public class EVTask implements Cloneable, DataListener {
             dateCompleted == COMPLETION_DATE_NA) return null;
         return dateCompleted;
     }
+
+    /** Returns the date this task was actually completed, or null if the
+     * task has not yet been completed.
+     */
     public Date getDateCompleted() {
         return dateCompleted;
     }
-    public String getPercentComplete() {
+
+    public String getPercentCompleteText() {
+        return formatIntPercent(getPercentComplete());
+    }
+
+    /** Returns the percent complete for this task and subtasks, as a number
+     * between 0.0 and 1.0. */
+    public double getPercentComplete() {
         if (isLevelOfEffortTask() || isTotallyPruned() ||
                 dateCompleted == COMPLETION_DATE_NA)
-            return "";
+            return 0;
         else if (planValue == 0)
-            return (dateCompleted == null ? "" : formatIntPercent(1.0));
-        else if (valueEarned == 0)
-            return "";
-        else return formatIntPercent(valueEarned / planValue);
+            return (dateCompleted == null ? 0 : 1);
+        else
+            return valueEarned / planValue;
     }
-    public String getPercentSpent() {
+
+    public String getPercentSpentText() {
         if (actualTime == 0 || planTime == 0 || isValuePruned()) return "";
-        // percent spent applies to all time, not just the current schedule.
-        else return formatIntPercent(actualTime / planTime);
+        return formatIntPercent(getPercentSpent());
     }
+
+    /** Returns the percent spent for this task and subtasks.
+     * 
+     * Percent Spent is defined as total actual time divided by total planned
+     * time.  This calculation includes all time, not just time spent during
+     * the current EV schedule.
+     */
+    public double getPercentSpent() {
+        return actualTime / planTime;
+    }
+
+    /** Returns the actual value earned (minutes) in this node and its
+     * children. */
     public double getValueEarned() {
         return valueEarned;
     }
-    public String getValueEarned(double totalPlanTime) {
+    public String getValueEarnedText(double totalPlanTime) {
         if (isValuePruned() && valueEarned == 0) return "";
         else if (dateCompleted != null || valueEarned != 0.0)
             return formatPercent(valueEarned/totalPlanTime);
         else
             return "";
     }
+
     private String taskError = null;
     public boolean hasTaskError() { return taskError != null; }
     public String getTaskError() { return taskError; }
@@ -1161,7 +1388,7 @@ public class EVTask implements Cloneable, DataListener {
         if (!rootNodesOnly) {
             if (hasTopDownBottomUpError()) {
                 String errorMessage = resources.format(
-                        "Task.Mismatch.Error_Msg_FMT", fullName, getPlanTime(),
+                        "Task.Mismatch.Error_Msg_FMT", fullName, getPlanTimeText(),
                         FormatUtil.formatTime(bottomUpPlanTime));
                 metrics.addError(errorMessage, this);
             }
@@ -1173,12 +1400,12 @@ public class EVTask implements Cloneable, DataListener {
                 metrics.addError(errorMessage, this);
             }
 
-            if (nodeTypeIsMissing()) {
+            if (isNodeTypeMissing()) {
                 String errorMessage = resources.format(
                         "Task.Node_Type_Missing.Error_Msg_FMT",
                          fullName);
                 metrics.addError(errorMessage, this);
-            } else if (nodeTypeIsInvalid()) {
+            } else if (isNodeTypeInvalid()) {
                 String processName = getNodeTypeSpecValue("processName", "");
                 String errorMessage = resources.format(
                         "Task.Node_Type_Invalid.Error_Msg_FMT",
@@ -1311,9 +1538,8 @@ public class EVTask implements Cloneable, DataListener {
             result.append("'>").append(newline);
             String subIndent = (whitespace ? (indent + "  ") : "");
             if (hasValue(dependencies))
-                for (Iterator i = dependencies.iterator(); i.hasNext();)
-                    ((EVTaskDependency) i.next()).getAsXML(result, subIndent,
-                            true);
+                for (EVTaskDependency dep : dependencies)
+                    dep.getAsXML(result, subIndent, true);
             for (int i = 0;   i < getNumChildren();   i++)
                 getChild(i).saveToXML(result, whitespace, subIndent);
             result.append(indent).append("</task>").append(newline);

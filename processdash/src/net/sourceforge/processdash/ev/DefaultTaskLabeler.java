@@ -1,4 +1,4 @@
-// Copyright (C) 2007 Tuma Solutions, LLC
+// Copyright (C) 2007-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -119,7 +119,7 @@ public class DefaultTaskLabeler implements TaskLabeler {
             // stubs themselves do not have task IDs.  Detect whether the
             // current task looks like a phase stub, and possibly use the
             // parent's task IDs instead.
-            if (taskIDs == null && t.isLeaf() && t.nodeTypeIsImplicit()
+            if (taskIDs == null && t.isLeaf() && t.isNodeTypeImplicit()
                     && t.getParent() != null)
                 taskIDs = t.getParent().getTaskIDs();
 
