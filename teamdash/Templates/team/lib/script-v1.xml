@@ -5,8 +5,8 @@
 -->
 
 <generation-script name="script-v2"
-      id="Team" version="3.7.2"
-      requiresDashboard="1.9.4.4+"
+      id="Team" version="3.7.3"
+      requiresDashboard="1.10+"
       startingJar="/team/lib/TeamProcessCGI.jar"
       inDirectory="/team/lib"
       outDirectory="/Templates/<!--#echo Process_ID -->">
