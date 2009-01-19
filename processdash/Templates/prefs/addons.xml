@@ -32,4 +32,7 @@ preferences a category.
 -->
 
 <preferences-form>
+    <checkbox id="templates.enableSearchPath"
+              setting="templates.disableSearchPath"
+              inverted="true" />
 </preferences-form>

@@ -25,45 +25,93 @@
 
 package net.sourceforge.processdash.tool.prefs;
 
+import java.awt.BorderLayout;
+import java.awt.CardLayout;
 import java.awt.Component;
 import java.awt.Container;
+import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.beans.EventHandler;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.Vector;
 
-import javax.management.modelmbean.XMLParseException;
+import javax.swing.Box;
+import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JList;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 import javax.swing.JSplitPane;
 import javax.swing.ListSelectionModel;
+import javax.swing.border.EmptyBorder;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
+import net.sourceforge.processdash.InternalSettings;
 import net.sourceforge.processdash.ProcessDashboard;
+import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.templates.ExtensionManager;
 
 import org.w3c.dom.Element;
 
-public class PreferencesDialog extends JDialog implements ListSelectionListener {
+public class PreferencesDialog extends JDialog implements ListSelectionListener,
+                                                          PropertyChangeListener {
+    static final Resources resources = Resources.getDashBundle("Tools.Prefs.Dialog");
+
     private static final int WINDOW_WIDTH = 400;
     private static final int WINDOW_HEIGHT = 600;
+
+    /** The spacing between the OK, Cancel and Apply buttons */
+    private static final int CONTROL_BUTTONS_SPACING = 10;
+
+    /** The border width of the button box */
+    private static final int BUTTON_BOX_BORDER = 10;
 
     /** The tag name for preferences panes in templates.xml files. */
     private static final String PREFERENCES_PANE_TAG_NAME = "preferences-pane";
 
-    /** The PreferencesForm currently shown */
-    private PreferencesForm preferencesForm = new PreferencesForm();
+    /** The button that is used to save changes*/
+    private JButton applyButton;
+
+    /** The JPanel containing the PreferencesForms shown to the user */
+    JPanel preferencesPanels = new JPanel(new CardLayout());
+
+    /** This Set contains the category IDs for which a PreferencesForm has been built.
+     *   It is used to quickly determine if a PreferencesForm for a specific category
+     *   has been built and is present in preferencesPanels.*/
+    private Set<String> builtForms = new HashSet<String>();
+
+    /** A mapping of all the settings that were changed by the user and their
+     *   new value */
+    private Map<String, String> changedSettings = new HashMap<String, String>();
 
     public PreferencesDialog(ProcessDashboard parent, String title) {
         super(parent, title);
         setSize(WINDOW_WIDTH, WINDOW_HEIGHT);
-        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 
+        this.addWindowListener( new WindowAdapter() {
+            public void windowClosing(WindowEvent e) {
+                confirmClose();
+            }
+            });
+
+        reload();
+        setVisible(true);
+    }
+
+    private void reload() {
         List panesDefinitions = ExtensionManager
                 .getXmlConfigurationElements(PREFERENCES_PANE_TAG_NAME);
 
@@ -71,11 +119,105 @@ public class PreferencesDialog extends JDialog implements ListSelectionListener 
         Vector<PreferencesCategory> categories = getPreferencesGategories(panes);
 
         Container pane = this.getContentPane();
+        pane.removeAll();
+        pane.setLayout(new BorderLayout());
         pane.add(new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
                                 getCategoryChooser(categories),
-                                preferencesForm));
+                                preferencesPanels),
+                 BorderLayout.CENTER);
+        pane.add(getButtonBox(), BorderLayout.PAGE_END);
+    }
 
-        setVisible(true);
+    public void showIt() {
+        if (this.isShowing())
+            this.toFront();
+        else {
+            reload();
+            this.setVisible(true);
+        }
+    }
+
+    private Component getButtonBox() {
+        JButton okButton = new JButton(resources.getString("OK_Button"));
+        okButton.addActionListener((ActionListener) EventHandler.create(
+                ActionListener.class, this, "saveAndClose"));
+
+        JButton cancelButton = new JButton(resources.getString("Cancel_Button"));
+        cancelButton.addActionListener((ActionListener) EventHandler.create(
+                ActionListener.class, this, "closePreferences"));
+
+        applyButton = new JButton(resources.getString("Apply_Button"));
+        applyButton.addActionListener((ActionListener) EventHandler.create(
+                ActionListener.class, this, "applyChanges"));
+        updateApplyButton();
+
+        Box buttonBox = Box.createHorizontalBox();
+        buttonBox.add(Box.createHorizontalGlue());
+        buttonBox.add(okButton);
+        buttonBox.add(Box.createHorizontalStrut(CONTROL_BUTTONS_SPACING));
+        buttonBox.add(cancelButton);
+        buttonBox.add(Box.createHorizontalStrut(CONTROL_BUTTONS_SPACING));
+        buttonBox.add(applyButton);
+        buttonBox.setBorder(new EmptyBorder(BUTTON_BOX_BORDER,
+                                            BUTTON_BOX_BORDER,
+                                            BUTTON_BOX_BORDER,
+                                            BUTTON_BOX_BORDER));
+
+        return buttonBox;
+    }
+
+    public void applyChanges() {
+        Map.Entry<String, String> setting = null;
+
+        for (Iterator<Map.Entry<String, String>> it = changedSettings.entrySet().iterator();
+                it.hasNext();) {
+            setting = it.next();
+
+            InternalSettings.set(setting.getKey(), setting.getValue());
+            it.remove();
+        }
+
+        updateApplyButton();
+    }
+
+    private void updateApplyButton() {
+        applyButton.setEnabled(!changedSettings.isEmpty());
+    }
+
+    public void closePreferences() {
+        changedSettings.clear();
+        preferencesPanels.removeAll();
+        builtForms.clear();
+        this.setVisible(false);
+    }
+
+    public void confirmClose() {
+        boolean shouldClose = false;
+
+        if (!changedSettings.isEmpty()) {
+            int choice =
+                JOptionPane.showConfirmDialog(
+                    this,
+                    resources.getString("Save_On_Close_Dialog"),
+                    resources.getString("Save_Dialog_Title"),
+                    JOptionPane.YES_NO_CANCEL_OPTION);
+
+            if (choice == JOptionPane.YES_OPTION)
+                applyChanges();
+
+            shouldClose = choice != JOptionPane.CANCEL_OPTION;
+        }
+        else {
+            shouldClose = true;
+        }
+
+        if (shouldClose)
+            closePreferences();
+    }
+
+    public void saveAndClose() {
+        applyChanges();
+        closePreferences();
     }
 
     private Vector<PreferencesCategory> getPreferencesGategories(
@@ -143,12 +285,34 @@ public class PreferencesDialog extends JDialog implements ListSelectionListener 
         return categoryList;
     }
 
+    /**
+     * Called when the category is changed
+     */
     public void valueChanged(ListSelectionEvent e) {
-        JList list = (JList) e.getSource();
-        PreferencesCategory selectedCategory = (PreferencesCategory) list.getSelectedValue();
+        if (!e.getValueIsAdjusting()) {
+            JList list = (JList) e.getSource();
+            PreferencesCategory selectedCategory =
+                (PreferencesCategory) list.getSelectedValue();
 
-        preferencesForm.setCategory(selectedCategory);
+            if (!builtForms.contains(selectedCategory.getCategoryID())) {
+                // The selected form has not been built yet so we create it.
+                PreferencesForm form = new PreferencesForm(selectedCategory);
+                form.addPropertyChangeListener(this);
+                preferencesPanels.add(form.getPanel(), selectedCategory.getCategoryID());
+                builtForms.add(selectedCategory.getCategoryID());
+            }
+
+            CardLayout layout = (CardLayout) preferencesPanels.getLayout();
+            layout.show(preferencesPanels, selectedCategory.getCategoryID());
+        }
     }
 
+    /**
+     * Called when the user modifies a preference.
+     */
+    public void propertyChange(PropertyChangeEvent evt) {
+        changedSettings.put(evt.getPropertyName(), evt.getNewValue().toString());
+        updateApplyButton();
+    }
 
 }

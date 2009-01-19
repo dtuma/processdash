@@ -25,38 +25,119 @@
 
 package net.sourceforge.processdash.tool.prefs;
 
+import java.awt.BorderLayout;
+import java.io.IOException;
+import java.net.URLConnection;
 import java.util.SortedSet;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
-import javax.swing.BoxLayout;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
+
+import net.sourceforge.processdash.templates.TemplateLoader;
+import net.sourceforge.processdash.tool.prefs.editor.PreferencesCheckBox;
+import net.sourceforge.processdash.ui.lib.binding.BoundForm;
+import net.sourceforge.processdash.util.XMLUtils;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.xml.sax.SAXException;
 
 /**
  * This form is used to modify the user preferences under a specific category.
  */
-public class PreferencesForm extends JPanel {
+public class PreferencesForm extends BoundForm {
 
-    JLabel label = new JLabel();
+    /** Various xml tags used in spec files */
+    private static final String ID_TAG = "id";
+    private static final String REQUIRES_TAG = "requires";
+    public static final String SETTING_TAG = "setting";
 
-    public PreferencesForm() {
-        this.setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
-        this.add(label);
+    /** The tags for which special Preferences editors are used */
+    private static final String CHECKBOX_TAG = "checkbox";
+
+    /** The JPanel containing the GUI */
+    private JPanel panel = new JPanel();
+
+    private static final Logger logger = Logger.getLogger(PreferencesForm.class.getName());
+
+    public PreferencesForm(PreferencesCategory category) {
+        addElementType(CHECKBOX_TAG, PreferencesCheckBox.class);
+        selectCategory(category);
+        panel.setLayout(new BorderLayout());
+        panel.add(BorderLayout.CENTER, getContainer());
     }
 
-    public void setCategory(PreferencesCategory category) {
-
+    /**
+     * Selects the category shown by the PreferencesForm
+     */
+    private void selectCategory(PreferencesCategory category) {
         if (category != null) {
-            StringBuffer labelText = new StringBuffer("<html><h2>Spec Files :</h2><p>");
-
             SortedSet<PreferencesPane> panes = category.getPanes();
 
             for (PreferencesPane pane : panes) {
-                labelText.append(pane.getSpecFile() + "<br />");
+                setResources(pane.getResources());
+                loadSpecFileContents(pane.getSpecFile());
             }
-
-            labelText.append("</p></html>");
-            label.setText(labelText.toString());
         }
+    }
+
+    private void loadSpecFileContents(String specFileLocation) {
+        try {
+            Document spec = getSpecDocument(specFileLocation);
+            addFormElements(spec.getDocumentElement());
+        } catch (IllegalArgumentException e) {
+            logger.log(Level.SEVERE, e.getMessage());
+        }
+    }
+
+    /**
+     * An element should be ignored if the requirements in its "requires" attribute
+     *  are not met.
+     */
+    @Override
+    protected boolean shouldIgnoreElement(Element xml) {
+        boolean elementIsValid = false;
+
+        if (!super.shouldIgnoreElement(xml)) {
+            String requirements = xml.getAttribute(REQUIRES_TAG);
+
+            elementIsValid =
+                TemplateLoader.meetsPackageRequirement(requirements);
+
+            if (!elementIsValid) {
+                logger.log(Level.INFO, "Could not load preferences widget \"" +
+                                        xml.getAttribute(ID_TAG) + "\". " +
+                                        "Requirements \"" + requirements + "\" " +
+                                        "not met.");
+            }
+        }
+
+        return !elementIsValid;
+    }
+
+    private Document getSpecDocument(String specFileLocation) {
+        Document document = null;
+        URLConnection conn = TemplateLoader.resolveURLConnection(specFileLocation);
+
+        if (conn != null) {
+            try {
+                document = XMLUtils.parse(conn.getInputStream());
+            }
+            catch (SAXException e) { document = null; }
+            catch (IOException e) { document = null; }
+        }
+
+        if (document == null) {
+            throw new IllegalArgumentException("Could not open specFile \"" +
+                                               specFileLocation + "\"");
+        }
+
+        return document;
+    }
+
+    public JPanel getPanel() {
+        return panel;
     }
 
 }

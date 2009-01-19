@@ -32,4 +32,10 @@ preferences a category.
 -->
 
 <preferences-form>
+    <checkbox id="readOnly.recommend"
+              setting="readOnly.recommend" />
+            
+    <checkbox id="slowNetwork"
+              requires="java version 1.7"
+              setting="slowNetwork" />
 </preferences-form>

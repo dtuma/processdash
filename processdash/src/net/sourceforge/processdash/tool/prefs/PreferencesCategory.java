@@ -96,6 +96,10 @@ public class PreferencesCategory implements Comparable<PreferencesCategory> {
         return panes;
     }
 
+    public String getCategoryID() {
+        return categoryID;
+    }
+
     /**
      * Returns 0 if both categories have the same priority, a positive
      *  number if this category's priority is less than the argument and

@@ -1,4 +1,4 @@
-// Copyright (C) 2007 Tuma Solutions, LLC
+// Copyright (C) 2007-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -72,11 +72,16 @@ public class BoundForm extends BoundMap {
 
 
     protected void addFormComponent(JComponent component, Element xml) {
-        String label = xml.getAttribute("label");
+        String label = getResource(xml.getAttribute("id") + ".Label");
+        if (label == null)
+            label = xml.getAttribute("label");
 
         addFormComponent(component, label);
 
-        String tooltip = xml.getAttribute("tooltip");
+        String tooltip = getResource(xml.getAttribute("id") + ".Tooltip");
+        if (tooltip == null)
+            tooltip = xml.getAttribute("tooltip");
+
         if (StringUtils.hasValue(tooltip))
             component.setToolTipText(tooltip);
     }

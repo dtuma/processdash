@@ -55,7 +55,7 @@ public class OpenPreferencesDialogAction extends AbstractAction {
                 new PreferencesDialog(parent, resources.getString(DIALOG_TITLE_RESOURCE));
         }
         else  {
-            preferencesDialog.setVisible(true);
+            preferencesDialog.showIt();
         }
 
     }

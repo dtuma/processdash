@@ -32,4 +32,13 @@ preferences a category.
 -->
 
 <preferences-form>
+    <grouping id="systemTray" requires="java version 1.6">
+        <checkbox id="systemTray.enabled"
+                  setting="systemTray.disabled"
+                  inverted="true" />
+
+        <checkbox id="systemTray.minimizeToTray"
+                  setting="systemTray.minimizeToTray"
+                  disabledIf="systemTray.disabled" />
+    </grouping>
 </preferences-form>

@@ -115,7 +115,7 @@ public class PreferencesPane implements Comparable<PreferencesPane> {
         return getResources().getString(CATEGORY_DISPLAY_NAME_RESOURCE);
     }
 
-    private Resources getResources() {
+    public Resources getResources() {
         return Resources.getDashBundle(this.resourcesLocation);
     }
 
