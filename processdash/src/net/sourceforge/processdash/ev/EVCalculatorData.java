@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2008 Tuma Solutions, LLC
+// Copyright (C) 2003-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -230,22 +230,10 @@ public class EVCalculatorData extends EVCalculator {
 
     public Date getEffectiveDate() {
         Date result = completionDate;
-        if (result == null) result = getTestingEffDate();
+        if (result == null) result = getFixedEffectiveDate();
         if (result == null) result = new Date();
         return result;
     }
-
-    public Date getTestingEffDate() {
-        String setting = Settings.getVal("ev.effectiveDate");
-        if (setting == null) return null;
-        try {
-            return new Date(Long.parseLong(setting));
-        } catch (Exception e) {
-            return null;
-        }
-    }
-
-
 
     protected void saveTimeBeforeSchedule(TimeLog log) throws IOException {
         try {

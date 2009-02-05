@@ -1,4 +1,4 @@
-//Copyright (C) 2003-2008 Tuma Solutions, LLC
+//Copyright (C) 2003-2009 Tuma Solutions, LLC
 //Process Dashboard - Data Automation Tool for high-maturity processes
 //
 //This program is free software; you can redistribute it and/or
@@ -44,6 +44,8 @@ import net.sourceforge.processdash.util.StringUtils;
 
 
 public abstract class EVCalculator {
+
+    public static final String FIXED_EFFECTIVE_DATE_SETTING = "ev.effectiveDate";
 
     protected List evLeaves;
     protected Date scheduleStartDate;
@@ -188,6 +190,27 @@ public abstract class EVCalculator {
             return Boolean.valueOf(value);
         else
             return defaultVal;
+    }
+
+
+    /**
+     * If a preset/unvarying effective date has been registered, return it.
+     * 
+     * During normal operations, the effective date is always the current
+     * date/time.  However, when opening a historical data backup, the
+     * effective date is generally the date when the backup was saved instead.
+     * 
+     * @return the fixed effective date if one has been registered. If no
+     *     effective date has been registered, returns null.
+     */
+    public static Date getFixedEffectiveDate() {
+        String setting = Settings.getVal(FIXED_EFFECTIVE_DATE_SETTING);
+        if (setting == null) return null;
+        try {
+            return new Date(Long.parseLong(setting));
+        } catch (Exception e) {
+            return null;
+        }
     }
 
 

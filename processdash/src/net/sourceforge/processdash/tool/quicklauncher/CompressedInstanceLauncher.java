@@ -1,4 +1,4 @@
-// Copyright (C) 2006-2008 Tuma Solutions, LLC
+// Copyright (C) 2006-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -35,6 +35,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 import net.sourceforge.processdash.Settings;
+import net.sourceforge.processdash.ev.EVCalculator;
 import net.sourceforge.processdash.tool.bridge.client.AbstractWorkingDirectory;
 import net.sourceforge.processdash.tool.bridge.client.DirectoryPreferences;
 import net.sourceforge.processdash.tool.bridge.client.TeamServerSelector;
@@ -93,7 +94,8 @@ public class CompressedInstanceLauncher extends DashboardInstance {
         vmArgs.add(DISABLE_PROCESS_LOCK);
         vmArgs.add(DISABLE_TEAM_SERVER);
         if (dataTimeStamp > 0)
-            vmArgs.add("-D" + Settings.SYS_PROP_PREFIX + "ev.effectiveDate="
+            vmArgs.add("-D" + Settings.SYS_PROP_PREFIX
+                    + EVCalculator.FIXED_EFFECTIVE_DATE_SETTING + "="
                     + dataTimeStamp);
         if (processFactory.hasVmArg("-DreadOnly=true") == false)
             vmArgs.add(READ_WRITE_ARG);

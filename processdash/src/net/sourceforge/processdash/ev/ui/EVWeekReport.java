@@ -122,14 +122,19 @@ public class EVWeekReport extends TinyCGIBase {
             // With a Sunday - Saturday schedule, the following line will show
             // the report for the previous week through Tuesday, and will
             // start showing the next week's report on Wednesday.
-            Date effDateTime = new Date(System.currentTimeMillis()
+            Date now = EVCalculator.getFixedEffectiveDate();
+            if (now == null) now = new Date();
+            Date effDateTime = new Date(now.getTime()
                     + EVSchedule.WEEK_MILLIS * 3 / 7);
 
             // now, identify the schedule boundary that precedes the effective
             // date and time; use that as the effective date.
             Date scheduleEnd = schedule.getLast().getEndDate();
+            Date firstPeriodEnd = schedule.get(1).getEndDate();
             if (effDateTime.compareTo(scheduleEnd) >= 0)
                 effDate = scheduleEnd;
+            else if (effDateTime.compareTo(firstPeriodEnd) <= 0)
+                effDate = firstPeriodEnd;
             else
                 effDate = schedule.getPeriodStart(effDateTime);
 
