@@ -262,18 +262,10 @@ public class FileSystemLOCDiffDialog extends FileSystemLOCDiff
             new FileSystemLOCDiffDialog(HardcodedFilterLocator.getFilters())
                 .showDialog();
 
-        } else if (args.length == 1 || args.length == 2) {
+        } else {
             FileSystemLOCDiff.main(args);
 
-        } else {
-            printUsage();
-
         }
-    }
-
-    protected static void printUsage() {
-        System.out.println("Usage: java " +
-                FileSystemLOCDiffDialog.class.getName() + " [fileA] [fileB]");
     }
 
 }
