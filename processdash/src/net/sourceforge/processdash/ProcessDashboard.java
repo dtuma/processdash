@@ -1,4 +1,4 @@
-// Copyright (C) 1998-2008 Tuma Solutions, LLC
+// Copyright (C) 1998-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -163,6 +163,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         ProcessDashboard.class.getName() + ".notifyOnOpen.port";
     public static final String NOTIFY_ON_OPEN_ID_PROPERTY =
         ProcessDashboard.class.getName() + ".notifyOnOpen.id";
+    public static final String WINDOW_TITLE_SETTING = "window.title";
 
     WorkingDirectory workingDirectory;
     FileBackupManager fileBackupManager;
@@ -331,14 +332,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         versionNumber = TemplateLoader.getPackageVersion("pspdash"); // legacy
         logger.info("Process Dashboard version " + versionNumber);
 
-        title = Settings.getVal("window.forcedTitle", title);
-        if (title == null)
-            title = Settings.getVal("window.title");
-        if (title == null)
-            title = resources.getString("Window_Title");
-        if (Settings.isReadOnly())
-            title = resources.format("ReadOnly.Title_FMT", title);
-        setTitle(title);
+        setupWindowTitle(title);
 
         // initialize the content roots for the http server.
         webServer.setRoots(TemplateLoader.getTemplateURLs());
@@ -781,6 +775,44 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         GridBagLayout layout = (GridBagLayout) getContentPane().getLayout();
         layout.setConstraints(component, g);
         return getContentPane().add(component);
+    }
+
+    private void setupWindowTitle(String titleFromCommandLine) {
+        // if a title was given on the command line, register it as the default
+        // (overriding the locale-specific default value).
+        if (StringUtils.hasValue(titleFromCommandLine))
+            InternalSettings.setDefaultValue(WINDOW_TITLE_SETTING,
+                titleFromCommandLine);
+
+        // now consult the user preferences and set the window title
+        setWindowTitleFromPreferences();
+
+        // register a listener to update the title when the user
+        // preference changes
+        InternalSettings.addPropertyChangeListener(WINDOW_TITLE_SETTING,
+            new PropertyChangeListener() {
+                public void propertyChange(PropertyChangeEvent evt) {
+                    setWindowTitleFromPreferences();
+                }});
+    }
+
+    private void setWindowTitleFromPreferences() {
+        // check for the "forced title" override setting.  (This is used in
+        // very uncommon situations, like for taking screen shots to put in
+        // user documentation.)
+        String title = Settings.getVal("window.forcedTitle");
+
+        // if no forced title is set, read the regular user setting
+        if (!StringUtils.hasValue(title)) {
+            title = Settings.getVal(WINDOW_TITLE_SETTING);
+
+            // possibly apply the read-only modifier
+            if (Settings.isReadOnly())
+                title = resources.format("ReadOnly.Title_FMT", title);
+        }
+
+        // set the title of the window
+        setTitle(title);
     }
 
     private void displayFirstTimeUserHelp() {

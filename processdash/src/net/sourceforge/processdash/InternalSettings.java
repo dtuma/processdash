@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2006 Tuma Solutions, LLC
+// Copyright (C) 2001-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -281,7 +281,26 @@ public class InternalSettings extends Settings {
 
         saveSettings();
 
-        propSupport.firePropertyChange(name, oldValue, value);
+        maybeFirePropertyChange(name, oldValue, value);
+    }
+
+    public static void setDefaultValue(String name, String defaultValue) {
+        checkPermission("write."+name);
+
+        if (disableChanges)
+            return;
+
+        String oldValue = fsettings.getProperty(name);
+
+        if (defaultValue == null) {
+            defaults.remove(name);
+        } else {
+            defaults.put(name, defaultValue);
+        }
+
+        String newValue = fsettings.getProperty(name);
+
+        maybeFirePropertyChange(name, oldValue, newValue);
     }
 
     public static String getExtendableVal(String name, String sep) {
@@ -367,11 +386,36 @@ public class InternalSettings extends Settings {
         propSupport.removePropertyChangeListener(propertyName, l);
     }
 
+    private static void maybeFirePropertyChange(final String propertyName,
+              final String oldValue, final String newValue) {
+
+        // only fire an event if the value actually changed
+        if (!eq(oldValue, newValue)) {
+
+            // Use a privileged action to fire the event, so the presence of
+            // unprivileged code in our call stack does not limit the rights
+            // of our clients when handling the event.
+            AccessController.doPrivileged(new PrivilegedAction() {
+                public Object run() {
+                    propSupport.firePropertyChange(propertyName, oldValue,
+                          newValue);
+                    return null;
+                }});
+        }
+    }
+
+    private static boolean eq(String a, String b) {
+        if (a == b) return true;
+        if (a == null) return false;
+        return a.equals(b);
+    }
+
     static void loadLocaleSpecificDefaults(ResourceBundle resources) {
         checkPermission("initialize");
         defaults.put("dateFormat", resources.getString("Date_Format"));
         defaults.put("dateTimeFormat", resources.getString("Date_Time_Format"));
         defaults.put("http.charset", resources.getString("HTTP_charset_"));
+        defaults.put("window.title", resources.getString("Window_Title"));
     }
 
     /** This main method is used to merge settings from one or more external

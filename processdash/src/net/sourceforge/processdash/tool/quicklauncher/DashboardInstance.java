@@ -1,4 +1,4 @@
-// Copyright (C) 2006-2007 Tuma Solutions, LLC
+// Copyright (C) 2006-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -25,10 +25,10 @@ package net.sourceforge.processdash.tool.quicklauncher;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import net.sourceforge.processdash.ProcessDashboard;
+import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.util.RuntimeUtils;
 import net.sourceforge.processdash.util.XMLUtils;
@@ -124,13 +124,16 @@ abstract class DashboardInstance {
                 + ProcessDashboard.NOTIFY_ON_OPEN_ID_PROPERTY + "=" + id;
             extraVmArgs.add(notifyArg);
 
-            List programArgs = null;
             String windowTitle = getDisplay();
-            if (windowTitle != null)
-                programArgs = Collections.singletonList(windowTitle);
+            if (windowTitle != null) {
+                String titleArg = "-D" + Settings.SYS_PROP_PREFIX
+                        + ProcessDashboard.WINDOW_TITLE_SETTING + "="
+                        + windowTitle;
+                extraVmArgs.add(titleArg);
+            }
 
             process = processFactory.launchDashboard(pspdataDir, extraVmArgs,
-                    programArgs);
+                    null);
         } catch (Exception e) {
             String message = resources.format("Errors.Cant_Launch", e
                     .getLocalizedMessage());
