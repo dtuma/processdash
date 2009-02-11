@@ -1,4 +1,4 @@
-// Copyright (C) 2007 Tuma Solutions, LLC
+// Copyright (C) 2007-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -101,6 +101,10 @@ public class BoundMap extends ObservableMap {
         addElementType("label", BoundLabel.class);
         addElementType("sql-connection", BoundSqlConnection.class);
         addElementType("sql-query", BoundSqlQuery.class);
+        addElementType("grouping", BoundGrouping.class);
+
+        // TODO : Uncomment after having finished implementing BoundFileList
+        //addElementType("file-list", BoundFileList.class);
     }
 
     protected void addElementType(String tagName, Class clazz)

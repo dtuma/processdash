@@ -62,6 +62,7 @@ import net.sourceforge.processdash.InternalSettings;
 import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.templates.ExtensionManager;
+import net.sourceforge.processdash.util.StringUtils;
 
 import org.w3c.dom.Element;
 
@@ -311,7 +312,11 @@ public class PreferencesDialog extends JDialog implements ListSelectionListener,
      * Called when the user modifies a preference.
      */
     public void propertyChange(PropertyChangeEvent evt) {
-        changedSettings.put(evt.getPropertyName(), evt.getNewValue().toString());
+        String newValue = evt.getNewValue() != null ?
+                             evt.getNewValue().toString().trim() : null;
+
+        changedSettings.put(evt.getPropertyName(),
+                            StringUtils.hasValue(newValue) ? newValue : null);
         updateApplyButton();
     }
 

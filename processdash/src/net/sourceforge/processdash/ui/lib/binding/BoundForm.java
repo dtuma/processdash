@@ -27,6 +27,8 @@ import java.awt.Container;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.beans.PropertyChangeEvent;
+import java.util.List;
 
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -59,7 +61,19 @@ public class BoundForm extends BoundMap {
         disposeMap();
     }
 
+    /**
+     * Used to add form elements to a different Container than the one
+     *  in this BoundForm.
+     */
+    public List addFormElements(Container container, Element xml) {
+        Container originalContainer = this.container;
 
+        this.container = container;
+        List elements = super.addFormElements(xml);
+        this.container = originalContainer;
+
+        return elements;
+    }
 
     protected void addFormElement(Object element, Element xml) {
         super.addFormElement(element, xml);
@@ -84,6 +98,31 @@ public class BoundForm extends BoundMap {
 
         if (StringUtils.hasValue(tooltip))
             component.setToolTipText(tooltip);
+
+        String enablingProperty = xml.getAttribute("enabledIf");
+        String disablingProperty = xml.getAttribute("disabledIf");
+
+        EnablePropertyListener enableListener = new EnablePropertyListener(component,
+                                                                           enablingProperty,
+                                                                           disablingProperty);
+
+        maybeAddEnablePropertyChangeListener(enablingProperty, enableListener);
+        maybeAddEnablePropertyChangeListener(disablingProperty, enableListener);
+    }
+
+    private void maybeAddEnablePropertyChangeListener(String property,
+                                                      EnablePropertyListener enableListener) {
+        if (StringUtils.hasValue(property)) {
+            this.addPropertyChangeListener(property, enableListener);
+
+            // Forcing a PropertyChangeEvent to enable or disable the widget based on the
+            //  current value of the property
+            enableListener.propertyChange(
+                new PropertyChangeEvent(this,
+                                        property,
+                                        null,
+                                        this.get(property)));
+        }
     }
 
     protected void addFormComponent(JComponent component, String label) {

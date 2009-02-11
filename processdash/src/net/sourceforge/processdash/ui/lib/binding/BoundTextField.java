@@ -1,4 +1,4 @@
-// Copyright (C) 2007 Tuma Solutions, LLC
+// Copyright (C) 2007-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -77,7 +77,12 @@ public class BoundTextField extends JTextField {
         this.normalBackground = getBackground();
 
         map.addPropertyChangeListener(attributeName, this, "updateFromMap");
+        addUpdateFromTextListeners();
 
+        updateFromMap();
+    }
+
+    protected void addUpdateFromTextListeners() {
         addActionListener((ActionListener) EventHandler.create(
                 ActionListener.class, this, "updateFromText"));
         addFocusListener(new FocusAdapter() {
@@ -85,8 +90,6 @@ public class BoundTextField extends JTextField {
                 updateFromText();
             }
         });
-
-        updateFromMap();
     }
 
     protected void setNumberFormat(NumberFormat fmt) {
@@ -104,7 +107,9 @@ public class BoundTextField extends JTextField {
         setBackground(normalBackground);
         Object value = map.get(propertyName);
         String text = formatValue(value);
-        setText(text);
+
+        if (!getText().equals(text))
+            setText(text);
     }
 
     protected String formatValue(Object value) {

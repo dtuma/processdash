@@ -36,6 +36,5 @@ preferences a category.
               setting="readOnly.recommend" />
             
     <checkbox id="slowNetwork"
-              requires="java version 1.7"
               setting="slowNetwork" />
 </preferences-form>

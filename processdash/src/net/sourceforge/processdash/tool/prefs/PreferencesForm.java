@@ -36,6 +36,7 @@ import javax.swing.JPanel;
 
 import net.sourceforge.processdash.templates.TemplateLoader;
 import net.sourceforge.processdash.tool.prefs.editor.PreferencesCheckBox;
+import net.sourceforge.processdash.tool.prefs.editor.PreferencesTextField;
 import net.sourceforge.processdash.ui.lib.binding.BoundForm;
 import net.sourceforge.processdash.util.XMLUtils;
 
@@ -55,6 +56,7 @@ public class PreferencesForm extends BoundForm {
 
     /** The tags for which special Preferences editors are used */
     private static final String CHECKBOX_TAG = "checkbox";
+    private static final String TEXTFIELD_TAG = "textfield";
 
     /** The JPanel containing the GUI */
     private JPanel panel = new JPanel();
@@ -63,6 +65,8 @@ public class PreferencesForm extends BoundForm {
 
     public PreferencesForm(PreferencesCategory category) {
         addElementType(CHECKBOX_TAG, PreferencesCheckBox.class);
+        addElementType(TEXTFIELD_TAG, PreferencesTextField.class);
+
         selectCategory(category);
         panel.setLayout(new BorderLayout());
         panel.add(BorderLayout.CENTER, getContainer());
