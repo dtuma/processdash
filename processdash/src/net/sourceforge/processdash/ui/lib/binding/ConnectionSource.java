@@ -1,4 +1,4 @@
-// Copyright (C) 2007-2009 Tuma Solutions, LLC
+// Copyright (C) 2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -11,7 +11,7 @@
 //
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
@@ -23,32 +23,8 @@
 
 package net.sourceforge.processdash.ui.lib.binding;
 
-public interface ErrorTokens {
+public interface ConnectionSource<T> {
 
-    int MISSING_DATA_SEVERITY = ErrorData.INFORMATION;
-
-    String NO_URL = "URL_Missing";
-
-    String INVALID_URL = "URL_Invalid";
-
-    String NO_USERNAME = "Username_Missing";
-
-    String NO_PASSWORD = "Password_Missing";
-
-    String NO_NETWORK = "No_Network";
-
-    String CANNOT_CONNECT = "Cannot_Connect";
-
-    String DATA_MISSING = "Data_Missing";
-
-    String LOADING = "Loading";
-
-    String NO_CONNECTION = "No_Connection";
-
-    String SQL_ERROR = "Sql_Error";
-
-    String XMLRPC_ERROR = "XmlRpc_Error";
-
-    String NO_VALUES_FOUND = "No_Values_Found";
+    public T getConnection();
 
 }

@@ -122,8 +122,12 @@ Authors:
   <property name="datatips.jar"   value="${lib}/datatips.jar"/>
   <property name="colt.jar"       value="${lib}/colt.jar"/>
   <property name="apple-eawt.jar" value="${lib}/com-apple-eawt.jar"/>
+  <property name="ws-commons.jar" value="${lib}/ws-commons-util-1.0.2.jar"/>
+  <property name="xmlrpc-cli.jar" value="${lib}/xmlrpc-client-3.1.1.jar"/>
+  <property name="xmlrpc-com.jar" value="${lib}/xmlrpc-common-3.1.1.jar"/>
   <property name="l10n-tool.jar"  value="l10n-tool/dist/jrc-editor.jar"/>
 
+  <property name="codeCollab.testUrl" value="http://demo.smartbear.com/" />
   <property name="cvsroot"
      value=":pserver:anonymous@cvs.sourceforge.net:/cvsroot/processdash"/>
 
@@ -146,6 +150,9 @@ Authors:
     <pathelement location="${jcalendar.jar}"/>
     <pathelement location="${datatips.jar}"/>
     <pathelement location="${apple-eawt.jar}"/>
+    <pathelement location="${ws-commons.jar}"/>
+    <pathelement location="${xmlrpc-cli.jar}"/>
+    <pathelement location="${xmlrpc-com.jar}"/>
   </path>
 
 
@@ -490,6 +497,9 @@ Authors:
       <zipfileset src="${colt.jar}" includesfile="${lib}/fileset-colt.txt"/>
       <zipfileset src="${l10n-tool.jar}" includes="**/jrc-editor*.properties"/>
       <zipfileset src="${datatips.jar}" includes="**/*.class"/>
+      <zipfileset src="${ws-commons.jar}" includes="org/" />
+      <zipfileset src="${xmlrpc-cli.jar}" includes="org/" />
+      <zipfileset src="${xmlrpc-com.jar}" includes="org/" />
     </jar>
   </target>
 
@@ -713,6 +723,16 @@ Authors:
     <delete quiet="true" dir="${build}-verify"/>
     <echo message="Congratulations!"/>
     <echo message="Successfully builds against Java 1.5!"/>
+  </target>
+
+  <target name="verifyCC" depends="jar"
+      description="Verify that the Code Collaborator integration can still lookup defect types properly">
+
+    <java classpath="${dist}/pspdash.jar" fork="true" 
+        inputstring="" failonerror="true"
+        classname="net.sourceforge.processdash.log.ui.importer.codecollab.CCDefectTypeLookup">
+      <arg value="${codeCollab.testUrl}"/>
+    </java>
   </target>
 
   <target name="securityTestJar" depends="dist">

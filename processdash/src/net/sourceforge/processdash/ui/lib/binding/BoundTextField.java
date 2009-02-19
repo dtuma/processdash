@@ -131,8 +131,11 @@ public class BoundTextField extends JTextField {
         Object val = null;
         if (text != null)
             val = parseText(text);
-        if (val != INVALID_VALUE)
-            map.put(propertyName, val);
+        if (val != INVALID_VALUE) {
+            Object oldVal = map.get(propertyName);
+            if (!eq(val, oldVal))
+                map.put(propertyName, val);
+        }
     }
 
     protected Object parseText(String text) {
@@ -151,4 +154,15 @@ public class BoundTextField extends JTextField {
     }
     private Object INVALID_VALUE = new Object();
 
+    private static boolean eq(Object a, Object b) {
+        if (a == b) return true;
+        if (a == null || b == null) return false;
+        if (a instanceof Number && b instanceof Number) {
+            Number aa = (Number) a;
+            Number bb = (Number) b;
+            double diff = Math.abs(aa.doubleValue() - bb.doubleValue());
+            return diff < 0.00001;
+        }
+        return a.equals(b);
+    }
 }

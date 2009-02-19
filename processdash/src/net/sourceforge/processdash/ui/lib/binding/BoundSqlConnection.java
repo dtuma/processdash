@@ -1,4 +1,4 @@
-// Copyright (C) 2007 Tuma Solutions, LLC
+// Copyright (C) 2007-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -23,8 +23,6 @@
 
 package net.sourceforge.processdash.ui.lib.binding;
 
-import java.io.IOException;
-import java.net.InetAddress;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -34,137 +32,75 @@ import net.sourceforge.processdash.util.StringUtils;
 
 import org.w3c.dom.Element;
 
-public class BoundSqlConnection implements BoundMap.Disposable, ErrorTokens {
-
-    private static final String NO_PASSWORD_TOKEN = "[none]";
+public class BoundSqlConnection extends AbstractBoundConnection<Connection> {
 
     public static final String DEFAULT_ID = "sqlConnection";
 
-    public interface ConnectionSource {
-        public Connection getConnection();
-    }
 
-    protected AttributeValue jdbcURL;
+    protected DynamicAttributeValue jdbcURL;
 
-    protected AttributeValue username;
+    protected DynamicAttributeValue username;
 
-    protected AttributeValue password;
+    protected DynamicAttributeValue password;
 
-    protected AttributeValue schema;
+    protected DynamicAttributeValue schema;
 
-    protected BoundMap map;
-
-    protected String destPropName;
-
-    protected String error;
-
-    protected int errorSeverity;
-
-    protected String unavailableMessage;
-
-    protected Connection connection;
 
     public BoundSqlConnection(BoundMap map, Element xml) {
-        this.map = map;
-        this.destPropName = getXmlAttr(xml, "id", DEFAULT_ID);
+        super(map, xml, DEFAULT_ID);
 
-        this.jdbcURL = new AttributeValue(xml, "url", CANNOT_CONNECT);
-        this.username = new AttributeValue(xml, "username", NO_USERNAME);
-        this.password = new AttributeValue(xml, "password", NO_PASSWORD);
-        this.schema = new AttributeValue(xml, "schema", null);
-
-        this.unavailableMessage = getXmlAttr(xml, "unavailableMessage",
-            CANNOT_CONNECT);
-
-        recalc();
+        this.jdbcURL = getDynamicValue(xml, "url", CANNOT_CONNECT);
+        this.username = getDynamicValue(xml, "username", NO_USERNAME);
+        this.password = getDynamicValue(xml, "password", NO_PASSWORD);
+        this.schema = getDynamicValue(xml, "schema", null);
     }
 
 
-
-    public void disposeBoundItem() {
-        disposeConnection();
+    @Override
+    protected void disposeConnectionImpl(Connection connection)
+            throws Exception {
+        connection.close();
     }
 
 
-    public void recalc() {
-        disposeConnection();
-
-        setError(null, ErrorData.NO_ERROR);
-        map.put(destPropName, new PublicValue());
-    }
-
-
-    private void disposeConnection() {
-        if (connection != null) {
-            try {
-                connection.close();
-            } catch (Exception e) {}
-            connection = null;
-        }
-    }
-
-    protected void setError(String errorToken, int severity) {
-        this.error = errorToken;
-        this.errorSeverity = severity;
-    }
-
-
-
-    protected void openConnection() {
-        String password = null;
+    @Override
+    protected Connection openConnectionImpl() throws ErrorDataValueException {
+        ErrorDataValueException passwordException = null;
         try {
             // look up the information needed to make the connection
             String jdbcURL = this.jdbcURL.getValue();
             String username = this.username.getValue();
-            password = getPassword();
+            String password;
+            try {
+                password = getPassword(this.password.getValue());
+            } catch (ErrorDataValueException e) {
+                // if no password was provided, try to proceed without one.
+                password = "";
+                passwordException = e;
+            }
 
             // make the connection
-            connection = DriverManager.getConnection(jdbcURL, username,
-                password);
+            Connection result = DriverManager.getConnection(jdbcURL,
+                username, password);
 
             // optionally set the schema
             String schema = this.schema.getValue();
             if (StringUtils.hasValue(schema))
-                setSchema(connection, schema);
+                setSchema(result, schema);
 
-            setError(null, ErrorData.NO_ERROR);
-            return;
-        } catch (AttributeValueMissingException e) {
-            // The error will have already been set at this point. Nothing
-            // else needs to be done.
-            return;
+            return result;
+
         } catch (SQLException e) {
-            if ("".equals(password))
-                // if the login failed because no password was set, the error
-                // fields will already contain the "missing password" info.
-                return;
+            // if the login failed because no password was set, rethrow the
+            // "missing password" error.
+            if (passwordException != null)
+                throw passwordException;
+            // we were unable to open a connection; return null.
             e.printStackTrace();
-        }
-
-        // see if a network connection appears to be available.
-        try {
-            if (InetAddress.getLocalHost().isLoopbackAddress()) {
-                setError(NO_NETWORK, ErrorData.SEVERE);
-                return;
-            }
-        } catch (IOException ioe) {}
-
-        // connection failed.
-        setError(unavailableMessage, ErrorData.SEVERE);
-    }
-
-    private String getPassword() {
-        try {
-            String password = this.password.getValue();
-            if (NO_PASSWORD_TOKEN.equals(password))
-                return "";
-            else
-                return map.unhashValue(password);
-        } catch (AttributeValueMissingException e) {
-            // let's see if the login succeeds with an empty password
-            return "";
+            return null;
         }
     }
+
 
     private void setSchema(Connection conn, String schemaName) {
         if (!VALID_SCHEMA_NAME.matcher(schemaName).matches()) {
@@ -181,91 +117,5 @@ public class BoundSqlConnection implements BoundMap.Disposable, ErrorTokens {
     }
     private static final Pattern VALID_SCHEMA_NAME = Pattern.compile(
         "[a-z][a-z0-9_.]*", Pattern.CASE_INSENSITIVE);
-
-
-
-    protected class AttributeValue {
-        private String explicitValue;
-        private String propName;
-        private String errorToken;
-
-        public AttributeValue(Element xml, String name, String errorToken) {
-            if (xml.hasAttribute(name))
-                this.explicitValue = xml.getAttribute(name);
-
-            else {
-                this.propName = getXmlAttr(xml, name + "Id",
-                    destPropName + "." + name);
-                map.addPropertyChangeListener(this.propName,
-                    BoundSqlConnection.this, "recalc");
-            }
-
-            this.errorToken = errorToken;
-        }
-
-        public String getValue() throws AttributeValueMissingException {
-            if (explicitValue != null)
-                return explicitValue;
-
-            Object propVal = map.get(propName);
-            if (propVal instanceof String) {
-                String result = (String) propVal;
-                if (StringUtils.hasValue(result))
-                    // the map contained a valid string property with a
-                    // non-empty value. return it.
-                    return result;
-            }
-
-            if (errorToken == null)
-                // no data was found, but for this attribute, that isn't
-                // an error. Just return null.
-                return null;
-
-            // no data was found for this attribute.
-            ErrorData errorData = map.getErrorDataForAttr(propName);
-            if (errorData != null)
-                // if the attribute itself had associated error data,
-                // propagate it along.
-                setError(errorData.getError(), errorData.getSeverity());
-            else
-                // otherwise, use our default error token.
-                setError(errorToken, ErrorTokens.MISSING_DATA_SEVERITY);
-            // throw an exception to indicate missing data
-            throw new AttributeValueMissingException();
-        }
-    }
-
-    private class AttributeValueMissingException extends Exception {}
-
-
-
-    private class PublicValue implements ConnectionSource, ErrorData {
-
-        public Connection getConnection() {
-            if (connection == null)
-                openConnection();
-
-            return connection;
-        }
-
-        public String getError() {
-            return error;
-        }
-
-        public int getSeverity() {
-            return errorSeverity;
-        }
-
-    }
-
-
-
-    private static String getXmlAttr(Element xml, String attr, String defVal) {
-        String result = xml.getAttribute(attr);
-        if (StringUtils.hasValue(result))
-            return result;
-        else
-            return defVal;
-    }
 
 }

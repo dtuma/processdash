@@ -24,6 +24,7 @@
 package net.sourceforge.processdash.ui.lib.binding;
 
 import java.awt.Color;
+import java.beans.Introspector;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
@@ -101,6 +102,7 @@ public class BoundMap extends ObservableMap {
         addElementType("label", BoundLabel.class);
         addElementType("sql-connection", BoundSqlConnection.class);
         addElementType("sql-query", BoundSqlQuery.class);
+        addElementType("xml-rpc-connection", BoundXmlRpcConnection.class);
         addElementType("grouping", BoundGrouping.class);
 
         // TODO : Uncomment after having finished implementing BoundFileList
@@ -182,7 +184,7 @@ public class BoundMap extends ObservableMap {
 
         String missingValuePrompt = xml.getAttribute("missingError");
         if (StringUtils.hasValue(missingValuePrompt)) {
-            String key = ERROR_RESOURCE_PREFIX + DATA_MISSING + "." + id;
+            String key = id + "." + DATA_MISSING;
             put(key, missingValuePrompt);
         }
     }
@@ -246,8 +248,44 @@ public class BoundMap extends ObservableMap {
     }
 
     public String getErrorForMissingAttr(String attrName) {
-        String key = ERROR_RESOURCE_PREFIX + DATA_MISSING + "." + attrName;
+        String key = attrName + "." + DATA_MISSING;
         return getResource(key);
+    }
+
+    public String getAttrOrResource(Element xml, String defaultId,
+            String resourceSuffix, String defaultValue) {
+        String attrName = toCamelCase(resourceSuffix);
+        String explicitValue = xml.getAttribute(attrName);
+        if (StringUtils.hasValue(explicitValue))
+            return explicitValue;
+
+        String resourceId = getFirstNonEmptyValue( //
+            xml.getAttribute(attrName + "Id"), //
+            xml.getAttribute("resourceId"), //
+            defaultId, //
+            xml.getAttribute("id"), //
+            xml.getTagName());
+
+        String resourceKey = resourceId + "." + resourceSuffix;
+        String resourceResult = getResource(resourceKey);
+        if (StringUtils.hasValue(resourceResult))
+            return resourceResult;
+
+        return defaultValue;
+    }
+
+    private String toCamelCase(String withUnderscores) {
+        StringBuffer result = new StringBuffer(Introspector
+                .decapitalize(withUnderscores));
+        StringUtils.findAndReplace(result, "_", "");
+        return result.toString();
+    }
+
+    private String getFirstNonEmptyValue(String... values) {
+        for (String s : values)
+            if (StringUtils.hasValue(s))
+                return s;
+        return null;
     }
 
     public String getResource(String key) {

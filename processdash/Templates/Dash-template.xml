@@ -234,7 +234,12 @@ The author(s) may be contacted at:
   <!-- Other miscellaneous items provided by the dashboard -->
 
   <noteFormat class="net.sourceforge.processdash.hier.ui.PlainTextNoteFormat"/>
-  
+
+  <defect-importer id="codeCollab"
+     resources="Defects.ImportForm.CodeCollab"
+     specLocation="dash/code-collab-import.xml"
+     class="net.sourceforge.processdash.log.ui.importer.FormImporter" />
+
  <!-- definitions for the preferences dialog. -->
  
     <preferences-pane id="pdash.ui"

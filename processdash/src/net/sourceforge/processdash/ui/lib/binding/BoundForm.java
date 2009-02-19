@@ -86,16 +86,11 @@ public class BoundForm extends BoundMap {
 
 
     protected void addFormComponent(JComponent component, Element xml) {
-        String label = getResource(xml.getAttribute("id") + ".Label");
-        if (label == null)
-            label = xml.getAttribute("label");
+        String label = getAttrOrResource(xml, null, "Label", null);
 
         addFormComponent(component, label);
 
-        String tooltip = getResource(xml.getAttribute("id") + ".Tooltip");
-        if (tooltip == null)
-            tooltip = xml.getAttribute("tooltip");
-
+        String tooltip = getAttrOrResource(xml, null, "Tooltip", null);
         if (StringUtils.hasValue(tooltip))
             component.setToolTipText(tooltip);
 

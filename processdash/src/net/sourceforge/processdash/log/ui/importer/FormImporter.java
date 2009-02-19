@@ -1,4 +1,4 @@
-// Copyright (C) 2007 Tuma Solutions, LLC
+// Copyright (C) 2007-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -28,6 +28,7 @@ import java.awt.event.ActionEvent;
 import javax.swing.AbstractAction;
 
 import net.sourceforge.processdash.DashboardContext;
+import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.log.ui.DefectLogEditor;
 import net.sourceforge.processdash.util.StringUtils;
 
@@ -38,6 +39,8 @@ public class FormImporter extends AbstractAction {
     private DashboardContext dashboardContext;
 
     private Element configElement;
+
+    private Resources resources;
 
     public FormImporter() {
         setEnabled(false);
@@ -50,7 +53,24 @@ public class FormImporter extends AbstractAction {
     public void setConfigElement(Element xml, String attrName) {
         this.configElement = xml;
 
+        // The legacy Code Collaborator implementation used by Intuit is no
+        // longer relevant, and should be silently ignored.
+        String id = xml.getAttribute("id");
+        if ("Intuit.CodeCollaborator".equals(id)) {
+            putValue(DefectLogEditor.IMPORT_ACTION_INVALID, "true");
+            return;
+        }
+
+        this.resources = DefectImportForm.resources;
+        String resourcesId = xml.getAttribute(RESOURCES_TAG);
+        if (StringUtils.hasValue(resourcesId)) {
+            this.resources = Resources.getDashBundle(resourcesId,
+                this.resources);
+        }
+
         String name = xml.getAttribute("displayName");
+        if (!StringUtils.hasValue(name))
+            name = resources.getString("Form.Label");
         putValue(NAME, name);
     }
 
@@ -79,7 +99,9 @@ public class FormImporter extends AbstractAction {
         String displayName = (String) getValue(NAME);
 
         new DefectImportForm(dashboardContext, configElement, selectedPath,
-                defectLogPath, displayName);
+                defectLogPath, displayName, resources);
     }
+
+    private static final String RESOURCES_TAG = "resources";
 
 }

@@ -1,0 +1,31 @@
+<defect-import-form>
+
+    <textfield id="url"
+        setting="url" />
+
+    <xml-rpc-connection id="codeCollaborator"
+        urlId="url"
+        urlSuffix="/xmlrpc/server"
+	testMethodName="ccollab3.getServerVersion" />
+
+    <textfield id="username"
+        setting="user.name" />
+
+    <code-collaborator-reviews id="reviews"
+	usernameId="username" />
+
+    <combobox id="review_id"
+        choices="reviews" />
+
+    <textfield id="review_id"
+        resourceId="review_id2"
+        dataType="integer" />
+
+    <default-inj-phase-selector />
+
+    <default-rem-phase-selector />
+
+    <code-collaborator-defects id="defects"
+        reviewNumberId="review_id" />
+
+</defect-import-form>
