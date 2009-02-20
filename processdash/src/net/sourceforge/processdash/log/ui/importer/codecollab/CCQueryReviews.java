@@ -33,7 +33,6 @@ import net.sourceforge.processdash.ui.lib.binding.BoundMap;
 import net.sourceforge.processdash.ui.lib.binding.DynamicAttributeValue;
 import net.sourceforge.processdash.ui.lib.binding.ErrorDataValueException;
 
-import org.apache.xmlrpc.XmlRpcException;
 import org.apache.xmlrpc.client.XmlRpcClient;
 import org.w3c.dom.Element;
 
@@ -60,7 +59,8 @@ public class CCQueryReviews extends CCAbstractQuery {
 
         try {
             String username = this.username.getValue();
-            Integer userId = getUserId(client, username);
+            Integer userId = (Integer) CCQuerySupport.lookupSingleValue(client,
+                CCQuerySupport.USER_CLASS, "id", "login", username);
 
             Object[] reviews = CCQuerySupport.querySimple(client,
                 CCQuerySupport.REVIEW_CLASS, 1000, "creatorId", userId);
@@ -73,35 +73,13 @@ public class CCQueryReviews extends CCAbstractQuery {
         } catch (ErrorDataValueException edve) {
             throw edve;
 
-        } catch (IllegalArgumentException iae) {
+        } catch (CCQuerySupport.SingleValueNotFoundException iae) {
             // this indicates that the user was not found.
             return null;
 
         } catch (Exception e) {
             return XMLRPC_ERROR_VALUE;
         }
-    }
-
-    private Integer getUserId(XmlRpcClient client, String username)
-            throws XmlRpcException, IllegalArgumentException {
-        // first try the username as given.
-        try {
-            return (Integer) CCQuerySupport.lookupSingleValue(client,
-                CCQuerySupport.USER_CLASS, "id", "login", username);
-        } catch (IllegalArgumentException iae) {
-        }
-
-        // if that fails, try using lowercase for the username.
-        try {
-            return (Integer) CCQuerySupport.lookupSingleValue(client,
-                CCQuerySupport.USER_CLASS, "id", "login", username
-                        .toLowerCase());
-        } catch (IllegalArgumentException iae) {
-        }
-
-        // if that fails, try using uppercase for the username.
-        return (Integer) CCQuerySupport.lookupSingleValue(client,
-            CCQuerySupport.USER_CLASS, "id", "login", username.toUpperCase());
     }
 
     private ArrayList convertReviews(Object[] rawReviewData) {

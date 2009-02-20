@@ -35,6 +35,8 @@ public interface ErrorTokens {
 
     String NO_PASSWORD = "Password_Missing";
 
+    String BAD_USERNAME_PASS = "Invalid_Username_Password";
+
     String NO_NETWORK = "No_Network";
 
     String CANNOT_CONNECT = "Cannot_Connect";

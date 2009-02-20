@@ -90,25 +90,34 @@ public class CCQuerySupport {
      * @return the value of the given attribute for the unique object found
      * @throws XmlRpcException
      *                 if an error occurs during the RPC call
-     * @throws IllegalArgumentException
+     * @throws SingleValueNotFoundException
      *                 if the criteria does not return exactly one object or if
      *                 the object found does not have a value for the given
      *                 attribute.
      */
     public static Object lookupSingleValue(XmlRpcClient client, String clazz,
             String attr, Object... criteria) throws XmlRpcException,
-            IllegalArgumentException {
+            SingleValueNotFoundException {
         Object[] list = querySimple(client, clazz, 2, criteria);
         if (list == null || list.length != 1)
-            throw new IllegalArgumentException("Expected a single element");
+            throw new SingleValueNotFoundException("Expected a single element");
         Map element = (Map) list[0];
         Object result = element.get(attr);
         if (result != null)
             return result;
         else
-            throw new IllegalArgumentException("Expected " + clazz
+            throw new SingleValueNotFoundException("Expected " + clazz
                     + " item to have an " + attr);
     }
+
+    public static class SingleValueNotFoundException extends Exception {
+
+        private SingleValueNotFoundException(String message) {
+            super(message);
+        }
+
+    }
+
 
     private static final String NAMESPACE = "com.smartbear.ccollab.datamodel.";
 

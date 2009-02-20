@@ -3,13 +3,18 @@
     <textfield id="url"
         setting="url" />
 
-    <xml-rpc-connection id="codeCollaborator"
+    <code-collaborator
         urlId="url"
         urlSuffix="/xmlrpc/server"
+	usernameId="username"
+        passwordId="password"
 	testMethodName="ccollab3.getServerVersion" />
 
     <textfield id="username"
         setting="user.name" />
+
+    <password id="password"
+        setting="user.password" />
 
     <code-collaborator-reviews id="reviews"
 	usernameId="username" />

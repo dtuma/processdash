@@ -33,10 +33,8 @@ import org.w3c.dom.Element;
 
 public abstract class CCAbstractQuery extends AbstractBoundQuery<XmlRpcClient> {
 
-    public static final String CC_DEFAULT_ID = "codeCollaborator";
-
     public CCAbstractQuery(BoundMap map, Element xml) {
-        super(map, xml, CC_DEFAULT_ID);
+        super(map, xml, CCWebService.CC_DEFAULT_ID);
     }
 
     protected void addParameter(Element xml, String attrName, String defaultName) {

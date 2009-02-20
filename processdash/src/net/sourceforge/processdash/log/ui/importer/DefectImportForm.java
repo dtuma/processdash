@@ -63,6 +63,7 @@ import net.sourceforge.processdash.log.defects.DefectLog;
 import net.sourceforge.processdash.log.defects.DefectUtil;
 import net.sourceforge.processdash.log.ui.importer.codecollab.CCQueryDefects;
 import net.sourceforge.processdash.log.ui.importer.codecollab.CCQueryReviews;
+import net.sourceforge.processdash.log.ui.importer.codecollab.CCWebService;
 import net.sourceforge.processdash.net.http.WebServer;
 import net.sourceforge.processdash.templates.SqlDriverManager;
 import net.sourceforge.processdash.templates.TemplateLoader;
@@ -276,6 +277,7 @@ public class DefectImportForm extends BoundForm {
         addElementType("default-type-selector", DefaultTypeSelector.class);
         addElementType("default-inj-phase-selector", DefaultPhaseSelector.class);
         addElementType("default-rem-phase-selector", DefaultPhaseSelector.class);
+        addElementType("code-collaborator", CCWebService.class);
         addElementType("code-collaborator-reviews", CCQueryReviews.class);
         addElementType("code-collaborator-defects", CCQueryDefects.class);
     }

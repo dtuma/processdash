@@ -69,7 +69,7 @@ public class BoundSqlConnection extends AbstractBoundConnection<Connection> {
         try {
             // look up the information needed to make the connection
             String jdbcURL = this.jdbcURL.getValue();
-            String username = this.username.getValue();
+            String username = getUsername(this.username.getValue());
             String password;
             try {
                 password = getPassword(this.password.getValue());

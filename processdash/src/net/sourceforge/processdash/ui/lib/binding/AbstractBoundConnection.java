@@ -33,7 +33,7 @@ import org.w3c.dom.Element;
 public abstract class AbstractBoundConnection<T> implements
         BoundMap.Disposable, ErrorTokens {
 
-    private static final String NO_PASSWORD_TOKEN = "[none]";
+    private static final String NO_CREDENTIAL_TOKEN = "[none]";
 
 
     protected BoundMap map;
@@ -149,8 +149,16 @@ public abstract class AbstractBoundConnection<T> implements
     }
 
 
+    protected String getUsername(String username) {
+        if (NO_CREDENTIAL_TOKEN.equals(username))
+            return null;
+        else
+            return username;
+    }
+
+
     protected String getPassword(String password) {
-        if (NO_PASSWORD_TOKEN.equals(password))
+        if (NO_CREDENTIAL_TOKEN.equals(password))
             return "";
         else
             return map.unhashValue(password);

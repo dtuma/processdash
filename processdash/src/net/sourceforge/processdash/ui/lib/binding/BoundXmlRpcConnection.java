@@ -30,6 +30,7 @@ import java.util.Collections;
 
 import net.sourceforge.processdash.util.StringUtils;
 
+import org.apache.xmlrpc.XmlRpcException;
 import org.apache.xmlrpc.client.XmlRpcClient;
 import org.apache.xmlrpc.client.XmlRpcClientConfigImpl;
 import org.w3c.dom.Element;
@@ -60,8 +61,8 @@ public class BoundXmlRpcConnection extends AbstractBoundConnection<XmlRpcClient>
 
         this.baseUrl = getDynamicValue(xml, "url", NO_URL);
         this.urlSuffix = getDynamicValue(xml, "urlSuffix", null);
-        this.username = getDynamicValue(xml, "username", null);
-        this.password = getDynamicValue(xml, "password", null);
+        this.username = getDynamicValue(xml, "username", NO_USERNAME);
+        this.password = getDynamicValue(xml, "password", NO_PASSWORD);
         this.testMethodName = getXmlAttr(xml, "testMethodName", null);
     }
 
@@ -76,7 +77,7 @@ public class BoundXmlRpcConnection extends AbstractBoundConnection<XmlRpcClient>
             // look up the information needed to make the connection
             String baseUrl = this.baseUrl.getValue();
             String urlSuffix = this.urlSuffix.getValue();
-            String username = this.username.getValue();
+            String username = getUsername(this.username.getValue());
             String password = getPassword(this.password.getValue());
 
             URL url = new URL(baseUrl.trim());
@@ -96,6 +97,10 @@ public class BoundXmlRpcConnection extends AbstractBoundConnection<XmlRpcClient>
             if (StringUtils.hasValue(testMethodName))
                 connection.execute(testMethodName, Collections.EMPTY_LIST);
 
+            if (!validateCredentials(connection, username, password))
+                throw new ErrorDataValueException(BAD_USERNAME_PASS,
+                        ErrorData.SEVERE);
+
             setError(null, ErrorData.NO_ERROR);
             return connection;
 
@@ -110,6 +115,19 @@ public class BoundXmlRpcConnection extends AbstractBoundConnection<XmlRpcClient>
             e.printStackTrace();
             return null;
         }
+    }
+
+    /** Doublecheck the credentials provided, to ensure that they are valid.
+     * 
+     * @param client the XML RPC connection
+     * @param username the username
+     * @param password the password
+     * @return true if the credentials are valid
+     * @throws XmlRpcException if an error is encountered
+     */
+    protected boolean validateCredentials(XmlRpcClient client, String username,
+            String password) throws XmlRpcException {
+        return true;
     }
 
 }
