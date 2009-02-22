@@ -1,4 +1,4 @@
-// Copyright (C) 2008 Tuma Solutions, LLC
+// Copyright (C) 2008-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -83,7 +83,7 @@ public class EVHierarchicalFilter implements EVTaskFilter {
             subpath = path.substring(slashPos + 1);
         }
 
-        EVTaskListMerger m = new EVTaskListMerger(tl, false, null);
+        EVTaskListMerger m = new EVTaskListMerger(tl, false, false, null);
         EVTask matchingNode;
         if (MERGED_ROOT_ID.equals(taskID))
             matchingNode = m.getMergedTaskRoot();

@@ -462,8 +462,11 @@ public abstract class EVCalculator {
         // baseline.
         List taskIDs = task.getTaskIDs();
         if (taskIDs != null && baselineIdCache != null) {
+            String assignedToSuffix = getAssignedToSuffix(task);
             for (Iterator i = taskIDs.iterator(); i.hasNext();) {
                 String taskID = (String) i.next();
+                if (assignedToSuffix != null)
+                    taskID = taskID + assignedToSuffix;
                 EVTask result = baselineIdCache.get(taskID);
                 if (result != null)
                     return result;
@@ -529,14 +532,27 @@ public abstract class EVCalculator {
      */
     protected static void buildTaskIdCache(Map<String, EVTask> cache,
             EVTask task) {
+        for (int i = task.getNumChildren(); i-- > 0;)
+            buildTaskIdCache(cache, task.getChild(i));
+
         List ids = task.getTaskIDs();
         if (ids != null) {
+            String assignedToSuffix = getAssignedToSuffix(task);
             for (Iterator i = ids.iterator(); i.hasNext();) {
                 String id = (String) i.next();
                 cache.put(id, task);
+                if (assignedToSuffix != null)
+                    cache.put(id+assignedToSuffix, task);
             }
         }
-        for (int i = task.getNumChildren(); i-- > 0;)
-            buildTaskIdCache(cache, task.getChild(i));
     }
+
+    private static String getAssignedToSuffix(EVTask task) {
+        List assignedTo = task.getAssignedTo();
+        if (assignedTo == null || assignedTo.size() != 1)
+            return null;
+        else
+            return "~" + assignedTo.get(0);
+    }
+
 }

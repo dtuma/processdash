@@ -233,7 +233,7 @@ public class DataExtractionScaffold implements DashboardContext {
             if (tl instanceof EVTaskListRollup && !includeRollups)
                 continue;
             tl.recalc();
-            tl = new EVTaskListMerged(tl, false, null);
+            tl = new EVTaskListMerged(tl, false, true, null);
             result.add(tl);
         }
 

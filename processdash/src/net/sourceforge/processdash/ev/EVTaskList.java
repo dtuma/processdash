@@ -1780,7 +1780,7 @@ public class EVTaskList extends AbstractTreeTableModel
 
     public TreeTableModel getMergedModel(boolean simple, EVTaskFilter filter) {
         EVTaskListMerger merger = new EVTaskListMerger(EVTaskList.this, simple,
-                filter);
+                false, filter);
         MergedTreeModel result = new MergedTreeModel(merger);
         addRecalcListener(result);
         return result;

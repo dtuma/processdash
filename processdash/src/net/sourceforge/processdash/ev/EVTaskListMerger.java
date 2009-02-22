@@ -1,4 +1,4 @@
-// Copyright (C) 2006-2008 Tuma Solutions, LLC
+// Copyright (C) 2006-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -26,6 +26,7 @@ package net.sourceforge.processdash.ev;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -65,6 +66,8 @@ public class EVTaskListMerger {
 
     private boolean simplify;
 
+    private boolean preserveLeaves;
+
     private EVTaskFilter filter;
 
     private Set filteredNodes;
@@ -76,9 +79,10 @@ public class EVTaskListMerger {
     /** Create and calculate a merged task model for the given task list.
      */
     public EVTaskListMerger(EVTaskList taskList, boolean simplify,
-            EVTaskFilter filter) {
+            boolean preserveLeaves, EVTaskFilter filter) {
         this.taskList = taskList;
         this.simplify = simplify;
+        this.preserveLeaves = true; //FIXME preserveLeaves;
         this.filter = filter;
         this.mergedRoot = new EVTask(taskList.getRootName());
         this.mergedRoot.flag = TASK_LIST_FLAG;
@@ -537,9 +541,13 @@ public class EVTaskListMerger {
 
         // temporarily add all of the leaf nodes whose data should be merged
         // with the target node.
+        if (preserveLeaves)
+            Collections.sort(leavesToMerge, ASSIGNED_TO_COMPARATOR);
         for (Iterator i = leavesToMerge.iterator(); i.hasNext();) {
             EVTask node = (EVTask) i.next();
             EVTask tempChild = (EVTask) node.clone();
+            tempChild.assignedTo = node.getAssignedTo();
+            tempChild.nodeTypeSpec = node.getAcceptableNodeTypes();
             // EVTasks will ignore requests to add nodes that are already
             // in their list of children.  Short-circuit that logic by
             // choosing a new, random name for this temporary node.
@@ -569,10 +577,27 @@ public class EVTaskListMerger {
             }
         }
 
-        // finally, delete the leaf nodes that were temporarily added for
-        // calculation purposes
-        while (newNode.getNumChildren() > numberOfTrueChildren)
-            newNode.remove(newNode.getChild(numberOfTrueChildren));
+        // finally, revisit the leaf nodes.  If we're preserving them, we
+        // need to make them presentable to the user.  If not, we need to
+        // delete them.
+        for (int i = newNode.getNumChildren(); i-- > numberOfTrueChildren;) {
+            EVTask tempChild = newNode.getChild(i);
+            if (preserveLeaves && isLeafTaskWithData(tempChild)) {
+                // replace the temporary/unique child name with something that
+                // we can display to the user
+                tempChild.name = newNode.name;
+                tempChild.fullName = newNode.fullName;
+            } else {
+                newNode.remove(tempChild);
+            }
+        }
+        // If we're preserving leaves but we only have one leaf that contains
+        // data, we should delete that singleton leaf to simplify the tree.
+        if (numberOfTrueChildren == 0 && newNode.getNumChildren() == 1) {
+            EVTask tempChild = newNode.getChild(0);
+            newNode.nodeTypeSpec = tempChild.nodeTypeSpec;
+            newNode.remove(tempChild);
+        }
     }
 
     private double getActualNodeTime(EVTask task) {
@@ -580,6 +605,17 @@ public class EVTaskListMerger {
         for (int i = task.getNumChildren(); i-- > 0;)
             result -= task.getChild(i).actualCurrentTime;
         return result;
+    }
+
+    private boolean isLeafTaskWithData(EVTask task) {
+        // if the task isn't a leaf, return false.
+        if (task.isLeaf() == false) return false;
+        // check for various types of actual data; if present, return true
+        if (task.getPlanTime() > 0) return true;
+        if (task.getActualTime() > 0) return true;
+        if (StringUtils.hasValue(task.getNodeType())) return true;
+        // if we got here, return false.
+        return false;
     }
 
     /** Merge metrics and data structures for a node in the result tree.
@@ -833,7 +869,7 @@ public class EVTaskListMerger {
         } else {
             EVTaskList baselineTaskList = baselineSnapshot.getTaskList();
             lastMergedBaseline = mergedBaseline = new EVTaskListMerged(
-                    baselineTaskList, false, null);
+                    baselineTaskList, false, preserveLeaves, null);
             lastSnapshot = baselineSnapshot;
         }
 
@@ -1062,4 +1098,15 @@ public class EVTaskListMerger {
 
     }
 
+    private static class AssignedToComparator implements Comparator<EVTask> {
+
+        public int compare(EVTask t1, EVTask t2) {
+            String s1 = t1.getAssignedToText();
+            String s2 = t2.getAssignedToText();
+            return s1.compareTo(s2);
+        }
+
+    }
+    private static final Comparator<EVTask> ASSIGNED_TO_COMPARATOR =
+        new AssignedToComparator();
 }
