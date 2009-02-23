@@ -33,6 +33,7 @@ import net.sourceforge.processdash.util.StringUtils;
 import org.apache.xmlrpc.XmlRpcException;
 import org.apache.xmlrpc.client.XmlRpcClient;
 import org.apache.xmlrpc.client.XmlRpcClientConfigImpl;
+import org.apache.xmlrpc.common.XmlRpcNotAuthorizedException;
 import org.w3c.dom.Element;
 
 public class BoundXmlRpcConnection extends AbstractBoundConnection<XmlRpcClient> {
@@ -73,12 +74,14 @@ public class BoundXmlRpcConnection extends AbstractBoundConnection<XmlRpcClient>
 
     @Override
     protected XmlRpcClient openConnectionImpl() throws ErrorDataValueException {
+        String username = null;
+        String password = null;
         try {
             // look up the information needed to make the connection
             String baseUrl = this.baseUrl.getValue();
             String urlSuffix = this.urlSuffix.getValue();
-            String username = getUsername(this.username.getValue());
-            String password = getPassword(this.password.getValue());
+            username = getUsername(this.username.getValue());
+            password = getPassword(this.password.getValue());
 
             URL url = new URL(baseUrl.trim());
             if (StringUtils.hasValue(urlSuffix))
@@ -106,6 +109,17 @@ public class BoundXmlRpcConnection extends AbstractBoundConnection<XmlRpcClient>
 
         } catch (MalformedURLException mue) {
             throw new ErrorDataValueException(INVALID_URL, ErrorData.SEVERE);
+
+        } catch (XmlRpcNotAuthorizedException nae) {
+            if (!StringUtils.hasValue(username))
+                throw new ErrorDataValueException(NO_USERNAME,
+                        MISSING_DATA_SEVERITY);
+            else if (!StringUtils.hasValue(password))
+                throw new ErrorDataValueException(NO_USERNAME,
+                        MISSING_DATA_SEVERITY);
+            else
+                throw new ErrorDataValueException(BAD_USERNAME_PASS,
+                        ErrorData.SEVERE);
 
         } catch (ErrorDataValueException edve) {
             throw edve;
