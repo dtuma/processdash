@@ -391,7 +391,7 @@ class dependency has been added in a dashboard class?)
     </java>
   </target>
 
-  <target name="-installer-props">
+  <target name="-installer-props" depends="-defaultValues">
     <pathconvert property="teamdash.dir" dirSep="/">
       <path><pathelement location="."/></path>
     </pathconvert>
@@ -441,7 +441,10 @@ class dependency has been added in a dashboard class?)
     </ant>
   </target>
 
-  <target name="installer-cd" depends="TeamTools,TeamProcess,-installer-props">
+  <target name="installer-cd"
+          depends="TeamTools,TeamProcess,installer-cd-only"/>
+
+  <target name="installer-cd-only" depends="-installer-props">
     <ant antfile="${processdash.dir}/installer/build.xml" inheritAll="false"
          target="dist-CD">
       <property name="alreadyRebuilt" value="true"/>
