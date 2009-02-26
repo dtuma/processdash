@@ -23,14 +23,16 @@
 
 package net.sourceforge.processdash.log.ui.importer.codecollab;
 
-import org.apache.xmlrpc.XmlRpcException;
-import org.apache.xmlrpc.client.XmlRpcClient;
-import org.w3c.dom.Element;
+import java.util.Hashtable;
+import java.util.Map;
 
 import net.sourceforge.processdash.ui.lib.binding.BoundMap;
 import net.sourceforge.processdash.ui.lib.binding.BoundXmlRpcConnection;
-import net.sourceforge.processdash.util.MD5;
 import net.sourceforge.processdash.util.StringUtils;
+
+import org.apache.xmlrpc.XmlRpcException;
+import org.apache.xmlrpc.client.XmlRpcClient;
+import org.w3c.dom.Element;
 
 public class CCWebService extends BoundXmlRpcConnection {
 
@@ -46,19 +48,12 @@ public class CCWebService extends BoundXmlRpcConnection {
         if (!StringUtils.hasValue(username) || !StringUtils.hasValue(password))
             return false;
 
-        String passwordHash;
-        try {
-            passwordHash = (String) CCQuerySupport.lookupSingleValue(client,
-                CCQuerySupport.USER_CLASS, "password", "login", username);
-        } catch (CCQuerySupport.SingleValueNotFoundException svnfe) {
-            // unrecognized username
-            return false;
-        }
-
-        MD5 md5 = new MD5();
-        md5.Update(password);
-        String localPasswordHash = md5.asHex();
-        return localPasswordHash.equalsIgnoreCase(passwordHash);
+        Hashtable<String, String> activity = new Hashtable<String, String>();
+        activity.put( "password-type", "plaintext" );
+        activity.put( "password-value", password );
+        Map result = (Map) client.execute("ccollab.sessionAffirm",
+                new Object[] { username, password, activity });
+        return !result.containsKey("error");
     }
 
 }
