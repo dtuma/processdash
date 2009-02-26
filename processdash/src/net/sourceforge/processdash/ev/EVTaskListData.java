@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2008 Tuma Solutions, LLC
+// Copyright (C) 2001-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -77,6 +77,7 @@ public class EVTaskListData extends EVTaskList
         loadMetadata(taskListName, data);
         setupTimeZone();
         assignToOwner();
+        setDefaultOptions();
         calculator = new EVCalculatorData(this);
         setBaselineDataSource(getBaselineSnapshot());
         ((EVTask) root).flag = TASK_LIST_FLAG;
@@ -139,6 +140,14 @@ public class EVTaskListData extends EVTaskList
             EVTask r = (EVTask) root;
             owner = StringUtils.findAndReplace(owner, ",", " ");
             r.assignedTo = Collections.singletonList(owner);
+        }
+    }
+    private void setDefaultOptions() {
+        if (metaData.containsKey(EVMetadata.REZERO_ON_START_DATE) == false) {
+            if (isBrandNewTaskList)
+                metaData.put(EVMetadata.REZERO_ON_START_DATE, "false");
+            else
+                metaData.put(EVMetadata.REZERO_ON_START_DATE, "true");
         }
     }
 

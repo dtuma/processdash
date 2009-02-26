@@ -105,6 +105,7 @@ public class EVTaskList extends AbstractTreeTableModel
     protected TaskLabeler taskLabeler = null;
     protected Set nodeTypeSpecs = null;
     protected Properties metaData = null;
+    protected boolean isBrandNewTaskList = false;
 
     /** timer for triggering recalculations */
     protected Timer recalcTimer = null;
@@ -568,6 +569,7 @@ public class EVTaskList extends AbstractTreeTableModel
     }
     private static final Set<String> RECALC_METDATADATA =
         Collections.unmodifiableSet(new HashSet<String>(Arrays.asList(
+            EVMetadata.REZERO_ON_START_DATE,
             EVMetadata.Forecast.Ranges.USE_CURRENT_PLAN,
             EVMetadata.Forecast.Ranges.USE_HIST_DATA,
             EVMetadata.Forecast.Ranges.SAVED_HIST_DATA
@@ -1256,6 +1258,8 @@ public class EVTaskList extends AbstractTreeTableModel
                 // getting to this point indicates that this task list is
                 // not new - it has been previously saved to the repository.
                 data.putValue(dataName, StringData.create(taskListID));
+            } else {
+                isBrandNewTaskList = true;
             }
         }
 

@@ -1,4 +1,4 @@
-// Copyright (C) 2008 Tuma Solutions, LLC
+// Copyright (C) 2008-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -87,5 +87,11 @@ public interface EVMetadata {
 
 
     }
+
+    /**
+     * Reset metrics to zero on the start date, factoring out work done before
+     * the schedule began.
+     */
+    public String REZERO_ON_START_DATE = "Rezero_On_Start_Date";
 
 }

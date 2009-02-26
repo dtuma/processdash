@@ -52,6 +52,7 @@ public class EVCalculatorData extends EVCalculator {
     private EVSchedule schedule;
     private TimeLog timeLog;
     private Date effectiveDate, completionDate;
+    private boolean rezeroAtStartDate;
     private EVForecastDateCalculator replanDateCalculator;
     private EVForecastDateCalculator forecastDateCalculator;
 
@@ -76,6 +77,8 @@ public class EVCalculatorData extends EVCalculator {
         scheduleStartDate = schedule.getStartDate();
         reorderCompletedTasks =
             Settings.getBool("ev.sortCompletedTasks", true);
+        rezeroAtStartDate = getBoolSetting(EVMetadata.REZERO_ON_START_DATE,
+            true);
 
         pruneNodes(taskRoot, false);
         double levelOfEffort = calculateLevelOfEffort(taskRoot);
@@ -99,7 +102,8 @@ public class EVCalculatorData extends EVCalculator {
         // find time logged to tasks before the start of the schedule.
         TimeLog log = timeLog;
         try {
-            saveTimeBeforeSchedule(log);
+            if (rezeroAtStartDate)
+                saveActualPreTime(log);
         } catch (IOException ioe) {
             ioe.printStackTrace();
             schedule.getMetrics().addError
@@ -120,7 +124,7 @@ public class EVCalculatorData extends EVCalculator {
 
         // record actual time spent on tasks.
         try {
-            saveTimeDuringSchedule(log);
+            saveActualScheduleTime(log);
         } catch (IOException ioe) {
             ioe.printStackTrace();
             schedule.getMetrics().addError
@@ -235,7 +239,7 @@ public class EVCalculatorData extends EVCalculator {
         return result;
     }
 
-    protected void saveTimeBeforeSchedule(TimeLog log) throws IOException {
+    private void saveActualPreTime(TimeLog log) throws IOException {
         try {
             Iterator entries = log.filter(null, null, scheduleStartDate);
             while (entries.hasNext()) {
@@ -265,6 +269,7 @@ public class EVCalculatorData extends EVCalculator {
                 task.actualPreTime = getTotalActualPreTime(task);
 
             if (task.dateCompleted == null ||
+                rezeroAtStartDate == false ||
                 task.dateCompleted.compareTo(scheduleStartDate) >= 0) {
                 task.planValue = task.planTime - task.actualPreTime;
                 if (task.planValue < 0) task.planValue = 0;
@@ -310,27 +315,29 @@ public class EVCalculatorData extends EVCalculator {
     }
 
 
-    private void saveTimeDuringSchedule(TimeLog log) throws IOException {
+    private void saveActualScheduleTime(TimeLog log) throws IOException {
         try{
-            Iterator entries = log.filter(null, scheduleStartDate, null);
+            Date start = rezeroAtStartDate ? scheduleStartDate : null;
+            Iterator entries = log.filter(null, start, null);
             while (entries.hasNext())
-                saveTimeDuringSchedule((TimeLogEntry) entries.next());
+                saveActualScheduleTime((TimeLogEntry) entries.next());
         } catch (IONoSuchElementException ion) {
             throw ion.getIOException();
         }
     }
 
-    private void saveTimeDuringSchedule(TimeLogEntry entry) {
+    private void saveActualScheduleTime(TimeLogEntry entry) {
         Date d = entry.getStartTime();
-        if (d == null || d.compareTo(scheduleStartDate) < 0) return;
+        if (d == null || beforeZeroDate(d)) return;
 
         EVTask task = taskRoot.getTaskForPath(entry.getPath());
         if (task == null) return;
 
         if (task.isLevelOfEffortTask()) {
             // for level of effort tasks, ignore time logged outside the
-            // effective date of the schedule.
-            if (d.compareTo(effectiveDate) < 0) {
+            // effective period of the schedule.
+            if (d.compareTo(scheduleStartDate) > 0
+                    && d.compareTo(effectiveDate) < 0) {
                 task.actualNodeTime += entry.getElapsedTime();
                 schedule.getMetrics().addIndirectTime(entry.getElapsedTime());
                 schedule.saveActualIndirectTime(d, entry.getElapsedTime());
@@ -435,11 +442,14 @@ Value to recalculate
         while (i.hasNext()) {
             EVTask task = (EVTask) i.next();
             Date d = task.dateCompleted;
-            if (d != null &&
-                (reorderCompletedTasks || d.compareTo(scheduleStartDate) < 0))
+            if (d != null && (reorderCompletedTasks || beforeZeroDate(d)))
                 i.remove();
         }
         return result;
+    }
+
+    private boolean beforeZeroDate(Date d) {
+        return rezeroAtStartDate && d.compareTo(scheduleStartDate) < 0;
     }
 
     private void createCostConfidenceInterval() {

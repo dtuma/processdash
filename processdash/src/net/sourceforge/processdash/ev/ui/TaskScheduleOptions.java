@@ -1,4 +1,4 @@
-// Copyright (C) 2008 Tuma Solutions, LLC
+// Copyright (C) 2008-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -37,17 +37,20 @@ import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.ButtonGroup;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 
 import net.sourceforge.processdash.DashboardContext;
 import net.sourceforge.processdash.ev.EVMetadata;
 import net.sourceforge.processdash.ev.EVTaskList;
+import net.sourceforge.processdash.ev.EVTaskListData;
 import net.sourceforge.processdash.ev.ci.EVConfidenceIntervalUtils;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.ui.lib.CheckboxList;
@@ -80,6 +83,20 @@ public class TaskScheduleOptions {
 
         Box content = Box.createVerticalBox();
         content.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+
+        if (taskList instanceof EVTaskListData) {
+            content.add(makeRow(resources.getString("Rezero.Prompt")));
+
+            ButtonGroup rezeroGroup = new ButtonGroup();
+            content.add(makeRow(INDENT, new OptionRadio(rezeroGroup,
+                    "Rezero.Do_Not_rezero", EVMetadata.REZERO_ON_START_DATE,
+                    "false", false)));
+
+            content.add(makeRow(INDENT, new OptionRadio(rezeroGroup,
+                    "Rezero.Rezero", EVMetadata.REZERO_ON_START_DATE,
+                    "true", true)));
+        }
+
         content.add(makeRow(resources.getString("Forecast_Ranges.Prompt")));
 
         content.add(makeRow(INDENT, new OptionCheckbox(
@@ -223,9 +240,49 @@ public class TaskScheduleOptions {
             parent.setDirty(true);
         }
 
+    }
 
+
+    private class OptionRadio extends JRadioButton implements ActionListener {
+
+        private String metadataKey;
+
+        private String metadataValue;
+
+        private OptionRadio(ButtonGroup group, String resourceKey,
+                String metadataKey, String metadataValue,
+                boolean isDefaultOption) {
+            super();
+            if (resourceKey != null)
+                setText(resources.getString(resourceKey));
+            setFocusPainted(false);
+            group.add(this);
+
+            this.metadataKey = metadataKey;
+            this.metadataValue = metadataValue;
+
+            String value = taskList.getMetadata(metadataKey);
+            if (value != null)
+                setSelected(value.equals(metadataValue));
+            else
+                setSelected(isDefaultOption);
+
+            addActionListener(this);
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            saveSetting();
+        }
+
+        public void saveSetting() {
+            if (isSelected()) {
+                taskList.setMetadata(metadataKey, metadataValue);
+                parent.setDirty(true);
+            }
+        }
 
     }
+
 
     private Component makeRow(Object... items) {
         Box result = Box.createHorizontalBox();
