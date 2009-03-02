@@ -37,4 +37,9 @@ preferences a category.
             
     <checkbox id="slowNetwork"
               setting="slowNetwork" />
+              
+    <radio id="http.allowRemote" setting="http.allowRemote">
+        <option id="Never" value="never" default="true" />
+        <option id="True" value="true" />
+    </radio>
 </preferences-form>

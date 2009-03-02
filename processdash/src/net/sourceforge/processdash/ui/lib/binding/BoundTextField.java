@@ -43,6 +43,8 @@ import org.w3c.dom.Element;
 
 public class BoundTextField extends JTextField {
 
+    private static final int DEFAULT_NB_OF_COLUMNS = 20;
+
     private BoundMap map;
 
     private String propertyName;
@@ -53,16 +55,27 @@ public class BoundTextField extends JTextField {
 
     private Color normalBackground;
 
+    protected BoundTextField() { }
+
     public BoundTextField(BoundMap map, Element xml) {
         this(map, xml.getAttribute("id"),
-                XMLUtils.getXMLInt(xml, "width"),
-                xml.getAttribute("dataType"),
-                "true".equalsIgnoreCase(xml.getAttribute("allowBlank")));
+             XMLUtils.getXMLInt(xml, "width"),
+             xml.getAttribute("dataType"),
+             "true".equalsIgnoreCase(xml.getAttribute("allowBlank")));
     }
 
     public BoundTextField(BoundMap map, String attributeName, int width,
             String type, boolean allowBlank) {
-        super(width <= 0 ? 20 : width);
+        init(map, attributeName, width, type, allowBlank);
+    }
+
+    protected void init(BoundMap map, String attributeName) {
+        this.init(map, attributeName, -1, null, false);
+    }
+
+    protected void init(BoundMap map, String attributeName, int width, String type,
+                      boolean allowBlank) {
+        this.setColumns(width <= 0 ? DEFAULT_NB_OF_COLUMNS : width);
         setMinimumSize(getPreferredSize());
 
         this.map = map;

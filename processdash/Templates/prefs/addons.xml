@@ -32,16 +32,14 @@ preferences a category.
 -->
 
 <preferences-form>
-    <checkbox id="templates.enableSearchPath"
-              setting="templates.disableSearchPath"
-              inverted="true" />
-              
-<!--    
-	<grouping id="templates.directory">
-        <file-list id="templates.directory_list"
+    <grouping id="templates">
+        <checkbox id="templates.enableSearchPath"
+                  setting="templates.disableSearchPath"
+                  inverted="true" />
+	
+        <file-list id="templates.directory"
                setting="templates.directory"
                allowFolders="true"
-               allowFiles="true" />
+               allowFiles="false" />
     </grouping>
--->
 </preferences-form>

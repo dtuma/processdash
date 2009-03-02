@@ -32,4 +32,12 @@ preferences a category.
 -->
 
 <preferences-form>
+
+    <grouping id="backup.extraDirectories">
+        <file-list id="backup.extraDirectories_list"
+               setting="backup.extraDirectories"
+               allowFolders="true"
+               allowFiles="false"/>
+    </grouping>
+
 </preferences-form>

@@ -3,25 +3,23 @@
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
-// as published by the Free Software Foundation; either version 2
+// as published by the Free Software Foundation; either version 3
 // of the License, or (at your option) any later version.
+//
+// Additional permissions also apply; see the README-license.txt
+// file in the project root directory for more information.
 //
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with this program; if not, write to the Free Software
-// Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+// along with this program; if not, see <http://www.gnu.org/licenses/>.
 //
 // The author(s) may be contacted at:
-// Process Dashboard Group
-// c/o Ken Raisor
-// 6137 Wardleigh Road
-// Hill AFB, UT 84056-5843
-//
-// E-Mail POC:  processdash-devel@lists.sourceforge.net
+//     processdash@tuma-solutions.com
+//     processdash-devel@lists.sourceforge.net
 
 package net.sourceforge.processdash.tool.prefs;
 
@@ -36,6 +34,8 @@ import javax.swing.JPanel;
 
 import net.sourceforge.processdash.templates.TemplateLoader;
 import net.sourceforge.processdash.tool.prefs.editor.PreferencesCheckBox;
+import net.sourceforge.processdash.tool.prefs.editor.PreferencesFileList;
+import net.sourceforge.processdash.tool.prefs.editor.PreferencesRadioButtons;
 import net.sourceforge.processdash.tool.prefs.editor.PreferencesTextField;
 import net.sourceforge.processdash.ui.lib.binding.BoundForm;
 import net.sourceforge.processdash.util.XMLUtils;
@@ -57,6 +57,8 @@ public class PreferencesForm extends BoundForm {
     /** The tags for which special Preferences editors are used */
     private static final String CHECKBOX_TAG = "checkbox";
     private static final String TEXTFIELD_TAG = "textfield";
+    private static final String RADIOBUTTONS_TAG = "radio";
+    private static final String FILELIST_TAG = "file-list";
 
     /** The JPanel containing the GUI */
     private JPanel panel = new JPanel();
@@ -66,6 +68,8 @@ public class PreferencesForm extends BoundForm {
     public PreferencesForm(PreferencesCategory category) {
         addElementType(CHECKBOX_TAG, PreferencesCheckBox.class);
         addElementType(TEXTFIELD_TAG, PreferencesTextField.class);
+        addElementType(RADIOBUTTONS_TAG, PreferencesRadioButtons.class);
+        addElementType(FILELIST_TAG, PreferencesFileList.class);
 
         selectCategory(category);
         panel.setLayout(new BorderLayout());
