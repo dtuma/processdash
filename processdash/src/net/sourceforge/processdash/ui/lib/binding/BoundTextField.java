@@ -55,10 +55,12 @@ public class BoundTextField extends JTextField {
 
     private Color normalBackground;
 
-    protected BoundTextField() { }
-
     public BoundTextField(BoundMap map, Element xml) {
-        this(map, xml.getAttribute("id"),
+        this(map, xml, "id");
+    }
+
+    public BoundTextField(BoundMap map, Element xml, String propertyNameAttr) {
+        this(map, xml.getAttribute(propertyNameAttr),
              XMLUtils.getXMLInt(xml, "width"),
              xml.getAttribute("dataType"),
              "true".equalsIgnoreCase(xml.getAttribute("allowBlank")));
@@ -66,15 +68,6 @@ public class BoundTextField extends JTextField {
 
     public BoundTextField(BoundMap map, String attributeName, int width,
             String type, boolean allowBlank) {
-        init(map, attributeName, width, type, allowBlank);
-    }
-
-    protected void init(BoundMap map, String attributeName) {
-        this.init(map, attributeName, -1, null, false);
-    }
-
-    protected void init(BoundMap map, String attributeName, int width, String type,
-                      boolean allowBlank) {
         this.setColumns(width <= 0 ? DEFAULT_NB_OF_COLUMNS : width);
         setMinimumSize(getPreferredSize());
 

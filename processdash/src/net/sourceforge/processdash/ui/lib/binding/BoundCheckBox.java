@@ -35,6 +35,9 @@ import org.w3c.dom.Element;
 
 public class BoundCheckBox extends JCheckBox {
 
+    /** XML tag specifying if the widget has inverted "true" and "false" values */
+    private static final String INVERTED_TAG = "inverted";
+
     protected BoundMap map;
 
     protected String propertyName;
@@ -43,20 +46,35 @@ public class BoundCheckBox extends JCheckBox {
 
     private Object falseValue;
 
-    protected BoundCheckBox() { }
 
     public BoundCheckBox(BoundMap map, Element xml) {
-        String propertyName = xml.getAttribute("id");
+        this(map, xml, "id", Boolean.TRUE, Boolean.FALSE);
+    }
+
+    protected BoundCheckBox(BoundMap map, Element xml, String propertyNameAttr,
+            Object defaultTrueValue, Object defaultFalseValue) {
+        String propertyName = xml.getAttribute(propertyNameAttr);
+
+        if (Boolean.parseBoolean(xml.getAttribute(INVERTED_TAG))) {
+            Object tmp = defaultTrueValue;
+            defaultTrueValue = defaultFalseValue;
+            defaultFalseValue = tmp;
+        }
 
         Object trueValue = xml.getAttribute("trueValue");
         if (!XMLUtils.hasValue((String) trueValue))
-            trueValue = Boolean.TRUE;
+            trueValue = defaultTrueValue;
 
         Object falseValue = xml.getAttribute("falseValue");
         if (!XMLUtils.hasValue((String) falseValue))
-            falseValue = Boolean.FALSE;
+            falseValue = defaultFalseValue;
 
         init(map, propertyName, trueValue, falseValue);
+
+        String rightHandLabel = map.getAttrOrResource(xml, null,
+            "Checkbox_Label", null);
+        if (rightHandLabel != null)
+            setText(rightHandLabel);
     }
 
     public BoundCheckBox(BoundMap map, String propertyName) {

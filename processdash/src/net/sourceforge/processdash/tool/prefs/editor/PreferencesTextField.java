@@ -38,11 +38,10 @@ import org.w3c.dom.Element;
 public class PreferencesTextField extends BoundTextField {
 
     public PreferencesTextField(BoundMap map, Element xml) {
-        super();
+        super(map, xml, PreferencesForm.SETTING_TAG);
 
         String settingName = xml.getAttribute(PreferencesForm.SETTING_TAG);
         map.put(settingName, Settings.getVal(settingName));
-        init(map, settingName);
     }
 
     @Override

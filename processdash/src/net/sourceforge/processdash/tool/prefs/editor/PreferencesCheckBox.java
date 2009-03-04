@@ -32,28 +32,14 @@ import org.w3c.dom.Element;
 
 public class PreferencesCheckBox extends BoundCheckBox {
 
-    /** XML tag specifying if the widget has inverted "true" and "false" values */
-    public static final String INVERTED_TAG = "inverted";
-
-    private boolean isInverted = false;
-
     public PreferencesCheckBox(BoundMap map, Element xml) {
-        super();
-
-        // Setting the true and false values accordingly, depending on the
-        //  "inverted" widget attribute.
-        this.isInverted = Boolean.parseBoolean(xml.getAttribute(INVERTED_TAG));
-        String trueValue = this.isInverted ? Boolean.FALSE.toString() :
-                                             Boolean.TRUE.toString();
-        String falseValue = this.isInverted ? Boolean.TRUE.toString() :
-                                              Boolean.FALSE.toString();
+        super(map, xml, PreferencesForm.SETTING_TAG, Boolean.TRUE.toString(),
+                Boolean.FALSE.toString());
 
         // Setting the value according to the current user's settings
         String settingName = xml.getAttribute(PreferencesForm.SETTING_TAG);
         map.put(settingName,
                 Boolean.toString(Settings.getBool(settingName, false)));
-
-        init(map, settingName, trueValue, falseValue);
     }
 
 }

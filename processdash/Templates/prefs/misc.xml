@@ -32,14 +32,18 @@ preferences a category.
 -->
 
 <preferences-form>
+
     <checkbox id="readOnly.recommend"
-              setting="readOnly.recommend" />
+              setting="readOnly"
+              trueValue="recommend"
+              falseValue="false" />
             
     <checkbox id="slowNetwork"
               setting="slowNetwork" />
               
-    <radio id="http.allowRemote" setting="http.allowRemote">
-        <option id="Never" value="never" default="true" />
-        <option id="True" value="true" />
-    </radio>
+    <checkbox id="http.allowRemote"
+              setting="http.allowRemote"
+              trueValue="true"
+              falseValue="never" />
+
 </preferences-form>
