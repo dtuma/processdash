@@ -1,4 +1,4 @@
-// Copyright (C) 2007-2009 Tuma Solutions, LLC
+// Copyright (C) 2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -23,19 +23,30 @@
 
 package net.sourceforge.processdash.ui.systray;
 
-import net.sourceforge.processdash.ProcessDashboard;
-import net.sourceforge.processdash.util.Initializable;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 
-/**
- * Process Dashboard interface for system tray functionality.
- *
- * @author Max Agapov <magapov@gmail.com>
- * 
- */
-public interface SystemTrayIcon extends Initializable<ProcessDashboard> {
+import net.sourceforge.processdash.InternalSettings;
+import net.sourceforge.processdash.Settings;
 
-    boolean isVisible();
+public class UserSettingHandler implements PropertyChangeListener {
 
-    void setVisible(boolean visible);
+    private SystemTrayIcon icon;
+
+    public UserSettingHandler(SystemTrayIcon icon) {
+        this.icon = icon;
+
+        InternalSettings.addPropertyChangeListener(
+            SystemTrayManagement.DISABLED_SETTING, this);
+
+        propertyChange(null);
+    }
+
+    public void propertyChange(PropertyChangeEvent evt) {
+        boolean disabled = Settings.getBool(
+            SystemTrayManagement.DISABLED_SETTING, false);
+
+        icon.setVisible(disabled == false);
+    }
 
 }

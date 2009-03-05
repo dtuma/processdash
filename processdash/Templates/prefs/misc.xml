@@ -37,10 +37,14 @@ preferences a category.
               setting="readOnly"
               trueValue="recommend"
               falseValue="false" />
-            
+
+    <checkbox id="autoUpdateCheck"
+              setting="autoUpdate.disabled"
+	      inverted="true" />
+
     <checkbox id="slowNetwork"
               setting="slowNetwork" />
-              
+
     <checkbox id="http.allowRemote"
               setting="http.allowRemote"
               trueValue="true"

@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2008 Tuma Solutions, LLC
+// Copyright (C) 2002-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -32,6 +32,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.URL;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
@@ -121,8 +123,8 @@ public class FileBackupManager {
 
         boolean needExternalCopy = externalCopyDesired;
 
-        String[] extraBackupDirs = getExtraBackupDirs();
-        if (StringUtils.hasValue(who) && extraBackupDirs != null)
+        String[] extraBackupLocations = getExtraBackupLocations();
+        if (StringUtils.hasValue(who) && extraBackupLocations != null)
             needExternalCopy = true;
 
         File result = null;
@@ -135,8 +137,8 @@ public class FileBackupManager {
             return null;
         }
 
-        if (result != null && who != null && extraBackupDirs != null) {
-            makeExtraBackupCopies(result, who, extraBackupDirs);
+        if (result != null && who != null && extraBackupLocations != null) {
+            makeExtraBackupCopies(result, who, extraBackupLocations);
         }
 
         return result;
@@ -211,7 +213,7 @@ public class FileBackupManager {
         return Settings.getBool("logging.enabled", true);
     }
 
-    private static String[] getExtraBackupDirs() {
+    private static String[] getExtraBackupLocations() {
         String extraBackupDirs = InternalSettings.getExtendableVal(
             "backup.extraDirectories", ";");
         if (!StringUtils.hasValue(extraBackupDirs))
@@ -221,18 +223,34 @@ public class FileBackupManager {
     }
 
     private static void makeExtraBackupCopies(File backupFile, String who,
-            String[] dirNames) {
+            String[] locations) {
         if (backupFile == null
                 || who == null || who.length() == 0
-                || dirNames == null || dirNames.length == 0)
+                || locations == null || locations.length == 0)
             return;
 
         String filename = "backup-" + FileUtils.makeSafe(who) + ".zip";
-        for (int i = 0; i < dirNames.length; i++) {
+        Set<File> copies = new HashSet<File>();
+        for (int i = 0; i < locations.length; i++) {
             ThreadThrottler.tick();
-            File copy = new File(dirNames[i], filename);
+            File copy = null;
+            File oneLocation = new File(locations[i]);
+            if (oneLocation.isDirectory())
+                copy = new File(oneLocation, filename);
+            else if (oneLocation.getParentFile().isDirectory()) {
+                if (oneLocation.getName().toLowerCase().endsWith(".zip"))
+                    copy = oneLocation;
+                else
+                    copy = new File(oneLocation.getParentFile(),
+                            oneLocation.getName() + ".zip");
+            }
+
+            if (copy == null || copies.contains(copy))
+                continue;
+
             try {
                 FileUtils.copyFile(backupFile, copy);
+                copies.add(copy);
             } catch (Exception e) {
                 System.err.println("Warning: unable to make extra backup to '"
                         + copy + "'");
@@ -265,10 +283,10 @@ public class FileBackupManager {
         public void run() {
             try {
                 ProcessDashboard dash = (ProcessDashboard) context;
-                String ownerName = ProcessDashboard.getOwnerName(context
+                String qualifier = ProcessDashboard.getBackupQualifier(context
                         .getData());
                 dash.fileBackupManager.maybeRun(FileBackupManager.RUNNING,
-                    ownerName);
+                    qualifier);
             } catch (Exception e) {
                 logger.log(Level.SEVERE,
                         "Encountered exception when performing auto backup", e);

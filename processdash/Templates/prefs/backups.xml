@@ -33,11 +33,14 @@ preferences a category.
 
 <preferences-form>
 
-    <grouping id="backup.extraDirectories">
-        <file-list id="backup.extraDirectories_list"
+    <textfield id="backup.numDays"
+    	       setting="backup.keepBackupsNumDays"
+	       width="3"
+	       dataType="integer" />
+
+    <file-list id="backup.extraDirectories"
                setting="backup.extraDirectories"
                allowFolders="true"
-               allowFiles="false"/>
-    </grouping>
+               allowFiles="true" />
 
 </preferences-form>

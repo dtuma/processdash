@@ -1,4 +1,4 @@
-// Copyright (C) 2007-2008 Tuma Solutions, LLC
+// Copyright (C) 2007-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -180,6 +180,9 @@ public class Reminder {
      * Shows the reminder to the user
      */
     public void remind() {
+        if (SystemTrayIconJDK6Impl.isVisible(icon) == false)
+            return;
+
         String messageKey;
         if (pdash.getTimeLoggingModel().isPaused()) {
             messageKey = "Pause_Reminder_FMT";

@@ -68,9 +68,6 @@ public class PreferencesDialog extends JDialog implements ListSelectionListener,
                                                           PropertyChangeListener {
     static final Resources resources = Resources.getDashBundle("Tools.Prefs.Dialog");
 
-    private static final int WINDOW_WIDTH = 400;
-    private static final int WINDOW_HEIGHT = 600;
-
     /** The spacing between the OK, Cancel and Apply buttons */
     private static final int CONTROL_BUTTONS_SPACING = 10;
 
@@ -97,7 +94,6 @@ public class PreferencesDialog extends JDialog implements ListSelectionListener,
 
     public PreferencesDialog(ProcessDashboard parent, String title) {
         super(parent, title);
-        setSize(WINDOW_WIDTH, WINDOW_HEIGHT);
         setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 
         this.addWindowListener( new WindowAdapter() {
@@ -108,6 +104,7 @@ public class PreferencesDialog extends JDialog implements ListSelectionListener,
 
         reload();
         setVisible(true);
+        pack();
     }
 
     private void reload() {
@@ -133,6 +130,7 @@ public class PreferencesDialog extends JDialog implements ListSelectionListener,
         else {
             reload();
             this.setVisible(true);
+            this.pack();
         }
     }
 
@@ -303,6 +301,7 @@ public class PreferencesDialog extends JDialog implements ListSelectionListener,
 
             CardLayout layout = (CardLayout) preferencesPanels.getLayout();
             layout.show(preferencesPanels, selectedCategory.getCategoryID());
+            pack();
         }
     }
 

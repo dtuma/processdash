@@ -1,4 +1,4 @@
-// Copyright (C) 2007 Tuma Solutions, LLC
+// Copyright (C) 2007-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -23,14 +23,11 @@
 
 package net.sourceforge.processdash.ui.systray;
 
-import java.awt.SystemTray;
-import java.awt.TrayIcon;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.util.Arrays;
 
 import javax.swing.Timer;
 
@@ -44,21 +41,18 @@ import net.sourceforge.processdash.Settings;
  */
 public class WindowHandler {
 
+    public static final String MINIMIZE_TO_TRAY_SETTING =
+        "systemTray.minimizeToTray";
+
     private Window window;
 
-    private TrayIcon trayIcon;
-
-    private boolean hideOnMinimize;
+    private SystemTrayIcon trayIcon;
 
 
-    public WindowHandler(Window w, TrayIcon icon) {
+    public WindowHandler(Window w, SystemTrayIcon icon) {
         this.window = w;
         this.trayIcon = icon;
 
-        // get the value of the "minimize to tray" setting.  The user can
-        // alter this setting via the configuration file if they wish.
-        this.hideOnMinimize = Settings.getBool("systemTray.minimizeToTray",
-            true);
         this.window.addWindowListener(new MinimizeToTraySupport());
     }
 
@@ -103,14 +97,15 @@ public class WindowHandler {
 
         private boolean isHideAppropriate() {
             // check to see if minimize to tray has been disabled by a setting
+            boolean hideOnMinimize = Settings.getBool(
+                MINIMIZE_TO_TRAY_SETTING, false);
             if (hideOnMinimize == false)
                 return false;
 
             // it is only acceptable to "minimize to tray" if the tray icon is
             // currently visible!  Otherwise, the user would have no way of
             // getting the window back.
-            TrayIcon[] icons = SystemTray.getSystemTray().getTrayIcons();
-            return Arrays.asList(icons).contains(trayIcon);
+            return trayIcon.isVisible();
         }
     }
 

@@ -1,4 +1,4 @@
-// Copyright (C) 2007-2008 Tuma Solutions, LLC
+// Copyright (C) 2007-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -25,7 +25,6 @@ package net.sourceforge.processdash.ui.systray;
 
 import java.awt.MenuItem;
 import java.awt.PopupMenu;
-import java.awt.SystemTray;
 import java.awt.TrayIcon;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -75,7 +74,7 @@ public class MenuHandler {
             pdash.getConfigurationMenu()));
         if (Settings.isReadWrite())
             popupMenu.add(new ReminderMenu(reminder));
-        popupMenu.add(new RemoveTrayIconAction(icon, reminder));
+        popupMenu.add(new RemoveTrayIconAction());
         ScriptMenuReplicator.replicate(pdash, popupMenu);
         popupMenu.add(makeChangeTaskMenuItem());
         popupMenu.add(new PlayPauseMenuItem(pdash.getTimeLoggingModel()));
@@ -128,25 +127,14 @@ public class MenuHandler {
 
     public class RemoveTrayIconAction extends MenuItem {
 
-        private TrayIcon icon;
-
-        private Reminder reminder;
-
-        public RemoveTrayIconAction(TrayIcon icon, Reminder reminder) {
+        public RemoveTrayIconAction() {
             super(res.getString("Remove_Icon"));
-            this.icon = icon;
             addActionListener(EventHandler.create(ActionListener.class, this,
                 "hideIcon"));
         }
 
         public void hideIcon() {
-            // if the main window is currently "minimized to the tray" when we
-            // remove the tray icon, the user would have no way of getting it
-            // back.  Raise the window to make certain that doesn't happen.
-            DashController.raiseWindow();
             InternalSettings.set(SystemTrayManagement.DISABLED_SETTING, "true");
-            reminder.setDisabled(true);
-            SystemTray.getSystemTray().remove(icon);
         }
     }
 

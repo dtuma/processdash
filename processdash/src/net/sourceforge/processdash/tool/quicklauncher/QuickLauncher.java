@@ -1,4 +1,4 @@
-// Copyright (C) 2006-2008 Tuma Solutions, LLC
+// Copyright (C) 2006-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -177,7 +177,7 @@ public class QuickLauncher {
                 + Settings.SYS_PROP_PREFIX + "export.disableAutoExport=true",
                 null, processFactory, true));
         contents.add(new OptionCheckbox("Use_External_Templates", null, "-D"
-                + Settings.SYS_PROP_PREFIX + "templates.directory=",
+                + Settings.SYS_PROP_PREFIX + "templates.disableSearchPath=true",
                 processFactory, false));
 
         JTable table = new JTable(instanceList);

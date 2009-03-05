@@ -34,6 +34,7 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
+import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.StringUtils;
 
 import org.w3c.dom.Element;
@@ -92,7 +93,7 @@ public class BoundForm extends BoundMap {
 
         String tooltip = getAttrOrResource(xml, null, "Tooltip", null);
         if (StringUtils.hasValue(tooltip))
-            component.setToolTipText(tooltip);
+            setComponentToolTip(component, tooltip);
 
         String enablingProperty = xml.getAttribute("enabledIf");
         String disablingProperty = xml.getAttribute("disabledIf");
@@ -103,6 +104,17 @@ public class BoundForm extends BoundMap {
 
         maybeAddEnablePropertyChangeListener(enablingProperty, enableListener);
         maybeAddEnablePropertyChangeListener(disablingProperty, enableListener);
+    }
+
+    private void setComponentToolTip(JComponent component, String tooltip) {
+        if (StringUtils.hasValue(tooltip)) {
+            if (!tooltip.startsWith("<html>")) {
+                tooltip = "<html><div width='300'>"
+                    + HTMLUtils.escapeEntities(tooltip)
+                    + "</div></html>";
+            }
+            component.setToolTipText(tooltip);
+        }
     }
 
     private void maybeAddEnablePropertyChangeListener(String property,

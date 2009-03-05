@@ -29,12 +29,12 @@ import java.awt.event.ActionListener;
 import java.beans.EventHandler;
 import java.io.File;
 import java.util.Arrays;
-import java.util.ResourceBundle;
 
 import javax.swing.Box;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
+import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -44,6 +44,7 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
 import net.sourceforge.processdash.Settings;
+import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.tool.prefs.PreferencesForm;
 import net.sourceforge.processdash.ui.lib.binding.BoundMap;
 import net.sourceforge.processdash.util.StringUtils;
@@ -57,6 +58,8 @@ public class PreferencesFileList extends JPanel implements ListSelectionListener
 
     /** The border width of the button box */
     private static final int BUTTON_BOX_BORDER = 10;
+
+    private static final int LABEL_BOTTOM_PAD = 5;
 
     /** The file list dimensions */
     private static final int LIST_WIDTH = 260;
@@ -88,6 +91,9 @@ public class PreferencesFileList extends JPanel implements ListSelectionListener
     private JList fileList;
     private DefaultListModel listModel;
 
+    private static final Resources resources = Resources
+            .getDashBundle("Tools.Prefs.File_List");
+
     public PreferencesFileList(BoundMap map, Element xml) {
         this.map = map;
 
@@ -116,21 +122,32 @@ public class PreferencesFileList extends JPanel implements ListSelectionListener
         allowFiles = !StringUtils.hasValue(allowFilesProp)
                                 ? true : Boolean.parseBoolean(allowFilesProp);
 
-        createUI(id, map.getResources(), currentValue);
+        createUI(id, currentValue);
     }
 
-    private void createUI(String id, ResourceBundle resources, String currentValue) {
+    private void createUI(String id, String currentValue) {
         this.setLayout(new BorderLayout());
+        maybeCreateLabel(id);
         createList(currentValue);
-        createButtonBox(id, resources);
+        createButtonBox(id);
     }
 
-    private void createButtonBox(String id, ResourceBundle resources) {
-        addButton = new JButton(resources.getString(id + ".Add_Button_Label"));
+    private void maybeCreateLabel(String id) {
+        String text = map.getResource(id + ".FileList_Label");
+        if (text != null) {
+            JLabel label = new JLabel(text);
+            label.setBorder(new EmptyBorder(0, 0, LABEL_BOTTOM_PAD, 0));
+            this.add(label, BorderLayout.PAGE_START);
+            this.add(new JLabel("    "), BorderLayout.LINE_START);
+        }
+    }
 
-        editButton = new JButton(resources.getString(id + ".Edit_Button_Label"));
+    private void createButtonBox(String id) {
+        addButton = new JButton(getButtonLabel(id, "Add_Button_Label"));
 
-        removeButton = new JButton(resources.getString(id + ".Remove_Button_Label"));
+        editButton = new JButton(getButtonLabel(id, "Edit_Button_Label"));
+
+        removeButton = new JButton(getButtonLabel(id, "Remove_Button_Label"));
         removeButton.addActionListener((ActionListener) EventHandler.create(
                 ActionListener.class, this, "removeFile"));
 
@@ -162,7 +179,14 @@ public class PreferencesFileList extends JPanel implements ListSelectionListener
 
     }
 
-    private String getNewFilePath() {
+    private String getButtonLabel(String id, String key) {
+        String result = map.getResource(id + "." + key);
+        if (result == null)
+            result = resources.getString(key);
+        return result;
+    }
+
+    private String getNewFilePath(String initialPath) {
         String path = null;
 
         JFileChooser fileChooser = new JFileChooser();
@@ -172,6 +196,8 @@ public class PreferencesFileList extends JPanel implements ListSelectionListener
             fileSelectionMode = JFileChooser.DIRECTORIES_ONLY;
         if (!allowFolders)
             fileSelectionMode = JFileChooser.FILES_ONLY;
+        if (initialPath != null)
+            fileChooser.setSelectedFile(new File(initialPath));
 
         fileChooser.setFileSelectionMode(fileSelectionMode);
 
@@ -188,7 +214,7 @@ public class PreferencesFileList extends JPanel implements ListSelectionListener
     }
 
     public void addFile() {
-        String path = getNewFilePath();
+        String path = getNewFilePath(null);
 
         if (StringUtils.hasValue(path))
             listModel.addElement(path);
@@ -198,13 +224,15 @@ public class PreferencesFileList extends JPanel implements ListSelectionListener
     }
 
     public void editFile() {
-        String path = getNewFilePath();
+        int index = fileList.getSelectedIndex();
+        if (index < 0)
+            return;
+
+        String pathToEdit = listModel.get(index).toString();
+        String path = getNewFilePath(pathToEdit);
 
         if (StringUtils.hasValue(path)) {
-            int index = fileList.getSelectedIndex();
-
-            if (index >= 0)
-                listModel.set(index, path);
+            listModel.set(index, path);
         }
 
         updateButtons();

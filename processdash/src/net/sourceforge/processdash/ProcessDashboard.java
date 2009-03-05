@@ -563,7 +563,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
                 prop_file.getParentFile());
         DashController.setDashboard(this);
         BackgroundTaskManager.initialize(this);
-        initializeSystemTray();
+        SystemTrayManagement.getIcon().initialize(this);
         initializeOsHelper();
         pt.click("Finished initializing Process Dashboard object");
     }
@@ -714,26 +714,6 @@ public class ProcessDashboard extends JFrame implements WindowListener,
                 }
             }
         }
-    }
-
-    /**
-     * Enable system tray icon based on a property value.
-     */
-    private void initializeSystemTray() {
-        if (isSystemTrayEnabled()){
-            //install icon
-            SystemTrayManagement.getIcon().initialize(this);
-        } else {
-            //remove the icon from the system tray
-            SystemTrayManagement.getIcon().dispose();
-        }
-    }
-
-    /**
-     * @return true if preferences allow system tray icon
-     */
-    private static boolean isSystemTrayEnabled() {
-        return !Settings.getBool(SystemTrayManagement.DISABLED_SETTING, false);
     }
 
     private void initializeOsHelper() {
@@ -1063,6 +1043,12 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         }
     }
 
+    static String getBackupQualifier(DataContext data) {
+        String result = getOwnerName(data);
+        if (!StringUtils.hasValue(result))
+            result = Settings.getVal(WINDOW_TITLE_SETTING);
+        return result;
+    }
     public static String getOwnerName(DataRepository data) {
         return getOwnerName((DataContext) data);
     }
@@ -1217,7 +1203,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
     public void exitProgram() {
         new DashboardPermission("exitProgram").checkPermission();
 
-        String owner = getOwnerName(data);
+        String backupQualifier = getBackupQualifier(data);
         try {
             if (quit() == false)
                 return;
@@ -1232,7 +1218,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         setVisible(false);
 
         logger.fine("Backing up data directory");
-        fileBackupManager.maybeRun(FileBackupManager.SHUTDOWN, owner);
+        fileBackupManager.maybeRun(FileBackupManager.SHUTDOWN, backupQualifier);
 
         logger.fine("Shutdown complete");
         System.exit(0);

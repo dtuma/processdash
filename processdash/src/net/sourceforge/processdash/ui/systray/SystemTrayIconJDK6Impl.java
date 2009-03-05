@@ -1,4 +1,4 @@
-// Copyright (C) 2007-2008 Tuma Solutions, LLC
+// Copyright (C) 2007-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -23,14 +23,15 @@
 
 package net.sourceforge.processdash.ui.systray;
 
-import java.awt.AWTException;
 import java.awt.Dimension;
 import java.awt.Image;
 import java.awt.SystemTray;
 import java.awt.TrayIcon;
+import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import net.sourceforge.processdash.DashController;
 import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.ui.DashboardIconFactory;
 
@@ -50,6 +51,11 @@ public class SystemTrayIconJDK6Impl implements SystemTrayIcon {
      * Our icon in the systray
      */
     private TrayIcon icon;
+
+    /**
+     * True if the icon is currently visible in the tray.
+     */
+    private boolean isVisible;
 
     /**
      * Process Dashboard object
@@ -86,6 +92,11 @@ public class SystemTrayIconJDK6Impl implements SystemTrayIcon {
      */
     Reminder reminder;
 
+    /**
+     * Object to observe changes in user settings
+     */
+    UserSettingHandler userSettingHandler;
+
     private static final Logger logger = Logger
             .getLogger(SystemTrayIconJDK6Impl.class.getName());
 
@@ -98,6 +109,33 @@ public class SystemTrayIconJDK6Impl implements SystemTrayIcon {
         if (!SystemTray.isSupported()) {
             throw new UnsupportedOperationException(
                     "System tray is not supported");
+        }
+    }
+
+    public boolean isVisible() {
+        return isVisible;
+    }
+
+    public void setVisible(boolean visible) {
+        if (icon == null || visible == this.isVisible)
+            return;
+
+        if (visible) {
+            try {
+                SystemTray.getSystemTray().add(icon);
+                this.isVisible = true;
+            } catch (Exception e) {
+                logger.log(Level.SEVERE, "TrayIcon could not be displayed", e);
+            }
+        }
+        else {
+            // if the main window is currently "minimized to the tray" when we
+            // remove the tray icon, the user would have no way of getting it
+            // back.  Raise the window to make certain that doesn't happen.
+            DashController.raiseWindow();
+
+            SystemTray.getSystemTray().remove(icon);
+            this.isVisible = false;
         }
     }
 
@@ -120,37 +158,17 @@ public class SystemTrayIconJDK6Impl implements SystemTrayIcon {
             return;
         }
 
-        try {
-            setupIcon();
-        } catch (AWTException e) {
-            logger.log(Level.SEVERE, "TrayIcon setup failed", e);
-            return;
-        }
-
+        this.icon = new TrayIcon(getImage());
+        this.isVisible = false;
         this.pdash = pdash;
-        reminder = new Reminder(icon, pdash);
 
+        reminder = new Reminder(icon, pdash);
         imageHandler = new IconImageHandler(pdash, icon);
         tooltipHandler =  new TooltipHandler(pdash, icon);
-        windowHandler = new WindowHandler(pdash, icon);
+        windowHandler = new WindowHandler(pdash, this);
         menuHandler = new MenuHandler(pdash, icon, reminder);
         mouseHandler = new MouseHandler(pdash, icon, menuHandler, imageHandler);
-    }
-
-    /**
-     * Creates TrayIcon with an image, adds action listener and shows icon in the
-     * <code>SystemTray</code>.
-     * 
-     * @throws AWTException
-     */
-    private void setupIcon() throws AWTException {
-        if (icon == null) {
-            // Create instance with an image
-            icon = new TrayIcon(getImage());
-
-            // Add our new icon to the system tray
-            SystemTray.getSystemTray().add(icon);
-        }
+        userSettingHandler = new UserSettingHandler(this);
     }
 
     /**
@@ -164,4 +182,9 @@ public class SystemTrayIconJDK6Impl implements SystemTrayIcon {
         return DashboardIconFactory.getApplicationImage(size, true);
     }
 
+    /** Convenience routine: return true if an icon is currently visible */
+    protected static boolean isVisible(TrayIcon icon) {
+        TrayIcon[] icons = SystemTray.getSystemTray().getTrayIcons();
+        return Arrays.asList(icons).contains(icon);
+    }
 }

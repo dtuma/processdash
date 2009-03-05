@@ -175,10 +175,7 @@ public class ConfigureButton extends JMenuBar implements ActionListener, Hierarc
         // workaround jre 1.3 bug...reference http://developer.java.sun.com/developer/bugParade/bugs/4280243.html
         toolMenu.enableInputMethods(false);
 
-        if (Settings.getBool("showPrefsAction", false)) {
-            toolMenu.add(new OpenPreferencesDialogAction(parent));
-        }
-
+        toolMenu.add(new OpenPreferencesDialogAction(parent));
         toolMenu.add(makeMenuItem(PROBE_DIALOG));
         if (Settings.isReadWrite()) {
             toolMenu.add(new ShowImportWizardAction(resources.getString(IMPORT)));
