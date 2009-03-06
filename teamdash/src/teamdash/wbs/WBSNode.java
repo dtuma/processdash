@@ -10,9 +10,11 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
+
 import teamdash.XMLUtils;
 
 /** This class represents a node in the work breakdown structure hierarchy.
@@ -272,8 +274,14 @@ public class WBSNode implements Cloneable {
             WBSNode result = (WBSNode) super.clone();
 
             // clone the attributes Map
-            result.attributes = (Map) ((HashMap) result.attributes).clone();
-            result.discardTransientAttributes(false);
+            Map newAttributes = new HashMap(attributes.size());
+            for (Iterator i = attributes.entrySet().iterator(); i.hasNext();) {
+                Map.Entry e = (Map.Entry) i.next();
+                String name = (String) e.getKey();
+                if (getTransientAttrType(name) != TRANSIENT_ATTR)
+                    newAttributes.put(name, e.getValue());
+            }
+            result.attributes = newAttributes;
 
             return result;
         } catch (CloneNotSupportedException cnse) {
@@ -293,16 +301,44 @@ public class WBSNode implements Cloneable {
         Iterator i = attributes.keySet().iterator();
         while (i.hasNext()) {
             String attrName = (String) i.next();
-            if (isTransientAttribute(attrName)) {
-                if (discardActualData || !isActualDataAttribute(attrName))
-                    i.remove();
+            switch (getTransientAttrType(attrName)) {
+
+            case ACTUAL_DATA_ATTR:
+                if (discardActualData == false)
+                    break;
+                // otherwise, fall through to the statement below, removing
+                // the attribute
+
+            case TRANSIENT_ATTR:
+                i.remove();
+
             }
         }
     }
-    private boolean isTransientAttribute(String attrName) {
+
+    private static final int NON_TRANSIENT_ATTR = 0;
+    private static final int TRANSIENT_ATTR = 1;
+    private static final int ACTUAL_DATA_ATTR = 2;
+    private static final int getTransientAttrType(String attrName) {
+        Integer result = TRANSIENT_ATTR_NAME_CACHE.get(attrName);
+        if (result == null) {
+            if (isActualDataAttribute(attrName))
+                result = ACTUAL_DATA_ATTR;
+            else if (isTransientAttribute(attrName))
+                result = TRANSIENT_ATTR;
+            else
+                result = NON_TRANSIENT_ATTR;
+            TRANSIENT_ATTR_NAME_CACHE.put(attrName, result);
+        }
+        return result;
+    }
+    private static final Map<String, Integer> TRANSIENT_ATTR_NAME_CACHE =
+        new ConcurrentHashMap<String, Integer>(1000);
+
+    private static boolean isTransientAttribute(String attrName) {
         return (attrName.indexOf('_') != -1);
     }
-    private boolean isActualDataAttribute(String attrName) {
+    private static boolean isActualDataAttribute(String attrName) {
         return (attrName.indexOf('@') != -1);
     }
 
