@@ -357,12 +357,12 @@ public class TeamActualTimeColumn extends AbstractNumericColumn implements
     private static final double MAX_ADJUSTMENT_RATIO = 0.2;
 
     private static String getRemainingTimeAttr(String initials) {
-        return initials + "-Remaining_Time";
+        return ('_' + initials + "-Remaining_Time").intern();
     }
     private static String getMilestonePlanTimeAttr(String initials) {
-        return initials + "-Milestone_Plan_Time";
+        return ('_' + initials + "-Milestone_Plan_Time").intern();
     }
     private static String getMilestoneRemainingTimeAttr(String initials) {
-        return initials + "-Milestone_Remaining_Time";
+        return ('_' + initials + "-Milestone_Remaining_Time").intern();
     }
 }

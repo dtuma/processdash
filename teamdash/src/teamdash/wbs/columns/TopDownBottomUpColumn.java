@@ -309,12 +309,12 @@ public class TopDownBottomUpColumn extends AbstractNumericColumn
     public void storeDependentColumn(String ID, int columnNumber) { }
 
     protected static String getTopDownAttrName(String id) {
-        return id.replace('_', '-') + " (Top Down)";
+        return (id.replace('_', '-') + " (Top Down)").intern();
     }
     protected static String getBottomUpAttrName(String id) {
-        return id.replace('_', '-') + " (Bottom_Up)";
+        return ('_' + id.replace('_', '-') + " (Bottom_Up)").intern();
     }
     protected static String getInheritedAttrName(String id) {
-        return id.replace('_', '-') + " (Inherited_)";
+        return ('_' + id.replace('_', '-') + " (Inherited_)").intern();
     }
 }

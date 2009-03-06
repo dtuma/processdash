@@ -189,7 +189,7 @@ public class WBSNode implements Cloneable {
      * so all getXXXAttribute methods must be capable of automatically
      * interpreting <code>String</code> values. */
     protected void setXMLAttribute(Element attrElement) {
-        String name = attrElement.getAttribute(NAME_ATTR);
+        String name = attrElement.getAttribute(NAME_ATTR).intern();
         String value = attrElement.getAttribute(VALUE_ATTR);
         setAttribute(name, value);
     }
