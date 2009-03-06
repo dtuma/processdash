@@ -114,8 +114,8 @@ public class TopDownBottomUpColumn extends AbstractNumericColumn
             node.setNumericAttribute(topDownAttrName, newValue);
         }
 
-        // recalculate the tree.
-        recalculate();
+        // ask the data model to recalculate this column.
+        dataModel.columnChanged(this);
     }
 
     public boolean recalculate() {
