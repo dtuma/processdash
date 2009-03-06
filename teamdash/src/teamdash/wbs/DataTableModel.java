@@ -109,7 +109,7 @@ public class DataTableModel extends AbstractTableModel {
         while (i.hasNext()) {
             // get information about the calculated column
             CalculatedDataColumn column = (CalculatedDataColumn) i.next();
-            int columnPos = columns.indexOf(column);
+            int columnPos = findIndexOfColumn(column);
 
             // find each dependent column and register it with the calculated
             // column.
@@ -168,14 +168,14 @@ public class DataTableModel extends AbstractTableModel {
             System.out.println("<br>"+indent+"Name:" + c.getColumnName());
             System.out.println("<br>"+indent+"Class: {@link " + c.getClass().getName() + "}");
             System.out.println("<br>"+indent+"Depends on:");
-            int id = columns.indexOf(c);
+            int id = findIndexOfColumn(c);
             for (int j=0;   j < columns.size();   j++)
                 if (dependencies[id][j]) {
                     String id2 = getColumn(j).getColumnID();
                     System.out.println("<br>"+indent+indent+"<a href='#"+id2+"'>"+id2+"</a>");
                 }
             System.out.println("    Affects:");
-            id = columns.indexOf(c);
+            id = findIndexOfColumn(c);
             for (int j=0;   j < columns.size();   j++)
                 if (dependencies[j][id]) {
                     String id2 = getColumn(j).getColumnID();
@@ -188,7 +188,11 @@ public class DataTableModel extends AbstractTableModel {
 
     /** Add a single data column to the data model */
     public void addDataColumn(DataColumn column) {
+        int newColumnIndex = columns.size();
         columns.add(column);
+        if (column instanceof IndexAwareDataColumn)
+            ((IndexAwareDataColumn) column).setColumnIndex(newColumnIndex);
+
         // if the dependencies are already computed, update them.
         if (dependencies != null)
             initializeColumnDependencies();
@@ -196,12 +200,21 @@ public class DataTableModel extends AbstractTableModel {
 
     /** Remove a single data column from the data model */
     public void removeDataColumn(DataColumn column) {
-        int pos = columns.indexOf(column);
+        int pos = findIndexOfColumn(column);
         if (pos == -1) return;
+        if (column instanceof IndexAwareDataColumn)
+            ((IndexAwareDataColumn) column).setColumnIndex(-1);
         columns.set(pos, new NullDataColumn());
         // if the dependencies are already computed, update them.
         if (dependencies != null)
             initializeColumnDependencies();
+    }
+
+    private int findIndexOfColumn(Object column) {
+        if (column instanceof IndexAwareDataColumn)
+            return ((IndexAwareDataColumn) column).getColumnIndex();
+        else
+            return columns.indexOf(column);
     }
 
     /** Add a list of data columns and remove another list of data columns.
@@ -259,7 +272,7 @@ public class DataTableModel extends AbstractTableModel {
         IntList result = new IntList();
         Iterator i = memberColumnManager.getPlanTimeColumns().iterator();
         while (i.hasNext())
-            result.add(columns.indexOf(i.next()));
+            result.add(findIndexOfColumn(i.next()));
 
         return result;
     }
@@ -402,7 +415,7 @@ public class DataTableModel extends AbstractTableModel {
         if (column != null) {
             try {
                 beginChange();
-                columnChanged(column, columns.indexOf(column));
+                columnChanged(column, findIndexOfColumn(column));
             } finally {
                 endChange();
             }
@@ -525,7 +538,7 @@ public class DataTableModel extends AbstractTableModel {
             return;
         }
 
-        int columnPos = columns.indexOf(column);
+        int columnPos = findIndexOfColumn(column);
         if (columnPos != -1) try {
             waitingColumns.add(column);
 
