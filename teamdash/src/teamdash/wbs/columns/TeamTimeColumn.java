@@ -2,6 +2,8 @@ package teamdash.wbs.columns;
 
 import java.awt.Color;
 import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -802,8 +804,17 @@ public class TeamTimeColumn extends TopDownBottomUpColumn {
     }
 
     public static String getMemberAssignedZeroAttrName(String initials) {
-        return initials.replace('_', '-') + " (Assigned With Zero)";
+        String result = MEMBER_ASSIGNED_ZERO_ATTR_NAMES.get(initials);
+        if (result == null) {
+            result = initials.replace('_', '-') + " (Assigned With Zero)";
+            result = result.intern();
+            MEMBER_ASSIGNED_ZERO_ATTR_NAMES.put(initials, result);
+        }
+        return result;
     }
+
+    private static final Map<String, String> MEMBER_ASSIGNED_ZERO_ATTR_NAMES =
+        new ConcurrentHashMap<String, String>();
 
 
     private static final String DATA_ATTR_NAME = "Time_Data";
