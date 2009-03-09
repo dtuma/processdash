@@ -132,6 +132,30 @@ public class IconFactory {
     }
     private static Icon DELETE_ICON = null;
 
+    public static Icon getNewTabIcon() {
+        if (NEW_TAB_ICON == null) NEW_TAB_ICON = loadIconResource("tab-new.png");
+        return NEW_TAB_ICON;
+    }
+    private static Icon NEW_TAB_ICON = null;
+
+    public static Icon getAddTabIcon() {
+        if (ADD_TAB_ICON == null) ADD_TAB_ICON = loadIconResource("tab-add.png");
+        return ADD_TAB_ICON;
+    }
+    private static Icon ADD_TAB_ICON = null;
+
+    public static Icon getRemoveTabIcon() {
+        if (REMOVE_TAB_ICON == null) REMOVE_TAB_ICON = loadIconResource("tab-remove.png");
+        return REMOVE_TAB_ICON;
+    }
+    private static Icon REMOVE_TAB_ICON = null;
+
+    public static Icon getDuplicateTabIcon() {
+        if (DUPLICATE_TAB_ICON == null) DUPLICATE_TAB_ICON = loadIconResource("tab-duplicate.png");
+        return DUPLICATE_TAB_ICON;
+    }
+    private static Icon DUPLICATE_TAB_ICON = null;
+
     public static Icon getImportIcon() {
         if (IMPORT_ICON == null) {
             IMPORT_ICON = new ConcatenatedIcon(new Icon[] { getWorkflowIcon(),

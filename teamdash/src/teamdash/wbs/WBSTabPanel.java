@@ -146,11 +146,17 @@ public class WBSTabPanel extends JPanel
     }
 
     protected boolean isTabEditable(int tabIndex) {
-        return ((TabProperties) tabProperties.get(tabIndex)).isEditable();
+        if (tabIndex < 0 || tabIndex >= tabProperties.size())
+            return false;
+        else
+            return ((TabProperties) tabProperties.get(tabIndex)).isEditable();
     }
 
     protected boolean isTabProtected(int tabIndex) {
-        return ((TabProperties) tabProperties.get(tabIndex)).isProtected();
+        if (tabIndex < 0 || tabIndex >= tabProperties.size())
+            return false;
+        else
+            return ((TabProperties) tabProperties.get(tabIndex)).isProtected();
     }
 
     private boolean editableTabsExist() {
@@ -218,15 +224,18 @@ public class WBSTabPanel extends JPanel
         // add tab properties
         tabProperties.add(properties);
 
-        // add the new tab. (Note: the addition of the first tab triggers
-        // an automatic tab selection event, which will effectively install
-        // the tableColumnModel we just created.)
-        tabbedPane.add(tabName, new EmptyComponent(new Dimension(10, 10)));
+        // insert the new tab immediately before the "Add Tab" pseudotab.
+        int tabIndex = tableColumnModels.size() - 1;
+        tabbedPane.insertTab(tabName, null,
+            new EmptyComponent(new Dimension(10, 10)), null, tabIndex);
 
         if (properties.isEditable())
             EXPORT_TABS_ACTION.setEnabled(true);
 
-        int tabIndex = tableColumnModels.size() - 1;
+        // If this is the first tab, trigger a tab selection event to install
+        // the tableColumnModel we just created.
+        if (tabIndex == 0)
+            tabbedPane.setSelectedIndex(0);
 
         return tabIndex;
     }
@@ -234,6 +243,7 @@ public class WBSTabPanel extends JPanel
     protected void removeTab(int index) {
         tabProperties.remove(index);
         tableColumnModels.remove(index);
+        tabbedPane.setSelectedIndex(index-1);
         tabbedPane.remove(index);
     }
 
@@ -241,7 +251,7 @@ public class WBSTabPanel extends JPanel
         LinkedHashMap<String, TableColumnModel> result =
             new LinkedHashMap<String, TableColumnModel>();
 
-        for (int i = 0; i < tabbedPane.getTabCount(); i++) {
+        for (int i = 0; i < tabbedPane.getTabCount()-1; i++) {
             String tabName = tabbedPane.getTitleAt(i);
             String key = tabName;
             int j = 0;
@@ -340,7 +350,7 @@ public class WBSTabPanel extends JPanel
 
     private class NewTabAction extends AbstractAction {
         public NewTabAction() {
-            super("New Tab");
+            super("New Tab", IconFactory.getNewTabIcon());
         }
 
         public void actionPerformed(ActionEvent e) {
@@ -385,7 +395,7 @@ public class WBSTabPanel extends JPanel
 
     private class DuplicateTabAction extends AbstractAction implements EnablementCalculation {
         public DuplicateTabAction() {
-            super("Duplicate Tab");
+            super("Duplicate Tab", IconFactory.getDuplicateTabIcon());
             enablementCalculations.add(this);
         }
 
@@ -413,7 +423,7 @@ public class WBSTabPanel extends JPanel
 
     private class DeleteTabAction extends AbstractAction implements EnablementCalculation {
         public DeleteTabAction() {
-            super("Delete Tab");
+            super("Delete Tab", IconFactory.getRemoveTabIcon());
             enablementCalculations.add(this);
         }
 
@@ -440,7 +450,7 @@ public class WBSTabPanel extends JPanel
 
     private class ChangeTabColumnsAction extends AbstractAction implements EnablementCalculation {
         public ChangeTabColumnsAction() {
-            super("Change Tab Columns");
+            super("Change Tab Columns", IconFactory.getColumnsIcon());
             enablementCalculations.add(this);
         }
 
@@ -643,6 +653,10 @@ public class WBSTabPanel extends JPanel
     private void makeTabbedPane() {
         tabbedPane = new JTabbedPane(JTabbedPane.TOP, JTabbedPane.SCROLL_TAB_LAYOUT);
 
+        // Create a "pseudo-tab" that displays the "Add Tab" icon.
+        tabbedPane.addTab(null, IconFactory.getAddTabIcon(),
+            new EmptyComponent(new Dimension(10, 10)), "Add New Tab");
+
         tabbedPane.addChangeListener(new TabListener());
 
         GridBagConstraints c = new GridBagConstraints();
@@ -693,6 +707,7 @@ public class WBSTabPanel extends JPanel
     /** Listen for changes to the tab selection, and install the corresponding
      * table column model. */
     private final class TabListener implements ChangeListener {
+        private int mostRecentlySelectedTab = -1;
         public void stateChanged(ChangeEvent e) {
             TableCellEditor editor = wbsTable.getCellEditor();
             if (editor != null) editor.stopCellEditing();
@@ -700,9 +715,23 @@ public class WBSTabPanel extends JPanel
             if (editor != null) editor.stopCellEditing();
 
             int whichTab = tabbedPane.getSelectedIndex();
+
+            // Has the user just clicked on the "Add Tab" pseudo-tab?
+            // if so, restore the most recently selected tab (because the
+            // pseudo-tab can't really be activated), then run the "Add
+            // New Tab" action.
+            if (whichTab == tabbedPane.getTabCount()-1) {
+                if (mostRecentlySelectedTab != -1) {
+                    tabbedPane.setSelectedIndex(mostRecentlySelectedTab);
+                    NEW_TAB_ACTION.actionPerformed(null);
+                }
+                return;
+            }
+
             TableColumnModel newModel =
                 (TableColumnModel) tableColumnModels.get(whichTab);
             dataTable.setColumnModel(newModel);
+            mostRecentlySelectedTab = whichTab;
 
             for (Iterator i = enablementCalculations.iterator(); i.hasNext();) {
                 EnablementCalculation calc = (EnablementCalculation) i.next();
@@ -834,7 +863,7 @@ public class WBSTabPanel extends JPanel
      */
     private Map getAvailableTabColumns() {
         Map tabColumnsMap = new LinkedHashMap();
-        for (int i = 0; i < tabbedPane.getTabCount(); i++) {
+        for (int i = 0; i < tabbedPane.getTabCount()-1; i++) {
             if (!isTabEditable(i) && !isTabProtected(i))
                 tabColumnsMap.put(tabbedPane.getTitleAt(i), tableColumnModels.get(i));
         }
@@ -896,7 +925,7 @@ public class WBSTabPanel extends JPanel
             // write out xml
             out.write("<?xml version='1.0' encoding='utf-8'?>\n");
             out.write("<" + WBS_TABS_ELEMENT + " " + VERSION_ATTRIBUTE + "='" + getVersionNumber() + "'>\n");
-            for (int i = 0; i < tabbedPane.getTabCount(); i++) {
+            for (int i = 0; i < tabbedPane.getTabCount()-1; i++) {
                 if (isTabEditable(i)) {
                     out.write("\t<" + TAB_ELEMENT + " " + NAME_ATTRIBUTE + "='"
                             + XMLUtils.escapeAttribute(tabbedPane.getTitleAt(i)) + "'>\n");
