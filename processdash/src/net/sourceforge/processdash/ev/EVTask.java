@@ -886,6 +886,10 @@ public class EVTask implements Cloneable, DataListener {
         return null;
     }
 
+    public String getNodeTypeQualifier() {
+        return getNodeTypeSpecValue("processName", null);
+    }
+
     /** Returns the list of node types that would be acceptable for this
      * node, according to the controlling process definition.
      */
