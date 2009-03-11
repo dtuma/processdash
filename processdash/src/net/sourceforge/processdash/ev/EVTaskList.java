@@ -800,10 +800,14 @@ public class EVTaskList extends AbstractTreeTableModel
         this.taskLabeler = l;
     }
 
-    private Object getTaskLabels(EVTask n) {
+    public List getLabelsForTask(EVTask n) {
         if (taskLabeler == null)
             return null;
-        List labels = taskLabeler.getLabelsForTask(n);
+        return taskLabeler.getLabelsForTask(n);
+    }
+
+    private Object getTaskLabelsText(EVTask n) {
+        List labels = getLabelsForTask(n);
         return StringUtils.join(labels, ", ");
     }
 
@@ -1181,7 +1185,7 @@ public class EVTaskList extends AbstractTreeTableModel
         case REPLAN_DATE_COLUMN:    return n.getReplanDate();
         case FORECAST_DATE_COLUMN:  return n.getForecastDate();
         case DATE_COMPLETE_COLUMN:  return n.getActualDate();
-        case LABELS_COLUMN:         return getTaskLabels(n);
+        case LABELS_COLUMN:         return getTaskLabelsText(n);
         case DEPENDENCIES_COLUMN:   return n.getDependencies();
         case PCT_COMPLETE_COLUMN:   return n.getPercentCompleteText();
         case PCT_SPENT_COLUMN:      return n.getPercentSpentText();

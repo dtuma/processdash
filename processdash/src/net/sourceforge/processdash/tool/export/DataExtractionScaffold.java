@@ -35,11 +35,13 @@ import net.sourceforge.processdash.InternalSettings;
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.data.repository.InvalidDatafileFormat;
+import net.sourceforge.processdash.ev.DefaultTaskLabeler;
 import net.sourceforge.processdash.ev.EVTaskDependencyResolver;
 import net.sourceforge.processdash.ev.EVTaskList;
 import net.sourceforge.processdash.ev.EVTaskListData;
 import net.sourceforge.processdash.ev.EVTaskListMerged;
 import net.sourceforge.processdash.ev.EVTaskListRollup;
+import net.sourceforge.processdash.ev.TaskLabeler;
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.Prop;
 import net.sourceforge.processdash.hier.PropertyKey;
@@ -225,6 +227,8 @@ public class DataExtractionScaffold implements DashboardContext {
         List<EVTaskList> result = new ArrayList<EVTaskList>(
                 taskListNames.length);
 
+        TaskLabeler taskLabeler = null;
+
         for (String taskListName : taskListNames) {
             EVTaskList tl = EVTaskList.openExisting(taskListName, data,
                 hierarchy, null, false);
@@ -234,6 +238,11 @@ public class DataExtractionScaffold implements DashboardContext {
                 continue;
             tl.recalc();
             tl = new EVTaskListMerged(tl, false, true, null);
+
+            if (taskLabeler == null)
+                taskLabeler = new DefaultTaskLabeler(this);
+            tl.setTaskLabeler(taskLabeler);
+
             result.add(tl);
         }
 
