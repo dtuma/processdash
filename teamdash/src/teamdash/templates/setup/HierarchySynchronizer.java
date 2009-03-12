@@ -489,11 +489,13 @@ public class HierarchySynchronizer {
         String path = key.path();
         boolean isDeletable = true;
 
-        // recurse over children.
-        for (int i = hierarchy.getNumChildren(key); i-- > 0; )
-            if (!getDeletableIndivNodes(hierarchy.getChildKey(key, i), results))
-                // if our child isn't deletable, then we aren't either.
-                isDeletable = false;
+        if (!isPSPTask(key)) {
+            // recurse over children.
+            for (int i = hierarchy.getNumChildren(key); i-- > 0; )
+                if (!getDeletableIndivNodes(hierarchy.getChildKey(key, i), results))
+                    // if our child isn't deletable, then we aren't either.
+                    isDeletable = false;
+        }
 
         // At this point, if "isDeletable" is true, then all our descendants
         // must be deletable.  Perform a few additional checks to see if this
