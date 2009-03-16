@@ -951,6 +951,19 @@ public class EVTask implements Cloneable, DataListener {
         return getDependencies(false);
     }
 
+    /** Returns the task IDs for all forward dependences of this task. */
+    public List<String> getDependentTaskIDs() {
+        List<String> result = new ArrayList<String>();
+        if (dependencies != null && !dependencies.isEmpty()) {
+            for (EVTaskDependency d : dependencies) {
+                if (!d.isReverse()) {
+                    result.add(d.getTaskID());
+                }
+            }
+        }
+        return result;
+    }
+
     protected List<EVTaskDependency> getDependencies(boolean create) {
         if (dependencies == null && create)
             dependencies = new ArrayList();
