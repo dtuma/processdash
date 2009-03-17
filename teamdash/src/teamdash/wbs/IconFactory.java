@@ -132,6 +132,20 @@ public class IconFactory {
     }
     private static Icon DELETE_ICON = null;
 
+    public static Icon getInsertOnEnterIcon() {
+        if (INSERT_ON_ENTER_ICON == null)
+            INSERT_ON_ENTER_ICON = loadIconResource("enter-key-insert-on.png");
+        return INSERT_ON_ENTER_ICON;
+    }
+    private static Icon INSERT_ON_ENTER_ICON = null;
+
+    public static Icon getNoInsertOnEnterIcon() {
+        if (NO_INSERT_ON_ENTER_ICON == null)
+            NO_INSERT_ON_ENTER_ICON = loadIconResource("enter-key-insert-off.png");
+        return NO_INSERT_ON_ENTER_ICON;
+    }
+    private static Icon NO_INSERT_ON_ENTER_ICON = null;
+
     public static Icon getNewTabIcon() {
         if (NEW_TAB_ICON == null) NEW_TAB_ICON = loadIconResource("tab-new.png");
         return NEW_TAB_ICON;

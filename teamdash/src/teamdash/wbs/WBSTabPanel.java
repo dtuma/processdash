@@ -131,7 +131,7 @@ public class WBSTabPanel extends JPanel
 
         // manually set the initial divider location, to trigger the
         // size coordination logic.
-        splitPane.setDividerLocation(245);
+        splitPane.setDividerLocation((int) toolBar.getPreferredSize().getWidth() + 10);
     }
 
     public void setReadOnly(boolean readOnly) {
@@ -681,6 +681,7 @@ public class WBSTabPanel extends JPanel
         for (int i = 0;   i < editingActions.length;   i++)
             if (editingActions[i].getValue(Action.SMALL_ICON) != null)
                 addToolbarButton(editingActions[i]);
+        addToolbarButton(wbsTable.TOGGLE_ENTER_BEHAVIOR_ACTION);
 
         // add the tool bar to the panel
         GridBagConstraints c = new GridBagConstraints();
@@ -699,7 +700,11 @@ public class WBSTabPanel extends JPanel
         int p = (MacGUIUtils.isMacOSX() ? 2 : 0);
         button.setMargin(new Insets(p,p,p,p));
         button.setFocusPainted(false);
-        button.setToolTipText((String)a.getValue(Action.NAME));
+        button.putClientProperty("hideActionText", Boolean.TRUE);
+        String toolTip = (String) a.getValue(Action.NAME);
+        if (toolTip == null || toolTip.length() == 0)
+            toolTip = (String) a.getValue(Action.SHORT_DESCRIPTION);
+        button.setToolTipText(toolTip);
         button.setText(null);
         toolBar.add(button);
     }

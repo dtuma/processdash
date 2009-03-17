@@ -239,6 +239,8 @@ public class WBSEditor implements WindowListener, SaveListener,
             tabPanel.loadTabs(customTabsFile);
         } catch (LoadTabsException e) {
         }
+        tabPanel.wbsTable.setEnterInsertsLine(getInsertOnEnterPref(teamProject
+                .getProjectID()));
 
         tabPanel.addChangeListener(this.dirtyListener);
 
@@ -480,7 +482,8 @@ public class WBSEditor implements WindowListener, SaveListener,
         JMenu result = new JMenu("Edit");
         result.setMnemonic('E');
         for (int i = 0;   i < editingActions.length;   i++) {
-            result.add(editingActions[i]);
+            if (editingActions[i].getValue(Action.NAME) != null)
+                result.add(editingActions[i]);
             if (i == 1) result.addSeparator();
         }
 
@@ -760,6 +763,8 @@ public class WBSEditor implements WindowListener, SaveListener,
             // Set expanded nodes preference
             Set expandedNodes = teamProject.getWBS().getExpandedNodeIDs();
             setExpandedNodesPref(teamProject.getProjectID(), expandedNodes);
+            setInsertOnEnterPref(teamProject.getProjectID(),
+                tabPanel.wbsTable.getEnterInsertsLine());
 
             shutDown();
         }
@@ -1017,6 +1022,18 @@ public class WBSEditor implements WindowListener, SaveListener,
     private void setExpandedNodesPref(String projectId, Set value) {
         PreferencesUtils.putCLOB(preferences, getExpandedNodesKey(projectId),
                 StringUtils.join(value, EXPANDED_NODES_DELIMITER));
+    }
+
+    private String getInsertOnEnterKey(String projectId) {
+        return projectId + "_InsertOnEnter";
+    }
+
+    private boolean getInsertOnEnterPref(String projectId) {
+        return preferences.getBoolean(getInsertOnEnterKey(projectId), true);
+    }
+
+    private void setInsertOnEnterPref(String projectId, boolean value) {
+        preferences.putBoolean(getInsertOnEnterKey(projectId), value);
     }
 
     private void setDirty(boolean isDirty) {

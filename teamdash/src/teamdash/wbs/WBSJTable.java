@@ -69,6 +69,8 @@ public class WBSJTable extends JTable {
     private boolean disableEditing = false;
     /** Is indentation disabled for this WBS? */
     private boolean disableIndentation = false;
+    /** Should the enter key insert a new line into the WBS? */
+    private boolean enterInsertsLine = true;
 
     /** Create a JTable to display a WBS. Construct a default icon menu. */
     public WBSJTable(WBSModel model, Map iconMap) {
@@ -113,6 +115,15 @@ public class WBSJTable extends JTable {
     public void setIndentationDisabled(boolean disabled) {
         disableIndentation = disabled;
         recalculateEnablement();
+    }
+
+    public void setEnterInsertsLine(boolean enterInsertsLine) {
+        this.enterInsertsLine = enterInsertsLine;
+        TOGGLE_ENTER_BEHAVIOR_ACTION.updateAppearance();
+    }
+
+    public boolean getEnterInsertsLine() {
+        return enterInsertsLine;
     }
 
 
@@ -171,7 +182,7 @@ public class WBSJTable extends JTable {
     public Action[] getEditingActions() {
         return new Action[] { CUT_ACTION, COPY_ACTION, PASTE_ACTION,
             PROMOTE_ACTION, DEMOTE_ACTION, EXPAND_ACTION, COLLAPSE_ACTION,
-            EXPAND_ALL_ACTION, INSERT_ACTION, ENTER_ACTION,
+            EXPAND_ALL_ACTION, INSERT_ACTION, INSERT_AFTER_ACTION,
             DELETE_ACTION };
     }
 
@@ -211,6 +222,8 @@ public class WBSJTable extends JTable {
                 INSERT_ACTION));
         customActions.add(new ActionMapping(KeyEvent.VK_ENTER, 0, "Enter",
                 ENTER_ACTION));
+        customActions.add(new ActionMapping(KeyEvent.VK_ENTER, SHIFT,
+                "InsertAfter", INSERT_AFTER_ACTION));
 
         // Java 1.3 doesn't handle the "auto restart editing" actions very
         // well, so if we're in a 1.3 JRE stop here.
@@ -448,7 +461,6 @@ public class WBSJTable extends JTable {
             enablementCalculations.add(this);
         }
         public void doAction(ActionEvent e) {
-            System.out.println("Demote");
             if (containsReadOnlyNode(getSelectedRows()))
                 return;
             selectRows(wbsModel.indentNodes(getSelectedRows(), 1));
@@ -474,7 +486,6 @@ public class WBSJTable extends JTable {
             enablementCalculations.add(this);
         }
         public void doAction(ActionEvent e) {
-            System.out.println("Promote");
             if (containsReadOnlyNode(getSelectedRows()))
                 return;
             selectRows(wbsModel.indentNodes(getSelectedRows(), -1));
@@ -521,7 +532,6 @@ public class WBSJTable extends JTable {
         }
 
         public void doAction(ActionEvent e) {
-            System.out.println(getValue(NAME));
             ActionEvent event = new ActionEvent
                 (WBSJTable.this, e.getID(), e.getActionCommand(),
                  e.getModifiers());
@@ -799,7 +809,50 @@ public class WBSJTable extends JTable {
                 alternateAction.actionPerformed(e);
         }
     }
-    final InsertAfterAction ENTER_ACTION = new InsertAfterAction();
+    final InsertAfterAction INSERT_AFTER_ACTION = new InsertAfterAction();
+
+
+    /** An action to selectively perform an "insert node after" operation,
+     * if the enterInsertsLine property is true */
+    private class EnterAction extends InsertAfterAction {
+        @Override
+        protected void insertRowBefore(int row, int rowToCopy) {
+            if (enterInsertsLine) {
+                super.insertRowBefore(row, rowToCopy);
+            } else if (row > 0 && row < getRowCount()) {
+                setRowSelectionInterval(row, row);
+                scrollRectToVisible(getCellRect(row, 0, true));
+            }
+        }
+    }
+    final InsertAfterAction ENTER_ACTION = new EnterAction();
+
+
+    /** An action to configure the enterInsertsLine property */
+    private class ToggleEnterBehaviorAction extends AbstractAction {
+        public ToggleEnterBehaviorAction() {
+            updateAppearance();
+        }
+        public void updateAppearance() {
+            if (enterInsertsLine) {
+                putValue(Action.SMALL_ICON, IconFactory.getInsertOnEnterIcon());
+                putValue(Action.SHORT_DESCRIPTION,
+                    "<html>Pressing &lt;Enter&gt; in the WBS inserts a new row</html>");
+            } else {
+                putValue(Action.SMALL_ICON, IconFactory
+                        .getNoInsertOnEnterIcon());
+                putValue(Action.SHORT_DESCRIPTION,
+                    "<html>Pressing &lt;Enter&gt; in the WBS <b>does not</b> " +
+                    "insert a new row.<br><i>To insert a new row, press </i> " +
+                    "&lt;Shift-Enter&gt;</html>");
+            }
+        }
+        public void actionPerformed(ActionEvent e) {
+            setEnterInsertsLine(!getEnterInsertsLine());
+        }
+    }
+    final ToggleEnterBehaviorAction TOGGLE_ENTER_BEHAVIOR_ACTION =
+            new ToggleEnterBehaviorAction();
 
 
     /** An action to perform a "delete" operation */
