@@ -15,6 +15,7 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import net.sourceforge.processdash.BackgroundTaskManager;
 import net.sourceforge.processdash.DashController;
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.ImmutableDoubleData;
@@ -130,6 +131,7 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
     // URL of the page that is displayed when the wizard successfully
     // joins the individual to the team project
     private static final String IND_SUCCESS_URL = "indivSuccess.shtm";
+    private static final String IND_BG_SYNC_URL = "sync.class?run&bg";
     // URLs for pages alerting an individual to various errors that could
     // occur when attempting to join a team project.
     private static final String IND_CONNECT_ERR_URL = "indivConnectError.shtm";
@@ -1408,13 +1410,26 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
 
     protected void showIndivSuccessPage(boolean joinSucceeded) {
         String prefix = WebServer.urlEncodePath(getPrefix());
-        String url = prefix + "/" + env.get("SCRIPT_NAME");
-        url = StringUtils.findAndReplace(url, "wizard.class", IND_SUCCESS_URL);
+        String selfUrl = prefix + "/" + env.get("SCRIPT_NAME");
+        String url = StringUtils.findAndReplace(selfUrl, "wizard.class",
+            IND_SUCCESS_URL);
 
         if (joinSucceeded)
             printRedirect(url);
         else
             printRedirect(url + "?schedProblem");
+
+        // the logic above will send the user to a "success" page.  While
+        // they are reading that page, we will kick off a "Sync to WBS"
+        // operation in the background.
+        final String syncUrl = StringUtils.findAndReplace(selfUrl,
+            "wizard.class", IND_BG_SYNC_URL);
+        BackgroundTaskManager.getInstance().addTask(new Runnable() {
+            public void run() {
+                try {
+                    getRequest(syncUrl, false);
+                } catch (Exception e) {}
+            }});
     }
 
 }
