@@ -1162,6 +1162,9 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         }
 
         public void actionPerformed(ActionEvent e) {
+            if (Settings.getBool("window.resizeWatcher.disabled", false))
+                return;
+
             Dimension minSize = getMinimumSize();
             Dimension preferredSize = getPreferredSize();
             Dimension currentSize = getSize();
@@ -1213,15 +1216,19 @@ public class ProcessDashboard extends JFrame implements WindowListener,
             logErr("When shutting down, encountered the exception:", t);
         }
 
-        if (osHelper != null) osHelper.dispose();
-        SystemTrayManagement.getIcon().dispose();
-        setVisible(false);
+        try {
+            if (osHelper != null) osHelper.dispose();
+            SystemTrayManagement.getIcon().dispose();
+            setVisible(false);
 
-        logger.fine("Backing up data directory");
-        fileBackupManager.maybeRun(FileBackupManager.SHUTDOWN, backupQualifier);
+            logger.fine("Backing up data directory");
+            fileBackupManager.maybeRun(FileBackupManager.SHUTDOWN,
+                  backupQualifier);
+            logger.fine("Shutdown complete");
 
-        logger.fine("Shutdown complete");
-        System.exit(0);
+        } finally {
+            System.exit(0);
+        }
     }
 
     boolean quit() {
