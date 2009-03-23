@@ -226,7 +226,7 @@ public class IncrementalDirectoryBackup extends DirectoryBackup {
                 oldBackupTempFile.delete();
             } else {
                 oldBackupOut.close();
-                oldBackupTempFile.renameTo(mostRecentBackupFile);
+                FileUtils.renameFile(oldBackupTempFile, mostRecentBackupFile);
             }
         }
 
@@ -254,7 +254,7 @@ public class IncrementalDirectoryBackup extends DirectoryBackup {
 
         // finalize the new backup, and give it its final name.
         newBackupOut.close();
-        newBackupTempFile.renameTo(destFile);
+        FileUtils.renameFile(newBackupTempFile, destFile);
     }
 
 

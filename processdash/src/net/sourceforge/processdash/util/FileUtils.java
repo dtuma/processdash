@@ -1,4 +1,4 @@
-// Copyright (C) 2005-2008 Tuma Solutions, LLC
+// Copyright (C) 2005-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -108,6 +108,53 @@ public class FileUtils {
         while ((c = in.read()) != -1)
             out.write(c);
         out.flush();
+    }
+
+    /** Rename a file.
+     * 
+     * The File.renameTo method can silently fail and simply return false.
+     * This method will retry the operation several times until it succeeds,
+     * or will throw an exception if the rename was unsuccessful.
+     * 
+     * @param src the existing file to rename
+     * @param dest the target name for the file
+     * @throws IOException if the rename operation does not succeed.
+     */
+    public static void renameFile(File src, File dest) throws IOException {
+        if (dest.exists())
+            dest.delete();
+
+        boolean success = false;
+        for (int i = 0;  i < 10;  i++) {
+            try {
+                if (i > 0)
+                    Thread.sleep(500);
+            } catch (InterruptedException e) {}
+
+            if (src.renameTo(dest)) {
+                success = true;
+                break;
+            }
+        }
+
+        // if the src and dest files are located across a slow network, the
+        // rename might have completed successfully, but queries against the
+        // target filename might still fail for a second or two.  Doublecheck
+        // to ensure that the file is accessible in the dest location.
+        if (success) {
+            for (int i = 0;  i < 10;  i++) {
+                try {
+                    if (i > 0)
+                        Thread.sleep(500);
+                } catch (InterruptedException e) {}
+
+                if (dest.exists())
+                    return;
+            }
+        }
+
+        throw new IOException("Could not rename '" + src + "' to '" + dest
+                + "'");
     }
 
     public static void deleteDirectory(File dir) throws IOException {

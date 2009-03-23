@@ -275,8 +275,9 @@ public class ExampleFileFilter extends FileFilter {
         return useExtensionsInDescription;
     }
 
-    /** If the given file has no extension, nominally append one of the
-     * extensions recognized by this filter.
+    /** If the given file has no extension, or if its extension is not in the
+     * list of extensions recognized by this filter, nominally append one of
+     * our recognized extensions so file will match.
      * 
      * When a user manually types a new filename into the text selection box
      * of a JFileChooser and does not specify an extension, they generally
@@ -286,29 +287,38 @@ public class ExampleFileFilter extends FileFilter {
      * @param f a File, can be null
      */
     public File maybeAppendExtension(File f) {
-        if (f != null && !filters.isEmpty()) {
-            String currentExtension = getExtension(f);
-            if (currentExtension == null) {
-                String filename = f.getName();
-                if (!filename.endsWith("."))
-                    filename = filename + ".";
-                filename = filename + filters.iterator().next();
-                f = new File(f.getParentFile(), filename);
-            }
-        }
-        return f;
+        if (f == null || filters == null || filters.isEmpty())
+            return f;
+
+        String currentFilename = f.getName();
+        String tweakedFilename = maybeAppendExtension(currentFilename);
+        return new File(f.getParentFile(), tweakedFilename);
     }
 
 
+    /** If the given filename has no extension, or if its extension is not in
+     * the list of extensions recognized by this filter, nominally append one
+     * of our recognized extensions so file will match.
+     * 
+     * When a user manually types a new filename into the text selection box
+     * of a JFileChooser and does not specify an extension, they generally
+     * expect an appropriate extension to be appended.  This method performs
+     * that task.
+     * 
+     * @param filename a filename, can be null
+     */
     public String maybeAppendExtension(String filename) {
-        if (filename != null && filename.length() > 0) {
-            String currentExtension = getExtension(filename);
-            if (currentExtension == null) {
-                if (!filename.endsWith("."))
-                    filename = filename + ".";
-                filename = filename + filters.iterator().next();
-            }
-        }
-        return filename;
+        if (filename == null || filename.length() == 0
+                || filters == null || filters.isEmpty())
+            return filename;
+
+        String currentExtension = getExtension(filename);
+        if (currentExtension != null
+                && filters.contains(currentExtension.toLowerCase()))
+            return filename;
+
+        if (!filename.endsWith("."))
+            filename = filename + ".";
+        return filename + filters.iterator().next();
     }
 }
