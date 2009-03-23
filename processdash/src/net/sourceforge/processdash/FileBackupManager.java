@@ -31,6 +31,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.URL;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
@@ -104,7 +105,7 @@ public class FileBackupManager {
     }
 
 
-    public synchronized File run() {
+    public File run() {
         ProfTimer pt = new ProfTimer(FileBackupManager.class,
             "FileBackupManager.run");
         File result = null;
@@ -119,7 +120,8 @@ public class FileBackupManager {
     }
 
 
-    private File runImpl(int when, String who, boolean externalCopyDesired) {
+    private synchronized File runImpl(int when, String who,
+            boolean externalCopyDesired) {
 
         boolean needExternalCopy = externalCopyDesired;
 
@@ -238,11 +240,18 @@ public class FileBackupManager {
             if (oneLocation.isDirectory())
                 copy = new File(oneLocation, filename);
             else if (oneLocation.getParentFile().isDirectory()) {
-                if (oneLocation.getName().toLowerCase().endsWith(".zip"))
-                    copy = oneLocation;
-                else
-                    copy = new File(oneLocation.getParentFile(),
-                            oneLocation.getName() + ".zip");
+                String oneName = oneLocation.getName();
+
+                if (!oneName.toLowerCase().endsWith(".zip"))
+                    oneName = oneName + ".zip";
+
+                if (oneName.indexOf("%date") != -1) {
+                    SimpleDateFormat fmt = new SimpleDateFormat("yyyy-MM-dd");
+                    String now = fmt.format(new Date());
+                    oneName = StringUtils.findAndReplace(oneName, "%date", now);
+                }
+
+                copy = new File(oneLocation.getParentFile(), oneName);
             }
 
             if (copy == null || copies.contains(copy))
