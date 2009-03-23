@@ -12,18 +12,147 @@
 the dashboard provides several mechanisms for backing up this
 information.</p>
 
-<h2>Automatic, Periodic Backups</h2>
+<h2>Manual Data Backups</h2>
 
-<p>First, the dashboard performs automatic data backups on a periodic
-basis.  Each time the dashboard starts up or shuts down, and at least once
-daily, the dashboard will zip up the files containing your data.  This
-zip file is stored in a "backup" subdirectory underneath your 
-<a href="../Troubleshooting/FAQ.html#WhereData">data directory</a>.</p>
+<p>At any time, you can manually save a backup of your data by choosing
+&quot;C&nbsp;<img src="../../Images/rarrow.png">&nbsp;Tools&nbsp;<img
+     src="../../Images/rarrow.png">&nbsp;Save Data Backup&quot;.
+This will prompt you for the name of a ZIP file, and will save a full
+backup of your data to the given file.</p>
+
+<p>Optionally, you can choose to save your data as a &quot;Process
+Dashboard Backup&quot; file.  This format contains the exact same data
+as the ZIP file, but may be useful in organizations that forbid the
+attachment of ZIP files to email messages.</p>
+
+<h3>Viewing the data in a manual data backup</h3>
+
+<p>The Process Dashboard "Tools for Team Leaders" include a program called
+the Quick Launcher.  You can drag a data backup file onto the Quick Launcher,
+and it will open a Process Dashboard window displaying the data inside.</p>
+
+<h3>Restoring data from manual data backups</h3>
+
+<p>A data backup is just a ZIP file, containing the data in your personal
+data directory (along with some additional information).  If you have lost
+or corrupted your personal data and you wish to restore your data from a
+backup, take these steps:</p>
+
+<ol>
+
+<li><a name="RestoreSteps">Shut down the dashboard</a>.  <b>It is
+    imperative that the dashboard NOT be running</b> while you perform the
+    steps below.</li>
+
+<li>Extract the contents of your data backup file into your personal
+    <a href="../Troubleshooting/FAQ.html#WhereData">data directory</a>,
+    overwriting the files that are there.</li>
+
+<li>Restart the Process Dashboard.</li>
+
+</ol>
+
+<h2>Automatic, External Backups</h2>
+
+<p>The mechanism described above is very useful for interpersonal
+communication.  But for disaster recovery, it is important to have an
+automated backup strategy.  If your computer and hard drive were to crash,
+you wouldn't want to discover that your most recent backup was several
+weeks old.</p>
+
+<p>Thus, the dashboard has a mechanism for making backups on a regular
+basis.  To configure an automatic backup, take these steps:</p>
+
+<ol>
+
+<li>Click on the "C" menu and choose &quot;Tools&nbsp;<img
+    src="../../Images/rarrow.png">&nbsp;Preferences&quot;.</li>
+
+<li>In the User Preferences dialog, select the &quot;Backups&quot;
+    category.  A table will be displayed, showing a list of external
+    locations where backups should be saved.</li>
+
+<li>Click the "Add" button to add a new backup location. Specify the
+    full name of a backup ZIP file where you would like data to be
+    saved, then click OK.</li>
+
+</ol>
+
+<p>Each time the dashboard is shut down, it will create a backup ZIP file
+and save it to the location you've requested.  If you are in the habit of
+leaving the dashboard running overnight, it will also save this backup each
+evening between midnight and 1 AM.  The backup ZIP file will be overwritten
+each time, so at any point in time the external backup file will contain a
+copy of your most recent data.</p>
+
+<p>If you want to keep a history of backup files, include the
+word<tt> %date </tt>in the name of your backup file. (Make certain to type
+this exactly as written: a percent sign followed by the word "date" in all
+lower case.) The current date (YYYY-MM-DD) will be included in the name of
+the file, so backups from dates in the past will not be overwritten.  This
+can be particularly useful for the Team Dashboard, as a way to maintain a
+record of how the team plan has changed over time.  If you use this
+technique, keep in mind that no old backups will be discarded, so the list
+of backup files could grow very large over time.  You may need to visit the
+directory periodically and purge old backups that are no longer needed.</p>
+
+<p>The backups created by this process are identical to the backups created
+by the manual "Save Data Backup" operation. Thus, they can be viewed in the
+Quick Launcher, and they mechanism for restoring from a backup is the
+same.</p>
+
+<h3>Additional Uses</h3>
+
+<p>Many teams choose to use backup files for a secondary purpose.
+Specifically, a process coach, team leader, or PSP instructor may need to
+look at the data for a particular individual, so they can troubleshoot data
+entry problems or mentor the individual in their process improvement
+efforts.  The automatic external backups and manual data backups provide a
+simple way to support this particular need.</p>
+
+<p>Accordingly, your team may decide to agree upon a particular network
+directory, then have each individual save an automatic backup to that
+directory.  This would provide a disaster recovery plan if a team member's
+computer were to crash.  In addition, it could enable your coach or
+planning manager to examine data for a particular individual if
+necessary.</p>
+
+<p>If you choose to follow this approach, consideration should be given to
+data privacy concerns.  For example, you might consider configuring the
+permissions on the given network directory to prevent read access by
+arbitrary individuals.  On the other hand, if your organization follows
+high-maturity practices and does not abuse personal data for inappropriate
+purposes, this may not be a significant concern.  Each organization must
+make these decisions based on their organizational climate.  If
+organizational data privacy concerns outweigh the benefits of information
+sharing, you may wish to lock down the permissions so that data backups can
+only be read by the individual who created them.</p>
+
+
+
+<h2>Automatic, Internal Backups</h2>
+
+<p>The mechanisms above can be very useful for disaster recovery, such as
+the loss of your hard drive.  But occasionally you may encounter other
+problems.  For example, you might accidentally delete a large portion of
+your task hierarchy.  Or you might encounter a rare bug in the Process
+Dashboard that corrupts your data.  In these cases, by the time you shut
+down the Process Dashboard, your external backup would already be
+overwritten with the problem data.</p>
+
+<p>To address these types of problems, the Process Dashboard automatically
+maintains a set of internal backups that reflect changes made to your data
+over the past few weeks.  Each time the dashboard starts up or shuts down,
+and at least once daily, the dashboard will zip up the files containing
+your data.  This ZIP file is stored in a "backup" subdirectory underneath
+your <a href="../Troubleshooting/FAQ.html#WhereData">data
+directory</a>.</p>
 
 <p>If you look in this "backup" directory, you will typically notice many
-ZIP files.  The most recent file is a full backup of your data.  Earlier
-files are not full backups - they are incremental backups, containing only
-the files that changed between two points in time.</p>
+ZIP files.  The most recent file is a <b>full</b> backup of your data,
+similar to a manual data backup.  Earlier files are not full backups - they
+are incremental backups, containing only the files that changed between two
+points in time.</p>
 
 <p>Incremental backups are not preserved forever.  If you have more than 10
 incremental backups, the dashboard will discard backups that are more than
@@ -81,109 +210,6 @@ them; incorrect actions could result in permanent data corruption!
 
 </ol>
 
-
-<h2>Automatic, External Backups</h2>
-
-<p>The mechanism described above is useful for undoing accidental edits to
-data - for example, if you accidentally delete a large portion of your
-hierarchy.  It can also be useful if a defect in the dashboard leads to
-data corruption.  However, since those backups are still stored on the same
-physical media as your data directory, they do not provide any insurance
-against filesystem corruption.  For such protection, it is better to backup
-data to another location, such as a shared network directory.</p>
-
-<p>This can be accomplished by shutting down the dashboard, and adding a
-line your <tt>pspdash.ini</tt> file:</p>
-
-<table border>
-<tr>
-<th>Operating System</th>
-<th>Example line for <tt>pspdash.ini</tt></th>
-</tr>
-
-<tr>
-<td>Windows, UNC</td>
-<td nowrap><tt>backup.extraDirectories=<span style='color:blue; font-weight:bold'>//serverName/shareName/backupDir</span></tt></td>
-</tr>
-
-<tr>
-<td>Windows, Mapped drive</td>
-<td nowrap><tt>backup.extraDirectories=<span style='color:blue; font-weight:bold'>z:/path/to/backupDir</span></tt></td>
-</tr>
-
-<tr>
-<td>Unix / Linux</td>
-<td nowrap><tt>backup.extraDirectories=<span style='color:blue; font-weight:bold'>/path/to/backupDir</span</tt></td>
-</tr>
-
-</table>
-
-<p>In the example lines above, the <tt style='color:blue; font-weight:bold'>blue
-text</tt> would be edited to indicate the directory where you want the
-extra backup to be placed. (If you are on a Windows system, please notice
-that you must use forward slashes '<tt>/</tt>' instead of backward slashes
-'<tt>\</tt>'.)</p>
-
-<p>In addition, you will need to ensure that the dashboard knows your name.
-If you have ever joined a team project, this detail will already be taken
-care of.  If not, the easiest approach is to create either a PSP project
-or a Generic project using the Hierarchy Editor, then enter your name on
-that project's plan summary form.</p>
-
-<p>After you complete these steps, the dashboard will save a copy of your
-most recent backup file in the directory you've requested.  The filename of
-this copy will include your name, so many different individuals can share
-the same network backup directory.  This backup copy will be written each
-time you start the dashboard and each time you shut down the dashboard.  If
-you are in the habit of leaving the dashboard running overnight, it will
-also save a copy of your most recent backup file each evening between
-midnight and 1 AM.</p>
-
-<p>It is important, however, to understand that this mechanism does not
-save incremental backups - it only saves a single, full backup of your most
-recent data to the given directory.  If you need incremental backups, your
-network administrator may be able to enable incremental checkpoint support
-for the network directory in question.</p>
-
-
-<h2>Manual Data Backups</h2>
-
-<p>At any time, you can manually save a backup of your data by choosing
-&quot;Tools <img src="../../Images/rarrow.png"> Save Data Backup&quot;.
-This will prompt you for the name of a zip file, and will save a full
-backup of your data to the given file.</p>
-
-<p>Optionally, you can choose to save your data as a &quot;Process
-Dashboard Backup&quot; file.  This format contains the exact same data
-as the ZIP file, but may be useful in organizations that forbid the
-attachment of ZIP files to email messages.</p>
-
-
-<h2>Additional Uses</h2>
-
-<p>Many teams choose to use backup files for a secondary purpose.
-Specifically, a process coach, team leader, or PSP instructor may need to
-look at the data for a particular individual, so they can troubleshoot data
-entry problems or mentor the individual in their process improvement
-efforts.  The automatic external backups and manual data backups provide a
-simple way to support this particular need.</p>
-
-<p>Accordingly, your team may decide to use the
-<tt>backup.extraDirectories</tt> setting to automate the generation of
-secondary backups to a given network directory.  This would enable your
-coach or planning manager to examine data for a particular individual if
-necessary.</p>
-
-<p>If you choose to follow this approach, consideration should be given to
-data privacy concerns.  For example, you might consider configuring the
-permissions on the given network directory to prevent read access by
-arbitrary individuals.  On the other hand, if your organization follows
-high-maturity practices and does not abuse personal data for inappropriate
-purposes, this may not be a significant concern.  Each organization must
-make these decisions based on their organizational climate.  Ultimately, if
-organizational data privacy concerns preclude the use of automatic external
-backups, you may still find manual data backups to be useful for occasional
-spot-checks and interpersonal communication.</p>
 
 </body>
 </html>
