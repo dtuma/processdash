@@ -489,6 +489,7 @@ public abstract class EVCalculator {
 
     /** Discard any baseline data for the given task, and all its children */
     protected static void resetBaselineData(EVTask task) {
+        task.baselineStartDate = null;
         task.baselineDate = null;
         task.baselineTime = 0;
         for (int i = task.getNumChildren();   i-- > 0; )
@@ -508,6 +509,7 @@ public abstract class EVCalculator {
     protected static void copyBaselineData(EVTask task, EVTask baselineSrc,
             boolean sum) {
         if (baselineSrc == null) {
+            Date startDate = null;
             Date date = null;
             double time = 0;
 
@@ -515,13 +517,16 @@ public abstract class EVCalculator {
                 for (int i = task.getNumChildren();   i-- > 0; ) {
                     EVTask child = task.getChild(i);
                     time += child.baselineTime;
+                    startDate = minStartDate(startDate, child.baselineStartDate);
                     date = maxPlanDate(date, child.baselineDate);
                 }
             }
 
+            task.baselineStartDate = startDate;
             task.baselineDate = date;
             task.baselineTime = time;
         } else {
+            task.baselineStartDate = baselineSrc.planStartDate;
             task.baselineDate = baselineSrc.planDate;
             task.baselineTime = baselineSrc.planTime;
         }

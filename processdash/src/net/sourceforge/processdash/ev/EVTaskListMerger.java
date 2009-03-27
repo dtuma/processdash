@@ -895,6 +895,8 @@ public class EVTaskListMerger {
             task.taskIDs = mergeLists(task.taskIDs, child.taskIDs);
             task.name = pathConcat(task.name, child.name);
 
+            if (task.baselineStartDate == null)
+                task.baselineStartDate = child.baselineStartDate;
             if (task.baselineDate == null)
                 task.baselineDate = child.baselineDate;
             if (!(task.baselineTime > 0))

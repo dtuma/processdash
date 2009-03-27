@@ -178,6 +178,8 @@ public class EVTask implements Cloneable, DataListener {
 
     /** The date we plan to start this task */
     Date planStartDate;
+    /** The date we planned to start this task in the baseline schedule */
+    Date baselineStartDate;
     /** The date we actually started this task */
     Date actualStartDate;
     /** The date we plan to complete this task */
@@ -1099,6 +1101,12 @@ public class EVTask implements Cloneable, DataListener {
         return planStartDate;
     }
 
+    /** Returns the approximate date this task was planned to start in the
+     * baseline saved for this schedule */
+    public Date getBaselineStartDate() {
+        return baselineStartDate;
+    }
+
     /** Returns the date work was actually started on this task. */
     public Date getActualStartDate() {
         return actualStartDate;
@@ -1194,6 +1202,7 @@ public class EVTask implements Cloneable, DataListener {
 
     public void adjustDates(DateAdjuster adj) {
         planStartDate = adj.adjust(planStartDate);
+        baselineStartDate = adj.adjust(baselineStartDate);
         actualStartDate = adj.adjust(actualStartDate);
         planDate = adj.adjust(planDate);
         baselineDate = adj.adjust(baselineDate);
