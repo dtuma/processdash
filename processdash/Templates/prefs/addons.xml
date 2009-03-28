@@ -35,10 +35,12 @@ preferences a category.
     <grouping id="templates">
         <checkbox id="templates.enableSearchPath"
                   setting="templates.disableSearchPath"
+                  requiresRestart="true"
                   inverted="true" />
-	
+        
         <file-list id="templates.directory"
                setting="templates.directory"
+               requiresRestart="true"
                allowFolders="true"
                allowFiles="false" />
     </grouping>

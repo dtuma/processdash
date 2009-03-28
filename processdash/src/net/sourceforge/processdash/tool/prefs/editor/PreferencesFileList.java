@@ -103,10 +103,10 @@ public class PreferencesFileList extends PreferencesList implements ListSelectio
             fileSelectionMode = JFileChooser.DIRECTORIES_ONLY;
         if (!allowFolders)
             fileSelectionMode = JFileChooser.FILES_ONLY;
+        fileChooser.setFileSelectionMode(fileSelectionMode);
+
         if (initialPath != null)
             fileChooser.setSelectedFile(new File(initialPath));
-
-        fileChooser.setFileSelectionMode(fileSelectionMode);
 
         int returnVal = fileChooser.showOpenDialog(this);
 
@@ -145,7 +145,8 @@ public class PreferencesFileList extends PreferencesList implements ListSelectio
         String pathToEdit = listModel.get(index).toString();
         String path = getNewFilePath(pathToEdit);
 
-        if (pathIsValid(pathToEdit, "File_Already_Added_Message")) {
+        if (path != null && !path.equals(pathToEdit)
+                && pathIsValid(path, "File_Already_Added_Message")) {
             listModel.set(index, path);
             itemEdited = true;
         }

@@ -39,6 +39,8 @@ import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableModel;
 
 import net.sourceforge.processdash.InternalSettings;
+import net.sourceforge.processdash.tool.prefs.PreferencesDialog;
+import net.sourceforge.processdash.ui.lib.JOptionPaneTweaker;
 import net.sourceforge.processdash.ui.lib.binding.BoundMap;
 import net.sourceforge.processdash.util.StringUtils;
 
@@ -83,10 +85,11 @@ public class ManuallyEnteredPreferencesList extends PreferencesList implements L
 
         Object[] row = getRow(selectedSetting, selectedValue);
 
-        if (rowIsValid(row, "Setting_Already_Set_Message")) {
+        if (row != null) {
             tableModel.setValueAt(row[0], settingTable.getSelectedRow(), 0);
             tableModel.setValueAt(row[1], settingTable.getSelectedRow(), 1);
             map.put(row[0], row[1]);
+            map.put(PreferencesDialog.RESTART_REQUIRED_KEY, "true");
             itemEdited = true;
         }
 
@@ -135,19 +138,24 @@ public class ManuallyEnteredPreferencesList extends PreferencesList implements L
         return true;
     }
 
-    public Object[] getRow(String defaultName, String defaultValue) {
+    public Object[] getRow(String settingName, String defaultValue) {
         Object[] row = null;
+        boolean isEdit = (settingName != null);
+        String resPrefix = (isEdit ? "Edit_Key_Prompt_" : "Add_Key_Prompt_");
 
-        JTextField nameField = new JTextField(defaultName);
+        JTextField nameField = new JTextField(settingName);
         JTextField valueField = new JTextField(defaultValue);
         JPanel panel = new JPanel(new GridLayout(2,2,5,0));
-        panel.add(new JLabel(map.getResource(id + ".Add_Key_Prompt_Message")));
-        panel.add(nameField);
+        panel.add(new JLabel(map.getResource(id + "." + resPrefix + "Message")));
+        panel.add(isEdit ? new JLabel(settingName) : nameField);
         panel.add(new JLabel(map.getResource(id + ".Set_Value_Prompt_Message")));
         panel.add(valueField);
+        Object focusHandler = new JOptionPaneTweaker.GrabFocus(
+                isEdit ? valueField : nameField);
 
-        int userResponse = JOptionPane.showConfirmDialog(this, panel,
-            map.getResource(id + ".Add_Key_Prompt_Title"),
+        int userResponse = JOptionPane.showConfirmDialog(this,
+            new Object[] { panel, focusHandler },
+            map.getResource(id + "." + resPrefix + "Title"),
             JOptionPane.OK_CANCEL_OPTION);
         if (userResponse == JOptionPane.OK_OPTION) {
             String setting = nameField.getText();
@@ -170,7 +178,12 @@ public class ManuallyEnteredPreferencesList extends PreferencesList implements L
         String valueColumnName = map.getResource(id + ".Value_Column");
         Object[] columns = {settingColumnName, valueColumnName};
 
-        tableModel = new DefaultTableModel(data, columns);
+        tableModel = new DefaultTableModel(data, columns) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
 
         settingTable = new JTable(tableModel);
         settingTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);

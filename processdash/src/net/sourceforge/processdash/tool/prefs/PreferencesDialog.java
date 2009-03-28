@@ -69,6 +69,9 @@ import org.w3c.dom.Element;
 
 public class PreferencesDialog extends JDialog implements ListSelectionListener,
                                                           PropertyChangeListener {
+
+    public static final String RESTART_REQUIRED_KEY = " Restart Required ";
+
     static final Resources resources = Resources.getDashBundle("Tools.Prefs.Dialog");
 
     /** The spacing between the OK, Cancel and Apply buttons */
@@ -196,6 +199,15 @@ public class PreferencesDialog extends JDialog implements ListSelectionListener,
             it.remove();
         }
 
+        if (modifiedRestartRequiredSettings.size() > 0) {
+            restartRequired = true;
+            modifiedRestartRequiredSettings.clear();
+            JOptionPane.showMessageDialog(this,
+                resources.getStrings("Restart_Required_Message"),
+                resources.getString("Restart_Required"),
+                JOptionPane.INFORMATION_MESSAGE);
+        }
+
         updateApplyButton();
         updateRestartRequired();
     }
@@ -210,8 +222,6 @@ public class PreferencesDialog extends JDialog implements ListSelectionListener,
     }
 
     public void closePreferences() {
-        restartRequired = modifiedRestartRequiredSettings.size() > 0 || restartRequired;
-
         changedSettings.clear();
         modifiedRestartRequiredSettings.clear();
         preferencesPanels.removeAll();
@@ -347,7 +357,10 @@ public class PreferencesDialog extends JDialog implements ListSelectionListener,
 
         String propertyName = evt.getPropertyName();
 
-        if (newValue == null ||
+        if (RESTART_REQUIRED_KEY.equals(propertyName)) {
+            modifiedRestartRequiredSettings.add(RESTART_REQUIRED_KEY);
+        }
+        else if (newValue == null ||
              !newValue.equals(InternalSettings.getVal(propertyName))) {
             changedSettings.put(propertyName,
                                 StringUtils.hasValue(newValue) ? newValue : null);

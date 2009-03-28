@@ -43,7 +43,8 @@ preferences a category.
 	      inverted="true" />
 
     <checkbox id="slowNetwork"
-              setting="slowNetwork" />
+              setting="slowNetwork"
+              requiresRestart="true" />
 
 <!-- disabled for now
     <checkbox id="http.allowRemote"
@@ -51,5 +52,8 @@ preferences a category.
               trueValue="true"
               falseValue="never" />
 -->
+
+    <checkbox id="http.hostname.useIP"
+              setting="http.hostname.useIP" />
 
 </preferences-form>
