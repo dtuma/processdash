@@ -491,11 +491,11 @@ public class sync extends TinyCGIBase {
     }
 
     private void printPermissionItem(String attr, String path) {
-        path = XMLUtils.escapeAttribute(path);
-        out.print("<input type='checkbox' checked='true' name='");
+        path = HTMLUtils.escapeEntities(path);
+        out.print("<input type=\"checkbox\" checked=\"true\" name=\"");
         out.print(attr);
         out.print(path);
-        out.print("'/>&nbsp;");
+        out.print("\"/>&nbsp;");
         out.print(path);
         out.print("<br/>\n");
     }
