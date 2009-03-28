@@ -201,11 +201,9 @@ public class PreferencesFileList extends PreferencesList implements ListSelectio
         //  list.
         if (StringUtils.hasValue(currentValue)) {
             String[] paths = currentValue.split(separator);
-            File file = null;
 
             for (String path : paths) {
-                file = new File(path);
-                listModel.addElement(file.getPath());
+                listModel.addElement(path);
             }
         }
 
