@@ -26,7 +26,9 @@ package net.sourceforge.processdash.tool.prefs;
 import java.awt.BorderLayout;
 import java.io.IOException;
 import java.net.URLConnection;
+import java.util.Set;
 import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -35,9 +37,11 @@ import javax.swing.JPanel;
 import net.sourceforge.processdash.templates.TemplateLoader;
 import net.sourceforge.processdash.tool.prefs.editor.PreferencesCheckBox;
 import net.sourceforge.processdash.tool.prefs.editor.PreferencesFileList;
+import net.sourceforge.processdash.tool.prefs.editor.ManuallyEnteredPreferencesList;
 import net.sourceforge.processdash.tool.prefs.editor.PreferencesRadioButtons;
 import net.sourceforge.processdash.tool.prefs.editor.PreferencesTextField;
 import net.sourceforge.processdash.ui.lib.binding.BoundForm;
+import net.sourceforge.processdash.util.StringUtils;
 import net.sourceforge.processdash.util.XMLUtils;
 
 import org.w3c.dom.Document;
@@ -53,15 +57,21 @@ public class PreferencesForm extends BoundForm {
     private static final String ID_TAG = "id";
     private static final String REQUIRES_TAG = "requires";
     public static final String SETTING_TAG = "setting";
+    public static final String REQUIRES_RESTART = "requiresRestart";
 
     /** The tags for which special Preferences editors are used */
     private static final String CHECKBOX_TAG = "checkbox";
     private static final String TEXTFIELD_TAG = "textfield";
     private static final String RADIOBUTTONS_TAG = "radio";
     private static final String FILELIST_TAG = "file-list";
+    private static final String MANUAL_ENTRY_TAG = "manualEntry";
 
     /** The JPanel containing the GUI */
     private JPanel panel = new JPanel();
+
+    /** Contains all settings for which a modification needs the Dashboard to
+     *   be restarted in order to be effective */
+    Set<String> requireRestartSettings = new TreeSet<String>();
 
     private static final Logger logger = Logger.getLogger(PreferencesForm.class.getName());
 
@@ -70,6 +80,7 @@ public class PreferencesForm extends BoundForm {
         addElementType(TEXTFIELD_TAG, PreferencesTextField.class);
         addElementType(RADIOBUTTONS_TAG, PreferencesRadioButtons.class);
         addElementType(FILELIST_TAG, PreferencesFileList.class);
+        addElementType(MANUAL_ENTRY_TAG, ManuallyEnteredPreferencesList.class);
 
         selectCategory(category);
         panel.setLayout(new BorderLayout());
@@ -146,6 +157,22 @@ public class PreferencesForm extends BoundForm {
 
     public JPanel getPanel() {
         return panel;
+    }
+
+    @Override
+    protected void addFormElement(Object element, Element xml) {
+        super.addFormElement(element, xml);
+
+        if (Boolean.parseBoolean(xml.getAttribute(REQUIRES_RESTART))) {
+            String settingName = xml.getAttribute(SETTING_TAG);
+
+            if (StringUtils.hasValue(settingName))
+                requireRestartSettings.add(settingName);
+        }
+    }
+
+    public Set<String> getRequireRestartSettings() {
+        return requireRestartSettings;
     }
 
 }

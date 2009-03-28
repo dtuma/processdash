@@ -225,6 +225,11 @@ public class DashboardIconFactory {
             commentErrorIcon);
     }
 
+    private static Icon restartRequiredIcon = null;
+    public static Icon getRestartRequiredIcon() {
+        return restartRequiredIcon = loadNamedIcon("restartIcon", restartRequiredIcon);
+    }
+
     private static Icon loadNamedIcon(String name, Icon current) {
         if (current != null)
             return current;

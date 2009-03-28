@@ -266,4 +266,10 @@ The author(s) may be contacted at:
                       specFile="prefs/backups.xml"
                       resources="Tools.Prefs.Backups" />
                       
+    <preferences-pane id="pdash.advanced"
+                      categoryID="advanced"
+                      priority="0"
+                      specFile="prefs/advanced.xml"
+                      resources="Tools.Prefs.Advanced" />
+                      
 </dashboard-process-template>

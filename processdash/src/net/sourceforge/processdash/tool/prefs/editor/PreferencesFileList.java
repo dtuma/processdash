@@ -25,55 +25,34 @@ package net.sourceforge.processdash.tool.prefs.editor;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
-import java.awt.event.ActionListener;
-import java.beans.EventHandler;
 import java.io.File;
 import java.util.Arrays;
 
-import javax.swing.Box;
 import javax.swing.DefaultListModel;
-import javax.swing.JButton;
 import javax.swing.JFileChooser;
-import javax.swing.JLabel;
 import javax.swing.JList;
-import javax.swing.JPanel;
+import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.ListSelectionModel;
-import javax.swing.border.EmptyBorder;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
-import net.sourceforge.processdash.Settings;
-import net.sourceforge.processdash.i18n.Resources;
-import net.sourceforge.processdash.tool.prefs.PreferencesForm;
 import net.sourceforge.processdash.ui.lib.binding.BoundMap;
 import net.sourceforge.processdash.util.StringUtils;
 
 import org.w3c.dom.Element;
 
-public class PreferencesFileList extends JPanel implements ListSelectionListener {
-
-    /** The spacing between the Add, Edit, and Remove buttons */
-    private static final int CONTROL_BUTTONS_SPACING = 10;
-
-    /** The border width of the button box */
-    private static final int BUTTON_BOX_BORDER = 10;
-
-    private static final int LABEL_BOTTOM_PAD = 5;
-
-    /** The file list dimensions */
-    private static final int LIST_WIDTH = 260;
-    private static final int LIST_HEIGHT = 80;
+public class PreferencesFileList extends PreferencesList implements ListSelectionListener {
 
     /** Used to specify what string is used to separate entries when
      *   the values are written to the map. */
     private static final String SPERARATOR_TAG = "entrySeparator";
     private static final String DEFAULT_SEPARATOR = ";";
-    private String separator = DEFAULT_SEPARATOR;
+    private String separator;
 
     /** Used to specify how many items should be allowed in the list. */
     private static final String MAX_ITEMS_TAG = "maxItems";
-    private Integer maxItems = null;
+    private Integer maxItems;
 
     /** Used to indicate if the file list can contain folders, files or both */
     private static final String ALLOW_FOLDERS_TAG = "allowFolders";
@@ -81,34 +60,24 @@ public class PreferencesFileList extends JPanel implements ListSelectionListener
     private boolean allowFolders;
     private boolean allowFiles;
 
-    /** Used to add, edit or remove a file/folder form the list */
-    private JButton addButton;
-    private JButton editButton;
-    private JButton removeButton;
-
-    private BoundMap map;
-    private String settingName;
     private JList fileList;
     private DefaultListModel listModel;
 
-    private static final Resources resources = Resources
-            .getDashBundle("Tools.Prefs.File_List");
-
     public PreferencesFileList(BoundMap map, Element xml) {
-        this.map = map;
+        super(map, xml);
+    }
 
-        String id = xml.getAttribute("id");
+    @Override
+    protected void retrieveAttributes(Element xml) {
         String allowFoldersProp = xml.getAttribute(ALLOW_FOLDERS_TAG);
         String allowFilesProp = xml.getAttribute(ALLOW_FILES_TAG);
         String separator = xml.getAttribute(SPERARATOR_TAG);
         String maxItems = xml.getAttribute(MAX_ITEMS_TAG);
 
-        settingName = xml.getAttribute(PreferencesForm.SETTING_TAG);
-        String currentValue = Settings.getVal(settingName);
-        map.put(settingName, currentValue);
-
         if (StringUtils.hasValue(separator))
             this.separator = separator;
+        else
+            this.separator = DEFAULT_SEPARATOR;
 
         try {
             this.maxItems = new Integer(maxItems);
@@ -122,68 +91,6 @@ public class PreferencesFileList extends JPanel implements ListSelectionListener
         allowFiles = !StringUtils.hasValue(allowFilesProp)
                                 ? true : Boolean.parseBoolean(allowFilesProp);
 
-        createUI(id, currentValue);
-    }
-
-    private void createUI(String id, String currentValue) {
-        this.setLayout(new BorderLayout());
-        maybeCreateLabel(id);
-        createList(currentValue);
-        createButtonBox(id);
-    }
-
-    private void maybeCreateLabel(String id) {
-        String text = map.getResource(id + ".FileList_Label");
-        if (text != null) {
-            JLabel label = new JLabel(text);
-            label.setBorder(new EmptyBorder(0, 0, LABEL_BOTTOM_PAD, 0));
-            this.add(label, BorderLayout.PAGE_START);
-            this.add(new JLabel("    "), BorderLayout.LINE_START);
-        }
-    }
-
-    private void createButtonBox(String id) {
-        addButton = new JButton(getButtonLabel(id, "Add_Button_Label"));
-
-        editButton = new JButton(getButtonLabel(id, "Edit_Button_Label"));
-
-        removeButton = new JButton(getButtonLabel(id, "Remove_Button_Label"));
-        removeButton.addActionListener((ActionListener) EventHandler.create(
-                ActionListener.class, this, "removeFile"));
-
-        if (allowFiles || allowFolders) {
-            addButton.addActionListener((ActionListener) EventHandler.create(
-                ActionListener.class, this, "addFile"));
-
-            editButton.addActionListener((ActionListener) EventHandler.create(
-                ActionListener.class, this, "editFile"));
-        }
-        else
-            addButton.setEnabled(false);
-
-        updateButtons();
-
-        Box buttonBox = Box.createHorizontalBox();
-        buttonBox.add(Box.createHorizontalGlue());
-        buttonBox.add(addButton);
-        buttonBox.add(Box.createHorizontalStrut(CONTROL_BUTTONS_SPACING));
-        buttonBox.add(editButton);
-        buttonBox.add(Box.createHorizontalStrut(CONTROL_BUTTONS_SPACING));
-        buttonBox.add(removeButton);
-        buttonBox.setBorder(new EmptyBorder(BUTTON_BOX_BORDER,
-                                            BUTTON_BOX_BORDER,
-                                            BUTTON_BOX_BORDER,
-                                            BUTTON_BOX_BORDER));
-
-        this.add(buttonBox, BorderLayout.PAGE_END);
-
-    }
-
-    private String getButtonLabel(String id, String key) {
-        String result = map.getResource(id + "." + key);
-        if (result == null)
-            result = resources.getString(key);
-        return result;
     }
 
     private String getNewFilePath(String initialPath) {
@@ -213,43 +120,80 @@ public class PreferencesFileList extends JPanel implements ListSelectionListener
         return path;
     }
 
-    public void addFile() {
+    @Override
+    public boolean doAddItem() {
+        boolean itemAdded = false;
+
         String path = getNewFilePath(null);
 
-        if (StringUtils.hasValue(path))
+        if (pathIsValid(path, "File_Already_Added_Message")) {
             listModel.addElement(path);
+            itemAdded = true;
+        }
 
-        updateButtons();
-        map.put(settingName, getValue());
+        return itemAdded;
     }
 
-    public void editFile() {
+    @Override
+    public boolean doEditItem() {
+        boolean itemEdited = false;
+
         int index = fileList.getSelectedIndex();
         if (index < 0)
-            return;
+            return false;
 
         String pathToEdit = listModel.get(index).toString();
         String path = getNewFilePath(pathToEdit);
 
-        if (StringUtils.hasValue(path)) {
+        if (pathIsValid(pathToEdit, "File_Already_Added_Message")) {
             listModel.set(index, path);
+            itemEdited = true;
         }
 
-        updateButtons();
-        map.put(settingName, getValue());
+        return itemEdited;
     }
 
-    public void removeFile() {
+    private boolean pathIsValid(String path, String errorMessageKey) {
+        boolean pathIsValid = false;
+
+        if (StringUtils.hasValue(path)) {
+
+            if (!fileIsPresent(path)) {
+                pathIsValid = true;
+            }
+            else {
+                JOptionPane.showMessageDialog(this,
+                    resources.getString(errorMessageKey),
+                    resources.getString("Item_Already_Present_Title"),
+                    JOptionPane.ERROR_MESSAGE);
+            }
+        }
+        return pathIsValid;
+    }
+
+    private boolean fileIsPresent(String path) {
+        for (int i = 0; i < listModel.size(); ++i) {
+
+            if (listModel.get(i).equals(path))
+                return true;
+        }
+
+        return false;
+    }
+
+    @Override
+    public boolean doRemoveItem() {
         listModel.remove(fileList.getSelectedIndex());
-        updateButtons();
-        map.put(settingName, getValue());
+        return true;
     }
 
-    private String getValue() {
+    @Override
+    protected String getValue() {
         return StringUtils.join(Arrays.asList(listModel.toArray()), separator);
     }
 
-    private void createList(String currentValue) {
+    @Override
+    protected void createList(String id, String currentValue) {
         listModel = new DefaultListModel();
 
         // The currentValue is a separator-delimited string of paths to add to the
@@ -279,7 +223,8 @@ public class PreferencesFileList extends JPanel implements ListSelectionListener
         }
     }
 
-    private void updateButtons() {
+    @Override
+    protected void updateButtons() {
         boolean itemSelected = fileList.getSelectedIndex() >= 0;
         removeButton.setEnabled(itemSelected);
         editButton.setEnabled(itemSelected && (allowFolders || allowFiles));

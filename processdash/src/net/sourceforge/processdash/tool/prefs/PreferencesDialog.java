@@ -41,12 +41,14 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.Vector;
 
 import javax.swing.Box;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -60,6 +62,7 @@ import net.sourceforge.processdash.InternalSettings;
 import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.templates.ExtensionManager;
+import net.sourceforge.processdash.ui.DashboardIconFactory;
 import net.sourceforge.processdash.util.StringUtils;
 
 import org.w3c.dom.Element;
@@ -92,6 +95,18 @@ public class PreferencesDialog extends JDialog implements ListSelectionListener,
      *   new value */
     private Map<String, String> changedSettings = new HashMap<String, String>();
 
+    /** Contains all settings for which a modification needs the Dashboard to
+     *   be restarted in order to be effective */
+    private Set<String> restartRequiredSettings = new TreeSet<String>();
+
+    /** Contains the restartRequiresSettings that were changed by the user */
+    private Set<String> modifiedRestartRequiredSettings = new TreeSet<String>();
+
+    /** Visual indication informing the user when restarting the Dashboard is necessary
+     *   in order for all the modified settings to be effective */
+    private JLabel restartRequireLabel;
+    private boolean restartRequired;
+
     public PreferencesDialog(ProcessDashboard parent, String title) {
         super(parent, title);
         setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
@@ -121,7 +136,8 @@ public class PreferencesDialog extends JDialog implements ListSelectionListener,
                                 getCategoryChooser(categories),
                                 preferencesPanels),
                  BorderLayout.CENTER);
-        pane.add(getButtonBox(), BorderLayout.PAGE_END);
+
+        pane.add(getBottomSection(), BorderLayout.PAGE_END);
     }
 
     public void showIt() {
@@ -134,7 +150,7 @@ public class PreferencesDialog extends JDialog implements ListSelectionListener,
         }
     }
 
-    private Component getButtonBox() {
+    private Component getBottomSection() {
         JButton okButton = new JButton(resources.getString("OK_Button"));
         okButton.addActionListener((ActionListener) EventHandler.create(
                 ActionListener.class, this, "saveAndClose"));
@@ -146,21 +162,27 @@ public class PreferencesDialog extends JDialog implements ListSelectionListener,
         applyButton = new JButton(resources.getString("Apply_Button"));
         applyButton.addActionListener((ActionListener) EventHandler.create(
                 ActionListener.class, this, "applyChanges"));
-        updateApplyButton();
 
-        Box buttonBox = Box.createHorizontalBox();
-        buttonBox.add(Box.createHorizontalGlue());
-        buttonBox.add(okButton);
-        buttonBox.add(Box.createHorizontalStrut(CONTROL_BUTTONS_SPACING));
-        buttonBox.add(cancelButton);
-        buttonBox.add(Box.createHorizontalStrut(CONTROL_BUTTONS_SPACING));
-        buttonBox.add(applyButton);
-        buttonBox.setBorder(new EmptyBorder(BUTTON_BOX_BORDER,
+        restartRequireLabel = new JLabel(resources.getString("Restart_Required"));
+        restartRequireLabel.setIcon(DashboardIconFactory.getRestartRequiredIcon());
+
+        Box bottomBox = Box.createHorizontalBox();
+        bottomBox.add(restartRequireLabel);
+        bottomBox.add(Box.createHorizontalGlue());
+        bottomBox.add(okButton);
+        bottomBox.add(Box.createHorizontalStrut(CONTROL_BUTTONS_SPACING));
+        bottomBox.add(cancelButton);
+        bottomBox.add(Box.createHorizontalStrut(CONTROL_BUTTONS_SPACING));
+        bottomBox.add(applyButton);
+        bottomBox.setBorder(new EmptyBorder(BUTTON_BOX_BORDER,
                                             BUTTON_BOX_BORDER,
                                             BUTTON_BOX_BORDER,
                                             BUTTON_BOX_BORDER));
 
-        return buttonBox;
+        updateApplyButton();
+        updateRestartRequired();
+
+        return bottomBox;
     }
 
     public void applyChanges() {
@@ -175,16 +197,26 @@ public class PreferencesDialog extends JDialog implements ListSelectionListener,
         }
 
         updateApplyButton();
+        updateRestartRequired();
     }
 
     private void updateApplyButton() {
         applyButton.setEnabled(!changedSettings.isEmpty());
     }
 
+    private void updateRestartRequired() {
+        restartRequireLabel.setVisible(modifiedRestartRequiredSettings.size() > 0 ||
+                                        restartRequired);
+    }
+
     public void closePreferences() {
+        restartRequired = modifiedRestartRequiredSettings.size() > 0 || restartRequired;
+
         changedSettings.clear();
+        modifiedRestartRequiredSettings.clear();
         preferencesPanels.removeAll();
         builtForms.clear();
+
         this.setVisible(false);
     }
 
@@ -295,6 +327,7 @@ public class PreferencesDialog extends JDialog implements ListSelectionListener,
                 // The selected form has not been built yet so we create it.
                 PreferencesForm form = new PreferencesForm(selectedCategory);
                 form.addPropertyChangeListener(this);
+                restartRequiredSettings.addAll(form.getRequireRestartSettings());
                 preferencesPanels.add(form.getPanel(), selectedCategory.getCategoryID());
                 builtForms.add(selectedCategory.getCategoryID());
             }
@@ -312,9 +345,22 @@ public class PreferencesDialog extends JDialog implements ListSelectionListener,
         String newValue = evt.getNewValue() != null ?
                              evt.getNewValue().toString().trim() : null;
 
-        changedSettings.put(evt.getPropertyName(),
-                            StringUtils.hasValue(newValue) ? newValue : null);
-        updateApplyButton();
-    }
+        String propertyName = evt.getPropertyName();
 
+        if (newValue == null ||
+             !newValue.equals(InternalSettings.getVal(propertyName))) {
+            changedSettings.put(propertyName,
+                                StringUtils.hasValue(newValue) ? newValue : null);
+
+            if (restartRequiredSettings.contains(propertyName))
+                modifiedRestartRequiredSettings.add(propertyName);
+        }
+        else {
+            changedSettings.remove(propertyName);
+            modifiedRestartRequiredSettings.remove(propertyName);
+        }
+
+        updateApplyButton();
+        updateRestartRequired();
+    }
 }

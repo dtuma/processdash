@@ -44,6 +44,7 @@ net/sourceforge/processdash/ui/pauseGlowing.png
 net/sourceforge/processdash/ui/playBlack.png
 net/sourceforge/processdash/ui/playDisabled.png
 net/sourceforge/processdash/ui/playGlowing.png
+net/sourceforge/processdash/ui/restartIcon.png
 net/sourceforge/processdash/ui/splash.png
 net/sourceforge/processdash/ui/splash.html
 net/sourceforge/processdash/ui/timingCompact.png
