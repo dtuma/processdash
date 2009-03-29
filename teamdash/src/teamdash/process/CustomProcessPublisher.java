@@ -10,8 +10,10 @@ import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.net.URL;
 import java.net.URLConnection;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -157,7 +159,7 @@ public class CustomProcessPublisher {
                 .get("Full_Name"));
         attrs.putValue(DashPackage.ID_ATTRIBUTE, process.getProcessID());
         attrs.putValue(DashPackage.VERSION_ATTRIBUTE, scriptVers + "."
-                + System.currentTimeMillis());
+                + TIMESTAMP_FORMAT.format(new Date()));
         if (scriptReqt != null)
             attrs.putValue(DashPackage.REQUIRE_ATTRIBUTE, scriptReqt);
 
@@ -529,4 +531,6 @@ public class CustomProcessPublisher {
         }
     }
 
+    private static final SimpleDateFormat TIMESTAMP_FORMAT =
+        new SimpleDateFormat("yyyyMMddHHmmss");
 }
