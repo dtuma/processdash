@@ -1,7 +1,7 @@
 /* -*- mode:c -*-
 =============================================================================
 == Process Dashboard - Data Automation Tool for high-maturity processes
-== Copyright (C) 2003 Tuma Solutions, LLC
+== Copyright (C) 2003-2009 Tuma Solutions, LLC
 == 
 == This program is free software; you can redistribute it and/or
 == modify it under the terms of the GNU General Public License
@@ -31,16 +31,19 @@
  * Dynamic lists of user-entered data.
  */
 
-[Est_Base_Additions]     = search("Base Additions", "LOC");
-[Est_New_Objects]        = search("New Objects",    "LOC");
-[Est_Reused_Objects]     = search("Reused Objects", "LOC");
-[Est_New_Reused_Objects] = search("New Objects",    "LOC", [New Reused?]);
+[Base_Parts_List] = "0";
+[Base_Additions_List] = null;
+[New_Objects_List] = "0";
+[Reused_Objects_List] = "0";
 
-[Base_Additions]     = search("Base Additions", "Actual LOC");
-[New_Objects]        = search("New Objects",    "Actual LOC");
-[Reused_Objects]     = search("Reused Objects", "Actual LOC");
-[New_Reused_Objects] = search("New Objects",    "Actual LOC",
-                              [Actual New Reused?]);
+[Base_Parts_Prefix_List] =
+        map([^] &/ "Base_Parts" &/ [_], [Base_Parts_List]);
+[Base_Additions_Prefix_List] =
+        map([^] &/ "Base Additions" &/ [_], [Base_Additions_List]);
+[New_Objects_Prefix_List] =
+        map([^] &/ "New Objects" &/ [_], [New_Objects_List]);
+[Reused_Objects_Prefix_List] =
+        map([^] &/ "Reused Objects" &/ [_], [Reused_Objects_List]);
 
 
 /*
@@ -49,18 +52,27 @@
 
 [Estimated New & Changed LOC] = ?NaN;
 
-[Estimated Base LOC]     = 0;
-[Estimated Deleted LOC]  = 0;
-[Estimated Modified LOC] = 0;
+[Base_Parts/0/Base]     = 0;
+[Base_Parts/0/Deleted]  = 0;
+[Base_Parts/0/Modified] = 0;
+[Base_Parts/0/Added]    = 0;
+[Reused Objects/0/LOC]  = 0;
 
-[Estimated Base Additions LOC] = sumFor("LOC", [Est_Base_Additions]);
-[Estimated New Objects LOC]    = sumFor("LOC", [Est_New_Objects]);
-[Estimated Reused LOC]	       = sumFor("LOC", [Est_Reused_Objects]);
-[Estimated New Reused LOC]     = sumFor("LOC", [Est_New_Reused_Objects]);
+
+[Estimated Base LOC]           = sumFor("Base",     [Base_Parts_Prefix_List]);
+[Estimated Deleted LOC]        = sumFor("Deleted",  [Base_Parts_Prefix_List]);
+[Estimated Modified LOC]       = sumFor("Modified", [Base_Parts_Prefix_List]);
+[Estimated Base Added LOC]     = sumFor("Added",    [Base_Parts_Prefix_List]);
+[Estimated Base Additions LOC] = sumFor("LOC",  [Base_Additions_Prefix_List]);
+[Estimated New Objects LOC]    = sumFor("LOC",     [New_Objects_Prefix_List]);
+[Estimated Reused LOC]         = sumFor("LOC",  [Reused_Objects_Prefix_List]);
+[Estimated New Reused LOC] = 0 + sumFor("LOC",
+        filter(lookup([_] &/ "New Reused?"), [New_Objects_Prefix_List]));
 
 [Estimated Object LOC] = [Estimated Base Additions LOC] +
+                         [Estimated Base Added LOC] +
                          [Estimated New Objects LOC] +
-			 [Estimated Modified LOC];
+                         [Estimated Modified LOC];
 [Estimated Added LOC] =
         [Estimated New & Changed LOC] - [Estimated Modified LOC];
 
@@ -85,20 +97,31 @@
  * Data Elements to track Actual LOC
  */
 
-[Base LOC]     = 0;
-[Deleted LOC]  = 0;
-[Modified LOC] = 0;
+[Base_Parts/0/Actual Base]     = 0;
+[Base_Parts/0/Actual Deleted]  = 0;
+[Base_Parts/0/Actual Modified] = 0;
+[Base_Parts/0/Actual Added]    = 0;
+[Reused Objects/0/Actual LOC]  = 0;
+
 [Total LOC]    = ?NaN;
+
+
+[Base LOC]     = sumFor("Actual Base",     [Base_Parts_Prefix_List]);
+[Deleted LOC]  = sumFor("Actual Deleted",  [Base_Parts_Prefix_List]);
+[Modified LOC] = sumFor("Actual Modified", [Base_Parts_Prefix_List]);
 
 [New & Changed LOC] = [Added LOC] + [Modified LOC];
 [Added LOC] = [Total LOC] - [Base LOC] + [Deleted LOC] - [Reused LOC];
 
-[Base Additions LOC] = sumFor("Actual LOC", [Base_Additions]);
-[New Objects LOC]    = sumFor("Actual LOC", [New_Objects]);
-[Reused LOC]         = sumFor("Actual LOC", [Reused_Objects]);
-[New Reused LOC]     = sumFor("Actual LOC", [New_Reused_Objects]);
+[Base Added LOC]     = sumFor("Actual Added",   [Base_Parts_Prefix_List]);
+[Base Additions LOC] = sumFor("Actual LOC", [Base_Additions_Prefix_List]);
+[New Objects LOC]    = sumFor("Actual LOC",    [New_Objects_Prefix_List]);
+[Reused LOC]         = sumFor("Actual LOC", [Reused_Objects_Prefix_List]);
+[New Reused LOC] = 0 + sumFor("Actual LOC",
+       filter(lookup([_] &/ "Actual New Reused?"), [New_Objects_Prefix_List]));
 
-[Object LOC] = [Base Additions LOC] + [Modified LOC] + [New Objects LOC];
+[Object LOC] = [Base Added LOC] + [Base Additions LOC] +
+               [Modified LOC] + [New Objects LOC];
 
 [New & Changed KLOC] = [New & Changed LOC] / 1000;
 

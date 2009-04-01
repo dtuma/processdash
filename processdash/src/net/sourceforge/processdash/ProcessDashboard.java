@@ -134,6 +134,7 @@ import net.sourceforge.processdash.ui.help.PCSH;
 import net.sourceforge.processdash.ui.lib.ErrorReporter;
 import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
 import net.sourceforge.processdash.ui.systray.SystemTrayManagement;
+import net.sourceforge.processdash.ui.web.psp.SizeEstimatingTemplate;
 import net.sourceforge.processdash.util.FallbackObjectFactory;
 import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.FormatUtil;
@@ -472,6 +473,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         pt.click("Opened data files");
         data.fixMisparentedData();
         pt.click("Fixed misparented data");
+        SizeEstimatingTemplate.migrateLegacyData(props, data);
 
         try {
             objectCache =
