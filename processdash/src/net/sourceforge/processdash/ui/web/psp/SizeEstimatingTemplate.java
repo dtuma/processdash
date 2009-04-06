@@ -32,6 +32,7 @@ import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.DoubleData;
 import net.sourceforge.processdash.data.ListData;
 import net.sourceforge.processdash.data.SaveableData;
+import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.TagData;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.hier.DashHierarchy;
@@ -94,23 +95,27 @@ public class SizeEstimatingTemplate extends TinyCGIBase {
         }
     }
 
-    private static final String [] baseData = {
-        "Base_Additions_List",
+    protected static final String BASE_ADDITIONS_DATANAME =
+        "Base_Additions_List";
+    protected static final String [] baseData = {
+        BASE_ADDITIONS_DATANAME,
         "Base Additions/#//#/Description",
         "Base Additions/#//#/Type",
         "Base Additions/#//#/Methods",
         "Base Additions/#//#/Relative Size",
         "Base Additions/#//#/LOC",
+        "Base Additions/#//#/Actual Methods",
         "Base Additions/#//#/Actual LOC" };
-    private static final String [] newData = {
+    protected static final String [] newData = {
         "New_Objects_List",
         "New Objects/#//#/Description",
         "New Objects/#//#/Type",
         "New Objects/#//#/Methods",
         "New Objects/#//#/Relative Size",
         "New Objects/#//#/LOC",
+        "New Objects/#//#/Actual Methods",
         "New Objects/#//#/Actual LOC" };
-    private static final String [] reusedData = {
+    protected static final String [] reusedData = {
         "Reused_Objects_List",
         "Reused Objects/#//#/Description",
         "Reused Objects/#//#/LOC",
@@ -220,7 +225,7 @@ public class SizeEstimatingTemplate extends TinyCGIBase {
     }
 
     /** fixup a row template based upon freeze flags. */
-    protected String fixupRow(String row, boolean freezePlan,
+    private String fixupRow(String row, boolean freezePlan,
                               boolean freezeActual) {
         row = StringUtils.findAndReplace
             (row, PLAN_FLAG,   freezePlan   ? READONLY_FLAG : EDITABLE_FLAG);
@@ -235,7 +240,8 @@ public class SizeEstimatingTemplate extends TinyCGIBase {
         DataRepository data = getDataRepository();
 
         String dataName = DataRepository.createDataName(prefix, name);
-        return (data.getSimpleValue(dataName) != null);
+        SimpleData value = data.getSimpleValue(dataName);
+        return (value != null && value.test());
     }
 
 

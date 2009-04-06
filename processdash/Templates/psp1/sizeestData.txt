@@ -69,6 +69,10 @@
 [Estimated New Reused LOC] = 0 + sumFor("LOC",
         filter(lookup([_] &/ "New Reused?"), [New_Objects_Prefix_List]));
 
+[Estimated Additions LOC] = [Estimated Base Additions LOC] +
+                            [Estimated Base Added LOC] +
+                            [Estimated New Objects LOC];
+
 [Estimated Object LOC] = [Estimated Base Additions LOC] +
                          [Estimated Base Added LOC] +
                          [Estimated New Objects LOC] +
