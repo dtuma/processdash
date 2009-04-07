@@ -15,7 +15,7 @@ OL { margin-top: 0pt; margin-bottom: 0pt }
 .nonDash { color: #C0C0C0 }
 
 /* style for instructions that are specific to the dashboard */
-.dash { color: #00A000 }
+.dash { color: #007000 }
 
 /* style for items which should be omitted when printing a document. */
 @media print { .doNotPrint { display: none } }
