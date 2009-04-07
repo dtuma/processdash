@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2007 Tuma Solutions, LLC
+// Copyright (C) 2002-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -44,6 +44,8 @@ public class ProbeData {
 
     public static final String PROBE_INPUT_METRIC =
         "PROBE_INPUT_SIZE_METRIC_NAME";
+    public static final String PROBE_TARGET_METRIC =
+        "PROBE_TARGET_SIZE_METRIC_NAME";
 
     // These constants are valid parameter values for getXYDataPoints().
     public static final int EST_OBJ_LOC  = 1;
@@ -192,9 +194,10 @@ public class ProbeData {
             String[] result = new String[LAST_COL];
             result[EST_OBJ_LOC - 1] =
                 processUtil.getProcessString(PROBE_INPUT_METRIC);
-            result[EST_NC_LOC - 1] =
-                "Estimated " + processUtil.getSizeMetric();
-            result[ACT_NC_LOC - 1] = processUtil.getSizeMetric();
+            String targetMetric =
+                processUtil.getProcessString(PROBE_TARGET_METRIC);
+            result[EST_NC_LOC - 1] = "Estimated " + targetMetric;
+            result[ACT_NC_LOC - 1] = targetMetric;
             result[EST_TIME - 1] = "[Estimated Time] / 60";
             result[ACT_TIME - 1] = "[Time] / 60";
 

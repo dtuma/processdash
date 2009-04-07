@@ -1,7 +1,7 @@
 /* -*- mode:c -*-
 =============================================================================
 == Process Dashboard - Data Automation Tool for high-maturity processes
-== Copyright (C) 2003 Tuma Solutions, LLC
+== Copyright (C) 2002-2009 Tuma Solutions, LLC
 == 
 == This program is free software; you can redistribute it and/or
 == modify it under the terms of the GNU General Public License
@@ -24,7 +24,6 @@
 ==     processdash-devel@lists.sourceforge.net
 
 =============================================================================
-== Title:	$Id$
 == Author:	Dave Tuma -TISHD- <dtuma@ulaf1>
 == Created:	Fri Jan 30 16:08:52 1998
 ==
@@ -44,7 +43,6 @@ undefine([PSP0.1 Tag], [psp0.1], [PSP0.1]);
  */
 
 #include <psp1/sizeestData.txt>
-[PROBE_NO_TIME] = TAG;
 
 
 /*

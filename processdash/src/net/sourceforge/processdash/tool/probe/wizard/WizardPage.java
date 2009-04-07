@@ -1,4 +1,4 @@
-// Copyright (C) 2002 Tuma Solutions, LLC
+// Copyright (C) 2002-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -159,7 +159,7 @@ public abstract class WizardPage {
 
     protected void putValue(String name, SimpleData value) {
         String dataName = DataRepository.createDataName(prefix, name);
-        data.putValue(dataName, value);
+        data.userPutValue(dataName, value);
     }
 
     protected double getNumber(String dataName) {

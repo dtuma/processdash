@@ -62,6 +62,7 @@
     [AGGR_SIZE_METRIC_NAME] == [SIZE_METRIC_NAME];
     [AGGR_SIZE_METRIC_NAME_ABBR] == [SIZE_METRIC_NAME_ABBR];
     [PROBE_INPUT_SIZE_METRIC_NAME] == "Unadjusted Estimated Size";
+    [PROBE_TARGET_SIZE_METRIC_NAME] = [SIZE_METRIC_NAME];
 
     [Estimated Size] = ?NaN;
     [Size] = ?NaN;
