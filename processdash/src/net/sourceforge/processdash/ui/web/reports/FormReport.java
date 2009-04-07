@@ -31,6 +31,7 @@ import java.net.URL;
 import net.sourceforge.processdash.data.util.FormToHTML;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.HTMLUtils;
+import net.sourceforge.processdash.util.StringUtils;
 
 
 
@@ -38,7 +39,10 @@ public class FormReport extends TinyCGIBase {
 
     protected void writeContents() throws IOException {
         String uri = getURI();
-        uri = HTMLUtils.appendQuery(uri, "EXPORT", getParameter("EXPORT"));
+        String exportType = getParameter("EXPORT");
+        if (!StringUtils.hasValue(exportType))
+            exportType = "html";
+        uri = HTMLUtils.appendQuery(uri, "EXPORT", exportType);
 
         String prefix = "";
         int slashPos = uri.indexOf("//");
