@@ -43,13 +43,14 @@ import net.sourceforge.processdash.util.StringUtils;
 
 public class SizeEstimatingTemplate extends TinyCGIBase {
 
-    public String partA, baseRow, partB, newRow, partC, reusedRow, partD;
+    public String partA, baseRow, partB, newRow, partC, reusedRow, partD, partE;
     private boolean needsInit = true;
 
     private static final String BASE_CUT  = "<!--BaseAdditions-->";
     private static final String NEW_CUT   = "<!--NewObjects-->";
     private static final String REUSE_CUT = "<!--ReusedObjects-->";
     private static final String CUT_END   = "<!--end-->";
+    private static final String INS_POS   = "</FORM>";
     private static final String PLAN_FLAG = "\tp";
     private static final String ACTUAL_FLAG = "\ta";
     private static final String READONLY_FLAG = "\tr";
@@ -86,7 +87,10 @@ public class SizeEstimatingTemplate extends TinyCGIBase {
             end = text.indexOf(CUT_END, beg = end);
             reusedRow = text.substring(beg, end);
 
-            partD = text.substring(end);
+            end = text.indexOf(INS_POS, beg = end);
+            partD = text.substring(beg, end);
+
+            partE = text.substring(end);
             needsInit = false;
 
         } catch (IndexOutOfBoundsException ioob) {
@@ -120,6 +124,10 @@ public class SizeEstimatingTemplate extends TinyCGIBase {
         "Reused Objects/#//#/Description",
         "Reused Objects/#//#/LOC",
         "Reused Objects/#//#/Actual LOC" };
+    private static final String ACTIVE_LIST_HTML =
+        "<input type='hidden' name='[Base_Additions_List//Active]s'>\n" +
+        "<input type='hidden' name='[New_Objects_List//Active]s'>\n" +
+        "<input type='hidden' name='[Reused_Objects_List//Active]s'>\n";
 
 
     /** Generate CGI script output.
@@ -144,6 +152,8 @@ public class SizeEstimatingTemplate extends TinyCGIBase {
         writeTable(fixupRow(reusedRow, freezePlan, freezeActual),
                    reusedData, "moreReused", 1, 0, 3);
         out.write(replaceNum(partD, uniqueNumber++));
+        out.write(ACTIVE_LIST_HTML);
+        out.write(partE);
     }
 
     static int uniqueNumber = 0;
@@ -169,11 +179,11 @@ public class SizeEstimatingTemplate extends TinyCGIBase {
         String prefix = (String) env.get("PATH_TRANSLATED");
 
         int extraRows = padRows;
-        if (parameters.get(queryArg) != null)
+        if (parameters.get(queryArg) != null && !isExporting())
             extraRows = addRows;
 
         ListData rows = configureSETList(getDataRepository(), prefix,
-            dataElements, minRows, extraRows);
+            dataElements, minRows, extraRows, !isExporting());
         writeTableRows(template, rows);
     }
 
@@ -183,7 +193,8 @@ public class SizeEstimatingTemplate extends TinyCGIBase {
     }
 
     protected static ListData configureSETList(DataRepository data,
-            String prefix, String[] dataElements, int minRows, int padRows) {
+            String prefix, String[] dataElements, int minRows, int padRows,
+            boolean saveList) {
         String [] dataNames = new String[dataElements.length];
         for (int e = dataElements.length; e-- > 0; )
             dataNames[e] = prefix + "/" + dataElements[e];
@@ -212,7 +223,19 @@ public class SizeEstimatingTemplate extends TinyCGIBase {
         for (int e = 0;  e < extraRows;   e++)
             populatedRows.add(Integer.toString(lastPopulatedRow+e+1));
 
-        data.putValue(dataNames[0], populatedRows);
+        if (saveList) {
+            String listName = dataNames[0];
+            String activeName = listName + "//Active";
+            ListData currentActiveElements = ListData.asListData(data
+                    .getValue(activeName));
+
+            ListData newActiveElements = new ListData(populatedRows);
+            newActiveElements.setAddAll(currentActiveElements);
+
+            data.putValue(listName, newActiveElements);
+            data.putValue(activeName, newActiveElements);
+        }
+
         return populatedRows;
     }
 
@@ -279,9 +302,9 @@ public class SizeEstimatingTemplate extends TinyCGIBase {
             logger.info("Migrating Size Estimating Template data for project "
                     + path);
             renameLegacyDataElements(data, path);
-            configureSETList(data, path, baseData, 0, 0);
-            configureSETList(data, path, newData, 1, 0);
-            configureSETList(data, path, reusedData, 1, 0);
+            configureSETList(data, path, baseData, 0, 0, true);
+            configureSETList(data, path, newData, 1, 0, true);
+            configureSETList(data, path, reusedData, 1, 0, true);
         }
     }
     private static void renameLegacyDataElements(DataRepository data,
