@@ -1,0 +1,30 @@
+
+==
+== The following elements identify the data in this file as belonging to
+== a PSP for Engineers v3 process. 
+==
+
+pspForEngV3==TAG
+PSPFORENGV3==TAG
+node==TAG
+
+
+== Make a list of the PSP Projects in *this* PSP for Engineers hierarchy.
+
+[Child_List] = hierchildren();
+[Project_List] = filter(lookup([_] &/ "PSP Project"), [Child_List]);
+
+
+
+==
+== Record the programming language used for these assignments.
+==
+
+[Project/Language] = "?????";
+
+
+==
+== Don't display the percent spent indicator for the PSP programs.
+==
+
+[Show_Percent_Spent_Indicator] = 0;
