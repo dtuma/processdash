@@ -86,8 +86,10 @@ public class ProbeData {
         this.processUtil = new ProcessUtil(data, prefix);
         this.subsetPrefix = getSubsetPrefix(data, prefix, subsetPrefixParam);
         boolean clearOutlierMarks = (subsetPrefixParam != null);
+        String[] conditions = shouldOnlyIncludeCompletedProjects(data, prefix)
+                ? CONDITIONS : null;
 
-        this.resultSet = ResultSet.get(data, FOR_PARAM, CONDITIONS, ORDER_BY,
+        this.resultSet = ResultSet.get(data, FOR_PARAM, conditions, ORDER_BY,
                                        getDataNames(), subsetPrefix);
         fixupResultSetColumnHeaders();
         markExclusions(data, prefix, clearOutlierMarks);
@@ -101,7 +103,9 @@ public class ProbeData {
         this.prefix = prefix;
         this.processUtil = new ProcessUtil(data, prefix);
         //subsetPrefix = getSubsetPrefix(data, prefix, params);
-        this.resultSet = ResultSet.get(data, FOR_PROBE_LIST, CONDITIONS, ORDER_BY,
+        String[] conditions = shouldOnlyIncludeCompletedProjects(data, prefix)
+                ? CONDITIONS : null;
+        this.resultSet = ResultSet.get(data, FOR_PROBE_LIST, conditions, ORDER_BY,
                                        getDataNames(), prefix);
         fixupResultSetColumnHeaders();
         markExclusions(null, null, true);
@@ -284,12 +288,24 @@ public class ProbeData {
         return result;
     }
 
+    private boolean shouldOnlyIncludeCompletedProjects(DataRepository data,
+            String prefix) {
+        String dataName = DataRepository.createDataName(prefix,
+            PROBE_ONLY_COMPLETED_NAME);
+        SimpleData d = data.getSimpleValue(dataName);
+        if (d != null && d.test() == false)
+            return false;
+        else
+            return true;
+    }
+
     private static boolean badDouble(double d) {
         return Double.isNaN(d) || Double.isInfinite(d);
     }
 
 
     private static final String PROBE_SUBSET_NAME  = "PROBE_SUBSET";
+    private static final String PROBE_ONLY_COMPLETED_NAME = "PROBE_ONLY_COMPLETED";
     public static final String PROBE_LIST_NAME     = "PROBE_LIST";
     static final String SUBSET_PREFIX_NAME =
         "PID To Date Subset Prefix";
