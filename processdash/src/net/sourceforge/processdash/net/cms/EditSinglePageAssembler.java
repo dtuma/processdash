@@ -1,4 +1,4 @@
-// Copyright (C) 2006 Tuma Solutions, LLC
+// Copyright (C) 2006-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -37,6 +37,7 @@ import net.sourceforge.processdash.util.XMLUtils;
 public class EditSinglePageAssembler extends AbstractPageAssembler
         implements EditPageParameters {
 
+    @Override
     protected void writePage(Writer out, Set headerItems, PageContentTO page)
             throws IOException {
 
@@ -54,6 +55,8 @@ public class EditSinglePageAssembler extends AbstractPageAssembler
 
         writePageSnippetEditors(out, page);
 
+        writeFooterElements(out, page);
+
         writeFormEnd(out);
 
         out.write("<script type=\"text/javascript\">DashCMS.initPage();</script>\n");
@@ -67,6 +70,16 @@ public class EditSinglePageAssembler extends AbstractPageAssembler
     private void writeHeaderElements(Writer out, PageContentTO page)
             throws IOException {
         for (Iterator i = page.getHeaderSnippets(); i.hasNext();) {
+            SnippetInstanceTO snip = (SnippetInstanceTO) i.next();
+            writeSnippet(out, snip, EDIT_STYLE_CHROMELESS);
+        }
+    }
+
+
+
+    private void writeFooterElements(Writer out, PageContentTO page)
+            throws IOException {
+        for (Iterator i = page.getFooterSnippets(); i.hasNext();) {
             SnippetInstanceTO snip = (SnippetInstanceTO) i.next();
             writeSnippet(out, snip, EDIT_STYLE_CHROMELESS);
         }

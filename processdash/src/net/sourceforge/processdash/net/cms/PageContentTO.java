@@ -1,4 +1,4 @@
-// Copyright (C) 2006 Tuma Solutions, LLC
+// Copyright (C) 2006-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -37,6 +37,8 @@ public class PageContentTO {
 
     public static final int REGION_CONTENT = 2;
 
+    public static final int REGION_FOOTER = 3;
+
     private String pageTitle;
 
     private List snippets;
@@ -70,8 +72,9 @@ public class PageContentTO {
     /** Return an iterator containing the snippets in a given region of
      * the page.
      * 
-     * @param region one of {@link PageContentTO#REGION_HEADER} or
-     *    {@link PageContentTO#REGION_CONTENT}
+     * @param region one of {@link PageContentTO#REGION_HEADER},
+     *    {@link PageContentTO#REGION_CONTENT}, or
+     *    {@link PageContentTO#REGION_FOOTER}
      * @return an iterator returning
      * {@link net.sourceforge.processdash.net.cms.SnippetInstanceTO} objects
      */
@@ -92,6 +95,12 @@ public class PageContentTO {
      * the page. */
     public Iterator getContentSnippets() {
         return getSnippets(REGION_CONTENT);
+    }
+
+    /** Return an iterator containing the snippets in the content region of
+     * the page. */
+    public Iterator getFooterSnippets() {
+        return getSnippets(REGION_FOOTER);
     }
 
 

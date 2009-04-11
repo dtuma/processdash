@@ -1,4 +1,4 @@
-// Copyright (C) 2006 Tuma Solutions, LLC
+// Copyright (C) 2006-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -47,6 +47,7 @@ public class AddNewItemPageAssembler extends EditSinglePageAssembler {
 
     public static final String DEFAULTS_PARAM = "defaults";
 
+    @Override
     public void service(Writer out, PageContentTO page) throws IOException {
         // turn on the "defaults" parameter (which will get propagated to
         // the snippet).  This allows the snippet to generate content
@@ -60,42 +61,31 @@ public class AddNewItemPageAssembler extends EditSinglePageAssembler {
         super.service(out, page);
     }
 
-    /** This value is hardcoded to false.  As such, it will cause the compiler
-     * to generate no bytecode for several code branches below - but not until
-     * after the compiler ensures that the branches are valid code.  This
-     * effectively ensures that the signatures of the methods we are overriding
-     * don't change underneath us without triggering a compilation error. */
-    private static final boolean FALSE_VALUE_TO_ASSERT_OVERRIDE = false;
-
+    @Override
     protected void addPageSpecificParameters(Map params, PageContentTO page) {
-        if (FALSE_VALUE_TO_ASSERT_OVERRIDE)
-            super.addPageSpecificParameters(params, page);
         // add nothing
     }
 
+    @Override
     protected void addPageSpecificHeaderItems(Set headerItems) {
-        if (FALSE_VALUE_TO_ASSERT_OVERRIDE)
-            super.addPageSpecificHeaderItems(headerItems);
         // add nothing
     }
 
+    @Override
     protected void maybeAddHeaderSnippet(PageContentTO page,
             SnippetInvoker invoker) {
-        if (FALSE_VALUE_TO_ASSERT_OVERRIDE)
-            super.maybeAddHeaderSnippet(page, invoker);
         // add nothing
     }
 
+    @Override
     protected void setSnippetNamespace(SnippetInstanceTO snippet,
             String namespace) {
-        if (FALSE_VALUE_TO_ASSERT_OVERRIDE)
-            super.setSnippetNamespace(snippet, namespace);
-
         // ignore the namespace parameter passed in, and read from the
         // parameter instead.
         snippet.setNamespace((String) parameters.get("ns"));
     }
 
+    @Override
     protected void writePage(Writer out, Set headerItems, PageContentTO page)
             throws IOException {
 

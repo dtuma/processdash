@@ -227,6 +227,8 @@ public abstract class AbstractPageAssembler implements PageAssembler,
             return shouldInvokerHeaderSnippet(snip);
         case PageContentTO.REGION_CONTENT:
             return shouldInvokeContentSnippet(snip);
+        case PageContentTO.REGION_FOOTER:
+            return shouldInvokeFooterSnippet(snip);
         default:
             return true;
         }
@@ -236,6 +238,10 @@ public abstract class AbstractPageAssembler implements PageAssembler,
     }
 
     protected boolean shouldInvokeContentSnippet(SnippetInstanceTO snip) {
+        return true;
+    }
+
+    protected boolean shouldInvokeFooterSnippet(SnippetInstanceTO snip) {
         return true;
     }
 

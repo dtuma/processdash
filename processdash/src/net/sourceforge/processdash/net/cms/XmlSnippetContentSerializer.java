@@ -1,4 +1,4 @@
-// Copyright (C) 2006 Tuma Solutions, LLC
+// Copyright (C) 2006-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -88,6 +88,8 @@ public class XmlSnippetContentSerializer implements ContentSerializer {
                 Element elem = (Element) node;
                 if (PAGE_HEADING_TAG.equals(elem.getTagName()))
                     return PageContentTO.REGION_HEADER;
+                if (PAGE_FOOTER_TAG.equals(elem.getTagName()))
+                    return PageContentTO.REGION_FOOTER;
             }
         }
         return PageContentTO.REGION_CONTENT;
@@ -115,22 +117,30 @@ public class XmlSnippetContentSerializer implements ContentSerializer {
         ser.ignorableWhitespace(NEWLINE + NEWLINE);
 
         Iterator headerSnippets = page.getHeaderSnippets();
-        if (headerSnippets.hasNext()) {
-            ser.startTag(null, PAGE_HEADING_TAG);
-            ser.ignorableWhitespace(NEWLINE + NEWLINE);
-            writeSnippets(ser, headerSnippets);
-            ser.endTag(null, PAGE_HEADING_TAG);
-            ser.ignorableWhitespace(NEWLINE + NEWLINE + NEWLINE);
-        }
+        writeWrappedSnippets(ser, PAGE_HEADING_TAG, headerSnippets);
 
         Iterator contentSnippets = page.getContentSnippets();
         writeSnippets(ser, contentSnippets);
+
+        Iterator footerSnippets = page.getFooterSnippets();
+        writeWrappedSnippets(ser, PAGE_FOOTER_TAG, footerSnippets);
 
         ser.endTag(null, DOC_ROOT_ELEM);
         ser.ignorableWhitespace(NEWLINE);
         ser.endDocument();
 
         out.close();
+    }
+
+    private void writeWrappedSnippets(XmlSerializer ser, String wrappingTag,
+            Iterator snippets) throws IOException {
+        if (snippets.hasNext()) {
+            ser.startTag(null, wrappingTag);
+            ser.ignorableWhitespace(NEWLINE + NEWLINE);
+            writeSnippets(ser, snippets);
+            ser.endTag(null, wrappingTag);
+            ser.ignorableWhitespace(NEWLINE + NEWLINE + NEWLINE);
+        }
     }
 
     private void writeSnippets(XmlSerializer ser, Iterator snippets)
@@ -161,6 +171,8 @@ public class XmlSnippetContentSerializer implements ContentSerializer {
     private static final String PAGE_TITLE_TAG = "pageTitle";
 
     private static final String PAGE_HEADING_TAG = "pageHeading";
+
+    private static final String PAGE_FOOTER_TAG = "pageFooter";
 
     private static final String SNIPPET_TAG = "snippet";
 
