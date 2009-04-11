@@ -82,6 +82,19 @@ public class SizeEstimatingTemplate2 extends SizeEstimatingTemplate {
         uniqueNumber++;
     }
 
+    private String markReadOnlyFields(String html) {
+        html = StringUtils.findAndReplace(html, PLAN_FLAG,
+            freezePlan ? READONLY_FLAG : EDITABLE_FLAG);
+        html = StringUtils.findAndReplace(html, ACTUAL_FLAG,
+            freezeActual ? READONLY_FLAG : EDITABLE_FLAG);
+        return html;
+    }
+
+    private static final String PLAN_FLAG = "]p";
+    private static final String ACTUAL_FLAG = "]a";
+    private static final String READONLY_FLAG = "]r";
+    private static final String EDITABLE_FLAG = "]";
+
     private class Section {
         final String key;
 
@@ -112,7 +125,10 @@ public class SizeEstimatingTemplate2 extends SizeEstimatingTemplate {
     private class StaticOutputStrategy extends OutputStrategy {
         @Override
         public void print(Section s) throws IOException {
-            out.print(replaceNum(s.html, uniqueNumber));
+            String html = s.html;
+            html = replaceNum(html, uniqueNumber);
+            html = markReadOnlyFields(html);
+            out.print(html);
         }
     }
 
@@ -145,20 +161,9 @@ public class SizeEstimatingTemplate2 extends SizeEstimatingTemplate {
 
         @Override
         public void print(Section s) throws IOException {
-            String row = s.html;
-            row = StringUtils.findAndReplace(row, PLAN_FLAG,
-                freezePlan ? READONLY_FLAG : EDITABLE_FLAG);
-            row = StringUtils.findAndReplace(row, ACTUAL_FLAG,
-                freezeActual ? READONLY_FLAG : EDITABLE_FLAG);
-
+            String row = markReadOnlyFields(s.html);
             writeTable(row, dataElements, queryArg, 1, 0, addRows);
         }
-
-        private static final String PLAN_FLAG = "]p";
-        private static final String ACTUAL_FLAG = "]a";
-        private static final String READONLY_FLAG = "]r";
-        private static final String EDITABLE_FLAG = "]";
-
     }
 
     private class NewPartsRowsOutputStrategy extends RowsOutputStrategy {
