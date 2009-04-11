@@ -235,7 +235,7 @@ if (unlocked) {
     unlockURL = window.location.href.replace(/unlock/, "")
         .replace(/([?&])&/, "$1").replace(/[?&]$/, "");
     unlockHTML =
-        '<br><A HREF="javascript:gotoUnLockURL();">' +
+        '<A HREF="javascript:gotoUnLockURL();">' +
         '<!--#echo Lock_Message --></A>';
 } else {
     if (window.location.search == "") {
@@ -244,7 +244,7 @@ if (unlocked) {
         unlockURL = window.location.href + "&unlock";
     }
     unlockHTML =
-        '<br><A HREF="javascript:displayUnlockWarning();">' +
+        '<A HREF="javascript:displayUnlockWarning();">' +
         '<!--#echo Unlock_Message --></A>';
 }
 
@@ -293,19 +293,19 @@ function writeHelpLink() {
 
 function writeFooter() {
     if (!SILENT) {
-        document.write('<span class=doNotPrint>');
+        document.write('<div id="dataExportFooter" class="doNotPrint">');
 	<!--#if !READ_ONLY -->
         document.write(unlockHTML);
         document.write("&nbsp; &nbsp; &nbsp; &nbsp;");
 	<!--#endif-->
         writeExportHTML();
         writeHelpLink();
-        document.write('</span>');
+        document.write('</div>');
     }
 }
 
 function writeExcelOnlyFooter() {
-    document.write('<span class=doNotPrint>');
+    document.write('<div id="dataExportFooter" class="doNotPrint">');
 
     var url = urlEncode(window.location.pathname +
                         window.location.search);
@@ -315,7 +315,7 @@ function writeExcelOnlyFooter() {
     document.writeln("<A HREF='/reports/excel.iqy?uri=" +url+
                      "&fullPage'><!--#echo Export_to_Excel --></A>");
 
-    document.write('</span>');
+    document.write('</div>');
 }
 
 
