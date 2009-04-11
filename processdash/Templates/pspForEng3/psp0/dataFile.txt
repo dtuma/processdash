@@ -2,3 +2,9 @@
     "FreezeFlag/.*", ".* To Date"
 )
 #include <pspForEng3/progData.txt>
+
+=
+= Display the "Program Size" block if the parent datafile asks us to.
+=
+
+[Show_Size_Block] = [../Enable_PSP0_Size_Blocks];
