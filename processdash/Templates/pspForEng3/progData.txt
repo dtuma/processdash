@@ -7,6 +7,11 @@
 [Project/Language] = [../Project/Language];
 
 
+= Don't allow the user to edit the plan summary forms.
+
+[CMS_DISALLOW_EDITING] = tag;
+
+
 = Compute the list of programs that precede this program.
 
 [This_Program_Index] = indexof([^], [../Project_List]);
@@ -139,23 +144,14 @@ FOR_EACH_PHASE(calcToDatePhaseQuality);
 
 
 ==
-== Manually calculate plans by looking at the previous program.
+== Manually calculate planned time in phase by looking at the previous program.
 ==
 
-[Estimated Defect Density] =
-    lookup([Previous_Program] &/ "Defect Density To Date");
-[Estimated Defects per KLOC] = [Estimated Defect Density];
 
 #define estimatePhaseData(Phase)					      \
   [Phase/Estimated Time] =						      \
         [Estimated Time] *						      \
         lookup([Previous_Program] &/ "Phase/%/Time To Date");		      \
-  [Phase/Estimated Defects Injected] =					      \
-        [Estimated Defects Injected] *					      \
-        lookup([Previous_Program] &/ "Phase/%/Defects Injected To Date");     \
-  [Phase/Estimated Defects Removed] =					      \
-        [Estimated Defects Removed] *					      \
-        lookup([Previous_Program] &/ "Phase/%/Defects Removed To Date");
 
 FOR_EACH_PHASE(estimatePhaseData);
 
