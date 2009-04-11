@@ -41,6 +41,14 @@
 
 
 /*
+ * Dynamically detect whether review phases are present, and filter the
+ * list of phases that appear in charts and reports accordingly.
+ */
+
+[Phase_Display_Filter_List] = filter(lookup([_] &/ "leaf"), [Phase_List]);
+
+
+/*
  * Define the default size metric for PSP - LOC.
  */
 
