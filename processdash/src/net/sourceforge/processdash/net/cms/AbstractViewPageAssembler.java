@@ -1,4 +1,4 @@
-// Copyright (C) 2006 Tuma Solutions, LLC
+// Copyright (C) 2006-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -25,19 +25,25 @@ package net.sourceforge.processdash.net.cms;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 
 import net.sourceforge.processdash.Settings;
+import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.StringUtils;
 
 
 public abstract class AbstractViewPageAssembler extends AbstractPageAssembler {
 
+    public static final String MERGE_TABLES_DIRECTIVE = "<!-- MERGE TABLES ";
+    public static final String MERGE_TABLES_CUT_MARK = "<!-- MERGE TABLES CUT -->";
+    public static final String DISALLOW_EDITING_TAG = "CMS_DISALLOW_EDITING";
 
     protected String insertEditLink(String html) {
         if (html == null || html.length() == 0) return "";
-        if (parameters.containsKey("EXPORT") || Settings.isReadOnly())
+        if (parameters.containsKey("EXPORT") || shouldBeReadOnly())
             return html;
 
         int pos = html.indexOf("<!-- editLink");
@@ -67,6 +73,17 @@ public abstract class AbstractViewPageAssembler extends AbstractPageAssembler {
     private static final String EDIT_ICON_IMG_HTML =
         "<img src='/Images/edit##.gif' width='##' height='##' border='0'/>";
 
+    protected boolean shouldBeReadOnly() {
+        if (Settings.isReadOnly())
+            return true;
+
+        SimpleData d = dataContext.getSimpleValue(DISALLOW_EDITING_TAG);
+        if (d != null && d.test())
+            return true;
+
+        return false;
+    }
+
     protected String getEditURI(Map env) {
         return CmsContentDispatcher.getSimpleSelfUri(env, true) + "?mode=edit";
     }
@@ -74,6 +91,59 @@ public abstract class AbstractViewPageAssembler extends AbstractPageAssembler {
     protected String getEditLinkTarget() {
         return "_top";
     }
+
+    @Override
+    protected void beforeWritePage(Set headerItems, PageContentTO page) {
+        super.beforeWritePage(headerItems, page);
+
+        SnippetInstanceTO prevSnip = null;
+        for (Iterator i = page.getSnippets().iterator(); i.hasNext();) {
+            SnippetInstanceTO snippet = (SnippetInstanceTO) i.next();
+            if (snippet.getStatus() == SnippetInvoker.STATUS_OK) {
+                maybeMergeTables(snippet, prevSnip);
+                prevSnip = snippet;
+            } else {
+                prevSnip = null;
+            }
+        }
+
+    }
+
+    private void maybeMergeTables(SnippetInstanceTO snippet,
+            SnippetInstanceTO prevSnip) {
+        if (snippet == null || prevSnip == null)
+            return;
+
+        String snipContent = snippet.getGeneratedContent();
+        String mergeId = getMergeId(snipContent);
+        if (mergeId == null || !mergeId.equals(prevSnip.getInstanceID()))
+            return;
+
+        String prevContent = prevSnip.getGeneratedContent();
+        if (prevContent == null)
+            return;
+
+        int cutMarkPos = snipContent.indexOf(MERGE_TABLES_CUT_MARK);
+        int tablePos = prevContent.lastIndexOf("</table>");
+        if (cutMarkPos == -1 || tablePos == -1)
+            return;
+
+        String newPrevContent = prevContent.substring(0, tablePos);
+        String newSnipContent = snipContent.substring(cutMarkPos
+            + MERGE_TABLES_CUT_MARK.length());
+
+        prevSnip.setGeneratedContent(newPrevContent);
+        snippet.setGeneratedContent(newSnipContent);
+    }
+
+    private String getMergeId(String content) {
+        if (content == null || !content.startsWith(MERGE_TABLES_DIRECTIVE))
+            return null;
+        content = content.substring(MERGE_TABLES_DIRECTIVE.length()).trim();
+        int endPos = content.indexOf('-');
+        return content.substring(0, endPos).trim();
+    }
+
 
     protected void writeSnippet(Writer out, SnippetInstanceTO snippet)
             throws IOException {

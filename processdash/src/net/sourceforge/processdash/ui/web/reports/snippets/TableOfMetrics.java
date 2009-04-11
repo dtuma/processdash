@@ -1,4 +1,4 @@
-// Copyright (C) 2006 Tuma Solutions, LLC
+// Copyright (C) 2006-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -37,6 +37,7 @@ import java.util.regex.Pattern;
 
 import net.sourceforge.processdash.data.DataContext;
 import net.sourceforge.processdash.i18n.Resources;
+import net.sourceforge.processdash.net.cms.AbstractViewPageAssembler;
 import net.sourceforge.processdash.net.cms.SnippetDataEnumerator;
 import net.sourceforge.processdash.net.cms.TranslatingAutocompleter;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
@@ -54,6 +55,8 @@ public class TableOfMetrics extends TinyCGIBase {
     private static final String HEADING_PARAM = "Heading";
 
     private static final String LABEL_PARAM = "Label";
+
+    private static final String MERGE_PARAM = "MergePriorTable";
 
     private static final Resources resources = Resources
             .getDashBundle("Analysis.MetricsTable");
@@ -109,6 +112,13 @@ public class TableOfMetrics extends TinyCGIBase {
             out.write("</h2>\n\n");
         }
 
+        String mergeTables = getParameter(MERGE_PARAM);
+        if (mergeTables != null) {
+            out.write(AbstractViewPageAssembler.MERGE_TABLES_DIRECTIVE);
+            out.write(mergeTables);
+            out.write(" -->");
+        }
+
         // write the header row of the table
         out.write("<p><table><tr><th align=\"left\">");
         if (label != null)
@@ -121,6 +131,9 @@ public class TableOfMetrics extends TinyCGIBase {
             pad = false;
         }
         out.write("</tr>\n");
+
+        if (mergeTables != null)
+            out.write(AbstractViewPageAssembler.MERGE_TABLES_CUT_MARK);
 
         // write a table row for each metric
         for (int i = 0; i < metrics.length; i++)
@@ -145,7 +158,20 @@ public class TableOfMetrics extends TinyCGIBase {
         if (indentLevel > 0)
             out.write(" style='padding-left: " + indentLevel + "em'");
         out.write(">");
+        display = display.trim();
+        boolean usedSpan = false;
+        int bracePos = display.indexOf('{');
+        if (bracePos > 0 && display.endsWith("}")) {
+            String attrs = display.substring(bracePos+1, display.length()-1);
+            display = display.substring(0, bracePos);
+            out.write("<span ");
+            out.write(attrs);
+            out.write(">");
+            usedSpan = true;
+        }
         out.write(HTMLUtils.escapeEntities(display.trim()));
+        if (usedSpan)
+            out.write("</span>");
         out.write("</td>\n");
 
         boolean pad = true;

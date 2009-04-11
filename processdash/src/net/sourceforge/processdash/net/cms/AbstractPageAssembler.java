@@ -1,4 +1,4 @@
-// Copyright (C) 2006-2008 Tuma Solutions, LLC
+// Copyright (C) 2006-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -152,6 +152,8 @@ public abstract class AbstractPageAssembler implements PageAssembler,
             }
         }
 
+        beforeWritePage(headerItems, page);
+
         writePage(out, headerItems, page);
     }
 
@@ -235,6 +237,10 @@ public abstract class AbstractPageAssembler implements PageAssembler,
 
     protected boolean shouldInvokeContentSnippet(SnippetInstanceTO snip) {
         return true;
+    }
+
+    protected void beforeWritePage(Set headerItems, PageContentTO page) {
+        // no-op: subclasses can override
     }
 
     protected void writeHead(Writer out, Set headerItems, PageContentTO page) throws IOException {

@@ -1,4 +1,4 @@
-// Copyright (C) 2006-2007 Tuma Solutions, LLC
+// Copyright (C) 2006-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -33,6 +33,7 @@ import java.util.Map;
 import net.sourceforge.processdash.data.DataContext;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.i18n.Translator;
+import net.sourceforge.processdash.net.cms.AbstractViewPageAssembler;
 import net.sourceforge.processdash.net.cms.SnippetDataEnumerator;
 import net.sourceforge.processdash.net.cms.TranslatingAutocompleter;
 import net.sourceforge.processdash.process.ProcessUtil;
@@ -51,6 +52,8 @@ public class TableOfPhaseMetrics extends TinyCGIBase {
     private static final String HEADING_PARAM = "Heading";
 
     private static final String LABEL_PARAM = "Label";
+
+    private static final String MERGE_PARAM = "MergePriorTable";
 
     private static final Resources resources = Resources
             .getDashBundle("Analysis.MetricsPhaseTable");
@@ -94,6 +97,7 @@ public class TableOfPhaseMetrics extends TinyCGIBase {
 
         // filter the list of phases, if applicable
         phases = procUtil.filterPhaseList(phases);
+        applyExplicitPhaseFilter(phases);
         if (phases.isEmpty()) {
             out.write("<!-- no phases selected;  no table to display -->\n\n");
             return;
@@ -112,6 +116,13 @@ public class TableOfPhaseMetrics extends TinyCGIBase {
             out.write("<h2>");
             out.write(HTMLUtils.escapeEntities(heading));
             out.write("</h2>\n\n");
+        }
+
+        String mergeTables = getParameter(MERGE_PARAM);
+        if (mergeTables != null) {
+            out.write(AbstractViewPageAssembler.MERGE_TABLES_DIRECTIVE);
+            out.write(mergeTables);
+            out.write(" -->");
         }
 
         // write the header row of the table
@@ -150,6 +161,9 @@ public class TableOfPhaseMetrics extends TinyCGIBase {
             out.write("</tr>\n");
         }
 
+        if (mergeTables != null)
+            out.write(AbstractViewPageAssembler.MERGE_TABLES_CUT_MARK);
+
         // write a table row for each process phase
         for (Iterator i = phases.iterator(); i.hasNext();) {
             String phase = (String) i.next();
@@ -169,7 +183,7 @@ public class TableOfPhaseMetrics extends TinyCGIBase {
         if (phase == null)
             out.write(resources.getHTML("Total"));
         else
-            out.write(esc(getPhaseDisplayName(procUtil, phase)));
+            out.write(getPhaseDisplayNameHtml(procUtil, phase));
         out.write("</td>\n");
 
         String[] extraAttrs = new String[columns.size()];
@@ -199,6 +213,10 @@ public class TableOfPhaseMetrics extends TinyCGIBase {
         out.write("</tr>\n");
     }
 
+    protected String getPhaseDisplayNameHtml(ProcessUtil procUtil, String phase) {
+        return esc(getPhaseDisplayName(procUtil, phase));
+    }
+
     private String getPhaseDisplayName(ProcessUtil procUtil, String phase) {
         String phaseName = procUtil.getProcessString(phase + "/Phase_Long_Name");
         if (StringUtils.hasValue(phaseName))
@@ -212,6 +230,14 @@ public class TableOfPhaseMetrics extends TinyCGIBase {
         if (result == null)
             result = ALL_PHASES;
         return result;
+    }
+
+    private void applyExplicitPhaseFilter(List phases) {
+        String filter = getParameter("PhaseFilter");
+        if (filter == null)
+            return;
+        String[] filtered = filter.split("/");
+        phases.removeAll(Arrays.asList(filtered));
     }
 
     private String esc(String s) {

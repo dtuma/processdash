@@ -1,4 +1,4 @@
-// Copyright (C) 2006-2008 Tuma Solutions, LLC
+// Copyright (C) 2006-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -211,8 +211,10 @@ public class FramesetPageAssemblers {
                         // return the URL unchanged.
                         return url;
 
-                    else if (firstValidSectionId == null)
+                    else if (firstValidSectionId == null
+                            || PageSectionHelper.isDefaultSectionHeading(snip))
                         // if we've just found the first valid section heading,
+                        // or if we've found the default section heading,
                         // remember its instance ID for later.
                         firstValidSectionId = snip.getInstanceID();
                 }
