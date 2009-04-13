@@ -45,4 +45,15 @@ This file exists for the sole purpose of precaching names for the
     <html ID="sizeP5" title="PSP2 Size Estimating Template"
                       href="pspForEng2/P5/sizeest.class"/>
   </template>
+
+
+  <!-- snippets used by the PSP for Engineers course -->
+
+  <snippet id="pspForEng.Program2SizeReminder" version="1.0" category="advice">
+    <resources>CMS.Snippet.Anonymous</resources>
+    <context>PspForEngV3_Program</context>
+    <uri>/pspForEng3/psp0.1/sizeReminder</uri>
+  </snippet>
+
+
 </dashboard-process-template>
