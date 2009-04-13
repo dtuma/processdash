@@ -239,6 +239,14 @@ The author(s) may be contacted at:
     <widget>net.sourceforge.processdash.ev.ui.EVMetricsWidget</widget>
   </snippet>
 
+  <!-- Snippets associated with the Process Advisor -->
+
+  <snippet id="pdash.processAdvisor" version="1.0" category="hidden">
+    <resources>CMS.Snippet.Anonymous</resources>
+    <context>*</context>
+    <pageFilter mode="view">net.sourceforge.processdash.ui.web.reports.snippets.ProcessAdvisor</pageFilter>
+  </snippet>
+
   <!-- Other miscellaneous items provided by the dashboard -->
 
   <noteFormat class="net.sourceforge.processdash.hier.ui.PlainTextNoteFormat"/>

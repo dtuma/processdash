@@ -1,4 +1,4 @@
-// Copyright (C) 2006-2008 Tuma Solutions, LLC
+// Copyright (C) 2006-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -34,6 +34,7 @@ import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.ui.snippet.SnippetDefinition;
 import net.sourceforge.processdash.ui.snippet.SnippetDefinitionManager;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
+import net.sourceforge.processdash.ui.web.reports.snippets.ProcessAdvisor;
 import net.sourceforge.processdash.util.HTMLUtils;
 
 /** This TinyCGI script generates an HTML fragment listing available snippets,
@@ -43,6 +44,10 @@ public class AddNewSnippet extends TinyCGIBase {
 
     private static final Resources resources = Resources
             .getDashBundle("CMS.Snippet.AddNew");
+
+    private static final String[] HIDDEN_CATEGORIES = {
+        ProcessAdvisor.ADVISOR_SNIPPET_CATEGORY
+    };
 
     private static final String[] CATEGORIES = { "General", "Forms", "Charts",
         "Reports" };
@@ -59,6 +64,10 @@ public class AddNewSnippet extends TinyCGIBase {
         TreeSet snippets = getSortedSnippets();
 
         TreeSet snipsToWrite = new TreeSet(snippets);
+
+        // discard any snippets that are in known, hidden categories.
+        for (int i = 0; i < HIDDEN_CATEGORIES.length; i++)
+            extractSnipsForCategory(snipsToWrite, HIDDEN_CATEGORIES[i]);
 
         // write out the general-purpose snips first, with no category heading.
         TreeSet generalSnips = extractSnipsForCategory(snipsToWrite,
@@ -163,7 +172,7 @@ public class AddNewSnippet extends TinyCGIBase {
         }
 
         public boolean matchesCategory(String category) {
-            return category.equalsIgnoreCase(defn.getCategory());
+            return defn.matchesCategory(category);
         }
 
         public void writeLink(PrintWriter out) {
