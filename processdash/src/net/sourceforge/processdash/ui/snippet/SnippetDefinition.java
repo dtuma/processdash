@@ -1,4 +1,4 @@
-// Copyright (C) 2006-2008 Tuma Solutions, LLC
+// Copyright (C) 2006-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -71,6 +71,8 @@ public class SnippetDefinition {
 
     private Set widgets;
 
+    private Set filters;
+
     /** Read a snippet definition from an XML declaration
      * 
      * @throws InvalidSnippetDefinitionException if the XML fragment does not
@@ -93,11 +95,11 @@ public class SnippetDefinition {
             version = "1.0";
 
         hide = "true".equals(xml.getAttribute("hide"));
-        if (hide)
+        category = xml.getAttribute("category");
+        if ("hidden".equals(category)) {
+            hide = true;
+        } else if (hide && !XMLUtils.hasValue(category)) {
             category = "hidden";
-        else {
-            category = xml.getAttribute("category");
-            if ("hidden".equals(category)) hide = true;
         }
 
         autoParsePersistedText = !"false".equals(xml.getAttribute("parseText"));
@@ -119,12 +121,13 @@ public class SnippetDefinition {
         uris = readSet(xml, "uri", true);
 
         widgets = readSet(xml, "widget", true);
-        if (!widgets.isEmpty())
+        filters = readSet(xml, "pageFilter", true);
+        if (!widgets.isEmpty() || !filters.isEmpty())
             this.xml = xml;
 
-        if (uris.isEmpty() && widgets.isEmpty())
+        if (uris.isEmpty() && widgets.isEmpty() && filters.isEmpty())
             throw new InvalidSnippetDefinitionException(
-                    "At least one uri or widget must be specified");
+                    "At least one uri, widget, or pageFilter must be specified");
     }
 
 
@@ -163,6 +166,11 @@ public class SnippetDefinition {
     /** Return the category to which this snippet belongs */
     public String getCategory() {
         return category;
+    }
+
+    /** Return true if this snippet matches the given category */
+    public boolean matchesCategory(String c) {
+        return (c != null && c.equalsIgnoreCase(category));
     }
 
     /** Returns a list of aliases by which this snippet is known */
@@ -256,20 +264,53 @@ public class SnippetDefinition {
      */
     public SnippetWidget getWidget(String mode, String action)
             throws InvalidSnippetDefinitionException, Exception {
-        String className = findModeSpecificValue(widgets, mode, action);
+        return (SnippetWidget) getModeSpecificJavaObject(SnippetWidget.class,
+            widgets, mode, action);
+    }
+
+    /**
+     * Get a filter that can be used to alter the content of a CMS page.
+     * 
+     * @param mode the current mode in effect
+     * @param action the current action being executed, or null for no action
+     * @return a {@link SnippetPageFilter} to alter a CMS page, or null if no
+     *     matching filter declaration was found
+     * @throws InvalidSnippetDefinitionException if the filter declaration names
+     *     a class that does not implement <code>SnippetPageFilter</code>
+     * @throws Exception if an exception occurs when attempting to instantiate
+     *     the specified <code>SnippetPageFilter</code>
+     */
+    public SnippetPageFilter getFilter(String mode, String action)
+            throws InvalidSnippetDefinitionException, Exception {
+        return (SnippetPageFilter) getModeSpecificJavaObject(
+            SnippetPageFilter.class, filters, mode, action);
+    }
+
+    private Object getModeSpecificJavaObject(Class expectedType, Set sourceSet,
+            String mode, String action)
+            throws InvalidSnippetDefinitionException, Exception {
+        String className = findModeSpecificValue(sourceSet, mode, action);
         if (className == null)
             return null;
 
         Object result = ExtensionManager.getExecutableExtension(xml, null,
             className, null);
-        if (result instanceof SnippetWidget)
-            return (SnippetWidget) result;
+        if (expectedType.isInstance(result))
+            return result;
         else
             throw new InvalidSnippetDefinitionException("The class '"
-                    + className + "' is not a SnippetWidget");
+                    + className + "' is not a " + expectedType.getSimpleName());
     }
 
     private String findModeSpecificValue(Set items, String mode, String action) {
+        if (items == null || items.isEmpty())
+            return null;
+
+        // if both flags are empty, this implicitly means that we are in
+        // "view" mode.
+        if (action == null && mode == null)
+            mode = "view";
+
         String result = lookupModeSpecificValue(items, mode, action);
         if (result == null)
             result = lookupModeSpecificValue(items, mode, null);

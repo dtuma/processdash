@@ -1,4 +1,4 @@
-// Copyright (C) 2006-2008 Tuma Solutions, LLC
+// Copyright (C) 2006-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -27,14 +27,19 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.net.http.TinyCGIException;
 import net.sourceforge.processdash.net.http.WebServer;
+import net.sourceforge.processdash.ui.snippet.SnippetDefinition;
 import net.sourceforge.processdash.ui.snippet.SnippetDefinitionManager;
+import net.sourceforge.processdash.ui.snippet.SnippetPageFilter;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.HTMLUtils;
 
@@ -43,6 +48,9 @@ import net.sourceforge.processdash.util.HTMLUtils;
  * appropriate handlers.
  */
 public class CmsContentDispatcher extends TinyCGIBase {
+
+    private static final Logger logger = Logger
+            .getLogger(CmsContentDispatcher.class.getName());
 
     protected void doGet() throws IOException {
         dispatch();
@@ -107,11 +115,17 @@ public class CmsContentDispatcher extends TinyCGIBase {
      * @param filename the filename for the request.
      */
     protected void render(String filename) throws IOException {
-        PageContentTO page = getPageContent(filename);
+        // determine the active rendering mode
+        String mode = getParameter("mode");
+        if (Settings.isReadOnly() && "edit".equals(mode))
+            parameters.put("mode", mode = null);
+
+        PageContentTO page = getPageContent(mode, filename);
         lookupSnippets(page);
+        applySnippetFilters(page, mode);
 
         // select a page assembler based on environment, parameters, and content
-        PageAssembler assembler = selectPageAssembler(page);
+        PageAssembler assembler = selectPageAssembler(page, mode);
         initialize(assembler, filename);
 
         // write an HTML header and delegate to the page assembler
@@ -120,13 +134,9 @@ public class CmsContentDispatcher extends TinyCGIBase {
     }
 
     /** Select an appropriate assembler for a rendering request */
-    private PageAssembler selectPageAssembler(PageContentTO page)
+    private PageAssembler selectPageAssembler(PageContentTO page, String mode)
             throws IOException {
-        String mode = getParameter("mode");
         PageAssembler result = null;
-
-        if (Settings.isReadOnly() && "edit".equals(mode))
-            parameters.put("mode", mode = null);
 
         if (mode == null || "view".equals(mode)) {
             result = FramesetPageAssemblers.getViewAssembler(page, parameters);
@@ -148,8 +158,9 @@ public class CmsContentDispatcher extends TinyCGIBase {
             return result;
     }
 
-    private PageContentTO getPageContent(String filename) throws IOException {
-        if ("addNew".equals(parameters.get("mode")))
+    private PageContentTO getPageContent(String mode, String filename)
+            throws IOException {
+        if ("addNew".equals(mode))
             return createAddPseudoPage();
         else
             return loadPersistedPageContent(filename);
@@ -182,8 +193,52 @@ public class CmsContentDispatcher extends TinyCGIBase {
     private void lookupSnippets(PageContentTO page) {
         for (Iterator i = page.getSnippets().iterator(); i.hasNext();) {
             SnippetInstanceTO snip = (SnippetInstanceTO) i.next();
-            snip.setDefinition(SnippetDefinitionManager.getSnippet(snip
-                    .getSnippetID()));
+            if (snip.getDefinition() == null)
+                snip.setDefinition(SnippetDefinitionManager.getSnippet(snip
+                        .getSnippetID()));
+        }
+    }
+
+    private void applySnippetFilters(PageContentTO page, String mode) {
+        Map<SnippetInstanceTO, SnippetPageFilter> filters = null;
+        for (Iterator i = page.getSnippets().iterator(); i.hasNext();) {
+            SnippetInstanceTO snip = (SnippetInstanceTO) i.next();
+            SnippetDefinition def = snip.getDefinition();
+            SnippetPageFilter filter = null;
+
+            try {
+                if (def != null)
+                    filter = def.getFilter(mode, null);
+            } catch (Exception e) {
+                logger.log(Level.SEVERE,
+                    "Unable to create page filter for snippet '"
+                            + snip.getSnippetID() + "'", e);
+            }
+
+            if (filter != null) {
+                if (filters == null)
+                    filters = new LinkedHashMap();
+                filters.put(snip, filter);
+            }
+        }
+
+        if (filters != null) {
+            // if any filters were found, run them all against the page.
+            for (Map.Entry<SnippetInstanceTO, SnippetPageFilter> e : filters
+                    .entrySet()) {
+                SnippetInstanceTO snip = e.getKey();
+                SnippetPageFilter f = e.getValue();
+                try {
+                    f.filter(page, snip, mode);
+                } catch (Exception ex) {
+                    logger.log(Level.SEVERE, "Snippet page filter '"
+                            + snip.getSnippetID()
+                            + "' encountered an exception while running.", ex);
+                }
+            }
+            // the filters may have added new snippet instances to the page.
+            // resolve those snippets if necessary.
+            lookupSnippets(page);
         }
     }
 
