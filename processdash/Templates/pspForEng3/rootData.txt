@@ -4,9 +4,8 @@
 == a PSP for Engineers v3 process. 
 ==
 
-pspForEngV3==TAG
-PSPFORENGV3==TAG
-node==TAG
+[PspForEngV3] == TAG;
+[node] == TAG;
 
 
 == Make a list of the PSP Projects in *this* PSP for Engineers hierarchy.

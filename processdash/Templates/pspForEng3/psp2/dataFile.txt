@@ -9,3 +9,5 @@
 #include <pspForEng3/progData.txt>
 #include <pspForEng3/psp2/resetToDateData.txt>
 #include <pspForEng3/psp2/qualityPlan.txt>
+
+[PspForEngV3_PSP2] == TAG;

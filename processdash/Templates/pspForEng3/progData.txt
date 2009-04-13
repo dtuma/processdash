@@ -2,6 +2,11 @@
 == Common data definitions for all programs in the PSP class
 ==
 
+= Identify this project as a program in a PSP for Engineers course.
+
+[PspForEngV3_Program] == TAG;
+
+
 = Inherit the language setting from the "PSP for Engineers" datafile.
 
 [Project/Language] = [../Project/Language];
