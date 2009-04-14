@@ -1,4 +1,4 @@
-// Copyright (C) 1999-2008 Tuma Solutions, LLC
+// Copyright (C) 1999-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -546,33 +546,40 @@ public class TimeLogEditor extends Object implements TreeSelectionListener,
         DefaultMutableTreeNode selected;
         PropertyKey key;
 
-        // try to base new row on the selected table row
-        if ((rowBasedOn = table.getSelectedRow()) != -1)
-            ; // nothing to do here .. just drop out of "else if" tree
+        // try to base new row on current tree selection
+        if ((selected = getSelectedNode()) != null
+                && (key = treeModel.getPropKey(useProps, selected.getPath())) != null
+                && timeLoggingAllowed(key))
+            pathBasedOn = key.path();
 
         // else try to base new row on current editing row
         else if ((rowBasedOn = table.getEditingRow()) != -1)
             saveEditInProgress();
 
-        // else try to base new row on current tree selection
-        else if ((selected = getSelectedNode()) != null
-                && (key = treeModel.getPropKey(useProps, selected.getPath())) != null
-                && timeLoggingAllowed(key))
-            pathBasedOn = key.path();
+        // else try to base new row on the selected table row
+        else if ((rowBasedOn = table.getSelectedRow()) != -1)
+            ; // nothing to do here .. just drop out of "else if" tree
 
         else
             // else try to base new row on last row of table
             rowBasedOn = tableModel.getRowCount() - 1;
 
         if (rowBasedOn != -1)
-            tableModel.duplicateRow(rowBasedOn);
-        else if (pathBasedOn != null)
+            pathBasedOn = (String) tableModel.getValueAt(rowBasedOn,
+                TimeLogTableModel.COL_PATH);
+
+        if (pathBasedOn != null)
             tableModel.addRow(pathBasedOn);
         else
             tableModel.addRow("/");
 
         tableContainsRows = true;
         addButton.setEnabled(true);
+
+        int newRow = tableModel.getRowCount() - 1;
+        table.setRowSelectionInterval(newRow, newRow);
+        table.editCellAt(newRow, TimeLogTableModel.COL_ELAPSED);
+        table.requestFocusInWindow();
     }
 
     public void deleteSelectedRow() {
