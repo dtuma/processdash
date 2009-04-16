@@ -137,6 +137,14 @@ td.cmsNewItemDescription div {
     margin-left: 1cm;
 }
 
+.padRight {
+    margin-right: 5px;
+}
+
+.stretchHoriz {
+    width: 100%
+}
+
 
 /* styles used by the metrics editing autocompletion logic */
 
@@ -177,7 +185,7 @@ div#cmsAutocomplete ul li.selected {
 div.cmsListContainer {
     background-color: #ffffc0;
     padding: 5px;
-    width: 700px;
+    width: 95%;
     position: relative;
 }
 

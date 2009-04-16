@@ -240,10 +240,30 @@ var DashCMS = {
   addAutocompleteToList:
   function(hiddenField, displayField) {
     var id = hiddenField.id.substring(4);
+
+    this._addItemToList(id, [ /_VALUE_/, hiddenField.value,
+        /_DISPLAY_/, displayField.value ]);
+
+    hiddenField.value = "";
+    displayField.value = "";
+    displayField.blur();
+  },
+
+  addItemToList:
+  function(id) {
+    this._addItemToList(id, null);
+  },
+
+  _addItemToList:
+  function(id, uriReplacements) {
     var uriId = id + "_uri";
     var uri = $(uriId).value;
-    uri = uri.replace(/_VALUE_/, encodeURIComponent(hiddenField.value));
-    uri = uri.replace(/_DISPLAY_/, encodeURIComponent(displayField.value));
+    if (uriReplacements != null) {
+        for (var i=0;  i < uriReplacements.length;  i=i+2) {
+            uri = uri.replace(uriReplacements[i], 
+                encodeURIComponent(uriReplacements[i+1]));
+        }
+    }
     uri = uri.replace(/_ITEM_/, "add" + DashCMS.namespaceNum++, "g");
     
     var baseUri = window.location.pathname;
@@ -253,10 +273,6 @@ var DashCMS = {
       uri = baseUri.substring(0, slashPos) + "//" + uri;
     else
       uri = "/" + uri;
-
-    hiddenField.value = "";
-    displayField.value = "";
-    displayField.blur();
 
     var containerId = id + "_container";
     new Ajax.Updater(containerId, uri, { insertion:Insertion.Bottom,
