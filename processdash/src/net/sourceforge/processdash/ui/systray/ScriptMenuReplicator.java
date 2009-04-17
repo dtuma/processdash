@@ -1,4 +1,4 @@
-// Copyright (C) 2007 Tuma Solutions, LLC
+// Copyright (C) 2007-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -35,13 +35,17 @@ import java.util.List;
 
 import javax.swing.UIManager;
 
+import net.sourceforge.processdash.DashboardContext;
 import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.hier.ActiveTaskModel;
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.PropertyKey;
+import net.sourceforge.processdash.process.ScriptEnumerator;
 import net.sourceforge.processdash.process.ScriptID;
 
 public class ScriptMenuReplicator {
+
+    private DashboardContext ctx;
 
     private DashHierarchy hierarchy;
 
@@ -54,6 +58,7 @@ public class ScriptMenuReplicator {
     }
 
     public ScriptMenuReplicator(ProcessDashboard pdash, PopupMenu popupMenu) {
+        this.ctx = pdash;
         this.popupMenu = popupMenu;
         popupMenu.add(new ScriptMenuSeparator());
 
@@ -85,7 +90,8 @@ public class ScriptMenuReplicator {
 
         // retrieve the current list of script menu items from the dashboard
         PropertyKey currentPhase = activeTaskModel.getNode();
-        List scriptItems = hierarchy.getScriptIDs(currentPhase);
+        List<ScriptID> scriptItems = ScriptEnumerator.getScripts(ctx,
+            currentPhase);
 
         if (scriptItems != null && scriptItems.size() > 1) {
             Iterator i = scriptItems.iterator();

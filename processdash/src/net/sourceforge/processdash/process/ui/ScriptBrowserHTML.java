@@ -1,4 +1,4 @@
-// Copyright (C) 2003 Tuma Solutions, LLC
+// Copyright (C) 2003-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -25,11 +25,12 @@ package net.sourceforge.processdash.process.ui;
 
 
 import java.io.IOException;
-import java.util.Vector;
+import java.util.List;
 
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.net.http.WebServer;
+import net.sourceforge.processdash.process.ScriptEnumerator;
 import net.sourceforge.processdash.process.ScriptID;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.HTMLUtils;
@@ -66,16 +67,15 @@ public class ScriptBrowserHTML extends TinyCGIBase {
             out.write("</B>");
         }
 
-        PropertyKey child;
         for (int i=0;   i < props.getNumChildren(key);   i++)
             writeNode(props, props.getChildKey(key, i));
 
-        Vector scripts = props.getScriptIDs(key);
-        ScriptID script;
+        List<ScriptID> scripts = ScriptEnumerator.getScripts(
+            getDashboardContext(), key);
         if (scripts != null && scripts.size() != 0) {
             out.write("<hr>");
             for (int i=1;  i < scripts.size();  i++)
-                writeScript((ScriptID) scripts.elementAt(i));
+                writeScript(scripts.get(i));
         }
 
         out.write("</BODY></HTML>");

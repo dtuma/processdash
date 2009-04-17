@@ -1,4 +1,4 @@
-// Copyright (C) 1999-2008 Tuma Solutions, LLC
+// Copyright (C) 1999-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -938,8 +938,10 @@ public class DashHierarchy extends Hashtable implements ItemSelectable,
 
     // gets all the applicable script IDs for the script button
     // based on the current phase.
-    public Vector getScriptIDs(PropertyKey key) {
-        Vector v = new Vector();    Prop val;    String scriptFile, templateID;
+    public Vector<ScriptID> getScriptIDs(PropertyKey key) {
+        Vector<ScriptID> v = new Vector<ScriptID>();
+        Prop val;
+        String scriptFile, templateID;
         PropertyKey tempKey = key;
         ScriptID defaultScript = null;
 
@@ -954,7 +956,7 @@ public class DashHierarchy extends Hashtable implements ItemSelectable,
             }
 
             if (Prop.hasValue(templateID = val.getID())) {
-                Vector scriptIDs = TemplateLoader.getScriptIDs
+                Vector<ScriptID> scriptIDs = TemplateLoader.getScriptIDs
                     (templateID, datapath(tempKey));
                 if (scriptIDs != null)
                     v.addAll(scriptIDs);

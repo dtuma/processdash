@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2007 Tuma Solutions, LLC
+// Copyright (C) 2001-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -1239,11 +1239,11 @@ public class TemplateLoader {
     private static Hashtable scriptMaps = new Hashtable();
 
 
-    public static Vector getScriptIDs(String templateID, String path) {
+    public static Vector<ScriptID> getScriptIDs(String templateID, String path) {
         Vector scriptMap = (Vector) scriptMaps.get(templateID);
         if (scriptMap == null) return null;
 
-        Vector result = new Vector();
+        Vector<ScriptID> result = new Vector<ScriptID>();
         for (int i = 0;   i < scriptMap.size();   i++)
             result.addElement(new ScriptID((ScriptID) scriptMap.elementAt(i),
                                            path));

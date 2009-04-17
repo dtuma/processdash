@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2003 Tuma Solutions, LLC
+// Copyright (C) 2001-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -30,7 +30,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.Vector;
+import java.util.List;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -56,6 +56,7 @@ import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.hier.ui.PropTreeModel;
 import net.sourceforge.processdash.i18n.Resources;
+import net.sourceforge.processdash.process.ScriptEnumerator;
 import net.sourceforge.processdash.process.ScriptID;
 import net.sourceforge.processdash.ui.help.PCSH;
 
@@ -82,12 +83,9 @@ public class ScriptBrowser extends JDialog
     //
     // member functions
     //
-    private static void debug(String msg) {
-        System.out.println("ScriptBrowser:" + msg);
-    }
 
 
-                                // constructor
+                                  // constructor
     public ScriptBrowser(ProcessDashboard dash, boolean showCurrent) {
         super(dash);
         setTitle(resources.getString("Script_Browser_Window_Title"));
@@ -164,7 +162,7 @@ public class ScriptBrowser extends JDialog
         }
 
         pack();
-        show();
+        setVisible(true);
     }
 
     protected void showSelectedScript() {
@@ -225,14 +223,14 @@ public class ScriptBrowser extends JDialog
         PropertyKey key = treeModel.getPropKey (useProps, selected.getPath());
         if (key == null) return;
 
-        Vector scripts = useProps.getScriptIDs(key);
+        List<ScriptID> scripts = ScriptEnumerator.getScripts(dashboard, key);
         if (scripts == null || scripts.size() == 0) return;
 
-        ScriptID script, defaultScript = (ScriptID) scripts.elementAt(0);
+        ScriptID script, defaultScript = scripts.get(0);
 
         String dataPath = defaultScript.getDataPath();
         for (int i=1;  i < scripts.size();  i++) {
-            script = (ScriptID) scripts.elementAt(i);
+            script = scripts.get(i);
             if (dataPath != null && !dataPath.equals(script.getDataPath()))
                 break;
             scriptList.addElement(script);

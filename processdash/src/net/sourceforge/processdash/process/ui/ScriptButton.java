@@ -1,4 +1,4 @@
-// Copyright (C) 2000-2008 Tuma Solutions, LLC
+// Copyright (C) 2000-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -28,7 +28,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.util.Vector;
+import java.util.List;
 
 import javax.swing.Icon;
 import javax.swing.JMenu;
@@ -38,6 +38,7 @@ import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.i18n.Resources;
+import net.sourceforge.processdash.process.ScriptEnumerator;
 import net.sourceforge.processdash.process.ScriptID;
 import net.sourceforge.processdash.ui.DashboardIconFactory;
 import net.sourceforge.processdash.ui.help.PCSH;
@@ -57,7 +58,7 @@ public class ScriptButton extends DropDownButton
     Icon disabled_icon = null;
     String scriptFilename = null;
     String path  = null;
-    Vector paths = null; // A list of valid script paths for the popup menu
+    List<ScriptID> paths = null; // A list of valid script paths for the popup menu
     JMenuItem moreItem = null;
 
     public static final String URL_PREFIX = "/";
@@ -93,12 +94,12 @@ public class ScriptButton extends DropDownButton
 
     private void updateAll() {
         PropertyKey currentPhase = parent.getActiveTaskModel().getNode();
-        setPaths(parent.getHierarchy().getScriptIDs(currentPhase));
+        setPaths(ScriptEnumerator.getScripts(parent, currentPhase));
     }
 
     // setPaths populates the popup menu with valid script paths.
     // However, it does not command the menu to be displayed.
-    public void setPaths(Vector v) {
+    private void setPaths(List<ScriptID> v) {
         paths = v;
         getMenu().removeAll();
         ScriptID id;
@@ -110,12 +111,12 @@ public class ScriptButton extends DropDownButton
         if (paths != null && paths.size() > 0) {
 
             // add the current (default) menu.
-            destMenu.add(new ScriptMenuItem((ScriptID) paths.elementAt (0)));
+            destMenu.add(new ScriptMenuItem(paths.get(0)));
             destMenu.addSeparator();
 
             // add menu items for the rest of the scripts
             for (int i = 1;  i < paths.size();  i++) {
-                id = (ScriptID) paths.elementAt (i);
+                id = paths.get(i);
                 if (id.getDataPath() == null || id.getScript() == null)
                     continue;
                 if (!id.getDataPath().equals(dataPath)) {
@@ -135,12 +136,12 @@ public class ScriptButton extends DropDownButton
 
         getMenu().add(moreItem);
     }
-    private boolean useSubmenus(Vector v) {
+    private boolean useSubmenus(List<ScriptID> v) {
         if (v == null || v.size() < 2) return false;
-        String dataPath = ((ScriptID) paths.elementAt (0)).getDataPath();
+        String dataPath = v.get(0).getDataPath();
         String newDataPath;
         for (int i = v.size();   i-- > 1; ) {
-            newDataPath = ((ScriptID) paths.elementAt (i)).getDataPath();
+            newDataPath = v.get(i).getDataPath();
             if (dataPath != null && !dataPath.equals(newDataPath))
                 return true;
             dataPath = newDataPath;
