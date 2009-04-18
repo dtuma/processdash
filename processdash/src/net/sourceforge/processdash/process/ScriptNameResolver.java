@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2003 Tuma Solutions, LLC
+// Copyright (C) 2001-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -24,11 +24,14 @@
 
 package net.sourceforge.processdash.process;
 
+import java.io.IOException;
+import java.net.URL;
 import java.util.Hashtable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import net.sourceforge.processdash.net.http.WebServer;
+import net.sourceforge.processdash.util.HTTPUtils;
 
 
 public class ScriptNameResolver implements ScriptID.NameResolver {
@@ -52,7 +55,7 @@ public class ScriptNameResolver implements ScriptID.NameResolver {
             return (result.length() == 0 ? null : result);
 
         try {
-            String text = web.getRequestAsString("/"+scriptFile);
+            String text = getTextContents(scriptFile);
 
             int beg = text.indexOf("<TITLE>");
             if (beg == -1) beg = text.indexOf("<title>");
@@ -71,6 +74,15 @@ public class ScriptNameResolver implements ScriptID.NameResolver {
 
         displayNameCache.put(scriptFile, (result == null ? "" : result));
         return result;
+    }
+
+    private String getTextContents(String scriptFile) throws IOException {
+        if (scriptFile.startsWith("http")) {
+            return HTTPUtils.getResponseAsString(new URL(scriptFile)
+                    .openConnection());
+        } else {
+            return web.getRequestAsString("/" + scriptFile);
+        }
     }
 
     public static void precacheName(String scriptFile, String name) {

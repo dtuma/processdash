@@ -23,11 +23,16 @@
 
 package net.sourceforge.processdash.process;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Vector;
+import java.util.logging.Logger;
 
 import net.sourceforge.processdash.DashboardContext;
 import net.sourceforge.processdash.hier.PropertyKey;
+import net.sourceforge.processdash.templates.ExtensionManager;
 
 /**
  * This class locates and lists all of the process scripts and tools that are
@@ -37,6 +42,14 @@ import net.sourceforge.processdash.hier.PropertyKey;
  */
 public class ScriptEnumerator {
 
+    private static final String DEFAULT_SOURCE_IMPL =
+        DataNameScriptSource.class.getName();
+
+    private static List<ScriptSource> SCRIPT_SOURCES = null;
+
+    private static final Logger log = Logger.getLogger(ScriptEnumerator.class
+            .getName());
+
     public static List<ScriptID> getScripts(DashboardContext ctx, String path) {
         PropertyKey key = ctx.getHierarchy().findClosestKey(path);
         return getScripts(ctx, key);
@@ -45,7 +58,65 @@ public class ScriptEnumerator {
     public static List<ScriptID> getScripts(DashboardContext ctx,
             PropertyKey path) {
         Vector<ScriptID> result = ctx.getHierarchy().getScriptIDs(path);
+        ScriptID defaultScript = null;
+        if (result.size() > 1)
+            defaultScript = result.remove(0);
+
+        boolean foundNonTemplateScripts = false;
+        for (ScriptSource source : getScriptSources(ctx)) {
+            List<ScriptID> scripts = source.getScripts(path.path());
+            if (scripts != null && !scripts.isEmpty()) {
+                result.addAll(scripts);
+                foundNonTemplateScripts = true;
+            }
+        }
+
+        if (foundNonTemplateScripts) {
+            Collections.sort(result, SCRIPT_COMPARATOR);
+            ScriptID newDefault = result.get(0);
+            if (defaultScript == null
+                    || SCRIPT_COMPARATOR.compare(newDefault, defaultScript) < 0)
+                defaultScript = newDefault;
+        }
+        if (defaultScript != null)
+            result.add(0, defaultScript);
 
         return result;
     }
+
+    private static List<ScriptSource> getScriptSources(DashboardContext ctx) {
+        if (SCRIPT_SOURCES == null) {
+            List<ScriptSource> sources = new ArrayList<ScriptSource>();
+            List extensions = ExtensionManager.getExecutableExtensions(
+                "scriptSource", "class", DEFAULT_SOURCE_IMPL, "requires", ctx);
+            for (Object ext : extensions) {
+                if (ext instanceof ScriptSource)
+                    sources.add((ScriptSource) ext);
+                else if (ext != null)
+                    log.severe("Invalid scriptSource declaration: class '"
+                            + ext.getClass().getName()
+                            + "' does not implement ScriptSource");
+            }
+            SCRIPT_SOURCES = Collections.unmodifiableList(sources);
+        }
+        return SCRIPT_SOURCES;
+    }
+
+    private static class ScriptPathComparator implements Comparator<ScriptID> {
+
+        public int compare(ScriptID a, ScriptID b) {
+            // Compare scripts ONLY based on the length of their datapath.  The
+            // intent is to ensure that scripts for the same hierarchy node
+            // are grouped together.  The "stable sorting" guarantee of the
+            // Collections.sort method will ensure that multiple scripts for
+            // the same node do not change their order relative to each other.
+            return len(b.datapath) - len(a.datapath);
+        }
+
+        private int len(String s) {
+            return (s == null ? 0 : s.length());
+        }
+    }
+    private static final Comparator<ScriptID> SCRIPT_COMPARATOR =
+        new ScriptPathComparator();
 }
