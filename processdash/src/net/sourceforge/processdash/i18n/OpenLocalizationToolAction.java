@@ -1,10 +1,13 @@
-// Copyright (C) 2007 Tuma Solutions, LLC
+// Copyright (C) 2007-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
-// as published by the Free Software Foundation; either version 2
+// as published by the Free Software Foundation; either version 3
 // of the License, or (at your option) any later version.
+//
+// Additional permissions also apply; see the README-license.txt
+// file in the project root directory for more information.
 //
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -31,21 +34,27 @@ import java.util.Locale;
 import javax.swing.AbstractAction;
 import javax.swing.JOptionPane;
 
+import net.sourceforge.processdash.templates.DashPackage;
 import net.sourceforge.processdash.templates.ExtensionManager;
+import net.sourceforge.processdash.templates.TemplateLoader;
 import net.sourceforge.processdash.ui.Browser;
 import net.sourceforge.processdash.util.RuntimeUtils;
 
 public class OpenLocalizationToolAction extends AbstractAction {
 
     // The name l10n tool main class
-    // Would this be the right place to specify the jar name or should I put this in some
-    // configuration file ?
     public static final String MAIN_CLASS = "net.sourceforge.processdash.i18n.Main";
 
-    // The property that indicates which resource to translate
+    // The property that indicates which resources to translate
     // Warning : This constant must be syschronized with the
     // one in net.sourceforge.processdash.i18n.Main
-    public static final String PROPERTY_RESOURCE_TO_TRANSLATE = "translate.resource";
+    public static final String PROPERTY_RESOURCES_TO_TRANSLATE = "translate.resource";
+
+    // If there are multiple resources in PROPERTY_RESOURCES_TO_TRANSLATE, they are
+    //  separated by a ';'
+    // Warning : This constant must be syschronized with the
+    // one in net.sourceforge.processdash.i18n.Main
+    public static final String RESOURCE_SEPARATOR = ";";
 
     // The property that indicates what URL to navigate to to access the help topic
     // Warning : This constant must be syschronized with the
@@ -96,7 +105,7 @@ public class OpenLocalizationToolAction extends AbstractAction {
         String[] propagatedArgs = RuntimeUtils.getPropagatedJvmArgs();
         cmd.addAll(Arrays.asList (propagatedArgs));
 
-        cmd.add("-D" + PROPERTY_RESOURCE_TO_TRANSLATE + "=" + dashboardJar);
+        cmd.add("-D" + PROPERTY_RESOURCES_TO_TRANSLATE + "=" + getPackages());
 
         // The url that is used to accesss the help topics
         String helpURL = Browser.mapURL(HELP_URL);
@@ -134,6 +143,28 @@ public class OpenLocalizationToolAction extends AbstractAction {
             JOptionPane.showMessageDialog(null, message, title,
                                           JOptionPane.ERROR_MESSAGE);
         }
+    }
+
+    /**
+     * Returns a String containing all packages we want to translate,
+     *  starting with the dashboardJar
+     */
+    private String getPackages() {
+        StringBuffer packageFilenames = new StringBuffer(dashboardJar);
+
+        List packages = TemplateLoader.getPackages();
+        for (Object p : packages) {
+            String filename = ((DashPackage)p).filename;
+
+            if (filename.startsWith("file:")) {
+                filename = filename.substring("file:".length());
+            }
+
+            if (!filename.equals(dashboardJar))
+                packageFilenames.append(RESOURCE_SEPARATOR + filename);
+        }
+
+        return packageFilenames.toString();
     }
 
 }

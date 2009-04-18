@@ -1,4 +1,4 @@
-// Copyright (C) 2007 Tuma Solutions, LLC
+// Copyright (C) 2007-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -25,7 +25,13 @@ public class Main {
     // The property that indicates which resource to translate
     // Warning : This constant must be syschronized with the
     // one in net.sourceforge.processdash.i18n.OpenLocalizationToolAction
-    public static final String PROPERTY_RESOURCE_TO_TRANSLATE = "translate.resource";
+    public static final String PROPERTY_RESOURCES_TO_TRANSLATE = "translate.resource";
+    
+    // If there are multiple resources in PROPERTY_RESOURCES_TO_TRANSLATE, they are
+    //  separated by a ';'
+    // Warning : This constant must be syschronized with the
+    // one in net.sourceforge.processdash.i18n.OpenLocalizationToolAction
+    public static final String RESOURCE_SEPARATOR = ";";
     
     // The property that indicates what URL to navigate to to access the help topic
     // Warning : This constant must be syschronized with the
@@ -33,12 +39,14 @@ public class Main {
     public static final String PROPERTY_HELP_URL = "help.url";
 
     public static void main(String arg[]) {
-        String filename = System.getProperty(PROPERTY_RESOURCE_TO_TRANSLATE);
+        String filenames = System.getProperty(PROPERTY_RESOURCES_TO_TRANSLATE);
+        String[] packages = filenames.split(RESOURCE_SEPARATOR);
+        
         String helpURL = System.getProperty(PROPERTY_HELP_URL);
         
         try {
             org.zaval.tools.i18n.translator.BundleSet.setDefaultComparator(new TranslationSorter());
-            org.zaval.tools.i18n.translator.Main.main(new String[] { filename});
+            org.zaval.tools.i18n.translator.Main.main(packages);
             org.zaval.tools.i18n.translator.Main.setFilter(new TranslationFilter());
             org.zaval.tools.i18n.translator.Main.setSaveListener(new TranslationsSavedListener());
             org.zaval.tools.i18n.translator.Main.setHelpListener(new TranslationHelpListener(helpURL));

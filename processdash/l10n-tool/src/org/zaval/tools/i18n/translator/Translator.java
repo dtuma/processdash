@@ -765,7 +765,7 @@ implements TranslatorConstants
           if (!advancedMode && destZipFile != null)
              bundle.storeAllInZip(destZipFile);
           else
-             bundle.store(null);
+             bundle.store(NATIVE_LANGUAGE, null);
        }
        catch(Exception e){
           infoException(e);
@@ -974,6 +974,8 @@ implements TranslatorConstants
                   bundle.getBundle().updateValue(bi.getId(), lang, bi.getTranslation(lang));
               }
            }
+           
+           bundle.addPrefixes(bundle2.getPrefixes());
        }
        else {
            bundle = bundle2;
@@ -1003,6 +1005,42 @@ implements TranslatorConstants
        isDirty = false;
        addToPickList(fileName);
        setCursor( Cursor.DEFAULT_CURSOR );
+    }
+    
+    public void readResources( String[] fileNames )
+    {
+        if (fileNames.length == 1) {
+            readResources(fileNames[0], false);
+        }
+        else if (fileNames.length > 1) {
+            setCursor( Cursor.WAIT_CURSOR );
+            
+            try{
+                // Initializing the bundle with the first package to translate
+                BundleManager bundle = new BundleManager(fileNames[0]);
+                join(bundle, false);
+                addToPickList(fileNames[0]);
+
+                for (int i = 1; i < fileNames.length; ++i) {
+                    // If there are any more packages, we create a BundleManager
+                    //  for every one of them and merge them together.
+                    bundle = new BundleManager(fileNames[i]);
+                    join(bundle, true);
+                    addToPickList(fileNames[i]);
+                }
+            }
+            catch(Exception e){
+                infoException(e);
+            }
+            if (!advancedMode)
+                bundle.setBaseLang(BASE_LANGUAGE);
+
+            initControls();
+            initData(false);
+            setTitle(fileNames[0]);
+            isDirty = false;
+            setCursor( Cursor.DEFAULT_CURSOR );
+        }
     }
 
     private void initControls()

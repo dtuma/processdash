@@ -64,7 +64,7 @@ public class Main
           t.show();
           if (arg.length > 0) {
               t.clear();
-              t.readResources(arg[0], false);
+              t.readResources(arg);
           }
       } else {
           t.show();

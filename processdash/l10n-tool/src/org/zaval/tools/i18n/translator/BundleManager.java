@@ -583,5 +583,13 @@ implements TranslatorConstants
         } else
             defaultTranslations = null;
     }
-
+    
+    public Map getPrefixes() {
+        return prefixes;
+    }
+    
+    public void addPrefixes(Map prefixes) {
+        this.prefixes.putAll(prefixes);
+    }
+    
 }
