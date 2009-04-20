@@ -151,6 +151,9 @@ aliasProbe(R Squared);
 [New Reused LOC] = 0 + sumFor("Actual LOC",
        filter(lookup([_] &/ "Actual New Reused?"), [New_Objects_Prefix_List]));
 
+[Additions LOC] = [Base Additions LOC] + [Base Added LOC] + [New Objects LOC];
+
+[Proxy Size] = [Object LOC];
 [Object LOC] = [Base Added LOC] + [Base Additions LOC] +
                [Modified LOC] + [New Objects LOC];
 
