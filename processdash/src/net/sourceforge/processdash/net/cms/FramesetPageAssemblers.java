@@ -304,6 +304,12 @@ public class FramesetPageAssemblers {
                 out.write("</p>\n\n");
             }
 
+            // write the page footer items
+            for (Iterator i = page.getFooterSnippets(); i.hasNext();) {
+                SnippetInstanceTO snip = (SnippetInstanceTO) i.next();
+                writeSnippet(out, snip);
+            }
+
             out.write("</body>\n</html>\n");
         }
 
