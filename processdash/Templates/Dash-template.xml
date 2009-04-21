@@ -209,6 +209,18 @@ The author(s) may be contacted at:
     <uri>/reports/defectlog.class?for=auto&amp;noDisclaimer</uri>
   </snippet>
 
+  <snippet id="pdash.timeLog" version="1.0" category="reports">
+    <resources>Time.Report</resources>
+    <!-- 
+         Note: the time log snippet is only enabled for "Simple Projects"
+         at this time. In particular, it can not be added to any team
+         project planning summary, because it cannot support the filtering
+         techniques that are used by those forms.
+      -->
+    <context>Simple Project Tag</context>
+    <uri>/reports/timelog.class?noDisclaimer</uri>
+  </snippet>
+
   <snippet id="pdash.testExpression" version="1.0" category="reports">
     <resources>Analysis.TestExpression</resources>
     <context>*</context>

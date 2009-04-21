@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2007 Tuma Solutions, LLC
+// Copyright (C) 2001-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -51,7 +51,7 @@ public class TimeLogReport extends TinyCGIBase {
         "<link rel=\"stylesheet\" type=\"text/css\" href=\"/reports/timeReports.css\">"+
         "</head>\n" +
         "<body><h1>${Title}%for path%</h1>\n" +
-        "<!-- cutStart --><table border class='timeLog'><tr>\n" +
+        "<!-- cutStart --><p><table border class='timeLog'><tr>\n" +
         "<th>${Project}</th>\n" +
         "<th>${Phase}</th>\n" +
         "<th>${Start_Time}</th>\n" +
@@ -123,7 +123,8 @@ public class TimeLogReport extends TinyCGIBase {
             if (!isExportingToExcel())
                 out.print(resources.interpolate(EXPORT_LINK,
                         HTMLUtils.ESC_ENTITIES));
-            if (!isExporting() && !"rollup".equals(type)) {
+            if (!isExporting() && !"rollup".equals(type)
+                    && !parameters.containsKey("noDisclaimer")) {
                 StringBuffer html = new StringBuffer(resources.interpolate(
                         DISCLAIMER, HTMLUtils.ESC_ENTITIES));
                 StringUtils.findAndReplace(html, "&lt;a&gt;",
