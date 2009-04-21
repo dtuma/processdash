@@ -29,6 +29,7 @@ import net.sourceforge.processdash.data.DataContext;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.net.http.WebServer;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
+import net.sourceforge.processdash.ui.web.reports.snippets.MetricsAlert;
 import net.sourceforge.processdash.util.HTMLUtils;
 
 public class Program2SizeReminder extends TinyCGIBase {
@@ -71,15 +72,16 @@ public class Program2SizeReminder extends TinyCGIBase {
         int slashPos = prevProgram.lastIndexOf('/');
         String simpleName = prevProgram.substring(slashPos + 1);
 
-        out.println("<div style='background-color:#ff5050; padding: 5px; "
-                + "border: 1px solid black; font-weight: bold'>");
+        out.println("<html><head>" + MetricsAlert.HEADER_ITEMS + "</head>");
+
+        out.println("<body><div class='alertError'>");
         out.print("Do not forget to enter the actual size for your "
                 + "previous program, <a href=\"");
         out.print(WebServer.urlEncodePath(prevProgram));
         out.print("//psp0/summary.htm?showSizeBlock\" target=\"_blank\">");
         out.print(HTMLUtils.escapeEntities(simpleName));
         out.println("</a>.");
-        out.println("</div>");
+        out.println("</div></body></html>");
     }
 
     private static boolean hasValue(SimpleData val) {
