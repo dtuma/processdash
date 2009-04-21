@@ -1,0 +1,45 @@
+<!--#resources bundle='CMS' -->
+<!--#resources bundle='Analysis.RangeExpression' -->
+<!--#resources bundle='Analysis.MetricsAlert' -->
+<div class="metric IEFloatHack" id="$$$_###_div">
+<a href="#" onclick="Element.remove('$$$_###_div'); return false;"
+   title="<!--#echo Edit_Page.Delete_Item.Tooltip -->"
+   class="cmsDeleteButton" style="margin-top:4px"></a>
+
+<!--#echo Item.Prompt1 -->
+
+<select name="$$$_###_Operator">
+<!--#foreach name="Which" values=",LT,LE,EQ,GE,GT," #-->
+<option
+    <!--#if Operator eq 'Which' -->selected="true"
+    <!--#elif defaults && 'Which' eq 'LE' -->selected="true"
+    <!--#endif#-->
+    value="Which"><!--#echo Item.Which --></option>
+<!--#endfor-->
+</select>
+
+<!--#echo Item.Prompt2 -->
+
+<input type="text" name="$$$_###_Number"
+    <!--#if defaults -->value="0"
+    <!--#else-->value="<!--#echo Number -->"<!--#endif-->
+    size="2">
+
+<!--#echo Item.Prompt3 -->
+
+<select name="$$$_###_MessageType"
+     onchange="if (this.value == 'Nothing') { Element.hide('$$$_###_Msg'); } else { Element.show('$$$_###_Msg'); }">
+<!--#foreach name="Which" values=",Nothing,Error,Warning,Info,Check," #-->
+<option
+    <!--#if MessageType eq 'Which' -->selected="true"
+    <!--#elif defaults && 'Which' eq 'Error' -->selected="true"
+    <!--#endif#-->
+    value="Which"><!--#echo Type.Which --></option>
+<!--#endfor-->
+</select>
+<div id="$$$_###_Msg"
+    <!--#if MessageType eq 'Nothing' -->style="display:none"<!--#endif#-->
+    ><div class="cmsIndent padRight"><textarea rows="2" class="stretchHoriz"
+     name="$$$_###_Message"><!--#echo Message --></textarea></div></div>
+
+</div>

@@ -209,6 +209,22 @@ The author(s) may be contacted at:
     <uri>/reports/defectlog.class?for=auto&amp;noDisclaimer</uri>
   </snippet>
 
+  <snippet id="pdash.testExpression" version="1.0" category="reports">
+    <resources>Analysis.TestExpression</resources>
+    <context>*</context>
+    <mode>edit</mode>
+    <uri>/dash/snippets/testExpression</uri>
+    <uri mode="edit">/dash/snippets/testExpressionEdit.shtm</uri>
+  </snippet>
+
+  <snippet id="pdash.rangeExpression" version="1.0" category="reports">
+    <resources>Analysis.RangeExpression</resources>
+    <context>*</context>
+    <mode>edit</mode>
+    <uri>/dash/snippets/rangeExpression</uri>
+    <uri mode="edit">/dash/snippets/rangeExpressionEdit.shtm</uri>
+  </snippet>
+
   <snippet id="pdash.evReport" version="1.0" category="reports">
     <resources>EV.Report.Snippet</resources>
     <context>EV Project Tag</context>

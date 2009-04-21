@@ -1,0 +1,38 @@
+<!--#resources bundle='Analysis.MetricsAlert' -->
+<div><b><!--#echo Expression_Prompt --></b>
+<div class="cmsIndent padRight"><input type="text" class="stretchHoriz"
+     name="$$$_Expression" value="<!--#echo Expression -->"></div></div><br/>
+
+<b><!--#echo True_Print_Prompt --></b>
+<select name="$$$_TrueMessageType"
+     onchange="if (this.value == 'Nothing') { Element.hide('$$$_TMsg'); } else { Element.show('$$$_TMsg'); }">
+<!--#foreach name="Which" values=",Nothing,Error,Warning,Info,Check," #-->
+<option
+    <!--#if TrueMessageType eq 'Which' -->selected="true"
+    <!--#elif defaults && 'Which' eq 'Error' -->selected="true"
+    <!--#endif#-->
+    value="Which"><!--#echo Type.Which --></option>
+<!--#endfor-->
+</select>
+<div id="$$$_TMsg"
+    <!--#if TrueMessageType eq 'Nothing' -->style="display:none"<!--#endif#-->
+    ><div class="cmsIndent padRight"><textarea rows="2" class="stretchHoriz"
+     name="$$$_TrueMessage"><!--#echo TrueMessage --></textarea></div></div>
+<div></div><br/>
+
+
+<b><!--#echo False_Print_Prompt --></b>
+<select name="$$$_FalseMessageType"
+     onchange="if (this.value == 'Nothing') { Element.hide('$$$_FMsg'); } else { Element.show('$$$_FMsg'); }">
+<!--#foreach name="Which" values=",Nothing,Error,Warning,Info,Check," #-->
+<option
+    <!--#if FalseMessageType eq 'Which' -->selected="true"
+    <!--#elif defaults && 'Which' eq 'Check' -->selected="true"
+    <!--#endif#-->
+    value="Which"><!--#echo Type.Which --></option>
+<!--#endfor-->
+</select>
+<div id="$$$_FMsg"
+    <!--#if FalseMessageType eq 'Nothing' -->style="display:none"<!--#endif#-->
+    ><div class="cmsIndent padRight"><textarea rows="2" class="stretchHoriz"
+     name="$$$_FalseMessage"><!--#echo FalseMessage --></textarea></div></div>

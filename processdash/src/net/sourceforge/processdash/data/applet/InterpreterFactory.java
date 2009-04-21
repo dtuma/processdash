@@ -85,8 +85,12 @@ public class InterpreterFactory {
             return true;
         if (n.hasFlag('s') || n.hasFlag('n') || n.hasFlag('d') || n.hasFlag('t'))
             return false;
+        return isPercentInputDataName(n.relName);
+    }
+
+    public static boolean isPercentInputDataName(String relName) {
         for (int i = 0; i < PERCENT_NAMES.length; i++) {
-            if (n.relName.indexOf(PERCENT_NAMES[i]) != -1)
+            if (relName.indexOf(PERCENT_NAMES[i]) != -1)
                 return true;
         }
         return false;
@@ -100,9 +104,12 @@ public class InterpreterFactory {
             return false;
         if (n.hasFlag('t'))
             return true;
-        if (n.relName.indexOf("Time") != -1
-                && TIME_PATTERN.matcher(n.relName).find()
-                && !FALSE_TIME_PATTERN.matcher(n.relName).find())
+        return isTimeInputDataName(n.relName);
+    }
+    public static boolean isTimeInputDataName(String relName) {
+        if (relName.indexOf("Time") != -1
+                && TIME_PATTERN.matcher(relName).find()
+                && !FALSE_TIME_PATTERN.matcher(relName).find())
             return true;
         return false;
     }
