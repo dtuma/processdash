@@ -50,7 +50,7 @@ public class AddNewSnippet extends TinyCGIBase {
     };
 
     private static final String[] CATEGORIES = { "General", "Forms", "Charts",
-        "Reports" };
+        "Reports", "Instructor" };
 
     protected void writeContents() throws IOException {
 
@@ -197,8 +197,15 @@ public class AddNewSnippet extends TinyCGIBase {
         }
 
         public int compareTo(Object o) {
+            if (o == this)
+                return 0;
+
             SnipData that = (SnipData) o;
-            return this.name.compareTo(that.name);
+            int nameCmp = this.name.compareTo(that.name);
+            if (nameCmp != 0)
+                return nameCmp;
+            else
+                return this.defn.getId().compareTo(that.defn.getId());
         }
 
     }
