@@ -37,11 +37,17 @@ import org.w3c.dom.Element;
 
 public class DataNameScriptSource implements ScriptSource {
 
+    private String id;
+
     private String dataName;
 
     private DataContext data;
 
     public void setConfigElement(Element xml, String attrName) {
+        id = xml.getAttribute("id");
+        if (!StringUtils.hasValue(id))
+            id = "DataNameScriptSource." + dataName;
+
         dataName = xml.getAttribute("dataName");
         if (!StringUtils.hasValue(dataName))
             throw new IllegalArgumentException("dataName must be specified");
@@ -49,6 +55,10 @@ public class DataNameScriptSource implements ScriptSource {
 
     public void setDashboardContext(DashboardContext ctx) {
         this.data = ctx.getData();
+    }
+
+    public String getUniqueID() {
+        return id;
     }
 
     public List<ScriptID> getScripts(String path) {

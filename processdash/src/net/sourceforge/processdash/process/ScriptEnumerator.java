@@ -27,6 +27,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.Vector;
 import java.util.logging.Logger;
 
@@ -65,9 +67,13 @@ public class ScriptEnumerator {
         boolean foundNonTemplateScripts = false;
         for (ScriptSource source : getScriptSources(ctx)) {
             List<ScriptID> scripts = source.getScripts(path.path());
-            if (scripts != null && !scripts.isEmpty()) {
-                result.addAll(scripts);
-                foundNonTemplateScripts = true;
+            if (scripts != null) {
+                for (ScriptID oneScript : scripts) {
+                    if (!result.contains(oneScript)) {
+                        result.add(oneScript);
+                        foundNonTemplateScripts = true;
+                    }
+                }
             }
         }
 
@@ -86,18 +92,21 @@ public class ScriptEnumerator {
 
     private static List<ScriptSource> getScriptSources(DashboardContext ctx) {
         if (SCRIPT_SOURCES == null) {
-            List<ScriptSource> sources = new ArrayList<ScriptSource>();
+            Map<String, ScriptSource> sources = new TreeMap<String, ScriptSource>();
             List extensions = ExtensionManager.getExecutableExtensions(
                 "scriptSource", "class", DEFAULT_SOURCE_IMPL, "requires", ctx);
             for (Object ext : extensions) {
-                if (ext instanceof ScriptSource)
-                    sources.add((ScriptSource) ext);
-                else if (ext != null)
+                if (ext instanceof ScriptSource) {
+                    ScriptSource ss = (ScriptSource) ext;
+                    sources.put(ss.getUniqueID(), ss);
+                } else if (ext != null) {
                     log.severe("Invalid scriptSource declaration: class '"
                             + ext.getClass().getName()
                             + "' does not implement ScriptSource");
+                }
             }
-            SCRIPT_SOURCES = Collections.unmodifiableList(sources);
+            SCRIPT_SOURCES = Collections.unmodifiableList(
+                    new ArrayList<ScriptSource>(sources.values()));
         }
         return SCRIPT_SOURCES;
     }

@@ -68,6 +68,26 @@ public class ScriptID {
         return scriptfile;
     }
 
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof ScriptID) {
+            ScriptID that = (ScriptID) obj;
+            return eq(this.scriptfile, that.scriptfile)
+                && eq(this.datapath, that.datapath);
+        }
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = 0;
+        if (scriptfile != null)
+            result = scriptfile.hashCode();
+        if (datapath != null)
+            result = result ^ datapath.hashCode();
+        return result;
+    }
+
     public boolean scriptEquals(ScriptID other) {
         return scriptEquals(other.getScript());
     }
@@ -117,6 +137,12 @@ public class ScriptID {
     protected String stripHash(String script) {
         int hashPos = script.indexOf('#');
         return (hashPos == -1 ? script : script.substring(0, hashPos));
+    }
+
+    private static boolean eq(String a, String b) {
+        if (a == b) return true;
+        if (a == null) return false;
+        return a.equals(b);
     }
 
     public interface NameResolver {

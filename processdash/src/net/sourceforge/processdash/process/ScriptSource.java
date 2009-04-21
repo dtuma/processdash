@@ -34,6 +34,15 @@ import java.util.List;
 public interface ScriptSource {
 
     /**
+     * Return an ID for this script source.  Script sources with the same
+     * ID will be considered identical, and only one will be consulted during
+     * script enumeration operations.
+     * 
+     * @return a unique ID for this script source
+     */
+    public String getUniqueID();
+
+    /**
      * Calculate a list of scripts that would be appropriate to display when a
      * certain task is active.
      * 
