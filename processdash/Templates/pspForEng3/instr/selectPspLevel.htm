@@ -1,0 +1,12 @@
+<div><b>Perform this test for</b>&nbsp;
+<select name="$$$_PspLevel">
+<!--#foreach name="Which" values=",PSP0,PSP0.1,PSP1,PSP1.1,PSP2,PSP2.1," #-->
+   <option 
+    <!--#if PspLevel eq 'Which' -->selected="true"
+    <!--#elif defaults && 'Which' eq 'PSP0' -->selected="true"
+    <!--#endif#-->
+    value="Which"><!--#if 'Which' eq 'PSP0' -->All Programs
+    <!--#elif 'Which' eq 'PSP2.1' -->PSP2.1 Only
+    <!--#else-->Which and above<!--#endif--></option>
+<!--#endfor-->
+</select></div><br/>

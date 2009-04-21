@@ -2,6 +2,16 @@
 = Common data definitions for all 10 programs
 =
 
+= Identify this project as a program in a PSP for Engineers course.
+
+[PspForEngV2_Program] == TAG;
+
+
+= Register an extra script to appear for instructors
+
+[PspForEng_Instr_Script] = "cms/pspForEng3/instr/grading";
+
+
 = Use "/To Date/PSP/All" for PROBE data, even when a different
 = subset prefix is in effect (e.g. 7A - 10A).
 

@@ -47,6 +47,11 @@ This file exists for the sole purpose of precaching names for the
   </template>
 
 
+  <!-- script provider for the instructor materials -->
+
+  <scriptSource dataName="PspForEng_Instr_Script" requires="pspForEng-instr"/>
+
+
   <!-- snippets used by the PSP for Engineers course -->
 
   <snippet id="pspForEng.Program2SizeReminder" version="1.0" category="advice">
@@ -55,5 +60,73 @@ This file exists for the sole purpose of precaching names for the
     <uri>/pspForEng3/psp0.1/sizeReminder</uri>
   </snippet>
 
+  <snippet id="pspForEng.defectLogScanner" version="1.0" category="instructor"
+           requires="pspForEng-instr">
+    <resources>PspForEng.DefectLogScanner</resources>
+    <context>PSP Project</context>
+    <uri>/pspForEng3/instr/defectLogScanner</uri>
+  </snippet>
+
+  <snippet id="pspForEng.timeLogScanner" version="1.0" category="instructor"
+           requires="pspForEng-instr">
+    <resources>PspForEng.TimeLogScanner</resources>
+    <context>PSP Project</context>
+    <mode>edit</mode>
+    <uri>/pspForEng3/instr/timeLogScanner</uri>
+    <uri mode="edit">/pspForEng3/instr/timeLogScannerEdit.shtm</uri>
+  </snippet>
+
+  <snippet id="pspForEng.probeItemSizeHist" version="1.0" category="instructor"
+           requires="pspForEng-instr">
+    <resources>PspForEng.ProbeItemSizeHist</resources>
+    <context>Size Estimating Template Tag</context>
+    <uri>/pspForEng3/instr/probeItemSizeHist</uri>
+  </snippet>
+
+  <snippet id="pspForEng.fixTimeConsistency" version="1.0"
+           category="instructor" requires="pspForEng-instr">
+    <resources>PspForEng.FixTimeConsistency</resources>
+    <context>PSP Project</context>
+    <mode>edit</mode>
+    <uri>/pspForEng3/instr/fixTimeConsistency</uri>
+    <uri mode="edit">/pspForEng3/instr/fixTimeConsistencyEdit.shtm</uri>
+  </snippet>
+
+  <snippet id="pspForEng.testExpression" version="1.0" category="instructor"
+           requires="pspForEng-instr">
+    <resources>PspForEng.TestExpression</resources>
+    <context>PSP Project</context>
+    <mode>edit</mode>
+    <uri>/pspForEng3/instr/testExpression</uri>
+    <uri mode="edit">/pspForEng3/instr/testExpressionEdit.shtm</uri>
+  </snippet>
+
+  <snippet id="pspForEng.rangeExpression" version="1.0" category="instructor"
+           requires="pspForEng-instr">
+    <resources>PspForEng.RangeExpression</resources>
+    <context>PSP Project</context>
+    <mode>edit</mode>
+    <uri>/pspForEng3/instr/rangeExpression</uri>
+    <uri mode="edit">/pspForEng3/instr/rangeExpressionEdit.shtm</uri>
+  </snippet>
+
+  <snippet id="pspForEng.trendChart" version="1.0" category="instructor"
+           requires="pspForEng-instr">
+    <resources>PspForEng.TrendChart</resources>
+    <context>PspForEngV2_Program</context>
+    <context>PspForEngV3_Program</context>
+    <mode>edit</mode>
+    <uri>/pspForEng3/instr/trendChart</uri>
+    <uri mode="edit">/pspForEng3/instr/trendChartEdit.shtm</uri>
+  </snippet>
+
+  <snippet id="pspForEng.quickLinks" version="1.0" category="hidden"
+           requires="pspForEng-instr">
+    <resources>CMS.Snippet.Anonymous</resources>
+    <context>*</context>
+    <mode>toc</mode>
+    <uri>/pspForEng3/instr/quickLinks</uri>
+    <uri mode="toc">/pspForEng3/instr/quickLinks</uri>
+  </snippet>
 
 </dashboard-process-template>
