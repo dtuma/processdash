@@ -35,6 +35,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Properties;
+import java.util.prefs.Preferences;
 
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
@@ -49,6 +50,7 @@ import com.izforge.izpack.installer.ExternalConfiguration;
 import com.izforge.izpack.installer.InstallData;
 import com.izforge.izpack.installer.InstallerFrame;
 import com.izforge.izpack.installer.IzPanel;
+import com.izforge.izpack.installer.ScriptParser;
 
 /**
  *  The taget directory selection panel.
@@ -145,6 +147,14 @@ public class TargetPanel extends IzPanel implements ActionListener
      */
     public void loadDefaultDir()
     {
+        // We check to see if user settings exists for the default dir.
+        Preferences prefs = Preferences.userRoot().node(InstallerFrame.USER_VALUES_PREFS_NODE);
+        String userInstallPath = prefs.get(ScriptParser.INSTALL_PATH, null);
+        if (userInstallPath != null) {
+            defaultDir = userInstallPath;
+            return;
+        }
+
         Properties p = ExternalConfiguration.getConfig();
         String extDefault = p.getProperty("dir.install.default");
         if (extDefault != null) {

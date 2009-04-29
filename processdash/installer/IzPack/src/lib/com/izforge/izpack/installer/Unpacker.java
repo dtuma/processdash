@@ -149,8 +149,15 @@ public class Unpacker extends Thread
                     {
                         // We translate & build the path
                         String path = translatePath(pf.targetPath);
+
+                        if (path.startsWith("http://")) {
+                            objIn.skip(pf.length);
+                            continue;
+                        }
+
                         File pathFile = new File(path);
                         File dest = pathFile.getParentFile();
+
                         if (!dest.exists())
                         {
                             if (! dest.mkdirs())

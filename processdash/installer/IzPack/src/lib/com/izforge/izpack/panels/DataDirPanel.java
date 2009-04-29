@@ -35,6 +35,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Properties;
+import java.util.prefs.Preferences;
 
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
@@ -151,6 +152,14 @@ public class DataDirPanel extends IzPanel implements ActionListener
      */
     public void loadDefaultDir()
     {
+        // We check to see if user settings exists for the default dir.
+        Preferences prefs = Preferences.userRoot().node(InstallerFrame.USER_VALUES_PREFS_NODE);
+        String userDataDir = prefs.get(ScriptParser.DATA_PATH, null);
+        if (userDataDir != null) {
+            defaultDir = userDataDir;
+            return;
+        }
+
         Properties p = ExternalConfiguration.getConfig();
         String extDefault = p.getProperty("dir.pspdata.default");
         if (extDefault != null) {
@@ -253,9 +262,12 @@ public class DataDirPanel extends IzPanel implements ActionListener
             return false;
         }
 
-        // Normalize the path
-        File path = new File(dataPath);
-        dataPath = path.toString();
+        // Normalize the path, only if it's local
+        if (!dataPath.startsWith("http://")) {
+            File path = new File(dataPath);
+            dataPath = path.toString();
+        }
+
 
         /* We put a warning if the direZctory exists else we warn that it will be created
         if (path.exists())

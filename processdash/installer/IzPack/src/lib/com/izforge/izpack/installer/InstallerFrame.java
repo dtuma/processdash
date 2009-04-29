@@ -52,6 +52,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Vector;
+import java.util.prefs.Preferences;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -88,6 +89,9 @@ import com.izforge.izpack.util.Housekeeper;
  */
 public class InstallerFrame extends JFrame
 {
+    /** The Preferences node used to save the user values */
+    public static final String USER_VALUES_PREFS_NODE = "/net/sourceforge/processdash/installer";
+
     /**  The language pack. */
     public LocaleDatabase langpack;
 
@@ -501,8 +505,10 @@ public class InstallerFrame extends JFrame
         if (installdata.canClose)
         {
             // Everything went well
-            if (installdata.info.getWriteUninstaller())
+            if (installdata.info.getWriteUninstaller()) {
                 writeUninstallData();
+                saveUserValues();
+            }
             Housekeeper.getInstance().shutDown(0);
         }
         else
@@ -521,7 +527,24 @@ public class InstallerFrame extends JFrame
     }
 
 
-    /**  Wipes the written files when you abort the installation.  */
+    private void saveUserValues() {
+        String installPath = installdata.getVariable(ScriptParser.INSTALL_PATH);
+        String dataPath = installdata.getVariable(ScriptParser.DATA_PATH);
+        String teamDataPath = installdata.getVariable(ScriptParser.TEAM_DATA_PATH);
+
+        Preferences prefs = Preferences.userRoot().node(USER_VALUES_PREFS_NODE);
+
+        if (installPath != null)
+            prefs.put(ScriptParser.INSTALL_PATH, installPath);
+
+        if (dataPath != null)
+            prefs.put(ScriptParser.DATA_PATH, dataPath);
+
+        if (teamDataPath != null)
+            prefs.put(ScriptParser.TEAM_DATA_PATH, teamDataPath);
+    }
+
+/**  Wipes the written files when you abort the installation.  */
     protected void wipeAborted()
     {
         Iterator it;

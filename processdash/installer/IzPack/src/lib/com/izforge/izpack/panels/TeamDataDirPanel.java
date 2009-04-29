@@ -35,6 +35,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Properties;
+import java.util.prefs.Preferences;
 
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
@@ -170,6 +171,14 @@ public class TeamDataDirPanel extends IzPanel implements ActionListener
      */
     public void loadDefaultDir()
     {
+        // We check to see if user settings exists for the default dir.
+        Preferences prefs = Preferences.userRoot().node(InstallerFrame.USER_VALUES_PREFS_NODE);
+        String userTeamDataDir = prefs.get(ScriptParser.TEAM_DATA_PATH, null);
+        if (userTeamDataDir != null) {
+            defaultDir = userTeamDataDir;
+            return;
+        }
+
         Properties p = ExternalConfiguration.getConfig();
         String extDefault = p.getProperty("dir.teamconfig.default");
         if (extDefault != null) {

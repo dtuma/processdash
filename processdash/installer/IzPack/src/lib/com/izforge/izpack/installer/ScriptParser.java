@@ -126,6 +126,12 @@ public class ScriptParser
                 continue;
             }
 
+            // check whether the file is remote
+            if (pfile.path.startsWith("http://"))
+            {
+                continue;
+            }
+
             File file = new File(pfile.path);
             File parsedFile
                 = File.createTempFile("izpp", null, file.getParentFile());
