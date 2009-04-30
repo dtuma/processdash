@@ -59,11 +59,15 @@ public class SizePerItemTable {
         }
     }
 
+    public static final String LEGACY_DEFAULT_TYPE_NAME =
+        "Default C++ LOC/Method";
+
     private String tableName;
 
     private List<String> categoryNames;
 
     private double[][] sizeData;
+
 
     public String getTableName() {
         return tableName;

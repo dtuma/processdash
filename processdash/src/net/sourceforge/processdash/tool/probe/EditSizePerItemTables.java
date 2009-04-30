@@ -67,6 +67,8 @@ public class EditSizePerItemTables extends TinyCGIBase {
         if (parameters.containsKey(SAVE) && Settings.isReadWrite()) {
             try {
                 save(getParameter(NAME), getParameter(CONTENTS));
+                getDataRepository().putValue(CHANGE_DATA_NAME,
+                    new DoubleData(uniqueNumber));
             } catch (ParseException e) {
                 writeHeader();
                 redrawForm(e);
@@ -75,8 +77,7 @@ public class EditSizePerItemTables extends TinyCGIBase {
         }
 
         out.print("Location: " + SCRIPT + "?"+uniqueNumber+"\r\n\r\n");
-        getDataRepository().putValue(CHANGE_DATA_NAME,
-            new DoubleData(++uniqueNumber));
+        uniqueNumber++;
     }
     private static int uniqueNumber = 0;
 

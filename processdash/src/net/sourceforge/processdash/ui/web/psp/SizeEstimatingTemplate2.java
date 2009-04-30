@@ -28,7 +28,13 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.SortedMap;
+import java.util.Map.Entry;
 
+import net.sourceforge.processdash.tool.probe.SizePerItemTable;
+import net.sourceforge.processdash.tool.probe.SizePerItemTable.RelativeSize;
+import net.sourceforge.processdash.util.FormatUtil;
+import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.StringUtils;
 
 public class SizeEstimatingTemplate2 extends SizeEstimatingTemplate {
@@ -60,6 +66,10 @@ public class SizeEstimatingTemplate2 extends SizeEstimatingTemplate {
         this.sections = sections;
     }
 
+    String sizeTypeInit;
+
+    String sizeTypeOptions;
+
     boolean isLegacy;
 
     boolean freezeActual;
@@ -72,6 +82,7 @@ public class SizeEstimatingTemplate2 extends SizeEstimatingTemplate {
         if (parameters.containsKey("testzero"))
             uniqueNumber = 0;
 
+        initSizeTypeData();
         this.isLegacy = hasValue(BASE_ADDITIONS_DATANAME);
         this.freezeActual = hasValue("Completed");
         this.freezePlan = freezeActual || hasValue("Planning/Completed");
@@ -81,6 +92,60 @@ public class SizeEstimatingTemplate2 extends SizeEstimatingTemplate {
 
         uniqueNumber++;
     }
+
+    private void initSizeTypeData() {
+        StringBuffer options = new StringBuffer("<option>\n");
+        StringBuffer sizeData = new StringBuffer(
+            "<script>DashSET.itemSizes = {\n");
+
+        SortedMap<String, SizePerItemTable> tables = SizePerItemTable
+                .getDefinedTables(getDataRepository());
+        for (Entry<String, SizePerItemTable> e : tables.entrySet()) {
+            String sizePerItemTableName = e.getKey();
+            SizePerItemTable sizePerItemTable = e.getValue();
+            String valuePrefix = getCategoryValuePrefix(sizePerItemTableName);
+
+            options.append("<optgroup label=\"")
+                .append(esc(sizePerItemTableName)).append("\">\n");
+
+            for (String category : sizePerItemTable.getCategoryNames()) {
+                String fullCat = valuePrefix + category;
+
+                options.append("<option value=\"").append(esc(fullCat))
+                    .append("\">").append(esc(category)).append("\n");
+
+                for (RelativeSize relSize : RelativeSize.values()) {
+                    sizeData.append('"')
+                        .append(StringUtils.javaEncode(fullCat))
+                        .append("/").append(REL_SIZE_NAMES[relSize.ordinal()])
+                        .append("\" : ")
+                        .append(sizePerItemTable.getSize(category, relSize))
+                        .append(",\n");
+                }
+            }
+
+            options.append("</optgroup>\n");
+        }
+
+        sizeData.setLength(sizeData.length()-2);
+        sizeData.append(" };\n");
+        if (USE_COMMA)
+            sizeData.append("DashSET.useCommaForDecimal = true;\n");
+        sizeData.append("</script>\n");
+
+        this.sizeTypeInit = sizeData.toString();
+        this.sizeTypeOptions = options.toString();
+    }
+    private static String getCategoryValuePrefix(String sizePerItemTableName) {
+        if (SizePerItemTable.LEGACY_DEFAULT_TYPE_NAME.equals(sizePerItemTableName))
+            return "";
+        else
+            return sizePerItemTableName + "/";
+    }
+    private static final String esc(String s) {
+        return HTMLUtils.escapeEntities(s);
+    }
+
 
     private String markReadOnlyFields(String html) {
         html = StringUtils.findAndReplace(html, PLAN_FLAG,
@@ -94,6 +159,18 @@ public class SizeEstimatingTemplate2 extends SizeEstimatingTemplate {
     private static final String ACTUAL_FLAG = "]a";
     private static final String READONLY_FLAG = "]r";
     private static final String EDITABLE_FLAG = "]";
+
+    private String insertSizeTypeData(String html) {
+        html = StringUtils.findAndReplace(html, SIZE_INIT_TOKEN,
+            this.sizeTypeInit);
+        html = StringUtils.findAndReplace(html, SIZE_OPTIONS_TOKEN,
+            this.sizeTypeOptions);
+        return html;
+    }
+
+    private static final String SIZE_INIT_TOKEN = "<!-- SIZE_TYPE_INIT -->";
+    private static final String SIZE_OPTIONS_TOKEN = "<!-- SIZE_TYPE_OPTIONS -->";
+
 
     private class Section {
         final String key;
@@ -128,6 +205,7 @@ public class SizeEstimatingTemplate2 extends SizeEstimatingTemplate {
             String html = s.html;
             html = replaceNum(html, uniqueNumber);
             html = markReadOnlyFields(html);
+            html = insertSizeTypeData(html);
             out.print(html);
         }
     }
@@ -162,6 +240,7 @@ public class SizeEstimatingTemplate2 extends SizeEstimatingTemplate {
         @Override
         public void print(Section s) throws IOException {
             String row = markReadOnlyFields(s.html);
+            row = insertSizeTypeData(row);
             writeTable(row, dataElements, queryArg, 1, 0, addRows);
         }
     }
@@ -214,4 +293,10 @@ public class SizeEstimatingTemplate2 extends SizeEstimatingTemplate {
         "Base_Parts/#//#/Actual Modified",
         "Base_Parts/#//#/Actual Added" };
 
+    private static final String[] REL_SIZE_NAMES = {
+        "Very Small", "Small", "Medium", "Large", "Very Large"
+    };
+
+    private static boolean USE_COMMA = FormatUtil.formatNumber(1.1)
+            .indexOf(',') != -1;
 }
