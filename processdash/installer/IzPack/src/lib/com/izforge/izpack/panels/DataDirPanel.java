@@ -263,7 +263,7 @@ public class DataDirPanel extends IzPanel implements ActionListener
         }
 
         // Normalize the path, only if it's local
-        if (!dataPath.startsWith("http://")) {
+        if (!dataPath.startsWith("http")) {
             File path = new File(dataPath);
             dataPath = path.toString();
         }

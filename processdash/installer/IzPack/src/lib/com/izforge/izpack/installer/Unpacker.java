@@ -150,7 +150,7 @@ public class Unpacker extends Thread
                         // We translate & build the path
                         String path = translatePath(pf.targetPath);
 
-                        if (path.startsWith("http://")) {
+                        if (path.startsWith("http")) {
                             objIn.skip(pf.length);
                             continue;
                         }

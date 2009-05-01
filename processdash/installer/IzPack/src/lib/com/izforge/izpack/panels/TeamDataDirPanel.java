@@ -284,9 +284,11 @@ public class TeamDataDirPanel extends IzPanel implements ActionListener
             return false;
         }
 
-        // Normalize the path
-        File path = new File(dataPath);
-        dataPath = path.toString();
+        // Normalize the path, only if it's local
+        if (!dataPath.startsWith("http")) {
+            File path = new File(dataPath);
+            dataPath = path.toString();
+        }
 
         idata.setVariable(ScriptParser.TEAM_DATA_PATH, dataPath);
         return ok;

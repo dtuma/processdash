@@ -127,7 +127,7 @@ public class ScriptParser
             }
 
             // check whether the file is remote
-            if (pfile.path.startsWith("http://"))
+            if (pfile.path.startsWith("http"))
             {
                 continue;
             }
