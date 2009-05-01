@@ -172,7 +172,7 @@ public class TemplateLoader {
         try {
             // compute the "template url" of the jarfile.
             File jarfile = new File(jarfileName);
-            String jarURL = jarfile.toURL().toString();
+            String jarURL = jarfile.toURI().toURL().toString();
             URL jarfileTemplateURL = jarfileTemplateURL(jarURL);
 
             // if the jar url is already in the list of template urls,
@@ -542,7 +542,7 @@ public class TemplateLoader {
         }
 
         if (templateDir != null) try {
-            v.add(templateDir.toURL());
+            v.add(templateDir.toURI().toURL());
         } catch (MalformedURLException mue) {}
 
         scanDirForJarFiles(templateDir, v);
@@ -555,7 +555,7 @@ public class TemplateLoader {
         Arrays.sort(dirContents);
         String name, lname;
         for (int i=0;  i < dirContents.length;  i++) try {
-            name = dirContents[i].toURL().toString();
+            name = dirContents[i].toURI().toURL().toString();
             lname = name.toLowerCase();
             if ((lname.endsWith(".jar") || lname.endsWith(".zip"))
                     && !NONTEMPLATE_FILENAMES.matches(lname)) {
@@ -679,7 +679,8 @@ public class TemplateLoader {
         Iterator i = packages.keySet().iterator();
         while (i.hasNext()) {
             DashPackage pkg = (DashPackage) i.next();
-            if (pkg.isIncompatible(dashVersion)) {
+            if (pkg.isIncompatible(dashVersion)
+                    || isDeprecatedLegacyPackage(pkg)) {
                 Object url = packages.get(pkg);
                 urls.remove(url);
                 i.remove();
@@ -706,6 +707,13 @@ public class TemplateLoader {
         }
 
         return null;            // shouldn't happen...
+    }
+
+    private static boolean isDeprecatedLegacyPackage(DashPackage pkg) {
+        if ("pspForEng".equals(pkg.id)) {
+            return DashPackage.compareVersions(pkg.version, "3.0") < 0;
+        }
+        return false;
     }
 
     private static void removeDuplicatePackages(Map packages, Vector urls) {

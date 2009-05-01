@@ -75,11 +75,11 @@ Authors:
 
   <property file="${lib}/version.properties"/>
 
-  <property name="eng.version"      value="2.0"/><!-- VERSION -->
-  <property name="eng.requires"     value="1.6.1.1+"/><!-- VERSION -->
+  <property name="eng.version"      value="3.0"/><!-- VERSION -->
+  <property name="eng.requires"     value="1.10.4.1a+"/><!-- VERSION -->
   <property name="l10nTool.version" value="1.0"/><!-- VERSION -->
   <property name="l10nTool.requires" value="1.9.2b+"/><!-- VERSION -->
-  <property name="instr.requires"   value="1.7.1b.4+"/><!-- VERSION -->
+  <property name="instr.requires"   value="1.10.4.1a+"/><!-- VERSION -->
 
 
   <property name="applet.file" value="DataApplet${dashboardVersion}"/>
@@ -273,15 +273,8 @@ Authors:
       </manifest>
 
       <fileset dir=".">
-        <include name="Templates/pspForEng*"/>
-        <include name="Templates/pspForEng/"/>
-        <include name="Templates/pspForEng2/"/>
-        <exclude name="Templates/pspForEng/userdata/"/>
-        <exclude name="Templates/pspForEng2/userdata/"/>
-        <exclude name="Templates/pspForEng/repair.*"/>
-        <exclude name="Templates/pspForEng-instr*"/>
+        <include name="Templates/pspForEng3.template"/>
       </fileset>
-      <fileset dir="${build}" includes="net/**/PspForEngFilter.class"/>
     </jar>
     <!-- build the jarfile for instructors -->
     <jar destfile="${dist}/pspForEng-instr.jar" duplicate="fail">
@@ -296,7 +289,7 @@ Authors:
       </manifest>
 
       <fileset dir=".">
-        <include name="Templates/pspForEng-instr*"/>
+        <include name="Templates/pspForEng-instr.globalData"/>
       </fileset>
     </jar>
   </target>
@@ -470,7 +463,6 @@ Authors:
           <include name="Templates/"/>
           <include name="net/"/>
           <exclude name="**/*Test.class"/>
-          <exclude name="net/**/PspForEngFilter.class"/>
           <exclude name="net/**/OpenLocalizationToolAction*.class"/>
       </fileset>
 
