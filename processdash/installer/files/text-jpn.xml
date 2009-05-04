@@ -17,17 +17,17 @@
 
 Process DashboardはGNU一般公的使用許諾の下で配布されています。</str>
     <str id="pack.pdash.name">Process Dashboard</str>
-    <str id="pack.pspForEng.description">SEIのPersonal Software Process(SM)コースを受講している方の支援。
+    <str id="pack.pspForEng.description">Support for students taking the SEI&apos;s Personal Software Process(SM) course.
 
-このモジュールは、Watts S. Humphrey氏の著作、A Discipline for Software Engineering(Copyright (c) 1995 by Addison-Wesley)に記述されているテンプレートやスクリプト、その他の資料を参考に作られています。これらテンプレートなどについては、出版社の許可を得てプログラムに組み込んでいます。
+This module incorporates templates, scripts, and other materials from the document &quot;PSP Materials.doc&quot; copyright (c) 2006 by Carnegie Mellon University.  These materials are reproduced with the permission of the Software Engineering Institute.
 
-このモジュールをダウンロードしインストールする際は、Addison-Wesley社の定める使用許諾契約に同意していただく必要があります。</str>
+The Software Engineering Institute requires that you consent to an additional license agreement to download, install and use this module.</str>
     <str id="pack.pspForEng.name">PSP(SM) for Engineers</str>
-    <str id="pack.pspProc.description">PSP(パーソナルソフトウェアプロセス)で使われているテンプレート、スクリプト、帳票。
+    <str id="pack.pspProc.description">Templates, scripts, and forms supporting the Personal Software Process(SM).
 
-このモジュールは、Watts S. Humphrey氏の著作、A Discipline for Software Engineering(Copyright (c) 1995 by Addison-Wesley)に記述されているテンプレートやスクリプト、その他の資料を参考に作られています。これらテンプレートなどについては、出版社の許可を得てプログラムに組み込んでいます。
+This module incorporates templates, scripts, and other materials from the document &quot;PSP Materials.doc&quot; copyright (c) 2006 by Carnegie Mellon University.  These materials are reproduced with the permission of the Software Engineering Institute.
 
-このモジュールをダウンロードしインストールする際は、Addison-Wesley社の定める使用許諾契約に同意していただく必要があります。</str>
+The Software Engineering Institute requires that you consent to an additional license agreement to download, install and use this module.</str>
     <str id="pack.pspProc.name">PSP(SM) Processes</str>
 
 </langpack>

@@ -18,17 +18,17 @@
 
 Process Dashboard是在GNU General Public License许可下进行分发的。</str>
     <str id="pack.pdash.name">Process Dashboard</str>
-    <str id="pack.pspForEng.description">支持学生学习SEI的Personal Software Process(SM)课程。
+    <str id="pack.pspForEng.description">Support for students taking the SEI&apos;s Personal Software Process(SM) course.
 
-此模块结合了来自于Watts S. Humphrey的A Discipline for Software Engineering一书的模板，脚本和其他材料。 Copyright (c) 1995 by Addison-Wesley. 这些材料的使用获得了出版商的许可。
+This module incorporates templates, scripts, and other materials from the document &quot;PSP Materials.doc&quot; copyright (c) 2006 by Carnegie Mellon University.  These materials are reproduced with the permission of the Software Engineering Institute.
 
-Addison-Wesley要求你同意一个额外的许可证协议，才能下载和安装此模块。</str>
+The Software Engineering Institute requires that you consent to an additional license agreement to download, install and use this module.</str>
     <str id="pack.pspForEng.name">PSP(SM) for Engineers</str>
-    <str id="pack.pspProc.description">支持个人软件过程(SM)的模版，脚本和表格。
+    <str id="pack.pspProc.description">Templates, scripts, and forms supporting the Personal Software Process(SM).
 
-此模块结合了来自于Watts S. Humphrey的A Discipline for Software Engineering一书的模板，脚本和其他材料。 Copyright (c) 1995 by Addison-Wesley. 这些材料的使用获得了出版商的许可。
+This module incorporates templates, scripts, and other materials from the document &quot;PSP Materials.doc&quot; copyright (c) 2006 by Carnegie Mellon University.  These materials are reproduced with the permission of the Software Engineering Institute.
 
-Addison-Wesley要求你同意一个额外的许可证协议，才能下载和安装此模块。</str>
+The Software Engineering Institute requires that you consent to an additional license agreement to download, install and use this module.</str>
     <str id="pack.pspProc.name">PSP(SM)过程</str>
 
 </langpack>

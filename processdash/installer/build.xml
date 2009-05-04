@@ -244,9 +244,9 @@ pdash-install-${qualifier}-${dashboard-version}.jar
     <target name="prepare" depends="rebuild">
 
         <!-- print an error unless the PSP process file is built -->
-	<available file="../dist/pspProc.jar" property="have.pspProc.jar"/>
+	<available file="../dist/pspProc2.jar" property="have.pspProc.jar"/>
 	<fail unless="have.pspProc.jar"
-	    message="pspProc.jar is missing - to ignore, run &quot;ant plain&quot;"/>
+	    message="pspProc2.jar is missing - to ignore, run &quot;ant plain&quot;"/>
 
 	<!-- print an error unless the PSP for Engineers file is built -->
 	<available file="../dist/pspForEng.jar" property="have.pspForEng.jar"/>

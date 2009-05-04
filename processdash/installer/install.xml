@@ -35,8 +35,8 @@
         <res src="files/TargetDir-macosx.txt" id="TargetPanel.dir.macosx"/>
         <res src="files/WebInstallers.txt" id="WebInstallers.url"/>
         <res src="files/shortcutSpec.xml" id="shortcutSpec.xml"/>
-        <res src="files/AWLicense.html" id="CondHTMLLicencePanel0.licence"/>
-        <res src="files/AWLicense-list.txt" id="CondHTMLLicencePanel0.packList"/>
+        <res src="files/PspLicense.html" id="CondHTMLLicencePanel0.licence"/>
+        <res src="files/PspLicense-list.txt" id="CondHTMLLicencePanel0.packList"/>
         <res src="files/JHLicense.html" id="CondHTMLLicencePanel1.licence"/>
         <res src="files/JHLicense-list.txt" id="CondHTMLLicencePanel1.packList"/>
         <res src="files/custom-install-internal.ini" id="custom-install.ini"
@@ -144,7 +144,7 @@
             <description>PSP(SM) Processes</description>
 
             <file targetdir="$INSTALL_PATH" override="true"
-	          src="../dist/pspProc.jar" />
+	          src="../dist/pspProc2.jar" />
             <file targetdir="$INSTALL_PATH" override="true"
 	          src="../dist/importPSP.jar" />
         </pack>
@@ -154,7 +154,7 @@
             <description>PSP(SM) for Engineers</description>
 
             <file targetdir="$INSTALL_PATH" override="true"
-	          src="../dist/pspProc.jar" />
+	          src="../dist/pspProc2.jar" />
             <file targetdir="$INSTALL_PATH" override="true"
 	          src="../dist/pspForEng.jar" />
 		  
@@ -174,7 +174,7 @@
             <description>Tools to assist instructors of the PSP for Engineers course</description>
 
             <file targetdir="$INSTALL_PATH" override="true"
-	          src="../dist/pspProc.jar" />
+	          src="../dist/pspProc2.jar" />
             <file targetdir="$INSTALL_PATH" override="true"
 	          src="../dist/pspForEng.jar" />
             <file targetdir="$INSTALL_PATH" override="true"
