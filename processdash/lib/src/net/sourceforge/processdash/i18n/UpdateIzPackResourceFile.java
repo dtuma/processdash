@@ -1,4 +1,4 @@
-// Copyright (C) 2005 Tuma Solutions, LLC
+// Copyright (C) 2005-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -49,7 +49,6 @@ import org.apache.tools.ant.Task;
 
 public class UpdateIzPackResourceFile extends Task {
 
-    private static final String CRLF = "\r\n";
     private static final String XML_PROLOG = "<?xml version='1.0' encoding='UTF-8' standalone='yes'?>";
     private static final String LINE_SEP = System.getProperty("line.separator");
     private static final String BUNDLE_NAME = "Installer";
@@ -147,7 +146,7 @@ public class UpdateIzPackResourceFile extends Task {
     }
 
     private ResourceBundle readResourceBundle() throws Exception {
-        URL[] classpath = new URL[] { resourcesDir.toURL() };
+        URL[] classpath = new URL[] { resourcesDir.toURI().toURL() };
         ClassLoader cl = new URLClassLoader(classpath);
 
         ResourceBundle result = ResourceBundle.getBundle(BUNDLE_NAME,
@@ -161,10 +160,10 @@ public class UpdateIzPackResourceFile extends Task {
         BufferedWriter out =
             new BufferedWriter(new OutputStreamWriter(fos, "UTF-8"));
 
-        out.write(XML_PROLOG + CRLF + CRLF);
-        out.write("<langpack>" + CRLF);
+        out.write(XML_PROLOG + LINE_SEP + LINE_SEP);
+        out.write("<langpack>" + LINE_SEP);
         writeTranslations(bundle, out, true);
-        out.write(CRLF + CLOSING_TAG + CRLF);
+        out.write(LINE_SEP + CLOSING_TAG + LINE_SEP);
         out.close();
     }
 
@@ -187,11 +186,11 @@ public class UpdateIzPackResourceFile extends Task {
         in.close();
 
         Writer out = new OutputStreamWriter(newContents, charset);
-        out.write("    " + OPENING_COMMENT + CRLF + CRLF);
+        out.write("    " + OPENING_COMMENT + LINE_SEP + LINE_SEP);
 
         writeTranslations(bundle, out, false);
 
-        out.write(CRLF + CLOSING_TAG + CRLF);
+        out.write(LINE_SEP + CLOSING_TAG + LINE_SEP);
         out.close();
 
         FileOutputStream fout = new FileOutputStream(langpack);
@@ -212,7 +211,7 @@ public class UpdateIzPackResourceFile extends Task {
             out.write(key);
             out.write("\">");
             out.write(escape(value));
-            out.write("</str>" + CRLF);
+            out.write("</str>" + LINE_SEP);
         }
     }
 
