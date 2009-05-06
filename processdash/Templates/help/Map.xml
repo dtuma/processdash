@@ -29,6 +29,7 @@
   <mapID target="SunBerkeley" url="Topics/Overview/License-SunBerkeley.html" />
   <mapID target="Colt" url="Topics/Overview/License-Colt.html" />
   <mapID target="Overlib" url="Topics/Overview/License-Overlib.html" />
+  <mapID target="LicensePSP" url="Topics/Overview/License-PSP.html" />
 
   <mapID target="Planning" url="Topics/Planning/Planning.html" />
   <mapID target="EnteringData" url="Topics/Planning/EnteringData.html" />
@@ -132,8 +133,6 @@
   <mapID target="BugReport" url="Topics/Execution/ConfigureMenu.html#bugreport" />
   <mapID target="HelpForum" url="Topics/Execution/ConfigureMenu.html#helponline" />
   <mapID target="Separation" url="Topics/Overview/Separation.html" />
-  <mapID target="PermissionLetter" url="Topics/Overview/PermissionLetter.html" />
-  <mapID target="RequestLetter" url="Topics/Overview/RequestLetter.html" />
   <mapID target="LocalizationTool" url="Topics/AdvancedTopics/LocalizationTool.html" />
   <mapID target="BackupData" url="Topics/AdvancedTopics/BackupData.html" />
   <mapID target="TeamUse" url="Topics/AdvancedTopics/TeamUse.html" />
