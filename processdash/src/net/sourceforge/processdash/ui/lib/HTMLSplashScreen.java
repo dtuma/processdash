@@ -43,8 +43,8 @@ import javax.swing.Timer;
 
 public class HTMLSplashScreen extends JWindow implements ActionListener {
 
-    // We switch text block every second (1000 ms)
-    private static final int TIME_PER_TEXT_BLOCK = 1000;
+    // We switch text block every two seconds (2000 ms)
+    private static final int TIME_PER_TEXT_BLOCK = 2000;
 
     private boolean waitingForTimer;
     private boolean waitingForOK;
