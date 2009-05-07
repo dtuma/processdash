@@ -1,4 +1,4 @@
-// Copyright (C) 2006 Tuma Solutions, LLC
+// Copyright (C) 2006-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -23,10 +23,12 @@
 
 package net.sourceforge.processdash.ui.lib;
 
+import java.awt.CardLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.List;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -41,10 +43,22 @@ import javax.swing.Timer;
 
 public class HTMLSplashScreen extends JWindow implements ActionListener {
 
+    // We switch text block every second (1000 ms)
+    private static final int TIME_PER_TEXT_BLOCK = 1000;
+
     private boolean waitingForTimer;
     private boolean waitingForOK;
 
-    public HTMLSplashScreen(Icon image, String html) {
+    // The JPanel which contains all HTML blocks of text to display
+    //  on the splash screen.
+    private JPanel textCards = new JPanel(new CardLayout());
+
+    // The Timer which shows a new HTML block every second.
+    private Timer textSwitcher;
+
+    private int nbOfBlockToShow;
+
+    public HTMLSplashScreen(Icon image, List<String> htmlBlocks) {
         JPanel content = new JPanel();
         content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
         content.setBackground(Color.WHITE);
@@ -62,31 +76,51 @@ public class HTMLSplashScreen extends JWindow implements ActionListener {
             content.add(Box.createVerticalStrut(5));
         }
 
-        JEditorPane editor = new JEditorPane();
-        editor.setContentType("text/html");
-        editor.setEditable(false);
-        editor.setText(html);
-        editor.setSize(contentWidth, 10);
-        Dimension d = editor.getPreferredSize();
-        d.width = contentWidth;
-        editor.setMinimumSize(d);
-        editor.setPreferredSize(d);
-        editor.setMaximumSize(d);
-        editor.setAlignmentX(0);
-        content.add(editor);
+        nbOfBlockToShow = 0;
+        int maxPreferedHeight = 0;
+
+        for (String text : htmlBlocks) {
+            JEditorPane editor = new JEditorPane();
+            editor.setContentType("text/html");
+            editor.setEditable(false);
+            editor.setText(text);
+            editor.setSize(contentWidth, 10);
+
+            Dimension editorPreferredSize = editor.getPreferredSize();
+
+            if (editorPreferredSize.height > maxPreferedHeight)
+                maxPreferedHeight = editorPreferredSize.height;
+
+            textCards.add(editor, String.valueOf(nbOfBlockToShow++));
+        }
+
+        Dimension textDimension = new Dimension(contentWidth, maxPreferedHeight);
+        textCards.setMinimumSize(textDimension);
+        textCards.setPreferredSize(textDimension);
+        textCards.setMaximumSize(textDimension);
+        textCards.setAlignmentX(0);
+
+        content.add(textCards);
 
         getContentPane().add(content);
         pack();
         setLocationRelativeTo(null);
     }
 
-    public void displayFor(int millis) {
+    public void displayFor(int timeToShowSplash) {
         waitingForOK = waitingForTimer = true;
         setVisible(true);
 
-        Timer t = new Timer(millis, this);
-        t.setRepeats(false);
-        t.start();
+        textSwitcher = new Timer(TIME_PER_TEXT_BLOCK, new CardFlipper());
+        textSwitcher.start();
+
+        int minTimeToShowSplash = nbOfBlockToShow * TIME_PER_TEXT_BLOCK;
+        timeToShowSplash = timeToShowSplash < minTimeToShowSplash ?
+                               minTimeToShowSplash : timeToShowSplash;
+
+        Timer displayTimeTimer = new Timer(timeToShowSplash, this);
+        displayTimeTimer.setRepeats(false);
+        displayTimeTimer.start();
     }
 
     private Object syncLock = new Object();
@@ -109,8 +143,30 @@ public class HTMLSplashScreen extends JWindow implements ActionListener {
         if (!waitingForOK && !waitingForTimer)
             SwingUtilities.invokeLater(new Runnable() {
                 public void run() {
+                    textSwitcher.stop();
                     dispose();
                 }});
+    }
+
+    private class CardFlipper implements ActionListener {
+        // The CardLayout of the JPanel containing all html blocks to display
+        private CardLayout layout = null;
+
+        private int nbOfBlockShown;
+
+        public CardFlipper() {
+            layout = (CardLayout) textCards.getLayout();
+
+            // We were showing block 0 before this CardFlippers got called
+            //  for the first time so we start counting at 1.
+            nbOfBlockShown = 1;
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            if (nbOfBlockShown < nbOfBlockToShow)
+                layout.show(textCards, String.valueOf(nbOfBlockShown++));
+        }
+
     }
 
 }
