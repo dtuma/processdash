@@ -1,4 +1,4 @@
-// Copyright (C) 2008 Tuma Solutions, LLC
+// Copyright (C) 2008-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -467,7 +467,7 @@ public class DataStreamCache {
             InputStream in = cacheFile.getInputStream();
             in.skip(startPos);
             byte[] data = new byte[dataLen];
-            in.read(data);
+            FileUtils.readAndFillArray(in, data);
             in.close();
             return new ByteArrayInputStream(data);
         }

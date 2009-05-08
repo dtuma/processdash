@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2007 Tuma Solutions, LLC
+// Copyright (C) 2001-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -48,6 +48,7 @@ import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.net.cache.ObjectCache;
 import net.sourceforge.processdash.net.http.TinyCGI;
 import net.sourceforge.processdash.net.http.WebServer;
+import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.MultipartRequest;
 import net.sourceforge.processdash.util.StringMapper;
@@ -153,10 +154,10 @@ public class TinyCGIBase implements TinyCGI {
         } catch (Exception e) { return; }
 
         byte [] messageBody = new byte[length];
-        int bytesRead = inStream.read(messageBody);
+        FileUtils.readAndFillArray(inStream, messageBody);
         parseInput((String) env.get("SCRIPT_PATH"),
                    // FIXME: does this handle character sets correctly?
-                   new String(messageBody, 0, bytesRead));
+                   new String(messageBody, 0, length));
     }
 
     /* Read name=value pairs, and uploaded files, from multipart form data.

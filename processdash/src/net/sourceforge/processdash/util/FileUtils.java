@@ -74,6 +74,36 @@ public class FileUtils {
         return result;
     }
 
+    /**
+     * Read data from an InputStream into an array.
+     * 
+     * This method is similar in function to the InputStream.read(byte[])
+     * method, but differs in an important way.  That method may read fewer
+     * bytes than the actual length of the array; it then returns the actual
+     * number of bytes read.  This method will perform as many reads as
+     * needed to fill the array completely; if any of those reads fail, or
+     * if the end-of-stream is reached before the array is filled, this will
+     * throw an IOException.
+     * 
+     * @param in the stream to read from
+     * @param data the array where the data should be stored; its length
+     *     determines exactly how many bytes are expected.
+     * @throws IOException if an error was encountered, or if the end-of-stream
+     *     was reached before the array was filled.
+     */
+    public static void readAndFillArray(InputStream in, byte[] data)
+            throws IOException {
+        int length = data.length;
+        int bytesRead = 0;
+        while (bytesRead < length) {
+            int b = in.read(data, bytesRead, length - bytesRead);
+            if (b == -1)
+                throw new IOException("Unexpected EOF reading form data");
+            else
+                bytesRead += b;
+        }
+    }
+
     public static void copyFile(File src, File dest) throws IOException {
         InputStream inputStream = new FileInputStream(src);
         try {
