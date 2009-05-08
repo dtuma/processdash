@@ -284,6 +284,8 @@ The author(s) may be contacted at:
      specLocation="dash/code-collab-import.xml"
      class="net.sourceforge.processdash.log.ui.importer.FormImporter" />
 
+  <scriptSource dataName="User_URLs"/>
+
  <!-- definitions for the preferences dialog. -->
  
     <preferences-pane id="pdash.ui"

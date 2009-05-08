@@ -1,6 +1,6 @@
 <!--
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2006 Tuma Solutions, LLC
+// Copyright (C) 2006-2009 Tuma Solutions, LLC
 // 
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -52,6 +52,12 @@
 <tr>
 <td>Language</td>
 <td colspan="10"><input type="text" size="15" name="[Project/Language]s"/></td>
+</tr>
+
+<tr>
+<td valign="top">Related URLs</td>
+<td colspan="10"><textarea rows="3" cols="50" name="[User_URLs]s"
+    title="Optionally enter URLs related to this project, one per line"></textarea></td>
 </tr>
 
 </table>
