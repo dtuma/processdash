@@ -234,10 +234,16 @@ public class TableOfPhaseMetrics extends TinyCGIBase {
 
     private void applyExplicitPhaseFilter(List phases) {
         String filter = getParameter("PhaseFilter");
-        if (filter == null)
-            return;
-        String[] filtered = filter.split("/");
-        phases.removeAll(Arrays.asList(filtered));
+        if (filter != null) {
+            String[] filtered = filter.split("/");
+            phases.removeAll(Arrays.asList(filtered));
+        }
+
+        String prependRows = getParameter("PrependRows");
+        if (StringUtils.hasValue(prependRows)) {
+            String[] newRows = prependRows.split("/");
+            phases.addAll(0, Arrays.asList(newRows));
+        }
     }
 
     private String esc(String s) {

@@ -4,6 +4,9 @@
 <!--#if PhaseFilter #-->
     <input type="hidden" name="$$$_PhaseFilter"
            value="<!--#echo PhaseFilter -->"><!--#endif#-->
+<!--#if PrependRows #-->
+    <input type="hidden" name="$$$_PrependRows"
+           value="<!--#echo PrependRows -->"><!--#endif#-->
 
 <b><!--#echo Heading_Prompt --></b>&nbsp;<input type="text" name="$$$_Heading"
      value="<!--#echo Heading -->" size="50">
