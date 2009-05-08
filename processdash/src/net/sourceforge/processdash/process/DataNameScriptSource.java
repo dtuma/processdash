@@ -44,13 +44,13 @@ public class DataNameScriptSource implements ScriptSource {
     private DataContext data;
 
     public void setConfigElement(Element xml, String attrName) {
-        id = xml.getAttribute("id");
-        if (!StringUtils.hasValue(id))
-            id = "DataNameScriptSource." + dataName;
-
         dataName = xml.getAttribute("dataName");
         if (!StringUtils.hasValue(dataName))
             throw new IllegalArgumentException("dataName must be specified");
+
+        id = xml.getAttribute("id");
+        if (!StringUtils.hasValue(id))
+            id = "DataNameScriptSource." + dataName;
     }
 
     public void setDashboardContext(DashboardContext ctx) {
