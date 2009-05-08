@@ -30,6 +30,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import net.sourceforge.processdash.data.ListData;
+import net.sourceforge.processdash.data.StringData;
 import net.sourceforge.processdash.data.util.ResultSet;
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.PropertyKey;
@@ -61,8 +63,8 @@ public class StudataExporter extends TinyCGIBase {
             out.print("<h1>No STUDATA Found" + forStudent + "</h1>\n");
             out.print("No STUDATA was found to export" + forStudent
                     + ". Possible reasons:<ul>\n");
-            out.print("<li>The student has not marked any of their PSP " +
-                        "assignments complete.</li>\n");
+            out.print("<li>The student has not logged time to any of their " +
+                        "PSP assignments.</li>\n");
             out.print("<li>The student has edited their hierarchy, and their "
                     + "PSP program assignments are not located underneath "
                     + HTMLUtils.escapeEntities(getPrefix()) + "</li>\n");
@@ -93,10 +95,13 @@ public class StudataExporter extends TinyCGIBase {
         PropertyKey parent = hier.findExistingKey(getPrefix());
         int numKids = hier.getNumChildren(parent);
         List projectPaths = new ArrayList(numKids);
+        ListData projectPathsData = new ListData();
         for (int i = 0;  i < numKids; i++) {
             PropertyKey child = hier.getChildKey(parent, i);
             projectPaths.add(child.path());
+            projectPathsData.add(StringData.create(child.path()));
         }
+        getDataRepository().putValue("///STUDATA_List", projectPathsData);
         return projectPaths;
     }
 
