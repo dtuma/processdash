@@ -29,6 +29,7 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import net.sourceforge.processdash.util.XMLUtils;
 
@@ -61,6 +62,18 @@ public class XmlSnippetContentSerializer implements ContentSerializer {
 
         Element e = (Element) doc.getElementsByTagName(PAGE_TITLE_TAG).item(0);
         result.setPageTitle(XMLUtils.getTextContents(e));
+
+        NodeList metadataTag = doc.getElementsByTagName(METADATA_TAG);
+        if (metadataTag != null && metadataTag.getLength() > 0) {
+            NodeList metadata = ((Element) metadataTag.item(0))
+                    .getElementsByTagName(PARAM_TAG);
+            for (int i = 0; i < metadata.getLength();  i++) {
+                e = (Element) metadata.item(i);
+                String name = e.getAttribute(NAME_ATTR);
+                String value = XMLUtils.getTextContents(e);
+                result.setMetadataValue(name, value);
+            }
+        }
 
         NodeList snippetDescriptions = doc.getElementsByTagName(SNIPPET_TAG);
         List contentSnippets = new ArrayList(snippetDescriptions.getLength());
@@ -110,11 +123,7 @@ public class XmlSnippetContentSerializer implements ContentSerializer {
         ser.startTag(null, DOC_ROOT_ELEM);
         ser.ignorableWhitespace(NEWLINE + NEWLINE);
 
-        ser.startTag(null, PAGE_TITLE_TAG);
-        if (page.getPageTitle() != null)
-            ser.text(page.getPageTitle());
-        ser.endTag(null, PAGE_TITLE_TAG);
-        ser.ignorableWhitespace(NEWLINE + NEWLINE);
+        writePageMetadata(page, ser);
 
         Iterator headerSnippets = page.getHeaderSnippets();
         writeWrappedSnippets(ser, PAGE_HEADING_TAG, headerSnippets);
@@ -130,6 +139,34 @@ public class XmlSnippetContentSerializer implements ContentSerializer {
         ser.endDocument();
 
         out.close();
+    }
+
+    private void writePageMetadata(PageContentTO page, XmlSerializer ser)
+            throws IOException {
+        ser.startTag(null, PAGE_TITLE_TAG);
+        if (page.getPageTitle() != null)
+            ser.text(page.getPageTitle());
+        ser.endTag(null, PAGE_TITLE_TAG);
+        ser.ignorableWhitespace(NEWLINE + NEWLINE);
+
+        if (!page.getMetadata().isEmpty()) {
+            ser.startTag(null, METADATA_TAG);
+            ser.ignorableWhitespace(NEWLINE);
+            for (Map.Entry<String, String> e : page.getMetadata().entrySet()) {
+                String name = e.getKey();
+                String value = e.getValue();
+                if (name != null && value != null) {
+                    ser.ignorableWhitespace("  ");
+                    ser.startTag(null, PARAM_TAG);
+                    ser.attribute(null, NAME_ATTR, name);
+                    ser.text(value);
+                    ser.endTag(null, PARAM_TAG);
+                    ser.ignorableWhitespace(NEWLINE);
+                }
+            }
+            ser.endTag(null, METADATA_TAG);
+            ser.ignorableWhitespace(NEWLINE + NEWLINE);
+        }
     }
 
     private void writeWrappedSnippets(XmlSerializer ser, String wrappingTag,
@@ -169,6 +206,12 @@ public class XmlSnippetContentSerializer implements ContentSerializer {
     private static final String DOC_ROOT_ELEM = "pdashCmsPage";
 
     private static final String PAGE_TITLE_TAG = "pageTitle";
+
+    private static final String METADATA_TAG = "pageMetadata";
+
+    private static final String PARAM_TAG = "param";
+
+    private static final String NAME_ATTR = "name";
 
     private static final String PAGE_HEADING_TAG = "pageHeading";
 

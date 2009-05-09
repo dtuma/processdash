@@ -1,4 +1,4 @@
-// Copyright (C) 2006-2008 Tuma Solutions, LLC
+// Copyright (C) 2006-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -95,6 +95,16 @@ public class EditedPageDataParser implements EditPageParameters,
 
     private void parsePageMetaData(PageContentTO page) {
         page.setPageTitle(getParameter(PAGE_TITLE));
+
+        String[] metadataNames = (String[]) parameters.get(PAGE_METADATA
+            + "_ALL");
+        if (metadataNames != null) {
+            for (String name : metadataNames) {
+                String value = (String) parameters.get(PAGE_METADATA + '_'
+                        + name);
+                page.setMetadataValue(name, value);
+            }
+        }
     }
 
     private void parseSnippetData(PageContentTO page) {

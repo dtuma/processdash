@@ -1,4 +1,4 @@
-// Copyright (C) 2006 Tuma Solutions, LLC
+// Copyright (C) 2006-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -44,7 +44,10 @@ public class SavePageHandler extends EditedPageDataParser implements ActionHandl
         PageContentTO page = parsePostedPageContent();
 
         // get an output stream for saving the contents
-        OutputStream dest = CmsDefaultConfig.getPersistence().save(pageName);
+        String persistenceQualifier = page.getMetadataValue(
+            PersistenceService.QUALIFIER_ATTRIBUTE_NAME, null);
+        OutputStream dest = CmsDefaultConfig.getPersistence().save(
+            persistenceQualifier, pageName);
 
         // serialize the contents to the output stream
         ContentSerializer ser = CmsDefaultConfig.getSerializer();

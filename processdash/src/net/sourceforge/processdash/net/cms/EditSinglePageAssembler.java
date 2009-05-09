@@ -26,6 +26,7 @@ package net.sourceforge.processdash.net.cms;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
 
 import net.sourceforge.processdash.util.HTMLUtils;
@@ -154,7 +155,23 @@ public class EditSinglePageAssembler extends AbstractPageAssembler
             out.write(XMLUtils.escapeAttribute(page.getPageTitle()));
         out.write("'/>\n\n");
 
+        writePageMetadataValues(out, page);
+
         out.write("</div>\n\n");
+    }
+
+    /** write hidden fields to capture page metadata. */
+    protected void writePageMetadataValues(Writer out, PageContentTO page)
+            throws IOException {
+        for (Map.Entry<String, String> e : page.getMetadata().entrySet()) {
+            String name = e.getKey();
+            String value = e.getValue();
+            if (name != null && value != null) {
+                writeHidden(out, PAGE_METADATA, name);
+                writeHidden(out, PAGE_METADATA + '_' + name, value);
+            }
+        }
+        out.write("\n\n");
     }
 
 

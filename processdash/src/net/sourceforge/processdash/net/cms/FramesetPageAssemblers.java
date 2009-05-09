@@ -444,6 +444,7 @@ public class FramesetPageAssemblers {
             // don't allow the user to edit the page title when editing a single
             // section.  But record it so we don't lose the value.
             writeHidden(out, PAGE_TITLE, page.getPageTitle());
+            writePageMetadataValues(out, page);
         }
 
         protected void writePageSnippetEditors(Writer out, PageContentTO page)

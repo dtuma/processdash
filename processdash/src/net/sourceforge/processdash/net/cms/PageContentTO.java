@@ -24,8 +24,10 @@
 package net.sourceforge.processdash.net.cms;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import net.sourceforge.processdash.util.IteratorFilter;
 
@@ -41,6 +43,8 @@ public class PageContentTO {
 
     private String pageTitle;
 
+    private Map<String, String> metadata;
+
     private List snippets;
 
     /** Gets the title of the page */
@@ -51,6 +55,34 @@ public class PageContentTO {
     /** Set the title of the page */
     public void setPageTitle(String pageTitle) {
         this.pageTitle = pageTitle;
+    }
+
+    /** Get the page metadata */
+    public Map<String, String> getMetadata() {
+        return metadata != null ? metadata : Collections.EMPTY_MAP;
+    }
+
+    /** Set the page metadata */
+    public void setMetadata(Map<String, String> metadata) {
+        this.metadata = metadata;
+    }
+
+    /** Retrieves a piece of page metadata */
+    public String getMetadataValue(String attrName, String defaultVal) {
+        String result = null;
+        if (metadata != null)
+            result = metadata.get(attrName);
+        return (result == null ? defaultVal : result);
+    }
+
+    /** Stores a piece of page metadata */
+    public void setMetadataValue(String attrName, String value) {
+        if (metadata == null)
+            metadata = new HashMap<String, String>();
+        if (value == null)
+            metadata.remove(attrName);
+        else
+            metadata.put(attrName, value);
     }
 
     /** Get a list of

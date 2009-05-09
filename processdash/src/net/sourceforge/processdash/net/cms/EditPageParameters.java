@@ -1,4 +1,4 @@
-// Copyright (C) 2006 Tuma Solutions, LLC
+// Copyright (C) 2006-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -30,6 +30,10 @@ public interface EditPageParameters {
 
     /** Name of form field holding the title of the page */
     String PAGE_TITLE = "pageTitle";
+
+    /** Name of form field indicating the presence of a piece of page metadata,
+     * and holding its name */
+    String PAGE_METADATA = "pageMetadata";
 
     /** Name of form field indicating the presence of a snippet instance, and
      * holding its namespace */
