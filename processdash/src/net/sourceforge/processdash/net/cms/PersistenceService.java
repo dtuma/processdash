@@ -1,4 +1,4 @@
-// Copyright (C) 2006 Tuma Solutions, LLC
+// Copyright (C) 2006-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -32,6 +32,9 @@ import java.io.OutputStream;
  */
 public interface PersistenceService {
 
+    /** A page metadata attribute that holds the persistence qualifier */
+    public String QUALIFIER_ATTRIBUTE_NAME = "PersistenceQualifier";
+
     /** Return an InputStream of bytes representing the named file, or null if
      * no such file can be found by this service.
      */
@@ -40,6 +43,6 @@ public interface PersistenceService {
     /** Return an OutputStream which can save bytes representing the named
      * file, or null if no such stream can be handled by this service.
      */
-    public OutputStream save(String filename) throws IOException;
+    public OutputStream save(String qualifier, String filename) throws IOException;
 
 }

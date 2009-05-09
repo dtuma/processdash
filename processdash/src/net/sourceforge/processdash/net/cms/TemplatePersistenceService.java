@@ -1,4 +1,4 @@
-// Copyright (C) 2006 Tuma Solutions, LLC
+// Copyright (C) 2006-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -47,7 +47,8 @@ public class TemplatePersistenceService implements PersistenceService {
         return null;
     }
 
-    public OutputStream save(String filename) throws IOException {
+    public OutputStream save(String qualifier, String filename)
+            throws IOException {
         return null;
     }
 

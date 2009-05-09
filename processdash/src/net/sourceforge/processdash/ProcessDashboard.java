@@ -52,6 +52,7 @@ import java.net.URL;
 import java.text.MessageFormat;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
@@ -273,7 +274,8 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         pt.click("Read settings");
 
         DefectAnalyzer.setDataDirectory(property_directory);
-        CmsDefaultConfig.setPersistenceDirectory(prop_file.getParentFile());
+        CmsDefaultConfig.setPersistenceDirectories(
+            getCmsPersistenceDirs(prop_file.getParentFile()));
         ExternalResourceManager.getInstance().initializeMappings(
                 prop_file.getParentFile());
         try {
@@ -568,6 +570,37 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         SystemTrayManagement.getIcon().initialize(this);
         initializeOsHelper();
         pt.click("Finished initializing Process Dashboard object");
+    }
+
+    private Map<String, File> getCmsPersistenceDirs(File dataDir) {
+        Map<String, File> result = new LinkedHashMap<String, File>();
+
+        // read the user setting and add the entries it contains.
+        String setting = Settings.getVal("cms.persistenceLocations", "");
+        for (String spec : setting.split(";")) {
+            int sepPos = spec.indexOf("=>");
+            if (sepPos < 1 || sepPos > spec.length()-3)
+                continue;
+
+            String qualifier = spec.substring(0, sepPos).trim();
+            String path = spec.substring(sepPos + 2).replace('/',
+                File.separatorChar).trim();
+            File dir;
+            if (path.startsWith("~")) {
+                dir = new File(System.getProperty("user.home"),
+                    path.substring(2));
+            } else {
+                dir = new File(path);
+            }
+
+            result.put(qualifier, dir);
+        }
+
+        // register the cms data directory as the "default" persistence
+        // location.
+        result.put(null, new File(dataDir, "cms"));
+
+        return result;
     }
 
     private String maybeFollowDataDirLinkFile() {

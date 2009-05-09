@@ -1,4 +1,4 @@
-// Copyright (C) 2006 Tuma Solutions, LLC
+// Copyright (C) 2006-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -37,9 +37,12 @@ import net.sourceforge.processdash.util.RobustFileOutputStream;
  */
 public class FilePersistenceService implements PersistenceService {
 
+    private String qualifier;
+
     private File baseDirectory;
 
-    public FilePersistenceService(File baseDirectory) {
+    public FilePersistenceService(String qualifier, File baseDirectory) {
+        this.qualifier = qualifier;
         this.baseDirectory = baseDirectory;
     }
 
@@ -51,8 +54,19 @@ public class FilePersistenceService implements PersistenceService {
             return null;
     }
 
-    public OutputStream save(String filename) throws IOException {
+    public OutputStream save(String qualifier, String filename)
+            throws IOException {
         if (Settings.isReadOnly())
+            return null;
+
+        // see if our qualifier matches the specified qualifier.
+        if (this.qualifier != null
+                && !this.qualifier.equalsIgnoreCase(qualifier))
+            return null;
+
+        // if our target directory does not exist and cannot be created,
+        // abort.
+        if (!baseDirectory.isDirectory() && !baseDirectory.mkdirs())
             return null;
 
         File f = getFile(filename);

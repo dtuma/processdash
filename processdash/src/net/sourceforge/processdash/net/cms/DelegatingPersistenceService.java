@@ -1,4 +1,4 @@
-// Copyright (C) 2006 Tuma Solutions, LLC
+// Copyright (C) 2006-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -57,10 +57,11 @@ public class DelegatingPersistenceService implements PersistenceService {
         return null;
     }
 
-    public OutputStream save(String filename) throws IOException {
+    public OutputStream save(String qualifier, String filename)
+            throws IOException {
         for (Iterator i = delegates.iterator(); i.hasNext();) {
             PersistenceService s = (PersistenceService) i.next();
-            OutputStream result = s.save(filename);
+            OutputStream result = s.save(qualifier, filename);
             if (result != null)
                 return result;
         }

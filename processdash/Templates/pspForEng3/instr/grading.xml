@@ -3,6 +3,10 @@
 
 <pageTitle>PSP Instructor Grading Helper</pageTitle>
 
+<pageMetadata>
+  <param name="PersistenceQualifier">Global</param>
+</pageMetadata>
+
 <snippet instanceId="113" type="pdash.sectionHeading" version="1.0" persister="xml.v1"><![CDATA[
 <parameters>
   <param name="Name">Progress Overview</param>

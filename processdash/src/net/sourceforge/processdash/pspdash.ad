@@ -192,3 +192,7 @@ reminder.disabled=true
 
 os-mac.mainWindow.paddingRight=6
 os-mac.datatips.disabled=true
+
+cms.persistenceLocations=Global=>~/.processdash/cmsGlobal
+os-windows.cms.persistenceLocations=Global=>~/Application Data/Process Dashboard/cmsGlobal
+os-mac.cms.persistenceLocations=Global=>~/Library/Process Dashboard/cmsGlobal

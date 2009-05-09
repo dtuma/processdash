@@ -1,4 +1,4 @@
-// Copyright (C) 2006 Tuma Solutions, LLC
+// Copyright (C) 2006-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -24,6 +24,7 @@
 package net.sourceforge.processdash.net.cms;
 
 import java.io.File;
+import java.util.Map;
 
 /** Factory for managing current service implementations.
  */
@@ -31,13 +32,21 @@ public class CmsDefaultConfig {
 
     private static PersistenceService SERVICE = null;
 
-    public static void setPersistenceDirectory(File dir) {
-        File cmsDir = new File(dir, "cms");
-        FilePersistenceService fs = new FilePersistenceService(cmsDir);
+    public static void setPersistenceDirectories(Map<String, File> dirs) {
+        DelegatingPersistenceService service = new DelegatingPersistenceService();
+
+        File defaultDir = dirs.remove(null);
+        for (Map.Entry<String, File> e : dirs.entrySet()) {
+            String qualifier = e.getKey();
+            File dir = e.getValue();
+            service.add(new FilePersistenceService(qualifier, dir));
+        }
+        service.add(new FilePersistenceService(null, defaultDir));
 
         TemplatePersistenceService ts = new TemplatePersistenceService();
+        service.add(ts);
 
-        SERVICE = new DelegatingPersistenceService().add(fs).add(ts);
+        SERVICE = service;
     }
 
     public static PersistenceService getPersistence() {
