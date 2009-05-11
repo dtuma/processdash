@@ -1,0 +1,90 @@
+table#baseParts tr.active td.baseColumn input { background-color: #e7dfce }
+table#baseParts tr.active td.delColumn input  { background-color: #fdd }
+table#baseParts tr.active td.addColumn input  { background-color: #dfd }
+table#baseParts tr.active td.modColumn input  { background-color: #ddf }
+
+div#basePartsGraph {
+    position: absolute;
+    width: 400px;
+    height: 16px;
+    z-index: 1;
+    background-color: #ffa;
+    border: 2px solid black;
+    padding: 5px;
+    font-size: 1pt;
+}
+
+
+div#baseTrack {
+    margin-left: 5px;
+    background-image: url("/psp-lib/spanUnmodified.png");
+    background-repeat: repeat-x;
+    background-position: top;
+}
+
+div.graphTrack {
+    position: relative;
+    float: left;
+    width: 180px;
+    height: 16px;
+    font-size: 1pt;
+}
+
+a#hideBasePartsGraphLink {
+    position: relative;
+    float: right;
+    width: 16px;
+    height: 16px;
+    background-image: url("/psp-lib/close.png");
+    background-repeat: no-repeat;
+    border: 0pt;
+    font-size: 1pt;
+    margin: 0pt;
+    padding: 0pt;
+}
+
+div.graphSpan {
+    position: absolute;
+    height: 10px;
+    top: 3px;
+    font-size: 1pt;
+}
+
+div.graphHandle {
+    position: absolute;
+    width: 16px;
+    height: 8px;
+    top: 8px;
+    margin-left: -8px;
+    cursor: move;
+    font-size: 1pt;
+    background-repeat: no-repeat;
+    z-index: 2;
+}
+
+div#deletedSpan {
+    background-image: url("/psp-lib/spanDeleted.png");
+    background-repeat: repeat-x;
+    background-position: top;
+}
+div#deletedHandle {
+    background-image: url("/psp-lib/handleDeleted.png");
+}
+
+div#modifiedSpan {
+    background-image: url("/psp-lib/spanModified.png");
+    background-repeat: repeat-x;
+    background-position: bottom;
+}
+div#modifiedHandle {
+    background-image: url("/psp-lib/handleModified.png");
+    z-index: 3;
+    top: 0px;
+}
+
+div#addedSpan {
+    background-color: #8f8;
+}
+div#addedHandle {
+    background-image: url("/psp-lib/handleAdded.png");
+}

@@ -31,6 +31,7 @@ import java.util.Map;
 import java.util.SortedMap;
 import java.util.Map.Entry;
 
+import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.tool.probe.SizePerItemTable;
 import net.sourceforge.processdash.tool.probe.SizePerItemTable.RelativeSize;
 import net.sourceforge.processdash.util.FormatUtil;
@@ -131,6 +132,8 @@ public class SizeEstimatingTemplate2 extends SizeEstimatingTemplate {
         sizeData.append(" };\n");
         if (USE_COMMA)
             sizeData.append("DashSET.useCommaForDecimal = true;\n");
+        if (Settings.getBool("sizeEst.disableBasePartsGraph", false))
+            sizeData.append("DashSET.disableBasePartsGraph = true;\n");
         sizeData.append("</script>\n");
 
         this.sizeTypeInit = sizeData.toString();

@@ -94,7 +94,7 @@ Control.Slider.prototype = {
       Event.observe(h, "mousedown", slider.eventMouseDown);
     });
     
-    Event.observe(this.track, "mousedown", this.eventMouseDown);
+// PDASH-DISABLE Event.observe(this.track, "mousedown", this.eventMouseDown);
     Event.observe(document, "mouseup", this.eventMouseUp);
     Event.observe(document, "mousemove", this.eventMouseMove);
     
@@ -231,13 +231,15 @@ Control.Slider.prototype = {
           while((this.handles.indexOf(handle) == -1) && handle.parentNode) 
             handle = handle.parentNode;
         
-          this.activeHandle    = handle;
-          this.activeHandleIdx = this.handles.indexOf(this.activeHandle);
-          this.updateStyles();
+          if (this.handles.indexOf(handle)!=-1) {
+            this.activeHandle    = handle;
+            this.activeHandleIdx = this.handles.indexOf(this.activeHandle);
+            this.updateStyles();
         
-          var offsets  = Position.cumulativeOffset(this.activeHandle);
-          this.offsetX = (pointer[0] - offsets[0]);
-          this.offsetY = (pointer[1] - offsets[1]);
+            var offsets  = Position.cumulativeOffset(this.activeHandle);
+            this.offsetX = (pointer[0] - offsets[0]);
+            this.offsetY = (pointer[1] - offsets[1]);
+          }
         }
       }
       Event.stop(event);
