@@ -83,10 +83,10 @@ public class SizeEstimatingTemplate2 extends SizeEstimatingTemplate {
         if (parameters.containsKey("testzero"))
             uniqueNumber = 0;
 
-        initSizeTypeData();
         this.isLegacy = hasValue(BASE_ADDITIONS_DATANAME);
         this.freezeActual = hasValue("Completed");
         this.freezePlan = freezeActual || hasValue("Planning/Completed");
+        initSizeTypeData();
 
         for (Section s : sections)
             s.print();
@@ -132,7 +132,7 @@ public class SizeEstimatingTemplate2 extends SizeEstimatingTemplate {
         sizeData.append(" };\n");
         if (USE_COMMA)
             sizeData.append("DashSET.useCommaForDecimal = true;\n");
-        if (Settings.getBool("sizeEst.disableBasePartsGraph", false))
+        if (freezePlan || Settings.getBool("sizeEst.disableBasePartsGraph", false))
             sizeData.append("DashSET.disableBasePartsGraph = true;\n");
         sizeData.append("</script>\n");
 
