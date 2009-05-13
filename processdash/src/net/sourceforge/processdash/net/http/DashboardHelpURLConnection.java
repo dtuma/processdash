@@ -1,4 +1,4 @@
-// Copyright (C) 2008 Tuma Solutions, LLC
+// Copyright (C) 2008-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -32,6 +32,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
@@ -48,15 +50,21 @@ public class DashboardHelpURLConnection extends DashboardURLConnection {
     }
 
     @Override
-    protected InputStream createResponseStream(byte[] rawData, int headerLen) {
+    protected InputStream createResponseStream(final byte[] rawData,
+            final int headerLen) {
         InputStream result = null;
 
         String contentType = getHeaderField("Content-Type");
         if ("image/png".equals(contentType)) {
-            try {
-                result = maybeResizeImage(rawData, headerLen);
-            } catch (IOException ioe) {
-            }
+            result = AccessController.doPrivileged(
+                new PrivilegedAction<InputStream>() {
+                    public InputStream run() {
+                        try {
+                            return maybeResizeImage(rawData, headerLen);
+                        } catch (IOException ioe) {
+                            return null;
+                        }
+                    }});
         }
 
         if (result == null)
