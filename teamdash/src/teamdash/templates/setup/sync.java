@@ -220,7 +220,7 @@ public class sync extends TinyCGIBase {
 
         // look up the unique ID for this project.
         SimpleData d = data.getSimpleValue(DataRepository.createDataName
-                (projectRoot, PROJECT_ID_DATA_NAME));
+                (projectRoot, TeamDataConstants.PROJECT_ID));
         projectID = (d == null ? "" : d.format());
 
         if (isTeam) {
@@ -230,7 +230,7 @@ public class sync extends TinyCGIBase {
         } else {
             // get the initials of the current team member.
             d = data.getSimpleValue(DataRepository.createDataName
-                                    (projectRoot, INITIALS_DATA_NAME));
+                                    (projectRoot, TeamDataConstants.INDIV_INITIALS));
             if (d == null || !d.test() ||
                 "tttt".equals(initials = d.format()))
                 signalError(INITIALS_MISSING);
@@ -242,6 +242,8 @@ public class sync extends TinyCGIBase {
             d = data.getSimpleValue(DataRepository.createDataName
                                     (projectRoot, CONVERT_DATA_NAME));
             conversionNeeded = (d != null && d.test());
+
+            RepairImportInstruction.maybeRepairForIndividual(getDataContext());
         }
 
         // check to see whether the user wants us to perform a full wbs sync.
@@ -255,7 +257,8 @@ public class sync extends TinyCGIBase {
     private URL getWBSLocation(DataRepository data)
             throws MalformedURLException, TinyCGIException {
 
-        String urlDataName = DataRepository.createDataName(projectRoot, URL_DATA_NAME);
+        String urlDataName = DataRepository.createDataName(projectRoot,
+            TeamDataConstants.TEAM_DATA_DIRECTORY_URL);
         SimpleData d = data.getSimpleValue(urlDataName);
 
         URL wbsLocation = null;
@@ -268,8 +271,8 @@ public class sync extends TinyCGIBase {
             String teamDirectoryLocation = null;
             File teamDirectory = null;
 
-            d = data.getSimpleValue(
-                DataRepository.createDataName(projectRoot, TEAMDIR_DATA_NAME));
+            d = data.getSimpleValue(DataRepository.createDataName(projectRoot,
+                TeamDataConstants.TEAM_DATA_DIRECTORY));
 
             if (d == null || !d.test() ||
                  "Enter network directory path".equals(teamDirectoryLocation = d.format()))
@@ -285,7 +288,7 @@ public class sync extends TinyCGIBase {
 
             if (serverURL != null) {
                 data.putValue(urlDataName, StringData.create(serverURL.toString()));
-                wbsLocation = new URL(serverURL.toString() + "/projDump.xml");
+                wbsLocation = new URL(serverURL.toString() + "/" + HIER_FILENAME);
             }
             else {
                 // locate the wbs file in the team data directory.
@@ -314,7 +317,7 @@ public class sync extends TinyCGIBase {
         String serverUrlStr = d.format();
 
         if (TeamServerSelector.testServerURL(serverUrlStr) != null)
-            wbsLocation = new URL(serverUrlStr + "/projDump.xml");
+            wbsLocation = new URL(serverUrlStr + "/" + HIER_FILENAME);
 
         return wbsLocation;
     }
@@ -765,13 +768,9 @@ public class sync extends TinyCGIBase {
     private static final String TEAM_ROOT = "/TeamRoot";
     private static final String INDIV_ROOT = "/IndivRoot";
     private static final String INDIV2_ROOT = "/Indiv2Root";
-    private static final String TEAMDIR_DATA_NAME = "Team_Data_Directory";
-    private static final String PROJECT_ID_DATA_NAME = "Project_ID";
-    private static final String INITIALS_DATA_NAME = "Indiv_Initials";
     private static final String MIGRATE_DATA_NAME = "Team_Project_Migration_Needed";
     private static final String CONVERT_DATA_NAME = "Team_Project_Conversion_Needed";
     private static final String FULLCOPY_DATA_NAME = "Sync_Full_WBS";
-    private static final String URL_DATA_NAME = "Team_Data_Directory_URL";
     private static final String HIER_FILENAME = "projDump.xml";
     private static final String WORKFLOW_FILENAME = "workflowDump.xml";
 
