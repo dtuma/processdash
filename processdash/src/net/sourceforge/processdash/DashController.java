@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2008 Tuma Solutions, LLC
+// Copyright (C) 2001-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -54,6 +54,7 @@ import net.sourceforge.processdash.tool.export.mgr.CompletionStatus;
 import net.sourceforge.processdash.tool.export.mgr.ExportManager;
 import net.sourceforge.processdash.tool.export.mgr.ImportDirectoryInstruction;
 import net.sourceforge.processdash.tool.export.mgr.ImportManager;
+import net.sourceforge.processdash.tool.export.mgr.RepairImportDirInstruction;
 
 
 public class DashController {
@@ -348,6 +349,10 @@ public class DashController {
         ImportDirectoryInstruction instr = new ImportDirectoryInstruction(
                 importDir, prefix);
         ImportManager.getInstance().addInstruction(instr);
+    }
+    public static void repairImportSetting(String projectID, String prefix,
+            String[] locations) {
+        new RepairImportDirInstruction(projectID, prefix, locations).run();
     }
 
     public static void enableTeamSettings() {
