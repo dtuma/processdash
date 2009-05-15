@@ -120,8 +120,8 @@ public class EVTaskListRollup extends EVTaskList {
                     continue;
             }
 
-            ((EVTask) root).add((EVTask) taskList.getRoot());
-            evTaskLists.add(taskList);
+            if (((EVTask) root).add((EVTask) taskList.getRoot()))
+                evTaskLists.add(taskList);
         }
     }
     public boolean isEditable() { return true; }
