@@ -102,6 +102,7 @@ import net.sourceforge.processdash.log.time.TimeLoggingModel;
 import net.sourceforge.processdash.log.time.WorkingTimeLog;
 import net.sourceforge.processdash.log.ui.DefectButton;
 import net.sourceforge.processdash.log.ui.PauseButton;
+import net.sourceforge.processdash.msg.MessageDispatcher;
 import net.sourceforge.processdash.net.cache.FileObjectCache;
 import net.sourceforge.processdash.net.cache.ObjectCache;
 import net.sourceforge.processdash.net.cms.CmsDefaultConfig;
@@ -522,6 +523,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
             Settings.getInt("mainWindow.paddingRight", 2));
         pt.click("Created completion button");
 
+        MessageDispatcher.init(this);
         ImportManager.init(data);
         InternalSettings.addPropertyChangeListener(ImportManager.SETTING_NAME,
             EventHandler.create(PropertyChangeListener.class, this,
