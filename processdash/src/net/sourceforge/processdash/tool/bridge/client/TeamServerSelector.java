@@ -1,4 +1,4 @@
-// Copyright (C) 2008 Tuma Solutions, LLC
+// Copyright (C) 2008-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -25,7 +25,6 @@ package net.sourceforge.processdash.tool.bridge.client;
 
 import java.io.BufferedInputStream;
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
@@ -259,9 +258,11 @@ public class TeamServerSelector {
                 return null;
 
             return new URL(serverURL);
-        } catch (IOException ioe) {
+        } catch (Exception ioe) {
             // if the server is not accepting new connections, it will send
-            // back an HTTP error code, and we'll catch the exception here.
+            // back an HTTP error code, and we'll catch the IOException here.
+            // However, we catch any other exception as well, because the URL
+            // and URLConnection classes sometimes throw runtime exceptions.
             return null;
         }
     }
