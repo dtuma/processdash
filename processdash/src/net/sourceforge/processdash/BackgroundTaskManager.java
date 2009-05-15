@@ -1,4 +1,4 @@
-// Copyright (C) 2007 Tuma Solutions, LLC
+// Copyright (C) 2007-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -76,16 +76,14 @@ public class BackgroundTaskManager {
 
 
 
-    private static BackgroundTaskManager INSTANCE = null;
+    private static final BackgroundTaskManager INSTANCE = new BackgroundTaskManager();
 
     private static DashboardPermission INIT_PERMISSION = new DashboardPermission(
             "backgroundTaskManager.initialize");
 
     public synchronized static void initialize(DashboardContext dashContext) {
         INIT_PERMISSION.checkPermission();
-        if (INSTANCE != null)
-            throw new IllegalStateException("Initialization already performed");
-        INSTANCE = new BackgroundTaskManager(dashContext);
+        INSTANCE.setContext(dashContext);
     }
 
     public static BackgroundTaskManager getInstance() {
@@ -106,19 +104,30 @@ public class BackgroundTaskManager {
 
     private List tasksAwaitingExecution;
 
+    private boolean initialized;
+
     private BackgroundTaskExecutor currentTaskExecutor;
 
     private static final Logger logger = Logger
     .getLogger(BackgroundTaskManager.class.getName());
 
 
-    private BackgroundTaskManager(DashboardContext dashContext) {
+    private BackgroundTaskManager() {
         tasksAwaitingExecution = Collections.synchronizedList(new ArrayList());
+        initialized = false;
+    }
+
+    private synchronized void setContext(DashboardContext dashContext) {
+        if (initialized)
+            throw new IllegalStateException("Initialization already performed");
+
+        initialized = true;
         createBackgroundTasks(dashContext);
         if (!definedTasks.isEmpty()) {
             queueScheduledTasks(true);
             startPeriodicExecutor();
         }
+        startExecutingTasks();
     }
 
     private void createBackgroundTasks(DashboardContext dashContext) {
@@ -184,7 +193,11 @@ public class BackgroundTaskManager {
 
     private synchronized void doAddTask(Runnable r) {
         tasksAwaitingExecution.add(r);
+        if (initialized)
+            startExecutingTasks();
+    }
 
+    private synchronized void startExecutingTasks() {
         if (currentTaskExecutor == null)
             currentTaskExecutor = new BackgroundTaskExecutor();
 
