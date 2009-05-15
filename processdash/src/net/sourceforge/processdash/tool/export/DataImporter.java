@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2008 Tuma Solutions, LLC
+// Copyright (C) 2001-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -185,11 +185,12 @@ public class DataImporter extends Thread {
         }
         while (isRunning) try {
             sleep(TIME_DELAY);
-            checkFiles(null);
+            if (isRunning)
+                checkFiles(null);
         } catch (InterruptedException e) {}
     }
 
-    private void checkFiles(List<String> feedback) {
+    private synchronized void checkFiles(List<String> feedback) {
         try {
             FILE_IO_LOCK.acquireUninterruptibly();
             Set<String> currentFilenames = new HashSet<String>(modTimes
@@ -336,7 +337,8 @@ public class DataImporter extends Thread {
             return directoryDescription + "\\"  + filename;
     }
 
-    public void dispose() {
+    public synchronized void dispose() {
+        isRunning = false;
         for (String filename : new ArrayList<String>(modTimes.keySet())) {
             closeFile(filename);
         }
