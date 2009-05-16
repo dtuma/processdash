@@ -693,4 +693,10 @@
   <noteFormat formatID="PID-ReadOnlyMessageNoteFormat"
           class="teamdash.templates.setup.ReadOnlyMessageNoteFormat"/>
 
+  <messageHandler processID="PID"
+          class="teamdash.templates.setup.MoveTeamDirMessageHandler">
+    <include templateID="PID/IndivRoot"/>
+    <include templateID="PID/Indiv2Root"/>
+  </messageHandler>
+
 </dashboard-process-template>
