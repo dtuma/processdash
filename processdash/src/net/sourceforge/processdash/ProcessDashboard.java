@@ -134,6 +134,7 @@ import net.sourceforge.processdash.ui.TaskNavigationSelector;
 import net.sourceforge.processdash.ui.UserNotificationManager;
 import net.sourceforge.processdash.ui.help.PCSH;
 import net.sourceforge.processdash.ui.lib.ErrorReporter;
+import net.sourceforge.processdash.ui.lib.ExceptionDialog;
 import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
 import net.sourceforge.processdash.ui.systray.SystemTrayManagement;
 import net.sourceforge.processdash.ui.web.psp.SizeEstimatingTemplate;
@@ -1053,6 +1054,18 @@ public class ProcessDashboard extends JFrame implements WindowListener,
 
     private static final String BULLET = "\u2022 ";
 
+    private static void displayStartupUnexpectedError(Throwable t) {
+        ResourceBundle res = ResourceBundle
+                .getBundle("Templates.resources.ProcessDashboard");
+        String title = res.getString("Errors.Unexpected_Error_Title");
+        String[] message = res.getString("Errors.Unexpected_Error_Message")
+                .split("\n");
+        String traceHeader = res.getString("Errors.Unexpected_Error_Trace_Prompt");
+
+        ExceptionDialog.show(null, title, message, " ", traceHeader, t);
+    }
+
+
     public void openDatafile (String prefix, String dataFile) {
         try {
             data.openDatafile (prefix, property_directory + dataFile);
@@ -1483,6 +1496,15 @@ public class ProcessDashboard extends JFrame implements WindowListener,
     }
 
     public static void main(String args[]) {
+        try {
+            mainImpl(args);
+        } catch (Throwable t) {
+            logger.log(Level.SEVERE, "Unexpected exception during startup", t);
+            displayStartupUnexpectedError(t);
+            System.exit(1);
+        }
+    }
+    private static void mainImpl(String[] args) {
         DashboardSecurity.setupSecurityManager();
 
         ss = new DashboardSplashScreen();
