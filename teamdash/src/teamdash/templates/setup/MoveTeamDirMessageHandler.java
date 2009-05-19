@@ -131,12 +131,12 @@ public class MoveTeamDirMessageHandler implements MessageHandler {
         data.putValue(name, d);
     }
 
-    private static final String PROJECT_ID_ATTR = "projectID";
+    static final String PROJECT_ID_ATTR = "projectID";
 
-    private static final String DIR_ATTR = "directory";
+    static final String DIR_ATTR = "directory";
 
-    private static final String DIR_UNC_ATTR = "directoryUNC";
+    static final String DIR_UNC_ATTR = "directoryUNC";
 
-    private static final String URL_ATTR = "url";
+    static final String URL_ATTR = "url";
 
 }

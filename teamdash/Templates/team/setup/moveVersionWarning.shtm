@@ -1,0 +1,43 @@
+<html><!--#do-not-translate-->
+<head>
+<title>Move <!--#echo [move//Team] --> Project Wizard</title>
+<link rel="stylesheet" type="text/css" href="/dash/teamStart.css">
+</head>
+<body>
+
+<h1><!--#echo var=PATH_TRANSLATED --></h1>
+
+<h2>Team Members are Out Of Date</h2>
+
+<form action="moveNewDir.shtm" method="get">
+
+<p>This wizard relies upon functionality that was introduced in
+version 1.10.5 of the Process Dashboard.  However, the following
+member(s) of this team are still using an older version:</p>
+
+<ul>
+<!--#foreach name=Person list=[move//Out_Of_Date_Team_Member_List] -->
+    <li>Person</li>
+<!--#endfor-->
+</ul>
+
+<p>If you continue with the move, the personal plans for these
+individual(s) will continue pointing at the old team data directory
+until they correct the locations manually. The last data they exported
+will continue to be available in the team rollup. However, they will
+not be able to edit the WBS or export updated data until they manually
+repair their team data directories.</p>
+
+<p class="error">Are you certain you want to continue, even if these
+team members become disconnected from the team project?  If the
+individuals above are still involved in the project, it is strongly
+recommended that you stop, and resume the move after all team members
+have upgraded.</p>
+
+<div style="text-align: right">
+<input type="submit" name="next" value="Ignore and Continue">
+</div>
+
+</form>
+</body>
+</html>

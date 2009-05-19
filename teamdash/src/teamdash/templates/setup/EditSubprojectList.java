@@ -22,6 +22,7 @@ import net.sourceforge.processdash.ev.EVTaskList;
 import net.sourceforge.processdash.ev.EVTaskListRollup;
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.PropertyKey;
+import net.sourceforge.processdash.net.http.TinyCGIException;
 import net.sourceforge.processdash.net.http.WebServer;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.HTMLUtils;
@@ -35,6 +36,8 @@ public class EditSubprojectList extends TinyCGIBase implements TeamDataConstants
     private static final String EDIT_ACTION = "edit";
 
     private static final String REMOVE_ACTION = "remove";
+
+    private static final String UPDATE_ACTION = "update";
 
     private static final String CANCEL_ACTION = "cancel";
 
@@ -53,7 +56,7 @@ public class EditSubprojectList extends TinyCGIBase implements TeamDataConstants
 
     private static final String SHORT_NAME = "Short_Name";
 
-    private static final String MASTER_PROJECT_PATH = "Master_Project_Path";
+    private static final String MASTER_ROOT = "/MasterRoot";
 
     private static Logger logger = Logger.getLogger(EditSubprojectList.class
             .getName());
@@ -98,6 +101,8 @@ public class EditSubprojectList extends TinyCGIBase implements TeamDataConstants
                 doEdit();
             else if (REMOVE_ACTION.equals(handleAction))
                 doRemove();
+            else if (UPDATE_ACTION.equals(handleAction))
+                doUpdate();
             else if (JOIN_MASTER_ACTION.equals(handleAction))
                 doJoinMasterProject();
             else if (LEAVE_MASTER_ACTION.equals(handleAction))
@@ -105,6 +110,15 @@ public class EditSubprojectList extends TinyCGIBase implements TeamDataConstants
             else
                 writeCloseWindow(false);
         }
+    }
+
+    private void ensureMasterProject() throws TinyCGIException {
+        DashHierarchy hierarchy = getPSPProperties();
+        PropertyKey key = hierarchy.findExistingKey(getPrefix());
+        String templateID = hierarchy.getID(key);
+
+        if (templateID == null || !templateID.endsWith(MASTER_ROOT))
+            throw new TinyCGIException(403, "Not a Master Project");
     }
 
     /*
@@ -118,7 +132,7 @@ public class EditSubprojectList extends TinyCGIBase implements TeamDataConstants
                 + "  No changes can be made.</body></html>");
     }
 
-    private void showProjectList() {
+    private void showProjectList() throws IOException {
         Map subprojects = getSubprojects();
         ListData validSubprojects = findValidSubprojectNames();
 
@@ -331,7 +345,7 @@ public class EditSubprojectList extends TinyCGIBase implements TeamDataConstants
      * Methods to handle values posted to this form
      */
 
-    private void doAdd() {
+    private void doAdd() throws IOException {
         Map subprojects = getSubprojects();
         ListData validSubprojects = findValidSubprojectNames();
         String shortName = getParameter(SHORT_NAME);
@@ -361,7 +375,7 @@ public class EditSubprojectList extends TinyCGIBase implements TeamDataConstants
         writeCloseWindow(true);
     }
 
-    private void doEdit() {
+    private void doEdit() throws IOException {
         String num = getParameter(NUMBER);
         if (!hasValue(num)) {
             writeCloseWindow(true);
@@ -392,7 +406,7 @@ public class EditSubprojectList extends TinyCGIBase implements TeamDataConstants
         writeCloseWindow(true);
     }
 
-    private void doRemove() {
+    private void doRemove() throws IOException {
         Map subprojects = getSubprojects();
         Subproject projToRemove = null;
 
@@ -440,6 +454,11 @@ public class EditSubprojectList extends TinyCGIBase implements TeamDataConstants
         }
 
         writeCloseWindow(true);
+    }
+
+    private void doUpdate() throws IOException {
+        recalcDependentData();
+        out.write("OK");
     }
 
     /*
@@ -573,7 +592,7 @@ public class EditSubprojectList extends TinyCGIBase implements TeamDataConstants
      * subproject list
      */
 
-    private void recalcDependentData() {
+    private void recalcDependentData() throws IOException {
         logger.log(Level.FINE, "Master project {0} recalculating data",
                 getPrefix());
         Map subprojects = getSubprojects();
@@ -741,7 +760,9 @@ public class EditSubprojectList extends TinyCGIBase implements TeamDataConstants
         }
     }
 
-    private Map getSubprojects() {
+    private Map getSubprojects() throws TinyCGIException {
+        ensureMasterProject();
+
         LinkedHashMap result = new LinkedHashMap();
         int nullCount = 0;
         for (int i = 0; nullCount < 5; i++) {

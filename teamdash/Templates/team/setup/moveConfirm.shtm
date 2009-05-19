@@ -1,0 +1,57 @@
+<html><!--#do-not-translate-->
+<head>
+<title>Move <!--#echo [move//Team] --> Project Wizard</title>
+<link rel="stylesheet" type="text/css" href="/dash/teamStart.css">
+<style>
+td.label { font-weight: bold;   vertical-align: top;
+           text-align: left;    padding-right: .5cm }
+td.value { font-family: monospace }
+pre      { margin-left: 1cm }
+</style>
+</head>
+<body>
+
+<h1><!--#echo var=PATH_TRANSLATED --></h1>
+
+<h2>Confirm Move Operation</h2>
+
+<form action="moveRun.shtm" method="post">
+
+<p>You have requested to change the <b><!--#echo [move//Team] -->
+Project Network Directory</b> of this project from:</p>
+
+<pre><!--#echo [move//Current_Team_Dir] --></pre>
+
+<p>to:</p>
+
+<pre><!--#echo [move//Team_Dir] -->
+
+</pre>
+
+<p>Only the data for the "<tt><!--#echo var=PATH_TRANSLATED --></tt>"
+project will be moved.  Specifically, this means that the contents of
+the directory:</p>
+
+<pre><!--#echo [move//Current_Data_Dir] --></pre>
+
+<p>will be moved to the new directory:</p>
+
+<pre><!--#echo [move//Data_Dir] -->
+
+</pre>
+
+
+<p>Review this information carefully. If any of this information is
+incorrect, press the &quot;Back&quot; button to make corrections.</p>
+
+<p>If this information is correct, press the &quot;Finish&quot; button
+to move the <!--#echo [move//team] --> project.</p>
+
+<div style="text-align: right">
+<input type=button name=back value='Back'
+       onClick='history.back();'>&nbsp;&nbsp;
+<input type=submit name=next value='Finish'>
+</div>
+
+</form>
+</body>

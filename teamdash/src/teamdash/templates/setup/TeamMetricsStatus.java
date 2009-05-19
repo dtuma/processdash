@@ -16,23 +16,52 @@ import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.FormatUtil;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.StringUtils;
+import net.sourceforge.processdash.util.XMLUtils;
 
 public class TeamMetricsStatus extends TinyCGIBase {
 
 
     @Override
     protected void writeContents() throws IOException {
+        String prefixListName = getParameter("for");
+        ListData prefixList = ListData.asListData(getDataContext()
+                .getSimpleValue(prefixListName));
+        List<ImportData> importData = getImportData(prefixList);
+
+        if (parameters.get("xml") != null)
+            writeXml(importData);
+        else
+            writeHtml(importData);
+    }
+
+
+
+    private void writeXml(List<ImportData> importData) {
+        out.println("<?xml version='1.0' encoding='UTF-8'?>");
+        out.println("<members>");
+        for (ImportData d : importData) {
+            out.print("  <member name='");
+            out.print(XMLUtils.escapeAttribute(d.ownerName));
+            if (d.exportDate != null) {
+                out.print("' lastExport='");
+                out.print(XMLUtils.saveDate(d.exportDate));
+            }
+            out.print("' dashVersion='");
+            out.print(XMLUtils.escapeAttribute(d.dashVersion));
+            out.println("' />");
+        }
+        out.println("</members>");
+    }
+
+
+
+    protected void writeHtml(List<ImportData> importData) {
         out.println(HTML_HEADER);
 
         out.print("<h2>For ");
         out.print(HTMLUtils.escapeEntities(getPrefix()));
         out.print(" <a href='../../control/importNow.class?redirectToReferrer="
                 + (RELOAD++) + "' class='nav'>Refresh Data...</a></h2>");
-
-        String prefixListName = getParameter("for");
-        ListData prefixList = ListData.asListData(getDataContext()
-                .getSimpleValue(prefixListName));
-        List<ImportData> importData = getImportData(prefixList);
 
         if (importData == null || importData.size() == 0)
             showNoTeamMembersFound();

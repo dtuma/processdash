@@ -1,0 +1,53 @@
+<html><!--#do-not-translate-->
+<head>
+<title>Move <!--#echo [move//Team] --> Project Wizard</title>
+<link rel="stylesheet" type="text/css" href="/dash/teamStart.css">
+</head>
+<body>
+
+<h1><!--#echo var=PATH_TRANSLATED --></h1>
+
+<h2>Move <!--#echo [move//Team] --> Project Wizard</h2>
+
+<form action="move" method="post">
+<input type="hidden" name="page" value="start">
+
+<p>When you first create a <!--#echo [move//team] --> project, the
+<!--#echo [move//Team] --> Project Setup Wizard prompts you for the
+name of a directory where team data should be stored.  This
+information is recorded in the Team Dashboard, and copied to
+    <!--#if [move//Is_Master] -->
+        the subprojects of this master project.
+    <!--#else-->
+        Personal Dashboards as individual team members join.
+    <!--#endif-->
+</p>
+
+<p>Later in the project, you may discover that you need to move these
+files to a different location on the network.  This wizard is designed
+to perform that task.</p>
+
+<p>The following pages in the wizard will:</p>
+
+<ul>
+
+<li>Prompt you for the new location of the team data</li>
+
+<li>Physically copy the files from the old location to the new
+location you select</li>
+
+<li>Update the pointers in the Team Dashboard
+<!--#if ![move//Is_Master] -->and the Personal
+Dashboards<!--#endif--> so they point to the new location.</li>
+
+</ul>
+
+<p>To proceed, click the Next button below.</p>
+
+<div style="text-align: right">
+<input type="submit" name="next" value="Next">
+</div>
+
+</form>
+</body>
+</html>

@@ -1,0 +1,79 @@
+<html><!--#do-not-translate-->
+<head>
+<title>Cannot Move <!--#echo [move//Team] --> Project</title>
+<link rel="stylesheet" type="text/css" href="/dash/teamStart.css">
+</head>
+<body>
+
+<h1><!--#echo var=PATH_TRANSLATED --></h1>
+
+<h2>Cannot Move <!--#echo [move//Team] --> Project</h2>
+
+<!--#if notTeamProject -->
+
+<p>This wizard is designed for use in the Team Dashboard, to relocate
+data for a Team Project or a Master Project.  You are attempting to
+use it on some other project type, which is not supported.</p>
+
+<!--#elif hasURL -->
+
+<p>The Process Dashboard currently does not provide support for moving
+<!--#echo [move//team] --> projects that are registered with a Team
+Server. If you need to move this <!--#echo [move//team] --> project,
+please contact the Process Dashboard development team for
+assistance.</p>
+
+<!--#elif noProjectID -->
+
+<p><!--#echo [move//Team] --> Projects are described by a unique
+Project ID.  The Project ID for this project appears to be missing.
+This is a serious error; the move operation cannot continue.</p>
+
+<!--#elif noTeamDir -->
+
+<p>This wizard is designed to relocate <!--#echo [move//team] -->
+project data from its existing location to a new location.
+Unfortunately, the existing location of the data is currently unknown.
+You must enter the location of the <b><!--#echo [move//Team] -->
+Project Network Directory</b> on the Project Parameters and Settings
+page before you can continue.</p>
+
+<!--#elif badTeamDir -->
+
+<p>This wizard is designed to relocate <!--#echo [move//team] -->
+project data from its existing location to a new location.  From the
+information on the Project Parameters and Settings page, the
+<!--#echo [move//team] --> project data should currently be located at:</p>
+
+<pre><!--#echo path --></pre>
+
+<p>Unfortunately, that directory doesn't appear to exist.  To resolve
+this problem, you may need to map a network drive, or repair the
+values on the Project Parameters and Settings page.</p>
+
+<!--#elif emptyTeamDir -->
+
+<p>This wizard is designed to relocate <!--#echo [move//team] -->
+project data from its existing location to a new location.  From the
+information on the Project Parameters and Settings page, the
+<!--#echo [move//team] --> project data should currently be located at:</p>
+
+<pre><!--#echo path --></pre>
+
+<p>Unfortunately, that directory doesn't appear to contain
+<!--#echo [move//team] --> project data.  To correct this problem,
+you may need to repair the values on the Project Parameters and
+Settings page.</p>
+
+<!--#elif teamDirInUse -->
+
+<p>The data for this project cannot move the data for this project,
+because the WBS is currently open for editing<!--#if lockOwner -->
+by <!--#echo lockOwner --><!--#endif-->. Please address this
+problem, then start the move process again.
+
+<!--#endif-->
+
+
+</body>
+</html>

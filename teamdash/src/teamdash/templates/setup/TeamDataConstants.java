@@ -13,6 +13,7 @@ public interface TeamDataConstants {
         "Project_Schedule_PDT_Last_Synced_Val";
     public static final String PROJECT_SCHEDULE_SYNC_SCHEDULE =
         "Project_Schedule_Hours_Last_Synced_Val";
+    public static final String MASTER_PROJECT_PATH = "Master_Project_Path";
 
     public static final String TEAM_PROJECT_URL = "Team_URL";
     public static final String INDIV_INITIALS = "Indiv_Initials";
