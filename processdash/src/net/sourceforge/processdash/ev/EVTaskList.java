@@ -250,7 +250,7 @@ public class EVTaskList extends AbstractTreeTableModel
             return new EVTaskListXML(taskListName, data);
 
         // for testing purposes, return a cached list
-        if (taskListName.equals(TESTING_TASK_LIST_NAME))
+        if (taskListName != null && taskListName.equals(TESTING_TASK_LIST_NAME))
             return TESTING_TASK_LIST;
 
         // no task list was found.
