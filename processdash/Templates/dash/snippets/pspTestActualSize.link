@@ -1,0 +1,5 @@
+class:net.sourceforge.processdash.ui.web.reports.snippets.MetricsAlert
+disabledBy==pspProc.testActualSize.disabled
+Expression==[In_Postmortem] && ![Size] && ![PSP0]
+TrueMessageType==Error
+TrueMessage==${PSPTestActualSize.Error_Message}

@@ -1,0 +1,5 @@
+class:net.sourceforge.processdash.ui.web.reports.snippets.MetricsAlert
+disabledBy==pspProc.testPlanBaseSize.disabled
+Expression==[Estimated Base LOC] < [Estimated Deleted LOC] + [Estimated Modified LOC]
+TrueMessageType==Error
+TrueMessage==${PSPTestPlanBaseSize.Error_Message}

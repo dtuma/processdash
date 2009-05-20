@@ -99,6 +99,8 @@ public class MetricsAlert extends TinyCGIBase {
         }
 
         String messageTemplate = getParameter(which + "Message");
+        if (messageTemplate != null && messageTemplate.startsWith("${"))
+            messageTemplate = resources.interpolate(messageTemplate);
         printMessageFromTemplate(type, messageTemplate);
     }
 

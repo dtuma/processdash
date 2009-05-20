@@ -1,0 +1,5 @@
+class:net.sourceforge.processdash.ui.web.reports.snippets.MetricsAlert
+disabledBy==pspProc.testActualBaseSize.disabled
+Expression==[Base LOC] < [Deleted LOC] + [Modified LOC]
+TrueMessageType==Error
+TrueMessage==${PSPTestActualBaseSize.Error_Message}

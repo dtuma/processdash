@@ -1,0 +1,5 @@
+class:net.sourceforge.processdash.ui.web.reports.snippets.MetricsAlert
+disabledBy==pspProc.testActualSizeItems.disabled
+Expression==[Size] && badsize([Base LOC], [Deleted LOC], [Modified LOC], [Added LOC], [Reused LOC], [New & Changed LOC], [Total LOC], [New Reused LOC], [Object LOC])
+TrueMessageType==Error
+TrueMessage==${PSPTestActualSizeItems.Error_Message}

@@ -1,0 +1,5 @@
+class:net.sourceforge.processdash.ui.web.reports.snippets.MetricsAlert
+disabledBy==pspProc.testPlanSizeItems.disabled
+Expression==[Estimated Size] && badsize([Estimated Base LOC], [Estimated Deleted LOC], [Estimated Modified LOC], [Estimated Added LOC], [Estimated Reused LOC], [Estimated New & Changed LOC], [Estimated Total LOC], [Estimated New Reused LOC], [Estimated Object LOC])
+TrueMessageType==Error
+TrueMessage==${PSPTestPlanSizeItems.Error_Message}

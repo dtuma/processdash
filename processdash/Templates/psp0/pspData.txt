@@ -49,6 +49,14 @@
 
 
 /*
+ * Define some reusable tests for use in metrics alerts.
+ */
+
+[Planning_Is_Done] = [Planning/Complete] || [Complete] || ([Time] > [Planning/Time]);
+[In_Postmortem] = [Test/Complete] || [Complete] || [Postmortem/Time];
+
+
+/*
  * Define the default size metric for PSP - LOC.
  */
 

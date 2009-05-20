@@ -263,4 +263,50 @@ This file contains the template definitions for the standard PSP processes.
     <phase name="Analyze Rollup Data"/>
   </template>
 
+  <!-- advice snippets used by the PSP plan summary form -->
+
+  <snippet id="pspProc.testPlanTime" version="1.0" category="advice">
+    <resources>CMS.Snippet.Anonymous</resources>
+    <context>PSP Project</context>
+    <uri>/dash/snippets/pspTestPlanTime</uri>
+  </snippet>
+
+  <snippet id="pspProc.testPlanSize" version="1.0" category="advice">
+    <resources>CMS.Snippet.Anonymous</resources>
+    <context>PSP Project</context>
+    <uri>/dash/snippets/pspTestPlanSize</uri>
+  </snippet>
+
+  <snippet id="pspProc.testPlanBaseSize" version="1.0" category="advice">
+    <resources>CMS.Snippet.Anonymous</resources>
+    <context>PSP Project</context>
+    <uri>/dash/snippets/pspTestPlanBaseSize</uri>
+  </snippet>
+
+  <snippet id="pspProc.testPlanSizeItems" version="1.0" category="advice">
+    <resources>CMS.Snippet.Anonymous</resources>
+    <context>PSP Project</context>
+    <uri>/dash/snippets/pspTestPlanSizeItems</uri>
+  </snippet>
+
+  <snippet id="pspProc.testActualSize" version="1.0" category="advice">
+    <resources>CMS.Snippet.Anonymous</resources>
+    <context>PSP Project</context>
+    <uri>/dash/snippets/pspTestActualSize</uri>
+  </snippet>
+
+  <snippet id="pspProc.testActualBaseSize" version="1.0" category="advice">
+    <resources>CMS.Snippet.Anonymous</resources>
+    <context>PSP Project</context>
+    <uri>/dash/snippets/pspTestActualBaseSize</uri>
+  </snippet>
+
+  <snippet id="pspProc.testActualSizeItems" version="1.0" category="advice">
+    <resources>CMS.Snippet.Anonymous</resources>
+    <context>PSP Project</context>
+    <uri>/dash/snippets/pspTestActualSizeItems</uri>
+  </snippet>
+
+
+
 </dashboard-process-template>
