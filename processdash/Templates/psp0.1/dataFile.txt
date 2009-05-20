@@ -73,6 +73,8 @@ FOR_EACH_PHASE(estimateTime);
  */
 
 [Estimated New & Changed LOC] = ?NaN;
+[Estimated Added LOC] = [Estimated New & Changed LOC];
+[Estimated Total LOC] = [Estimated New & Changed LOC];
 
 [Total LOC]    = ?NaN;
 

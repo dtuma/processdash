@@ -263,7 +263,14 @@ This file contains the template definitions for the standard PSP processes.
     <phase name="Analyze Rollup Data"/>
   </template>
 
-  <!-- advice snippets used by the PSP plan summary form -->
+  <!-- snippets used by the PSP plan summary form -->
+
+  <snippet id="pspProc.psp01Size" version="1.0" category="hidden"
+           requires="pspProc version 2.0">
+    <resources>Analysis.PSP01SizeTable</resources>
+    <context>PSP Project</context>
+    <uri>/psp0.1/sizeBlock.htm</uri>
+  </snippet>
 
   <snippet id="pspProc.testPlanTime" version="1.0" category="advice">
     <resources>CMS.Snippet.Anonymous</resources>
