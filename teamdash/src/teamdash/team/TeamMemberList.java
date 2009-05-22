@@ -469,25 +469,17 @@ public class TeamMemberList extends AbstractTableModel implements EffortCalendar
 
         int week = getEarliestStartWeek();
 
-        while (hours > 0) {
+        while (hours > 0 && week < 1000) {
             double hoursThisWeek = 0;
-            boolean foundParticipant = false;
             boolean inMaintenancePeriod = true;
 
             for (int i = getRowCount();  i-- > 0; ) {
                 WeekData wd = getScheduleAt(i).getWeekData(week);
-                if (wd.isInsideSchedule()) {
-                    foundParticipant = true;
+                if (wd.isInsideSchedule())
                     hoursThisWeek += wd.getHours();
-                }
                 if (week < getScheduleAt(i).getMaintenanceStartWeek())
                     inMaintenancePeriod = false;
             }
-
-            // no one is working on the project anymore, even though is still
-            // work to be done.  The project will never finish.
-            if (!foundParticipant)
-                return null;
 
             // if we can get done this week, calculate when.
             if (hours < hoursThisWeek) {
