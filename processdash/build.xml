@@ -3,7 +3,7 @@
 <!-- ===================================================================
 
 Process Dashboard - Data Automation Tool for high-maturity processes
-Copyright (C) 2001-2008 Tuma Solutions, LLC
+Copyright (C) 2001-2009 Tuma Solutions, LLC
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -76,10 +76,10 @@ Authors:
   <property file="${lib}/version.properties"/>
 
   <property name="eng.version"      value="3.0"/><!-- VERSION -->
-  <property name="eng.requires"     value="1.10.4.1a+"/><!-- VERSION -->
-  <property name="l10nTool.version" value="1.0"/><!-- VERSION -->
+  <property name="eng.requires"     value="1.10.6+"/><!-- VERSION -->
+  <property name="l10nTool.version" value="1.1"/><!-- VERSION -->
   <property name="l10nTool.requires" value="1.9.2b+"/><!-- VERSION -->
-  <property name="instr.requires"   value="1.10.4.1a+"/><!-- VERSION -->
+  <property name="instr.requires"   value="1.10.6+"/><!-- VERSION -->
 
 
   <property name="applet.file" value="DataApplet${dashboardVersion}"/>
