@@ -80,6 +80,18 @@ public class TeamServerSelector {
     }
 
     /**
+     * Test whether a particular string is in a format that looks like a team
+     * server URL.
+     *
+     * @param location a String describing a location
+     * @return true if the location should be treated as a URL, false if it
+     *    should be treated as a File path.
+     */
+    public static boolean isUrlFormat(String location) {
+        return (location != null && location.startsWith("http"));
+    }
+
+    /**
      * Look in a particular real directory, and see if its contents are
      * available through one or more team servers. If so, return the URL of the
      * server which appears to be closest / most responsive.

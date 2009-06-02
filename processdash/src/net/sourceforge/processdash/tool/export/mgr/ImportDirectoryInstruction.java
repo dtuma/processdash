@@ -1,4 +1,4 @@
-// Copyright (C) 2005-2008 Tuma Solutions, LLC
+// Copyright (C) 2005-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -23,6 +23,9 @@
 
 package net.sourceforge.processdash.tool.export.mgr;
 
+import net.sourceforge.processdash.tool.bridge.client.TeamServerSelector;
+import net.sourceforge.processdash.util.StringUtils;
+
 import org.w3c.dom.Element;
 
 public class ImportDirectoryInstruction extends AbstractInstruction {
@@ -38,8 +41,11 @@ public class ImportDirectoryInstruction extends AbstractInstruction {
     public ImportDirectoryInstruction() {
     }
 
-    public ImportDirectoryInstruction(String dir, String prefix) {
-        setDirectory(dir);
+    public ImportDirectoryInstruction(String location, String prefix) {
+        if (TeamServerSelector.isUrlFormat(location))
+            setURL(location);
+        else
+            setDirectory(location);
         setPrefix(prefix);
     }
 
@@ -77,9 +83,20 @@ public class ImportDirectoryInstruction extends AbstractInstruction {
     }
 
     public String getDescription() {
-        return resource.format(
+        if (isUrlOnly()) {
+            return resource.format(
+                "Wizard.Import.Import_URL.Task_Description_FMT", getURL(),
+                getPrefix());
+        } else {
+            return resource.format(
                 "Wizard.Import.Import_Directory.Task_Description_FMT",
                 getDirectory(), getPrefix());
+        }
+    }
+
+    public boolean isUrlOnly() {
+        return StringUtils.hasValue(getURL())
+            && !StringUtils.hasValue(getDirectory());
     }
 
     public String getXmlTagName() {

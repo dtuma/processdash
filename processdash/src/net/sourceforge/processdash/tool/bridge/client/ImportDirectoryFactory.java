@@ -1,4 +1,4 @@
-// Copyright (C) 2008 Tuma Solutions, LLC
+// Copyright (C) 2008-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -106,7 +106,7 @@ public class ImportDirectoryFactory {
 
             // If the location is a URL, try contacting that server and
             // retrieving the data.
-            if (location.startsWith("http")) {
+            if (TeamServerSelector.isUrlFormat(location)) {
                 URL remoteURL = TeamServerSelector.testServerURL(location);
                 if (remoteURL != null) {
                     try {

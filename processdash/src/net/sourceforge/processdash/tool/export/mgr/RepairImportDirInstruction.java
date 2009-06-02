@@ -25,6 +25,7 @@ package net.sourceforge.processdash.tool.export.mgr;
 
 import java.io.File;
 
+import net.sourceforge.processdash.tool.bridge.client.TeamServerSelector;
 import net.sourceforge.processdash.util.StringUtils;
 
 /**
@@ -64,17 +65,20 @@ public class RepairImportDirInstruction {
 
 
     public void run() {
+        if (!StringUtils.hasValue(projectID))
+            return;
+
         setupLocations();
 
-        if (!StringUtils.hasValue(projectID) || !StringUtils.hasValue(dirPath))
+        if (dirPath == null && url == null)
             return;
 
         ImportDirectoryInstruction currentInstr = findMatchingInstruction();
 
-        ImportDirectoryInstruction newInstr = new ImportDirectoryInstruction(
-                dirPath, prefix);
-        if (StringUtils.hasValue(url))
-            newInstr.setURL(url);
+        ImportDirectoryInstruction newInstr = new ImportDirectoryInstruction();
+        newInstr.setDirectory(dirPath);
+        newInstr.setURL(url);
+        newInstr.setPrefix(prefix);
 
         if (currentInstr == null)
             ImportManager.getInstance().addInstruction(newInstr);
@@ -89,7 +93,7 @@ public class RepairImportDirInstruction {
             if (!StringUtils.hasValue(location))
                 continue;
 
-            if (location.startsWith("http")) {
+            if (TeamServerSelector.isUrlFormat(location)) {
                 this.url = location;
             } else if (new File(location).isDirectory()) {
                 this.dirPath = location;
@@ -130,6 +134,8 @@ public class RepairImportDirInstruction {
     private boolean instructionIsUpToDate(ImportDirectoryInstruction instr) {
         if (StringUtils.hasValue(url) && !url.equals(instr.getURL()))
             return false;
+        if (dirPath == null)
+            return true;
         for (String location : locations) {
             if (StringUtils.hasValue(location)
                     && location.equals(instr.getDirectory()))

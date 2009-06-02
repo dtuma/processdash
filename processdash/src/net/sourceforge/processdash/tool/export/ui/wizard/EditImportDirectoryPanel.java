@@ -1,4 +1,4 @@
-// Copyright (C) 2005 Tuma Solutions, LLC
+// Copyright (C) 2005-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -24,22 +24,20 @@
 package net.sourceforge.processdash.tool.export.ui.wizard;
 
 import java.awt.Color;
-import java.awt.event.ActionListener;
 import java.beans.EventHandler;
 import java.io.File;
 
 import javax.swing.Box;
 import javax.swing.ButtonGroup;
-import javax.swing.JCheckBox;
 import javax.swing.JFileChooser;
-import javax.swing.JOptionPane;
 import javax.swing.JRadioButton;
 import javax.swing.JTextField;
 import javax.swing.event.DocumentListener;
 
-import net.sourceforge.processdash.tool.export.DataImporter;
+import net.sourceforge.processdash.tool.bridge.client.TeamServerSelector;
 import net.sourceforge.processdash.tool.export.mgr.ImportDirectoryInstruction;
 import net.sourceforge.processdash.tool.export.mgr.ImportManager;
+import net.sourceforge.processdash.ui.lib.SwingWorker;
 import net.sourceforge.processdash.ui.lib.WrappingText;
 
 public class EditImportDirectoryPanel extends WizardPanel {
@@ -51,6 +49,8 @@ public class EditImportDirectoryPanel extends WizardPanel {
     private boolean fromManagePanel;
 
     private DirectoryChooser directory;
+
+    private JTextField url;
 
     private JTextField prefix;
 
@@ -78,12 +78,22 @@ public class EditImportDirectoryPanel extends WizardPanel {
         DocumentListener listener = (DocumentListener) EventHandler.create(
                 DocumentListener.class, this, "updateInstruction");
 
-        String chooseDirectoryPrompt = getString("Choose_Directory");
-        add(indentedComponent(2, new WrappingText(chooseDirectoryPrompt)));
-        add(verticalSpace(1));
-        directory = new DirectoryChooser();
-        directory.getDocument().addDocumentListener(listener);
-        add(indentedComponent(4, directory));
+        if (instr.isUrlOnly()) {
+            String chooseUrlPrompt = getString("Choose_URL");
+            add(indentedComponent(2, new WrappingText(chooseUrlPrompt)));
+            add(verticalSpace(1));
+            url = new JTextField(instr.getURL());
+            url.getDocument().addDocumentListener(listener);
+            add(indentedComponent(4, url));
+
+        } else {
+            String chooseDirectoryPrompt = getString("Choose_Directory");
+            add(indentedComponent(2, new WrappingText(chooseDirectoryPrompt)));
+            add(verticalSpace(1));
+            directory = new DirectoryChooser();
+            directory.getDocument().addDocumentListener(listener);
+            add(indentedComponent(4, directory));
+        }
 
         add(verticalSpace(2));
         String choosePrefixPrompt = getString("Choose_Prefix");
@@ -126,33 +136,110 @@ public class EditImportDirectoryPanel extends WizardPanel {
     }
 
     public void updateInstruction() {
-        instr.setDirectory(directory.getSelectedFile());
+        if (directory != null) {
+            String location = directory.getSelectedFile();
+            if (TeamServerSelector.isUrlFormat(location)) {
+                instr.setDirectory(null);
+                instr.setURL(location);
+            } else {
+                instr.setDirectory(location);
+                instr.setURL(null);
+            }
+        } else {
+            instr.setDirectory(null);
+            instr.setURL(url.getText());
+        }
         instr.setPrefix(prefix.getText());
         recalculateEnablement();
     }
 
     private void recalculateEnablement() {
-        String dir = instr.getDirectory();
-        if (dir == null || dir.trim().length() == 0) {
-            setError(getString("Choose_Directory.Error_Missing"));
-            return;
+        nextButton.setEnabled(false);
+        synchronized (this) {
+            recalcWorker = new RecalculateEnablement();
+            recalcWorker.start();
+        }
+    }
+
+    private RecalculateEnablement recalcWorker = null;
+
+    private class RecalculateEnablement extends SwingWorker {
+
+        @Override
+        public Object construct() {
+            String locationError = getLocationError();
+            if (locationError != null)
+                return locationError;
+
+            String pre = prefix.getText();
+            if (pre == null || pre.trim().length() == 0) {
+                return getString("Choose_Prefix.Error_Missing");
+            }
+
+            return null;
         }
 
-        File dirFile = new File(dir);
-        if (!dirFile.isDirectory()) {
-            setError(Wizard.resources.format(
+        private String getLocationError() {
+            if (instr.isUrlOnly() || url != null)
+                return getUrlLocationError();
+            else
+                return getFileLocationError();
+        }
+
+        private String getUrlLocationError() {
+            String url = instr.getURL();
+            if (!hasValue(url))
+                return getString("Choose_URL.Error_Missing");
+
+            if (shouldPerformExpensiveCheck() == false)
+                return null;
+
+            if (TeamServerSelector.testServerURL(url) == null) {
+                return Wizard.resources.format(
+                    "Import.Directory.Choose_URL.Error_Invalid_FMT", url);
+            }
+
+            return null;
+        }
+
+        private String getFileLocationError() {
+            String dir = instr.getDirectory();
+            if (!hasValue(dir))
+                return getString("Choose_Directory.Error_Missing");
+
+            if (shouldPerformExpensiveCheck() == false)
+                return null;
+
+            File dirFile = new File(dir);
+            if (!dirFile.isDirectory()) {
+                return Wizard.resources.format(
                     "Import.Directory.Choose_Directory.Error_Nonexistent_FMT",
-                    dir));
-            return;
+                    dir);
+            }
+
+            return null;
         }
 
-        String pre = prefix.getText();
-        if (pre == null || pre.trim().length() == 0) {
-            setError(getString("Choose_Prefix.Error_Missing"));
-            return;
+        private boolean shouldPerformExpensiveCheck() {
+            try {
+                Thread.sleep(300);
+            } catch (InterruptedException e) {}
+
+            synchronized (EditImportDirectoryPanel.this) {
+                return (recalcWorker == this);
+            }
         }
 
-        setError(null);
+        @Override
+        public void finished() {
+            synchronized (EditImportDirectoryPanel.this) {
+                if (recalcWorker == this) {
+                    setError((String) getValue());
+                    recalcWorker = null;
+                }
+            }
+        }
+
     }
 
     public void doCancel() {
@@ -200,6 +287,10 @@ public class EditImportDirectoryPanel extends WizardPanel {
             result.setDialogTitle(getString("Choose_Directory_Short"));
             return result;
         }
+    }
+
+    private static boolean hasValue(String s) {
+        return s != null && s.trim().length() > 0;
     }
 
 }

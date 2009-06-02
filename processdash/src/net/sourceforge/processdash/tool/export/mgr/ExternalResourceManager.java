@@ -1,4 +1,4 @@
-// Copyright (C) 2007-2008 Tuma Solutions, LLC
+// Copyright (C) 2007-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -106,7 +106,9 @@ public class ExternalResourceManager implements ExtraContentSupplier {
             final ExternalResourceAutoLocator loader = new ExternalResourceAutoLocator();
             dispatchAllImportInstructions(new ImportInstructionDispatcher() {
                 public Object dispatch(ImportDirectoryInstruction instr) {
-                    loader.addImportedPath(instr.getDirectory());
+                    String directory = instr.getDirectory();
+                    if (directory != null && directory.length() > 0)
+                        loader.addImportedPath(directory);
                     return null;
                 }});
             mapper.loadMappings(loader.load(baseDir));

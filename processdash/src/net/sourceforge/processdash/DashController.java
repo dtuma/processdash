@@ -345,9 +345,9 @@ public class DashController {
     public static String getSettingsFileName() {
         return InternalSettings.getSettingsFileName();
     }
-    public static void addImportSetting(String prefix, String importDir) {
+    public static void addImportSetting(String prefix, String location) {
         ImportDirectoryInstruction instr = new ImportDirectoryInstruction(
-                importDir, prefix);
+                location, prefix);
         ImportManager.getInstance().addInstruction(instr);
     }
     public static void repairImportSetting(String projectID, String prefix,
