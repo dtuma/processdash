@@ -45,6 +45,8 @@ public class DashboardHelpURLConnection extends DashboardURLConnection {
 
     private static int MAX_WIDTH = 555;
 
+    private static boolean ENABLE_RESIZING = true;
+
     public DashboardHelpURLConnection(WebServer webServer, URL url) {
         super(webServer, url);
     }
@@ -55,13 +57,19 @@ public class DashboardHelpURLConnection extends DashboardURLConnection {
         InputStream result = null;
 
         String contentType = getHeaderField("Content-Type");
-        if ("image/png".equals(contentType)) {
+        if (ENABLE_RESIZING && "image/png".equals(contentType)) {
             result = AccessController.doPrivileged(
                 new PrivilegedAction<InputStream>() {
                     public InputStream run() {
                         try {
                             return maybeResizeImage(rawData, headerLen);
                         } catch (IOException ioe) {
+                            return null;
+                        } catch (Throwable t) {
+                            // Some versions of Java on Solaris are ill-behaved,
+                            // and throw Errors from the ImageIO class. Don't
+                            // let those crash the Process Dashboard.
+                            ENABLE_RESIZING = false;
                             return null;
                         }
                     }});
