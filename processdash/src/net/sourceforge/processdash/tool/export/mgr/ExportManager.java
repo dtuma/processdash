@@ -1,4 +1,4 @@
-// Copyright (C) 2005-2008 Tuma Solutions, LLC
+// Copyright (C) 2005-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -203,7 +203,7 @@ public class ExportManager extends AbstractManager {
                 return new ExportTask(destFile, new TextMetricsFileExporter(
                         dashboard, destFile, paths));
             else
-                return new ExportTask(destFile, new ArchiveMetricsFileExporter(
+                return new ExportTask(destFile, url, new ArchiveMetricsFileExporter(
                         dashboard, destFile, url, paths,
                         instr.getMetricsIncludes(), instr.getMetricsExcludes(),
                         instr.getAdditionalFileEntries()), instr);
@@ -484,7 +484,11 @@ public class ExportManager extends AbstractManager {
 
     private class ExportTask implements Runnable, CompletionStatus.Capable, Cancellable {
 
-        private File dest;
+        private File file;
+
+        private String url;
+
+        private String taskKey;
 
         private Runnable target;
 
@@ -493,16 +497,18 @@ public class ExportManager extends AbstractManager {
         private int origHashCode;
 
         public ExportTask(File dest, Runnable target) {
-            this(dest, target, null);
+            this(dest, null, target, null);
         }
 
-        public ExportTask(File dest, Runnable target, AbstractInstruction instr) {
-            this.dest = dest;
+        public ExportTask(File file, String url, Runnable target, AbstractInstruction instr) {
+            this.file = file;
+            this.url = url;
+            this.taskKey = createTaskKey();
             this.target = target;
             this.instr = instr;
             if (instr != null)
                 this.origHashCode = instr.hashCode();
-            recordExportedFile(dest, CURRENT_EXPORTED_FILES_DATANAME);
+            recordExportedFile(file, CURRENT_EXPORTED_FILES_DATANAME);
         }
 
         public void run() {
@@ -513,7 +519,7 @@ public class ExportManager extends AbstractManager {
 
             // The file has been successfully exported. We can record it in the
             //  HISTORICAL list
-            recordExportedFile(dest, HISTORICALLY_EXPORTED_DATANAME);
+            recordExportedFile(file, HISTORICALLY_EXPORTED_DATANAME);
         }
 
         private void recordExportedFile(File file, String list) {
@@ -551,15 +557,15 @@ public class ExportManager extends AbstractManager {
                     return;
             } while (System.currentTimeMillis() < waitUntil);
 
-            EXPORT_TASKS_IN_PROGRESS.put(dest, this);
+            EXPORT_TASKS_IN_PROGRESS.put(taskKey, this);
         }
 
         private ExportTask putTask() {
             synchronized (EXPORT_TASKS_IN_PROGRESS) {
                 ExportTask current = (ExportTask) EXPORT_TASKS_IN_PROGRESS
-                        .get(dest);
+                        .get(taskKey);
                 if (current == null) {
-                    EXPORT_TASKS_IN_PROGRESS.put(dest, this);
+                    EXPORT_TASKS_IN_PROGRESS.put(taskKey, this);
                     return this;
                 } else {
                     return current;
@@ -569,10 +575,22 @@ public class ExportManager extends AbstractManager {
 
         private void exportTaskFinished() {
             synchronized (EXPORT_TASKS_IN_PROGRESS) {
-                Object current = EXPORT_TASKS_IN_PROGRESS.get(dest);
+                Object current = EXPORT_TASKS_IN_PROGRESS.get(taskKey);
                 if (current == this)
-                    EXPORT_TASKS_IN_PROGRESS.remove(dest);
+                    EXPORT_TASKS_IN_PROGRESS.remove(taskKey);
             }
+        }
+
+        private String createTaskKey() {
+            File dir = file.getParentFile();
+            if (dir != null || !StringUtils.hasValue(url))
+                return file.getPath();
+
+            String result = url;
+            if (!result.endsWith("/"))
+                result = result + "/";
+            result = result + file.getName();
+            return result;
         }
 
         private void maybeUpdateInstruction() {

@@ -30,6 +30,7 @@ import java.util.Date;
 
 import net.sourceforge.processdash.DashController;
 import net.sourceforge.processdash.i18n.Resources;
+import net.sourceforge.processdash.tool.bridge.client.TeamServerSelector;
 import net.sourceforge.processdash.tool.export.mgr.CompletionStatus;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.HTMLUtils;
@@ -92,10 +93,13 @@ public class ExportNow extends TinyCGIBase {
                     + "<BODY><H1>${ExportError.Title}</H1>\n");
 
             if (result != null && result.getTarget() != null
-                    && result.getException() instanceof IOException)
+                    && result.getException() instanceof IOException) {
+                String target = result.getTarget().toString();
+                String resKey = TeamServerSelector.isUrlFormat(target)
+                        ? "ExportError.Server_IO_FMT": "ExportError.IO_FMT";
                 out.println(HTMLUtils.escapeEntities(resources.format(
-                        "ExportError.IO_FMT", result.getTarget().toString())));
-            else {
+                        resKey, target)));
+            } else {
                 out.println(resources.getHTML("ExportError.Message"));
                 if (result != null && result.getException() != null) {
                     out.print("<PRE>");

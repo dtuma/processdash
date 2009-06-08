@@ -1,4 +1,4 @@
-// Copyright (C) 2008 Tuma Solutions, LLC
+// Copyright (C) 2008-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -46,6 +46,8 @@ public class ExportFileStream {
 
     private String lastUrl;
 
+    private File exportFile;
+
     private File directFile;
 
     private Object target;
@@ -59,14 +61,11 @@ public class ExportFileStream {
     private static final Logger logger = Logger
             .getLogger(ExportFileStream.class.getName());
 
-    private static final boolean exportViaTeamServer = Settings.getBool(
-        "teamServer.useForDataExport", true);
 
-
-    public ExportFileStream(String lastUrl, File directFile) {
+    public ExportFileStream(String lastUrl, File exportFile) {
         this.lastUrl = lastUrl;
-        this.directFile = directFile;
-        this.target = directFile;
+        this.exportFile = exportFile;
+        this.target = exportFile;
     }
 
     public Object getTarget() {
@@ -81,6 +80,8 @@ public class ExportFileStream {
             } catch (Exception e) {
             }
         }
+        if (tempOutFile != null)
+            tempOutFile.delete();
     }
 
     public OutputStream getOutputStream() throws IOException {
@@ -94,6 +95,15 @@ public class ExportFileStream {
     }
 
     private Object validateTarget() throws IOException {
+        boolean exportViaTeamServer = Settings.getBool(
+            "teamServer.useForDataExport", true);
+
+        // Before starting, check to see if the export file is a full path,
+        // capable of direct filesystem access.
+        File exportDirectory = exportFile.getParentFile();
+        if (exportDirectory != null)
+            directFile = exportFile;
+
         // First, see if the "last known good URL" is still operational
         if (exportViaTeamServer) {
             serverUrl = TeamServerSelector.testServerURL(lastUrl,
@@ -102,9 +112,15 @@ public class ExportFileStream {
                 return serverUrl;
         }
 
-        // Retrieve the "target directory" where the file would be written,
+        // If the export file is just a simple filename (as would be the case
+        // for a URL-only export), don't attempt to query the filesystem.
+        if (exportDirectory == null) {
+            target = lastUrl;
+            throw new IOException("Cannot contact server '" + lastUrl + "'");
+        }
+
+        // Look in the "target directory" where the file would be written,
         // and see if a URL can be found for that target directory
-        File exportDirectory = directFile.getParentFile();
         if (exportViaTeamServer) {
             serverUrl = TeamServerSelector.getServerURL(exportDirectory,
                 MIN_SERVER_VERSION);
@@ -115,7 +131,7 @@ public class ExportFileStream {
         // No URL-based approach was found, so we will be exporting the file
         // directly to the filesystem. If the destination directory does
         // not exist, or if the file exists and is read-only, abort.
-        if ((exportDirectory == null || !exportDirectory.isDirectory())
+        if (!exportDirectory.isDirectory()
                 || (directFile.exists() && !directFile.canWrite()))
             throw new FileNotFoundException(directFile.getPath());
 
@@ -135,7 +151,7 @@ public class ExportFileStream {
         }
     }
 
-    private boolean tryCopyToServer(long checksum) {
+    private boolean tryCopyToServer(long checksum) throws IOException {
         if (serverUrl == null)
             return false;
 
@@ -143,6 +159,9 @@ public class ExportFileStream {
             copyToServer(checksum);
             return true;
         } catch (Exception e) {
+            if (directFile == null)
+                throw new IOException("Could not contact server " + serverUrl);
+
             String exceptionType = e.getClass().getName();
             if (e.getMessage() != null)
                 exceptionType += " (" + e.getMessage() + ")";
@@ -155,7 +174,7 @@ public class ExportFileStream {
     private void copyToServer(long checksum) throws IOException,
             LockFailureException {
         FileInputStream in = new FileInputStream(tempOutFile);
-        String name = directFile.getName();
+        String name = exportFile.getName();
         Long serverSum = ResourceBridgeClient.uploadSingleFile(serverUrl, name,
             in);
         if (serverSum == null || serverSum != checksum)
