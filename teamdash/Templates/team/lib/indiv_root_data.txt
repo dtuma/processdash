@@ -8,9 +8,14 @@
 [<!--#echo Process_ID --> Indiv Root Tag] = tag;
 
 [Indiv_Initials] = "tttt";
+[Indiv_Export_Filename] = [Indiv_Initials] & "-data.pdash";
 [EXPORT_FILE] = 
-    iff([Team_Data_Directory] == "", "",
-        [Team_Data_Directory] & [file_sep] & [Indiv_Initials] & "-data.pdash");
+    iff([Team_Data_Directory],
+        [Team_Data_Directory] & [file_sep] & [Indiv_Export_Filename],
+    iff([Team_Data_Directory_URL],
+        [Indiv_Export_Filename],
+    ""));
+
 [EXPORT_FILE/Server_URL] = [Team_Data_Directory_URL];
 [EXPORT_FILE/Instructions] = iff(
     [Exporting_Namespaced_Phase_Metrics],
