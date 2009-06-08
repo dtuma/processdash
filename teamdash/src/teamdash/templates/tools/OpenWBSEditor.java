@@ -63,6 +63,7 @@ public class OpenWBSEditor extends TinyCGIBase {
 
         parseFormData();
         String url = getStringParameter("directoryURL");
+        url = FilenameMapper.remap(url);
         String directory = getStringParameter("directory");
         directory = FilenameMapper.remap(directory);
 
@@ -135,8 +136,17 @@ public class OpenWBSEditor extends TinyCGIBase {
 
         // If a URL was provided and it maps to a valid team server
         // collection, we'll be fine in terms of opening the WBS.
-        if (TeamServerSelector.testServerURL(url) != null)
-            return true;
+        if (url != null) {
+            if (TeamServerSelector.isUrlFormat(url)) {
+                if (TeamServerSelector.testServerURL(url) != null)
+                    return true;
+
+            } else {
+                File dir = new File(url);
+                if (dir.isDirectory())
+                    return true;
+            }
+        }
 
         // If the URL was bad and no directory was given, display a "server
         // unavailable" error message.
@@ -173,7 +183,10 @@ public class OpenWBSEditor extends TinyCGIBase {
                 || "true".equalsIgnoreCase(getParameter("forceReadOnly")))
             result.put("teamdash.wbs.readOnly", "true");
 
-        if (url != null && url.indexOf('/') > 0) {
+        if (TeamServerSelector.isTeamServerUseDisabled()) {
+            result.put(TeamServerSelector.DISABLE_TEAM_SERVER_PROPERTY, "true");
+        } else if (TeamServerSelector.isUrlFormat(url)
+                && url.indexOf('/') > 0) {
             int lastSlash = url.lastIndexOf('/');
             String baseUrl = url.substring(0, lastSlash);
             result.put(TeamServerSelector.DEFAULT_TEAM_SERVER_PROPERTY,
