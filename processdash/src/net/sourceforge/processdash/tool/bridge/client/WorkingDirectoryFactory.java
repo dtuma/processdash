@@ -1,4 +1,4 @@
-// Copyright (C) 2008 Tuma Solutions, LLC
+// Copyright (C) 2008-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -62,8 +62,8 @@ public class WorkingDirectoryFactory {
 
         // look through each location until we find one that works.
         for (String loc : locations) {
-            if (loc.startsWith("http")) {
-                // test "http" locations to see if a team server is actually
+            if (TeamServerSelector.isUrlFormat(loc)) {
+                // test URL locations to see if a team server is actually
                 // present
                 URL u = TeamServerSelector.testServerURL(loc);
                 if (u != null)
@@ -105,7 +105,7 @@ public class WorkingDirectoryFactory {
 
     private File findFirstFileLocation(List<String> locations) {
         for (String loc : locations) {
-            if (!loc.startsWith("http"))
+            if (!TeamServerSelector.isUrlFormat(loc))
                 return new File(loc);
         }
         return null;

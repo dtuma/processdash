@@ -116,6 +116,7 @@ import net.sourceforge.processdash.security.DashboardSecurity;
 import net.sourceforge.processdash.templates.AutoUpdateManager;
 import net.sourceforge.processdash.templates.TemplateLoader;
 import net.sourceforge.processdash.tool.bridge.client.BridgedWorkingDirectory;
+import net.sourceforge.processdash.tool.bridge.client.TeamServerSelector;
 import net.sourceforge.processdash.tool.bridge.client.WorkingDirectory;
 import net.sourceforge.processdash.tool.bridge.client.WorkingDirectoryFactory;
 import net.sourceforge.processdash.tool.export.mgr.ExportManager;
@@ -612,7 +613,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
             return null;
 
         String location = readDataDirLinkFile(linkFileName);
-        if (location.startsWith("http"))
+        if (TeamServerSelector.isUrlFormat(location))
             return location;
 
         if (location.startsWith("~")) {
@@ -1035,7 +1036,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         if (resources == null)
             resources = Resources.getDashBundle("ProcessDashboard");
 
-        if (!filename.startsWith("http")) {
+        if (!TeamServerSelector.isUrlFormat(filename)) {
             try {
                 File f = new File(filename);
                 filename = f.getAbsolutePath();
