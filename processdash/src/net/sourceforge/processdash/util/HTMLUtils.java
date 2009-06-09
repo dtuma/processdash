@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2007 Tuma Solutions, LLC
+// Copyright (C) 2001-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -32,10 +32,10 @@ import java.util.StringTokenizer;
 public class HTMLUtils {
 
     public static String escapeEntities(String value) {
-        if (StringUtils.containsChars(value, "<>&\"") == false)
+        if (StringUtils.containsChars(value, "<>&\"'") == false)
             return value;
 
-        StringTokenizer tok = new StringTokenizer(value, "<>&\"", true);
+        StringTokenizer tok = new StringTokenizer(value, "<>&\"'", true);
         StringBuffer result = new StringBuffer();
         String token;
         while (tok.hasMoreTokens()) {
@@ -44,6 +44,7 @@ public class HTMLUtils {
             else if (">".equals(token))  result.append("&gt;");
             else if ("&".equals(token))  result.append("&amp;");
             else if ("\"".equals(token)) result.append("&quot;");
+            else if ("'".equals(token))  result.append("&#x27;");
             else                         result.append(token);
         }
         return result.toString();
