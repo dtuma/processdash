@@ -82,6 +82,7 @@
     iff([Team_Directory_Eff] && [Project_ID],
         [Team_Directory_Eff] & [file_sep] & "data" & [file_sep] & [Project_ID],
 	"");
+[Team_Directory_URL_Only] = [Team_Data_Directory_URL] && ![Team_Data_Directory];
 
 
 /*

@@ -15,8 +15,13 @@
     Package_ID="TPID"
     Package_Version="<!--#echo Dash_Package_TPID -->"
 
+<!--#if [Team_Directory] -->
     Team_Directory="<!--#echo var=[Team_Directory] -->"
     Template_Path="<!--#echo var=[Team_Directory] -->:Templates:TPID.zip"
+<!--#else-->
+    Team_Directory=""
+    Template_Path=""
+<!--#endif-->
 
 <!--#if [Team_Directory_UNC] -->
     Team_Directory_UNC="<!--#echo var=[Team_Directory_UNC] -->"
@@ -24,6 +29,12 @@
 <!--#else-->
     Team_Directory_UNC=""
     Template_Path_UNC=""
+<!--#endif-->
+
+<!--#if [Team_Data_Directory_URL] -->
+    Team_Data_Directory_URL="<!--#echo var=[Team_Data_Directory_URL] -->"
+<!--#else-->
+    Team_Data_Directory_URL=""
 <!--#endif-->
 
     Project_ID="<!--#echo var=[Project_ID] encoding=xml -->"

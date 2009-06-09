@@ -32,6 +32,7 @@ import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.net.http.WebServer;
 import net.sourceforge.processdash.process.ScriptID;
 import net.sourceforge.processdash.templates.TemplateLoader;
+import net.sourceforge.processdash.tool.bridge.client.TeamServerSelector;
 import net.sourceforge.processdash.tool.export.DataImporter;
 import net.sourceforge.processdash.tool.export.mgr.ExportManager;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
@@ -153,6 +154,7 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
     private static final String IND_FULLNAME = "/Owner";
     private static final String IND_SCHEDULE = "setup//Indiv_Schedule";
     private static final String DATA_DIR = "setup//Data_Directory";
+    private static final String DATA_DIR_URL = "setup//Data_Directory_URL";
     private static final String IND_DIR_OVERRIDE = "setup//Indiv_Team_Dir_Override";
 
     // the template ID of a "team project stub"
@@ -785,9 +787,9 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
         // calculate the full name of the imported file.
         indivFileName = indivFileName.replace('\\', '/');
         int slashPos = indivFileName.lastIndexOf('/');
-        if (slashPos == -1) return null;
-        String importedFile =
-            importDir + "/" + indivFileName.substring(slashPos+1);
+        if (slashPos != -1)
+            indivFileName = indivFileName.substring(slashPos+1);
+        String importedFile = importDir + "/" + indivFileName;
         logger.finer("importedFile="+importedFile);
         File f = new File(importedFile);
 
@@ -1176,10 +1178,12 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
         String projectID = e.getAttribute(PROJECT_ID);
         String teamDirectory = e.getAttribute(TEAM_DIRECTORY);
         String teamDirectoryUNC = e.getAttribute(TEAM_DIRECTORY_UNC);
+        String teamDataDirectoryURL = e.getAttribute(TEAM_DATA_DIRECTORY_URL);
         String indivTemplateID = e.getAttribute("Template_ID");
 
         if (!XMLUtils.hasValue(projectID) ||
-            !XMLUtils.hasValue(teamDirectory) ||
+            (!XMLUtils.hasValue(teamDirectory)
+                    && !XMLUtils.hasValue(teamDataDirectoryURL)) ||
             !XMLUtils.hasValue(indivTemplateID)) {
             printRedirect(IND_CONNECT_ERR_URL); return;
         }
@@ -1191,14 +1195,16 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
         String dataSubdir = "data"+File.separator+ projectID;
         String indivDirOverride = getValue(IND_DIR_OVERRIDE);
         teamDirectory = resolveTeamDirectory(indivDirOverride, teamDirectory,
-            teamDirectoryUNC, dataSubdir);
+            teamDirectoryUNC, dataSubdir, teamDataDirectoryURL);
         if (teamDirectory == null)
             // the error page will already have been displayed by now,
             // so just abort on failure.
             return;
-        else if (teamDirectory.equals(indivDirOverride))
-            // if the user overrode the team directory, we should ignore any
-            // unreachable UNC path associated with the original team dir.
+        else if (teamDirectory.equals(indivDirOverride)
+                || teamDirectory.length() == 0)
+            // if the user overrode the team directory or if no team directory
+            // was provided, we should ignore any unreachable UNC path that
+            // was provided along with the original team dir.
             teamDirectoryUNC = null;
 
         if (teamDirectory.endsWith(File.separator))
@@ -1217,7 +1223,8 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
         createIndivProject(indivTemplateID);
         String scheduleID = createIndivSchedule(scheduleName);
         saveIndivDataValues(projectID, teamURL, indivInitials, scheduleName,
-            scheduleID, teamDirectory, teamDirectoryUNC, isLocal);
+            scheduleID, teamDirectory, teamDirectoryUNC, teamDataDirectoryURL,
+            isLocal);
         exportIndivData();
         boolean joinSucceeded = true;
         if (isLocal)
@@ -1225,7 +1232,7 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
         else {
             joinSucceeded = joinTeamSchedule
                 (teamURL, scheduleName, scheduleID);
-            importDisseminatedTeamData(teamDirectory, projectID);
+            importDisseminatedTeamData();
         }
 
         showIndivSuccessPage(joinSucceeded);
@@ -1259,8 +1266,9 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
     protected String resolveTeamDirectory(String indivOverrideDirectory,
                                           String teamDirectory,
                                           String teamDirectoryUNC,
-                                          String dataSubdir) {
-        File f;
+                                          String dataSubdir,
+                                          String teamDataDirectoryURL) {
+        File f = null;
 
         if (StringUtils.hasValue(indivOverrideDirectory)) {
             // If the user has specified a manual directory override, try that
@@ -1268,13 +1276,13 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
             f = new File(indivOverrideDirectory, dataSubdir);
             if (f.isDirectory()) return indivOverrideDirectory;
 
-        } else {
+        } else if (StringUtils.hasValue(teamDirectory)) {
             // Otherwise, try the directory specified by the team project.
             f = new File(teamDirectory, dataSubdir);
             if (f.isDirectory()) return teamDirectory;
 
             // Try to find the data directory using the UNC path.
-            if (teamDirectoryUNC != null) {
+            if (StringUtils.hasValue(teamDirectoryUNC)) {
                 NetworkDriveList networkDriveList = new NetworkDriveList();
                 String altTeamDirectory =
                     networkDriveList.fromUNCName(teamDirectoryUNC);
@@ -1285,7 +1293,25 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
             }
         }
 
-        putValue(DATA_DIR, f.getPath());
+        // if a URL has been provided, try it to see if it is valid.
+        if (TeamServerSelector.testServerURL(teamDataDirectoryURL) != null) {
+            if (StringUtils.hasValue(teamDirectory))
+                // if we have a good URL and a bad team directory, go ahead
+                // and return the bad team directory from this method.  This
+                // will allow the bad team directory to be stored with the
+                // project settings, in case it ever becomes useful in the
+                // future.  (An example might be an individual joining over
+                // a VPN, with HTTP access but temporarily with no filesystem
+                // access.)
+                return teamDirectory;
+            else
+                // return a non-null value to indicate that we can successfully
+                // communicate with the team directory.
+                return "";
+        }
+
+        putValue(DATA_DIR, f == null ? null : f.getPath());
+        putValue(DATA_DIR_URL, teamDataDirectoryURL);
         printRedirect(IND_DATADIR_ERR_URL);
         return null;
     }
@@ -1307,15 +1333,16 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
     /** Save data values for an individual project. */
     protected void saveIndivDataValues(String projectID, String teamURL,
             String indivInitials, String scheduleName, String scheduleID,
-            String teamDirectory, String teamDirectoryUNC, boolean isLocal) {
+            String teamDirectory, String teamDirectoryUNC,
+            String teamDataDirectoryURL, boolean isLocal) {
         putValue(PROJECT_ID, projectID);
         putValue(TEAM_PROJECT_URL, teamURL);
         putValue(INDIV_INITIALS, indivInitials);
         putValue(PROJECT_SCHEDULE_NAME, scheduleName);
         putValue(PROJECT_SCHEDULE_ID, scheduleID);
         putValue(TEAM_DIRECTORY, teamDirectory);
-        if (teamDirectoryUNC != null)
-            putValue(TEAM_DIRECTORY_UNC, teamDirectoryUNC);
+        putValue(TEAM_DIRECTORY_UNC, teamDirectoryUNC);
+        putValue(TEAM_DATA_DIRECTORY_URL, teamDataDirectoryURL);
         if (isLocal)
             putValue("EXPORT_FILE", ImmutableStringData.EMPTY_STRING);
     }
@@ -1392,20 +1419,8 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
         return addScheduleToRollup(teamScheduleName, indivScheduleName);
     }
 
-    protected void importDisseminatedTeamData(String teamDirectory,
-            String projectID) {
-        // rewrite the team directory into "settings" filename form.
-        teamDirectory = teamDirectory.replace('\\', '/');
-        if (teamDirectory.endsWith("/"))
-            teamDirectory = teamDirectory.substring
-                (0, teamDirectory.length()-1);
-
-        // calculate the new import instruction, and add it to the
-        // import list
-        String prefix = "Disseminated_" + projectID;
-        String importDir = teamDirectory + "/data/" + projectID + "/"
-                + DISSEMINATION_DIRECTORY;
-        DashController.addImportSetting(prefix, importDir);
+    protected void importDisseminatedTeamData() {
+        RepairImportInstruction.maybeRepairForIndividual(getDataContext());
     }
 
     protected void showIndivSuccessPage(boolean joinSucceeded) {

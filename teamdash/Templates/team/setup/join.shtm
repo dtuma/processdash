@@ -97,7 +97,11 @@ Project Setup Wizard<br><!--#echo var=PATH_TRANSLATED --></h1></td></tr>
       value="<!--#echo Dash_Package_TPID -->">
 
 <input type="hidden" name="Template_Path"
+<!--#if [Team_Directory] -->
       value="<!--#echo [Team_Directory] -->:Templates:TPID.zip">
+<!--#else-->
+      value="">
+<!--#endif-->
 
 <input type="hidden" name="Template_Path_UNC"
 <!--#if [Team_Directory_UNC] -->

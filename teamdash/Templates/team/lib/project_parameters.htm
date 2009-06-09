@@ -37,6 +37,7 @@
 <td><input type=text size=50 name="Project_ID	rs"></td>
 </tr>
 
+[!--#if showTeamDir || ![Team_Directory_URL_Only] --]
 <tr>
 <td>TEAM Project Network Directory</td>
 <td><input type=text size=50 name="Team_Directory	s"></td>
@@ -54,8 +55,9 @@
 <td>TEAM Project Network Directory (UNC)</td>
 <td><input type=text size=50 name="Team_Directory_UNC	s"></td>
 </tr>
+[!--#endif--]
 
-[!--#if [Team_Data_Directory_URL] --]
+[!--#if showDataUrl || [Team_Data_Directory_URL] --]
 <tr>
 <td>TEAM Project Network Directory (URL)</td>
 <td><input type=text size=50 name="Team_Data_Directory_URL	s"></td>
