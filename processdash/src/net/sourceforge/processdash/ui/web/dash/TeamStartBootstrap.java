@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2008 Tuma Solutions, LLC
+// Copyright (C) 2002-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -119,8 +119,6 @@ public class TeamStartBootstrap extends TinyCGIBase {
     private static final String TEMPLATE_PATH_FORCE = "alwaysAdd";
     private static final String TEMPLATE_PATH_UPDATE = "addIfNewer";
     private static final String TEMPLATE_PATH_NEVER = "neverAdd";
-    private static String TEMPLATE_PATH_SETTING = Settings.getVal(
-        "teamJoin.templateSearchPathPhilosophy", TEMPLATE_PATH_UPDATE);
 
     private static final Logger logger = Logger.getLogger(
             TeamStartBootstrap.class.getName());
@@ -412,8 +410,14 @@ public class TeamStartBootstrap extends TinyCGIBase {
         String relaxPathReq = getValue(RELAX_PATH_REQ);
         boolean requirePath = !StringUtils.hasValue(relaxPathReq);
 
-        if (!TEMPLATE_PATH_FORCE.equals(TEMPLATE_PATH_SETTING))
+        String templatePathSetting = Settings.getVal(
+            "teamJoin.templateSearchPathPhilosophy", TEMPLATE_PATH_UPDATE);
+        if (templatePath == null || templatePath.trim().length() == 0) {
             requirePath = false;
+            templatePathSetting = TEMPLATE_PATH_NEVER;
+        } else if (!TEMPLATE_PATH_FORCE.equals(templatePathSetting)) {
+            requirePath = false;
+        }
 
         String errorMessage = null;
         File templateFile = resolveTemplateLocation(templatePath,
@@ -429,7 +433,7 @@ public class TeamStartBootstrap extends TinyCGIBase {
             if (errorMessage == null)
                 printRedirect(getPrefix(), continuationURI);
 
-        } else if (TEMPLATE_PATH_NEVER.equals(TEMPLATE_PATH_SETTING)) {
+        } else if (TEMPLATE_PATH_NEVER.equals(templatePathSetting)) {
             errorMessage = TEMPLATE_PATH_NEVER;
 
         } else {
@@ -449,6 +453,9 @@ public class TeamStartBootstrap extends TinyCGIBase {
 
     private File resolveTemplateLocation(String templatePath,
             String templatePathUNC) {
+        if (templatePath == null || templatePath.trim().length() == 0)
+            return null;
+
         File f = new File(templatePath);
         if (!f.exists()) {
             if (templatePathUNC != null && templatePathUNC.length() > 0) {
@@ -622,9 +629,6 @@ public class TeamStartBootstrap extends TinyCGIBase {
                                         File templateFile,
                                         String continuationURI)
     {
-        if (TEMPLATE_PATH_NEVER.equals(TEMPLATE_PATH_SETTING))
-            return TEMPLATE_PATH_NEVER;
-
         String templatePath = templateFile.getPath();
         String templateDir = templateFile.getParent();
 
