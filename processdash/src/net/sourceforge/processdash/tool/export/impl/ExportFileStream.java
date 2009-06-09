@@ -40,6 +40,7 @@ import net.sourceforge.processdash.tool.bridge.client.ResourceBridgeClient;
 import net.sourceforge.processdash.tool.bridge.client.TeamServerSelector;
 import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.RobustFileOutputStream;
+import net.sourceforge.processdash.util.StringUtils;
 import net.sourceforge.processdash.util.lock.LockFailureException;
 
 public class ExportFileStream {
@@ -242,4 +243,77 @@ public class ExportFileStream {
     }
 
     private static final String MIN_SERVER_VERSION = "1.2";
+
+
+
+    /**
+     * Return a path which uniquely describes the destination of a file
+     * which might be exported by this class.
+     */
+    public static String getExportTargetPath(File file, String url) {
+        File dir = file.getParentFile();
+        if (dir != null || !StringUtils.hasValue(url))
+            return file.getPath();
+
+        String result = url;
+        if (!result.endsWith("/"))
+            result = result + "/";
+        result = result + file.getName();
+        return result;
+    }
+
+    /**
+     * Attempt to delete a file that was exported by this class in the past.
+     * 
+     * @param targetPath
+     *            a string that describes a past export target; this should be a
+     *            value previously returned by
+     *            {@link #getExportTargetPath(File, String)}.
+     * @return true if the path was recognized and successfully deleted.
+     */
+    public static boolean deleteExportTarget(String targetPath) {
+        if (!StringUtils.hasValue(targetPath))
+            return true;
+
+        if (TeamServerSelector.isUrlFormat(targetPath))
+            return deleteUrlExportTarget(targetPath);
+        else
+            return deleteFilesystemExportTarget(targetPath);
+    }
+
+    private static boolean deleteUrlExportTarget(String url) {
+        int slashPos = url.lastIndexOf('/');
+        if (slashPos == -1)
+            return false;
+
+        try {
+            URL baseURL = new URL(url.substring(0, slashPos));
+            String filename = url.substring(slashPos + 1);
+            return ResourceBridgeClient.deleteSingleFile(baseURL, filename);
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    private static boolean deleteFilesystemExportTarget(String path) {
+        File file = new File(path);
+
+        if (file.exists())
+            return file.delete();
+
+        // There are 2 possibilities here :
+        //     1. The file has already been deleted
+        //     2. The file is on an unmounted network drive.
+        // To determine which possibility we're facing, we check to see if the
+        // parent directory exists. Since the file should reside somewhere in
+        // the data directory, if we can't access one level up, we assume that
+        // the file resides on a unmounted network drive. In that case, the
+        // deletion is not successful. If we can access one level up, we assume
+        // that it has already been deleted. In that case, the deletion is
+        // successful, not because we did it, but because some external process
+        // already deleted the file.
+
+        return file.getParentFile() != null && file.getParentFile().exists();
+    }
+
 }

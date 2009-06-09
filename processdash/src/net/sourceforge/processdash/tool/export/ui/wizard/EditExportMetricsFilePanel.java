@@ -1,4 +1,4 @@
-// Copyright (C) 2005 Tuma Solutions, LLC
+// Copyright (C) 2005-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -206,7 +206,7 @@ public class EditExportMetricsFilePanel extends WizardPanel {
             if (auto)
                 ExportManager.getInstance().addInstruction(instr);
             else
-                ExportManager.getInstance().handleAddedInstruction(instr);
+                ExportManager.getInstance().runOneTimeInstruction(instr);
         } else
             ExportManager.getInstance().changeInstruction(origInstr, instr);
 

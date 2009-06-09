@@ -50,6 +50,7 @@ import net.sourceforge.processdash.ev.EVTaskList;
 import net.sourceforge.processdash.ev.EVTaskListXML;
 import net.sourceforge.processdash.tool.export.DataImporter;
 import net.sourceforge.processdash.tool.export.impl.ArchiveMetricsFileExporter;
+import net.sourceforge.processdash.tool.export.impl.ExportFileStream;
 import net.sourceforge.processdash.tool.export.impl.TextMetricsFileExporter;
 import net.sourceforge.processdash.ui.lib.ProgressDialog;
 import net.sourceforge.processdash.util.StringUtils;
@@ -133,11 +134,22 @@ public class ExportManager extends AbstractManager {
         doAddInstruction(new ExportMetricsFileInstruction(file, paths));
     }
 
-    public void handleAddedInstruction(AbstractInstruction instr) {
+    protected void handleAddedInstruction(AbstractInstruction instr) {
         if (instr.isEnabled()) {
             // use the visitor pattern to invoke the correct handler method
             instr.dispatch(instructionAdder);
         }
+    }
+
+    public void runOneTimeInstruction(AbstractInstruction instr) {
+        SimpleData histList = data
+                .getSimpleValue(HISTORICALLY_EXPORTED_DATANAME);
+        if (histList instanceof ListData)
+            histList = new ListData((ListData) histList);
+
+        handleAddedInstruction(instr);
+
+        data.putValue(HISTORICALLY_EXPORTED_DATANAME, histList);
     }
 
     protected void handleRemovedInstruction(AbstractInstruction instr) {
@@ -199,11 +211,13 @@ public class ExportManager extends AbstractManager {
             Vector paths = instr.getPaths();
 
             File destFile = new File(dest);
+            String targetPath = ExportFileStream.getExportTargetPath(destFile,
+                url);
             if (dest.toLowerCase().endsWith(".txt"))
-                return new ExportTask(destFile, new TextMetricsFileExporter(
+                return new ExportTask(targetPath, new TextMetricsFileExporter(
                         dashboard, destFile, paths));
             else
-                return new ExportTask(destFile, url, new ArchiveMetricsFileExporter(
+                return new ExportTask(targetPath, new ArchiveMetricsFileExporter(
                         dashboard, destFile, url, paths,
                         instr.getMetricsIncludes(), instr.getMetricsExcludes(),
                         instr.getAdditionalFileEntries()), instr);
@@ -319,30 +333,8 @@ public class ExportManager extends AbstractManager {
     private boolean deletionSuccessful(Object path) {
         if (!(path instanceof String))
             return false;
-
-        boolean deletionSuccessful = false;
-        File file = new File((String)path);
-
-        if (file.exists()) {
-            deletionSuccessful = file.delete();
-        }
-        else {
-            // There's 2 possibilities here :
-            //     1. The file has already been deleted
-            //     2. The file is on an unmounted network drive.
-            // To determine which possibility we're facing, we check to see if the parent
-            //  directory exists. Since the file should reside somewhere in the data
-            //  directory, if we can't access one level up, we assume that the file resides
-            //  on a unmounted network drive. In that case, the deletion is not successful.
-            //  If we can access one level up, we assume that it has already been deleted.
-            //  In that case, the deletion is successful, not because we did it, but
-            //  because it has already been made.
-
-            deletionSuccessful = file.getParentFile() != null
-                    && file.getParentFile().exists();
-        }
-
-        return deletionSuccessful;
+        else
+            return ExportFileStream.deleteExportTarget((String) path);
     }
 
     private Collection getExportInstructionsFromData() {
@@ -484,11 +476,7 @@ public class ExportManager extends AbstractManager {
 
     private class ExportTask implements Runnable, CompletionStatus.Capable, Cancellable {
 
-        private File file;
-
-        private String url;
-
-        private String taskKey;
+        private String path;
 
         private Runnable target;
 
@@ -496,19 +484,18 @@ public class ExportManager extends AbstractManager {
 
         private int origHashCode;
 
-        public ExportTask(File dest, Runnable target) {
-            this(dest, null, target, null);
+        public ExportTask(String path, Runnable target) {
+            this(path, target, null);
         }
 
-        public ExportTask(File file, String url, Runnable target, AbstractInstruction instr) {
-            this.file = file;
-            this.url = url;
-            this.taskKey = createTaskKey();
+        public ExportTask(String path, Runnable target,
+                AbstractInstruction instr) {
+            this.path = path;
             this.target = target;
             this.instr = instr;
             if (instr != null)
                 this.origHashCode = instr.hashCode();
-            recordExportedFile(file, CURRENT_EXPORTED_FILES_DATANAME);
+            recordExportedFile(CURRENT_EXPORTED_FILES_DATANAME);
         }
 
         public void run() {
@@ -519,17 +506,17 @@ public class ExportManager extends AbstractManager {
 
             // The file has been successfully exported. We can record it in the
             //  HISTORICAL list
-            recordExportedFile(file, HISTORICALLY_EXPORTED_DATANAME);
+            recordExportedFile(HISTORICALLY_EXPORTED_DATANAME);
         }
 
-        private void recordExportedFile(File file, String list) {
+        private void recordExportedFile(String list) {
             ListData exportedFiles = ListData.asListData(data.getValue(list));
 
             if (exportedFiles == null) {
                 exportedFiles = new ListData();
             }
 
-            exportedFiles.setAdd(file.getPath());
+            exportedFiles.setAdd(path);
             data.putValue(list, exportedFiles);
         }
 
@@ -557,15 +544,15 @@ public class ExportManager extends AbstractManager {
                     return;
             } while (System.currentTimeMillis() < waitUntil);
 
-            EXPORT_TASKS_IN_PROGRESS.put(taskKey, this);
+            EXPORT_TASKS_IN_PROGRESS.put(path, this);
         }
 
         private ExportTask putTask() {
             synchronized (EXPORT_TASKS_IN_PROGRESS) {
                 ExportTask current = (ExportTask) EXPORT_TASKS_IN_PROGRESS
-                        .get(taskKey);
+                        .get(path);
                 if (current == null) {
-                    EXPORT_TASKS_IN_PROGRESS.put(taskKey, this);
+                    EXPORT_TASKS_IN_PROGRESS.put(path, this);
                     return this;
                 } else {
                     return current;
@@ -575,22 +562,10 @@ public class ExportManager extends AbstractManager {
 
         private void exportTaskFinished() {
             synchronized (EXPORT_TASKS_IN_PROGRESS) {
-                Object current = EXPORT_TASKS_IN_PROGRESS.get(taskKey);
+                Object current = EXPORT_TASKS_IN_PROGRESS.get(path);
                 if (current == this)
-                    EXPORT_TASKS_IN_PROGRESS.remove(taskKey);
+                    EXPORT_TASKS_IN_PROGRESS.remove(path);
             }
-        }
-
-        private String createTaskKey() {
-            File dir = file.getParentFile();
-            if (dir != null || !StringUtils.hasValue(url))
-                return file.getPath();
-
-            String result = url;
-            if (!result.endsWith("/"))
-                result = result + "/";
-            result = result + file.getName();
-            return result;
         }
 
         private void maybeUpdateInstruction() {

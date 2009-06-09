@@ -1,4 +1,4 @@
-// Copyright (C) 2008 Tuma Solutions, LLC
+// Copyright (C) 2008-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -327,6 +327,25 @@ public class ResourceBridgeClient implements ResourceBridgeConstants {
         ResourceCollectionInfo remoteList = XmlCollectionListing
                 .parseListing(new ByteArrayInputStream(response));
         return remoteList.getChecksum(resourceName);
+    }
+
+    /**
+     * Delete a single file from the server.
+     * 
+     * @param remoteUrl the url of the team server
+     * @param resourceName the name of the resource to delete
+     * @throws IOException if an IO error occurs
+     * @throws LockFailureException if the team server rejects the request
+     *      because a lock is required.
+     */
+    public static boolean deleteSingleFile(URL remoteUrl, String resourceName)
+            throws IOException, LockFailureException {
+        doPostRequest(remoteUrl, null, DELETE_ACTION,
+            DELETE_FILE_PARAM, resourceName);
+        // the statement above will throw an exception if the deletions could
+        // not be performed. If it completes normally, we can assume the files
+        // were deleted (or never existed to begin with).
+        return true;
     }
 
     private boolean isSyncDownOnly(String resourceName) {
