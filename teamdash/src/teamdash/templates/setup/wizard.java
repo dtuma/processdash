@@ -32,6 +32,8 @@ import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.net.http.WebServer;
 import net.sourceforge.processdash.process.ScriptID;
 import net.sourceforge.processdash.templates.TemplateLoader;
+import net.sourceforge.processdash.tool.bridge.ResourceCollectionType;
+import net.sourceforge.processdash.tool.bridge.client.ResourceBridgeClient;
 import net.sourceforge.processdash.tool.bridge.client.TeamServerSelector;
 import net.sourceforge.processdash.tool.export.DataImporter;
 import net.sourceforge.processdash.tool.export.mgr.ExportManager;
@@ -85,6 +87,7 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
     // Information for the team directory selection page
     private static final String TEAM_DIR_PAGE = "teamDir";
     private static final String TEAM_DIR_URL = "teamDirectory.shtm";
+    private static final String TEAM_SERVER_URL = "teamServerUrl.shtm";
     // Information for the team schedule name selection page.
     private static final String TEAM_SCHEDULE_PAGE = "teamSchedule";
     private static final String TEAM_SCHEDULE_URL = "teamSchedule.shtm";
@@ -276,12 +279,22 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
     protected void handleTeamMasterChoicePage() {
         if (parameters.get("createMasterProject") != null) {
             putValue(TEAM_MASTER_FLAG, ImmutableDoubleData.TRUE);
-            showTeamDirPage();
+            maybeShowTeamDirPage();
         } else if (parameters.get("createTeamProject") != null) {
             putValue(TEAM_MASTER_FLAG, ImmutableDoubleData.FALSE);
-            showTeamDirPage();
+            maybeShowTeamDirPage();
         } else {
             showTeamMasterChoicePage();
+        }
+    }
+
+    protected void maybeShowTeamDirPage() {
+        String teamServerUrl = TeamServerSelector.getDefaultTeamServerUrl();
+        if (teamServerUrl != null) {
+            putValue(TEAM_DIR, teamServerUrl);
+            showTeamSchedulePage();
+        } else {
+            showTeamDirPage();
         }
     }
 
@@ -298,12 +311,8 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
 
     /** Make an educated guess for an appropriate team directory. */
     private String guessTeamDirectory() {
-        String processID = getValue(TEAM_PID);
-        if (processID == null) return null; // shouldn't happen!
-
-        String teamJar = findTeamProcessJarfile(processID);
-        String teamDir = checkNetworkDrive(extractTeamDir(teamJar));
-        return teamDir;
+        // we have no helpful team directory guessing logic for now.
+        return null;
     }
 
     /** Try to locate the jarfile containing the definition for the
@@ -323,34 +332,6 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
             if (pos == -1) continue;
             return HTMLUtils.urlDecode(url.substring(9, pos));
         }
-        return null;
-    }
-
-    /** Given the name of a jarfile containing a team process,
-     * ascertain the corresponding team directory.
-     */
-    private String extractTeamDir(String filename) {
-        if (filename == null) return null;
-        int pos = filename.toUpperCase().indexOf("/TEMPLATES");
-        if (pos != -1)
-            return filename.substring(0, pos);
-        else
-            return null;
-    }
-
-    /** if the filename appears to be on a network drive, return the
-     *  canonicalized version of the filename. Otherwise returns null.
-     */
-    private String checkNetworkDrive(String filename) {
-        if (filename == null) return null;
-        try {
-            File directory = new File(filename);
-            String result = directory.getCanonicalPath();
-            if (ensureNetworkDrive(result))
-                return result;
-            else
-                System.out.println("not a network drive: "+result);
-        } catch (IOException ioe) {}
         return null;
     }
 
@@ -391,6 +372,7 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
 
         String confirm = getParameter("confirm");
         if ((confirm != null && confirm.equals(teamDir)) ||
+            TeamServerSelector.isUrlFormat(teamDir) ||
             ensureNetworkDrive(teamDir))
 
             showTeamSchedulePage();
@@ -476,21 +458,37 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
 
         String teamPID = getValue(TEAM_PID);
         String teamDirectory = getValue(TEAM_DIR);
+        String teamDataDir = null;
+        String teamDataDirUrl = null;
         String teamSchedule = getValue(TEAM_SCHEDULE);
         String processJarFile = findTeamProcessJarfile(teamPID);
-        String projectID = generateID();
+        String projectID;
 
         boolean isMaster = testValue(TEAM_MASTER_FLAG);
         if (isMaster)
             teamPID = StringUtils.findAndReplace(teamPID,
                     "/TeamRoot", "/MasterRoot");
 
-        // create the required team directories. This involves file IO
-        // which could fail for various reasons, so we attempt to get
-        // it out of the way first.
-        if (!createTeamDirs(teamDirectory, projectID) ||
-            !writeTeamSettingsFile(teamPID, teamDirectory, teamSchedule,
-                                   projectID, processJarFile))
+        // create the required team directories / collections. This involves
+        // file or network IO which could fail for various reasons, so we
+        // attempt to get it out of the way first.
+
+        if (TeamServerSelector.isUrlFormat(teamDirectory)) {
+            projectID = createServerCollection(teamDirectory);
+            if (projectID == null)
+                return;   // error page already displayed by now; just abort
+            teamDataDirUrl = teamDirectory + "/" + projectID;
+            teamDirectory = teamDataDir = null;
+
+        } else {
+            projectID = generateID();
+            teamDataDir = createTeamDirs(teamDirectory, projectID);
+            if (teamDataDir == null)
+                return;   // error page already displayed by now; just abort
+        }
+
+        if (!writeTeamSettingsFile(teamPID, teamDataDir, teamDataDirUrl,
+                teamSchedule, projectID, processJarFile))
             // the error page will already have been displayed by now,
             // so just abort on failure.
             return;
@@ -499,35 +497,49 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
         // above, these tasks should succeed 99.999% of the time.
         alterTeamTemplateID(teamPID);
         String scheduleID = createTeamSchedule (teamSchedule);
-        saveTeamDataValues (teamDirectory, projectID, teamSchedule, scheduleID);
-        saveTeamSettings (teamDirectory, projectID);
+        saveTeamDataValues(teamDirectory, teamDataDirUrl, projectID,
+            teamSchedule, scheduleID);
+        saveTeamSettings (teamDirectory, teamDataDir, projectID);
         tryToCopyProcessJarfile (processJarFile, teamDirectory);
+        exportProjectData();
 
         // print a success message!
         printRedirect(TEAM_SUCCESS_URL);
+    }
+
+    private String createServerCollection(String teamServerUrl) {
+        try {
+            URL url = new URL(teamServerUrl);
+            String collectionId = ResourceBridgeClient.createNewCollection(url,
+                ResourceCollectionType.TeamProjectData);
+            return collectionId;
+        } catch (Exception e) {
+            printRedirect(TEAM_SERVER_URL + "?cannotContact");
+            return null;
+        }
     }
 
     private String generateID() {
         return Long.toString(System.currentTimeMillis(), Character.MAX_RADIX);
     }
 
-    protected boolean createTeamDirs(String teamDirectory, String projectID) {
+    protected String createTeamDirs(String teamDirectory, String projectID) {
         File teamDir = new File(teamDirectory);
-        if (!createTeamDirectory(teamDir)) return false;
+        if (!createTeamDirectory(teamDir)) return null;
 
         File templateDir = new File(teamDir, "Templates");
-        if (!createTeamDirectory(templateDir)) return false;
+        if (!createTeamDirectory(templateDir)) return null;
 
         File dataDir = new File(teamDir, "data");
-        if (!createTeamDirectory(dataDir)) return false;
+        if (!createTeamDirectory(dataDir)) return null;
 
         File projDataDir = new File(dataDir, projectID);
-        if (!createTeamDirectory(projDataDir)) return false;
+        if (!createTeamDirectory(projDataDir)) return null;
 
         File disseminationDir = new File(projDataDir, DISSEMINATION_DIRECTORY);
-        if (!createTeamDirectory(disseminationDir)) return false;
+        if (!createTeamDirectory(disseminationDir)) return null;
 
-        return true;
+        return projDataDir.getPath();
     }
 
     private boolean createTeamDirectory(File directory) {
@@ -546,15 +558,13 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
     }
 
     private boolean writeTeamSettingsFile(String teamPID,
-                                          String teamDirectory,
+                                          String teamDataDir,
+                                          String teamDataDirUrl,
                                           String teamSchedule,
                                           String projectID,
                                           String processJarFile)
     {
-        File teamDir = new File(teamDirectory);
-        File dataDir = new File(teamDir, "data");
-        File projDataDir = new File(dataDir, projectID);
-        TeamSettingsFile tsf = new TeamSettingsFile(projDataDir);
+        TeamSettingsFile tsf = new TeamSettingsFile(teamDataDir, teamDataDirUrl);
 
         try {
             // write the project name
@@ -578,7 +588,8 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
 
         } catch (IOException ioe) {
             String errMsg = "The team project setup wizard was unable to "+
-                "write the team project settings file '"+tsf.getSettingsFile()+
+                "write the team project settings file '"+
+                tsf.getSettingsFileDescription()+
                 "'. Please ensure that you have adequate file permissions " +
                 "to create this file, then click &quot;Next.&quot; " +
                 "Otherwise, enter a different team directory below.";
@@ -593,6 +604,7 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
                                               String teamDirectory) {
         // no jar to copy? abort.
         if (jarFilename == null) return false;
+        if (!StringUtils.hasValue(teamDirectory)) return false;
 
         // get the source file
         File srcFile = new File(jarFilename);
@@ -625,23 +637,24 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
         return true;
     }
 
-    protected void saveTeamDataValues(String teamDirectory, String projectID,
-            String teamScheduleName, String teamScheduleID) {
+    protected void saveTeamDataValues(String teamDirectory,
+            String teamDataDirUrl, String projectID, String teamScheduleName,
+            String teamScheduleID) {
         putValue(TEAM_DIRECTORY, teamDirectory);
         String uncName = calcUNCName(teamDirectory);
-        if (uncName != null) putValue(TEAM_DIRECTORY_UNC, uncName);
+        putValue(TEAM_DIRECTORY_UNC, uncName);
+        putValue(TEAM_DATA_DIRECTORY_URL, teamDataDirUrl);
 
         putValue(PROJECT_ID, projectID);
         putValue(PROJECT_SCHEDULE_NAME, teamScheduleName);
         putValue(PROJECT_SCHEDULE_ID, teamScheduleID);
 
-        // FIXME: need to really give the user an opportunity to set a
-        // password.
         putValue("_Password_", ImmutableDoubleData.TRUE);
     }
 
 
     protected String calcUNCName(String filename) {
+        if (!StringUtils.hasValue(filename)) return null;
         String result = getNetworkDriveList().toUNCName(filename);
         if (result == null) return null;
 
@@ -655,27 +668,29 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
 
 
 
-    protected void saveTeamSettings(String teamDirectory, String projectID) {
-        // rewrite the team directory into "settings" filename form.
-        teamDirectory = teamDirectory.replace('\\', '/');
-        if (teamDirectory.endsWith("/"))
-            teamDirectory = teamDirectory.substring
-                (0, teamDirectory.length()-1);
-
-        // calculate the new import instruction, and add it to the
-        // import list
-        String prefix = "Import_" + projectID;
-        String importDir = teamDirectory + "/data/" + projectID;
-        DashController.addImportSetting(prefix, importDir);
+    protected void saveTeamSettings(String teamDirectory, String teamDataDir,
+            String projectID) {
+        // set up an import instruction to retrieve team data
+        RepairImportInstruction.maybeRepairForTeam(getDataContext());
 
         // enable other configuration settings that are appropriate for
         // team use.
         DashController.enableTeamSettings();
 
+        // possibly wire up a URL for the team directory.
+        if (teamDataDir != null) {
+            URL url = TeamServerSelector.getServerURL(new File(teamDataDir));
+            if (url != null) {
+                putValue(TEAM_DATA_DIRECTORY_URL, url.toString());
+                RepairImportInstruction.maybeRepairForTeam(getDataContext());
+            }
+        }
+
         // initiate the template directory adding task.
         String templatePathSetting = Settings.getVal(
             "teamJoin.templateSearchPathPhilosophy");
-        if ("alwaysAdd".equalsIgnoreCase(templatePathSetting)) {
+        if (teamDirectory != null
+                && "alwaysAdd".equalsIgnoreCase(templatePathSetting)) {
             putValue(TEAM_TEMPLATE_FLAG, "t");
             new TemplateDirAdder(teamDirectory);
         }
@@ -1225,7 +1240,7 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
         saveIndivDataValues(projectID, teamURL, indivInitials, scheduleName,
             scheduleID, teamDirectory, teamDirectoryUNC, teamDataDirectoryURL,
             isLocal);
-        exportIndivData();
+        exportProjectData();
         boolean joinSucceeded = true;
         if (isLocal)
             joinSucceeded = joinLocalTeamSchedule(teamURL, scheduleName);
@@ -1370,7 +1385,7 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
         return schedule.getID();
     }
 
-    protected void exportIndivData() {
+    protected void exportProjectData() {
         DashController.exportData(getPrefix());
     }
 

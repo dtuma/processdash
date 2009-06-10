@@ -1,14 +1,23 @@
 package teamdash.templates.setup;
 
+import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.net.URL;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
-import net.sourceforge.processdash.util.RobustFileWriter;
+import net.sourceforge.processdash.tool.bridge.client.ResourceBridgeClient;
+import net.sourceforge.processdash.util.FileUtils;
+import net.sourceforge.processdash.util.RobustFileOutputStream;
+import net.sourceforge.processdash.util.StringUtils;
 import net.sourceforge.processdash.util.XMLUtils;
 
 import org.w3c.dom.Element;
@@ -28,6 +37,8 @@ public class TeamSettingsFile {
 
     private File projDataDir;
 
+    private String projDataUrl;
+
     private String projectName;
 
     private String projectID;
@@ -45,15 +56,24 @@ public class TeamSettingsFile {
     private boolean isReadOnly;
 
 
-    public TeamSettingsFile(File projDataDir) {
-        this.projDataDir = projDataDir;
+    public TeamSettingsFile(String dir, String url) {
+        if (StringUtils.hasValue(dir))
+            this.projDataDir = new File(dir);
+        if (StringUtils.hasValue(url))
+            this.projDataUrl = url;
+        if (this.projDataDir == null && this.projDataUrl == null)
+            throw new IllegalArgumentException("No location specified");
+
         this.masterProjects = new LinkedList();
         this.subprojects = new LinkedList();
         this.isReadOnly = false;
     }
 
-    public File getSettingsFile() {
-        return new File(projDataDir, "settings.xml");
+    public String getSettingsFileDescription() {
+        if (projDataDir != null)
+            return new File(projDataDir, SETTINGS_FILENAME).getPath();
+        else
+            return projDataUrl + "/" + SETTINGS_FILENAME;
     }
 
     public String getProjectName() {
@@ -120,10 +140,9 @@ public class TeamSettingsFile {
     }
 
     public void read() throws IOException {
-        File settingsFile = getSettingsFile();
         try {
-            Element e = XMLUtils.parse(
-                    new FileInputStream(settingsFile)).getDocumentElement();
+            Element e = XMLUtils.parse(new BufferedInputStream(
+                getInputStream())).getDocumentElement();
 
             this.projectName = getAttribute(e, PROJECT_NAME_ATTR);
             this.projectID = getAttribute(e, PROJECT_ID_ATTR);
@@ -135,10 +154,34 @@ public class TeamSettingsFile {
             readRelatedProjects(e, SUBPROJECT_TAG, subprojects);
 
         } catch (SAXException e) {
-            IOException ioe = new IOException("Could not read " + settingsFile);
+            IOException ioe = new IOException("Could not read "
+                    + getSettingsFileDescription());
             ioe.initCause(e);
             throw ioe;
         }
+    }
+
+    private InputStream getInputStream() throws IOException {
+        IOException ioe = null;
+        if (projDataUrl != null) {
+            try {
+                URL u = new URL(projDataUrl + "/" + SETTINGS_FILENAME);
+                return u.openStream();
+            } catch (IOException e) {
+                ioe = e;
+            }
+        }
+
+        if (projDataDir != null) {
+            try {
+                File f = new File(projDataDir, SETTINGS_FILENAME);
+                return new FileInputStream(f);
+            } catch (IOException e) {
+                ioe = e;
+            }
+        }
+
+        throw ioe;
     }
 
     private void readRelatedProjects(Element e, String tagName, List projects) {
@@ -170,8 +213,8 @@ public class TeamSettingsFile {
         if (isReadOnly)
             throw new IOException("Cannot save read-only file");
 
-        File settingsFile = getSettingsFile();
-        Writer out = new RobustFileWriter(settingsFile, "UTF-8");
+        ByteArrayOutputStream buf = new ByteArrayOutputStream();
+        Writer out = new OutputStreamWriter(buf, "UTF-8");
 
         // write XML header
         out.write("<?xml version='1.0' encoding='UTF-8'?>\n");
@@ -192,6 +235,8 @@ public class TeamSettingsFile {
         out.write("</project-settings>\n");
 
         out.close();
+
+        copyToDestination(buf.toByteArray());
     }
 
     private void writeRelatedProjects(Writer out, String tagName, List projects) throws IOException {
@@ -218,6 +263,35 @@ public class TeamSettingsFile {
         }
     }
 
+    private void copyToDestination(byte[] data) throws IOException {
+        IOException ioe = null;
+
+        if (projDataUrl != null) {
+            try {
+                ResourceBridgeClient.uploadSingleFile(new URL(projDataUrl),
+                    SETTINGS_FILENAME, new ByteArrayInputStream(data));
+                return;
+            } catch (IOException e) {
+                ioe = e;
+            } catch (Exception e) {
+                ioe = new IOException();
+                ioe.initCause(e);
+            }
+        }
+
+        if (projDataDir != null) {
+            File dest = new File(projDataDir, SETTINGS_FILENAME);
+            RobustFileOutputStream out = new RobustFileOutputStream(dest);
+            FileUtils.copyFile(new ByteArrayInputStream(data), out);
+            out.close();
+            return;
+        }
+
+        throw ioe;
+    }
+
+
+    private static final String SETTINGS_FILENAME = "settings.xml";
 
     private static final String PROJECT_NAME_ATTR = "projectName";
 

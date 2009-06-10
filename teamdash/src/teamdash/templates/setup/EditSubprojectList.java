@@ -1,6 +1,5 @@
 package teamdash.templates.setup;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Iterator;
@@ -667,7 +666,7 @@ public class EditSubprojectList extends TinyCGIBase implements TeamDataConstants
             if (tsf == null)
                 return;
 
-            filename = tsf.getSettingsFile().getPath();
+            filename = tsf.getSettingsFileDescription();
 
             tsf.read();
             tsf.getSubprojects().clear();
@@ -778,16 +777,13 @@ public class EditSubprojectList extends TinyCGIBase implements TeamDataConstants
     }
 
     private TeamSettingsFile getTeamSettingsFile() {
-        String teamDirName = getValue(TEAM_DIRECTORY);
-        String projectID = getValue(PROJECT_ID);
-        if (!hasValue(teamDirName) || !hasValue(projectID))
+        String teamDataDir = getValue(TEAM_DATA_DIRECTORY);
+        String teamDataUrl = getValue(TEAM_DATA_DIRECTORY_URL);
+
+        if (!hasValue(teamDataDir) && !hasValue(teamDataUrl))
             return null;
 
-        File teamDir = new File(teamDirName);
-        File dataDir = new File(teamDir, "data");
-        File projDataDir = new File(dataDir, projectID);
-
-        return new TeamSettingsFile(projDataDir);
+        return new TeamSettingsFile(teamDataDir, teamDataUrl);
     }
 
     /*
