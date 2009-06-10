@@ -46,6 +46,7 @@ import java.util.zip.ZipInputStream;
 import net.sourceforge.processdash.tool.bridge.ResourceBridgeConstants;
 import net.sourceforge.processdash.tool.bridge.ResourceCollection;
 import net.sourceforge.processdash.tool.bridge.ResourceCollectionInfo;
+import net.sourceforge.processdash.tool.bridge.ResourceCollectionType;
 import net.sourceforge.processdash.tool.bridge.ResourceFilterFactory;
 import net.sourceforge.processdash.tool.bridge.ResourceListing;
 import net.sourceforge.processdash.tool.bridge.report.ListingHashcodeCalculator;
@@ -346,6 +347,27 @@ public class ResourceBridgeClient implements ResourceBridgeConstants {
         // not be performed. If it completes normally, we can assume the files
         // were deleted (or never existed to begin with).
         return true;
+    }
+
+    /**
+     * Create a new data collection on the server.
+     * 
+     * @param remoteUrl the url of the team server
+     * @param type the type of resource collection to create
+     * @return the ID of the newly created connection
+     * @throws IOException if an IO error occurs
+     * @throws LockFailureException if the team server rejects the request
+     *      because a lock is required.
+     */
+    public static String createNewCollection(URL remoteUrl,
+            ResourceCollectionType type) throws IOException,
+            LockFailureException {
+        byte[] results = doPostRequest(remoteUrl, null, NEW_COLLECTION_ACTION,
+            NEW_COLLECTION_TYPE_PARAM, type.toString());
+        // the statement above will throw an exception if the collection could
+        // not be created. If it completes normally, it will return the ID of
+        // the newly created collection.
+        return new String(results, "UTF-8");
     }
 
     private boolean isSyncDownOnly(String resourceName) {

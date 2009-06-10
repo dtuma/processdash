@@ -1,4 +1,4 @@
-// Copyright (C) 2008 Tuma Solutions, LLC
+// Copyright (C) 2008-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -131,6 +131,18 @@ public interface ResourceBridgeConstants {
      * human-readable name of the person performing the operation.
      */
     String EXTRA_INFO_PARAM = "extraInfo";
+
+    /**
+     * value of action parameter requesting that a new collection be created
+     */
+    String NEW_COLLECTION_ACTION = "newCollection";
+
+    /**
+     * for a new collection action, this request parameter indicates the type of
+     * collection to be created.  Value should be a string representation of
+     * a constant from {@link ResourceCollectionType}.
+     */
+    String NEW_COLLECTION_TYPE_PARAM = "newCollectionType";
 
     /**
      * When a lock action or write action could not be completed, this HTTP

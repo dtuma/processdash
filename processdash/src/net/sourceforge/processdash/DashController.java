@@ -374,6 +374,10 @@ public class DashController {
             int portNum = getAvailablePort();
             InternalSettings.set(HTTP_PORT, Integer.toString(portNum));
         }
+
+        // save settings and flush them to the server.
+        dash.saveSettingsData();
+        dash.flushWorkingData();
     }
 
     private static int getAvailablePort() {
