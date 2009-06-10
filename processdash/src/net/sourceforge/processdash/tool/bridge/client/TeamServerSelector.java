@@ -72,11 +72,23 @@ public class TeamServerSelector {
      *         application.
      */
     public static boolean isDefaultTeamServerConfigured() {
-        if (isTeamServerUseDisabled())
-            return false;
+        return getDefaultTeamServerUrl() != null;
+    }
 
-        String baseUrl = System.getProperty(DEFAULT_TEAM_SERVER_PROPERTY);
-        return (baseUrl != null && baseUrl.length() > 0);
+    /**
+     * Get the URL of the default team server, if one is in effect.
+     * 
+     * If Team Server usage is disabled, this will always return null.
+     * 
+     * @return a URL if a default Team Server has been configured for this
+     *         application, otherwise null
+     */
+    public static String getDefaultTeamServerUrl() {
+        if (isTeamServerUseDisabled())
+            return null;
+
+        String result = System.getProperty(DEFAULT_TEAM_SERVER_PROPERTY);
+        return (isUrlFormat(result) ? result : null);
     }
 
     /**

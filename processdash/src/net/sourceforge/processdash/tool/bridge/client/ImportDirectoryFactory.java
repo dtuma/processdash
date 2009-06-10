@@ -149,7 +149,7 @@ public class ImportDirectoryFactory {
                 // is filling in, and no cached directory is available.  There
                 // isn't much we can do but save the local directory away in
                 // case we have no other options.
-                else if (fallbackResult == null) {
+                if (fallbackResult == null) {
                     fallbackResult = fileResult;
                 }
             }

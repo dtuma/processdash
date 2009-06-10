@@ -242,38 +242,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         propertiesFile = prop_file.getPath();
         property_directory = prop_file.getParent() + Settings.sep;
         TemplateLoader.resetTemplateURLs();
-
-        // if this JVM does not explicitly have a logging config set, but one
-        // is present in the user's data directory, read it.
-        File logConfig = new File(property_directory + "logging.properties");
-        if (System.getProperty("java.util.logging.config.file") == null
-                  && logConfig.isFile()) {
-            try {
-                LogManager.getLogManager().readConfiguration(
-                    new FileInputStream(logConfig));
-            } catch (Exception e) {}
-        }
-
-        // potentially reset locale-specific defaults based on user settings
-        String altTimeZone = Settings.getVal("timezone");
-        if (StringUtils.hasValue(altTimeZone)) {
-            try {
-                TimeZone.setDefault(TimeZone.getTimeZone(altTimeZone));
-            } catch (Exception e) {
-                logger.warning("Could not apply user-selected timezone '"
-                        + altTimeZone + "'");
-            }
-        }
-        String altLanguage = Settings.getVal("language");
-        if (StringUtils.hasValue(altLanguage)) {
-            try {
-                Locale.setDefault(new Locale(altLanguage));
-                System.setProperty("user.language", altLanguage);
-            } catch (Exception e) {
-                logger.warning("Could not apply user-selected language '"
-                        + altLanguage + "'");
-            }
-        }
+        configureSystemPropertiesFromSettings();
         pt.click("Read settings");
 
         DefectAnalyzer.setDataDirectory(property_directory);
@@ -881,6 +850,44 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         }
 
         return charsetName;
+    }
+
+    private void configureSystemPropertiesFromSettings() {
+        // if this JVM does not explicitly have a logging config set, but one
+        // is present in the user's data directory, read it.
+        File logConfig = new File(property_directory + "logging.properties");
+        if (System.getProperty("java.util.logging.config.file") == null
+                  && logConfig.isFile()) {
+            try {
+                LogManager.getLogManager().readConfiguration(
+                    new FileInputStream(logConfig));
+            } catch (Exception e) {}
+        }
+
+        // potentially reset locale-specific defaults based on user settings
+        String altTimeZone = Settings.getVal("timezone");
+        if (StringUtils.hasValue(altTimeZone)) {
+            try {
+                TimeZone.setDefault(TimeZone.getTimeZone(altTimeZone));
+            } catch (Exception e) {
+                logger.warning("Could not apply user-selected timezone '"
+                        + altTimeZone + "'");
+            }
+        }
+        String altLanguage = Settings.getVal("language");
+        if (StringUtils.hasValue(altLanguage)) {
+            try {
+                Locale.setDefault(new Locale(altLanguage));
+                System.setProperty("user.language", altLanguage);
+            } catch (Exception e) {
+                logger.warning("Could not apply user-selected language '"
+                        + altLanguage + "'");
+            }
+        }
+        String defaultTeamServer = Settings.getVal("teamServer.defaultURL");
+        if (StringUtils.hasValue(defaultTeamServer))
+            System.setProperty(TeamServerSelector.DEFAULT_TEAM_SERVER_PROPERTY,
+                defaultTeamServer);
     }
 
     private void maybeEnableReadOnlyMode() {
