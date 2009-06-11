@@ -493,6 +493,7 @@ public class EditSubprojectList extends TinyCGIBase implements TeamDataConstants
                 masterProj.projectID = getParameter(PROJECT_ID);
                 masterProj.teamDirectory = getParameter(TEAM_DIRECTORY);
                 masterProj.teamDirectoryUNC = getParameter(TEAM_DIRECTORY_UNC);
+                masterProj.teamDataURL = getParameter(TEAM_DATA_DIRECTORY_URL);
             } else {
                 logger.log(Level.FINE,
                         "Subproject {0} unlinking from master {1}",
@@ -693,6 +694,7 @@ public class EditSubprojectList extends TinyCGIBase implements TeamDataConstants
         result.projectID = getValue(proj.path + "/" + PROJECT_ID);
         result.teamDirectory = getValue(proj.path + "/" + TEAM_DIRECTORY);
         result.teamDirectoryUNC = getValue(proj.path + "/"+TEAM_DIRECTORY_UNC);
+        result.teamDataURL = getValue(proj.path + "/"+TEAM_DATA_DIRECTORY_URL);
         return result;
     }
 
@@ -715,6 +717,7 @@ public class EditSubprojectList extends TinyCGIBase implements TeamDataConstants
         appendParam(uri, PROJECT_ID, getValue(PROJECT_ID));
         appendParam(uri, TEAM_DIRECTORY, getValue(TEAM_DIRECTORY));
         appendParam(uri, TEAM_DIRECTORY_UNC, getValue(TEAM_DIRECTORY_UNC));
+        appendParam(uri, TEAM_DATA_DIRECTORY_URL, getValue(TEAM_DATA_DIRECTORY_URL));
         appendParam(uri, PATH, getPrefix());
 
         try {

@@ -32,6 +32,7 @@ public class TeamSettingsFile {
         public String projectID;
         public String teamDirectory;
         public String teamDirectoryUNC;
+        public String teamDataURL;
     }
 
 
@@ -197,6 +198,7 @@ public class TeamSettingsFile {
         result.projectID = getAttribute(e, PROJECT_ID_ATTR);
         result.teamDirectory = getAttribute(e, TEAM_DIR_ATTR);
         result.teamDirectoryUNC = getAttribute(e, TEAM_DIR_UNC_ATTR);
+        result.teamDataURL = getAttribute(e, TEAM_DATA_URL_ATTR);
         return result;
     }
 
@@ -248,6 +250,7 @@ public class TeamSettingsFile {
             writeAttr(out, "\n        ", PROJECT_ID_ATTR, proj.projectID);
             writeAttr(out, "\n        ", TEAM_DIR_ATTR, proj.teamDirectory);
             writeAttr(out, "\n        ", TEAM_DIR_UNC_ATTR, proj.teamDirectoryUNC);
+            writeAttr(out, "\n        ", TEAM_DATA_URL_ATTR, proj.teamDataURL);
             out.write("/>\n");
         }
     }
@@ -308,6 +311,8 @@ public class TeamSettingsFile {
     private static final String TEAM_DIR_ATTR = "teamDirectory";
 
     private static final String TEAM_DIR_UNC_ATTR = "teamDirectoryUNC";
+
+    private static final String TEAM_DATA_URL_ATTR = "teamDataURL";
 
     private static final String SUBPROJECT_TAG = "subproject";
 

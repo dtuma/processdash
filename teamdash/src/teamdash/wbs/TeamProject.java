@@ -272,26 +272,18 @@ public class TeamProject {
     }
 
     protected ImportDirectory getProjectDataDirectory(Element e, boolean checkExists) {
-        // first, lookup the master project team directory.
-        String mastTeamDirName =  e.getAttribute("teamDirectoryUNC");
-        if (!XMLUtils.hasValue(mastTeamDirName))
-            mastTeamDirName = e.getAttribute("teamDirectory");
-        if (!XMLUtils.hasValue(mastTeamDirName))
-            return null;
+        // construct a list of possible data locations from the attributes
+        // in this XML element
+        String[] locations = new String[4];
+        locations[0] = e.getAttribute("teamDataURL");
+        locations[1] = getDataSubdir(e, "teamDirectoryUNC");
+        locations[2] = getDataSubdir(e, "teamDirectory");
+        locations[3] = "No Such Dir/data/" + e.getAttribute("projectID");
 
-        // next, look up the ID of the master project.
-        String mastProjectID = e.getAttribute("projectID");
-        if (!XMLUtils.hasValue(mastProjectID))
-            return null;
-
-        // use this information to calculate the location of the master
+        // use this information to retrieve an object for accessing the
         // project's data directory.
-        File mastTeamDir = new File(mastTeamDirName);
-        File dataDir = new File(mastTeamDir, "data");
-        File mastProjDir = new File(dataDir, mastProjectID);
-
         ImportDirectory result = ImportDirectoryFactory.getInstance().get(
-            mastProjDir.getPath());
+            locations);
 
         if (checkExists && result != null
                 && !result.getDirectory().isDirectory())
@@ -299,6 +291,22 @@ public class TeamProject {
 
         return result;
     }
+
+    private String getDataSubdir(Element e, String attrName) {
+        String baseDir = e.getAttribute(attrName);
+        if (!XMLUtils.hasValue(baseDir))
+            return null;
+
+        String projectID = e.getAttribute("projectID");
+        if (!XMLUtils.hasValue(projectID))
+            return null;
+
+        File teamDir = new File(baseDir);
+        File dataDir = new File(teamDir, "data");
+        File projDir = new File(dataDir, projectID);
+        return projDir.getPath();
+    }
+
 
     /** Open the file containing the list of team members */
     private void openTeamList() {
