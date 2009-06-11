@@ -1,4 +1,4 @@
-// Copyright (C) 2005-2007 Tuma Solutions, LLC
+// Copyright (C) 2005-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -23,9 +23,11 @@
 
 package net.sourceforge.processdash.tool.export.impl;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -37,6 +39,7 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
 import net.sourceforge.processdash.DashboardContext;
@@ -55,6 +58,7 @@ import net.sourceforge.processdash.util.StringUtils;
 import net.sourceforge.processdash.util.ThreadThrottler;
 import net.sourceforge.processdash.util.XMLUtils;
 
+import org.w3c.dom.Element;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
 import org.xmlpull.v1.XmlSerializer;
@@ -396,4 +400,34 @@ public class ArchiveMetricsFileExporter implements Runnable,
     private static final TopDownBottomUpJanitor EST_TIME_JANITOR =
         new TopDownBottomUpJanitor("Estimated Time");
 
+    /**
+     * Determine the date that an archive file was exported
+     * @param archive a stream containing the contents of the archive
+     * @return the date the file was exported. If the date cannot be determined
+     *    for any reason (for example, if the parameter does not contain
+     *    archived data), returns null.
+     */
+    public static Date getExportTime(InputStream archive) {
+        ZipInputStream in = null;
+        try {
+            in = new ZipInputStream(new BufferedInputStream(archive));
+            ZipEntry e;
+            while ((e = in.getNextEntry()) != null) {
+                if (MANIFEST_FILE_NAME.equals(e.getName())) {
+                    Element xml = XMLUtils.parse(in).getDocumentElement();
+                    Element exp = (Element) xml.getElementsByTagName(
+                        EXPORTED_TAG).item(0);
+                    return XMLUtils.getXMLDate(exp, WHEN_ATTR);
+                }
+            }
+
+        } catch (Exception e) {}
+
+        if (in != null) {
+            try {
+                in.close();
+            } catch (Exception e) {}
+        }
+        return null;
+    }
 }

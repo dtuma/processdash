@@ -40,7 +40,6 @@ import net.sourceforge.processdash.DashboardContext;
 import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.ImmutableDoubleData;
-import net.sourceforge.processdash.data.ListData;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.StringData;
 import net.sourceforge.processdash.data.repository.DataNameFilter;
@@ -59,16 +58,6 @@ import net.sourceforge.processdash.util.XMLUtils;
 import org.w3c.dom.Element;
 
 public class ExportManager extends AbstractManager {
-
-    /** Entry in the data repository that contains the most recent filenames that
-        have been exported */
-    private static final String CURRENT_EXPORTED_FILES_DATANAME =
-        "/Current_Exported_Filenames";
-
-    /** Entry in the data repository that contains filenames that were exported in
-        the past. */
-    private static final String HISTORICALLY_EXPORTED_DATANAME =
-        "/Historically_Exported_Filenames";
 
     public static final String EXPORT_DATANAME = DataImporter.EXPORT_DATANAME;
     public static final String EXPORT_TIMES_SETTING = "export.timesOfDay";
@@ -142,14 +131,12 @@ public class ExportManager extends AbstractManager {
     }
 
     public void runOneTimeInstruction(AbstractInstruction instr) {
-        SimpleData histList = data
-                .getSimpleValue(HISTORICALLY_EXPORTED_DATANAME);
-        if (histList instanceof ListData)
-            histList = new ListData((ListData) histList);
+        ExportJanitor janitor = new ExportJanitor(data);
+        janitor.startOneTimeExportOperation();
 
         handleAddedInstruction(instr);
 
-        data.putValue(HISTORICALLY_EXPORTED_DATANAME, histList);
+        janitor.finishOneTimeExportOperation();
     }
 
     protected void handleRemovedInstruction(AbstractInstruction instr) {
@@ -267,9 +254,8 @@ public class ExportManager extends AbstractManager {
                     .getString("ExportAutoExporting"), resource
                     .getString("ExportExportingDataDots"));
 
-        // Making sure there's no filenames in the CURRENT list before the
-        //  export task.
-        data.putValue(CURRENT_EXPORTED_FILES_DATANAME, null);
+        ExportJanitor janitor = new ExportJanitor(data);
+        janitor.startExportAllOperation();
 
         for (Iterator iter = tasks.iterator(); iter.hasNext();) {
             AbstractInstruction instr = (AbstractInstruction) iter.next();
@@ -286,55 +272,10 @@ public class ExportManager extends AbstractManager {
         if (p != null)
             p.run();
 
-        cleanupIrrelevantFiles();
+        janitor.finishExportAllOperation();
 
         System.out.println("Completed user-scheduled data export.");
         Runtime.getRuntime().gc();
-    }
-
-    private void cleanupIrrelevantFiles() {
-        ListData currentExportedFiles =
-            ListData.asListData(data.getValue(CURRENT_EXPORTED_FILES_DATANAME));
-        ListData historicallyExportedFiles =
-            ListData.asListData(data.getValue(HISTORICALLY_EXPORTED_DATANAME));
-
-        if (historicallyExportedFiles != null && currentExportedFiles != null) {
-            // After this method call, historicallyExportedFiles wont contain filenames
-            //  that are not in currentExportedFiles.
-            cleanHistoricalFiles(historicallyExportedFiles, currentExportedFiles);
-        }
-
-        data.putValue(CURRENT_EXPORTED_FILES_DATANAME, null);
-        data.putValue(HISTORICALLY_EXPORTED_DATANAME, historicallyExportedFiles);
-    }
-
-    /**
-     * We compare the current list of exported files with the list of historically
-     *  exported files. If we find a filename that is present in the historical
-     *  list but not in the current list, we try to remove it from the file system.
-     *  If the deletion is successful, we remove it from the historical list, making
-     *  it current and up to date.
-     */
-    private void cleanHistoricalFiles(ListData historicallyExportedFiles,
-                                      ListData currentExportedFiles) {
-
-        for (int i = 0; i < historicallyExportedFiles.size(); ) {
-            Object path = historicallyExportedFiles.get(i);
-
-            if (!currentExportedFiles.contains(path) && deletionSuccessful(path)) {
-                historicallyExportedFiles.remove(path);
-            }
-            else {
-                ++i;
-            }
-        }
-    }
-
-    private boolean deletionSuccessful(Object path) {
-        if (!(path instanceof String))
-            return false;
-        else
-            return ExportFileStream.deleteExportTarget((String) path);
     }
 
     private Collection getExportInstructionsFromData() {
@@ -495,7 +436,8 @@ public class ExportManager extends AbstractManager {
             this.instr = instr;
             if (instr != null)
                 this.origHashCode = instr.hashCode();
-            recordExportedFile(CURRENT_EXPORTED_FILES_DATANAME);
+
+            ExportJanitor.recordKnownFileExport(data, path);
         }
 
         public void run() {
@@ -504,20 +446,7 @@ public class ExportManager extends AbstractManager {
             exportTaskFinished();
             maybeUpdateInstruction();
 
-            // The file has been successfully exported. We can record it in the
-            //  HISTORICAL list
-            recordExportedFile(HISTORICALLY_EXPORTED_DATANAME);
-        }
-
-        private void recordExportedFile(String list) {
-            ListData exportedFiles = ListData.asListData(data.getValue(list));
-
-            if (exportedFiles == null) {
-                exportedFiles = new ListData();
-            }
-
-            exportedFiles.setAdd(path);
-            data.putValue(list, exportedFiles);
+            ExportJanitor.recordSuccessfulFileExport(data, path);
         }
 
         public void tryCancel() {

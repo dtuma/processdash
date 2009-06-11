@@ -253,13 +253,17 @@ public class ExportFileStream {
     public static String getExportTargetPath(File file, String url) {
         File dir = file.getParentFile();
         if (dir != null || !StringUtils.hasValue(url))
-            return file.getPath();
+            return file.getPath().replace('\\', '/');
 
         String result = url;
         if (!result.endsWith("/"))
             result = result + "/";
         result = result + file.getName();
         return result;
+    }
+
+    public interface ExportTargetDeletionFilter {
+        public boolean shouldDelete(URL exportTarget);
     }
 
     /**
@@ -269,22 +273,34 @@ public class ExportFileStream {
      *            a string that describes a past export target; this should be a
      *            value previously returned by
      *            {@link #getExportTargetPath(File, String)}.
-     * @return true if the path was recognized and successfully deleted.
+     * @param deletionFilter
+     *            a filter than can determine whether files should be deleted.
+     * @return true if the path was recognized and successfully deleted, or if
+     *            the deletion filter said it didn't need to be deleted.
      */
-    public static boolean deleteExportTarget(String targetPath) {
+    public static boolean deleteExportTarget(String targetPath,
+            ExportTargetDeletionFilter deletionFilter) {
         if (!StringUtils.hasValue(targetPath))
             return true;
 
         if (TeamServerSelector.isUrlFormat(targetPath))
-            return deleteUrlExportTarget(targetPath);
+            return deleteUrlExportTarget(targetPath, deletionFilter);
         else
-            return deleteFilesystemExportTarget(targetPath);
+            return deleteFilesystemExportTarget(targetPath, deletionFilter);
     }
 
-    private static boolean deleteUrlExportTarget(String url) {
+    private static boolean deleteUrlExportTarget(String url,
+            ExportTargetDeletionFilter deletionFilter) {
         int slashPos = url.lastIndexOf('/');
         if (slashPos == -1)
             return false;
+
+        try {
+            URL fullURL = new URL(url);
+            if (deletionFilter != null
+                    && deletionFilter.shouldDelete(fullURL) == false)
+                return true;
+        } catch (Exception e) {}
 
         try {
             URL baseURL = new URL(url.substring(0, slashPos));
@@ -295,11 +311,21 @@ public class ExportFileStream {
         }
     }
 
-    private static boolean deleteFilesystemExportTarget(String path) {
+    private static boolean deleteFilesystemExportTarget(String path,
+            ExportTargetDeletionFilter deletionFilter) {
+        path = path.replace('/', File.separatorChar);
         File file = new File(path);
 
-        if (file.exists())
+        if (file.exists()) {
+            try {
+                URL fileURL = file.toURI().toURL();
+                if (deletionFilter != null
+                        && deletionFilter.shouldDelete(fileURL) == false)
+                    return true;
+            } catch (Exception e) {}
+
             return file.delete();
+        }
 
         // There are 2 possibilities here :
         //     1. The file has already been deleted
