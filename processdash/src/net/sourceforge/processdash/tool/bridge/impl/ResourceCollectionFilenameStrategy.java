@@ -1,4 +1,4 @@
-// Copyright (C) 2008 Tuma Solutions, LLC
+// Copyright (C) 2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -23,15 +23,14 @@
 
 package net.sourceforge.processdash.tool.bridge.impl;
 
-import java.io.File;
+import java.io.FilenameFilter;
 
-import net.sourceforge.processdash.util.DirectoryBackup;
 
-public interface FileResourceCollectionStrategy extends
-        ResourceCollectionFilenameStrategy {
 
-    public DirectoryBackup getBackupHandler(File directory);
+public interface ResourceCollectionFilenameStrategy {
 
-    public String getLockFilename();
+    public FilenameFilter getFilenameFilter();
+
+    public FilenameFilter getUnlockedFilter();
 
 }
