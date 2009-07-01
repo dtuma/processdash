@@ -4,6 +4,7 @@ import javax.swing.table.TableCellRenderer;
 
 import teamdash.wbs.CustomRenderedColumn;
 import teamdash.wbs.DataTableCellPercentRenderer;
+import teamdash.wbs.WBSNode;
 
 public class PercentCompleteColumn extends AbstractPrecomputedColumn implements
         CustomRenderedColumn {
@@ -19,6 +20,11 @@ public class PercentCompleteColumn extends AbstractPrecomputedColumn implements
 
     public TableCellRenderer getCellRenderer() {
         return DataTableCellPercentRenderer.INSTANCE;
+    }
+
+    public static boolean isComplete(WBSNode node) {
+        double percent = node.getNumericAttribute(RESULT_ATTR);
+        return percent > 0.99999;
     }
 
 }

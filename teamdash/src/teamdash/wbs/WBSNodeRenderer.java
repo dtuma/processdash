@@ -12,7 +12,10 @@ import javax.swing.Icon;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableCellRenderer;
 
+import net.sourceforge.processdash.util.HTMLUtils;
+
 import teamdash.wbs.columns.NotesColumn;
+import teamdash.wbs.columns.PercentCompleteColumn;
 
 /** Custom table cell renderer for WBSNodes.
  */
@@ -51,6 +54,11 @@ public class WBSNodeRenderer extends DefaultTableCellRenderer {
         WBSNode node = (WBSNode) value;
         String name = node.getName();
         if (name == null || name.trim().length() == 0) name = "( empty )";
+
+        // display completed tasks with a strikethrough font
+        if (PercentCompleteColumn.isComplete(node))
+            name = "<html><strike>" + HTMLUtils.escapeEntities(name)
+                    + "</strike></html>";
 
         // Call our superclass to perform the default renderer configuration
         Component result = super.getTableCellRendererComponent
