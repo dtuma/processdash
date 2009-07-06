@@ -44,13 +44,20 @@ public class FileUtils {
 
     public static long computeChecksum(File file, Checksum verify)
             throws IOException {
-        InputStream in = new BufferedInputStream(new CheckedInputStream(
-                new FileInputStream(file), verify));
+        return computeChecksum(new FileInputStream(file), verify, true);
+    }
+
+    public static long computeChecksum(InputStream stream, Checksum verify,
+            boolean close) throws IOException {
+
+        InputStream in = new CheckedInputStream(
+                new BufferedInputStream(stream), verify);
         try {
             while (in.read() != -1)
                 ; // do nothing
         } finally {
-            in.close();
+            if (close)
+                in.close();
         }
 
         return verify.getValue();
