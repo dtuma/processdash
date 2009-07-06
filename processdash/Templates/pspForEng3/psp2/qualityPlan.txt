@@ -6,8 +6,10 @@
 
 = Calculate the nominal number of defects we expect in this program.
 
+[Estimated_Defect_Density] =
+    lookup([Previous_Program] &/ "Defect Density To Date");
 [Estimated_Defect_Count] = 
-    [Estimated New & Changed KLOC] * [Estimated Defects per KLOC];
+    [Estimated New & Changed KLOC] * [Estimated_Defect_Density];
 
 
 
@@ -34,11 +36,13 @@ unlockEstimatedPhaseData(Test);
 
 
 
-= The Postmortem phase must be handled specially. We don't want to unlock
-= it because it isn't relevant to the creation of a quality plan.  But we
-= do need to reset the defect calculations, because they would otherwise
-= be based upon calculations that we are about to redefine below.
+= The "Before Development" and Postmortem phases must be handled
+= specially.  We don't want to unlock them because they aren't relevant
+= to the creation of a quality plan.  But we do need to reset the defect
+= calculations, because they would otherwise be based upon calculations
+= that we are about to redefine below.
 
+[Before Development/Estimated Defects Injected] == 0;
 [Postmortem/Estimated Defects Injected] == 0;
 [Postmortem/Estimated Defects Removed] == 0;
 
@@ -46,13 +50,17 @@ unlockEstimatedPhaseData(Test);
 
 = The user was allowed to arbitrarily edit the defects injected and
 = removed, to include deciding that this program will have fewer total
-= defects than past programs.  Recalculate the defect totals based
-= on their planned values.
+= defects than past programs.  Recalculate the defect totals and
+= densities based on their planned values.
 
 [Estimated Defects Injected] =
     sumFor("Estimated Defects Injected", [Phase_List]);
 [Estimated Defects Removed] =
     sumFor("Estimated Defects Removed", [Phase_List]);
+
+[Estimated Defects per KLOC] =
+    [Estimated Defects Removed] / [Estimated New & Changed KLOC];
+[Estimated Defect Density] = [Estimated Defects per KLOC];
 
 
 
