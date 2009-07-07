@@ -156,11 +156,7 @@ public class OpenLocalizationToolAction extends AbstractAction {
         for (Object p : packages) {
             String filename = ((DashPackage)p).filename;
 
-            if (filename.startsWith("file:")) {
-                filename = filename.substring("file:".length());
-            }
-
-            if (!filename.equals(dashboardJar))
+            if (filename != null && !filename.equals(dashboardJar))
                 packageFilenames.append(RESOURCE_SEPARATOR + filename);
         }
 

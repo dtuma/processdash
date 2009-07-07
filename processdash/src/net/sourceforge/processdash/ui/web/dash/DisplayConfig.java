@@ -1,4 +1,4 @@
-// Copyright (C) 2003 Tuma Solutions, LLC
+// Copyright (C) 2003-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -196,12 +196,8 @@ public class DisplayConfig extends TinyCGIBase {
     private String cleanupFilename(String filename) {
         if (filename == null)
             return "";
-        if (filename.startsWith("file:")) {
-            filename = HTMLUtils.urlDecode(filename.substring(5));
-            File f = new File(filename);
-            filename = f.getPath();
-        }
-        return filename;
+        else
+            return filename;
     }
 
     private void printRes(String text) {

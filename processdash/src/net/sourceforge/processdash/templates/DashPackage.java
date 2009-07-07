@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2006 Tuma Solutions, LLC
+// Copyright (C) 2003-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -24,6 +24,7 @@
 
 package net.sourceforge.processdash.templates;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.net.URLConnection;
@@ -40,6 +41,7 @@ import java.util.zip.ZipEntry;
 
 import net.sourceforge.processdash.InternalSettings;
 import net.sourceforge.processdash.Settings;
+import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.XMLUtils;
 
 import org.w3c.dom.Document;
@@ -142,7 +144,7 @@ public class DashPackage {
         version = versionNumber;
     }
 
-    private void init(String filename, Manifest manifest)
+    private void init(String fileUrl, Manifest manifest)
         throws InvalidDashPackage
     {
         Attributes attrs = manifest.getMainAttributes();
@@ -151,7 +153,7 @@ public class DashPackage {
         version   = attrs.getValue(VERSION_ATTRIBUTE);
         updateURL = attrs.getValue(URL_ATTRIBUTE);
         requiresDashVersion = attrs.getValue(REQUIRE_ATTRIBUTE);
-        this.filename = filename;
+        this.filename = extractFilename(fileUrl);
 
         debug("File: " + filename);
 
@@ -180,13 +182,22 @@ public class DashPackage {
               "\n\tupdateURL = " + updateURL);
     }
 
+    private String extractFilename(String fileUrl) {
+        if (fileUrl == null || fileUrl.length() == 0) {
+            return null;
+        } else if (fileUrl.startsWith("file:")) {
+            File f = new File(HTMLUtils.urlDecode(fileUrl.substring(5)));
+            return f.getAbsolutePath();
+        } else {
+            return fileUrl;
+        }
+    }
+
+
     private void lookForDashManifest() throws IOException {
         if (filename == null) return;
 
-        String fn = filename;
-        if (fn.startsWith("file:")) fn = fn.substring(5);
-
-        JarFile jarFile = new JarFile(fn, false);
+        JarFile jarFile = new JarFile(filename, false);
         ZipEntry entry = jarFile.getEntry(DASHBOARD_MANIFEST_FILENAME);
         if (entry == null) return;
 

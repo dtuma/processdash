@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2008 Tuma Solutions, LLC
+// Copyright (C) 2001-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This library is free software; you can redistribute it and/or
@@ -24,6 +24,7 @@ package net.sourceforge.processdash.ui.help;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Window;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
@@ -213,8 +214,8 @@ public class DashHelpBroker implements DashHelpProvider {
 
         // We found javahelp.  Use the URL of the resource we found to
         // construct an appropriate classloader for loading javahelp classes.
-        String dashHelpFile = dashHelpPackage.filename;
-        URL[] classPath = new URL[] { new URL(dashHelpFile) };
+        File dashHelpFile = new File(dashHelpPackage.filename);
+        URL[] classPath = new URL[] { dashHelpFile.toURI().toURL() };
         return new URLClassLoader(classPath);
     }
 
