@@ -60,6 +60,10 @@ The author(s) may be contacted at:
      class="net.sourceforge.processdash.tool.export.mgr.ExportManager$BGTask"
      settingPrefix="export" disabledWith="export.disableAutoExport"/>
 
+  <background-task runAtStartup="true" whenDefault="0"
+     class="net.sourceforge.processdash.templates.UsageLogger"
+     settingPrefix="usageLogger"/>
+
 
   <!-- definitions for snippets that are provided by the dashboard -->
 
