@@ -21,21 +21,19 @@
 //     processdash@tuma-solutions.com
 //     processdash-devel@lists.sourceforge.net
 
-package net.sourceforge.processdash.templates;
+package net.sourceforge.processdash.util;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 
-import net.sourceforge.processdash.Settings;
-import net.sourceforge.processdash.util.StringUtils;
-
 public class UsageLogger implements Runnable {
 
-    private static final String FILE_SETTING = "usageLogger.fileList";
+    public static final String FILE_SETTING = UsageLogger.class.getName()
+            + ".fileList";
 
     public void run() {
-        String logFileList = Settings.getFile(FILE_SETTING);
+        String logFileList = System.getProperty(FILE_SETTING);
         if (!StringUtils.hasValue(logFileList))
             return;
 

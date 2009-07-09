@@ -145,7 +145,9 @@ import net.sourceforge.processdash.util.FormatUtil;
 import net.sourceforge.processdash.util.HTTPUtils;
 import net.sourceforge.processdash.util.Initializable;
 import net.sourceforge.processdash.util.ProfTimer;
+import net.sourceforge.processdash.util.RuntimeUtils;
 import net.sourceforge.processdash.util.StringUtils;
+import net.sourceforge.processdash.util.UsageLogger;
 import net.sourceforge.processdash.util.lock.AlreadyLockedException;
 import net.sourceforge.processdash.util.lock.LockFailureException;
 import net.sourceforge.processdash.util.lock.LockMessage;
@@ -542,6 +544,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         BackgroundTaskManager.initialize(this);
         SystemTrayManagement.getIcon().initialize(this);
         initializeOsHelper();
+        RuntimeUtils.addPropagatedSystemProperty(UsageLogger.FILE_SETTING, null);
         pt.click("Finished initializing Process Dashboard object");
     }
 

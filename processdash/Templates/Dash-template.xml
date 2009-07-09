@@ -61,7 +61,7 @@ The author(s) may be contacted at:
      settingPrefix="export" disabledWith="export.disableAutoExport"/>
 
   <background-task runAtStartup="true" whenDefault="0"
-     class="net.sourceforge.processdash.templates.UsageLogger"
+     class="net.sourceforge.processdash.util.UsageLogger"
      settingPrefix="usageLogger"/>
 
 
