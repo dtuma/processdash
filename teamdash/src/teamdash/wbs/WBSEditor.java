@@ -38,6 +38,7 @@ import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JRadioButtonMenuItem;
 import javax.swing.SwingUtilities;
+import javax.swing.Timer;
 import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.ChangeEvent;
@@ -54,6 +55,7 @@ import net.sourceforge.processdash.util.DashboardBackupFactory;
 import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.PreferencesUtils;
 import net.sourceforge.processdash.util.StringUtils;
+import net.sourceforge.processdash.util.UsageLogger;
 import net.sourceforge.processdash.util.lock.AlreadyLockedException;
 import net.sourceforge.processdash.util.lock.LockFailureException;
 import net.sourceforge.processdash.util.lock.LockMessage;
@@ -1064,8 +1066,24 @@ public class WBSEditor implements WindowListener, SaveListener,
         String owner = System.getProperty("teamdash.wbs.owner");
         createAndShowEditor(locations, bottomUp, showTeam, syncURL, true,
             readOnly, owner);
+
+        new Timer(DAY_MILLIS, new UsageLogAction()).start();
     }
 
+
+    private static class UsageLogAction implements ActionListener {
+        private UsageLogger logger;
+        private UsageLogAction() {
+            logger = new UsageLogger();
+            logger.run();
+        }
+        public void actionPerformed(ActionEvent e) {
+            logger.run();
+        }
+    }
+
+    private static final int DAY_MILLIS = 24 /*hours*/ * 60 /*minutes*/
+            * 60 /*seconds*/ * 1000 /*millis*/;
 
     private class SaveAction extends AbstractAction {
         public SaveAction() {

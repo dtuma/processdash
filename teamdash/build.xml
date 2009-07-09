@@ -280,6 +280,7 @@
       <root classname="net.sourceforge.processdash.util.RobustFileWriter"/>
       <root classname="net.sourceforge.processdash.util.RuntimeUtils"/>
       <root classname="net.sourceforge.processdash.util.StringUtils"/>
+      <root classname="net.sourceforge.processdash.util.UsageLogger"/>
       <root classname="net.sourceforge.processdash.ui.macosx.MacGUIUtils"/>
       <root classname="net.sourceforge.processdash.ui.lib.JDateTimeChooserCellEditor"/>
     </classfileset>
@@ -299,7 +300,7 @@
                 dashClassesMsg = dashClassesMsg + "\n    " + dashClassesList[i];
             }
         }
-        if (classCount > 71) {
+        if (classCount > 72) {
             project.setProperty("dashClasses.overflowCount", classCount);
             project.setProperty("dashClasses.overflowing", dashClassesMsg);
         }
