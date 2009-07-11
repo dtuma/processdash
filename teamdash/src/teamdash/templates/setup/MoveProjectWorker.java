@@ -351,7 +351,7 @@ public class MoveProjectWorker {
     private static final String LOCK_FILE = "teamProject.lock";
     private static final String MARKER_FILE =
         "00-This-Directory-is-Obsolete.txt";
-    private static final String MOVE_FILE_NAME = "data-moved.pdash";
+    private static final String MOVE_FILE_NAME = "moved-data.pdash";
     private static final String XML_HEADER =
         "<?xml version='1.0' encoding='UTF-8' standalone='yes' ?>\n";
 
