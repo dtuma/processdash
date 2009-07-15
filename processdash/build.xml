@@ -493,6 +493,7 @@ Authors:
       <zipfileset src="${xmlrpc-cli.jar}" includes="org/" />
       <zipfileset src="${xmlrpc-com.jar}" includes="org/" />
     </jar>
+    <maybeSignJar jar="${dist}/pspdash.jar" prefix="${pspdash-signature}"/>
   </target>
 
 
