@@ -1,6 +1,7 @@
 
 <project default="publish" basedir=".">
 
+  <property environment="env"/>
   <property file="build.properties"/>
 
   <property name="teamtools.version" value="3.7.6"/>
@@ -8,6 +9,7 @@
 
   <property name="processdash.dir" value="../processdash"/>
   <property name="processdash.lib" value="${processdash.dir}/lib"/>
+  <property name="processdash.dist" value="${processdash.dir}/dist"/>
   <property name="pspdash.jar" value="${processdash.dir}/dist/pspdash.jar"/>
   <property name="xmlpull.jar" value="${processdash.lib}/kxml-2.2.1-mod.jar"/>
   <property name="jcalendar.jar" value="${processdash.lib}/jcalendar-1.3.2.jar"/>
@@ -27,7 +29,6 @@
   <property name="teamhelp.imgsrc" value="${teamhelp}/Images/constr"/>
 
 
-  <property environment="env"/>
 
   <property name="javahelp.home" value="${env.JAVAHELP_HOME}"/>
 
@@ -458,6 +459,25 @@ class dependency has been added in a dashboard class?)
       <property name="additional.core.files" value="${extraCoreFiles}"/>
       <property name="qualifier" value="${cd-qualifier}"/>
     </ant>
+  </target>
+
+  <target name="launch-profile">
+    <taskdef name="packageLaunchProfile"
+             classname="net.sourceforge.processdash.PackageLaunchProfile"
+	     classpath="${dashlibsrc}"/>
+    <packageLaunchProfile profilename="${launchProfile.name}"
+	  profileid="${launchProfile.id}"
+	  profileversion="${launchProfile.version}"
+	  signingprefix="profileSign"
+	  destfile="${launchProfile.filename}">
+      <fileset dir="${processdash.dist}"
+          includesfile="${processdash.lib}/fileset-install-jars.txt" />
+      <fileset dir=".">
+        <include name="TeamTools.jar"/>
+        <include name="${launchProfile.file1}"/>
+        <include name="${launchProfile.file2}"/>
+      </fileset>
+    </packageLaunchProfile>
   </target>
 
   <target name="publish" depends="TeamProcess">
