@@ -116,7 +116,7 @@ public class InterpreterFactory {
 
     private static Pattern TIME_PATTERN = Pattern.compile("\\bTime\\b");
     private static Pattern FALSE_TIME_PATTERN =
-        Pattern.compile("Estimating Error|/(Beta0|Beta1|R Squared)$");
+        Pattern.compile("Estimating Error|Time Ratio|/(Beta0|Beta1|R Squared)$");
 
     private static String instantiate(String name,
                                       String defaultValue,
