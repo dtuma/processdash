@@ -2166,6 +2166,7 @@ public class TaskScheduleDialog implements EVTask.Listener,
             //case EVTaskList.ACT_TIME_COLUMN:
             //case EVTaskList.ACT_DTIME_COLUMN:
             case EVTaskList.PLAN_DATE_COLUMN:
+            case EVTaskList.REPLAN_DATE_COLUMN:
             case EVTaskList.FORECAST_DATE_COLUMN:
             case EVTaskList.LABELS_COLUMN:
             case EVTaskList.DEPENDENCIES_COLUMN:
