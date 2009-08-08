@@ -47,8 +47,8 @@ public class Browser {
         defaultPort = port;
     }
     public static String mapURL(String url) {
-        if (url.startsWith("http:/") || url.startsWith("file:/") ||
-            url.startsWith("mailto:"))
+        if (url.startsWith("http:/") || url.startsWith("https:/") ||
+            url.startsWith("file:/") || url.startsWith("mailto:"))
             return url;
 
         if (!url.startsWith("/"))
