@@ -133,6 +133,12 @@ public interface ResourceBridgeConstants {
     String EXTRA_INFO_PARAM = "extraInfo";
 
     /**
+     * when peforming write operations, this request parameter indicates the
+     * login id of the person performing the operation.
+     */
+    String USER_ID_PARAM = "effUserId";
+
+    /**
      * value of action parameter requesting that a new collection be created
      */
     String NEW_COLLECTION_ACTION = "newCollection";

@@ -76,6 +76,8 @@ public class ResourceBridgeClient implements ResourceBridgeConstants {
 
     String userName;
 
+    String userId;
+
     private static final Logger logger = Logger
             .getLogger(ResourceBridgeClient.class.getName());
 
@@ -85,6 +87,7 @@ public class ResourceBridgeClient implements ResourceBridgeConstants {
         this.localCollection = localCollection;
         this.remoteUrl = remoteUrl;
         this.syncDownOnlyFiles = syncDownOnlyFiles;
+        this.userId = getUserId();
     }
 
     public boolean syncDown() throws IOException {
@@ -323,7 +326,7 @@ public class ResourceBridgeClient implements ResourceBridgeConstants {
     public static Long uploadSingleFile(URL remoteUrl, String resourceName,
             InputStream data) throws IOException,
             LockFailureException {
-        byte[] response = doPostRequest(remoteUrl, null, UPLOAD_ACTION,
+        byte[] response = doPostRequest(remoteUrl, null, null, UPLOAD_ACTION,
             resourceName, data);
         ResourceCollectionInfo remoteList = XmlCollectionListing
                 .parseListing(new ByteArrayInputStream(response));
@@ -341,7 +344,7 @@ public class ResourceBridgeClient implements ResourceBridgeConstants {
      */
     public static boolean deleteSingleFile(URL remoteUrl, String resourceName)
             throws IOException, LockFailureException {
-        doPostRequest(remoteUrl, null, DELETE_ACTION,
+        doPostRequest(remoteUrl, null, null, DELETE_ACTION,
             DELETE_FILE_PARAM, resourceName);
         // the statement above will throw an exception if the deletions could
         // not be performed. If it completes normally, we can assume the files
@@ -362,8 +365,8 @@ public class ResourceBridgeClient implements ResourceBridgeConstants {
     public static String createNewCollection(URL remoteUrl,
             ResourceCollectionType type) throws IOException,
             LockFailureException {
-        byte[] results = doPostRequest(remoteUrl, null, NEW_COLLECTION_ACTION,
-            NEW_COLLECTION_TYPE_PARAM, type.toString());
+        byte[] results = doPostRequest(remoteUrl, null, null,
+            NEW_COLLECTION_ACTION, NEW_COLLECTION_TYPE_PARAM, type.toString());
         // the statement above will throw an exception if the collection could
         // not be created. If it completes normally, it will return the ID of
         // the newly created collection.
@@ -493,17 +496,21 @@ public class ResourceBridgeClient implements ResourceBridgeConstants {
 
     private void doPostRequest(String action, Object... params)
             throws IOException, LockFailureException {
-        doPostRequest(new URL(remoteUrl), userName, action, params);
+        doPostRequest(new URL(remoteUrl), userName, userId, action, params);
     }
 
     private static byte[] doPostRequest(URL remoteUrl, String userName,
-            String action, Object... params) throws IOException,
+            String userId, String action, Object... params) throws IOException,
             LockFailureException {
         ClientHttpRequest request = new ClientHttpRequest(remoteUrl);
         request.setParameter(VERSION_PARAM, CLIENT_VERSION);
         request.setParameter(ACTION_PARAM, action);
         if (userName != null)
             request.setParameter(EXTRA_INFO_PARAM, userName);
+        if (userId == null)
+            userId = getUserId();
+        if (userId != null)
+            request.setParameter(USER_ID_PARAM, userId);
         try {
             InputStream in = request.post(params);
             return FileUtils.slurpContents(in, true);
@@ -566,6 +573,10 @@ public class ResourceBridgeClient implements ResourceBridgeConstants {
             l.add(value);
         }
         return l;
+    }
+
+    private static String getUserId() {
+        return System.getProperty("user.name");
     }
 
     // when constructing a URL to retrieve via the HTTP GET method, this
