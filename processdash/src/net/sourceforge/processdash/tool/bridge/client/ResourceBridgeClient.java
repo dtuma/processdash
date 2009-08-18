@@ -365,8 +365,33 @@ public class ResourceBridgeClient implements ResourceBridgeConstants {
     public static String createNewCollection(URL remoteUrl,
             ResourceCollectionType type) throws IOException,
             LockFailureException {
+        return createNewCollection(remoteUrl, type, null);
+    }
+
+    /**
+     * Create a new data collection on the server.
+     * 
+     * @param remoteUrl the url of the team server
+     * @param type the type of resource collection to create
+     * @param desiredID the ID that should be used for the new collection
+     * @return the ID of the newly created collection
+     * @throws IOException if an IO error occurs
+     * @throws LockFailureException if the team server rejects the request
+     *      because a lock is required.
+     */
+    public static String createNewCollection(URL remoteUrl,
+            ResourceCollectionType type, String desiredID) throws IOException,
+            LockFailureException {
+        Object[] params = new Object[desiredID == null ? 2 : 4];
+        params[0] = NEW_COLLECTION_TYPE_PARAM;
+        params[1] = type.toString();
+        if (desiredID != null) {
+            params[2] = NEW_COLLECTION_ID_PARAM;
+            params[3] = desiredID;
+        }
+
         byte[] results = doPostRequest(remoteUrl, null, null,
-            NEW_COLLECTION_ACTION, NEW_COLLECTION_TYPE_PARAM, type.toString());
+            NEW_COLLECTION_ACTION, params);
         // the statement above will throw an exception if the collection could
         // not be created. If it completes normally, it will return the ID of
         // the newly created collection.

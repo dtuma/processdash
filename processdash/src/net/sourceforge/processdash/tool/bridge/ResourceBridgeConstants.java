@@ -151,6 +151,12 @@ public interface ResourceBridgeConstants {
     String NEW_COLLECTION_TYPE_PARAM = "newCollectionType";
 
     /**
+     * for a new collection action, this request parameter indicates the desired
+     * ID for the collection to be created.
+     */
+    String NEW_COLLECTION_ID_PARAM = "newCollectionId";
+
+    /**
      * When a lock action or write action could not be completed, this HTTP
      * response header will contain the class name of the lock exception.
      */
