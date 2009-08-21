@@ -35,6 +35,12 @@ public interface ResourceBridgeConstants {
      */
     String VERSION_HEADER = "X-Process-Dashboard-Bridge-Protocol-Version";
 
+    /**
+     * name of request parameter indicating a unique identifier for the
+     * computer or system where the request originated
+     */
+    String SOURCE_IDENTIFIER = "sourceId";
+
     /** 
      * name of request parameter indicating an action for the bridge to take
      */
@@ -82,6 +88,12 @@ public interface ResourceBridgeConstants {
      * this collection
      */
     String RELEASE_LOCK_ACTION = "releaseLock";
+
+    /**
+     * when peforming lock operations, this request parameter indicates extra
+     * information that should be used to uniquely identify the lock request
+     */
+    String EXTRA_LOCK_DATA = "extraLockData";
 
     /**
      * value of action parameter requesting the download of collection data

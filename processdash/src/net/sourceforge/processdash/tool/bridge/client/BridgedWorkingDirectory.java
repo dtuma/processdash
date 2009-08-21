@@ -25,6 +25,7 @@ package net.sourceforge.processdash.tool.bridge.client;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.URL;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -59,6 +60,8 @@ public class BridgedWorkingDirectory extends AbstractWorkingDirectory {
 
         client = new ResourceBridgeClient(collection, remoteURL, strategy
                 .getUnlockedFilter());
+        client.setSourceIdentifier(getSourceIdentifier());
+        client.setExtraLockData(processLock.getLockHash());
     }
 
     public void prepare() throws IOException {
@@ -117,6 +120,14 @@ public class BridgedWorkingDirectory extends AbstractWorkingDirectory {
         client.releaseLock();
         if (processLock != null)
             processLock.releaseLock();
+    }
+
+    private String getSourceIdentifier() {
+        try {
+            return InetAddress.getLocalHost().getHostName();
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     private class Worker extends Thread {

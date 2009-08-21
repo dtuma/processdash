@@ -108,6 +108,11 @@ public class FileConcurrencyLock implements ConcurrencyLock {
         this.approver = approver;
     }
 
+    public String getLockHash() {
+        return Integer.toString(Math.abs(lockFile.hashCode()),
+            Character.MAX_RADIX);
+    }
+
     public void acquireLock(String extraInfo) throws LockFailureException {
         acquireLock(null, null, extraInfo);
     }

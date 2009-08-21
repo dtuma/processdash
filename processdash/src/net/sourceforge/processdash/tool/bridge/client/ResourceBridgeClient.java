@@ -78,6 +78,10 @@ public class ResourceBridgeClient implements ResourceBridgeConstants {
 
     String userId;
 
+    String sourceIdentifier;
+
+    String extraLockData;
+
     private static final Logger logger = Logger
             .getLogger(ResourceBridgeClient.class.getName());
 
@@ -88,6 +92,14 @@ public class ResourceBridgeClient implements ResourceBridgeConstants {
         this.remoteUrl = remoteUrl;
         this.syncDownOnlyFiles = syncDownOnlyFiles;
         this.userId = getUserId();
+    }
+
+    public void setSourceIdentifier(String sourceIdentifier) {
+        this.sourceIdentifier = sourceIdentifier;
+    }
+
+    public void setExtraLockData(String extraLockData) {
+        this.extraLockData = extraLockData;
     }
 
     public boolean syncDown() throws IOException {
@@ -326,7 +338,7 @@ public class ResourceBridgeClient implements ResourceBridgeConstants {
     public static Long uploadSingleFile(URL remoteUrl, String resourceName,
             InputStream data) throws IOException,
             LockFailureException {
-        byte[] response = doPostRequest(remoteUrl, null, null, UPLOAD_ACTION,
+        byte[] response = doAnonymousPostRequest(remoteUrl, UPLOAD_ACTION,
             resourceName, data);
         ResourceCollectionInfo remoteList = XmlCollectionListing
                 .parseListing(new ByteArrayInputStream(response));
@@ -344,8 +356,8 @@ public class ResourceBridgeClient implements ResourceBridgeConstants {
      */
     public static boolean deleteSingleFile(URL remoteUrl, String resourceName)
             throws IOException, LockFailureException {
-        doPostRequest(remoteUrl, null, null, DELETE_ACTION,
-            DELETE_FILE_PARAM, resourceName);
+        doAnonymousPostRequest(remoteUrl, DELETE_ACTION, DELETE_FILE_PARAM,
+            resourceName);
         // the statement above will throw an exception if the deletions could
         // not be performed. If it completes normally, we can assume the files
         // were deleted (or never existed to begin with).
@@ -390,7 +402,7 @@ public class ResourceBridgeClient implements ResourceBridgeConstants {
             params[3] = desiredID;
         }
 
-        byte[] results = doPostRequest(remoteUrl, null, null,
+        byte[] results = doAnonymousPostRequest(remoteUrl,
             NEW_COLLECTION_ACTION, params);
         // the statement above will throw an exception if the collection could
         // not be created. If it completes normally, it will return the ID of
@@ -521,21 +533,29 @@ public class ResourceBridgeClient implements ResourceBridgeConstants {
 
     private void doPostRequest(String action, Object... params)
             throws IOException, LockFailureException {
-        doPostRequest(new URL(remoteUrl), userName, userId, action, params);
+        doPostRequest(new URL(remoteUrl), userName, userId, sourceIdentifier,
+            extraLockData, action, params);
+    }
+
+    private static byte[] doAnonymousPostRequest(URL remoteUrl, String action,
+            Object... params) throws IOException, LockFailureException {
+        return doPostRequest(remoteUrl, null, null, null, null, action, params);
     }
 
     private static byte[] doPostRequest(URL remoteUrl, String userName,
-            String userId, String action, Object... params) throws IOException,
+            String userId, String sourceIdentifier, String extraLockData,
+            String action, Object... params) throws IOException,
             LockFailureException {
+        if (userId == null)
+            userId = getUserId();
+
         ClientHttpRequest request = new ClientHttpRequest(remoteUrl);
         request.setParameter(VERSION_PARAM, CLIENT_VERSION);
         request.setParameter(ACTION_PARAM, action);
-        if (userName != null)
-            request.setParameter(EXTRA_INFO_PARAM, userName);
-        if (userId == null)
-            userId = getUserId();
-        if (userId != null)
-            request.setParameter(USER_ID_PARAM, userId);
+        maybeSetParameter(request, EXTRA_INFO_PARAM, userName);
+        maybeSetParameter(request, USER_ID_PARAM, userId);
+        maybeSetParameter(request, SOURCE_IDENTIFIER, sourceIdentifier);
+        maybeSetParameter(request, EXTRA_LOCK_DATA, extraLockData);
         try {
             InputStream in = request.post(params);
             return FileUtils.slurpContents(in, true);
@@ -544,6 +564,13 @@ public class ResourceBridgeClient implements ResourceBridgeConstants {
             throw ioe;
         }
     }
+
+    private static void maybeSetParameter(ClientHttpRequest request,
+            String paramName, String paramValue) throws IOException {
+        if (paramValue != null)
+            request.setParameter(paramName, paramValue);
+    }
+
 
     /**
      * Look at the headers from an HTTP response, and see if they specify a lock
