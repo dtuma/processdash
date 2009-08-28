@@ -19,7 +19,7 @@ div#baseTrack {
     margin-left: 5px;
     background-image: url("/psp-lib/spanUnmodified.png");
     background-repeat: repeat-x;
-    background-position: top;
+    background-position: top left;
 }
 
 div.graphTrack {
@@ -65,7 +65,7 @@ div.graphHandle {
 div#deletedSpan {
     background-image: url("/psp-lib/spanDeleted.png");
     background-repeat: repeat-x;
-    background-position: top;
+    background-position: top left;
 }
 div#deletedHandle {
     background-image: url("/psp-lib/handleDeleted.png");
@@ -74,7 +74,7 @@ div#deletedHandle {
 div#modifiedSpan {
     background-image: url("/psp-lib/spanModified.png");
     background-repeat: repeat-x;
-    background-position: bottom;
+    background-position: bottom right;
 }
 div#modifiedHandle {
     background-image: url("/psp-lib/handleModified.png");
@@ -83,7 +83,9 @@ div#modifiedHandle {
 }
 
 div#addedSpan {
-    background-color: #8f8;
+    background-image: url("/psp-lib/spanAdded.png");
+    background-repeat: repeat;
+    background-position: left;
 }
 div#addedHandle {
     background-image: url("/psp-lib/handleAdded.png");
