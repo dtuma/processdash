@@ -389,8 +389,7 @@ public class EVWeekReport extends TinyCGIBase {
                      weekSlice.earnedValue()/totalPlanTime);
         out.print("</tr>\n");
 
-        interpOut("<tr" + indivDetail
-                + "><td class=left>${Summary.To_Date}</td><td></td>");
+        interpOut("<tr><td class=left>${Summary.To_Date}</td><td></td>");
         if (taskFilter == null) {
             printTimeData(weekSlice.getCumPlanDirectTime(),
                           weekSlice.getCumActualDirectTime());
