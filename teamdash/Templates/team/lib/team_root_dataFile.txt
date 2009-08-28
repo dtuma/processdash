@@ -36,6 +36,9 @@ undefine([Simple Project Tag]);
 
 [Individuals_Using_Stubless_Phases] = false;
 
+<!--#if Disable_Team_Import_Repairs -->
+[Disable_Team_Import_Repairs] = tag;
+<!--#endif-->
 
 /*
  * Data elements for label-based filtering

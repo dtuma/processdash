@@ -227,6 +227,10 @@ public class sync extends TinyCGIBase {
             initials = (isMaster ? HierarchySynchronizer.SYNC_MASTER
                     : HierarchySynchronizer.SYNC_TEAM);
             migrationNeeded = conversionNeeded = false;
+
+            if (shouldRepairTeamImport())
+                RepairImportInstruction.maybeRepairForTeam(getDataContext());
+
         } else {
             // get the initials of the current team member.
             d = data.getSimpleValue(DataRepository.createDataName
@@ -320,6 +324,15 @@ public class sync extends TinyCGIBase {
             wbsLocation = new URL(serverUrlStr + "/" + HIER_FILENAME);
 
         return wbsLocation;
+    }
+
+    private boolean shouldRepairTeamImport() {
+        SimpleData d = getDataContext().getSimpleValue(
+            DISABLE_TEAM_IMPORT_REPAIR_DATA_NAME);
+        if (d != null && d.test())
+            return false;
+
+        return !Settings.getBool(DISABLE_TEAM_IMPORT_REPAIR_SETTING, false);
     }
 
     /** Redirect to the team project migration page */
@@ -768,6 +781,8 @@ public class sync extends TinyCGIBase {
     private static final String TEAM_ROOT = "/TeamRoot";
     private static final String INDIV_ROOT = "/IndivRoot";
     private static final String INDIV2_ROOT = "/Indiv2Root";
+    private static final String DISABLE_TEAM_IMPORT_REPAIR_DATA_NAME = "Disable_Team_Import_Repairs";
+    private static final String DISABLE_TEAM_IMPORT_REPAIR_SETTING = "disableTeamImportRepairs";
     private static final String MIGRATE_DATA_NAME = "Team_Project_Migration_Needed";
     private static final String CONVERT_DATA_NAME = "Team_Project_Conversion_Needed";
     private static final String FULLCOPY_DATA_NAME = "Sync_Full_WBS";

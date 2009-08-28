@@ -29,6 +29,10 @@ undefine([Simple Project Tag]);
      lookup([_] &/ "Rollup_Namespaced_Phase_Metrics"),
      [Subproject_Path_List]));
 
+<!--#if Disable_Team_Import_Repairs -->
+[Disable_Team_Import_Repairs] = tag;
+<!--#endif-->
+
 
 
 /*
