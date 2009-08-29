@@ -50,6 +50,10 @@ undefine([Use_Rollup]);
 [Estimated Aggregate Inspected New & Changed LOC] =
     [Estimated Inspected New & Changed KLOC];
 
+[Size] = [New & Changed LOC];
+[Aggregate Size] = [New & Changed KLOC];
+[Estimated Size] = [Estimated New & Changed LOC];
+[Estimated Aggregate Size] = [Estimated New & Changed KLOC];
 [Size Estimating Error] = [New & Changed LOC Estimating Error];
 
 
@@ -292,16 +296,16 @@ undefine([Use_Rollup]);
 <!--#foreach name=Estimated_ values=",Estimated ,," #-->
 
 [Estimated_New & Changed LOC Productivity] =
-      [Estimated_New & Changed LOC] /
+      [Estimated_New & Changed LOC] * 60 /
       sumFor("Estimated_Time", [/PID/New & Changed LOC_Phase_List]);
 [Estimated_End to End New & Changed LOC Productivity] =
-      [Estimated_New & Changed LOC] / [Estimated_Time];
+      [Estimated_New & Changed LOC] * 60 / [Estimated_Time];
 <!--#foreach name=Metric list=Size_Metric_List #-->
 [Estimated_<!--#echo Metric_Name --> Productivity] =
-      [Estimated_<!--#echo Metric_Name -->] /
+      [Estimated_<!--#echo Metric_Name -->] * 60 /
       sumFor("Estimated_Time", [/PID/<!--#echo Metric_Name -->_Phase_List]);
 [Estimated_End to End <!--#echo Metric_Name --> Productivity] =
-      [Estimated_<!--#echo Metric_Name -->] / [Estimated_Time];
+      [Estimated_<!--#echo Metric_Name -->] * 60 / [Estimated_Time];
 <!--#endfor-->
 
 <!--#endfor-->
