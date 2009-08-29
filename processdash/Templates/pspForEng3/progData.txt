@@ -22,6 +22,11 @@
 [PspForEng_Instr_Script] = "cms/pspForEng3/instr/grading";
 
 
+= Disable the freezing/locking mechanism on the Size Estimating Template
+
+[Size_Estimating_Template_Unlocked] = TAG;
+
+
 = Compute the list of programs that precede this program.
 
 [This_Program_Index] = indexof([^], [../Project_List]);

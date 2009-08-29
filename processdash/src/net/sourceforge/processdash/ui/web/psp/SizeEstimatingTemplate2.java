@@ -84,8 +84,10 @@ public class SizeEstimatingTemplate2 extends SizeEstimatingTemplate {
             uniqueNumber = 0;
 
         this.isLegacy = hasValue(BASE_ADDITIONS_DATANAME);
-        this.freezeActual = hasValue("Completed");
-        this.freezePlan = freezeActual || hasValue("Planning/Completed");
+        boolean disableFreezing = hasValue(DISABLE_FREEZING_DATANAME);
+        this.freezeActual = !disableFreezing && hasValue("Completed");
+        this.freezePlan = !disableFreezing &&
+                (freezeActual || hasValue("Planning/Completed"));
         initSizeTypeData();
 
         for (Section s : sections)

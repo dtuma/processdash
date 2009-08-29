@@ -101,6 +101,8 @@ public class SizeEstimatingTemplate extends TinyCGIBase {
 
     protected static final String BASE_ADDITIONS_DATANAME =
         "Base_Additions_List";
+    protected static final String DISABLE_FREEZING_DATANAME =
+        "Size_Estimating_Template_Unlocked";
     protected static final String [] baseData = {
         BASE_ADDITIONS_DATANAME,
         "Base Additions/#//#/Description",
@@ -139,8 +141,10 @@ public class SizeEstimatingTemplate extends TinyCGIBase {
         if (needsInit || parameters.get("init") != null) init();
         if (parameters.containsKey("testzero")) uniqueNumber = 0;
 
-        boolean freezeActual = hasValue("Completed");
-        boolean freezePlan = freezeActual || hasValue("Planning/Completed");
+        boolean disableFreezing = hasValue(DISABLE_FREEZING_DATANAME);
+        boolean freezeActual = !disableFreezing && hasValue("Completed");
+        boolean freezePlan = !disableFreezing &&
+                (freezeActual || hasValue("Planning/Completed"));
 
         out.write(partA);
         writeTable(fixupRow(baseRow, freezePlan, freezeActual),
