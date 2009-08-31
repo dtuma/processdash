@@ -24,6 +24,7 @@
 
 package net.sourceforge.processdash.log.ui;
 
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
@@ -48,6 +49,7 @@ import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
@@ -121,7 +123,9 @@ public class TimeCardDialog {
              JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
                 treeTable.getTree().setBorder(BorderFactory.createMatteBorder(0, 0, 0,
                                 1, treeTable.getGridColor()));
-        sp.setRowHeaderView(treeTable.getTree());
+        JPanel rowHeader = new JPanel(new BorderLayout());
+        rowHeader.add(treeTable.getTree());
+        sp.setRowHeaderView(rowHeader);
 
         frame.getContentPane().add("Center", sp);
         frame.getContentPane().add("North", buildTopPanel());
