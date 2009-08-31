@@ -100,6 +100,7 @@ import net.sourceforge.processdash.log.time.DashboardTimeLog;
 import net.sourceforge.processdash.log.time.TimeLog;
 import net.sourceforge.processdash.log.time.TimeLoggingModel;
 import net.sourceforge.processdash.log.time.WorkingTimeLog;
+import net.sourceforge.processdash.log.ui.CompletedTaskTimeLoggingWatcher;
 import net.sourceforge.processdash.log.ui.DefectButton;
 import net.sourceforge.processdash.log.ui.PauseButton;
 import net.sourceforge.processdash.msg.MessageDispatcher;
@@ -182,6 +183,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
     DefectButton defect_button = null;
     TaskNavigationSelector taskNav = null;
     CompletionButton completion_button = null;
+    CompletedTaskTimeLoggingWatcher completedTaskTimeLoggingWatcher = null;
     TaskCommenterButton taskCommenterButton = null;
     JMenuBar hierarchy_menubar = null;
     Initializable osHelper = null;
@@ -494,6 +496,8 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         completion_button = new CompletionButton(this, activeTaskModel);
         addToMainWindow(completion_button, 0, 0,
             Settings.getInt("mainWindow.paddingRight", 2));
+        completedTaskTimeLoggingWatcher = new CompletedTaskTimeLoggingWatcher(
+                this, activeTaskModel, timeLog.getTimeLoggingModel(), data);
         pt.click("Created completion button");
 
         MessageDispatcher.init(this);
