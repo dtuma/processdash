@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2007 Tuma Solutions, LLC
+// Copyright (C) 2002-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -50,7 +50,7 @@ public class CheckPage extends WizardPage {
     protected int cmpFlag;
 
     public void writeHTMLContents() {
-        calcData();
+        calcData(false);
         String sizeLabel =
             histData.getResultSet().getColName(ProbeData.ACT_NC_LOC);
 
@@ -86,7 +86,7 @@ public class CheckPage extends WizardPage {
     }
 
     public boolean writeReportSection() {
-        calcData();
+        calcData(true);
         writeSectionTitle(resources.getString("Check.Report_Title"));
         out.print("<p style='margin-left:1cm'>");
         writeProductivityStatement();
@@ -94,8 +94,9 @@ public class CheckPage extends WizardPage {
         return true;
     }
 
-    protected void calcData() {
-        histData = new ProbeData(data, prefix);
+    protected void calcData(boolean forReport) {
+        histData = ProbeData.getEffectiveData(data, prefix);
+        histData.setReportMode(forReport);
         size = histData.getCurrentValue(ProbeData.EST_NC_LOC);
         time = histData.getCurrentValue(ProbeData.EST_TIME);
         processUtil = histData.getProcessUtil();

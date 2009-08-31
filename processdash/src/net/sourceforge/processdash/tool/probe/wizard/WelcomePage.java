@@ -1,4 +1,4 @@
-// Copyright (C) 2002 Tuma Solutions, LLC
+// Copyright (C) 2002-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -49,6 +49,7 @@ public class WelcomePage extends WizardPage {
         return true;
     }
     private static final String EXTRA_REPORT_HEADERS =
+        "<link rel='stylesheet' type='text/css' href='/dash/snippets/alert.css'>" +
         "<style>" +
             "A.plain:link    { color:black; text-decoration:none } "+
             "A.plain:visited { color:black; text-decoration:none } "+

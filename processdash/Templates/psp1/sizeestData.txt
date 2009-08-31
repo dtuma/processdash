@@ -174,3 +174,19 @@ aliasProbe(R Squared);
 [Estimated Time/Interval Percent] = 0;
 [Estimated Time/Probe Method] = "D  ";
 [Estimated Time/R Squared] = 0;
+
+/*
+ * Calculations to test for PROBE estimating process problems
+ */
+
+#define checkProbeMismatch(Metric)                                 \
+        [PROBE_Last_Run_Value/Metric] > 0 &&                       \
+        abs([PROBE_Last_Run_Value/Metric] - [Metric]) > 0.1
+
+[PROBE_Input_Mismatch] = checkProbeMismatch(Estimated Proxy Size);
+[PROBE_Time_Output_Mismatch] = 
+    !startsWith("D", [Estimated Time/Probe Method])
+    && checkProbeMismatch(Estimated Time);
+[PROBE_Size_Output_Mismatch] =
+    !startsWith("D", [Estimated Added & Modified Size/Probe Method])
+    && checkProbeMismatch(Estimated Added & Modified Size);

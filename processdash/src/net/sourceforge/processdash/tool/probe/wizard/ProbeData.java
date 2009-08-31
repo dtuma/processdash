@@ -46,6 +46,8 @@ public class ProbeData {
         "PROBE_INPUT_SIZE_METRIC_NAME";
     public static final String PROBE_TARGET_METRIC =
         "PROBE_TARGET_SIZE_METRIC_NAME";
+    public static final String PROBE_LAST_RUN_PREFIX =
+        "PROBE_Last_Run_Value/";
 
     // These constants are valid parameter values for getXYDataPoints().
     public static final int EST_OBJ_LOC  = 1;
@@ -72,9 +74,11 @@ public class ProbeData {
     private ResultSet resultSet;
     private ProcessUtil processUtil;
     private String subsetPrefix;
+    private boolean reportMode;
     private double productivity, prodStddev;
 
     private String[] dataNames = null;
+    private String[] reportNames = null;
 
     /** Create a full set of historical data, including outliers, marked as
      * such.
@@ -85,6 +89,7 @@ public class ProbeData {
         this.prefix = prefix;
         this.processUtil = new ProcessUtil(data, prefix);
         this.subsetPrefix = getSubsetPrefix(data, prefix, subsetPrefixParam);
+        this.reportMode = false;
         boolean clearOutlierMarks = (subsetPrefixParam != null);
         String[] conditions = shouldOnlyIncludeCompletedProjects(data, prefix)
                 ? CONDITIONS : null;
@@ -96,9 +101,19 @@ public class ProbeData {
     }
 
     /** Get the applicable set of historical data which was saved in
-     * the [PROBE_LIST] variable.
+     * the [PROBE_LIST] variable, if it has been set.  Otherwise, return
+     * the default set of historical data.
      */
-    public ProbeData(DataRepository data, String prefix) {
+    public static ProbeData getEffectiveData(DataRepository data, String prefix) {
+        String forListDataName = DataRepository.createDataName(prefix,
+            PROBE_LIST_NAME);
+        if (data.getValue(forListDataName) == null)
+            return new ProbeData(data, prefix, null);
+        else
+            return new ProbeData(data, prefix);
+    }
+
+    private ProbeData(DataRepository data, String prefix) {
         this.data = data;
         this.prefix = prefix;
         this.processUtil = new ProcessUtil(data, prefix);
@@ -107,10 +122,12 @@ public class ProbeData {
                 ? CONDITIONS : null;
         this.resultSet = ResultSet.get(data, FOR_PROBE_LIST, conditions, ORDER_BY,
                                        getDataNames(), prefix);
+        this.reportMode = false;
         fixupResultSetColumnHeaders();
         markExclusions(null, null, true);
         calcProductivity();
     }
+
 
 
     public Vector getXYDataPoints(int xCol, int yCol) {
@@ -128,19 +145,60 @@ public class ProbeData {
         return dataPoints;
     }
 
+    public boolean isReportMode() {
+        return reportMode;
+    }
+
+    public void setReportMode(boolean reportMode) {
+        this.reportMode = reportMode;
+    }
+
     /** Returns the value for a particular element in the current project */
     public double getCurrentValue(int col) {
+        if (isReportMode()) {
+            double result = getLastRunValue(col);
+            if (!Double.isNaN(result))
+                return result;
+        }
+
+        String elem = dataNames[col-1];
+        return evaluateDataValue(elem);
+    }
+
+    private double getLastRunValue(int col) {
+        String reportElem = reportNames[col-1];
+        if (reportElem == null)
+            return Double.NaN;
+        else
+            return evaluateDataValue(reportElem);
+    }
+
+    private double evaluateDataValue(String elem) {
         try {
-            String elem = dataNames[col-1];
             if (elem.indexOf('[') == -1)
                 return asNumber(data.getSimpleValue
                                 (DataRepository.createDataName(prefix, elem)));
             else
-                return asNumber(data.evaluate(dataNames[col-1], prefix));
+                return asNumber(data.evaluate(elem, prefix));
         } catch (Exception e) {
             e.printStackTrace();
             return Double.NaN;
         }
+    }
+
+    public void saveLastRunValues() {
+        saveLastRunValue(EST_OBJ_LOC);
+        saveLastRunValue(EST_NC_LOC);
+        saveLastRunValue(EST_TIME);
+    }
+
+    private void saveLastRunValue(int col) {
+        String elem = getDataName(col, true);
+        String dataName = DataRepository.createDataName(prefix, elem);
+        SimpleData sd = data.getSimpleValue(dataName);
+        dataName = DataRepository.createDataName(prefix,
+            PROBE_LAST_RUN_PREFIX + elem);
+        data.userPutValue(dataName, sd);
     }
 
     /** Returns "to date" productivity in LOC/hour. */
@@ -209,6 +267,15 @@ public class ProbeData {
             result[EXCLUDE - 1] = "null///null";
             result[COMPLETED_DATE - 1] = "Completed";
             dataNames = result;
+
+            result = new String[LAST_COL];
+            result[EST_OBJ_LOC - 1] =
+                PROBE_LAST_RUN_PREFIX + dataNames[EST_OBJ_LOC - 1];
+            result[EST_NC_LOC - 1] =
+                PROBE_LAST_RUN_PREFIX + dataNames[EST_NC_LOC - 1];
+            result[EST_TIME - 1] =
+                "[" + PROBE_LAST_RUN_PREFIX + "Estimated Time] / 60";
+            reportNames = result;
         }
         return dataNames;
     }

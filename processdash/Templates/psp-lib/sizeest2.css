@@ -1,3 +1,5 @@
+@import "/dash/snippets/alert.css";
+
 table#baseParts tr.active td.baseColumn input { background-color: #e7dfce }
 table#baseParts tr.active td.delColumn input  { background-color: #fdd }
 table#baseParts tr.active td.addColumn input  { background-color: #dfd }
@@ -89,4 +91,8 @@ div#addedSpan {
 }
 div#addedHandle {
     background-image: url("/psp-lib/handleAdded.png");
+}
+
+.ifInputMismatch {
+    display: none;
 }

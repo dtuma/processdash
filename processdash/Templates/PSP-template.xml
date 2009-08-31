@@ -314,6 +314,12 @@ This file contains the template definitions for the standard PSP processes.
     <uri>/dash/snippets/pspTestActualSizeItems</uri>
   </snippet>
 
+  <snippet id="pspProc.testProbeInputMismatch" version="1.0" category="advice">
+    <resources>CMS.Snippet.Anonymous</resources>
+    <context>PSP Project</context>
+    <uri>/dash/snippets/pspTestProbeInputMismatch</uri>
+  </snippet>
+
 
 
 </dashboard-process-template>

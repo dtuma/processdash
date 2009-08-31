@@ -1,4 +1,4 @@
-// Copyright (C) 2002 Tuma Solutions, LLC
+// Copyright (C) 2002-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -79,8 +79,11 @@ public class Wizard extends TinyCGIBase {
 
         out.print("Location: " + URL + "?" + PAGE + "=");
         out.print(nextPage);
+        out.print("&rl=");
+        out.print(Integer.toString(REFRESH_TOKEN++));
         out.print("\r\n\r\n");
     }
+    private static int REFRESH_TOKEN = 0;
 
 
     private void writeReport() throws IOException {

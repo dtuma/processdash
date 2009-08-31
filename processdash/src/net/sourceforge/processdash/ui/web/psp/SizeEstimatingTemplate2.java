@@ -73,6 +73,8 @@ public class SizeEstimatingTemplate2 extends SizeEstimatingTemplate {
 
     boolean isLegacy;
 
+    boolean isMismatch;
+
     boolean freezeActual;
 
     boolean freezePlan;
@@ -84,6 +86,7 @@ public class SizeEstimatingTemplate2 extends SizeEstimatingTemplate {
             uniqueNumber = 0;
 
         this.isLegacy = hasValue(BASE_ADDITIONS_DATANAME);
+        this.isMismatch = hasValue(MISMATCH_FLAG_DATANAME);
         boolean disableFreezing = hasValue(DISABLE_FREEZING_DATANAME);
         this.freezeActual = !disableFreezing && hasValue("Completed");
         this.freezePlan = !disableFreezing &&
@@ -176,6 +179,18 @@ public class SizeEstimatingTemplate2 extends SizeEstimatingTemplate {
     private static final String SIZE_INIT_TOKEN = "<!-- SIZE_TYPE_INIT -->";
     private static final String SIZE_OPTIONS_TOKEN = "<!-- SIZE_TYPE_OPTIONS -->";
 
+    private String flagInputMismatch(String html) {
+        if (isMismatch) {
+            html = StringUtils.findAndReplace(html, NO_INPUT_MISMATCH_TOKEN,
+                INPUT_MISMATCH_TOKEN);
+        }
+        return html;
+    }
+
+    private static final String MISMATCH_FLAG_DATANAME = "PROBE_Input_Mismatch";
+    private static final String NO_INPUT_MISMATCH_TOKEN = "ifInputMismatch";
+    private static final String INPUT_MISMATCH_TOKEN = "inputMismatch";
+
 
     private class Section {
         final String key;
@@ -211,6 +226,7 @@ public class SizeEstimatingTemplate2 extends SizeEstimatingTemplate {
             html = replaceNum(html, uniqueNumber);
             html = markReadOnlyFields(html);
             html = insertSizeTypeData(html);
+            html = flagInputMismatch(html);
             out.print(html);
         }
     }

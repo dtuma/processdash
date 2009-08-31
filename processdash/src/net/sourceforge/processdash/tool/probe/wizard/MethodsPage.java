@@ -1,4 +1,4 @@
-// Copyright (C) 2002 Tuma Solutions, LLC
+// Copyright (C) 2002-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -50,7 +50,7 @@ public class MethodsPage extends WizardPage {
     public MethodsPage() {}
 
     public void settingDone() {
-        this.histData = new ProbeData(data, prefix);
+        this.histData = ProbeData.getEffectiveData(data, prefix);
     }
 
     public void writeHTMLContents() {
@@ -123,6 +123,9 @@ public class MethodsPage extends WizardPage {
         putValue(getDataName("LPI"), lpi);
         putValue(getDataName("UPI"), upi);
 
+        // Save the input values that were used to capture data
+        histData.saveLastRunValues();
+
         return true;
     }
 
@@ -144,6 +147,7 @@ public class MethodsPage extends WizardPage {
 
 
     public boolean writeReportSection() {
+        histData.setReportMode(true);
         buildMethods();
 
         String purposeLabel = resources.getString(purpose.getKey());

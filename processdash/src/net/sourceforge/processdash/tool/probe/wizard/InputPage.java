@@ -1,4 +1,4 @@
-// Copyright (C) 2002 Tuma Solutions, LLC
+// Copyright (C) 2002-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -42,7 +42,7 @@ public class InputPage extends WizardPage {
         if (planningComplete || projectComplete)
             writeError(planningComplete, projectComplete);
         else {
-            boolean success = writeVerifyInput(true);
+            boolean success = writeVerifyInput(true, false);
             if (success == false) {
                 setPrevPage(null);
                 setNextPage(null);
@@ -71,7 +71,7 @@ public class InputPage extends WizardPage {
 
 
     public boolean writeReportSection() {
-        return writeVerifyInput(false);
+        return writeVerifyInput(false, true);
     }
 
 
@@ -97,7 +97,7 @@ public class InputPage extends WizardPage {
     }
 
 
-    protected boolean writeVerifyInput(boolean full) {
+    private boolean writeVerifyInput(boolean full, boolean checkMismatch) {
         ProcessUtil processUtil = new ProcessUtil(data, prefix);
         String probeInputElem =
             processUtil.getProcessString(ProbeData.PROBE_INPUT_METRIC);
@@ -113,6 +113,8 @@ public class InputPage extends WizardPage {
             writeSectionTitle(probeInputElemDisplay);
 
         double inputVal = getNumber(probeInputElem);
+        double lastInputVal = getNumber(ProbeData.PROBE_LAST_RUN_PREFIX
+                + probeInputElem);
 
         if (editInputAllowed) {
             if (Double.isNaN(inputVal)) inputVal = 0;
@@ -128,6 +130,19 @@ public class InputPage extends WizardPage {
             out.print("'>&nbsp;");
             out.print(esc(processUtil.getSizeAbbrLabel()));
             out.print("</p>");
+
+        } else if (checkMismatch == true
+                && !Double.isNaN(lastInputVal)
+                && (Math.abs(inputVal - lastInputVal) > 0.1)) {
+
+            String inputValHTML =
+                "<tt><b>" + FormatUtil.formatNumber(inputVal) + "</b></tt>";
+            String lastInputValHTML =
+                "<tt><b>" + FormatUtil.formatNumber(lastInputVal) + "</b></tt>";
+            out.print("<div class=\"alertError\">");
+            out.print(resources.format("Input.Input_Mismatch_Error_HTML_FMT",
+                elemNameHTML, lastInputValHTML, inputValHTML));
+            out.println("</div>");
 
         } else if (inputVal > 0) {
             String inputValHTML =
