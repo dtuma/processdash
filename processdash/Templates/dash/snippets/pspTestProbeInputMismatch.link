@@ -1,0 +1,5 @@
+class:net.sourceforge.processdash.ui.web.reports.snippets.MetricsAlert
+disabledBy==pspProc.testProbeInputMismatch.disabled
+Expression==[PROBE_Input_Mismatch]
+TrueMessageType==Error
+TrueMessage==${/PROBE:Wizard.Input.Input_Mismatch_Error}
