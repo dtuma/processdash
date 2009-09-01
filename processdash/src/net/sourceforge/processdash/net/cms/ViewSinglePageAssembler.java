@@ -1,4 +1,4 @@
-// Copyright (C) 2006 Tuma Solutions, LLC
+// Copyright (C) 2006-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -26,6 +26,7 @@ package net.sourceforge.processdash.net.cms;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
 
 /** Page assembler that can render HTML for viewing a page of CMS content.
@@ -59,5 +60,17 @@ public class ViewSinglePageAssembler extends AbstractViewPageAssembler {
         addScript(headerItems, "/lib/fixSlash.js");
     }
 
+
+    /**
+     * Return true if the given snippet environment represents a "single
+     * page" or "no frames" view .
+     */
+    public static boolean isSinglePageView(Map environment) {
+        String pageUri = (String) environment
+                .get(CMSSnippetEnvironment.FULL_PAGE_URI);
+        String frameUri = (String) environment
+                .get(CMSSnippetEnvironment.CURRENT_FRAME_URI);
+        return (frameUri != null && frameUri.equals(pageUri));
+    }
 
 }

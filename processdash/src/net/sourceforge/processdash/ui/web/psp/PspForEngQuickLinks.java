@@ -27,27 +27,42 @@ import java.io.IOException;
 
 import net.sourceforge.processdash.data.DataContext;
 import net.sourceforge.processdash.data.repository.DataRepository;
+import net.sourceforge.processdash.net.cms.ViewSinglePageAssembler;
 import net.sourceforge.processdash.net.http.WebServer;
 
 public class PspForEngQuickLinks extends PspForEngBase {
 
+    private enum Mode { TOC, SinglePage };
+
     @Override
     protected void writeContents() throws IOException {
-        if (!"toc".equals(getParameter("mode")))
+        Mode mode = getMode();
+        if (mode == null)
             return;
 
         String level = getPspLevel();
         if (level == null)
             return;
 
+        String target = (mode == Mode.SinglePage ? "quickLink" : "contents");
+
         out.print("<hr/><b>Quick Links:</b><br/>");
-        printLink("sum", level, "summary.htm", "Plan Summary");
+        printLink("quickLink", level, "summary.htm", "Plan Summary");
         if (!level.startsWith("psp0")) {
-            printLink("contents", level, "sizeest.class", "Size Est. Template");
-            printLink("contents", null, "reports/probe/probe.class?page=report",
+            printLink(target, level, "sizeest.class", "Size Est. Template");
+            printLink(target, null, "reports/probe/probe.class?page=report",
                 "PROBE Report");
         }
-        printLink("contents", PARENT, "pspForEng/studata", "Copy STUDATA");
+        printLink(target, PARENT, "pspForEng/studata", "Copy STUDATA");
+    }
+
+    private Mode getMode() {
+        if ("toc".equals(getParameter("mode")))
+            return Mode.TOC;
+        else if (ViewSinglePageAssembler.isSinglePageView(env))
+            return Mode.SinglePage;
+        else
+            return null;
     }
 
     private String getPspLevel() {
