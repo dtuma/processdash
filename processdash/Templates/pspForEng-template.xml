@@ -88,6 +88,15 @@ The author(s) may be contacted at:
     <uri mode="edit">/pspForEng3/instr/timeLogScannerEdit.shtm</uri>
   </snippet>
 
+  <snippet id="pspForEng.timeLogPhaseChart" version="1.0" category="instructor"
+           requires="pspForEng-instr">
+    <resources>PspForEng.TimeLogPhaseChart</resources>
+    <context>PSP Project</context>
+    <mode>edit</mode>
+    <uri>/pspForEng3/instr/timeLogPhaseChart</uri>
+    <uri mode="edit">/pspForEng3/instr/timeLogPhaseChartEdit.shtm</uri>
+  </snippet>
+
   <snippet id="pspForEng.probeItemSizeHist" version="1.0" category="instructor"
            requires="pspForEng-instr">
     <resources>PspForEng.ProbeItemSizeHist</resources>

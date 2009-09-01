@@ -76,6 +76,12 @@
 
 <snippet instanceId="103" type="pdash.timeLog" version="1.0" />
 
+<snippet instanceId="144" type="pspForEng.timeLogPhaseChart" version="1.0" persister="xml.v1"><![CDATA[
+<parameters>
+  <param name="GapSize">1</param>
+  <param name="GapUnits">Hours</param>
+</parameters>]]></snippet>
+
 <snippet instanceId="107" type="pdash.metricsPhaseTable" version="1.0" persister="xml.v1"><![CDATA[
 <parameters>
   <enum name="Metric">

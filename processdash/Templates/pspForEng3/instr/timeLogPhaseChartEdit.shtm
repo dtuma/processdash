@@ -1,0 +1,16 @@
+<b><!--#echo Collapse_Prompt --></b>
+<input type="text" size="4" name="$$$_GapSize"
+    <!--#if GapSize #-->
+        value="<!--#echo GapSize -->"
+    <!--#else #-->
+        value="1"
+    <!--#endif#-->
+>&nbsp;<select name="$$$_GapUnits">
+<!--#foreach name="Which" values=",Hours,Minutes," #-->
+<option
+    <!--#if GapUnits eq 'Which' -->selected="true"
+    <!--#elif defaults && 'Which' eq 'Hours' -->selected="true"
+    <!--#endif#-->
+    value="Which"><!--#echo Units.Which --></option>
+<!--#endfor-->
+</select>

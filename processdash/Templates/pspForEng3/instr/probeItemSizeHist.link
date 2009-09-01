@@ -4,3 +4,4 @@ height=200
 title=PROBE Item Size Histogram
 hideLegend=t
 html=true
+initGradColor=#ddddff

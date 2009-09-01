@@ -1,4 +1,4 @@
-// Copyright (C) 2006 Tuma Solutions, LLC
+// Copyright (C) 2006-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -41,6 +41,15 @@ public class ComparableValue implements Comparable {
 
     public Object getValue() {
         return value;
+    }
+
+    public int getOrdinal() {
+        return ordinal;
+    }
+
+    @Override
+    public String toString() {
+        return String.valueOf(value);
     }
 
 }
