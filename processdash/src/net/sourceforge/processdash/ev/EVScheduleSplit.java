@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2008 Tuma Solutions, LLC
+// Copyright (C) 2003-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -59,13 +59,7 @@ public class EVScheduleSplit extends EVSchedule {
         // grow the schedule until the final schedule period falls
         // after the effective date.
         if (defaultPlanDirectTime != 0) {
-            int added = 0;
             while (true) {
-                if (added < 5) {
-                    added++;
-                } else {
-                    maybeSimplifyPeriod(get(periods.size()-3), effDate);
-                }
                 p = get(periods.size()-1);
                 if (p.getBeginDate().compareTo(effDate) >= 0)
                     break;
