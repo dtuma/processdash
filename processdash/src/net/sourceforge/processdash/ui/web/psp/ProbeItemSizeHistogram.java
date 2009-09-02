@@ -53,7 +53,7 @@ public class ProbeItemSizeHistogram extends BarChart {
 
     private static final String SNIPPET_HEADER = "<HTML><head>\n"
             + "<script type='text/javascript' src='/lib/overlib.js'></script>\n"
-            + "</head><body>\n";
+            + "</head><body><p>\n";
 
     @Override
     protected void writeContents() throws IOException {
@@ -61,7 +61,7 @@ public class ProbeItemSizeHistogram extends BarChart {
             out.write(SNIPPET_HEADER);
         super.writeContents();
         if (isHtmlMode())
-            out.print("</body></html>");
+            out.print("</p></body></html>");
     }
 
     @Override

@@ -104,6 +104,13 @@ The author(s) may be contacted at:
     <uri>/pspForEng3/instr/probeItemSizeHist</uri>
   </snippet>
 
+  <snippet id="pspForEng.probeConsistencyCheck" version="1.0"
+           category="instructor" requires="pspForEng-instr">
+    <resources>PspForEng.ProbeConsistencyCheck</resources>
+    <context>Size Estimating Template Tag</context>
+    <uri>/pspForEng3/instr/probeConsistencyCheck</uri>
+  </snippet>
+
   <snippet id="pspForEng.fixTimeConsistency" version="1.0"
            category="instructor" requires="pspForEng-instr">
     <resources>PspForEng.FixTimeConsistency</resources>

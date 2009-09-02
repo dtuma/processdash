@@ -181,7 +181,7 @@ aliasProbe(R Squared);
 
 #define checkProbeMismatch(Metric)                                 \
         [PROBE_Last_Run_Value/Metric] > 0 &&                       \
-        abs([PROBE_Last_Run_Value/Metric] - [Metric]) > 0.1
+        abs([PROBE_Last_Run_Value/Metric] - [Metric]) > 0.5
 
 [PROBE_Input_Mismatch] = checkProbeMismatch(Estimated Proxy Size);
 [PROBE_Time_Output_Mismatch] = 

@@ -166,6 +166,8 @@
 
 <snippet instanceId="139" type="pspForEng.probeItemSizeHist" version="1.0" />
 
+<snippet instanceId="147" type="pspForEng.probeConsistencyCheck" version="1.0" />
+
 <snippet instanceId="116" type="pdash.sectionHeading" version="1.0" persister="xml.v1"><![CDATA[
 <parameters>
   <param name="Name">Planning Summary</param>
