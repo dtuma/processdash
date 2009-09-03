@@ -27,7 +27,9 @@ package net.sourceforge.processdash.process;
 
 import net.sourceforge.processdash.process.ui.TriggerURI;
 import net.sourceforge.processdash.ui.Browser;
+import net.sourceforge.processdash.ui.lib.SwingWorker;
 import net.sourceforge.processdash.util.HTMLUtils;
+import net.sourceforge.processdash.util.StringUtils;
 
 
 public class ScriptID {
@@ -102,9 +104,24 @@ public class ScriptID {
     }
 
     public String getDisplayName () {
-        if (displayname == null && nameResolver != null)
-            displayname = nameResolver.lookup(scriptfile);
-        return (displayname == null ? scriptfile : displayname);
+        return getDisplayName(null);
+    }
+
+    public String getDisplayName(DisplayNameListener l) {
+        if ("".equals(displayname))
+            return scriptfile;
+        else if (displayname != null)
+            return displayname;
+        else if (nameResolver == null)
+            return scriptfile;
+
+        displayname = nameResolver.lookup(scriptfile, l != null);
+        if (displayname != null)
+            return (hasValue(displayname) ? displayname : scriptfile);
+
+        NameResolvingWorker w = new NameResolvingWorker(l);
+        w.start();
+        return scriptfile;
     }
 
     public String toString() {
@@ -145,11 +162,44 @@ public class ScriptID {
         return a.equals(b);
     }
 
+    public interface DisplayNameListener {
+        public void displayNameChanged(ScriptID s, String displayName);
+    }
+
     public interface NameResolver {
-        public String lookup(String name);
+        /**
+         * Look up the display name for a particular URI
+         * @param uri the URI or URL to look up
+         * @param quickly if true, do not risk time-consuming operations
+         * @return a name to display. If no name could be retrieved, returns the
+         *     empty string. If quickly was true and retrieving the name could
+         *     take time, returns null.
+         */
+        public String lookup(String uri, boolean quickly);
     }
 
     private static NameResolver nameResolver = null;
     public static void setNameResolver(NameResolver r) { nameResolver = r; }
+
+    private static boolean hasValue(String s) {
+        return StringUtils.hasValue(s);
+    }
+
+    private class NameResolvingWorker extends SwingWorker {
+        private DisplayNameListener l;
+        public NameResolvingWorker(DisplayNameListener l) {
+            this.l = l;
+        }
+        @Override
+        public Object construct() {
+            return nameResolver.lookup(scriptfile, false);
+        }
+        @Override
+        public void finished() {
+            displayname = (String) get();
+            if (l != null && hasValue(displayname))
+                l.displayNameChanged(ScriptID.this, displayname);
+        }
+    }
 
 }

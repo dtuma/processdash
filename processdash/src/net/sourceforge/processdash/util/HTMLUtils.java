@@ -64,6 +64,8 @@ public class HTMLUtils {
         value = StringUtils.findAndReplace(value, "&gt;",   ">");
         value = StringUtils.findAndReplace(value, "&quot;", "\"");
         value = StringUtils.findAndReplace(value, "&apos;", "'");
+        value = StringUtils.findAndReplace(value, "&#x27;", "'");
+        value = StringUtils.findAndReplace(value, "&nbsp;", " ");
         value = StringUtils.findAndReplace(value, "&amp;",  "&");
         return value;
     }

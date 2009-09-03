@@ -290,6 +290,9 @@ The author(s) may be contacted at:
 
   <scriptSource dataName="User URLs"/>
 
+  <scriptSource
+     class="net.sourceforge.processdash.hier.ui.HierarchyNoteScriptSource"/>
+
  <!-- definitions for the preferences dialog. -->
  
     <preferences-pane id="pdash.ui"

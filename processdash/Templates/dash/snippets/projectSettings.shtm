@@ -54,11 +54,13 @@
 <td colspan="10"><input type="text" size="15" name="[Project/Language]s"/></td>
 </tr>
 
+<!--
 <tr>
 <td valign="top">Related URLs</td>
 <td colspan="10"><textarea rows="3" cols="50" name="[User URLs]s"
     title="Optionally enter URLs related to this project, one per line"></textarea></td>
 </tr>
+-->
 
 </table>
 <!--#include file="../selectRollup.class" -->

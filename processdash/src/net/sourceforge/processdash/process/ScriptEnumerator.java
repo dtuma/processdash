@@ -49,8 +49,28 @@ public class ScriptEnumerator {
 
     private static List<ScriptSource> SCRIPT_SOURCES = null;
 
+    private static List<ScriptEnumeratorListener> LISTENERS =
+        Collections.synchronizedList(new ArrayList());
+
     private static final Logger log = Logger.getLogger(ScriptEnumerator.class
             .getName());
+
+    public static void addListener(ScriptEnumeratorListener l) {
+        LISTENERS.add(l);
+    }
+
+    public static void removeListener(ScriptEnumeratorListener l) {
+        LISTENERS.remove(l);
+    }
+
+    public static void scriptSourceChanged(ScriptSource source, String path) {
+        ScriptEnumeratorEvent evt = new ScriptEnumeratorEvent(
+                ScriptEnumerator.class, path);
+        ArrayList<ScriptEnumeratorListener> notifyList =
+                new ArrayList<ScriptEnumeratorListener>(LISTENERS);
+        for (ScriptEnumeratorListener l : notifyList)
+            l.scriptChanged(evt);
+    }
 
     public static List<ScriptID> getScripts(DashboardContext ctx, String path) {
         PropertyKey key = ctx.getHierarchy().findClosestKey(path);

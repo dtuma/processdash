@@ -23,6 +23,7 @@
 
 package net.sourceforge.processdash.process.ui;
 
+import java.awt.Font;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -30,15 +31,23 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.List;
 
+import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
 import javax.swing.Icon;
+import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
+import javax.swing.JPanel;
+import javax.swing.JSeparator;
 
 import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.hier.DashHierarchy;
+import net.sourceforge.processdash.hier.Filter;
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.process.ScriptEnumerator;
+import net.sourceforge.processdash.process.ScriptEnumeratorEvent;
+import net.sourceforge.processdash.process.ScriptEnumeratorListener;
 import net.sourceforge.processdash.process.ScriptID;
 import net.sourceforge.processdash.ui.DashboardIconFactory;
 import net.sourceforge.processdash.ui.help.PCSH;
@@ -50,8 +59,12 @@ import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
  * script when it is pressed.  A right click can activate a popup menu with
  * a selection of scripts.
  */
-public class ScriptButton extends DropDownButton
-        implements PropertyChangeListener, DashHierarchy.Listener {
+public class ScriptButton extends DropDownButton implements
+        PropertyChangeListener, DashHierarchy.Listener,
+        ScriptEnumeratorListener {
+
+    private static final String MORE_TEXT = Resources.getGlobalBundle()
+              .getDlgString("More");
 
     ProcessDashboard parent = null;
     Icon enabled_icon = null;
@@ -75,13 +88,14 @@ public class ScriptButton extends DropDownButton
         getButton().setFocusPainted(false);
         parent = dash;
 
-        moreItem = new JMenuItem(Resources.getGlobalBundle().getDlgString("More"));
+        moreItem = new JMenuItem(MORE_TEXT);
         moreItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 new ScriptBrowser(ScriptButton.this.parent, true); } } );
 
         dash.getActiveTaskModel().addPropertyChangeListener(this);
         dash.getHierarchy().addHierarchyListener(this);
+        ScriptEnumerator.addListener(this);
         updateAll();
     }
 
@@ -94,6 +108,7 @@ public class ScriptButton extends DropDownButton
 
     private void updateAll() {
         PropertyKey currentPhase = parent.getActiveTaskModel().getNode();
+        path = (currentPhase == null ? null : currentPhase.path());
         setPaths(ScriptEnumerator.getScripts(parent, currentPhase));
     }
 
@@ -102,9 +117,6 @@ public class ScriptButton extends DropDownButton
     private void setPaths(List<ScriptID> v) {
         paths = v;
         getMenu().removeAll();
-        ScriptID id;
-        String dataPath = null;
-        boolean useSubmenus = useSubmenus(paths);
         JMenu destMenu = getMenu();
 
         // populate the popup menu with items for each script.
@@ -112,56 +124,75 @@ public class ScriptButton extends DropDownButton
 
             // add the current (default) menu.
             destMenu.add(new ScriptMenuItem(paths.get(0)));
-            destMenu.addSeparator();
 
-            // add menu items for the rest of the scripts
-            for (int i = 1;  i < paths.size();  i++) {
-                id = paths.get(i);
-                if (id.getDataPath() == null || id.getScript() == null)
-                    continue;
-                if (!id.getDataPath().equals(dataPath)) {
-                    dataPath = id.getDataPath();
-                    if (useSubmenus) {
-                        int pos = dataPath.lastIndexOf('/');
-                        destMenu = new JMenu(dataPath.substring(pos+1));
-                        getMenu().add(destMenu);
-                    } else if (i > 1) {
-                        destMenu.addSeparator();
-                    }
-                }
-                destMenu.add(new ScriptMenuItem(id));
-            }
+            ScriptMenuBuilder b = new ScriptMenuBuilder(paths);
+            addMenuItems(destMenu, b.isMultiLevel(), b.getMenuItems());
             getMenu().addSeparator();
         }
 
         getMenu().add(moreItem);
     }
-    private boolean useSubmenus(List<ScriptID> v) {
-        if (v == null || v.size() < 2) return false;
-        String dataPath = v.get(0).getDataPath();
-        String newDataPath;
-        for (int i = v.size();   i-- > 1; ) {
-            newDataPath = v.get(i).getDataPath();
-            if (dataPath != null && !dataPath.equals(newDataPath))
-                return true;
-            dataPath = newDataPath;
+
+    private void addMenuItems(JMenu destMenu, boolean showSeparatorLabels,
+              List menuItems) {
+        for (Object item : menuItems) {
+            if (item instanceof String) {
+                String dataPath = (String) item;
+                if (showSeparatorLabels)
+                    destMenu.add(new ScriptMenuSeparator(dataPath));
+                else
+                    destMenu.addSeparator();
+
+            } else if (item instanceof ScriptID) {
+                ScriptID script = (ScriptID) item;
+                destMenu.add(new ScriptMenuItem(script));
+
+            } else if (item instanceof List) {
+                JMenu submenu = new JMenu(MORE_TEXT);
+                destMenu.add(submenu);
+                addMenuItems(submenu, showSeparatorLabels, (List) item);
+
+            } else {
+                System.out.println("Warning! Unrecognized menu item type "
+                          + item);
+            }
         }
-        return false;
     }
 
     /** ScriptMenuItem is an extended JMenuItem class with built-in
      * logic for displaying a script item. */
-    public class ScriptMenuItem extends JMenuItem implements ActionListener {
+    public class ScriptMenuItem extends JMenuItem implements ActionListener,
+              ScriptID.DisplayNameListener {
         ScriptID id;
 
         public ScriptMenuItem(ScriptID id) {
-            super(id.getDisplayName());
             this.id = id;
+            setText(id.getDisplayName(this));
             addActionListener(this);
         }
 
         public void actionPerformed(ActionEvent e) {
             id.display();
+        }
+
+        public void displayNameChanged(ScriptID s, String displayName) {
+            setText(displayName);
+        }
+    }
+
+    private class ScriptMenuSeparator extends JPanel {
+        public ScriptMenuSeparator(String path) {
+            setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+
+            add(new JSeparator());
+
+            int slashPos = path.lastIndexOf('/');
+            String title = path.substring(slashPos+1);
+            JLabel l = new JLabel(title);
+            Font f = l.getFont();
+            l.setFont(f.deriveFont(f.getSize2D() * 0.8f));
+            l.setBorder(BorderFactory.createEmptyBorder(0, 3, 0, 10));
+            add(l);
         }
     }
 
@@ -171,6 +202,11 @@ public class ScriptButton extends DropDownButton
 
     public void hierarchyChanged(DashHierarchy.Event e) {
         updateAll();
+    }
+
+    public void scriptChanged(ScriptEnumeratorEvent e) {
+        if (Filter.pathMatches(path, e.getAffectedPath()))
+            updateAll();
     }
 
 }

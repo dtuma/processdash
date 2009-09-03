@@ -24,13 +24,13 @@
 package net.sourceforge.processdash.ui.systray;
 
 import java.awt.Font;
+import java.awt.Menu;
 import java.awt.MenuItem;
 import java.awt.PopupMenu;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.beans.EventHandler;
 import java.beans.PropertyChangeListener;
-import java.util.Iterator;
 import java.util.List;
 
 import javax.swing.UIManager;
@@ -39,11 +39,16 @@ import net.sourceforge.processdash.DashboardContext;
 import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.hier.ActiveTaskModel;
 import net.sourceforge.processdash.hier.DashHierarchy;
+import net.sourceforge.processdash.hier.Filter;
 import net.sourceforge.processdash.hier.PropertyKey;
+import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.process.ScriptEnumerator;
+import net.sourceforge.processdash.process.ScriptEnumeratorEvent;
+import net.sourceforge.processdash.process.ScriptEnumeratorListener;
 import net.sourceforge.processdash.process.ScriptID;
+import net.sourceforge.processdash.process.ui.ScriptMenuBuilder;
 
-public class ScriptMenuReplicator {
+public class ScriptMenuReplicator implements ScriptEnumeratorListener {
 
     private DashboardContext ctx;
 
@@ -52,6 +57,8 @@ public class ScriptMenuReplicator {
     private ActiveTaskModel activeTaskModel;
 
     private PopupMenu popupMenu;
+
+    private String currentPath;
 
     public static void replicate(ProcessDashboard pdash, PopupMenu dest) {
         new ScriptMenuReplicator(pdash, dest);
@@ -69,7 +76,13 @@ public class ScriptMenuReplicator {
         activeTaskModel = pdash.getActiveTaskModel();
         activeTaskModel.addPropertyChangeListener(EventHandler.create(
             PropertyChangeListener.class, this, "updateScriptMenuItems"));
+        ScriptEnumerator.addListener(this);
         updateScriptMenuItems();
+    }
+
+    public void scriptChanged(ScriptEnumeratorEvent e) {
+        if (Filter.pathMatches(currentPath, e.getAffectedPath()))
+            updateScriptMenuItems();
     }
 
     public void updateScriptMenuItems() {
@@ -90,28 +103,35 @@ public class ScriptMenuReplicator {
 
         // retrieve the current list of script menu items from the dashboard
         PropertyKey currentPhase = activeTaskModel.getNode();
+        currentPath = (currentPhase == null ? null : currentPhase.path());
         List<ScriptID> scriptItems = ScriptEnumerator.getScripts(ctx,
             currentPhase);
 
         if (scriptItems != null && scriptItems.size() > 1) {
-            Iterator i = scriptItems.iterator();
-            String currentPath = null;
-            // the first item in the list is a "default script" which does not
-            // need to be displayed in our menu. Discard it.
-            i.next();
-            // now insert a menu item for each script.
-            while (i.hasNext()) {
-                ScriptID scriptID = (ScriptID) i.next();
-                // if the data path changed with this item, insert a separator
-                // and a header identifying the new path
-                String newPath = scriptID.getDataPath();
-                if (!newPath.equals(currentPath)) {
-                    popupMenu.insert(new ScriptMenuSeparator(), ++pos);
-                    popupMenu.insert(new ScriptMenuHeader(newPath), ++pos);
-                    currentPath = newPath;
-                }
-                // now insert a menu item for this script.
-                popupMenu.insert(new ScriptMenuItem(scriptID), ++pos);
+            ScriptMenuBuilder b = new ScriptMenuBuilder(scriptItems);
+            addMenuItems(popupMenu, b.getMenuItems(), pos);
+        }
+    }
+
+    private void addMenuItems(Menu destMenu, List menuItems, int pos) {
+        for (Object item : menuItems) {
+            if (item instanceof String) {
+                String dataPath = (String) item;
+                destMenu.insert(new ScriptMenuSeparator(), ++pos);
+                destMenu.insert(new ScriptMenuHeader(dataPath), ++pos);
+
+            } else if (item instanceof ScriptID) {
+                ScriptID script = (ScriptID) item;
+                destMenu.insert(new ScriptMenuItem(script), ++pos);
+
+            } else if (item instanceof List) {
+                Menu submenu = new ScriptMenuSubmenu();
+                destMenu.insert(submenu, ++pos);
+                addMenuItems(submenu, (List) item, -1);
+
+            } else {
+                System.out.println("Warning! Unrecognized menu item type "
+                          + item);
             }
         }
     }
@@ -120,12 +140,12 @@ public class ScriptMenuReplicator {
     }
 
     private static class ScriptMenuItem extends MenuItem implements
-            ScriptItemTag {
+            ScriptItemTag, ScriptID.DisplayNameListener {
         private ScriptID target;
 
         public ScriptMenuItem(ScriptID target) {
-            super(target.getDisplayName());
             this.target = target;
+            setLabel(target.getDisplayName(this));
             addActionListener(DISPATCHER);
         }
 
@@ -138,6 +158,10 @@ public class ScriptMenuReplicator {
                 ((ScriptMenuItem) e.getSource()).display();
             }
         };
+
+        public void displayNameChanged(ScriptID s, String displayName) {
+            setLabel(displayName);
+        }
 
     }
 
@@ -160,5 +184,14 @@ public class ScriptMenuReplicator {
             super("-");
         }
     }
+
+    private static class ScriptMenuSubmenu extends Menu implements ScriptItemTag {
+        public ScriptMenuSubmenu() {
+            super(MORE_TEXT);
+        }
+    }
+
+    private static final String MORE_TEXT = Resources.getGlobalBundle()
+            .getDlgString("More");
 
 }
