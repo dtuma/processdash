@@ -65,8 +65,6 @@ public class InternalSettings extends Settings {
             return;
 
         String cwd  = System.getProperty("user.dir");
-        String home = System.getProperty("user.home");
-        homedir = home;
 
         InputStream in;
 
@@ -98,60 +96,37 @@ public class InternalSettings extends Settings {
                 (Settings.class.getResourceAsStream("pspdash.ad-comments"));
         } catch (Exception e0) {}
 
-        // finally, open the user's settings file and load those properties.  The
-        // default search path for these user settings is:
-        //    * the current directory
-        //    * the user's home directory (specified by the system property
-        //          "user.home")
-        //
-        // on Windows/Mac systems, this will look for a file named "pspdash.ini".
-        // on all other platforms, it will look for a file named ".pspdash".
-        //
         settings = fsettings = new FileProperties(defaults, propertyComments);
         fsettings.setDateStamping(false);
-
-        String filename = getSettingsFilename();
         dirty = disableChanges = false;
 
-        filename = checkForOldSettingsFile(cwd, filename);
-        if (settingsFileRename != null)
-            dirty = true;
-
+        // Finally, open the user's settings file and load those properties.  The
+        // user settings file is typically called "pspdash.ini" and is located in
+        // the current working directory.  However, the caller of this method
+        // can override this location by passing in another filename.
+        //
         File settingsFile;
         if (settingsFilename != null && settingsFilename.length() != 0) {
             // if the caller has specified a particular settings file, use it.
             settingsFile = new File(settingsFilename);
+            homedir = settingsFile.getParent();
+            if (homedir == null) homedir = cwd;
         } else {
-            // search for an existing settings file
-            String cwdFilename = cwd + sep + filename;
-            File cwdFile = new File(cwdFilename);
-            String homeFilename = home + sep + filename;
-            File homeFile = new File(homeFilename);
-            if (cwdFile.isFile()) {
-                // first, look in the current working directory.
-                settingsFile = cwdFile;
-                settingsFilename = cwdFilename;
-                homedir = cwd;
-            } else if (homeFile.isFile()) {
-                // next, check the user's home directory.
-                settingsFile = homeFile;
-                settingsFilename = homeFilename;
-                homedir = home;
-            } else {
-                // if no file was found, default to the current working directory.
-                System.out.println("could not read user preferences file from any of");
-                System.out.println("     " + cwdFilename);
-                System.out.println("     " + homeFilename);
-                System.out.println("...using system-wide defaults.");
-                settingsFile = cwdFile;
-                settingsFilename = cwdFilename;
-                homedir = cwd;
-            }
+            // look for an existing settings file in the current directory.
+            String filename = checkForOldSettingsFile(cwd, getSettingsFilename());
+            if (settingsFileRename != null)
+                dirty = true;
+
+            settingsFilename = cwd + sep + filename;
+            settingsFile = new File(settingsFilename);
+            homedir = cwd;
         }
 
         if (!settingsFile.isFile()) {
             // if the file doesn't exist, make a note that we need to save it.
             dirty = true;
+            System.out.println(
+                "No user preferences file found; using system-wide defaults.");
         } else {
             try {
                 in = new FileInputStream(settingsFile);
@@ -196,26 +171,24 @@ public class InternalSettings extends Settings {
             return "unix";
     }
     public static final String getSettingsFilename() {
-        String osName = System.getProperty("os.name").toLowerCase();
-        if (osName.startsWith("win") || osName.startsWith("mac"))
-            return "pspdash.ini";
-        else
-            return ".pspdash";
+        return "pspdash.ini";
     }
     /**
-     * On Mac OS X, we have historically used ".pspdash" for the settings file.
-     * However, 'dot' files are nearly impossible for the average user to find.
-     * The method above has changed the default settings file name for the Mac -
-     * but if the user has a legacy file, we need to load it and migrate it to
-     * the new name.  This method checks for the existence of a legacy settings
-     * file, and possibly prepares for a file rename.
+     * Historically, we have used ".pspdash" for the settings file on Mac and
+     * Unix, and "pspdash.ini" on Windows.  However, this creates problems when
+     * a dashboard is shared across platforms.  To resolve this problem, we
+     * must standardize on a single cross-platform filename.  However, existing
+     * users have historical data with the legacy filename.  If a user has a
+     * legacy file, we need to load it and migrate it to the new name.  This
+     * method checks for the existence of a legacy settings file, and possibly
+     * prepares for a file rename.
      * 
      * @param cwd the directory to look in
      * @param desiredName the name we'd like the file to have
      */
     private static String checkForOldSettingsFile(String cwd, String desiredName) {
-        // not on a Mac? do nothing.
-        if (!System.getProperty("os.name").toLowerCase().startsWith("mac"))
+        // on Windows? do nothing.
+        if ("windows".equals(getOSPrefix()))
             return desiredName;
 
         // if the settings file already exists with the new name, do nothing.
