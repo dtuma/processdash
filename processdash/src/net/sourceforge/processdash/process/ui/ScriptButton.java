@@ -183,6 +183,8 @@ public class ScriptButton extends DropDownButton implements
     private class ScriptMenuSeparator extends JPanel {
         public ScriptMenuSeparator(String path) {
             setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+            setBackground(null);
+            setOpaque(false);
 
             add(new JSeparator());
 
