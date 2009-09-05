@@ -1,4 +1,4 @@
-// Copyright (C) 2005-2006 Tuma Solutions, LLC
+// Copyright (C) 2005-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -117,7 +117,7 @@ public class DefaultActiveTaskModel implements ActiveTaskModel {
         if (parentProp == null)
             return false;
 
-        for (int i = 0; i < parentProp.getNumChildren() - 1; i++) {
+        for (int i = 0; i < parentProp.getNumChildren(); i++) {
             PropertyKey child = parentProp.getChild(i);
             if (phase.equals(child.name()))
                 return setNode(child);
