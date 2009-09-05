@@ -1,0 +1,5 @@
+class:net.sourceforge.processdash.ui.web.reports.snippets.MetricsAlert
+disabledBy==pspProc.psp3EstTimeMismatchCheck.disabled
+Expression==[Estimated_Time_Mismatch]
+TrueMessageType==Error
+TrueMessage==${PSP3EstTimeMismatchCheck.Error_Message}
