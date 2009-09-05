@@ -205,10 +205,22 @@ This file contains the template definitions for the standard PSP processes.
                     href="psp3/cyclesum.class"/>
     <html ID="size" title="PSP3 Size Estimating Template" inPackage="pspProc"
                     href="psp3/sizeest.class"/>
+    <html ID="top"  title="PSP3 Process Script" inPackage="pspProc"
+                    href="psp3/script.htm"/>
+    <html ID="plan" title="PSP3 Planning Script" inPackage="pspProc"
+                    href="psp3/planning.htm"/>
+    <html ID="hld"  title="PSP3 High Level Design Script" inPackage="pspProc"
+                    href="psp3/hld.htm"/>
+    <html ID="hldr" title="PSP3 High Level Design Review Script"
+                    href="psp3/hldr.htm" inPackage="pspProc"/>
+    <html ID="dev"  title="PSP3 Development Script" inPackage="pspProc"
+                    href="psp3/develop.htm"/>
+    <html ID="pm"   title="PSP3 Postmortem Script" inPackage="pspProc"
+                    href="psp3/postmort.htm"/>
 
-    <phase name="Planning"   type="plan"/>
-    <phase name="HLD"        type="hld"/>
-    <phase name="HLD Review" type="hldr"/>
+    <phase name="Planning"   htmlID="plan" type="plan"/>
+    <phase name="HLD"        htmlID="hld"  type="hld"/>
+    <phase name="HLD Review" htmlID="hldr" type="hldr"/>
         <phase imaginary="true" name="Design"        type="dld"/>
         <phase imaginary="true" name="Design Review" type="dldr"/>
         <phase imaginary="true" name="Code"          type="code"/>
@@ -229,7 +241,7 @@ This file contains the template definitions for the standard PSP processes.
            <phase name="Reassessment"  type="pm"/>
         </node>
 
-    <phase name="Postmortem" type="pm"/>
+    <phase name="Postmortem" htmlID="pm" type="pm"/>
   </template>
 
   <template name="PSP3cycle" ID="PSP3cycle" defineRollup="no"
@@ -318,6 +330,12 @@ This file contains the template definitions for the standard PSP processes.
     <resources>CMS.Snippet.Anonymous</resources>
     <context>PSP Project</context>
     <uri>/dash/snippets/pspTestProbeInputMismatch</uri>
+  </snippet>
+
+  <snippet id="pspProc.psp3EstTimeMismatchCheck" version="1.0" category="advice">
+    <resources>CMS.Snippet.Anonymous</resources>
+    <context>PSP3</context>
+    <uri>/psp3/estTimeMismatchCheck</uri>
   </snippet>
 
 

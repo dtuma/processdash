@@ -1,7 +1,7 @@
 /* -*- mode:c -*-
 =============================================================================
 == Process Dashboard - Data Automation Tool for high-maturity processes
-== Copyright (C) 2003 Tuma Solutions, LLC
+== Copyright (C) 2002-2009 Tuma Solutions, LLC
 == 
 == This program is free software; you can redistribute it and/or
 == modify it under the terms of the GNU General Public License
@@ -22,14 +22,6 @@
 == The author(s) may be contacted at:
 ==     processdash@tuma-solutions.com
 ==     processdash-devel@lists.sourceforge.net
-
-=============================================================================
-== Title:	$Id$
-== Author:	Dave Tuma -TISHD- <dtuma@ulaf1>
-== Created:	Fri Jan 30 16:08:52 1998
-==
-== Description: This is the data file for a PSP3 cycle.
-==
 */
 
 #include <psp3/psp2_1data.txt>
@@ -51,6 +43,8 @@ undefine([PSP Project], [PSP Rollup Eligible], [Process_ID]);
         [Estimated Defects Removed] / 
         [Normalization %/Defects Removed/PSP3cycle To Date];
 
+[Reassessment/Estimated Time] == 0;
+
 
 /*
  * Size data that can no longer be calculated from a size estimating template
@@ -69,9 +63,9 @@ undefine([Size Estimating Template Tag],
 
 // Calculate estimated time on behalf of the user.
 
-[Estimated Time] =
+[Estimated Time] = unlock(
     nvl(nvl([Estimated New & Changed LOC], 0) * [../PSP3_Cycle_Time_Ratio],
-	[../PSP3_Cycle_Even_Time]);
+	[../PSP3_Cycle_Even_Time]));
 
 // We do not need local copies of these to date numbers for each cycle.
 
