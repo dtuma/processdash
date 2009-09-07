@@ -57,6 +57,7 @@ import net.sourceforge.processdash.util.PreferencesUtils;
 import net.sourceforge.processdash.util.StringUtils;
 import net.sourceforge.processdash.util.UsageLogger;
 import net.sourceforge.processdash.util.lock.AlreadyLockedException;
+import net.sourceforge.processdash.util.lock.CannotCreateLockException;
 import net.sourceforge.processdash.util.lock.LockFailureException;
 import net.sourceforge.processdash.util.lock.LockMessage;
 import net.sourceforge.processdash.util.lock.LockMessageHandler;
@@ -278,6 +279,10 @@ public class WBSEditor implements WindowListener, SaveListener,
             workingDirectory.acquireWriteLock(this, owner);
         } catch (ReadOnlyLockFailureException e) {
             if (showFilesAreReadOnlyMessage(teamProject, workingDirectory
+                    .getDescription()) == false)
+                throw e;
+        } catch (CannotCreateLockException e) {
+            if (showCannotCreateLockMessage(teamProject, workingDirectory
                     .getDescription()) == false)
                 throw e;
         } catch (LockFailureException e) {
@@ -973,8 +978,17 @@ public class WBSEditor implements WindowListener, SaveListener,
     private static boolean showFilesAreReadOnlyMessage(TeamProject teamProject,
             String location) {
         READ_ONLY_FILES_MESSAGE[2] = "      " + location;
+        return showOpenReadOnlyMessage(teamProject, READ_ONLY_FILES_MESSAGE);
+    }
+    private static boolean showCannotCreateLockMessage(TeamProject teamProject,
+            String location) {
+        CANNOT_GET_LOCK_MESSAGE[2] = "      " + location;
+        return showOpenReadOnlyMessage(teamProject, CANNOT_GET_LOCK_MESSAGE);
+    }
+    private static boolean showOpenReadOnlyMessage(TeamProject teamProject,
+            String[] message) {
         int userResponse = JOptionPane.showConfirmDialog(null,
-                READ_ONLY_FILES_MESSAGE, "Open Project in Read-Only Mode",
+                message, "Open Project in Read-Only Mode",
                 JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
         if (userResponse == JOptionPane.YES_OPTION) {
             teamProject.setReadOnly(true);
@@ -989,6 +1003,17 @@ public class WBSEditor implements WindowListener, SaveListener,
         " ",
         "Unfortunately, the current filesystem permissions do not allow",
         "you to modify those files.  Would you like to open the project",
+        "anyway, in read-only mode?"
+    };
+    private static final String[] CANNOT_GET_LOCK_MESSAGE = {
+        "The Work Breakdown Structure Editor stores data for this project",
+        "into XML files located at:",
+        "",
+        " ",
+        "The WBS Editor attempted to lock those files for writing, but the",
+        "operating system was unable to secure a write lock.  This is an",
+        "unusual situation, possibly caused by the current configuration of",
+        "the remote network directory.  Would you like to open the project",
         "anyway, in read-only mode?"
     };
 
