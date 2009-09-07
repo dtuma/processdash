@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2008 Tuma Solutions, LLC
+// Copyright (C) 2001-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -361,6 +361,12 @@ public class FileConcurrencyLock implements ConcurrencyLock {
 
 
     private void tryToSendMessage(String message) throws LockFailureException {
+        // Check to see if a lock file even exists.  If it doesn't, no other
+        // process is holding the lock, so our inability to lock the file is
+        // most likely due to an underlying OS-related problem.
+        if (lockFile.exists() == false || lockFile.length() < 2)
+            throw new CannotCreateLockException();
+
         String extraInfo = null;
         try {
             LockMetaData metaData = readLockMetaData(true);

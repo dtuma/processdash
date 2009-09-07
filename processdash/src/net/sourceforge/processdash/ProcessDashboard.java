@@ -150,6 +150,7 @@ import net.sourceforge.processdash.util.RuntimeUtils;
 import net.sourceforge.processdash.util.StringUtils;
 import net.sourceforge.processdash.util.UsageLogger;
 import net.sourceforge.processdash.util.lock.AlreadyLockedException;
+import net.sourceforge.processdash.util.lock.CannotCreateLockException;
 import net.sourceforge.processdash.util.lock.LockFailureException;
 import net.sourceforge.processdash.util.lock.LockMessage;
 import net.sourceforge.processdash.util.lock.LockMessageHandler;
@@ -944,6 +945,9 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         } catch (ReadOnlyLockFailureException ro) {
             showFilesAreReadOnlyMessage(workingDirectory.getDescription());
             return;
+        } catch (CannotCreateLockException e) {
+            showCannotCreateLockMessage(workingDirectory.getDescription());
+            return;
         } catch (AlreadyLockedException e) {
             otherUser = e.getExtraInfo();
         } catch (LockFailureException e) {
@@ -1018,11 +1022,20 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         // the user does not have write access to all of the files in
         // the data directory.  They either need to open the dashboard
         // in read only mode, or exit.
+        showMustOpenReadOnlyMessage("ReadOnly.File_Permissions", location);
+    }
+    private void showCannotCreateLockMessage(String location) {
+        // the dashboard was unable to acquire a file lock on the specified
+        // directory. The user either needs to open the dashboard in read
+        // only mode, or exit.
+        showMustOpenReadOnlyMessage("ReadOnly.Cannot_Lock", location);
+    }
+    private void showMustOpenReadOnlyMessage(String resKey, String location) {
         ResourceBundle res = ResourceBundle
                 .getBundle("Templates.resources.ProcessDashboard");
-        String title = res.getString("ReadOnly.File_Permissions.Title");
+        String title = res.getString(resKey + ".Title");
         Object message = MessageFormat.format(
-                res.getString("ReadOnly.File_Permissions.Message_FMT"),
+                res.getString(resKey + ".Message_FMT"),
                 new Object[] { location }).split("\n");
         int userResponse = JOptionPane.showConfirmDialog(null, message,
                 title, JOptionPane.OK_CANCEL_OPTION,
