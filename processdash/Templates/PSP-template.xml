@@ -170,7 +170,6 @@ This file contains the template definitions for the standard PSP processes.
 
   <template name="PSP2.1" ID="PSP2.1" defectLog="true" usesRollup="PSP"
             dataFile="psp2.1/dataFile.txt" htmlID="top"
-	    imaginaryUnless="pspProc"
             constraints="{Design Inspection(3){Code Inspection(-2)">
 
     <html ID="sum"  href="psp2.1/summary.htm"/>
@@ -336,6 +335,12 @@ This file contains the template definitions for the standard PSP processes.
     <resources>CMS.Snippet.Anonymous</resources>
     <context>PSP3</context>
     <uri>/psp3/estTimeMismatchCheck</uri>
+  </snippet>
+
+  <snippet id="pspProc.userSummaryInfo" version="1.0" category="hidden">
+    <resources>CMS.Snippet.Anonymous</resources>
+    <context>*</context>
+    <uri>/psp-lib/pspMaterialsAvailable.htm</uri>
   </snippet>
 
 
