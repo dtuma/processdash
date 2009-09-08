@@ -196,7 +196,8 @@ public class ResourceBridgeClient implements ResourceBridgeConstants {
                     madeChange = true;
                 } else {
                     logger.fine("uploading new resource " + resourceName);
-                    addFileUploadParams(params, resourceName);
+                    addFileUploadParamsWithBatching(params, resourceName);
+                    madeChange = true;
                 }
             }
             for (String resourceName : diff.getDiffering()) {
@@ -204,7 +205,8 @@ public class ResourceBridgeClient implements ResourceBridgeConstants {
                     filesToDownload.add(resourceName);
                 } else {
                     logger.fine("uploading modified resource " + resourceName);
-                    addFileUploadParams(params, resourceName);
+                    addFileUploadParamsWithBatching(params, resourceName);
+                    madeChange = true;
                 }
             }
             if (!params.isEmpty()) {
@@ -471,6 +473,15 @@ public class ResourceBridgeClient implements ResourceBridgeConstants {
         }
         zipIn.close();
         return info;
+    }
+
+    private void addFileUploadParamsWithBatching(List params, String resourceName)
+            throws IOException, LockFailureException {
+        if (params.size() >= 100) {
+            doPostRequest(UPLOAD_ACTION, (Object[]) params.toArray());
+            params.clear();
+        }
+        addFileUploadParams(params, resourceName);
     }
 
     private void addFileUploadParams(List params, String resourceName)
