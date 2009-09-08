@@ -28,12 +28,15 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 import java.util.TreeSet;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -157,6 +160,9 @@ public class AddTranslations extends MatchingTask {
 
     private boolean mergeJFreeProperties(Map jFreeRes, ZipInputStream zipIn,
             String filename) throws IOException {
+        if (JFREE_EXISTING_LANGUAGES.contains(localeId(filename).substring(1)))
+            return false;
+
         Properties incoming = new Properties();
         incoming.load(zipIn);
 
@@ -240,6 +246,10 @@ public class AddTranslations extends MatchingTask {
 
     private static final String PROP_FILE_HEADER =
         "Process Dashboard Resource Bundle";
+
+    private static final Set<String> JFREE_EXISTING_LANGUAGES = Collections
+            .unmodifiableSet(new HashSet<String>(Arrays.asList(
+                "de", "es", "fr", "it", "nl", "pl", "pt", "ru", "zh")));
 
     private class SortedProperties extends Properties {
 
