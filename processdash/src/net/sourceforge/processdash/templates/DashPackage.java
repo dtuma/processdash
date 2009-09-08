@@ -76,6 +76,9 @@ public class DashPackage {
     /** the version of the dashboard which this package requires */
     public String requiresDashVersion;
 
+    /** True if this package contains localizable resource bundles */
+    public boolean localizable;
+
     /** the time we last successfully checked for an updated
         version of this package */
     long lastUpdateCheckTime = -1;
@@ -153,6 +156,7 @@ public class DashPackage {
         version   = attrs.getValue(VERSION_ATTRIBUTE);
         updateURL = attrs.getValue(URL_ATTRIBUTE);
         requiresDashVersion = attrs.getValue(REQUIRE_ATTRIBUTE);
+        localizable = "true".equals(attrs.getValue(L10N_ATTRIBUTE));
         this.filename = extractFilename(fileUrl);
 
         debug("File: " + filename);
@@ -208,6 +212,7 @@ public class DashPackage {
         version   = p.getProperty(VERSION_ATTRIBUTE);
         updateURL = p.getProperty(URL_ATTRIBUTE);
         requiresDashVersion = p.getProperty(REQUIRE_ATTRIBUTE);
+        localizable = "true".equals(p.getProperty(L10N_ATTRIBUTE));
     }
 
 
@@ -365,6 +370,7 @@ public class DashPackage {
     public static final String NAME_ATTRIBUTE    = "Dash-Pkg-Name";
     public static final String URL_ATTRIBUTE     = "Dash-Pkg-URL";
     public static final String REQUIRE_ATTRIBUTE = "Dash-Pkg-Requires-Version";
+    public static final String L10N_ATTRIBUTE    = "Dash-Pkg-Localizable";
     private static final String DASHBOARD_MANIFEST_FILENAME = "META-INF/PDASH.MF";
 
 }

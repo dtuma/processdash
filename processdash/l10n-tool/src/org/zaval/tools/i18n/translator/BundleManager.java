@@ -46,7 +46,7 @@ import java.awt.event.ActionListener;
 import java.io.*;
 import java.util.*;
 import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
+import java.util.zip.ZipFile;
 import java.util.zip.ZipOutputStream;
 
 import org.zaval.io.PropertiesFile;
@@ -187,6 +187,7 @@ implements TranslatorConstants
    {
        Properties p = new Properties();
        p.load(inStream);
+       inStream.close();
        
        set.putProperties(lang, prefix, p);
    }
@@ -203,7 +204,8 @@ implements TranslatorConstants
    }
    
    private void readZipResources(String fullName, String lang) throws IOException {
-      ZipInputStream zipIn = new ZipInputStream(new FileInputStream(fullName));
+      ZipFile zipFile = new ZipFile(new File(fullName));
+      Set excludedResources = getExcludedResources(zipFile);
       if (prefixes == null)
           prefixes = new TreeMap();
       if (zipTags == null)
@@ -211,26 +213,58 @@ implements TranslatorConstants
       
        ZipEntry file;
        String filename;
-       while ((file = zipIn.getNextEntry()) != null) {           
+       for (Enumeration e = zipFile.entries();  e.hasMoreElements(); ) {
+           file = (ZipEntry) e.nextElement();
            filename = file.getName();
            if (filename.equals(TAG_FILENAME))
-               readZipTag(fullName, zipIn);
-           else if (filename.toLowerCase().endsWith(RES_EXTENSION)) {
+               readZipTag(fullName, zipFile.getInputStream(file));
+           else if (filename.toLowerCase().endsWith(RES_EXTENSION)
+                    && !isExcluded(filename, excludedResources)) {
                String prefix = pathToPrefix(filename);
                prefixes.put(prefix, filename);
                String fileLang = determineLanguage(filename);
-               readPropResource(zipIn, fileLang, prefix);
+               readPropResource(zipFile.getInputStream(file), fileLang, prefix);
            }
        }
-       zipIn.close();
+       zipFile.close();
    }
-   
+
+   private Set<String> getExcludedResources(ZipFile zipFile) throws IOException {
+       ZipEntry e = zipFile.getEntry("meta-inf/l10n-ignore.txt");
+       if (e == null)
+           e = zipFile.getEntry("META-INF/l10n-ignore.txt");
+       if (e == null)
+           return Collections.EMPTY_SET;
+
+       Set<String> result = new HashSet();
+       BufferedReader in = new BufferedReader(new InputStreamReader(zipFile
+                .getInputStream(e), "UTF-8"));
+       String line;
+       while ((line = in.readLine()) != null)
+           result.add(line.trim());
+       in.close();
+       return result;
+   }
+
+   private boolean isExcluded(String filename, Set<String> exclusions) {
+       if (exclusions == null || exclusions.isEmpty())
+           return false;
+       if (exclusions.contains(filename))
+           return true;
+       for (String s : exclusions) {
+           if (s.endsWith("/") && filename.startsWith(s))
+               return true;
+       }
+       return false;
+   }
+
    private void readZipTag(String zipFileName, InputStream in) throws IOException {
        StringBuffer tag = new StringBuffer();
        BufferedReader lines = new BufferedReader(new InputStreamReader(in));
        String line;
        while ((line = lines.readLine()) != null)
            tag.append(line).append('\n');
+       in.close();
        
 
        if (zipTags == null)

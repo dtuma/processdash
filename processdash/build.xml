@@ -78,7 +78,7 @@ Authors:
   <property name="eng.version"      value="3.0"/><!-- VERSION -->
   <property name="eng.requires"     value="1.10.6+"/><!-- VERSION -->
   <property name="l10nTool.version" value="1.1"/><!-- VERSION -->
-  <property name="l10nTool.requires" value="1.9.2b+"/><!-- VERSION -->
+  <property name="l10nTool.requires" value="1.10.7b+"/><!-- VERSION -->
   <property name="instr.requires"   value="1.10.6+"/><!-- VERSION -->
 
 
@@ -476,6 +476,9 @@ Authors:
       <!-- rename certain template files -->
       <zipfileset dir="." includes="Templates/help/style-prod.css"
                fullpath="Templates/help/style.css"/>
+
+      <!-- include certain metadata files -->
+      <zipfileset dir="${lib}" includes="l10n-ignore.txt" prefix="meta-inf"/>
 
       <!-- include the contents of the libraries we use -->
       <zipfileset src="${jcommon.jar}"/>

@@ -154,9 +154,10 @@ public class OpenLocalizationToolAction extends AbstractAction {
 
         List packages = TemplateLoader.getPackages();
         for (Object p : packages) {
-            String filename = ((DashPackage)p).filename;
+            DashPackage pkg = (DashPackage) p;
+            String filename = pkg.filename;
 
-            if (filename != null && !filename.equals(dashboardJar))
+            if (filename != null && !filename.equals(dashboardJar) && pkg.localizable)
                 packageFilenames.append(RESOURCE_SEPARATOR + filename);
         }
 
