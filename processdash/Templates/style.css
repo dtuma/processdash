@@ -6,6 +6,9 @@ BODY { color: black;
 UL { margin-top: 0pt; margin-bottom: 0pt }
 OL { margin-top: 0pt; margin-bottom: 0pt }
 
+/* do not add unnecessary extra space at the bottom of forms */
+form { margin-bottom: 0px }
+
 /* style for instructions that are new to the current PSP level */
 .newPsp { font-style: italic;
           font-weight: bold }
@@ -30,5 +33,5 @@ OL { margin-top: 0pt; margin-bottom: 0pt }
 .timeFmt { vnd.ms-excel.numberformat: [h]\:mm }
 
 /* styles for the span containing CMS control buttons */
-.cmsToolbar { float: right;  margin-left: 20px; margin-bottom: 20px }
+.cmsToolbar { float: right;  margin-left: 10px; margin-bottom: 5px }
 @media print { .cmsToolbar { display: none } }

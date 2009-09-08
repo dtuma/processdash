@@ -413,7 +413,9 @@
 
 <pageFooter>
 
-<snippet instanceId="9" type="pspForEng.quickLinks" version="1.0" persister="xml.v1" />
+<snippet instanceId="9" type="pspForEng.quickLinks" version="1.0" />
+
+<snippet instanceId="8" type="pspForEng.gradingCaveat" version="1.0" />
 
 </pageFooter>
 

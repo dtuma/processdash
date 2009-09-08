@@ -157,4 +157,11 @@ The author(s) may be contacted at:
     <uri mode="toc">/pspForEng3/instr/quickLinks</uri>
   </snippet>
 
+  <snippet id="pspForEng.gradingCaveat" version="1.0" category="hidden"
+           requires="pspForEng-instr">
+    <resources>CMS.Snippet.Anonymous</resources>
+    <context>*</context>
+    <uri>/pspForEng3/instr/gradingCaveat.htm</uri>
+  </snippet>
+
 </dashboard-process-template>
