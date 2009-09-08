@@ -1,0 +1,33 @@
+<?xml version='1.0' encoding='UTF-8' standalone='yes'?>
+
+<langpack>
+    <str id="CondHTMLLicencePanel0.header">Sie haben sich dafür entschieden, folgende Inhalte zu installieren {0,choice,1#module|2#modules}:
+          {1}
+
+Der Verlag erteilt diese Erlaubnis unter der Bedingung dass Benutzer der folgenden Lizenzvereinbarung zustimmen, bevor Sie mit dem Herunterladen oder der Installation dieser Inhalte fortfahren {0,choice,1#this module|2#these modules}:</str>
+    <str id="CondHTMLLicencePanel1.header">Sie haben sich dafür entschieden, die JavaHelp(TM) Software von Sun Microsystems zu installieren.  Um dieses optionale Modul herunterzuladen und zu installieren, müssen Sie der folgenden Lizenzvereinbarung zustimmen.</str>
+    <str id="application.name">Process Dashboard</str>
+    <str id="pack.javaHelp.description">Help browser von Sun Microsystems.
+
+Dieses Modul ist für die volle Funktionalität von Process Dashboard nicht erforderlich.  Wenn Sie es installieren, wird es für Sie leichter, die Hilfe-Dokumentation für Process Dashboard zu verwenden und Sie erhalten insbesondere die Möglichkeit zur Volltextsuche.
+
+Die Inhalte dieses Moduls stehen unter dem Copyright von Sun Microsystems und ihr Sourcecode ist nicht öffentlich zugänglich.  Sun Microsystems verlangt, dass Sie einer zusätzlichen Lizenzvereinbarung zustimmen, wenn Sie dieses Modul herunterladen und installieren möchten.</str>
+    <str id="pack.javaHelp.name">JavaHelp(TM) Help Browser</str>
+    <str id="pack.pdash.description">Der Kern der Anwendung Process Dashboard.
+
+Process Dashboard wird unter der GNU General Public License verteilt.</str>
+    <str id="pack.pdash.name">Process Dashboard</str>
+    <str id="pack.pspForEng.description">Unterstützung für Studenten, die einen Personal Software Process(SM)-Kurs des SEI besuchen.
+
+This module incorporates templates, scripts, and other materials from the document &quot;PSP Materials.doc&quot; copyright (c) 2006 by Carnegie Mellon University.  These materials are reproduced with the permission of the Software Engineering Institute.
+
+The Software Engineering Institute requires that you consent to an additional license agreement to download, install and use this module.</str>
+    <str id="pack.pspForEng.name">PSP(SM) for Engineers</str>
+    <str id="pack.pspProc.description">Vorlagen, Ablaufbeschreibungen und Formulare, die die Anwendung des Personal Software Process(SM) unterstützen.
+
+This module incorporates templates, scripts, and other materials from the document &quot;PSP Materials.doc&quot; copyright (c) 2006 by Carnegie Mellon University.  These materials are reproduced with the permission of the Software Engineering Institute.
+
+The Software Engineering Institute requires that you consent to an additional license agreement to download, install and use this module.</str>
+    <str id="pack.pspProc.name">PSP(SM) Processes</str>
+
+</langpack>

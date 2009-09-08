@@ -19,6 +19,7 @@
         <langpack iso3="eng"/>
         <langpack iso3="jpn"/>
         <langpack iso3="chn"/>
+        <langpack iso3="deu"/>
     </locale>
 
     <!-- The resources needed by the various panels -->
@@ -30,6 +31,7 @@
         <res src="files/DashLicense.html" id="HTMLLicencePanel.licence"/>
         <res src="files/DashLicense-jpn.html" id="HTMLLicencePanel.licence_jpn"/>
         <res src="files/DashLicense-chn.html" id="HTMLLicencePanel.licence_chn"/>
+        <res src="files/DashLicense-deu.html" id="HTMLLicencePanel.licence_deu"/>
         <res src="files/DataDir-windows.txt" id="DataDirPanel.dir.windows"/>
         <res src="files/DataDir-macosx.txt" id="DataDirPanel.dir.macosx"/>
         <res src="files/TargetDir-macosx.txt" id="TargetPanel.dir.macosx"/>
@@ -46,6 +48,7 @@
         <res src="files/text-eng.xml" id="text.xml"/>
         <res src="files/text-jpn.xml" id="text.xml_jpn"/>
         <res src="files/text-chn.xml" id="text.xml_chn"/>
+        <res src="files/text-deu.xml" id="text.xml_deu"/>
 
         <!-- additional resources -->
     </resources>

@@ -125,4 +125,46 @@
 
     <!-- Add your own panels specific strings here if you need -->
 
+    <!-- Process Dashboard strings -->
+
+    <str id="DataDirPanel.empty_datadir">Sie müssen ein Verzeichnis für Ihre Daten wählen.</str>
+    <str id="DataDirPanel.info">Bitte wählen Sie ein Verzeichnis für Ihre persönichen Metriken.</str>
+    <str id="LicencePanel.deselect.message1">Sie haben angegeben, dass Sie dieser Lizenzvereinbarung nicht zustimmen.
+Möchten Sie das oder die Module</str>
+    <str id="LicencePanel.deselect.message2">aus der Installationsliste entfernen?</str>
+    <str id="LicencePanel.deselect.title">Paketauswahl rückgängig machen?</str>
+    <str id="PackageDownloader.error.info1">Das Paket:</str>
+    <str id="PackageDownloader.error.info2">konnte nicht heruntergeladen werden und wurde nicht installiert. Das kann vorkommen,
+wenn Sie keine Verbindung zum Internet haben oder wenn eine Firewall wirksam ist. Um 
+dieses Problem zu umgehen, laden Sie bitte anstatt dessen den Offline Installer herunter und 
+starten Sie diesen.</str>
+    <str id="PackageDownloader.error.title">Warnung bei der Installation</str>
+    <str id="PackageDownloader.info1">Herunterladen von &quot;</str>
+    <str id="PackageDownloader.info2">&quot;...</str>
+    <str id="PackageDownloader.title">Herunterladen...</str>
+    <str id="ShutdownDashboardPanel.error.info">Das Installationsprogramm hat ermittelt, dass Process Dashboard
+derzeit bereits auf diesem Rechner ausgeführt wird. Sie müssen diese
+laufende Anwendung beenden bevor Sie mit der Installation fortfahren
+können.</str>
+    <str id="ShutdownDashboardPanel.error.title">Process Dashboard wird ausgeführt</str>
+    <str id="ShutdownDashboardPanel.info">Wenn Sie Process Dashboard derzeit ausführen, kann
+das Installieren neuer Dateien unvorhersehbare Fehler mit sich bringen.
+Sie müssen daher auf jeden Fall Dashboard schließen falls es derzeit
+ausgeführt wird.</str>
+    <str id="TeamDataDirPanel.empty_datadir">Sie müssen ein Verzeichnis für Daten auswählen.</str>
+    <str id="TeamDataDirPanel.info">Wählen Sie bitte ein Verzeichnis für die Team-Konfigurationsdaten :</str>
+    <str id="TeamDataDirPanel.message">Das Verzeichnis, das Sie auswählen, wird verwendet, um Konfigurationsinformationen
+für Team Dashboard zu speichern.
+
+In der Regel sollten Teams ein Netzlaufwerk verwenden,
+sodass alle Mitglieder auf Dateien zugreifen können.</str>
+    <str id="installer.javaversion.info">Sie sollten Ihr Java Runtime Environment updaten!
+{0} {1} benötigt Version {2} oder
+eine höhere Version des Java Runtime Environment.  Derzeit verwenden Sie
+Java Runtime Environment in der Version {3}.
+       To download an updated version of the Java Runtime
+Environment, visit   {4}
+Then run this installer program again.</str>
+    <str id="installer.javaversion.title">{0} lässt sich nicht installieren</str>
+
 </langpack>

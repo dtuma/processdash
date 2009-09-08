@@ -630,6 +630,9 @@ Authors:
     <i18n-updateLangpack resourcesDir="${resources}" javaLang="zh"
         langpack="${langpacks}/chn.xml"
         textfile="${installer}/files/text-chn.xml"/>
+    <i18n-updateLangpack resourcesDir="${resources}" javaLang="de"
+        langpack="${langpacks}/deu.xml"
+        textfile="${installer}/files/text-deu.xml"/>
   </target>
 
 
