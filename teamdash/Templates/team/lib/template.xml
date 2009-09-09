@@ -606,9 +606,11 @@
 
 
 <!--======================================================================
-    The template for an extra data rollup node.  This node can be
-    instantiated manually anywhere inside a team project to perform an
-    additional, independent rollup of data for this process.
+    The template for an extra data rollup node.  This node was previously
+    provided to perform an arbitrary rollup of specific components within
+    a team project.  However, the label functionality provides a better
+    mechanism for this now, so for the time being this template type is
+    disabled (via the unsatifiable constraints {} below).
   =======================================================================-->
 
   <template
@@ -616,17 +618,11 @@
       ID="PID/Rollup"
       dataFile="PID/rollup_dataFile.txt"
       defineRollup="no"
-      constraints="{}PID/TeamRoot}PID/TeamNode}PID/TeamTask<!--#echo parentable_indiv_nodes -->"
+      constraints="{}"
       >
 
-    <html ID="sump" href="PID/rollup_plan_summary.shtm"
-        title="<!--#echo Full_Name --> Rollup Project Plan Summary"/>
-    <!--#if not VVIS -->
-    <html ID="sumq" href="PID/rollup_quality_summary.shtm"
-        title="<!--#echo Full_Name --> Rollup Project Quality Summary"/>
-    <html ID="charts" href="PID/charts.shtm"
-        title="<!--#echo Full_Name --> Analysis Charts"/>
-    <!--#endif-->
+
+    <html ID="sum" href="<!--#echo Team_Plan_Summary -->"/>
     <html ID="config" title="Edit Data Rollup Filter"
           href="PID/rollup_filter.shtm"/>
 
