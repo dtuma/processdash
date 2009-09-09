@@ -162,6 +162,7 @@ public class AddTranslations extends MatchingTask {
             String filename) throws IOException {
         if (JFREE_EXISTING_LANGUAGES.contains(localeId(filename).substring(1)))
             return false;
+        filename = maybeRenameJFreeFile(filename);
 
         Properties incoming = new Properties();
         incoming.load(zipIn);
@@ -185,6 +186,21 @@ public class AddTranslations extends MatchingTask {
             return true;
         }
     }
+
+    private String maybeRenameJFreeFile(String filename) {
+        for (int i = 0; i < JFREE_FILE_RENAMES.length; i++) {
+            String oldPrefix = JFREE_FILE_RENAMES[i][0];
+            String newPrefix = JFREE_FILE_RENAMES[i][1];
+            if (filename.startsWith(oldPrefix)) {
+                return newPrefix + filename.substring(oldPrefix.length());
+            }
+        }
+        return filename;
+    }
+    private static final String[][] JFREE_FILE_RENAMES = {
+        { "org/jfree/chart/ui/LocalizationBundle",
+            "org/jfree/chart/editor/LocalizationBundle"}
+    };
 
     private void saveJFreeResources(File jFreeFile, Map jFreeRes) throws IOException {
         if (jFreeRes.isEmpty())
