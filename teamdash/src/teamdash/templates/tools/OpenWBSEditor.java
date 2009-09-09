@@ -235,7 +235,7 @@ public class OpenWBSEditor extends TinyCGIBase {
         List cmd = new ArrayList();
         cmd.add(jreExecutable);
 
-        String extraArgs = Settings.getVal("wbs.jvmArgs", "-Xmx200m");
+        String extraArgs = Settings.getVal("wbs.jvmArgs", "-Xmx800m");
         if (StringUtils.hasValue(extraArgs))
             cmd.addAll(Arrays.asList(extraArgs.split("\\s+")));
 
