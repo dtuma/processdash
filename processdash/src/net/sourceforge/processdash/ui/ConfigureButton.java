@@ -26,6 +26,8 @@ package net.sourceforge.processdash.ui;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -189,6 +191,9 @@ public class ConfigureButton extends JMenuBar implements ActionListener, Hierarc
     private void addToolExtensions(JMenu toolMenu) {
         List items = ExtensionManager.getExecutableExtensions("toolsMenuItem",
                 parent);
+        if (items.isEmpty()) return;
+
+        Collections.sort(items, new ToolMenuItemComparator());
         for (Iterator i = items.iterator(); i.hasNext();) {
             Object item = (Object) i.next();
             if (item instanceof Action)
@@ -198,6 +203,20 @@ public class ConfigureButton extends JMenuBar implements ActionListener, Hierarc
             else
                 logger.warning("Could not add item to tools menu - "
                         + "unrecognized class " + item.getClass().getName());
+        }
+    }
+    private static class ToolMenuItemComparator implements Comparator {
+        public int compare(Object o1, Object o2) {
+            return getName(o1).compareToIgnoreCase(getName(o2));
+        }
+        private String getName(Object obj) {
+            String result = null;
+            if (obj instanceof Action) {
+                result = String.valueOf(((Action) obj).getValue(Action.NAME));
+            } else if (obj instanceof JMenuItem) {
+                result = ((JMenuItem) obj).getText();
+            }
+            return (result == null ? "" : result);
         }
     }
 
