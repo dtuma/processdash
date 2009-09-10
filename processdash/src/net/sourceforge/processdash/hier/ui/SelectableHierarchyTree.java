@@ -1,4 +1,4 @@
-// Copyright (C) 2003 Tuma Solutions, LLC
+// Copyright (C) 2003-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -45,8 +45,10 @@ import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 
-import net.sourceforge.processdash.hier.*;
+import net.sourceforge.processdash.hier.DashHierarchy;
+import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.hier.ui.HierarchyTreeModel.HierarchyTreeNode;
+import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
 
 
 
@@ -105,6 +107,7 @@ public class SelectableHierarchyTree extends JTree {
 
     private void addClickListener() {
         addMouseListener(new MouseAdapter() {
+             @Override
              public void mousePressed(MouseEvent e) {
                  if (e.getClickCount() != 1) return;
                  if (processMouseClick(e.getX(), e.getY()))
@@ -220,7 +223,7 @@ public class SelectableHierarchyTree extends JTree {
         public CheckBoxIcon(Icon icon, JCheckBox cb) {
             this.icon = icon;
             this.cb = cb;
-            this.checkBoxIcon = UIManager.getIcon("CheckBox.icon");
+            this.checkBoxIcon = getCheckBoxIcon(cb);
             this.gap = 4;
 
             iconHeight = icon.getIconHeight();
@@ -250,6 +253,42 @@ public class SelectableHierarchyTree extends JTree {
                 && (y >= checkDiff)
                 && (y < checkDiff + checkHeight);
         }
+
+        private Icon getCheckBoxIcon(JCheckBox cb) {
+            if (MacGUIUtils.isMacOSX())
+                return new MacCheckBoxIcon(cb);
+            else
+                return UIManager.getIcon("CheckBox.icon");
+        }
+    }
+
+    private class MacCheckBoxIcon implements Icon {
+
+        JCheckBox cb;
+        int height;
+        int width;
+
+        public MacCheckBoxIcon(JCheckBox cb) {
+            this.cb = cb;
+            this.height = cb.getMinimumSize().height;
+            this.width = cb.getMinimumSize().width;
+            cb.setBounds(0, 0, width, height);
+        }
+
+        public int getIconHeight() {
+            return height;
+        }
+
+        public int getIconWidth() {
+            return width;
+        }
+
+        public void paintIcon(Component c, Graphics g, int x, int y) {
+            g.translate(x, y);
+            cb.paint(g);
+            g.translate(-x, -y);
+        }
+
     }
 
     public boolean isPathEditable(TreePath path) {
