@@ -42,6 +42,7 @@ import net.sourceforge.processdash.tool.bridge.client.LocalWorkingDirectory;
 import net.sourceforge.processdash.tool.bridge.client.WorkingDirectory;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.HTMLUtils;
+import net.sourceforge.processdash.util.StringUtils;
 
 
 
@@ -51,6 +52,7 @@ import net.sourceforge.processdash.util.HTMLUtils;
  */
 public class DisplayConfig extends TinyCGIBase {
 
+    private static final String DASHBOARD_PACKAGE_ID = "pspdash";
     private static final Resources resources =
         Resources.getDashBundle("ProcessDashboard.ConfigScript");
 
@@ -112,6 +114,13 @@ public class DisplayConfig extends TinyCGIBase {
             out.println("   </PRE></DIV>");
         }
 
+        if (installationDirectory != null) {
+            printRes("<DIV>${Install_Dir_Header}");
+            out.print("<PRE class='indent'>");
+            out.println(HTMLUtils.escapeEntities(installationDirectory.getPath()));
+            out.println("   </PRE></DIV>");
+        }
+
         printRes("<DIV>${Add_On.Header}");
 
         List<DashPackage> packages = TemplateLoader.getPackages();
@@ -136,7 +145,7 @@ public class DisplayConfig extends TinyCGIBase {
             for (Iterator<DashPackage> i = packages.iterator(); i.hasNext();) {
                 DashPackage pkg = i.next();
 
-                if ("pspdash".equals(pkg.id))
+                if (DASHBOARD_PACKAGE_ID.equals(pkg.id))
                     continue;
 
                     out.print("<tr><td>");
@@ -167,6 +176,7 @@ public class DisplayConfig extends TinyCGIBase {
     }
 
     File dataDirectory;
+    File installationDirectory;
     File configFile;
     String dataURL;
 
@@ -189,6 +199,12 @@ public class DisplayConfig extends TinyCGIBase {
         } else if (workingDir instanceof LocalWorkingDirectory) {
             LocalWorkingDirectory lwd = (LocalWorkingDirectory) workingDir;
             dataDirectory = lwd.getTargetDirectory();
+        }
+
+        DashPackage dash = TemplateLoader.getPackage(DASHBOARD_PACKAGE_ID);
+        if (dash != null && StringUtils.hasValue(dash.filename)) {
+            File dashJar = new File(dash.filename);
+            installationDirectory = dashJar.getParentFile();
         }
     }
 
