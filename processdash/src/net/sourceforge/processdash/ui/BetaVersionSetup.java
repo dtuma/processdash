@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2006 Tuma Solutions, LLC
+// Copyright (C) 2001-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -61,14 +61,14 @@ public class BetaVersionSetup {
             betaMenu.add(menuItem);
             menuItem.addActionListener(new ActionListener() {
                     public void actionPerformed(ActionEvent e) {
-                        Browser.launch("http://sourceforge.net/tracker/?group_id=9858&atid=109858"); } });
+                        Browser.launch(ConfigureButton.BUG_URL); } });
 
             // add a "debugging output" menu option
             betaMenu.add(menuItem = new JMenuItem("View debugging output"));
             menuItem.addActionListener(new ActionListener() {
                     public void actionPerformed(ActionEvent e) {
                         ConsoleWindow c = ConsoleWindow.getInstalledConsole();
-                        if (c != null) c.show();
+                        if (c != null) c.setVisible(true);
                     } } );
         }
     }
@@ -102,7 +102,7 @@ public class BetaVersionSetup {
         "   the 'C' menu contains a shortcut to the bug report form.)\n"+
         BULLET+"If you use this software with real-world project data, do\n"+
         "   so with caution and doublecheck the calculations.\n"+
-        BULLET+"Please check the website http://processdash.sourceforge.net\n"+
+        BULLET+"Please check the website http://www.processdash.com\n"+
         "   and download the final release of version VERSION when it\n"+
         "   becomes available.\n"+
         "Thank you for your willingness to evaluate this beta release! The\n"+

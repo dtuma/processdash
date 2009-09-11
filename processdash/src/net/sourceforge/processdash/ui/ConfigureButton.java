@@ -77,10 +77,8 @@ public class ConfigureButton extends JMenuBar implements ActionListener, Hierarc
     static final String ANALYSIS_URL =
         "/To+Date/PSP/All//reports/analysis/index.htm";
     static final String PRINT_URL    = "/help/book.html";
-    static final String BUG_URL =
-        "http://sourceforge.net/tracker/?group_id=9858&atid=109858";
-    static final String FORUM_URL =
-        "http://sourceforge.net/forum/forum.php?forum_id=30753";
+    static final String BUG_URL =   "http://www.processdash.com/bugTracker";
+    static final String FORUM_URL = "http://www.processdash.com/helpForum";
 
     Resources resources = Resources.getDashBundle("ProcessDashboard.Menu");
     Logger logger = Logger.getLogger(ConfigureButton.class.getName());
