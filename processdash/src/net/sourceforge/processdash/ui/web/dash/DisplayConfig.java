@@ -26,6 +26,9 @@ package net.sourceforge.processdash.ui.web.dash;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 
@@ -102,13 +105,6 @@ public class DisplayConfig extends TinyCGIBase {
             out.println("   </PRE></DIV>");
         }
 
-        if (configFile != null) {
-            printRes("<DIV>${Config_File_Header}");
-            out.print("<PRE class='indent'>");
-            out.println(HTMLUtils.escapeEntities(configFile.getPath()));
-            out.println("   </PRE></DIV>");
-        }
-
         if (dataURL != null) {
             printRes("<DIV>${Data_Url_Header}");
             out.print("<PRE class='indent'>");
@@ -123,6 +119,9 @@ public class DisplayConfig extends TinyCGIBase {
         if (packages == null || packages.size() < 2)
             printRes("<PRE class='indent'><i>${Add_On.None}</i></PRE>");
         else {
+                packages = new ArrayList(packages);
+                Collections.sort(packages, PACKAGE_SORTER);
+
                 printRes("<br>&nbsp;"
                          + "<table border class='indent' cellpadding='5'><tr>"
                          + "<th>${Add_On.Name}</th>"
@@ -204,4 +203,14 @@ public class DisplayConfig extends TinyCGIBase {
         out.println(resources.interpolate(text, HTMLUtils.ESC_ENTITIES));
     }
 
+    private static class PackageNameSorter implements Comparator<DashPackage> {
+        public int compare(DashPackage o1, DashPackage o2) {
+            return getName(o1).compareToIgnoreCase(getName(o2));
+        }
+        private String getName(DashPackage pkg) {
+            String result = pkg.name;
+            return (result == null ? "ZZZ" : result);
+        }
+    }
+    private static final PackageNameSorter PACKAGE_SORTER = new PackageNameSorter();
 }
