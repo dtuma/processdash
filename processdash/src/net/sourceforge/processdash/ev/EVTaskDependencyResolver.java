@@ -1,4 +1,4 @@
-// Copyright (C) 2006-2007 Tuma Solutions, LLC
+// Copyright (C) 2006-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -78,6 +78,8 @@ public class EVTaskDependencyResolver {
 
     private long lastReverseRefresh;
 
+    private long refreshInterval;
+
 
     private EVTaskDependencyResolver(DashboardContext context) {
         this.context = context;
@@ -85,6 +87,11 @@ public class EVTaskDependencyResolver {
         this.taskCache = new Hashtable();
         this.reverseDependencyCache = new Hashtable();
         this.lastRefresh = this.lastReverseRefresh = -1;
+        setDynamic(true);
+    }
+
+    public void setDynamic(boolean dynamic) {
+        this.refreshInterval = (dynamic ? 30000 : 3000000000L);
     }
 
     public List getTaskListsContaining(String taskID) {
@@ -181,7 +188,7 @@ public class EVTaskDependencyResolver {
 
     private boolean maybeRefreshCache() {
         long now = System.currentTimeMillis();
-        if (now - lastRefresh < 30000)
+        if (now - lastRefresh < refreshInterval)
             return false;
 
         refreshCache();
@@ -207,7 +214,7 @@ public class EVTaskDependencyResolver {
 
     private boolean maybeRefreshReverseDependencies() {
         long now = System.currentTimeMillis();
-        if (now - lastReverseRefresh < 30000)
+        if (now - lastReverseRefresh < refreshInterval)
             return false;
 
         refreshExternalReverseDependencies();

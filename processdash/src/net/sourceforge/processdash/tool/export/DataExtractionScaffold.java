@@ -190,7 +190,9 @@ public class DataExtractionScaffold implements DashboardContext {
 
         data.finishInconsistency();
 
+        // configure the task dependency resolver
         EVTaskDependencyResolver.init(this);
+        EVTaskDependencyResolver.getInstance().setDynamic(false);
     }
 
     private void openDataFiles(String property_directory, PropertyKey key)
