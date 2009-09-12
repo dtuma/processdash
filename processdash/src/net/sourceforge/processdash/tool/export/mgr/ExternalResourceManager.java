@@ -82,10 +82,13 @@ public class ExternalResourceManager implements ExtraContentSupplier {
     }
 
     public void initializeMappings(File baseDir) {
-        mapper = ExternalLocationMapper.getInstance();
-
         String setting = System.getProperty(INITIALIZATION_MODE_PROPERTY_NAME);
         logger.log(Level.FINE, "initialization mode property is {0}", setting);
+        initializeMappings(baseDir, setting);
+    }
+
+    public void initializeMappings(File baseDir, String setting) {
+        mapper = ExternalLocationMapper.getInstance();
 
         if (INITIALIZATION_MODE_ARCHIVE.equalsIgnoreCase(setting)) {
             // if this data was extracted from a ZIP File, check to see if

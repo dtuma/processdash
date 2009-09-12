@@ -52,12 +52,15 @@ import net.sourceforge.processdash.log.time.WorkingTimeLog;
 import net.sourceforge.processdash.net.cache.ObjectCache;
 import net.sourceforge.processdash.net.http.WebServer;
 import net.sourceforge.processdash.templates.TemplateLoader;
+import net.sourceforge.processdash.tool.export.mgr.ExternalResourceManager;
 import net.sourceforge.processdash.tool.export.mgr.ImportManager;
 import net.sourceforge.processdash.util.StringUtils;
 
 public class DataExtractionScaffold implements DashboardContext {
 
     private File dataDirectory;
+
+    private boolean useExternalResourceMappingFile;
 
     private DataRepository data;
 
@@ -82,6 +85,14 @@ public class DataExtractionScaffold implements DashboardContext {
 
     public void setDataDirectory(File dataDirectory) {
         this.dataDirectory = dataDirectory;
+    }
+
+    public boolean isUseExternalResourceMappingFile() {
+        return useExternalResourceMappingFile;
+    }
+
+    public void setUseExternalResourceMappingFile(boolean use) {
+        this.useExternalResourceMappingFile = use;
     }
 
     public Pattern getDataLoadPattern() {
@@ -146,6 +157,12 @@ public class DataExtractionScaffold implements DashboardContext {
 
         // setup the defect analyzer
         DefectAnalyzer.setDataDirectory(dataDirPath);
+
+        // possibly initialize external resource mappings
+        if (useExternalResourceMappingFile)
+            ExternalResourceManager.getInstance().initializeMappings(
+                dataDirectory,
+                ExternalResourceManager.INITIALIZATION_MODE_ARCHIVE);
 
         // create the data repository.
         data = new DataRepository();
