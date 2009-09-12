@@ -64,7 +64,7 @@
          <tocitem text="Save Backup"
                               image="PageIcon" target="TeamLaunchSnapshot" />
          <tocitem text="Editing the WBS"
-                              image="PageIcon" target="TeamEditWBS" >
+                              image="BookIcon" target="TeamEditWBS" >
             <tocitem text="Inserting Workflows"
                               image="PageIcon" target="TeamInsertWorkflow" />
             <tocitem text="Importing from MS Project"
@@ -73,6 +73,8 @@
                               image="PageIcon" target="TeamEditWBSMetrics" />
             <tocitem text="The Role of the WBS"
                               image="PageIcon" target="TeamWBSUnderstanding" />
+            <tocitem text="Editing the WBS After Project Launch"
+                              image="PageIcon" target="TeamWBSDuringProj" />
          </tocitem>
    </tocitem>
 

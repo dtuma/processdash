@@ -58,7 +58,7 @@ count(filter(
 
 <!--#else-->
 
-    "This calculation is disabled; see " & "http://sourceforge.net/tracker/?func=detail&atid=109858&aid=2185683&group_id=9858";
+    "This calculation is disabled; see http://www.processdash.com/pctDefFreeBug";
 
 <!--#endif-->
 
