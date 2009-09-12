@@ -7,8 +7,8 @@
 
 <H1><!--SEP--><a href="../Overview/Separation.html"><img border="0" class="sepnotice" src="../../Images/PSPDisclaimer.png"></a> <!--/SEP-->Using the PROBE Wizard</H1>
 
-<p>The PROBE process is thoroughly described in the PSP book
-<i>A&nbsp;Discipline for Software Engineering</i>, but it can be
+<p>The PROBE process is described in the PSP book
+<i>A&nbsp;Self-Improvement Process for Software Engineers</i>, but it can be
 complicated to follow.  Even when the calculations are performed for you
 (for example, by the <a href="UsingProbeTool.html">PROBE Tool</a>), there
 are many cross-checks you must perform to verify the validity of the
@@ -26,10 +26,11 @@ reminds you of the nature of estimating with the PROBE method.</p>
 <p class="figure"><img src="../../Images/QSProbeWizardStartup.png"></p>
 
 <h2>PROBE Wizard Step 1</h2>
-<p>Step 1 in the PROBE method is to verify that the Estimated Object 
-LOC number is accurate.  The Wizard shows you the number you have input on 
-the Size Estimating Template and asks you to verify that this is indeed a 
-good estimate.</p>
+
+<p>Step 1 in the PROBE method is to verify that the Estimated Proxy Size is
+accurate.  The Wizard shows you the number you have input on the Size
+Estimating Template and asks you to verify that this is indeed a good
+estimate.</p>
 
 <h2>PROBE Wizard Step 2</h2>
 <p>Step 2 is to verify your historical data.  The PROBE Wizard puts up a 
@@ -53,31 +54,31 @@ size:</p>
 
  <tr valign="top"><td>A</td>
   <td>Estimate size based on a good correlation between previous Estimated 
-   Object LOC data and Actual New and Changed LOC data. This method is the 
+   Proxy Size data and Actual Added &amp; Modified Size data. This method is the 
    most preferred method, but can only be used if you have sufficient data 
    that correlates well.</td>
  </tr>
 
  <tr valign="top"><td>B</td>
-  <td>If Object LOC estimates do not correlate well enough to use method A, 
-   PROBE suggests estimating size based on a good correlation between 
-   previous Estimated New and Changed LOC data and Actual New and Changed LOC 
-   data. Again, this method can only be used if you have sufficient data that 
-   correlates well.</td>
+  <td>If Proxy Size estimates do not correlate well enough to use method A,
+   PROBE suggests estimating size based on a good correlation between
+   previous Estimated Added &amp; Modified Size data and Actual Added &amp;
+   Modified Size data. Again, this method can only be used if you have
+   sufficient data that correlates well.</td>
  </tr>
 
  <tr valign="top"><td>C1</td>
   <td>If neither of the data pairings for methods A and B correlate, but you 
-   do have Estimated Object LOC data, you can use that data to do the 
-   estimate.  This method requires at least some Estimated Object LOC data be 
+   do have Estimated Proxy Size data, you can use that data to do the 
+   estimate.  This method requires at least some Estimated Proxy Size data be 
    recorded.</td>
  </tr>
 
  <tr valign="top"><td>C2</td>
-  <td>If you do not have any Estimated Object LOC, but you do have Estimated 
-   New and Changed LOC data, you can use that data to do the estimate.  This 
-   method requires at least some Estimated New and Changed LOC data be 
-   recorded.</td>
+  <td>If you do not have any Estimated Proxy Size, but you do have
+   Estimated Added &amp; Modified Size data, you can use that data to do
+   the estimate.  This method requires at least some Estimated Added &amp;
+   Modified Size data be recorded.</td>
 
  <tr valign="top"><td>D</td>
   <td>If you have no historical data, method D just indicates that you should 
@@ -108,31 +109,31 @@ to estimate time:</p>
 
  <tr valign="top"><td>A</td>
   <td>Estimate time based on a good correlation between previous Estimated 
-   Object LOC data and Actual time data. This method is the most preferred 
+   Proxy Size data and Actual time data. This method is the most preferred 
    method, but can only be used if you have sufficient data that correlates 
    well.</td>
  </tr>
 
  <tr valign="top"><td>B</td>
-  <td>If Object LOC estimates do not correlate well enough to use method A, 
+  <td>If Proxy Size estimates do not correlate well enough to use method A, 
    PROBE suggests estimating time based on a good correlation between 
-   previous Estimated New and Changed LOC data and Actual time data. Again, 
+   previous Estimated Added &amp; Modified Size data and Actual time data. Again, 
    this method can only be used if you have sufficient data that correlates 
    well.</td>
  </tr>
 
  <tr valign="top"><td>C1</td>
   <td>If neither of the data pairings for methods A and B correlate, but you 
-   do have Estimated Object LOC data, you can use that data to do the 
-   estimate.  This method requires at least some Estimated Object LOC data be 
+   do have Estimated Proxy Size data, you can use that data to do the 
+   estimate.  This method requires at least some Estimated Proxy Size data be 
    recorded.</td>
  </tr>
 
  <tr valign="top"><td>C2</td>
-  <td>If you do not have any Estimated Object LOC, but you do have Estimated 
-   New and Changed LOC data, you can use that data to do the estimate.  This 
-   method requires at least some Estimated New and Changed LOC data be 
-   recorded.</td>
+  <td>If you do not have any Estimated Proxy Size, but you do have
+   Estimated Added &amp; Modified Size data, you can use that data to do
+   the estimate.  This method requires at least some Estimated Added &amp;
+   Modified Size data be recorded.</td>
 
  <tr valign="top"><td>C3</td>
   <td>If you only have Actual Time and Size data, you can use that data to do 

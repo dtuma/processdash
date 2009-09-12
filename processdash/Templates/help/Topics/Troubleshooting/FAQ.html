@@ -28,7 +28,7 @@
   forms open at once?</A></LI>
  <LI><a href="FAQ.html#NoConnection">All my data elements say "NO CONNECTION".  What is wrong?</A></LI>
  <LI><a href="FAQ.html#ERROR">Some of my data elements say "#VALUE!" or "#DIV/0!".  What is wrong?</A></LI>
- <LI><a href="FAQ.html#BadExcel">I tried to export my data to Excel with the link on one of the forms, but I just got a small ASCII file.  What is wrong?</A></LI>
+ <LI><a href="FAQ.html#BadExcel">I tried to export my data to Excel with the link on one of the forms, but I just got a small text file.  What is wrong?</A></LI>
  <LI><a href="FAQ.html#NoSubmit">Why is there no "submit" button on the HTML forms?</A></LI>
  <LI><a href="FAQ.html#TimerUpdate">I've started the timer, but none of the numbers on my reports are changing.  How can I know that it is working?</A></LI>
  <LI><a href="FAQ.html#FrozenData">I made a mistake in one of my numbers on the Project Plan Summary form, but the form won't let me change the numbers! What can I do?</A></LI>
@@ -40,7 +40,6 @@
 
 <h2>Files</h2>
 <ul>
- <LI><a href="FAQ.html#WhereIsConfig">Where is the configuration file located?</A></LI>
  <LI><a href="FAQ.html#WhereData">Where is my PSP data stored?</A></LI>
  <LI><a href="FAQ.html#MoveData">How can I backup my psp data and/or move it to another computer?</A></LI>
  <li><a href="FAQ.html#CorruptFiles">I got a warning box that claims that my data files have been corrupted!  Can I get my data back?</a></li>
@@ -66,8 +65,7 @@
 <P>The dashboard actually contains a very small HTTP server that provides all
 the web content and thus the content cannot be displayed when the dashboard is
 not running.  If you get an error message like "The page cannot be displayed -
-cannot find server" from Internet Explorer, or "Netscape is unable to locate
-the server localhost" from Netscape, check to make certain that the dashboard
+cannot find server," check to make certain that the dashboard
 is running.</p>
 
 <P>If the dashboard <b>is</b> running, and you have <b>never</b> been able to
@@ -85,12 +83,6 @@ is running.</p>
       Settings&quot; button. Make certain the &quot;Bypass proxy
       server for local addresses&quot; box is
       <b><strong>checked</strong></b>.</li>
-   <LI>For Netscape, choose &quot;Edit <img src="../../Images/rarrow.png"> 
-      Preferences&quot;. Under the Category &quot;Advanced <img
-      src="../../Images/rarrow.png"> Proxies&quot;, click the
-      &quot;Manual proxy configuration&quot; button, and ensure that
-      the &quot;No Proxy for&quot; box contains
-      &quot;localhost&quot;.</LI>
   </UL>
 
 <p><hr><a name="BrokenForms"></a><b>My web browser is able to show the forms, 
@@ -164,26 +156,10 @@ it back to the dashboard's data repository. To fix the problem, you must
  <LI>click the refresh/reload button on your browser.</li>
 </OL>
 
-<P>If the dashboard <em>is running</em> and you are still getting "NO 
-CONNECTION" in the data elements, it could be that the data port that the 
-dashboard is trying to use is already taken on your machine.  Normally the 
-dashboard will search for an open port to establish the connection, making 
-this kind of problem unlikely.  However, if you have overridden this behavior 
-in the configuration file the dashboard will not search for a port and may be 
-experiencing a conflict with some other process on your machine.  To fix this 
-problem, you must</p>
-<OL>
- <LI>stop the dashboard</li>
- <LI>remove the following line from your configuration file:
-  <pre>
-   http.port=&lt;some port number&gt;
-  </pre>
- </li>
- <li>restart the dashboard</li>
-</ol>
-
-<P>This will allow the dashboard to search for an available communications 
-port.</p>
+<p>If you have just opened a page containing a lot of data, the dashboard
+may need time to perform the calculations.  It will display "NO CONNECTION"
+while the data is prepared to let you know that the form is not ready
+yet.</p>
 
 <P><HR><a name="ERROR"></a><B>Some of my data elements say
 "<code>#VALUE!</code>" or "<code>#DIV/0!</code>". What is wrong?</B>
@@ -216,7 +192,7 @@ href="../Execution/CompletionButton.html">Using the Completion Checkbox</a>
 help topic for more information.</P>
 
 <P><HR><a name="BadExcel"></a><B>I tried to export my data to Excel with the 
-link on one of the forms, but I just got a small ASCII file.  What is 
+link on one of the forms, but I just got a small text file.  What is 
 wrong?</B>
 
 <P>For the "Export to Excel" functionality to work seamlessly, you must have 
@@ -231,8 +207,8 @@ text file. Alternatively, that three line text file might appear in an Excel
 spreadsheet.</p>
 
 <P>If you encounter such problems, the simplest fix is to add the
-following line to your <a
-href="../AdvancedTopics/ConfigurationFile.html">configuration file</a>:</p>
+following setting to the "Advanced" section of the
+<a href="../AdvancedTopics/PreferencesTool.html">preferences editor</a>:
 
 <pre> excel.exportMethod=mime</pre>
 
@@ -287,7 +263,8 @@ topics.</p>
 <P><HR><a name="FormsColors"></a><b>What is the significance of the different 
 text colors on the PSP process scripts and forms?</b>
 
-<P>In his book <I>A Discipline for Software Engineering</I> where he outlines 
+<P>In his book <I>A Self-Improvement Process for Software Engineers</I>
+where he outlines
 the Personal Software Process, Watts Humphrey introduces the various process 
 elements for doing PSP work in a graduated manner.  Each PSP process is built 
 upon the previous one.  As a way of showing which process elements were added 
@@ -328,9 +305,9 @@ dashboard charts and reports.</P>
 process script, but the document never opens.</b>
 
 <P>For maximum portability, the document templates provided with the 
-dashboard are rich text files (.rtf). Some browsers (most notably Netscape on 
-the Linux platform) don't know what to do with a rich text file, and so they 
-prompt you to save it (not very helpful). To solve this problem, you must:</P> 
+dashboard are rich text files (.rtf). Some browsers don't know what to do
+with a rich text file, and so they prompt you to save it (not very helpful).
+To solve this problem, you must:</P>
 
 <OL>
   <LI>Obtain a program capable of editing rich text files, and install it
@@ -348,39 +325,49 @@ href="../AdvancedTopics/ProcessDefinition/HowDashboardFindsFiles.html#Overwritin
 process scripts</a> in the help topic that describes how the dashboard finds 
 the script files.</p>
 
-<P><HR><a name="WhereIsConfig"></A><B>Where is the configuration file located?</B>
-
-<P>The configuration file is named <code>.pspdash</code> on Unix systems and
-<code>pspdash.ini</code> on Windows systems.  It can be located in either of
-two places: the user's data directory or the user's home directory (on Unix 
-systems).  The dashboard looks in the data directory first, then in the user's
-home directory.  To find out exactly where your configuration file is located,
-choose &quot;Help <img src="../../Images/rarrow.png"> About Process
-Dashboard&quot; from the configuration menu, then click on the link for
-"user settings". See the <a
-href="../AdvancedTopics/ConfigurationFile.html">configuration file</A> help
-topic for more information about the configuration file and the settings that
-can be defined there.</P>
-
 <P><HR><a name="WhereData"></a><B>Where is my PSP data stored?</B>
 <P>The dashboard stores all of your data in a single directory, in plain text
 files.  This directory is often referred to in this documentation as the "data
-directory".  With the current default configuration, data is always stored in
-the "current working directory" when the dashboard is run.</P>
-
-<P>On Windows systems, the "current working directory" is set by the icon you
-use to run the dashboard.  If you right-click on that icon and choose
-"Properties", there will be a text field labelled "Start in:" which identifies
-your data directory.  Altering this value will change the location where the
-dashboard looks for your data.  It is possible to have multiple, independent
-data directories all on the same machine; just make copies of the icon you use
-to start the dashboard, and give each icon a different value for the "Start in"
-directory.</P>
+directory".</p>
 
 <P>You can find out the exact location of your data directory by
 choosing &quot;Help <img src="../../Images/rarrow.png"> About Process
-Dashboard&quot; from the configuration menu, then clicking on the link
-for &quot;user settings&quot;.</p>
+Dashboard&quot; from the configuration menu, then clicking on the
+Configuration tab.</p>
+
+<p>With the current default configuration, data is always stored in the
+"current working directory" when the dashboard is run.</P>
+
+<P><b>On Windows systems</b>, the "current working directory" is set by the
+icon you use to run the dashboard.  Right-click on that icon and choose
+"Properties"</p><ul>
+
+<li>Typically, the data directory will be shown in the field labelled
+"Start in:".  Altering this value will change the location where the
+dashboard looks for your data.</li>
+
+<li>Alternately, the location may be specified as an argument at the end of
+the "Target" field.  In this case, the "Target" field will have an argument
+of the form
+<tt>"-location=<b>&lt;some&nbsp;data&nbsp;location&gt;</b>"</tt>.  Changing
+this argument will point the shortcut to a different data location.</p>
+
+</ul>
+
+<P><b>On Mac OS X systems</b>, the data directory is set by the Application
+icon you use to run the dashboard.  Ctrl-click on that icon, and choose
+"Show Package Contents."  Then find the file "Resources/dataLocation.txt".
+You can edit this file to change the location where your data is
+stored.</p>
+
+<P><b>On Unix/Linix systems</b>, the current working directory is
+controlled by the shell script or icon you use to launch the dashboard.
+See <a href="#UnixClutteredHomeDir">this FAQ question</a> below for more
+information.</P>
+
+<p>It is possible to have multiple, independent data directories all on the
+same machine; just make copies of the icon you use to start the dashboard,
+and configure each icon with a different data location.</P>
 
 
 <P><HR><a name="MoveData"></A><B>How can I backup my psp data and/or move it 
@@ -444,7 +431,7 @@ launcher manually. The dashboard does its best to help you out, by
 creating a shell script in your chosen data directory called
 "<tt>run-dash.sh</tt>". Take a look at the contents of that shell
 script. Embedded comments in that file include some helpful
-information; for example, If java and/or netscape are not in your
+information; for example, If java and/or firefox are not in your
 path, you may need to edit a particular line of the script. With those
 edits, you should be able to use the script to launch the
 dashboard.</p>
@@ -459,10 +446,9 @@ them by carefully following the steps below:
   <li>Find files in your home directory matching any of the following
       patterns, and move them into your chosen data directory:
 
-<pre>    global.dat       state
-    time.log         .pspdash
-    timelog.xml      ###.dat
-    timelog2.xml     ###.def</pre></li>
+<pre>    global.dat       time.log           .pspdash
+    ###.dat          timelog.xml        pspdash.ini
+    ###.def          timelog2.xml       state</pre></li>
 
   <li>Edit the <tt>run-dash.sh</tt> file in your data directory as
       necessary.  Then create a launcher for <tt>run-dash.sh</tt>
@@ -548,8 +534,8 @@ running dashboard program.</P>
 <P>If this information doesn't allay your concerns, you can use the
 "http.allowRemote" setting to ensure that it is impossible for other 
 computers to connect to the dashboard (this is the default). See the 
-<a href="../AdvancedTopics/ConfigurationFile.html#http.allowRemote">configuration
-file</a> help topic for more information.</P>
+<a href="../AdvancedTopics/ConfigurationFile.html#http.allowRemote">advanced
+settings</a> help topic for more information.</P>
 
 
 <P><HR><A NAME="AutoUpdate"></A><b>When the dashboard starts up, it's
@@ -566,11 +552,9 @@ versions of these are available.</p>
 listing the items which have been updated.  This alert has a checkbox
 which reads "Don't perform a monthly check for new releases."  If you
 check this box, the dashboard will never perform this check again.
-You can also disable this check manually by adding the following line
-to your <a href="../AdvancedTopics/ConfigurationFile.html#autoUpdate">configuration
-file</a>:</p>
-
-<pre>autoUpdate.disabled=true</pre>
+You can also disable this check manually by unmarking the appropriate
+box in the <a href="../AdvancedTopics/PreferencesTool.html">preferences
+editor</a>.</p>
 
 <p>In the normal case, this "update check" will succeed, and the
 dashboard will make a note not to check for another 30 days.  However,
@@ -641,12 +625,12 @@ the Process Dashboard?</b>
 
 <P>The latest developments in the development of the Process Dashboard, 
 including the latest version, can be found at 
-<em>http://processdash.sourceforge.net.</em></p>
+<em>http://www.processdash.com</em></p>
 
 <P><HR><a name="BugReport"></a><B>I think I've found a bug.  Whom do I contact?</b>
 
 <P>If you like, you can fill out a bug form on our web site at 
-<EM>http://sourceforge.net/tracker/?group_id=9858&amp;atid=109858</EM>.  The 
+<EM>http://www.processdash.com/bugTracker</EM>.  The 
 simplest way to do this is just to pick "Help" <img 
 src="../../Images/rarrow.png"> "Submit bug report" from the dashboard's "C" 
 menu.  This will open your web browser pointed right to the bug form.</p>

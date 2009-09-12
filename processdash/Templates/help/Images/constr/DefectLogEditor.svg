@@ -15,7 +15,7 @@
    sodipodi:version="0.32"
    inkscape:version="0.44"
    version="1.0"
-   sodipodi:docbase="c:\Tuma\projects\processdash\Templates\help\Images\constr"
+   sodipodi:docbase="C:\Tuma\projects\processdash\Templates\help\Images\constr"
    sodipodi:docname="DefectLogEditor.svg">
   <defs
      id="defs20260" />
@@ -29,7 +29,7 @@
      objecttolerance="10"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="1.2267251"
+     inkscape:zoom="1"
      inkscape:cx="458.5"
      inkscape:cy="157.31759"
      inkscape:document-units="px"
@@ -77,13 +77,13 @@
     <text
        xml:space="preserve"
        style="font-size:18px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
-       x="384.5563"
+       x="314.5563"
        y="319.21457"
        id="text20280"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
          id="tspan20282"
-         x="384.5563"
+         x="314.5563"
          y="319.21457">Defect entries</tspan></text>
     <path
        style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:3;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
@@ -91,7 +91,7 @@
        id="path20284" />
     <path
        style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:3;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       d="M 423.09756,303.80276 L 452.58548,193.75233"
+       d="M 353.09756,303.80276 L 382.58548,193.75233"
        id="path20286" />
   </g>
 </svg>

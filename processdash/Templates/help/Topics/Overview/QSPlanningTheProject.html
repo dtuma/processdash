@@ -43,13 +43,13 @@ Template</a> help topic.</p>
 <p class="ifpsp" align="center"><img src="../../Images/QSShowSizeEstimatingTemplateTop.png"></p>
 
 <P>The Size Estimating Template Instructions direct us to count the base LOC 
-and enter it at entry B if this is an enhancement of a previous program.  
-We're modifying an existing program, so we use the
+and enter it in the Base Parts section if this is an enhancement of a previous
+program.  We're modifying an existing program, so we use the
 <a href="../PostmortemAnalysis/LOCCounter.html">LOC counter</a> to measure
 the size of the components we plan to modify, and enter that number in this
-field.</p>
+section.</p>
 
-<P>Base Additions and New objects will be the places for most of our
+<P>The Parts Additions section will be the places for most of our
 estimating.  Based on our conceptual design, we enter several lines
 describing the work we plan to do.  For each item, we estimate the type,
 number of methods, and LOC estimates.  The "add more rows for new objects"
@@ -57,8 +57,8 @@ link will expand the form with more entries if chosen.</p>
 
 <P>We don't anticipate reusing any code, so we will skip that section.</P>
 
-<P>Moving on to the size calculation, we need to calculate the estimated new 
-&amp; changed LOC using PROBE. There are at least two ways to do this: with
+<P>Moving on to the size calculation, we need to calculate the estimated added 
+&amp; modified LOC using PROBE. There are at least two ways to do this: with
 the PROBE Wizard or with the PROBE tool. (The PROBE Wizard automates
 the standard PSP PROBE process, and is simpler to use; the PROBE tool is
 more complex to use but provides more power for custom statistical

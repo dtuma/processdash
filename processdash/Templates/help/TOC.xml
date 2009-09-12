@@ -75,7 +75,9 @@
       <tocitem image="PageIcon" target="TeamUse" text="Team Use"/>
       <tocitem image="PageIcon" target="BackupData" text="Backing up Dashboard Data"/>
       <tocitem image="PageIcon" target="LocalizationTool" text="Localization Tool"/>
-      <tocitem image="PageIcon" target="ConfigurationFile" text="The configuration file"/>
+      <tocitem image="BookIcon" target="PreferencesTool" text="Editing Preferences">
+         <tocitem image="PageIcon" target="ConfigurationFile" text="Advanced configuration settings"/>
+      </tocitem>
       <tocitem image="PageIcon" target="MultipleToDateData" text="Using multiple sets of To Date data"/>
       <tocitem image="PageIcon" target="DashboardFindsFiles" text="Making changes to the process scripts"/>
       <tocitem image="PageIcon" target="CustomLOCCounter" text="Defining a custom LOC counter"/>

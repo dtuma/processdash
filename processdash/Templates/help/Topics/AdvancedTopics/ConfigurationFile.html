@@ -1,104 +1,42 @@
 <HTML>
 <head>
-<TITLE>The Configuration File</TITLE>
+<TITLE>Advanced Configuration Settings</TITLE>
 <link rel=stylesheet type="text/css" href="../../style.css">
 </head>
 <BODY>
 
-<H1><!--SEP--><a href="../Overview/Separation.html"><img border="0" class="sepnotice" src="../../Images/PSPDisclaimer.png"></a> <!--/SEP-->Configuration File</H1>
+<H1>Advanced Configuration Settings</H1>
 
-<P>The Configuration File is used to customize the behavior of the Process
-Dashboard. This file is named "<code>pspdash.ini</code>" on Windows platforms,
-and "<code>.pspdash</code>" on all other platforms. This text file is typically
-located in the user's data directory.  To find out exactly where your
-configuration file is located, choose "About" from the configuration menu, then
-click on the link for "user settings".</P>
+<p>The <a href="PreferencesTool.html">preferences editor</a> displays
+several categories of commonly-used user preferences.  Most people will
+find those settings adequate for their needs.</p>
 
-<P>All settings in the file are set by lines of the form</p>
+<p>However, the dashboard supports many other configurable parameters.  The
+list below describes a small set of those parameters that some people may
+find useful.</p>
 
-<pre>&lt;settingname&gt;=&lt;value&gt;</pre>
-
-<P>When specifying a value which is the name of a file or directory, separate
-directory names either with a forward slash ("/") or a double backslash
-("\\").</p>
-
-<P>Comments can be placed in the file.  Comments are lines that start with 
-the # character.</p>
-
-<P>The settings available in this file and their usage are listed below:</P>
+<p>If you want to configure one of the settings below, open the
+<a href="PreferencesTool.html">preferences editor</a> and select the
+"Advanced" section.  Click the Add button to add a parameter, then enter
+the name setting and the value you wish to configure.  Then save the
+changes.  In most cases, you will need to restart the dashboard for your
+changes to take effect.</p>
 
 <ul>
 
- <li><a name="autoUpdate"></a><strong>autoUpdate.disabled</strong><br>
-   If this property is set to "true", the dashboard will not automatically 
-   perform a monthly check for updated versions of the dashboard software or 
-   the add-on process sets.<br>
-   <table border=0>
-    <tr valign="top"><td NOWRAP>Format:</td><td><i>true</i> or <i>false</i></td></tr>
-    <tr valign="top"><td NOWRAP>Default:</td><td><i>false</i></td></tr>
-    <tr valign="top"><td NOWRAP>Example:</td><td>autoUpdate.disabled=true</td></tr>
-   </table>
- </li>
- <br>
-
- <li><strong>autoUpdate.proxyPassword</strong><br>
-   When running in the context of an auto-redirecting HTTP proxy server, use 
-   this password to authenticate. (Don't get all worked up about this password
-   appearing in this file in plain text - it's just one step away from plain
-   text when it travels across your LAN within the HTTP protocol.)<br>
-   <table border=0>
-    <tr valign="top"><td NOWRAP>Format:</td><td>Text</td></tr>
-    <tr valign="top"><td NOWRAP>Default:</td><td>N/A</td></tr>
-    <tr valign="top"><td NOWRAP>Example:</td><td>autoUpdate.proxyPassword=Cl3verpa55w0rd</td></tr>
-   </table>
- </li>
- <br>
-
- <li><strong>autoUpdate.proxyUsername</strong><br>
-   When running in the context of an auto-redirecting HTTP proxy server, use 
-   this username to authenticate.<br>
-   <table border=0>
-    <tr valign="top"><td NOWRAP>Format:</td><td>Text</td></tr>
-    <tr valign="top"><td NOWRAP>Default:</td><td>N/A</td></tr>
-    <tr valign="top"><td NOWRAP>Example:</td><td>autoUpdate.proxyUsername=dashuser</td></tr>
-   </table>
- </li>
- <br>
-
- <li><strong>backup.enabled</strong><br>
-   If this is property is set to "true", the dashboard will back up the files
-   in your data directory daily, and each time the dashboard starts and
-   stops.<br>
-   <table border=0>
-    <tr valign="top"><td NOWRAP>Format:</td><td><i>true</i> or <i>false</i></td></tr>
-    <tr valign="top"><td NOWRAP>Default:</td><td><i>false</i></td></tr>
-    <tr valign="top"><td NOWRAP>Example:</td><td>backup.enabled=true</td></tr>
-   </table>
- </li>
- <br>
-
  <li><strong>browser.command</strong><br>
-   Command used to bring up HTML browser.<BR>
+   Command used to bring up HTML browser.  On Windows and Mac OS X, the
+   dashboard attempts to launch your default browser, so this command is
+   generally not required.  On Unix/Linux, the dashboard will launch
+   firefox by default, so you can use this parameter to select
+   a different browser.<BR>
    <table border=0>
-    <tr valign="top"><td NOWRAP>Format:</td><td>a command line.
-      Separate directory names either with a forward slash ("/") or a double
-      backslash ("\\").</td></tr>
-    <tr valign="top"><td NOWRAP>Default:</td><td>On Windows platforms, uses the
-      system default web browser.  On Unix systems, uses "netscape".</td></tr>
-    <tr valign="top"><td NOWRAP>Examples:</td><td>browser.command=/usr/bin/netscape<br>
-      browser.command=C:\\Program Files\\Netscape\\Communicator\\Program\\netscape.exe<br>
-      browser.command=C:\\Program Files\\Internet Explorer\\iexplore.exe</td></tr>
-   </table>
- </li>
- <br>
-
- <li><strong>dataFreezing.disabled</strong><br>
-   If this is property is set to "true", the data freezing/thawing mechanism
-   will be disabled.<br>
-   <table border=0>
-    <tr valign="top"><td NOWRAP>Format:</td><td><i>true</i> or <i>false</i></td></tr>
-    <tr valign="top"><td NOWRAP>Default:</td><td><i>false</i></td></tr>
-    <tr valign="top"><td NOWRAP>Example:</td><td>dataFreezing.disabled=true</td></tr>
+    <tr valign="top"><td NOWRAP>Format:</td><td>a command line.</td></tr>
+    <tr valign="top"><td NOWRAP>Default:</td><td>On Windows and Mac OS X
+      platforms, uses the system default web browser.  On Unix/Linux
+      systems, uses "firefox".</td></tr>
+    <tr valign="top"><td NOWRAP>Examples:</td>
+        <td>browser.command = /usr/local/bin/opera</td></tr>
    </table>
  </li>
  <br>
@@ -112,7 +50,7 @@ the # character.</p>
       java.text.SimpleDateFormat in the Sun Java Developer Kit.
       </td></tr>
     <tr valign="top"><td NOWRAP>Default:</td><td>MM/dd/yyyy</td></tr>
-    <tr valign="top"><td NOWRAP>Example:</td><td>dateFormat=dd/MM/yyyy</td></tr>
+    <tr valign="top"><td NOWRAP>Example:</td><td>dateFormat = dd/MM/yyyy</td></tr>
    </table>
  </li>
  <br>
@@ -126,7 +64,7 @@ the # character.</p>
       the Sun Java Developer Kit.
       </td></tr>
     <tr valign="top"><td NOWRAP>Default:</td><td>MMM dd, yyyy hh:mm:ss aaa</td></tr>
-    <tr valign="top"><td NOWRAP>Example:</td><td>dateFormat=MMM dd, yyyy hh:mm</td></tr>
+    <tr valign="top"><td NOWRAP>Example:</td><td>dateFormat = MMM dd, yyyy hh:mm</td></tr>
    </table>
  </li>
  <br>
@@ -141,7 +79,7 @@ the # character.</p>
    <table border=0>
     <tr valign="top"><td NOWRAP>Format:</td><td><i>true</i> or <i>false</i>.</td></tr>
     <tr valign="top"><td NOWRAP>Default:</td><td><i>true</i></td></tr>
-    <tr valign="top"><td NOWRAP>Example:</td><td>defectDialog.autostart=false</td></tr>
+    <tr valign="top"><td NOWRAP>Example:</td><td>defectDialog.autostart = false</td></tr>
    </table>
  </li>
  <br>
@@ -157,7 +95,7 @@ the # character.</p>
       characters.  Each pair should be of the form "phase A=&gt;phase 
       B".</td></tr>
     <tr valign="top"><td NOWRAP>Default:</td><td>HLD=&gt;Design|Design=&gt;Test</td></tr>
-    <tr valign="top"><td NOWRAP>Example:</td><td>defectDialog.phaseMap=HLD=&gt;Design|Code=&gt;Test</td></tr>
+    <tr valign="top"><td NOWRAP>Example:</td><td>defectDialog.phaseMap = HLD=&gt;Design|Code=&gt;Test</td></tr>
    </table>
  </li>
  <br>
@@ -171,19 +109,7 @@ the # character.</p>
    <table border=0>
     <tr valign="top"><td NOWRAP>Format:</td><td><i>true</i> or <i>false</i></td></tr>
     <tr valign="top"><td NOWRAP>Default:</td><td><i>true</i></td></tr>
-    <tr valign="top"><td NOWRAP>Example:</td><td>defectDialog.restrictSequence=false</td></tr>
-   </table>
- </li>
- <br>
-
- <li><strong>defectTypeStandard</strong><br>
-   The name of the default defect type standard.  Currently, there are two
-   defect type standards built into the dashboard: "PSP - text" and
-   "PSP - numbers".<br>
-   <table border=0>
-    <tr valign="top"><td NOWRAP>Format:</td><td>Text</td></tr>
-    <tr valign="top"><td NOWRAP>Default:</td><td>PSP - text</td></tr>
-    <tr valign="top"><td NOWRAP>Example:</td><td>defectTypeStandard=PSP - numbers</td></tr>
+    <tr valign="top"><td NOWRAP>Example:</td><td>defectDialog.restrictSequence = false</td></tr>
    </table>
  </li>
  <br>
@@ -194,7 +120,7 @@ the # character.</p>
    <table border=0>
     <tr valign="top"><td NOWRAP>Format:</td><td><i>plan</i>, <i>replan</i>, or <i>forecast</i></td></tr>
     <tr valign="top"><td NOWRAP>Default:</td><td>replan</tr>
-    <tr valign="top"><td NOWRAP>Example:</td><td>ev.dependencies.compareDates=forecast</td></tr>
+    <tr valign="top"><td NOWRAP>Example:</td><td>ev.dependencies.compareDates = forecast</td></tr>
    </table>
  </li>
  <br>
@@ -211,7 +137,7 @@ the # character.</p>
    <table border=0>
     <tr valign="top"><td NOWRAP>Format:</td><td><i>true</i> or <i>false</i></td></tr>
     <tr valign="top"><td NOWRAP>Default:</td><td><i>true</i></td></tr>
-    <tr valign="top"><td NOWRAP>Example:</td><td>ev.sortCompletedTasks=false</td></tr>
+    <tr valign="top"><td NOWRAP>Example:</td><td>ev.sortCompletedTasks = false</td></tr>
    </table>
  </li>
  <br>
@@ -226,9 +152,9 @@ the # character.</p>
    <table border=0>
     <tr valign="top"><td NOWRAP>Format:</td><td><i>mime</i> or <i>iqy</i></td></tr>
     <tr valign="top"><td NOWRAP>Default:</td><td><i>iqy</i> if your browser is 
-      Internet Explorer, and <i>mime</i> otherwise. (This is because Netscape
-      does a pitiful job of handling .IQY files.)</td></tr>
-    <tr valign="top"><td NOWRAP>Example:</td><td>excel.exportMethod=iqy</td></tr>
+      Internet Explorer, and <i>mime</i> otherwise. (This is because other
+      browsers don't correctly handle .IQY files.)</td></tr>
+    <tr valign="top"><td NOWRAP>Example:</td><td>excel.exportMethod = iqy</td></tr>
    </table>
  </li>
  <br>
@@ -243,7 +169,7 @@ the # character.</p>
    <table border=0>
     <tr valign="top"><td NOWRAP>Format:</td><td><i>true</i> or <i>false</i></td></tr>
     <tr valign="top"><td NOWRAP>Default:</td><td><i>true</i></td></tr>
-    <tr valign="top"><td NOWRAP>Example:</td><td>forms.useHoursMinutes=false</td></tr>
+    <tr valign="top"><td NOWRAP>Example:</td><td>forms.useHoursMinutes = false</td></tr>
    </table>
  </li>
  <br>
@@ -266,7 +192,7 @@ the # character.</p>
    <table border=0>
     <tr valign="top"><td NOWRAP>Format:</td><td><i>true</i>, <i>false</i>, or <i>never</i>.</td></tr>
     <tr valign="top"><td NOWRAP>Default:</td><td><i>never</i></td></tr>
-    <tr valign="top"><td NOWRAP>Example:</td><td>http.allowRemote=true</td></tr>
+    <tr valign="top"><td NOWRAP>Example:</td><td>http.allowRemote = true</td></tr>
    </table>
  </li>
  <br>
@@ -284,19 +210,18 @@ the # character.</p>
    <table border=0>
     <tr valign="top"><td NOWRAP>Format:</td><td><i>hostname</i></td></tr>
     <tr valign="top"><td NOWRAP>Default:</td><td><i>none</i></td></tr>
-    <tr valign="top"><td NOWRAP>Example:</td><td>hostname.mycompany.com</td></tr>
+    <tr valign="top"><td NOWRAP>Example:</td><td>http.hostname = mycompany.com</td></tr>
    </table>
  </li>
  <br>
 
  <li><strong>http.port</strong><br>
    The port number where the dashboard should listen for incoming http 
-   connections.  (Note: the port one number less than this port - typically 
-   2467 - must be available also, for incoming data connections.)<br>
+   connections.<br>
    <table border=0>
     <tr valign="top"><td NOWRAP>Format:</td><td>Number</td></tr>
     <tr valign="top"><td NOWRAP>Default:</td><td>2468</td></tr>
-    <tr valign="top"><td NOWRAP>Example:</td><td>http.port=3000</td></tr>
+    <tr valign="top"><td NOWRAP>Example:</td><td>http.port = 3000</td></tr>
    </table>
  </li>
  <br>
@@ -307,7 +232,7 @@ the # character.</p>
    <table border=0>
     <tr valign="top"><td NOWRAP>Format:</td><td>Number</td></tr>
     <tr valign="top"><td NOWRAP>Default:</td><td>10</td></tr>
-    <tr valign="top"><td NOWRAP>Example:</td><td>pauseButton.historySize=20</td></tr>
+    <tr valign="top"><td NOWRAP>Example:</td><td>pauseButton.historySize = 20</td></tr>
    </table>
  </li>
  <br>
@@ -320,7 +245,7 @@ the # character.</p>
    <table border=0>
     <tr valign="top"><td NOWRAP>Format:</td><td><i>true</i> or <i>false</i></td></tr>
     <tr valign="top"><td NOWRAP>Default:</td><td><i>false</i></td></tr>
-    <tr valign="top"><td NOWRAP>Example:</td><td>pauseButton.quiet=true</td></tr>
+    <tr valign="top"><td NOWRAP>Example:</td><td>pauseButton.quiet = true</td></tr>
    </table>
  </li>
  <br>
@@ -328,13 +253,11 @@ the # character.</p>
  <li><a name="pauseButtonCompact"></a><strong>pauseButton.compact</strong><br>
    Controls the appearance of the play/pause button on the dashboard.<br>
    If true, a single button with both play and pause icons will be displayed.
-   If false (the default), two separate toggle buttons will be displayed.
-   (Note: this setting has no effect on Mac OS X, which always displays
-   the compact appearance.)<br>
+   If false (the default), two separate toggle buttons will be displayed.<br>
    <table border="0">
     <tbody><tr valign="top"><td nowrap="nowrap">Format:</td><td><i>true</i> or <i>false</i>.</td></tr>
     <tr valign="top"><td nowrap="nowrap">Default:</td><td><i>false</i></td></tr>
-    <tr valign="top"><td nowrap="nowrap">Example:</td><td>pauseButton.compact=true</td></tr>
+    <tr valign="top"><td nowrap="nowrap">Example:</td><td>pauseButton.compact = true</td></tr>
    </tbody></table>
  </li>
  <br>
@@ -346,7 +269,7 @@ the # character.</p>
    <table border=0>
     <tr valign="top"><td NOWRAP>Format:</td><td><i>true</i> or <i>false</i>.</td></tr>
     <tr valign="top"><td NOWRAP>Default:</td><td><i>true</i></td></tr>
-    <tr valign="top"><td NOWRAP>Example:</td><td>probeDialog.onlyCompleted=false</td></tr>
+    <tr valign="top"><td NOWRAP>Example:</td><td>probeDialog.onlyCompleted = false</td></tr>
    </table>
  </li>
  <br>
@@ -361,7 +284,7 @@ the # character.</p>
       filename extensions (e.g. ".c .h .java") which signal that a file 
       contains C/Java source code.</td></tr>
     <tr valign="top"><td NOWRAP>Default:</td><td>.c .cpp .c++ .h .java</td></tr>
-    <tr valign="top"><td NOWRAP>Example:</td><td>pspdiff.suffix.c=.c .h .cxx .hxx</td></tr>
+    <tr valign="top"><td NOWRAP>Example:</td><td>pspdiff.suffix.c = .c .h .cxx .hxx</td></tr>
    </table>
  </li>
  <br>
@@ -376,7 +299,7 @@ the # character.</p>
       filename extensions (e.g. ".cob") which signal that a file contains 
       Pascal source code.</td></tr>
     <tr valign="top"><td NOWRAP>Default:</td><td>.cob .cbl</td></tr>
-    <tr valign="top"><td NOWRAP>Example:</td><td>pspdiff.suffix.pascal=.p .pas</td></tr>
+    <tr valign="top"><td NOWRAP>Example:</td><td>pspdiff.suffix.pascal = .p .pas</td></tr>
    </table>
  </li>
  <br>
@@ -391,7 +314,7 @@ the # character.</p>
       filename extensions (e.g. ".p") which signal that a file contains 
       Pascal source code.</td></tr>
     <tr valign="top"><td NOWRAP>Default:</td><td>.pas</td></tr>
-    <tr valign="top"><td NOWRAP>Example:</td><td>pspdiff.suffix.pascal=.p .pas</td></tr>
+    <tr valign="top"><td NOWRAP>Example:</td><td>pspdiff.suffix.pascal = .p .pas</td></tr>
    </table>
  </li>
  <br>
@@ -406,7 +329,7 @@ the # character.</p>
       filename extensions (e.g. ".sh") which signal that a file contains perl 
       or sh source code.</td></tr>
     <tr valign="top"><td NOWRAP>Default:</td><td>.pl .sh .bash</td></tr>
-    <tr valign="top"><td NOWRAP>Example:</td><td>pspdiff.suffix.sh=.sh .pl .pm</td></tr>
+    <tr valign="top"><td NOWRAP>Example:</td><td>pspdiff.suffix.sh = .sh .pl .pm</td></tr>
    </table>
  </li>
  <br>
@@ -421,75 +344,12 @@ the # character.</p>
       filename extensions (e.g. ".sql") which signal that a file 
       contains perl or sh source code.</td></tr>
     <tr valign="top"><td NOWRAP>Default:</td><td>.sql .ada .adb .ads</td></tr>
-    <tr valign="top"><td NOWRAP>Example:</td><td>pspdiff.suffix.sql=.sql .ada</td></tr>
+    <tr valign="top"><td NOWRAP>Example:</td><td>pspdiff.suffix.sql = .sql .ada</td></tr>
    </table>
  </li>
  <br>
 
- <li><strong>systemTray.disabled</strong><br>
-   If this property is set to "true", the dashboard will not display an
-   icon in the system tray.<br>
-   <table border=0>
-    <tr valign="top"><td NOWRAP>Format:</td><td><i>true</i> or <i>false</i></td></tr>
-    <tr valign="top"><td NOWRAP>Default:</td><td><i>false</i></td></tr>
-    <tr valign="top"><td NOWRAP>Example:</td><td>systemTray.disabled=true</td></tr>
-   </table>
- </li>
- <br>
-
- <!--
- <li><strong>systemTray.minimizeToTray</strong><br>
-   If this property is set to "true", the dashboard window will minimize
-   to the system tray icon - that is, minimizing the window will cause it
-   to disappear, leaving only the tray icon behind.  To make the dashboard
-   minimize normally, set this property to "false".<br>
-   <table border=0>
-    <tr valign="top"><td NOWRAP>Format:</td><td><i>true</i> or <i>false</i></td></tr>
-    <tr valign="top"><td NOWRAP>Default:</td><td><i>true</i></td></tr>
-    <tr valign="top"><td NOWRAP>Example:</td><td>systemTray.minimizeToTray=false</td></tr>
-   </table>
- </li>
- <br>
- -->
-
- <li><strong>templates.directory</strong><br>
-   List of additional directories containing process templates.<BR>
-   The dashboard can load process definitions from many locations.
-   It will:<UL>
-   <LI>Look in each of the directories specified by the user setting
-       "templates.directory" (each directory should end in "Templates").</LI>
-   <LI>Look in any JAR files contained in those directories.</LI>
-   <LI>Look in any JAR files contained in the parents of those
-       directories.</LI>
-   <LI>If there is a Templates directory alongside the pspdash.jar file,
-       look there, first for the file, then for JARs containing the file.</LI>
-   <LI>If there are any JAR files next to the pspdash.jar file, look in
-       them.</LI>
-   <LI>Finally, look in the classpath (which includes the pspdash.jar
-       file).</LI></UL>
-   <table border=0>
-    <tr valign="top"><td NOWRAP>Format:</td><td>one or more directory paths,
-       separated by semicolons.</td></tr>
-    <tr valign="top"><td NOWRAP>Default:</td><td>Empty</td></tr>
-    <tr valign="top"><td NOWRAP>Examples:</td><td>templates.directory=/usr/local/dash/Templates<br>
-      templates.directory=T:\\My Team Network Folder\\Our Process Templates;C:\\templates</td></tr>
-   </table>
- </li>
- <br>
-
- <li><a name="timelogUpdateInterval"></a><strong>timelog.updateInterval</strong><br>
-   The dashboard saves the current time log entry periodically.  This setting 
-   specifies the number of minutes it should wait between saves.
-   <table border=0>
-    <tr valign="top"><td NOWRAP>Format:</td><td>Number</td></tr>
-    <tr valign="top"><td NOWRAP>Default:</td><td>1</td></tr>
-    <tr valign="top"><td NOWRAP>Example:</td><td>timelog.updateInterval=3.141592653</td></tr>
-   </table>
- </li>
- <br>
 </ul>
-
-<!-- DISCLAIMER -->
 
 </BODY>
 </HTML>

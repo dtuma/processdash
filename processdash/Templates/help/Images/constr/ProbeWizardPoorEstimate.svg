@@ -10,12 +10,12 @@
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    width="333"
-   height="260"
+   height="270"
    id="svg9859"
    sodipodi:version="0.32"
    inkscape:version="0.44"
    version="1.0"
-   sodipodi:docbase="c:\Tuma\projects\processdash\Templates\help\Images\constr"
+   sodipodi:docbase="C:\Tuma\projects\processdash\Templates\help\Images\constr"
    sodipodi:docname="ProbeWizardPoorEstimate.svg">
   <defs
      id="defs9861" />
@@ -30,14 +30,14 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="1.4538462"
-     inkscape:cx="166.5"
-     inkscape:cy="130"
+     inkscape:cx="166.50001"
+     inkscape:cy="158.29932"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
-     height="260px"
+     height="270px"
      width="333px"
-     inkscape:window-width="853"
-     inkscape:window-height="573"
+     inkscape:window-width="917"
+     inkscape:window-height="673"
      inkscape:window-x="278"
      inkscape:window-y="141" />
   <metadata
@@ -56,27 +56,27 @@
      inkscape:groupmode="layer"
      id="layer1">
     <image
-       y="2"
+       y="1.5502224"
        x="2"
        id="image9907"
-       height="224"
-       width="328.5"
+       height="235.85919"
+       width="329.00101"
        sodipodi:absref="c:\Tuma\projects\processdash\Templates\help\Images\constr\ProbeWizardPoorEstimate.png"
        xlink:href="ProbeWizardPoorEstimate.png" />
     <text
        xml:space="preserve"
        style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
        x="15.820106"
-       y="252.43387"
+       y="263.84326"
        id="text9910"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
          id="tspan9912"
          x="15.820106"
-         y="252.43387">PROBE Wizard catches a very poor estimate</tspan></text>
+         y="263.84326">PROBE Wizard catches a very poor estimate</tspan></text>
     <path
-       style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:2;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;stroke-miterlimit:4;stroke-dasharray:none"
-       d="M 238.67725,145.13228 L 203.59788,240.05291"
+       style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:2.00000024;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="M 242.62447,146.22426 L 203.5979,251.46239"
        id="path9914" />
   </g>
 </svg>

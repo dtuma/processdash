@@ -1,3 +1,6 @@
 #include <psp2.1/dataFile.txt>
 = Data for /Project/My Project/Release 1/Component A
+Base_Additions_List=="
 Estimated Time=2100.0
+New_Objects_List=="0
+Reused_Objects_List=="0
