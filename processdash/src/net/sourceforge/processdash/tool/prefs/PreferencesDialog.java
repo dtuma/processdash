@@ -63,6 +63,7 @@ import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.templates.ExtensionManager;
 import net.sourceforge.processdash.ui.DashboardIconFactory;
+import net.sourceforge.processdash.ui.help.PCSH;
 import net.sourceforge.processdash.util.StringUtils;
 
 import org.w3c.dom.Element;
@@ -120,6 +121,7 @@ public class PreferencesDialog extends JDialog implements ListSelectionListener,
             }
             });
 
+        PCSH.enableHelpKey(this, "PreferencesTool");
         reload();
         setVisible(true);
         pack();

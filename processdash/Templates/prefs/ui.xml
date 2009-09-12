@@ -34,10 +34,12 @@ preferences a category.
 <preferences-form>
     <grouping id="window">
         <textfield id="window.title"
-                   setting="window.title" />
+                   setting="window.title"
+                   helpId="prefs.windowTitle" />
     </grouping>
 
-    <grouping id="systemTray" requires="java version 1.6">
+    <grouping id="systemTray" requires="java version 1.6"
+              helpId="prefs.systemTray">
         <checkbox id="systemTray.enabled"
                   setting="systemTray.disabled"
                   inverted="true" />

@@ -32,6 +32,7 @@ import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.swing.JComponent;
 import javax.swing.JPanel;
 
 import net.sourceforge.processdash.templates.TemplateLoader;
@@ -40,6 +41,7 @@ import net.sourceforge.processdash.tool.prefs.editor.PreferencesFileList;
 import net.sourceforge.processdash.tool.prefs.editor.ManuallyEnteredPreferencesList;
 import net.sourceforge.processdash.tool.prefs.editor.PreferencesRadioButtons;
 import net.sourceforge.processdash.tool.prefs.editor.PreferencesTextField;
+import net.sourceforge.processdash.ui.help.PCSH;
 import net.sourceforge.processdash.ui.lib.binding.BoundForm;
 import net.sourceforge.processdash.util.StringUtils;
 import net.sourceforge.processdash.util.XMLUtils;
@@ -58,6 +60,7 @@ public class PreferencesForm extends BoundForm {
     private static final String REQUIRES_TAG = "requires";
     public static final String SETTING_TAG = "setting";
     public static final String REQUIRES_RESTART = "requiresRestart";
+    private static final String HELP_ID = "helpId";
 
     /** The tags for which special Preferences editors are used */
     private static final String CHECKBOX_TAG = "checkbox";
@@ -169,6 +172,15 @@ public class PreferencesForm extends BoundForm {
             if (StringUtils.hasValue(settingName))
                 requireRestartSettings.add(settingName);
         }
+    }
+
+    @Override
+    protected void addFormComponent(JComponent component, Element xml) {
+        super.addFormComponent(component, xml);
+
+        String helpId = xml.getAttribute(HELP_ID);
+        if (StringUtils.hasValue(helpId))
+            PCSH.enableHelpKey(component, helpId);
     }
 
     public Set<String> getRequireRestartSettings() {

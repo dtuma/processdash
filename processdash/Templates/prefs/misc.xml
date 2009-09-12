@@ -35,15 +35,18 @@ preferences a category.
 
     <checkbox id="readOnly.recommend"
               setting="readOnly"
+              helpId="prefs.readOnlyRecommend"
               trueValue="recommend"
               falseValue="false" />
 
     <checkbox id="autoUpdateCheck"
               setting="autoUpdate.disabled"
-	      inverted="true" />
+              helpId="prefs.autoUpdate"
+              inverted="true" />
 
     <checkbox id="slowNetwork"
               setting="slowNetwork"
+              helpId="prefs.slowNetwork"
               requiresRestart="true" />
 
 <!-- disabled for now
@@ -54,6 +57,7 @@ preferences a category.
 -->
 
     <checkbox id="http.hostname.useIP"
-              setting="http.hostname.useIP" />
+              setting="http.hostname.useIP"
+              helpId="prefs.numericIPs" />
 
 </preferences-form>

@@ -32,7 +32,7 @@ preferences a category.
 -->
 
 <preferences-form>
-    <grouping id="templates">
+    <grouping id="templates" helpId="prefs.addOns">
         <checkbox id="templates.enableSearchPath"
                   setting="templates.disableSearchPath"
                   requiresRestart="true"

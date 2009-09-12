@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2003 Tuma Solutions, LLC
+// Copyright (C) 2001-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -24,11 +24,9 @@
 package net.sourceforge.processdash.ui.help;
 
 import java.awt.Component;
-import java.net.URL;
 
+import javax.swing.JDialog;
 import javax.swing.JFrame;
-
-import net.sourceforge.processdash.net.http.WebServer;
 
 
 
@@ -41,6 +39,10 @@ public class PCSH {
 
     public static void enableHelpKey(JFrame frame, String id) {
         getHelpProvider().enableHelpKey(frame.getRootPane(), id);
+    }
+
+    public static void enableHelpKey(JDialog dialog, String id) {
+        getHelpProvider().enableHelpKey(dialog.getRootPane(), id);
     }
 
     public static void enableHelpKey(Component comp, String id) {

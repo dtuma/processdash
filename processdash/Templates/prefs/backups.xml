@@ -35,11 +35,13 @@ preferences a category.
 
     <textfield id="backup.numDays"
     	       setting="backup.keepBackupsNumDays"
+               helpId="prefs.backups"
 	       width="3"
 	       dataType="integer" />
 
     <file-list id="backup.extraDirectories"
                setting="backup.extraDirectories"
+               helpId="prefs.backups"
                allowFolders="true"
                allowFiles="true" />
 
