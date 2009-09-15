@@ -52,7 +52,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Vector;
-import java.util.prefs.Preferences;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -507,7 +506,6 @@ public class InstallerFrame extends JFrame
             // Everything went well
             if (installdata.info.getWriteUninstaller()) {
                 writeUninstallData();
-                saveUserValues();
             }
             Housekeeper.getInstance().shutDown(0);
         }
@@ -527,22 +525,6 @@ public class InstallerFrame extends JFrame
     }
 
 
-    private void saveUserValues() {
-        String installPath = installdata.getVariable(ScriptParser.INSTALL_PATH);
-        String dataPath = installdata.getVariable(ScriptParser.DATA_PATH);
-        String teamDataPath = installdata.getVariable(ScriptParser.TEAM_DATA_PATH);
-
-        Preferences prefs = Preferences.userRoot().node(USER_VALUES_PREFS_NODE);
-
-        if (installPath != null)
-            prefs.put(ScriptParser.INSTALL_PATH, installPath);
-
-        if (dataPath != null)
-            prefs.put(ScriptParser.DATA_PATH, dataPath);
-
-        if (teamDataPath != null)
-            prefs.put(ScriptParser.TEAM_DATA_PATH, teamDataPath);
-    }
 
 /**  Wipes the written files when you abort the installation.  */
     protected void wipeAborted()

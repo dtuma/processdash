@@ -37,6 +37,7 @@ import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.prefs.Preferences;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
@@ -68,9 +69,6 @@ public class Unpacker extends Thread
 
     /**  The uninstallation data. */
     private UninstallData udata;
-
-    /**  The jar location. */
-    private String jarLocation;
 
     /**  The variables substitutor. */
     private VariableSubstitutor vs;
@@ -313,6 +311,9 @@ public class Unpacker extends Thread
             if (idata.info.getWriteUninstaller())
                 putUninstaller();
 
+            // Save user values for future reinstalls
+            saveUserValues();
+
             // The end :-)
             handler.stopAction();
         }
@@ -501,4 +502,23 @@ public class Unpacker extends Thread
         // Convert the file separator characters
         return destination.replace('/', File.separatorChar);
     }
+
+    private void saveUserValues() {
+        Preferences prefs = Preferences.userRoot().node(
+              InstallerFrame.USER_VALUES_PREFS_NODE);
+        for (int i = 0; i < USER_VALUE_ITEMS.length; i++) {
+            maybeSaveUserValue(prefs, USER_VALUE_ITEMS[i]);
+        }
+    }
+
+    private void maybeSaveUserValue(Preferences prefs, String key) {
+        String value = idata.getVariable(key);
+        if (key != null)
+            prefs.put(key, value);
+    }
+
+    private static final String[] USER_VALUE_ITEMS = {
+              ScriptParser.INSTALL_PATH, ScriptParser.DATA_PATH,
+              ScriptParser.TEAM_DATA_PATH };
+
 }
