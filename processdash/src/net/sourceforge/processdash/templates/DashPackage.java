@@ -310,6 +310,12 @@ public class DashPackage {
         // System.out.println("DashPackage: " + msg);
     }
 
+    /**
+     * Compare two version strings.
+     * 
+     * @return +1 if version1 is greater than version 2; -1 if version1 is less
+     *         than version2; and 0 if the two version numbers are the same.
+     */
     public static int compareVersions(String version1, String version2) {
         if (version1.equals(version2)) return 0;
 

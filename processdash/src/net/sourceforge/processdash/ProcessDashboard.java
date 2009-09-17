@@ -115,6 +115,7 @@ import net.sourceforge.processdash.process.ui.ScriptButton;
 import net.sourceforge.processdash.security.DashboardPermission;
 import net.sourceforge.processdash.security.DashboardSecurity;
 import net.sourceforge.processdash.templates.AutoUpdateManager;
+import net.sourceforge.processdash.templates.DataVersionChecker;
 import net.sourceforge.processdash.templates.TemplateLoader;
 import net.sourceforge.processdash.tool.bridge.client.BridgedWorkingDirectory;
 import net.sourceforge.processdash.tool.bridge.client.TeamServerSelector;
@@ -299,6 +300,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         pt.click("Created Data Repository");
         templates = TemplateLoader.loadTemplates(data);
         pt.click("Loaded templates");
+        DataVersionChecker.ensureVersionsOrExit();
         aum = new AutoUpdateManager(TemplateLoader.getPackages());
         resources = Resources.getDashBundle("ProcessDashboard");
         InternalSettings.loadLocaleSpecificDefaults(resources);

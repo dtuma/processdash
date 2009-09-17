@@ -1151,25 +1151,31 @@ public class TemplateLoader {
                 requiredVersion = m.group(2);
             }
 
-            String installedVersion = getPackageVersion(packageID);
-            if (installedVersion == null)
-                // this package is not installed, so the requirement isn't met
+            // if we don't meet this package requirement, then the overall
+            // requirement is not met.
+            if (!meetsPackageRequirement(packageID, requiredVersion))
                 return false;
-
-            else if (requiredVersion == null)
-                // any version of this package will do. Check the next reqt.
-                continue;
-
-            else
-                // check to see if the version meets the requirement.  If not,
-                // then the overall requirement is not met.
-                if (DashPackage.compareVersions(installedVersion,
-                        requiredVersion) < 0)
-                    return false;
         }
 
         // All requirements were met.
         return true;
+    }
+
+    public static boolean meetsPackageRequirement(String packageID,
+            String requiredVersion) {
+        String installedVersion = getPackageVersion(packageID);
+        if (installedVersion == null)
+            // this package is not installed, so the requirement isn't met
+            return false;
+
+        else if (requiredVersion == null)
+            // any version of this package will do.
+            return true;
+
+        else
+            // check to see if the version meets the requirement.
+            return (DashPackage.compareVersions(installedVersion,
+                requiredVersion) >= 0);
     }
 
     private static void resolveScriptIDs(Element node, Map idMap) {
