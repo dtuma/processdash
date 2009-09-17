@@ -1,4 +1,4 @@
-// Copyright (C) 2008 Tuma Solutions, LLC
+// Copyright (C) 2008-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -45,6 +45,8 @@ public class BridgedWorkingDirectory extends AbstractWorkingDirectory {
 
     Worker worker;
 
+    Thread shutdownHook;
+
     private static final Logger logger = Logger
             .getLogger(BridgedWorkingDirectory.class.getName());
 
@@ -87,6 +89,7 @@ public class BridgedWorkingDirectory extends AbstractWorkingDirectory {
             LockFailureException {
         client.acquireLock(ownerName);
         worker = new Worker(lockHandler);
+        registerShutdownHook();
     }
 
     public void assertWriteLock() throws LockFailureException {
@@ -120,6 +123,26 @@ public class BridgedWorkingDirectory extends AbstractWorkingDirectory {
         client.releaseLock();
         if (processLock != null)
             processLock.releaseLock();
+        unregisterShutdownHook();
+    }
+
+    private void registerShutdownHook() {
+        // release the lock when the JVM is closing
+        Runtime.getRuntime().addShutdownHook(shutdownHook = new Thread() {
+            public void run() {
+                shutdownHook = null;
+                releaseLocks();
+            }
+        });
+    }
+
+    private void unregisterShutdownHook() {
+        if (shutdownHook != null) {
+            try {
+                Runtime.getRuntime().removeShutdownHook(shutdownHook);
+            } catch (Exception e) {}
+            shutdownHook = null;
+        }
     }
 
     private String getSourceIdentifier() {
