@@ -423,11 +423,11 @@ class dependency has been added in a dashboard class?)
   <target name="installer" depends="TeamTools,TeamProcess,-installer-props">
 
     <ant antfile="${processdash.dir}/installer/build.xml" inheritAll="false"
-         target="web">
+         target="plain">
       <property name="alreadyRebuilt" value="true"/>
       <property name="dontCleanDist" value="true"/>
       <property name="dist" value="${teamdash.dir}"/>
-      <property name="install.flags" value="${install-flags}"/>
+      <property name="qualifier" value="main"/>
       <property name="additional.resources" value="${extraResources}"/>
       <property name="additional.packs" value="${extraPacks}"/>
       <property name="custom-install.extra" value="${extraIni}"/>
@@ -440,6 +440,7 @@ class dependency has been added in a dashboard class?)
       <property name="dontCleanDist" value="true"/>
       <property name="dist" value="${teamdash.dir}"/>
       <property name="install.flags" value="${install-flags}"/>
+      <property name="qualifier" value="psp"/>
       <property name="additional.resources" value="${extraResources}"/>
       <property name="additional.packs" value="${extraPacks}"/>
       <property name="custom-install.extra" value="${extraIni}"/>
