@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2008 Tuma Solutions, LLC
+// Copyright (C) 2001-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -48,6 +48,7 @@ import net.sourceforge.processdash.data.repository.DataListener;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.data.repository.SearchFunction;
 import net.sourceforge.processdash.i18n.Translator;
+import net.sourceforge.processdash.util.LocalizedString;
 
 import org.jfree.chart.labels.XYToolTipGenerator;
 import org.jfree.data.category.CategoryDataset;
@@ -117,6 +118,9 @@ public class ResultSet {
     /** Get the header name of a given row.
      * Data row numbering starts at 1 and ends at numRows(). */
     public String getRowName(int row) {
+        return getRowName(row, translateRowHeaders);
+    }
+    private String getRowName(int row, boolean translateRowHeaders) {
         String result = asString(data[row][0]);
         if (translateRowHeaders) result = Translator.translate(result);
         return result;
@@ -130,6 +134,9 @@ public class ResultSet {
     /** Get the header name of a given column.
      * Data column numbering starts at 1 and ends at numCols(). */
     public String getColName(int col) {
+        return getColName(col, translateColHeaders);
+    }
+    public String getColName(int col, boolean translateColHeaders) {
         String result = asString(data[0][col]);
         if (translateColHeaders) result = Translator.translate(result);
         return result;
@@ -709,16 +716,21 @@ public class ResultSet {
     }
 
 
-    private class Category implements Comparable {
+    private class Category implements Comparable, LocalizedString {
         int ordinal;
         String value;
-        public Category(int ord, String val) {
+        String unlocalized;
+        public Category(int ord, String val, String unlocalized) {
             this.ordinal = ord;
             this.value = val;
+            this.unlocalized = unlocalized;
         }
         @Override
         public String toString() {
             return value;
+        }
+        public String getUnlocalizedString() {
+            return unlocalized;
         }
         public int compareTo(Object o) {
             return ((Category) o).ordinal - ordinal;
@@ -741,9 +753,11 @@ public class ResultSet {
     {
         RSCategoryDataSource() {
             for (int row = 1;   row <= numRows();   row++) {
-                Category rowCat = new Category(row, getRowName(row));
+                Category rowCat = new Category(row, getRowName(row),
+                        getRowName(row, false));
                 for (int col = 1;   col <= numCols();   col++) {
-                    Category colCat = new Category(col-1000, getColName(col));
+                    Category colCat = new Category(col-1000, getColName(col),
+                            getColName(col, false));
                     addValue(getNumber(row, col), colCat, rowCat);
                 }
             }

@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2008 Tuma Solutions, LLC
+// Copyright (C) 2001-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -24,9 +24,10 @@
 package net.sourceforge.processdash.ui.web.reports;
 
 
-import java.util.Map;
+import java.awt.Color;
 
-import net.sourceforge.processdash.data.util.ResultSet;
+import net.sourceforge.processdash.process.ProcessUtil;
+import net.sourceforge.processdash.ui.lib.chart.PhaseChartColorer;
 import net.sourceforge.processdash.ui.web.CGIChartBase;
 
 import org.jfree.chart.ChartFactory;
@@ -43,11 +44,6 @@ public class PieChart extends CGIChartBase {
     /** Create a  line chart. */
     @Override
     public JFreeChart createChart() {
-        return createPieChart(data, parameters, get3DSetting());
-    }
-
-    public static JFreeChart createPieChart(ResultSet data, Map parameters,
-            boolean threeDimensional) {
         CategoryDataset catData = data.catDataSource();
         PieDataset pieData = null;
         if (catData.getColumnCount() == 1)
@@ -56,7 +52,7 @@ public class PieChart extends CGIChartBase {
             pieData = DatasetUtilities.createPieDatasetForRow(catData, 0);
 
         JFreeChart chart = null;
-        if (threeDimensional) {
+        if (get3DSetting()) {
             chart = ChartFactory.createPieChart3D
                 (null, pieData, true, true, false);
             chart.getPlot().setForegroundAlpha(ALPHA);
@@ -79,6 +75,9 @@ public class PieChart extends CGIChartBase {
         else
             plot.setCircular(false);
 
+        if ("byPhase".equals(parameters.get("colorScheme")))
+            maybeConfigurePhaseColors(plot, pieData);
+
         String interiorGap = (String) parameters.get("interiorGap");
         if (interiorGap != null) try {
             plot.setInteriorGap(Integer.parseInt(interiorGap) / 100.0);
@@ -96,4 +95,13 @@ public class PieChart extends CGIChartBase {
         return chart;
     }
 
+    private void maybeConfigurePhaseColors(final PiePlot plot,
+            PieDataset pieData) {
+        ProcessUtil procUtil = new ProcessUtil(getDataContext());
+        new PhaseChartColorer(procUtil, pieData.getKeys()) {
+            public void setItemColor(Object key, int pos, Color c) {
+                plot.setSectionPaint((Comparable) key, c);
+            }
+        }.run();
+    }
 }

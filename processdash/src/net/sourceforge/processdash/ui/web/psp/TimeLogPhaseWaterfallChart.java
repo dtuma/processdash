@@ -42,6 +42,7 @@ import net.sourceforge.processdash.log.time.TimeLog;
 import net.sourceforge.processdash.log.time.TimeLogEntry;
 import net.sourceforge.processdash.process.ProcessUtil;
 import net.sourceforge.processdash.ui.lib.chart.DrawingSupplierFactory;
+import net.sourceforge.processdash.ui.lib.chart.PhaseChartColorer;
 import net.sourceforge.processdash.ui.web.CGIChartBase;
 import net.sourceforge.processdash.util.ComparableValue;
 
@@ -96,7 +97,7 @@ public class TimeLogPhaseWaterfallChart extends CGIChartBase {
         IntervalXYDataset dataset = createDataset(process, phases,
             timeLogEntries, gaps);
 
-        return createChart(dataset, phases, gaps);
+        return createChart(dataset, process, phases, gaps);
     }
 
 
@@ -198,7 +199,7 @@ public class TimeLogPhaseWaterfallChart extends CGIChartBase {
 
 
     private JFreeChart createChart(IntervalXYDataset dataset,
-            List<String> phases, GapSkipTracker gaps) {
+            ProcessUtil process, List<String> phases, GapSkipTracker gaps) {
         JFreeChart result = ChartFactory.createXYBarChart(null, null, true,
             null, dataset, PlotOrientation.VERTICAL, false, true, false);
 
@@ -218,10 +219,16 @@ public class TimeLogPhaseWaterfallChart extends CGIChartBase {
         symbolaxis.setGridBandsVisible(false);
         xyplot.setRangeAxis(symbolaxis);
 
-        XYBarRenderer renderer = (XYBarRenderer) xyplot.getRenderer();
+        final XYBarRenderer renderer = (XYBarRenderer) xyplot.getRenderer();
         renderer.setUseYInterval(true);
         renderer.setDrawBarOutline(true);
         renderer.setBaseOutlinePaint(Color.black);
+
+        new PhaseChartColorer(process, phases) {
+            public void setItemColor(Object key, int pos, Color c) {
+                renderer.setSeriesPaint(pos, c);
+            }
+        }.run();
 
         int exceptionSeries = dataset.getSeriesCount()-1;
         renderer.setSeriesPaint(exceptionSeries, EXCEPTION_PAINT);

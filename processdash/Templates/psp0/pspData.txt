@@ -199,3 +199,19 @@
             ",Planning,HLD,HLD Review,Design,Design Review,Code,Code Review,")
      - sumFor("Defects Removed",
 	      ",Planning,HLD,HLD Review,Design,Design Review,Code,")));
+
+/*
+ * Preassigned colors for the phases
+ */
+
+[Planning/Phase_Color] == "#cdaa7d";
+[HLD/Phase_Color] == "#cc66ff";
+[HLD Review/Phase_Color] == "#990099";
+[Design/Phase_Color] == "#aaaaff";
+[Design Review/Phase_Color] == "#6666ff";
+[Code/Phase_Color] == "#66ff66";
+[Code Review/Phase_Color] == "#00c000";
+[Compile/Phase_Color] == "#ffe000";
+[Test/Phase_Color] == "#ff9900";
+[Reassessment/Phase_Color] == "#cdaa7d";
+[Postmortem/Phase_Color] == "#996633";

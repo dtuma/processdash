@@ -1,4 +1,4 @@
-// Copyright (C) 2003 Tuma Solutions, LLC
+// Copyright (C) 2003-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -255,6 +255,7 @@ public class DefectAnalysisPage extends AnalysisPage {
 
     private void writePhasePieArgs(String titleKey, String dataElem) {
         out.println("for=.");
+        out.println("colorScheme=byPhase");
         out.println("skipRowHdr=true");
         out.print("title=");
         out.println(resources.getString(titleKey));

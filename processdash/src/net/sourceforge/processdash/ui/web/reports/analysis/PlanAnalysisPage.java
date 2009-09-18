@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2008 Tuma Solutions, LLC
+// Copyright (C) 2003-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -152,6 +152,7 @@ public class PlanAnalysisPage extends AnalysisPage {
     private static final String PHASE_TIME_CHART = "PhaseTime";
     public void writePhaseTimeArgs() {
         out.println("for=.");
+        out.println("colorScheme=byPhase");
         out.println("skipRowHdr=true");
         out.print("title=");
         out.println(resources.getString("Plan.Time_In_Phase_Title"));

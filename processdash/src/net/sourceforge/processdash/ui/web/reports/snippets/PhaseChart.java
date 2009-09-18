@@ -1,4 +1,4 @@
-// Copyright (C) 2006-2007 Tuma Solutions, LLC
+// Copyright (C) 2006-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -52,8 +52,10 @@ public class PhaseChart extends AbstractChartSnippet {
             appendParam(args, "where", whereCond);
         }
         String smallArgs = "";
-        if ("pie".equals(chartType))
+        if ("pie".equals(chartType)) {
             smallArgs = "&hideLegend";
+            appendParam(args, "colorScheme", "byPhase");
+        }
 
         String query = args.toString();
 
