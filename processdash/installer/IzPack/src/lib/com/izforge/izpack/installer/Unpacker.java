@@ -513,7 +513,7 @@ public class Unpacker extends Thread
 
     private void maybeSaveUserValue(Preferences prefs, String key) {
         String value = idata.getVariable(key);
-        if (key != null)
+        if (value != null)
             prefs.put(key, value);
     }
 
