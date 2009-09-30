@@ -152,7 +152,8 @@ public class TimeLogEditor extends Object implements TreeSelectionListener,
 
     private Timer recalcTimer;
 
-    static final long DAY_IN_MILLIS = 24 * 60 * 60 * 1000;
+    static final long HOUR_IN_MILLIS = 60 * 60 * 1000;
+    static final long DAY_IN_MILLIS = 24 * HOUR_IN_MILLIS;
 
     /**  The formats of the string used to validate dates entered manually in
           a JDateTimeChooserCellEditor field */
@@ -346,10 +347,8 @@ public class TimeLogEditor extends Object implements TreeSelectionListener,
     }
 
     public void setTimes() {
-        Date fd = fromDate.getDate();
-        Date td = toDate.getDate();
-        if (td != null) // need to add a day so search is inclusive
-            td = new Date(td.getTime() + DAY_IN_MILLIS);
+        Date fd = getFromDate();
+        Date td = getToDate(true);
 
         Map nodeTimes = new HashMap();
         long totalTime = collectTime(treeModel.getRoot(), getTimes(fd, td),
@@ -444,10 +443,8 @@ public class TimeLogEditor extends Object implements TreeSelectionListener,
         if (selected != null) {
             path = treeModel.getPropKey(useProps, selected.getPath()).path();
         }
-        Date from = fromDate.getDate();
-        Date to = toDate.getDate();
-        if (to != null) // need to add a day so search is inclusive
-            to = new Date(to.getTime() + DAY_IN_MILLIS);
+        Date from = getFromDate();
+        Date to = getToDate(true);
 
         saveEditInProgress();
 
@@ -496,42 +493,79 @@ public class TimeLogEditor extends Object implements TreeSelectionListener,
     }
 
     public void scrollFilterForward() {
-        Date fd = fromDate.getDate();
-        Date td = toDate.getDate();
+        Date from = getFromDate();
+        Date to = getToDate(false);
 
-        if (fd == null)
+        if (from == null || to == null) {
+            from = truncDate(from, 1);
+            to = truncDate(to, 1);
+            setFilter(from, to);
             return;
-        if (td == null)
-            td = fd;
+        }
 
-        long diff = 1 + (td.getTime() - fd.getTime()) / DAY_IN_MILLIS;
+        int diff = countDaysInSpan(from, to);
         if (diff == 28 || diff == 29 || diff == 30 || diff == 31) {
-            fd = new Date(td.getTime() + DAY_IN_MILLIS * 2);
-            filterThisMonth(fd);
-        } else {
-            fd = new Date(td.getTime() + DAY_IN_MILLIS);
-            td = new Date(fd.getTime() + (diff - 1) * DAY_IN_MILLIS);
-            setFilter(fd, td);
+            Date next = new Date(to.getTime() + DAY_IN_MILLIS * 2);
+            filterThisMonth(next);
+        } else if (diff > 0) {
+            from = truncDate(to, 1);
+            to = truncDate(to, diff);
+            setFilter(from, to);
         }
     }
 
     public void scrollFilterBackward() {
-        Date fd = fromDate.getDate();
-        Date td = toDate.getDate();
+        Date from = getFromDate();
+        Date to = getToDate(false);
 
-        if (fd == null)
+        if (from == null || to == null) {
+            from = truncDate(from, -1);
+            to = truncDate(to, -1);
+            setFilter(from, to);
             return;
-        if (td == null)
-            td = fd;
-
-        long diff = 1 + (td.getTime() - fd.getTime()) / DAY_IN_MILLIS;
-        td = new Date(fd.getTime() - DAY_IN_MILLIS);
-        if (diff == 28 || diff == 29 || diff == 30 || diff == 31) {
-            filterThisMonth(td);
-        } else {
-            fd = new Date(td.getTime() - (diff - 1) * DAY_IN_MILLIS);
-            setFilter(fd, td);
         }
+
+        int diff = countDaysInSpan(from, to);
+        if (diff == 28 || diff == 29 || diff == 30 || diff == 31) {
+            Date prev = new Date(from.getTime() - DAY_IN_MILLIS * 2);
+            filterThisMonth(prev);
+        } else if (diff > 0) {
+            to = truncDate(from, -1);
+            from = truncDate(from, -diff);
+            setFilter(from, to);
+        }
+    }
+
+    private int countDaysInSpan(Date from, Date to) {
+        // measure the difference between the two times
+        long diff = to.getTime() - from.getTime();
+        // add a couple of hours to avoid daylight savings boundary issues
+        diff += HOUR_IN_MILLIS * 2;
+        // calculate the number of days, rounding down
+        long days = diff / DAY_IN_MILLIS;
+        // add a day, since our timespans are inclusive
+        return (int) days + 1;
+    }
+
+    private Date getFromDate() {
+        return truncDate(fromDate.getDate(), 0);
+    }
+
+    private Date getToDate(boolean endOfDay) {
+        return truncDate(toDate.getDate(), endOfDay ? 1 : 0);
+    }
+
+    private Date truncDate(Date d, int addDays) {
+        if (d == null)
+            return null;
+
+        Calendar c = Calendar.getInstance();
+        c.setTime(d);
+        c.set(Calendar.HOUR_OF_DAY, 0); c.set(Calendar.MINUTE, 0);
+        c.set(Calendar.SECOND, 0); c.set(Calendar.MILLISECOND, 0);
+        if (addDays != 0)
+            c.add(Calendar.DATE, addDays);
+        return c.getTime();
     }
 
     public void clearFilter() {
