@@ -1,4 +1,4 @@
-// Copyright (C) 2005 Tuma Solutions, LLC
+// Copyright (C) 2005-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -26,6 +26,7 @@ package net.sourceforge.processdash.log.time;
 import java.io.File;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
+import java.util.Collections;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -38,6 +39,7 @@ import net.sourceforge.processdash.data.NumberFunction;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.hier.DashHierarchy;
+import net.sourceforge.processdash.hier.Filter;
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.log.SaveableDataSource;
 import net.sourceforge.processdash.util.EnumerIterator;
@@ -55,6 +57,8 @@ public class DashboardTimeLog implements ModifiableTimeLog,
 
     private TimingMetricsRecorder metricsRecorder;
 
+    private List timingForbiddenPaths;
+
     private List listeners;
 
     public static TimeLog DEFAULT = null;
@@ -71,6 +75,7 @@ public class DashboardTimeLog implements ModifiableTimeLog,
         this.loggingModel = new DefaultTimeLoggingModel(this, this);
         this.metricsRecorder = new TimingMetricsRecorder(this, data, hierarchy,
                 this);
+        this.timingForbiddenPaths = Collections.EMPTY_LIST;
     }
 
     public CommittableModifiableTimeLog getDeferredTimeLogModifications() {
@@ -124,9 +129,13 @@ public class DashboardTimeLog implements ModifiableTimeLog,
 
 
 
+    public void setTimingForbiddenPaths(List paths) {
+        this.timingForbiddenPaths = paths;
+    }
+
     public boolean isTimeLoggingAllowed(String path) {
         return timeLoggingAllowed(hierarchy.findExistingKey(path), hierarchy,
-                data);
+                data, timingForbiddenPaths);
     }
 
     public TimeLoggingModel getTimeLoggingModel() {
@@ -142,10 +151,15 @@ public class DashboardTimeLog implements ModifiableTimeLog,
         return DEFAULT;
     }
 
-    public static boolean timeLoggingAllowed(PropertyKey node,
-            DashHierarchy props, DataContext data) {
+    static boolean timeLoggingAllowed(PropertyKey node,
+            DashHierarchy props, DataContext data, List timingForbiddenPaths) {
         if (node == null || props == null || data == null
                 || Settings.isReadOnly())
+            return false;
+
+        // if the node is in the list of forbidden paths, (or is a child of a
+        // forbidden path), don't allow time to be logged there.
+        if (Filter.matchesFilter(timingForbiddenPaths, node.path()))
             return false;
 
         // if the node has children, logging time here is not allowed, unless

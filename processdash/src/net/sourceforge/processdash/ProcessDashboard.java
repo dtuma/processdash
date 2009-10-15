@@ -454,6 +454,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         pt.click("Opened data files");
         data.fixMisparentedData();
         pt.click("Fixed misparented data");
+        timeLog.setTimingForbiddenPaths(getBrokenDataPaths());
         SizeEstimatingTemplate.migrateLegacyData(props, data);
 
         try {
@@ -1095,6 +1096,10 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         ExceptionDialog.show(null, title, message, " ", traceHeader, t);
     }
 
+
+    public List<String> getBrokenDataPaths() {
+        return brokenData.getErrors();
+    }
 
     public void openDatafile (String prefix, String dataFile) {
         try {

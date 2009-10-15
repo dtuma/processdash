@@ -1,4 +1,4 @@
-// Copyright (C) 1999-2008 Tuma Solutions, LLC
+// Copyright (C) 1999-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -79,6 +79,7 @@ import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.hier.DashHierarchy;
+import net.sourceforge.processdash.hier.Filter;
 import net.sourceforge.processdash.hier.Prop;
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.hier.ui.PropTreeModel;
@@ -112,6 +113,7 @@ public class DefectLogEditor extends Component implements
     protected DashHierarchy   useProps;
     protected ProcessDashboard    dashboard = null;
     protected Hashtable       defectLogs = null;
+    protected List forbiddenPaths;
     protected ValidatingTable table;
     protected JSplitPane      splitPane;
     protected DataRepository  data;
@@ -141,6 +143,7 @@ public class DefectLogEditor extends Component implements
         data     = dashboard.getDataRepository();
 
         defectLogs = new Hashtable ();
+        forbiddenPaths = dashboard.getBrokenDataPaths();
         reload ();
 
         frame = new JFrame(resources.getString("Log.Window_Title"));
@@ -713,6 +716,9 @@ public class DefectLogEditor extends Component implements
             if (a.isEnabled())
                 enable = true;
         }
+        if (selectedKey != null
+                && Filter.matchesFilter(forbiddenPaths, selectedKey.path()))
+            enable = false;
         importButton.setEnabled(enable);
     }
     private void updateImportAction(Action a, PropertyKey selectedKey,
@@ -730,7 +736,18 @@ public class DefectLogEditor extends Component implements
     }
 
     private void maybeEnableButtons() {
-        enableButtons(table.table.getSelectedRowCount() == 1);
+        enableButtons(selectedDefectIsEditable());
+    }
+
+    private boolean selectedDefectIsEditable() {
+        if (table.table.getSelectedRowCount() != 1)
+            return false;
+        DefectListEntry dle = getSelectedDefect();
+        if (dle == null)
+            return false;
+        if (Filter.matchesFilter(forbiddenPaths, dle.pk.path()))
+            return false;
+        return true;
     }
 
 

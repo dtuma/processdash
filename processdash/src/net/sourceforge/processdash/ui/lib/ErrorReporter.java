@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2003 Tuma Solutions, LLC
+// Copyright (C) 2002-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -46,7 +46,7 @@ public class ErrorReporter {
 
     String title;
     Object preMessage, postMessage;
-    Vector errors;
+    Vector<String> errors;
 
     /** Create a new ErrorReporter.
      *
@@ -73,6 +73,12 @@ public class ErrorReporter {
     public synchronized void logError(String errorMessage) {
         if (!errors.contains(errorMessage))
             errors.add(errorMessage);
+    }
+
+    /** Return the list of errors logged to this error reporter.
+     */
+    public List<String> getErrors() {
+        return Collections.unmodifiableList(errors);
     }
 
     public void done() {

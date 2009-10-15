@@ -1,4 +1,4 @@
-// Copyright (C) 2005-2007 Tuma Solutions, LLC
+// Copyright (C) 2005-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -55,7 +55,7 @@ public class DashboardTimeLogTest extends DefaultTimeLoggingModelTest {
 
 
     public void testApproverFunctionality() {
-        assertFalse(DashboardTimeLog.timeLoggingAllowed(null, null, null));
+        assertFalse(DashboardTimeLog.timeLoggingAllowed(null, null, null, null));
         assertFalse(approver.isTimeLoggingAllowed(DataRepository.chopPath(PATH1)));
 
         String dataName = DataRepository.createDataName(PATH4, "Time");

@@ -1,4 +1,4 @@
-// Copyright (C) 2000-2008 Tuma Solutions, LLC
+// Copyright (C) 2000-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -29,12 +29,14 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.List;
 
 import javax.swing.Icon;
 import javax.swing.JButton;
 
 import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.hier.DashHierarchy;
+import net.sourceforge.processdash.hier.Filter;
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.log.defects.DefectLogID;
 import net.sourceforge.processdash.ui.DashboardIconFactory;
@@ -47,6 +49,7 @@ public class DefectButton extends JButton implements ActionListener,
     ProcessDashboard parent = null;
     Icon enabled_icon = null;
     Icon disabled_icon = null;
+    List forbiddenPaths;
     String defectLogFileName = null;
     PropertyKey defectPath = null;
 
@@ -65,6 +68,7 @@ public class DefectButton extends JButton implements ActionListener,
         setDisabledIcon(disabled_icon);
 
         parent = dash;
+        forbiddenPaths = dash.getBrokenDataPaths();
         setEnabled(false);
         setFocusPainted(false);
         addActionListener(this);
@@ -79,6 +83,12 @@ public class DefectButton extends JButton implements ActionListener,
         setPaths(parent.getHierarchy().defectLog(currentPhase , parent.getDirectory()));
     }
 
+    private boolean shouldAllowDefectLogging() {
+        return defectLogFileName != null
+            && defectPath != null
+            && !Filter.matchesFilter(forbiddenPaths, defectPath.path());
+    }
+
     public void setPaths(DefectLogID defectLog) {
         if (defectLog == null) {
             defectLogFileName = null;
@@ -87,11 +97,11 @@ public class DefectButton extends JButton implements ActionListener,
             defectLogFileName = defectLog.filename;
             defectPath = defectLog.path;
         }
-        setEnabled(defectLogFileName != null);
+        setEnabled(shouldAllowDefectLogging());
     }
 
     public void actionPerformed(ActionEvent e) {
-        if (defectLogFileName != null) {
+        if (shouldAllowDefectLogging()) {
             // pop up a defect log dialog
             new DefectDialog(parent, defectLogFileName, defectPath);
         }
