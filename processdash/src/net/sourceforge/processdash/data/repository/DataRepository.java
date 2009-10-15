@@ -1,4 +1,4 @@
-// Copyright (C) 1998-2008 Tuma Solutions, LLC
+// Copyright (C) 1998-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -2262,9 +2262,11 @@ public class DataRepository implements Repository, DataContext,
 
                         // This data element has been changed and should be saved.
 
-                        if (PHANTOM_DATAFILES.contains(d.datafile))
+                        if (PHANTOM_DATAFILES.contains(d.datafile)) {
                             // move the item OUT of the phantom datafile so it will be saved.
                             d.datafile = guessDataFile(name, REQUIRE_WRITABLE);
+                            d.isDefaultName = false;
+                        }
 
                         datafileModified(d.datafile);
                     }
@@ -3061,8 +3063,10 @@ public class DataRepository implements Repository, DataContext,
                             putValue(dataName, o, IS_NOT_DEFAULT_VAL,
                                     NOT_MODIFYING_DATAFILE);
                             d = (DataElement)data.get(dataName);
-                            if (d != null)
+                            if (d != null) {
                                 d.datafile = dataFile;
+                                d.isDefaultName = defaultData.containsKey(localName);
+                            }
                         }
 
                         if (registerDataNames && (o instanceof DoubleData
@@ -3115,6 +3119,7 @@ public class DataRepository implements Repository, DataContext,
                         if (d != null) {
                             // a matching data element exists.
                             d.datafile = dataFile;
+                            d.isDefaultName = true;
                             dataName = d.name;
 
                             if (instantiatedDataMatches(valueObj, d.getValue())) {
@@ -3136,7 +3141,6 @@ public class DataRepository implements Repository, DataContext,
                                         dataPrefix, valueObj, !fileEditable);
                                 putValue(dataName, o, IS_DEFAULT_VAL,
                                         NOT_MODIFYING_DATAFILE);
-                                d.isDefaultName = true;
                             }
                         }
 
