@@ -1,5 +1,6 @@
 package teamdash.wbs;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
@@ -48,12 +49,32 @@ public class MasterWBSUtil {
 
         // make the change
         int[] insertedRows = mergeFromMaster(masterProject.getWBS(),
-            masterProjectID, proj.getWBS());
+            masterProjectID, proj.getWBS(), getExtraMasterAttrs(masterProject));
         return insertedRows;
+    }
+
+    private static List<String> getExtraMasterAttrs(TeamProject masterProject) {
+        String setting = masterProject.getUserSetting("copyMasterWbsAttributes");
+        if (setting == null || setting.trim().length() == 0)
+            return null;
+
+        List<String> result = new ArrayList<String>();
+        for (String item : setting.split(",")) {
+            String attr = item.trim();
+            if (attr.length() > 0)
+                result.add(attr);
+        }
+        return result;
     }
 
     public static int[] mergeFromMaster(WBSModel master,
             String masterProjectID, WBSModel dest) {
+        return mergeFromMaster(master, masterProjectID, dest, null);
+    }
+
+    public static int[] mergeFromMaster(WBSModel master,
+            String masterProjectID, WBSModel dest,
+            List<String> extraMasterAttrs) {
         WBSModel working = new WBSModel();
         working.copyFrom(master);
 
@@ -62,13 +83,20 @@ public class MasterWBSUtil {
         // copy the master node ID for the overall project
         copyAttr(working.getRoot(), dest.getRoot(), MASTER_NODE_ID, true);
         // copy everything else
-        return dest.mergeWBSModel(working, MASTER_NODE_MERGER,
+        return dest.mergeWBSModel(working,
+                new MasterNodeMerger(extraMasterAttrs),
                 MASTER_NODE_COMPARATOR);
     }
 
 
 
     private static class MasterNodeMerger implements WBSNodeMerger {
+
+        private List<String> extraMasterAttrs;
+
+        public MasterNodeMerger(List<String> extraMasterAttrs) {
+            this.extraMasterAttrs = extraMasterAttrs;
+        }
 
         public void mergeNodes(WBSNode src, WBSNode dest) {
             dest.setReadOnly(src != null);
@@ -78,12 +106,14 @@ public class MasterWBSUtil {
             if (src != null) {
                 dest.setName(src.getName());
                 copyAttr(src, dest, TaskDependencyColumn.ID_LIST_ATTR, true);
+                if (extraMasterAttrs != null) {
+                    for (String attrName : extraMasterAttrs)
+                        copyAttr(src, dest, attrName, true);
+                }
             }
         }
 
     }
-
-    private static final MasterNodeMerger MASTER_NODE_MERGER = new MasterNodeMerger();
 
     private static class MasterNodeComparator implements WBSNodeComparator {
 
