@@ -518,6 +518,23 @@ public class HierarchySynchronizer {
         return isDeletable;
     }
 
+    private double getTotalActualTimeForIndivNode(PropertyKey node) {
+        double result = 0;
+
+        // add time logged directly to the node, if it exists.
+        SimpleData d = getData(node.path(), ACT_TIME_DATA_NAME);
+        if (d instanceof DoubleData)
+            result += ((DoubleData) d).getDouble();
+
+        // if the node has children, add their time too.
+        for (int i = hierarchy.getNumChildren(node);  i-- > 0; ) {
+            PropertyKey child = hierarchy.getChildKey(node, i);
+            result += getTotalActualTimeForIndivNode(child);
+        }
+
+        return result;
+    }
+
     private static class DefectCounter implements DefectAnalyzer.Task {
         private int count = 0;
         public void analyze(String path, Defect d) {
@@ -1099,6 +1116,7 @@ public class HierarchySynchronizer {
 
     private static final String PROCESS_ID_DATA_NAME = "Process_ID";
     private static final String EST_TIME_DATA_NAME = "Estimated Time";
+    private static final String ACT_TIME_DATA_NAME = "Time";
     private static final String LABEL_LIST_DATA_NAME =
         "Synchronized_Task_Labels";
     private static final String TEAM_NOTE_KEY = HierarchyNoteManager.NOTE_KEY;
@@ -1196,6 +1214,18 @@ public class HierarchySynchronizer {
                     deferredDeletions.add(nodeToDelete);
             }
         }
+
+        protected void maybeFixPreviouslyClobberedTeamTimeElement(String path) {
+            if (!isTeam() || whatIfMode)
+                return;
+
+            String dataName = DataRepository.createDataName(path,
+                ACT_TIME_DATA_NAME);
+            SaveableData sd = data.getValue(dataName);
+            if (sd instanceof DoubleData || sd == null) {
+                dataRepository.restoreDefaultValue(dataName);
+            }
+        }
     }
 
     private class SyncProjectNode extends SyncNode {
@@ -1206,6 +1236,7 @@ public class HierarchySynchronizer {
             try {
                 String projIDs = node.getAttribute(TASK_ID_ATTR);
                 setTaskIDs(pathPrefix, cleanupProjectIDs(projIDs));
+                maybeFixPreviouslyClobberedTeamTimeElement(pathPrefix);
             } catch (Exception e) {}
 
             return super.syncNode(worker, pathPrefix, node);
@@ -1331,11 +1362,11 @@ public class HierarchySynchronizer {
             // with the most actual time (that may not be a foolproof method,
             // but this is only a temporary legacy issue anyway)
             if (movableNodes.size() > 1) {
-                SimpleData maxTime = new DoubleData(-1);
+                double maxTime = -1;
                 for (Iterator i = movableNodes.iterator(); i.hasNext();) {
                     PropertyKey node = (PropertyKey) i.next();
-                    SimpleData nodeTime = getData(node.path(), "Time");
-                    if (nodeTime.greaterThan(maxTime)) {
+                    double nodeTime = getTotalActualTimeForIndivNode(node);
+                    if (nodeTime > maxTime) {
                         result = node;
                         maxTime = nodeTime;
                     }
@@ -1353,6 +1384,7 @@ public class HierarchySynchronizer {
                     StringData.create(nodeID));
                 if (!isPrunedNode(node))
                     setTaskIDs(path, taskID);
+                maybeFixPreviouslyClobberedTeamTimeElement(path);
             } catch (Exception e) {}
             if (!isTeam() && !isPrunedNode(node)) {
                 maybeSaveNodeSize(path, node);
