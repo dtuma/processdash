@@ -55,6 +55,12 @@ team processes.)  Thus, if you have a team which is performing several
 projects (or project phases) one after another, it is not necessary to
 create a new team directory for each project/phase.</p>
 
+<p>If the members of your team are predominately using the Microsoft
+Windows operating system, the use of a UNC path is strongly
+recommended.  That is, you would enter the directory path as
+<tt>\\serverName\path\to\directory</tt> instead of
+<tt>T:\path\to\directory</tt>.</p>
+
 <!--#if missing -->
 
 <table width='100%'><tr><td width='100%' class=error>You must enter a
