@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2007 Tuma Solutions, LLC
+// Copyright (C) 2001-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -63,6 +63,7 @@ public class Control extends TinyCGIBase {
         clearCGICache();
         showHelp();
         saveDataFiles();
+        scrubDataDir();
 
         if (printNullDocument)
             DashController.printNullDocument(out);
@@ -124,6 +125,19 @@ public class Control extends TinyCGIBase {
     private void saveDataFiles() {
         if (isTask("saveDataFiles"))
             getDataRepository().saveAllDatafiles();
+    }
+
+    private void scrubDataDir() {
+        if (isTask("scrubDataDir")) {
+            DashController.scrubDataDirectory();
+
+            out.println("<HTML><HEAD><TITLE>Data Directory Scrubbed</TITLE></HEAD>");
+            out.println("<BODY><H1>Data Directory Scrubbed</H1>");
+            out.println("The data directory was scrubbed at " + new Date());
+            out.println("</BODY></HTML>");
+
+            printNullDocument = false;
+        }
     }
 
 

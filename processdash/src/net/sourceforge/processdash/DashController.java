@@ -31,8 +31,10 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.ServerSocket;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -423,4 +425,38 @@ public class DashController {
     private static final int[] PORT_PATTERNS = {
         1000, 1111, 1001, 1010, 1100, 1011, 1101, 1110 };
 
+    public static void scrubDataDirectory() {
+        PERMISSION.checkPermission();
+        Set<String> filesInUse = new HashSet<String>();
+        getDataAndDefectFilesInUse(filesInUse, PropertyKey.ROOT);
+        File[] files = new File(dash.getDirectory()).listFiles();
+        if (files == null)
+            return;
+        for (File f : files) {
+            String name = f.getName().toLowerCase();
+            if (isNumberedDataOrDefectFile(name))
+                if (!filesInUse.contains(name))
+                    f.delete();
+        }
+    }
+
+    private static void getDataAndDefectFilesInUse(Set<String> filesInUse,
+            PropertyKey node) {
+        Prop p = dash.getHierarchy().pget(node);
+        filesInUse.add(lower(p.getDataFile()));
+        filesInUse.add(lower(p.getDefectLog()));
+        for (int i = dash.getHierarchy().getNumChildren(node);  i-- > 0; ) {
+            PropertyKey child = dash.getHierarchy().getChildKey(node, i);
+            getDataAndDefectFilesInUse(filesInUse, child);
+        }
+    }
+
+    private static String lower(String s) {
+        return (s == null ? null : s.toLowerCase());
+    }
+
+    private static boolean isNumberedDataOrDefectFile(String name) {
+        return ("0123456789".indexOf(name.charAt(0)) != -1)
+            && (name.endsWith(".dat") || name.endsWith(".def"));
+    }
 }
