@@ -340,6 +340,10 @@ undefine([Use_Rollup]);
     ([QP_Estimated_DLD_Time] * inherit("Target Design Review/Design Ratio")),
     1);
 
+[Estimated_PQI] = [Estimated_Quality_Profile_1] * [Estimated_Quality_Profile_2]
+    * [Estimated_Quality_Profile_3] * [Estimated_Quality_Profile_4]
+    * [Estimated_Quality_Profile_5];
+
 <!--#endfor-->
 
 /*
