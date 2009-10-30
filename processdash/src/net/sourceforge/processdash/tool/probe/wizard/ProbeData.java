@@ -286,6 +286,26 @@ public class ProbeData {
     }
 
     private void fixupResultSetColumnHeaders() {
+        // In the new PSP materials, the Added & Modified metric typically
+        // appears with the adjective "Planned" instead of "Estimated"
+        // (probably to reduce student confusion over the "P" and "E" metrics).
+        // Internally, our metrics all begin with the word "Estimated" - so
+        // here we tweak the display name.  Note that this is an English-only
+        // problem, so no internationalized support is necessary.
+        String colName = resultSet.getColName(EST_NC_LOC);
+        if (colName.startsWith("Estimated Added & Modified ")) {
+            colName = "Planned" + colName.substring(9);
+            resultSet.setColName(EST_NC_LOC, colName);
+        }
+
+        // Here, we prepend the word "Actual" to the added & modified metric.
+        // This provides consistency with the comparable "Hours" metrics.
+        colName = resultSet.getColName(ACT_NC_LOC);
+        if (colName.startsWith("Added & Modified ")) {
+            colName = "Actual " + colName;
+            resultSet.setColName(ACT_NC_LOC, colName);
+        }
+
         resultSet.setColName(EST_TIME, "Estimated Hours");
         resultSet.setColName(ACT_TIME, "Actual Hours");
         resultSet.setColName(EXCLUDE, "Exclude?");
