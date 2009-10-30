@@ -567,9 +567,10 @@ public class HTMLPreprocessor {
                            expansionName, isLeaf, isExpanded);
     }
     private String makeDepthSpacer(int depth) {
+        boolean isExcel = "excel".equals(params.get("EXPORT"));
         StringBuffer result = new StringBuffer();
         while (depth-- > 0)
-            result.append(SPACER);
+            result.append(isExcel ? EXCEL_SPACER : SPACER);
         return result.toString();
     }
     private String makeExpansionName(String relPath, String expandName) {
@@ -589,6 +590,7 @@ public class HTMLPreprocessor {
     }
     private static final String SPACER =
         "<img width=9 height=9 src='/Images/blank.png'>";
+    private static final String EXCEL_SPACER = "&nbsp;&nbsp;&nbsp;";
     private static final String LEAF_LINK = SPACER;
     private static final String ANCHOR_TEXT = "<a name='###'></a>";
     private static final String COLLAPSE_LINK =
