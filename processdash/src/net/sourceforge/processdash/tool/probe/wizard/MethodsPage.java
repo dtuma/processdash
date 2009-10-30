@@ -154,12 +154,16 @@ public class MethodsPage extends WizardPage {
         writeSectionTitle(resources.format("Method.Report_Title_FMT", purposeLabel));
 
         out.println("<table border style='margin-left:1cm'>");
-        ProbeMethod.writeReportTableHeader(out);
+        ProbeMethod.writeReportTableHeader(out, isInverseBeta1());
         for (Iterator i = probeMethods.iterator(); i.hasNext();)
             ((ProbeMethod) i.next()).printReportRow(out);
         out.println("</table>");
 
         return true;
+    }
+
+    protected boolean isInverseBeta1() {
+        return false;
     }
 
     protected String getRes(String key) {

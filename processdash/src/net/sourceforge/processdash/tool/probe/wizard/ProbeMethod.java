@@ -1,4 +1,4 @@
-// Copyright (C) 2002 Tuma Solutions, LLC
+// Copyright (C) 2002-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -277,14 +277,15 @@ public abstract class ProbeMethod implements Comparable {
 
 
 
-    public static void writeReportTableHeader(PrintWriter out) {
+    public static void writeReportTableHeader(PrintWriter out,
+            boolean inverseBeta1) {
         String tableHeader =
             "<tr>" +
             "<th ALIGN='RIGHT'>${Method_Label}</th>" +
             "<th>${Estimate_Label}</th>" +
             "<th>&nbsp; ${R_Squared} &nbsp;</th>" +
             "<th>${Beta0}</th>" +
-            "<th>${Beta1}</th>" +
+            "<th>%INV%${Beta1}</th>" +
             "<th>${Range} (%PCT%)</th>" +
             "<th>&nbsp;${LPI}&nbsp;</th>" +
             "<th>&nbsp;${UPI}&nbsp;</th>" +
@@ -294,6 +295,8 @@ public abstract class ProbeMethod implements Comparable {
 
         tableHeader = resources.interpolate
             (tableHeader, HTMLUtils.ESC_ENTITIES);
+        tableHeader = StringUtils.findAndReplace
+            (tableHeader, "%INV%", inverseBeta1 ? "1/" : "");
         tableHeader = StringUtils.findAndReplace
             (tableHeader, "%PCT%",
              FormatUtil.formatPercent(ProbeMethod.RANGE_PERCENT));
