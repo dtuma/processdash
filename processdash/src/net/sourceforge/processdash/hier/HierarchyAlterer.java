@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2007 Tuma Solutions, LLC
+// Copyright (C) 2002-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -104,7 +104,14 @@ public class HierarchyAlterer implements ItemListener {
      * WARNING: no checks are performed to prevent nodes from being
      * illegally created. (e.g. adding new phases underneath a
      * structured process)
+     * @throws HierarchyAlterationException
      */
+    public synchronized void addNode(String path)
+            throws HierarchyAlterationException {
+        addNode(dashboard, path);
+    }
+
+    /** @deprecated */
     public synchronized void addNode(ProcessDashboard dash, String path)
         throws HierarchyAlterationException
     {
@@ -160,6 +167,8 @@ public class HierarchyAlterer implements ItemListener {
     {
         DashHierarchy templates = dashboard.getTemplateProperties();
         PropertyKey templateKey = templates.getByID(templateID);
+        if (templateKey == null && templateID.startsWith("/"))
+            templateKey = templates.findExistingKey(templateID);
         if (templateKey == null)
             throw new HierarchyAlterationException("Could not find any"
                     + " template called '" + templateID

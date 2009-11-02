@@ -293,6 +293,9 @@ The author(s) may be contacted at:
   <scriptSource
      class="net.sourceforge.processdash.hier.ui.HierarchyNoteScriptSource"/>
 
+  <messageHandler
+     class="net.sourceforge.processdash.hier.HierarchyAltererMessageHandler"/>
+
  <!-- definitions for the preferences dialog. -->
  
     <preferences-pane id="pdash.ui"
