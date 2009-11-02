@@ -70,6 +70,10 @@ public class MessageImporterXMLv1 implements
                     new MessageDispatchTask(msgEvent));
             }
         }
+
+        NodeList nl = doc.getElementsByTagName(DELETE_TAG);
+        if (nl != null && nl.getLength() > 0)
+            caller.deleteArchiveFileOnCompletion();
     }
 
     private static class MessageDispatchTask implements Runnable {
@@ -83,5 +87,7 @@ public class MessageImporterXMLv1 implements
     }
 
     private static final String MESSAGE_TAG = "message";
+
+    private static final String DELETE_TAG = "deleteEnclosingArchive";
 
 }

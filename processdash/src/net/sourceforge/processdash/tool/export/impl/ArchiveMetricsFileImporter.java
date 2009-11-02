@@ -110,6 +110,8 @@ public class ArchiveMetricsFileImporter implements Runnable,
                     zipFile.close();
                 } catch (Exception e) {}
             zipFile = null;
+            if (shouldDeleteArchiveFileOnCompletion)
+                file.delete();
         }
     }
 
@@ -120,6 +122,8 @@ public class ArchiveMetricsFileImporter implements Runnable,
     private Date exportTimestamp;
 
     private Map defns;
+
+    private boolean shouldDeleteArchiveFileOnCompletion;
 
     public Map getDefns() {
         return defns;
@@ -139,6 +143,7 @@ public class ArchiveMetricsFileImporter implements Runnable,
 
     private void readAndProcessArchive() throws IOException,
             XmlPullParserException {
+        shouldDeleteArchiveFileOnCompletion = false;
         zipFile = new ZipFile(file);
         XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
         XmlPullParser parser = factory.newPullParser();
@@ -260,6 +265,10 @@ public class ArchiveMetricsFileImporter implements Runnable,
             defns.put(packagePrefix + id, StringData.create(version));
         }
         defns.put(prefix + PACKAGE_ELEM, packageList);
+    }
+
+    public void deleteArchiveFileOnCompletion() {
+        shouldDeleteArchiveFileOnCompletion = true;
     }
 
 }
