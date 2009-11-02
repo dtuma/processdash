@@ -162,26 +162,51 @@ Authors:
 
     <target name="instructor" depends="init"
             description="Create materials for use by PSP instructors">
-        <!-- Create a CD that instructors can give to students -->
-        <loadfile property="custom-inst-instr"
-		  srcFile="files/custom-install-instr.ini"/>
+        <!-- Create a CD that instructors can give to PFE students -->
+        <loadfile property="custom-inst-pfe"
+		  srcFile="files/custom-install-pfe.ini"/>
         <antcall target="install-CD">
-            <param name="install.flags" value="pspForEng,pspForEngInstr,noProc"/>
-	    <param name="qualifier" value="student"/>
-	    <param name="custom-install.extra" value="${custom-inst-instr}"/>
+            <param name="install.flags"
+                   value="pspForEng,pspFundAdv,pspForEngInstr,noProc"/>
+	    <param name="qualifier" value="pfe-student"/>
+	    <param name="custom-install.extra" value="${custom-inst-pfe}"/>
+	    <param name="delete-cd-file" value="t"/>
+	</antcall>
+
+        <!-- Create a CD that instructors can give to PFA students -->
+        <loadfile property="custom-inst-pfa"
+		  srcFile="files/custom-install-pfa.ini"/>
+        <antcall target="install-CD">
+            <param name="install.flags"
+                   value="pspForEng,pspFundAdv,pspForEngInstr,noProc"/>
+	    <param name="qualifier" value="pfa-student"/>
+	    <param name="custom-install.extra" value="${custom-inst-pfa}"/>
+	    <param name="delete-cd-file" value="t"/>
 	</antcall>
 
 	<!-- Create an installer that installs instructor tools -->
         <antcall target="install.xml">
             <param name="install.file" value="install-instr.xml"/>
             <param name="install.flags"
-                   value="pspForEng,pspForEngInstr,pspInstrTools,noProc"/>
+                   value="pspForEng,pspFundAdv,pspForEngInstr,pspInstrTools,noProc"/>
 	</antcall>
         <izpack input="install-instr.xml"
 	    output="${dist}/pdash-install-instrTools-${dashboard-version}.jar"
             installerType="standard-kunststoff"
             basedir="." izPackDir="${izpack.dir}/"/>
 	<delete file="install-instr.xml"/>
+
+	<!-- Create an installer that students can download for themselves -->
+        <antcall target="install.xml">
+            <param name="install.file" value="install-student.xml"/>
+            <param name="install.flags"
+                   value="pspForEng,pspFundAdv,pspForEngInstr"/>
+	</antcall>
+        <izpack input="install-student.xml"
+	    output="${dist}/pdash-install-student-${dashboard-version}.jar"
+            installerType="standard-kunststoff"
+            basedir="." izPackDir="${izpack.dir}/"/>
+	<delete file="install-student.xml"/>
     </target>
 
 
@@ -229,6 +254,11 @@ pdash-install-${qualifier}-${dashboard-version}.jar
 	<delete file="install-cd.xml"/>
 	<delete file="cd-custom.ini"/>
 	<delete file="cd-config.ini"/>
+        <antcall target="-install-CD-delete"/>
+    </target>
+
+    <target name="-install-CD-delete" if="delete-cd-file">
+      <delete file="${dist}/pdash-install-${qualifier}-${dashboard-version}.jar" quiet="true"/>
     </target>
 
 

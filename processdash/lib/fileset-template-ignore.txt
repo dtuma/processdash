@@ -22,7 +22,10 @@ Templates/Insp.template
 Templates/l10nTool-template.xml
 Templates/pspForEng-instr*
 Templates/pspForEng3.template
+Templates/pspFundAdv.template
+Templates/pspCourseFlex.template
 Templates/pspForEng/userdata/
 Templates/pspForEng2/userdata/
 Templates/pspForEng3/userdata/
+Templates/pspForEng3/userdataFA/
 Templates/reports/excel.iqy

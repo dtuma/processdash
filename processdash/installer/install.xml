@@ -169,6 +169,23 @@
                 <include name="pspdash.ini"/>
                 <include name="state"/>
                 <include name="time.log"/>
+                <include name="import/*.pdash"/>
+            </fileset>
+        </pack>
+
+        <pack name="PSP(SM) Fundamentals &amp; Advanced" id="pspFundAdv" required="no"
+              includeIf="pspFundAdv">
+            <description>PSP(SM) Fundamentals &amp; Advanced</description>
+
+            <file targetdir="$INSTALL_PATH" override="true"
+	          src="../dist/pspProc2.jar" />
+            <file targetdir="$INSTALL_PATH" override="true"
+	          src="../dist/pspForEng.jar" />
+		  
+            <!-- copy the pspFundAdv data files into the data directory. -->
+            <fileset targetdir="$DATA_PATH" override="false"
+                  dir="../Templates/pspForEng3/userDataFA">
+                <include name="import/*.pdash"/>
             </fileset>
         </pack>
 

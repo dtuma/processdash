@@ -23,6 +23,12 @@ This module incorporates templates, scripts, and other materials from the docume
 
 The Software Engineering Institute requires that you consent to an additional license agreement to download, install and use this module.</str>
     <str id="pack.pspForEng.name">PSP(SM) for Engineers</str>
+    <str id="pack.pspFundAdv.description">Support for students taking the SEI&apos;s Personal Software Process(SM) courses, PSP Fundamentals &amp; PSP Advanced.
+
+This module incorporates templates, scripts, and other materials from the document &quot;PSP Materials.doc&quot; copyright (c) 2006 by Carnegie Mellon University.  These materials are reproduced with the permission of the Software Engineering Institute.
+
+The Software Engineering Institute requires that you consent to an additional license agreement to download, install and use this module.</str>
+    <str id="pack.pspFundAdv.name">PSP(SM) Fundamentals &amp; Advanced</str>
     <str id="pack.pspProc.description">Vorlagen, Ablaufbeschreibungen und Formulare, die die Anwendung des Personal Software Process(SM) unterstützen.
 
 This module incorporates templates, scripts, and other materials from the document &quot;PSP Materials.doc&quot; copyright (c) 2006 by Carnegie Mellon University.  These materials are reproduced with the permission of the Software Engineering Institute.

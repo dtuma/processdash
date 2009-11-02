@@ -1,0 +1,109 @@
+# PSPProperties file:properties file
+# format: PropertyKey<parentKey><name>=Prop[defectLog] \
+#         [timeLog][scriptFile][dataFile][status] \
+#         [selected][numChildren(N)][child0]...[childN-1]
+#
+
+
+
+######################################################################
+### Property keys representing flexibile components that can be used
+### to build an arbitrary assignment sequence for a PSP class
+######################################################################
+
+PropertyKey<top><PSP Course Flex Components>=Prop[][][][pspForEng3/rootData.txt][>][0][9][PropertyKey<top/PSP Course Flex Components><Root>][PropertyKey<top/PSP Course Flex Components><PSP0>][PropertyKey<top/PSP Course Flex Components><PSP0.1>][PropertyKey<top/PSP Course Flex Components><PSP1>][PropertyKey<top/PSP Course Flex Components><PSP1.1>][PropertyKey<top/PSP Course Flex Components><PSP2>][PropertyKey<top/PSP Course Flex Components><PSP2B>][PropertyKey<top/PSP Course Flex Components><PSP2.1>][PropertyKey<top/PSP Course Flex Components><Report>]
+
+
+# Course Root
+
+PropertyKey<top/PSP Course Flex Components><Root>=Prop[][pspCourseRoot][][pspForEng3/rootData.txt][][0][0]
+
+
+# PSP0
+
+PropertyKey<top/PSP Course Flex Components><PSP0>=Prop[true][PSP0][][pspForEng3/psp0/dataFile.txt][<Design Review(2)<Code Review(-3)][0][6][PropertyKey<top/PSP Course Flex Components/PSP0><Planning>][PropertyKey<top/PSP Course Flex Components/PSP0><Design>][PropertyKey<top/PSP Course Flex Components/PSP0><Code>][PropertyKey<top/PSP Course Flex Components/PSP0><Compile>][PropertyKey<top/PSP Course Flex Components/PSP0><Test>][PropertyKey<top/PSP Course Flex Components/PSP0><Postmortem>]
+PropertyKey<top/PSP Course Flex Components/PSP0><Planning>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP Course Flex Components/PSP0><Design>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP Course Flex Components/PSP0><Code>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP Course Flex Components/PSP0><Compile>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP Course Flex Components/PSP0><Test>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP Course Flex Components/PSP0><Postmortem>=Prop[][][][][ME<>][0][0]
+
+
+# PSP0.1
+
+PropertyKey<top/PSP Course Flex Components><PSP0.1>=Prop[true][PSP0.1][][pspForEng3/psp0.1/dataFile.txt][<Design Review(2)<Code Review(-3)][0][6][PropertyKey<top/PSP Course Flex Components/PSP0.1><Planning>][PropertyKey<top/PSP Course Flex Components/PSP0.1><Design>][PropertyKey<top/PSP Course Flex Components/PSP0.1><Code>][PropertyKey<top/PSP Course Flex Components/PSP0.1><Compile>][PropertyKey<top/PSP Course Flex Components/PSP0.1><Test>][PropertyKey<top/PSP Course Flex Components/PSP0.1><Postmortem>]
+PropertyKey<top/PSP Course Flex Components/PSP0.1><Planning>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP Course Flex Components/PSP0.1><Design>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP Course Flex Components/PSP0.1><Code>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP Course Flex Components/PSP0.1><Compile>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP Course Flex Components/PSP0.1><Test>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP Course Flex Components/PSP0.1><Postmortem>=Prop[][][][][ME<>][0][0]
+
+
+# PSP1
+
+PropertyKey<top/PSP Course Flex Components><PSP1>=Prop[true][PSP1][][pspForEng3/psp1/dataFile.txt][<Design Review(2)<Code Review(-3)][0][6][PropertyKey<top/PSP Course Flex Components/PSP1><Planning>][PropertyKey<top/PSP Course Flex Components/PSP1><Design>][PropertyKey<top/PSP Course Flex Components/PSP1><Code>][PropertyKey<top/PSP Course Flex Components/PSP1><Compile>][PropertyKey<top/PSP Course Flex Components/PSP1><Test>][PropertyKey<top/PSP Course Flex Components/PSP1><Postmortem>]
+PropertyKey<top/PSP Course Flex Components/PSP1><Planning>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP Course Flex Components/PSP1><Design>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP Course Flex Components/PSP1><Code>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP Course Flex Components/PSP1><Compile>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP Course Flex Components/PSP1><Test>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP Course Flex Components/PSP1><Postmortem>=Prop[][][][][ME<>][0][0]
+
+
+# PSP1.1
+
+PropertyKey<top/PSP Course Flex Components><PSP1.1>=Prop[true][PSP1.1][][pspForEng3/psp1.1/dataFile.txt][<Design Review(2)<Code Review(-3)][0][6][PropertyKey<top/PSP Course Flex Components/PSP1.1><Planning>][PropertyKey<top/PSP Course Flex Components/PSP1.1><Design>][PropertyKey<top/PSP Course Flex Components/PSP1.1><Code>][PropertyKey<top/PSP Course Flex Components/PSP1.1><Compile>][PropertyKey<top/PSP Course Flex Components/PSP1.1><Test>][PropertyKey<top/PSP Course Flex Components/PSP1.1><Postmortem>]
+PropertyKey<top/PSP Course Flex Components/PSP1.1><Planning>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP Course Flex Components/PSP1.1><Design>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP Course Flex Components/PSP1.1><Code>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP Course Flex Components/PSP1.1><Compile>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP Course Flex Components/PSP1.1><Test>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP Course Flex Components/PSP1.1><Postmortem>=Prop[][][][][ME<>][0][0]
+
+
+# PSP2
+
+PropertyKey<top/PSP Course Flex Components><PSP2>=Prop[true][PSP2][][pspForEng3/psp2/dataFile.txt][<Design Inspection(3)<Code Inspection(-2)][0][8][PropertyKey<top/PSP Course Flex Components/PSP2><Planning>][PropertyKey<top/PSP Course Flex Components/PSP2><Design>][PropertyKey<top/PSP Course Flex Components/PSP2><Design Review>][PropertyKey<top/PSP Course Flex Components/PSP2><Code>][PropertyKey<top/PSP Course Flex Components/PSP2><Code Review>][PropertyKey<top/PSP Course Flex Components/PSP2><Compile>][PropertyKey<top/PSP Course Flex Components/PSP2><Test>][PropertyKey<top/PSP Course Flex Components/PSP2><Postmortem>]
+PropertyKey<top/PSP Course Flex Components/PSP2><Planning>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP Course Flex Components/PSP2><Design>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP Course Flex Components/PSP2><Design Review>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP Course Flex Components/PSP2><Code>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP Course Flex Components/PSP2><Code Review>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP Course Flex Components/PSP2><Compile>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP Course Flex Components/PSP2><Test>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP Course Flex Components/PSP2><Postmortem>=Prop[][][][][ME<>][0][0]
+
+
+# PSP2B
+
+PropertyKey<top/PSP Course Flex Components><PSP2B>=Prop[true][PSP2][][pspForEng3/psp2/dataFileB.txt][<Design Inspection(3)<Code Inspection(-2)][0][8][PropertyKey<top/PSP Course Flex Components/PSP2B><Planning>][PropertyKey<top/PSP Course Flex Components/PSP2B><Design>][PropertyKey<top/PSP Course Flex Components/PSP2B><Design Review>][PropertyKey<top/PSP Course Flex Components/PSP2B><Code>][PropertyKey<top/PSP Course Flex Components/PSP2B><Code Review>][PropertyKey<top/PSP Course Flex Components/PSP2B><Compile>][PropertyKey<top/PSP Course Flex Components/PSP2B><Test>][PropertyKey<top/PSP Course Flex Components/PSP2B><Postmortem>]
+PropertyKey<top/PSP Course Flex Components/PSP2B><Planning>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP Course Flex Components/PSP2B><Design>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP Course Flex Components/PSP2B><Design Review>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP Course Flex Components/PSP2B><Code>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP Course Flex Components/PSP2B><Code Review>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP Course Flex Components/PSP2B><Compile>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP Course Flex Components/PSP2B><Test>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP Course Flex Components/PSP2B><Postmortem>=Prop[][][][][ME<>][0][0]
+
+
+# PSP2.1
+
+PropertyKey<top/PSP Course Flex Components><PSP2.1>=Prop[true][PSP2.1][][pspForEng3/psp2.1/dataFile.txt][<Design Inspection(3)<Code Inspection(-2)][0][8][PropertyKey<top/PSP Course Flex Components/PSP2.1><Planning>][PropertyKey<top/PSP Course Flex Components/PSP2.1><Design>][PropertyKey<top/PSP Course Flex Components/PSP2.1><Design Review>][PropertyKey<top/PSP Course Flex Components/PSP2.1><Code>][PropertyKey<top/PSP Course Flex Components/PSP2.1><Code Review>][PropertyKey<top/PSP Course Flex Components/PSP2.1><Compile>][PropertyKey<top/PSP Course Flex Components/PSP2.1><Test>][PropertyKey<top/PSP Course Flex Components/PSP2.1><Postmortem>]
+PropertyKey<top/PSP Course Flex Components/PSP2.1><Planning>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP Course Flex Components/PSP2.1><Design>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP Course Flex Components/PSP2.1><Design Review>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP Course Flex Components/PSP2.1><Code>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP Course Flex Components/PSP2.1><Code Review>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP Course Flex Components/PSP2.1><Compile>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP Course Flex Components/PSP2.1><Test>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP Course Flex Components/PSP2.1><Postmortem>=Prop[][][][][ME<>][0][0]
+
+
+# Report
+
+PropertyKey<top/PSP Course Flex Components><Report>=Prop[true][Generic][][pspForEng2/RI/dataFile2.txt][<Generic Phase(-1)][0][2][PropertyKey<top/PSP Course Flex Components/Report><Planning>][PropertyKey<top/PSP Course Flex Components/Report><Postmortem>]
+PropertyKey<top/PSP Course Flex Components/Report><Planning>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP Course Flex Components/Report><Postmortem>=Prop[][][][][ME<>][0][0]

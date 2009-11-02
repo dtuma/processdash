@@ -75,7 +75,7 @@ Authors:
 
   <property file="${lib}/version.properties"/>
 
-  <property name="eng.version"      value="3.0"/><!-- VERSION -->
+  <property name="eng.version"      value="3.1"/><!-- VERSION -->
   <property name="eng.requires"     value="1.10.6+"/><!-- VERSION -->
   <property name="l10nTool.version" value="1.1"/><!-- VERSION -->
   <property name="l10nTool.requires" value="1.10.7b+"/><!-- VERSION -->
@@ -99,6 +99,8 @@ Authors:
   <property name="helpsearch" value="${help}/JavaHelpSearch"/>
   <property name="helpimgsrc" value="${help}/Images/constr"/>
   <property name="helpimages" value="${help}/Images"/>
+  <property name="pfeImport"  value="${templates}/pspForEng3/userdata/import"/>
+  <property name="pfaImport"  value="${templates}/pspForEng3/userdataFA/import"/>
   <property name="libsrc"     value="${lib}/src"/>
   <property name="testsrc"    value="test/src"/>
   <property name="installer"  value="installer"/>
@@ -259,7 +261,22 @@ Authors:
     <maybeSignJar jar="${dist}/l10nTool.jar" prefix="${l10nTool-signature}"/>
   </target>
 
-  <target name="pspForEng-addon" depends="compile">
+  <target name="pspForEng-addon" depends="ant-tasks">
+    <!-- create the hierarchy alteration messages for use by the installer -->
+    <makeDashMessage dest="${pfeImport}/addPFE.pdash"><![CDATA[
+      <message type="pdash.alterHierarchy" msgId="addPFE/${dashboard.version}">
+        <addTemplate path="/Non Project/PSP for Engineers"
+            templateID="pspForEngV3" select="true"/>
+      </message>
+      <deleteEnclosingArchive/>]]>
+    </makeDashMessage>
+    <makeDashMessage dest="${pfaImport}/addPFA.pdash"><![CDATA[
+      <message type="pdash.alterHierarchy" msgId="addPFA/${dashboard.version}">
+        <addTemplate path="/Non Project/PSP Fundamentals &amp; Advanced"
+            templateID="pspFundAdv" select="true"/>
+      </message>
+      <deleteEnclosingArchive/>]]>
+    </makeDashMessage>
     <!-- build the jarfile for students -->
     <jar destfile="${dist}/pspForEng.jar" duplicate="fail">
       <manifest>
@@ -273,7 +290,9 @@ Authors:
       </manifest>
 
       <fileset dir=".">
+        <include name="Templates/pspCourseFlex.template"/>
         <include name="Templates/pspForEng3.template"/>
+        <include name="Templates/pspFundAdv.template"/>
       </fileset>
     </jar>
     <!-- build the jarfile for instructors -->
@@ -668,6 +687,8 @@ Authors:
     <delete quiet="true" dir="${glob}/parser"/>
     <delete quiet="true" dir="${glob}/node"/>
     <delete quiet="true" dir="${glob}/analysis"/>
+    <delete quiet="true" dir="${pfaImport}"/>
+    <delete quiet="true" dir="${pfeImport}"/>
     <delete quiet="true" file="${i18n}/DefaultEngine*"/>
     <delete quiet="true" file="${cms}/SnippetHtmlPostprocessor.dat"/>
     <delete quiet="true" file="${cms}/SnippetHtmlPostprocessor.java"/>
@@ -732,6 +753,12 @@ Authors:
         classname="net.sourceforge.processdash.log.ui.importer.codecollab.CCDefectTypeLookup">
       <arg value="${codeCollab.testUrl}"/>
     </java>
+  </target>
+
+  <target name="makeMessage" depends="ant-tasks">
+    <property name="msgSrc" value="message.xml"/>
+    <property name="msgDest" value="message.pdash"/>
+    <makeDashMessage src="${msgSrc}" dest="${msgDest}"/>
   </target>
 
   <target name="securityTestJar" depends="dist">
