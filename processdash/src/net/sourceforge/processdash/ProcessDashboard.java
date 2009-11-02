@@ -118,6 +118,7 @@ import net.sourceforge.processdash.templates.AutoUpdateManager;
 import net.sourceforge.processdash.templates.DataVersionChecker;
 import net.sourceforge.processdash.templates.TemplateLoader;
 import net.sourceforge.processdash.tool.bridge.client.BridgedWorkingDirectory;
+import net.sourceforge.processdash.tool.bridge.client.ImportDirectoryFactory;
 import net.sourceforge.processdash.tool.bridge.client.TeamServerSelector;
 import net.sourceforge.processdash.tool.bridge.client.WorkingDirectory;
 import net.sourceforge.processdash.tool.bridge.client.WorkingDirectoryFactory;
@@ -261,6 +262,8 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         } catch (IOException ioe) {
             default_directory = prop_file.getParentFile().getAbsolutePath();
         }
+        ImportDirectoryFactory.getInstance().setBaseDirectory(
+            new File(default_directory));
         pt.click("Set default directory");
 
 

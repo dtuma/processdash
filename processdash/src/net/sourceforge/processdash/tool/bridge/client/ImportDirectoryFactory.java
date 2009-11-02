@@ -51,9 +51,16 @@ public class ImportDirectoryFactory {
 
     private Map<String, ImportDirectory> cache;
 
+    private File baseDirectory;
+
     private ImportDirectoryFactory() {
         cache = Collections
                 .synchronizedMap(new HashMap<String, ImportDirectory>());
+        baseDirectory = null;
+    }
+
+    public void setBaseDirectory(File dir) {
+        this.baseDirectory = dir;
     }
 
     /**
@@ -130,7 +137,13 @@ public class ImportDirectoryFactory {
             // a bridged directory if we discover that a team server is
             // handling the named directory.
             else {
-                File dir = new File(location);
+                File dir;
+                if ((location.startsWith("./") || location.startsWith(".\\"))
+                        && baseDirectory != null) {
+                    dir = new File(baseDirectory, location.substring(2));
+                } else {
+                    dir = new File(location);
+                }
                 ImportDirectory fileResult = get(dir, CHECK_REMOTE);
                 if (isViable(fileResult, NO_CONTENTS_REQUIRED))
                     return fileResult;
