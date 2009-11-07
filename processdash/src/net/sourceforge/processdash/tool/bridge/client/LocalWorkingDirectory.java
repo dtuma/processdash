@@ -1,4 +1,4 @@
-// Copyright (C) 2008 Tuma Solutions, LLC
+// Copyright (C) 2008-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -64,6 +64,8 @@ public class LocalWorkingDirectory extends AbstractWorkingDirectory implements
     }
 
     public void prepare() throws IOException {}
+
+    public void update() throws IOException {}
 
     public void acquireWriteLock(LockMessageHandler lockHandler,
             String ownerName) throws AlreadyLockedException,

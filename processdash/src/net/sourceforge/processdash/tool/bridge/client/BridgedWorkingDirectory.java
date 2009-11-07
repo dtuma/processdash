@@ -80,6 +80,21 @@ public class BridgedWorkingDirectory extends AbstractWorkingDirectory {
         throw new IOException("Unable to sync down");
     }
 
+    /**
+     * @see WorkingDirectory#update()
+     * 
+     * @throws IllegalStateException
+     *             if the current process owns a write lock on this collection,
+     *             or if it does not own a process lock
+     */
+    public void update() throws IOException {
+        if (worker == null)
+            prepare();
+        else
+            throw new IllegalStateException("update should not be called in "
+                    + "read-write mode.");
+    }
+
     public File getDirectory() {
         return workingDirectory;
     }

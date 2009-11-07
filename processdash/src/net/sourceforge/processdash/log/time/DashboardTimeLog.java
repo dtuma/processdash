@@ -119,6 +119,10 @@ public class DashboardTimeLog implements ModifiableTimeLog,
         metricsRecorder.refreshMetrics();
     }
 
+    public void reloadData() throws IOException {
+        timeLog.reloadData();
+    }
+
     public void repeatTimeLogEvent(TimeLogEvent origEvent) {
         TimeLogEvent e = new TimeLogEvent(this, origEvent.getTimeLogEntry());
         for (Iterator iter = listeners.iterator(); iter.hasNext();) {

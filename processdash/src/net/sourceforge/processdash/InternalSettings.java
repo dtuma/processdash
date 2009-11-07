@@ -34,10 +34,12 @@ import java.net.URL;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Properties;
 import java.util.ResourceBundle;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -49,6 +51,7 @@ public class InternalSettings extends Settings {
     private static FileProperties fsettings = null;
     private static String settingsFile = null;
     private static String settingsFileRename = null;
+    private static long settingsFileTimestamp;
     private static PropertyChangeSupport propSupport =
         new PropertyChangeSupport(InternalSettings.class);
     public static final String sep = System.getProperty("file.separator");
@@ -132,6 +135,7 @@ public class InternalSettings extends Settings {
                 in = new FileInputStream(settingsFile);
                 fsettings.load(in);
                 in.close();
+                settingsFileTimestamp = settingsFile.lastModified();
             } catch (Exception e) {
                 // the settings file exists, but we were unable to read it.  Throw
                 // an exception whose message is the filename we tried to read.
@@ -234,12 +238,14 @@ public class InternalSettings extends Settings {
         if (disableChanges)
             return;
 
-        String oldValue = fsettings.getProperty(name);
+        String oldValue = getVal(name);
 
-        if (value == null)
+        if (value == null) {
             fsettings.remove(name);
+            // revert back to the original default value
+            value = fsettings.getProperty(name);
 
-        else {
+        } else {
             fsettings.put(name, value);
             if (comment != null)
                 fsettings.setComment(name, comment);
@@ -306,7 +312,8 @@ public class InternalSettings extends Settings {
                         destName = settingsFileRename;
                     }
 
-                    Writer out = new RobustFileWriter(destName);
+                    File destFile = new File(destName);
+                    Writer out = new RobustFileWriter(destFile);
                     fsettings.store(out);
                     out.close();
 
@@ -316,12 +323,67 @@ public class InternalSettings extends Settings {
                         settingsFileRename = null;
                     }
 
+                    settingsFileTimestamp = destFile.lastModified();
                     dirty = false;
                 } catch (Exception e) {
                     logger.log(Level.SEVERE, "Unable to save settings file.", e);
                 }
                 return null;
             }});
+    }
+
+    public synchronized static void maybeReload() {
+        checkPermission("reload");
+
+        File srcFile = new File(settingsFile);
+        if (!srcFile.isFile())
+            return;
+
+        long timestamp = srcFile.lastModified();
+        if (timestamp == 0 || timestamp == settingsFileTimestamp)
+            return;
+
+        Properties nullProps = new Properties();
+        FileProperties newProps = new FileProperties(nullProps, nullProps);
+        try {
+            FileInputStream in = new FileInputStream(srcFile);
+            newProps.load(in);
+            in.close();
+        } catch (Exception e) {
+            return;
+        }
+
+        Set<String> keysToDelete = new HashSet(fsettings.keySet());
+        for (Map.Entry e : newProps.entrySet()) {
+            // look at each key in the settings file
+            String key = (String) e.getKey();
+            keysToDelete.remove(key);
+
+            // do not override values that have been set from a system propery.
+            // the system property was overriding the value originally in the
+            // settings file, and it should continue overriding the value
+            if (isSetBySystemProperty(key))
+                continue;
+
+            // store the new value.  If the new value is the same as the old
+            // value, this will be a no-op.  Otherwise, it will trigger a
+            // property change event.
+            String value = (String) e.getValue();
+            set(key, value);
+        }
+        // now find any keys that have disappeared from the settings file,
+        // and revert each one.
+        for (String key : keysToDelete) {
+            if (isSetBySystemProperty(key) == false)
+                set(key, null);
+        }
+
+        settingsFileTimestamp = timestamp;
+        dirty = false;
+    }
+    private static boolean isSetBySystemProperty(String name) {
+        String propName = SYS_PROP_PREFIX + name;
+        return System.getProperty(propName) != null;
     }
 
     public static synchronized boolean isDirty() {
@@ -337,6 +399,11 @@ public class InternalSettings extends Settings {
             else
                 defaults.remove(READ_ONLY);
         }
+    }
+
+    public static void setReadOnlyFollowMode() {
+        setReadOnly(true);
+        Settings.followMode = true;
     }
 
     static synchronized void setDisableChanges(boolean disable) {

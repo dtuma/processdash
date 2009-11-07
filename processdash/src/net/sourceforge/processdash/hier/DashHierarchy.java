@@ -469,6 +469,8 @@ public class DashHierarchy extends Hashtable implements ItemSelectable,
     private static final String DEFAULT_PROJECT_STATUS = "MED<>";
     private static final String DEFAULT_TEMPLATE_STATUS = "<";
 
+    public static final String EXISTING_DATAFILE = "[[alreadyExistingPhysicalDatafile]]";
+
     private PropertyKey loadXMLNode (Element e, DashHierarchy templates,
                                      PropertyKey parentKey,
                                      PropertyKey parentTemplate)
@@ -868,6 +870,64 @@ public class DashHierarchy extends Hashtable implements ItemSelectable,
         }
         put (toKey, aProp);
         //fireHierarchyChanged();
+    }
+
+
+    public void mergeChangesFrom(DashHierarchy src) {
+        mergeChangesFrom(src, PropertyKey.ROOT);
+    }
+
+    private void mergeChangesFrom(DashHierarchy src, PropertyKey node) {
+        DashHierarchy dest = this;
+        Prop srcProp = src.pget(node);
+        Prop destProp = dest.pget(node);
+        PropertyKey destSelected = destProp.getChild(destProp
+                .getSelectedChild());
+
+        // First, delete any nodes from the dest that do not exist in the src
+        for (int i = destProp.getNumChildren();  i-- > 0; ) {
+            PropertyKey child = destProp.getChild(i);
+            Prop srcChildProp = src.pget(child);
+            Prop destChildProp = dest.pget(child);
+            if (!src.containsKey(child)
+                    || !dataFilesEqual(srcChildProp, destChildProp))
+                dest.removeChildKey(node, i);
+        }
+
+        // Next, iterate over the src children and create/merge them in the dest
+        for (int i = 0;  i < srcProp.getNumChildren();  i++) {
+            PropertyKey child = srcProp.getChild(i);
+            Prop srcChildProp = src.pget(child);
+
+            if (!dest.containsKey(child) && hasDataFile(srcChildProp)) {
+                // if the child doesn't already exist in the dest and it has a
+                // datafile, fire an associated data event.
+                fireDataFileChange(new PendingDataChange(EXISTING_DATAFILE,
+                    srcChildProp.getDataFile(), child.path(), null));
+            }
+
+            // now recursively perform a merge on the child.
+            mergeChangesFrom(src, child);
+        }
+
+        // Finally, copy the prop over.  This will create the target node if
+        // it didn't already exist; otherwise, it will ensure that the children
+        // appear in the right order.  Try to retain the originally selected
+        // child from the dest hierarchy if possible.
+        Prop newDestProp = new Prop(srcProp);
+        if (destSelected != null)
+            for (int i = newDestProp.getNumChildren();  i-- > 0; )
+                if (newDestProp.getChild(i).equals(destSelected))
+                    newDestProp.setSelectedChild(i);
+        dest.put(node, newDestProp);
+    }
+
+    private static boolean dataFilesEqual(Prop a, Prop b) {
+        if (a == null || b == null) return false;
+        return cmpDataFile(a).equalsIgnoreCase(cmpDataFile(b));
+    }
+    private static String cmpDataFile(Prop p) {
+        return (p.dataFile == null ? "" : p.dataFile);
     }
 
 

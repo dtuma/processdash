@@ -1,4 +1,4 @@
-// Copyright (C) 2005-2007 Tuma Solutions, LLC
+// Copyright (C) 2005-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -23,6 +23,8 @@
 
 package net.sourceforge.processdash.tool.export.mgr;
 
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -56,6 +58,8 @@ public abstract class AbstractManager {
 
     private ManagerTableModel tableModel;
 
+    private List instructionAdditionAuditLog;
+
     AbstractManager() {
         this.instructions = new ArrayList();
     }
@@ -84,20 +88,16 @@ public abstract class AbstractManager {
                         + "'");
             }
 
-        userSetting = Settings.getVal(getXmlSettingName());
-        if (userSetting != null && userSetting.length() != 0)
-            try {
-                parseXmlSetting(userSetting);
-            } catch (Exception e) {
-                System.err.println("Couldn't understand " + getXmlSettingName()
-                        + " value: '" + userSetting + "'");
-                e.printStackTrace();
-            }
+        parseXmlSetting();
 
         if (foundTextSetting) {
             saveSetting();
             InternalSettings.set(getTextSettingName(), null);
         }
+
+        if (Settings.isFollowMode())
+            InternalSettings.addPropertyChangeListener(getXmlSettingName(),
+                new SettingChangeWatcher());
     }
 
     /** Save a reference to the data repository.
@@ -116,6 +116,19 @@ public abstract class AbstractManager {
             for (Iterator i = instructions.iterator(); i.hasNext();) {
                 AbstractInstruction instr = (AbstractInstruction) i.next();
                 handleAddedInstruction(instr);
+            }
+        }
+    }
+
+    private void parseXmlSetting() {
+        String userSetting = Settings.getVal(getXmlSettingName());
+        if (userSetting != null && userSetting.length() != 0) {
+            try {
+                parseXmlSetting(userSetting);
+            } catch (Exception e) {
+                System.err.println("Couldn't understand " + getXmlSettingName()
+                        + " value: '" + userSetting + "'");
+                e.printStackTrace();
             }
         }
     }
@@ -183,6 +196,9 @@ public abstract class AbstractManager {
     }
 
     protected void doAddInstruction(AbstractInstruction instr) {
+        if (instructionAdditionAuditLog != null)
+            instructionAdditionAuditLog.add(instr);
+
         if (!instructions.contains(instr)) {
             instructions.add(instr);
             int pos = instructions.indexOf(instr);
@@ -346,4 +362,39 @@ public abstract class AbstractManager {
         }
         return msg.substring(1);
     }
+
+    private class SettingChangeWatcher implements PropertyChangeListener {
+
+        public void propertyChange(PropertyChangeEvent evt) {
+            List oldInstructions = new ArrayList(instructions);
+            List<AbstractInstruction> newInstructions = new ArrayList();
+
+            try {
+                instructionAdditionAuditLog = newInstructions;
+                parseXmlSetting();
+            } catch (Exception e) {
+                return;
+            } finally {
+                instructionAdditionAuditLog = null;
+            }
+
+            for (Object instr : oldInstructions) {
+                int instrPos = newInstructions.indexOf(instr);
+                if (instrPos == -1) {
+                    // the existing instruction is no longer in the list of
+                    // new instructions.  Delete it.
+                    doDeleteInstruction((AbstractInstruction) instr);
+                } else {
+                    // the existing instruction is still in the list of new
+                    // instructions.  Check to see if the enabled flag has
+                    // been modified;  if so, process the change.
+                    AbstractInstruction oldInstr = (AbstractInstruction) instr;
+                    AbstractInstruction newInstr = newInstructions.get(instrPos);
+                    if (oldInstr.isEnabled() != newInstr.isEnabled())
+                        doChangeInstruction(oldInstr, newInstr);
+                }
+            }
+        }
+    }
+
 }

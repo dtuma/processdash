@@ -1,4 +1,4 @@
-// Copyright (C) 1999-2008 Tuma Solutions, LLC
+// Copyright (C) 1999-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -377,7 +377,9 @@ public class HierarchyEditor extends Object implements TreeModelListener, TreeSe
 
 
     private void performDataCreate(String dataDir, PendingDataChange p) {
-        if (p.srcFile == null)
+        if (DashHierarchy.EXISTING_DATAFILE.equals(p.srcFile))
+            ;
+        else if (p.srcFile == null)
             createEmptyFile(dataDir + p.destFile);
         else
             createDataFile(dataDir + p.destFile, p.srcFile, p.extraData);

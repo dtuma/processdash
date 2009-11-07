@@ -1,4 +1,4 @@
-// Copyright (C) 2000-2006 Tuma Solutions, LLC
+// Copyright (C) 2000-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -39,6 +39,7 @@ public class Settings {
     protected static Properties serializable = null, defaults = null;
     protected static String homedir = null;
     static boolean readOnly;
+    static boolean followMode;
 
     public static final String sep = System.getProperty("file.separator");
 
@@ -161,6 +162,9 @@ public class Settings {
         return serializable;
     }
 
+    public static boolean isFollowMode() {
+        return followMode;
+    }
     public static boolean isReadOnly() {
         return readOnly;
     }

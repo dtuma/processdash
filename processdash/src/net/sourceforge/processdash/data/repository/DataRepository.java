@@ -181,6 +181,7 @@ public class DataRepository implements Repository, DataContext,
             String inheritsFrom;
             Map inheritedDefinitions;
             File file;
+            long fileTimestamp;
             volatile boolean isRemoved = false;
             boolean canWrite;
             boolean isImported = false;
@@ -189,6 +190,7 @@ public class DataRepository implements Repository, DataContext,
             public DataFile(String prefix, File file) {
                 this.prefix = prefix;
                 this.file = file;
+                this.fileTimestamp = (file == null ? 0 : file.lastModified());
                 this.canWrite = (file == null ? false : file.canWrite());
                 this.dirtyCount = 0;
             }
@@ -1889,6 +1891,31 @@ public class DataRepository implements Repository, DataContext,
                 logger.log(Level.SEVERE, "Problem closing datafile", e);
             } finally {
                 finishInconsistency();
+            }
+        }
+
+        public void reloadModifiedDatafiles() {
+            List<DataFile> filesToCheck = new ArrayList<DataFile>(datafiles);
+            for (DataFile f : filesToCheck) {
+                if (f.file == null)
+                    continue;
+
+                long timestamp = f.file.lastModified();
+                if (timestamp == 0 || timestamp == f.fileTimestamp)
+                    continue;
+
+                String prefix = f.prefix;
+                String filename = f.file.getPath();
+                startInconsistency();
+                try {
+                    closeDatafile(prefix);
+                    openDatafile(prefix, filename);
+                } catch (Exception e) {
+                    logger.log(Level.SEVERE, "Unable to reload '"
+                        + filename + "'", e);
+                } finally {
+                    finishInconsistency();
+                }
             }
         }
 

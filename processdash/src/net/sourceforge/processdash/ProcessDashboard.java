@@ -535,13 +535,14 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         pt.click("Updated dependency indicator");
         props.addHierarchyListener(new DashHierarchy.PrePostListener() {
                 public void hierarchyWillChange(Event e) {
-                    fireApplicationEvent(
-                        ApplicationEventListener.APP_EVENT_SAVE_ALL_DATA);
+                    if (!Settings.isFollowMode())
+                        fireApplicationEvent(
+                            ApplicationEventListener.APP_EVENT_SAVE_ALL_DATA);
                 }
                 public void hierarchyChanged(Event e) {
                     saveHierarchy();
                     registerHierarchyDataElement();
-                    if (!e.isAdjusting())
+                    if (!e.isAdjusting() && !Settings.isFollowMode())
                         timeLog.refreshMetrics();
                     refreshHierarchy(e.isAdjusting());
                 }});
@@ -556,6 +557,9 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         SystemTrayManagement.getIcon().initialize(this);
         initializeOsHelper();
         RuntimeUtils.addPropagatedSystemProperty(UsageLogger.FILE_SETTING, null);
+        if (Settings.isFollowMode())
+            new FollowModeManager(workingDirectory, props, prop_file,
+                    templates, data, timeLog);
         pt.click("Finished initializing Process Dashboard object");
     }
 
@@ -938,6 +942,8 @@ public class ProcessDashboard extends JFrame implements WindowListener,
                     JOptionPane.QUESTION_MESSAGE);
             if (readOnlyOption.isSelected())
                 InternalSettings.setReadOnly(true);
+        } else if (setting.equalsIgnoreCase("follow")) {
+            InternalSettings.setReadOnlyFollowMode();
         }
     }
 
@@ -1556,6 +1562,8 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         for (int i = 0;  i < args.length;  i++) {
             if ("readOnly".equalsIgnoreCase(args[i]))
                 InternalSettings.setReadOnly(true);
+            else if ("readOnlyFollow".equalsIgnoreCase(args[i]))
+                InternalSettings.setReadOnlyFollowMode();
             else if (args[i].startsWith(LOCATION_ARG_PREFIX))
                 location = args[i].substring(LOCATION_ARG_PREFIX.length());
             else

@@ -74,7 +74,7 @@ public class HierarchyAlterer implements ItemListener {
         if (dashboard.isHierarchyEditorOpen())
             throw new HierarchyAlterationException
                 ("The hierarchy editor is currently open.");
-        if (Settings.isReadOnly())
+        if (Settings.isReadOnly() && !Settings.isFollowMode())
             throw new HierarchyAlterationException
                 ("The dashboard is running in read-only mode.");
 
@@ -392,6 +392,24 @@ public class HierarchyAlterer implements ItemListener {
     }
 
 
+    /** Make any alterations necessary to make the current hierarchy
+     * match the hierarchy passed in to this method.
+     *
+     * @param src the new hierarchy whose contents we should copy
+     * @throws HierarchyAlterationException
+     */
+    public void mergeChangesFrom(DashHierarchy src)
+            throws HierarchyAlterationException {
+        beginChanges();
+        try {
+            logger.log(Level.FINE, "mergeChanges");
+            dashboard.getHierarchy().mergeChangesFrom(src);
+        } finally {
+            endChanges();
+        }
+    }
+
+
 
     public void itemStateChanged(ItemEvent e) {
         if (e.getItem() instanceof PendingDataChange)
@@ -412,7 +430,9 @@ public class HierarchyAlterer implements ItemListener {
     protected void createDataFile(PendingDataChange p) {
         String dataDir = dashboard.getDirectory();
 
-        if (p.srcFile == null)
+        if (DashHierarchy.EXISTING_DATAFILE.equals(p.srcFile))
+            ;
+        else if (p.srcFile == null)
             HierarchyEditor.createEmptyFile(dataDir + p.destFile);
         else
             HierarchyEditor.createDataFile(dataDir + p.destFile, p.srcFile,

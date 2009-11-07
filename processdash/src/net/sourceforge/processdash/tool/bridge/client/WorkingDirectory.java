@@ -1,4 +1,4 @@
-// Copyright (C) 2008 Tuma Solutions, LLC
+// Copyright (C) 2008-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -131,6 +131,19 @@ public interface WorkingDirectory {
      *                 completing
      */
     public boolean flushData() throws LockFailureException, IOException;
+
+    /**
+     * Update the contents of this working directory with changes made elsewhere
+     * (by some other process which owns the write lock).
+     * 
+     * @throws IllegalStateException
+     *             if an update operation is not appropriate based on the
+     *             operational state of this collection
+     * @throws IOException
+     *             if a communications failure prevents the operation from
+     *             completing
+     */
+    public void update() throws IllegalStateException, IOException;
 
     /**
      * Backup the data in this collection.
