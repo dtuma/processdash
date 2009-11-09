@@ -97,4 +97,16 @@
 
 <snippet instanceId="301" type="pdash.defectLog" version="1.0" />
 
+
+
+<!--#if Legal_Footer_Snippet -->
+
+<pageFooter>
+
+<snippet instanceId="2" type="<!--#echo Process_ID -->.legalFooter" version="1.0" />
+
+</pageFooter>
+
+<!--#endif-->
+
 </pdashCmsPage>

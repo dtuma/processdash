@@ -404,9 +404,16 @@ class dependency has been added in a dashboard class?)
     <loadfile property="extraResources" srcFile="install/resources.xml">
       <filterchain><expandproperties/></filterchain>
     </loadfile>
-    <loadfile property="extraPacks" srcFile="install/packs.xml">
+
+    <property name="extraPacks.xml" value="install/emptyFile.txt"/>
+    <loadfile property="extraPacks.external" srcFile="${extraPacks.xml}">
       <filterchain><expandproperties/></filterchain>
     </loadfile>
+    <loadfile property="extraPacks.internal" srcFile="install/packs.xml">
+      <filterchain><expandproperties/></filterchain>
+    </loadfile>
+    <property name="extraPacks"
+              value="${extraPacks.external} ${extraPacks.internal}"/>
 
     <property name="installerExtraIni" value=""/>
     <loadfile property="extraIni" srcFile="install/custom-install.ini">

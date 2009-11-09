@@ -681,6 +681,13 @@
     <uri>/PID/size_summary.shtm</uri>
   </snippet>
 
+  <!--#if Legal_Footer_Snippet -->
+  <snippet id="PID.legalFooter" version="1.0" category="hidden">
+    <resources>CMS.Snippet.Anonymous</resources>
+    <context>*</context>
+    <uri>/PID/legalFooter.htm</uri>
+  </snippet>
+  <!--#endif-->
 
 <!--======================================================================
     Misc extensions by the team process.

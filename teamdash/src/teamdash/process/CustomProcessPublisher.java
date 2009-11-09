@@ -155,8 +155,10 @@ public class CustomProcessPublisher {
 
         Attributes attrs = mf.getMainAttributes();
         attrs.putValue("Manifest-Version", "1.0");
-        attrs.putValue(DashPackage.NAME_ATTRIBUTE, (String) parameters
-                .get("Full_Name"));
+        String packageName = (String) parameters.get("Dash_Package_Name");
+        if (packageName == null)
+            packageName = (String) parameters.get("Full_Name");
+        attrs.putValue(DashPackage.NAME_ATTRIBUTE, packageName);
         attrs.putValue(DashPackage.ID_ATTRIBUTE, process.getProcessID());
         attrs.putValue(DashPackage.VERSION_ATTRIBUTE, scriptVers + "."
                 + TIMESTAMP_FORMAT.format(new Date()));

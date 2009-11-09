@@ -229,6 +229,18 @@
     <!-- write process metadata for use by the export logic. -->
     <file in="process_info.xml" encoding="xml" out="/process_info.xml" />
 
+    <!-- write optional legal footer snippet if requested. -->
+    <!--#if Legal_Footer_Snippet -->
+    <file in="extfile:<!--#echo Legal_Footer_Snippet -->"
+          out="legalFooter.htm" encoding="html"/>
+    <!--#endif-->
+
+    <!-- write optional splash screen HTML file if requested. -->
+    <!--#if Splash_Html_Filename -->
+    <file in="extfile:<!--#echo Splash_Html_Filename -->"
+          out="/Templates/splash.html" encoding="html"/>
+    <!--#endif-->
+
 </generation-script>
 
 
