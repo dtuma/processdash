@@ -87,7 +87,7 @@ public class AbstractLanguageFilter implements LanguageFilter {
                     }
         }
 
-        if (contents != null && contents.length() > 0) {
+        if (contents != null && contents.trim().length() > 0) {
             contents = contents.trim();     // skip initial whitespace.
 
             String[] commentStarters = getCommentStarters();
