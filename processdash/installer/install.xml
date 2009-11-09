@@ -37,7 +37,10 @@
         <res src="files/TargetDir-macosx.txt" id="TargetPanel.dir.macosx"/>
         <res src="files/WebInstallers.txt" id="WebInstallers.url"/>
         <res src="files/shortcutSpec.xml" id="shortcutSpec.xml"/>
-        <res src="files/PspLicense.html" id="CondHTMLLicencePanel0.licence"/>
+        <res src="files/PspLicense.html" id="CondHTMLLicencePanel0.licence"
+             excludeIf="pspTsp"/>
+        <res src="files/PspTspLicense.html" id="CondHTMLLicencePanel0.licence"
+             includeIf="pspTsp"/>
         <res src="files/PspLicense-list.txt" id="CondHTMLLicencePanel0.packList"/>
         <res src="files/JHLicense.html" id="CondHTMLLicencePanel1.licence"/>
         <res src="files/JHLicense-list.txt" id="CondHTMLLicencePanel1.packList"/>
