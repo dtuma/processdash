@@ -30,6 +30,8 @@ import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.beans.EventHandler;
@@ -37,8 +39,11 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.StringTokenizer;
 
+import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
+import javax.swing.InputMap;
 import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -48,6 +53,7 @@ import javax.swing.JSplitPane;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.JTree;
+import javax.swing.KeyStroke;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
@@ -75,6 +81,7 @@ import net.sourceforge.processdash.hier.DashHierarchy.Event;
 import net.sourceforge.processdash.hier.ui.PlainTextNoteFormat.Editor;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.ui.DashboardIconFactory;
+import net.sourceforge.processdash.ui.help.PCSH;
 import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
 
 public class HierarchyNoteEditorDialog implements DashHierarchy.Listener,
@@ -147,11 +154,12 @@ public class HierarchyNoteEditorDialog implements DashHierarchy.Listener,
             }});
         frame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
 
-        // TODO : Add help topic.
+        PCSH.enableHelpKey(frame, "NoteIndicator");
 
         splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
                 constructTreePanel(), constructEditPanel());
         splitPane.setDividerLocation(dividerLocation);
+        setupWindowKeyBindings(splitPane);
 
         Container panel = frame.getContentPane();
         panel.setLayout(new BorderLayout());
@@ -204,6 +212,29 @@ public class HierarchyNoteEditorDialog implements DashHierarchy.Listener,
         retPanel.add(BorderLayout.SOUTH, buttonsPanel);
 
         return retPanel;
+    }
+
+    private void setupWindowKeyBindings(JComponent c) {
+        InputMap inputMap = c.getInputMap(
+            JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+
+        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER,
+            InputEvent.CTRL_DOWN_MASK), "saveAndClose");
+        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER,
+            InputEvent.META_DOWN_MASK), "saveAndClose");
+        c.getActionMap().put("saveAndClose", new AbstractAction() {
+            public void actionPerformed(ActionEvent e) {
+                if (isDirty())
+                    saveComment();
+                close();
+            }});
+
+        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0),
+            "confirmClose");
+        c.getActionMap().put("confirmClose", new AbstractAction() {
+            public void actionPerformed(ActionEvent e) {
+                confirmClose(true);
+            }});
     }
 
     /* Before calling this event, a node must absolutely selected */
