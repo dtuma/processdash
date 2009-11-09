@@ -72,7 +72,8 @@ public class DashboardSplashScreen extends HTMLSplashScreen {
 
                 File[] jars = parent.listFiles(new FilenameFilter() {
                     public boolean accept(File dir, String name) {
-                        return name.toLowerCase().endsWith(".jar");
+                        return name.toLowerCase().endsWith(".jar")
+                            || name.toLowerCase().endsWith(".zip");
                     }
                 });
 
