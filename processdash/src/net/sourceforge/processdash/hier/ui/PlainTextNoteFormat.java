@@ -49,6 +49,7 @@ import javax.swing.text.StyleContext;
 import javax.swing.text.StyledDocument;
 import javax.swing.text.StyledEditorKit;
 
+import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.hier.HierarchyNote;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.util.HTMLUtils;
@@ -144,6 +145,7 @@ public class PlainTextNoteFormat implements HierarchyNoteFormat {
             result.setDirty(false);
         }
 
+        result.setCaretPosition(0);
         result.enableInsertionFilter();
 
         return result;
@@ -180,7 +182,7 @@ public class PlainTextNoteFormat implements HierarchyNoteFormat {
                 this, "markDirty");
 
             setEditorKit(new StyledEditorKit());
-            setEditable(true);
+            setEditable(Settings.isReadWrite());
             setBackground(new Color(255, 255, 200));
             ToolTipManager.sharedInstance().registerComponent(this);
         }

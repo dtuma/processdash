@@ -1,4 +1,4 @@
-// Copyright (C) 2008 Tuma Solutions, LLC
+// Copyright (C) 2008-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -187,6 +187,8 @@ public class HierarchyNoteEditorDialog implements DashHierarchy.Listener,
 
         taskPathLabel = new JLabel();
         taskPathLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 5, 0));
+        taskPathLabel.setMinimumSize(new Dimension(0, taskPathLabel
+                .getPreferredSize().height));
         retPanel.add(BorderLayout.NORTH, taskPathLabel);
 
         noteEditorScrollPane = new JScrollPane();
@@ -195,8 +197,8 @@ public class HierarchyNoteEditorDialog implements DashHierarchy.Listener,
                 BorderFactory.createLineBorder(Color.BLACK, NOTE_EDITOR_BORDER_TICKNESS));
 
         JPanel buttonsPanel = new JPanel(false);
-        revertButton = createButton(buttonsPanel, "Revert", "revertComment");
-        saveButton = createButton(buttonsPanel, "Save", "saveComment");
+        revertButton = createButton(buttonsPanel, "Revert", "revertComment", true);
+        saveButton = createButton(buttonsPanel, "Save", "saveComment", true);
         createButton(buttonsPanel, "Close", "close");
 
         retPanel.add(BorderLayout.SOUTH, buttonsPanel);
