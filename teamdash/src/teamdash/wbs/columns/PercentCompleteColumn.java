@@ -24,7 +24,7 @@ public class PercentCompleteColumn extends AbstractPrecomputedColumn implements
 
     public static boolean isComplete(WBSNode node) {
         double percent = node.getNumericAttribute(RESULT_ATTR);
-        return percent > 0.99999;
+        return percent > DataTableCellPercentRenderer.ONE_HUNDRED_PCT_CUTOFF;
     }
 
 }
