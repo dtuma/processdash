@@ -48,17 +48,17 @@ undefine([Historical Data Tag]);
 <!--#foreach name=Phase list=Phase_List #-->
 <!--#if Phase_Is_Failure #-->
 
-[<!--#echo Phase_Name -->/% Defect Free] = 
+[<!--#echo Phase_Name -->/% Defect Free]  
 
 <!--#if Calculate_Pct_Defect_Free #-->
 
-count(filter(
+= count(filter(
     !(indirect([_] &/ "<!--#echo Phase_Name -->/Defects Removed") > 0),
     [Software_Project_List])) / [Software_Project_Count];
 
 <!--#else-->
 
-    "This calculation is disabled; see http://www.processdash.com/pctDefFreeBug";
+    == "This calculation is disabled; see http://www.processdash.com/pctDefFreeBug";
 
 <!--#endif-->
 
