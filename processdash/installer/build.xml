@@ -65,6 +65,7 @@ Authors:
     <property name="version" value="${dashboard-version}"/>
     <property name="jreInstDir" value="c:\download\java\_"/>
     <property name="jreInstExe" value="jre-6u16-windows-i586.exe"/>
+    <property name="launch4j.dir" location="launch4j" />
 
     <!-- the the IZPACK home directory -->
     <property name="izpack.dir" value="IzPack"/>
@@ -78,6 +79,12 @@ Authors:
         <!-- Allows us to use the IzPack Ant task -->
         <taskdef name="izpack" classpath="${izpack.jar}"
             classname="com.izforge.izpack.ant.IzPackTask"/>
+        <!-- Allows us to use the launch4j Ant task -->
+        <taskdef name="launch4j"
+            classname="net.sf.launch4j.ant.Launch4jTask"
+            classpath="${launch4j.dir}/launch4j.jar" />
+        <!-- Check to see if we are running on Windows -->
+        <condition property="isWindows"><os family="windows"/></condition>
     </target>
 
     <target name="-izpack-compile" depends="-izpack-depend"
@@ -143,21 +150,39 @@ Authors:
 	</antcall>
     </target>
 
+    <target name="-izpack" depends="init,-izpack.jar,-izpack.exe"/>
+
+    <target name="-izpack.jar">
+        <property name="izpack.output"
+            value="pdash-install-${qualifier}-${dashboard-version}"/>
+        <property name="izpack.type" value="standard-kunststoff"/>
+        <izpack input="${izpack.input}"
+            output="${dist}/${izpack.output}.jar"
+            installerType="${izpack.type}"
+            basedir="." izPackDir="${izpack.dir}/"/>
+    </target>
+
+    <target name="-izpack.exe" if="isWindows" unless="no-exe-needed">
+        <launch4j configFile="files/launch4j-config.xml"
+            jar="${dist}/${izpack.output}.jar"
+            outfile="${dist}/${izpack.output}.exe"/>
+    </target>
+
     <target name="web" depends="init,install-reg.xml"
             description="Create a web-based installer for the dashboard">
-        <izpack input="install-reg.xml"
-	    output="${dist}/pdash-install-${dashboard-version}.jar"
-            installerType="web-kunststoff"
-            basedir="." izPackDir="${izpack.dir}/"/>
+        <antcall target="-izpack.jar">
+            <param name="izpack.input" value="install-reg.xml"/>
+            <param name="izpack.type"  value="web-kunststoff"/>
+            <param name="qualifier"  value="web"/>
+        </antcall>
     </target>
 
     <target name="offline" depends="init,install-reg.xml"
             description="Create an offline installer for the dashboard">
         <property name="qualifier" value="offline"/>
-        <izpack input="install-reg.xml"
-	    output="${dist}/pdash-install-${qualifier}-${dashboard-version}.jar"
-            installerType="standard-kunststoff"
-            basedir="." izPackDir="${izpack.dir}/"/>
+        <antcall target="-izpack">
+            <param name="izpack.input" value="install-reg.xml"/>
+        </antcall>
     </target>
 
     <target name="instructor" depends="init"
@@ -171,6 +196,7 @@ Authors:
 	    <param name="qualifier" value="pfe-student"/>
 	    <param name="custom-install.extra" value="${custom-inst-pfe}"/>
 	    <param name="delete-cd-file" value="t"/>
+	    <param name="no-exe-needed" value="t"/>
 	</antcall>
 
         <!-- Create a CD that instructors can give to PFA students -->
@@ -182,6 +208,7 @@ Authors:
 	    <param name="qualifier" value="pfa-student"/>
 	    <param name="custom-install.extra" value="${custom-inst-pfa}"/>
 	    <param name="delete-cd-file" value="t"/>
+	    <param name="no-exe-needed" value="t"/>
 	</antcall>
 
 	<!-- Create an installer that installs instructor tools -->
@@ -190,10 +217,10 @@ Authors:
             <param name="install.flags"
                    value="pspForEng,pspFundAdv,pspForEngInstr,pspInstrTools,noProc"/>
 	</antcall>
-        <izpack input="install-instr.xml"
-	    output="${dist}/pdash-install-instrTools-${dashboard-version}.jar"
-            installerType="standard-kunststoff"
-            basedir="." izPackDir="${izpack.dir}/"/>
+        <antcall target="-izpack">
+            <param name="izpack.input" value="install-instr.xml"/>
+            <param name="qualifier" value="instrTools"/>
+        </antcall>
 	<delete file="install-instr.xml"/>
 
 	<!-- Create an installer that students can download for themselves -->
@@ -202,10 +229,10 @@ Authors:
             <param name="install.flags"
                    value="pspForEng,pspFundAdv,pspForEngInstr"/>
 	</antcall>
-        <izpack input="install-student.xml"
-	    output="${dist}/pdash-install-student-${dashboard-version}.jar"
-            installerType="standard-kunststoff"
-            basedir="." izPackDir="${izpack.dir}/"/>
+        <antcall target="-izpack">
+            <param name="izpack.input" value="install-student.xml"/>
+            <param name="qualifier" value="student"/>
+        </antcall>
 	<delete file="install-student.xml"/>
     </target>
 
@@ -225,10 +252,9 @@ Authors:
 	<echo file="cd-custom.ini" append="true"
 	    message="${custom-install.extra}"/>
 
-        <izpack input="install-cd.xml"
-	    output="${dist}/pdash-install-${qualifier}-${dashboard-version}.jar"
-            installerType="standard-kunststoff"
-            basedir="." izPackDir="${izpack.dir}/"/>
+        <antcall target="-izpack">
+            <param name="izpack.input" value="install-cd.xml"/>
+        </antcall>
         
 	<echo file="cd-config.ini">1.5
 ${jreInstExe}
@@ -272,7 +298,7 @@ pdash-install-${qualifier}-${dashboard-version}.jar
       <delete quiet="true" file="install-reg.xml"/>
     </target>
 
-    <target name="prepare" depends="rebuild">
+    <target name="prepare">
 
         <!-- print an error unless the PSP process file is built -->
 	<available file="../dist/pspProc2.jar" property="have.pspProc.jar"/>
@@ -296,10 +322,6 @@ pdash-install-${qualifier}-${dashboard-version}.jar
                    value=",extras"/>
     </target>
 
-    <target name="rebuild" unless="alreadyRebuilt">
-        <ant dir=".." inheritAll="false"/>
-    </target>
-
 
 
 
@@ -316,13 +338,9 @@ pdash-install-${qualifier}-${dashboard-version}.jar
     </target>
 
 
-    <target name="clean" depends="clean-dist">
+    <target name="clean">
         <delete quiet="true" file="install-reg.xml"/>
         <delete quiet="true" file="install-cd.xml"/>
-    </target>
-
-    <target name="clean-dist" unless="dontCleanDist">
-        <delete quiet="true" dir="${dist}"/>
     </target>
 
 </project>
