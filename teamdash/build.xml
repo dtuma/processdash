@@ -431,8 +431,6 @@ class dependency has been added in a dashboard class?)
 
     <ant antfile="${processdash.dir}/installer/build.xml" inheritAll="false"
          target="plain">
-      <property name="alreadyRebuilt" value="true"/>
-      <property name="dontCleanDist" value="true"/>
       <property name="dist" value="${teamdash.dir}"/>
       <property name="qualifier" value="main"/>
       <property name="additional.resources" value="${extraResources}"/>
@@ -443,8 +441,6 @@ class dependency has been added in a dashboard class?)
 
     <ant antfile="${processdash.dir}/installer/build.xml" inheritAll="false"
          target="offline">
-      <property name="alreadyRebuilt" value="true"/>
-      <property name="dontCleanDist" value="true"/>
       <property name="dist" value="${teamdash.dir}"/>
       <property name="install.flags" value="${install-flags}"/>
       <property name="qualifier" value="psp"/>
@@ -461,8 +457,6 @@ class dependency has been added in a dashboard class?)
   <target name="installer-cd-only" depends="-installer-props">
     <ant antfile="${processdash.dir}/installer/build.xml" inheritAll="false"
          target="dist-CD">
-      <property name="alreadyRebuilt" value="true"/>
-      <property name="dontCleanDist" value="true"/>
       <property name="dist" value="${teamdash.dir}"/>
       <property name="install.flags" value="${install-flags}"/>
       <property name="additional.resources" value="${extraResources}"/>
@@ -470,6 +464,7 @@ class dependency has been added in a dashboard class?)
       <property name="custom-install.extra" value="${extraIni}"/>
       <property name="additional.core.files" value="${extraCoreFiles}"/>
       <property name="qualifier" value="${cd-qualifier}"/>
+      <propertyset><propertyref name="no-exe-needed"/></propertyset>
     </ant>
   </target>
 
