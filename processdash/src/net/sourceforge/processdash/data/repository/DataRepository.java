@@ -1534,6 +1534,28 @@ public class DataRepository implements Repository, DataContext,
                 dataNotifier.quit();
         }
 
+        public void purgeDataStructures() {
+            purgeDataStructures(data, activeData, dataListenersForDeferredRemoval,
+                datafiles, datafilePrefixMap, PathIDMap, IDPathMap,
+                dataElementNameSet, defaultDefinitions, defineDeclarations,
+                globalDataDefinitions, includedFileCache, mountedPhantomData,
+                PHANTOM_DATAFILES);
+            dataFreezer = null;
+            janitor = null;
+            dataNotifier = null;
+        }
+        private void purgeDataStructures(Object... fields) {
+            for (Object f : fields) {
+                if (f instanceof Map) {
+                    ((Map) f).clear();
+                } else if (f instanceof Set) {
+                    ((Set) f).clear();
+                } else if (f instanceof Collection) {
+                    ((Collection) f).clear();
+                }
+            }
+        }
+
         /** Set this flag to true when performing memory measurement testing.
          */
         private static final boolean ENABLE_MEMORY_CHECKS = false;

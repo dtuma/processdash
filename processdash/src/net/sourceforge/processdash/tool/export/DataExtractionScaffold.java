@@ -135,6 +135,8 @@ public class DataExtractionScaffold implements DashboardContext {
         if (data != null) {
             data.shutDown();
             DataImporter.shutDown();
+            data.purgeDataStructures();
+            EVTaskDependencyResolver.getInstance().flushCaches();
         }
     }
 

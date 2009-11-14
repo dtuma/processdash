@@ -94,6 +94,22 @@ public class EVTaskDependencyResolver {
         this.refreshInterval = (dynamic ? 30000 : 3000000000L);
     }
 
+    public void flushCaches() {
+        flushCaches(nameCache, taskCache, listCache, reverseDependencyCache);
+        this.lastRefresh = this.lastReverseRefresh = -1;
+    }
+    private void flushCaches(Object... caches) {
+        for (Object c : caches) {
+            if (c instanceof Map) {
+                ((Map) c).clear();
+            } else if (c instanceof Set) {
+                ((Set) c).clear();
+            } else if (c instanceof Collection) {
+                ((Collection) c).clear();
+            }
+        }
+    }
+
     public List getTaskListsContaining(String taskID) {
         if (taskID == null)
             return null;
