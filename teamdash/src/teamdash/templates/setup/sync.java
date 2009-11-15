@@ -777,8 +777,8 @@ public class sync extends TinyCGIBase {
         out.write("'></head><body></body></html>");
     }
 
-    private static final String MASTER_ROOT = "/MasterRoot";
-    private static final String TEAM_ROOT = "/TeamRoot";
+    static final String MASTER_ROOT = "/MasterRoot";
+    static final String TEAM_ROOT = "/TeamRoot";
     private static final String INDIV_ROOT = "/IndivRoot";
     private static final String INDIV2_ROOT = "/Indiv2Root";
     private static final String DISABLE_TEAM_IMPORT_REPAIR_DATA_NAME = "Disable_Team_Import_Repairs";
@@ -786,7 +786,7 @@ public class sync extends TinyCGIBase {
     private static final String MIGRATE_DATA_NAME = "Team_Project_Migration_Needed";
     private static final String CONVERT_DATA_NAME = "Team_Project_Conversion_Needed";
     private static final String FULLCOPY_DATA_NAME = "Sync_Full_WBS";
-    private static final String HIER_FILENAME = "projDump.xml";
+    static final String HIER_FILENAME = "projDump.xml";
     private static final String WORKFLOW_FILENAME = "workflowDump.xml";
 
     private static final String NOT_TEAM_PROJECT = "notTeamProject";

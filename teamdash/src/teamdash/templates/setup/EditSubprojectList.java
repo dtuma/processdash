@@ -57,6 +57,8 @@ public class EditSubprojectList extends TinyCGIBase implements TeamDataConstants
 
     private static final String MASTER_ROOT = "/MasterRoot";
 
+    static final String SUBPROJECT_PATH_LIST = "Subproject_Path_List";
+
     private static Logger logger = Logger.getLogger(EditSubprojectList.class
             .getName());
 
@@ -609,7 +611,7 @@ public class EditSubprojectList extends TinyCGIBase implements TeamDataConstants
             Subproject proj = (Subproject) i.next();
             pathList.add(proj.path);
         }
-        putValue("Subproject_Path_List", pathList);
+        putValue(SUBPROJECT_PATH_LIST, pathList);
     }
 
     private void updateEVSchedule(Map subprojects) {

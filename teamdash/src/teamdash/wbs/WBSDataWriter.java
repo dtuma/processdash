@@ -24,6 +24,7 @@ import teamdash.wbs.columns.SizeAccountingColumnSet;
 import teamdash.wbs.columns.TaskDependencyColumn;
 import teamdash.wbs.columns.TaskLabelColumn;
 import teamdash.wbs.columns.TeamTimeColumn;
+import teamdash.wbs.columns.UnassignedTimeColumn;
 
 
 /** This class writes out an XML data file describing the work breakdown
@@ -61,6 +62,8 @@ public class WBSDataWriter {
     private String[] syncAttrs;
     /** Node attribute names flagging whether a user is assigned with 0 hours */
     private String[] zeroAssignmentAttrs;
+    /** The column number of the unassigned time column */
+    private int unassignedTimeColumn;
     /** The list of column numbers for each top-level size accounting column */
     private int[] sizeAccountingColumns = new int[SIZE_COLUMN_IDS.length];
     /** This column number of the direct size units column */
@@ -142,6 +145,8 @@ public class WBSDataWriter {
                 zeroAssignmentAttrs[i] = TeamTimeColumn
                         .getMemberAssignedZeroAttrName(initials[i]);
             }
+            unassignedTimeColumn = dataModel
+                    .findColumn(UnassignedTimeColumn.COLUMN_ID);
             deferredMilestoneIDs = getDeferredMilestoneIDs();
         }
 
@@ -478,6 +483,7 @@ public class WBSDataWriter {
             writeAttr(out, PHASE_TYPE_ATTR, phaseType);
             writeAttr(out, SYNC_PHASE_NAME_ATTR, syncPhaseName);
             writeAttr(out, TIME_ATTR, getTeamMemberTimes(node));
+            writeAttr(out, DEFERRED_TIME_ATTR, getTeamMemberDeferredTimes(node));
             writeAttr(out, SYNC_TIME_ATTR, getTeamMemberSyncTimes(node));
             if (TeamProcess.isCodeTask(nodeType))
                 maybeWriteSizeAttrs(out, node);
@@ -517,6 +523,7 @@ public class WBSDataWriter {
     private class PSPTaskAttributeWriter extends SizeAttributeWriter {
         public void writeAttributes(Writer out, WBSNode node) throws IOException {
             writeAttr(out, TIME_ATTR, getTeamMemberTimes(node));
+            writeAttr(out, DEFERRED_TIME_ATTR, getTeamMemberDeferredTimes(node));
             writeAttr(out, SYNC_TIME_ATTR, getTeamMemberSyncTimes(node));
             super.writeAttributes(out, node);
         }
@@ -530,23 +537,45 @@ public class WBSDataWriter {
     private String getTeamMemberTimes(WBSNode node) {
         if (teamMemberColumns == null || isNodeMilestoneDeferred(node))
             return null;
+        else
+            return buildTeamMemberTimeString(node);
+    }
 
+    /** Build an XML attribute value describing the time each team member plans
+     * to spend in the given node.
+     */
+    private String getTeamMemberDeferredTimes(WBSNode node) {
+        if (teamMemberColumns == null || isNodeMilestoneDeferred(node) == false)
+            return null;
+        else
+            return buildTeamMemberTimeString(node);
+    }
+
+    private String buildTeamMemberTimeString(WBSNode node) {
         StringBuffer result = new StringBuffer();
         for (int i = 0;   i < teamMemberColumns.size();   i++) {
             int col = teamMemberColumns.get(i);
             String time = formatNumber(dataModel.getValueAt(node, col));
-            if ("null".equals(time) || "0".equals(time) || "0.0".equals(time)) {
+            if (isZeroString(time)) {
                 if (node.getAttribute(zeroAssignmentAttrs[i]) == null)
                     continue;
             }
             result.append(",").append(initials[i]).append("=").append(time);
         }
+        String time = formatNumber(dataModel.getValueAt(node,
+            unassignedTimeColumn));
+        if (!isZeroString(time))
+            result.append(",unassigned=").append(time);
 
         if (result.length() == 0)
             return null;
 
         result.append(",");
         return result.toString();
+    }
+
+    private boolean isZeroString(String time) {
+        return "null".equals(time) || "0".equals(time) || "0.0".equals(time);
     }
 
 
@@ -623,6 +652,7 @@ public class WBSDataWriter {
     private static final String EFFECTIVE_PHASE_ATTR = "effectivePhase";
     private static final String TIME_ATTR = "time";
     private static final String SYNC_TIME_ATTR = "syncTime";
+    private static final String DEFERRED_TIME_ATTR = "deferredTime";
     private static final String UNITS_ATTR = "sizeUnits";
     private static final String INSP_UNITS_ATTR = "inspUnits";
     private static final String INSP_SIZE_ATTR = "inspSize";
