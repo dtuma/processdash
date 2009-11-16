@@ -98,6 +98,7 @@ public class EVReport extends CGIChartBase {
     public static final String XLS_PARAM = "xls";
     public static final String CSV_PARAM = "csv";
     public static final String MERGED_PARAM = "merged";
+    public static final String PRESERVE_LEAVES_PARAM = "preserveLeaves";
     public static final String TIME_CHART = "time";
     public static final String VALUE_CHART = "value";
     public static final String VALUE_CHART2 = "value2";
@@ -280,8 +281,10 @@ public class EVReport extends CGIChartBase {
             outStream.write("\r\n".getBytes());
 
             if (evModel instanceof EVTaskListRollup
-                    && parameters.containsKey(MERGED_PARAM))
-                evModel = new EVTaskListMerged(evModel, false, null);
+                    && parameters.containsKey(MERGED_PARAM)) {
+                boolean leaves = parameters.containsKey(PRESERVE_LEAVES_PARAM);
+                evModel = new EVTaskListMerged(evModel, false, leaves, null);
+            }
 
             outStream.write(XML_HEADER.getBytes("UTF-8"));
             outStream.write(evModel.getAsXML(true).getBytes("UTF-8"));
