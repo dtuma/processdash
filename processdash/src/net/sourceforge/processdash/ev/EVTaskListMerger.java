@@ -82,7 +82,7 @@ public class EVTaskListMerger {
             boolean preserveLeaves, EVTaskFilter filter) {
         this.taskList = taskList;
         this.simplify = simplify;
-        this.preserveLeaves = true; //FIXME preserveLeaves;
+        this.preserveLeaves = preserveLeaves;
         this.filter = filter;
         this.mergedRoot = new EVTask(taskList.getRootName());
         this.mergedRoot.flag = TASK_LIST_FLAG;
