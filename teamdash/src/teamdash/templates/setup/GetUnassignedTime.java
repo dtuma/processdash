@@ -187,10 +187,10 @@ public class GetUnassignedTime extends TinyCGIBase implements TeamDataConstants 
 
     private void printXmlResultNode(int depth, String name, Node node) {
         printIndent(depth + 1);
-        out.print("<node name='");
+        out.print("<task name='");
         out.print(XMLUtils.escapeAttribute(name));
         if (node.time > 0) {
-            out.print("' time='");
+            out.print("' pt='");
             out.print(formatNumber(node.time * 60));
         }
         if (node.children == null) {
@@ -199,7 +199,7 @@ public class GetUnassignedTime extends TinyCGIBase implements TeamDataConstants 
             out.print("'>\n");
             writeXmlResults(node, depth + 1);
             printIndent(depth + 1);
-            out.print("</node>\n");
+            out.print("</task>\n");
         }
     }
 
