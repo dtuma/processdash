@@ -5,8 +5,10 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -23,10 +25,12 @@ import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.XMLUtils;
 
 import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 
-public class GetUnassignedTime extends TinyCGIBase implements TeamDataConstants {
+public class GetUnassignedAndDeferredTime extends TinyCGIBase implements
+        TeamDataConstants {
 
-    public GetUnassignedTime() {
+    public GetUnassignedAndDeferredTime() {
         this.charset = "utf-8";
     }
 
@@ -42,11 +46,11 @@ public class GetUnassignedTime extends TinyCGIBase implements TeamDataConstants 
         getUnassignedTimeForProject(result, projectPath);
 
         out.print("<?xml version='1.0' encoding='UTF-8'?>\n");
-        out.print("<unassignedTime forProject='");
+        out.print("<unassignedAndDeferredTime forProject='");
         out.print(XMLUtils.escapeAttribute(projectPath));
         out.print("'>\n");
         writeXmlResults(result, 0);
-        out.print("</unassignedTime>\n");
+        out.print("</unassignedAndDeferredTime>\n");
     }
 
     private void getUnassignedTimeForProject(Node result, String projectPath)
@@ -92,7 +96,8 @@ public class GetUnassignedTime extends TinyCGIBase implements TeamDataConstants 
             throws IOException {
         ImportDirectory dir = getImportDir(projectPath);
         Element dumpXml = getProjectDump(dir);
-        addUnassignedTime("", dumpXml, result);
+        Map<String, String> team = getTeamMemberNames(dumpXml);
+        addUnassignedTime("", dumpXml, team, result);
     }
 
     private ImportDirectory getImportDir(String projectPath) {
@@ -130,32 +135,45 @@ public class GetUnassignedTime extends TinyCGIBase implements TeamDataConstants 
         return result;
     }
 
-    private void addUnassignedTime(String path, Element dumpXml, Node root) {
-        double time = 0;
-        time += getTime(dumpXml, TIME_ATTR, false);
-        time += getTime(dumpXml, DEFERRED_TIME_ATTR, true);
-        if (time > 0)
-            root.getChild(path).time += time;
+    private Map<String, String> getTeamMemberNames(Element dumpXml) {
+        Map<String, String> result = new HashMap<String, String>();
+        NodeList nl = dumpXml.getElementsByTagName("teamMember");
+        for (int i = 0;  i < nl.getLength();  i++) {
+            Element member = (Element) nl.item(i);
+            String initials = member.getAttribute("initials");
+            String name = member.getAttribute("name");
+            result.put(initials, name);
+        }
+        result.put(UNASSIGNED, UNASSIGNED);
+        return result;
+    }
+
+    private void addUnassignedTime(String path, Element dumpXml,
+            Map<String, String> team, Node root) {
+        getTime(path, dumpXml, TIME_ATTR, false, team, root);
+        getTime(path, dumpXml, DEFERRED_TIME_ATTR, true, team, root);
 
         for (Element childElem : XMLUtils.getChildElements(dumpXml)) {
             String childName = childElem.getAttribute("name");
             if (XMLUtils.hasValue(childName))
-                addUnassignedTime(path + "/" + childName, childElem, root);
+                addUnassignedTime(path + "/" + childName, childElem, team, root);
         }
     }
 
-    private double getTime(Element xml, String attr, boolean includeAll) {
-        double result = 0;
+    private void getTime(String path, Element xml, String attr,
+            boolean includeAll, Map<String, String> team, Node root) {
         String attrVal = xml.getAttribute(attr);
         if (XMLUtils.hasValue(attrVal)) {
             Matcher m = TIME_ASSIGNMENT.matcher(attrVal);
             while (m.find()) {
-                if (includeAll || UNASSIGNED.equals(m.group(1))) {
-                    result += Double.parseDouble(m.group(2));
+                String initials = m.group(1);
+                if (includeAll || UNASSIGNED.equals(initials)) {
+                    String name = team.get(initials);
+                    double minutes = Double.parseDouble(m.group(2)) * 60;
+                    root.recordTime(path, name, minutes);
                 }
             }
         }
-        return result;
     }
 
     private static final Pattern TIME_ASSIGNMENT = Pattern
@@ -189,18 +207,24 @@ public class GetUnassignedTime extends TinyCGIBase implements TeamDataConstants 
         printIndent(depth + 1);
         out.print("<task name='");
         out.print(XMLUtils.escapeAttribute(name));
-        if (node.time > 0) {
-            out.print("' pt='");
-            out.print(formatNumber(node.time * 60));
+        out.print("'>\n");
+
+        if (node.time != null) {
+            for (Entry<String, Double> e : node.time.entrySet()) {
+                printIndent(depth + 2);
+                out.print("<cost who='");
+                out.print(XMLUtils.escapeAttribute(e.getKey()));
+                out.print("' pt='");
+                out.print(formatNumber(e.getValue()));
+                out.print("'/>\n");
+            }
         }
-        if (node.children == null) {
-            out.print("'/>\n");
-        } else {
-            out.print("'>\n");
+        if (node.children != null) {
             writeXmlResults(node, depth + 1);
-            printIndent(depth + 1);
-            out.print("</task>\n");
         }
+
+        printIndent(depth + 1);
+        out.print("</task>\n");
     }
 
     private String formatNumber(double num) {
@@ -233,14 +257,14 @@ public class GetUnassignedTime extends TinyCGIBase implements TeamDataConstants 
 
     private class Node {
 
-        double time;
+        Map<String, Double> time;
 
         Map<String, Node> children;
 
         private String errorMessage;
 
         public Node() {
-            time = 0;
+            time = null;
             children = null;
         }
 
@@ -267,6 +291,21 @@ public class GetUnassignedTime extends TinyCGIBase implements TeamDataConstants 
                 children.put(name, result);
             }
             return result;
+        }
+
+        public void recordTime(String path, String who, double minutes) {
+            if (minutes > 0 && who != null)
+                getChild(path).recordTime(who, minutes);
+        }
+
+        private void recordTime(String who, double minutes) {
+            if (time == null)
+                time = new HashMap<String, Double>();
+            Double currentTime = time.get(who);
+            if (currentTime == null)
+                currentTime = 0.0;
+            double newTime = currentTime + minutes;
+            time.put(who, newTime);
         }
 
     }
