@@ -776,7 +776,7 @@ Authors:
     </delete>
   </target>
 
-  <target name="p4diff">
+  <target name="p4diff" depends="compile">
     <classfileset id="p4locClasses" dir="${build}"
       rootclass="net.sourceforge.processdash.tool.diff.impl.PerforceLOCDiff"/>
     <jar destfile="${dist}/p4diff.jar" duplicate="fail">
@@ -785,9 +785,9 @@ Authors:
             value="net.sourceforge.processdash.tool.diff.impl.PerforceLOCDiff"/>
       </manifest>
       <fileset refid="p4locClasses"/>
-      <fileset dir=".">
-        <include name="Templates/resources/(Resources)*"/>
-        <include name="Templates/resources/LOCDiff*"/>
+      <fileset dir="Templates">
+        <include name="resources/(Resources)*"/>
+        <include name="resources/LOCDiff*"/>
       </fileset>
     </jar>
   </target>
