@@ -1783,12 +1783,14 @@ public class EVTaskList extends AbstractTreeTableModel
 
     public TreeTableModel getMergedModel() {
         boolean simple = Settings.getBool("ev.simplifiedMerge", true);
-        return getMergedModel(simple, null);
+        boolean leaves = Settings.getBool("ev.mergePreservesLeaves", true);
+        return getMergedModel(simple, leaves, null);
     }
 
-    public TreeTableModel getMergedModel(boolean simple, EVTaskFilter filter) {
+    public TreeTableModel getMergedModel(boolean simple,
+            boolean preserveLeaves, EVTaskFilter filter) {
         EVTaskListMerger merger = new EVTaskListMerger(EVTaskList.this, simple,
-                false, filter);
+                preserveLeaves, filter);
         MergedTreeModel result = new MergedTreeModel(merger);
         addRecalcListener(result);
         return result;

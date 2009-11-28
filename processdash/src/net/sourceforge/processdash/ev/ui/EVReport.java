@@ -282,8 +282,8 @@ public class EVReport extends CGIChartBase {
 
             if (evModel instanceof EVTaskListRollup
                     && parameters.containsKey(MERGED_PARAM)) {
-                boolean leaves = parameters.containsKey(PRESERVE_LEAVES_PARAM);
-                evModel = new EVTaskListMerged(evModel, false, leaves, null);
+                evModel = new EVTaskListMerged(evModel, false,
+                        shouldMergePreserveLeaves(), null);
             }
 
             outStream.write(XML_HEADER.getBytes("UTF-8"));
@@ -413,7 +413,7 @@ public class EVReport extends CGIChartBase {
             writeCsvColumnHeaders(columns);
         }
 
-        TreeTableModel merged = evModel.getMergedModel(false, null);
+        TreeTableModel merged = evModel.getMergedModel(false, false, null);
         EVTask root = (EVTask) merged.getRoot();
         prepCsvColumns(columns, root, root, 1);
         writeCsvRows(columns, root, 1);
@@ -1093,7 +1093,8 @@ public class EVReport extends CGIChartBase {
 
     void writeTaskTree(EVTaskList taskList, EVTaskFilter filter,
             boolean hidePlan, boolean hideForecast) throws IOException {
-        TreeTableModel tree = taskList.getMergedModel(true, filter);
+        TreeTableModel tree = taskList.getMergedModel(true,
+            shouldMergePreserveLeaves(), filter);
         HTMLTreeTableWriter writer = new HTMLTreeTableWriter();
         customizeTaskTableWriter(writer, taskList, null, hidePlan,
                 hideForecast, false);
@@ -1173,6 +1174,27 @@ public class EVReport extends CGIChartBase {
         for (int i = t.getColumnCount();  i-- > 0; )
             if (t.getColumnName(i).endsWith(" "))
                 writer.setSkipColumn(i, true);
+    }
+
+
+    private boolean shouldMergePreserveLeaves() {
+        // In a merged model, we preserve leaves if we want to see the task
+        // breakdowns by individual.  Of course, if we're hiding names in this
+        // report, there is no reason to preserve those anonymous leaves.
+        if (settings.getBool(CUSTOMIZE_HIDE_NAMES))
+            return false;
+
+        // if the user has explicitly provided a query parameter with
+        // instructions on leaf preservation, honor it.
+        if (parameters.containsKey(PRESERVE_LEAVES_PARAM)) {
+            if ("false".equals(parameters.get(PRESERVE_LEAVES_PARAM)))
+                return false;
+            else
+                return true;
+        }
+
+        // otherwise, look for a global default setting.
+        return Settings.getBool("ev.mergePreservesLeaves", true);
     }
 
 

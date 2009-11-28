@@ -30,11 +30,6 @@ public class EVTaskListMerged extends EVTaskList {
     private EVTaskListMerger merger;
 
     public EVTaskListMerged(EVTaskList tl, boolean simplify,
-            EVTaskFilter filter) {
-        this(tl, simplify, false, filter);
-    }
-
-    public EVTaskListMerged(EVTaskList tl, boolean simplify,
             boolean preserveLeaves, EVTaskFilter filter) {
         super(tl.taskListName, tl.getDisplayName(), false);
         merger = new EVTaskListMerger(tl, simplify, preserveLeaves, filter);
