@@ -66,6 +66,7 @@ Authors:
     <property name="jreInstDir" value="c:\download\java\_"/>
     <property name="jreInstExe" value="jre-6u16-windows-i586.exe"/>
     <property name="launch4j.dir" location="launch4j" />
+    <property name="compress-inst-cd-zip" value="false" />
 
     <!-- the the IZPACK home directory -->
     <property name="izpack.dir" value="IzPack"/>
@@ -261,7 +262,8 @@ ${jreInstExe}
 pdash-install-${qualifier}-${dashboard-version}.jar
 </echo>
 
-	<zip destfile="${dist}/pdash-${qualifier}-cd-${dashboard-version}.zip">
+	<zip destfile="${dist}/pdash-${qualifier}-cd-${dashboard-version}.zip"
+             compress="${compress-inst-cd-zip}">
 	    <fileset dir="files" includes="setup.exe autorun.inf"/>
 	    <zipfileset dir="."
 	        includes="cd-config.ini"
@@ -288,7 +290,7 @@ pdash-install-${qualifier}-${dashboard-version}.jar
     </target>
 
 
-    <target name="compile" depends="clean,web,offline,instructor">
+    <target name="compile" depends="clean,offline,instructor">
       <delete quiet="true" file="install-reg.xml"/>
     </target>
 
