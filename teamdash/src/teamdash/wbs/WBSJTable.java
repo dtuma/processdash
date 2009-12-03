@@ -5,6 +5,7 @@ import java.awt.Cursor;
 import java.awt.Event;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.Window;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.ClipboardOwner;
 import java.awt.datatransfer.Transferable;
@@ -34,6 +35,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JTable;
 import javax.swing.KeyStroke;
 import javax.swing.ListSelectionModel;
+import javax.swing.SwingUtilities;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
@@ -879,8 +881,9 @@ public class WBSJTable extends JTable {
             int size = nodesToDelete.size();
             String message = "Delete "+size+(size==1 ? " item":" items")+
                 " from the "+selfName+"?";
+            Window window = SwingUtilities.getWindowAncestor(WBSJTable.this);
             if (JOptionPane.showConfirmDialog
-                (WBSJTable.this, message, "Confirm Deletion",
+                (window, message, "Confirm Deletion",
                  JOptionPane.OK_CANCEL_OPTION) != JOptionPane.OK_OPTION)
                  return;
 
