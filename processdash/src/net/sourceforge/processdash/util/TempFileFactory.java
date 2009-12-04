@@ -25,9 +25,12 @@ package net.sourceforge.processdash.util;
 
 import java.io.File;
 import java.io.IOException;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Properties;
 
 /**
  * This class provides a service similar to File.createTempFile(), with two
@@ -133,6 +136,8 @@ public class TempFileFactory {
 
     public boolean useTempSubdirectory(String subdirName) {
         checkImmutable();
+        if (subdirName == null || subdirName.length() == 0)
+            return false;
         try {
             File f = File.createTempFile("tmp", ".tmp");
             f.delete();
@@ -240,6 +245,37 @@ public class TempFileFactory {
         }
 
         lastCleanupTimestamp = now;
+    }
+
+    private static TempFileFactory DEFAULT_INSTANCE = null;
+
+    public static TempFileFactory get() {
+        if (DEFAULT_INSTANCE == null) {
+            DEFAULT_INSTANCE = AccessController.doPrivileged(
+                new PrivilegedAction<TempFileFactory>() {
+                    public TempFileFactory run() {
+                        return createDefaultInstance();
+                    }});
+        }
+
+        return DEFAULT_INSTANCE;
+    }
+
+    private static TempFileFactory createDefaultInstance() {
+        Properties p = new Properties();
+        try {
+            p.load(TempFileFactory.class
+                .getResourceAsStream("TempFileFactory.properties"));
+        } catch (Exception e) {}
+
+        String qual = p.getProperty("default-temp-file-qualifier");
+        String pref = p.getProperty("default-temp-file-prefix");
+        String suff = p.getProperty("default-temp-file-suffix");
+        String subdir = p.getProperty("default-temp-file-subdir");
+        TempFileFactory result = new TempFileFactory(qual, pref, suff);
+        result.useTempSubdirectory(subdir);
+        result.markImmutable();
+        return result;
     }
 
     private static final DateFormat DATE_FMT = new SimpleDateFormat(

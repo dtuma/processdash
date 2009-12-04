@@ -51,3 +51,4 @@ net/sourceforge/processdash/ui/timingCompact.png
 net/sourceforge/processdash/ui/timingDisabledCompact.png
 net/sourceforge/processdash/util/glob/lexer/lexer.dat
 net/sourceforge/processdash/util/glob/parser/parser.dat
+net/sourceforge/processdash/util/TempFileFactory.properties
