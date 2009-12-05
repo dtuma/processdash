@@ -271,8 +271,14 @@ public class TempFileFactory {
         String qual = p.getProperty("default-temp-file-qualifier");
         String pref = p.getProperty("default-temp-file-prefix");
         String suff = p.getProperty("default-temp-file-suffix");
+        String age = p.getProperty("default-temp-file-max-age");
         String subdir = p.getProperty("default-temp-file-subdir");
         TempFileFactory result = new TempFileFactory(qual, pref, suff);
+        if (age != null) {
+            try {
+                result.setMaxAgeDays(Integer.parseInt(age));
+            } catch (Exception nfe) {}
+        }
         result.useTempSubdirectory(subdir);
         result.markImmutable();
         return result;
