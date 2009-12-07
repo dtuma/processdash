@@ -396,6 +396,8 @@ public class EVCalculatorData extends EVCalculator {
             child.replanDate = task.replanDate;
             child.forecastDate = task.forecastDate;
             child.planStartDate = task.planStartDate;
+            child.replanStartDate = task.replanStartDate;
+            child.forecastStartDate = task.forecastStartDate;
             child.cumPlanValue = task.cumPlanValue;
 
             updateBumChildrenOfEVLeaf(child);

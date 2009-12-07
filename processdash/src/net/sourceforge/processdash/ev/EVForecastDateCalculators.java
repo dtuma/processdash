@@ -1,4 +1,4 @@
-// Copyright (C) 2006-2008 Tuma Solutions, LLC
+// Copyright (C) 2006-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -299,6 +299,8 @@ public class EVForecastDateCalculators {
                 finalDate = EVCalculator.maxForecastDate(finalDate, projDate);
             }
 
+            setStartDates(schedule, evLeaves);
+
             if (finalDate == EVSchedule.A_LONG_TIME_AGO)
                 finalDate = null;
 
@@ -315,6 +317,10 @@ public class EVForecastDateCalculators {
 
         protected void setFinalDate(EVMetrics metrics, Date finalDate) {
             metrics.setForecastDate(finalDate);
+        }
+
+        protected void setStartDates(EVSchedule schedule, List evLeaves) {
+            FORECAST_START_DATE_SETTER.setStartDates(schedule, evLeaves);
         }
 
         private boolean isBadRatio(double ratio) {
@@ -364,14 +370,22 @@ public class EVForecastDateCalculators {
     public static class ScheduleTaskReplanner extends
             ScheduleTaskExtrapolation {
 
+        @Override
         protected void setFinalDate(EVMetrics metrics, Date finalDate) {
             metrics.setReplanDate(finalDate);
         }
 
+        @Override
         protected void setProjectedDate(EVTask task, Date date) {
             task.replanDate = date;
         }
 
+        @Override
+        protected void setStartDates(EVSchedule schedule, List evLeaves) {
+            REPLAN_START_DATE_SETTER.setStartDates(schedule, evLeaves);
+        }
+
+        @Override
         protected boolean usePerformanceIndexes() {
             return false;
         }
@@ -395,6 +409,9 @@ public class EVForecastDateCalculators {
         public void calculateForecastDates(EVTask taskRoot,
                 EVSchedule schedule, EVMetrics metrics, List evLeaves) {
             metrics.setReplanDate(taskRoot.getReplanDate());
+
+            FORECAST_START_DATE_SETTER.setStartDates(schedule, evLeaves);
+            REPLAN_START_DATE_SETTER.setStartDates(schedule, evLeaves);
 
             Date forecastDate = taskRoot.getForecastDate();
             if (forecastDate != null)
@@ -450,6 +467,8 @@ public class EVForecastDateCalculators {
                         }
                     }
                 }
+
+                FORECAST_START_DATE_SETTER.setStartDates(schedule, evLeaves);
             }
 
             if (finalDate == EVSchedule.NEVER)
@@ -479,6 +498,58 @@ public class EVForecastDateCalculators {
         }
 
     }
+
+
+    /**
+     * This class sets the forecast start date for each task in a list. It
+     * does this by first checking for an actual start date.  If none is
+     * present, it assumes that the task will start when the previous task
+     * finishes.
+     */
+    private static class ForecastStartDateProjection {
+
+        public void setStartDates(EVSchedule schedule, List evLeaves) {
+            Date nextStart = schedule.getStartDate();
+            for (int i = 0;  i < evLeaves.size();  i++) {
+                EVTask task = (EVTask) evLeaves.get(i);
+                Date actualStart = task.getActualStartDate();
+                Date effStart = EVCalculator.minStartDate(actualStart,
+                    nextStart);
+                setTaskStartDate(task, effStart);
+                Date endDate = getTaskEndDate(task);
+                if (endDate != null)
+                    nextStart = endDate;
+            }
+        }
+
+        protected Date getTaskEndDate(EVTask task) {
+            return task.getForecastDate();
+        }
+
+        protected void setTaskStartDate(EVTask task, Date d) {
+            task.forecastStartDate = d;
+        }
+    }
+    private static final ForecastStartDateProjection FORECAST_START_DATE_SETTER =
+        new ForecastStartDateProjection();
+
+
+    /** This class sets the replan start date for each task in a list.
+     */
+    private static class ReplanStartDateProjection extends
+            ForecastStartDateProjection {
+        @Override
+        protected Date getTaskEndDate(EVTask task) {
+            return task.getReplanDate();
+        }
+
+        @Override
+        protected void setTaskStartDate(EVTask task, Date d) {
+            task.replanStartDate = d;
+        }
+    }
+    private static final ReplanStartDateProjection REPLAN_START_DATE_SETTER =
+        new ReplanStartDateProjection();
 
 
     /**

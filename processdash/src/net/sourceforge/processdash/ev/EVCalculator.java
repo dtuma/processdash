@@ -124,6 +124,7 @@ public abstract class EVCalculator {
 
     protected static void resetNodeData(EVTask task) {
         task.planDate = task.planStartDate = task.actualStartDate =
+            task.replanStartDate = task.forecastStartDate =
             task.replanDate = task.forecastDate = null;
 
         task.planTime = task.planValue = task.cumPlanValue =
@@ -156,6 +157,10 @@ public abstract class EVCalculator {
 
             task.planStartDate =
                 minStartDate(task.planStartDate, child.planStartDate);
+            task.replanStartDate =
+                minStartDate(task.replanStartDate, child.replanStartDate);
+            task.forecastStartDate =
+                minStartDate(task.forecastStartDate, child.forecastStartDate);
             task.actualStartDate =
                 minStartDate(task.actualStartDate, child.actualStartDate);
 

@@ -28,6 +28,7 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -178,6 +179,10 @@ public class EVTask implements Cloneable, DataListener {
 
     /** The date we plan to start this task */
     Date planStartDate;
+    /** The date this task might start, based on current schedule slip */
+    Date replanStartDate;
+    /** The date this task might start, based on current forecasts */
+    Date forecastStartDate;
     /** The date we planned to start this task in the baseline schedule */
     Date baselineStartDate;
     /** The date we actually started this task */
@@ -955,12 +960,13 @@ public class EVTask implements Cloneable, DataListener {
 
     /** Returns the task IDs for all forward dependences of this task. */
     public List<String> getDependentTaskIDs() {
+        if (dependencies == null || dependencies.isEmpty())
+            return Collections.EMPTY_LIST;
+
         List<String> result = new ArrayList<String>();
-        if (dependencies != null && !dependencies.isEmpty()) {
-            for (EVTaskDependency d : dependencies) {
-                if (!d.isReverse()) {
-                    result.add(d.getTaskID());
-                }
+        for (EVTaskDependency d : dependencies) {
+            if (!d.isReverse()) {
+                result.add(d.getTaskID());
             }
         }
         return result;
@@ -1101,6 +1107,18 @@ public class EVTask implements Cloneable, DataListener {
         return planStartDate;
     }
 
+    /** Returns the approximate date this task is planned to start, based
+     * on current schedule slip. */
+    public Date getReplanStartDate() {
+        return replanStartDate;
+    }
+
+    /** Returns the approximate date this task might start, based
+     * on current forecast projections. */
+    public Date getForecastStartDate() {
+        return forecastStartDate;
+    }
+
     /** Returns the approximate date this task was planned to start in the
      * baseline saved for this schedule */
     public Date getBaselineStartDate() {
@@ -1152,7 +1170,10 @@ public class EVTask implements Cloneable, DataListener {
     }
 
     public String getPercentCompleteText() {
-        return formatIntPercent(getPercentComplete());
+        double pct = getPercentComplete();
+        if (pct > 0.994 && pct < 0.99999)
+            pct = 0.99;  // round "almost complete" down to 99%
+        return formatIntPercent(pct);
     }
 
     /** Returns the percent complete for this task and subtasks, as a number
@@ -1202,6 +1223,8 @@ public class EVTask implements Cloneable, DataListener {
 
     public void adjustDates(DateAdjuster adj) {
         planStartDate = adj.adjust(planStartDate);
+        replanStartDate = adj.adjust(replanStartDate);
+        forecastStartDate = adj.adjust(forecastStartDate);
         baselineStartDate = adj.adjust(baselineStartDate);
         actualStartDate = adj.adjust(actualStartDate);
         planDate = adj.adjust(planDate);

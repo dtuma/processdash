@@ -78,6 +78,7 @@ import net.sourceforge.processdash.ui.web.CGIChartBase;
 import net.sourceforge.processdash.ui.web.reports.ExcelReport;
 import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.HTMLUtils;
+import net.sourceforge.processdash.util.HTTPUtils;
 import net.sourceforge.processdash.util.OrderedListMerger;
 import net.sourceforge.processdash.util.StringUtils;
 
@@ -97,6 +98,7 @@ public class EVReport extends CGIChartBase {
     public static final String XML_PARAM = "xml";
     public static final String XLS_PARAM = "xls";
     public static final String CSV_PARAM = "csv";
+    static final String MS_PROJ_XML_PARAM = "msProjXml";
     public static final String MERGED_PARAM = "merged";
     public static final String PRESERVE_LEAVES_PARAM = "preserveLeaves";
     public static final String TIME_CHART = "time";
@@ -122,6 +124,7 @@ public class EVReport extends CGIChartBase {
     protected void writeHeader() {
         drawingChart = (parameters.get(CHART_PARAM) != null);
         if (parameters.get(XML_PARAM) != null
+                || parameters.get(MS_PROJ_XML_PARAM) != null
                 || parameters.get(XLS_PARAM) != null
                 || parameters.get(CSV_PARAM) != null)
             return;
@@ -188,6 +191,8 @@ public class EVReport extends CGIChartBase {
                     writeXls();
                 else if (parameters.get(CSV_PARAM) != null)
                     writeCsv();
+                else if (parameters.get(MS_PROJ_XML_PARAM) != null)
+                    writeMSProjXml();
                 else
                     writeHTML();
             } else if (TIME_CHART.equals(tableType))
@@ -395,13 +400,8 @@ public class EVReport extends CGIChartBase {
             return;
         }
 
-        DateFormat fmt = new SimpleDateFormat("dd-MMM-yyyy");
-        String filename = FileUtils.makeSafe(taskListName) + "-"
-                + fmt.format(new Date()) + ".csv";
-
-        out.print("Content-type: text/plain\r\n");
-        out.print("Content-Disposition: attachment; filename=\""
-                + filename + "\"\r\n\r\n");
+        writeContentDispositionHeader(".csv");
+        out.print("Content-type: text/plain\r\n\r\n");
 
         boolean simpleCsv = Settings.getBool("ev.simpleCsvOutput", false);
 
@@ -417,6 +417,18 @@ public class EVReport extends CGIChartBase {
         EVTask root = (EVTask) merged.getRoot();
         prepCsvColumns(columns, root, root, 1);
         writeCsvRows(columns, root, 1);
+    }
+
+    private void writeContentDispositionHeader(String filenameSuffix)
+            throws IOException {
+        DateFormat fmt = new SimpleDateFormat("yyyy-MM-dd");
+        String displayName = EVTaskList.getDisplayName(taskListName);
+        String filename = FileUtils.makeSafe(displayName) + "-"
+                + fmt.format(new Date()) + filenameSuffix;
+
+        out.flush();
+        outStream.write(("Content-Disposition: attachment; filename=\""
+                + filename + "\"\r\n").getBytes(HTTPUtils.DEFAULT_CHARSET));
     }
 
 
@@ -700,6 +712,24 @@ public class EVReport extends CGIChartBase {
         public abstract Date getNodeDate(EVTask node);
     }
 
+    /** Generate an XML document in Microsoft Project mspdi format.
+     */
+    public void writeMSProjXml() throws IOException {
+        MSProjectXmlWriter writer = new MSProjectXmlWriter();
+
+        EVTaskFilter taskFilter = settings.getEffectiveFilter(evModel);
+        EVTaskListMerged mergedModel = new EVTaskListMerged(evModel, false,
+            true, taskFilter);
+        writer.setRoot(mergedModel.getTaskRoot());
+
+        if (parameters.containsKey("showSaveAs"))
+            writeContentDispositionHeader(".xml");
+        outStream.write("Content-type: application/xml\r\n\r\n"
+                .getBytes(HTTPUtils.DEFAULT_CHARSET));
+
+        writer.write(outStream);
+        outStream.flush();
+    }
 
     // handle the storage and retrieval of customization settings.
 
