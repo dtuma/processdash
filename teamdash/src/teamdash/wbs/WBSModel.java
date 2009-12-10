@@ -641,10 +641,10 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
         return expandedNodes;
     }
 
-    public void deleteNodes(List nodesToDelete) {
-        deleteNodes(nodesToDelete, true);
+    public boolean deleteNodes(List nodesToDelete) {
+        return deleteNodes(nodesToDelete, true);
     }
-    public void deleteNodes(List nodesToDelete, boolean notify) {
+    public boolean deleteNodes(List nodesToDelete, boolean notify) {
         boolean deletionOccurred = false;
 
         List currentVisibleNodes = new ArrayList();
@@ -665,6 +665,8 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
             if (notify)
                 fireTableDataChanged();
         }
+
+        return deletionOccurred;
     }
 
     public int[] insertNodes(List nodesToInsert, int beforeRow) {

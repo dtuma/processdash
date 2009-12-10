@@ -143,7 +143,11 @@ public class WBSJTable extends JTable {
         int firstRow = wbsModel.getRowForNode((WBSNode)cutList.get(0));
         int lastRow =  wbsModel.getRowForNode
             ((WBSNode)cutList.get(cutList.size()-1));
-        wbsModel.fireTableRowsUpdated(firstRow, lastRow);
+        // An undo/redo operation will cause the cut list to become invalid,
+        // and will cause firstRow/lastRow to be -1.  Don't fire a table
+        // event in that case.
+        if (firstRow >= 0 && lastRow >= 0)
+            wbsModel.fireTableRowsUpdated(firstRow, lastRow);
         cutList = null;
     }
 
@@ -653,9 +657,17 @@ public class WBSJTable extends JTable {
                     .getNodeListFromClipboard(beforeNode);
             if (nodesToInsert == null || nodesToInsert.size() == 0) return;
 
-            if (nodesToInsert == cutList)
-                wbsModel.deleteNodes(cutList, false);
-            else
+            if (nodesToInsert == cutList) {
+                if (wbsModel.deleteNodes(cutList, false) == false) {
+                    // We asked the WBS model to delete the nodes, but nothing
+                    // was deleted, because the specified nodes were not found.
+                    // This indicates that the cut list is invalid - probably
+                    // because of an intervening undo/redo operation.  Clear
+                    // the cut list and abort.
+                    cutList = null;
+                    return;
+                }
+            } else
                 nodesToInsert = WBSNode.cloneNodeList(nodesToInsert);
             cutList = null;
 
