@@ -260,7 +260,8 @@ public class EVCalculatorData extends EVCalculator {
 
     private double calcTaskValues(List evLeaves) {
         double cumPlanValue = 0;
-        Date startDate = scheduleStartDate;
+        Date startDateA = scheduleStartDate;
+        Date startDateB = startDateA;
         Iterator i = evLeaves.iterator();
         while (i.hasNext()) {
             EVTask task = (EVTask) i.next();
@@ -275,10 +276,13 @@ public class EVCalculatorData extends EVCalculator {
                 if (task.planValue < 0) task.planValue = 0;
                 cumPlanValue += task.planValue;
                 task.cumPlanValue = cumPlanValue;
-                task.planStartDate = startDate;
                 task.planDate = schedule.getPlannedCompletionDate
                     (cumPlanValue, cumPlanValue);
-                startDate = task.planDate;
+
+                if (startDateB.before(task.planDate))
+                    startDateA = startDateB;
+                task.planStartDate = startDateA;
+                startDateB = task.planDate;
 
                 if (task.dateCompleted != null)
                     task.valueEarned = task.planValue;
