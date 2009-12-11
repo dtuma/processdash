@@ -720,8 +720,10 @@ public class EVReport extends CGIChartBase {
         EVTaskFilter taskFilter = settings.getEffectiveFilter(evModel);
         EVTaskListMerged mergedModel = new EVTaskListMerged(evModel, false,
             true, taskFilter);
-        writer.setRoot(mergedModel.getTaskRoot());
+        writer.setTaskList(mergedModel);
 
+        if (parameters.containsKey("dateStyle"))
+            writer.setDateStyle(getParameter("dateStyle"));
         if (parameters.containsKey("showSaveAs"))
             writeContentDispositionHeader(".xml");
         outStream.write("Content-type: application/xml\r\n\r\n"

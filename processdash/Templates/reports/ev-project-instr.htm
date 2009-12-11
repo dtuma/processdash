@@ -2,7 +2,6 @@
 <head>
 <title>Export to Microsoft Project - Instructions</title>
 <link rel='stylesheet' type='text/css' href='/style.css'>
-<meta http-equiv='Refresh' content='1;URL=ev.class?msProjXml&amp;showSaveAs'>
 <style>
 li.padAbove { padding-top:7px; }
 li.padBelow { padding-bottom:7px; }
@@ -15,12 +14,28 @@ li.pad { padding-top:7px; padding-bottom:7px }
 <p>This page will assist you in exporting a snapshot of your earned
 value plan to Microsoft Project.  Follow the steps below:
 
+
 <ol>
 
 <li class="padBelow">Earned value data is exported to a Microsoft Project
-XML file.  The download of this file may start automatically; if it does
-not, <a href="ev.class?msProjXml&amp;showSaveAs">click here</a>. Save this
-file onto your computer.</li>
+XML file.  To produce this file, choose from the options below. Then click
+the "Save" button to save the file to your computer.
+
+    <form method="get" action="ev.class">
+    <input type="hidden" name="msProjXml" value="t">
+    <input type="hidden" name="showSaveAs" value="t">
+
+    <table style="margin-left: 1cm; margin-top: 10px" cellspacing="6">
+    <tr><td>Pull start and finish dates from which dashboard column:</td>
+        <td><select name="dateStyle">
+	    <option>Plan</option>
+	    <option selected>Replan</option>
+	    <option>Forecast</option></select></td></tr>
+
+    <tr><td align="center"><input type="submit" name="Save" value="Save"></td></tr>
+    </table>
+    </form>
+    </li>
 
 <li class="pad">In Microsoft Project, choose &quot;File <img
 src="/help/Images/rarrow.png"> Open&quot; and select the file you

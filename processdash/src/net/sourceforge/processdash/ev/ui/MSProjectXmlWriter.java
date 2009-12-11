@@ -36,7 +36,9 @@ import java.util.Set;
 import java.util.Map.Entry;
 
 import net.sourceforge.processdash.ev.EVCalculator;
+import net.sourceforge.processdash.ev.EVSchedule;
 import net.sourceforge.processdash.ev.EVTask;
+import net.sourceforge.processdash.ev.EVTaskList;
 import net.sourceforge.processdash.util.XMLUtils;
 
 import org.xmlpull.v1.XmlSerializer;
@@ -44,14 +46,50 @@ import org.xmlpull.v1.XmlSerializer;
 
 public class MSProjectXmlWriter {
 
+    private EVTask root;
 
+    private Date statusDate;
 
-    EVTask root;
+    private GanttDateStyle dateStyle;
 
-    public MSProjectXmlWriter() {}
+    public MSProjectXmlWriter() {
+        statusDate = new Date();
+        dateStyle = GanttDateStyle.REPLAN;
+    }
+
+    public EVTask getRoot() {
+        return root;
+    }
 
     public void setRoot(EVTask root) {
         this.root = root;
+    }
+
+    public Date getStatusDate() {
+        return statusDate;
+    }
+
+    public void setStatusDate(Date statusDate) {
+        this.statusDate = statusDate;
+    }
+
+    public GanttDateStyle getDateStyle() {
+        return dateStyle;
+    }
+
+    public void setDateStyle(GanttDateStyle dateStyle) {
+        this.dateStyle = dateStyle;
+    }
+
+    public void setDateStyle(String dateStyle) {
+        try {
+            setDateStyle(GanttDateStyle.valueOf(dateStyle.toUpperCase()));
+        } catch (Exception e) {}
+    }
+
+    public void setTaskList(EVTaskList tl) {
+        setRoot(tl.getTaskRoot());
+        setStatusDate(tl.getSchedule().getEffectiveDate());
     }
 
 
@@ -198,13 +236,20 @@ public class MSProjectXmlWriter {
 
     private void writeProjectLevelData() throws IOException {
         writeBool("ScheduleFromStart", true);
-        writeStartDate("StartDate", startDate);
+        writeTruncDate("StartDate", startDate);
+        writeInt("CurrencyDigits", 0);
+        writeString("CurrencySymbol", "Hours");
+        writeInt("CurrencySymbolPosition", CURRENCY_POS_AFTER_WITH_SPACE);
         writeInt("CalendarUID", 1);
         writeString("DefaultStartTime", "00:00:00");
         writeString("DefaultFinishTime", "23:59:59");
+        writeInt("MinutesPerDay", DAY_MINUTES);
+        writeInt("MinutesPerWeek", DAY_MINUTES * 7);
+        writeInt("DaysPerMonth", 30);
         writeBool("HonorConstraints", true);
-        writeDate("CurrentDate", new Date());
-        writeInt("NewTaskStartDate", 1);
+        writeDate("StatusDate", statusDate);
+        writeDate("CurrentDate", statusDate);
+        writeInt("NewTaskStartDate", NEW_TASKS_START_ON_CURRENT_DATE);
     }
 
     private void writeCalendars() throws IOException {
@@ -275,30 +320,41 @@ public class MSProjectXmlWriter {
         writeInt("OutlineLevel", depth);
 
         if (task.isLeaf()) {
-            Date startDate = task.getReplanStartDate();
-            Date finishDate = task.getReplanDate();
+            Date startDate = filterDate(dateStyle.getStartDate(task));
+            Date finishDate = filterDate(dateStyle.getFinishDate(task));
 
             if (finishDate != null) {
-                writeStartDate("Start", startDate);
-                writeFinishDate("Finish", finishDate);
+                writeDate("Start", startDate);
+                writeDate("Finish", finishDate);
             }
 //            writeDuration("Duration", calculateDuration(startDate, finishDate));
 //            writeDuration("Work", task.getPlanTime());
             writeBool("EffortDriven", true);
             writeBool("Summary", false);
-            writeStartDate("ActualStart", task.getActualStartDate());
-            writeFinishDate("ActualFinish", task.getDateCompleted());
+            writeCost("Cost", task.getPlanDirectTime());
+            writeDate("ActualStart", task.getActualStartDate());
+            writeDate("ActualFinish", task.getDateCompleted());
+            writeCost("ActualCost", task.getActualDirectTime());
             writeInt("FixedCostAccrual", 3);
 //            writeDuration("ActualWork", task.getActualTime());
             if (finishDate != null) {
-                writeInt("ConstraintType", 6);
-                writeFinishDate("ConstraintDate", finishDate);
+                writeInt("ConstraintType", CONSTRAINT_FINISH_NO_EARLIER_THAN);
+                writeDate("ConstraintDate", finishDate);
             }
 
         } else {
             writeBool("Summary", true);
         }
         writeTaskPredecessors(task);
+        if (shouldWriteBaseline(task)) {
+            xml.startTag(null, BASELINE_TAG);
+            writeInt("Number", 0);
+            writeTruncDate("Start", task.getBaselineStartDate());
+            writeTruncDate("Finish", task.getBaselineDate());
+            writeDuration("Work", task.getPlanDirectTime());
+            writeCost("Cost", task.getPlanDirectTime());
+            xml.endTag(null, BASELINE_TAG);
+        }
 
         xml.endTag(null, TASK_TAG);
 
@@ -324,7 +380,7 @@ public class MSProjectXmlWriter {
     private void writeTaskPredecessor(int uid) throws IOException {
         xml.startTag(null, "PredecessorLink");
         writeInt("PredecessorUID", uid);
-        writeInt("Type", 1);
+        writeInt("Type", PREDECESSOR_FINISH_TO_START);
         xml.endTag(null, "PredecessorLink");
     }
 
@@ -358,10 +414,29 @@ public class MSProjectXmlWriter {
                 writeInt("UID", nextAssId++);
                 writeInt("TaskUID", taskId);
                 writeInt("ResourceUID", personId);
-                writeFinishDate("ActualFinish", task.getDateCompleted());
-                writeStartDate("ActualStart", task.getActualStartDate());
-                writeFinishDate("Finish", task.getReplanDate());
-                writeStartDate("Start", task.getReplanStartDate());
+                Date actualFinish = task.getDateCompleted();
+                writeDate("ActualFinish", actualFinish);
+                writeDate("ActualStart", task.getActualStartDate());
+//                writeDuration("ActualWork", task.getActualDirectTime()); // causes crash!
+//                if (actualFinish != null)
+//                    writeCost("ACWP", task.getActualDirectTime());
+                writeDate("Finish", filterDate(dateStyle.getFinishDate(task)));
+                writeDate("Start", filterDate(dateStyle.getStartDate(task)));
+//                writeDuration("Work", task.getPlanDirectTime()); // causes crash!
+//                if (before(task.getPlanDate(), statusDate))
+//                    writeCost("BCWS", task.getPlanDirectTime());
+//                if (actualFinish != null)
+//                    writeCost("BCWP", task.getPlanDirectTime());
+
+                if (shouldWriteBaseline(task)) {
+                    xml.startTag(null, BASELINE_TAG);
+                    writeInt("Number", 0);
+                    writeTruncDate("Start", task.getBaselineStartDate());
+                    writeTruncDate("Finish", task.getBaselineDate());
+                    writeCost("Cost", task.getPlanDirectTime());
+                    xml.endTag(null, BASELINE_TAG);
+                }
+
                 xml.endTag(null, ASSIGNMENT_TAG);
             }
         } else {
@@ -387,36 +462,51 @@ public class MSProjectXmlWriter {
     }
      */
 
-
-
-    /*
-     * Convenience routines to print various types of data.
-     */
-
-    private void writeStartDate(String tag, Date d) throws IOException {
-//        if (d != null)
-//            writeString(tag, DATE_FMT.format(d) + "T08:00:00");
-        writeDate(tag, d);
+    private boolean shouldWriteBaseline(EVTask task) {
+        if (dateStyle == GanttDateStyle.BASELINE)
+            return false;
+        else
+            return task.getBaselineDate() != null;
     }
-    private void writeFinishDate(String tag, Date d) throws IOException {
-//        if (d != null)
-//            writeString(tag, DATE_FMT.format(d) + "T16:00:00");
-        writeDate(tag, d);
+
+
+    private Date filterDate(Date d) {
+        if (d == EVSchedule.NEVER)
+            return null;
+        else
+            return d;
+    }
+
+    private void writeTruncDate(String tag, Date d) throws IOException {
+        if (d != null)
+            writeString(tag, DATE_FMT.format(d) + "T00:00:00");
     }
 
     private void writeDate(String tag, Date d) throws IOException {
         if (d != null) {
             String date = DATE_TIME_FMT.format(d);
-//            if (date.endsWith("00:00:00"))
-//                date = date.substring(0, date.length()-4) + "1:00";
             writeString(tag, date);
         }
     }
 
-//    private static final DateFormat DATE_FMT = new SimpleDateFormat(
-//            "yyyy-MM-dd");
+    private static final DateFormat DATE_FMT = new SimpleDateFormat(
+            "yyyy-MM-dd");
     private static final DateFormat DATE_TIME_FMT = new SimpleDateFormat(
             "yyyy-MM-dd'T'HH:mm:ss");
+
+    private void writeCost(String tag, double minutes) throws IOException {
+        // MS Project appears to express cost as an integer with two implied
+        // decimal points.  In our case, the units of cost are hours, so one
+        // hour is represented as "100".
+        writeInt(tag, (int) (minutes * 100 / 60.0));
+    }
+
+    /*
+    private void writeDouble(String tag, double d) throws IOException {
+        if (!Double.isInfinite(d) && !Double.isNaN(d))
+            writeString(tag, Double.toString(d));
+    }
+    */
 
     private void writeInt(String tag, int i) throws IOException {
         writeString(tag, Integer.toString(i));
@@ -454,6 +544,8 @@ public class MSProjectXmlWriter {
 
     private static final String TASK_TAG = "Task";
 
+    private static final String BASELINE_TAG = "Baseline";
+
     private static final String RESOURCES_TAG = "Resources";
 
     private static final String RESOURCE_TAG = "Resource";
@@ -467,5 +559,20 @@ public class MSProjectXmlWriter {
     private static final long MINUTE_MILLIS = 60 /*seconds*/ * 1000 /*millis*/;
 
     private static final long DAY_MILLIS = DAY_MINUTES * MINUTE_MILLIS;
+
+    /** predecessor type indicating a "finish to start" task dependency */
+    private static final int PREDECESSOR_FINISH_TO_START = 1;
+
+    /** project attribute indicating that new tasks should begin on the
+     * current date (rather than the project start date) */
+    private static final int NEW_TASKS_START_ON_CURRENT_DATE = 1;
+
+    /** project attribute indicating that the currency symbol should be
+     * displayed after a cost value, with a space between */
+    private static final int CURRENCY_POS_AFTER_WITH_SPACE = 3;
+
+    /** constraint type indicating that a task should finish no earlier
+     * that the constraint date */
+    private static final int CONSTRAINT_FINISH_NO_EARLIER_THAN = 6;
 
 }
