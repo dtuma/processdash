@@ -96,6 +96,13 @@
 
 [Export_Max_Node_Depth] = 2;
 
+/*
+ * Data elements for wbs-based ordering
+ */
+
+[Task_ID_WBS_Order] = [Synchronized_Task_ID_WBS_Order];
+[Synchronized_Task_ID_WBS_Order] = "none";
+
 
 /*
  * Calculate the list of phases to show on forms/charts/reports.

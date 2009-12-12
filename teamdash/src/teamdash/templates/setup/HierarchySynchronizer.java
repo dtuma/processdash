@@ -597,6 +597,8 @@ public class HierarchySynchronizer {
         }
     }
     private void doSync() throws HierarchyAlterationException {
+        ListData nodeOrderData = new ListData();
+        collectNodeOrderData(projectXML, nodeOrderData);
         ListData labelData = null;
         if (isTeam())
             // for a team, get label data for all nodes in a project before
@@ -634,7 +636,8 @@ public class HierarchySynchronizer {
 
         this.data = syncWorker;
 
-        putData(projectPath, LABEL_LIST_DATA_NAME, labelData);
+        forceData(projectPath, LABEL_LIST_DATA_NAME, labelData);
+        forceData(projectPath, NODE_ORDER_DATA_NAME, nodeOrderData);
 
         if (!isTeam())
             syncSchedule();
@@ -687,6 +690,19 @@ public class HierarchySynchronizer {
         List children = XMLUtils.getChildElements(node);
         for (Iterator i = children.iterator(); i.hasNext();)
             collectLabelData((Element) i.next(), dest);
+    }
+
+    private void collectNodeOrderData(Element node, ListData result) {
+        String taskIDs = node.getAttribute(TASK_ID_ATTR);
+        if (XMLUtils.hasValue(taskIDs)) {
+            for (String oneID : taskIDs.split(",")) {
+                if (XMLUtils.hasValue(oneID))
+                    result.add(oneID);
+            }
+        }
+
+        for (Element child : XMLUtils.getChildElements(node))
+            collectNodeOrderData(child, result);
     }
 
 
@@ -1119,6 +1135,8 @@ public class HierarchySynchronizer {
     private static final String ACT_TIME_DATA_NAME = "Time";
     private static final String LABEL_LIST_DATA_NAME =
         "Synchronized_Task_Labels";
+    private static final String NODE_ORDER_DATA_NAME =
+        "Synchronized_Task_ID_WBS_Order";
     private static final String TEAM_NOTE_KEY = HierarchyNoteManager.NOTE_KEY;
     private static final String TEAM_NOTE_LAST_SYNC_KEY =
         HierarchyNoteManager.NOTE_BASE_KEY;
