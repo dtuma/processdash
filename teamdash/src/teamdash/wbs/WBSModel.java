@@ -857,10 +857,10 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
     }
 
     public int[] mergeWBSModel(WBSModel srcModel, WBSNodeMerger merger,
-            WBSNodeComparator comp) {
+            WBSNodeComparator comp, boolean reorderNodes) {
         List insertedNodes = new ArrayList();
         mergeWBSModel(srcModel, srcModel.getRoot(), this, this.getRoot(),
-                merger, comp, insertedNodes);
+                merger, comp, reorderNodes, insertedNodes);
 
         recalcRows(false);
         fireTableDataChanged();
@@ -870,15 +870,16 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
     private static void mergeWBSModel(WBSModel srcModel, WBSNode srcNode,
             WBSModel destModel, WBSNode destNode,
             WBSNodeMerger merger, WBSNodeComparator comp,
-            List insertedNodes) {
+            boolean reorderNodes, List insertedNodes) {
 
         WBSNode[] srcChildren = srcModel.getChildren(srcNode);
         WBSNode[] destChildren = destModel.getChildren(destNode);
 
         boolean[] destMatched = new boolean[destChildren.length];
         Arrays.fill(destMatched, false);
+        WBSNode lastMergedDestChild = null;
 
-        for (int i = 0; i < srcChildren.length; i++) {
+        for (int i = srcChildren.length; i-- > 0; ) {
             WBSNode srcChild = srcChildren[i];
             String srcChildName = srcChild.getName();
             if (srcChildName == null || srcChildName.trim().length() == 0)
@@ -894,7 +895,27 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
                     if (merger != null)
                         merger.mergeNodes(srcChild, destChild);
                     mergeWBSModel(srcModel, srcChild, destModel, destChild,
-                            merger, comp, insertedNodes);
+                            merger, comp, reorderNodes, insertedNodes);
+
+                    // if the newly merged child is out of order, reorder it.
+                    if (reorderNodes && lastMergedDestChild != null) {
+                        int destChildPos = destModel.wbsNodes
+                                .indexOf(destChild);
+                        int lastMergedChildPos = destModel.wbsNodes
+                                .indexOf(lastMergedDestChild);
+                        if (destChildPos > lastMergedChildPos) {
+                            int destChildEnd = getLastDescendantPos(destModel,
+                                destChild);
+                            List destChildNodes = destModel.wbsNodes.subList(
+                                destChildPos, destChildEnd + 1);
+                            List nodesToMove = new ArrayList(destChildNodes);
+                            destChildNodes.clear();
+                            destModel.wbsNodes.addAll(lastMergedChildPos,
+                                nodesToMove);
+                        }
+                    }
+
+                    lastMergedDestChild = destChild;
                     break;
                 }
             }
@@ -905,17 +926,22 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
                         .asList(srcDescendants));
                 nodesToInsert.add(0, srcChild.clone());
 
-                int destPos = destModel.wbsNodes.indexOf(destNode);
-                int insertAfter = destPos;
+                int insertBefore;
+                if (lastMergedDestChild == null) {
+                    // if this is the last child to merge, insert it at the end
+                    // of the list, after all other children of the dest parent.
+                    insertBefore = getLastDescendantPos(destModel, destNode) + 1;
+                } else {
+                    // if we've already merged a subsequent sibling, insert this
+                    // child immediately before it
+                    insertBefore = destModel.wbsNodes.indexOf(lastMergedDestChild);
+                }
 
-                IntList destDescendants = destModel.getDescendantIndexes(
-                        destNode, destPos);
-                if (destDescendants != null && destDescendants.size() > 0)
-                    insertAfter = destDescendants.get(destDescendants.size() - 1);
-
-                destModel.wbsNodes.addAll(insertAfter + 1,
+                destModel.wbsNodes.addAll(insertBefore,
                         destModel.prepareNodesForInsertion(nodesToInsert));
                 insertedNodes.addAll(nodesToInsert);
+
+                lastMergedDestChild = (WBSNode) nodesToInsert.get(0);
             }
         }
 
@@ -924,6 +950,17 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
                 if (destMatched[j] == false)
                     mergeUnmatchedNodes(destModel, destChildren[j], merger);
         }
+    }
+
+    private static int getLastDescendantPos(WBSModel model, WBSNode node) {
+        int pos = model.wbsNodes.indexOf(node);
+        if (pos == -1)
+            return -1;
+        IntList descendants = model.getDescendantIndexes(node, pos);
+        if (descendants == null || descendants.size() == 0)
+            return pos;
+        else
+            return descendants.get(descendants.size() - 1);
     }
 
     private static void mergeUnmatchedNodes(WBSModel destModel,

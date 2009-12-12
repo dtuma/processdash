@@ -85,7 +85,7 @@ public class MasterWBSUtil {
         // copy everything else
         return dest.mergeWBSModel(working,
                 new MasterNodeMerger(extraMasterAttrs),
-                MASTER_NODE_COMPARATOR);
+                MASTER_NODE_COMPARATOR, true);
     }
 
 
@@ -163,7 +163,8 @@ public class MasterWBSUtil {
                 subprojectID, subprojectInitials, teamMemberInitials,
                 useShortNamesInRollup);
         visitWBS(working, worker);
-        return dest.mergeWBSModel(working, worker, MASTER_NODE_COMPARATOR);
+        return dest.mergeWBSModel(working, worker, MASTER_NODE_COMPARATOR,
+            false);
     }
 
     private static class SubprojectNodeTweaker implements WBSNodeVisitor, WBSNodeMerger {
