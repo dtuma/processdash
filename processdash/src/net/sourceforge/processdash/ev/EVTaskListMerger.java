@@ -39,6 +39,7 @@ import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.Map.Entry;
 import java.util.logging.Logger;
 
 import net.sourceforge.processdash.util.LightweightSet;
@@ -76,6 +77,8 @@ public class EVTaskListMerger {
 
     private Map nodesMerged;
 
+    private WBSTaskOrderComparator wbsTaskOrderComparator;
+
     /** Create and calculate a merged task model for the given task list.
      */
     public EVTaskListMerger(EVTaskList taskList, boolean simplify,
@@ -86,6 +89,7 @@ public class EVTaskListMerger {
         this.filter = filter;
         this.mergedRoot = new EVTask(taskList.getRootName());
         this.mergedRoot.flag = TASK_LIST_FLAG;
+        this.wbsTaskOrderComparator = WBSTaskOrderComparator.getInstance();
         recalculate();
     }
 
@@ -458,15 +462,17 @@ public class EVTaskListMerger {
         List rootChildren = findChildrenOfKey(allTaskKeys, null);
 
         // compute the names of each root child, and use a TreeMap to put
-        // them in alphabetical order.
-        SortedMap rootChildMap = new TreeMap();
+        // them in the appropriate order.
+        Map<String, TaskKey> rootChildNameMap = new HashMap();
+        SortedMap<SortableTaskName, TaskKey> rootChildMap = new TreeMap();
         for (Iterator i = rootChildren.iterator(); i.hasNext();) {
             TaskKey rootChild = (TaskKey) i.next();
-            String rootChildName = getRootChildName(rootChild);
-            TaskKey existingChild = (TaskKey) rootChildMap.get(rootChildName);
-            if (existingChild == null)
-                rootChildMap.put(rootChildName, rootChild);
-            else
+            SortableTaskName rootChildSorter = getNameForRootTask(rootChild);
+            TaskKey existingChild = rootChildNameMap.get(rootChildSorter.name);
+            if (existingChild == null) {
+                rootChildNameMap.put(rootChildSorter.name, rootChild);
+                rootChildMap.put(rootChildSorter, rootChild);
+            } else
                 // we seem to have found two root children that want to share
                 // the same root name!  This should be an extremely uncommon
                 // scenario, but for consistency with the other merging
@@ -474,16 +480,18 @@ public class EVTaskListMerger {
                 // couldn't catch this earlier, because we use a different
                 // algorithm for computing the names of root children than we
                 // do for the rest of the tree.)
+                //     For now, we will not merge the new task IDs into the
+                // existing SortableTaskName, because that could produce
+                // issues with circular sorting
                 mergeSiblings(allTaskKeys, existingChild, rootChild);
         }
 
         // now, actually create the root children.  Grandchildren and all
         // other descendents will be created recursively.
-        for (Iterator i = rootChildMap.entrySet().iterator(); i.hasNext();) {
-            Map.Entry e = (Map.Entry) i.next();
-            String rootChildName = (String) e.getKey();
+        for (Entry<SortableTaskName, TaskKey> e : rootChildMap.entrySet()) {
+            SortableTaskName rootChildSorter = e.getKey();
             TaskKey rootChild = (TaskKey) e.getValue();
-            addChild(mergedRoot, rootChild, rootChildName, allTaskKeys);
+            addChild(mergedRoot, rootChild, rootChildSorter.name, allTaskKeys);
         }
 
         // recalculate the metrics on the merged root node.
@@ -693,7 +701,8 @@ public class EVTaskListMerger {
     private SortableTaskName getNameForSubtask(TaskKey key) {
         // choose a name for this subtask
         String name = getNodeName(key);
-        SortableTaskName result = new SortableTaskName(name);
+        Set taskIDs = key.getTaskIDs();
+        SortableTaskName result = new SortableTaskName(name, taskIDs);
 
         // calculate an "ordinal" for this subtask.  Generally, we want nodes
         // that always appear early in EV schedules to appear early in our
@@ -737,6 +746,26 @@ public class EVTaskListMerger {
             Collections.sort(bestNames);
         // return a name to our caller
         return (String) bestNames.get(0);
+    }
+
+    private SortableTaskName getNameForRootTask(TaskKey key) {
+        String name = getRootChildName(key);
+        Set taskIDs = key.getTaskIDs();
+        SortableTaskName result = new SortableTaskName(name, taskIDs);
+
+        // Calculate an "ordinal" for this root task.  The ordinal will
+        // be based upon its relative position in the original task list
+        // (the one that we are merging). If the task appears early in that
+        // task list, it will receive a low number; if it appears later, it
+        // will receive a higher number.
+        //    This ordinal will only be used when two root tasks do not
+        // appear in the same WBS together.  (For example, if someone created
+        // an EV rollup of unrelated projects that did not belong to a common
+        // master project.)  In that scenario, we try to put the nodes in the
+        // same order that the user did when they created their rollup.
+        result.ordinal = getDepthFirstOrdinal(taskIDs, taskList.getTaskRoot());
+
+        return result;
     }
 
     /** Determine the name that should be used to represent a root child.
@@ -847,6 +876,31 @@ public class EVTaskListMerger {
                 .first();
         bestIDs = findKeysWithValue(taskIDPositions, bestPos);
         return bestIDs;
+    }
+
+    private int getDepthFirstOrdinal(Set<String> lookForTaskIDs, EVTask root) {
+        int result = -1;
+        if (lookForTaskIDs != null && !lookForTaskIDs.isEmpty() && root != null)
+            result = getDepthFirstOrdinal(lookForTaskIDs, root, -1);
+        return (result < 0 ? Integer.MAX_VALUE : result);
+    }
+
+    private int getDepthFirstOrdinal(Set<String> lookForTaskIDs, EVTask t,
+            int ordinal) {
+        List<String> taskIDs = t.getTaskIDs();
+        if (taskIDs != null) {
+            for (String id : taskIDs)
+                if (lookForTaskIDs.contains(id))
+                    return 0 - ordinal;
+        }
+        ordinal--;
+        for (int i = 0;  i < t.getNumChildren();  i++) {
+            ordinal = getDepthFirstOrdinal(lookForTaskIDs, t.getChild(i),
+                ordinal);
+            if (ordinal > 0)
+                return ordinal;
+        }
+        return ordinal;
     }
 
 
@@ -1084,14 +1138,25 @@ public class EVTaskListMerger {
 
         public String name;
 
+        public Set<String> taskIDs;
+
         public int ordinal;
 
-        public SortableTaskName(String name) {
+        public SortableTaskName(String name, Set<String> taskIDs) {
             this.name = name;
+            this.taskIDs = taskIDs;
         }
 
         public int compareTo(Object o) {
             SortableTaskName that = (SortableTaskName) o;
+
+            if (wbsTaskOrderComparator != null) {
+                Integer wbsCompare = wbsTaskOrderComparator.compare(
+                    this.taskIDs, that.taskIDs);
+                if (wbsCompare != null)
+                    return wbsCompare;
+            }
+
             if (this.ordinal == that.ordinal)
                 return this.name.compareTo(that.name);
             else

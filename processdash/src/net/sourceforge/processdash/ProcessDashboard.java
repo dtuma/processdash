@@ -84,6 +84,7 @@ import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.data.repository.InvalidDatafileFormat;
 import net.sourceforge.processdash.ev.EVTaskDependencyResolver;
+import net.sourceforge.processdash.ev.WBSTaskOrderComparator;
 import net.sourceforge.processdash.ev.ui.DependencyIndicator;
 import net.sourceforge.processdash.hier.ActiveTaskModel;
 import net.sourceforge.processdash.hier.DashHierarchy;
@@ -526,6 +527,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         pt.click("Refreshed time log metrics");
 
         EVTaskDependencyResolver.init(this);
+        WBSTaskOrderComparator.init(this);
 
         taskNav = new TaskNavigationSelector
             (this, hierarchy_menubar, activeTaskModel);
