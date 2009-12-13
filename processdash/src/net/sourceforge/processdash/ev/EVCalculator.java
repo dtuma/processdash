@@ -166,7 +166,7 @@ public abstract class EVCalculator {
 
             task.planDate = maxPlanDate(task.planDate, child.planDate);
 
-            if (child.planValue > 0) {
+            if (child.isValuePruned() == false) {
                 replanDate = maxForecastDate(replanDate, child.replanDate);
                 forecastDate = maxForecastDate(forecastDate, child.forecastDate);
             }
