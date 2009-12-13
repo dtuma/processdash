@@ -1,4 +1,4 @@
-// Copyright (C) 2005-2007 Tuma Solutions, LLC
+// Copyright (C) 2005-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -271,9 +271,34 @@ public class TimeLogTableModel extends AbstractTableModel implements
             return;
 
         long nextID = timeLog.getNextID();
-        ChangeFlaggedTimeLogEntry addition = new TimeLogEntryVO(nextID, path, new Date(), 0,
-                0, null, ChangeFlagged.ADDED);
+        ChangeFlaggedTimeLogEntry addition = new TimeLogEntryVO(nextID, path,
+                getDefaultDateForNewRow(), 0, 0, null, ChangeFlagged.ADDED);
         timeLog.addModification(addition);
+    }
+
+    private Date getDefaultDateForNewRow() {
+        // By default, we create new time log entries with the current date.
+        Date result = new Date();
+
+        // However, if the user has a filter in effect and the filter does
+        // not encompass the current date, it probably means they are trying
+        // to repair time log entries for some date in the past.  We should
+        // use a date that falls within the bounds of that filter period.
+        //    If the user has both a start date and an end date set, this
+        // logic will use the start date.  If they only have an end date set,
+        // this will select a date one hour before that end date.
+        //    No changes will be made if a filter is not in effect, or if the
+        // current time already falls within the filter.
+        if (filterEnd != null && result.after(filterEnd)) {
+            if (filterStart != null)
+                result = filterStart;
+            else
+                result = new Date(filterEnd.getTime() - HOUR_MILLIS);
+        }
+        if (filterStart != null && result.before(filterStart)) {
+            result = filterStart;
+        }
+        return result;
     }
 
     public void summarizeRows() {
@@ -411,4 +436,6 @@ public class TimeLogTableModel extends AbstractTableModel implements
         }
         return -1;
     }
+
+    private static final int HOUR_MILLIS = 60 /*minutes*/ * 60 /*seconds*/ * 1000 /*millis*/;
 }
