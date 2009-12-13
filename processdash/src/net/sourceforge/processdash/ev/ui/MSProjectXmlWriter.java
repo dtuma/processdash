@@ -35,6 +35,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Map.Entry;
 
+import net.sourceforge.processdash.data.DataContext;
+import net.sourceforge.processdash.data.ListData;
 import net.sourceforge.processdash.ev.EVCalculator;
 import net.sourceforge.processdash.ev.EVSchedule;
 import net.sourceforge.processdash.ev.EVTask;
@@ -46,6 +48,8 @@ import org.xmlpull.v1.XmlSerializer;
 
 public class MSProjectXmlWriter {
 
+    private DataContext metadata;
+
     private EVTask root;
 
     private Date statusDate;
@@ -55,6 +59,10 @@ public class MSProjectXmlWriter {
     public MSProjectXmlWriter() {
         statusDate = new Date();
         dateStyle = GanttDateStyle.REPLAN;
+    }
+
+    public void setMetadata(DataContext metadata) {
+        this.metadata = metadata;
     }
 
     public EVTask getRoot() {
@@ -98,21 +106,15 @@ public class MSProjectXmlWriter {
 
     private Date startDate;
 
-    private int nextUid;
-    private int nextResId;
-    private int nextAssId;
+    private UidMapper taskUidMapper;
+
+    private UidMapper personUidMapper;
 
     private Map<EVTask, Integer> tasksByObject;
 
-    private Map<Integer, EVTask> tasksByUid;
+    private Map<String, EVTask> tasksByKey;
 
     private Map<String, Integer> tasksByTid;
-
-    private Map<String, Integer> resourcesByName;
-
-    private Map<Integer, String> resourcesByID;
-
-    private Map<String, Integer> calendarsByResource;
 
     public void write(OutputStream out) throws IOException {
         xml = XMLUtils.getXmlSerializer(true);
@@ -123,6 +125,7 @@ public class MSProjectXmlWriter {
         xml.attribute(null, "xmlns", MS_PROJECT_NAMESPACE);
 
         prepareData();
+
         writeProjectLevelData();
         writeCalendars();
         writeTaskData();
@@ -137,17 +140,19 @@ public class MSProjectXmlWriter {
 
     private void prepareData() {
         startDate = new Date();
-        nextUid = nextResId = nextAssId = 1;
+        taskUidMapper = new UidMapper(TASK_MAP_KEY);
+        personUidMapper = new UidMapper(PERSON_MAP_KEY);
         tasksByObject = new HashMap();
-        tasksByUid = new HashMap();
+        tasksByKey = new HashMap();
         tasksByTid = new HashMap();
-        resourcesByName = new HashMap();
-        resourcesByID = new HashMap();
         scanForGlobalData(root);
+        taskUidMapper.save();
+        personUidMapper.save();
         startDate = new Date(startDate.getTime() - DAY_MILLIS);
     }
 
     private void scanForGlobalData(EVTask task) {
+        addResources(task.getAssignedTo());
         assignTaskUid(task);
 
         checkStartDate(task.getBaselineStartDate());
@@ -156,63 +161,61 @@ public class MSProjectXmlWriter {
         checkStartDate(task.getForecastStartDate());
         checkStartDate(task.getActualStartDate());
 
-        addResources(task.getAssignedTo());
-
         for (int i = 0;  i < task.getNumChildren(); i++)
             scanForGlobalData(task.getChild(i));
     }
 
     private void assignTaskUid(EVTask task) {
         if (!tasksByObject.containsKey(task)) {
-            /*
-            int id = 0;
-            List<String> s = task.getTaskIDs();
-            if (s != null && !s.isEmpty())
-                id = extractTaskId(s.get(0));
-            EVTask other = tasksByUid.get(id);
-            if (other != null || id == 0) {
-                if (other == task.getParent())
-                    id = Math.abs(id + task.getAssignedToText().hashCode());
-                else
-                    id = task.getFullName().hashCode();
+            boolean shouldRegisterTaskIDs = false;
+
+            String taskKey;
+            List<String> taskIDs = task.getTaskIDs();
+            if (taskIDs != null && !taskIDs.isEmpty()) {
+                taskKey = taskIDs.get(0);
+                shouldRegisterTaskIDs = true;
+            } else {
+                taskKey = task.getFullName();
             }
-            if (id == 0 || tasksByUid.containsKey(id)) {
-                do
-                    id++;
-                while (tasksByUid.containsKey(id));
+            String keyToUse = taskKey;
+
+            EVTask other = tasksByKey.get(taskKey);
+            if (other != null) {
+                shouldRegisterTaskIDs = false;
+                if (other == task.getParent()) {
+                    String who = task.getAssignedToText();
+                    int personId = personUidMapper.getIdNoCreate(who);
+                    if (personId > 0) {
+                        keyToUse = taskKey = taskKey + ";" + personId;
+                        other = tasksByKey.get(taskKey);
+                    }
+                }
+                int num = 2;
+                while (other != null) {
+                    keyToUse = taskKey + "#" + num++;
+                    other = tasksByKey.get(keyToUse);
+                }
             }
-            */
-            int id = nextUid++;
+
+            int id = taskUidMapper.getId(keyToUse);
             tasksByObject.put(task, id);
-            tasksByUid.put(id, task);
-            registerTaskIds(task, id);
+            tasksByKey.put(keyToUse, task);
+            if (shouldRegisterTaskIDs)
+                registerTaskIds(task, id);
         }
     }
-
-    /*
-    private int extractTaskId(String tid) {
-        if (tid == null || tid.length() == 0)
-            return 0;
-        if (tid.startsWith("TL-"))
-            return parseAlpha(tid.substring(3, tid.indexOf('.')));
-        else if (tid.endsWith(":root"))
-            return parseAlpha(tid.substring(0, tid.length()-5));
-        else if (tid.indexOf(':') != -1)
-            return Integer.parseInt(tid.substring(tid.indexOf(':')+1));
-        else
-            return 0;
-    }
-
-    private int parseAlpha(String s) {
-        return (int) (Long.parseLong(s, Character.MAX_RADIX) & 0xfffffff);
-    }
-    */
 
     private void registerTaskIds(EVTask task, int uid) {
         List<String> taskIDs = task.getTaskIDs();
         if (taskIDs != null) {
             for (String oneTaskId : taskIDs) {
-                tasksByTid.put(oneTaskId, uid);
+                Integer oldVal = tasksByTid.put(oneTaskId, uid);
+                // don't overwrite task ID mappings! They probably belong to
+                // a parent, whose mapping takes priority.  If we detect that
+                // we just overwrote a mapping (shouldn't happen), restore
+                // the original value
+                if (oldVal != null)
+                    tasksByTid.put(oneTaskId, oldVal);
             }
         }
     }
@@ -225,11 +228,7 @@ public class MSProjectXmlWriter {
     private void addResources(List<String> assignedTo) {
         if (assignedTo != null) {
             for (String oneName : assignedTo) {
-                if (!resourcesByName.containsKey(oneName)) {
-                    int uid = nextResId++;
-                    resourcesByID.put(uid, oneName);
-                    resourcesByName.put(oneName, uid);
-                }
+                personUidMapper.getId(oneName);
             }
         }
     }
@@ -278,11 +277,9 @@ public class MSProjectXmlWriter {
         xml.endTag(null, CALENDAR_TAG);
 
         // write a calendar for each individual
-        calendarsByResource = new HashMap();
-        int nextCalendarId = 2;
-        for (String resourceName : resourcesByName.keySet()) {
-            int calId = nextCalendarId++;
-            calendarsByResource.put(resourceName, calId);
+        for (Entry<String, Integer> e : personUidMapper.cache.entrySet()) {
+            String resourceName = e.getKey();
+            int calId = getCalendarUid(e.getValue());
             xml.startTag(null, CALENDAR_TAG);
             writeInt("UID", calId);
             writeString("Name", resourceName);
@@ -386,16 +383,16 @@ public class MSProjectXmlWriter {
 
     private void writeResourceData() throws IOException {
         xml.startTag(null, RESOURCES_TAG);
-        for (Entry<Integer, String> s : resourcesByID.entrySet())
+        for (Entry<String, Integer> s : personUidMapper.cache.entrySet())
             writeResourceData(s.getKey(), s.getValue());
         xml.endTag(null, RESOURCES_TAG);
     }
 
-    private void writeResourceData(Integer uid, String name) throws IOException {
+    private void writeResourceData(String name, Integer uid) throws IOException {
         xml.startTag(null, RESOURCE_TAG);
         writeInt("UID", uid);
         writeString("Name", name);
-        writeInt("CalendarUID", calendarsByResource.get(name));
+        writeInt("CalendarUID", getCalendarUid(uid));
         xml.endTag(null, RESOURCE_TAG);
     }
 
@@ -411,7 +408,7 @@ public class MSProjectXmlWriter {
             int personId = getPersonUid(task.getAssignedToText());
             if (personId > 0) {
                 xml.startTag(null, ASSIGNMENT_TAG);
-                writeInt("UID", nextAssId++);
+                writeInt("UID", taskId);
                 writeInt("TaskUID", taskId);
                 writeInt("ResourceUID", personId);
                 Date actualFinish = task.getDateCompleted();
@@ -449,8 +446,10 @@ public class MSProjectXmlWriter {
         return tasksByObject.get(task);
     }
     private int getPersonUid(String name) {
-        Integer result = resourcesByName.get(name);
-        return (result == null ? -1 : result);
+        return personUidMapper.getIdNoCreate(name);
+    }
+    private int getCalendarUid(int personUid) {
+        return personUid + 1;
     }
 
     /*
@@ -529,6 +528,56 @@ public class MSProjectXmlWriter {
         xml.endTag(null, tag);
     }
 
+    private class UidMapper {
+
+        String key;
+
+        private int initialVal;
+
+        ListData strings;
+
+        Map<String, Integer> cache;
+
+        boolean dirty;
+
+        public UidMapper(String key) {
+            this.key = key;
+            this.initialVal = 1;
+            if (metadata != null)
+                this.strings = ListData.asListData(metadata.getValue(key));
+            if (this.strings == null)
+                this.strings = new ListData();
+
+            this.cache = new HashMap<String, Integer>();
+            for (int i = 0;  i < strings.size();  i++)
+                cache.put((String) strings.get(i), i + initialVal);
+            this.dirty = false;
+        }
+
+        public int getId(String s) {
+            Integer result = cache.get(s);
+            if (result == null) {
+                result = strings.size() + initialVal;
+                strings.add(s);
+                cache.put(s, result);
+                dirty = true;
+            }
+            return result;
+        }
+
+        public int getIdNoCreate(String s) {
+            Integer result = cache.get(s);
+            return (result == null ? -1 : result);
+        }
+
+        public void save() {
+            if (dirty && metadata != null) {
+                metadata.putValue(key, strings);
+                dirty = false;
+            }
+        }
+
+    }
 
     private static final String ENCODING = "UTF-8";
 
@@ -574,5 +623,9 @@ public class MSProjectXmlWriter {
     /** constraint type indicating that a task should finish no earlier
      * that the constraint date */
     private static final int CONSTRAINT_FINISH_NO_EARLIER_THAN = 6;
+
+    private static final String TASK_MAP_KEY = "Task_ID_Map";
+
+    private static final String PERSON_MAP_KEY = "Person_ID_Map";
 
 }

@@ -722,6 +722,10 @@ public class EVReport extends CGIChartBase {
             true, taskFilter);
         writer.setTaskList(mergedModel);
 
+        String taskListID = evModel.getID();
+        String metadataPrefix = "/Task-Schedule-MS-Project/" + taskListID;
+        writer.setMetadata(getDataRepository().getSubcontext(metadataPrefix));
+
         if (parameters.containsKey("dateStyle"))
             writer.setDateStyle(getParameter("dateStyle"));
         if (parameters.containsKey("showSaveAs"))
