@@ -140,14 +140,13 @@ public class WBSJTable extends JTable {
     public void cancelCut() {
         if (cutList == null || cutList.size() == 0) return;
 
-        int firstRow = wbsModel.getRowForNode((WBSNode)cutList.get(0));
-        int lastRow =  wbsModel.getRowForNode
-            ((WBSNode)cutList.get(cutList.size()-1));
+        int[] rowBounds = getVisibleRowBounds(cutList);
         // An undo/redo operation will cause the cut list to become invalid,
-        // and will cause firstRow/lastRow to be -1.  Don't fire a table
-        // event in that case.
-        if (firstRow >= 0 && lastRow >= 0)
-            wbsModel.fireTableRowsUpdated(firstRow, lastRow);
+        // and will cause firstRow/lastRow to be -1.  In addition, these
+        // numbers will be -1 if the cut items are all hidden under a
+        // collapsed node.  Don't fire a table event in those situations.
+        if (rowBounds[0] >= 0 && rowBounds[1] >= 0)
+            wbsModel.fireTableRowsUpdated(rowBounds[0], rowBounds[1]);
         cutList = null;
     }
 
@@ -366,6 +365,36 @@ public class WBSJTable extends JTable {
         }
 
         return nodeIDs;
+    }
+
+    /**
+     * Find the first and last visible rows for a particular list of nodes.
+     * 
+     * @param nodes a list of nodes from the WBS. The nodes in this array must
+     *    be in the same order that they appear in the WBS.
+     * @return an array of size 2. The first element will be the first visible
+     *    row number, and the second element will be the last visible row
+     *    number.  If none of the rows are visible, both elements of the
+     *    array will be -1
+     */
+    private int[] getVisibleRowBounds(List nodes) {
+        int[] result = new int[2];
+        result[0] = result[1] = -1;
+        for (int i = 0;  i < nodes.size();  i++) {
+            int row = wbsModel.getRowForNode((WBSNode) nodes.get(i));
+            if (row != -1) {
+                result[0] = row;
+                break;
+            }
+        }
+        for (int i = nodes.size();  i-- > 0; ) {
+            int row = wbsModel.getRowForNode((WBSNode) nodes.get(i));
+            if (row != -1) {
+                result[1] = row;
+                break;
+            }
+        }
+        return result;
     }
 
     private interface EnablementCalculation {
