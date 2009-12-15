@@ -25,3 +25,8 @@ grant signedBy "sun-javahelp-permissions" {
     permission java.awt.AWTPermission "showWindowWithoutWarningBanner";
     permission java.lang.RuntimePermission "queuePrintJob";
 };
+
+grant signedBy "sun-javahelp-permissions-2" {
+    permission java.awt.AWTPermission "showWindowWithoutWarningBanner";
+    permission java.lang.RuntimePermission "queuePrintJob";
+};
