@@ -75,9 +75,13 @@ public class TeamMemberList extends AbstractTableModel implements EffortCalendar
      * field controls how many weeks are represented in that slice. */
     private int columnCount = FIRST_WEEK_COLUMN+1;
 
+    /** This field is set to true when this TeamMemberList has pending
+     * changes */
+    private boolean isDirty;
 
     /** Creates an empty team member list. */
     public TeamMemberList() {
+        isDirty = false;
         startOnDayOfWeek = Calendar.SUNDAY;
         referenceDate = new Date();
         weekOffset = getDefaultWeekOffset();
@@ -110,6 +114,8 @@ public class TeamMemberList extends AbstractTableModel implements EffortCalendar
 
         // determine what date to scroll to initially
         weekOffset = getDefaultWeekOffset();
+
+        isDirty = false;
     }
 
     /** Create a cloned copy of the given team member list */
@@ -119,6 +125,7 @@ public class TeamMemberList extends AbstractTableModel implements EffortCalendar
         this.startOnDayOfWeek = list.startOnDayOfWeek;
         this.referenceDate = list.referenceDate;
         this.weekOffset = getDefaultWeekOffset();
+        this.isDirty = false;
         recalcZeroDay();
     }
 
@@ -136,6 +143,8 @@ public class TeamMemberList extends AbstractTableModel implements EffortCalendar
 
     public void setStartOnDayOfWeek(int startOnDayOfWeek) {
         this.startOnDayOfWeek = startOnDayOfWeek;
+        isDirty = true;
+        fireTableDataChanged();
         recalcZeroDay();
     }
 
@@ -154,6 +163,14 @@ public class TeamMemberList extends AbstractTableModel implements EffortCalendar
     public void setWeekOffset(int offset) {
         this.weekOffset = offset;
         fireTableDataChanged();
+    }
+
+    public void setDirty(boolean dirty) {
+        isDirty = dirty;
+    }
+
+    public boolean isDirty() {
+        return isDirty;
     }
 
     /** Add an empty team member to the bottom of the list if the last member
@@ -322,6 +339,8 @@ public class TeamMemberList extends AbstractTableModel implements EffortCalendar
     public void setValueAt(Object aValue, int row, int column) {
         if (isReadOnly())
             return;
+
+        isDirty = true;
 
         TeamMember m = get(row);
         switch (column) {

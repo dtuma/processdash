@@ -18,13 +18,15 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
 
 import teamdash.SaveListener;
 
 
 /** A graphical user interface for editing the list of team members.
  */
-public class TeamMemberListEditor implements WindowListener {
+public class TeamMemberListEditor implements WindowListener, TableModelListener {
 
     /** The list of team members we are editing. */
     private TeamMemberList teamMemberList;
@@ -34,10 +36,13 @@ public class TeamMemberListEditor implements WindowListener {
     private JTable table;
     /** The frame containing/displaying the editor  */
     private JFrame frame;
+    /** The Save button */
+    private JButton saveButton;
 
 
     public TeamMemberListEditor(String projectName, TeamMemberList teamList) {
         teamMemberList = new TeamMemberList(orig = teamList);
+        teamMemberList.addTableModelListener(this);
         teamMemberList.maybeAddEmptyRow();
         table = new TeamMemberListTable(teamMemberList);
         JPanel buttons = buildButtons();
@@ -45,7 +50,9 @@ public class TeamMemberListEditor implements WindowListener {
         frame = new JFrame(projectName + " - Team Members");
         frame.getContentPane().add(makeScrollPane(table));
         frame.getContentPane().add(buttons, BorderLayout.SOUTH);
-        frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+
+        frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+
         frame.addWindowListener(this);
         frame.setSize(670, 200);
         frame.setVisible(true);
@@ -60,6 +67,7 @@ public class TeamMemberListEditor implements WindowListener {
     }
 
     public void hide() {
+        saveButton.setEnabled(teamMemberList.isDirty());
         frame.setVisible(false);
     }
 
@@ -119,6 +127,7 @@ public class TeamMemberListEditor implements WindowListener {
         // notify any listeners
         fireItemSaved();
 
+        teamMemberList.setDirty(false);
         return true;
     }
 
@@ -128,8 +137,43 @@ public class TeamMemberListEditor implements WindowListener {
         // revert back to the original version of the team member list.
         teamMemberList.copyFrom(orig);
 
+        teamMemberList.setDirty(false);
+
         // notify any listeners
         fireItemCancelled();
+    }
+
+    public void confirmClose() {
+        if (teamMemberList.isReadOnly()) {
+            hide();
+            return;
+        }
+
+        boolean shouldHide = false;
+
+        if (teamMemberList.isDirty()) {
+            int choice =
+                JOptionPane.showConfirmDialog(
+                    frame,
+                    "Unsaved changes have been made. Do you want to save " +
+                    "them before closing the Team Members List Editor?",
+                    "Save Changes",
+                    JOptionPane.YES_NO_CANCEL_OPTION);
+
+            if (choice == JOptionPane.YES_OPTION) {
+                shouldHide = save();
+            }
+            else if (choice == JOptionPane.NO_OPTION) {
+                cancel();
+                shouldHide = true;
+            }
+        }
+        else {
+            shouldHide = true;
+        }
+
+        if (shouldHide)
+            hide();
     }
 
     private JPanel buildButtons() {
@@ -141,13 +185,12 @@ public class TeamMemberListEditor implements WindowListener {
                 cancel(); hide(); } });
         buttons.add(button);
 
-        button = new JButton("Save");
-        button.addActionListener(new ActionListener() {
+        saveButton = new JButton("Save");
+        saveButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 if (save()) hide(); } });
-        if (teamMemberList.isReadOnly())
-            button.setEnabled(false);
-        buttons.add(button);
+        saveButton.setEnabled(false);
+        buttons.add(saveButton);
         return buttons;
     }
 
@@ -161,7 +204,7 @@ public class TeamMemberListEditor implements WindowListener {
     }
 
     public void windowOpened(WindowEvent e) {}
-    public void windowClosing(WindowEvent e) { cancel(); }
+    public void windowClosing(WindowEvent e) { confirmClose(); }
     public void windowClosed(WindowEvent e) {}
     public void windowIconified(WindowEvent e) {}
     public void windowDeiconified(WindowEvent e) {}
@@ -191,6 +234,12 @@ public class TeamMemberListEditor implements WindowListener {
             while (i.hasNext())
                 ((SaveListener) i.next()).itemCancelled(this);
         }
+    }
+
+    @Override
+    public void tableChanged(TableModelEvent e) {
+        if (!teamMemberList.isReadOnly() && saveButton != null)
+            saveButton.setEnabled(teamMemberList.isDirty());
     }
 
 }
