@@ -162,7 +162,7 @@ public class TeamMemberList extends AbstractTableModel implements EffortCalendar
 
     public void setWeekOffset(int offset) {
         this.weekOffset = offset;
-        fireTableDataChanged();
+        fireTableRowsUpdated(0, getRowCount()-1);
     }
 
     public void setDirty(boolean dirty) {

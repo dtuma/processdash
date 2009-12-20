@@ -236,7 +236,6 @@ public class TeamMemberListEditor implements WindowListener, TableModelListener 
         }
     }
 
-    @Override
     public void tableChanged(TableModelEvent e) {
         if (!teamMemberList.isReadOnly() && saveButton != null)
             saveButton.setEnabled(teamMemberList.isDirty());

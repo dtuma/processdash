@@ -411,6 +411,9 @@ public class TeamMemberListTable extends JTable {
 
     /** Scroll the weekly columns to show different dates */
     private void scrollDates(boolean earlier) {
+        int curSelRow = getSelectedRow();
+        int curSelCol = getSelectedColumn();
+
         TeamMemberList teamList = getTeamMemberList();
         int numWeekCols = teamList.getNumWeekColumns();
         int scrollWeeks = Math.max(1, numWeekCols >> 1);
@@ -420,6 +423,14 @@ public class TeamMemberListTable extends JTable {
         teamList.setWeekOffset(weekOffset + scrollWeeks);
         updateCustomizationHyperlinkText();
         getTableHeader().repaint();
+
+        if (curSelCol >= TeamMemberList.FIRST_WEEK_COLUMN && curSelRow >= 0) {
+            int newSelCol = curSelCol - scrollWeeks;
+            newSelCol = Math.max(newSelCol, TeamMemberList.FIRST_WEEK_COLUMN);
+            newSelCol = Math.min(newSelCol, TeamMemberList.FIRST_WEEK_COLUMN
+                    + numWeekCols - 1);
+            SwingUtilities.invokeLater(new CellSelectionTask(curSelRow, newSelCol));
+        }
     }
 
 
@@ -429,23 +440,29 @@ public class TeamMemberListTable extends JTable {
      */
     private void showCustomizationWindow() {
         TeamMemberList tml = getTeamMemberList();
+        boolean readOnly = tml.isReadOnly();
 
         int currentDOW = tml.getStartOnDayOfWeek();
         JComboBox weekSelector = new JComboBox();
+        String selectedDayName = null;
         String[] dayNames = new DateFormatSymbols().getWeekdays();
         for (int i = 0; i < DAYS_OF_THE_WEEK.length; i++) {
             int dow = DAYS_OF_THE_WEEK[i];
             weekSelector.addItem(dayNames[dow]);
             if (dow == currentDOW)
-                weekSelector.setSelectedItem(dayNames[dow]);
+                weekSelector.setSelectedItem(selectedDayName = dayNames[dow]);
         }
         Box wb = Box.createHorizontalBox();
         wb.add(Box.createHorizontalStrut(25));
-        wb.add(weekSelector);
+        wb.add(readOnly ? new JLabel(selectedDayName)  : weekSelector);
 
         Object[] contents = new Object[] { "Weekly schedule starts on:", wb };
 
-        if (JOptionPane.OK_OPTION == JOptionPane.showConfirmDialog(this,
+        if (readOnly) {
+            JOptionPane.showMessageDialog(this, contents,
+                "Team Schedule Settings", JOptionPane.PLAIN_MESSAGE);
+
+        } else if (JOptionPane.OK_OPTION == JOptionPane.showConfirmDialog(this,
             contents, "Customize Team Schedule", JOptionPane.OK_CANCEL_OPTION,
             JOptionPane.PLAIN_MESSAGE)) {
             Object selectedDay = weekSelector.getSelectedItem();
@@ -851,6 +868,20 @@ public class TeamMemberListTable extends JTable {
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, hint);
         }
 
+    }
+
+    private class CellSelectionTask implements Runnable {
+        int row, col;
+
+        public CellSelectionTask(int row, int col) {
+            this.row = row;
+            this.col = col;
+        }
+
+        public void run() {
+            setRowSelectionInterval(row, row);
+            setColumnSelectionInterval(col, col);
+        }
     }
 
 
