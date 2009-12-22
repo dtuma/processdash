@@ -93,14 +93,15 @@ public class DefaultTaskLabeler implements TaskLabeler {
             else if (item.startsWith(LABEL_PREFIX))
                 currentLabel = item.substring(LABEL_PREFIX.length());
 
-            else if (currentLabel != null) {
+            else {
                 String taskID = item;
                 Set labelsForTask = (Set) labelData.get(taskID);
                 if (labelsForTask == null) {
                     labelsForTask = new HashSet();
                     labelData.put(taskID, labelsForTask);
                 }
-                labelsForTask.add(currentLabel);
+                if (currentLabel != null)
+                    labelsForTask.add(currentLabel);
             }
         }
     }
@@ -113,36 +114,51 @@ public class DefaultTaskLabeler implements TaskLabeler {
         List result = (List) resultCache.get(t);
         if (result == null) {
             List taskIDs = t.getTaskIDs();
-
-            // for PSP tasks, and in old-style team projects, the phase stubs
-            // would be the items appearing in the flat view. However, phase
-            // stubs themselves do not have task IDs.  Detect whether the
-            // current task looks like a phase stub, and possibly use the
-            // parent's task IDs instead.
-            if (taskIDs == null && t.isLeaf() && t.isNodeTypeImplicit()
-                    && t.getParent() != null)
-                taskIDs = t.getParent().getTaskIDs();
-
             result = getLabelsForTaskIDs(taskIDs);
+
+            // Some tasks should inherit labels from their parent. For example:
+            //   * the phases of PSP tasks
+            //   * phase stubs in old-style team projects
+            //   * tasks that do not appear in the WBS
+            // These tasks will either (a) not have a list of task IDS, or
+            // (b) have a list of task IDs that are not recognized from any
+            // known WBS.  The getLabelsForTaskIDs method will return null
+            // for these scenarios, as an indicator that we should inherit
+            // from our parent.
+            if (result == null) {
+                if (t.getParent() != null)
+                    result = getLabelsForTask(t.getParent());
+                else
+                    result = Collections.EMPTY_LIST;
+            }
+
             resultCache.put(t, result);
         }
         return result;
     }
 
 
-    public List getLabelsForTaskIDs(Collection taskIDs) {
+    private List getLabelsForTaskIDs(Collection taskIDs) {
         if (taskIDs == null || taskIDs.isEmpty())
-            return Collections.EMPTY_LIST;
+            return null;
 
+        boolean foundMatch = false;
         Set result = new TreeSet(String.CASE_INSENSITIVE_ORDER);
         for (Iterator i = taskIDs.iterator(); i.hasNext();) {
             String id = (String) i.next();
             Set labels = (Set) labelData.get(id);
-            if (labels != null)
+            if (labels != null) {
+                foundMatch = true;
                 result.addAll(labels);
+            }
         }
 
-        return new ArrayList(result);
+        if (!foundMatch)
+            return null;
+        else if (result.isEmpty())
+            return Collections.EMPTY_LIST;
+        else
+            return new ArrayList(result);
     }
 
 }

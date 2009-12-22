@@ -1,4 +1,4 @@
-// Copyright (C) 2006-2008 Tuma Solutions, LLC
+// Copyright (C) 2006-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -24,7 +24,6 @@
 package net.sourceforge.processdash.ev;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -35,6 +34,7 @@ import net.sourceforge.processdash.data.SaveableData;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.StringData;
 import net.sourceforge.processdash.data.repository.DataRepository;
+import net.sourceforge.processdash.util.StringUtils;
 import net.sourceforge.processdash.util.glob.GlobEngine;
 
 public class EVLabelFilter implements EVTaskFilter {
@@ -46,6 +46,8 @@ public class EVLabelFilter implements EVTaskFilter {
     public static final String TASK_LABELS_DATANAME = "Task_Labels";
 
     private String filter;
+
+    private Set knownLabeledTaskIDs;
 
     private Set matchingTaskIDs;
 
@@ -63,6 +65,8 @@ public class EVLabelFilter implements EVTaskFilter {
 
         if (labelData.isEmpty())
             throw new IllegalArgumentException("No labels found for task list");
+
+        knownLabeledTaskIDs = new HashSet(labelData);
 
         matchingTaskIDs = GlobEngine.search(filter, LABEL_TAG, labelData);
 
@@ -132,8 +136,9 @@ public class EVLabelFilter implements EVTaskFilter {
 
     private void collectMatchingTasks(EVTask task, boolean parentMatches) {
         boolean selfMatches;
-        List taskIDs = task.getTaskIDs();
-        if (taskIDs == null || taskIDs.isEmpty())
+        List<String> taskIDs = task.getTaskIDs();
+        MatchState ms = taskIDsMatch(taskIDs);
+        if (ms == MatchState.UNKNOWN_TASK)
             // if this node has no task IDs, then it is either (a) a phase
             // underneath a defined parent task, or (b) a set of nodes that
             // the user defined themselves to hierarchically subdivide their
@@ -141,7 +146,7 @@ public class EVLabelFilter implements EVTaskFilter {
             // from its parent.
             selfMatches = parentMatches;
         else
-            selfMatches = taskIDsMatch(taskIDs);
+            selfMatches = (ms == MatchState.MATCH);
 
         for (int i = task.getNumChildren(); i-- > 0;)
             collectMatchingTasks(task.getChild(i), selfMatches);
@@ -150,14 +155,21 @@ public class EVLabelFilter implements EVTaskFilter {
             matchingTasks.add(task);
     }
 
-    private boolean taskIDsMatch(Collection taskIDs) {
-        if (taskIDs != null) {
-            for (Iterator i = taskIDs.iterator(); i.hasNext();) {
-                if (matchingTaskIDs.contains(i.next()))
-                    return true;
+    private enum MatchState { MATCH, NO_MATCH, UNKNOWN_TASK };
+
+    private MatchState taskIDsMatch(List<String> taskIDs) {
+        boolean foundKnownTask = false;
+        if (taskIDs != null && !taskIDs.isEmpty()) {
+            for (String taskID : taskIDs) {
+                if (StringUtils.hasValue(taskID)) {
+                    if (matchingTaskIDs.contains(taskID))
+                        return MatchState.MATCH;
+                    else if (knownLabeledTaskIDs.contains(taskID))
+                        foundKnownTask = true;
+                }
             }
         }
-        return false;
+        return (foundKnownTask ? MatchState.NO_MATCH : MatchState.UNKNOWN_TASK);
     }
 
     public boolean include(EVTask t) {
