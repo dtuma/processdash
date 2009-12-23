@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2008 Tuma Solutions, LLC
+// Copyright (C) 2001-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -2393,7 +2393,7 @@ public class TaskScheduleDialog implements EVTask.Listener,
             chartDialog.setVisible(true);
             chartDialog.toFront();
         } else
-            chartDialog = new TaskScheduleChart(model, null);
+            chartDialog = new TaskScheduleChart(model, null, dash);
     }
 
     public void showFilteredChart() {
@@ -2420,7 +2420,7 @@ public class TaskScheduleDialog implements EVTask.Listener,
         // filtering is needed;  just display the chart for that schedule.
         EVTaskList subSchedule = findTaskListWithRoot(model, task);
         if (subSchedule != null) {
-            new TaskScheduleChart(subSchedule, null);
+            new TaskScheduleChart(subSchedule, null, dash);
             return;
         }
 
@@ -2435,7 +2435,7 @@ public class TaskScheduleDialog implements EVTask.Listener,
         // Build an appropriate filter, and use it to launch a chart window
         TaskFilter filter = new TaskFilter(filteredPath.substring(1),
                 getTaskFilterSet(task));
-        new TaskScheduleChart(model, filter);
+        new TaskScheduleChart(model, filter, dash);
     }
 
     private EVTaskList findTaskListWithRoot(EVTaskList tl, EVTask possibleRoot) {

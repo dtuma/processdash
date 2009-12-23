@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2008 Tuma Solutions, LLC
+// Copyright (C) 2001-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -54,6 +54,7 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
+import net.sourceforge.processdash.DashboardContext;
 import net.sourceforge.processdash.data.TagData;
 import net.sourceforge.processdash.data.util.SimpleDataContext;
 import net.sourceforge.processdash.ev.EVHierarchicalFilter;
@@ -63,6 +64,7 @@ import net.sourceforge.processdash.ev.EVTaskFilter;
 import net.sourceforge.processdash.ev.EVTaskList;
 import net.sourceforge.processdash.ev.EVTaskListRollup;
 import net.sourceforge.processdash.i18n.Resources;
+import net.sourceforge.processdash.net.http.TinyCGI;
 import net.sourceforge.processdash.ui.DashboardIconFactory;
 import net.sourceforge.processdash.ui.help.PCSH;
 import net.sourceforge.processdash.ui.lib.SwingWorker;
@@ -83,11 +85,13 @@ public class TaskScheduleChart extends JFrame
     JPanel displayArea;
     CardLayout cardLayout;
     SnippetChartItem currentItem;
+    DashboardContext ctx;
 
     static Resources resources = Resources.getDashBundle("EV.Chart");
     static Logger logger = Logger.getLogger(TaskScheduleChart.class.getName());
 
-    public TaskScheduleChart(EVTaskList tl, EVTaskFilter filter) {
+    public TaskScheduleChart(EVTaskList tl, EVTaskFilter filter,
+            DashboardContext ctx) {
         super(formatWindowTitle(tl, filter));
         PCSH.enableHelpKey(this, "UsingTaskSchedule.chart");
         DashboardIconFactory.setWindowIcon(this);
@@ -100,6 +104,7 @@ public class TaskScheduleChart extends JFrame
             schedule = new EVScheduleFiltered(tl, filter);
             taskList.addRecalcListener(this);
         }
+        this.ctx = ctx;
 
         boolean isFiltered = (filter != null);
         boolean isRollup = (tl instanceof EVTaskListRollup);
@@ -283,6 +288,9 @@ public class TaskScheduleChart extends JFrame
                 environment.put(EVSnippetEnvironment.TASK_FILTER_KEY, filter);
                 environment.put(EVSnippetEnvironment.RESOURCES, snip
                         .getResources());
+                environment.put(TinyCGI.DASHBOARD_CONTEXT, ctx);
+                environment.put(TinyCGI.DATA_REPOSITORY, ctx.getData());
+                environment.put(TinyCGI.PSP_PROPERTIES, ctx.getHierarchy());
 
                 HashMap params = new HashMap();
 

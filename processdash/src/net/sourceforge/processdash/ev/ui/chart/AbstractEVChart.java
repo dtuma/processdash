@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2008 Tuma Solutions, LLC
+// Copyright (C) 2003-2009 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -33,12 +33,17 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
+import net.sourceforge.processdash.DashboardContext;
+import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.ev.EVSchedule;
 import net.sourceforge.processdash.ev.EVTaskFilter;
 import net.sourceforge.processdash.ev.EVTaskList;
 import net.sourceforge.processdash.ev.ui.EVSnippetEnvironment;
+import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.i18n.Resources;
+import net.sourceforge.processdash.net.http.TinyCGI;
 import net.sourceforge.processdash.ui.snippet.SnippetWidget;
+import net.sourceforge.processdash.ui.web.TinyCGIBase;
 
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
@@ -103,6 +108,18 @@ public abstract class AbstractEVChart<D extends Dataset, P extends Plot>
 
     protected EVTaskFilter getTaskFilter(Map environment) {
         return (EVTaskFilter) environment.get(EVSnippetEnvironment.TASK_FILTER_KEY);
+    }
+
+    protected DashboardContext getDashContext(Map environment) {
+        return (DashboardContext) environment.get(TinyCGIBase.DASHBOARD_CONTEXT);
+    }
+
+    protected DashHierarchy getDashHierarchy(Map environment) {
+        return (DashHierarchy) environment.get(TinyCGI.PSP_PROPERTIES);
+    }
+
+    protected DataRepository getDataRepository(Map environment) {
+        return (DataRepository) environment.get(TinyCGIBase.DATA_REPOSITORY);
     }
 
     public static class SeriesNameGenerator implements XYSeriesLabelGenerator {
