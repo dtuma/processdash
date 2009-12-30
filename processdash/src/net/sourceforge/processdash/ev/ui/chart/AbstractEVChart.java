@@ -29,9 +29,17 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Paint;
 import java.awt.Stroke;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
+import java.util.Vector;
+
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 import net.sourceforge.processdash.DashboardContext;
 import net.sourceforge.processdash.data.repository.DataRepository;
@@ -177,4 +185,36 @@ public abstract class AbstractEVChart<D extends Dataset, P extends Plot>
     public static Resources getResources() {
         return resources;
     }
+
+    private List<ChangeListener> changeListeners;
+
+    public void addChangeListener(ChangeListener l) {
+        if (changeListeners == null)
+            changeListeners = new Vector();
+        changeListeners.add(l);
+    }
+
+    public void removeChangeListener(ChangeListener l) {
+        if (changeListeners != null)
+            changeListeners.remove(l);
+    }
+
+    protected void fireStateChanged() {
+        if (changeListeners != null) {
+            List<ChangeListener> listeners = new ArrayList<ChangeListener>(
+                    changeListeners);
+            ChangeEvent evt = new ChangeEvent(this);
+            for (ChangeListener l : listeners)
+                l.stateChanged(evt);
+        }
+    }
+
+    protected PropertyChangeListener getPropertyChangeNotifier() {
+        return new PropertyChangeListener() {
+            public void propertyChange(PropertyChangeEvent evt) {
+                fireStateChanged();
+            }
+        };
+    }
+
 }

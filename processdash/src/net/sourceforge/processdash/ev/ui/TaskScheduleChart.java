@@ -24,11 +24,16 @@
 
 package net.sourceforge.processdash.ev.ui;
 
+import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.Point;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EventObject;
@@ -43,14 +48,21 @@ import java.util.prefs.Preferences;
 
 import javax.swing.Box;
 import javax.swing.DefaultListCellRenderer;
+import javax.swing.ImageIcon;
 import javax.swing.JComponent;
+import javax.swing.JDialog;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.ListSelectionModel;
+import javax.swing.SpringLayout;
+import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
@@ -69,6 +81,7 @@ import net.sourceforge.processdash.ui.DashboardIconFactory;
 import net.sourceforge.processdash.ui.help.PCSH;
 import net.sourceforge.processdash.ui.lib.SwingWorker;
 import net.sourceforge.processdash.ui.lib.WrappingText;
+import net.sourceforge.processdash.ui.snippet.ConfigurableSnippetWidget;
 import net.sourceforge.processdash.ui.snippet.SnippetDefinition;
 import net.sourceforge.processdash.ui.snippet.SnippetDefinitionManager;
 import net.sourceforge.processdash.ui.snippet.SnippetWidget;
@@ -82,8 +95,12 @@ public class TaskScheduleChart extends JFrame
     EVSchedule schedule;
     EVTaskFilter filter;
     Map<String, SnippetChartItem> widgets;
+    JList widgetList;
     JPanel displayArea;
     CardLayout cardLayout;
+    JComponent configurationButton;
+    ConfigurationButtonToggler configurationButtonToggler;
+    JDialog configurationDialog;
     SnippetChartItem currentItem;
     DashboardContext ctx;
 
@@ -120,6 +137,8 @@ public class TaskScheduleChart extends JFrame
             createChooserComponent(), displayArea);
         sp.setOneTouchExpandable(true);
         getContentPane().add(sp);
+
+        createConfigurationButton();
 
         setSize(600, 300);
         sp.setDividerLocation(160);
@@ -192,18 +211,30 @@ public class TaskScheduleChart extends JFrame
     private JComponent createChooserComponent() {
         ArrayList items = new ArrayList(widgets.values());
         Collections.sort(items);
-        final JList list = new JList(items.toArray());
+        JList list = new JList(items.toArray());
+        widgetList = list;
         list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         list.setCellRenderer(new SnippetChartItemListRenderer());
-        list.addListSelectionListener(new ListSelectionListener() {
-            public void valueChanged(ListSelectionEvent e) {
-                currentItem = (SnippetChartItem) list.getSelectedValue();
-                currentItem.display();
-            }});
+        list.addListSelectionListener(new ChartSelectionHandler());
         list.setSelectedIndex(getDefaultChartIndex(items));
 
         return new JScrollPane(list);
     }
+
+    private class ChartSelectionHandler implements ListSelectionListener {
+
+        public void valueChanged(ListSelectionEvent e) {
+            SnippetChartItem newItem = (SnippetChartItem) widgetList
+                    .getSelectedValue();
+            if (newItem != currentItem) {
+                hideConfigurationDialog();
+                currentItem = newItem;
+                currentItem.display();
+                maybeReopenConfigurationDialog();
+            }
+        }
+    }
+
     private int getDefaultChartIndex(List items) {
         String defaultChartId = PREFS.get(DEFAULT_CHART_PREF, null);
         int fallbackItem = 0;
@@ -215,6 +246,135 @@ public class TaskScheduleChart extends JFrame
                 fallbackItem = i;
         }
         return fallbackItem;
+    }
+
+    private void createConfigurationButton() {
+        configurationButton = new ConfigurationButton();
+        configurationButtonToggler = new ConfigurationButtonToggler();
+
+        JPanel glassPane = new GlassPane();
+        SpringLayout l = new SpringLayout();
+        glassPane.setLayout(l);
+
+        glassPane.add(configurationButton);
+        l.putConstraint(SpringLayout.NORTH, configurationButton, 10,
+            SpringLayout.NORTH, glassPane);
+        l.putConstraint(SpringLayout.EAST, configurationButton, -8,
+            SpringLayout.EAST, glassPane);
+
+        setGlassPane(glassPane);
+    }
+
+    private class GlassPane extends JPanel {
+
+        public GlassPane() {
+            setOpaque(false);
+        }
+
+        @Override
+        public boolean contains(int x, int y) {
+            x -= configurationButton.getX();
+            y -= configurationButton.getY();
+            return configurationButton.isVisible()
+                && configurationButton.contains(x, y);
+        }
+    }
+
+    private class ConfigurationButtonToggler extends MouseAdapter implements
+            Runnable {
+        private boolean armedToHide = false;
+        public void mouseEntered(MouseEvent e) {
+            if (configurationDialog == null || !configurationDialog.isVisible())
+                getGlassPane().setVisible(true);
+        }
+        public void mouseExited(MouseEvent e) {
+            armedToHide = true;
+            SwingUtilities.invokeLater(this);
+        }
+        public void disarmHide() {
+            armedToHide = false;
+        }
+        public void run() {
+            if (armedToHide)
+                getGlassPane().setVisible(false);
+        }
+    }
+
+    private class ConfigurationButton extends JLabel implements MouseListener {
+
+        private ImageIcon plainIcon, rolloverIcon;
+
+        public ConfigurationButton() {
+            plainIcon = new ImageIcon(TaskScheduleChart.class
+                .getResource("chart-options.png"));
+            rolloverIcon = new ImageIcon(TaskScheduleChart.class
+                .getResource("chart-options-glow.png"));
+            setIcon(plainIcon);
+            setToolTipText(resources.getString("Configure.Icon_Tooltip"));
+            setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+            setOpaque(false);
+            addMouseListener(this);
+        }
+
+        public void mouseClicked(MouseEvent e) {
+            openConfigurationDialog();
+        }
+
+        public void mouseEntered(MouseEvent e) {
+            configurationButtonToggler.disarmHide();
+            setIcon(rolloverIcon);
+        }
+        public void mouseExited(MouseEvent e)  {
+            setIcon(plainIcon);
+        }
+        public void mousePressed(MouseEvent e) {}
+        public void mouseReleased(MouseEvent e) {}
+
+    }
+
+    private void openConfigurationDialog() {
+        getGlassPane().setVisible(false);
+
+        if (configurationDialog != null) {
+            configurationDialog.setVisible(true);
+            configurationDialog.toFront();
+            return;
+        }
+
+        Component configPane = currentItem.getConfigurationPane();
+        if (configPane == null)
+            return;
+
+        JDialog d = new JDialog(this, false);
+        JPanel contents = new JPanel(new BorderLayout(10, 10));
+        contents.setBorder(new EmptyBorder(10, 10, 10, 10));
+        contents.add(configPane);
+
+        d.getContentPane().add(contents);
+        if (currentItem.dialogSize != null) {
+            d.setSize(currentItem.dialogSize);
+            d.setLocation(currentItem.dialogLocation);
+        } else {
+            d.pack();
+        }
+        d.setVisible(true);
+        configurationDialog = d;
+    }
+
+    private void hideConfigurationDialog() {
+        if (configurationDialog != null) {
+            currentItem.dialogSize = configurationDialog.getSize();
+            currentItem.dialogLocation = configurationDialog.getLocation();
+            currentItem.isDialogVisible = configurationDialog.isVisible();
+
+            configurationDialog.dispose();
+            configurationDialog = null;
+        }
+    }
+
+    protected void maybeReopenConfigurationDialog() {
+        if (currentItem.isDialogVisible)
+            openConfigurationDialog();
     }
 
 
@@ -246,7 +406,8 @@ public class TaskScheduleChart extends JFrame
 
     private enum ChartItemState { START, INITIALIZING, READY };
 
-    private class SnippetChartItem implements Comparable<SnippetChartItem> {
+    private class SnippetChartItem implements Comparable<SnippetChartItem>,
+            ChangeListener {
 
         private SnippetDefinition snip;
 
@@ -258,6 +419,16 @@ public class TaskScheduleChart extends JFrame
 
         private ChartItemState state;
 
+        private SnippetWidget widget;
+
+        private Component configurationPane;
+
+        private boolean isDirty;
+
+        private Dimension dialogSize;
+        private Point dialogLocation;
+        private boolean isDialogVisible;
+
 
         public SnippetChartItem(SnippetDefinition snip) {
             this.snip = snip;
@@ -267,13 +438,17 @@ public class TaskScheduleChart extends JFrame
                 this.description = snip.getDescription();
             } catch (Exception e) {}
             this.state = ChartItemState.START;
+            this.isDirty = false;
         }
 
         public void display() {
-            if (state == ChartItemState.START) {
+            if (currentItem != this) {
+                return;
+            } else if (state == ChartItemState.START) {
                 new ComponentBuilder().start();
             } else if (state == ChartItemState.READY) {
                 cardLayout.show(displayArea, id);
+                getGlassPane().setVisible(false);
                 TaskScheduleChart.this.setCursor(null);
             }
         }
@@ -281,6 +456,9 @@ public class TaskScheduleChart extends JFrame
         private Component getComponent() {
             try {
                 SnippetWidget w = snip.getWidget("view", null);
+                synchronized(this) {
+                    this.widget = w;
+                }
 
                 Map environment = new HashMap();
                 environment.put(EVSnippetEnvironment.TASK_LIST_KEY, taskList);
@@ -314,12 +492,33 @@ public class TaskScheduleChart extends JFrame
 
         }
 
+        public Component getConfigurationPane() {
+            if (configurationPane == null) {
+                if (widget instanceof ConfigurableSnippetWidget) {
+                    ConfigurableSnippetWidget csw = (ConfigurableSnippetWidget) widget;
+                    try {
+                        configurationPane = csw.getWidgetConfigurationPane();
+                        csw.addChangeListener(this);
+
+                    } catch (Throwable e) {
+                        logger.log(Level.SEVERE,
+                            "Unexpected error when retrieving configuration " +
+                            "pane for widget with id '" + id + "'", e);
+                    }
+                }
+            }
+            return configurationPane;
+        }
+
         public String getDescription() {
             return description;
         }
 
         public String toString() {
-            return name;
+            if (isDirty)
+                return "* " + name;
+            else
+                return name;
         }
 
         public int compareTo(SnippetChartItem that) {
@@ -342,14 +541,24 @@ public class TaskScheduleChart extends JFrame
             @Override
             public void finished() {
                 Component c = (Component) getValue();
+                if (widget instanceof ConfigurableSnippetWidget)
+                    c.addMouseListener(configurationButtonToggler);
                 displayArea.add(c, id);
                 state = ChartItemState.READY;
-                if (currentItem == SnippetChartItem.this) {
-                    cardLayout.show(displayArea, id);
-                    TaskScheduleChart.this.setCursor(null);
-                }
+                display();
             }
 
+        }
+
+        public void stateChanged(ChangeEvent e) {
+            setDirty(true);
+        }
+
+        public void setDirty(boolean d) {
+            if (d != isDirty) {
+                isDirty = d;
+                widgetList.repaint();
+            }
         }
 
     }
