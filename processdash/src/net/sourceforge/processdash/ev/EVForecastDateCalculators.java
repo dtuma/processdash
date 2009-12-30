@@ -412,6 +412,7 @@ public class EVForecastDateCalculators {
 
             FORECAST_START_DATE_SETTER.setStartDates(schedule, evLeaves);
             REPLAN_START_DATE_SETTER.setStartDates(schedule, evLeaves);
+            rollupStartDates(taskRoot);
 
             Date forecastDate = taskRoot.getForecastDate();
             if (forecastDate != null)
@@ -419,6 +420,18 @@ public class EVForecastDateCalculators {
             else
                 SCHEDULE_EXTRAPOLATION.calculateForecastDates(taskRoot,
                         schedule, metrics, evLeaves);
+        }
+
+        private void rollupStartDates(EVTask task) {
+            for (int i = task.getNumChildren(); i-- > 0;) {
+                EVTask child = task.getChild(i);
+                rollupStartDates(child);
+
+                task.replanStartDate = EVCalculator.minStartDate(
+                    task.replanStartDate, child.replanStartDate);
+                task.forecastStartDate = EVCalculator.minStartDate(
+                    task.forecastStartDate, child.forecastStartDate);
+            }
         }
 
     }
