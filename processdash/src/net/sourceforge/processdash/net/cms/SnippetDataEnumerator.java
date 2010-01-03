@@ -1,4 +1,4 @@
-// Copyright (C) 2006 Tuma Solutions, LLC
+// Copyright (C) 2006-2010 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -26,6 +26,8 @@ package net.sourceforge.processdash.net.cms;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 import net.sourceforge.processdash.net.http.WebServer;
@@ -156,4 +158,47 @@ public class SnippetDataEnumerator extends TinyCGIBase {
 
         return result;
     }
+
+    /**
+     * Write values into a given parameter map to represent the items in an
+     * enumeration.
+     * 
+     * This method performs the inverse operation of
+     * {@link #getEnumeratedValues(Map, String)}.  This method is not used by
+     * many snippets, because the posting of data from an HTML form will
+     * build the same map.  However, this method is provided for use by
+     * clients that need to build snippet data from some source other than
+     * an HTML form.
+     * 
+     * @param parameters
+     *            the map to store snippet parameters into
+     * @param itemType
+     *            the name of the enumerated type
+     * @param values
+     *            an array whose length equals the number of items in the
+     *            enumeration. Each array member is a Map, mapping attribute
+     *            names to values for the given enumerated object.
+     */
+    public static void storeEnumeratedValues(Map parameters, String itemType,
+            Map[] values) {
+
+        String[] idList = new String[values.length];
+        for (int i = 0; i < values.length; i++) {
+            String itemID = Integer.toString(i);
+            idList[i] = itemID;
+            String itemSpace = itemType + itemID + "_";
+            for (Iterator j = values[i].entrySet().iterator(); j.hasNext();) {
+                Map.Entry e = (Map.Entry) j.next();
+                parameters.put(itemSpace + e.getKey(), e.getValue());
+            }
+        }
+        parameters.put(itemType + "Enum_ALL", idList);
+    }
+
+    public static void storeEnumeratedValues(Map parameters, String itemType,
+            List<Map> values) {
+        Map[] valueArray = values.toArray(new Map[values.size()]);
+        storeEnumeratedValues(parameters, itemType, valueArray);
+    }
+
 }
