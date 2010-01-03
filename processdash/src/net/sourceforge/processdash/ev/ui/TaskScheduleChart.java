@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2009 Tuma Solutions, LLC
+// Copyright (C) 2001-2010 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -26,14 +26,20 @@ package net.sourceforge.processdash.ev.ui;
 
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Point;
+import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EventObject;
@@ -46,28 +52,40 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
 
+import javax.swing.AbstractAction;
 import javax.swing.Box;
+import javax.swing.ButtonGroup;
 import javax.swing.DefaultListCellRenderer;
+import javax.swing.DefaultListModel;
 import javax.swing.ImageIcon;
+import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
+import javax.swing.JTextField;
+import javax.swing.KeyStroke;
 import javax.swing.ListSelectionModel;
 import javax.swing.SpringLayout;
 import javax.swing.SwingUtilities;
+import javax.swing.border.BevelBorder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
+import net.sourceforge.processdash.ApplicationEventListener;
+import net.sourceforge.processdash.ApplicationEventSource;
 import net.sourceforge.processdash.DashboardContext;
 import net.sourceforge.processdash.data.TagData;
+import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.data.util.SimpleDataContext;
 import net.sourceforge.processdash.ev.EVHierarchicalFilter;
 import net.sourceforge.processdash.ev.EVSchedule;
@@ -75,12 +93,17 @@ import net.sourceforge.processdash.ev.EVScheduleFiltered;
 import net.sourceforge.processdash.ev.EVTaskFilter;
 import net.sourceforge.processdash.ev.EVTaskList;
 import net.sourceforge.processdash.ev.EVTaskListRollup;
+import net.sourceforge.processdash.ev.ui.TaskScheduleChartSettings.PersistenceException;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.net.http.TinyCGI;
 import net.sourceforge.processdash.ui.DashboardIconFactory;
 import net.sourceforge.processdash.ui.help.PCSH;
+import net.sourceforge.processdash.ui.lib.BoxUtils;
+import net.sourceforge.processdash.ui.lib.DropDownButton;
+import net.sourceforge.processdash.ui.lib.JOptionPaneActionHandler;
 import net.sourceforge.processdash.ui.lib.SwingWorker;
 import net.sourceforge.processdash.ui.lib.WrappingText;
+import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
 import net.sourceforge.processdash.ui.snippet.ConfigurableSnippetWidget;
 import net.sourceforge.processdash.ui.snippet.SnippetDefinition;
 import net.sourceforge.processdash.ui.snippet.SnippetDefinitionManager;
@@ -89,18 +112,18 @@ import net.sourceforge.processdash.util.Disposable;
 
 
 public class TaskScheduleChart extends JFrame
-    implements EVTaskList.RecalcListener {
+    implements EVTaskList.RecalcListener, ApplicationEventListener {
 
     EVTaskList taskList;
     EVSchedule schedule;
     EVTaskFilter filter;
-    Map<String, SnippetChartItem> widgets;
-    JList widgetList;
+    JList chooser;
+    WidgetListModel widgetList;
     JPanel displayArea;
     CardLayout cardLayout;
     JComponent configurationButton;
     ConfigurationButtonToggler configurationButtonToggler;
-    JDialog configurationDialog;
+    ConfigurationDialog configurationDialog;
     SnippetChartItem currentItem;
     DashboardContext ctx;
 
@@ -112,7 +135,11 @@ public class TaskScheduleChart extends JFrame
         super(formatWindowTitle(tl, filter));
         PCSH.enableHelpKey(this, "UsingTaskSchedule.chart");
         DashboardIconFactory.setWindowIcon(this);
-        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+        setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
+        addWindowListener(new WindowAdapter() {
+            public void windowClosing(WindowEvent e) {
+                confirmClose();
+            }});
         this.taskList = tl;
         this.filter = filter;
         if (filter == null)
@@ -122,10 +149,13 @@ public class TaskScheduleChart extends JFrame
             taskList.addRecalcListener(this);
         }
         this.ctx = ctx;
+        if (ctx instanceof ApplicationEventSource)
+            ((ApplicationEventSource) ctx).addApplicationEventListener(this);
 
         boolean isFiltered = (filter != null);
         boolean isRollup = (tl instanceof EVTaskListRollup);
-        widgets = getChartWidgets(isFiltered, isRollup);
+        Map<String, SnippetChartItem> widgets = getChartWidgets(tl, ctx
+                .getData(), isFiltered, isRollup);
 
         cardLayout = new CardLayout(0, 5);
         displayArea = new JPanel(cardLayout);
@@ -134,7 +164,7 @@ public class TaskScheduleChart extends JFrame
         displayArea.add(new JPanel(), " ");
 
         JSplitPane sp = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
-            createChooserComponent(), displayArea);
+            createChooserComponent(widgets), displayArea);
         sp.setOneTouchExpandable(true);
         getContentPane().add(sp);
 
@@ -158,8 +188,11 @@ public class TaskScheduleChart extends JFrame
                     tl.getDisplayName(), filterDescription);
     }
 
-    private Map<String, SnippetChartItem> getChartWidgets(
-            boolean filterInEffect, boolean isRollup) {
+    private Map<String, SnippetChartItem> getChartWidgets(EVTaskList tl,
+            DataRepository data, boolean filterInEffect, boolean isRollup) {
+        Map<String, TaskScheduleChartSettings> chartSettings =
+            TaskScheduleChartSettings.getSettingsForTaskList(tl.getID(), data);
+
         Map<String, SnippetChartItem> result = new HashMap<String, SnippetChartItem>();
 
         SimpleDataContext ctx = getContextTags(filterInEffect, isRollup);
@@ -172,11 +205,23 @@ public class TaskScheduleChart extends JFrame
                     && snip.matchesContext(ctx)) {
                 try {
                     SnippetChartItem item = new SnippetChartItem(snip);
+                    item.settings = chartSettings.remove(snip.getId());
                     result.put(snip.getId(), item);
                 } catch (Exception e) {
                     logger.log(Level.WARNING, "Problem with EV Chart Snippet '"
                             + snip.getId() + "'", e);
                 }
+            }
+        }
+
+        for (TaskScheduleChartSettings customChart : chartSettings.values()) {
+            SnippetChartItem base = result.get(customChart.getChartID());
+            if (base != null) {
+                SnippetChartItem custom = new SnippetChartItem(base.snip);
+                custom.settings = customChart;
+                custom.name = customChart.getCustomName();
+                custom.id = customChart.getSettingsIdentifier();
+                result.put(custom.id, custom);
             }
         }
 
@@ -208,23 +253,29 @@ public class TaskScheduleChart extends JFrame
         return ctx;
     }
 
-    private JComponent createChooserComponent() {
+    private JComponent createChooserComponent(
+            Map<String, SnippetChartItem> widgets) {
         ArrayList items = new ArrayList(widgets.values());
         Collections.sort(items);
-        JList list = new JList(items.toArray());
-        widgetList = list;
+        widgetList = new WidgetListModel(items);
+
+        JList list = new JList(widgetList);
+        chooser = list;
         list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         list.setCellRenderer(new SnippetChartItemListRenderer());
         list.addListSelectionListener(new ChartSelectionHandler());
         list.setSelectedIndex(getDefaultChartIndex(items));
 
+        list.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0),
+            "deleteChart");
+        list.getActionMap().put("deleteChart", new DeleteChartAction());
+
         return new JScrollPane(list);
     }
 
     private class ChartSelectionHandler implements ListSelectionListener {
-
         public void valueChanged(ListSelectionEvent e) {
-            SnippetChartItem newItem = (SnippetChartItem) widgetList
+            SnippetChartItem newItem = (SnippetChartItem) chooser
                     .getSelectedValue();
             if (newItem != currentItem) {
                 hideConfigurationDialog();
@@ -341,33 +392,16 @@ public class TaskScheduleChart extends JFrame
             return;
         }
 
-        Component configPane = currentItem.getConfigurationPane();
-        if (configPane == null)
+        if (currentItem.getConfigurationPane() == null)
             return;
 
-        JDialog d = new JDialog(this, false);
-        JPanel contents = new JPanel(new BorderLayout(10, 10));
-        contents.setBorder(new EmptyBorder(10, 10, 10, 10));
-        contents.add(configPane);
-
-        d.getContentPane().add(contents);
-        if (currentItem.dialogSize != null) {
-            d.setSize(currentItem.dialogSize);
-            d.setLocation(currentItem.dialogLocation);
-        } else {
-            d.pack();
-        }
-        d.setVisible(true);
-        configurationDialog = d;
+        configurationDialog = new ConfigurationDialog(currentItem);
+        configurationDialog.setVisible(true);
     }
 
     private void hideConfigurationDialog() {
         if (configurationDialog != null) {
-            currentItem.dialogSize = configurationDialog.getSize();
-            currentItem.dialogLocation = configurationDialog.getLocation();
-            currentItem.isDialogVisible = configurationDialog.isVisible();
-
-            configurationDialog.dispose();
+            configurationDialog.hideDialog();
             configurationDialog = null;
         }
     }
@@ -377,11 +411,228 @@ public class TaskScheduleChart extends JFrame
             openConfigurationDialog();
     }
 
+    private class ConfigurationDialog extends JDialog {
+
+        private SnippetChartItem item;
+        private List<AbstractChartItemAction> actions;
+
+        public ConfigurationDialog(SnippetChartItem item) {
+            super(TaskScheduleChart.this, false);
+            this.item = item;
+            setupTitle();
+
+            JPanel contents = new JPanel(new BorderLayout(10, 10));
+            contents.setBorder(new EmptyBorder(10, 10, 10, 10));
+            contents.add(item.getConfigurationPane());
+            contents.add(buildButtons(), BorderLayout.SOUTH);
+            getContentPane().add(contents);
+
+            if (item.dialogSize != null) {
+                setSize(item.dialogSize);
+                setLocation(item.dialogLocation);
+            } else {
+                pack();
+            }
+        }
+
+        public void setupTitle() {
+            String title;
+            if (item.settings != null && item.settings.isGlobal()) {
+                title = resources.format("Configure.Dialog_Title.Global_FMT",
+                    item.name);
+            } else {
+                title = resources.format("Configure.Dialog_Title.Local_FMT",
+                    item.name, taskList.getDisplayName());
+            }
+            setTitle(title);
+        }
+
+        public void handleDirtyStateChange() {
+            MacGUIUtils.setDirty(this, item.isDirty);
+            for (AbstractChartItemAction action : actions)
+                action.dirtyStateChanged();
+        }
+
+        public void hideDialog() {
+            item.dialogSize = getSize();
+            item.dialogLocation = getLocation();
+            item.isDialogVisible = isVisible();
+            dispose();
+        }
+
+        private Component buildButtons() {
+            actions = new ArrayList<AbstractChartItemAction>();
+
+            JButton revertButton = new JButton(new RevertSettingsAction(item,
+                    actions));
+
+            DropDownButton saveButton = new DropDownButton("");
+            saveButton.setRunFirstMenuOption(false);
+            saveButton.getMenu().add(new SaveSettingsAsAction(item, actions));
+            saveButton.getButton().setAction(
+                new SaveSettingsAction(item, actions));
+
+            return BoxUtils.hbox(BoxUtils.GLUE, revertButton, BoxUtils.GLUE,
+                saveButton, BoxUtils.GLUE);
+        }
+
+    }
+
+    private void handleDirtyStateChange(boolean oneKnownDirty) {
+        if (configurationDialog != null)
+            configurationDialog.handleDirtyStateChange();
+        boolean anyDirty = oneKnownDirty || !getDirtyCharts().isEmpty();
+        MacGUIUtils.setDirty(this, anyDirty);
+    }
+
+    public void handleApplicationEvent(ActionEvent e) {
+        if (APP_EVENT_SAVE_ALL_DATA.equals(e.getActionCommand())) {
+            saveRevertOrCancel(true);
+        }
+    }
+
+
+    protected void confirmClose() {
+        if (saveRevertOrCancel(false))
+            dispose();
+    }
+
+
+    private boolean saveRevertOrCancel(boolean isAppEvent) {
+        List<SnippetChartItem> dirtyCharts = getDirtyCharts();
+        if (dirtyCharts.isEmpty())
+            return true;
+
+        String title = resources.getString("Configure.Confirm.Window_Title");
+        String header = resources.getString("Configure.Confirm.Header_Msg");
+        JList dirtyChartList = new JList(dirtyCharts.toArray());
+        dirtyChartList.setBorder(new BevelBorder(BevelBorder.LOWERED));
+        String footer = resources.getString("Configure.Confirm.Footer_Msg");
+        Object[] message = { header, dirtyChartList, footer };
+        String saveOption = resources.getString("Configure.Confirm.Save_All");
+        String revertOption = resources.getString("Configure.Confirm.Discard_All");
+        String cancelOption = resources.getString("Cancel");
+        Object[] options;
+        if (isAppEvent)
+            options = new Object[] { saveOption, revertOption };
+        else
+            options = new Object[] { saveOption, revertOption, cancelOption };
+
+        switch (JOptionPane.showOptionDialog(this, message, title, 0,
+            JOptionPane.QUESTION_MESSAGE, null, options, saveOption)) {
+
+        case 0: // save all
+            for (SnippetChartItem chart : dirtyCharts)
+                chart.saveSettings();
+            return true;
+
+        case 1: // discard
+            if (isAppEvent)
+                for (SnippetChartItem chart : dirtyCharts)
+                    chart.revertSettings();
+            return true;
+
+        default:
+            return false;
+        }
+    }
+
+    private List<SnippetChartItem> getDirtyCharts() {
+        List<SnippetChartItem> result = new ArrayList<SnippetChartItem>();
+        for (int i = widgetList.getSize(); i-- > 0;) {
+            SnippetChartItem chart = (SnippetChartItem) widgetList.get(i);
+            if (chart.isDirty)
+                result.add(chart);
+        }
+        return result;
+    }
+
+    private TaskScheduleChartSettings showSaveAsDialog(
+            TaskScheduleChartSettings currentSettings, String chartID) {
+        String title = resources.getString("Configure.Save_As.Window_Title");
+
+        String namePrompt = resources
+                .getString("Configure.Save_As.Name_Prompt");
+        JTextField chartNameField = new JTextField();
+        if (currentSettings != null)
+            chartNameField.setText(currentSettings.getCustomName());
+        new JOptionPaneActionHandler().install(chartNameField);
+
+        String scopePrompt = resources
+                .getString("Configure.Save_As.Scope_Prompt");
+        ButtonGroup group = new ButtonGroup();
+        JRadioButton localScopeButton = new JRadioButton(resources
+                .getString("Configure.Save_As.Scope_Local"));
+        group.add(localScopeButton);
+        JRadioButton globalScopeButton = new JRadioButton(resources
+                .getString("Configure.Save_As.Scope_Global"));
+        group.add(globalScopeButton);
+
+        boolean global = (currentSettings != null && currentSettings.isGlobal());
+        (global ? globalScopeButton : localScopeButton).setSelected(true);
+
+        String errorKey = null;
+
+        while (true) {
+            BoxUtils errorBox;
+            if (errorKey != null) {
+                JLabel errorLabel = new JLabel(resources.getString(errorKey));
+                errorLabel.setForeground(Color.RED);
+                errorBox = BoxUtils.hbox(20, errorLabel);
+            } else {
+                errorBox = BoxUtils.hbox();
+            }
+
+            Object[] message = {
+                    namePrompt,
+                    BoxUtils.hbox(20, chartNameField),
+                    errorBox,
+                    scopePrompt,
+                    BoxUtils.hbox(20, localScopeButton),
+                    BoxUtils.hbox(20, globalScopeButton) };
+            int userChoice = JOptionPane.showConfirmDialog(configurationDialog,
+                message, title, JOptionPane.OK_CANCEL_OPTION,
+                JOptionPane.PLAIN_MESSAGE);
+            if (userChoice != JOptionPane.OK_OPTION)
+                return null;
+
+            String chartName = chartNameField.getText();
+            chartName = (chartName == null ? "" : chartName.trim());
+            if (chartName.length() == 0) {
+                errorKey = "Configure.Save_As.Name_Missing";
+                continue;
+            }
+
+            TaskScheduleChartSettings result = new TaskScheduleChartSettings();
+            if (localScopeButton.isSelected())
+                result.setTaskListID(taskList.getID());
+            result.setChartID(chartID);
+            result.setCustomName(chartName);
+
+            if (result.hasSameNameAs(currentSettings) == false
+                    && chartNameIsTaken(chartName)) {
+                errorKey = "Configure.Save_As.Duplicate_Name";
+                continue;
+            }
+
+            return result;
+        }
+    }
+
+    private boolean chartNameIsTaken(String name) {
+        for (int i = widgetList.getSize(); i-- > 0;) {
+            SnippetChartItem chart = (SnippetChartItem) widgetList.get(i);
+            if (chart.name.equalsIgnoreCase(name))
+                return true;
+        }
+        return false;
+    }
+
 
     @Override
     public void dispose() {
         super.dispose();
-        if (currentItem != null)
+        if (currentItem != null && currentItem.id.indexOf('#') == -1)
             PREFS.put(DEFAULT_CHART_PREF, currentItem.id);
         for (int i = displayArea.getComponentCount();  i-- > 0; ) {
             Component c = displayArea.getComponent(i);
@@ -389,6 +640,8 @@ public class TaskScheduleChart extends JFrame
                 ((Disposable) c).dispose();
         }
         taskList.removeRecalcListener(this);
+        if (ctx instanceof ApplicationEventSource)
+            ((ApplicationEventSource) ctx).removeApplicationEventListener(this);
     }
 
     public void evRecalculated(EventObject e) {
@@ -403,6 +656,17 @@ public class TaskScheduleChart extends JFrame
         }
     }
 
+    private class WidgetListModel extends DefaultListModel {
+        public WidgetListModel(List items) {
+            for (Object item : items)
+                addElement(item);
+        }
+        public void itemChanged(Object item) {
+            int pos = indexOf(item);
+            if (pos != -1)
+                fireContentsChanged(this, pos, pos);
+        }
+    }
 
     private enum ChartItemState { START, INITIALIZING, READY };
 
@@ -416,6 +680,8 @@ public class TaskScheduleChart extends JFrame
         private String name;
 
         private String description;
+
+        private TaskScheduleChartSettings settings;
 
         private ChartItemState state;
 
@@ -470,7 +736,7 @@ public class TaskScheduleChart extends JFrame
                 environment.put(TinyCGI.DATA_REPOSITORY, ctx.getData());
                 environment.put(TinyCGI.PSP_PROPERTIES, ctx.getHierarchy());
 
-                HashMap params = new HashMap();
+                Map params = getChartParameters();
 
                 return w.getWidgetComponent(environment, params);
 
@@ -490,6 +756,34 @@ public class TaskScheduleChart extends JFrame
                 return b;
             }
 
+        }
+
+        private Map getChartParameters() throws PersistenceException {
+            Map params;
+            if (settings == null) {
+                params = new HashMap();
+            } else {
+                try {
+                    params = settings.getParameters();
+                    params.put(EVSnippetEnvironment.SNIPPET_VERSION,
+                        settings.getChartVersion());
+                } catch (PersistenceException pe) {
+                    // if this is a custom chart built by a user, we can't
+                    // guess how the chart should be drawn.  Rethrow
+                    // the exception.
+                    if (settings.getCustomName() != null)
+                        throw pe;
+
+                    // otherwise, if this is a standard chart and the
+                    // saved settings can't be read, revert back to the
+                    // default settings provided by that chart.
+                    logger.log(Level.SEVERE, "Unexpected problem reading "
+                            + "settings for chart with id '" + id
+                            + "' - reverting to defaults", pe);
+                    params = new HashMap();
+                }
+            }
+            return params;
         }
 
         public Component getConfigurationPane() {
@@ -557,8 +851,121 @@ public class TaskScheduleChart extends JFrame
         public void setDirty(boolean d) {
             if (d != isDirty) {
                 isDirty = d;
-                widgetList.repaint();
+                widgetList.itemChanged(this);
+                handleDirtyStateChange(isDirty);
             }
+        }
+
+        public void revertSettings() {
+            if (!(widget instanceof ConfigurableSnippetWidget))
+                return;
+
+            ConfigurableSnippetWidget csw = (ConfigurableSnippetWidget) widget;
+            Map params = Collections.EMPTY_MAP ;
+            try {
+                if (settings != null)
+                    params = settings.getParameters();
+            } catch (PersistenceException e) {}
+            csw.setConfigurationParameters(params);
+            setDirty(false);
+        }
+
+        public void saveSettings() {
+            if (!(widget instanceof ConfigurableSnippetWidget))
+                return;
+
+            ConfigurableSnippetWidget csw = (ConfigurableSnippetWidget) widget;
+            if (settings == null) {
+                settings = new TaskScheduleChartSettings();
+                settings.setChartID(snip.getId());
+                settings.setTaskListID(taskList.getID());
+            }
+
+            Map params = csw.getConfigurationParameters();
+            settings.setParameters(params);
+            settings.setChartVersion(snip.getVersion());
+            settings.save(ctx.getData());
+            setDirty(false);
+        }
+
+        public void doSaveSettingsAs() {
+            if (!(widget instanceof ConfigurableSnippetWidget))
+                return;
+
+            TaskScheduleChartSettings dest = showSaveAsDialog(settings,
+                snip.getId());
+            if (dest == null)
+                return;
+
+            if (settings == null || !dest.hasSameNameAs(settings)) {
+                // the name has changed.  Save this as a new chart.
+                saveAsNewChart(dest);
+
+            } else if (dest.hasSameScopeAs(settings) == false) {
+                // the name is the same, but the scope has changed.
+                saveAsNewScope(dest);
+
+            } else {
+                // the name and scope have not changed. Perform a plain "save"
+                saveSettings();
+            }
+        }
+
+        private void saveAsNewChart(TaskScheduleChartSettings dest) {
+            SnippetChartItem orig = new SnippetChartItem(this.snip);
+            orig.settings = this.settings;
+            orig.name = this.name;
+            orig.id = this.id + "#" + System.currentTimeMillis();
+
+            int pos = widgetList.indexOf(this);
+            widgetList.add(pos, orig);
+
+            this.settings = dest;
+            this.name = dest.getCustomName();
+            widgetList.itemChanged(this);
+            saveSettings();
+
+            if (currentItem == this && configurationDialog != null)
+                configurationDialog.setupTitle();
+        }
+
+        private void saveAsNewScope(TaskScheduleChartSettings dest) {
+            if (this.settings != null)
+                this.settings.delete(ctx.getData());
+
+            this.settings = dest;
+            saveSettings();
+
+            if (currentItem == this && configurationDialog != null)
+                configurationDialog.setupTitle();
+        }
+
+        public void maybeDelete() {
+            if (settings == null || settings.getCustomName() == null) {
+                // do not allow the user to delete built-in charts.
+                Toolkit.getDefaultToolkit().beep();
+                return;
+            }
+
+            String title = resources.getString("Configure.Delete_Chart.Title");
+            String prompt = resources.format(
+                "Configure.Delete_Chart.Prompt_FMT", name);
+            int userChoice = JOptionPane.showConfirmDialog(
+                TaskScheduleChart.this, prompt, title,
+                JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+            if (userChoice != JOptionPane.YES_OPTION)
+                return;
+
+            // delete this chart definition from the data repository.
+            settings.delete(ctx.getData());
+
+            // select a different chart.
+            int pos = widgetList.indexOf(this);
+            int posToSelect = (pos > 0 ? pos-1 : pos+1);
+            chooser.setSelectedIndex(posToSelect);
+
+            // remove this chart from the list.
+            widgetList.removeElement(this);
         }
 
     }
@@ -582,6 +989,69 @@ public class TaskScheduleChart extends JFrame
                 return item.getDescription();
             else
                 return null;
+        }
+
+    }
+
+    private abstract class AbstractChartItemAction extends AbstractAction {
+        SnippetChartItem item;
+        boolean enableIfDirty;
+        protected AbstractChartItemAction(SnippetChartItem item,
+                String nameResKey, boolean enableIfDirty, List storeTo) {
+            super(resources.getString(nameResKey));
+            this.item = item;
+            this.enableIfDirty = enableIfDirty;
+            if (storeTo != null)
+                storeTo.add(this);
+            dirtyStateChanged();
+        }
+        public void dirtyStateChanged() {
+            if (enableIfDirty) {
+                setEnabled(item.isDirty);
+            }
+        }
+    }
+
+    private class RevertSettingsAction extends AbstractChartItemAction {
+
+        public RevertSettingsAction(SnippetChartItem item, List storeTo) {
+            super(item, "Revert", true, storeTo);
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            item.revertSettings();
+        }
+
+    }
+
+    private class SaveSettingsAction extends AbstractChartItemAction {
+
+        public SaveSettingsAction(SnippetChartItem item, List storeTo) {
+            super(item, "Save", true, storeTo);
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            item.saveSettings();
+        }
+
+    }
+
+    private class SaveSettingsAsAction extends AbstractChartItemAction {
+
+        public SaveSettingsAsAction(SnippetChartItem item, List storeTo) {
+            super(item, "Configure.Save_As.Button", false, storeTo);
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            item.doSaveSettingsAs();
+        }
+
+    }
+
+    private class DeleteChartAction extends AbstractAction {
+
+        public void actionPerformed(ActionEvent e) {
+            currentItem.maybeDelete();
         }
 
     }
