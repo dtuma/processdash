@@ -4,7 +4,7 @@
   <property environment="env"/>
   <property file="build.properties"/>
 
-  <property name="teamtools.version" value="3.8.5"/>
+  <property name="teamtools.version" value="3.8.6"/>
   <property name="teamtools.requires" value="1.11+"/>
 
   <property name="processdash.dir" value="../processdash"/>
