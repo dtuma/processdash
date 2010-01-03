@@ -1,4 +1,4 @@
-// Copyright (C) 2006 Tuma Solutions, LLC
+// Copyright (C) 2006-2010 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -25,9 +25,11 @@ package net.sourceforge.processdash.net.cms;
 
 import java.io.IOException;
 import java.io.StringWriter;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 
 import net.sourceforge.processdash.util.HTMLUtils;
@@ -40,6 +42,20 @@ import org.xmlpull.v1.XmlPullParserFactory;
 import org.xmlpull.v1.XmlSerializer;
 
 public class XmlParamDataPersisterV1 implements ParamDataPersister {
+
+    private boolean lenientPostedDataMode;
+
+    private boolean generateWhitespace;
+
+    public XmlParamDataPersisterV1() {
+        this(false, true);
+    }
+
+    public XmlParamDataPersisterV1(boolean lenientPostedDataMode,
+            boolean whitespace) {
+        this.lenientPostedDataMode = lenientPostedDataMode;
+        this.generateWhitespace = whitespace;
+    }
 
     public static final String IDENTIFIER = "xml.v1";
 
@@ -125,9 +141,10 @@ public class XmlParamDataPersisterV1 implements ParamDataPersister {
             throw new RuntimeException("Couldn't obtain xml serializer", xppe);
         }
         try {
-            ser.setFeature(
-                    "http://xmlpull.org/v1/doc/features.html#indent-output",
-                    true);
+            if (generateWhitespace)
+                ser.setFeature(
+                        "http://xmlpull.org/v1/doc/features.html#indent-output",
+                        true);
         } catch (Exception e) {
         }
 
@@ -141,36 +158,10 @@ public class XmlParamDataPersisterV1 implements ParamDataPersister {
 
         // filter the posted data so we are only working with items that end
         // in "_ALL".  This simplifies our work.
+        if (lenientPostedDataMode)
+            addMissingALLParams(postedData);
         postedData = EditedPageDataParser.filterParamMap(postedData,
                 new TreeMap(), null, "_ALL", false, true);
-
-        Map enumerations = EditedPageDataParser.filterParamMap(postedData,
-                new TreeMap(), null, "Enum", true, true);
-        for (Iterator i = enumerations.entrySet().iterator(); i.hasNext();) {
-            Map.Entry e = (Map.Entry) i.next();
-            String[] enumIDs = (String[]) e.getValue();
-            if (enumIDs == null || enumIDs.length == 0)
-                continue;
-
-            String enumName = (String) e.getKey();
-            ser.startTag(null, ENUM_TAG);
-            ser.attribute(null, NAME_ATTR, enumName);
-
-            for (int j = 0; j < enumIDs.length; j++) {
-                ser.startTag(null, ITEM_TAG);
-
-                String id = enumIDs[j];
-                String itemSpace = enumName + id + "_";
-                Map itemAttrs = EditedPageDataParser.filterParamMap(postedData,
-                        new TreeMap(), itemSpace, null, true, true);
-                writeParamList(ser, itemAttrs);
-
-                ser.endTag(null, ITEM_TAG);
-            }
-
-
-            ser.endTag(null, ENUM_TAG);
-        }
 
         writeParamList(ser, postedData);
 
@@ -180,7 +171,84 @@ public class XmlParamDataPersisterV1 implements ParamDataPersister {
         return out.toString();
     }
 
-    private void writeParamList(XmlSerializer ser, Map params)
+    /**
+     * When query parameters are parsed by TinyCGIBase, we can assume that
+     * each parameter will have a matching "_ALL" array (even if it only
+     * contains one element).  But parameters that come from another source
+     * will not follow that pattern.  On request, this method will fill in
+     * the missing "_ALL" parameters for the posted data.
+     */
+    private void addMissingALLParams(Map postedData) {
+        Set<String> plainParamNames = new HashSet<String>();
+        Set<String> allParamNames = new HashSet<String>();
+        for (Iterator i = postedData.keySet().iterator(); i.hasNext();) {
+            String name = (String) i.next();
+            if (name.endsWith("_ALL"))
+                allParamNames.add(name.substring(0, name.length()-4));
+            else
+                plainParamNames.add(name);
+        }
+        plainParamNames.removeAll(allParamNames);
+        for (String name : plainParamNames) {
+            Object value = postedData.get(name);
+            if (value instanceof String) {
+                String str = (String) value;
+                String[] allValue = new String[] { str };
+                postedData.put(name + "_ALL", allValue);
+            }
+        }
+    }
+
+    private void writeParamList(XmlSerializer ser, Map postedData)
+            throws IOException {
+        // first, find all the enumerations in the data.  Sort them
+        // lexographically so top-level enum names will appear before
+        // embedded enum names.
+        Set enumerationNames = EditedPageDataParser.filterParamMap(postedData,
+            new TreeMap(), null, "Enum", false, true).keySet();
+
+        // extract the enumerations from the map and write the associated
+        // list of items
+        for (Iterator i = enumerationNames.iterator(); i.hasNext();) {
+            String enumName = (String) i.next();
+            String enumKey = enumName + "Enum";
+            String[] enumIDs = (String[]) postedData.remove(enumKey);
+            if (enumIDs == null || enumIDs.length == 0)
+                continue;
+
+            ser.startTag(null, ENUM_TAG);
+            ser.attribute(null, NAME_ATTR, enumName);
+
+            for (int j = 0; j < enumIDs.length; j++) {
+                ser.startTag(null, ITEM_TAG);
+
+                // extract the data elements associated with each item in the
+                // enumeration.  Note that if an enumerated item contains an
+                // second-level embedded enumeration, this will remove it from
+                // the posted data map, and the outer "for" loop will skip over
+                // it at some point in the future.
+                String id = enumIDs[j];
+                String itemSpace = enumName + id + "_";
+                Map itemAttrs = EditedPageDataParser.filterParamMap(postedData,
+                        new TreeMap(), itemSpace, null, true, true);
+                // now recursively call writeParamList to write the data for
+                // this item, which may include parameters and other embedded
+                // enumerations
+                writeParamList(ser, itemAttrs);
+
+                ser.endTag(null, ITEM_TAG);
+            }
+
+            ser.endTag(null, ENUM_TAG);
+        }
+
+        writePlainParamList(ser, postedData);
+    }
+
+    /**
+     * Write a list of parameters that are known NOT to include enumerations.
+     */
+    private void writePlainParamList(XmlSerializer ser, Map params)
             throws IOException {
         for (Iterator k = params.entrySet().iterator(); k.hasNext();) {
             Map.Entry attr = (Map.Entry) k.next();
