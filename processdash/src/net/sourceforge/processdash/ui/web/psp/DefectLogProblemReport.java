@@ -25,11 +25,10 @@ package net.sourceforge.processdash.ui.web.psp;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 import net.sourceforge.processdash.log.defects.Defect;
+import net.sourceforge.processdash.process.ProcessUtil;
 
 public class DefectLogProblemReport extends PspForEngDefectBase {
 
@@ -43,6 +42,11 @@ public class DefectLogProblemReport extends PspForEngDefectBase {
 
     private List misorderedDefects;
 
+    private List phaseList;
+
+    private List failurePhaseList;
+
+
     @Override
     protected void writeContents() throws IOException {
         defectsWithNoFixTime = new ArrayList();
@@ -50,6 +54,10 @@ public class DefectLogProblemReport extends PspForEngDefectBase {
         failureDefectsWithNoFixNumber = new ArrayList();
         samePhaseDefects = new ArrayList();
         misorderedDefects = new ArrayList();
+
+        ProcessUtil procUtil = new ProcessUtil(getDataContext());
+        phaseList = procUtil.getProcessListPlain("Phase_List");
+        failurePhaseList = procUtil.getProcessListPlain("Failure_Phase_List");
 
         runDefectAnalysis();
 
@@ -118,13 +126,16 @@ public class DefectLogProblemReport extends PspForEngDefectBase {
             defectsWithNoDescription.add(d.number);
         }
 
+        String inj = extractPhase(d.phase_injected);
+        String rem = extractPhase(d.phase_removed);
+
         if (!hasValue(d.fix_defect)
-                && FAILURE_PHASES.contains(d.phase_injected)) {
+                && failurePhaseList.contains(inj)) {
             failureDefectsWithNoFixNumber.add(d.number);
         }
 
-        int injPhasePos = PHASES.indexOf(d.phase_injected);
-        int remPhasePos = PHASES.indexOf(d.phase_removed);
+        int injPhasePos = phaseList.indexOf(inj);
+        int remPhasePos = phaseList.indexOf(rem);
         int diff = remPhasePos - injPhasePos;
         if (diff < 0)
             misorderedDefects.add(d.number);
@@ -132,12 +143,11 @@ public class DefectLogProblemReport extends PspForEngDefectBase {
             samePhaseDefects.add(d.number);
     }
 
-    private static final List PHASES = Collections.unmodifiableList(Arrays
-            .asList("Before Development", "Planning", "Design",
-                "Design Review", "Code", "Code Review", "Compile", "Test",
-                "Postmortem", "After Development"));
-
-    private static final List FAILURE_PHASES = Collections
-            .unmodifiableList(Arrays.asList("Compile", "Test"));
+    private String extractPhase(String fullPhase) {
+        if (fullPhase == null)
+            return null;
+        int slashPos = fullPhase.lastIndexOf('/');
+        return fullPhase.substring(slashPos + 1);
+    }
 
 }
