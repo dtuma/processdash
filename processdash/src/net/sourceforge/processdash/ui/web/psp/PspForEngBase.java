@@ -115,6 +115,6 @@ public class PspForEngBase extends TinyCGIBase {
 
     protected static final List<String> PSP_LEVELS = Collections
             .unmodifiableList(Arrays.asList("PSP0", "PSP0.1", "PSP1", "PSP1.1",
-                "PSP2", "PSP2.1"));
+                "PSP2", "PSP2.1", "PSP3"));
 
 }
