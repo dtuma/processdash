@@ -856,7 +856,8 @@ public class TimeLogEditor extends Object implements TreeSelectionListener,
         TableUtils.configureTable(table, TimeLogTableModel.COLUMN_WIDTHS,
                 TimeLogTableModel.COLUMN_TOOLTIPS);
         TableColumn startTimeCol = table.getColumnModel().getColumn(TimeLogTableModel.COL_START_TIME);
-        startTimeCol.setCellEditor(new JDateTimeChooserCellEditor(DATE_TIME_FORMAT));
+        startTimeCol.setCellEditor(new JDateTimeChooserCellEditor(Settings
+                .getVal("timelog.dateTimeEditFormat", DATE_TIME_FORMAT)));
         retPanel.add("Center", new JScrollPane(table));
 
         JPanel btnPanel = new JPanel(false);
