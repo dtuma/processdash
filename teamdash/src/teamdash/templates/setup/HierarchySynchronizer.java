@@ -693,6 +693,10 @@ public class HierarchySynchronizer {
     }
 
     private void collectNodeOrderData(Element node, ListData result) {
+        String type = node.getTagName();
+        if (!NODE_TYPES.contains(type))
+            return;
+
         String taskIDs = node.getAttribute(TASK_ID_ATTR);
         if (XMLUtils.hasValue(taskIDs)) {
             for (String oneID : taskIDs.split(",")) {
