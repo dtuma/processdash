@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2009 Tuma Solutions, LLC
+// Copyright (C) 2001-2010 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -118,6 +118,15 @@ public class EVReport extends CGIChartBase {
     private static Resources resources = Resources.getDashBundle("EV");
 
     boolean drawingChart;
+
+
+
+    @Override
+    protected void doPost() throws IOException {
+        parseFormData();
+        super.doPost();
+    }
+
 
     /** Write the CGI header.
      */
