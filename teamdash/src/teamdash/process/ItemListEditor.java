@@ -81,7 +81,7 @@ public class ItemListEditor extends JPanel {
 
     private void enableButtons() {
         int row = getSelectedRow();
-        boolean editable = ((row >= 0) && (model.isCellEditable(row, 0)));
+        boolean editable = ((row >= 0) && (model.isCellEditable(row, 1)));
         deleteButton.setEnabled(editable && row >= 0);
         upButton    .setEnabled(editable && row > 0);
         downButton  .setEnabled(editable &&
