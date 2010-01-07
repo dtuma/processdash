@@ -132,6 +132,8 @@ public class ImportManager extends AbstractManager {
             String prefix = instr.getPrefix();
             ImportDirectory importDir = ImportDirectoryFactory.getInstance()
                     .get(instr.getURL(), instr.getDirectory());
+            if (importDir == null)
+                return null;
 
             String oldURL = instr.getURL();
             String newURL = importDir.getRemoteLocation();
