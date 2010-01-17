@@ -1,4 +1,4 @@
-// Copyright (C) 2006-2009 Tuma Solutions, LLC
+// Copyright (C) 2006-2010 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -418,6 +418,24 @@ public class EVTaskDependencyResolver {
 
     public static String getPseudoTaskIdForTaskList(String taskListID) {
         return "TL-" + taskListID;
+    }
+
+    public static String getIdForTask(EVTask task, String taskListId) {
+        List ids = task.getTaskIDs();
+        if (ids != null && !ids.isEmpty())
+            return (String) ids.get(ids.size()-1);
+        else if (task.getParent() == null || task.getFlag() != null)
+            return getPseudoTaskIdForTaskList(taskListId);
+        else
+            return pathConcat(getIdForTask(task.getParent(), taskListId),
+                    task.getName());
+    }
+
+    private static String pathConcat(String a, String b) {
+        if (b.startsWith("/"))
+            return a + b;
+        else
+            return a + "/" + b;
     }
 
 
