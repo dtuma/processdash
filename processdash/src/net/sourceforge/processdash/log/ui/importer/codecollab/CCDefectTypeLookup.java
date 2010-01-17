@@ -1,4 +1,4 @@
-// Copyright (C) 2009 Tuma Solutions, LLC
+// Copyright (C) 2009-2010 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -39,8 +39,8 @@ import org.apache.xmlrpc.client.XmlRpcClientConfigImpl;
  * To respond to this uncertainty, this class uses the strategy pattern to
  * construct an object which can lookup defect types for a particular server.
  * 
- * Note: at the moment, only one strategy is provided; it appears to work with
- * Code Collaborator v4.0.834 and later.
+ * Note: at the moment, two strategies are provided that appear to work with
+ * Code Collaborator version 4 and version 5.
  */
 public abstract class CCDefectTypeLookup extends CCQuerySupport {
 
@@ -60,10 +60,14 @@ public abstract class CCDefectTypeLookup extends CCQuerySupport {
      */
     public static CCDefectTypeLookup getTypeLookup(XmlRpcClient client) {
         try {
-            return new DefectTypeLookupImpl(client);
-        } catch (Exception e) {
-            return new NullDefectTypeLookup();
-        }
+            return new DefectTypeLookupImplV4(client);
+        } catch (Exception e) {}
+
+        try {
+            return new DefectTypeLookupImplV5(client);
+        } catch (Exception e) {}
+
+        return new NullDefectTypeLookup();
     }
 
 
@@ -124,7 +128,7 @@ public abstract class CCDefectTypeLookup extends CCQuerySupport {
     }
 
 
-    private static class DefectTypeLookupImpl extends CCDefectTypeLookup {
+    private static class DefectTypeLookupImplV4 extends CCDefectTypeLookup {
 
         private XmlRpcClient client;
 
@@ -132,7 +136,7 @@ public abstract class CCDefectTypeLookup extends CCQuerySupport {
 
         private Map<String, String> defectTypes;
 
-        public DefectTypeLookupImpl(XmlRpcClient client) throws Exception {
+        public DefectTypeLookupImplV4(XmlRpcClient client) throws Exception {
             this.client = client;
 
             Integer dataType = getMetadataId(client, "title", "defectTypes",
@@ -141,7 +145,7 @@ public abstract class CCDefectTypeLookup extends CCQuerySupport {
                 "AdminDefectFields", "related", dataType);
 
             Object[] knownTypes = querySimple(client,
-                METADATA_DESCRIPTION_CLASS, 50, "category", "defectTypes");
+                METADATA_DESCRIPTION_CLASS, 200, "category", "defectTypes");
             if (knownTypes == null || knownTypes.length == 0)
                 throw new Exception("Expected to find defect types");
 
@@ -167,4 +171,47 @@ public abstract class CCDefectTypeLookup extends CCQuerySupport {
         }
 
     }
+
+    private static class DefectTypeLookupImplV5 extends CCDefectTypeLookup {
+
+        private XmlRpcClient client;
+
+        private Integer fieldId;
+
+        private Map<String, String> defectTypes;
+
+        public DefectTypeLookupImplV5(XmlRpcClient client) throws Exception {
+            this.client = client;
+
+            this.fieldId = getMetadataId(client, "title", "Type", "category",
+                "AdminDefectFields", "targetType", "Defect");
+
+            Object[] knownTypes = querySimple(client,
+                SELECT_METADATA_CLASS, 200, "fieldId", fieldId);
+            if (knownTypes == null || knownTypes.length == 0)
+                throw new Exception("Expected to find defect types");
+
+            defectTypes = new HashMap<String, String>();
+            for (Object o : knownTypes) {
+                Map oneType = (Map) o;
+                Object typeId = oneType.get("id");
+                Object typeText = oneType.get("title");
+                defectTypes.put(typeId.toString(), typeText.toString());
+            }
+        }
+
+        @Override
+        public String getType(Integer defectId) {
+            try {
+                Object typeId = lookupSingleValue(client,
+                    INTEGER_METADATA_CLASS, "value", "targetId", defectId,
+                    "fieldId", fieldId);
+                return defectTypes.get(typeId.toString());
+            } catch (Exception e) {
+                return null;
+            }
+        }
+
+    }
+
 }
