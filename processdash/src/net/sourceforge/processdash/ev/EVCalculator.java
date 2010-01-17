@@ -1,4 +1,4 @@
-//Copyright (C) 2003-2009 Tuma Solutions, LLC
+//Copyright (C) 2003-2010 Tuma Solutions, LLC
 //Process Dashboard - Data Automation Tool for high-maturity processes
 //
 //This program is free software; you can redistribute it and/or
@@ -167,8 +167,10 @@ public abstract class EVCalculator {
             task.planDate = maxPlanDate(task.planDate, child.planDate);
 
             if (child.isValuePruned() == false) {
-                replanDate = maxForecastDate(replanDate, child.replanDate);
-                forecastDate = maxForecastDate(forecastDate, child.forecastDate);
+                if (child.replanDate != null || child.planValue > 0)
+                    replanDate = maxForecastDate(replanDate, child.replanDate);
+                if (child.forecastDate  != null || child.planValue > 0)
+                    forecastDate = maxForecastDate(forecastDate, child.forecastDate);
             }
         }
 
