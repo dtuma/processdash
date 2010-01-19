@@ -1,4 +1,4 @@
-// Copyright (C) 2006-2009 Tuma Solutions, LLC
+// Copyright (C) 2006-2010 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -962,7 +962,7 @@ public class EVTaskListMerger {
 
             task.remove(child);
             for (int i = 0;  i < child.getNumChildren();  i++)
-                task.add(child.getChild(i));
+                task.forceAdd(child.getChild(i));
         }
     }
 

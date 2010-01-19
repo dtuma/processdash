@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2009 Tuma Solutions, LLC
+// Copyright (C) 2001-2010 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -222,9 +222,15 @@ public class EVTask implements Cloneable, DataListener {
         if (containsNode(children, child))
             return false;
 
+        forceAdd(child);
+        return true;
+    }
+
+    /** Add a child task to this EVTask, even if if some other child with
+     * the same name is present. */
+    protected void forceAdd(EVTask child) {
         child.parent = this;
         children.add(child);
-        return true;
     }
 
     /** Add a child task to this EVTask. */
