@@ -1,4 +1,4 @@
-// Copyright (C) 2005-2009 Tuma Solutions, LLC
+// Copyright (C) 2005-2010 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -34,6 +34,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import javax.swing.JOptionPane;
 
 import net.sourceforge.processdash.tool.diff.HardcodedFilterLocator;
 import net.sourceforge.processdash.tool.diff.LOCDiffReportGenerator;
@@ -89,15 +91,22 @@ public class PerforceLOCDiff extends LOCDiffReportGenerator {
     protected Collection getFilesToCompare() throws IOException {
         List result = new ArrayList();
 
-        getOpenedFilesToCompare(result);
+        boolean checkBinaries = false;
+        if (getOptions() != null && getOptions().contains("-checkBinaries"))
+            checkBinaries = true;
+
+        getOpenedFilesToCompare(result, checkBinaries);
 
         if (result.isEmpty())
-            getSubmittedFilesToCompare(result);
+            getSubmittedFilesToCompare(result, checkBinaries);
+
+        maybeConfirmLargeOperation(result);
 
         return result;
     }
 
-    private void getOpenedFilesToCompare(List result) throws IOException {
+    private void getOpenedFilesToCompare(List result, boolean checkBinaries)
+            throws IOException {
         Process proc = runPerforceCommand("opened", "-c", changelist);
         BufferedReader in = new BufferedReader(new InputStreamReader(proc.getInputStream()));
         String line;
@@ -109,14 +118,17 @@ public class PerforceLOCDiff extends LOCDiffReportGenerator {
                 String filename = m.group(1);
                 int revNum = Integer.parseInt(m.group(2));
                 String action = m.group(3);
-                result.add(new PerforceFile(filename, revNum, action));
+                if (checkBinaries || m.group(5).contains("text"))
+                    result.add(new PerforceFile(filename, revNum, action));
             }
         }
     }
     private static final Pattern OPENED_FILE_PATTERN = Pattern.compile
-        ("(//.*)\\#([0-9]+) - (edit|add|delete) (default change|change ([0-9]+)) .*");
+        ("(//.*)\\#(\\d+) - (edit|add|delete) "
+                    + "(default change|change \\d+|\\d+ change) (.*)");
 
-    private void getSubmittedFilesToCompare(List result) throws IOException {
+    private void getSubmittedFilesToCompare(List result, boolean checkBinaries)
+            throws IOException {
         Process proc = runPerforceCommand("describe", "-s", changelist);
         BufferedReader in = new BufferedReader(new InputStreamReader(proc.getInputStream()));
         String line;
@@ -126,12 +138,31 @@ public class PerforceLOCDiff extends LOCDiffReportGenerator {
                 String filename = m.group(1);
                 int revNum = Integer.parseInt(m.group(2));
                 String action = m.group(3);
-                result.add(new SubmittedPerforceFile(filename, revNum, action));
+                SubmittedPerforceFile file = new SubmittedPerforceFile(
+                        filename, revNum, action);
+                if (checkBinaries || file.isText())
+                    result.add(file);
             }
         }
     }
     private static final Pattern SUBMITTED_FILE_PATTERN = Pattern.compile
         ("\\.\\.\\. (//.*)#([0-9]+) (edit|add|delete)");
+
+    private void maybeConfirmLargeOperation(List result) throws IOException {
+        if (result.size() < 250)
+            return;
+
+        Object[] message = new String[] {
+            "This LOC counting operation will examine",
+            "     " + result.size() + " files",
+            "Extremely large counting operations may strain the Perforce",
+            "server.  Are you certain you wish to proceed?"
+        };
+        int userChoice = JOptionPane.showConfirmDialog(null, message,
+            "Confirm Large Operation", JOptionPane.OK_CANCEL_OPTION);
+        if (userChoice != JOptionPane.OK_OPTION)
+            throw new UserCancelledException();
+    }
 
     private static final int ADDED = 0;
     private static final int MODIFIED = 1;
@@ -142,6 +173,9 @@ public class PerforceLOCDiff extends LOCDiffReportGenerator {
         protected String filename;
         protected int revNum;
         protected int type;
+
+        protected String clientFilename;
+        protected Boolean isTextFile;
 
         public PerforceFile(String filename, int revNum, String type) {
             this.filename = filename;
@@ -169,22 +203,23 @@ public class PerforceLOCDiff extends LOCDiffReportGenerator {
         public InputStream getContentsAfter() throws IOException {
             if (type == DELETED)
                 return null;
-            String clientFilename = getClientFilename();
+            getFileStats();
             if (clientFilename == null)
                 return null;
             else
                 return new FileInputStream(clientFilename);
         }
 
-        private String getClientFilename() throws IOException {
+        protected void getFileStats() throws IOException {
             Process proc = runPerforceCommand("fstat", filename);
             BufferedReader in = new BufferedReader(new InputStreamReader(proc.getInputStream()));
             String line;
             while ((line = in.readLine()) != null) {
                 if (line.startsWith("... clientFile "))
-                    return line.substring(15);
+                    clientFilename = line.substring(15);
+                else if (line.startsWith("... type "))
+                    isTextFile = line.contains("text");
             }
-            return null;
         }
 
         protected InputStream getFileFromPerforce(String filename, int revNum) throws IOException {
@@ -202,6 +237,14 @@ public class PerforceLOCDiff extends LOCDiffReportGenerator {
         public SubmittedPerforceFile(String filename, int revNum, String type) {
             super(filename, revNum, type);
         }
+        public boolean isText() {
+            if (isTextFile == null) {
+                try {
+                    getFileStats();
+                } catch (IOException e) {}
+            }
+            return (isTextFile != null && isTextFile);
+        }
 
         public InputStream getContentsBefore() throws IOException {
             return getFileFromPerforce(filename, revNum-1);
@@ -212,6 +255,8 @@ public class PerforceLOCDiff extends LOCDiffReportGenerator {
     }
 
     private class PerforceNotFoundException extends RuntimeException {}
+
+    private class UserCancelledException extends RuntimeException {}
 
 
     public static void main(String[] args) {
@@ -238,6 +283,7 @@ public class PerforceLOCDiff extends LOCDiffReportGenerator {
                     + "line client.  Please");
             System.err.println("ensure the 'p4' command is in your path, "
                     + "then try again.");
+        } catch (UserCancelledException uce) {
         } catch (IOException ioe) {
             ioe.printStackTrace();
         }
