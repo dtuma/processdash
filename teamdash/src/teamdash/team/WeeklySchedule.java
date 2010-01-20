@@ -229,7 +229,7 @@ public class WeeklySchedule implements EffortCalendar {
         int week = getStartWeek();
         double defaultHoursPerWeek = getHoursPerWeek();
 
-        while (hours > 0) {
+        while (hours > FUZZ_FACTOR) {
             if (week > maxExceptionWeek) {
                 if (defaultHoursPerWeek > 0) {
                     double remainingWeeks = hours / defaultHoursPerWeek;
@@ -377,5 +377,7 @@ public class WeeklySchedule implements EffortCalendar {
     private static final String WEEK_ATTR = "week";
 
     private static final String HOURS_ATTR = "hours";
+
+    private static final double FUZZ_FACTOR = 0.0001;
 
 }
