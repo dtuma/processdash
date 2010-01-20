@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2009 Tuma Solutions, LLC
+// Copyright (C) 2001-2010 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -30,6 +30,16 @@ import java.util.StringTokenizer;
 
 
 public class HTMLUtils {
+
+    public static final String HTML_STRICT_DOCTYPE =
+        "<!DOCTYPE html PUBLIC \"-//W3C//DTD HTML 4.01//EN\"\n" +
+        "    \"http://www.w3.org/TR/html4/strict.dtd\">\n";
+    public static final String HTML_TRANSITIONAL_DOCTYPE =
+        "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\"\n" +
+        "    \"http://www.w3.org/TR/html4/loose.dtd\">\n";
+    public static final String HTML_FRAMESET_DOCTYPE =
+        "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 Frameset//EN\"\n" +
+        "    \"http://www.w3.org/TR/html4/frameset.dtd\">\n";
 
     public static String escapeEntities(String value) {
         if (StringUtils.containsChars(value, "<>&\"'") == false)

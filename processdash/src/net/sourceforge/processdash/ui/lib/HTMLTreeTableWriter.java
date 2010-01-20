@@ -1,4 +1,4 @@
-// Copyright (C) 2006-2007 Tuma Solutions, LLC
+// Copyright (C) 2006-2010 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -36,6 +36,8 @@ public class HTMLTreeTableWriter extends HTMLTableWriter {
 
     int nodeColumn = 0;
 
+    int showDepth = 2;
+
     JTree tree;
 
     TreeNodeCellRenderer nodeRenderer;
@@ -60,6 +62,12 @@ public class HTMLTreeTableWriter extends HTMLTableWriter {
 
     public void setExpandAllTooltip(String expandAllTooltip) {
         this.expandAllTooltip = expandAllTooltip;
+    }
+
+    /** Set the number of levels beneath the root node which should be
+     * displayed initially. */
+    public void setShowDepth(int d) {
+        this.showDepth = Math.max(1, d);
     }
 
     public void writeTree(Writer out, TreeTableModel t) throws IOException {
@@ -91,13 +99,25 @@ public class HTMLTreeTableWriter extends HTMLTableWriter {
     }
 
     protected void printRowAttrs(Writer out, int r) throws IOException {
+        RowID rowId = getIdForRow(r);
         out.write(" id='");
-        out.write(getIdForRow(r));
+        out.write(rowId.id);
         out.write("'");
+        if (rowId.indent > showDepth)
+            out.write(" style='display:none'");
         super.printRowAttrs(out, r);
     }
 
-    private String getIdForRow(int r) {
+    private class RowID {
+        public String id;
+        public int indent;
+        public RowID(String id, int indent) {
+            this.id = id;
+            this.indent = indent;
+        }
+    }
+
+    private RowID getIdForRow(int r) {
         TreeModel treeModel = tree.getModel();
         TreePath path = tree.getPathForRow(r);
         StringBuffer id = new StringBuffer();
@@ -108,8 +128,7 @@ public class HTMLTreeTableWriter extends HTMLTableWriter {
             int pos = treeModel.getIndexOfChild(parent, node);
             id.append("-").append(Integer.toString(pos));
         }
-        String idStr = id.toString();
-        return idStr;
+        return new RowID(id.toString(), path.getPathCount() - 1);
     }
 
     private class TreeNodeCellRenderer implements CellRenderer {
@@ -138,36 +157,32 @@ public class HTMLTreeTableWriter extends HTMLTableWriter {
 
             int indent = path.getPathCount() - 1;
 
-            int iconWidth = (isLeaf ? 15 : 30);
-
             StringBuffer result = new StringBuffer();
             result.append("<div style='margin-left: ") //
-                    .append(30 * indent + iconWidth) //
+                    .append(24 + indent * 20) //
                     .append("px; position: relative'>");
 
-            if (isLeaf)
-                // If the node is a leaf, we want a simple document icon.
-                result.append("<img class='treeTableDoc' width='12'"
-                        +" height='14' src='/Images/document.gif'>");
-
-            else if (isRoot) {
+            if (isRoot) {
                 // If the node is the root node, show the "Expand all" icon
                 result.append("<a href='#' class='treeTableExpandAll' "
                             + "onclick='toggleRows(this); return false;'>"
-                            + "<img border='0' src='/Images/expand-all.png'");
+                            + "<img border='0' src='/Images/expand-all.gif'");
 
                 if (expandAllTooltip != null)
                     result.append(" title='").append(expandAllTooltip).append("'");
 
                 result.append(" width='16' height='16'></a>");
 
-            } else
-                // If the node is not a leaf, we want it to have an opened
-                // folder icon (since by default the node is opened).
+            } else if (!isLeaf) {
+                // If the node is not a leaf, display an arrow for opening and
+                // closing it. Check the indent level to determine if the node
+                // should be initially opened.
                 result.append("<a href='#' class='treeTableFolder' "
                         + "onclick='toggleRows(this); return false;'>"
-                        + "<img border='0' src='/Images/folder-open.gif'"
-                        + " width='26' height='14'></a>");
+                        + "<img border='0' src='/Images/tree-");
+                result.append(indent < showDepth ? "open" : "closed");
+                result.append(".gif' width='11' height='14'></a>");
+            }
 
             if (innerHtml != null)
                 result.append(innerHtml);
@@ -182,8 +197,8 @@ public class HTMLTreeTableWriter extends HTMLTableWriter {
 
     public static final String TREE_ICON_HEADER =
         "<span style='display:none'>" +
-        "<img alt='tree-table-folder-open' src='/Images/folder-open.gif'>" +
-        "<img alt='tree-table-folder-closed' src='/Images/folder-closed.gif'>" +
+        "<img alt='tree-table-folder-open' src='/Images/tree-open.gif'>" +
+        "<img alt='tree-table-folder-closed' src='/Images/tree-closed.gif'>" +
         "</span>\n";
 
     public static final String TREE_HEADER_ITEMS =

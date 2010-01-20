@@ -9,6 +9,10 @@ OL { margin-top: 0pt; margin-bottom: 0pt }
 /* do not add unnecessary extra space at the bottom of forms */
 form { margin-bottom: 0px }
 
+/* map tags should not affect layout. (Firefox in standards mode
+   seems to think otherwise) */
+map { display: none }
+
 /* style for instructions that are new to the current PSP level */
 .newPsp { font-style: italic;
           font-weight: bold }

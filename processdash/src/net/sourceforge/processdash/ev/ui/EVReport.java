@@ -1096,6 +1096,7 @@ public class EVReport extends CGIChartBase {
     static final String SORTTREE_HEADER =
         "<script type='text/javascript' src='/reports/evTreeSort.js'></script>\n";
     static final String HEADER_HTML =
+        HTMLUtils.HTML_TRANSITIONAL_DOCTYPE +
         "<html><head><title>%title%</title>\n" +
         "<link rel=stylesheet type='text/css' href='/style.css'>\n" +
         "<script type='text/javascript' src='/lib/overlib.js'></script>\n" +
@@ -1147,10 +1148,8 @@ public class EVReport extends CGIChartBase {
         writer.setExpandAllTooltip(resources.getHTML("Report.Expand_All_Tooltip"));
         writer.setTableAttributes(
                 "class='needsTreeSortLinks' id='$$$_task' border='1'");
+        writer.setShowDepth(Settings.getInt("ev.showHierarchicalDepth", 3) - 1);
         writer.writeTree(out, tree);
-
-        int depth = Settings.getInt("ev.showHierarchicalDepth", 3);
-        out.write("<script>collapseAllRows(" + depth + ");</script>");
     }
 
     void writeScheduleTable(EVSchedule s) throws IOException {

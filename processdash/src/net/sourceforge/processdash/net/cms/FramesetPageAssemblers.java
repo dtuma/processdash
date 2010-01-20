@@ -1,4 +1,4 @@
-// Copyright (C) 2006-2009 Tuma Solutions, LLC
+// Copyright (C) 2006-2010 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -183,7 +183,7 @@ public class FramesetPageAssemblers {
                     FRAME_PARAM, FRAME_TOC)));
             out.write("\" frameborder=\"0\">\n");
 
-            out.write("<frame name=\"contents\" src=\"");
+            out.write("<frame name=\"contents\" scrolling=\"yes\" src=\"");
             out.write(HTMLUtils.escapeEntities(HTMLUtils.appendQuery(selfUrl,
                     FRAME_PARAM, FRAME_CONTENT)));
             out.write("\">\n");
@@ -258,7 +258,7 @@ public class FramesetPageAssemblers {
                 throws IOException {
             PageSectionHelper.hideInvalidSections(page);
 
-            //out.write(HTML_TRANSITIONAL_DOCTYPE);
+            out.write(HTML_TRANSITIONAL_DOCTYPE);
             out.write("<html>\n");
             writeHead(out, headerItems, page);
             out.write("<body>\n");
