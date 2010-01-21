@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.io.Writer;
 import java.text.DateFormat;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
@@ -69,6 +70,7 @@ import net.sourceforge.processdash.net.cache.CachedURLObject;
 import net.sourceforge.processdash.net.cms.CMSSnippetEnvironment;
 import net.sourceforge.processdash.net.http.TinyCGIException;
 import net.sourceforge.processdash.net.http.WebServer;
+import net.sourceforge.processdash.templates.ExtensionManager;
 import net.sourceforge.processdash.ui.lib.HTMLTableWriter;
 import net.sourceforge.processdash.ui.lib.HTMLTreeTableWriter;
 import net.sourceforge.processdash.ui.lib.TreeTableModel;
@@ -100,7 +102,6 @@ public class EVReport extends CGIChartBase {
     public static final String CSV_PARAM = "csv";
     static final String MS_PROJ_XML_PARAM = "msProjXml";
     public static final String MERGED_PARAM = "merged";
-    public static final String PRESERVE_LEAVES_PARAM = "preserveLeaves";
     public static final String TIME_CHART = "time";
     public static final String VALUE_CHART = "value";
     public static final String VALUE_CHART2 = "value2";
@@ -113,6 +114,7 @@ public class EVReport extends CGIChartBase {
     static final String CUSTOMIZE_HIDE_NAMES = "hideAssignedTo";
     static final String CUSTOMIZE_LABEL_FILTER =
         EVReportSettings.LABEL_FILTER_PARAM;
+    static final String TASK_STYLE_PARAM = "taskStyle";
 
 
     private static Resources resources = Resources.getDashBundle("EV");
@@ -297,7 +299,7 @@ public class EVReport extends CGIChartBase {
             if (evModel instanceof EVTaskListRollup
                     && parameters.containsKey(MERGED_PARAM)) {
                 evModel = new EVTaskListMerged(evModel, false,
-                        shouldMergePreserveLeaves(), null);
+                        settings.shouldMergePreserveLeaves(), null);
             }
 
             outStream.write(XML_HEADER.getBytes("UTF-8"));
@@ -770,17 +772,22 @@ public class EVReport extends CGIChartBase {
      */
     public void writeHTML() throws IOException {
         isSnippet = (env.containsKey(SnippetEnvironment.SNIPPET_ID));
+        String namespace = (isSnippet ? "$$$_" : "");
         String taskListDisplayName = EVTaskList.cleanupName(taskListName);
         String taskListHTML = WebServer.encodeHtmlEntities(taskListDisplayName);
         String title = resources.format("Report.Title_FMT", taskListHTML);
 
         EVTaskFilter taskFilter = settings.getEffectiveFilter(evModel);
 
+        EVTaskDataWriter taskDataWriter = getEffectiveTaskDataWriter();
+
         StringBuffer header = new StringBuffer(HEADER_HTML);
         StringUtils.findAndReplace(header, TITLE_VAR, title);
         if (taskFilter != null && isSnippet == false)
             header.insert(header.indexOf("</head>"), FILTER_HEADER_HTML);
         out.print(header);
+        out.print(taskDataWriter.getHeaderItems());
+        out.print("</head><body>");
 
         out.print(isSnippet ? "<h2>" : "<h1>");
         out.print(title);
@@ -823,13 +830,11 @@ public class EVReport extends CGIChartBase {
             writeMetric(m, i, hidePlan, hideForecast);
         out.print("</table>");
 
-        out.print("<h2><a name='$$$_tasks'></a>"+getResource("TaskList.Title"));
-        printTaskStyleLink();
+        out.print("<h2><a name='" + namespace + "tasks'></a>"
+                + getResource("TaskList.Title"));
+        printTaskStyleLinks(taskDataWriter, namespace);
         out.print("</h2>\n");
-        if (isFlatView())
-            writeTaskTable(evModel, taskFilter, hidePlan, hideForecast);
-        else
-            writeTaskTree(evModel, taskFilter, hidePlan, hideForecast);
+        taskDataWriter.write(out, evModel, taskFilter, settings, namespace);
 
         out.print("<h2>"+getResource("Schedule.Title")+"</h2>\n");
         writeScheduleTable(s);
@@ -854,6 +859,41 @@ public class EVReport extends CGIChartBase {
 
         out.print("</p>");
         out.print("</body></html>");
+    }
+
+    private static List<EVTaskDataWriter> taskDataWriters = null;
+    private static List<EVTaskDataWriter> getTaskDataWriters() {
+        if (taskDataWriters == null) {
+            List<EVTaskDataWriter> result = new ArrayList();
+            result.add(new TreeViewTaskDataWriter());
+            result.add(new FlatViewTaskDataWriter());
+            for (Object custom : ExtensionManager.getExecutableExtensions(
+                "ev-task-writer", null)) {
+                if (custom instanceof EVTaskDataWriter)
+                    result.add((EVTaskDataWriter) custom);
+            }
+            taskDataWriters = Collections.unmodifiableList(result);
+        }
+        return taskDataWriters;
+    }
+
+    private EVTaskDataWriter getEffectiveTaskDataWriter() {
+        List<EVTaskDataWriter> writers = getTaskDataWriters();
+
+        // force flat view in export to excel mode
+        if (exportingToExcel())
+            return writers.get(1);
+
+        // look for a parameter indicating which writer to use
+        String paramStyle = getParameter(TASK_STYLE_PARAM);
+        if (paramStyle != null) {
+            for (EVTaskDataWriter w : writers)
+                if (paramStyle.equals(w.getID()))
+                    return w;
+        }
+
+        // return the default (tree) writer
+        return writers.get(0);
     }
 
 
@@ -979,41 +1019,40 @@ public class EVReport extends CGIChartBase {
     }
 
 
-    private void printTaskStyleLink() {
-        if (!exportingToExcel()) {
-            boolean isFlat = isFlatView();
+    private void printTaskStyleLinks(EVTaskDataWriter taskDataWriter, String namespace) {
+        if (exportingToExcel())
+            return;
+
+        StringBuffer href = new StringBuffer();
+        String uri = (String) env.get(CMSSnippetEnvironment.CURRENT_FRAME_URI);
+        if (uri == null) {
+            href.append("ev.class");
+        } else {
+            href.append(uri);
+            Matcher m = TASK_STYLE_PARAM_PATTERN.matcher(uri);
+            if (m.find())
+                HTMLUtils.removeParam(href, m.group());
+        }
+        HTMLUtils.appendQuery(href, settings
+            .getQueryString(EVReportSettings.PURPOSE_TASK_STYLE));
+        href.append(href.indexOf("?") == -1 ? '?' : '&');
+        href.append(namespace).append(TASK_STYLE_PARAM).append('=');
+
+        for (EVTaskDataWriter w : getTaskDataWriters()) {
+            if (w == taskDataWriter)
+                continue;
+
             out.print("<span " + HEADER_LINK_STYLE + ">"
                     + "<span class='doNotPrint'>"
-                    + "<a id=\"$$$_taskstylelink\" href=\"");
-
-            StringBuffer href = new StringBuffer();
-
-            String uri = (String) env.get(CMSSnippetEnvironment.CURRENT_FRAME_URI);
-            href.append(uri == null ? "ev.class" : uri);
-
-            if (isFlat) {
-                if (uri != null) {
-                    Matcher m = FLAT_PARAM_PATTERN.matcher(uri);
-                    if (m.find())
-                        HTMLUtils.removeParam(href, m.group());
-                }
-            } else {
-                href.append(href.indexOf("?") == -1 ? '?' : '&');
-                href.append(isSnippet ? "$$$_flat=t" : "flat=t");
-            }
-
-            HTMLUtils.appendQuery(href, settings
-                    .getQueryString(EVReportSettings.PURPOSE_TASK_STYLE));
-
-            out.print(href.toString());
-
-            out.print("#$$$_tasks\">");
-            out.print(resources.getHTML(isFlat ? "Report.Tree_View"
-                    : "Report.Flat_View"));
+                    + "<a id=\"" + namespace + "taskstyle" + w.getID()
+                    + "\" href=\"" + href + w.getID()
+                    + "#" + namespace + "tasks\">");
+            out.print(HTMLUtils.escapeEntities(w.getDisplayName()));
             out.print("</a></span></span>");
         }
     }
-    private Pattern FLAT_PARAM_PATTERN = Pattern.compile("[^&?]*flat");
+    private Pattern TASK_STYLE_PARAM_PATTERN = Pattern.compile("[^&?]*"
+            + TASK_STYLE_PARAM);
 
 
     protected void writeMetric(EVMetrics m, int i, boolean hidePlan,
@@ -1079,10 +1118,6 @@ public class EVReport extends CGIChartBase {
         return ExcelReport.EXPORT_TAG.equals(getParameter("EXPORT"));
     }
 
-    private boolean isFlatView() {
-        return parameters.containsKey("flat") || exportingToExcel();
-    }
-
 
     static final String TITLE_VAR = "%title%";
     static final String REDUNDANT_EXCEL_HEADER =
@@ -1104,8 +1139,7 @@ public class EVReport extends CGIChartBase {
         REDUNDANT_EXCEL_HEADER +
         POPUP_HEADER +
         SORTTABLE_HEADER +
-        SORTTREE_HEADER +
-        "</head><body>";
+        SORTTREE_HEADER;
     static final String FILTER_HEADER_HTML =
         "<link rel=stylesheet type='text/css' href='/reports/filter-style.css'>\n";
     static final String HEADER_LINK_STYLE = " style='font-size: medium; " +
@@ -1126,28 +1160,52 @@ public class EVReport extends CGIChartBase {
     static final String EXCEL_TIME_TD = "<td class='timeFmt'>";
 
 
-    void writeTaskTable(EVTaskList taskList, EVTaskFilter filter,
-            boolean hidePlan, boolean hideForecast) throws IOException {
+    private static class FlatViewTaskDataWriter implements EVTaskDataWriter {
+        public String getID() { return "flat"; }
+        public String getDisplayName() {
+            return resources.getString("Report.Flat_View"); }
+        public String getHeaderItems() { return ""; }
+        public void write(Writer out, EVTaskList taskList, EVTaskFilter filter,
+                EVReportSettings settings, String namespace) throws IOException {
+            writeTaskTable(out, taskList, filter, settings, namespace);
+        }
+    }
+
+    private static void writeTaskTable(Writer out, EVTaskList taskList,
+            EVTaskFilter filter, EVReportSettings settings, String namespace)
+            throws IOException {
         HTMLTableWriter writer = new HTMLTableWriter();
         boolean showTimingIcons = taskList instanceof EVTaskListData
-                && parameters.get("EXPORT") == null;
+                && !settings.isExporting();
         TableModel table = customizeTaskTableWriter(writer, taskList, filter,
-                hidePlan, hideForecast, showTimingIcons);
-        writer.setTableAttributes("class='sortable' id='$$$_task' border='1'");
+                settings, showTimingIcons);
+        writer.setTableAttributes("class='sortable' id='" + namespace
+                + "task' border='1'");
         writer.writeTable(out, table);
     }
 
-    void writeTaskTree(EVTaskList taskList, EVTaskFilter filter,
-            boolean hidePlan, boolean hideForecast) throws IOException {
+    private static class TreeViewTaskDataWriter implements EVTaskDataWriter {
+        public String getID() { return "tree"; }
+        public String getDisplayName() {
+            return resources.getString("Report.Tree_View"); }
+        public String getHeaderItems() { return ""; }
+        public void write(Writer out, EVTaskList taskList, EVTaskFilter filter,
+                EVReportSettings settings, String namespace) throws IOException {
+            writeTaskTree(out, taskList, filter, settings, namespace);
+        }
+    }
+
+    private static void writeTaskTree(Writer out, EVTaskList taskList,
+            EVTaskFilter filter, EVReportSettings settings, String namespace)
+            throws IOException {
         TreeTableModel tree = taskList.getMergedModel(true,
-            shouldMergePreserveLeaves(), filter);
+            settings.shouldMergePreserveLeaves(), filter);
         HTMLTreeTableWriter writer = new HTMLTreeTableWriter();
-        customizeTaskTableWriter(writer, taskList, null, hidePlan,
-                hideForecast, false);
-        writer.setTreeName("$$$_t");
+        customizeTaskTableWriter(writer, taskList, null, settings, false);
+        writer.setTreeName(namespace + "t");
         writer.setExpandAllTooltip(resources.getHTML("Report.Expand_All_Tooltip"));
-        writer.setTableAttributes(
-                "class='needsTreeSortLinks' id='$$$_task' border='1'");
+        writer.setTableAttributes("class='needsTreeSortLinks' id='" + namespace
+                + "task' border='1'");
         writer.setShowDepth(Settings.getInt("ev.showHierarchicalDepth", 3) - 1);
         writer.writeTree(out, tree);
     }
@@ -1160,17 +1218,19 @@ public class EVReport extends CGIChartBase {
         writer.writeTable(out, s);
     }
 
-    private TableModel customizeTaskTableWriter(HTMLTableWriter writer,
-            EVTaskList taskList, EVTaskFilter filter, boolean hidePlan,
-            boolean hideForecast, boolean showTimingIcons) {
+    private static TableModel customizeTaskTableWriter(HTMLTableWriter writer,
+            EVTaskList taskList, EVTaskFilter filter, EVReportSettings settings,
+            boolean showTimingIcons) {
         TableModel table = taskList.getSimpleTableModel(filter);
+        boolean hidePlan = settings.getBool(CUSTOMIZE_HIDE_PLAN_LINE);
+        boolean hideForecast = settings.getBool(CUSTOMIZE_HIDE_FORECAST_LINE);
+        boolean hideNames = settings.getBool(CUSTOMIZE_HIDE_NAMES);
         customizeTableWriter(writer, table, EVTaskList.toolTips);
         writer.setTableName("TASK");
         writer.setSkipColumn(EVTaskList.PLAN_CUM_TIME_COLUMN, true);
         writer.setSkipColumn(EVTaskList.PLAN_CUM_VALUE_COLUMN, true);
-        boolean hideNames = settings.getBool(CUSTOMIZE_HIDE_NAMES);
-        setupTaskTableRenderers(writer, showTimingIcons, exportingToExcel(),
-                hideNames, taskList.getNodeTypeSpecs());
+        setupTaskTableRenderers(writer, showTimingIcons, settings
+                .exportingToExcel(), hideNames, taskList.getNodeTypeSpecs());
         if (!(taskList instanceof EVTaskListRollup) || hideNames)
             writer.setSkipColumn(EVTaskList.ASSIGNED_TO_COLUMN, true);
         if (hidePlan) {
@@ -1209,8 +1269,8 @@ public class EVReport extends CGIChartBase {
         }
     }
 
-    private void customizeTableWriter(HTMLTableWriter writer, TableModel t,
-            String[] toolTips) {
+    private static void customizeTableWriter(HTMLTableWriter writer,
+            TableModel t, String[] toolTips) {
         writer.setTableAttributes("border='1'");
         writer.setHeaderRenderer(
                 new HTMLTableWriter.DefaultHTMLHeaderCellRenderer(toolTips));
@@ -1221,25 +1281,6 @@ public class EVReport extends CGIChartBase {
     }
 
 
-    private boolean shouldMergePreserveLeaves() {
-        // In a merged model, we preserve leaves if we want to see the task
-        // breakdowns by individual.  Of course, if we're hiding names in this
-        // report, there is no reason to preserve those anonymous leaves.
-        if (settings.getBool(CUSTOMIZE_HIDE_NAMES))
-            return false;
-
-        // if the user has explicitly provided a query parameter with
-        // instructions on leaf preservation, honor it.
-        if (parameters.containsKey(PRESERVE_LEAVES_PARAM)) {
-            if ("false".equals(parameters.get(PRESERVE_LEAVES_PARAM)))
-                return false;
-            else
-                return true;
-        }
-
-        // otherwise, look for a global default setting.
-        return Settings.getBool("ev.mergePreservesLeaves", true);
-    }
 
 
     // Override the inherited definition of this function with a no-op.

@@ -1,4 +1,4 @@
-// Copyright (C) 2006-2008 Tuma Solutions, LLC
+// Copyright (C) 2006-2010 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -37,6 +37,7 @@ import net.sourceforge.processdash.ev.EVHierarchicalFilter;
 import net.sourceforge.processdash.ev.EVLabelFilter;
 import net.sourceforge.processdash.ev.EVTaskFilter;
 import net.sourceforge.processdash.ev.EVTaskList;
+import net.sourceforge.processdash.ui.web.reports.ExcelReport;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.StringUtils;
 
@@ -48,6 +49,8 @@ public class EVReportSettings {
     static final String PATH_FILTER_PARAM = "pathFilter";
     static final String MERGED_PATH_FILTER_PARAM = "mergedPathFilter";
     static final String PATH_FILTER_AUTO_PARAM = "pathFilterAuto";
+    static final String PRESERVE_LEAVES_PARAM = "preserveLeaves";
+    public static final String CUSTOMIZE_HIDE_NAMES = "hideAssignedTo";
 
     private DataRepository data;
     private Map parameters;
@@ -219,6 +222,39 @@ public class EVReportSettings {
             evModel.disableBaselineData();
 
         return result;
+    }
+
+    /** Determine whether leaves should be preserved in a merged task list. */
+    public boolean shouldMergePreserveLeaves() {
+        // In a merged model, we preserve leaves if we want to see the task
+        // breakdowns by individual.  Of course, if we're hiding names in this
+        // report, there is no reason to preserve those anonymous leaves.
+        if (getBool(CUSTOMIZE_HIDE_NAMES))
+            return false;
+
+        // if the user has explicitly provided a query parameter with
+        // instructions on leaf preservation, honor it.
+        if (parameters.containsKey(PRESERVE_LEAVES_PARAM)) {
+            if ("false".equals(parameters.get(PRESERVE_LEAVES_PARAM)))
+                return false;
+            else
+                return true;
+        }
+
+        // otherwise, look for a global default setting.
+        return Settings.getBool("ev.mergePreservesLeaves", true);
+    }
+
+    public Map getParameters() {
+        return parameters;
+    }
+
+    public boolean isExporting() {
+        return parameters.get("EXPORT") != null;
+    }
+
+    public boolean exportingToExcel() {
+        return ExcelReport.EXPORT_TAG.equals(getParameter("EXPORT"));
     }
 
 

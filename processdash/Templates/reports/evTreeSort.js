@@ -14,7 +14,7 @@ function evts_tree_sort_init() {
 
 function evts_makeSortable(table) {
     // find the "flat view" hyperlink corresponding to this table, or abort.
-    var flatLink = document.getElementById(table.id + 'stylelink');
+    var flatLink = document.getElementById(table.id + 'styleflat');
     if (!flatLink) return;
     var href = flatLink.href;
     var questPos = href.indexOf('?');
