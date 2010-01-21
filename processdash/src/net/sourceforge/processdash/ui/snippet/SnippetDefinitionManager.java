@@ -1,4 +1,4 @@
-// Copyright (C) 2006-2008 Tuma Solutions, LLC
+// Copyright (C) 2006-2010 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -23,12 +23,13 @@
 
 package net.sourceforge.processdash.ui.snippet;
 
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -47,7 +48,7 @@ public class SnippetDefinitionManager {
     private static final Logger logger = Logger
             .getLogger(SnippetDefinitionManager.class.getName());
 
-    private static final Map SNIPPETS = new HashMap();
+    private static final Map<String, SnippetDefinition> SNIPPETS = new TreeMap();
 
     /** Initialize this object if it needs it.  If the object has already
      * been initialized, do nothing.
@@ -114,8 +115,18 @@ public class SnippetDefinitionManager {
 
     /** Return a list of all the snippets known to this manager.
      */
-    public static Set getAllSnippets() {
+    public static Set<SnippetDefinition> getAllSnippets() {
         Set result = new HashSet(SNIPPETS.values());
         return result;
     }
+
+    public static Set<SnippetDefinition> getSnippetsInCategory(String category) {
+        Set<SnippetDefinition> result = new LinkedHashSet();
+        for (SnippetDefinition snip : SNIPPETS.values()) {
+            if (snip.getCategory().startsWith(category))
+                result.add(snip);
+        }
+        return result;
+    }
+
 }

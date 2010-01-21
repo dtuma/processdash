@@ -44,10 +44,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EventObject;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
@@ -198,11 +196,9 @@ public class TaskScheduleChart extends JFrame
         SimpleDataContext ctx = getContextTags(filterInEffect, isRollup);
 
         SnippetDefinitionManager.initialize();
-        Set snippets = SnippetDefinitionManager.getAllSnippets();
-        for (Iterator i = snippets.iterator(); i.hasNext();) {
-            SnippetDefinition snip = (SnippetDefinition) i.next();
-            if (snip.getCategory().startsWith("ev")
-                    && snip.matchesContext(ctx)) {
+        for (SnippetDefinition snip : SnippetDefinitionManager
+                .getSnippetsInCategory("ev")) {
+            if (snip.matchesContext(ctx)) {
                 try {
                     SnippetChartItem item = new SnippetChartItem(snip);
                     item.settings = chartSettings.remove(snip.getId());
