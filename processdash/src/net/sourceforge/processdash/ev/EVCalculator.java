@@ -256,6 +256,12 @@ public abstract class EVCalculator {
         return Double.isInfinite(d) || Double.isNaN(d);
     }
 
+    public static boolean badDate(Date d) {
+        if (d == null) return true;
+        if (d.getTime() < DAY_MILLIS) return true;
+        if (d.getTime() > Long.MAX_VALUE - DAY_MILLIS) return true;
+        return false;
+    }
 
     protected void pruneNodes(EVTask task, boolean parentIsPruned) {
         // inherit prune value from parent.
@@ -566,5 +572,7 @@ public abstract class EVCalculator {
         else
             return "~" + assignedTo.get(0);
     }
+
+    private static final long DAY_MILLIS = 24 * 60 * 60 * 1000;
 
 }
