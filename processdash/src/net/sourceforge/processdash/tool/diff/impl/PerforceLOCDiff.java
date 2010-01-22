@@ -30,6 +30,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -40,6 +41,10 @@ import javax.swing.JOptionPane;
 import net.sourceforge.processdash.tool.diff.HardcodedFilterLocator;
 import net.sourceforge.processdash.tool.diff.LOCDiffReportGenerator;
 import net.sourceforge.processdash.ui.Browser;
+import net.sourceforge.processdash.util.RuntimeUtils;
+import net.sourceforge.processdash.util.StringUtils;
+import net.sourceforge.processdash.util.TempFileFactory;
+import net.sourceforge.processdash.util.TempFileInputStream;
 
 
 public class PerforceLOCDiff extends LOCDiffReportGenerator {
@@ -47,6 +52,8 @@ public class PerforceLOCDiff extends LOCDiffReportGenerator {
     protected String changelist = "default";
 
     protected String[] p4cmd = { "p4" };
+
+    protected boolean debug = false;
 
     public PerforceLOCDiff(List languageFilters) {
         super(languageFilters);
@@ -59,6 +66,13 @@ public class PerforceLOCDiff extends LOCDiffReportGenerator {
 
     public void setChangelist(String changelist) {
         this.changelist = changelist;
+    }
+
+    @Override
+    public void setOptions(String options) {
+        super.setOptions(options);
+        if (options != null && options.contains("-debug"))
+            debug = true;
     }
 
     public String[] extractPerforceArgs(String[] args) {
@@ -82,6 +96,9 @@ public class PerforceLOCDiff extends LOCDiffReportGenerator {
         System.arraycopy(p4cmd, 0, cmd, 0, p4cmd.length);
         System.arraycopy(args, 0, cmd, p4cmd.length, args.length);
         try {
+            if (debug)
+                System.err.println("\t"
+                        + StringUtils.join(Arrays.asList(cmd), " "));
             return Runtime.getRuntime().exec(cmd);
         } catch (IOException e) {
             throw new PerforceNotFoundException();
@@ -118,13 +135,14 @@ public class PerforceLOCDiff extends LOCDiffReportGenerator {
                 String filename = m.group(1);
                 int revNum = Integer.parseInt(m.group(2));
                 String action = m.group(3);
-                if (checkBinaries || m.group(5).contains("text"))
-                    result.add(new PerforceFile(filename, revNum, action));
+                if (m.group(4) == null)
+                    if (checkBinaries || m.group(6).contains("text"))
+                        result.add(new PerforceFile(filename, revNum, action));
             }
         }
     }
     private static final Pattern OPENED_FILE_PATTERN = Pattern.compile
-        ("(//.*)\\#(\\d+) - (edit|add|delete) "
+        ("(//.*)\\#(\\d+) - (edit|add|delete|(branch|integrate)) "
                     + "(default change|change \\d+|\\d+ change) (.*)");
 
     private void getSubmittedFilesToCompare(List result, boolean checkBinaries)
@@ -138,18 +156,23 @@ public class PerforceLOCDiff extends LOCDiffReportGenerator {
                 String filename = m.group(1);
                 int revNum = Integer.parseInt(m.group(2));
                 String action = m.group(3);
-                SubmittedPerforceFile file = new SubmittedPerforceFile(
-                        filename, revNum, action);
-                if (checkBinaries || file.isText())
-                    result.add(file);
+                if (m.group(4) == null) {
+                    SubmittedPerforceFile file = new SubmittedPerforceFile(
+                            filename, revNum, action);
+                    if (checkBinaries || file.isText())
+                        result.add(file);
+                }
             }
         }
     }
     private static final Pattern SUBMITTED_FILE_PATTERN = Pattern.compile
-        ("\\.\\.\\. (//.*)#([0-9]+) (edit|add|delete)");
+        ("\\.\\.\\. (//.*)#([0-9]+) (edit|add|delete|(branch|integrate))");
 
     private void maybeConfirmLargeOperation(List result) throws IOException {
         if (result.size() < 250)
+            return;
+
+        if (getOptions() != null && getOptions().contains("-confirmLarge"))
             return;
 
         Object[] message = new String[] {
@@ -226,8 +249,12 @@ public class PerforceLOCDiff extends LOCDiffReportGenerator {
             if (revNum == 0)
                 return null;
 
-            Process proc = runPerforceCommand("print", "-q", filename + "#" + revNum);
-            return proc.getInputStream();
+            File tempFile = TempFileFactory.get().createTempFile("p4diff",
+                ".tmp");
+            Process proc = runPerforceCommand("print", "-o",
+                tempFile.getPath(), "-q", filename + "#" + revNum);
+            RuntimeUtils.consumeOutput(proc, null, null, true);
+            return new TempFileInputStream(tempFile);
         }
 
     }
