@@ -41,6 +41,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -867,11 +868,17 @@ public class EVReport extends CGIChartBase {
             List<EVTaskDataWriter> result = new ArrayList();
             result.add(new TreeViewTaskDataWriter());
             result.add(new FlatViewTaskDataWriter());
-            for (Object custom : ExtensionManager.getExecutableExtensions(
+
+            TreeMap<String, EVTaskDataWriter> customWriters = new TreeMap();
+            for (Object extObj : ExtensionManager.getExecutableExtensions(
                 "ev-task-writer", null)) {
-                if (custom instanceof EVTaskDataWriter)
-                    result.add((EVTaskDataWriter) custom);
+                if (extObj instanceof EVTaskDataWriter) {
+                    EVTaskDataWriter custom = (EVTaskDataWriter) extObj;
+                    customWriters.put(custom.getID(), custom);
+                }
             }
+            result.addAll(customWriters.values());
+
             taskDataWriters = Collections.unmodifiableList(result);
         }
         return taskDataWriters;
