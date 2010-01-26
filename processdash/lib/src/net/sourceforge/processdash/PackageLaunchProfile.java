@@ -109,8 +109,7 @@ public class PackageLaunchProfile extends Task {
         } catch (Exception e) {
             throw new BuildException(e);
         } finally {
-            if (tmpFile != null)
-                tmpFile.delete();
+            deleteTempFile(tmpFile);
         }
     }
 
@@ -238,6 +237,21 @@ public class PackageLaunchProfile extends Task {
             ;
         in.close();
         return cksum.getValue();
+    }
+
+
+
+    private void deleteTempFile(File tmpFile) {
+        if (tmpFile == null)
+            return;
+
+        try {
+            FileOutputStream out = new FileOutputStream(tmpFile);
+            out.write(1);
+            out.close();
+        } catch (IOException ioe) {
+        }
+        tmpFile.delete();
     }
 
 
