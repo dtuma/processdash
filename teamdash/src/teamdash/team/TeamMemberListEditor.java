@@ -21,6 +21,8 @@ import javax.swing.JTable;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 
+import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
+
 import teamdash.SaveListener;
 
 
@@ -67,6 +69,7 @@ public class TeamMemberListEditor implements WindowListener, TableModelListener 
     }
 
     public void hide() {
+        MacGUIUtils.setDirty(frame, teamMemberList.isDirty());
         saveButton.setEnabled(teamMemberList.isDirty());
         frame.setVisible(false);
     }
@@ -155,8 +158,7 @@ public class TeamMemberListEditor implements WindowListener, TableModelListener 
             int choice =
                 JOptionPane.showConfirmDialog(
                     frame,
-                    "Unsaved changes have been made. Do you want to save " +
-                    "them before closing the Team Members List Editor?",
+                    "Would you like to save your changes to the Team Member List?",
                     "Save Changes",
                     JOptionPane.YES_NO_CANCEL_OPTION);
 
@@ -237,8 +239,10 @@ public class TeamMemberListEditor implements WindowListener, TableModelListener 
     }
 
     public void tableChanged(TableModelEvent e) {
-        if (!teamMemberList.isReadOnly() && saveButton != null)
+        if (!teamMemberList.isReadOnly() && saveButton != null) {
+            MacGUIUtils.setDirty(frame, teamMemberList.isDirty());
             saveButton.setEnabled(teamMemberList.isDirty());
+        }
     }
 
 }

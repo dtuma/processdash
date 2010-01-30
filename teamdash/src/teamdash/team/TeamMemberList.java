@@ -346,15 +346,18 @@ public class TeamMemberList extends AbstractTableModel implements EffortCalendar
         switch (column) {
         case NAME_COLUMN:
             m.setName((String) aValue);
+            fireTableCellUpdated(row, column);
             if (autoNewRow) maybeAddEmptyRow();
             return;
 
         case INITIALS_COLUMN:
             m.setInitials((String) aValue);
+            fireTableCellUpdated(row, column);
             return;
 
         case COLOR_COLUMN:
             m.setColor((Color) aValue);
+            fireTableCellUpdated(row, column);
             return;
 
         case HOURS_COLUMN:
