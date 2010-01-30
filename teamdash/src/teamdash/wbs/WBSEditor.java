@@ -26,6 +26,7 @@ import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.ButtonGroup;
+import javax.swing.JCheckBox;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
@@ -36,6 +37,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
+import javax.swing.JRadioButton;
 import javax.swing.JRadioButtonMenuItem;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
@@ -118,6 +120,7 @@ public class WBSEditor implements WindowListener, SaveListener,
     private static final String DATA_DUMP_FILE = "projDump.xml";
     private static final String WORKFLOW_DUMP_FILE = "workflowDump.xml";
     private static final String CUSTOM_TABS_FILE = "tabs.xml";
+    private static final String PROMPT_READ_ONLY_SETTING = "promptForReadOnly";
 
     public WBSEditor(WorkingDirectory workingDirectory,
             TeamProject teamProject, String owner) throws LockFailureException {
@@ -275,6 +278,9 @@ public class WBSEditor implements WindowListener, SaveListener,
         if (teamProject.isReadOnly() || workingDirectory == null)
             return;
 
+        if (maybePromptForReadOnly())
+            return;
+
         try {
             workingDirectory.acquireWriteLock(this, owner);
         } catch (ReadOnlyLockFailureException e) {
@@ -307,6 +313,36 @@ public class WBSEditor implements WindowListener, SaveListener,
         "open for editing by ",
         " ",
         "Would you like to open the project anyway, in read-only mode?"
+    };
+
+    private boolean maybePromptForReadOnly() {
+        if (teamProject.getBoolUserSetting(PROMPT_READ_ONLY_SETTING) == false)
+            return false;
+
+        JRadioButton readWriteOption = new JRadioButton("Open in read-write mode");
+        JRadioButton readOnlyOption = new JRadioButton("Open in read-only mode");
+        ButtonGroup group = new ButtonGroup();
+        group.add(readWriteOption);
+        group.add(readOnlyOption);
+        readWriteOption.setSelected(true);
+
+        Object[] message = new Object[] { READ_ONLY_PROMPT_MESSAGE,
+                readWriteOption, readOnlyOption };
+        JOptionPane.showMessageDialog(null, message, "Open Read-Only?",
+            JOptionPane.QUESTION_MESSAGE);
+
+        if (readWriteOption.isSelected())
+            return false;
+
+        teamProject.setReadOnly(true);
+        return true;
+    }
+    private static final String[] READ_ONLY_PROMPT_MESSAGE = {
+        "The Work Breakdown Structure is shared by the",
+        "entire team. If you only intend to view data",
+        "(not modify anything), you should open the WBS",
+        "in read-only mode, so others can make changes.",
+        "Which would you like to do?"
     };
 
     private void setMode(TeamProject teamProject) {
@@ -432,6 +468,37 @@ public class WBSEditor implements WindowListener, SaveListener,
         "and reopen the work breakdown structure editor."
     };
 
+    private void showEditPreferencesDialog() {
+        JCheckBox readOnlyPrompt = new JCheckBox(
+                "On startup, offer to open in read-only mode");
+        boolean readOnlyPromptSetting = teamProject
+                .getBoolUserSetting(PROMPT_READ_ONLY_SETTING);
+        readOnlyPrompt.setSelected(readOnlyPromptSetting);
+
+        int userChoice = JOptionPane.showConfirmDialog(frame, readOnlyPrompt,
+            "Edit Preferences", JOptionPane.OK_CANCEL_OPTION,
+            JOptionPane.PLAIN_MESSAGE);
+        if (userChoice != JOptionPane.OK_OPTION)
+            return;
+
+        boolean madeChange = false;
+
+        boolean newReadOnlyPromptSetting = readOnlyPrompt.isSelected();
+        if (newReadOnlyPromptSetting != readOnlyPromptSetting) {
+            teamProject.putUserSetting(PROMPT_READ_ONLY_SETTING,
+                newReadOnlyPromptSetting);
+            madeChange = true;
+        }
+
+        if (madeChange) {
+            try {
+                workingDirectory.flushData();
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        }
+    }
+
     private void showWorkflowEditor() {
         if (workflowEditor != null)
             workflowEditor.show();
@@ -492,6 +559,11 @@ public class WBSEditor implements WindowListener, SaveListener,
             if (editingActions[i].getValue(Action.NAME) != null)
                 result.add(editingActions[i]);
             if (i == 1) result.addSeparator();
+        }
+
+        if (!readOnly) {
+            result.addSeparator();
+            result.add(new EditPreferencesAction());
         }
 
         return result;
@@ -1142,6 +1214,16 @@ public class WBSEditor implements WindowListener, SaveListener,
 
         public void actionPerformed(ActionEvent e) {
             maybeClose();
+        }
+    }
+
+    private class EditPreferencesAction extends AbstractAction {
+        public EditPreferencesAction() {
+            super("Preferences");
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            showEditPreferencesDialog();
         }
     }
 

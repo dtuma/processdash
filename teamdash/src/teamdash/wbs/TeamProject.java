@@ -15,6 +15,7 @@ import java.util.Set;
 
 import net.sourceforge.processdash.tool.bridge.client.ImportDirectory;
 import net.sourceforge.processdash.tool.bridge.client.ImportDirectoryFactory;
+import net.sourceforge.processdash.util.RobustFileOutputStream;
 import net.sourceforge.processdash.util.RobustFileWriter;
 import net.sourceforge.processdash.util.XMLUtils;
 
@@ -184,6 +185,21 @@ public class TeamProject {
         return userSettings.getProperty(name);
     }
 
+    /** Return the value of a boolean user setting */
+    public boolean getBoolUserSetting(String name) {
+        return "true".equals(getUserSetting(name));
+    }
+
+    public void putUserSetting(String name, String value) {
+        userSettings.put(name, value);
+        if (!readOnly)
+            saveUserSettings();
+    }
+
+    public void putUserSetting(String name, boolean value) {
+        putUserSetting(name, Boolean.toString(value));
+    }
+
     public void setImportDirectory(ImportDirectory importDirectory) {
         this.importDirectory = importDirectory;
     }
@@ -221,9 +237,10 @@ public class TeamProject {
     /** Open the file containing the project settings (written by the team
      * project setup wizard) */
     protected void openProjectSettings() {
-        userSettings = new Properties();
-        loadProperties(userSettings, TeamProject.class.getResourceAsStream(
-            "default-user-settings.txt"));
+        Properties defaultUserSettings = new Properties();
+        loadProperties(defaultUserSettings, TeamProject.class
+                .getResourceAsStream("default-user-settings.txt"));
+        userSettings = new Properties(defaultUserSettings);
 
         try {
             projectSettings = openXML(new File(directory, SETTINGS_FILENAME));
@@ -251,7 +268,6 @@ public class TeamProject {
 
             File userSettingsFile = new File(directory, USER_SETTINGS_FILENAME);
             if (userSettingsFile.canRead()) {
-                userSettings = new Properties(userSettings);
                 loadProperties(userSettings, new FileInputStream(
                         userSettingsFile));
             }
@@ -305,6 +321,20 @@ public class TeamProject {
         File dataDir = new File(teamDir, "data");
         File projDir = new File(dataDir, projectID);
         return projDir.getPath();
+    }
+
+    private void saveUserSettings() {
+        File userSettingsFile = new File(directory, USER_SETTINGS_FILENAME);
+        try {
+            RobustFileOutputStream out = new RobustFileOutputStream(
+                    userSettingsFile);
+            userSettings.store(out, null);
+            out.close();
+        } catch (IOException ioe) {
+            System.out.println("Encountered problem when saving "
+                    + userSettingsFile);
+            ioe.printStackTrace();
+        }
     }
 
 
