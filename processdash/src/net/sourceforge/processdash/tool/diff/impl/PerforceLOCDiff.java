@@ -32,7 +32,10 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -44,7 +47,6 @@ import net.sourceforge.processdash.ui.Browser;
 import net.sourceforge.processdash.util.RuntimeUtils;
 import net.sourceforge.processdash.util.StringUtils;
 import net.sourceforge.processdash.util.TempFileFactory;
-import net.sourceforge.processdash.util.TempFileInputStream;
 
 
 public class PerforceLOCDiff extends LOCDiffReportGenerator {
@@ -76,16 +78,22 @@ public class PerforceLOCDiff extends LOCDiffReportGenerator {
     }
 
     public String[] extractPerforceArgs(String[] args) {
-        if (args != null) {
-            for (int i = 0; i < args.length - 1; i++) {
-                if ("-p4".equalsIgnoreCase(args[i])) {
-                    p4cmd = new String[args.length - i];
-                    p4cmd[0] = "p4";
-                    System.arraycopy(args, i + 1, p4cmd, 1, p4cmd.length - 1);
-                    String[] result = new String[i];
-                    System.arraycopy(args, 0, result, 0, i);
-                    return result;
-                }
+        if (args != null && args.length > 0) {
+            ArrayList<String> argList = new ArrayList(Arrays.asList(args));
+            int pos = argList.indexOf("-p4");
+            if (pos != -1) {
+                List<String> p4CmdLine = new ArrayList<String>();
+                p4CmdLine.addAll(argList.subList(pos+1, argList.size()));
+                argList.subList(pos, argList.size()).clear();
+
+                String firstArg = p4CmdLine.get(0);
+                File firstArgFile = new File(firstArg);
+                if (!(firstArg.toLowerCase().contains("p4")
+                        && firstArgFile.canExecute()))
+                    p4CmdLine.add(0, "p4");
+
+                this.p4cmd = p4CmdLine.toArray(new String[p4CmdLine.size()]);
+                args = argList.toArray(new String[argList.size()]);
             }
         }
         return args;
@@ -159,9 +167,15 @@ public class PerforceLOCDiff extends LOCDiffReportGenerator {
                 if (m.group(4) == null) {
                     SubmittedPerforceFile file = new SubmittedPerforceFile(
                             filename, revNum, action);
-                    if (checkBinaries || file.isText())
-                        result.add(file);
+                    result.add(file);
                 }
+            }
+        }
+        if (checkBinaries == false) {
+            for (Iterator i = result.iterator(); i.hasNext();) {
+                SubmittedPerforceFile file = (SubmittedPerforceFile) i.next();
+                if (!file.isText())
+                    i.remove();
             }
         }
     }
@@ -185,6 +199,28 @@ public class PerforceLOCDiff extends LOCDiffReportGenerator {
             "Confirm Large Operation", JOptionPane.OK_CANCEL_OPTION);
         if (userChoice != JOptionPane.OK_OPTION)
             throw new UserCancelledException();
+    }
+
+    private Map<String, File> cachedFilesFromPerforce = new HashMap<String, File>();
+
+    protected InputStream getFileFromPerforce(String filename, int revNum)
+            throws IOException {
+        if (revNum == 0)
+            return null;
+
+        String fileKey = filename + "#" + revNum;
+        File result = cachedFilesFromPerforce.get(fileKey);
+
+        if (result == null) {
+            result = TempFileFactory.get().createTempFile("p4diff", ".tmp");
+            result.deleteOnExit();
+            Process proc = runPerforceCommand("print", "-o",
+                result.getPath(), "-q", fileKey);
+            RuntimeUtils.consumeOutput(proc, null, null, true);
+            cachedFilesFromPerforce.put(fileKey, result);
+        }
+
+        return new FileInputStream(result);
     }
 
     private static final int ADDED = 0;
@@ -240,21 +276,9 @@ public class PerforceLOCDiff extends LOCDiffReportGenerator {
             while ((line = in.readLine()) != null) {
                 if (line.startsWith("... clientFile "))
                     clientFilename = line.substring(15);
-                else if (line.startsWith("... type "))
+                else if (line.startsWith("... type ") || line.startsWith("... headType "))
                     isTextFile = line.contains("text");
             }
-        }
-
-        protected InputStream getFileFromPerforce(String filename, int revNum) throws IOException {
-            if (revNum == 0)
-                return null;
-
-            File tempFile = TempFileFactory.get().createTempFile("p4diff",
-                ".tmp");
-            Process proc = runPerforceCommand("print", "-o",
-                tempFile.getPath(), "-q", filename + "#" + revNum);
-            RuntimeUtils.consumeOutput(proc, null, null, true);
-            return new TempFileInputStream(tempFile);
         }
 
     }
