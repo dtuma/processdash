@@ -1,4 +1,4 @@
-// Copyright (C) 2005-2006 Tuma Solutions, LLC
+// Copyright (C) 2005-2010 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -47,6 +47,7 @@ import javax.swing.event.ChangeListener;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.HTMLUtils;
+import net.sourceforge.processdash.util.TempFileFactory;
 
 
 public abstract class LOCDiffReportGenerator {
@@ -157,7 +158,7 @@ public abstract class LOCDiffReportGenerator {
     }
 
     public File generateDiffs() throws IOException {
-        File outFile = File.createTempFile("diff", ".htm");
+        File outFile = TempFileFactory.get().createTempFile("diff", ".htm");
         generateDiffs(outFile);
         return outFile;
     }
@@ -214,7 +215,7 @@ public abstract class LOCDiffReportGenerator {
         modifiedTable = new StringBuffer();
         deletedTable = new StringBuffer();
         unchangedTable = new StringBuffer();
-        redlinesTempFile = File.createTempFile("diff", ".txt");
+        redlinesTempFile = TempFileFactory.get().createTempFile("diff", ".txt");
         redlinesTempFile.deleteOnExit();
         redlinesOut = new PrintWriter(new OutputStreamWriter
                 (new FileOutputStream(redlinesTempFile), outputCharset));
