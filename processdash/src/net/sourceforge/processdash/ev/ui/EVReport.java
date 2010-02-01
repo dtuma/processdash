@@ -785,7 +785,7 @@ public class EVReport extends CGIChartBase {
         StringBuffer header = new StringBuffer(HEADER_HTML);
         StringUtils.findAndReplace(header, TITLE_VAR, title);
         if (taskFilter != null && isSnippet == false)
-            header.insert(header.indexOf("</head>"), FILTER_HEADER_HTML);
+            header.append(FILTER_HEADER_HTML);
         out.print(header);
         out.print(taskDataWriter.getHeaderItems());
         out.print("</head><body>");
