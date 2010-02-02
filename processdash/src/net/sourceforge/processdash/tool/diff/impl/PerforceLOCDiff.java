@@ -89,7 +89,7 @@ public class PerforceLOCDiff extends LOCDiffReportGenerator {
                 String firstArg = p4CmdLine.get(0);
                 File firstArgFile = new File(firstArg);
                 if (!(firstArg.toLowerCase().contains("p4")
-                        && firstArgFile.canExecute()))
+                        && firstArgFile.isFile()))
                     p4CmdLine.add(0, "p4");
 
                 this.p4cmd = p4CmdLine.toArray(new String[p4CmdLine.size()]);
