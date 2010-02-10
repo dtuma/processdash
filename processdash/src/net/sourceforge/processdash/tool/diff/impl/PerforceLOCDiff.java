@@ -51,7 +51,7 @@ import net.sourceforge.processdash.util.TempFileFactory;
 
 public class PerforceLOCDiff extends LOCDiffReportGenerator {
 
-    protected String changelist = "default";
+    protected List<String> changelists = new ArrayList<String>();
 
     protected String[] p4cmd = { "p4" };
 
@@ -63,12 +63,18 @@ public class PerforceLOCDiff extends LOCDiffReportGenerator {
 
     public PerforceLOCDiff(List languageFilters, String changelist) {
         super(languageFilters);
-        setChangelist(changelist);
+        addChangelist(changelist);
     }
 
-    public void setChangelist(String changelist) {
-        this.changelist = changelist;
+    public boolean addChangelist(String changelist) {
+        if (CHANGELIST_PAT.matcher(changelist).matches()) {
+            changelists.add(changelist);
+            return true;
+        } else {
+            return false;
+        }
     }
+    private static final Pattern CHANGELIST_PAT = Pattern.compile("default|\\d+");
 
     @Override
     public void setOptions(String options) {
@@ -120,18 +126,31 @@ public class PerforceLOCDiff extends LOCDiffReportGenerator {
         if (getOptions() != null && getOptions().contains("-checkBinaries"))
             checkBinaries = true;
 
-        getOpenedFilesToCompare(result, checkBinaries);
+        if (changelists.isEmpty())
+            changelists.add("default");
 
-        if (result.isEmpty())
-            getSubmittedFilesToCompare(result, checkBinaries);
+        for (String changelist : changelists)
+            result.addAll(getFilesForOneChangelist(changelist, checkBinaries));
 
         maybeConfirmLargeOperation(result);
 
         return result;
     }
 
-    private void getOpenedFilesToCompare(List result, boolean checkBinaries)
-            throws IOException {
+    private Collection getFilesForOneChangelist(String changelist,
+            boolean checkBinaries) throws IOException {
+        List result = new ArrayList();
+
+        getOpenedFilesToCompare(result, changelist, checkBinaries);
+
+        if (result.isEmpty())
+            getSubmittedFilesToCompare(result, changelist, checkBinaries);
+
+        return result;
+    }
+
+    private void getOpenedFilesToCompare(List result, String changelist,
+            boolean checkBinaries) throws IOException {
         Process proc = runPerforceCommand("opened", "-c", changelist);
         BufferedReader in = new BufferedReader(new InputStreamReader(proc.getInputStream()));
         String line;
@@ -153,8 +172,8 @@ public class PerforceLOCDiff extends LOCDiffReportGenerator {
         ("(//.*)\\#(\\d+) - (edit|add|delete|(branch|integrate)) "
                     + "(default change|change \\d+|\\d+ change) (.*)");
 
-    private void getSubmittedFilesToCompare(List result, boolean checkBinaries)
-            throws IOException {
+    private void getSubmittedFilesToCompare(List result, String changelist,
+            boolean checkBinaries) throws IOException {
         Process proc = runPerforceCommand("describe", "-s", changelist);
         BufferedReader in = new BufferedReader(new InputStreamReader(proc.getInputStream()));
         String line;
@@ -318,12 +337,11 @@ public class PerforceLOCDiff extends LOCDiffReportGenerator {
         diff.setOptions(args[0]);
         diff.addChangeListener(new StdOutChangeListener());
 
-        if (args.length == 2) {
-            diff.setChangelist(args[1]);
-
-        } else if (args.length > 2) {
-            printUsage();
-            return;
+        for (int i = 1;  i < args.length;  i++) {
+            if (diff.addChangelist(args[i]) == false) {
+                printUsage();
+                return;
+            }
         }
 
         try {
@@ -342,6 +360,6 @@ public class PerforceLOCDiff extends LOCDiffReportGenerator {
 
     private static void printUsage() {
         System.out.println("Usage: java " + PerforceLOCDiff.class.getName()
-                + " [changelist] [-p4 perforce command line options]");
+                + " [changelist...] [-p4 perforce command line options]");
     }
 }
