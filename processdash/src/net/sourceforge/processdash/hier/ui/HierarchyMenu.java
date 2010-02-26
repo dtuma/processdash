@@ -1,4 +1,4 @@
-// Copyright (C) 1999-2007 Tuma Solutions, LLC
+// Copyright (C) 1999-2010 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -126,8 +126,7 @@ public class HierarchyMenu implements ActionListener, PropertyChangeListener,
             MyMenuItem menuItem = new MyMenuItem(key);
 
             if (destMenu.getItemCount()+1 >= maxItemsPerMenu) {
-                JMenu moreMenu = new JMenu(
-                        Resources.getGlobalBundle().getDlgString("More"));
+                JMenu moreMenu = new MyMoreSubmenu();
                 destMenu.insert(moreMenu, 0);
                 destMenu.insertSeparator(1);
                 destMenu = moreMenu;
@@ -242,10 +241,18 @@ public class HierarchyMenu implements ActionListener, PropertyChangeListener,
 
 
     private void updateCompletionStatus() {
+        updateCompletionStatus(menu);
+    }
+
+    private void updateCompletionStatus(JMenu menu) {
         if (menu != null && statusCalc != null)
-            for (int i = menu.getItemCount(); i-- > 0;)
-                if (menu.getItem(i) instanceof MyMenuItem)
-                    ((MyMenuItem) menu.getItem(i)).updateStatus();
+            for (int i = menu.getItemCount(); i-- > 0;) {
+                JMenuItem item = menu.getItem(i);
+                if (item instanceof MyMenuItem)
+                    ((MyMenuItem) item).updateStatus();
+                else if (item instanceof MyMoreSubmenu)
+                    updateCompletionStatus((MyMoreSubmenu) item);
+            }
     }
 
     class MyMenuItem extends JMenuItem {
@@ -262,6 +269,14 @@ public class HierarchyMenu implements ActionListener, PropertyChangeListener,
         public void updateStatus() {
             Icon i = (statusCalc.isCompleted(path) ? CHECKMARK_ICON : null);
             setIcon(i);
+        }
+
+    }
+
+    class MyMoreSubmenu extends JMenu {
+
+        MyMoreSubmenu() {
+            super(Resources.getGlobalBundle().getDlgString("More"));
         }
 
     }
