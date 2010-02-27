@@ -15,6 +15,8 @@ import java.util.List;
 
 import javax.swing.table.AbstractTableModel;
 
+import net.sourceforge.processdash.util.StringUtils;
+
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
@@ -288,6 +290,8 @@ public class TeamMemberList extends AbstractTableModel implements EffortCalendar
         if (col < columnNames.length)
             return columnNames[col];
 
+        if (DATE_FORMAT == null)
+            buildDateFormats();
         int week = col + weekOffset;
         Date d = new Date(zeroDay.getTime() + week * WEEK_MILLIS);
         if (col == FIRST_WEEK_COLUMN+1)
@@ -295,8 +299,22 @@ public class TeamMemberList extends AbstractTableModel implements EffortCalendar
         else
             return DATE_FORMAT.format(d);
     }
-    private DateFormat DATE_FORMAT = new SimpleDateFormat("M/d");
-    private DateFormat LONG_DATE_FORMAT = new SimpleDateFormat("M/d/yy");
+    private DateFormat DATE_FORMAT = null;
+    private DateFormat LONG_DATE_FORMAT = null;
+    private void buildDateFormats() {
+        DateFormat fmt = DateFormat.getDateInstance(DateFormat.SHORT);
+        DATE_FORMAT = LONG_DATE_FORMAT = fmt;
+        if (fmt instanceof SimpleDateFormat) {
+            SimpleDateFormat sfmt = (SimpleDateFormat) fmt;
+            String pat = sfmt.toPattern();
+            pat = StringUtils.findAndReplace(pat, "yyyy", "yy");
+            if (pat.startsWith("yy"))
+                pat = pat.substring(3);
+            else if (pat.endsWith("yy"))
+                pat = pat.substring(0, pat.length()-3);
+            DATE_FORMAT = new SimpleDateFormat(pat);
+        }
+    }
     private static final long WEEK_MILLIS = 7l * 24 * 60 * 60 * 1000;
 
     public Class getColumnClass(int col) {
