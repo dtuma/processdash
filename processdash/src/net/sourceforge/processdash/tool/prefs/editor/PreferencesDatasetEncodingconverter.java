@@ -43,6 +43,7 @@ import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.templates.DataVersionChecker;
 import net.sourceforge.processdash.ui.lib.binding.BoundMap;
 import net.sourceforge.processdash.util.FileUtils;
+import net.sourceforge.processdash.util.HTMLUtils;
 
 import org.w3c.dom.Element;
 
@@ -74,6 +75,10 @@ public class PreferencesDatasetEncodingconverter extends JPanel {
                 && !"en".equalsIgnoreCase(System.getProperty("user.language"))) {
             button = new JButton(this.map.getResource(this.id
                     + ".Button_Label"));
+            button.setToolTipText("<html><div width='300'>"
+                    + HTMLUtils.escapeEntities(this.map.getResource(
+                            this.id + ".Tooltip"))
+                    + "</div></html>");
             button.addActionListener((ActionListener) EventHandler.create(
                 ActionListener.class, this, "convert"));
             this.add(button);
@@ -109,7 +114,9 @@ public class PreferencesDatasetEncodingconverter extends JPanel {
                     // converted. We can set the UTF8 flag, delete the backed up files and
                     // hide the converter button.
                     InternalSettings.set(DataRepository.USE_UTF8_SETTING, "true");
-                    FileUtils.deleteDirectory(backupFolder, true);
+                    try {
+                        FileUtils.deleteDirectory(backupFolder, true);
+                    } catch (IOException ioe) {}
                     button.setEnabled(false);
 
                     DataVersionChecker.registerDataRequirement("pspdash",
