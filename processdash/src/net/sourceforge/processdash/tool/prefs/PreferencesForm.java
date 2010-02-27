@@ -37,6 +37,7 @@ import javax.swing.JPanel;
 
 import net.sourceforge.processdash.templates.TemplateLoader;
 import net.sourceforge.processdash.tool.prefs.editor.PreferencesCheckBox;
+import net.sourceforge.processdash.tool.prefs.editor.PreferencesDatasetEncodingconverter;
 import net.sourceforge.processdash.tool.prefs.editor.PreferencesFileList;
 import net.sourceforge.processdash.tool.prefs.editor.ManuallyEnteredPreferencesList;
 import net.sourceforge.processdash.tool.prefs.editor.PreferencesRadioButtons;
@@ -68,6 +69,7 @@ public class PreferencesForm extends BoundForm {
     private static final String RADIOBUTTONS_TAG = "radio";
     private static final String FILELIST_TAG = "file-list";
     private static final String MANUAL_ENTRY_TAG = "manualEntry";
+    private static final String DATASET_ENCODING_CONVERTER = "datasetEncodingConverter";
 
     /** The JPanel containing the GUI */
     private JPanel panel = new JPanel();
@@ -84,6 +86,8 @@ public class PreferencesForm extends BoundForm {
         addElementType(RADIOBUTTONS_TAG, PreferencesRadioButtons.class);
         addElementType(FILELIST_TAG, PreferencesFileList.class);
         addElementType(MANUAL_ENTRY_TAG, ManuallyEnteredPreferencesList.class);
+        addElementType(DATASET_ENCODING_CONVERTER,
+            PreferencesDatasetEncodingconverter.class);
 
         selectCategory(category);
         panel.setLayout(new BorderLayout());

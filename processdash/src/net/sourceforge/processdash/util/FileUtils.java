@@ -1,4 +1,4 @@
-// Copyright (C) 2005-2009 Tuma Solutions, LLC
+// Copyright (C) 2005-2010 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -32,7 +32,9 @@ import java.io.FileOutputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
@@ -118,6 +120,20 @@ public class FileUtils {
         } finally {
             inputStream.close();
         }
+    }
+
+    public static void copyFile(File src, String srcEncoding, File dest,
+            String destEncoding) throws IOException {
+        InputStreamReader in = new InputStreamReader(new FileInputStream(src),
+                srcEncoding);
+        OutputStreamWriter out = new OutputStreamWriter(new RobustFileOutputStream(
+                dest), destEncoding);
+        int c;
+        while ((c = in.read()) != -1)
+            out.write(c);
+        out.flush();
+        in.close();
+        out.close();
     }
 
     public static void copyFile(InputStream src, File dest) throws IOException {

@@ -1,4 +1,4 @@
-// Copyright (C) 1999-2009 Tuma Solutions, LLC
+// Copyright (C) 1999-2010 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -38,9 +38,11 @@ import java.awt.event.WindowEvent;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -82,6 +84,7 @@ import javax.swing.tree.TreeSelectionModel;
 import net.sourceforge.processdash.InternalSettings;
 import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.Settings;
+import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.HierarchyAlterer;
 import net.sourceforge.processdash.hier.PendingDataChange;
@@ -999,7 +1002,8 @@ public class HierarchyEditor extends Object implements TreeModelListener, TreeSe
             File parentDir = new File(new File(dest).getParent());
             if (!parentDir.isDirectory())
                 parentDir.mkdirs();
-            out = new BufferedWriter (new FileWriter (dest));
+            out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(dest),
+                DataRepository.getDatasetEncoding()));
             out.write("#include <" + src + ">");
             out.newLine();
             if (extra != null)

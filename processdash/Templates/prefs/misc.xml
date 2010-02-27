@@ -60,4 +60,6 @@ preferences a category.
               setting="http.hostname.useIP"
               helpId="prefs.numericIPs" />
 
+    <datasetEncodingConverter id="datasetEncodingConverter" />
+
 </preferences-form>

@@ -391,6 +391,13 @@ public class ProcessDashboard extends JFrame implements WindowListener,
                      "<"+resources.getString("Non_Project")+">");
 
                 v = props.load(new StringReader(state), true);
+
+                // Starting with version UTF8_SUPPORT_VERSION, all new datasets are
+                // encoded in UTF-8.
+                InternalSettings.set(DataRepository.USE_UTF8_SETTING, "true");
+                DataVersionChecker.registerDataRequirement("pspdash",
+                    DataRepository.UTF8_SUPPORT_VERSION);
+
                 displayFirstTimeUserHelp();
             } catch (Exception e) {
                 logErr("Couldn't read default state file", e);
