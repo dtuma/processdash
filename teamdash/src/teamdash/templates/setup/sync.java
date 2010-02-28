@@ -250,10 +250,9 @@ public class sync extends TinyCGIBase {
             RepairImportInstruction.maybeRepairForIndividual(getDataContext());
         }
 
-        // check to see whether the user wants us to perform a full wbs sync.
-        d = data.getSimpleValue(DataRepository.createDataName
-                                (projectRoot, FULLCOPY_DATA_NAME));
-        fullCopyMode = (d != null && d.test());
+        // we no longer check to see if the user wants us to perform a full wbs
+        // sync;  this functionality is obsolete and only causes problems now.
+        fullCopyMode = false;
     }
 
 
@@ -785,7 +784,6 @@ public class sync extends TinyCGIBase {
     private static final String DISABLE_TEAM_IMPORT_REPAIR_SETTING = "disableTeamImportRepairs";
     private static final String MIGRATE_DATA_NAME = "Team_Project_Migration_Needed";
     private static final String CONVERT_DATA_NAME = "Team_Project_Conversion_Needed";
-    private static final String FULLCOPY_DATA_NAME = "Sync_Full_WBS";
     static final String HIER_FILENAME = "projDump.xml";
     private static final String WORKFLOW_FILENAME = "workflowDump.xml";
 
