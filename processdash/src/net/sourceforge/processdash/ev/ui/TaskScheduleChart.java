@@ -99,6 +99,7 @@ import net.sourceforge.processdash.ui.help.PCSH;
 import net.sourceforge.processdash.ui.lib.BoxUtils;
 import net.sourceforge.processdash.ui.lib.DropDownButton;
 import net.sourceforge.processdash.ui.lib.JOptionPaneActionHandler;
+import net.sourceforge.processdash.ui.lib.JOptionPaneTweaker;
 import net.sourceforge.processdash.ui.lib.SwingWorker;
 import net.sourceforge.processdash.ui.lib.WrappingText;
 import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
@@ -582,6 +583,7 @@ public class TaskScheduleChart extends JFrame
             Object[] message = {
                     namePrompt,
                     BoxUtils.hbox(20, chartNameField),
+                    new JOptionPaneTweaker.GrabFocus(chartNameField),
                     errorBox,
                     scopePrompt,
                     BoxUtils.hbox(20, localScopeButton),
@@ -755,14 +757,14 @@ public class TaskScheduleChart extends JFrame
         }
 
         private Map getChartParameters() throws PersistenceException {
-            Map params;
-            if (settings == null) {
-                params = new HashMap();
-            } else {
+            Map params = new HashMap();
+            if (settings != null) {
                 try {
-                    params = settings.getParameters();
+                    params.putAll(settings.getParameters());
                     params.put(EVSnippetEnvironment.SNIPPET_VERSION,
                         settings.getChartVersion());
+                    params.put(EVSnippetEnvironment.EV_CUSTOM_SNIPPET_NAME_KEY,
+                        settings.getCustomName());
                 } catch (PersistenceException pe) {
                     // if this is a custom chart built by a user, we can't
                     // guess how the chart should be drawn.  Rethrow
@@ -919,6 +921,12 @@ public class TaskScheduleChart extends JFrame
             this.settings = dest;
             this.name = dest.getCustomName();
             widgetList.itemChanged(this);
+
+            ConfigurableSnippetWidget csw = (ConfigurableSnippetWidget) widget;
+            Map params = new HashMap(csw.getConfigurationParameters());
+            params.put(EVSnippetEnvironment.EV_CUSTOM_SNIPPET_NAME_KEY, this.name);
+            csw.setConfigurationParameters(params);
+
             saveSettings();
 
             if (currentItem == this && configurationDialog != null)

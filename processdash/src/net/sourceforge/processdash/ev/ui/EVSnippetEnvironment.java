@@ -36,6 +36,9 @@ public interface EVSnippetEnvironment extends SnippetEnvironment {
     /** Key that maps to the task filter in effect . */
     String TASK_FILTER_KEY = "evTaskFilter";
 
+    /** Key that holds the user-assigned name of the EV snippet. */
+    String EV_CUSTOM_SNIPPET_NAME_KEY = "evCustomSnippetName";
+
     /** Data context key indicating that earned value data is being drawn */
     String EV_CONTEXT_KEY = "Earned Value Context";
 
