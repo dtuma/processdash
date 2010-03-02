@@ -51,9 +51,17 @@ import net.sourceforge.processdash.util.TempFileFactory;
 
 public class PerforceLOCDiff extends LOCDiffReportGenerator {
 
+    private static final int DEFAULT_BRANCH_PREFIX_LEN = 3;
+    private static final int BRANCH_IS_COPY_PREFIX_LEN = -1;
+    private static final int BRANCH_IS_ADD_PREFIX_LEN = -2;
+
     protected List<String> changelists = new ArrayList<String>();
 
     protected String[] p4cmd = { "p4" };
+
+    protected int branchPrefixLen = DEFAULT_BRANCH_PREFIX_LEN;
+
+    protected List<String> userBranchPoints = new ArrayList<String>();
 
     protected boolean debug = false;
 
@@ -79,8 +87,42 @@ public class PerforceLOCDiff extends LOCDiffReportGenerator {
     @Override
     public void setOptions(String options) {
         super.setOptions(options);
-        if (options != null && options.contains("-debug"))
-            debug = true;
+        if (options != null) {
+            String optionsLC = options.toLowerCase();
+            if (optionsLC.contains("-debug"))
+                debug = true;
+
+            branchPrefixLen = getBranchPrefixLength(optionsLC);
+        }
+    }
+
+    private int getBranchPrefixLength(String optionsLC) {
+        if (optionsLC.contains("-branchiscopy"))
+            return BRANCH_IS_COPY_PREFIX_LEN;
+
+        if (optionsLC.contains("-branchisadd"))
+            return BRANCH_IS_ADD_PREFIX_LEN;
+
+        Matcher m = BRANCH_PREFIX_OPTION.matcher(optionsLC);
+        while (m.find())
+            userBranchPoints.add(m.group(1));
+
+        m = BRANCH_PREFIX_LENGTH_OPTION.matcher(optionsLC);
+        if (m.find())
+            return Integer.parseInt(m.group(1));
+
+        return DEFAULT_BRANCH_PREFIX_LEN;
+    }
+    private static final Pattern BRANCH_PREFIX_OPTION = Pattern
+            .compile("-bp=(\\S+)");
+    private static final Pattern BRANCH_PREFIX_LENGTH_OPTION = Pattern
+            .compile("-bplen=(\\d+)");
+
+    private boolean branchIsCopy() {
+        return branchPrefixLen == BRANCH_IS_COPY_PREFIX_LEN;
+    }
+    private boolean branchIsAdd() {
+        return branchPrefixLen == BRANCH_IS_ADD_PREFIX_LEN;
     }
 
     public String[] extractPerforceArgs(String[] args) {
@@ -119,6 +161,11 @@ public class PerforceLOCDiff extends LOCDiffReportGenerator {
         }
     }
 
+    private BufferedReader getPerforceOutput(String... args) {
+        Process proc = runPerforceCommand(args);
+        return new BufferedReader(new InputStreamReader(proc.getInputStream()));
+    }
+
     protected Collection getFilesToCompare() throws IOException {
         List result = new ArrayList();
 
@@ -139,20 +186,22 @@ public class PerforceLOCDiff extends LOCDiffReportGenerator {
 
     private Collection getFilesForOneChangelist(String changelist,
             boolean checkBinaries) throws IOException {
-        List result = new ArrayList();
+        List<PerforceFile> result = new ArrayList();
 
         getOpenedFilesToCompare(result, changelist, checkBinaries);
 
         if (result.isEmpty())
             getSubmittedFilesToCompare(result, changelist, checkBinaries);
 
+        if (!result.isEmpty())
+            reconcileBranchedFiles(result);
+
         return result;
     }
 
-    private void getOpenedFilesToCompare(List result, String changelist,
-            boolean checkBinaries) throws IOException {
-        Process proc = runPerforceCommand("opened", "-c", changelist);
-        BufferedReader in = new BufferedReader(new InputStreamReader(proc.getInputStream()));
+    private void getOpenedFilesToCompare(List<PerforceFile> result,
+            String changelist, boolean checkBinaries) throws IOException {
+        BufferedReader in = getPerforceOutput("opened", "-c", changelist);
         String line;
         while ((line = in.readLine()) != null) {
             Matcher m = OPENED_FILE_PATTERN.matcher(line);
@@ -162,20 +211,18 @@ public class PerforceLOCDiff extends LOCDiffReportGenerator {
                 String filename = m.group(1);
                 int revNum = Integer.parseInt(m.group(2));
                 String action = m.group(3);
-                if (m.group(4) == null)
-                    if (checkBinaries || m.group(6).contains("text"))
-                        result.add(new PerforceFile(filename, revNum, action));
+                if (checkBinaries || m.group(5).contains("text"))
+                    result.add(new OpenedPerforceFile(filename, revNum, action));
             }
         }
     }
     private static final Pattern OPENED_FILE_PATTERN = Pattern.compile
-        ("(//.*)\\#(\\d+) - (edit|add|delete|(branch|integrate)) "
+        ("(//.*)\\#(\\d+) - (edit|add|delete|branch|integrate) "
                     + "(default change|change \\d+|\\d+ change) (.*)");
 
-    private void getSubmittedFilesToCompare(List result, String changelist,
-            boolean checkBinaries) throws IOException {
-        Process proc = runPerforceCommand("describe", "-s", changelist);
-        BufferedReader in = new BufferedReader(new InputStreamReader(proc.getInputStream()));
+    private void getSubmittedFilesToCompare(List<PerforceFile> result,
+            String changelist, boolean checkBinaries) throws IOException {
+        BufferedReader in = getPerforceOutput("describe", "-s", changelist);
         String line;
         while ((line = in.readLine()) != null) {
             Matcher m = SUBMITTED_FILE_PATTERN.matcher(line);
@@ -183,11 +230,9 @@ public class PerforceLOCDiff extends LOCDiffReportGenerator {
                 String filename = m.group(1);
                 int revNum = Integer.parseInt(m.group(2));
                 String action = m.group(3);
-                if (m.group(4) == null) {
-                    SubmittedPerforceFile file = new SubmittedPerforceFile(
-                            filename, revNum, action);
-                    result.add(file);
-                }
+                SubmittedPerforceFile file = new SubmittedPerforceFile(
+                        filename, revNum, action);
+                result.add(file);
             }
         }
         if (checkBinaries == false) {
@@ -199,7 +244,255 @@ public class PerforceLOCDiff extends LOCDiffReportGenerator {
         }
     }
     private static final Pattern SUBMITTED_FILE_PATTERN = Pattern.compile
-        ("\\.\\.\\. (//.*)#([0-9]+) (edit|add|delete|(branch|integrate))");
+        ("\\.\\.\\. (//.*)#([0-9]+) (edit|add|delete|branch|integrate)");
+
+    private void reconcileBranchedFiles(List<PerforceFile> files)
+            throws IOException {
+        // make a list of branched files. If there are none, exit this method.
+        List<PerforceFile> branchedFiles = getBranchedFiles(files);
+        if (branchedFiles.isEmpty())
+            return;
+
+        // Examine the integrated files in this changelist to infer a list
+        // of the branch points that were used to create this change.
+        List<String> branchPoints = guessBranchPoints(files);
+        branchPoints.addAll(userBranchPoints);
+
+        // make a list of deleted files, so we can look for extraneous entries
+        // (i.e., files that were branched into a file on our list as part
+        // of a rename operation)
+        Map<String, PerforceFile> deletedFiles = getDeletedFiles(files);
+
+        // Now do the work.
+        for (PerforceFile f : branchedFiles)
+            reconcileBranchedFile(f, files, deletedFiles, branchPoints);
+    }
+
+    private List<PerforceFile> getBranchedFiles(List<PerforceFile> files) {
+        List<PerforceFile> branchedFiles = new ArrayList<PerforceFile>();
+        for (PerforceFile f : files)
+            if (f.type == BRANCH)
+                branchedFiles.add(f);
+        return branchedFiles;
+    }
+
+    private Map<String, PerforceFile> getDeletedFiles(List<PerforceFile> files) {
+        Map<String, PerforceFile> result = new HashMap<String, PerforceFile>();
+        for (PerforceFile f : files) {
+            if (f.type == DELETED)
+                result.put(f.filename, f);
+        }
+        return result;
+    }
+
+    private List<String> guessBranchPoints(List<PerforceFile> files)
+            throws IOException {
+        List<String> result = new ArrayList<String>();
+
+        // guessing branch points takes work.  Skip this work if the user
+        // has supplied a hardcoded branching policy.
+        if (branchPrefixLen < 0)
+            return result;
+
+        // guess branches for each integrated file.
+        for (PerforceFile f : files)
+            if (f.type == INTEGRATED)
+                guessBranchPoints(result, f);
+        return result;
+    }
+
+    private void guessBranchPoints(List<String> result, PerforceFile f)
+            throws IOException {
+        // If this file already falls underneath a known branch point, then
+        // we don't need to replicate that test.  Note that we're assuming
+        // the common branching model (with two copies of a particular codebase
+        // and an integration from one to the other) - so once we find the
+        // base branch prefix for a particular codebase we don't need to keep
+        // checking over and over again.  Also, if multiple "source" branches
+        // were all integrated into the destination branch, our algorithm
+        // doesn't really require knowledge of those source branches, so we
+        // don't need to chase down multiple source branches.
+        if (getPrefixForPath(f.filename, result) != null)
+            return;
+
+        String srcBranchFile = null;
+        String destBranchFile = null;
+
+        String fileKey = f.filename + "#" + f.revNum;
+        BufferedReader in = getPerforceOutput("filelog", fileKey);
+        String line;
+        while ((line = in.readLine()) != null) {
+            // if we've already found the info we need, just skip this loop.
+            // (But we continue looping so we can consume and discard all of
+            // the output from the p4 process.)
+            if (srcBranchFile != null) continue;
+
+            // check to see if this line describes the integration operation
+            Matcher m = FILELOG_PATTERN.matcher(line);
+            if (!m.matches()) continue;
+            String partnerFile = m.group(3);
+
+            // detect the branch points from the filenames, if possible.
+            String branchRelativeFilename = getSharedPathSuffix(f.filename,
+                partnerFile);
+            srcBranchFile = stripSuffix(partnerFile, branchRelativeFilename);
+            destBranchFile = stripSuffix(f.filename, branchRelativeFilename);
+            if (branchRelativeFilename.length() > 0) {
+                addBranchPath(srcBranchFile, result);
+                addBranchPath(destBranchFile, result);
+            }
+        }
+
+    }
+
+    private String getSharedPathSuffix(String pathA, String pathB) {
+        if (pathA.equals(pathB))
+            return pathA;
+
+        String[] segmentsA = pathA.substring(2).split("/", 0);
+        String[] segmentsB = pathB.substring(2).split("/", 0);
+        int posA = segmentsA.length;
+        int posB = segmentsB.length;
+        String result = "";
+        while (posA-- > 0 && posB-- > 0) {
+            if (segmentsA[posA].equals(segmentsB[posB]))
+                result = "/" + segmentsA[posA] + result;
+            else
+                break;
+        }
+        if (result.length() > 0)
+            result = result.substring(1);
+        return result;
+    }
+
+    private String stripSuffix(String path, String suffix) {
+        return path.substring(0, path.length() - suffix.length());
+    }
+
+    private void addBranchPath(String newPath, List<String> branchPaths) {
+        for (Iterator i = branchPaths.iterator(); i.hasNext();) {
+            String oneOldPath = (String) i.next();
+            if (oneOldPath.equals(newPath))
+                // the new path is already in the list.
+                return;
+            else if (oneOldPath.startsWith(newPath))
+                // the new path is at a higher level than one in the list.
+                // prefer the newer path and remove the old path.
+                i.remove();
+        }
+        branchPaths.add(newPath);
+    }
+
+    private void reconcileBranchedFile(PerforceFile f,
+            List<PerforceFile> allFiles, Map<String, PerforceFile> deletedFiles,
+            List<String> branchPoints) throws IOException {
+
+        String branchSrcFile = null;
+        int branchSrcRev = 0;
+
+        String fileKey = f.filename + "#" + f.revNum;
+        BufferedReader in = getPerforceOutput("filelog", "-i", fileKey);
+        String line;
+        while ((line = in.readLine()) != null) {
+            // if we've already found the file we need, just skip this loop.
+            // (But we continue looping so we can consume and discard all of
+            // the output from the p4 process.)
+            if (branchSrcFile != null) continue;
+
+            // check to see if this line describes a branch or integration
+            // operation
+            Matcher m = FILELOG_PATTERN.matcher(line);
+            if (!m.matches()) continue;
+            String partnerFile = m.group(3);
+            int partnerRev = Integer.parseInt(m.group(5));
+
+            if (m.group(2) != null) {
+                // this is a "branch from" operation.  If the source file is
+                // on the same branch as the current changelist target, it
+                // means one of two things:
+                //  (a) this was a plain copy of a file from one location to
+                //      another within the branch, or
+                //  (b) this source file was copied to a sandbox branch,
+                //      modified there, then copied back to this main branch
+                // either way, this source file should be used as the starting
+                // point for comparison.
+                if (onSameBranch(f.filename, partnerFile, branchPoints)) {
+                    branchSrcFile = partnerFile;
+                    branchSrcRev = partnerRev;
+                }
+
+            } else if (m.group(1) != null) {
+                // This is an "edit from," "copy from," or "merge from"
+                // operation.  This means one of two things:
+                //  (a) this was the most recent point of integration from
+                //      the mainline branch into a sandbox branch, or
+                //  (b) the named file forms the source for the current
+                //      changelist target.
+                // Either way, use the named file as our comparison source.
+                branchSrcFile = partnerFile;
+                branchSrcRev = partnerRev;
+            }
+        }
+
+        if (branchSrcFile == null) {
+            // if we didn't find an appropriate branch source, it means that
+            // the file was added on a sandbox branch and integrated back to
+            // the mainline. Treat this like an added file.
+            f.type = ADDED;
+        } else {
+            f.branchSrcFilename = branchSrcFile;
+            f.branchSrcRev = branchSrcRev;
+
+            // if this branched file traces its ancestry back to a file that
+            // was deleted in this changelist, the pair represent a rename
+            // operation.  Drop the deleted file
+            PerforceFile deletedFile = deletedFiles.remove(branchSrcFile);
+            if (deletedFile != null)
+                allFiles.remove(deletedFile);
+        }
+    }
+    private static final Pattern FILELOG_PATTERN = Pattern.compile(
+        "\\Q... ...\\E ((branch)|merge|copy|edit) from (//[^#]*)(#\\d+,)?#(\\d+)");
+
+    private boolean onSameBranch(String pathA, String pathB,
+            List<String> knownBranchPoints) {
+        // if the user wants all branch operations to be treated as copies,
+        // return true. (This effectively treats the entire repository as a
+        // single big branch where files are copied around, giving no special
+        // treatment to integrations across branches.)
+        if (branchIsCopy())
+            return true;
+
+        // try to examine our list of known branch points.  If either of the
+        // files falls on a recognized branch, then the other must fall on the
+        // same branch for this method to return true.
+        String branchA = getPrefixForPath(pathA, knownBranchPoints);
+        String branchB = getPrefixForPath(pathB, knownBranchPoints);
+        if (branchA != null || branchB != null)
+            return branchA != null && branchA.equals(branchB);
+
+        // fall back to our branch prefix length comparison.  Two files are
+        // on the same branch if they share a minimum number of common initial
+        // path components.
+        int pathCount = 0;
+        int minLength = Math.min(pathA.length(), pathB.length());
+        for (int i = 2;  i < minLength;  i++) {
+            char charA = pathA.charAt(i);
+            char charB = pathB.charAt(i);
+            if (charA != charB)
+                break;
+            if (charA == '/')
+                pathCount++;
+        }
+        return pathCount >= branchPrefixLen;
+    }
+
+    private String getPrefixForPath(String path, List<String> prefixes) {
+        for (String prefix : prefixes)
+            if (path.startsWith(prefix))
+                return prefix;
+        return null;
+    }
 
     private void maybeConfirmLargeOperation(List result) throws IOException {
         if (result.size() < 250)
@@ -245,8 +538,10 @@ public class PerforceLOCDiff extends LOCDiffReportGenerator {
     private static final int ADDED = 0;
     private static final int MODIFIED = 1;
     private static final int DELETED = 2;
+    private static final int INTEGRATED = 3;
+    private static final int BRANCH = 5;
 
-    private class PerforceFile implements FileToCompare {
+    private abstract class PerforceFile implements FileToCompare {
 
         protected String filename;
         protected int revNum;
@@ -254,6 +549,9 @@ public class PerforceLOCDiff extends LOCDiffReportGenerator {
 
         protected String clientFilename;
         protected Boolean isTextFile;
+
+        protected String branchSrcFilename;
+        protected int branchSrcRev;
 
         public PerforceFile(String filename, int revNum, String type) {
             this.filename = filename;
@@ -264,6 +562,10 @@ public class PerforceLOCDiff extends LOCDiffReportGenerator {
                 this.type = DELETED;
             else if ("edit".equals(type))
                 this.type = MODIFIED;
+            else if ("integrate".equals(type))
+                this.type = INTEGRATED;
+            else if ("branch".equals(type))
+                this.type = (branchIsAdd() ? ADDED : BRANCH);
             else
                 throw new IllegalArgumentException("Unrecognized Perforce change type '"+type+"'");
         }
@@ -275,22 +577,25 @@ public class PerforceLOCDiff extends LOCDiffReportGenerator {
         public InputStream getContentsBefore() throws IOException {
             if (type == ADDED)
                 return null;
-            return getFileFromPerforce(filename, revNum);
+            else if (type == BRANCH)
+                return getFileFromPerforce(branchSrcFilename, branchSrcRev);
+            else
+                return getContentsBeforeImpl();
         }
+
+        protected abstract InputStream getContentsBeforeImpl() throws IOException;
 
         public InputStream getContentsAfter() throws IOException {
             if (type == DELETED)
                 return null;
-            getFileStats();
-            if (clientFilename == null)
-                return null;
             else
-                return new FileInputStream(clientFilename);
+                return getContentsAfterImpl();
         }
 
+        protected abstract InputStream getContentsAfterImpl() throws IOException;
+
         protected void getFileStats() throws IOException {
-            Process proc = runPerforceCommand("fstat", filename);
-            BufferedReader in = new BufferedReader(new InputStreamReader(proc.getInputStream()));
+            BufferedReader in = getPerforceOutput("fstat", filename);
             String line;
             while ((line = in.readLine()) != null) {
                 if (line.startsWith("... clientFile "))
@@ -300,6 +605,25 @@ public class PerforceLOCDiff extends LOCDiffReportGenerator {
             }
         }
 
+    }
+
+    private class OpenedPerforceFile extends PerforceFile {
+
+        public OpenedPerforceFile(String filename, int revNum, String type) {
+            super(filename, revNum, type);
+        }
+
+        protected InputStream getContentsBeforeImpl() throws IOException {
+            return getFileFromPerforce(filename, revNum);
+        }
+
+        protected InputStream getContentsAfterImpl() throws IOException {
+            getFileStats();
+            if (clientFilename == null)
+                return null;
+            else
+                return new FileInputStream(clientFilename);
+        }
     }
 
     private class SubmittedPerforceFile extends PerforceFile {
@@ -316,10 +640,10 @@ public class PerforceLOCDiff extends LOCDiffReportGenerator {
             return (isTextFile != null && isTextFile);
         }
 
-        public InputStream getContentsBefore() throws IOException {
+        protected InputStream getContentsBeforeImpl() throws IOException {
             return getFileFromPerforce(filename, revNum-1);
         }
-        public InputStream getContentsAfter() throws IOException {
+        protected InputStream getContentsAfterImpl() throws IOException {
             return getFileFromPerforce(filename, revNum);
         }
     }
@@ -348,10 +672,12 @@ public class PerforceLOCDiff extends LOCDiffReportGenerator {
             File out = diff.generateDiffs();
             Browser.launch(out.toURI().toURL().toString());
         } catch (PerforceNotFoundException pnfe) {
-            System.err.println("Could not execute the Perforce command "
-                    + "line client.  Please");
-            System.err.println("ensure the 'p4' command is in your path, "
-                    + "then try again.");
+            System.err.println("Could not execute the Perforce command line client.  Please");
+            System.err.println("take one of the following corrective actions:");
+            System.err.println("    * Ensure the 'p4' command is in your path, or ");
+            System.err.println("    * Append arguments to your command line of the form ");
+            System.err.println("             -p4 <path to p4 application>");
+            System.err.println("Then try again.");
         } catch (UserCancelledException uce) {
         } catch (IOException ioe) {
             ioe.printStackTrace();
@@ -360,6 +686,7 @@ public class PerforceLOCDiff extends LOCDiffReportGenerator {
 
     private static void printUsage() {
         System.out.println("Usage: java " + PerforceLOCDiff.class.getName()
+                + " [-branchIsAdd | -branchIsCopy | -bp=<path> ...]"
                 + " [changelist...] [-p4 perforce command line options]");
     }
 }
