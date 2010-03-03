@@ -10,7 +10,7 @@
 ### Property keys for the PSP Fundamentals & Advanced courses
 ######################################################################
 
-PropertyKey<top><PSP Fundamentals & Advanced>=Prop[][pspFundAdv][][pspForEng3/rootData.txt][][0][9][PropertyKey<top/PSP Fundamentals & Advanced><Program 1>][PropertyKey<top/PSP Fundamentals & Advanced><Program 2>][PropertyKey<top/PSP Fundamentals & Advanced><Program 3>][PropertyKey<top/PSP Fundamentals & Advanced><Program 4>][PropertyKey<top/PSP Fundamentals & Advanced><Interim Report>][PropertyKey<top/PSP Fundamentals & Advanced><Program 5>][PropertyKey<top/PSP Fundamentals & Advanced><Program 6>][PropertyKey<top/PSP Fundamentals & Advanced><Program 7>][PropertyKey<top/PSP Fundamentals & Advanced><Final Report>]
+PropertyKey<top><PSP Fundamentals & Advanced>=Prop[][pspFundAdv][][pspForEng3/rootData.txt][][0][8][PropertyKey<top/PSP Fundamentals & Advanced><Program 1>][PropertyKey<top/PSP Fundamentals & Advanced><Program 2>][PropertyKey<top/PSP Fundamentals & Advanced><Program 3>][PropertyKey<top/PSP Fundamentals & Advanced><Program 4>][PropertyKey<top/PSP Fundamentals & Advanced><Program 5>][PropertyKey<top/PSP Fundamentals & Advanced><Program 6>][PropertyKey<top/PSP Fundamentals & Advanced><Program 7>][PropertyKey<top/PSP Fundamentals & Advanced><Analysis Report>]
 
 
 # Program 1
@@ -61,13 +61,6 @@ PropertyKey<top/PSP Fundamentals & Advanced/Program 4><Test>=Prop[][][][][ME<>][
 PropertyKey<top/PSP Fundamentals & Advanced/Program 4><Postmortem>=Prop[][][][][ME<>][0][0]
 
 
-# Interim Report
-
-PropertyKey<top/PSP Fundamentals & Advanced><Interim Report>=Prop[true][Generic][][pspForEng2/RI/dataFile2.txt][<Generic Phase(-1)][0][2][PropertyKey<top/PSP Fundamentals & Advanced/Interim Report><Planning>][PropertyKey<top/PSP Fundamentals & Advanced/Interim Report><Postmortem>]
-PropertyKey<top/PSP Fundamentals & Advanced/Interim Report><Planning>=Prop[][][][][ME<>][0][0]
-PropertyKey<top/PSP Fundamentals & Advanced/Interim Report><Postmortem>=Prop[][][][][ME<>][0][0]
-
-
 # Program 5
 
 PropertyKey<top/PSP Fundamentals & Advanced><Program 5>=Prop[true][PSP2.1][][pspForEng3/psp2.1/dataFile.txt][<Design Inspection(3)<Code Inspection(-2)][0][8][PropertyKey<top/PSP Fundamentals & Advanced/Program 5><Planning>][PropertyKey<top/PSP Fundamentals & Advanced/Program 5><Design>][PropertyKey<top/PSP Fundamentals & Advanced/Program 5><Design Review>][PropertyKey<top/PSP Fundamentals & Advanced/Program 5><Code>][PropertyKey<top/PSP Fundamentals & Advanced/Program 5><Code Review>][PropertyKey<top/PSP Fundamentals & Advanced/Program 5><Compile>][PropertyKey<top/PSP Fundamentals & Advanced/Program 5><Test>][PropertyKey<top/PSP Fundamentals & Advanced/Program 5><Postmortem>]
@@ -107,8 +100,8 @@ PropertyKey<top/PSP Fundamentals & Advanced/Program 7><Test>=Prop[][][][][ME<>][
 PropertyKey<top/PSP Fundamentals & Advanced/Program 7><Postmortem>=Prop[][][][][ME<>][0][0]
 
 
-# Final Report
+# Analysis Report
 
-PropertyKey<top/PSP Fundamentals & Advanced><Final Report>=Prop[true][Generic][][pspForEng2/RF/dataFile2.txt][<Generic Phase(-1)][0][2][PropertyKey<top/PSP Fundamentals & Advanced/Final Report><Planning>][PropertyKey<top/PSP Fundamentals & Advanced/Final Report><Postmortem>]
-PropertyKey<top/PSP Fundamentals & Advanced/Final Report><Planning>=Prop[][][][][ME<>][0][0]
-PropertyKey<top/PSP Fundamentals & Advanced/Final Report><Postmortem>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP Fundamentals & Advanced><Analysis Report>=Prop[true][Generic][][pspForEng2/RF/dataFile2.txt][<Generic Phase(-1)][0][2][PropertyKey<top/PSP Fundamentals & Advanced/Analysis Report><Planning>][PropertyKey<top/PSP Fundamentals & Advanced/Analysis Report><Postmortem>]
+PropertyKey<top/PSP Fundamentals & Advanced/Analysis Report><Planning>=Prop[][][][][ME<>][0][0]
+PropertyKey<top/PSP Fundamentals & Advanced/Analysis Report><Postmortem>=Prop[][][][][ME<>][0][0]
