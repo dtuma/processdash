@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2009 Tuma Solutions, LLC
+// Copyright (C) 2001-2010 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -187,8 +187,7 @@ public class DashController {
     }
 
     public static File backupData() {
-        List unsavedData = dash.saveAllData();
-        if (!unsavedData.isEmpty())
+        if (saveAllDataWithFeedback() == false)
             return null;
 
         return dash.fileBackupManager.run();

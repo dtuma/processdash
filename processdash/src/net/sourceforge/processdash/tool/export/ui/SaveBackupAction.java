@@ -1,4 +1,4 @@
-// Copyright (C) 2007-2009 Tuma Solutions, LLC
+// Copyright (C) 2007-2010 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -81,6 +81,8 @@ public class SaveBackupAction extends AbstractAction {
 
         ProgressDialog progressDialog;
 
+        File destFile;
+
         public BackupCoordinator() {
             progressDialog = new ProgressDialog();
         }
@@ -102,13 +104,19 @@ public class SaveBackupAction extends AbstractAction {
         }
 
         private void doBackup() {
+            // Perform a "save all data" operation. This is slightly redundant
+            // because the "save backup" operation will perform one too.  But
+            // performing it here will cause dirty GUIs to prompt for save
+            // BEFORE we display our "Save As" dialog.
+            DashController.saveAllData();
+
             // get a backup operation started and running.
             BackupTask backupTask = new BackupTask();
             backupTask.start();
 
             // while the backup is running, ask the user where the backup
             // should be saved.
-            File destFile = getDestFile();
+            doOnSwingThread("promptForDestFile");
 
             // if the user pressed the cancel button, abort.
             if (destFile == null)
@@ -130,6 +138,10 @@ public class SaveBackupAction extends AbstractAction {
                 Thread.sleep(2000);
             } catch (InterruptedException e) {
             }
+        }
+
+        public void promptForDestFile() {
+            destFile = getDestFile();
         }
 
         public void showProgressDialog() {
