@@ -812,7 +812,7 @@ public class EVSchedule implements TableModel {
         double auto = 0;
         long time = when.getTime();
         Period p;
-        for (int i = 1;   i < periods.size();   i++) {
+        for (int i = 0;   i < periods.size();   i++) {
             p = get(i);
             if (p != null && p.getEndDate().getTime() < time) {
                 if (p.automatic)
@@ -831,7 +831,7 @@ public class EVSchedule implements TableModel {
         double result = 0;
         long time = when.getTime();
         Period p;
-        for (int i = 1;   i < periods.size();   i++) {
+        for (int i = 0;   i < periods.size();   i++) {
             p = get(i);
             if (p != null && p.getEndDate().getTime() < time)
                 result += p.actualDirectTime;
@@ -1238,7 +1238,7 @@ public class EVSchedule implements TableModel {
     public synchronized void recalcCumPlanTimes() {
         double cumPlanDirectTime = 0;
         Period p;
-        for (int i = 1;   i < periods.size();   i++) {
+        for (int i = 0;   i < periods.size();   i++) {
             p = get(i);
             cumPlanDirectTime += p.planDirectTime;
             p.cumPlanDirectTime = cumPlanDirectTime;

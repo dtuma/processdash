@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2009 Tuma Solutions, LLC
+// Copyright (C) 2003-2010 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -141,7 +141,7 @@ public class EVScheduleSplit extends EVSchedule {
     }
 
     protected void rewriteHistory(Date effDate, List histPeriods) {
-        for (int i = 1;  i < periods.size();  i++) {
+        for (int i = 0;  i < periods.size();  i++) {
             Period p = get(i);
             Period h;
             if (i < histPeriods.size())
