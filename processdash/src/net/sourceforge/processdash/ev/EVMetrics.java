@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2009 Tuma Solutions, LLC
+// Copyright (C) 2001-2010 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -46,6 +46,7 @@ import net.sourceforge.processdash.ev.ci.ConfidenceIntervalWithRatio;
 import net.sourceforge.processdash.ev.ci.TargetedConfidenceInterval;
 import net.sourceforge.processdash.ev.ci.XMLPersistableConfidenceInterval;
 import net.sourceforge.processdash.i18n.Resources;
+import net.sourceforge.processdash.util.DateAdjuster;
 import net.sourceforge.processdash.util.FormatUtil;
 import net.sourceforge.processdash.util.PatternList;
 
@@ -1004,5 +1005,11 @@ public class EVMetrics implements TableModel {
             costInterval.setInput(incompleteTaskPlanTime());
         timeErrInterval = AbstractConfidenceInterval.readFromXML
             (e.getElementsByTagName("timeErrInterval"));
+    }
+
+    public void adjustDates(DateAdjuster adj) {
+        startDate = adj.adjust(startDate);
+        currentDate = adj.adjust(currentDate);
+        // other dates are handled by the recalculation logic
     }
 }

@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2009 Tuma Solutions, LLC
+// Copyright (C) 2001-2010 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -636,6 +636,8 @@ public class EVSchedule implements TableModel {
             Date newDate = adj.adjust(origDate);
             p.endDate = newDate;
         }
+        effectiveDate = adj.adjust(effectiveDate);
+        metrics.adjustDates(adj);
     }
 
     protected DateAdjuster normalizeDates(int offset) {
@@ -668,6 +670,9 @@ public class EVSchedule implements TableModel {
         // calendar periods.  But the special date "NEVER" should not be
         // altered, so we add a specific statement not to alter that timestamp.
         result.add(EVSchedule.NEVER, 0);
+
+        effectiveDate = result.adjust(effectiveDate);
+        metrics.adjustDates(result);
 
         return result;
     }
