@@ -63,6 +63,8 @@ public class PerforceLOCDiff extends LOCDiffReportGenerator {
 
     protected List<String> userBranchPoints = new ArrayList<String>();
 
+    protected List<String> precachedFstatOutput = new ArrayList<String>();
+
     protected boolean debug = false;
 
     public PerforceLOCDiff(List languageFilters) {
@@ -167,8 +169,6 @@ public class PerforceLOCDiff extends LOCDiffReportGenerator {
     }
 
     protected Collection getFilesToCompare() throws IOException {
-        List result = new ArrayList();
-
         boolean checkBinaries = false;
         if (getOptions() != null && getOptions().contains("-checkBinaries"))
             checkBinaries = true;
@@ -176,16 +176,29 @@ public class PerforceLOCDiff extends LOCDiffReportGenerator {
         if (changelists.isEmpty())
             changelists.add("default");
 
-        for (String changelist : changelists)
-            result.addAll(getFilesForOneChangelist(changelist, checkBinaries));
+        List<List> changelistFileSets = new ArrayList<List>();
+        int totalFileCount = 0;
+        for (String changelist : changelists) {
+            List filesForOneChangelist = getFilesForOneChangelist(changelist,
+                checkBinaries);
+            changelistFileSets.add(filesForOneChangelist);
+            totalFileCount += filesForOneChangelist.size();
+        }
 
-        maybeConfirmLargeOperation(result);
+        maybeConfirmLargeOperation(totalFileCount);
 
+        List result = new ArrayList();
+        for (List filesForOneChangelist : changelistFileSets) {
+            reconcileBranchedFiles(filesForOneChangelist);
+            result.addAll(filesForOneChangelist);
+        }
         return result;
     }
 
-    private Collection getFilesForOneChangelist(String changelist,
+    private List getFilesForOneChangelist(String changelist,
             boolean checkBinaries) throws IOException {
+        precacheFstatOutput(changelist);
+
         List<PerforceFile> result = new ArrayList();
 
         getOpenedFilesToCompare(result, changelist, checkBinaries);
@@ -193,10 +206,17 @@ public class PerforceLOCDiff extends LOCDiffReportGenerator {
         if (result.isEmpty())
             getSubmittedFilesToCompare(result, changelist, checkBinaries);
 
-        if (!result.isEmpty())
-            reconcileBranchedFiles(result);
-
         return result;
+    }
+
+    private void precacheFstatOutput(String changelist) {
+        try {
+            BufferedReader in = getPerforceOutput("fstat", "-e", changelist,
+                "//...");
+            String line;
+            while ((line = in.readLine()) != null)
+                precachedFstatOutput.add(line);
+        } catch (Exception e) {}
     }
 
     private void getOpenedFilesToCompare(List<PerforceFile> result,
@@ -252,6 +272,8 @@ public class PerforceLOCDiff extends LOCDiffReportGenerator {
         List<PerforceFile> branchedFiles = getBranchedFiles(files);
         if (branchedFiles.isEmpty())
             return;
+
+        System.out.println("Reconciling branched files...");
 
         // Examine the integrated files in this changelist to infer a list
         // of the branch points that were used to create this change.
@@ -494,8 +516,8 @@ public class PerforceLOCDiff extends LOCDiffReportGenerator {
         return null;
     }
 
-    private void maybeConfirmLargeOperation(List result) throws IOException {
-        if (result.size() < 250)
+    private void maybeConfirmLargeOperation(int fileCount) throws IOException {
+        if (fileCount < 250)
             return;
 
         if (getOptions() != null && getOptions().contains("-confirmLarge"))
@@ -503,7 +525,7 @@ public class PerforceLOCDiff extends LOCDiffReportGenerator {
 
         Object[] message = new String[] {
             "This LOC counting operation will examine",
-            "     " + result.size() + " files",
+            "     " + fileCount + " files",
             "Extremely large counting operations may strain the Perforce",
             "server.  Are you certain you wish to proceed?"
         };
@@ -595,14 +617,39 @@ public class PerforceLOCDiff extends LOCDiffReportGenerator {
         protected abstract InputStream getContentsAfterImpl() throws IOException;
 
         protected void getFileStats() throws IOException {
+            if (getPrecachedFileStats() == false)
+                runSingleFileFstat();
+        }
+
+        private boolean getPrecachedFileStats() {
+            String fstatStartLine = "... depotFile " + filename;
+            int pos = precachedFstatOutput.indexOf(fstatStartLine);
+            if (pos == -1)
+                return false;
+
+            while (++pos < precachedFstatOutput.size()) {
+                String line = precachedFstatOutput.get(pos);
+                if (line.startsWith("... depotFile "))
+                    break;
+                else
+                    processFstatLine(line);
+            }
+            return true;
+        }
+
+        private void runSingleFileFstat() throws IOException {
             BufferedReader in = getPerforceOutput("fstat", filename);
             String line;
             while ((line = in.readLine()) != null) {
-                if (line.startsWith("... clientFile "))
-                    clientFilename = line.substring(15);
-                else if (line.startsWith("... type ") || line.startsWith("... headType "))
-                    isTextFile = line.contains("text");
+                processFstatLine(line);
             }
+        }
+
+        private void processFstatLine(String line) {
+            if (line.startsWith("... clientFile "))
+                clientFilename = line.substring(15);
+            else if (line.startsWith("... type ") || line.startsWith("... headType "))
+                isTextFile = line.contains("text");
         }
 
     }
