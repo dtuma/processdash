@@ -1,4 +1,4 @@
-// Copyright (C) 2007-2008 Tuma Solutions, LLC
+// Copyright (C) 2007-2010 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -28,7 +28,9 @@ import java.io.File;
 import java.io.IOException;
 import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -43,6 +45,7 @@ import net.sourceforge.processdash.tool.export.DataImporter;
 import net.sourceforge.processdash.tool.export.mgr.ImportDirectoryInstruction;
 import net.sourceforge.processdash.util.DrainableExecutor;
 import net.sourceforge.processdash.util.FileUtils;
+import net.sourceforge.processdash.util.StringUtils;
 
 public class ExternalResourceArchiverXMLv1 implements ExternalResourceArchiver,
         ExternalResourceXmlConstantsv1 {
@@ -75,9 +78,14 @@ public class ExternalResourceArchiverXMLv1 implements ExternalResourceArchiver,
         NumberFormat fmt = NumberFormat.getIntegerInstance();
         fmt.setMinimumIntegerDigits(3);
 
+        Set<String> extDirNames = new HashSet<String>();
+        extDirNames.add(null); extDirNames.add("");
         for (int i = 0; i < importInstructions.size(); i++) {
             ImportDirectoryInstruction instr = importInstructions.get(i);
-            String newPath = "extdir" + fmt.format(i + 1);
+            String newPath = getExtDirName(instr);
+            if (extDirNames.contains(newPath))
+                newPath = "extdir" + fmt.format(i + 1);
+            extDirNames.add(newPath);
             executor.execute(new ArchiveDirectoryTask(executor, out, instr,
                     newPath));
         }
@@ -86,6 +94,20 @@ public class ExternalResourceArchiverXMLv1 implements ExternalResourceArchiver,
 
         if (exceptionEncountered != null)
             throw exceptionEncountered;
+    }
+
+    private String getExtDirName(ImportDirectoryInstruction instr) {
+        String path = instr.getDirectory();
+        if (!StringUtils.hasValue(path)) path = instr.getURL();
+        if (!StringUtils.hasValue(path)) return null;
+
+        path = path.replace('\\', '/');
+        path = StringUtils.findAndReplace(path, "/disseminate", "-disseminate");
+        int pos = path.lastIndexOf('/');
+        if (pos == -1)
+            return null;
+        else
+            return path.substring(pos + 1);
     }
 
     private class ArchiveDirectoryTask implements Runnable {
