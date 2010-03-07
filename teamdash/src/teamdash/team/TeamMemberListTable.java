@@ -39,6 +39,8 @@ import java.awt.RenderingHints;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
@@ -89,6 +91,12 @@ public class TeamMemberListTable extends JTable {
      */
     TokenDragHandler tokenDragHandler;
 
+    /**
+     * Object to support scrolling the dates viewed by the users in the
+     * schedule
+     */
+    DateScrollingHandler dateScrollingHandler;
+
     /** A button allowing the user to view earlier dates in the schedule */
     JButton scrollDatesEarlierButton;
 
@@ -118,6 +126,7 @@ public class TeamMemberListTable extends JTable {
         setDefaultEditor(WeekData.class, new WeekDataEditor(hoursFormatter));
 
         tokenDragHandler = new TokenDragHandler();
+        dateScrollingHandler = new DateScrollingHandler();
         customizationHyperlink = createCustomizationHyperlink();
         createButtons();
         setupTableColumnHeader();
@@ -528,11 +537,13 @@ public class TeamMemberListTable extends JTable {
 
         Font italicFont;
 
+        Color unmodifiableCellBackground;
+
         public WeekDataRenderer(NumberFormat hoursFormat) {
             this.hoursFormat = hoursFormat;
             setHorizontalAlignment(CENTER);
 
-            Color background = UIManager.getColor("control");
+            unmodifiableCellBackground = UIManager.getColor("control");
             regularFont = TeamMemberListTable.this.getFont();
             italicFont = regularFont.deriveFont(Font.ITALIC);
             Font smallFont = regularFont
@@ -544,20 +555,20 @@ public class TeamMemberListTable extends JTable {
             startLabel.setHorizontalTextPosition(LEFT);
             startLabel.setVerticalTextPosition(CENTER);
             startLabel.setIconTextGap(0);
-            startLabel.setBackground(background);
-            startLabel.setOpaque(true);
+            startLabel.setBackground(unmodifiableCellBackground);
             startLabel.setFont(smallFont);
             startCell = new JPanel(new BorderLayout());
+            startCell.setOpaque(true);
             startCell.add(startLabel, BorderLayout.CENTER);
             startCell.add(makeGrippy(), BorderLayout.EAST);
             startCell.setToolTipText("Drag to set schedule start date");
 
             JLabel endLabel = new JLabel("END", new ArrowIcon(true), LEFT);
             endLabel.setIconTextGap(0);
-            endLabel.setBackground(background);
-            endLabel.setOpaque(true);
+            endLabel.setBackground(unmodifiableCellBackground);
             endLabel.setFont(smallFont);
             endCell = new JPanel(new BorderLayout());
+            endCell.setOpaque(true);
             endCell.add(endLabel, BorderLayout.CENTER);
             endCell.add(makeGrippy(), BorderLayout.WEST);
             endCell.setToolTipText("<html>Drag to set schedule end date.<br>"
@@ -569,26 +580,44 @@ public class TeamMemberListTable extends JTable {
         public Component getTableCellRendererComponent(JTable table,
                 Object value, boolean isSelected, boolean hasFocus, int row,
                 int column) {
+            Component component = this;
+            boolean cellIsModifiable = false;
+
             WeekData week = (WeekData) value;
+
             switch (week.getType()) {
             case WeekData.TYPE_OUTSIDE_SCHEDULE:
-                return outsideSchedule;
+                component = outsideSchedule;
+                break;
             case WeekData.TYPE_START:
-                return startCell;
+                component = startCell;
+                break;
             case WeekData.TYPE_END:
-                return endCell;
+                component = endCell;
+                break;
+            default:
+                cellIsModifiable = true;
+                break;
             }
 
-            String display = hoursFormat.format(week.getHours());
-            if (tokenDragHandler.isDragging())
-                isSelected = hasFocus = false;
-            super.getTableCellRendererComponent(table, display, isSelected,
-                hasFocus, row, column);
+            if (cellIsModifiable) {
+                String display = hoursFormat.format(week.getHours());
+                if (tokenDragHandler.isDragging())
+                    isSelected = hasFocus = false;
+                super.getTableCellRendererComponent(table, display, isSelected,
+                    hasFocus, row, column);
 
-            setFont(week.getType() == WeekData.TYPE_DEFAULT ? italicFont
-                    : regularFont);
+                setFont(week.getType() == WeekData.TYPE_DEFAULT ? italicFont
+                        : regularFont);
+            }
+            else {
+                if (isSelected && hasFocus)
+                    component.setBackground(Color.LIGHT_GRAY);
+                else
+                    component.setBackground(unmodifiableCellBackground);
+            }
 
-            return this;
+            return component;
         }
     }
 
@@ -682,6 +711,62 @@ public class TeamMemberListTable extends JTable {
                 return null;
             }
         }
+
+    }
+
+    private class DateScrollingHandler implements KeyListener {
+
+        public DateScrollingHandler() {
+            addKeyListener(this);
+        }
+
+        @Override
+        public void keyPressed(KeyEvent e) {
+
+            if (getSelectedColumn() == TeamMemberList.FIRST_WEEK_COLUMN &&
+                (e.getKeyCode() == KeyEvent.VK_LEFT
+                 || e.getKeyCode() == KeyEvent.VK_KP_LEFT)) {
+                // The first week of the schedule is selected and the
+                // left arrow key has been pressed. We scroll the calendar
+                // to show earlier dates.
+
+                scrollDatesEarlier();
+                e.consume();
+
+                SwingUtilities.invokeLater(new Runnable() {
+                    public void run() {
+                        int selectedCol = getSelectedColumn();
+                        setColumnSelectionInterval(selectedCol - 1,
+                            selectedCol - 1);
+                    }
+                });
+            }
+            else if (getSelectedColumn() == getColumnCount() - 2 &&
+                    (e.getKeyCode() == KeyEvent.VK_RIGHT
+                     || e.getKeyCode() == KeyEvent.VK_KP_RIGHT)) {
+                // The last week of the schedule is selected and the
+                // right arrow key has been pressed. We scroll the calendar
+                // to show later dates.
+
+                scrollDatesLater();
+                e.consume();
+
+                SwingUtilities.invokeLater(new Runnable() {
+                    public void run() {
+                        int selectedCol = getSelectedColumn();
+                        setColumnSelectionInterval(selectedCol + 1,
+                            selectedCol + 1);
+                    }
+                });
+
+            }
+        }
+
+        @Override
+        public void keyReleased(KeyEvent e) {}
+
+        @Override
+        public void keyTyped(KeyEvent e) {}
 
     }
 
