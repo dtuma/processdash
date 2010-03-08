@@ -1,4 +1,4 @@
-// Copyright (C) 1998-2009 Tuma Solutions, LLC
+// Copyright (C) 1998-2010 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -97,6 +97,7 @@ import net.sourceforge.processdash.i18n.LookAndFeelSettings;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.i18n.Translator;
 import net.sourceforge.processdash.log.defects.DefectAnalyzer;
+import net.sourceforge.processdash.log.defects.DefectLog;
 import net.sourceforge.processdash.log.time.DashboardTimeLog;
 import net.sourceforge.processdash.log.time.TimeLog;
 import net.sourceforge.processdash.log.time.TimeLoggingModel;
@@ -392,11 +393,10 @@ public class ProcessDashboard extends JFrame implements WindowListener,
 
                 v = props.load(new StringReader(state), true);
 
-                // Starting with version UTF8_SUPPORT_VERSION, all new datasets are
-                // encoded in UTF-8.
-                InternalSettings.set(DataRepository.USE_UTF8_SETTING, "true");
-                DataVersionChecker.registerDataRequirement("pspdash",
-                    DataRepository.UTF8_SUPPORT_VERSION);
+                // Starting with version UTF8_SUPPORT_VERSION, all new datasets
+                // use UTF-8 for datafiles and XML for defects.
+                DataRepository.enableUtf8Encoding();
+                DefectLog.enableXmlStorageFormat();
 
                 displayFirstTimeUserHelp();
             } catch (Exception e) {

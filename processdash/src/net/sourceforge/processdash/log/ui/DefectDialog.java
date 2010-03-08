@@ -1,4 +1,4 @@
-// Copyright (C) 2000-2008 Tuma Solutions, LLC
+// Copyright (C) 2000-2010 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -38,6 +38,7 @@ import java.util.Date;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Stack;
 
 import javax.swing.JButton;
@@ -87,6 +88,7 @@ public class DefectDialog extends JDialog
     DecimalField fix_time;
     JTextArea description;
     JComboBox defect_type, phase_injected, phase_removed;
+    Map<String, String> extra_attrs;
     boolean isDirty = false, autoCreated = false;
 
     /** A stack of the defect dialogs that have been interrupted. */
@@ -362,6 +364,7 @@ public class DefectDialog extends JDialog
         d.fix_time = fix_time.getText();
         d.fix_defect = fix_defect.getText();
         d.description = description.getText();
+        d.extra_attrs = extra_attrs;
 
         defectLog.writeDefect(d);
 
@@ -509,6 +512,7 @@ public class DefectDialog extends JDialog
         fix_time.setText(d.fix_time); // will trigger fixTimeChanged
         fix_defect.setText(d.fix_defect);
         description.setText(d.description);
+        extra_attrs = d.extra_attrs;
     }
 
     public void dispose() {

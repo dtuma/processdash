@@ -1,4 +1,4 @@
-// Copyright (C) 1999-2007 Tuma Solutions, LLC
+// Copyright (C) 1999-2010 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -28,9 +28,12 @@ package net.sourceforge.processdash.log.defects;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.PushbackInputStream;
 import java.io.Writer;
 import java.text.ParseException;
 import java.util.EventListener;
@@ -38,13 +41,25 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
+import net.sourceforge.processdash.InternalSettings;
 import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.DoubleData;
 import net.sourceforge.processdash.data.NumberFunction;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.repository.DataRepository;
+import net.sourceforge.processdash.templates.DataVersionChecker;
+import net.sourceforge.processdash.tool.export.impl.DefectXmlConstantsv1;
+import net.sourceforge.processdash.tool.export.impl.XmlConstants;
+import net.sourceforge.processdash.util.FileUtils;
+import net.sourceforge.processdash.util.RobustFileOutputStream;
 import net.sourceforge.processdash.util.RobustFileWriter;
+import net.sourceforge.processdash.util.XMLUtils;
+
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
+import org.xmlpull.v1.XmlSerializer;
 
 
 public class DefectLog {
@@ -61,6 +76,12 @@ public class DefectLog {
 
     public static final String DEF_INJ_SUFFIX = "/Defects Injected";
     public static final String DEF_REM_SUFFIX = "/Defects Removed";
+
+    /** A boolean setting indicating if the dataset is saved in UTF8 */
+    public static final String USE_XML_SETTING = "dataset.usesXmlDefects";
+
+    /** The version at which the dashboard started to support XML defect format */
+    public static final String XML_SUPPORT_VERSION = "1.11.0.7a";
 
 
     public DefectLog(String filename, String dataPath, DataRepository data,
@@ -143,7 +164,32 @@ public class DefectLog {
     private void save(Defect [] defects) {
         if (Settings.isReadOnly())
             return;
+        else if (Settings.getBool(USE_XML_SETTING, false))
+            saveAsXML(defects);
+        else
+            saveAsTabDelimited(defects);
+    }
 
+    private void saveAsXML(Defect [] defects) {
+        try {
+            RobustFileOutputStream out = new RobustFileOutputStream(
+                      defectLogFilename);
+            if (defects != null && defects.length > 0) {
+                XmlSerializer ser = XMLUtils.getXmlSerializer(true);
+                ser.setOutput(out, XmlConstants.ENCODING);
+                ser.startDocument(XmlConstants.ENCODING, null);
+                ser.startTag(null, "defectLog");
+                for (int i = 0; i < defects.length; i++)
+                    defects[i].toXml(ser);
+                ser.endTag(null, "defectLog");
+                ser.endDocument();
+            }
+            out.close();
+
+        } catch (IOException e) { System.out.println("IOException: " + e); };
+    }
+
+    private void saveAsTabDelimited(Defect [] defects) {
         try {
             File defectFile = new File(defectLogFilename);
             Writer out = new BufferedWriter(new RobustFileWriter(defectFile));
@@ -192,17 +238,48 @@ public class DefectLog {
 
     public Defect[] readDefects() {
         Defect [] results = null;
+        PushbackInputStream pin = null;
         try {
-            BufferedReader in =
-                new BufferedReader(new FileReader(defectLogFilename));
-            results = getDefects(in, 0);
-            in.close();
+            pin = new PushbackInputStream(
+                        new FileInputStream(defectLogFilename));
+            int c = pin.read();
+            if (c == -1) { // empty file
+                ;
+            } else if (c == '<') { // xml format
+                pin.unread(c);
+                results = readDefectsFromXml(pin);
+            } else { // tab-delimited format
+                pin.unread(c);
+                results = readTabDelimitedDefects(pin);
+            }
         } catch (FileNotFoundException f) {
             System.out.println("FileNotFoundException: " + f);
+        } catch (SAXException i) {
+            System.out.println("Invalid XML defect data in file "
+                          + defectLogFilename + ": " + XMLUtils.exceptionMessage(i));
         } catch (IOException i) {
             System.out.println("IOException: " + i);
         }
+
+        FileUtils.safelyClose(pin);
+        if (results == null)
+            results = new Defect[0];
         return results;
+    }
+
+    private Defect[] readDefectsFromXml(InputStream in) throws SAXException,
+              IOException {
+        Element doc = XMLUtils.parse(in).getDocumentElement();
+        NodeList nl = doc.getElementsByTagName(DefectXmlConstantsv1.DEFECT_TAG);
+        Defect[] result = new Defect[nl.getLength()];
+        for (int i = 0;  i < result.length;  i++)
+            result[i] = new Defect((Element) nl.item(i));
+        return result;
+    }
+
+    private Defect[] readTabDelimitedDefects(InputStream in) throws IOException {
+        BufferedReader buf = new BufferedReader(new InputStreamReader(in));
+        return getDefects(buf, 0);
     }
 
     private void incrementDataValue(String dataName, int increment) {
@@ -412,5 +489,17 @@ public class DefectLog {
             Listener l = (Listener) i.next();
             l.defectUpdated(this, d);
         }
+    }
+
+    public static void convertFileToXml(File f) {
+        if (f.length() > 0) {
+            DefectLog log = new DefectLog(f.getAbsolutePath(), null, null, null);
+            Defect[] defects = log.readDefects();
+            log.saveAsXML(defects);
+        }
+    }
+    public static void enableXmlStorageFormat() {
+        InternalSettings.set(USE_XML_SETTING, "true");
+        DataVersionChecker.registerDataRequirement("pspdash", XML_SUPPORT_VERSION);
     }
 }

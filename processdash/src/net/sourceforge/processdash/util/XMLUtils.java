@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2007 Tuma Solutions, LLC
+// Copyright (C) 2001-2010 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -28,7 +28,9 @@ import java.io.StringReader;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -40,8 +42,10 @@ import javax.xml.transform.TransformerFactory;
 
 import net.sourceforge.processdash.i18n.Resources;
 
+import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
@@ -334,4 +338,22 @@ public class XMLUtils {
         }
         return result;
     }
+
+    /** Return the attributes from the specified element as a Map */
+    public static Map<String, String> getAttributesAsMap(Element e) {
+        Map<String, String> result = new HashMap<String, String>();
+        NamedNodeMap attrs = e.getAttributes();
+        if (attrs != null) {
+            int len = attrs.getLength();
+            for (int i = 0; i < len; i++) {
+                Node n = attrs.item(i);
+                if (n instanceof Attr) {
+                    Attr a = (Attr) n;
+                    result.put(a.getName(), a.getValue());
+                }
+            }
+        }
+        return result;
+    }
+
 }

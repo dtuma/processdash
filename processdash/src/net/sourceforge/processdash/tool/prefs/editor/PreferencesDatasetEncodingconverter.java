@@ -40,7 +40,7 @@ import net.sourceforge.processdash.DashController;
 import net.sourceforge.processdash.InternalSettings;
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.repository.DataRepository;
-import net.sourceforge.processdash.templates.DataVersionChecker;
+import net.sourceforge.processdash.log.defects.DefectLog;
 import net.sourceforge.processdash.ui.lib.binding.BoundMap;
 import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.HTMLUtils;
@@ -96,7 +96,7 @@ public class PreferencesDatasetEncodingconverter extends JPanel {
 
         if (choice == JOptionPane.YES_OPTION) {
             File[] files = new File(DashController.getSettingsFileName())
-                      .getParentFile().listFiles(new DatafileFilter());
+                      .getParentFile().listFiles(new ConversionFileFilter());
 
             if (files == null)
                 return;
@@ -113,14 +113,13 @@ public class PreferencesDatasetEncodingconverter extends JPanel {
                     // No exception was thrown, which means that the files were correctly
                     // converted. We can set the UTF8 flag, delete the backed up files and
                     // hide the converter button.
-                    InternalSettings.set(DataRepository.USE_UTF8_SETTING, "true");
+                    DataRepository.enableUtf8Encoding();
+                    DefectLog.enableXmlStorageFormat();
+
                     try {
                         FileUtils.deleteDirectory(backupFolder, true);
                     } catch (IOException ioe) {}
                     button.setEnabled(false);
-
-                    DataVersionChecker.registerDataRequirement("pspdash",
-                        DataRepository.UTF8_SUPPORT_VERSION);
 
                     JOptionPane.showMessageDialog(this, map.getResource(id
                             + ".Success_Dialog"), map.getResource(id
@@ -146,13 +145,20 @@ public class PreferencesDatasetEncodingconverter extends JPanel {
 
     private void convertFiles(File[] files) throws IOException {
         for (File f : files) {
-            File convertedFile = new File(f.getAbsolutePath() + ".converted");
-
-            FileUtils.copyFile(f, System.getProperty("file.encoding"),
-                convertedFile, "UTF-8");
-
-            FileUtils.renameFile(convertedFile, f);
+            if (f.getName().toLowerCase().endsWith(".dat"))
+                convertDataFile(f);
+            else
+                DefectLog.convertFileToXml(f);
         }
+    }
+
+    private void convertDataFile(File f) throws IOException {
+        File convertedFile = new File(f.getAbsolutePath() + ".converted");
+
+        FileUtils.copyFile(f, System.getProperty("file.encoding"),
+            convertedFile, "UTF-8");
+
+        FileUtils.renameFile(convertedFile, f);
     }
 
     private void createTempBackup(File[] files, String backupFolderPath,
@@ -164,10 +170,11 @@ public class PreferencesDatasetEncodingconverter extends JPanel {
                 new File(backupFolderPath + File.separator + f.getName()));
     }
 
-    private class DatafileFilter implements FilenameFilter {
+    private class ConversionFileFilter implements FilenameFilter {
 
         public boolean accept(File directory, String filename) {
-            return filename.toLowerCase().endsWith(".dat");
+            String filenameLC = filename.toLowerCase();
+            return filenameLC.endsWith(".dat") || filenameLC.endsWith(".def");
         }
     }
 }

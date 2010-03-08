@@ -163,6 +163,26 @@ public class FileUtils {
         out.flush();
     }
 
+    public static void safelyClose(InputStream in) {
+        if (in != null) {
+            try {
+                in.close();
+            } catch (IOException ioe) {
+                ioe.printStackTrace();
+            }
+        }
+    }
+
+    public static void safelyClose(OutputStream out) {
+        if (out != null) {
+            try {
+                out.close();
+            } catch (IOException ioe) {
+                ioe.printStackTrace();
+            }
+        }
+    }
+
     /** Rename a file.
      * 
      * The File.renameTo method can silently fail and simply return false.

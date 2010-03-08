@@ -72,6 +72,7 @@ import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
+import net.sourceforge.processdash.InternalSettings;
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.DataContext;
 import net.sourceforge.processdash.data.DateData;
@@ -106,6 +107,7 @@ import net.sourceforge.processdash.data.compiler.node.TStringLiteral;
 import net.sourceforge.processdash.data.compiler.parser.Parser;
 import net.sourceforge.processdash.data.compiler.parser.ParserException;
 import net.sourceforge.processdash.hier.Filter;
+import net.sourceforge.processdash.templates.DataVersionChecker;
 import net.sourceforge.processdash.templates.TemplateLoader;
 import net.sourceforge.processdash.util.CppFilterReader;
 import net.sourceforge.processdash.util.EscapeString;
@@ -3065,6 +3067,12 @@ public class DataRepository implements Repository, DataContext,
     public static String getDatasetEncoding() {
         return Settings.getBool(USE_UTF8_SETTING, false) ?
             "UTF-8" : System.getProperty("file.encoding");
+    }
+
+    public static void enableUtf8Encoding() {
+        InternalSettings.set(USE_UTF8_SETTING, "true");
+        DataVersionChecker.registerDataRequirement("pspdash",
+            UTF8_SUPPORT_VERSION);
     }
 
     void mountData(DataFile dataFile, String dataPrefix, Map values)
