@@ -720,7 +720,6 @@ public class TeamMemberListTable extends JTable {
             addKeyListener(this);
         }
 
-        @Override
         public void keyPressed(KeyEvent e) {
 
             if (getSelectedColumn() == TeamMemberList.FIRST_WEEK_COLUMN &&
@@ -762,10 +761,8 @@ public class TeamMemberListTable extends JTable {
             }
         }
 
-        @Override
         public void keyReleased(KeyEvent e) {}
 
-        @Override
         public void keyTyped(KeyEvent e) {}
 
     }
