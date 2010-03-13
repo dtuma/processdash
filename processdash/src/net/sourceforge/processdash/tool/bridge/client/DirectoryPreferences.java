@@ -62,7 +62,17 @@ public class DirectoryPreferences {
             subdir = ".processdash";
 
         File userHome = new File(System.getProperty("user.home"));
-        return new File(userHome, subdir);
+        File result = new File(userHome, subdir);
+        int i = 2;
+        while (result.isFile() && i < 10) {
+            // in certain rare scenarios, a regular file may exist with
+            // the name we desire.  (For example, if a Linux user has a plain
+            // file called ~/.processdash)  The regular file will prevent us
+            // from creating the application directory; so in such a scenario,
+            // try choosing a different name.
+            result = new File(userHome, subdir + i++);
+        }
+        return result;
     }
 
 
