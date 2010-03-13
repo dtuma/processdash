@@ -473,7 +473,9 @@ public class TeamProject {
         System.out.println("No "+WBS_FILENAME+
                            " file found; creating default wbs");
         boolean createDefaultNode = !isMasterProject();
-        return new WBSModel(projectName, createDefaultNode);
+        WBSModel model = new WBSModel(projectName, createDefaultNode);
+        setCreatedWithVersionAttribute(model);
+        return model;
     }
 
     /** Save the work breakdown structure */
@@ -507,6 +509,7 @@ public class TeamProject {
             System.out.println("No "+FLOW_FILENAME+
                                " file found; creating default workflows");
             workflows = new WorkflowWBSModel("Common Workflows");
+            setCreatedWithVersionAttribute(workflows);
         }
     }
 
@@ -541,6 +544,7 @@ public class TeamProject {
             System.out.println("No "+MILESTONES_FILENAME+
                                " file found; creating default milestones");
             milestones = new MilestonesWBSModel("Project Milestones");
+            setCreatedWithVersionAttribute(milestones);
         }
     }
 
@@ -561,6 +565,13 @@ public class TeamProject {
         return true;
     }
 
+    private void setCreatedWithVersionAttribute(WBSModel model) {
+        try {
+            String version = TeamProject.class.getPackage()
+                    .getImplementationVersion();
+            model.getRoot().setAttribute(WBSModel.CREATED_WITH_ATTR, version);
+        } catch (Exception e) {}
+    }
 
     private static class TeamProjectFileFilter implements FileFilter {
 

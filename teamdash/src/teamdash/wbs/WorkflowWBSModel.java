@@ -97,18 +97,23 @@ public class WorkflowWBSModel extends WBSModel {
     }
 
     public void mergeWorkflow(WorkflowWBSModel source, String workflowName, boolean notify) {
-        // FIXME - this is not copying collapsed nodes
         Set nameSet = Collections.singleton(workflowName);
         List currentWorkflowContents = getNodesForWorkflows(nameSet);
         List newWorkflowContents = source.getNodesForWorkflows(nameSet);
 
         if (newWorkflowContents == null || newWorkflowContents.isEmpty())
             return;
+        newWorkflowContents = WBSNode.cloneNodeList(newWorkflowContents);
 
         int insertBeforeRow = Integer.MAX_VALUE;
         if (currentWorkflowContents != null && !currentWorkflowContents.isEmpty()) {
-            insertBeforeRow = getRowForNode((WBSNode) currentWorkflowContents.get(0));
+            WBSNode currentTopNode = (WBSNode) currentWorkflowContents.get(0);
+            insertBeforeRow = getRowForNode(currentTopNode);
             deleteNodes(currentWorkflowContents, false);
+
+            int currentWorkflowId = currentTopNode.getUniqueID();
+            WBSNode newTopNode = (WBSNode) newWorkflowContents.get(0);
+            newTopNode.setUniqueID(currentWorkflowId);
         }
 
         insertNodes(newWorkflowContents, insertBeforeRow, notify);
@@ -135,25 +140,6 @@ public class WorkflowWBSModel extends WBSModel {
 
         return result;
     }
-
-//    public static void mergeWorkflows(WBSModel dest, WBSModel src) {
-//        LinkedList workflowNames = new LinkedList();
-//        HashMap workflows = new HashMap();
-//
-//        IntList destWorkflowPositions = dest.getChildIndexes(dest.getRoot());
-//        for (int i = 0;   i < destWorkflowPositions.size();  i++) {
-//            String workflowName = dest.getChildren()
-//        }
-//
-//
-//        WBSNode srcNode = null;
-//        for (int i = 0;   i < workflowItems.length;   i++)
-//            if (workflowName.equals(workflowItems[i].getName())) {
-//                srcNode = workflowItems[i];
-//                break;
-//            }
-//
-//    }
 
     private static class UniqueLinkedList extends LinkedList {
         public boolean add(Object o) {

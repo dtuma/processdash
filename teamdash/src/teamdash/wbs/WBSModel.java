@@ -817,6 +817,9 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
             }
         if (srcNode == null) return null;
 
+        // update the workflow source ID of the destination node.
+        addWorkflowSourceID(destNode, srcNode.getUniqueID());
+
         // calculate the list of nodes to insert.
         ArrayList nodesToInsert =
             calcInsertWorkflow(srcNode, destNode, workflows);
@@ -835,6 +838,19 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
         return getRowsForNodes(nodesToInsert);
     }
 
+    private void addWorkflowSourceID(WBSNode node, int sourceID) {
+        String oldIDs = (String) node.getAttribute(WORKFLOW_SOURCE_IDS_ATTR);
+        String newIDs = Integer.toString(sourceID);
+        if (oldIDs != null && oldIDs.length() > 0) {
+            List<String> oldIdList = Arrays.asList(oldIDs.split(","));
+            if (oldIdList.contains(newIDs))
+                newIDs = oldIDs;
+            else
+                newIDs = oldIDs + "," + newIDs;
+        }
+        node.setAttribute(WORKFLOW_SOURCE_IDS_ATTR, newIDs);
+    }
+
     private ArrayList calcInsertWorkflow(WBSNode srcNode, WBSNode destNode,
                                          WBSModel workflows) {
         ArrayList nodesToInsert = new ArrayList();
@@ -846,7 +862,7 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
 
         // make a list of the names of the children of destNode.
         WBSNode[] destChildren = getChildren(destNode);
-        ArrayList destChildNames = new ArrayList();
+        Set destChildNames = new HashSet();
         for (int i = 0;   i < destChildren.length;   i++)
             destChildNames.add(destChildren[i].getName());
 
@@ -873,8 +889,10 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
     private void appendWorkflowNode(List dest, WBSNode node, int indentDelta) {
         node = (WBSNode) node.clone();
         node.setIndentLevel(node.getIndentLevel() + indentDelta);
+        node.setAttribute(WORKFLOW_SOURCE_IDS_ATTR, node.getUniqueID());
         dest.add(node);
     }
+
     public String filterNodeType(WBSNode node) {
         return node.getType();
     }
@@ -1034,6 +1052,9 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
         }
         recalcRowsForExpansionEvent();
     }
+
+    public static final String CREATED_WITH_ATTR = "createdWithVersion";
+    public static final String WORKFLOW_SOURCE_IDS_ATTR = "workflowSourceIDs";
 
     private static final String CACHED_CHILDREN = "_cached_child_list_";
     private static final String CACHED_REORDERABLE_CHILDREN =
