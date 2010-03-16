@@ -69,6 +69,10 @@ public class TeamMetricsStatus extends TinyCGIBase {
                 out.print("' lastExport='");
                 out.print(XMLUtils.saveDate(d.exportDate));
             }
+            if (d.wbsLastSync != null) {
+                out.print("' lastSync='");
+                out.print(XMLUtils.saveDate(d.wbsLastSync));
+            }
             out.print("' dashVersion='");
             out.print(XMLUtils.escapeAttribute(d.dashVersion));
             out.println("' />");
@@ -102,7 +106,7 @@ public class TeamMetricsStatus extends TinyCGIBase {
                 String onePrefix = StringUtils.asString(prefixList.get(i));
                 String metadataPrefix = getMetadataPrefix(onePrefix);
                 if (metadataPrefix != null)
-                    result.add(new ImportData(metadataPrefix));
+                    result.add(new ImportData(onePrefix, metadataPrefix));
             }
         }
         return result;
@@ -130,6 +134,7 @@ public class TeamMetricsStatus extends TinyCGIBase {
         out.println("<table border><tr>");
         out.println("<th>Team Member Name</th>");
         out.println("<th>Metrics Data Last Exported</th>");
+        out.println("<th>Last Sync to WBS</th>");
         out.println("<th>Process Dashboard Version Number</th></tr>");
 
         Collections.sort(importData);
@@ -158,6 +163,11 @@ public class TeamMetricsStatus extends TinyCGIBase {
         if (d.exportDate != null)
             out.print(HTMLUtils.escapeEntities(FormatUtil
                     .formatDateTime(d.exportDate)));
+        out.print("</td><td>");
+
+        if (d.wbsLastSync != null)
+            out.print(HTMLUtils.escapeEntities(FormatUtil
+                .formatDateTime(d.wbsLastSync)));
         out.print("</td>");
 
         if (!StringUtils.hasValue(d.dashVersion)) {
@@ -183,26 +193,27 @@ public class TeamMetricsStatus extends TinyCGIBase {
 
         String dashVersion;
 
-        public ImportData(String prefix) {
-            this.prefix = prefix;
-            this.ownerName = getString(OWNER_VAR);
-            this.exportDate = getDate(TIMESTAMP_VAR);
-            this.dashVersion = getString(DASH_VERSION_VAR);
+        Date wbsLastSync;
 
+        public ImportData(String prefix, String metadataPrefix) {
+            this.ownerName = getString(OWNER_VAR, metadataPrefix);
+            this.exportDate = getDate(TIMESTAMP_VAR, metadataPrefix);
+            this.dashVersion = getString(DASH_VERSION_VAR, metadataPrefix);
+            this.wbsLastSync = getDate(TeamDataConstants.LAST_SYNC_TIMESTAMP, prefix);
         }
 
-        private SimpleData get(String name) {
+        private SimpleData get(String name, String prefix) {
             String dataName = DataRepository.createDataName(prefix, name);
             return getDataRepository().getSimpleValue(dataName);
         }
 
-        private String getString(String name) {
-            SimpleData val = get(name);
+        private String getString(String name, String prefix) {
+            SimpleData val = get(name, prefix);
             return (val == null ? "" : val.format());
         }
 
-        private Date getDate(String name) {
-            SimpleData val = get(name);
+        private Date getDate(String name, String prefix) {
+            SimpleData val = get(name, prefix);
             if (val instanceof DateData) {
                 return ((DateData) val).getValue();
             } else {

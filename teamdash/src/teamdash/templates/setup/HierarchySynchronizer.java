@@ -49,6 +49,7 @@ import java.util.TreeSet;
 
 import net.sourceforge.processdash.DashController;
 import net.sourceforge.processdash.data.DataContext;
+import net.sourceforge.processdash.data.DateData;
 import net.sourceforge.processdash.data.DoubleData;
 import net.sourceforge.processdash.data.ListData;
 import net.sourceforge.processdash.data.NumberData;
@@ -674,6 +675,12 @@ public class HierarchySynchronizer {
         String discrepancyDataName = DataRepository.createDataName(projectPath,
             SyncDiscrepancy.DISCREPANCIES_DATANAME);
         dataRepository.putValue(discrepancyDataName, discrepancies);
+
+        if (!whatIfMode || changes.isEmpty()) {
+            String timestampDataName = DataRepository.createDataName(
+                projectPath, TeamDataConstants.LAST_SYNC_TIMESTAMP);
+            dataRepository.putValue(timestampDataName, new DateData());
+        }
     }
 
     private ListData getLabelData(Element projectXML) {

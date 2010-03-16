@@ -41,6 +41,7 @@ public interface TeamDataConstants {
     public static final String TEAM_PROJECT_URL = "Team_URL";
     public static final String INDIV_INITIALS = "Indiv_Initials";
     public static final String WBS_ID_DATA_NAME = "WBS_Unique_ID";
+    public static final String LAST_SYNC_TIMESTAMP = "WBS_Last_Sync_Timestamp";
 
     public static final String DISSEMINATION_DIRECTORY = "disseminate";
 

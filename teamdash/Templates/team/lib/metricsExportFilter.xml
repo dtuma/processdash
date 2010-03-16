@@ -17,6 +17,7 @@
     <include>/EV_Task_IDs$</include>
     <include>/Project_ID$</include>
     <include>/Indiv_Initials$</include>
+    <include>/WBS_Last_Sync_Timestamp$</include>
     <include>/PSP Rollup Eligible$</include>
     <include>/Started$</include>
     <include>/Completed$</include>
