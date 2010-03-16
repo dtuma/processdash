@@ -95,6 +95,8 @@ public class HierarchySynchronizer {
     private String projectPath;
     private PropertyKey projectKey;
     private String processID;
+    private URL workflowLocation;
+    private boolean workflowURLsSupported;
     private String initials, initialsPattern;
     private String ownerName;
     private boolean oldStyleSync;
@@ -147,6 +149,7 @@ public class HierarchySynchronizer {
     public HierarchySynchronizer(String projectPath,
                                  String processID,
                                  URL wbsLocation,
+                                 URL workflowLocation,
                                  String initials,
                                  String ownerName,
                                  boolean fullCopyMode,
@@ -154,6 +157,7 @@ public class HierarchySynchronizer {
                                  DataRepository data) throws IOException {
         this.projectPath = projectPath;
         this.processID = processID;
+        this.workflowLocation = workflowLocation;
         this.hierarchy = hierarchy;
         this.data = this.dataRepository = data;
         this.projectKey = hierarchy.findExistingKey(projectPath);
@@ -191,6 +195,7 @@ public class HierarchySynchronizer {
         openWBS(wbsLocation);
         if (isTeam()) fullCopyMode = true;
         this.fullCopyMode = fullCopyMode;
+        this.workflowURLsSupported = false;
     }
 
     public void setWhatIfMode(boolean whatIf) {
@@ -663,8 +668,10 @@ public class HierarchySynchronizer {
         forceData(projectPath, LABEL_LIST_DATA_NAME, labelData);
         forceData(projectPath, NODE_ORDER_DATA_NAME, nodeOrderData);
 
-        if (!isTeam())
+        if (!isTeam()) {
             syncSchedule();
+            saveWorkflowUrlData();
+        }
 
         sync(syncWorker, projectPath, projectXML);
 
@@ -995,6 +1002,94 @@ public class HierarchySynchronizer {
             return (int) (diff / WEEK_MILLIS);
     }
 
+    private void saveWorkflowUrlData() {
+        Element workflowXml = openWorkflowXml();
+
+        // if the current dump file doesn't support URLs or we couldn't
+        // read the URLs for some reason, we don't make any changes to the
+        // workflow URL data in the current dashboard.  This attempts to
+        // gracefully handle the transition scenario where some person on the
+        // team hasn't upgraded to the new version of the WBS editor, and they
+        // save changes to the WBS (omitting URL data from both dump files).
+        if (workflowXml != null) {
+            workflowURLsSupported = true;
+            ListData result = new ListData();
+            collectWorkflowUrls(result, workflowXml, null, null);
+            String dataName = processID + " /"
+                    + TeamDataConstants.PROJECT_WORKFLOW_URLS_DATA_NAME;
+            forceData(projectPath, dataName, result);
+        }
+    }
+
+    private Element openWorkflowXml() {
+        // Handling of workflow URLs depends upon data introduced in the
+        // dump file in version 3.9.0. If an earlier version wrote the file,
+        // don't attempt to retrieve workflow URL data for sync purposes.
+        if (DashPackage.compareVersions(dumpFileVersion, "3.9.0") < 0)
+            return null;
+
+        InputStream in = null;
+        Element result = null;
+        if (workflowLocation != null) {
+            try {
+                in = new BufferedInputStream(workflowLocation.openStream());
+                result = XMLUtils.parse(in).getDocumentElement();
+            } catch (Exception e) {}
+        }
+        if (in != null) {
+            try { in.close(); } catch (Exception e) {}
+        }
+        return result;
+    }
+
+    private void collectWorkflowUrls(ListData result, Element xml, String path,
+            String taskId) {
+        String urlList = xml.getAttribute(URL_ATTR);
+        if (StringUtils.hasValue(urlList)) {
+            if (StringUtils.hasValue(path))
+                result.add(path + "///" + urlList);
+            if (REGISTER_WORKFLOW_SUBTASK_IDS && StringUtils.hasValue(taskId))
+                result.add(taskId + "///" + urlList);
+        }
+
+        for (Element child : XMLUtils.getChildElements(xml)) {
+            String childType = child.getTagName();
+            String childID = child.getAttribute(ID_ATTR);
+            if (WORKFLOW_TYPE.equals(childType)) {
+                if (StringUtils.hasValue(childID))
+                    collectWorkflowUrls(result, child, childID, null);
+            } else if (NODE_TYPES.contains(childType) && path != null) {
+                String childName = child.getAttribute(NAME_ATTR);
+                if (StringUtils.hasValue(childName))
+                    collectWorkflowUrls(result, child, path + "/" + childName,
+                        childID);
+            }
+        }
+    }
+
+    /**
+     * When URLs are assigned to the individual tasks within a workflow, we
+     * typically match concrete project tasks to prototypical workflow tasks by
+     * name. If this variable is true, they will be matched by workflow source
+     * ID as well.<ul>
+     * 
+     * <li>This can be beneficial if a workflow has been instantiated several
+     * times, and then someone tweaks the name of a phase in the Common Team
+     * Workflows window. All of the concrete instantiations of the workflow will
+     * still pull up the script.</li>
+     * 
+     * <li>However, it can be confusing if people instantiate a workflow, then
+     * repurpose the nodes inside. For example, someone decides that they don't
+     * really want to use the "Postmortem" node in this instantiation of the
+     * workflow; so they change it to a second Code task. Now the new Code task
+     * would pull up the Postmortem script, which would seem like a bug.</li>
+     * 
+     * </ul>Considering the tradeoffs, the risk of confusion outweighs the
+     * potential benefit, so this variable is currently set to <tt>false</tt>.
+     */
+    private static final boolean REGISTER_WORKFLOW_SUBTASK_IDS = false;
+
+
     private static boolean eq(double a, double b) {
         return Math.abs(a - b) < 0.01;
     }
@@ -1131,6 +1226,7 @@ public class HierarchySynchronizer {
     private static final String NAME_ATTR = "name";
     private static final String ID_ATTR = "id";
     private static final String TASK_ID_ATTR = "tid";
+    private static final String WORKFLOW_ID_ATTR = "wid";
     private static final String VERSION_ATTR = "dumpFileVersion";
     private static final String LABELS_ATTR = "labels";
     private static final String PHASE_NAME_ATTR = "phaseName";
@@ -1138,11 +1234,13 @@ public class HierarchySynchronizer {
     private static final String EFF_PHASE_ATTR = "effectivePhase";
     private static final String TIME_ATTR = "time";
     private static final String SYNC_TIME_ATTR = "syncTime";
+    private static final String URL_ATTR = "url";
     private static final String PRUNED_ATTR = "PRUNED";
     private static final String ROOT_NODE_PSEUDO_ID = "root";
 
 
     private static final String PROJECT_TYPE = "project";
+    private static final String WORKFLOW_TYPE = "workflow";
     private static final String SOFTWARE_TYPE = "component";
     private static final String DOCUMENT_TYPE = "document";
     static final String PSP_TYPE = "psp";
@@ -1431,11 +1529,16 @@ public class HierarchySynchronizer {
         public void syncData(SyncWorker worker, String path, Element node) {
             String nodeID = node.getAttribute(ID_ATTR);
             String taskID = node.getAttribute(TASK_ID_ATTR);
+            String workflowID = node.getAttribute(WORKFLOW_ID_ATTR);
             try {
                 putData(path, TeamDataConstants.WBS_ID_DATA_NAME,
                     StringData.create(nodeID));
                 if (!isPrunedNode(node))
                     setTaskIDs(path, taskID);
+                if (workflowURLsSupported)
+                    putData(path, TeamDataConstants.WORKFLOW_ID_DATA_NAME,
+                        (XMLUtils.hasValue(workflowID)
+                                ? StringData.create(workflowID) : null));
                 maybeFixPreviouslyClobberedTeamTimeElement(path);
             } catch (Exception e) {}
             if (!isTeam() && !isPrunedNode(node)) {

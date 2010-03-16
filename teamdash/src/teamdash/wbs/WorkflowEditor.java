@@ -45,6 +45,8 @@ import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.TableColumn;
 
+import teamdash.wbs.columns.WorkflowScriptColumn;
+
 /** A graphical user interface for editing common workflows.
  */
 public class WorkflowEditor {
@@ -81,7 +83,7 @@ public class WorkflowEditor {
         frame.getContentPane().add(new JScrollPane(table));
         frame.getContentPane().add(toolBar, BorderLayout.NORTH);
         frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        frame.setSize(600, 400);
+        frame.setSize(workflowModel.supportsURLs() ? 800 : 600, 400);
         frame.setVisible(true);
     }
 
@@ -139,6 +141,12 @@ public class WorkflowEditor {
         // customize the display of the "# People" column.
         col = table.getColumn("# People");
         col.setPreferredWidth(60);
+
+        // customize the display of the Script/URL column.
+        if (workflowModel.supportsURLs()) {
+            col = table.getColumn(WorkflowScriptColumn.COLUMN_NAME);
+            col.setPreferredWidth(200);
+        }
 
         return table;
     }

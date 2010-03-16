@@ -696,6 +696,9 @@
   <noteFormat formatID="PID-ReadOnlyMessageNoteFormat"
           class="teamdash.templates.setup.ReadOnlyMessageNoteFormat"/>
 
+  <scriptSource class="teamdash.templates.setup.WorkflowScriptSource"
+          dataName="PID /Project_Workflow_URL_List"/>
+
   <messageHandler processID="PID"
           class="teamdash.templates.setup.MoveTeamDirMessageHandler">
     <include templateID="PID/IndivRoot"/>

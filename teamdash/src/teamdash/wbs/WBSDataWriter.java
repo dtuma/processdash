@@ -48,6 +48,7 @@ import teamdash.wbs.columns.TaskDependencyColumn;
 import teamdash.wbs.columns.TaskLabelColumn;
 import teamdash.wbs.columns.TeamTimeColumn;
 import teamdash.wbs.columns.UnassignedTimeColumn;
+import teamdash.wbs.columns.WorkflowScriptColumn;
 
 
 /** This class writes out an XML data file describing the work breakdown
@@ -199,6 +200,12 @@ public class WBSDataWriter {
         writeAttr(out, ID_ATTR, node.getUniqueID());
         writeAttr(out, TASK_ID_ATTR, MasterWBSUtil.getNodeIDs(node, projectID));
         writeAttr(out, LABELS_ATTR, getLabelSaveString(node));
+        writeAttr(out, WORKFLOW_ID_ATTR, getWorkflowIdSaveString(node));
+
+        // if we are in workflow mode, write the associated workflow URLs.
+        if (dataModel == null)
+            writeAttr(out, URL_ATTR, (String) node.getAttribute(
+                WorkflowScriptColumn.VALUE_ATTR));
 
         // write attributes specific to this XML tag type
         AttributeWriter aw = (AttributeWriter) attributeWriters.get(tagName);
@@ -282,6 +289,13 @@ public class WBSDataWriter {
             result = NO_LABELS_VAL;
 
         return result;
+    }
+
+
+
+    private String getWorkflowIdSaveString(WBSNode node) {
+        Object result = node.getAttribute(WBSModel.WORKFLOW_SOURCE_IDS_ATTR);
+        return (result == null ? null : result.toString());
     }
 
 
@@ -667,6 +681,8 @@ public class WBSDataWriter {
     private static final String ID_ATTR = "id";
     private static final String TASK_ID_ATTR = "tid";
     private static final String LABELS_ATTR = "labels";
+    private static final String WORKFLOW_ID_ATTR = "wid";
+    private static final String URL_ATTR = "url";
     private static final String NO_LABELS_VAL = "none";
     private static final String DEP_SRC_ATTR = "source";
     private static final String PHASE_NAME_ATTR = "phaseName";

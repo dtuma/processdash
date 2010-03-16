@@ -94,6 +94,8 @@ public class sync extends TinyCGIBase {
     private String processID;
     /** The location of the wbs dump file */
     private URL wbsLocation;
+    /** The location of the workflow dump file */
+    private URL workflowLocation;
     /** The workflow dump file, written by a WBSDataWriter */
     private File workflowFile;
     /** The templates directory for the project */
@@ -145,8 +147,9 @@ public class sync extends TinyCGIBase {
 
             // create a synchronization object.
             HierarchySynchronizer synch = new HierarchySynchronizer
-                (projectRoot, processID, wbsLocation, initials, getOwner(),
-                 fullCopyMode, getPSPProperties(), getDataRepository());
+                (projectRoot, processID, wbsLocation, workflowLocation,
+                 initials, getOwner(), fullCopyMode, getPSPProperties(),
+                 getDataRepository());
 
             // start the synchronization process.
             if (parameters.containsKey(RUN_PARAM))
@@ -240,6 +243,7 @@ public class sync extends TinyCGIBase {
         templatesDir = null;
 
         wbsLocation = getWBSLocation(data);
+        workflowLocation = getWorkflowLocation(wbsLocation);
 
         // look up the unique ID for this project.
         SimpleData d = data.getSimpleValue(DataRepository.createDataName
@@ -346,6 +350,19 @@ public class sync extends TinyCGIBase {
             wbsLocation = new URL(serverUrlStr + "/" + HIER_FILENAME);
 
         return wbsLocation;
+    }
+
+    private URL getWorkflowLocation(URL wbsUrl) {
+        if (wbsUrl != null) {
+            try {
+                String wbsUrlStr = wbsUrl.toString();
+                String workflowUrlStr = StringUtils.findAndReplace(wbsUrlStr,
+                    HIER_FILENAME, WORKFLOW_FILENAME);
+                if (!workflowUrlStr.equals(wbsUrlStr))
+                    return new URL(workflowUrlStr);
+            } catch (MalformedURLException e) {}
+        }
+        return null;
     }
 
     private boolean shouldRepairTeamImport() {

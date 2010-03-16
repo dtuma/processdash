@@ -23,12 +23,15 @@
 
 package teamdash.wbs;
 
+import net.sourceforge.processdash.util.VersionUtils;
+import net.sourceforge.processdash.util.XMLUtils;
 import teamdash.team.TeamMemberList;
 import teamdash.wbs.columns.TaskSizeUnitsColumn;
 import teamdash.wbs.columns.WBSNodeColumn;
 import teamdash.wbs.columns.WorkflowNumPeopleColumn;
 import teamdash.wbs.columns.WorkflowPercentageColumn;
 import teamdash.wbs.columns.WorkflowRateColumn;
+import teamdash.wbs.columns.WorkflowScriptColumn;
 
 /** A customized DataTableModel containing only the columns pertinent
  * to editing workflows.
@@ -54,6 +57,20 @@ public class WorkflowModel extends DataTableModel {
         addDataColumn(new WorkflowRateColumn(this));
         addDataColumn(new TaskSizeUnitsColumn(this, teamProcess));
         addDataColumn(new WorkflowNumPeopleColumn(wbsModel));
+
+        if (supportsURLs())
+            addDataColumn(new WorkflowScriptColumn());
+    }
+
+    public boolean supportsURLs() {
+        WBSNode root = wbsModel.getRoot();
+        String createdWithVersion = (String) root
+                .getAttribute(WBSModel.CREATED_WITH_ATTR);
+        if (XMLUtils.hasValue(createdWithVersion))
+            return VersionUtils.compareVersions(MIN_URL_VERSION,
+                createdWithVersion) <= 0;
+        else
+            return false;
     }
 
     @Override
@@ -61,5 +78,7 @@ public class WorkflowModel extends DataTableModel {
         super.setValueAt(value, rowIndex, columnIndex);
         fireTableCellUpdated(rowIndex, columnIndex);
     }
+
+    private static final String MIN_URL_VERSION = "3.9.0";
 
 }
