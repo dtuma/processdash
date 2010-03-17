@@ -30,6 +30,7 @@ package com.izforge.izpack.installer;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -226,8 +227,6 @@ public class Unpacker extends Thread
 
                         }
 
-                        // FIXME: special handling for JavaStub?
-
                         // We copy the file
                         out = new FileOutputStream(pathFile);
                         byte[] buffer = new byte[5120];
@@ -316,6 +315,16 @@ public class Unpacker extends Thread
 
             // The end :-)
             handler.stopAction();
+        }
+        catch (FileNotFoundException fnfe)
+        {
+            handler.stopAction();
+            handler.emitError("Unable to Write File",
+                "The installation process was unable to write to the file:\n"
+                + "     " + fnfe.getMessage() + "\n"
+                + "As a result, the installation was not successful. Please\n"
+                + "check the filesystem permissions and run the installer again.");
+            fnfe.printStackTrace();
         }
         catch (Exception err)
         {
