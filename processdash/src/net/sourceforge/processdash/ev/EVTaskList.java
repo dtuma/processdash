@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2009 Tuma Solutions, LLC
+// Copyright (C) 2001-2010 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -1221,6 +1221,7 @@ public class EVTaskList extends AbstractTreeTableModel
         case TASK_COLUMN: return n.getTaskError();
         case PLAN_TIME_COLUMN: return n.getPlanTimeError();
         case NODE_TYPE_COLUMN: return n.getNodeTypeError();
+        case DATE_COMPLETE_COLUMN: return n.getDateCompleteError();
         default: return null;
         }
     }

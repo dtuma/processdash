@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2009 Tuma Solutions, LLC
+// Copyright (C) 2003-2010 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -53,9 +53,11 @@ public class EVCalculatorData extends EVCalculator {
     private TimeLog timeLog;
     private Date effectiveDate, completionDate;
     private boolean rezeroAtStartDate;
+    private boolean checkForFutureTimeLogDates;
     private EVForecastDateCalculator replanDateCalculator;
     private EVForecastDateCalculator forecastDateCalculator;
 
+    @SuppressWarnings("deprecation")
     public EVCalculatorData(EVTaskList taskList) {
         this.taskList = taskList;
         this.taskRoot = taskList.getTaskRoot();
@@ -234,6 +236,7 @@ public class EVCalculatorData extends EVCalculator {
 
     public Date getEffectiveDate() {
         Date result = completionDate;
+        checkForFutureTimeLogDates = (result == null);
         if (result == null) result = getFixedEffectiveDate();
         if (result == null) result = new Date();
         return result;
@@ -357,6 +360,17 @@ public class EVCalculatorData extends EVCalculator {
         if (task.isUserPruned()) return;
 
         schedule.saveActualTime(d, entry.getElapsedTime());
+
+        if (checkForFutureTimeLogDates) {
+            long delta = d.getTime() - effectiveDate.getTime();
+            if (delta > DAY_MILLIS) {
+                String errMsg = EVSchedule.resources
+                        .getString("Task.Future_Time_Log_Entry.Error");
+                schedule.metrics.addError(errMsg, taskList
+                        .getTaskRoot());
+                checkForFutureTimeLogDates = false;
+            }
+        }
     }
 
 

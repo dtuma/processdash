@@ -1175,6 +1175,21 @@ public class EVTask implements Cloneable, DataListener {
         return dateCompleted;
     }
 
+    public String getDateCompleteError() {
+        if (isLeafWithFutureCompletionDate())
+            return resources.getString("Task.Future_Completion_Date.Error");
+        else
+            return null;
+    }
+    private boolean isLeafWithFutureCompletionDate() {
+        if (dateCompleted == null) return false;
+        if (isLeaf() == false) return false;
+        long delta = dateCompleted.getTime() - System.currentTimeMillis();
+        // check if the completion date is in the future.  Allow a full day
+        // of slack time to allow for time zone differences.
+        return delta > EVCalculator.DAY_MILLIS;
+    }
+
     public String getPercentCompleteText() {
         double pct = getPercentComplete();
         if (pct > 0.994 && pct < 0.99999)
@@ -1452,6 +1467,13 @@ public class EVTask implements Cloneable, DataListener {
                 String errorMessage = resources.format(
                         "Task.Plan_Time_Missing.Error_Msg_FMT",
                          fullName);
+                metrics.addError(errorMessage, this);
+            }
+
+            if (isLeafWithFutureCompletionDate()) {
+                String errorMessage = resources.format(
+                    "Task.Future_Completion_Date.Error_Msg_FMT",
+                     fullName, getDateCompleted());
                 metrics.addError(errorMessage, this);
             }
 

@@ -573,6 +573,6 @@ public abstract class EVCalculator {
             return "~" + assignedTo.get(0);
     }
 
-    private static final long DAY_MILLIS = 24 * 60 * 60 * 1000;
+    static final long DAY_MILLIS = 24 * 60 * 60 * 1000;
 
 }
