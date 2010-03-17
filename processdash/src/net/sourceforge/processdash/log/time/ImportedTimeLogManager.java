@@ -1,4 +1,4 @@
-// Copyright (C) 2007 Tuma Solutions, LLC
+// Copyright (C) 2007-2010 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -35,8 +35,10 @@ import java.util.Map;
 
 import net.sourceforge.processdash.hier.Filter;
 import net.sourceforge.processdash.util.EnumerIterator;
+import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.IteratorConcatenator;
 import net.sourceforge.processdash.util.StringMapper;
+import net.sourceforge.processdash.util.TempFileFactory;
 
 public class ImportedTimeLogManager {
 
@@ -89,7 +91,8 @@ public class ImportedTimeLogManager {
                     new PrefixAppender(prefix));
 
             // create a temporary file, and copy the frobbed entries to it
-            File destFile = File.createTempFile("tempImportedTimeLog", ".xml");
+            File destFile = TempFileFactory.get().createTempFile(
+                "tempImportedTimeLog", ".xml");
             destFile.deleteOnExit();
             TimeLogWriter.write(destFile, timeLogEntries);
 
@@ -111,11 +114,11 @@ public class ImportedTimeLogManager {
         prefix = cleanupPrefix(prefix);
         List timeLogIterators = new ArrayList();
 
-        ArrayList l;
+        Map snapshot;
         synchronized (importedLogs) {
-            l = new ArrayList(importedLogs.entrySet());
+            snapshot = new HashMap(importedLogs);
         }
-        for (Iterator i = l.iterator(); i.hasNext();) {
+        for (Iterator i = snapshot.entrySet().iterator(); i.hasNext();) {
             Map.Entry e = (Map.Entry) i.next();
             String importedPrefix = (String) e.getKey();
             File file = (File) e.getValue();
@@ -155,6 +158,54 @@ public class ImportedTimeLogManager {
         return prefix;
     }
 
+    private void touchOldCachedFiles() {
+        Map snapshot;
+        synchronized (importedLogs) {
+            snapshot = new HashMap(importedLogs);
+        }
+        for (Iterator i = snapshot.entrySet().iterator(); i.hasNext();) {
+            Map.Entry e = (Map.Entry) i.next();
+            String importedPrefix = (String) e.getKey();
+            File file = (File) e.getValue();
+            long lastMod = file.lastModified();
+            if (lastMod < 1) continue;
+
+            long age = System.currentTimeMillis() - lastMod;
+            if (age < DAY_MILLIS) continue;
+
+            File newFile = touchCachedFile(file);
+            if (newFile == null) continue;
+
+            boolean abortChange = false;
+            synchronized (importedLogs) {
+                // check to make certain the mapping for this prefix hasn't
+                // been altered since we began this loop
+                if (importedLogs.get(importedPrefix) == file)
+                    importedLogs.put(importedPrefix, newFile);
+                else
+                    abortChange = true;
+            }
+
+            if (abortChange)
+                newFile.delete();
+            else
+                file.delete();
+        }
+    }
+
+    private File touchCachedFile(File oldFile) {
+        try {
+            File newFile = TempFileFactory.get().createTempFile(
+                "tempImportedTimeLog", ".xml");
+            newFile.deleteOnExit();
+
+            FileUtils.copyFile(oldFile, newFile);
+            return newFile;
+        } catch (IOException e) {
+            return null;
+        }
+    }
+
     /**
      * Filter for TimeLogEntryVO objects, that prepends a prefix to the path of
      * each entry.
@@ -171,4 +222,16 @@ public class ImportedTimeLogManager {
         }
     }
 
+    /**
+     * Background task that can run once a day to keep our cached temp files
+     * from expiring
+     */
+    public static class CacheMinder implements Runnable {
+        public void run() {
+            getInstance().touchOldCachedFiles();
+        }
+    }
+
+    private static final long DAY_MILLIS = 24L /*hours*/ * 60 /*minutes*/
+            * 60 /*seconds*/ * 1000 /*milis*/;
 }

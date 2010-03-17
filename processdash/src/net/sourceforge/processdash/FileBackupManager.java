@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2009 Tuma Solutions, LLC
+// Copyright (C) 2002-2010 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -48,6 +48,7 @@ import net.sourceforge.processdash.util.DashboardBackupFactory;
 import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.ProfTimer;
 import net.sourceforge.processdash.util.StringUtils;
+import net.sourceforge.processdash.util.TempFileFactory;
 import net.sourceforge.processdash.util.ThreadThrottler;
 
 
@@ -156,7 +157,7 @@ public class FileBackupManager {
                 backup.openStream()));
 
         // create a temporary file for externalizing purposes
-        File result = File.createTempFile("pdash-backup", ".zip");
+        File result = TempFileFactory.get().createTempFile("pdash-backup", ".zip");
         result.deleteOnExit();
         ZipOutputStream zipOut = new ZipOutputStream(new BufferedOutputStream(
                 new FileOutputStream(result)));

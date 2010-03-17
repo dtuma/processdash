@@ -1,4 +1,4 @@
-// Copyright (C) 2003 Tuma Solutions, LLC
+// Copyright (C) 2003-2010 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -32,6 +32,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.StringReader;
+
+import net.sourceforge.processdash.util.TempFileFactory;
 
 
 public class CGIOutputStream extends OutputStream {
@@ -145,7 +147,7 @@ public class CGIOutputStream extends OutputStream {
         if (isStreaming)
             sendHeader();
         else if (isLarge) {
-            largeOutputFile = File.createTempFile("cgi", null);
+            largeOutputFile = TempFileFactory.get().createTempFile("cgi", null);
             contentBuffer = new FileOutputStream(largeOutputFile);
         } else
             contentBuffer = new ByteArrayOutputStream();

@@ -1,4 +1,4 @@
-// Copyright (C) 2005-2009 Tuma Solutions, LLC
+// Copyright (C) 2005-2010 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -40,6 +40,7 @@ import net.sourceforge.processdash.log.SaveableDataSource;
 import net.sourceforge.processdash.util.EnumerIterator;
 import net.sourceforge.processdash.util.IteratorConcatenator;
 import net.sourceforge.processdash.util.RobustFileWriter;
+import net.sourceforge.processdash.util.TempFileFactory;
 
 public class WorkingTimeLog implements ModifiableTimeLog, IDSource,
         SaveableDataSource {
@@ -168,7 +169,7 @@ public class WorkingTimeLog implements ModifiableTimeLog, IDSource,
         // actually write directly to the destination file, that would be
         // relying on implementation details (of both TimeLogReader and
         // RobustFileWriter) that we should know nothing about.
-        File tempFile = File.createTempFile("timelog", ".xml");
+        File tempFile = TempFileFactory.get().createTempFile("timelog", ".xml");
         RobustFileWriter rout = new RobustFileWriter(tempFile,
                 TIME_LOG_ENCODING);
         BufferedWriter out = new BufferedWriter(rout);

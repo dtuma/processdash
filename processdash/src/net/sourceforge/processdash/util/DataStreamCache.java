@@ -1,4 +1,4 @@
-// Copyright (C) 2008-2009 Tuma Solutions, LLC
+// Copyright (C) 2008-2010 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -377,7 +377,7 @@ public class DataStreamCache {
         OutputStream outputStream;
 
         public CacheFile() throws IOException {
-            this(File.createTempFile("streamCache", ".tmp"));
+            this(TempFileFactory.get().createTempFile("streamCache", ".tmp"));
             this.cacheFile.deleteOnExit();
         }
 
@@ -552,7 +552,7 @@ public class DataStreamCache {
         }
 
         private void initCacheFile() throws IOException {
-            if (cacheFile == null || streamPos > SAVED_CACHE_CHUNK_SIZE) {
+            if (cacheFile == null) {
                 cacheFile = new CacheFile();
                 streamPos = 0;
             }
@@ -569,6 +569,11 @@ public class DataStreamCache {
 
             savedData.put(s.streamID, result);
             s.setSaved();
+
+            if (this.streamPos > SAVED_CACHE_CHUNK_SIZE) {
+                this.cacheFile.closeOutputStream();
+                this.cacheFile = null;
+            }
         }
 
     }

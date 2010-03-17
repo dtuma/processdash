@@ -64,6 +64,10 @@ The author(s) may be contacted at:
      class="net.sourceforge.processdash.util.UsageLogger"
      settingPrefix="usageLogger"/>
 
+  <background-task whenDefault="0"
+     class="net.sourceforge.processdash.log.time.ImportedTimeLogManager$CacheMinder"
+     settingPrefix="importedTimeLogCacheMinder"/>
+
 
   <!-- definitions for snippets that are provided by the dashboard -->
 
