@@ -325,12 +325,31 @@ public class TaskListNavigator implements TaskNavigationSelector.NavMenuUI,
                 emptyList.setEnabled(false);
                 menu.add(emptyList);
             }
+
+            // We only want to show the "Open Task & Schedule Window" menu item if there is
+            // an active task
+            if (StringUtils.hasValue(taskListName)) {
+                JMenuItem openTaskAndSchedule = new JMenuItem();
+                openTaskAndSchedule.setText(
+                    resources.getString("Navigator.Open_Task_And_Schedule"));
+
+                openTaskAndSchedule.addActionListener(new ActionListener() {
+                    public void actionPerformed(ActionEvent e) {
+                        if (StringUtils.hasValue(taskListName))
+                            TaskScheduleChooser.open(context, taskListName);
+                    }
+                });
+
+                menu.insertSeparator(menu.getItemCount());
+                menu.add(openTaskAndSchedule);
+            }
         }
 
         for (Iterator i = subscriptionsToDelete.iterator(); i.hasNext();) {
             String dataName = (String) i.next();
             context.getData().removeDataListener(dataName, this);
         }
+
     }
 
     private void addMenuItems(JMenu menu, List paths, int maxItemsPerMenu) {
