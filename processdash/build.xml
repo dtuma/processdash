@@ -576,6 +576,9 @@ Authors:
       <arg value="none"/>
       <arg value="-nostatus"/>
     </java>
+    <replace file="${help}/book.html" value="">
+      <replacetoken>width="1" height="1"</replacetoken>
+    </replace>
     <delete file="${help}/Skeleton.html"/>
   </target>
 
