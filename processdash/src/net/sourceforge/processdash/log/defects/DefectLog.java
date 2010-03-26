@@ -81,7 +81,7 @@ public class DefectLog {
     public static final String USE_XML_SETTING = "dataset.usesXmlDefects";
 
     /** The version at which the dashboard started to support XML defect format */
-    public static final String XML_SUPPORT_VERSION = "1.11.0.7a";
+    public static final String XML_SUPPORT_VERSION = "1.12";
 
 
     public DefectLog(String filename, String dataPath, DataRepository data,

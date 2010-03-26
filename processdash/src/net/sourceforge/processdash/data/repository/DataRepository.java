@@ -123,7 +123,7 @@ public class DataRepository implements Repository, DataContext,
     public static final String USE_UTF8_SETTING = "dataset.usesUtf8Encoding";
 
     /** The version at which the dashboard started to support UTF8 */
-    public static final String UTF8_SUPPORT_VERSION = "1.11.0.7a";
+    public static final String UTF8_SUPPORT_VERSION = "1.12";
 
     public static final String anonymousPrefix = "///Anonymous";
 
