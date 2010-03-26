@@ -136,9 +136,11 @@ public class TaskListNavigator implements TaskNavigationSelector.NavMenuUI,
 
     private class TaskListOpener extends SwingWorker {
 
-        public Object construct() {
+        public TaskListOpener() {
             menuBar.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+        }
 
+        public Object construct() {
             if (taskListName == null || taskListName.trim().length() == 0)
                 return resources.getString("Navigator.Errors.None_Selected");
 
@@ -159,7 +161,6 @@ public class TaskListNavigator implements TaskNavigationSelector.NavMenuUI,
 
                     ((EVTaskListData) tl).recalcLeavesOnly();
                     tl.recalc();
-                    menuBar.setCursor(null);
 
                     return tl;
                 } catch (Exception e) {
@@ -173,6 +174,8 @@ public class TaskListNavigator implements TaskNavigationSelector.NavMenuUI,
         }
 
         public void finished() {
+            menuBar.setCursor(null);
+
             if (get() instanceof EVTaskList)
                 installTaskList((EVTaskList) get());
             else
