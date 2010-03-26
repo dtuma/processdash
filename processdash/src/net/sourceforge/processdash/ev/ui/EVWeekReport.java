@@ -454,10 +454,51 @@ public class EVWeekReport extends TinyCGIBase {
             else {
                 printCompletedTaskTableHeader(showAssignedTo, showLabels);
 
-                for (int i = 0;   i < taskListLen;   i++)
-                    if (completedLastWeek[i])
-                        printCompletedLine(tableWriter, tasks, i,
-                            showAssignedTo, showLabels);
+                double totalPlannedTime = 0;
+                double totalActualTime = 0;
+                double totalPlannedValue = 0;
+
+                for (int i = 0;   i < taskListLen;   i++) {
+                    if (!completedLastWeek[i])
+                        continue;
+
+                    double taskPlannedTime =
+                        parseTime(tasks.getValueAt(i, -EVTaskList.PLAN_TIME_COLUMN));
+                    double taskActualTime =
+                        parseTime(tasks.getValueAt(i, -EVTaskList.ACT_TIME_COLUMN));
+                    double taskPlannedValue =
+                        ((Double)tasks.getValueAt(i,
+                                -EVTaskList.PLAN_VALUE_COLUMN)).doubleValue();
+
+                    totalPlannedTime += taskPlannedTime;
+                    totalActualTime += taskActualTime;
+                    totalPlannedValue += taskPlannedValue;
+
+                    printCompletedLine(tableWriter, tasks, i,
+                        showAssignedTo, showLabels);
+                }
+
+                interpOut("<tr class='sortbottom'><td><b>${Completed_Tasks.Total}"
+                        + "&nbsp;</b></td><td class='timeFmt'>");
+                out.print(formatTime(totalPlannedTime) + "</td>");
+                out.print("<td class='timeFmt'>");
+                out.print(formatTime(totalActualTime) + "</td>");
+
+                if (totalPlannedTime > 0) {
+                    double totalPctSpent = totalActualTime/totalPlannedTime;
+                    out.print("<td>" + EVSchedule.formatPercent(totalPctSpent)
+                            + "</td>");
+                } else {
+                    out.print("<td>&nbsp;</td>");
+                }
+
+                // Empty td for assigned to, planned date, and labels columns
+                int noSumCol = 1 + (showAssignedTo ? 1:0) + (showLabels ? 1:0);
+                for (int i = 0; i < noSumCol ; ++i)
+                    out.print("<td>&nbsp;</td>");
+
+                out.print("<td>" + EVSchedule.formatPercent(totalPlannedValue)
+                    + "</td></tr>\n");
 
                 out.println("</table>");
             }
