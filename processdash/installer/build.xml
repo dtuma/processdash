@@ -64,7 +64,7 @@ Authors:
 
     <property name="version" value="${dashboard-version}"/>
     <property name="jreInstDir" value="c:\download\java\_"/>
-    <property name="jreInstExe" value="jre-6u16-windows-i586.exe"/>
+    <property name="jreInstExe" value="jre-6u18-windows-i586.exe"/>
     <property name="launch4j.dir" location="launch4j" />
 
     <!-- the the IZPACK home directory -->
