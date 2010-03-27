@@ -3617,12 +3617,12 @@ public class DataRepository implements Repository, DataContext,
             }
 
             // Write the saved values
+            RobustFileWriter rfw;
             BufferedWriter out;
             try {
                 String encoding = getDatasetEncoding();
 
-                out = new BufferedWriter(new RobustFileWriter(datafile.file,
-                    encoding));
+                rfw = new RobustFileWriter(datafile.file, encoding);
             } catch (IOException e) {
                 logger.log(Level.SEVERE, "Encountered exception while opening "
                         + datafile.file.getPath() + "; save aborted", e);
@@ -3630,6 +3630,8 @@ public class DataRepository implements Repository, DataContext,
             }
 
             try {
+                out = new BufferedWriter(rfw);
+
                 // if the data file has an include statement, write it to the file
                 if (datafile.inheritsFrom != null) {
                     out.write(includeTag + datafile.inheritsFrom);
@@ -3650,6 +3652,7 @@ public class DataRepository implements Repository, DataContext,
             } catch (IOException e) {
                 logger.log(Level.SEVERE, "Encountered exception while writing to "
                         + datafile.file.getPath() + "; save aborted", e);
+                try { rfw.abort(); } catch (Exception ex) {}
                 return;
             }
 
@@ -3663,6 +3666,7 @@ public class DataRepository implements Repository, DataContext,
             } catch (IOException e) {
                 logger.log(Level.SEVERE, "Encountered exception while closing "
                         + datafile.file.getPath() + "; save aborted", e);
+                try { rfw.abort(); } catch (Exception ex) {}
             }
 
         } finally {
