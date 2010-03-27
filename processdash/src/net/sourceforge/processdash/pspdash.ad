@@ -170,7 +170,7 @@ logging.enabled=true
 autoUpdate.disabled=false
 
 backup.enabled=true
-backup.keepBackupsNumDays=21
+backup.keepBackupsNumDays=42
 backup.timesOfDay=0
 
 slowNetwork=false

@@ -82,7 +82,7 @@ public class FileBackupManager {
         DashboardBackupFactory.setMaxHistLogSize(Settings.getInt(
             "logging.maxHistLogSize", 500000));
         DashboardBackupFactory.setKeepBackupsNumDays(Settings.getInt(
-            "backup.keepBackupsNumDays", 21));
+            "backup.keepBackupsNumDays", 42));
     }
 
     public void maybeRun(int when, String who) {
