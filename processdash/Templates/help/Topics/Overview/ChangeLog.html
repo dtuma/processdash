@@ -7,6 +7,95 @@
 
 <H1>Change History</H1>
 
+<h2>Features new in version 1.12</h2>
+
+<ul>
+
+<li>Since version 1.7, the dashboard has included a team metrics collection
+framework called "Software Systems Development." To avoid any potential
+copyright violations, that metrics framework has used a different set of
+process phases than the TSP<sup>(SM)</sup>.  Beginning with version 1.12,
+we are happy to announce that the Software Engineering Institute has
+granted us permission to distribute a TSP-compatible metrics framework.
+This new framework will reduce the learning curve for TSP teams as they
+first begin to use the Process Dashboard.</li>
+
+<li>Process Dashboard installers are now provided to support the assignment
+sequence of the PSP<sup>(SM)</sup> Fundamentals and Advanced courses.</li>
+
+<li>It is now possible to attach HTTP URLs to the elements in a Common Team
+Workflow.  This can be used to associate organizational process scripts or
+wiki pages that describe the steps in a workflow.  (Note: this feature is
+only available for team projects that are created using Process Dashboard
+1.12 or later.)</li>
+
+<li>Data from earned value schedules can now be exported to Microsoft
+Project in the new MS Office XML format.</li>
+
+<li>The "Status of Team Member Metrics" page has always displayed the date
+when each team member last exported their metrics.  Now, it also displays
+the date they last performed a "Sync to WBS" operation.</li>
+
+<li>In the past, the components and tasks in a rolled-up team EV schedule
+would sometimes not appear in the same order that they appear in the WBS.
+The reporting logic has been enhanced so the EV schedule will follow the
+WBS element ordering more closely.</li>
+
+<li>Charts have been added to the PSP project plan summary forms to display
+time, defects, and PQI.</li>
+
+<li>In the WBS Editor Team Member List, the column headers now display dates
+in a locale-sensitive manner for non-US teams.</li>
+
+<li>Teams can optionally choose to have the WBS Editor prompt for read-only
+mode on startup.  (This option can be controlled on a project-by-project
+basis.)</li>
+
+<li>In the WBS Editor and in the EV reports, when a percent complete number
+is greater than 99.5% but less than 100%, it will be rounded down to 99%.
+This helps to avoid confusion, since 100% will now only appear for tasks
+that are truly complete.</li>
+
+<li>The EV Report will now display a warning message if tasks have been
+marked complete in the future, or if time has been logged in the future.
+This can help in the troubleshooting of problems caused by data entry
+typos.</li>
+
+<li>On the Weekly EV Report, the "Tasks Completed Last Week" table now
+displays a total row.</li>
+
+<li>Some international dashboard users have seen problems with corruption
+of accented characters in the Team Dashboard.  A new feature is provided in
+the Preferences dialog to help those teams.</li>
+
+<li>In the personal dashboard, the Team Project Tools and Settings page has
+previously included a checkbox to "Include all WBS components and documents
+in sync operations."  This checkbox represented obsolete functionality, and
+now only causes problems when individuals enable it out of curiosity.  To
+avoid those problems, the feature has been removed.</li>
+
+<li>Teams that have upgraded to a recent version of the Code Collaborator
+server were finding that defect types were no longer being transferred by
+the "Import from Code Collaborator" feature.  This problem has been
+corrected.</li>
+
+<li>A bug was affecting the date-based filtering of entries in the Time Log
+(for example, when you request to view time log entries for "Today").  This
+bug has been corrected.</li>
+
+<li>The Perforce LOC counter can now count LOC in integration changelists.
+This functionality is designed to support the workflow where an individual
+makes changes in a personal sandbox, then integrates those changes back to
+the main line of development.  In that case, the individual can point the
+LOC counter at the changelist where the files were integrated back to the
+mainline, and receive a LOC count of the effective changes.</li>
+
+<li>Installers are now available in EXE format for use on Windows systems.
+These EXEs can simplify the installation process for users who previously
+encountered problems with filesystem permissions in Windows Vista.</li>
+
+</ul>
+
 <h2>Features new in version 1.11</h2>
 
 <ul>
