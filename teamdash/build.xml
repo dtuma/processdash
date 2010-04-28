@@ -465,6 +465,10 @@ class dependency has been added in a dashboard class?)
     <taskdef name="packageLaunchProfile"
              classname="net.sourceforge.processdash.PackageLaunchProfile"
 	     classpath="${dashlibsrc}"/>
+    <condition property="skipConsentFile" value="licenseConsented.txt"
+             else="noSuchFile">
+      <equals arg1="${launchProfile.skipConsent}" arg2="true"/>
+    </condition>
     <packageLaunchProfile profilename="${launchProfile.name}"
 	  profileid="${launchProfile.id}"
 	  profileversion="${launchProfile.version}"
@@ -477,6 +481,7 @@ class dependency has been added in a dashboard class?)
         <include name="${launchProfile.file1}"/>
         <include name="${launchProfile.file2}"/>
       </fileset>
+      <fileset dir="install" includes="${skipConsentFile}"/>
     </packageLaunchProfile>
   </target>
 

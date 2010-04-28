@@ -235,6 +235,12 @@
           out="legalFooter.htm" encoding="html"/>
     <!--#endif-->
 
+    <!-- write optional license consent HTML file if requested. -->
+    <!--#if License_Html_Filename -->
+    <file in="extfile:<!--#echo License_Html_Filename -->"
+          out="/Templates/license-consent.html" encoding="html"/>
+    <!--#endif-->
+
     <!-- write optional splash screen HTML file if requested. -->
     <!--#if Splash_Html_Filename -->
     <file in="extfile:<!--#echo Splash_Html_Filename -->"
