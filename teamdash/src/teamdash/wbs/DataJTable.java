@@ -23,6 +23,7 @@
 
 package teamdash.wbs;
 
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
@@ -69,6 +70,8 @@ public class DataJTable extends JTable {
 
         setDefaultRenderer(NumericDataValue.class,
                            new DataTableCellNumericRenderer());
+        setBackground(Color.white);
+        setSelectionBackground(new Color(0xb8cfe5));
 
         ClipboardBridge clipboardBridge = new ClipboardBridge(this);
 

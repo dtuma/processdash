@@ -24,6 +24,7 @@
 
 package teamdash.wbs;
 
+import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Event;
 import java.awt.Point;
@@ -117,6 +118,8 @@ public class WBSJTable extends JTable {
 
         renderer = new WBSNodeRenderer(model, iconMap);
         setDefaultRenderer(WBSNode.class, renderer);
+        setBackground(Color.white);
+        setSelectionBackground(new Color(0xb8cfe5));
 
         editor = new WBSNodeEditor(this, model, iconMap, iconMenu);
         setDefaultEditor(WBSNode.class, editor);
