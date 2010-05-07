@@ -63,8 +63,6 @@ Authors:
     <property name="dist" value="dist"/>
 
     <property name="version" value="${dashboard-version}"/>
-    <property name="jreInstDir" value="c:\download\java\_"/>
-    <property name="jreInstExe" value="jre-6u18-windows-i586.exe"/>
     <property name="launch4j.dir" location="launch4j" />
 
     <!-- the the IZPACK home directory -->
@@ -239,6 +237,10 @@ Authors:
 
     <target name="install-CD" depends="init"
             description="Create an installation CD for the dashboard">
+        <fail unless="jreInstDir"
+            message="The jreInstDir property must be set to build a CD"/>
+        <fail unless="jreInstExe"
+            message="The jreInstExe property must be set to build a CD"/>
         <available file="${jreInstDir}/${jreInstExe}" property="have.JREinst"/>
 	<fail unless="have.JREinst" 
             message="No JRE installer found at '${jreInstDir}/${jreInstExe}'"/>
