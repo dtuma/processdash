@@ -1,4 +1,4 @@
-// Copyright (C) 2008-2009 Tuma Solutions, LLC
+// Copyright (C) 2008-2010 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -94,15 +94,15 @@ public class ResourceBridgeClient implements ResourceBridgeConstants {
         this.userId = getUserId();
     }
 
-    public void setSourceIdentifier(String sourceIdentifier) {
+    public synchronized void setSourceIdentifier(String sourceIdentifier) {
         this.sourceIdentifier = sourceIdentifier;
     }
 
-    public void setExtraLockData(String extraLockData) {
+    public synchronized void setExtraLockData(String extraLockData) {
         this.extraLockData = extraLockData;
     }
 
-    public boolean syncDown() throws IOException {
+    public synchronized boolean syncDown() throws IOException {
         ProfTimer pt = new ProfTimer(logger, "ResourceBridgeClient.syncDown["
                 + remoteUrl + "]");
         // compare hashcodes to see if the local and remote directories have
@@ -149,7 +149,7 @@ public class ResourceBridgeClient implements ResourceBridgeConstants {
      * @throws IOException
      *                 if any other problem prevents the sync from succeeding
      */
-    public boolean syncUp() throws IOException, LockFailureException {
+    public synchronized boolean syncUp() throws IOException, LockFailureException {
         if (userName == null)
             throw new NotLockedException();
 
@@ -229,7 +229,7 @@ public class ResourceBridgeClient implements ResourceBridgeConstants {
         return madeChange;
     }
 
-    public void saveDefaultExcludedFiles() throws IOException, LockFailureException {
+    public synchronized void saveDefaultExcludedFiles() throws IOException, LockFailureException {
         if (userName == null)
             throw new NotLockedException();
 
@@ -243,7 +243,7 @@ public class ResourceBridgeClient implements ResourceBridgeConstants {
         }
     }
 
-    public URL doBackup(String qualifier) throws IOException {
+    public synchronized URL doBackup(String qualifier) throws IOException {
         ProfTimer pt = new ProfTimer(logger, "ResourceBridgeClient.doBackup["
                 + remoteUrl + "]");
         try {
@@ -260,7 +260,7 @@ public class ResourceBridgeClient implements ResourceBridgeConstants {
         return new URL(result.toString());
     }
 
-    public void acquireLock(String userName) throws LockFailureException {
+    public synchronized void acquireLock(String userName) throws LockFailureException {
         ProfTimer pt = new ProfTimer(logger, "ResourceBridgeClient.acquireLock["
                 + remoteUrl + "]");
         try {
@@ -276,7 +276,7 @@ public class ResourceBridgeClient implements ResourceBridgeConstants {
         }
     }
 
-    public void pingLock() throws LockFailureException {
+    public synchronized void pingLock() throws LockFailureException {
         if (userName == null)
             throw new NotLockedException();
 
@@ -292,7 +292,7 @@ public class ResourceBridgeClient implements ResourceBridgeConstants {
         }
     }
 
-    public void assertLock() throws LockFailureException {
+    public synchronized void assertLock() throws LockFailureException {
         if (userName == null)
             throw new NotLockedException();
 
@@ -308,7 +308,7 @@ public class ResourceBridgeClient implements ResourceBridgeConstants {
         }
     }
 
-    public void releaseLock() {
+    public synchronized void releaseLock() {
         if (userName == null)
             return;
 
