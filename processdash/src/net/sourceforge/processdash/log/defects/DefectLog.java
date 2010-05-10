@@ -180,7 +180,8 @@ public class DefectLog {
                 ser.startDocument(XmlConstants.ENCODING, null);
                 ser.startTag(null, "defectLog");
                 for (int i = 0; i < defects.length; i++)
-                    defects[i].toXml(ser);
+                    if (defects[i] != null)
+                        defects[i].toXml(ser);
                 ser.endTag(null, "defectLog");
                 ser.endDocument();
             }
