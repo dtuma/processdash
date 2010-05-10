@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2007 Tuma Solutions, LLC
+// Copyright (C) 2001-2010 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -163,7 +163,7 @@ public class WebServer implements ContentSource {
 
     private static InetAddress LOCAL_HOST_ADDR, LOOPBACK_ADDR;
     private static final Properties mimeTypes = new Properties();
-    private static final Hashtable DEFAULT_ENV = new Hashtable();
+    private Hashtable DEFAULT_ENV = new Hashtable();
     private static final String CRLF = "\r\n";
     private static final int SCAN_BUF_SIZE = 4096;
     private static final String DASH_CHARSET = HTTPUtils.DEFAULT_CHARSET;
@@ -174,17 +174,19 @@ public class WebServer implements ContentSource {
     private static final Logger logger =
         Logger.getLogger(WebServer.class.getName());
 
+    {
+        DEFAULT_ENV.put("SERVER_SOFTWARE", "PROCESS_DASHBOARD");
+        DEFAULT_ENV.put("SERVER_NAME", "localhost");
+        DEFAULT_ENV.put("GATEWAY_INTERFACE", "CGI/1.1");
+        DEFAULT_ENV.put("SERVER_ADDR", "127.0.0.1");
+        DEFAULT_ENV.put("PATH_INFO", "");
+        DEFAULT_ENV.put("PATH_TRANSLATED", "");
+        DEFAULT_ENV.put("REMOTE_HOST", "localhost");
+        DEFAULT_ENV.put("REMOTE_ADDR", "127.0.0.1");
+    }
+
     static {
         try {
-            DEFAULT_ENV.put("SERVER_SOFTWARE", "PROCESS_DASHBOARD");
-            DEFAULT_ENV.put("SERVER_NAME", "localhost");
-            DEFAULT_ENV.put("GATEWAY_INTERFACE", "CGI/1.1");
-            DEFAULT_ENV.put("SERVER_ADDR", "127.0.0.1");
-            DEFAULT_ENV.put("PATH_INFO", "");
-            DEFAULT_ENV.put("PATH_TRANSLATED", "");
-            DEFAULT_ENV.put("REMOTE_HOST", "localhost");
-            DEFAULT_ENV.put("REMOTE_ADDR", "127.0.0.1");
-
             dateFormat.setTimeZone(new SimpleTimeZone(0, "GMT"));
             mimeTypes.load(WebServer.class
                            .getResourceAsStream("mime_types"));
@@ -1437,18 +1439,11 @@ public class WebServer implements ContentSource {
 
     /** Encode HTML entities in the given string, and return the result. */
     public static String encodeHtmlEntities(String str) {
-        str = StringUtils.findAndReplace(str, "&",  "&amp;");
-        str = StringUtils.findAndReplace(str, "<",  "&lt;");
-        str = StringUtils.findAndReplace(str, ">",  "&gt;");
-        str = StringUtils.findAndReplace(str, "\"", "&quot;");
-        return str;
+        return HTMLUtils.escapeEntities(str);
     }
 
     public static String urlEncodePath(String path) {
-        path = HTMLUtils.urlEncode(path);
-        path = StringUtils.findAndReplace(path, "%2F", "/");
-        path = StringUtils.findAndReplace(path, "%2f", "/");
-        return path;
+        return HTMLUtils.urlEncodePath(path);
     }
 
     /** 

@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2009 Tuma Solutions, LLC
+// Copyright (C) 1998-2010 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -882,7 +882,8 @@ public class TemplateLoader {
         synchronized (TEMPLATE_CLASSLOADERS) {
             result = (ClassLoader) TEMPLATE_CLASSLOADERS.get(baseUrl);
             if (result == null) {
-                result = new URLClassLoader(new URL[] { baseUrl });
+                result = new URLClassLoader(new URL[] { baseUrl },
+                    TemplateLoader.class.getClassLoader());
                 TEMPLATE_CLASSLOADERS.put(baseUrl, result);
             }
         }

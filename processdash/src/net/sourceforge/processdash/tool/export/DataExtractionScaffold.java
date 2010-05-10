@@ -1,4 +1,4 @@
-// Copyright (C) 2008-2009 Tuma Solutions, LLC
+// Copyright (C) 2008-2010 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -28,6 +28,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.regex.Pattern;
 
 import net.sourceforge.processdash.DashboardContext;
@@ -50,10 +51,12 @@ import net.sourceforge.processdash.log.time.DashboardTimeLog;
 import net.sourceforge.processdash.log.time.TimeLog;
 import net.sourceforge.processdash.log.time.WorkingTimeLog;
 import net.sourceforge.processdash.net.cache.ObjectCache;
+import net.sourceforge.processdash.net.http.DashboardURLStreamHandlerFactory;
 import net.sourceforge.processdash.net.http.WebServer;
 import net.sourceforge.processdash.templates.TemplateLoader;
 import net.sourceforge.processdash.tool.export.mgr.ExternalResourceManager;
 import net.sourceforge.processdash.tool.export.mgr.ImportManager;
+import net.sourceforge.processdash.util.HTTPUtils;
 import net.sourceforge.processdash.util.StringUtils;
 
 public class DataExtractionScaffold implements DashboardContext {
@@ -66,11 +69,15 @@ public class DataExtractionScaffold implements DashboardContext {
 
     private DashHierarchy hierarchy;
 
+    private WebServer webServer;
+
     private TimeLog timeLog;
 
     private Pattern dataLoadPattern;
 
     private Pattern dataPrunePattern;
+
+    private boolean createWebServer = false;
 
     public DataExtractionScaffold() {}
 
@@ -111,6 +118,14 @@ public class DataExtractionScaffold implements DashboardContext {
         this.dataPrunePattern = dataPrunePattern;
     }
 
+    public boolean isCreateWebServer() {
+        return createWebServer;
+    }
+
+    public void setCreateWebServer(boolean createWebServer) {
+        this.createWebServer = createWebServer;
+    }
+
     public DataRepository getData() {
         return data;
     }
@@ -128,7 +143,7 @@ public class DataExtractionScaffold implements DashboardContext {
     }
 
     public WebServer getWebServer() {
-        return null;
+        return webServer;
     }
 
     public void tearDown() {
@@ -195,6 +210,18 @@ public class DataExtractionScaffold implements DashboardContext {
         // configure the task dependency resolver
         EVTaskDependencyResolver.init(this);
         EVTaskDependencyResolver.getInstance().setDynamic(false);
+
+        if (createWebServer) {
+            DashboardURLStreamHandlerFactory.disable();
+            try {
+                webServer = new WebServer();
+                webServer.setDashboardContext(this);
+                webServer.setData(data);
+                webServer.setProps(hierarchy);
+                webServer.setRoots(TemplateLoader.getTemplateURLs());
+                WebServer.setOutputCharset(getWebCharset());
+            } catch (IOException ioe) {}
+        }
     }
 
     private void openDataFiles(String property_directory, PropertyKey key)
@@ -231,6 +258,21 @@ public class DataExtractionScaffold implements DashboardContext {
         return (dataPrunePattern != null
                 && StringUtils.hasValue(id)
                 && dataPrunePattern.matcher(id).find());
+    }
+
+    private String getWebCharset() {
+        String charsetName = Settings.getVal("http.charset");
+
+        if (charsetName == null)
+            charsetName = HTTPUtils.DEFAULT_CHARSET;
+        else if ("auto".equals(charsetName)) {
+            if ("en".equals(Locale.getDefault().getLanguage()))
+                charsetName = HTTPUtils.DEFAULT_CHARSET;
+            else
+                charsetName = "UTF-8";
+        }
+
+        return charsetName;
     }
 
 
