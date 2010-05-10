@@ -12,11 +12,11 @@
 
 #ifdef PROCESS_HAS_YIELD
 
-[Yield] = min(1.0, sumFor("Defects Removed",  [Yield_Phase_List]) /
+[Yield] = constrain(0, 1, sumFor("Defects Removed",  [Yield_Phase_List]) /
 	           sumFor("Defects Injected", [Yield_Phase_List]));
-[Estimated Yield] =
-        min(1.0, sumFor("Estimated Defects Removed",  [Yield_Phase_List]) /
-                 sumFor("Estimated Defects Injected", [Yield_Phase_List]));
+[Estimated Yield] = constrain(0, 1,
+    sumFor("Estimated Defects Removed",  [Yield_Phase_List]) /
+    sumFor("Estimated Defects Injected", [Yield_Phase_List]));
 
 #endif // PROCESS_HAS_YIELD
 

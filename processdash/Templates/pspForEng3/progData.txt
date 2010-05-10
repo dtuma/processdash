@@ -117,7 +117,7 @@ FOR_EACH_PHASE(sumUpToDatePhaseData);
 [% Failure COQ To Date] =
     sumFor("Time To Date", [Failure_Phase_List]) / [Time To Date];
 [AFR To Date] = [% Appraisal COQ To Date] / [% Failure COQ To Date];
-[Yield To Date] = min(1.0,
+[Yield To Date] = constrain(0, 1,
     sumFor("Defects Removed To Date",  [Yield_Phase_List]) /
     sumFor("Defects Injected To Date", [Yield_Phase_List]));
 
