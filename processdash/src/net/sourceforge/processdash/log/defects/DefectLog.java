@@ -36,13 +36,15 @@ import java.io.InputStreamReader;
 import java.io.PushbackInputStream;
 import java.io.Writer;
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.EventListener;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
+import net.sourceforge.processdash.DashboardContext;
 import net.sourceforge.processdash.InternalSettings;
-import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.DoubleData;
 import net.sourceforge.processdash.data.NumberFunction;
@@ -72,7 +74,6 @@ public class DefectLog {
     String dataPrefix = null;
     String dataNamespace = null;
     DataRepository data = null;
-    ProcessDashboard parent;
 
     public static final String DEF_INJ_SUFFIX = "/Defects Injected";
     public static final String DEF_REM_SUFFIX = "/Defects Removed";
@@ -84,13 +85,11 @@ public class DefectLog {
     public static final String XML_SUPPORT_VERSION = "1.12";
 
 
-    public DefectLog(String filename, String dataPath, DataRepository data,
-              ProcessDashboard dash) {
+    public DefectLog(String filename, String dataPath, DataRepository data) {
         this.defectLogFilename = filename;
         this.dataPrefix = dataPath + "/";
         this.dataNamespace = null;
         this.data = data;
-        this.parent = dash;
     }
 
     /** Find the existing defect in the log with the given ID.
@@ -284,6 +283,13 @@ public class DefectLog {
     }
 
     private void incrementDataValue(String dataName, int increment) {
+        modifyDataValue(dataName, increment, false);
+    }
+    private void setDataValue(String dataName, int value) {
+        modifyDataValue(dataName, value, true);
+    }
+    private void modifyDataValue(String dataName, int increment,
+            boolean ignoreExistingValue) {
         String prefix = dataPrefix + getDataNamespace();
         dataName = DataRepository.createDataName(prefix, dataName);
         DoubleData val;
@@ -292,12 +298,17 @@ public class DefectLog {
         } catch (ClassCastException cce) {
             return;          // Do nothing - don't overwrite values of other types
         }
-        if (val == null)
-            val = new DoubleData(increment);
-        else if (val instanceof NumberFunction)
+        if (val instanceof NumberFunction) {
             return;          // Do nothing - don't overwrite old-style calculations
-        else
+        } else if (ignoreExistingValue && increment == 0) {
+            if (val != null && val.getDouble() != 0)
+                data.restoreDefaultValue(dataName);
+            return;
+        } else if (val == null || ignoreExistingValue) {
+            val = new DoubleData(increment);
+        } else {
             val = new DoubleData(val.getInteger() + increment);
+        }
         val.setEditable(false);
         data.putValue(dataName, val);
     }
@@ -387,22 +398,22 @@ public class DefectLog {
         * This action is appropriate, for example, if massive changes
         * have been made to the defect log entries.
         * @param defects - an array of the new defects in the log.
-        * /
-    private void updateData(Defect defects[]) {
+        */
+    void recalculateData(Defect defects[], DashboardContext ctx) {
 
-        class PhaseCounter extends Hashtable {
+        class PhaseCounter extends HashMap<String, Integer> {
             public PhaseCounter() {};
             public void increment(String var) {
-                Integer i = (Integer)get(var);
+                Integer i = get(var);
                 if (i == null)
                     i = new Integer(1);
                 else
                     i = new Integer(1 + i.intValue());
                 put(var, i);
             }
-            public int extractValue(String var) {
-                Integer i = (Integer)remove(var);
-                return (i == null ? 0 : i.intValue());
+            public void storeDataValue(String var) {
+                Integer i = remove(var);
+                setDataValue(var, (i == null ? 0 : i.intValue()));
             }
         }
 
@@ -414,39 +425,24 @@ public class DefectLog {
             phaseData.increment(defects[i].phase_removed + DEF_REM_SUFFIX);
         }
 
-        Iterator dataNames = data.getKeys();
-        String name, subname;
-        int prefixLength = dataPrefix.length();
-        DoubleData val;
-
-        while (dataNames.hasNext()) {
-            name = (String) dataNames.next();
-            if (name.startsWith(dataPrefix)) {
-                subname = name.substring(prefixLength);
-                if (subname.endsWith(DEF_INJ_SUFFIX) ||
-                    subname.endsWith(DEF_REM_SUFFIX)) {
-
-                    Object o = data.getValue(name);
-                    if (!(o instanceof DoubleData) || o instanceof NumberFunction)
-                                // Don't overwrite calculations, which are
-                        continue; // typically summing up values from other places
-
-                    val = new DoubleData(phaseData.extractValue(subname));
-                    val.setEditable(false);
-                    data.putValue(name, val);
-                }
-            }
+        // Iterate over all of the known phases for this defect log and store the
+        // associated data elements.
+        List defectPhases = DefectUtil.getDefectPhases(dataPrefix, ctx);
+        for (Object phaseName : defectPhases) {
+            phaseData.storeDataValue(phaseName + DEF_INJ_SUFFIX);
+            phaseData.storeDataValue(phaseName + DEF_REM_SUFFIX);
         }
+        phaseData.storeDataValue("Before Development" + DEF_INJ_SUFFIX);
+        phaseData.storeDataValue("After Development" + DEF_REM_SUFFIX);
 
-        dataNames = phaseData.keySet().iterator();
-        while (dataNames.hasNext()) {
-            subname = (String) dataNames.next();
-            name = DataRepository.createDataName(dataPrefix, subname);
-            val = new DoubleData(phaseData.extractValue(subname));
-            val.setEditable(false);
-            data.putValue(name, val);
+        // If data is still present in the phaseData map, it means that some
+        // of the defects are using nonstandard phases.  Store the nonstandard
+        // counts as well.
+        if (!phaseData.isEmpty()) {
+            for (String var : new ArrayList<String>(phaseData.keySet()))
+                phaseData.storeDataValue(var);
         }
-    } */
+    }
 
     public void performInternalRename(String oldPrefix, String newPrefix) {
         Defect defects[] = readDefects();
@@ -494,7 +490,7 @@ public class DefectLog {
 
     public static void convertFileToXml(File f) {
         if (f.length() > 0) {
-            DefectLog log = new DefectLog(f.getAbsolutePath(), null, null, null);
+            DefectLog log = new DefectLog(f.getAbsolutePath(), null, null);
             Defect[] defects = log.readDefects();
             log.saveAsXML(defects);
         }

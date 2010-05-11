@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2006 Tuma Solutions, LLC
+// Copyright (C) 2001-2010 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -111,7 +111,7 @@ public class DefectAnalyzer {
         // If this node has a defect log,
         if (defLogName != null && defLogName.length() != 0) {
             DefectLog dl = new DefectLog
-                (dataDirectory + defLogName, path, null, null);
+                (dataDirectory + defLogName, path, null);
             // read all the defects in that log, and
             Defect[] defects = dl.readDefects();
             for (int d=0;  d < defects.length;  d++)

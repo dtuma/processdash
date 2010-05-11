@@ -1,4 +1,4 @@
-// Copyright (C) 1999-2009 Tuma Solutions, LLC
+// Copyright (C) 1999-2010 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -358,8 +358,7 @@ public class DefectLogEditor extends Component implements
             if (defLogName != null && defLogName.length() != 0) {
                 dl = new DefectLog (dashboard.getDirectory() + defLogName,
                                     pKey.path(),
-                                    data,
-                                    dashboard);
+                                    data);
                 defects = dl.readDefects();
                 defectLogs.put (pKey, new DefectListID (pKey, dl, defects));
             }
@@ -824,7 +823,7 @@ public class DefectLogEditor extends Component implements
             return;
         }
 
-        DefectLog log = new DefectLog(newLog.filename, newLogPath, null, null);
+        DefectLog log = new DefectLog(newLog.filename, newLogPath, null);
         log.performInternalRename(oldPrefix, newPrefix);
     }
 

@@ -98,6 +98,7 @@ import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.i18n.Translator;
 import net.sourceforge.processdash.log.defects.DefectAnalyzer;
 import net.sourceforge.processdash.log.defects.DefectLog;
+import net.sourceforge.processdash.log.defects.RepairDefectCounts;
 import net.sourceforge.processdash.log.time.DashboardTimeLog;
 import net.sourceforge.processdash.log.time.TimeLog;
 import net.sourceforge.processdash.log.time.TimeLoggingModel;
@@ -530,6 +531,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
             e.printStackTrace();
         }
         LegacySupport.configureRemoteListeningCapability(data);
+        RepairDefectCounts.maybeRun(this, property_directory);
         timeLog.refreshMetrics();
         pt.click("Refreshed time log metrics");
 

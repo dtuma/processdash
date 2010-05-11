@@ -118,7 +118,7 @@ public class DefectDialog extends JDialog
         this.defectFilename = defectFilename;
         this.defectPath = defectPath;
         defectLog = new DefectLog(defectFilename, defectPath.path(),
-                                  dash.getData(), dash);
+                                  dash.getData());
         date = new Date();
         stopwatch = new Stopwatch(false);
         stopwatch.setMultiplier(Settings.getVal("timer.multiplier"));

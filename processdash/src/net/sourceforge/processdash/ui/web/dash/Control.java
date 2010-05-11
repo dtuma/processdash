@@ -32,6 +32,8 @@ import javax.swing.SwingUtilities;
 
 
 import net.sourceforge.processdash.DashController;
+import net.sourceforge.processdash.ProcessDashboard;
+import net.sourceforge.processdash.log.defects.RepairDefectCounts;
 import net.sourceforge.processdash.ui.ConsoleWindow;
 import net.sourceforge.processdash.ui.help.PCSH;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
@@ -64,6 +66,7 @@ public class Control extends TinyCGIBase {
         showHelp();
         saveDataFiles();
         scrubDataDir();
+        repairDefectCounts();
 
         if (printNullDocument)
             DashController.printNullDocument(out);
@@ -134,6 +137,20 @@ public class Control extends TinyCGIBase {
             out.println("<HTML><HEAD><TITLE>Data Directory Scrubbed</TITLE></HEAD>");
             out.println("<BODY><H1>Data Directory Scrubbed</H1>");
             out.println("The data directory was scrubbed at " + new Date());
+            out.println("</BODY></HTML>");
+
+            printNullDocument = false;
+        }
+    }
+
+    private void repairDefectCounts() {
+        if (isTask("repairDefectCounts")) {
+            ProcessDashboard dash = (ProcessDashboard) getDashboardContext();
+            RepairDefectCounts.run(dash, dash.getDirectory());
+
+            out.println("<HTML><HEAD><TITLE>Defect Counts Repaired</TITLE></HEAD>");
+            out.println("<BODY><H1>Defect Counts Repaired</H1>");
+            out.println("The defect counts were repaired at " + new Date());
             out.println("</BODY></HTML>");
 
             printNullDocument = false;
