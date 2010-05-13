@@ -1,4 +1,4 @@
-// Copyright (C) 2007 Tuma Solutions, LLC
+// Copyright (C) 2007-2010 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -196,6 +196,7 @@ public class DefectDataBag extends AbstractTableModel {
 
             Defect d = new Defect();
             d.number = getStringAt(row, ID);
+            if ("".equals(d.number)) d.number = null;
             d.defect_type = getStringAt(row, TYPE);
             d.phase_injected = getStringAt(row, INJECTED);
             d.phase_removed = getStringAt(row, REMOVED);

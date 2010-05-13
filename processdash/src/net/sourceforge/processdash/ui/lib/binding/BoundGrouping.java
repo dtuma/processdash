@@ -1,4 +1,4 @@
-// Copyright (C) 2009 Tuma Solutions, LLC
+// Copyright (C) 2009-2010 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -23,10 +23,15 @@
 
 package net.sourceforge.processdash.ui.lib.binding;
 
+import java.awt.Component;
+import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.Insets;
 
 import javax.swing.JPanel;
 import javax.swing.border.TitledBorder;
+
+import net.sourceforge.processdash.util.XMLUtils;
 
 import org.w3c.dom.Element;
 
@@ -35,6 +40,8 @@ import org.w3c.dom.Element;
  */
 public class BoundGrouping extends JPanel {
 
+    private Insets insets;
+
     public BoundGrouping(BoundMap map, Element xml) {
         String label = map.getResource(xml.getAttribute("id") + ".Border_Label");
 
@@ -42,9 +49,37 @@ public class BoundGrouping extends JPanel {
         this.setBorder(border);
         this.setLayout(new GridBagLayout());
 
+        this.insets = parseInsetsSpec(xml.getAttribute("insets"));
+
         if (map instanceof BoundForm) {
             ((BoundForm) map).addFormElements(this, xml);
         }
+    }
+
+    private Insets parseInsetsSpec(String spec) {
+        if (!XMLUtils.hasValue(spec))
+            return null;
+
+        try {
+            String[] values = spec.split(",");
+            return new Insets(parseInt(values[0]), parseInt(values[1]),
+                    parseInt(values[2]), parseInt(values[3]));
+        } catch (Exception e) {}
+
+        return null;
+    }
+
+    private int parseInt(String s) {
+        return Integer.parseInt(s.trim());
+    }
+
+    @Override
+    public void add(Component comp, Object constraints) {
+        if (insets != null && constraints instanceof GridBagConstraints) {
+            GridBagConstraints gbc = (GridBagConstraints) constraints;
+            gbc.insets = this.insets;
+        }
+        super.add(comp, constraints);
     }
 
 }

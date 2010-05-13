@@ -61,6 +61,10 @@ import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.log.defects.Defect;
 import net.sourceforge.processdash.log.defects.DefectLog;
 import net.sourceforge.processdash.log.defects.DefectUtil;
+import net.sourceforge.processdash.log.ui.importer.clipboard.ClipboardDataSource;
+import net.sourceforge.processdash.log.ui.importer.clipboard.ClipboardDefectData;
+import net.sourceforge.processdash.log.ui.importer.clipboard.ExtraDescriptionSelector;
+import net.sourceforge.processdash.log.ui.importer.clipboard.TabularDataColumnSelector;
 import net.sourceforge.processdash.log.ui.importer.codecollab.CCQueryDefects;
 import net.sourceforge.processdash.log.ui.importer.codecollab.CCQueryReviews;
 import net.sourceforge.processdash.log.ui.importer.codecollab.CCWebService;
@@ -277,6 +281,11 @@ public class DefectImportForm extends BoundForm {
         addElementType("default-type-selector", DefaultTypeSelector.class);
         addElementType("default-inj-phase-selector", DefaultPhaseSelector.class);
         addElementType("default-rem-phase-selector", DefaultPhaseSelector.class);
+        addElementType("clipboard-data-source", ClipboardDataSource.class);
+        addElementType("clipboard-column-selector", TabularDataColumnSelector.class);
+        addElementType("clipboard-extra-description-selector",
+            ExtraDescriptionSelector.class);
+        addElementType("clipboard-defect-data", ClipboardDefectData.class);
         addElementType("code-collaborator", CCWebService.class);
         addElementType("code-collaborator-reviews", CCQueryReviews.class);
         addElementType("code-collaborator-defects", CCQueryDefects.class);

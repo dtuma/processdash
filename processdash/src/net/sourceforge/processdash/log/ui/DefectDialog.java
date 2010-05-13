@@ -512,6 +512,7 @@ public class DefectDialog extends JDialog
         fix_time.setText(d.fix_time); // will trigger fixTimeChanged
         fix_defect.setText(d.fix_defect);
         description.setText(d.description);
+        description.setCaretPosition(0);
         extra_attrs = d.extra_attrs;
     }
 

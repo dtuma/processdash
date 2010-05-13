@@ -1,0 +1,48 @@
+<defect-import-form windowHeight="650">
+
+    <clipboard-data-source label=" " />
+
+    <grouping id="mapping" insets="0,5,0,5">
+
+    <checkbox id="clipboard-data-source.has-header" label=" " />
+
+    <clipboard-column-selector id="id-column">
+        <textfield id="id-prefix"
+            setting="id-prefix"
+            width="5"
+            enabledIf="id-column.selected" />
+    </clipboard-column-selector>
+
+    <clipboard-column-selector id="type-column">
+        <default-type-selector resourceId="Default" />
+    </clipboard-column-selector>
+
+    <clipboard-column-selector id="phase-inj-column">
+        <default-inj-phase-selector resourceId="Default" />
+    </clipboard-column-selector>
+
+    <clipboard-column-selector id="phase-rem-column">
+        <default-rem-phase-selector resourceId="Default" />
+    </clipboard-column-selector>
+
+    <clipboard-column-selector id="fix-time-column" >
+        <combobox id="fix-time-units"
+            setting="fix-time-units"
+            choices="fix-time-units-choices"
+            enabledIf="fix-time-column.selected"/>
+    </clipboard-column-selector>
+
+    <clipboard-column-selector id="fix-defect-column" />
+
+    <clipboard-column-selector id="date-column" />
+
+    <clipboard-column-selector id="description-column">
+        <clipboard-extra-description-selector
+            id="extra-description-columns"/>
+    </clipboard-column-selector>
+
+    </grouping>
+
+    <clipboard-defect-data />
+
+</defect-import-form>

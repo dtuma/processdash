@@ -287,6 +287,11 @@ The author(s) may be contacted at:
 
   <noteFormat class="net.sourceforge.processdash.hier.ui.PlainTextNoteFormat"/>
 
+  <defect-importer id="clipboard"
+     resources="Defects.ImportForm.Clipboard"
+     specLocation="dash/clipboard-defect-import.xml"
+     class="net.sourceforge.processdash.log.ui.importer.FormImporter" />
+
   <defect-importer id="codeCollab"
      resources="Defects.ImportForm.CodeCollab"
      specLocation="dash/code-collab-import.xml"

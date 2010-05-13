@@ -1,4 +1,4 @@
-// Copyright (C) 2007-2009 Tuma Solutions, LLC
+// Copyright (C) 2007-2010 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -42,9 +42,9 @@ import org.w3c.dom.Element;
 
 public class BoundComboBox extends JComboBox {
 
-    private BoundMap map;
+    protected BoundMap map;
 
-    private String propertyName;
+    protected String propertyName;
 
     private String selectionPrompt;
 
@@ -186,6 +186,10 @@ public class BoundComboBox extends JComboBox {
             addItem(new Item(item));
             return eq(item, selectedValue);
         }
+    }
+
+    protected boolean selectedItemIsImplicit() {
+        return getSelectedItem() instanceof MessageItem;
     }
 
     private static class ListRenderer extends BasicComboBoxRenderer {

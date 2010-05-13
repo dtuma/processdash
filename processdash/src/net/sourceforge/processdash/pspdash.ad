@@ -177,6 +177,8 @@ slowNetwork=false
 slowNetwork.numParallelReads=10
 
 export.timesOfDay=0
+defectImport.clipboard.id-prefix=EXT
+defectImport.clipboard.fix-time-units=minutes
 
 forms.useHoursMinutes=true
 window.icon=~/icon.ico
