@@ -2017,8 +2017,8 @@ public class EVTaskList extends AbstractTreeTableModel
         public static final int PLANNED_TIME_COLUMN_POS = 1;
 
         public PlanVsActualCategoryChartSeries(EVTaskFilter filter) {
-            super("Tasks_In_Progress", filter, new int[] { -ACT_DTIME_COLUMN, -PLAN_TIME_COLUMN },
-                    new String[] { toolTips[ACT_DTIME_COLUMN], toolTips[PLAN_TIME_COLUMN] });
+            super("Tasks_In_Progress", filter, new int[] { -ACT_DTIME_COLUMN, -PLAN_DTIME_COLUMN },
+                    new String[] { toolTips[ACT_DTIME_COLUMN], toolTips[PLAN_DTIME_COLUMN] });
         }
 
     }
