@@ -134,7 +134,7 @@ public class EditExportMetricsFilePanel extends WizardPanel {
         JRadioButton result = new JRadioButton(getString(key));
         result.setActionCommand(key);
         makeAutomatic.add(result);
-        if (makeAutomatic.getButtonCount() == 1)
+        if (makeAutomatic.getButtonCount() == 2)
             result.setSelected(true);
         return result;
     }
