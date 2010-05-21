@@ -68,9 +68,11 @@ public class ClipboardDataSource extends JButton implements ClipboardDataIDs {
         if (data == null || data.isEmpty()) {
             map.put(RAW_DATA, null);
 
-            if (map.get(COLUMN_CHOICES) == null)
+            if (map.get(COLUMN_CHOICES) == null) {
                 map.put(COLUMN_CHOICES, Collections
                         .singletonList(TabularDataColumn.NONE_SELECTED));
+                map.put(COLUMNS, Collections.EMPTY_LIST);
+            }
 
         } else {
             List<String> columnData = new ArrayList<String>(data.get(0));
