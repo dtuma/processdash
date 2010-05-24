@@ -90,6 +90,7 @@ public class ExceptionDialog {
                             + "can be included in the argument list");
 
                 textArea.setText(getStackTrace((Throwable) o));
+                textArea.setCaretPosition(0);
                 items.add(scrollPane);
                 sawThrowable = true;
 
