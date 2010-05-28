@@ -106,9 +106,10 @@ public class ExportFileStream {
         if (exportDirectory != null)
             directFile = exportFile;
 
-        // First, see if the "last known good URL" is still operational
+        // First, see if the "last known good URL" is still operational, or
+        // whether we can find a viable alternative
         if (exportViaTeamServer) {
-            serverUrl = TeamServerSelector.testServerURL(lastUrl,
+            serverUrl = TeamServerSelector.resolveServerURL(lastUrl,
                 MIN_SERVER_VERSION);
             if (serverUrl != null)
                 return serverUrl;

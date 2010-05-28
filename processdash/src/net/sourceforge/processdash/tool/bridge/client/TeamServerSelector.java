@@ -1,4 +1,4 @@
-// Copyright (C) 2008-2009 Tuma Solutions, LLC
+// Copyright (C) 2008-2010 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -179,10 +179,7 @@ public class TeamServerSelector {
         if (url == null)
             return;
 
-        String requiredVersion = "1.4";
-        if (minVersion != null
-                && compareVersions(minVersion, requiredVersion) > 0)
-            requiredVersion = minVersion;
+        String requiredVersion = minVersionForExploratoryTest(minVersion);
 
         destMap.put(url, requiredVersion);
     }
@@ -218,8 +215,84 @@ public class TeamServerSelector {
         }
     }
 
+
+    /** 
+     * Validate that a given URL points to an existing data collection on
+     * a team dashboard server, or return an equivalent functional URL on the
+     * default team server.
+     * 
+     * @param serverURL
+     *                the URL to validate, in string form
+     * @return if validation was successful, returns a functional URL that
+     *         can be used to contact the team server for a particular data
+     *         collection.  This could be the original URL, or it could be
+     *         an equivalent URL on the default team server.  If no functional
+     *         team server was found, returns null.
+     * @since 1.12.1.1b
+     */
+    public static URL resolveServerURL(String serverURL) {
+        return resolveServerURL(serverURL, null);
+    }
+
+    /** 
+     * Validate that a given URL points to an existing data collection on
+     * a team dashboard server running a particular minimum version of the
+     * software, or return an equivalent functional URL on the default team
+     * server.
+     * 
+     * @param serverURL
+     *                the URL to validate, in string form
+     * @param minVersion
+     *                the minimum acceptable version number of the server
+     *                software
+     * @return if validation was successful, returns a functional URL that
+     *         can be used to contact the team server for a particular data
+     *         collection.  This could be the original URL, or it could be
+     *         an equivalent URL on the default team server.  If no functional
+     *         team server was found, returns null.
+     * @since 1.12.1.1b
+     */
+    public static URL resolveServerURL(String serverURL, String minVersion) {
+        if (serverURL == null || serverURL.trim().length() == 0)
+            return null;
+
+        if (isTeamServerUseDisabled())
+            return null;
+
+        // test the URL that we were given. If it is valid, return it.
+        URL result = testServerURL(serverURL, minVersion);
+        if (result != null)
+            return result;
+
+        // produce an alternative URL using the default team server and test it
+        String defaultURL = getDefaultURL(serverURL);
+        if (defaultURL != null) {
+            String requiredVersion = minVersionForExploratoryTest(minVersion);
+            result = testServerURL(defaultURL, requiredVersion);
+        }
+        return result;
+    }
+
+    private static String getDefaultURL(String serverURL) {
+        String baseURL = getDefaultTeamServerUrl();
+        if (baseURL == null)
+            return null;
+
+        if (serverURL.startsWith(baseURL) || serverURL.contains(".."))
+            return null;
+
+        int slashPos = serverURL.lastIndexOf('/');
+        if (slashPos == -1)
+            return null;
+
+        String collectionPath = serverURL.substring(slashPos);
+        return baseURL + collectionPath;
+    }
+
+
     /**
-     * Validate that a given URL points to a team dashboard server
+     * Validate that a given URL points to an existing data collection on
+     * a team dashboard server
      * 
      * @param serverURL
      *                the URL to validate, in string form
@@ -231,8 +304,9 @@ public class TeamServerSelector {
     }
 
     /**
-     * Validate that a given URL points to a team dashboard server running
-     * a particular minimum version of the software
+     * Validate that a given URL points to an existing data collection on
+     * a team dashboard server running a particular minimum version of the
+     * software
      * 
      * @param serverURL
      *                the URL to validate, in string form
@@ -303,5 +377,21 @@ public class TeamServerSelector {
             result.append(component).append('.');
         }
         return result.toString();
+    }
+
+    /**
+     * Operations above that make use of the "default team server URL" must make
+     * exploratory inquiries to a "guessed" URL, attempting to see if it is the
+     * team server. When making these exploratory tests, we have to require
+     * version 1.4 or higher of the team server. This is because earlier
+     * versions of the server did not check to see if a collection actually
+     * existed before returning a response to the "session start inquiry" action.
+     */
+    private static String minVersionForExploratoryTest(String desiredVersion) {
+        String requiredVersion = "1.4";
+        if (desiredVersion != null
+                && compareVersions(desiredVersion, requiredVersion) > 0)
+            requiredVersion = desiredVersion;
+        return requiredVersion;
     }
 }
