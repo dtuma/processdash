@@ -289,20 +289,16 @@ public class sync extends TinyCGIBase {
 
         String urlDataName = DataRepository.createDataName(projectRoot,
             TeamDataConstants.TEAM_DATA_DIRECTORY_URL);
-        SimpleData d = data.getSimpleValue(urlDataName);
 
-        URL wbsLocation = null;
-
-        if (d != null)
-            wbsLocation = getWBSLocationFromURL(d);
+        URL wbsLocation = getWBSLocationFromUrlDataElement(data, urlDataName);
 
         if (wbsLocation == null) {
             // find the data directory for this team project.
             String teamDirectoryLocation = null;
             File teamDirectory = null;
 
-            d = data.getSimpleValue(DataRepository.createDataName(projectRoot,
-                TeamDataConstants.TEAM_DATA_DIRECTORY));
+            SimpleData d = data.getSimpleValue(DataRepository.createDataName(
+                projectRoot, TeamDataConstants.TEAM_DATA_DIRECTORY));
 
             if (d == null || !d.test() ||
                  "Enter network directory path".equals(teamDirectoryLocation = d.format()))
@@ -341,14 +337,37 @@ public class sync extends TinyCGIBase {
         return wbsLocation;
     }
 
-    private URL getWBSLocationFromURL(SimpleData d) throws MalformedURLException {
-        URL wbsLocation = null;
+    private URL getWBSLocationFromUrlDataElement(DataRepository data,
+            String urlDataName) throws MalformedURLException {
+        // Check to see if we have a URL stored in the data repository.
+        // If not, we can't proceed.
+        SimpleData d = data.getSimpleValue(urlDataName);
+        if (d == null)
+            return null;
 
-        String serverUrlStr = d.format();
+        // Test the URL we found, to see if we can find a valid server.
+        String lastServerUrlStr = d.format();
+        URL serverUrl;
+        try {
+            serverUrl = TeamServerSelector.resolveServerURL(lastServerUrlStr);
+        } catch (Throwable t) {
+            // if the user is running an older version of the dashboard, the
+            // resolveServerURL() method may not exist. In that case, fall
+            // back to the older testServerURL() method.
+            serverUrl = TeamServerSelector.testServerURL(lastServerUrlStr);
+        }
+        if (serverUrl == null)
+            return null;
 
-        if (TeamServerSelector.testServerURL(serverUrlStr) != null)
-            wbsLocation = new URL(serverUrlStr + "/" + HIER_FILENAME);
+        // Has the server URL changed since our last sync?  If so, write the
+        // new URL into the data repository.
+        String serverUrlStr = serverUrl.toString();
+        if (!serverUrlStr.equals(lastServerUrlStr)) {
+            data.putValue(urlDataName, StringData.create(serverUrlStr));
+        }
 
+        // Construct the WBS URL from the server URL, and return it.
+        URL wbsLocation = new URL(serverUrlStr + "/" + HIER_FILENAME);
         return wbsLocation;
     }
 
