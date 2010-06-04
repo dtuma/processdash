@@ -24,6 +24,11 @@ map { display: none }
 /* style for instructions that are specific to the dashboard */
 .dash { color: #007000 }
 
+/* style for inconspicuous hyperlinks */
+a.plain:link    { color:#000080; text-decoration:none }
+a.plain:visited { color:#000080; text-decoration:none }
+a.plain:hover   { color:blue; text-decoration:underline }
+
 /* style for items which should be omitted when printing a document. */
 @media print { .doNotPrint { display: none } }
 
