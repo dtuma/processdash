@@ -51,6 +51,7 @@ import java.util.logging.Logger;
 import java.util.prefs.Preferences;
 
 import javax.swing.AbstractAction;
+import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.ButtonGroup;
 import javax.swing.DefaultListCellRenderer;
@@ -156,7 +157,7 @@ public class TaskScheduleChart extends JFrame
         Map<String, SnippetChartItem> widgets = getChartWidgets(tl, ctx
                 .getData(), isFiltered, isRollup);
 
-        cardLayout = new CardLayout(0, 5);
+        cardLayout = new CardLayout(0, 0);
         displayArea = new JPanel(cardLayout);
         displayArea.setMinimumSize(new Dimension(0, 0));
         displayArea.setPreferredSize(new Dimension(400, 300));
@@ -835,6 +836,11 @@ public class TaskScheduleChart extends JFrame
                 Component c = (Component) getValue();
                 if (widget instanceof ConfigurableSnippetWidget)
                     c.addMouseListener(configurationButtonToggler);
+                if (c instanceof JComponent) {
+                    JComponent jc = (JComponent) c;
+                    if (jc.getBorder() == null)
+                        jc.setBorder(BorderFactory.createEmptyBorder(5, 0, 5, 0));
+                }
                 displayArea.add(c, id);
                 state = ChartItemState.READY;
                 display();
