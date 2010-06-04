@@ -57,6 +57,7 @@ import net.sourceforge.processdash.tool.export.mgr.ExportManager;
 import net.sourceforge.processdash.tool.export.mgr.ImportDirectoryInstruction;
 import net.sourceforge.processdash.tool.export.mgr.ImportManager;
 import net.sourceforge.processdash.tool.export.mgr.RepairImportDirInstruction;
+import net.sourceforge.processdash.util.UUIDFile;
 
 
 public class DashController {
@@ -458,4 +459,29 @@ public class DashController {
         return ("0123456789".indexOf(name.charAt(0)) != -1)
             && (name.endsWith(".dat") || name.endsWith(".def"));
     }
+
+    public static String getDatasetID() {
+        String result;
+        synchronized (DashController.class) {
+            result = datasetID;
+        }
+
+        if (result == null) {
+            File dataDir = new File(dash.getDirectory());
+            File idFile = new File(dataDir, "datasetID.dat");
+            try {
+                result = UUIDFile.getIdentifier(idFile);
+            } catch (Exception e) {
+                logger.log(Level.SEVERE,
+                    "Unable to retrieve dataset identifier", e);
+            }
+            synchronized (DashController.class) {
+                datasetID = result;
+            }
+        }
+
+        return result;
+    }
+    private static String datasetID = null;
+
 }
