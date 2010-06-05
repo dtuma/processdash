@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2009 Tuma Solutions, LLC
+// Copyright (C) 2001-2010 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -294,6 +294,33 @@ public class InternalSettings extends Settings {
             set("additional." + name, null);
         }
         return result;
+    }
+
+    /**
+     * Return an explicit value for the setting (i.e., one that appears in the
+     * user settings file). If a system property override has been set or if a
+     * default value is in place, those will be ignored by this method.
+     * 
+     * @param name
+     *            the name of a setting
+     * @return an explicitly set value of the setting, or null if the value has
+     *         not been explicitly set.
+     * @since 1.12.1.1
+     */
+    public static String getExplicitVal(String name) {
+        if (settings != null && settings.containsKey(name))
+            return settings.getProperty(name);
+        else
+            return null;
+    }
+
+    /**
+     * @return the default value for this setting (i.e., the value that would be
+     *         used if the setting does not appear in the user settings file).
+     * @since 1.12.1.1
+     */
+    public static String getDefaultVal(String name) {
+        return defaults.getProperty(name);
     }
 
     static synchronized void saveSettings() {
