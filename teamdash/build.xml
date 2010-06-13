@@ -412,10 +412,17 @@ class dependency has been added in a dashboard class?)
     <loadfile property="extraIni" srcFile="install/custom-install.ini">
       <filterchain><expandproperties/></filterchain>
     </loadfile>
+
     <property name="extraCore.xml" value="install/extraCore.xml"/>
     <loadfile property="extraCoreFiles" srcFile="${extraCore.xml}">
       <filterchain><expandproperties/></filterchain>
     </loadfile>
+    <condition property="licenseFile.xml" else=""
+               value='&lt;file targetdir="$INSTALL_PATH" override="true"
+                               src="${licenseFile}"/&gt;'>
+      <isset property="licenseFile"/>
+    </condition>
+
     <property name="install-flags" value=""/>
     <property name="cd-qualifier" value="team"/>
   </target>
@@ -455,7 +462,8 @@ class dependency has been added in a dashboard class?)
       <property name="additional.resources" value="${extraResources}"/>
       <property name="additional.packs" value="${extraPacks}"/>
       <property name="custom-install.extra" value="${extraIni}"/>
-      <property name="additional.core.files" value="${extraCoreFiles}"/>
+      <property name="additional.core.files"
+                value="${extraCoreFiles} ${licenseFile.xml}"/>
       <property name="qualifier" value="${cd-qualifier}"/>
       <propertyset><propertyref name="no-exe-needed"/></propertyset>
     </ant>
@@ -469,6 +477,7 @@ class dependency has been added in a dashboard class?)
              else="noSuchFile">
       <equals arg1="${launchProfile.skipConsent}" arg2="true"/>
     </condition>
+    <property name="licenseFile" value="noSuchFile"/>
     <packageLaunchProfile profilename="${launchProfile.name}"
 	  profileid="${launchProfile.id}"
 	  profileversion="${launchProfile.version}"
@@ -482,6 +491,7 @@ class dependency has been added in a dashboard class?)
         <include name="${launchProfile.file2}"/>
       </fileset>
       <fileset dir="install" includes="${skipConsentFile}"/>
+      <fileset file="${licenseFile}"/>
     </packageLaunchProfile>
   </target>
 
