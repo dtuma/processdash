@@ -190,7 +190,7 @@ public class FileConcurrencyLock implements ConcurrencyLock {
 
 
     public void assertLock() throws LockFailureException {
-        assertLock(true);
+        assertLock(false);
     }
 
     private synchronized void assertLock(boolean forceNativeReassert)
