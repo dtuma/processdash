@@ -174,6 +174,16 @@ public class CompressedInstanceLauncher extends DashboardInstance {
         return false;
     }
 
+    @Override
+    public int hashCode() {
+        int result = 0;
+        if (this.prefix != null)
+            result = this.prefix.hashCode();
+        if (this.compressedData != null)
+            result ^= this.compressedData.hashCode();
+        return result;
+    }
+
     static boolean isCompressedInstanceFilename(String basename) {
         basename = basename.toLowerCase();
         return basename.endsWith(".zip")
@@ -240,6 +250,17 @@ public class CompressedInstanceLauncher extends DashboardInstance {
             }
 
         } catch (IOException ioe) {}
+    }
+
+    /**
+     * Return true if the current dashboard process is working against a
+     * temporary copy of data that was extracted from a ZIP file.
+     * @since 1.12.1.1
+     */
+    public static boolean isRunningFromCompressedData() {
+        String val = System.getProperty(
+            ExternalResourceManager.INITIALIZATION_MODE_PROPERTY_NAME);
+        return ExternalResourceManager.INITIALIZATION_MODE_ARCHIVE.equals(val);
     }
 
 }
