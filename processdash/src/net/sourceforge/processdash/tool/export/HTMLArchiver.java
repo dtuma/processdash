@@ -1,4 +1,4 @@
-// Copyright (C) 2004-2006 Tuma Solutions, LLC
+// Copyright (C) 2004-2010 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -35,6 +35,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -87,7 +88,7 @@ public class HTMLArchiver {
         this.webServer = webServer;
         this.data = data;
         this.requestContents = new HashMap();
-        this.itemsToWrite = new HashSet();
+        this.itemsToWrite = new TreeSet();
         this.excelPartsWritten = new HashSet();
 
         switch (outputMode) {
@@ -487,7 +488,7 @@ public class HTMLArchiver {
     protected Set getReferencedItems(String html) {
         String normalizedHTML = normalizeHTML(html);
 
-        Set result = new HashSet();
+        Set result = new TreeSet();
 
         getForAttr(normalizedHTML, "HREF=", result);
         getForAttr(normalizedHTML, "href=", result);
