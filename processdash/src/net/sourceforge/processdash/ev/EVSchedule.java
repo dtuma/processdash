@@ -396,6 +396,31 @@ public class EVSchedule implements TableModel {
             }
         }
 
+        /**
+         * Return the percentage of time in this period that has elapsed
+         * before the given instant in time.
+         * 
+         * If the given time falls after this period, this will return 1.0.
+         * If the given time falls before this period, this will return 0.0.
+         * Otherwise, it will return a number between 0 and 1, indicating
+         * the percentage of this period's elapsed time that has passed
+         * before the given time.
+         */
+        public double getElapsedPercent(Date when) {
+            if (when == null) return 0;
+
+            long periodBegin = getBeginDate().getTime();
+            long periodElapsed = when.getTime() - periodBegin;
+            if (periodElapsed <= 0)
+                return 0;
+
+            long periodLength = endDate.getTime() - periodBegin;
+            if (periodElapsed >= periodLength)
+                return 1;
+
+            return (double) periodElapsed / (double) periodLength;
+        }
+
         @Override
         public Object clone() {
             try {
@@ -808,19 +833,31 @@ public class EVSchedule implements TableModel {
     /** return the total amount of time in the plan for periods ending
      * before the given date. */
     public double getScheduledPlanTime(Date when) {
+        return getScheduledPlanTime(when, false);
+    }
+
+    public double getScheduledPlanTime(Date when, boolean includePartial) {
         double result = 0;
         double auto = 0;
-        long time = when.getTime();
         Period p;
         for (int i = 0;   i < periods.size();   i++) {
             p = get(i);
-            if (p != null && p.getEndDate().getTime() < time) {
-                if (p.automatic)
-                    result += auto;
-                else
-                    result += (auto = p.planDirectTime);
-            }
-            else break;
+
+            double thisPeriodPercent = 0;
+            if (p != null)
+                thisPeriodPercent = p.getElapsedPercent(when);
+            if (thisPeriodPercent == 0)
+                break;
+            if (thisPeriodPercent < 1 && !includePartial)
+                break;
+
+            double thisPeriodTime;
+            if (p.automatic)
+                thisPeriodTime = auto;
+            else
+                thisPeriodTime = (auto = p.planDirectTime);
+
+            result += (thisPeriodTime * thisPeriodPercent);
         }
         return result;
     }
@@ -828,14 +865,21 @@ public class EVSchedule implements TableModel {
     /** return the total amount of actual time for periods ending
      * before the given date. */
     public double getScheduledActualTime(Date when) {
+        return getScheduledActualTime(when, false);
+    }
+
+    public double getScheduledActualTime(Date when, boolean includePartial) {
         double result = 0;
         long time = when.getTime();
         Period p;
         for (int i = 0;   i < periods.size();   i++) {
             p = get(i);
-            if (p != null && p.getEndDate().getTime() < time)
+            if (p == null || p.getBeginDate().getTime() > time)
+                break;
+            if (!includePartial && p.getEndDate().getTime() > time)
+                break;
+            else
                 result += p.actualDirectTime;
-            else break;
         }
         return result;
     }

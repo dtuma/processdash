@@ -96,10 +96,12 @@ public class EVMetrics implements TableModel {
     /** What % complete is the current period, in terms of elapsed time? */
     double periodPercent = 0.0;
 
-    /** The total planned time to date for completed schedule periods. */
+    /** The total planned time to date for completed and partially completed
+     * schedule periods. */
     double totalSchedulePlanTime = 0.0;
 
-    /** The total actual time to date for completed schedule periods. */
+    /** The total actual time to date for completed and partially completed
+     * schedule periods. */
     double totalScheduleActualTime = 0.0;
 
     /** The total actual time spent on indirect tasks */
@@ -195,8 +197,9 @@ public class EVMetrics implements TableModel {
     public String getErrorQualifier() { return errorQualifier; }
 
     protected void recalcScheduleTime(EVSchedule s) {
-        totalSchedulePlanTime = s.getScheduledPlanTime(currentDate);
-        totalScheduleActualTime = s.getScheduledActualTime(currentDate);
+        boolean partial = Settings.getBool("ev.usePartialDTPI", true);
+        totalSchedulePlanTime = s.getScheduledPlanTime(currentDate, partial);
+        totalScheduleActualTime = s.getScheduledActualTime(currentDate, partial);
     }
     public void loadBaselineData(EVTask taskRoot) {
         Date date = null;
