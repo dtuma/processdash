@@ -25,9 +25,12 @@ package net.sourceforge.processdash.net.cms;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
+
+import net.sourceforge.processdash.util.HTMLUtils;
 
 /** Page assembler that can render HTML for viewing a page of CMS content.
  */
@@ -49,6 +52,14 @@ public class ViewSinglePageAssembler extends AbstractViewPageAssembler {
         }
 
         out.write("</form></div>\n\n");
+
+        if (parameters.containsKey("EXPORT")) {
+            out.write("<p><i>");
+            out.write(HTMLUtils.escapeEntities(resources.format(
+                "Export_Date_Footer_FMT", new Date())));
+            out.write("</i></p>\n");
+        }
+
         out.write("<hr>\n");
         out.write("<script src='/data.js?showExcelLink' type='text/javascript'> </script>\n");
         out.write("</body>\n");

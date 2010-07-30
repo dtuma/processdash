@@ -307,7 +307,7 @@ public class EVWeekReport extends TinyCGIBase {
             out.print("<h2>");
             String endDateStr = encodeHTML(effDateDisplay);
             out.print(resources.format("Header_HTML_FMT", endDateStr));
-            if (!isExporting()) {
+            if (!isExporting() || getParameter(EFF_DATE_PARAM) == null) {
                 if (lastWeek.compareTo(startDate) > 0)
                     printNavLink(lastWeek, "Previous", settings, purpose);
                 printNavLink(nextWeek, "Next", settings, purpose);
@@ -645,6 +645,9 @@ public class EVWeekReport extends TinyCGIBase {
                         hideNames, showLabels, pos++);
                 }
             }
+
+            if (isExporting())
+                EVReport.writeExportFooter(out);
 
             if (!isExportingToExcel())
                 interpOut(EXPORT_HTML);

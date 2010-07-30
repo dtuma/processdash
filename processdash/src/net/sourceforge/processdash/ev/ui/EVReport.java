@@ -840,6 +840,9 @@ public class EVReport extends CGIChartBase {
         out.print("<h2>"+getResource("Schedule.Title")+"</h2>\n");
         writeScheduleTable(s);
 
+        if (isExporting() && !isSnippet)
+            writeExportFooter(out);
+
         out.print("<p class='doNotPrint'>");
         if (!isSnippet && !exportingToExcel())
             interpOutLink(EXPORT_TEXT_LINK);
@@ -860,6 +863,14 @@ public class EVReport extends CGIChartBase {
 
         out.print("</p>");
         out.print("</body></html>");
+    }
+
+
+    protected static void writeExportFooter(PrintWriter out) {
+        out.print("<p><i>");
+        out.print(HTMLUtils.escapeEntities(resources.format(
+            "Report.Export_Date_Footer_FMT", new Date())));
+        out.print("</i></p>\n");
     }
 
     private static List<EVTaskDataWriter> taskDataWriters = null;
