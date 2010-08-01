@@ -55,6 +55,7 @@ public class HTMLArchiver {
     public static final int OUTPUT_MIME = 0;
     public static final int OUTPUT_JAR = 1;
     public static final int OUTPUT_ZIP = 2;
+    public static final int OUTPUT_DIR = 3;
 
     protected HashSet seenURIs;
     protected WebServer webServer;
@@ -97,6 +98,9 @@ public class HTMLArchiver {
 
             case OUTPUT_ZIP:
                 this.writer = new ZipArchiveWriter(); break;
+
+            case OUTPUT_DIR:
+                this.writer = new DirArchiveWriter(); break;
 
             case OUTPUT_MIME: default:
                 // the first entry in the MIME archive MUST be the HTML page
@@ -215,6 +219,7 @@ public class HTMLArchiver {
         } catch (IOException ioe) {
             // couldn't open file. this could easily happen if the uri
             // did not name an internal dashboard uri; just move along.
+            logger.log(Level.WARNING, "Error when archiving report", ioe);
         }
     }
 
@@ -247,7 +252,8 @@ public class HTMLArchiver {
                             // special handling for excel export links
                             safeURL = writeExcelPart(uri, html, contentType);
                             extra = " target='_blank'";
-                        } else if (subURI.equalsIgnoreCase("about:blank")) {
+                        } else if (subURI.equalsIgnoreCase("about:blank")
+                                || subURI.equalsIgnoreCase("nohref")) {
                             // no need to alter about:blank references
                             continue;
                         } else {
@@ -660,9 +666,9 @@ public class HTMLArchiver {
 
         public byte[] getContents() { return contents; }
         public String getContentType() { return contentType; }
-        public String getHeader() { return header; }
+        // public String getHeader() { return header; }
         public int getHeaderLength() { return headerLength; }
-        public String getUri() { return uri; }
+        // public String getUri() { return uri; }
 
         public void clearContents() {
             contents = null;

@@ -1,4 +1,4 @@
-// Copyright (C) 2003 Tuma Solutions, LLC
+// Copyright (C) 2003-2010 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -228,6 +228,8 @@ public class MakeArchive extends TinyCGIBase implements TinyCGIHighVolume {
             return HTMLArchiver.OUTPUT_ZIP;
         if ("mime".equalsIgnoreCase(mode))
             return HTMLArchiver.OUTPUT_MIME;
+        if ("dir".equalsIgnoreCase(mode))
+            return HTMLArchiver.OUTPUT_DIR;
         return -1;
     }
 
@@ -235,6 +237,7 @@ public class MakeArchive extends TinyCGIBase implements TinyCGIHighVolume {
         switch (getOutputMode()) {
             case HTMLArchiver.OUTPUT_JAR: return ".jar";
             case HTMLArchiver.OUTPUT_ZIP: return ".zip";
+            case HTMLArchiver.OUTPUT_DIR: return ".txt";
             case HTMLArchiver.OUTPUT_MIME: default: return ".mhtml";
         }
     }
@@ -242,6 +245,7 @@ public class MakeArchive extends TinyCGIBase implements TinyCGIHighVolume {
         switch (getOutputMode()) {
             case HTMLArchiver.OUTPUT_JAR: return "JAR";
             case HTMLArchiver.OUTPUT_ZIP: return "ZIP";
+            case HTMLArchiver.OUTPUT_DIR: return "DIR";
             case HTMLArchiver.OUTPUT_MIME: default: return "MIME";
         }
     }

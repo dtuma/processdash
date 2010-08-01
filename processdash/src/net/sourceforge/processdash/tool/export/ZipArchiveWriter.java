@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2006 Tuma Solutions, LLC
+// Copyright (C) 2003-2010 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -33,17 +33,22 @@ import java.util.TreeMap;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
+import org.xmlpull.v1.XmlSerializer;
+
 import net.sourceforge.processdash.net.http.WebServer;
 import net.sourceforge.processdash.util.HTTPUtils;
 import net.sourceforge.processdash.util.StringUtils;
+import net.sourceforge.processdash.util.XMLUtils;
 
 
 public class ZipArchiveWriter implements ArchiveWriter {
 
     protected ZipOutputStream zipOut;
+    protected String defaultFile;
     protected String defaultPath;
     private int itemNumber;
     private Map uriMap;
+    private Map<String, String> contentTypeMap;
 
 
     //////////////////////////////////////////////////////////////
@@ -70,6 +75,7 @@ public class ZipArchiveWriter implements ArchiveWriter {
     }
 
     public void finishArchive() throws IOException {
+        writeManifest();
         writeIndexFile();
         zipOut.finish();
     }
@@ -82,9 +88,11 @@ public class ZipArchiveWriter implements ArchiveWriter {
 
     protected void init(OutputStream out) throws IOException {
         zipOut = createArchiveOutputStream(out);
-        zipOut.setLevel(9);
+        if (zipOut != null)
+            zipOut.setLevel(9);
         itemNumber = 0;
         uriMap = new HashMap();
+        contentTypeMap = new HashMap<String, String>();
     }
 
     protected ZipOutputStream createArchiveOutputStream(OutputStream out) throws IOException {
@@ -139,6 +147,34 @@ public class ZipArchiveWriter implements ArchiveWriter {
         return buf.toString().getBytes(charset);
     }
 
+    private void writeManifest() throws IOException {
+        zipOut.putNextEntry(new ZipEntry(getZipEntryFilename(
+            MANIFEST_FILENAME)));
+        writeManifest(zipOut);
+        zipOut.closeEntry();
+    }
+
+    protected void writeManifest(OutputStream out) throws IOException {
+        XmlSerializer xml = XMLUtils.getXmlSerializer(true);
+        xml.setOutput(out, "UTF-8");
+        xml.startDocument("UTF-8", null);
+
+        xml.startTag(null, "pdashReportArchive");
+        xml.attribute(null, "version", "1.0");
+
+        for (Map.Entry<String, String> e : contentTypeMap.entrySet()) {
+            xml.startTag(null, "file");
+            xml.attribute(null, "name", e.getKey());
+            xml.attribute(null, "contentType", e.getValue());
+            if (defaultFile.equals(e.getKey()))
+                xml.attribute(null, "isDefault", "true");
+            xml.endTag(null, "file");
+        }
+
+        xml.endTag(null, "pdashReportArchive");
+        xml.endDocument();
+    }
+
     private void writeIndexFile() throws IOException {
         zipOut.putNextEntry(new ZipEntry(INDEX_FILENAME));
         String contents = StringUtils.findAndReplace
@@ -160,8 +196,9 @@ public class ZipArchiveWriter implements ArchiveWriter {
         if (result == null) {
             result = ITEM_PREFIX + itemNumber++ + getSuffix(contentType);
             if (defaultPath == null)
-                defaultPath = getZipEntryFilename(result);
+                defaultPath = getZipEntryFilename(defaultFile = result);
             uriMap.put(uri, result);
+            contentTypeMap.put(result, contentType);
         }
         return result;
     }
@@ -199,6 +236,7 @@ public class ZipArchiveWriter implements ArchiveWriter {
     private static final String ITEM_PREFIX = "arch_item_";
     protected static final String FILES_SUBDIR = "files";
     private static final String INDEX_FILENAME = "index.htm";
+    private static final String MANIFEST_FILENAME = "manifest.xml";
     private static final Map CONTENT_TYPE_SUFFIX_MAP = loadSuffixes();
 
 
