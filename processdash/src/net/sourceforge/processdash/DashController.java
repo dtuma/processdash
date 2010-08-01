@@ -63,6 +63,7 @@ import net.sourceforge.processdash.util.UUIDFile;
 public class DashController {
 
     static ProcessDashboard dash = null;
+    private static File dataDirectory_ = null;
     private static String loopbackAddress = "127.0.0.1";
     private static String localAddress = "127.0.0.1";
     private static DashboardPermission PERMISSION =
@@ -78,6 +79,18 @@ public class DashController {
             loopbackAddress = InetAddress.getByName("localhost")
                     .getHostAddress();
         } catch (IOException ioe) {}
+    }
+
+    public static void setDataDirectory(File directory) {
+        PERMISSION.checkPermission();
+        dataDirectory_ = directory;
+    }
+
+    private static File getDataDirectory() {
+        if (dataDirectory_ != null)
+            return dataDirectory_;
+        else
+            return new File(dash.getDirectory());
     }
 
     public static void checkIP(Object remoteAddress) throws IOException {
@@ -429,7 +442,7 @@ public class DashController {
         PERMISSION.checkPermission();
         Set<String> filesInUse = new HashSet<String>();
         getDataAndDefectFilesInUse(filesInUse, PropertyKey.ROOT);
-        File[] files = new File(dash.getDirectory()).listFiles();
+        File[] files = getDataDirectory().listFiles();
         if (files == null)
             return;
         for (File f : files) {
@@ -467,7 +480,7 @@ public class DashController {
         }
 
         if (result == null) {
-            File dataDir = new File(dash.getDirectory());
+            File dataDir = getDataDirectory();
             File idFile = new File(dataDir, "datasetID.dat");
             try {
                 result = UUIDFile.getIdentifier(idFile);

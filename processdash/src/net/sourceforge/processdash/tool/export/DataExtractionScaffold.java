@@ -27,10 +27,13 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.regex.Pattern;
 
+import net.sourceforge.processdash.DashController;
 import net.sourceforge.processdash.DashboardContext;
 import net.sourceforge.processdash.InternalSettings;
 import net.sourceforge.processdash.Settings;
@@ -64,6 +67,8 @@ public class DataExtractionScaffold implements DashboardContext {
     private File dataDirectory;
 
     private boolean useExternalResourceMappingFile;
+
+    private Map<String, String> extraSettings = new HashMap();
 
     private DataRepository data;
 
@@ -126,6 +131,13 @@ public class DataExtractionScaffold implements DashboardContext {
         this.createWebServer = createWebServer;
     }
 
+    public void putSetting(String name, String value) {
+        if (extraSettings != null)
+            extraSettings.put(name, value);
+        else
+            InternalSettings.set(name, value);
+    }
+
     public DataRepository getData() {
         return data;
     }
@@ -157,6 +169,7 @@ public class DataExtractionScaffold implements DashboardContext {
 
 
     public void init() throws Exception {
+        DashController.setDataDirectory(dataDirectory);
         String dataDirPath = dataDirectory.getAbsolutePath()
                 + System.getProperty("file.separator");
 
@@ -168,6 +181,10 @@ public class DataExtractionScaffold implements DashboardContext {
         InternalSettings.set("templates.disableSearchPath", "true");
         InternalSettings.set("export.disableAutoExport", "true");
         InternalSettings.set("slowNetwork", "true");
+        for (Map.Entry<String, String> e : extraSettings.entrySet()) {
+            InternalSettings.set(e.getKey(), e.getValue());
+        }
+        extraSettings = null;
 
         // reset the template loader search path
         TemplateLoader.resetTemplateURLs();
