@@ -224,7 +224,9 @@ public class WebServer implements ContentSource {
 
         String uri, method, protocol, id, path, query;
 
-        private class TinyWebThreadException extends Exception {};
+        private class TinyWebThreadException extends Exception {
+            public TinyWebThreadException(String message) { super(message); }
+        };
 
         public TinyWebThread(Socket clientSocket) {
             runnerThread = new Thread(this, "TinyWebThread-"+nextThreadNum());
@@ -1150,7 +1152,8 @@ public class WebServer implements ContentSource {
                                String otherHeaders, Throwable cause )
             throws TinyWebThreadException
         {
-            TinyWebThreadException result = new TinyWebThreadException();
+            TinyWebThreadException result = new TinyWebThreadException(title
+                    + ": " + text);
             if (cause != null)
                 result.initCause(cause);
             try {
