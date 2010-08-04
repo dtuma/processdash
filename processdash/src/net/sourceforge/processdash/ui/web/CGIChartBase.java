@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2008 Tuma Solutions, LLC
+// Copyright (C) 2001-2010 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -285,12 +285,14 @@ public abstract class CGIChartBase extends net.sourceforge.processdash.ui.web.Ti
         // finally, write the image map.  Note that we have to strip line
         // break characters from the resulting HTML, otherwise firefox seems
         // to decide that the <map> tag actually takes up space on the page
-        StringBuffer imageMapHtml = new StringBuffer(ImageMapUtilities
-                .getImageMap("IMG" + imgID, info, getToolTipGenerator(tooltip),
-                    new StandardURLTagFragmentGenerator()));
-        StringUtils.findAndReplace(imageMapHtml, "\r", "");
-        StringUtils.findAndReplace(imageMapHtml, "\n", "");
-        out.write(imageMapHtml.toString());
+        String imageMapHtml = ImageMapUtilities.getImageMap("IMG" + imgID,
+                info, getToolTipGenerator(tooltip),
+                new StandardURLTagFragmentGenerator());
+        for (int i = 0;  i < imageMapHtml.length();  i++) {
+            char c = imageMapHtml.charAt(i);
+            if (c != '\r' && c != '\n')
+                out.write(c);
+        }
         out.flush();
     }
 
