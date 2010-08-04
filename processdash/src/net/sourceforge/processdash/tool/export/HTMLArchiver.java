@@ -39,6 +39,7 @@ import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.data.util.FormToHTML;
 import net.sourceforge.processdash.net.http.WebServer;
@@ -75,7 +76,7 @@ public class HTMLArchiver {
     {
         HTMLArchiver m = new HTMLArchiver(webServer, data, outputMode);
         try {
-            ThreadThrottler.beginThrottling(0.5);
+            ThreadThrottler.beginThrottling(getThrottlePercentage());
             m.run(outStream, startingUri);
         } finally {
             ThreadThrottler.endThrottling();
@@ -675,6 +676,22 @@ public class HTMLArchiver {
         }
 
     }
+
+    private static final double getThrottlePercentage() {
+        try {
+            String setting = Settings.getVal(THROTTLE_PERCENT_SETTING);
+            if (setting != null) {
+                double val = Double.parseDouble(setting) / 100;
+                val = Math.min(1.00, Math.max(0.05, val));
+                return val;
+            }
+        } catch (Exception e) {
+        }
+        return 0.5;
+    }
+
+    private static final String THROTTLE_PERCENT_SETTING = HTMLArchiver.class
+            .getName() + ".throttlePercent";
 
     private static final Logger logger = Logger.getLogger(HTMLArchiver.class
             .getName());
