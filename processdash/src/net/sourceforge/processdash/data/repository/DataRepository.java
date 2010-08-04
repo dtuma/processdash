@@ -421,12 +421,12 @@ public class DataRepository implements Repository, DataContext,
             start();
         }
 
-        public void highPriority() {
-            setPriority(NORM_PRIORITY);
-        }
-        public void lowPriority()  {
-            setPriority((MIN_PRIORITY + NORM_PRIORITY)/2);
-        }
+//      public void highPriority() {
+//        setPriority(NORM_PRIORITY);
+//      }
+//      public void lowPriority()  {
+//        setPriority((MIN_PRIORITY + NORM_PRIORITY)/2);
+//      }
 
         /** Determine all the notifications that will need to be made as
          * a result of a change to given <code>DataElement</code> with
@@ -989,7 +989,6 @@ public class DataRepository implements Repository, DataContext,
             boolean observedFlagValue;
             volatile boolean initializing;
             Set tentativeFreezables;
-            char[] buffer = null;
 
             public OCDFrozenDataSet(String freezeFlagName)
                         throws PatternSyntaxException {
@@ -1314,7 +1313,8 @@ public class DataRepository implements Repository, DataContext,
 
                 currentGeneration++;
 
-                runCleanup();
+                if (running)
+                    runCleanup();
             }
         }
 
