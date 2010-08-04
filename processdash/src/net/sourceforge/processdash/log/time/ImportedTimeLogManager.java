@@ -65,6 +65,16 @@ public class ImportedTimeLogManager {
     }
 
     /**
+     * Empty our cache of all data and cleanup any temporary files we have
+     * created.
+     */
+    public void dispose() {
+        for (Object f : importedLogs.values())
+            ((File) f).delete();
+        importedLogs.clear();
+    }
+
+    /**
      * Import a time log, and associate it with the given prefix. If another
      * time log is already present in the cache with the same prefix, it will be
      * replaced by the incoming time log.
@@ -93,7 +103,6 @@ public class ImportedTimeLogManager {
             // create a temporary file, and copy the frobbed entries to it
             File destFile = TempFileFactory.get().createTempFile(
                 "tempImportedTimeLog", ".xml");
-            destFile.deleteOnExit();
             TimeLogWriter.write(destFile, timeLogEntries);
 
             // save the new file into our map of imported log files.
@@ -197,7 +206,6 @@ public class ImportedTimeLogManager {
         try {
             File newFile = TempFileFactory.get().createTempFile(
                 "tempImportedTimeLog", ".xml");
-            newFile.deleteOnExit();
 
             FileUtils.copyFile(oldFile, newFile);
             return newFile;

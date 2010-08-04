@@ -100,6 +100,7 @@ import net.sourceforge.processdash.log.defects.DefectAnalyzer;
 import net.sourceforge.processdash.log.defects.DefectLog;
 import net.sourceforge.processdash.log.defects.RepairDefectCounts;
 import net.sourceforge.processdash.log.time.DashboardTimeLog;
+import net.sourceforge.processdash.log.time.ImportedTimeLogManager;
 import net.sourceforge.processdash.log.time.TimeLog;
 import net.sourceforge.processdash.log.time.TimeLoggingModel;
 import net.sourceforge.processdash.log.time.WorkingTimeLog;
@@ -1364,6 +1365,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
             data.shutDown();
             data = null;
         }
+        ImportedTimeLogManager.getInstance().dispose();
         logger.fine("Removing concurrency lock");
         workingDirectory.releaseLocks();
 
