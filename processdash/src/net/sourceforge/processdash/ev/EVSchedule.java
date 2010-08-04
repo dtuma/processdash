@@ -730,10 +730,11 @@ public class EVSchedule implements TableModel {
 
     public Period getLast() {
         try {
-            return (Period) periods.lastElement();
+            if (!periods.isEmpty())
+                return (Period) periods.lastElement();
         } catch (NoSuchElementException nsee) {
-            return null;
         }
+        return null;
     }
 
     public synchronized ListData getSaveList() {
@@ -772,8 +773,10 @@ public class EVSchedule implements TableModel {
             return defVal;
     }
     static double getXMLNum(Element e, String attrName) {
+        String s = e.getAttribute(attrName);
+        if (s == null || s.length() == 0) return 0;
         try {
-            return Double.parseDouble(e.getAttribute(attrName));
+            return Double.parseDouble(s);
         } catch (Exception exc) { return 0; }
     }
     static Date getXMLDate(Element e, String attrName) {
