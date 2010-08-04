@@ -64,6 +64,9 @@ import net.sourceforge.processdash.util.StringUtils;
 
 public class DataExtractionScaffold implements DashboardContext {
 
+    public static final String SCAFFOLD_MODE_SETTING =
+            DataExtractionScaffold.class.getName() + ".isActive";
+
     private File dataDirectory;
 
     private boolean useExternalResourceMappingFile;
@@ -178,6 +181,7 @@ public class DataExtractionScaffold implements DashboardContext {
                 + InternalSettings.getSettingsFilename();
         InternalSettings.initialize(settingsFilename);
         InternalSettings.setReadOnly(true);
+        InternalSettings.set(SCAFFOLD_MODE_SETTING, "true");
         InternalSettings.set("templates.disableSearchPath", "true");
         InternalSettings.set("export.disableAutoExport", "true");
         InternalSettings.set("slowNetwork", "true");

@@ -1,4 +1,4 @@
-// Copyright (C) 2008 Tuma Solutions, LLC
+// Copyright (C) 2008-2010 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -28,13 +28,19 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 
+import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.net.http.TinyCGIException;
+import net.sourceforge.processdash.tool.export.DataExtractionScaffold;
 import net.sourceforge.processdash.util.DataStreamCache;
 import net.sourceforge.processdash.util.FileUtils;
 
 public class PngCache extends TinyCGIBase {
 
-    private static final DataStreamCache PNG_CACHE = new DataStreamCache();
+    private static final boolean USE_DISK_CACHE = !Settings.getBool(
+        DataExtractionScaffold.SCAFFOLD_MODE_SETTING, false);
+
+    private static final DataStreamCache PNG_CACHE = new DataStreamCache(
+            USE_DISK_CACHE);
 
     static OutputStream getOutputStream() {
         return PNG_CACHE.getOutputStream();

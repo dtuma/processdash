@@ -94,6 +94,10 @@ public class DataStreamCache {
 
 
     public DataStreamCache() {
+        this(true);
+    }
+
+    public DataStreamCache(boolean enableFilesystemCache) {
         // generate an arbitrary starting stream ID. The calculation below is
         // designed to produce numbers that *probably* weren't used in previous
         // invocations of the application.
@@ -105,8 +109,10 @@ public class DataStreamCache {
                 .synchronizedMap(new HashMap<Integer, SavedStream>());
         this.memoryCleanupPolicy = USE_ONCE;
         this.fileCleanupPolicy = DELETE_OLD;
-        this.streamSaver = new StreamSaver();
-        this.streamSaver.start();
+        if (enableFilesystemCache) {
+            this.streamSaver = new StreamSaver();
+            this.streamSaver.start();
+        }
     }
 
 
@@ -266,7 +272,8 @@ public class DataStreamCache {
     private void addDataToCache(CachingOutputStream s) {
         MemCachedStream data = new MemCachedStream(s.streamID, s.toByteArray());
         memCachedData.put(s.streamID, data);
-        streamSaver.addStreamToSave(data);
+        if (streamSaver != null)
+            streamSaver.addStreamToSave(data);
         cleanupCachedStreams();
     }
 
@@ -442,8 +449,6 @@ public class DataStreamCache {
      */
     private class SavedStream {
 
-        int streamID;
-
         CacheFile cacheFile;
 
         long startPos;
@@ -452,7 +457,6 @@ public class DataStreamCache {
 
         public SavedStream(int streamID, CacheFile cacheFile, long startPos,
                 int dataLen) {
-            this.streamID = streamID;
             this.cacheFile = cacheFile;
             this.startPos = startPos;
             this.dataLen = dataLen;
