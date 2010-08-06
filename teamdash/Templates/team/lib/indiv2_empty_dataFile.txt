@@ -10,7 +10,6 @@
 [Auto_Delete_Top_Down/Estimated Time] = tag;
 
 [Time] == 0;
-[Time_Logging_Allowed] == tag;
 
 [Project_WBS_ID] = [../Project_WBS_ID] &/ pathTail([^]);
 
