@@ -32,7 +32,7 @@ public class WorkflowNumPeopleColumn extends AbstractDataColumn {
 
     public WorkflowNumPeopleColumn(WBSModel wbsModel) {
         this.wbsModel = wbsModel;
-        this.columnName = this.columnID = "# People";
+        this.columnName = this.columnID = COLUMN_ID;
     }
 
     public boolean isCellEditable(WBSNode node) {
@@ -42,14 +42,19 @@ public class WorkflowNumPeopleColumn extends AbstractDataColumn {
     public Object getValueAt(WBSNode node) {
         if (!isCellEditable(node)) return "";
 
-        double value = node.getNumericAttribute(ATTR_NAME);
-        int numPeople = 1;
-        if (value > 0) numPeople = (int) value;
+        int numPeople = getNumPeopleAt(node);
 
         if (numPeople == 1)
             return "1 person";
         else
             return numPeople + " people";
+    }
+
+    static int getNumPeopleAt(WBSNode node) {
+        double value = node.getNumericAttribute(ATTR_NAME);
+        int numPeople = 1;
+        if (value > 0) numPeople = (int) value;
+        return numPeople;
     }
 
 
@@ -69,4 +74,5 @@ public class WorkflowNumPeopleColumn extends AbstractDataColumn {
     }
 
     private static final String ATTR_NAME = TeamTimeColumn.NUM_PEOPLE_ATTR;
+    static final String COLUMN_ID = "# People";
 }

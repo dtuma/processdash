@@ -42,6 +42,7 @@ implements CalculatedDataColumn {
         this.columnName = "Rate";
         this.columnID = "Workflow Rate";
         this.dependentColumns = new String[] {
+            WorkflowNumPeopleColumn.COLUMN_ID,
             WorkflowPercentageColumn.COLUMN_ID };
     }
 
@@ -70,12 +71,30 @@ implements CalculatedDataColumn {
     }
     private void recalc(WBSNode node) {
         if (TeamTimeColumn.isLeafTask(wbsModel, node)) {
-            double baseRate = getValueForNode(node);
-            double baseProductivity = 1.0 / baseRate;
+            // use the workflow percentage to adjust the rate
+            double baseRate = getValueForNode(node);   // units per hour
+            double baseTimePerUnit = 1.0 / baseRate;   // hours per unit
             double percentage = NumericDataValue.parse
                 (dataModel.getValueAt(node, percentageColumn)) / 100.0;
-            double effectiveProductivity = percentage * baseProductivity;
-            double effectiveRate = 1.0 / effectiveProductivity;
+            double effectiveTimePerUnit = percentage * baseTimePerUnit;
+            double effectiveRate = 1.0 / effectiveTimePerUnit;
+
+            // rate/percentage-based planning can take two very different modes:
+            //  1) The percentage describes a percentage of the overall
+            //     workflow.  When multiple people are working, their aggregate
+            //     team time should add up to this percentage.
+            //  2) This task is occurring at a specific rate, like a code
+            //     review that proceeds at 200 LOC/Hr.  Each person
+            //     should be redundantly spending the same amount of time.
+            // To discern the difference between the two, we look at the
+            // percentage.  If it is "100%", we assume the second mode.
+            // Otherwise, if it is less than 100%, we want to adjust the
+            // per-person rate by the number of people, so the final team
+            // total will add back up to the requested percentage.
+            double numPeople = WorkflowNumPeopleColumn.getNumPeopleAt(node);
+            if (percentage > 0 && percentage < 1 && numPeople > 1)
+                effectiveRate = effectiveRate * numPeople;
+
             if (Double.isNaN(effectiveRate) ||
                 Double.isInfinite(effectiveRate))
                 node.setAttribute(TeamTimeColumn.RATE_ATTR, null);
