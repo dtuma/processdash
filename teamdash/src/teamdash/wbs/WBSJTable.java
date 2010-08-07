@@ -245,9 +245,9 @@ public class WBSJTable extends JTable {
     private void buildCustomActionMaps() {
 
         // Map "Tab" and "Shift-Tab" to the demote/promote actions
-        customActions.add(new ActionMapping(KeyEvent.VK_TAB, 0, "Demote",
+        customActions.add(new WbsActionMapping(KeyEvent.VK_TAB, 0, "Demote",
                 DEMOTE_ACTION));
-        customActions.add(new ActionMapping(KeyEvent.VK_TAB, SHIFT, "Promote",
+        customActions.add(new WbsActionMapping(KeyEvent.VK_TAB, SHIFT, "Promote",
                 PROMOTE_ACTION));
         customActions.add(new ActionMapping(KeyEvent.VK_INSERT, 0, "Insert",
                 INSERT_ACTION));
@@ -299,18 +299,24 @@ public class WBSJTable extends JTable {
         InputMap inputMap2 = getInputMap(WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
         ActionMap actionMap = getActionMap();
 
+        ClipboardBridge clipboardBridge = new ClipboardBridge(this);
+
         inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_X, CTRL), "Cut");
-        actionMap.put("Cut", CUT_ACTION);
+        actionMap.put("Cut", new WbsNodeKeystrokeDelegatingAction(CUT_ACTION,
+                null));
 
         inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_C, CTRL), "Copy");
-        actionMap.put("Copy", COPY_ACTION);
+        actionMap.put("Copy", new WbsNodeKeystrokeDelegatingAction(COPY_ACTION,
+                clipboardBridge.getCopyAction()));
 
         inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_V, CTRL), "Paste");
         inputMap2.put(KeyStroke.getKeyStroke(KeyEvent.VK_V, CTRL), "Paste");
-        actionMap.put("Paste", PASTE_ACTION);
+        actionMap.put("Paste", new WbsNodeKeystrokeDelegatingAction(
+                PASTE_ACTION, clipboardBridge.getPasteAction()));
 
         inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), "Delete");
-        actionMap.put("Delete", DELETE_ACTION);
+        actionMap.put("Delete", new WbsNodeKeystrokeDelegatingAction(
+                DELETE_ACTION, TABLE_DELETE_ACTION));
     }
 
 
@@ -423,9 +429,100 @@ public class WBSJTable extends JTable {
         return result;
     }
 
+    protected boolean isWbsNodeColumnSelected() {
+        int currentCol = getColumnModel().getSelectionModel()
+                .getAnchorSelectionIndex();
+        if (currentCol == -1)
+            currentCol = getEditingColumn();
+        return (currentCol == -1 || getColumnClass(currentCol) == WBSNode.class);
+    }
+
+    private void delegateKeyAction(Action action, ActionEvent e) {
+        if (action != null && action.isEnabled()) {
+            ActionEvent event = new ActionEvent(WBSJTable.this, e.getID(), e
+                    .getActionCommand(), e.getModifiers());
+            action.actionPerformed(event);
+        }
+    }
+
     private interface EnablementCalculation {
         public void recalculateEnablement(int[] selectedRows);
     }
+
+
+    /** Class that will perform a WBS-specific action if the cursor selection
+     * is in the WBS node column, but will delegate to a regular table action
+     * otherwise. */
+    private class WbsNodeKeystrokeDelegatingAction extends AbstractAction {
+        private Action wbsAction;
+        private Action tableAction;
+
+        WbsNodeKeystrokeDelegatingAction(Action wbsAction, Action tableAction) {
+            this.wbsAction = wbsAction;
+            this.tableAction = tableAction;
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            if (isWbsNodeColumnSelected() && wbsAction.isEnabled())
+                delegateKeyAction(wbsAction, e);
+            else
+                delegateKeyAction(tableAction, e);
+        }
+    }
+
+
+    /** An ActionMapping object holds information about an Action and the
+     * keystrokes that should be used to invoke it.  An ActionMapping object
+     * knows how to install itself into a component.  This class takes things
+     * one step farther, to support Actions which are WBS-node-specific: i.e.,
+     * actions that should only be triggered when the WBS node column is
+     * selected.  During the installation process, it will automatically
+     * look up the current binding for the keystroke.  If one exists, it
+     * will create and install a {@link WbsNodeKeystrokeDelegatingAction} instead. */
+    private class WbsActionMapping extends ActionMapping {
+
+        public WbsActionMapping(int keyCode, int modifiers, Object actionKey,
+                Action action) {
+            super(keyCode, modifiers, actionKey, action);
+        }
+
+        @Override
+        public void install(JComponent component, int condition) {
+            Action actionToInstall = this.action;
+
+            if (component instanceof JTable) {
+                Action originalAction = getOriginalAction(component);
+                if (originalAction != null)
+                    actionToInstall = new WbsNodeKeystrokeDelegatingAction(
+                            this.action, originalAction);
+            }
+
+            super.install(component, condition, actionToInstall);
+        }
+
+        private Action getOriginalAction(JComponent component) {
+            return getOriginalAction(component, JComponent.WHEN_FOCUSED,
+                JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+        }
+
+        private Action getOriginalAction(JComponent comp, int... conditions) {
+            for (int condition : conditions) {
+                Action result = getOriginalAction(comp, condition);
+                if (result != null)
+                    return result;
+            }
+            return null;
+        }
+
+        private Action getOriginalAction(JComponent comp, int condition) {
+            Object origActionKey = comp.getInputMap(condition).get(keyStroke);
+            if (origActionKey == null)
+                return null;
+            else
+                return comp.getActionMap().get(origActionKey);
+        }
+    }
+
 
     /** Abstract class for an action that (1) stops editing, (2) does
      * something, then (3) restarts editing */
@@ -593,10 +690,7 @@ public class WBSJTable extends JTable {
         }
 
         public void doAction(ActionEvent e) {
-            ActionEvent event = new ActionEvent
-                (WBSJTable.this, e.getID(), e.getActionCommand(),
-                 e.getModifiers());
-            realAction.actionPerformed(event);
+            delegateKeyAction(realAction, e);
         }
     }
 
@@ -807,11 +901,7 @@ public class WBSJTable extends JTable {
             enablementCalculations.add(this);
         }
         public void actionPerformed(ActionEvent e) {
-            int currentCol = getColumnModel().getSelectionModel()
-                    .getAnchorSelectionIndex();
-            if (currentCol == -1)
-                currentCol = getEditingColumn();
-            if (currentCol != -1 && getColumnClass(currentCol) == WBSNode.class)
+            if (isWbsNodeColumnSelected())
                 super.actionPerformed(e);
             else
                 performAlternateAction(e);
@@ -979,6 +1069,19 @@ public class WBSJTable extends JTable {
     /** This string is used by the delete action to compose a message
      * which will be displayed to the user. */
     String selfName = "work breakdown structure";
+
+
+    /** An action to delete the value in the currently selected table cell. */
+    private class TableDeleteAction extends AbstractAction {
+
+        public void actionPerformed(ActionEvent e) {
+            int selRow = getSelectedRow();
+            int selCol = getSelectedColumn();
+            if (selRow != -1 && selCol != -1)
+                setValueAt(null, selRow, selCol);
+        }
+    }
+    final TableDeleteAction TABLE_DELETE_ACTION = new TableDeleteAction();
 
 
     /** An action to insert information from a workflow */

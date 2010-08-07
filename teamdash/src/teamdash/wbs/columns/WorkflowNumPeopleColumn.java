@@ -23,16 +23,21 @@
 
 package teamdash.wbs.columns;
 
+import javax.swing.table.TableCellRenderer;
+
+import teamdash.wbs.CustomRenderedColumn;
 import teamdash.wbs.WBSModel;
 import teamdash.wbs.WBSNode;
 
-public class WorkflowNumPeopleColumn extends AbstractDataColumn {
+public class WorkflowNumPeopleColumn extends AbstractDataColumn implements
+        CustomRenderedColumn {
 
     private WBSModel wbsModel;
 
     public WorkflowNumPeopleColumn(WBSModel wbsModel) {
         this.wbsModel = wbsModel;
         this.columnName = this.columnID = COLUMN_ID;
+        this.preferredWidth = 60;
     }
 
     public boolean isCellEditable(WBSNode node) {
@@ -71,6 +76,11 @@ public class WorkflowNumPeopleColumn extends AbstractDataColumn {
             int numPeople = Integer.parseInt(s);
             node.setNumericAttribute(ATTR_NAME, numPeople);
         } catch (NumberFormatException nfe) { }
+    }
+
+
+    public TableCellRenderer getCellRenderer() {
+        return WorkflowTableCellRenderer.INSTANCE;
     }
 
     private static final String ATTR_NAME = TeamTimeColumn.NUM_PEOPLE_ATTR;

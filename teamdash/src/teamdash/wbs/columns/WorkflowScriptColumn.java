@@ -23,9 +23,13 @@
 
 package teamdash.wbs.columns;
 
+import javax.swing.table.TableCellRenderer;
+
+import teamdash.wbs.CustomRenderedColumn;
 import teamdash.wbs.WBSNode;
 
-public class WorkflowScriptColumn extends AbstractDataColumn {
+public class WorkflowScriptColumn extends AbstractDataColumn implements
+        CustomRenderedColumn {
 
     private static final String COLUMN_ID = "Workflow_URL";
 
@@ -50,6 +54,10 @@ public class WorkflowScriptColumn extends AbstractDataColumn {
     public void setValueAt(Object value, WBSNode node) {
         String s = (value == null ? null : value.toString().trim());
         node.setAttribute(VALUE_ATTR, s);
+    }
+
+    public TableCellRenderer getCellRenderer() {
+        return WorkflowTableCellRenderer.INSTANCE;
     }
 
 }

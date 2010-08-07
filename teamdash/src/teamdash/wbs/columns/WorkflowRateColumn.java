@@ -23,24 +23,29 @@
 
 package teamdash.wbs.columns;
 
+import javax.swing.JLabel;
+import javax.swing.JTable;
+import javax.swing.table.TableCellRenderer;
+
 import teamdash.wbs.CalculatedDataColumn;
+import teamdash.wbs.CustomRenderedColumn;
 import teamdash.wbs.DataTableModel;
 import teamdash.wbs.NumericDataValue;
 import teamdash.wbs.WBSModel;
 import teamdash.wbs.WBSNode;
 
 public class WorkflowRateColumn extends AbstractNumericColumn
-implements CalculatedDataColumn {
+        implements CalculatedDataColumn, CustomRenderedColumn {
 
     private DataTableModel dataModel;
     private WBSModel wbsModel;
-    private int percentageColumn = -1;
 
     public WorkflowRateColumn(DataTableModel dataModel) {
         this.dataModel = dataModel;
         this.wbsModel = dataModel.getWBSModel();
         this.columnName = "Rate";
-        this.columnID = "Workflow Rate";
+        this.columnID = COLUMN_ID;
+        this.preferredWidth = 50;
         this.dependentColumns = new String[] {
             WorkflowNumPeopleColumn.COLUMN_ID,
             WorkflowPercentageColumn.COLUMN_ID };
@@ -62,6 +67,13 @@ implements CalculatedDataColumn {
 
     protected void setValueForNode(double value, WBSNode node) {
         node.setNumericAttribute(ATTR_NAME, value);
+
+        // when the rate appears or disappears, it can affect the appearance
+        // of the "%" and "Units" columns.  Fire an event on the table so it
+        // can repaint those cells.
+        int row = dataModel.getWBSModel().getRowForNode(node);
+        if (row > 0)
+            dataModel.fireTableRowsUpdated(row, row);
     }
 
 
@@ -74,8 +86,8 @@ implements CalculatedDataColumn {
             // use the workflow percentage to adjust the rate
             double baseRate = getValueForNode(node);   // units per hour
             double baseTimePerUnit = 1.0 / baseRate;   // hours per unit
-            double percentage = NumericDataValue.parse
-                (dataModel.getValueAt(node, percentageColumn)) / 100.0;
+            double percentage = WorkflowPercentageColumn
+                    .getImplicitValueForNode(node) / 100.0;
             double effectiveTimePerUnit = percentage * baseTimePerUnit;
             double effectiveRate = 1.0 / effectiveTimePerUnit;
 
@@ -108,16 +120,29 @@ implements CalculatedDataColumn {
     }
 
     public void storeDependentColumn(String ID, int columnNumber) {
-        if (WorkflowPercentageColumn.COLUMN_ID.equals(ID))
-            percentageColumn = columnNumber;
     }
 
-    public void resetDependentColumns() {
-        percentageColumn = -1;
+    public TableCellRenderer getCellRenderer() {
+        return new CellRenderer();
+    }
+
+    private static class CellRenderer extends WorkflowTableCellRenderer {
+
+        public CellRenderer() {
+            setHorizontalAlignment(JLabel.CENTER);
+        }
+
+        @Override
+        protected Object tweakNumericValue(NumericDataValue ndv, JTable table,
+                int row) {
+            // the number 0 should be made invisible (i.e., replaced with null)
+            return (ndv.value == 0 ? null : ndv);
+        }
+
     }
 
 
     private static final String ATTR_NAME = "Workflow Rate";
-
+    static final String COLUMN_ID = ATTR_NAME;
 
 }

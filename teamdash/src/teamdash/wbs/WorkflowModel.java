@@ -25,13 +25,14 @@ package teamdash.wbs;
 
 import net.sourceforge.processdash.util.VersionUtils;
 import net.sourceforge.processdash.util.XMLUtils;
+
 import teamdash.team.TeamMemberList;
-import teamdash.wbs.columns.TaskSizeUnitsColumn;
 import teamdash.wbs.columns.WBSNodeColumn;
 import teamdash.wbs.columns.WorkflowNumPeopleColumn;
 import teamdash.wbs.columns.WorkflowPercentageColumn;
 import teamdash.wbs.columns.WorkflowRateColumn;
 import teamdash.wbs.columns.WorkflowScriptColumn;
+import teamdash.wbs.columns.WorkflowSizeUnitsColumn;
 
 /** A customized DataTableModel containing only the columns pertinent
  * to editing workflows.
@@ -55,7 +56,7 @@ public class WorkflowModel extends DataTableModel {
         addDataColumn(new WBSNodeColumn(wbsModel));
         addDataColumn(new WorkflowPercentageColumn(wbsModel));
         addDataColumn(new WorkflowRateColumn(this));
-        addDataColumn(new TaskSizeUnitsColumn(this, teamProcess));
+        addDataColumn(new WorkflowSizeUnitsColumn(this, teamProcess));
         addDataColumn(new WorkflowNumPeopleColumn(wbsModel));
 
         if (supportsURLs())

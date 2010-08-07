@@ -26,10 +26,17 @@ package teamdash.wbs.columns;
 //import java.text.NumberFormat;
 //import java.text.ParseException;
 
+import javax.swing.JLabel;
+import javax.swing.JTable;
+import javax.swing.table.TableCellRenderer;
+
+import teamdash.wbs.CustomRenderedColumn;
+import teamdash.wbs.NumericDataValue;
 import teamdash.wbs.WBSModel;
 import teamdash.wbs.WBSNode;
 
-public class WorkflowPercentageColumn extends AbstractNumericColumn {
+public class WorkflowPercentageColumn extends AbstractNumericColumn implements
+        CustomRenderedColumn {
 
     private WBSModel wbsModel;
 
@@ -37,6 +44,7 @@ public class WorkflowPercentageColumn extends AbstractNumericColumn {
         this.wbsModel = wbsModel;
         this.columnName = "%";
         this.columnID = COLUMN_ID;
+        this.preferredWidth = 60;
     }
 
     public boolean isCellEditable(WBSNode node) {
@@ -48,16 +56,58 @@ public class WorkflowPercentageColumn extends AbstractNumericColumn {
     }
 
     protected double getValueForNode(WBSNode node) {
-        double d = node.getNumericAttribute(ATTR_NAME);
-        if (Double.isNaN(d)) d = 100;
-            return d;
+        return getImplicitValueForNode(node);
     }
 
     protected void setValueForNode(double value, WBSNode node) {
-        if (value > 0 && value <= 100)
+        // if the user deletes the value in this cell, the superclass logic
+        // will interpret that as zero.  So zero passed in really means
+        // "empty cell." In addition, 100% really means "no percentage is
+        // active for this task," so we interpret that as null too.
+        if (value == 0 || value == 100)
+            node.setAttribute(ATTR_NAME, null);
+        else if (value > 0 && value < 100)
             node.setNumericAttribute(ATTR_NAME, value);
     }
 
+    protected static double getImplicitValueForNode(WBSNode node) {
+        return getValueForNode(node, 100);
+    }
+
+    protected static double getExplicitValueForNode(WBSNode node) {
+        return getValueForNode(node, 0);
+    }
+
+    private static double getValueForNode(WBSNode node, double defaultVal) {
+        double d = node.getNumericAttribute(ATTR_NAME);
+        if (Double.isNaN(d))
+            d = defaultVal;
+        return d;
+    }
+
+    public TableCellRenderer getCellRenderer() {
+        return new CellRenderer();
+    }
+
+    private static class CellRenderer extends WorkflowTableCellRenderer {
+
+        public CellRenderer() {
+            setHorizontalAlignment(JLabel.RIGHT);
+        }
+
+        @Override
+        protected Object tweakNumericValue(NumericDataValue ndv, JTable table,
+                int row) {
+            if (ndv.value == 100) {
+                return null;
+            } else if (isRatePresent(table, row)) {
+                return String.valueOf(ndv) + "% of ";
+            } else {
+                return String.valueOf(ndv) + "%";
+            }
+        }
+
+    }
 
     private static final String ATTR_NAME = "Workflow Percentage";
     static final String COLUMN_ID = ATTR_NAME;

@@ -35,7 +35,6 @@ import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
@@ -44,8 +43,6 @@ import javax.swing.event.ChangeListener;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.TableColumn;
-
-import teamdash.wbs.columns.WorkflowScriptColumn;
 
 /** A graphical user interface for editing common workflows.
  */
@@ -112,40 +109,11 @@ public class WorkflowEditor {
         table.setDefaultEditor(Object.class, new WorkflowCellEditor());
         table.selfName = "team workflow structure";
 
-        TableColumn col;
-
-        // customize the display of the "Name" column.
-        col = table.getColumn("Name");
-        col.setPreferredWidth(300);
-
-        // customize the display of the "%" column.
-        col = table.getColumn("%");
-        DataTableStringSuffixRenderer render =
-            new DataTableStringSuffixRenderer("% of ");
-        render.setHorizontalAlignment(JLabel.RIGHT);
-        col.setCellRenderer(render);
-        col.setPreferredWidth(60);
-
-        // customize the display of the "Rate" column.
-        col = table.getColumn("Rate");
-        col.setPreferredWidth(50);
-
-        // customize the display and editing of the "Units" column.
-        col = table.getColumn("Units");
-        col.setCellRenderer(new DataTableStringSuffixRenderer(" per Hour"));
-        CustomEditedColumn edCol =
-            (CustomEditedColumn) workflowModel.getColumn(col.getModelIndex());
-        col.setCellEditor(edCol.getCellEditor());
-        col.setPreferredWidth(130);
-
-        // customize the display of the "# People" column.
-        col = table.getColumn("# People");
-        col.setPreferredWidth(60);
-
-        // customize the display of the Script/URL column.
-        if (workflowModel.supportsURLs()) {
-            col = table.getColumn(WorkflowScriptColumn.COLUMN_NAME);
-            col.setPreferredWidth(200);
+        // customize the behavior and appearance of the columns.
+        for (int i = 0;  i < table.getColumnCount();  i++) {
+            TableColumn tc = table.getColumnModel().getColumn(i);
+            DataColumn dc = workflowModel.getColumn(tc.getModelIndex());
+            DataTableColumn.init(tc, dc);
         }
 
         return table;

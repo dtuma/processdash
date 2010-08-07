@@ -23,10 +23,10 @@
 
 package teamdash.wbs.columns;
 
-import javax.swing.DefaultCellEditor;
 import javax.swing.JComboBox;
 import javax.swing.table.TableCellEditor;
 
+import teamdash.wbs.AutocompletingDataTableCellEditor;
 import teamdash.wbs.CalculatedDataColumn;
 import teamdash.wbs.CustomEditedColumn;
 import teamdash.wbs.DataTableModel;
@@ -51,7 +51,7 @@ public class TaskSizeUnitsColumn extends AbstractDataColumn
 implements CalculatedDataColumn, CustomEditedColumn {
 
     /** our data model */
-    private DataTableModel dataModel;
+    protected DataTableModel dataModel;
     /** our work breakdown structure */
     private WBSModel wbsModel;
     /** our team process */
@@ -90,7 +90,7 @@ implements CalculatedDataColumn, CustomEditedColumn {
         return TeamTimeColumn.isLeafTask(wbsModel, node);
     }
 
-    private boolean valueIsEmpty(Object aValue) {
+    protected boolean valueIsEmpty(Object aValue) {
         if (aValue == null) return true;
         if (aValue instanceof String &&
             ((String) aValue).trim().length() == 0) return true;
@@ -140,8 +140,7 @@ implements CalculatedDataColumn, CustomEditedColumn {
     /** Install a custom cell editor */
     public TableCellEditor getCellEditor() {
         JComboBox sizeUnits = new JComboBox(sizeMetrics);
-        sizeUnits.setEditable(true);
-        return new DefaultCellEditor(sizeUnits);
+        return new AutocompletingDataTableCellEditor(sizeUnits);
     }
 
     /** This is the attribute we will use to store our data on WBS nodes */

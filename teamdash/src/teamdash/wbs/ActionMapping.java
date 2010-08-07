@@ -56,8 +56,13 @@ public class ActionMapping {
 
     /** Install this action mapping into a component */
     public void install(JComponent component, int condition) {
+        install(component, condition, action);
+    }
+
+    protected void install(JComponent component, int condition,
+            Action actionToInstall) {
         component.getInputMap(condition).put(keyStroke, actionKey);
-        component.getActionMap().put(actionKey, action);
+        component.getActionMap().put(actionKey, actionToInstall);
     }
 
     /** override hashcode and equals to defer to our KeyStroke field */

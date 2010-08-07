@@ -24,6 +24,7 @@
 package teamdash.wbs.columns;
 
 import java.awt.Color;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -168,6 +169,57 @@ public class TeamTimeColumn extends TopDownBottomUpColumn {
         LeafNodeData leafData = getLeafNodeData(node);
         if (leafData != null)
             leafData.userSetTeamTime(value);
+    }
+
+
+    @Override
+    protected boolean attemptToRepairTopDownBottomUpMismatch(WBSNode node,
+            double topDownValue, double bottomUpValue, WBSNode[] children,
+            int numToInclude) {
+        // our goal with this method is to subdivide the time across the tasks
+        // in a workflow when the user is using plain percentages without
+        // associated historical productivity rates.
+
+        // To detect this scenario, we first ensure that we have a top-down
+        // estimate and multiple children with no time assigned.
+        if (!(topDownValue > 0) || bottomUpValue > 0 || numToInclude < 2)
+            return false;
+
+        // Check to see if a workflow has been applied to this (parent) node.
+        if (node.getAttribute(WBSModel.WORKFLOW_SOURCE_IDS_ATTR) == null)
+            return false;
+
+        // Next, we get a list of the leaf tasks underneath this node, and add
+        // up the "Workflow Percentage" values for each one.  (Basically, we
+        // want to do the "right thing," even if the user made a mistake and
+        // their numbers don't add to 100%.)
+        ArrayList<WBSNode> leaves = new ArrayList();
+        getLeavesForNode(node, false, leaves);
+        double totalPercent = 0;
+        for (WBSNode leaf : leaves) {
+            totalPercent += WorkflowPercentageColumn
+                    .getExplicitValueForNode(leaf);
+
+            // Check for historical productivity rates on the nodes; those
+            // would indicate that this is not a percentage-driven workflow.
+            if (leaf.getNumericAttribute(RATE_ATTR) > 0)
+                return false;
+        }
+        // If the percentages add up to zero, this isn't a percentage-driven
+        // workflow insertion scenario.
+        if (!(totalPercent > 0))
+            return false;
+
+        // At this point, we appear to have a valid workflow insertion
+        // scenario.  Subdivide the time over the leaf tasks.
+        for (WBSNode leaf : leaves) {
+            double leafPercent = WorkflowPercentageColumn
+                    .getExplicitValueForNode(leaf);
+            double leafTime = topDownValue * leafPercent / totalPercent;
+            userChangingValue(leaf, leafTime);
+            leaf.setNumericAttribute(topDownAttrName, leafTime);
+        }
+        return true;
     }
 
 

@@ -76,21 +76,25 @@ public class DataTableColumn extends TableColumn {
     private void init(DataTableModel model, DataColumn c, int columnIndex) {
         // set the index, header value, and identifier.
         setModelIndex(columnIndex);
-        setHeaderValue(c.getColumnName());
-        setIdentifier(c.getColumnID());
+        init(this, c);
+    }
+
+    public static void init(TableColumn tc, DataColumn c) {
+        tc.setHeaderValue(c.getColumnName());
+        tc.setIdentifier(c.getColumnID());
 
         // install the column's preferred width
         int width = c.getPreferredWidth();
         if (width > 0)
-            setPreferredWidth(width);
+            tc.setPreferredWidth(width);
 
         if (c instanceof CustomRenderedColumn)
             // install the column's preferred renderer.
-            setCellRenderer(((CustomRenderedColumn) c).getCellRenderer());
+            tc.setCellRenderer(((CustomRenderedColumn) c).getCellRenderer());
 
         if (c instanceof CustomEditedColumn)
             // install the column's preferred editor.
-            setCellEditor(((CustomEditedColumn) c).getCellEditor());
+            tc.setCellEditor(((CustomEditedColumn) c).getCellEditor());
     }
 
     public String toString() {
