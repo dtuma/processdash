@@ -26,6 +26,7 @@ package teamdash.wbs.columns;
 import teamdash.wbs.CalculatedDataColumn;
 import teamdash.wbs.DataTableModel;
 import teamdash.wbs.NumericDataValue;
+import teamdash.wbs.WBSModel;
 import teamdash.wbs.WBSNode;
 
 public class SizeAccountingColumnSet {
@@ -36,11 +37,15 @@ public class SizeAccountingColumnSet {
         createColumn(model, getBaseID(id), p, editableType);     // create "Base" column
         createColumn(model, getDeletedID(id), p, editableType);  // create "Deleted" column
         createColumn(model, getModifiedID(id), p, editableType); // create "Modified" column
-        createColumn(model, getAddedID(id), p, editableType);    // create "Added" column
         createColumn(model, getReusedID(id), p, editableType);   // create "Reused" column
 
+        // create "Added" column
+        CalculatedDataColumn c = new AddedSizeColumn(model, getAddedID(id), p);
+        if (editableType != null) c = new NodeTypeColumnFilter(c, editableType);
+        model.addDataColumn(c);
+
         // create "New & Changed" column
-        CalculatedDataColumn c = new NewChangedSizeColumn(model, id);
+        c = new NewChangedSizeColumn(model, id);
         if (editableType != null) c = new NodeTypeColumnFilter(c, editableType);
         model.addDataColumn(c);
 
@@ -70,6 +75,43 @@ public class SizeAccountingColumnSet {
     public static String getTotalID(String id)    { return "Total-"    + id; }
 
 
+
+    private static class AddedSizeColumn extends TopDownBottomUpColumn {
+
+        public AddedSizeColumn(DataTableModel m, String name, Pruner p) {
+            super(m, name, name, p);
+            setHideInheritedValues(true);
+        }
+
+        @Override
+        protected boolean attemptToRepairTopDownBottomUpMismatch(WBSNode node,
+                double topDownValue, double bottomUpValue, WBSNode[] children,
+                int numToInclude) {
+            // the goal of this method is to improve the user experience when
+            // a workflow has been inserted.  If the workflow contains exactly
+            // one child of a particular size type, we will copy the parent
+            // size into that single child.  To detect this scenario, we use
+            // the following criteria:
+            //   * The node in question has a "workflow source" atribute
+            //   * the bottom-up value must be zero (as it would be if a
+            //     workflow had just been inserted)
+            //   * we have more than one child.  This filters out the scenario
+            //     during normal editing when the first child is created
+            //     underneath a particular parent.
+            //   * Only one of our children is "size" related.
+            if (node.getAttribute(WBSModel.WORKFLOW_SOURCE_IDS_ATTR) != null
+                    && bottomUpValue == 0 && children.length > 1
+                    && numToInclude == 1) {
+                WBSNode delegate = getSingleLeafForNode(node, false);
+                if (delegate != null) {
+                    userChangingValue(delegate, topDownValue);
+                    delegate.setNumericAttribute(topDownAttrName, topDownValue);
+                    return true;
+                }
+            }
+            return false;
+        }
+    }
 
     private static class NewChangedSizeColumn extends AbstractNumericColumn
         implements CalculatedDataColumn

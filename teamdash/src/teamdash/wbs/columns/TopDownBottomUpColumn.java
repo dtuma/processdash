@@ -164,12 +164,17 @@ public class TopDownBottomUpColumn extends AbstractNumericColumn
         } else {
             // this node has children.  Recursively calculate the
             // bottom-up value from those of the children.
-            double bottomUpValue = 0;
-            double childValue;
-            for (int i = 0;   i < numToInclude;   i++) {
-                childValue = recalc(children[i]);
-                bottomUpValue += childValue;
+            double bottomUpValue = sumUpChildValues(children, numToInclude);
+
+            // if we have a mismatch, make an attempt to fix it.
+            if (!Double.isNaN(topDownValue)
+                    && !equal(topDownValue, bottomUpValue)) {
+                boolean fixWasMade = attemptToRepairTopDownBottomUpMismatch(
+                    node, topDownValue, bottomUpValue, children, numToInclude);
+                if (fixWasMade)
+                    bottomUpValue = sumUpChildValues(children, numToInclude);
             }
+
             // save the bottom-up attribute value we calculated.
             node.setNumericAttribute(bottomUpAttrName, bottomUpValue);
             node.setAttribute(inheritedAttrName, null);
@@ -191,6 +196,36 @@ public class TopDownBottomUpColumn extends AbstractNumericColumn
             setInheritedValue(children[i], inheritedVal);
 
         return result;
+    }
+
+    protected double sumUpChildValues(WBSNode[] children, int numToInclude) {
+        double bottomUpValue = 0;
+        for (int i = 0;   i < numToInclude;   i++) {
+            double childValue = recalc(children[i]);
+            bottomUpValue += childValue;
+        }
+        return bottomUpValue;
+    }
+
+    /**
+     * If possible, make a column-dependent attempt to repair a
+     * top-down-bottom-up mismatch.
+     * 
+     * @param node the node that has the mismatch
+     * @param topDownValue the top down value for the mismatched node
+     * @param bottomUpValue the bottom-up value that was calculated before
+     *       this method was called
+     * @param children a list of children underneath the node
+     * @param numToInclude the number of initial items in the children array
+     *       that represent non-pruned children
+     *
+     * @return true if any changes were made to children during this repair
+     *    attempt
+     */
+    protected boolean attemptToRepairTopDownBottomUpMismatch(
+            WBSNode node, double topDownValue, double bottomUpValue,
+            WBSNode[] children, int numToInclude) {
+        return false;
     }
 
     protected void setInheritedValue(WBSNode node, double value) {
@@ -280,7 +315,7 @@ public class TopDownBottomUpColumn extends AbstractNumericColumn
         }
     }
 
-    private WBSNode getSingleLeafForNode(WBSNode node, boolean withValue) {
+    protected WBSNode getSingleLeafForNode(WBSNode node, boolean withValue) {
         ArrayList leaves = new ArrayList();
         getLeavesForNode(node, withValue, leaves);
         if (leaves.size() == 1)
@@ -288,7 +323,7 @@ public class TopDownBottomUpColumn extends AbstractNumericColumn
         else
             return null;
     }
-    private void getLeavesForNode(WBSNode node, boolean withValue, ArrayList result) {
+    protected void getLeavesForNode(WBSNode node, boolean withValue, ArrayList result) {
         WBSNode[] children = wbsModel.getReorderableChildren(node);
         int numToInclude = filterChildren(children);
 
