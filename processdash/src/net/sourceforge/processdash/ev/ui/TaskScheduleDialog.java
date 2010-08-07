@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2009 Tuma Solutions, LLC
+// Copyright (C) 2001-2010 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -53,6 +53,7 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.EventObject;
@@ -1294,8 +1295,6 @@ public class TaskScheduleDialog implements EVTask.Listener,
         protected Icon decoration = null;
         private int decorationOffset = 0;
 
-        public BufferedIcon() {}
-
         public BufferedIcon(Component c, Icon originalIcon) {
             width = originalIcon.getIconWidth();
             height = originalIcon.getIconHeight();
@@ -2026,8 +2025,7 @@ public class TaskScheduleDialog implements EVTask.Listener,
                     (downward
                         ? Math.min(lastRow+1, treeTable.getRowCount()-1)
                         : Math.max(firstRow-1, 0));
-                treeTable.scrollRectToVisible
-                    (treeTable.getCellRect(rowToShow, 0, true));
+                scrollToRow(rowToShow);
             }
         }
     }
@@ -2133,6 +2131,7 @@ public class TaskScheduleDialog implements EVTask.Listener,
     }
 
     protected void toggleFlatView() {
+        List<EVTask> selectedTasks = getSelectedTasks();
         if (!isFlatView()) {
             changeTreeTableModel(model, treeColumnModel);
             treeTable.setDragEnabled(false);
@@ -2148,9 +2147,67 @@ public class TaskScheduleDialog implements EVTask.Listener,
             treeTable.setSelectionMode(
                     ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
         }
+        setSelectedTasks(selectedTasks);
 
         enableTaskButtons();
     }
+
+    private List<EVTask> getSelectedTasks() {
+        List<EVTask> result = new ArrayList<EVTask>();
+        TreePath[] selectedPaths = treeTable.getTree().getSelectionPaths();
+        if (selectedPaths != null) {
+            for (TreePath path : selectedPaths)
+                result.add((EVTask) path.getLastPathComponent());
+        }
+        return result;
+    }
+
+    private void setSelectedTasks(List<EVTask> tasks) {
+        if (tasks != null && !tasks.isEmpty()) {
+            if (isFlatView())
+                setSelectedTasksFlatView(tasks);
+            else
+                setSelectedTasksTreeView(tasks);
+        }
+    }
+
+    private void setSelectedTasksFlatView(List<EVTask> tasks) {
+        treeTable.clearSelection();
+        for (EVTask task : tasks)
+            if (task != model.getRoot())
+                addTaskToFlatViewSelection(task);
+        scrollToRow(treeTable.getSelectionModel().getMaxSelectionIndex());
+        scrollToRow(treeTable.getSelectionModel().getMinSelectionIndex());
+    }
+
+    private void addTaskToFlatViewSelection(EVTask task) {
+        if (task.isLeaf()) {
+            int pos = flatModel.getIndexOfChild(flatModel.getRoot(), task);
+            if (pos != -1)
+                treeTable.getSelectionModel().addSelectionInterval(pos+1, pos+1);
+        } else {
+            for (int i = task.getNumChildren();  i-- > 0;)
+                addTaskToFlatViewSelection(task.getChild(i));
+        }
+    }
+
+    private void setSelectedTasksTreeView(List<EVTask> tasks) {
+        treeTable.clearSelection();
+        EVTask t = tasks.get(0);
+        TreePath path = new TreePath(t.getPath());
+        treeTable.getTree().makeVisible(path);
+        int row = treeTable.getTree().getRowForPath(path);
+        if (row != -1) {
+            treeTable.getSelectionModel().addSelectionInterval(row, row);
+            scrollToRow(row);
+        }
+    }
+
+    private void scrollToRow(int row) {
+        if (row != -1)
+            treeTable.scrollRectToVisible(treeTable.getCellRect(row, 0, true));
+    }
+
 
     private TableColumnModel createFlatColumnModel() {
         DefaultTableColumnModel result = new DefaultTableColumnModel();
