@@ -33,6 +33,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.text.NumberFormat;
 import java.util.Date;
 import java.util.Hashtable;
@@ -63,6 +65,7 @@ import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.log.defects.Defect;
 import net.sourceforge.processdash.log.defects.DefectLog;
 import net.sourceforge.processdash.log.defects.DefectUtil;
+import net.sourceforge.processdash.log.time.TimeLoggingModel;
 import net.sourceforge.processdash.process.DefectTypeStandard;
 import net.sourceforge.processdash.ui.DashboardIconFactory;
 import net.sourceforge.processdash.ui.help.PCSH;
@@ -80,6 +83,7 @@ public class DefectDialog extends JDialog
     PropertyKey defectPath;
     DefectLog defectLog = null;
     Stopwatch stopwatch = null;
+    StopwatchSynchronizer stopwatchSynchronizer;
     JButton defectTimerButton, OKButton, CancelButton, fixDefectButton;
     Date date = null;
     String defectNumber = null;
@@ -122,6 +126,8 @@ public class DefectDialog extends JDialog
         date = new Date();
         stopwatch = new Stopwatch(false);
         stopwatch.setMultiplier(Settings.getVal("timer.multiplier"));
+        stopwatchSynchronizer = new StopwatchSynchronizer(dash
+                .getTimeLoggingModel());
 
         JPanel panel = new JPanel();
         GridBagLayout layout = new GridBagLayout();
@@ -405,6 +411,7 @@ public class DefectDialog extends JDialog
 
     private void toggleDefect() {
         boolean is_now_running = stopwatch.toggle();
+        stopwatchSynchronizer.userToggledDefectTimer();
 
         if (is_now_running)
             startTimingDefect();
@@ -523,6 +530,7 @@ public class DefectDialog extends JDialog
             activeRefreshTimer.removeActionListener(this);
             activeRefreshTimer = null;
         }
+        stopwatchSynchronizer.dispose();
         interruptedDialogs.remove(this); // it might not be there, that's OK
         defectDialogs.remove(comparisonKey());
         super.dispose();
@@ -660,4 +668,39 @@ public class DefectDialog extends JDialog
     public void windowDeiconified(WindowEvent e) {}
     public void windowActivated(WindowEvent e) {}
     public void windowDeactivated(WindowEvent e) {}
+
+    private class StopwatchSynchronizer implements PropertyChangeListener {
+
+        TimeLoggingModel timeLoggingModel;
+        boolean pausedByTimeLoggingModel = false;
+
+        public StopwatchSynchronizer(TimeLoggingModel timeLoggingModel) {
+            this.timeLoggingModel = timeLoggingModel;
+            timeLoggingModel.addPropertyChangeListener(this);
+        }
+
+        public void dispose() {
+            timeLoggingModel.removePropertyChangeListener(this);
+        }
+
+        public void userToggledDefectTimer() {
+            pausedByTimeLoggingModel = false;
+        }
+
+        public void propertyChange(PropertyChangeEvent evt) {
+            if (TimeLoggingModel.PAUSED_PROPERTY.equals(evt.getPropertyName())) {
+                boolean mainTimerIsPaused = timeLoggingModel.isPaused();
+                if (mainTimerIsPaused && stopwatch.isRunning()) {
+                    stopTimingDefect();
+                    pausedByTimeLoggingModel = true;
+                }
+                if (!mainTimerIsPaused && pausedByTimeLoggingModel
+                        && activeDialog == DefectDialog.this) {
+                    startTimingDefect();
+                    pausedByTimeLoggingModel = false;
+                }
+            }
+        }
+    }
+
 }
