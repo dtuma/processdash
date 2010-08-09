@@ -493,6 +493,7 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
 
         private List<CommitDate> commitDates;
         private long maxDate;
+        private boolean isShowing = false;
 
         private CommitDatePane() {
             setOpaque(false);
@@ -545,7 +546,8 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
             if (balanceThroughMilestoneName == null)
                 balanceThroughMilestone = -1;
 
-            int height = (hasCommitDates && showCommitDates ? GUTTER_HEIGHT : 0);
+            isShowing = hasCommitDates && showCommitDates;
+            int height = (isShowing ? GUTTER_HEIGHT : 0);
             setMinimumSize(new Dimension(0, height));
             setPreferredSize(new Dimension(10, height));
             setMaximumSize(new Dimension(Integer.MAX_VALUE, height));
@@ -595,7 +597,7 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
 
         @Override
         public boolean contains(int x, int y) {
-            return y < GUTTER_HEIGHT;
+            return (isShowing ? y < GUTTER_HEIGHT : false);
         }
 
         @Override
