@@ -8,9 +8,14 @@
   <mapID target="TeamUseOverview" url="Topics/Overview.html" />
   <mapID target="TeamObtain" url="Topics/Obtaining.html" />
   <mapID target="TeamInstall" url="Topics/Installing.html" />
+  <mapID target="TeamInstall.windows" url="Topics/Installing.html#windows" />
+  <mapID target="TeamInstall.mac" url="Topics/Installing.html#mac" />
+  <mapID target="TeamInstall.unix" url="Topics/Installing.html#unix" />
   <mapID target="TeamTailoring" url="Topics/Tailoring.html" />
   <mapID target="TeamMCF" url="Topics/MetricsCollectionFramework.html" />
   <mapID target="TeamFormsReports" url="Topics/FormsReports.html" />
+  <mapID target="TeamFormsReports.org" url="Topics/FormsReports.html#org" />
+  <mapID target="TeamFormsReports.cm" url="Topics/FormsReports.html#cm" />
   <mapID target="TeamLaunchPrep" url="Topics/LaunchPrep.html" />
   <mapID target="TeamDataDir" url="Topics/TeamDataDir.html" />
   <mapID target="TeamMakeProj" url="Topics/MakeTeamProject.html" />
@@ -29,6 +34,10 @@
   <mapID target="TeamPlanProcess" url="Topics/EditWorkflows.html" />
   <mapID target="TeamPlanSupport" url="Topics/PlanSupportTasks.html" />
   <mapID target="TeamPlanTasks" url="Topics/CreateBalancedPlan.html" />
+  <mapID target="TeamPlanTasks.refining" url="Topics/CreateBalancedPlan.html#refining" />
+  <mapID target="TeamPlanTasks.tasks" url="Topics/CreateBalancedPlan.html#tasks" />
+  <mapID target="TeamPlanTasks.balancing" url="Topics/CreateBalancedPlan.html#balancing" />
+  <mapID target="TeamPlanTasks.details" url="Topics/CreateBalancedPlan.html#details" />
   <mapID target="TeamMasterCoord" url="Topics/MasterProjectPlanning.html" />
   <mapID target="TeamIndivPlans" url="Topics/CreateMemberPlans.html" />
   <mapID target="TeamBottomUp" url="Topics/ViewBottomUpPlan.html" />
@@ -46,7 +55,17 @@
   <mapID target="TeamMemberRefine" url="Topics/RefinePersonalPlan.html" />
   <mapID target="TeamMemberManageEV" url="Topics/ManagingPersonalSched.html" />
   <mapID target="TeamMemberManageData" url="Topics/ManagingPersonalMetrics.html" />
+  <mapID target="TeamMemberManageData.defects" url="Topics/ManagingPersonalMetrics.html#defects" />
+  <mapID target="TeamMemberManageData.size" url="Topics/ManagingPersonalMetrics.html#size" />
+  <mapID target="TeamMemberManageData.pps" url="Topics/ManagingPersonalMetrics.html#pps" />
   <mapID target="TeamLeader" url="Topics/TeamLeader.html" />
+  <mapID target="TeamLeader.pps" url="Topics/TeamLeader.html#pps" />
+  <mapID target="TeamLeader.ev" url="Topics/TeamLeader.html#ev" />
+  <mapID target="TeamLeader.labelFiltering" url="Topics/TeamLeader.html#labelFiltering" />
+  <mapID target="TeamLeader.backups" url="Topics/TeamLeader.html#backups" />
+  <mapID target="TeamLeader.importExport" url="Topics/TeamLeader.html#importExport" />
+  <mapID target="TeamLeader.reassigning" url="Topics/TeamLeader.html#reassigning" />
+  <mapID target="TeamLeader.quickLauncher" url="Topics/TeamLeader.html#quickLauncher" />
 
 
 </map>

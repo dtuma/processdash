@@ -78,7 +78,8 @@
          </tocitem>
    </tocitem>
 
-   <tocitem text="Running a Team Project" image="BookIcon" >
+   <tocitem text="Running a Team Project" 
+                              image="BookIcon" target="TeamRunningProj" >
 
       <tocitem text="Team Members" image="BookIcon" >
 
