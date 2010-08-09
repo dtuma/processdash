@@ -19,6 +19,10 @@
   <mapID target="QSPostmortem" url="Topics/Overview/QSPostmortem.html" />
 
   <mapID target="ProcessScripts" url="Topics/Overview/ProcessScripts.html" />
+  <mapID target="ProcessScripts.psp" url="Topics/Overview/ProcessScripts.html#psp" />
+  <mapID target="ProcessScripts.generic" url="Topics/Overview/ProcessScripts.html#generic" />
+  <mapID target="ProcessScripts.timer" url="Topics/Overview/ProcessScripts.html#timer" />
+  <mapID target="ProcessScripts.custom" url="Topics/Overview/ProcessScripts.html#custom" />
   <mapID target="ChangeLog" url="Topics/Overview/ChangeLog.html" />
   <mapID target="Licenses" url="Topics/Overview/Licenses.html" />
   <mapID target="GPL" url="Topics/Overview/gpl.html" />
@@ -37,6 +41,11 @@
   <mapID target="UsingProbeTool" url="Topics/Planning/UsingProbeTool.html" />
   <mapID target="UsingProbeWizard" url="Topics/Planning/UsingProbeWizard.html" />
   <mapID target="UsingSizeEstimatingTemplate" url="Topics/Planning/UsingSizeEstimatingTemplate.html" />
+  <mapID target="UsingSizeEstimatingTemplate.baseLOC" url="Topics/Planning/UsingSizeEstimatingTemplate.html#baseLOC" />
+  <mapID target="UsingSizeEstimatingTemplate.baseAdditions" url="Topics/Planning/UsingSizeEstimatingTemplate.html#baseAdditions" />
+  <mapID target="UsingSizeEstimatingTemplate.reusedObjects" url="Topics/Planning/UsingSizeEstimatingTemplate.html#reusedObjects" />
+  <mapID target="UsingSizeEstimatingTemplate.time" url="Topics/Planning/UsingSizeEstimatingTemplate.html#time" />
+  <mapID target="UsingSizeEstimatingTemplate.postmortem" url="Topics/Planning/UsingSizeEstimatingTemplate.html#postmortem" />
   <mapID target="DataFreezing" url="Topics/Planning/DataFreezing.html" />
 
   <mapID target="AccessingScripts" url="Topics/Execution/AccessingScripts.html" />
@@ -55,6 +64,10 @@
 
   <mapID target="PostmortemAnalysis" url="Topics/PostmortemAnalysis/PostmortemAnalysis.html" />
   <mapID target="DataChartsAndReports" url="Topics/PostmortemAnalysis/DataChartsAndReports.html" />
+  <mapID target="DataChartsAndReports.pps" url="Topics/PostmortemAnalysis/DataChartsAndReports.html#pps" />
+  <mapID target="DataChartsAndReports.markComplete" url="Topics/PostmortemAnalysis/DataChartsAndReports.html#markComplete" />
+  <mapID target="DataChartsAndReports.logs" url="Topics/PostmortemAnalysis/DataChartsAndReports.html#logs" />
+  <mapID target="DataChartsAndReports.charts" url="Topics/PostmortemAnalysis/DataChartsAndReports.html#charts" />
   <mapID target="ExportingData" url="Topics/PostmortemAnalysis/ExportingData.html" />
   <mapID target="LOCCounter" url="Topics/PostmortemAnalysis/LOCCounter.html" />
 
@@ -119,7 +132,11 @@
   <mapID target="ExportingFromForms" url="Topics/Planning/EnteringData.html#exporting"/>
   <mapID target="UsingTaskSchedule" url="Topics/Planning/UsingTaskSchedule.html" />
   <mapID target="TaskScheduleSteps" url="Topics/Planning/TaskScheduleSteps.html" />
+  <mapID target="TaskScheduleSteps.addTasks" url="Topics/Planning/TaskScheduleSteps.html#addTasks" />
+  <mapID target="TaskScheduleSteps.taskTime" url="Topics/Planning/TaskScheduleSteps.html#taskTime" />
   <mapID target="TaskScheduleSteps.loe" url="Topics/Planning/TaskScheduleSteps.html#loe" />
+  <mapID target="TaskScheduleSteps.calTime" url="Topics/Planning/TaskScheduleSteps.html#calTime" />
+  <mapID target="TaskScheduleSteps.progress" url="Topics/Planning/TaskScheduleSteps.html#progress" />
   <mapID target="TaskScheduleDependencies" url="Topics/Planning/TaskScheduleDependencies.html" />
   <mapID target="TaskScheduleCollaboration" url="Topics/Planning/TaskScheduleCollaboration.html" />
   <mapID target="TaskScheduleCollaboration.publishPassword" url="Topics/Planning/TaskScheduleCollaboration.html#publishPassword" />
@@ -130,6 +147,9 @@
   <mapID target="TaskScheduleCollaboration.limitations" url="Topics/Planning/TaskScheduleCollaboration.html#limitations" />
   <mapID target="UsingTaskSchedule.progress" url="Topics/Planning/TaskScheduleSteps.html#progress" />
   <mapID target="TaskScheduleRanges" url="Topics/Planning/TaskScheduleRanges.html" />
+  <mapID target="TaskScheduleRanges.cost" url="Topics/Planning/TaskScheduleRanges.html#cost" />
+  <mapID target="TaskScheduleRanges.date" url="Topics/Planning/TaskScheduleRanges.html#date" />
+  <mapID target="TaskScheduleRanges.when" url="Topics/Planning/TaskScheduleRanges.html#when" />
   <mapID target="BugReport" url="Topics/Execution/ConfigureMenu.html#bugreport" />
   <mapID target="HelpForum" url="Topics/Execution/ConfigureMenu.html#helponline" />
   <mapID target="Separation" url="Topics/Overview/Separation.html" />
