@@ -52,6 +52,7 @@ public class DataTableCellRenderer extends DefaultTableCellRenderer {
                                                    int column) {
         ErrorValue errorValue = null;
         boolean readOnly = false;
+        String html = null;
 
         // unwrap ErrorValue objects and ReadOnlyValue objects
         while (value instanceof WrappedValue) {
@@ -59,12 +60,16 @@ public class DataTableCellRenderer extends DefaultTableCellRenderer {
                 errorValue = (ErrorValue) value;
             else if (value instanceof ReadOnlyValue)
                 readOnly = true;
+            else if (value instanceof HtmlRenderedValue)
+                html = ((HtmlRenderedValue) value).html;
             value = ((WrappedValue) value).value;
         }
 
+        Object toDisplay = (html == null ? format(value) : html);
+
         // ask our superclass for an appropriate renderer component.
         Component result = super.getTableCellRendererComponent
-            (table, format(value), isSelected, hasFocus, row, column);
+            (table, toDisplay, isSelected, hasFocus, row, column);
 
         // change the foreground color for read-only or erroneous values.
         result.setForeground(getForegroundColor(errorValue, readOnly));

@@ -57,7 +57,11 @@ public class TeamCompletionDateColumn extends AbstractPrecomputedColumn
     }
 
     public static final String getMemberNodeDataAttrName(TeamMember m) {
-        return m.getInitials() + "@Actual_Node_Completion_Date";
+        return getMemberNodeDataAttrName(m.getInitials());
+    }
+
+    protected static String getMemberNodeDataAttrName(String initials) {
+        return initials + "@Actual_Node_Completion_Date";
     }
 
     public TableCellRenderer getCellRenderer() {

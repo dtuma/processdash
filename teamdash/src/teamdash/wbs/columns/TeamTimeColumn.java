@@ -39,6 +39,7 @@ import teamdash.wbs.CalculatedDataColumn;
 import teamdash.wbs.CustomRenderedColumn;
 import teamdash.wbs.DataTableModel;
 import teamdash.wbs.ErrorValue;
+import teamdash.wbs.HtmlRenderedValue;
 import teamdash.wbs.IntList;
 import teamdash.wbs.NumericDataValue;
 import teamdash.wbs.ReadOnlyValue;
@@ -578,6 +579,7 @@ public class TeamTimeColumn extends TopDownBottomUpColumn {
         String initials;
         String zeroAttrName;
         boolean zeroButAssigned;
+        boolean completed;
 
         public IndivTime(WBSNode node, int column) {
             this.node = node;
@@ -586,6 +588,10 @@ public class TeamTimeColumn extends TopDownBottomUpColumn {
             this.initials = dataModel.getColumnName(column);
             this.zeroAttrName = getMemberAssignedZeroAttrName(this.initials);
             this.zeroButAssigned = (node.getAttribute(zeroAttrName) != null);
+
+            String completedAttrName = TeamCompletionDateColumn
+                    .getMemberNodeDataAttrName(this.initials);
+            this.completed = (node.getAttribute(completedAttrName) != null);
         }
 
         public boolean isAssigned() {
@@ -604,10 +610,15 @@ public class TeamTimeColumn extends TopDownBottomUpColumn {
                 setTime(time * ratio);
         }
         public StringBuffer appendTimeString(StringBuffer buf,
-                                             double defaultTime) {
+                                             double defaultTime,
+                                             boolean html) {
+            if (html && completed)
+                buf.append("<strike>");
             buf.append(initials);
             if (!equal(time, defaultTime))
                 buf.append("(").append(NumericDataValue.format(time)).append(")");
+            if (html && completed)
+                buf.append("</strike>");
             return buf;
         }
         public void setTime(HashMap times) {
@@ -763,21 +774,27 @@ public class TeamTimeColumn extends TopDownBottomUpColumn {
         {
             StringBuffer result = new StringBuffer();
             StringBuffer annotatedResult = new StringBuffer();
+            StringBuffer htmlResult = new StringBuffer();
             annotatedResult.append(DEFAULT_TIME_MARKER + "(").append(
                 NumericDataValue.format(defaultTime)).append(")");
             for (int i = 0;   i < times.length;   i++)
                 if (times[i].isAssigned()) {
                     times[i].appendTimeString
-                        (result.append(", "), defaultTime);
+                        (result.append(", "), defaultTime, false);
                     times[i].appendTimeString
-                        (annotatedResult.append(", "), -1);
+                        (htmlResult.append(",&nbsp;"), defaultTime, true);
+                    times[i].appendTimeString
+                        (annotatedResult.append(", "), -1, false);
                 }
 
             if (result.length() == 0)
                 return UNASSIGNED;
             else if (ANNOTATE_ASSIGNMENT_VALUE)
-                return new AnnotatedValue(result.toString().substring(2),
-                        annotatedResult.toString());
+                return new HtmlRenderedValue(
+                    new AnnotatedValue(
+                        result.toString().substring(2),
+                        annotatedResult.toString()),
+                    htmlResult.substring(7));
             else
                 return result.toString().substring(2);
         }
