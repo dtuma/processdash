@@ -291,6 +291,14 @@ public class WeeklySchedule implements EffortCalendar {
     }
 
 
+    public static void removeRecognizedAttributes(Map<String, String> attrs) {
+        attrs.remove(START_DATE_ATTR);
+        attrs.remove(START_CALENDAR_ATTR);
+        attrs.remove(START_WEEK_ATTR);
+        attrs.remove(END_WEEK_ATTR);
+        attrs.remove(HOURS_PER_WEEK_ATTR);
+    }
+
     public void writeAttributes(Writer out, boolean dumpMode) throws IOException {
         // write the start date.  This is used by the dump/sync, and also used
         // by legacy WBS Editor code (which doesn't use week numbers)

@@ -28,12 +28,15 @@ import java.awt.Color;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.Date;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.w3c.dom.Element;
 
-import teamdash.XMLUtils;
+import net.sourceforge.processdash.util.NullSafeObjectUtils;
+import net.sourceforge.processdash.util.XMLUtils;
+
 
 
 
@@ -44,11 +47,16 @@ public class TeamMember implements Cloneable {
 
     /** The full name of the team member (e.g. John Doe)*/
     private String name;
+    /** A query string provided by the lookup service for future reference */
+    private String serverIdentityInfo;
     /** The initials of the team member (e.g. jd) */
     private String initials;
     /** A color that will be used to represent this individual in various
      * charts, tables, and displays */
     private Color color;
+    /** A list of the XML attributes that we did not recognize while loading
+     * this object */
+    private Map<String, String> extraAttributes;
     /** The schedule for this team member */
     private WeeklySchedule schedule;
 
@@ -72,17 +80,23 @@ public class TeamMember implements Cloneable {
 
     /** Create a team member object using data in the given XML element. */
     public TeamMember(Element e, Date teamZeroDay) {
+        Map<String, String> attrs = XMLUtils.getAttributesAsMap(e);
         // extract the name from the element.
-        this.name = trim(e.getAttribute(NAME_ATTR));
+        this.name = trim(attrs.remove(NAME_ATTR));
+        // extract server identify information from the element.
+        this.serverIdentityInfo = trim(attrs.remove(SERVER_IDENTITY_ATTR));
         // extract the initials from the element.
-        this.initials = trim(e.getAttribute(INITIALS_ATTR));
+        this.initials = trim(attrs.remove(INITIALS_ATTR));
         // extract color information if it is present.
-        String attr = e.getAttribute(COLOR_ATTR);
+        String attr = attrs.remove(COLOR_ATTR);
         if (XMLUtils.hasValue(attr)) try {
             color = Color.decode(attr);
         } catch (NumberFormatException nfe) {}
         // extract schedule information
         this.schedule = new WeeklySchedule(e, teamZeroDay);
+        // save extra, unrecognized attributes
+        WeeklySchedule.removeRecognizedAttributes(attrs);
+        this.extraAttributes = attrs;
     }
 
     /** Convenience method - trim whitespace from the ends of a string.
@@ -97,6 +111,20 @@ public class TeamMember implements Cloneable {
     // getter/setter for the name property.
     public String getName() { return name; }
     public void setName(String name) { this.name = trim(name); }
+
+    public void userSetName(String newName) {
+        newName = trim(newName);
+        if (!NullSafeObjectUtils.EQ(this.name, newName)) {
+            setName(newName);
+            setServerIdentityInfo(null);
+        }
+    }
+
+    // getter/setter for the server identity info property.
+    public String getServerIdentityInfo() { return serverIdentityInfo; }
+    public void setServerIdentityInfo(String i) {
+        this.serverIdentityInfo = trim(i);
+    }
 
     // getter/setter for the initials property.
     public String getInitials() { return initials; }
@@ -148,6 +176,10 @@ public class TeamMember implements Cloneable {
         out.write("  <"+TAG_NAME+" "+NAME_ATTR+"='");
         if (name != null)
             out.write(XMLUtils.escapeAttribute(name));
+        if (serverIdentityInfo != null) {
+            out.write("' "+SERVER_IDENTITY_ATTR+"='");
+            out.write(XMLUtils.escapeAttribute(serverIdentityInfo));
+        }
         out.write("' "+INITIALS_ATTR+"='");
         if (initials != null)
             out.write(XMLUtils.escapeAttribute(initials));
@@ -156,6 +188,14 @@ public class TeamMember implements Cloneable {
             if (color != null)
                 out.write(ColorCellEditor.encodeColor(color));
         }
+
+        if (extraAttributes != null && !extraAttributes.isEmpty()) {
+            for (Map.Entry<String, String> e : extraAttributes.entrySet()) {
+                out.write("' "+e.getKey()+"='");
+                out.write(XMLUtils.escapeAttribute(e.getValue()));
+            }
+        }
+
         out.write("'");
 
         schedule.writeAttributes(out, dumpMode);
@@ -216,6 +256,7 @@ public class TeamMember implements Cloneable {
 
     static final String TAG_NAME = "teamMember";
     private static final String NAME_ATTR = "name";
+    private static final String SERVER_IDENTITY_ATTR = "serverIdentityData";
     private static final String INITIALS_ATTR = "initials";
     private static final String COLOR_ATTR = "color";
 

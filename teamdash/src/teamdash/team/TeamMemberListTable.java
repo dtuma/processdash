@@ -116,6 +116,13 @@ public class TeamMemberListTable extends JTable {
     public TeamMemberListTable(TeamMemberList teamList) {
         super(teamList);
 
+        // Set up renderer and editor for the Name column.
+        if (PersonLookupDialog.isLookupServerConfigured()) {
+            TableColumn nameColumn = getColumnModel().getColumn(0);
+            nameColumn.setCellRenderer(new PersonCellRenderer());
+            nameColumn.setCellEditor(new PersonCellEditor());
+        }
+
         // Set up renderer and editor for the Color column.
         ColorCellRenderer.setUpColorRenderer(this);
         ColorCellEditor.setUpColorEditor(this);

@@ -386,7 +386,7 @@ public class TeamMemberList extends AbstractTableModel implements EffortCalendar
         TeamMember m = get(row);
         switch (column) {
         case NAME_COLUMN:
-            m.setName((String) aValue);
+            m.userSetName((String) aValue);
             fireTableCellUpdated(row, column);
             if (autoNewRow) maybeAddEmptyRow();
             return;
@@ -422,7 +422,7 @@ public class TeamMemberList extends AbstractTableModel implements EffortCalendar
     }
 
     /** Convenience method to retrieve a particular team member. */
-    private TeamMember get(int r) {
+    public TeamMember get(int r) {
         return (TeamMember) teamMembers.get(r);
     }
 
