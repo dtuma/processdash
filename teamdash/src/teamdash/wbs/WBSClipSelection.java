@@ -198,10 +198,6 @@ public class WBSClipSelection implements Transferable, ClipboardOwner {
             for (int c = 1;  c < repl.length();  c++)
                 name = name.replace(repl.charAt(c), repl.charAt(0));
         }
-        // normalize whitespace characters
-        name = name.replace('\t', ' ');
-        name = name.replace('\n', ' ');
-        name = name.replace('\r', ' ');
         // disallow slash characters
         name = name.replace('/', ',');
         // perform round-trip through default platform encoding, and trim
