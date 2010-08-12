@@ -569,6 +569,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         SystemTrayManagement.getIcon().initialize(this);
         initializeOsHelper();
         RuntimeUtils.addPropagatedSystemProperty(UsageLogger.FILE_SETTING, null);
+        RuntimeUtils.autoregisterPropagatedSystemProperties();
         if (Settings.isFollowMode())
             new FollowModeManager(workingDirectory, props, prop_file,
                     templates, data, timeLog);

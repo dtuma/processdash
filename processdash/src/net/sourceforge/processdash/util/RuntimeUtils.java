@@ -1,4 +1,4 @@
-// Copyright (C) 2007 Tuma Solutions, LLC
+// Copyright (C) 2007-2010 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -37,6 +37,9 @@ import java.util.List;
 import java.util.Map;
 
 public class RuntimeUtils {
+
+    public static final String AUTO_PROPAGATE_SETTING =
+        RuntimeUtils.class.getName() + ".propagatedSystemProperties";
 
     /** Return the path to the executable that can launch a new JVM.
      */
@@ -99,6 +102,22 @@ public class RuntimeUtils {
 
         checkJvmArgsPermission();
         PROPS_TO_PROPAGATE.put(name, value);
+    }
+
+    /** Look in a system property for a list of other properties that should
+     * be propagated to child JVMs, and register all of those properties for
+     * propagation.
+     */
+    public static void autoregisterPropagatedSystemProperties() {
+        checkJvmArgsPermission();
+        String autoPropSpec = System.getProperty(AUTO_PROPAGATE_SETTING);
+        if (autoPropSpec != null && autoPropSpec.length() > 0) {
+            for (String prop : autoPropSpec.split(",")) {
+                prop = prop.trim();
+                if (prop.length() > 0)
+                    RuntimeUtils.addPropagatedSystemProperty(prop, null);
+            }
+        }
     }
 
     private static final Map<String,String> PROPS_TO_PROPAGATE =
