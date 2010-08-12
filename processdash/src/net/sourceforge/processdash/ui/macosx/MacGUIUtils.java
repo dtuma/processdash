@@ -22,6 +22,7 @@ package net.sourceforge.processdash.ui.macosx;
 
 import java.awt.Color;
 import java.awt.event.ActionEvent;
+import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 
 import javax.swing.AbstractAction;
@@ -46,6 +47,18 @@ public class MacGUIUtils {
             return;
 
         UIManager.put("Table.gridColor", Color.gray);
+    }
+
+    /** On Mac OS X, common "Ctrl" key sequences are changed to "Meta" key
+     * sequences instead.  (For example, Ctrl-C to copy becomes Meta-C on a
+     * Mac).  This method will return the appropriate modifier (Ctrl or Meta)
+     * based on whether we are running on Mac OS X.
+     */
+    public static int getCtrlModifier() {
+        if (isMacOSX())
+            return InputEvent.META_DOWN_MASK;
+        else
+            return InputEvent.CTRL_DOWN_MASK;
     }
 
     public static void setDirty(JFrame frame, boolean isDirty) {
