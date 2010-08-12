@@ -167,7 +167,7 @@ public class WBSClipSelection implements Transferable, ClipboardOwner {
                 if (!m.find())
                     continue;
 
-                String nodeName = scrubName(m.group(2));
+                String nodeName = scrubName(m.group(2)).trim();
                 int indent = baseIndent;
                 if (m.group(1) != null && m.group(1).length() > 0) {
                     Matcher mi = INDENT_PATTERN.matcher(m.group(1));
@@ -200,8 +200,8 @@ public class WBSClipSelection implements Transferable, ClipboardOwner {
         }
         // disallow slash characters
         name = name.replace('/', ',');
-        // perform round-trip through default platform encoding, and trim
-        name = new String(name.getBytes()).trim();
+        // perform round-trip through default platform encoding
+        name = new String(name.getBytes());
         return name;
     }
 
