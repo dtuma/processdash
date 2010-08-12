@@ -191,13 +191,17 @@ public class WBSClipSelection implements Transferable, ClipboardOwner {
     private static final Pattern PLAINTEXT_PATTERN = Pattern
             .compile("^([ \t]*)([^\t]+)");
 
-    private static String scrubName(String name) {
+    public static String scrubName(String name) {
         // replace common extended characters found in Office documents
         for (int i = 0; i < CHARACTER_REPLACEMENTS.length; i++) {
             String repl = CHARACTER_REPLACEMENTS[i];
             for (int c = 1;  c < repl.length();  c++)
                 name = name.replace(repl.charAt(c), repl.charAt(0));
         }
+        // normalize whitespace characters
+        name = name.replace('\t', ' ');
+        name = name.replace('\n', ' ');
+        name = name.replace('\r', ' ');
         // disallow slash characters
         name = name.replace('/', ',');
         // perform round-trip through default platform encoding, and trim
@@ -207,8 +211,9 @@ public class WBSClipSelection implements Transferable, ClipboardOwner {
 
     private static final String[] CHARACTER_REPLACEMENTS = {
         "\"\u201C\u201D",       // opening and closing double quotes
+        "'\u2018\u2019",        // opening and closing single quotes
         "-\u2013\u2014",        // Em-dash and En-dash
-        " \u00A0\u2002\u2003"    // nonbreaking space, em-space, en-space
+        " \u00A0\u2002\u2003"   // nonbreaking space, em-space, en-space
     };
 
 

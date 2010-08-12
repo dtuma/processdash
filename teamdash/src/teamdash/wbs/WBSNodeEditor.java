@@ -796,9 +796,7 @@ public class WBSNodeEditor extends AbstractCellEditor
         {
             if (str == null) return;
 
-            str = str.replace('\t', ' ');
-            str = str.replace('\n', ' ');
-            str = str.replace('/',  ',');
+            str = WBSClipSelection.scrubName(str);
             super.insertString(offs, new String(str), a);
         }
     }
