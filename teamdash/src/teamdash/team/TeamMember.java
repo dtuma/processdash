@@ -146,6 +146,7 @@ public class TeamMember implements Cloneable {
     public Color getColor() {
         return (color == null ? Color.white : color);
     }
+    public boolean hasColor() { return color != null; }
     public void setColor(Color color) { this.color = color; }
 
     // getter/setter for the "start date" property.

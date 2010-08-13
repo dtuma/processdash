@@ -36,6 +36,8 @@ import java.awt.Insets;
 import java.awt.Point;
 import java.awt.Polygon;
 import java.awt.RenderingHints;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.Transferable;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
@@ -48,7 +50,10 @@ import java.beans.EventHandler;
 import java.text.DateFormatSymbols;
 import java.text.NumberFormat;
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -65,6 +70,7 @@ import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
+import javax.swing.TransferHandler;
 import javax.swing.UIManager;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
@@ -135,6 +141,8 @@ public class TeamMemberListTable extends JTable {
         tokenDragHandler = new TokenDragHandler();
         dateScrollingHandler = new DateScrollingHandler();
         customizationHyperlink = createCustomizationHyperlink();
+        setTransferHandler(new TransferSupport());
+        setDragEnabled(true);
         createButtons();
         setupTableColumnHeader();
         setupResizeHandler();
@@ -993,6 +1001,68 @@ public class TeamMemberListTable extends JTable {
         public void run() {
             setRowSelectionInterval(row, row);
             setColumnSelectionInterval(col, col);
+        }
+    }
+
+    private class RowSelectionTask implements Runnable {
+        int startRow, size;
+
+        public RowSelectionTask(int startRow, int size) {
+            this.startRow = startRow;
+            this.size = size;
+        }
+
+        public void run() {
+            setRowSelectionInterval(startRow, startRow + size - 1);
+            setColumnSelectionInterval(0, 0);
+        }
+    }
+
+    private class TransferSupport extends TransferHandler {
+
+        public int getSourceActions(JComponent c) {
+            return COPY_OR_MOVE;
+        }
+
+        public boolean canImport(JComponent comp, DataFlavor[] flavors) {
+            return TeamMemberClipSelection.hasSupportedDataFlavor(flavors);
+        }
+
+        protected Transferable createTransferable(JComponent c) {
+            int[] rows = getSelectedRows();
+            if (rows == null || rows.length == 0)
+                return null;
+
+            List<TeamMember> selectedIndividuals = new ArrayList<TeamMember>();
+            for (int i : rows) {
+                TeamMember t = getTeamMemberList().get(i);
+                selectedIndividuals.add(t);
+            }
+
+            if (isEditing())
+                removeEditor();
+
+            return new TeamMemberClipSelection(selectedIndividuals);
+        }
+
+        public boolean importData(JComponent comp, Transferable t) {
+            int desiredInsertionRow = getSelectedRow();
+            if (desiredInsertionRow == -1) return false;
+
+            Date zeroDay = getTeamMemberList().getZeroDay();
+            List<TeamMember> list = TeamMemberClipSelection
+                    .getTeamMembersFromTransferrable(t, zeroDay);
+            if (list == null)
+                return false;
+
+            int insertionRow = getTeamMemberList().insertTeamMembers(list,
+                desiredInsertionRow);
+            if (insertionRow == -1)
+                return false;
+
+            SwingUtilities.invokeLater(new RowSelectionTask(insertionRow,
+                    list.size()));
+            return true;
         }
     }
 

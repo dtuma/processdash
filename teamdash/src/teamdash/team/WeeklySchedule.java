@@ -85,8 +85,16 @@ public class WeeklySchedule implements EffortCalendar {
         else
             setStartWeek(0);
 
+        int dumpWeekOffset = 0;
+        if (xml.hasAttribute(START_CALENDAR_ATTR)) {
+            // this XML was written using "dump" mode.  Therefore, all of the
+            // week values are zero-based, counting from the start week.
+            // Adjust accordingly as we read the data back in.
+            dumpWeekOffset = this.startWeek;
+        }
+
         if (xml.hasAttribute(END_WEEK_ATTR))
-            setEndWeek(XMLUtils.getXMLInt(xml, END_WEEK_ATTR));
+            setEndWeek(XMLUtils.getXMLInt(xml, END_WEEK_ATTR) + dumpWeekOffset);
         else
             setEndWeek(NO_END);
 
@@ -103,7 +111,7 @@ public class WeeklySchedule implements EffortCalendar {
         NodeList exceptionNodes = xml.getElementsByTagName(EXCEPTION_TAG);
         for (int i = 0; i < exceptionNodes.getLength(); i++) {
             Element e = (Element) exceptionNodes.item(i);
-            int weekNum = XMLUtils.getXMLInt(e, WEEK_ATTR);
+            int weekNum = XMLUtils.getXMLInt(e, WEEK_ATTR) + dumpWeekOffset;
             double time = XMLUtils.getXMLNum(e, HOURS_ATTR);
             addException(weekNum, time);
         }

@@ -173,6 +173,10 @@ public class TeamMemberList extends AbstractTableModel implements EffortCalendar
         recalcZeroDay();
     }
 
+    public Date getZeroDay() {
+        return zeroDay;
+    }
+
     public void setNumWeekColumns(int num) {
         this.columnCount = num + FIRST_WEEK_COLUMN + 1;
     }
@@ -255,6 +259,53 @@ public class TeamMemberList extends AbstractTableModel implements EffortCalendar
         return result;
     }
 
+
+    /**
+     * Insert a list of team members at a specified position in the list.
+     * 
+     * @param list
+     *            a list of team members. If these objects are already in this
+     *            team member list, they will be moved.
+     * @param pos
+     *            the position in the list where the items should be inserted
+     * @return the actual position the items were inserted (which could be
+     *         different than the original number). If the items could not be
+     *         inserted for some reason, returns -1.
+     */
+    public int insertTeamMembers(List<TeamMember> list, int pos) {
+        // check preconditions
+        if (pos < 0 || pos >= getRowCount() || list == null || list.isEmpty())
+            return -1;
+
+        // if they are attempting to insert the rows before one of the items
+        // that they are moving, that is a recipe for confusion.  Do nothing.
+        TeamMember insertBefore = get(pos);
+        if (list.contains(insertBefore))
+            return -1;
+
+        // OK, we're going to make a change. Set the dirty flag.
+        setDirty(true);
+
+        // if we are MOVING existing team members, remove them from the list.
+        for (TeamMember t : list)
+            teamMembers.remove(t);
+
+        // insert the team members into the appropriate position in the list.
+        int insertionPos = teamMembers.indexOf(insertBefore);
+        if (insertionPos == -1)
+            insertionPos = teamMembers.size();
+        teamMembers.addAll(insertionPos, list);
+
+        // ensure that all newly inserted team members have a color assigned.
+        for (TeamMember t : list) {
+            if (!t.hasColor())
+                t.setColor(getFirstUnusedColor());
+        }
+
+        // fire table events and return.
+        fireTableDataChanged();
+        return insertionPos;
+    }
 
 
 
