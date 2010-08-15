@@ -1216,6 +1216,14 @@ public class TaskScheduleDialog implements EVTask.Listener,
                         (resources.getString("Task.Copied_Tooltip"));
                     result.setForeground(Color.BLUE);
                 }
+
+            // use strikethrough for completed (but otherwise normal) tasks
+            } else if (node != null && node.getPercentComplete() == 1.0
+                    && errorStr == null) {
+                String label = getText();
+                String strikethrough = "<html><strike>"
+                        + HTMLUtils.escapeEntities(label) + "</strike></html>";
+                setText(strikethrough);
             }
 
             return result;
