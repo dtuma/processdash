@@ -45,6 +45,7 @@ import java.awt.event.FocusListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.awt.font.TextAttribute;
 import java.awt.image.BufferedImage;
 import java.awt.image.FilteredImageSource;
 import java.awt.image.ImageProducer;
@@ -55,6 +56,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.EventObject;
 import java.util.HashSet;
@@ -114,6 +116,8 @@ import javax.swing.tree.TreeCellRenderer;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 
+import com.xduke.xswing.DataTipManager;
+
 import net.sourceforge.processdash.ApplicationEventListener;
 import net.sourceforge.processdash.ApplicationEventSource;
 import net.sourceforge.processdash.DashboardContext;
@@ -153,8 +157,6 @@ import net.sourceforge.processdash.util.BooleanArray;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.PreferencesUtils;
 import net.sourceforge.processdash.util.StringUtils;
-
-import com.xduke.xswing.DataTipManager;
 
 
 public class TaskScheduleDialog implements EVTask.Listener,
@@ -1110,7 +1112,7 @@ public class TaskScheduleDialog implements EVTask.Listener,
     class TaskJTreeTableCellRenderer
         extends javax.swing.tree.DefaultTreeCellRenderer {
 
-        private Font regular = null, bold = null;
+        private Font regular = null, bold = null, strike = null;
         private BooleanArray cutList;
 
         public TaskJTreeTableCellRenderer(TreeCellRenderer r,
@@ -1118,14 +1120,17 @@ public class TaskScheduleDialog implements EVTask.Listener,
             super();
             this.cutList = cutList;
         }
-        private Font getFont(boolean bold, Component c) {
+        private Font getFont(boolean bold, boolean strike, Component c) {
             if (this.regular == null) {
                 Font base = c.getFont();
                 if (base == null) return null;
                 this.regular = base.deriveFont(Font.PLAIN);
                 this.bold    = base.deriveFont(Font.BOLD);
+                this.strike  = regular.deriveFont(Collections
+                        .singletonMap(TextAttribute.STRIKETHROUGH,
+                            TextAttribute.STRIKETHROUGH_ON));
             }
-            return (bold ? this.bold : this.regular);
+            return (bold ? this.bold : (strike ? this.strike : this.regular));
         }
 
         /**
@@ -1185,7 +1190,7 @@ public class TaskScheduleDialog implements EVTask.Listener,
             if (errorStr != null)
                 result.setForeground(errorStr.startsWith(" ")
                                      ? Color.orange : Color.red);
-            Font f = getFont(errorStr != null, result);
+            Font f = getFont(errorStr != null, false, result);
             if (f != null) result.setFont(f);
 
             // give pruned nodes a special appearance
@@ -1200,10 +1205,12 @@ public class TaskScheduleDialog implements EVTask.Listener,
             // give chronologically pruned nodes a special appearance
             } else if (node != null && node.isChronologicallyPruned()) {
                 result.setForeground(SEPIA);
-                if (errorStr == null && result instanceof JComponent)
+                if (errorStr == null && result instanceof JComponent) {
                     ((JComponent) result).setToolTipText
                         (resources.getString
                          ("Task.Previously_Completed_Tooltip"));
+                    result.setFont(getFont(false, true, result));
+                }
                 if (result instanceof JLabel)
                     ((JLabel) result).setIcon(getChronIcon(expanded, leaf));
 
@@ -1220,10 +1227,7 @@ public class TaskScheduleDialog implements EVTask.Listener,
             // use strikethrough for completed (but otherwise normal) tasks
             } else if (node != null && node.getPercentComplete() == 1.0
                     && errorStr == null) {
-                String label = getText();
-                String strikethrough = "<html><strike>"
-                        + HTMLUtils.escapeEntities(label) + "</strike></html>";
-                setText(strikethrough);
+                result.setFont(getFont(false, true, result));
             }
 
             return result;
