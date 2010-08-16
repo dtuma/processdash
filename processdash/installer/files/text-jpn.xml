@@ -6,7 +6,14 @@
 
 出版社は、ダウンロードもしくはインストールする前に以下の使用許諾契約に同意することを条件に、{0,choice,1#このモジュール|2#これらのモジュール}の使用を認めています:</str>
     <str id="CondHTMLLicencePanel1.header">Sun Microsystems社のソフトウェアJavaHelp(TM)のインストールが選択されました。この追加モジュールをダウンロードしインストールするには、以下の使用許諾契約に同意する必要があります。</str>
+    <str id="CondHTMLLicencePanel2.header">You have chosen to install the Charting and Reporting Extensions module, written by Tuma Solutions.  To download and install this optional module, you must consent to the following license agreement.</str>
     <str id="application.name">Process Dashboard</str>
+    <str id="pack.extras.description">Charting and Reporting Extensions from Tuma Solutions, LLC.
+
+This module is not required for full functionality of the Process Dashboard.  However, installing this module will provide enhanced functionality for charting, reporting, and analysis of your data.
+
+The contents of this module are copyrighted by Tuma Solutions, LLC, and are not open source.  Tuma Solutions requires that you consent to an additional license agreement to download and install this module.</str>
+    <str id="pack.extras.name">Charting and Reporting Extensions</str>
     <str id="pack.javaHelp.description">Sun Microsystems社製のヘルプブラウザ。
 
 このモジュールはProcess Dashboardの機能上特に必要とされるものではありません。このモジュールをインストールすることで、全文検索などが利用できるようになり、よりヘルプを読みやすくすることができます。

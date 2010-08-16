@@ -44,6 +44,8 @@
         <res src="files/PspLicense-list.txt" id="CondHTMLLicencePanel0.packList"/>
         <res src="files/JHLicense.html" id="CondHTMLLicencePanel1.licence"/>
         <res src="files/JHLicense-list.txt" id="CondHTMLLicencePanel1.packList"/>
+        <res src="files/ExtrasLicense.html" id="CondHTMLLicencePanel2.licence"/>
+        <res src="files/ExtrasLicense-list.txt" id="CondHTMLLicencePanel2.packList"/>
         <res src="files/custom-install-internal.ini" id="custom-install.ini"
              excludeIf="pspForEngInstr"/>
         <res src="files/custom-install-instr.ini" id="custom-install.ini"
@@ -67,6 +69,7 @@
         <panel classname="TeamDataDirPanel"/>
         <panel classname="CondHTMLLicencePanel"/>
         <panel classname="CondHTMLLicencePanel"/>
+        <panel classname="CondHTMLLicencePanel"/>
         <panel classname="ShutdownDashboardPanel"/>
         <panel classname="InstallPanel"/>
         <panel classname="ShortcutPanel"/>
@@ -85,8 +88,6 @@
 	          src="../dist/pspdash.jar"/>
             <file targetdir="$INSTALL_PATH" override="true"
 	          src="../dist/l10nTool.jar"/>
-            <file targetdir="$INSTALL_PATH" override="true"
-	          src="../dist/extras.jar" includeIf="extras"/>
             <file targetdir="$INSTALL_PATH" override="true"
 	          src="../src/net/sourceforge/processdash/ui/dashicon.ico"/>
             <file targetdir="$INSTALL_PATH" override="true"
@@ -202,6 +203,14 @@
 	          src="../dist/pspForEng.jar" />
             <file targetdir="$INSTALL_PATH" override="true"
 	          src="../dist/pspForEng-instr.jar"/>
+        </pack>
+
+        <pack name="Charting and Reporting Extensions" id="extras"
+              required="no" includeIf="extras">
+            <description>Charting and Reporting Extension</description>
+
+            <file targetdir="$INSTALL_PATH" override="true"
+	          src="../dist/extras.jar"/>
         </pack>
 
         <pack name="JavaHelp(TM) Help Browser" id="javaHelp" required="no"

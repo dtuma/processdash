@@ -331,8 +331,10 @@ pdash-install-${qualifier}-${dashboard-version}.jar
         description="Create an installer that does not contain psp processes">
         <property name="have.pspProc.jar" value="ignore"/>
         <property name="install.flags" value="noProc"/>
-	<antcall target="prepare"/>
-	<antcall target="offline"/>
+	<antcall>
+            <target name="prepare"/>
+            <target name="offline"/>
+	</antcall>
     </target>
 
     <target name="noExtras">

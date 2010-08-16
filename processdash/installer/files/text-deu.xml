@@ -6,7 +6,14 @@
 
 Der Verlag erteilt diese Erlaubnis unter der Bedingung dass Benutzer der folgenden Lizenzvereinbarung zustimmen, bevor Sie mit dem Herunterladen oder der Installation dieser Inhalte fortfahren {0,choice,1#this module|2#these modules}:</str>
     <str id="CondHTMLLicencePanel1.header">Sie haben sich dafür entschieden, die JavaHelp(TM) Software von Sun Microsystems zu installieren.  Um dieses optionale Modul herunterzuladen und zu installieren, müssen Sie der folgenden Lizenzvereinbarung zustimmen.</str>
+    <str id="CondHTMLLicencePanel2.header">You have chosen to install the Charting and Reporting Extensions module, written by Tuma Solutions.  To download and install this optional module, you must consent to the following license agreement.</str>
     <str id="application.name">Process Dashboard</str>
+    <str id="pack.extras.description">Charting and Reporting Extensions from Tuma Solutions, LLC.
+
+This module is not required for full functionality of the Process Dashboard.  However, installing this module will provide enhanced functionality for charting, reporting, and analysis of your data.
+
+The contents of this module are copyrighted by Tuma Solutions, LLC, and are not open source.  Tuma Solutions requires that you consent to an additional license agreement to download and install this module.</str>
+    <str id="pack.extras.name">Charting and Reporting Extensions</str>
     <str id="pack.javaHelp.description">Help browser von Sun Microsystems.
 
 Dieses Modul ist für die volle Funktionalität von Process Dashboard nicht erforderlich.  Wenn Sie es installieren, wird es für Sie leichter, die Hilfe-Dokumentation für Process Dashboard zu verwenden und Sie erhalten insbesondere die Möglichkeit zur Volltextsuche.

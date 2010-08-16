@@ -42,6 +42,14 @@ This module is not required for full functionality of the Process Dashboard.  Ho
 The contents of this module are copyrighted by Sun Microsystems and are not open source.  Sun Microsystems requires that you consent to an additional license agreement to download and install this module.</str>
 
 
+    <str id="pack.extras.name">Charting and Reporting Extensions</str>
+    <str id="pack.extras.description">Charting and Reporting Extensions from Tuma Solutions, LLC.
+
+This module is not required for full functionality of the Process Dashboard.  However, installing this module will provide enhanced functionality for charting, reporting, and analysis of your data.
+
+The contents of this module are copyrighted by Tuma Solutions, LLC, and are not open source.  Tuma Solutions requires that you consent to an additional license agreement to download and install this module.</str>
+
+
     <str id="CondHTMLLicencePanel0.header">You have chosen to install the following {0,choice,1#module|2#modules}:
           {1}
 
@@ -49,6 +57,9 @@ The publisher has granted this permission on the condition that users consent to
 
 
     <str id="CondHTMLLicencePanel1.header">You have chosen to install the JavaHelp(TM) software, written by Sun Microsystems.  To download and install this optional module, you must consent to the following license agreement.</str>
+
+
+    <str id="CondHTMLLicencePanel2.header">You have chosen to install the Charting and Reporting Extensions module, written by Tuma Solutions.  To download and install this optional module, you must consent to the following license agreement.</str>
 
 
 </langpack>
