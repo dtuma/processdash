@@ -305,6 +305,9 @@ The author(s) may be contacted at:
   <messageHandler
      class="net.sourceforge.processdash.hier.HierarchyAltererMessageHandler"/>
 
+  <messageHandler
+     class="net.sourceforge.processdash.ev.TaskListAltererMessageHandler"/>
+
  <!-- definitions for the preferences dialog. -->
  
     <preferences-pane id="pdash.ui"

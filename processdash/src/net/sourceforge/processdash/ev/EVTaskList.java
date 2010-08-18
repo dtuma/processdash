@@ -459,6 +459,26 @@ public class EVTaskList extends AbstractTreeTableModel
         return null;
     }
 
+    /**
+     * Finds a task list with the current ID, and returns its name.  If there
+     * is no task list with the given ID, returns null.
+     * 
+     * @param data the data repository
+     * @param taskListID the ID to look for
+     * @param includeImports true if imported XML schedules should be searched;
+     *         false if we should only consider plain and rollup schedules.
+     * @return the name of the task list with this ID
+     */
+    public static String getTaskListNameForID(DataRepository data,
+            String taskListID, boolean includeImports) {
+        String result = getTaskListNameForID(data, taskListID);
+        if (result == null && includeImports) {
+            String dataName = EVTaskListXML.getDataNameForID(data, taskListID);
+            result = EVTaskListXML.taskListNameFromDataElement(data, dataName);
+        }
+        return result;
+    }
+
     private static String TESTING_TASK_LIST_NAME = null;
     private static EVTaskList TESTING_TASK_LIST = null;
     public static void setTestingTaskList(String name, EVTaskList taskList) {

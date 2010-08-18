@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2008 Tuma Solutions, LLC
+// Copyright (C) 2001-2010 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -56,6 +56,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
@@ -307,6 +308,21 @@ public class TaskScheduleChooser
 
     static void close(String taskListName) {
         openWindows.remove(taskListName);
+    }
+
+    /**
+     * @since 1.12.1.3
+     */
+    public static void dispatchAddMessage(String taskListName,
+            final String childName) {
+        final TaskScheduleDialog d = (TaskScheduleDialog) openWindows
+                .get(taskListName);
+        if (d != null) {
+            SwingUtilities.invokeLater(new Runnable() {
+                public void run() {
+                    d.addExternallyAddedTask(childName);
+                }});
+        }
     }
 
 

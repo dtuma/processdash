@@ -1651,6 +1651,21 @@ public class TaskScheduleDialog implements EVTask.Listener,
         }
     }
 
+    /**
+     * Certain external processes might add a task to this schedule
+     * asynchronously.  When that occurs, this method will be called so we
+     * can update our model to match the externally changed state.
+     */
+    protected void addExternallyAddedTask(String path) {
+        boolean madeChange = model.addTask(path, dash.getData(), dash
+                .getHierarchy(), dash.getCache(), true);
+        if (madeChange) {
+            treeTable.getTree().expandRow(0);
+            recalcAll();
+            enableTaskButtons();
+        }
+    }
+
 
     private String[] chooseTaskLists() {
         String[] taskListNames =
