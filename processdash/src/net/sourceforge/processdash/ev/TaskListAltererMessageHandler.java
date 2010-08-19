@@ -173,7 +173,7 @@ public class TaskListAltererMessageHandler implements MessageHandler {
         if (hasValue(lookForID)) {
             for (int i = rollup.getSubScheduleCount(); i-- > 0;) {
                 EVTaskList tl = rollup.getSubSchedule(i);
-                if (tl.getID().equals(lookForID)) {
+                if (lookForID.equals(tl.getID())) {
                     logger.finer("Rollup schedule '" + rollup.getDisplayName()
                             + "' already contains a task list with ID '"
                             + lookForID + "'");
