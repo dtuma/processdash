@@ -4,6 +4,8 @@
 <exportMetricsFile>
   <!--#if not oldStyle #-->
     <addEntry name="userDump.xml" href="PID/setup/userData" type="PID-reverseSync"/>
+    <addEntry name="addSchedule.xml" type="messages" version="1"
+              href="PID/setup/addSchedule" />
   <!--#endif #-->
  
   <metricsFilter>

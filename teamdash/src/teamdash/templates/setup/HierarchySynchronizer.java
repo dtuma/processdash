@@ -569,9 +569,6 @@ public class HierarchySynchronizer {
         public void analyze(String path, Defect d) {
             count++;
         }
-        public int getCount() {
-            return count;
-        }
         public boolean hasDefects() {
             return count > 0;
         }
@@ -832,6 +829,18 @@ public class HierarchySynchronizer {
         EVTaskListData tl = new EVTaskListData(taskListName, dataRepository,
                 hierarchy, false);
         EVSchedule currentSchedule = tl.getSchedule();
+
+        // possibly save changes back into the repository to record the
+        // schedule that is in use.  The vast majority of the time, this will
+        // have no effect.  But if an individual deleted their personal EV
+        // schedule and created a new one, this will store the ID of the new
+        // schedule for future use.
+        if (tl.getID() != null) {
+            forceData(projectPath, TeamDataConstants.PROJECT_SCHEDULE_NAME,
+                StringData.create(taskListName));
+            forceData(projectPath, TeamDataConstants.PROJECT_SCHEDULE_ID,
+                StringData.create(tl.getID()));
+        }
 
         // see if it is OK for us to change this schedule.  If the dates are
         // locked, then we must have created it, so we can change it.
