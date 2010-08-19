@@ -158,7 +158,7 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
     // URL of the page that is displayed when the wizard successfully
     // joins the individual to the team project
     private static final String IND_SUCCESS_URL = "indivSuccess.shtm";
-    private static final String IND_BG_SYNC_URL = "sync.class?run&bg";
+    private static final String IND_BG_SYNC_URL = "sync.class?run&bg&noExport";
     // URLs for pages alerting an individual to various errors that could
     // occur when attempting to join a team project.
     private static final String IND_CONNECT_ERR_URL = "indivConnectError.shtm";
@@ -926,6 +926,7 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
      * hierarchy to create this project. */
     protected void showIndivNodePage() {
         maybeSetDefaultNodeName();
+        maybeSetDefaultNodeLocation();
         printRedirect(IND_NODE_URL);
     }
     protected void showIndivNodePage(String errMsg) {
@@ -948,6 +949,14 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
 
         String defaultName = teamURL.substring(beg+1, end);
         putValue(NODE_NAME, defaultName);
+    }
+
+    protected void maybeSetDefaultNodeLocation() {
+        if (getValue(NODE_LOCATION) != null) return;
+
+        // set up a common, default node location
+        if (getPSPProperties().findExistingKey("/Project") != null)
+            putValue(NODE_LOCATION, "/Project");
     }
 
     /** Handle values posted from the node selection page */
@@ -1218,6 +1227,8 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
         String teamDirectoryUNC = e.getAttribute(TEAM_DIRECTORY_UNC);
         String teamDataDirectoryURL = e.getAttribute(TEAM_DATA_DIRECTORY_URL);
         String indivTemplateID = e.getAttribute("Template_ID");
+        boolean teamDashSupportsScheduleMessages = "true".equals(e
+                .getAttribute("Schedule_Messages_Supported"));
 
         if (!XMLUtils.hasValue(projectID) ||
             (!XMLUtils.hasValue(teamDirectory)
@@ -1263,12 +1274,11 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
         saveIndivDataValues(projectID, teamURL, indivInitials, scheduleName,
             scheduleID, teamDirectory, teamDirectoryUNC, teamDataDirectoryURL,
             isLocal);
-        exportProjectData();
         boolean joinSucceeded = true;
         if (isLocal)
             joinSucceeded = joinLocalTeamSchedule(teamURL, scheduleName);
         else {
-            joinSucceeded = joinTeamSchedule
+            joinSucceeded = teamDashSupportsScheduleMessages || joinTeamSchedule
                 (teamURL, scheduleName, scheduleID);
             importDisseminatedTeamData();
         }
@@ -1414,6 +1424,7 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
 
     protected boolean joinTeamSchedule(String teamURL, String scheduleName,
                                        String scheduleID) {
+        exportProjectData();
         String exportedScheduleName = ExportManager.exportedScheduleDataPrefix(
                 getOwner(), scheduleName);
         String exportFileName = getValue("EXPORT_FILE");
@@ -1482,6 +1493,11 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
                 try {
                     getRequest(syncUrl, false);
                 } catch (Exception e) {}
+                // we tell the sync operation to skip the export step, and we
+                // perform it ourselves instead.  This is to ensure that
+                // *something* gets exported, even if no sync was performed
+                // (for example, because the WBS hasn't been edited yet).
+                exportProjectData();
             }});
     }
 

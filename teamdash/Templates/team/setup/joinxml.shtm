@@ -37,6 +37,12 @@
     Team_Data_Directory_URL=""
 <!--#endif-->
 
+<!--#if Dash_Package_pspdash ge 'version 1.12.1.3b' -->
+    Schedule_Messages_Supported="true"
+<!--#else-->
+    Schedule_Messages_Supported="false"
+<!--#endif-->
+
     Project_ID="<!--#echo var=[Project_ID] encoding=xml -->"
     Continuation_URI="/TPID/setup/wizard.class?page=indiv"
 
