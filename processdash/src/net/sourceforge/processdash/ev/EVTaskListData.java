@@ -81,6 +81,7 @@ public class EVTaskListData extends EVTaskList
         loadMetadata(taskListName, data);
         setupTimeZone();
         assignToOwner();
+        loadScheduleNotes();
         setDefaultOptions();
         calculator = new EVCalculatorData(this);
         setBaselineDataSource(getBaselineSnapshot());
@@ -151,6 +152,18 @@ public class EVTaskListData extends EVTaskList
             r.assignedTo = Collections.singletonList(owner);
         }
     }
+    protected void loadScheduleNotes() {
+        String noteData = metaData.getProperty(EVMetadata.SCHEDULE_NOTES);
+        schedule.setPeriodNoteData(noteData);
+        schedule.showNotesColumn = true;
+    }
+    protected void saveScheduleNotes() {
+        String noteData = schedule.getPeriodNoteData();
+        if (noteData == null)
+            metaData.remove(EVMetadata.SCHEDULE_NOTES);
+        else
+            metaData.put(EVMetadata.SCHEDULE_NOTES, noteData);
+    }
     private void setDefaultOptions() {
         if (metaData.containsKey(EVMetadata.REZERO_ON_START_DATE) == false) {
             if (isBrandNewTaskList)
@@ -164,6 +177,7 @@ public class EVTaskListData extends EVTaskList
     public void save(String newName) {
         EVTask r = (EVTask) root;
         boolean nameIsChanging = (!taskListName.equals(newName));
+        saveScheduleNotes();
 
         // First, compile a list of all the elements in the datafile that
         // were previously used to save this task list.  (That way we'll

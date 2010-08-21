@@ -79,7 +79,6 @@ import net.sourceforge.processdash.hier.HierarchyNoteListener;
 import net.sourceforge.processdash.hier.HierarchyNoteManager;
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.hier.DashHierarchy.Event;
-import net.sourceforge.processdash.hier.ui.PlainTextNoteFormat.Editor;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.ui.DashboardIconFactory;
 import net.sourceforge.processdash.ui.help.PCSH;
@@ -96,7 +95,6 @@ public class HierarchyNoteEditorDialog implements DashHierarchy.Listener,
     protected JSplitPane splitPane;
     protected JLabel taskPathLabel;
     protected JScrollPane noteEditorScrollPane;
-    protected Editor visibleEditor;
     protected JButton saveButton;
     protected JButton revertButton;
 
@@ -455,12 +453,18 @@ public class HierarchyNoteEditorDialog implements DashHierarchy.Listener,
                 noteEditor = hierarchyNoteFormat.getEditor(null, null, null);
             }
 
-            Component noteEditorComponent = noteEditor.getNoteEditorComponent();
+            final Component noteEditorComponent = noteEditor
+                    .getNoteEditorComponent();
 
             noteEditorScrollPane.setViewportView(noteEditorComponent);
             this.noteEditor = noteEditor;
             this.nodeCommentShowedByEditor = selectedNode;
             this.noteEditor.addDirtyListener(this);
+
+            SwingUtilities.invokeLater(new Runnable() {
+                public void run() {
+                    noteEditorComponent.requestFocus();
+                }});
         }
     }
 

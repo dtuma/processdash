@@ -1232,6 +1232,7 @@ public class EVReport extends CGIChartBase {
         HTMLTableWriter writer = new HTMLTableWriter();
         customizeTableWriter(writer, s, s.getColumnTooltips());
         setupRenderers(writer, EVSchedule.COLUMN_FORMATS);
+        writer.setSkipColumn(EVSchedule.NOTES_COLUMN, true);
         writer.setTableName("SCHEDULE");
         writer.writeTable(out, s);
     }

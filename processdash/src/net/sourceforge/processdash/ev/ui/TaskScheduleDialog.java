@@ -92,6 +92,7 @@ import javax.swing.JPasswordField;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTable;
+import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.JTree;
 import javax.swing.ListSelectionModel;
@@ -150,7 +151,9 @@ import net.sourceforge.processdash.ui.lib.DeferredSelectAllExecutor;
 import net.sourceforge.processdash.ui.lib.DropDownButton;
 import net.sourceforge.processdash.ui.lib.ErrorReporter;
 import net.sourceforge.processdash.ui.lib.JDateTimeChooserCellEditor;
+import net.sourceforge.processdash.ui.lib.JDialogCellEditor;
 import net.sourceforge.processdash.ui.lib.JOptionPaneClickHandler;
+import net.sourceforge.processdash.ui.lib.JOptionPaneTweaker;
 import net.sourceforge.processdash.ui.lib.JTreeTable;
 import net.sourceforge.processdash.ui.lib.PaintUtils;
 import net.sourceforge.processdash.ui.lib.ToolTipTableCellRendererProxy;
@@ -982,13 +985,6 @@ public class TaskScheduleDialog implements EVTask.Listener,
                 return value;
             }
 
-            public boolean isCellEditable(EventObject anEvent) {
-                if (anEvent instanceof MouseEvent) {
-                    return ((MouseEvent) anEvent).getClickCount() > 1;
-                }
-                return true;
-            }
-
             public void run() {
                 cancelCellEditing();
                 if (nodeToEdit != null)
@@ -1548,12 +1544,23 @@ public class TaskScheduleDialog implements EVTask.Listener,
             readOnly = new ScheduleTableRenderer(getSelectionBackground(),
                                                  getBackground(),
                                                  Color.gray);
+
+            TableColumn notes = getColumnModel().getColumn(
+                EVSchedule.NOTES_COLUMN);
+            if (model.isShowNotesColumn()) {
+                notes.setCellRenderer(new ScheduleNoteCellRenderer());
+                notes.setCellEditor(new ScheduleNoteCellEditor());
+                new ToolTipTimingCustomizer().install(this);
+            } else {
+                showHideColumn(notes, null, 0);
+            }
         }
 
         public TableCellRenderer getCellRenderer(int row, int column) {
             TableCellRenderer result = super.getCellRenderer(row, column);
 
-            if (result instanceof JTreeTable.TreeTableCellRenderer)
+            if (result instanceof JTreeTable.TreeTableCellRenderer
+                   || result instanceof ScheduleJTable.ScheduleNoteCellRenderer)
                 return result;
 
             if (row < 0) return readOnly;
@@ -1571,6 +1578,108 @@ public class TaskScheduleDialog implements EVTask.Listener,
             protected boolean useAltForeground(int row) {
                 return model.rowIsAutomatic(row);
             }
+        }
+
+        class ScheduleNoteCellRenderer extends ShadedTableCellRenderer {
+            private Icon noteIcon;
+
+            public ScheduleNoteCellRenderer() {
+                super(selectedEditableColor, editableColor, Color.gray);
+                noteIcon = DashboardIconFactory.getWhiteCommentIcon();
+            }
+
+            @Override
+            public Component getTableCellRendererComponent(JTable table,
+                    Object value, boolean isSelected, boolean hasFocus,
+                    int row, int column) {
+
+                super.getTableCellRendererComponent(table, null, isSelected,
+                    hasFocus, row, column);
+
+                setHorizontalAlignment(SwingConstants.CENTER);
+                String note = (String) value;
+                if (note == null || note.trim().length() == 0) {
+                    setIcon(null);
+                    setToolTipText(null);
+                } else {
+                    setIcon(noteIcon);
+
+                    StringBuffer html = new StringBuffer();
+                    html.append("<html><div width='300'>")
+                        .append(HTMLUtils.escapeEntities(note))
+                        .append("</div></html>");
+                    StringUtils.findAndReplace(html, "\n", "<br>");
+                    StringUtils.findAndReplace(html, "  ", "&nbsp;&nbsp;");
+                    setToolTipText(html.toString());
+                }
+
+                return this;
+            }
+
+        }
+
+        class ScheduleNoteCellEditor extends JDialogCellEditor<String> {
+
+            private Object fromDate, toDate;
+
+            public ScheduleNoteCellEditor() {
+                button.setIcon(DashboardIconFactory.getWhiteCommentIcon());
+            }
+
+            @Override
+            protected String getButtonText(String value) {
+                return null;
+            }
+
+            @Override
+            public Component getTableCellEditorComponent(JTable table,
+                    Object value, boolean isSelected, int row, int column) {
+                fromDate = table.getValueAt(row, EVSchedule.FROM_COLUMN);
+                toDate = table.getValueAt(row, EVSchedule.TO_COLUMN);
+
+                return super.getTableCellEditorComponent(table, value,
+                    isSelected, row, column);
+            }
+
+            @Override
+            protected String showEditorDialog(String value)
+                    throws EditingCancelled {
+                // create a text field to hold the note
+                JTextArea text = new JTextArea();
+                if (value instanceof String)
+                    text.setText((String) value);
+                text.setCaretPosition(0);
+                text.setLineWrap(true);
+                text.setWrapStyleWord(true);
+
+                // wrap the text field in a scroll pane
+                JScrollPane sp = new JScrollPane(text,
+                        JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+                        JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+                sp.setPreferredSize(new Dimension(200, 100));
+
+                // display the scrolled text field in a dialog box
+                String title = resources
+                        .getString("Schedule.Notes_Dialog.Title");
+                String prompt = resources.format(
+                        "Schedule.Notes_Dialog.Prompt_FMT", fromDate, toDate);
+                Object[] message = new Object[] { prompt, sp,
+                        new JOptionPaneTweaker.GrabFocus(text),
+                        new JOptionPaneTweaker.MakeResizable() };
+                int userChoice = JOptionPane.showConfirmDialog(
+                        ScheduleJTable.this, message, title,
+                        JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE,
+                        null);
+
+                // if the user cancels, abort.
+                if (userChoice != JOptionPane.OK_OPTION)
+                    throw new EditingCancelled();
+
+                // otherwise, return the newly entered value.
+                setDirty(true);
+                return text.getText();
+            }
+
         }
 
         public boolean editCellAt(int row, int column, EventObject e) {

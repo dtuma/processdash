@@ -32,13 +32,22 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.SortedMap;
 import java.util.TimeZone;
+import java.util.TreeMap;
 import java.util.Vector;
 
 import javax.swing.event.EventListenerList;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.TableModel;
+
+import org.jfree.data.Range;
+import org.jfree.data.RangeInfo;
+import org.jfree.data.xy.XYDataset;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.ListData;
@@ -49,16 +58,10 @@ import net.sourceforge.processdash.ev.ui.chart.XYChartData;
 import net.sourceforge.processdash.ev.ui.chart.XYChartSeries;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.util.DateAdjuster;
-import net.sourceforge.processdash.util.RangeDateAdjuster;
 import net.sourceforge.processdash.util.FormatUtil;
+import net.sourceforge.processdash.util.RangeDateAdjuster;
+import net.sourceforge.processdash.util.StringUtils;
 import net.sourceforge.processdash.util.TimeZoneUtils;
-
-import org.jfree.data.Range;
-import org.jfree.data.RangeInfo;
-import org.jfree.data.xy.XYDataset;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
 
 public class EVSchedule implements TableModel {
@@ -110,6 +113,14 @@ public class EVSchedule implements TableModel {
         /** The actual cost of tasks completed in or before this period.
          * Also known as ACWP (actual cost of work performed) */
         double cumActualCost;
+
+        /** Free-text notes that the user has associated with this period.
+         * EVSchedule.periodNotes is the true source of such data, and a
+         * calculation must be performed to find the notes associated with
+         * a period.  This field only exists to cache the results of that
+         * calculation.  This field will be null if the calculation still
+         * needs to be performed. */
+        String note;
 
         boolean automatic = false;
 
@@ -243,6 +254,9 @@ public class EVSchedule implements TableModel {
             synchronized (EVSchedule.this) {
                 int pos = periods.indexOf(this);
                 if (pos < 0) return;
+
+                for (Iterator i = periods.iterator(); i.hasNext();)
+                    ((Period) i.next()).note = NOTE_NEEDS_CALC;
 
                 if (value == null) {
                     // if value is null, then they want to merge this
@@ -421,6 +435,55 @@ public class EVSchedule implements TableModel {
             return (double) periodElapsed / (double) periodLength;
         }
 
+        public String getNote() {
+            if (note == null)
+                note = calculateNote();
+            return note;
+        }
+
+        private String calculateNote() {
+            if (periodNotes == null || periodNotes.isEmpty())
+                return "";
+
+            StringBuffer result = new StringBuffer();
+            for (Map.Entry<Date, String> e : periodNotes.entrySet()) {
+                Date noteTimestamp = e.getKey();
+                if (noteTimestamp.compareTo(endDate) >= 0)
+                    break;
+                if (noteTimestamp.compareTo(getBeginDate()) >= 0)
+                    result.append("\n").append(e.getValue());
+            }
+
+            return result.length() == 0 ? "" : result.substring(1);
+        }
+
+        public void setNote(String note) {
+            // create the map for notes if it doesn't already exist
+            if (periodNotes == null)
+                periodNotes = new TreeMap<Date, String>();
+
+            // look through the existing notes, and delete any that fall
+            // within this time period
+            for (Iterator i = periodNotes.entrySet().iterator(); i.hasNext();) {
+                Map.Entry<Date, String> e = (Map.Entry<Date, String>) i.next();
+                Date noteTimestamp = e.getKey();
+                if (noteTimestamp.compareTo(endDate) >= 0)
+                    break;
+                if (noteTimestamp.compareTo(getBeginDate()) >= 0)
+                    i.remove();
+            }
+
+            // save the new note with a timestamp near the center of this
+            // time period.
+            note = (note == null ? "" : note.trim());
+            this.note = note;
+            if (StringUtils.hasValue(note)) {
+                long timestamp = (endDate.getTime()
+                        + getBeginDate().getTime()) / 2 - 5000;
+                periodNotes.put(new Date(timestamp), note);
+            }
+        }
+
         @Override
         public Object clone() {
             try {
@@ -470,6 +533,9 @@ public class EVSchedule implements TableModel {
     boolean datesLocked = false;
     EVMetrics metrics = new EVMetrics();
     EVSnapshot baselineSnapshot = null;
+    SortedMap<Date, String> periodNotes;
+
+    private static final String NOTE_NEEDS_CALC = null;
 
     public EVSchedule() { this(20.0); }
     public EVSchedule(double hours) {
@@ -582,6 +648,7 @@ public class EVSchedule implements TableModel {
         while (i.hasNext()) {
             p = (Period) ((Period) i.next()).clone();
             p.previous = prev; prev = p;
+            p.note = NOTE_NEEDS_CALC;
             dest.add(p);
         }
     }
@@ -617,6 +684,7 @@ public class EVSchedule implements TableModel {
 
     protected synchronized void add(Period p) {
         p.previous = getLast();
+        p.note = NOTE_NEEDS_CALC;
         periods.add(p);
     }
 
@@ -629,8 +697,10 @@ public class EVSchedule implements TableModel {
 
         // repair the "previous" field of the period *now* in position pos.
         Period p = get(pos);
-        if (p != null)
+        if (p != null) {
             p.previous = (pos == 0 ? null : get(pos-1));
+            p.note = NOTE_NEEDS_CALC;
+        }
 
         // recalc the cumulative plan times, since they are now messed up.
         recalcCumPlanTimes();
@@ -646,6 +716,7 @@ public class EVSchedule implements TableModel {
             newEndDate = currentEndDate + delta;
             newEndDate += dstDifference(currentEndDate, newEndDate);
             p.endDate = new Date(newEndDate);
+            p.note = NOTE_NEEDS_CALC;
         }
     }
 
@@ -660,9 +731,11 @@ public class EVSchedule implements TableModel {
             Date origDate = p.endDate;
             Date newDate = adj.adjust(origDate);
             p.endDate = newDate;
+            p.note = NOTE_NEEDS_CALC;
         }
         effectiveDate = adj.adjust(effectiveDate);
         metrics.adjustDates(adj);
+        adjustPeriodNoteTimestamps(adj);
     }
 
     protected DateAdjuster normalizeDates(int offset) {
@@ -688,6 +761,7 @@ public class EVSchedule implements TableModel {
             Date newDate = c.getTime();
 
             p.endDate = newDate;
+            p.note = NOTE_NEEDS_CALC;
             result.add(origDate, newDate);
         }
 
@@ -698,8 +772,19 @@ public class EVSchedule implements TableModel {
 
         effectiveDate = result.adjust(effectiveDate);
         metrics.adjustDates(result);
+        adjustPeriodNoteTimestamps(result);
 
         return result;
+    }
+
+    protected void adjustPeriodNoteTimestamps(DateAdjuster adj) {
+        if (periodNotes == null || periodNotes.isEmpty())
+            return;
+
+        TreeMap<Date, String> newMap = new TreeMap<Date, String>();
+        for (Map.Entry<Date, String> e : periodNotes.entrySet())
+            newMap.put(adj.adjust(e.getKey()), e.getValue());
+        periodNotes = newMap;
     }
 
     /** Return the average number of days in the periods in this schedule. */
@@ -754,6 +839,33 @@ public class EVSchedule implements TableModel {
 
     public boolean isEquivalentTo(EVSchedule that) {
         return this.getSaveList().equals(that.getSaveList());
+    }
+
+    public String getPeriodNoteData() {
+        if (periodNotes == null || periodNotes.isEmpty())
+            return null;
+        ListData result = new ListData();
+        for (Map.Entry<Date, String> e : periodNotes.entrySet()) {
+            result.add(saveDate(e.getKey()));
+            result.add(e.getValue());
+        }
+        return result.format();
+    }
+
+    public void setPeriodNoteData(String noteData) {
+        periodNotes = new TreeMap<Date, String>();
+        if (noteData != null && noteData.length() > 0) {
+            ListData data = new ListData(noteData);
+            for (int i = 1;  i < data.size(); i += 2) {
+                try {
+                    Date date = parseDate((String) data.get(i-1));
+                    String note = (String) data.get(i);
+                    periodNotes.put(date, note);
+                } catch (Exception e) {
+                    // bad data - try to continue with the next element.
+                }
+            }
+        }
     }
 
     static String saveDate(Date d) {
@@ -1044,6 +1156,7 @@ public class EVSchedule implements TableModel {
 
     private double directPercentage = 1;
     private boolean showDirectColumns = false;
+    protected boolean showNotesColumn = false;
     private String[] toolTips = buildColumnTooltips();
     public void setLevelOfEffort(double percent) {
         directPercentage = 1.0 - percent;
@@ -1060,6 +1173,9 @@ public class EVSchedule implements TableModel {
     }
     public double getLevelOfEffort() {
         return 1.0 - directPercentage;
+    }
+    public boolean isShowNotesColumn() {
+        return showNotesColumn;
     }
 
     private Date effectiveDate = null;
@@ -1218,6 +1334,7 @@ public class EVSchedule implements TableModel {
 
         newPeriod.previous = r.previous;
         r.previous = newPeriod;
+        r.note = NOTE_NEEDS_CALC;
         periods.add(row+1, newPeriod);
         r.clearAutomaticFlag();
 
@@ -1378,11 +1495,8 @@ public class EVSchedule implements TableModel {
 
     private static final String[] COLUMN_KEYS = {
         "From", "To", "PT", "PDT", "CPT", "CPV", "Time", "PctI",
-        "DTime", "CT", "EV" };
+        "DTime", "CT", "Notes", "EV" };
 
-    protected static final int DATE_W = 80; // width for date columns
-    protected static final int TIME_W = 50; // width for time columns
-    protected static final int PCT_W  = 40; // width for percentage columns
     public static final String[] colNames =
         resources.getStrings("Schedule.Columns.", COLUMN_KEYS, ".Name");
     public static final int[] colWidths =
@@ -1400,7 +1514,8 @@ public class EVSchedule implements TableModel {
     public static final int IPERCENT_COLUMN       = 7;
     public static final int DTIME_COLUMN          = 8;
     public static final int CUM_TIME_COLUMN       = 9;
-    public static final int CUM_VALUE_COLUMN      = 10;
+    public static final int NOTES_COLUMN          = 10;
+    public static final int CUM_VALUE_COLUMN      = 11;
 
 
     public static final int[] DIRECT_COLUMN_LIST = {
@@ -1417,6 +1532,7 @@ public class EVSchedule implements TableModel {
         String.class,           // percent indirect time
         String.class,           // actual direct time
         String.class,           // actual cumulative time
+        String.class,           // notes
         String.class };         // cumulative earned value
 
     public static final Object[] COLUMN_FORMATS = {
@@ -1430,6 +1546,7 @@ public class EVSchedule implements TableModel {
         EVTaskList.COLUMN_FMT_PERCENT,        // percent indirect time
         EVTaskList.COLUMN_FMT_TIME,           // actual direct time
         EVTaskList.COLUMN_FMT_TIME,           // actual cumulative time
+        EVTaskList.COLUMN_FMT_OTHER,          // notes
         EVTaskList.COLUMN_FMT_PERCENT,        // cumulative earned
     };
 
@@ -1439,6 +1556,8 @@ public class EVSchedule implements TableModel {
     public String getColumnName(int i) {
         if (!showDirectColumns &&
             (i == PLAN_DTIME_COLUMN || i == IPERCENT_COLUMN || i == DTIME_COLUMN))
+            return " " + colNames[i] + " ";
+        else if (!showNotesColumn && i == NOTES_COLUMN)
             return " " + colNames[i] + " ";
         else
             return colNames[i];
@@ -1462,6 +1581,7 @@ public class EVSchedule implements TableModel {
     public Class getColumnClass(int i) { return colTypes[i]; }
     public boolean isCellEditable(int rowIndex, int columnIndex) {
         if (Settings.isReadOnly()) return false;
+        if (columnIndex == NOTES_COLUMN) return true;
         if (columnIndex < 2) return (datesLocked == false);
         return columnIndex < 4;
     }
@@ -1479,6 +1599,7 @@ public class EVSchedule implements TableModel {
         case IPERCENT_COLUMN:       return p.getActualIndirectPercentageText();
         case DTIME_COLUMN:          return p.getActualDirectTimeText();
         case CUM_TIME_COLUMN:       return p.getCumActualDirectTimeText();
+        case NOTES_COLUMN:          return p.getNote();
         case CUM_VALUE_COLUMN:      return p.getCumEarnedValueText(totalPlan());
         }
         return null;
@@ -1493,6 +1614,7 @@ public class EVSchedule implements TableModel {
         case TO_COLUMN:         p.setEndDate(aValue);         break;
         case PLAN_TIME_COLUMN:  p.setPlanTime(aValue);        break;
         case PLAN_DTIME_COLUMN: p.setPlanDirectTime(aValue);  break;
+        case NOTES_COLUMN:      p.setNote((String) aValue);   break;
         }
     }
     public boolean rowIsAutomatic(int row) {

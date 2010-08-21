@@ -1,4 +1,4 @@
-// Copyright (C) 2008-2009 Tuma Solutions, LLC
+// Copyright (C) 2008-2010 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -94,4 +94,8 @@ public interface EVMetadata {
      */
     public String REZERO_ON_START_DATE = "Rezero_On_Start_Date";
 
+    /**
+     * Data about notes attached to the periods in the EV schedule
+     */
+    public String SCHEDULE_NOTES = "Schedule_Notes";
 }
