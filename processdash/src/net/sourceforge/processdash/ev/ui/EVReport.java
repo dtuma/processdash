@@ -718,9 +718,9 @@ public class EVReport extends CGIChartBase {
         public void writeLeaf(EVTask node, int depth) {
             writeDateCsvField(getNodeDate(node));
         }
-        public Date nullToNA(Date d) {
-            return (d == null ? EVSchedule.NEVER : d);
-        }
+//        public Date nullToNA(Date d) {
+//            return (d == null ? EVSchedule.NEVER : d);
+//        }
         public abstract Date getNodeDate(EVTask node);
     }
 
@@ -1247,6 +1247,7 @@ public class EVReport extends CGIChartBase {
         writer.setTableName("TASK");
         writer.setSkipColumn(EVTaskList.PLAN_CUM_TIME_COLUMN, true);
         writer.setSkipColumn(EVTaskList.PLAN_CUM_VALUE_COLUMN, true);
+        writer.setSkipColumn(EVTaskList.NOTES_COLUMN, true);
         setupTaskTableRenderers(writer, showTimingIcons, settings
                 .exportingToExcel(), hideNames, taskList.getNodeTypeSpecs());
         if (!(taskList instanceof EVTaskListRollup) || hideNames)

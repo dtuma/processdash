@@ -1,4 +1,4 @@
-// Copyright (C) 2008-2009 Tuma Solutions, LLC
+// Copyright (C) 2008-2010 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -67,8 +67,9 @@ import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 
 import net.sourceforge.processdash.ApplicationEventListener;
+import net.sourceforge.processdash.ApplicationEventSource;
+import net.sourceforge.processdash.DashboardContext;
 import net.sourceforge.processdash.InternalSettings;
-import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.hier.DashHierarchy;
@@ -127,17 +128,22 @@ public class HierarchyNoteEditorDialog implements DashHierarchy.Listener,
 
     private Resources resources = null;
 
-    public HierarchyNoteEditorDialog(DashHierarchy props,
-            ProcessDashboard dashboard, PropertyKey currentPhase) {
+    public HierarchyNoteEditorDialog(DashboardContext ctx,
+            PropertyKey currentPhase) {
         resources = Resources.getDashBundle("Notes.Editor");
 
-        this.useProps = props;
-        this.data = dashboard.getData();
+        this.useProps = ctx.getHierarchy();
+        this.data = ctx.getData();
         this.useProps.addHierarchyListener(this);
 
         constructUserInterface();
         setSelectedNode(currentPhase);
         HierarchyNoteManager.addHierarchyNoteListener(this);
+
+        if (ctx instanceof ApplicationEventSource) {
+            ApplicationEventSource aes = (ApplicationEventSource) ctx;
+            aes.addApplicationEventListener(this);
+        }
 
         frame.setVisible(true);
     }
@@ -593,4 +599,16 @@ public class HierarchyNoteEditorDialog implements DashHierarchy.Listener,
         }
 
     }
+
+    private static HierarchyNoteEditorDialog GLOBAL_INSTANCE = null;
+
+    public static void showGlobalNoteEditor(DashboardContext ctx,
+            PropertyKey phaseToShow) {
+        if (GLOBAL_INSTANCE == null) {
+            GLOBAL_INSTANCE = new HierarchyNoteEditorDialog(ctx, phaseToShow);
+        } else {
+            GLOBAL_INSTANCE.showDialogForNode(phaseToShow);
+        }
+    }
+
 }

@@ -69,6 +69,7 @@ import java.util.prefs.Preferences;
 
 import javax.swing.AbstractAction;
 import javax.swing.AbstractButton;
+import javax.swing.AbstractCellEditor;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.ButtonModel;
@@ -134,6 +135,10 @@ import net.sourceforge.processdash.ev.EVTaskList;
 import net.sourceforge.processdash.ev.EVTaskListCached;
 import net.sourceforge.processdash.ev.EVTaskListData;
 import net.sourceforge.processdash.ev.EVTaskListRollup;
+import net.sourceforge.processdash.hier.HierarchyNote;
+import net.sourceforge.processdash.hier.HierarchyNoteManager;
+import net.sourceforge.processdash.hier.PropertyKey;
+import net.sourceforge.processdash.hier.ui.HierarchyNoteEditorDialog;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.net.cache.CachedObject;
 import net.sourceforge.processdash.net.cache.CachedURLObject;
@@ -758,7 +763,7 @@ public class TaskScheduleDialog implements EVTask.Listener,
     class TaskJTreeTable extends JTreeTable implements TreeModelWillChangeListener,
                                                        TreeModelListener {
 
-        DefaultTableCellRenderer editable, readOnly, dependencies;
+        DefaultTableCellRenderer editable, readOnly, notes, dependencies;
         TaskDependencyCellEditor dependencyEditor;
         TreeTableModel model;
         BooleanArray cutList;
@@ -782,6 +787,10 @@ public class TaskScheduleDialog implements EVTask.Listener,
             readOnly = new TaskTableRenderer(getSelectionBackground(),
                                              getBackground(),
                                              expandedColor);
+            notes = new NoteCellRenderer(getSelectionBackground(),
+                                             getBackground(),
+                                             selectedEditableColor,
+                                             editableColor);
             dependencies = new DependencyCellRenderer(getSelectionBackground(),
                                              getBackground(),
                                              selectedEditableColor,
@@ -789,6 +798,9 @@ public class TaskScheduleDialog implements EVTask.Listener,
 
             getColumnModel().getColumn(EVTaskList.NODE_TYPE_COLUMN)
                     .setCellEditor(new NodeTypeEditor());
+
+            getColumnModel().getColumn(EVTaskList.NOTES_COLUMN)
+                    .setCellEditor(new TaskNoteCellEditor());
 
             dependencyEditor = new TaskDependencyCellEditor(
                     TaskScheduleDialog.this, dash);
@@ -809,6 +821,8 @@ public class TaskScheduleDialog implements EVTask.Listener,
             int modelCol = convertColumnIndexToModel(column);
             if (modelCol == EVTaskList.DEPENDENCIES_COLUMN)
                 return dependencies;
+            else if (modelCol == EVTaskList.NOTES_COLUMN)
+                return notes;
 
             TableCellRenderer result = super.getCellRenderer(row, column);
             if (result instanceof JTreeTable.TreeTableCellRenderer)
@@ -888,6 +902,100 @@ public class TaskScheduleDialog implements EVTask.Listener,
                 return new Dimension(originalDimension.width,
                                      originalDimension.height-3);
             }
+        }
+
+        class NoteCellRenderer extends DefaultTableCellRenderer {
+
+            private Color[] colors;
+            private Icon noteIcon, noteErrorIcon;
+
+            public NoteCellRenderer(Color selRO, Color deselRO,
+                    Color sel, Color desel) {
+
+                colors = new Color[] { sel, desel, selRO, deselRO };
+                noteIcon = DashboardIconFactory.getWhiteCommentIcon();
+                noteErrorIcon = DashboardIconFactory.getCommentErrorIcon();
+            }
+
+            public Component getTableCellRendererComponent(JTable table,
+                    Object value, boolean isSelected, boolean hasFocus,
+                    int row, int column) {
+
+                Component result = super.getTableCellRendererComponent(table,
+                        null, isSelected, hasFocus, row, column);
+
+                boolean isEditable = false;
+                TreePath path = getTree().getPathForRow(row);
+                if (path != null &&
+                    model.isCellEditable(path.getLastPathComponent(),
+                            table.convertColumnIndexToModel(column)))
+                    isEditable = true;
+
+                setBackground(colors[(isSelected ? 0:1) + (isEditable ? 0:2)]);
+                setHorizontalAlignment(SwingConstants.CENTER);
+
+                HierarchyNote note = null;
+                boolean hasError = false;
+                if (value instanceof Map) {
+                    Map noteData = (Map) value;
+                    note = (HierarchyNote) noteData.get(
+                            HierarchyNoteManager.NOTE_KEY);
+                    hasError = noteData.containsKey(
+                            HierarchyNoteManager.NOTE_CONFLICT_KEY);
+                }
+
+                if (note == null) {
+                    setIcon(null);
+                    setToolTipText(null);
+                } else {
+                    setIcon(hasError ? noteErrorIcon : noteIcon);
+                    setToolTipText("<html><div width='300'>"
+                        + note.getAsHTML() + "</div></html>");
+                }
+
+                return result;
+            }
+        }
+
+        class TaskNoteCellEditor extends AbstractCellEditor implements
+                TableCellEditor, Runnable {
+
+            JLabel dummyComponent = new JLabel(DashboardIconFactory
+                    .getWhiteCommentIcon());
+
+            private Object value;
+            PropertyKey nodeToEdit;
+
+            public Component getTableCellEditorComponent(JTable table,
+                    Object value, boolean isSelected, int row, int column) {
+                this.value = value;
+
+                String path = (String) table.getValueAt(row,
+                    EVTaskList.TASK_FULLNAME_COLUMN);
+                this.nodeToEdit = dash.getHierarchy().findExistingKey(path);
+
+                SwingUtilities.invokeLater(this);
+                return dummyComponent;
+            }
+
+            public Object getCellEditorValue() {
+                return value;
+            }
+
+            public boolean isCellEditable(EventObject anEvent) {
+                if (anEvent instanceof MouseEvent) {
+                    return ((MouseEvent) anEvent).getClickCount() > 1;
+                }
+                return true;
+            }
+
+            public void run() {
+                cancelCellEditing();
+                if (nodeToEdit != null)
+                    HierarchyNoteEditorDialog
+                            .showGlobalNoteEditor(dash, nodeToEdit);
+            }
+
         }
 
         class DependencyCellRenderer extends DefaultTableCellRenderer {
@@ -1555,7 +1663,7 @@ public class TaskScheduleDialog implements EVTask.Listener,
     }
 
 
-    public void evNodeChanged(final EVTask node) {
+    public void evNodeChanged(final EVTask node, boolean needsRecalc) {
         if (SwingUtilities.isEventDispatchThread())
             handleEvNodeChanged(node);
         else

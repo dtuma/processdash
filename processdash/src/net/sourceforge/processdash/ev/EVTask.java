@@ -33,8 +33,11 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.Vector;
+
+import org.w3c.dom.Element;
 
 import net.sourceforge.processdash.data.DateData;
 import net.sourceforge.processdash.data.DoubleData;
@@ -48,14 +51,14 @@ import net.sourceforge.processdash.data.repository.DataEvent;
 import net.sourceforge.processdash.data.repository.DataListener;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.hier.DashHierarchy;
+import net.sourceforge.processdash.hier.HierarchyNote;
+import net.sourceforge.processdash.hier.HierarchyNoteManager;
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.util.DateAdjuster;
 import net.sourceforge.processdash.util.FormatUtil;
 import net.sourceforge.processdash.util.StringUtils;
 import net.sourceforge.processdash.util.XMLUtils;
-
-import org.w3c.dom.Element;
 
 
 public class EVTask implements Cloneable, DataListener {
@@ -72,7 +75,7 @@ public class EVTask implements Cloneable, DataListener {
     private static final String TASK_PRUNING_PREFIX  = "TST-PRUNED_";
 
     public interface Listener {
-        public void evNodeChanged(EVTask node);
+        public void evNodeChanged(EVTask node, boolean needsRecalc);
     }
 
     EVTask parent = null;
@@ -199,6 +202,8 @@ public class EVTask implements Cloneable, DataListener {
     Date dateCompleted;
     /** True if the user can edit the completion date for this task */
     boolean dateCompletedEditable;
+    /** Note associated with this task, if applicable */
+    Map<String, HierarchyNote> noteData;
 
     private static final Date COMPLETION_DATE_NA = EVSchedule.A_LONG_TIME_AGO;
 
@@ -326,6 +331,7 @@ public class EVTask implements Cloneable, DataListener {
         setLevelOfEffort(getValue(getLevelOfEffortDataname()));
         loadStructuralData();
         loadDependencyInformation();
+        loadTaskNote();
 
         addChildrenFromHierarchy(fullName, key, data, hierarchy, listener);
 
@@ -595,6 +601,10 @@ public class EVTask implements Cloneable, DataListener {
             getChild(i).saveDependencyInformation();
     }
 
+    protected void loadTaskNote() {
+        noteData = HierarchyNoteManager.getNotesForPath(data, fullName);
+    }
+
     protected void resetActualDate() {
         if (data != null && fullName != null)
             setActualDate(getValue(DATE_COMPLETED_DATA_NAME));
@@ -698,7 +708,7 @@ public class EVTask implements Cloneable, DataListener {
         } else if (getNumChildren() == 1) {
             getChild(0).userSetActualDate(aValue);
             recalcDateCompleted();
-            notifyListener();
+            notifyListener(true);
         }
     }
 
@@ -957,6 +967,10 @@ public class EVTask implements Cloneable, DataListener {
             return parent.getAssignedTo();
         else
             return null;
+    }
+
+    public Map<String, HierarchyNote> getNoteData() {
+        return noteData;
     }
 
     /** Returns the list of forward and reverse dependencies for this task. */
@@ -1503,7 +1517,7 @@ public class EVTask implements Cloneable, DataListener {
     //
 
     public void dataValueChanged(DataEvent e) {
-        if (handleEvent(e)) notifyListener();
+        if (handleEvent(e)) notifyListener(true);
     }
 
     public void dataValuesChanged(Vector v) {
@@ -1512,7 +1526,7 @@ public class EVTask implements Cloneable, DataListener {
             if (handleEvent((DataEvent) v.elementAt(i)))
                 needsNotify = true;
 
-        if (needsNotify) notifyListener();
+        if (needsNotify) notifyListener(true);
     }
 
     protected boolean handleEvent(DataEvent e) {
@@ -1534,9 +1548,9 @@ public class EVTask implements Cloneable, DataListener {
         return true;
     }
 
-    protected void notifyListener() {
+    protected void notifyListener(boolean needsRecalc) {
         Listener l = listener;
-        if (l != null) l.evNodeChanged(this);
+        if (l != null) l.evNodeChanged(this, needsRecalc);
     }
 
     public void destroy() {

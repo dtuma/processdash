@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2009 Tuma Solutions, LLC
+// Copyright (C) 2001-2010 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -46,6 +46,9 @@ import net.sourceforge.processdash.data.repository.DataNameFilter;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.data.util.TopDownBottomUpJanitor;
 import net.sourceforge.processdash.hier.DashHierarchy;
+import net.sourceforge.processdash.hier.HierarchyNoteEvent;
+import net.sourceforge.processdash.hier.HierarchyNoteListener;
+import net.sourceforge.processdash.hier.HierarchyNoteManager;
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.net.cache.ObjectCache;
 import net.sourceforge.processdash.util.StringUtils;
@@ -61,6 +64,7 @@ public class EVTaskListData extends EVTaskList
     public static final String DATES_LOCKED_DATA_NAME = "Schedule_Dates_Locked";
     protected DataRepository data;
     protected DashHierarchy hierarchy;
+    protected TaskNoteListener taskNoteListener;
 
     public EVTaskListData(String taskListName,
                           DataRepository data,
@@ -81,8 +85,13 @@ public class EVTaskListData extends EVTaskList
         calculator = new EVCalculatorData(this);
         setBaselineDataSource(getBaselineSnapshot());
         ((EVTask) root).flag = TASK_LIST_FLAG;
-        if (willNeedChangeNotification)
+        this.showNotesColumn = true;
+        if (willNeedChangeNotification) {
             hierarchy.addHierarchyListener(this);
+
+            taskNoteListener = new TaskNoteListener();
+            HierarchyNoteManager.addHierarchyNoteListener(taskNoteListener);
+        }
     }
     public boolean isEditable() { return true; }
 
@@ -334,6 +343,8 @@ public class EVTaskListData extends EVTaskList
 
     public void dispose() {
         hierarchy.removeHierarchyListener(this);
+        if (taskNoteListener != null)
+            HierarchyNoteManager.removeHierarchyNoteListener(taskNoteListener);
         super.dispose();
     }
 
@@ -362,4 +373,18 @@ public class EVTaskListData extends EVTaskList
 
     static final TopDownBottomUpJanitor EST_TIME_JANITOR =
         new TopDownBottomUpJanitor("Estimated Time");
+
+    protected class TaskNoteListener implements HierarchyNoteListener {
+
+        public void notesChanged(HierarchyNoteEvent e) {
+            List<EVTask> tasks = getTaskRoot().findByFullName(e.getPath());
+            if (tasks != null && !tasks.isEmpty()) {
+                for (EVTask task : tasks) {
+                    task.loadTaskNote();
+                    evNodeChanged(task, false);
+                }
+            }
+        }
+    }
+
 }
