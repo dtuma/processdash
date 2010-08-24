@@ -2265,7 +2265,7 @@ public class HierarchySynchronizer {
             String who = time.substring(0, pos);
             double amount = Double.parseDouble(time.substring(pos+1));
             timeRatioTotal += amount;
-            if (initials.equals(who))
+            if (initials.equalsIgnoreCase(who))
                 timeRatioPersonal += amount;
         } catch (NumberFormatException nfe) {}
     }
