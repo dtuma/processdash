@@ -122,6 +122,7 @@ import net.sourceforge.processdash.templates.AutoUpdateManager;
 import net.sourceforge.processdash.templates.DataVersionChecker;
 import net.sourceforge.processdash.templates.TemplateLoader;
 import net.sourceforge.processdash.tool.bridge.client.BridgedWorkingDirectory;
+import net.sourceforge.processdash.tool.bridge.client.DirectoryPreferences;
 import net.sourceforge.processdash.tool.bridge.client.ImportDirectoryFactory;
 import net.sourceforge.processdash.tool.bridge.client.TeamServerSelector;
 import net.sourceforge.processdash.tool.bridge.client.WorkingDirectory;
@@ -593,6 +594,9 @@ public class ProcessDashboard extends JFrame implements WindowListener,
             if (path.startsWith("~")) {
                 dir = new File(System.getProperty("user.home"),
                     path.substring(2));
+            } else if (path.startsWith("[APPDIR]")) {
+                dir = new File(DirectoryPreferences.getApplicationDirectory(),
+                    path.substring(9));
             } else {
                 dir = new File(path);
             }
