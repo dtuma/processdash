@@ -1,4 +1,4 @@
-// Copyright (C) 2005-2009 Tuma Solutions, LLC
+// Copyright (C) 2005-2010 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -349,10 +349,20 @@ public class ArchiveMetricsFileExporter implements Runnable,
         StringBuffer uri = new StringBuffer(file.getHref());
         if (!file.getHref().startsWith("/"))
             uri.insert(0, '/');
-        for (Iterator i = filter.iterator(); i.hasNext();) {
-            String path = (String) i.next();
-            HTMLUtils.appendQuery(uri, "hierarchyPath", path);
+
+        if (filter.size() == 1) {
+            String path = (String) filter.iterator().next();
+            if (!path.startsWith("/")) path = "/" + path;
+            if (!path.endsWith("/")) path = path + "/";
+            String prefix = HTMLUtils.urlEncodePath(path);
+            uri.insert(0, prefix);
+        } else {
+            for (Iterator i = filter.iterator(); i.hasNext();) {
+                String path = (String) i.next();
+                HTMLUtils.appendQuery(uri, "hierarchyPath", path);
+            }
         }
+
         return uri.toString();
     }
 
