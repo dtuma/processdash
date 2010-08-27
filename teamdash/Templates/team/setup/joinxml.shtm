@@ -46,6 +46,11 @@
     Project_ID="<!--#echo var=[Project_ID] encoding=xml -->"
     Continuation_URI="/TPID/setup/wizard.class?page=indiv"
 
+    Project_Full_Name="<!--#echo var=PATH_TRANSLATED encoding=xml -->"
+    Schedule_Name="<!--#echo var=[Project_Schedule_Name] encoding=xml -->"
+    Suggested_Team_Member_Initials="[MEMBER_INITIALS]"
+    Suggested_Team_Member_Name="[MEMBER_NAME]"
+
 />
 
-<!--#endreplace-->
+<!--#endreplace--><!--#endreplace-->

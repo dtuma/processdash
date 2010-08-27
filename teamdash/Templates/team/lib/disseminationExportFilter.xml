@@ -6,4 +6,8 @@
     <include>/Team_Settings$</include>
     <include>/Team_Settings /</include>
   </metricsFilter>
+
+  <addEntry name="joinInfo.xml" type="joinInfo" version="1"
+              href="<!--#echo Process_ID -->/setup/joinxml.shtm" />
+
 </exportMetricsFile>

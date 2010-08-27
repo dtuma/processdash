@@ -32,11 +32,15 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Vector;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
 import net.sourceforge.processdash.BackgroundTaskManager;
 import net.sourceforge.processdash.DashController;
@@ -66,9 +70,6 @@ import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.NetworkDriveList;
 import net.sourceforge.processdash.util.StringUtils;
 import net.sourceforge.processdash.util.XMLUtils;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 
 /** This wizard sets up a team project.
  *
@@ -161,6 +162,7 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
     private static final String IND_BG_SYNC_URL = "sync.class?run&bg&noExport";
     // URLs for pages alerting an individual to various errors that could
     // occur when attempting to join a team project.
+    private static final String IND_DUPL_PROJ_URL = "indivDuplicateProj.shtm";
     private static final String IND_CONNECT_ERR_URL = "indivConnectError.shtm";
     private static final String IND_DATADIR_ERR_URL = "indivDataDirError.shtm";
 
@@ -182,6 +184,7 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
     private static final String DATA_DIR = "setup//Data_Directory";
     private static final String DATA_DIR_URL = "setup//Data_Directory_URL";
     private static final String IND_DIR_OVERRIDE = "setup//Indiv_Team_Dir_Override";
+    private static final String IGNORE_DUPS = "setup//Ignore_Duplicate_Projects";
 
     // the template ID of a "team project stub"
     private static final String TEAM_STUB_ID = "TeamProjectStub";
@@ -890,6 +893,16 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
 
     /** Begin the process of helping an individual join a team process. */
     protected void handleIndivPage() {
+        String teamURL = getValue(TEAM_URL);
+        Document d = downloadTeamProjectInformation(teamURL);
+        if (d != null) {
+            Element xml = d.getDocumentElement();
+            if (checkForDuplicateProject(xml))
+                return;
+            else
+                saveDefaultJoiningValues(xml);
+        }
+
         // if there is a current prefix, and it names a team planning
         // stub, then this is the location where the user wants to
         // create the team project.
@@ -901,6 +914,99 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
             // team stub, then we must determine where the user wants
             // to create the team project.
             showIndivNodePage();
+    }
+
+    private boolean checkForDuplicateProject(Element xml) {
+        // extract the project ID from the xml joining information.
+        String projectID = xml.getAttribute(PROJECT_ID);
+        if (!StringUtils.hasValue(projectID))
+            return false;
+
+        // Look for projects in the current hierarchy that have that ID.
+        Map<String, String> matchingProjects = new HashMap();
+        scanForMatchingProjects(getPSPProperties(), PropertyKey.ROOT,
+            projectID, matchingProjects);
+
+        // Look through the projects that were found.
+        String personalRoot = null;
+        for (Map.Entry<String, String> e : matchingProjects.entrySet()) {
+            if (e.getValue().endsWith("/TeamRoot")) {
+                // if a team project root was found, abort immediately.
+                // we don't support that mode of operation anymore.
+                printRedirect(IND_DUPL_PROJ_URL + "?teamRootPresent");
+                return true;
+            } else {
+                // if a personal root was found, make a record of its path.
+                personalRoot = e.getKey();
+            }
+        }
+
+        // if the user wants us to ignore duplicate personal projects, oblige.
+        if (parameters.containsKey("ignoreDups")) {
+            putValue(IGNORE_DUPS, "t");
+            return false;
+        } else if (getValue(IGNORE_DUPS) != null) {
+            return false;
+        }
+
+        // otherwise, if a personal root is present, show a warning page.
+        if (personalRoot != null) {
+            printRedirect(HTMLUtils.appendQuery(IND_DUPL_PROJ_URL,
+                "personalRoot", personalRoot));
+            return true;
+        }
+
+        // everything seems fine. No duplicates found.
+        return false;
+    }
+    private void scanForMatchingProjects(DashHierarchy hier, PropertyKey node,
+            String projectID, Map<String, String> matches) {
+        String path = node.path();
+        String dataName = DataRepository.createDataName(path, PROJECT_ID);
+        SimpleData sd = getDataRepository().getSimpleValue(dataName);
+        if (sd != null && projectID.equals(sd.format())) {
+            matches.put(path, hier.getID(node));
+        } else {
+            for (int i = hier.getNumChildren(node); i-- > 0;)
+                scanForMatchingProjects(hier, hier.getChildKey(node, i),
+                    projectID, matches);
+        }
+    }
+
+    /** Download information about the team project, and use it to set up
+     * default values for some of the data we expect the individual to
+     * provide. */
+    private void saveDefaultJoiningValues(Element xml) {
+        String projectName = xml.getAttribute("Project_Full_Name");
+        if (StringUtils.hasValue(projectName)) {
+            int slashPos = projectName.lastIndexOf('/');
+            if (slashPos != -1)
+                projectName = projectName.substring(slashPos + 1);
+            if (StringUtils.hasValue(projectName)
+                    && getValue(NODE_NAME) == null)
+                putValue(NODE_NAME, projectName);
+        }
+
+        String scheduleName = xml.getAttribute("Schedule_Name");
+        if (StringUtils.hasValue(scheduleName)) {
+            if (getValue(IND_SCHEDULE) == null)
+                putValue(IND_SCHEDULE, scheduleName);
+        }
+
+        maybeSavePersonalValue(IND_INITIALS, null, xml
+                .getAttribute("Suggested_Team_Member_Initials"));
+        maybeSavePersonalValue(IND_FULLNAME, "Enter your name", xml
+                .getAttribute("Suggested_Team_Member_Name"));
+    }
+    private void maybeSavePersonalValue(String dataName,
+            String overwritableValue, String value) {
+        if (!StringUtils.hasValue(value))
+            return;
+        if (value.startsWith("[") && value.endsWith("]"))
+            return;
+        String currVal = getValue(dataName);
+        if (currVal == null || currVal.equals(overwritableValue))
+            putValue(dataName, value);
     }
 
     /** Redirect back to the bootstrap script to get the URL of the
@@ -1141,15 +1247,26 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
         return buildTeamURLReference(teamURL, "index.htm") != null;
     }
     private URL buildTeamURLReference(String teamURL, String ref) {
+        return buildTeamURLReference(teamURL, ref, ref);
+    }
+    private URL buildTeamURLReference(String teamURL, String ref, String doRef) {
         //System.out.println("buildTeamURLReference("+teamURL+","+ref+")");
         if (teamURL == null || teamURL.trim().length() == 0) return null;
 
-        teamURL = StringUtils.findAndReplace(teamURL.trim(), "/+/", "//");
-        if (!teamURL.startsWith("http://")) return null;
-        int pos = teamURL.indexOf("//", 7);
-        if (pos != -1) pos = teamURL.indexOf('/', pos+2);
-        if (pos == -1) return null;
-        teamURL = teamURL.substring(0, pos+1) + ref;
+        teamURL = teamURL.trim();
+        if (!teamURL.startsWith("http://") && !teamURL.startsWith("https://"))
+            return null;
+
+        if (teamURL.endsWith(".do") || teamURL.indexOf(".do?") != -1) {
+            int pos = teamURL.lastIndexOf('/');
+            teamURL = teamURL.substring(0, pos+1) + doRef;
+        } else {
+            teamURL = StringUtils.findAndReplace(teamURL, "/+/", "//");
+            int pos = teamURL.indexOf("//", 7);
+            if (pos != -1) pos = teamURL.indexOf('/', pos+2);
+            if (pos == -1) return null;
+            teamURL = teamURL.substring(0, pos+1) + ref;
+        }
         //System.out.println("teamURL="+teamURL);
         URL u = null;
         try {
@@ -1219,7 +1336,8 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
         if (d == null) {
             printRedirect(IND_CONNECT_ERR_URL); return;
         }
-        teamURL = buildTeamURLReference(teamURL, "teamIndex.shtm").toString();
+        teamURL = buildTeamURLReference(teamURL, "teamIndex.shtm",
+            "teamIndex.do").toString();
         Element e = d.getDocumentElement();
 
         String projectID = e.getAttribute(PROJECT_ID);
@@ -1290,7 +1408,9 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
      * the project. On failure, this will return null.
      */
     protected Document downloadTeamProjectInformation(String teamURL) {
-        URL u = buildTeamURLReference(teamURL, "setup/join.class?xml");
+        URL u = buildTeamURLReference(teamURL, "setup/join.class?xml",
+            "joinXml.do");
+        if (u == null) return null;
         Document result = null;
         try {
             URLConnection conn = u.openConnection();
@@ -1299,8 +1419,9 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
             String serverTimeStamp = conn.getHeaderField
                 (WebServer.TIMESTAMP_HEADER);
             result = XMLUtils.parse(conn.getInputStream());
-            result.getDocumentElement().setAttribute
-                (WebServer.TIMESTAMP_HEADER, serverTimeStamp);
+            if (serverTimeStamp != null)
+                result.getDocumentElement().setAttribute
+                    (WebServer.TIMESTAMP_HEADER, serverTimeStamp);
         } catch (Exception e) {
             e.printStackTrace();
             return null;
