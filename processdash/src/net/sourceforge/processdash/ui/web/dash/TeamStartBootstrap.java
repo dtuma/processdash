@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2009 Tuma Solutions, LLC
+// Copyright (C) 2002-2010 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -341,14 +341,19 @@ public class TeamStartBootstrap extends TinyCGIBase {
         // page for the project, we should be able to derive the URL
         // we need.
         teamURL = teamURL.trim();
-        if (!teamURL.startsWith("http://"))
+        if (!teamURL.startsWith("http://") && !teamURL.startsWith("https://"))
             return resources.getHTML("Errors.Invalid_Team_URL");
-        teamURL = StringUtils.findAndReplace(teamURL, "/+/", "//");
-        int pos = teamURL.indexOf("//", 7);
-        if (pos != -1) pos = teamURL.indexOf('/', pos+2);
-        if (pos == -1)
-            return resources.getHTML("Errors.Invalid_Team_URL");
-        teamURL = teamURL.substring(0, pos+1) + "setup/join.class?xml";
+        if (teamURL.endsWith(".do") || teamURL.indexOf(".do?") != -1) {
+            int pos = teamURL.lastIndexOf('/');
+            teamURL = teamURL.substring(0, pos+1) + "joinXml.do";
+        } else {
+            teamURL = StringUtils.findAndReplace(teamURL, "/+/", "//");
+            int pos = teamURL.indexOf("//", 7);
+            if (pos != -1) pos = teamURL.indexOf('/', pos+2);
+            if (pos == -1)
+                return resources.getHTML("Errors.Invalid_Team_URL");
+            teamURL = teamURL.substring(0, pos+1) + "setup/join.class?xml";
+        }
         URL u = null;
         try {
             u = new URL(teamURL);
@@ -433,7 +438,8 @@ public class TeamStartBootstrap extends TinyCGIBase {
             if (errorMessage == null)
                 printRedirect(getPrefix(), continuationURI);
 
-        } else if (TEMPLATE_PATH_NEVER.equals(templatePathSetting)) {
+        } else if (TEMPLATE_PATH_NEVER.equals(templatePathSetting)
+                || templateFile == null) {
             errorMessage = TEMPLATE_PATH_NEVER;
 
         } else {
