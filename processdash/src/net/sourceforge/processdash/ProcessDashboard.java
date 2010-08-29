@@ -130,6 +130,7 @@ import net.sourceforge.processdash.tool.bridge.client.WorkingDirectoryFactory;
 import net.sourceforge.processdash.tool.export.mgr.ExportManager;
 import net.sourceforge.processdash.tool.export.mgr.ExternalResourceManager;
 import net.sourceforge.processdash.tool.export.mgr.ImportManager;
+import net.sourceforge.processdash.ui.AlwaysOnTopManager;
 import net.sourceforge.processdash.ui.BetaVersionSetup;
 import net.sourceforge.processdash.ui.Browser;
 import net.sourceforge.processdash.ui.CompletionButton;
@@ -568,6 +569,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         DashController.setDashboard(this);
         BackgroundTaskManager.initialize(this);
         SystemTrayManagement.getIcon().initialize(this);
+        AlwaysOnTopManager.initialize(this);
         initializeOsHelper();
         RuntimeUtils.addPropagatedSystemProperty(UsageLogger.FILE_SETTING, null);
         RuntimeUtils.autoregisterPropagatedSystemProperties();

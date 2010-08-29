@@ -1,3 +1,4 @@
+net/sourceforge/processdash/ui/AlwaysOnTopJDK6Impl.java
 net/sourceforge/processdash/ui/QuickSelectTaskAction.java
 net/sourceforge/processdash/ui/WindowIconImageSetter16.java
 net/sourceforge/processdash/ui/lib/JFilterableTreeComponent.java

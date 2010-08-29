@@ -36,6 +36,10 @@ preferences a category.
         <textfield id="window.title"
                    setting="window.title"
                    helpId="prefs.windowTitle" />
+
+        <checkbox id="window.alwaysOnTop"
+                  setting="window.alwaysOnTop"
+                  requires="java version 1.6" />
     </grouping>
 
     <grouping id="systemTray" requires="java version 1.6"
