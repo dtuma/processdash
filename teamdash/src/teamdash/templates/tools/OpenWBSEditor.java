@@ -199,6 +199,9 @@ public class OpenWBSEditor extends TinyCGIBase {
         if (parameters.containsKey("bottomUp"))
             result.put("teamdash.wbs.bottomUp", "true");
 
+        if (parameters.containsKey("indiv"))
+            result.put("teamdash.wbs.indiv", "true");
+
         if (parameters.containsKey("team"))
             result.put("teamdash.wbs.showTeamMemberList", "true");
 
@@ -302,7 +305,7 @@ public class OpenWBSEditor extends TinyCGIBase {
 
 
     protected void showEditorInternally(String directory, boolean bottomUp,
-                boolean showTeam, boolean readOnly, String syncURL) {
+            boolean indiv, boolean showTeam, boolean readOnly, String syncURL) {
         String key = directory;
         if (bottomUp)
             key = "bottomUp:" + key;
@@ -316,7 +319,7 @@ public class OpenWBSEditor extends TinyCGIBase {
 
         } else {
             editor = WBSEditor.createAndShowEditor(new String[] { directory },
-                bottomUp, showTeam, syncURL, false, readOnly, getOwner());
+                bottomUp, indiv, showTeam, syncURL, false, readOnly, getOwner());
             if (editor != null)
                 editors.put(key, editor);
             else

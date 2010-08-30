@@ -122,6 +122,7 @@ public class WBSEditor implements WindowListener, SaveListener,
     private int mode;
     boolean showActualData = false;
     boolean readOnly = false;
+    boolean indivMode = false;
     boolean exitOnClose = false;
     String syncURL = null;
     boolean disposed = false;
@@ -144,6 +145,7 @@ public class WBSEditor implements WindowListener, SaveListener,
     private static final String WORKFLOW_DUMP_FILE = "workflowDump.xml";
     private static final String CUSTOM_TABS_FILE = "tabs.xml";
     private static final String PROMPT_READ_ONLY_SETTING = "promptForReadOnly";
+    private static final String MEMBERS_CANNOT_EDIT_SETTING = "readOnlyForIndividuals";
 
     public WBSEditor(WorkingDirectory workingDirectory,
             TeamProject teamProject, String owner) throws LockFailureException {
@@ -412,6 +414,10 @@ public class WBSEditor implements WindowListener, SaveListener,
         this.exitOnClose = exitOnClose;
     }
 
+    public void setIndivMode(boolean indivMode) {
+        this.indivMode = indivMode;
+    }
+
     private void setSyncURL(String syncURL) {
         this.syncURL = syncURL;
     }
@@ -498,7 +504,15 @@ public class WBSEditor implements WindowListener, SaveListener,
                 .getBoolUserSetting(PROMPT_READ_ONLY_SETTING);
         readOnlyPrompt.setSelected(readOnlyPromptSetting);
 
-        int userChoice = JOptionPane.showConfirmDialog(frame, readOnlyPrompt,
+        JCheckBox membersCanEdit = new JCheckBox(
+                "Allow team members to edit the WBS");
+        boolean membersCanEditSetting = !teamProject
+                .getBoolUserSetting(MEMBERS_CANNOT_EDIT_SETTING);
+        membersCanEdit.setSelected(membersCanEditSetting);
+        membersCanEdit.setEnabled(!indivMode);
+
+        Object[] message = new Object[] { readOnlyPrompt, membersCanEdit };
+        int userChoice = JOptionPane.showConfirmDialog(frame, message,
             "Edit Preferences", JOptionPane.OK_CANCEL_OPTION,
             JOptionPane.PLAIN_MESSAGE);
         if (userChoice != JOptionPane.OK_OPTION)
@@ -510,6 +524,13 @@ public class WBSEditor implements WindowListener, SaveListener,
         if (newReadOnlyPromptSetting != readOnlyPromptSetting) {
             teamProject.putUserSetting(PROMPT_READ_ONLY_SETTING,
                 newReadOnlyPromptSetting);
+            madeChange = true;
+        }
+
+        boolean newMembersCanEditSetting = membersCanEdit.isSelected();
+        if (newMembersCanEditSetting != membersCanEditSetting) {
+            teamProject.putUserSetting(MEMBERS_CANNOT_EDIT_SETTING,
+                !newMembersCanEditSetting);
             madeChange = true;
         }
 
@@ -898,8 +919,9 @@ public class WBSEditor implements WindowListener, SaveListener,
     public void windowDeactivated(WindowEvent e) {}
 
     public static WBSEditor createAndShowEditor(String[] locations,
-            boolean bottomUp, boolean showTeamList, String syncURL,
-            boolean exitOnClose, boolean forceReadOnly, String owner) {
+            boolean bottomUp, boolean indivMode, boolean showTeamList,
+            String syncURL, boolean exitOnClose, boolean forceReadOnly,
+            String owner) {
 
         String message = (showTeamList
                 ? "Opening Team Member List..."
@@ -938,6 +960,9 @@ public class WBSEditor implements WindowListener, SaveListener,
             proj = new TeamProject(dir, "Team Project");
         }
 
+        if (indivMode && proj.getBoolUserSetting(MEMBERS_CANNOT_EDIT_SETTING))
+            forceReadOnly = true;
+
         if (forceReadOnly)
             proj.setReadOnly(true);
 
@@ -948,6 +973,7 @@ public class WBSEditor implements WindowListener, SaveListener,
             WBSEditor w = new WBSEditor(workingDirectory, proj, owner);
             w.setExitOnClose(exitOnClose);
             w.setSyncURL(syncURL);
+            w.setIndivMode(indivMode);
             if (showTeamList)
                 w.showTeamListEditor();
             else
@@ -1180,12 +1206,13 @@ public class WBSEditor implements WindowListener, SaveListener,
         String[] locations = args;
 
         boolean bottomUp = Boolean.getBoolean("teamdash.wbs.bottomUp");
+        boolean indivMode = Boolean.getBoolean("teamdash.wbs.indiv");
         boolean showTeam = Boolean.getBoolean("teamdash.wbs.showTeamMemberList");
         boolean readOnly = Boolean.getBoolean("teamdash.wbs.readOnly");
         String syncURL = System.getProperty("teamdash.wbs.syncURL");
         String owner = System.getProperty("teamdash.wbs.owner");
-        createAndShowEditor(locations, bottomUp, showTeam, syncURL, true,
-            readOnly, owner);
+        createAndShowEditor(locations, bottomUp, indivMode, showTeam, syncURL,
+            true, readOnly, owner);
 
         new Timer(DAY_MILLIS, new UsageLogAction()).start();
     }

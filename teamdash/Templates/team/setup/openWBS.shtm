@@ -29,18 +29,11 @@
     <!--#include file="getProcessMetadataURL" #-->
 <!--#endset-->
 
-<!--#if [WBS_Read_Only] -->
-    <!--#set var="readOnly" value="true" -->
-<!--#else-->
-    <!--#set var="readOnly" value="false" -->
-<!--#endif-->
-
 <!--#include file="/team/tools/OpenWBSEditor.class" -->
     <!--#parameter name="QUERY_STRING" -->
     <!--#parameter name="syncURL" encoding="relUri" value="sync.class?run&bg" -->
     <!--#parameter name="reverseSyncURL" var="reverseSyncURI" -->
     <!--#parameter name="processURL" var="processURL" -->
-    <!--#parameter name="forceReadOnly" var="readOnly" -->
     <!--#parameter name="directoryURL" var="[Team_Data_Directory_URL]" -->
     <!--#parameter name="directory" var="[Team_Data_Directory]" -->
 
