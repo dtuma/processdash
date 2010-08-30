@@ -119,6 +119,18 @@ public class IconFactory {
     }
     private static Icon DEMOTE_ICON = null;
 
+    public static Icon getMoveUpIcon() {
+        if (MOVE_UP_ICON == null) MOVE_UP_ICON = loadIconResource("moveup.png");
+        return MOVE_UP_ICON;
+    }
+    private static Icon MOVE_UP_ICON = null;
+
+    public static Icon getMoveDownIcon() {
+        if (MOVE_DOWN_ICON == null) MOVE_DOWN_ICON = loadIconResource("movedown.png");
+        return MOVE_DOWN_ICON;
+    }
+    private static Icon MOVE_DOWN_ICON = null;
+
     public static Icon getCutIcon() {
         if (CUT_ICON == null) CUT_ICON = loadIconResource("cut.gif");
         return CUT_ICON;

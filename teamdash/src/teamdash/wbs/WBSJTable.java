@@ -194,16 +194,30 @@ public class WBSJTable extends JTable {
 
     /** Change the current selection so it contains the given list of rows */
     public void selectRows(int[] rowsToSelect) {
+        selectRows(rowsToSelect, false);
+    }
+    public void selectRows(int[] rowsToSelect, boolean scroll) {
         if (rowsToSelect != null) {
             if (rowsToSelect.length == 0)
                 clearSelection();
             else {
                 getSelectionModel().setValueIsAdjusting(true);
                 clearSelection();
-                for (int i=rowsToSelect.length;   i-- > 0; )
-                    addRowSelectionInterval(rowsToSelect[i],
-                                            rowsToSelect[i]);
+                int minRow, maxRow;
+                minRow = maxRow = rowsToSelect[0];
+                for (int i=rowsToSelect.length;   i-- > 0; ) {
+                    int row = rowsToSelect[i];
+                    addRowSelectionInterval(row, row);
+                    minRow = Math.min(minRow, row);
+                    maxRow = Math.max(maxRow, row);
+                }
                 getSelectionModel().setValueIsAdjusting(false);
+
+                if (scroll) {
+                    minRow = Math.max(0, minRow-1);
+                    scrollRectToVisible(getCellRect(maxRow, 0, true));
+                    scrollRectToVisible(getCellRect(minRow, 0, true));
+                }
             }
         }
     }
@@ -213,8 +227,8 @@ public class WBSJTable extends JTable {
     public Action[] getEditingActions() {
         return new Action[] { CUT_ACTION, COPY_ACTION, PASTE_ACTION,
             PROMOTE_ACTION, DEMOTE_ACTION, EXPAND_ACTION, COLLAPSE_ACTION,
-            EXPAND_ALL_ACTION, INSERT_ACTION, INSERT_AFTER_ACTION,
-            DELETE_ACTION };
+            EXPAND_ALL_ACTION, MOVEUP_ACTION, MOVEDOWN_ACTION,
+            INSERT_ACTION, INSERT_AFTER_ACTION, DELETE_ACTION };
     }
 
     /** Return an action capable of inserting a workflow */
@@ -323,6 +337,8 @@ public class WBSJTable extends JTable {
     /** Look at each of our actions to determine if it should be enabled. */
     private void recalculateEnablement() {
         int[] selectedRows = getSelectedRows();
+        if (selectedRows != null && selectedRows.length > 1)
+            Arrays.sort(selectedRows);
         for (Iterator i = enablementCalculations.iterator(); i.hasNext();) {
             EnablementCalculation calc = (EnablementCalculation) i.next();
             calc.recalculateEnablement(selectedRows);
@@ -377,6 +393,25 @@ public class WBSJTable extends JTable {
                 return true;
         }
         return false;
+    }
+
+    /** test whether the given list of rows represent a parent immediately
+     * followed by some number of its children. */
+    private boolean isParentAndChildren(int[] rows) {
+        if (rows == null || rows.length == 0)
+            return false;
+        int row = rows[0];
+        int indent = wbsModel.getNodeForRow(row).getIndentLevel();
+        for (int i = 1;  i < rows.length;  i++) {
+            int nextRow = rows[i];
+            if (nextRow - row != 1)
+                return false;
+            row = nextRow;
+            int subindent = wbsModel.getNodeForRow(row).getIndentLevel();
+            if (subindent <= indent)
+                return false;
+        }
+        return true;
     }
 
     private void setSourceIDs(List nodeList) {
@@ -1275,6 +1310,67 @@ public class WBSJTable extends JTable {
         }
     }
     final CollapseAction COLLAPSE_ACTION = new CollapseAction();
+
+
+    /** An action to perform a "move up" operation */
+    private class MoveUpAction extends AbstractAction implements
+            EnablementCalculation {
+
+        public MoveUpAction() {
+            super("Move Up", IconFactory.getMoveUpIcon());
+            putValue(WBS_ACTION_CATEGORY, WBS_ACTION_CATEGORY_STRUCTURE);
+            enablementCalculations.add(this);
+        }
+        public void actionPerformed(ActionEvent e) {
+            // get a list of the currently selected rows.
+            int[] rows = getSelectedRows();
+            if (!isParentAndChildren(rows)) return;
+
+            WBSNode node = wbsModel.getNodeForRow(rows[0]);
+            int[] finalRows = wbsModel.moveNodeUp(node);
+            if (finalRows != null) {
+                UndoList.madeChange(WBSJTable.this, "Move Up");
+                selectRows(finalRows, true);
+            }
+        }
+        public void recalculateEnablement(int[] selectedRows) {
+            setEnabled(selectedRows != null
+                && isParentAndChildren(selectedRows)
+                && selectedRows[0] > 1);
+        }
+    }
+    final MoveUpAction MOVEUP_ACTION = new MoveUpAction();
+
+
+    /** An action to perform a "move down" operation */
+    private class MoveDownAction extends AbstractAction implements
+            EnablementCalculation {
+
+        public MoveDownAction() {
+            super("Move Down", IconFactory.getMoveDownIcon());
+            putValue(WBS_ACTION_CATEGORY, WBS_ACTION_CATEGORY_STRUCTURE);
+            enablementCalculations.add(this);
+        }
+        public void actionPerformed(ActionEvent e) {
+            // get a list of the currently selected rows.
+            int[] rows = getSelectedRows();
+            if (!isParentAndChildren(rows)) return;
+
+            WBSNode node = wbsModel.getNodeForRow(rows[0]);
+            int[] finalRows = wbsModel.moveNodeDown(node);
+            if (finalRows != null) {
+                UndoList.madeChange(WBSJTable.this, "Move Down");
+                selectRows(finalRows, true);
+            }
+        }
+        public void recalculateEnablement(int[] selectedRows) {
+            setEnabled(selectedRows != null
+                && isParentAndChildren(selectedRows)
+                && selectedRows[selectedRows.length-1] + 1 < getRowCount());
+        }
+    }
+    final MoveDownAction MOVEDOWN_ACTION = new MoveDownAction();
+
 
     /** Recalculate enablement following changes in selection */
     private final class SelectionListener implements ListSelectionListener {

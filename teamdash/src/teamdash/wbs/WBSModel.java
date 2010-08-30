@@ -113,7 +113,7 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
     public static final String WBS_MODEL_TAG = "wbsModel";
 
     /** The flat list of nodes in this work breakdown structure */
-    private ArrayList wbsNodes;
+    private ArrayList<WBSNode> wbsNodes;
 
     /** An object which can check the WBS for errors. */
     private WBSModelValidator validator;
@@ -738,6 +738,103 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
 
         if (notify)
             fireTableDataChanged();
+    }
+
+    /**
+     * Move a specified node "up" - for example, to make it swap places with its
+     * prior sibling.
+     * 
+     * @param node
+     *            the node to move. All descendants of the specified node will
+     *            be moved as well.
+     * @return the list of rows for the nodes that have moved. If no move was
+     *         performed, returns null.
+     */
+    public int[] moveNodeUp(WBSNode node) {
+        int nodePos = getIndexOfNode(node);
+        int destPos = getMoveNodeUpInsertionPos(node, nodePos);
+        if (destPos < 1)
+            return null;
+
+        List nodesToMove = new ArrayList();
+        nodesToMove.add(node);
+        nodesToMove.addAll(Arrays.asList(getDescendants(node)));
+        deleteNodes(nodesToMove, false);
+        insertNodesAt(nodesToMove, destPos, true);
+        return getRowsForNodes(nodesToMove);
+    }
+
+    private int getMoveNodeUpInsertionPos(WBSNode nodeToMove, int nodePos) {
+        if (nodePos < 2)
+            return -1;
+
+        int indent = nodeToMove.getIndentLevel();
+
+        // Start by examining the node that immediately precedes the nodeToMove.
+        // If it is a sibling or a parent of the nodeToMove, then we want
+        // to move the node immediately before it. If not, start walking up
+        // the tree until we find a node that is a sibling or parent.
+        WBSNode node = wbsNodes.get(nodePos - 1);
+        while (node != null) {
+            if (node.getIndentLevel() <= indent)
+                return getIndexOfNode(node);
+            else
+                node = getParent(node);
+        }
+
+        return -1;
+    }
+
+    /**
+     * Move a specified node "down" - for example, to make it swap places with
+     * its subsequent sibling.
+     * 
+     * @param node
+     *            the node to move. All descendants of the specified node will
+     *            be moved as well.
+     * @return the list of rows for the nodes that have moved. If no move was
+     *         performed, returns null.
+     */
+    public int[] moveNodeDown(WBSNode node) {
+        int nodePos = getIndexOfNode(node);
+        if (nodePos == -1)
+            return null;
+
+        List nodesToMove = new ArrayList();
+        nodesToMove.add(node);
+        nodesToMove.addAll(Arrays.asList(getDescendants(node)));
+
+        int destPos = getMoveNodeDownInsertionPos(nodesToMove);
+        if (destPos == -1)
+            return null;
+
+        deleteNodes(nodesToMove, false);
+        insertNodesAt(nodesToMove, destPos - nodesToMove.size(), true);
+        return getRowsForNodes(nodesToMove);
+    }
+
+    private int getMoveNodeDownInsertionPos(List nodesToMove) {
+        WBSNode firstMovedNode = (WBSNode) nodesToMove.get(0);
+        Object lastMovedNode = nodesToMove.get(nodesToMove.size() - 1);
+        int lastMovedPos = getIndexOfNode(lastMovedNode);
+        int nextPos = lastMovedPos + 1;
+
+        if (nextPos >= wbsNodes.size())
+            return -1;
+
+        // look at the node that follows the nodes we are moving. If it has
+        // a shallower indent level than the nodes we are moving, then we
+        // want to insert our node immediately after it. (This helps the
+        // moveUp and moveDown operations to be opposites of each other.)
+        WBSNode nextNode = wbsNodes.get(nextPos);
+        if (nextNode.getIndentLevel() < firstMovedNode.getIndentLevel())
+            return nextPos + 1;
+
+        IntList nextDescendants = getDescendantIndexes(null, nextPos);
+        if (nextDescendants.size() == 0)
+            return nextPos + 1;
+        else
+            return nextDescendants.get(nextDescendants.size() - 1) + 1;
     }
 
     /** Make this WBS be a copy of the given WBS.
