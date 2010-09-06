@@ -552,8 +552,7 @@ public class HierarchySynchronizer {
 
         // add time logged directly to the node, if it exists.
         SimpleData d = getData(node.path(), ACT_TIME_DATA_NAME);
-        if (d instanceof DoubleData)
-            result += ((DoubleData) d).getDouble();
+        result += getDoubleData(d);
 
         // if the node has children, add their time too.
         for (int i = hierarchy.getNumChildren(node);  i-- > 0; ) {
@@ -561,6 +560,23 @@ public class HierarchySynchronizer {
             result += getTotalActualTimeForIndivNode(child);
         }
 
+        return result;
+    }
+
+    private double getTotalPlanTimeForIndivNode(PropertyKey node) {
+        double result = 0;
+
+        // add time logged directly to the node, if it exists.
+        SimpleData d = getData(node.path(), EST_TIME_DATA_NAME);
+        result += getDoubleData(d);
+
+        // if the node is not a PSP task and has children, add their time too.
+        if (!isPSPTask(node)) {
+            for (int i = hierarchy.getNumChildren(node);  i-- > 0; ) {
+                PropertyKey child = hierarchy.getChildKey(node, i);
+                result += getTotalPlanTimeForIndivNode(child);
+            }
+        }
         return result;
     }
 
@@ -1579,15 +1595,17 @@ public class HierarchySynchronizer {
                 if (undoMarkTaskComplete(worker, path))
                     changes.add("Marked '" + path + "' incomplete.");
                 if (okToChangeTimeEstimate(path)) {
+                    // FIXME: if a user subdivides a task in their personal
+                    // plan, and then the estimate is changed in the WBS, this
+                    // branch will never execute and the two task estimates
+                    // will remain out of sync indefinitely.
                     worker.setLastReverseSyncedValue(parseSyncTime(node) * 60);
                     putData(path, EST_TIME_DATA_NAME, new DoubleData(time * 60));
                 }
             }
 
-            // FIXME: this code won't correctly handle tasks that have been
-            // subdivided by the user. This code will log a discrepancy stating
-            // that the planned time should be 0, which is incorrect.
-            double finalTime = getDoubleData(getData(path, EST_TIME_DATA_NAME)) / 60;
+            PropertyKey key = hierarchy.findExistingKey(path);
+            double finalTime = getTotalPlanTimeForIndivNode(key) / 60;
             if (eq(finalTime, time) == false)
                 discrepancies.add(new SyncDiscrepancy.PlanTime(path,
                         getWbsIdForPath(path), finalTime));
