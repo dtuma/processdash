@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2008 Tuma Solutions, LLC
+// Copyright (C) 2003-2010 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -101,6 +101,9 @@ public class EVCalculatorRollup extends EVCalculator {
         // check for duplicate schedules.
         taskRoot.checkForNodeErrors(schedule.getMetrics(), 0,
                 new ArrayList(), new ArrayList(), true);
+
+        // possibly store fallback completion dates for overspent tasks
+        writeOverspentFallbackDates();
     }
 
     @Override
@@ -194,6 +197,95 @@ public class EVCalculatorRollup extends EVCalculator {
         for (int i = task.getNumChildren();   i-- > 0;  )
             scaleLevelOfEffort(task.getChild(i), ratio);
     }
+
+    /**
+     * When a team member has an END date on their schedule, but they have
+     * more work than they can complete, some of their tasks may have an
+     * end date of "never."  In that scenario, we still calculate an optimized
+     * completion date for the team, based on an assumption that the team
+     * will reassign that person's remaining work to other team members.
+     * This method finds the tasks with "never" dates, and attaches various
+     * fallback date ranges based upon the timeframe when the team might step
+     * in and take over the unfinished work.
+     */
+    private void writeOverspentFallbackDates() {
+        DateRange fallbackPlan, fallbackReplan, fallbackForecast;
+        if (!someSchedulesAreRollups()) {
+            // our fallback date ranges begin when the first team member
+            // finishes their work (since that is the date someone could
+            // potentially begin working on the unfinished tasks), and end
+            // with the team's optimized completion date.
+            EVMetricsRollup thatRollup = (EVMetricsRollup) schedule.getMetrics();
+            fallbackPlan = new DateRange(thatRollup.earliestPlanDate,
+                    thatRollup.optimizedPlanDate());
+            fallbackReplan = new DateRange(thatRollup.earliestReplanDate,
+                    thatRollup.optimizedReplanDate());
+            fallbackForecast = new DateRange(thatRollup.earliestForecastDate,
+                    thatRollup.optimizedForecastDate());
+        } else {
+            // when we perform a rollup of rollups (for example, in a master
+            // project), we do NOT assume that we can rebalance work from
+            // one subschedule to another.  So in that scenario, we will not
+            // assign any fallback dates
+            fallbackPlan = fallbackReplan = fallbackForecast = null;
+        }
+
+        // now that we've calculated the appropriate ranges, store the
+        // values in each plain subschedule.
+        for (int i = evTaskLists.size(); i-- > 0;) {
+            EVTaskList tl = evTaskLists.get(i);
+            if ((tl instanceof EVTaskListData) || (tl instanceof EVTaskListXML))
+                writeOverspentFallbackDates(tl, fallbackPlan,
+                    fallbackReplan, fallbackForecast);
+        }
+    }
+
+    private void writeOverspentFallbackDates(EVTaskList tl,
+            DateRange fallbackPlan, DateRange fallbackReplan,
+            DateRange fallbackForecast) {
+        // check to see whether this schedule has an end date set.  Based on
+        // the presence or absence of that end date, adjust the ranges.
+        Date scheduleEndDate = tl.getSchedule().getEndDate();
+        fallbackPlan = resolveRange(fallbackPlan, scheduleEndDate);
+        fallbackReplan = resolveRange(fallbackReplan, scheduleEndDate);
+        fallbackForecast = resolveRange(fallbackForecast, scheduleEndDate);
+
+        // now store the resulting ranges into each task of the task list.
+        writeOverspentFallbackDates(tl.getTaskRoot(), fallbackPlan,
+            fallbackReplan, fallbackForecast);
+    }
+
+    private DateRange resolveRange(DateRange r, Date scheduleEnd) {
+        // if this schedule does not have an end date, then it should be able
+        // to calculate its own dates, and does not need fallback ranges
+        if (scheduleEnd == null)
+            return null;
+        // if we were passed a bad date range, don't attempt to use it.
+        if (r == null || badDate(r.getEnd()))
+            return null;
+        // if the start date of our range is bad, try replacing it with the
+        // schedule end.  If that doesn't help, don't apply a fallback range.
+        Date newStart = r.getStart();
+        if (badDate(newStart) || newStart.after(r.getEnd())) {
+            newStart = scheduleEnd;
+            if (badDate(newStart) || newStart.after(r.getEnd()))
+                return null;
+        }
+        return new DateRange(newStart, r.getEnd());
+    }
+
+    private void writeOverspentFallbackDates(EVTask node,
+            DateRange fallbackPlan, DateRange fallbackReplan,
+            DateRange fallbackForecast) {
+        // store ranges into this EVTask, and recurse into children.
+        node.overspentPlanDates = fallbackPlan;
+        node.overspentReplanDates = fallbackReplan;
+        node.overspentForecastDates = fallbackForecast;
+        for (int i = node.getNumChildren();  i-- > 0; )
+            writeOverspentFallbackDates(node.getChild(i), fallbackPlan,
+                fallbackReplan, fallbackForecast);
+    }
+
 
     public List getEVLeaves() {
         if (evLeaves == null) {
@@ -429,6 +521,9 @@ public class EVCalculatorRollup extends EVCalculator {
         }
         public boolean equals(Object obj) {
             return this == obj;
+        }
+        public int hashCode() {
+            return super.hashCode();
         }
     }
     private static final Comparator EV_LEAF_DATE_COMPARATOR =

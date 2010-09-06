@@ -1,4 +1,4 @@
-// Copyright (C) 2006-2009 Tuma Solutions, LLC
+// Copyright (C) 2006-2010 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -163,6 +163,72 @@ public class EVForecastDateCalculators {
 
 
 
+    /**
+     * Without taking CPI or DTPI into account, but only examining the cost and
+     * schedule variances to date, calculate a date that the schedule might
+     * finish if it were replanned today.
+     */
+    public static class ReplanDateExtrapolation implements
+            EVForecastDateCalculator {
+
+        private double almostDonePercentage;
+
+        public ReplanDateExtrapolation() {
+            this.almostDonePercentage = getPercentageSetting("ev.forecast.task.almostDonePct");
+        }
+
+        public void calculateForecastDates(EVTask taskRoot,
+                EVSchedule schedule, EVMetrics metrics, List evLeaves) {
+            // calculate the original planned time of the tasks that have
+            // not yet been completed. This is equal to the amount of time
+            // in the plan, minus the value earned so far for completed tasks.
+            double totalPlannedTimeOfRemainingTasks = metrics.totalPlan()
+                    - metrics.earnedValue();
+
+            // calculate the amount of time actually spent in these remaining
+            // tasks. This is equal to the total actual time spent so far,
+            // minus the actual time spent on completed work.
+            double timeSpentOnRemainingTasks = metrics.totalScheduleActualTime
+                    - metrics.actual();
+
+            // the planned time remaining is equal to the difference between
+            // the two numbers calculated above.
+            double plannedTimeRemaining = totalPlannedTimeOfRemainingTasks
+                    - timeSpentOnRemainingTasks;
+
+            // if the schedule is significantly overspent, the planned time
+            // remaining could be negative. In that case, use the "almost
+            // done" percentage setting to assume that we're almost done
+            // with the remaining tasks.
+            if (plannedTimeRemaining < 0)
+                plannedTimeRemaining = timeSpentOnRemainingTasks
+                        / almostDonePercentage;
+
+            // get the amount of planned time that has elapsed in the schedule
+            // as of the current date. Then add the planned remaining time
+            // to produce an amount of time that should represent a replanned
+            // total. Find the time the schedule would reach this date.
+            double artificialPlannedTimeTotal = metrics.totalSchedulePlanTime
+                    + plannedTimeRemaining;
+            Date result = schedule.getHypotheticalDate(
+                artificialPlannedTimeTotal, false);
+            if (isForecastInvalid(result, metrics))
+                result = null;
+
+            if (metrics instanceof EVMetricsRollup) {
+                ((EVMetricsRollup) metrics).optimizedReplanDate = result;
+            } else {
+                metrics.replanDate = result;
+            }
+        }
+
+    }
+    public static final EVForecastDateCalculator REPLAN_EXTRAPOLATION =
+        new ReplanDateExtrapolation();
+
+
+
+
     /** Taking both CPI and DTPI into account, looking at future staffing
      * plans, and both planned and actual time spent on tasks in progress,
      * produce estimated completion dates for each task in the plan.
@@ -220,13 +286,6 @@ public class EVForecastDateCalculators {
                     "ev.forecast.task.almostDonePct");
             this.maxAdjustmentRatio = getPercentageSetting(
                     "ev.forecast.task.maxCpiCorrectionPct");
-        }
-
-        private double getPercentageSetting(String settingName) {
-            int num = Settings.getInt(settingName, 0);
-            num = Math.max(0, num);
-            num = Math.min(100, num);
-            return num / 100.0;
         }
 
         public void calculateForecastDates(EVTask taskRoot,
@@ -526,10 +585,24 @@ public class EVForecastDateCalculators {
             for (int i = 0;  i < evLeaves.size();  i++) {
                 EVTask task = (EVTask) evLeaves.get(i);
                 Date actualStart = task.getActualStartDate();
-                Date effStart = EVCalculator.minStartDate(actualStart,
-                    nextStart);
-                setTaskStartDate(task, effStart);
                 Date endDate = getTaskEndDate(task);
+                Date effStart;
+                // In a normal scenario, we would ALWAYS want to use the
+                // actual start date of a task instead of some arbitrary
+                // calculation.  But in the real world, people sometimes do
+                // dumb things, like mark a task complete and then manually
+                // enter its time in the time log (resulting in a start date
+                // that follows the completion date).  To account for those
+                // real-world misuse cases, we ignore the start date if it
+                // precedes the end date.
+                if (actualStart != null && endDate != null
+                        && actualStart.before(endDate)) {
+                    effStart = actualStart;
+                } else {
+                    effStart = EVCalculator.minStartDate(endDate, nextStart);
+                    effStart = EVCalculator.minStartDate(effStart, actualStart);
+                }
+                setTaskStartDate(task, effStart);
                 if (endDate != null)
                     nextStart = endDate;
             }
@@ -612,4 +685,12 @@ public class EVForecastDateCalculators {
         }
         return result;
     }
+
+    private static double getPercentageSetting(String settingName) {
+        int num = Settings.getInt(settingName, 0);
+        num = Math.max(0, num);
+        num = Math.min(100, num);
+        return num / 100.0;
+    }
+
 }

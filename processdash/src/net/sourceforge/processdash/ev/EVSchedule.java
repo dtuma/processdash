@@ -637,6 +637,8 @@ public class EVSchedule implements TableModel {
         metrics.costInterval = s.metrics.costInterval;
         metrics.timeErrInterval = s.metrics.timeErrInterval;
         metrics.completionDateInterval = s.metrics.completionDateInterval;
+        metrics.totalSchedulePlanTime = s.metrics.totalSchedulePlanTime;
+        metrics.totalScheduleActualTime = s.metrics.totalScheduleActualTime;
     }
     public void copyFrom(EVSchedule that) {
         addAllPeriods(that.periods, this.periods);
@@ -1199,13 +1201,12 @@ public class EVSchedule implements TableModel {
 
     public Date getEndDate() {
         if (defaultPlanDirectTime > 0
-                || getLast().isAutomatic()
                 || getLast().getPlanDirectTime() > 0)
             return null;
         for (int i = periods.size();  i-- > 0; ) {
             Period p = get(i);
-            if (p.getPlanDirectTime() > 0)
-                return p.getEndDate(false);
+            if (p.isScheduleEnd())
+                return p.getBeginDate();
         }
         return null;
     }

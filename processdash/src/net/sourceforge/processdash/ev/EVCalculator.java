@@ -103,6 +103,9 @@ public abstract class EVCalculator {
         public boolean equals(Object obj) {
             return this == obj;
         }
+        public int hashCode() {
+            return super.hashCode();
+        }
     }
 
 
@@ -126,6 +129,9 @@ public abstract class EVCalculator {
         task.planDate = task.planStartDate = task.actualStartDate =
             task.replanStartDate = task.forecastStartDate =
             task.replanDate = task.forecastDate = null;
+
+        task.overspentPlanDates = task.overspentReplanDates =
+            task.overspentForecastDates = null;
 
         task.planTime = task.planValue = task.cumPlanValue =
             task.actualPreTime = task.actualNodeTime = task.actualDirectTime =

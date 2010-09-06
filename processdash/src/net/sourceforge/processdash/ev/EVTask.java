@@ -202,6 +202,15 @@ public class EVTask implements Cloneable, DataListener {
     Date dateCompleted;
     /** True if the user can edit the completion date for this task */
     boolean dateCompletedEditable;
+    /** If this is a task that will never finish because its schedule is
+     * overspent, this field can be used to store nominal task plan dates */
+    DateRange overspentPlanDates;
+    /** If this is a task that will never finish because its schedule is
+     * overspent, this field can be used to store nominal task replan dates */
+    DateRange overspentReplanDates;
+    /** If this is a task that will never finish because its schedule is
+     * overspent, this field can be used to store nominal task forecast dates */
+    DateRange overspentForecastDates;
     /** Note associated with this task, if applicable */
     Map<String, HierarchyNote> noteData;
 
@@ -1432,6 +1441,46 @@ public class EVTask implements Cloneable, DataListener {
         dateCompletedEditable = (getNumChildren() == 1 && childEditable);
         dateCompleted = result;
     }
+
+
+    protected void maybeFallbackToOverspentDates() {
+        boolean usedFallback = false;
+        if (shouldFallback(planDate, overspentPlanDates)) {
+            planStartDate = overspentPlanDates.getStart();
+            planDate = overspentPlanDates.getEnd();
+            usedFallback = true;
+        }
+        if (shouldFallback(replanDate, overspentReplanDates)) {
+            replanStartDate = resolveStartDate(overspentReplanDates);
+            replanDate = overspentReplanDates.getEnd();
+            usedFallback = true;
+        }
+        if (shouldFallback(forecastDate, overspentForecastDates)) {
+            forecastStartDate = resolveStartDate(overspentForecastDates);
+            forecastDate = overspentForecastDates.getEnd();
+            usedFallback = true;
+        }
+        if (usedFallback) {
+            if (assignedTo != null && assignedTo.size() == 1) {
+                String who = assignedTo.get(0);
+                who = resources.format("Schedule.Team_Assignment_FMT", who);
+                assignedTo = Collections.singletonList(who);
+            } else if (assignedTo == null || assignedTo.isEmpty()) {
+                String who = resources.getString("Schedule.Team_Assignment");
+                assignedTo = Collections.singletonList(who);
+            }
+        }
+    }
+    private boolean shouldFallback(Date orig, DateRange fallback) {
+        return (EVCalculator.badDate(orig) && fallback != null);
+    }
+    private Date resolveStartDate(DateRange r) {
+        if (actualStartDate != null && actualStartDate.before(r.getEnd()))
+            return actualStartDate;
+        else
+            return r.getStart();
+    }
+
 
 
     public void checkForNodeErrors(EVMetrics metrics, int depth,

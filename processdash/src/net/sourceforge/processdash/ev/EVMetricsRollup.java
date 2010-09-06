@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2008 Tuma Solutions, LLC
+// Copyright (C) 2002-2010 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -41,6 +41,9 @@ public class EVMetricsRollup extends EVMetrics {
     /** The optimized date the project is planned to complete */
     protected Date optimizedPlanDate = null;
 
+    /** The optimized date the project is replanned to complete */
+    protected Date optimizedReplanDate = null;
+
     /** The optimized date the project is forecast to complete */
     protected Date optimizedForecastDate;
 
@@ -55,8 +58,20 @@ public class EVMetricsRollup extends EVMetrics {
     /** For a rollup of rollups, the chronologically latest opt plan date. */
     protected Date rollupOfOptimizedPlanDates;
 
+    /** For a rollup of rollups, the chronologically latest opt replan date. */
+    protected Date rollupOfOptimizedReplanDates;
+
     /** For a rollup of rollups, the chronologically latest opt fcst date. */
     protected Date rollupOfOptimizedForecastDates;
+
+    /** The earliest date a subschedule plans to finish */
+    protected Date earliestPlanDate;
+
+    /** The earliest date a subschedule replans to finish */
+    protected Date earliestReplanDate;
+
+    /** The earliest date a subschedule is forecast to finish */
+    protected Date earliestForecastDate;
 
 
     public EVMetricsRollup() {
@@ -74,7 +89,9 @@ public class EVMetricsRollup extends EVMetrics {
         currentDate = effectiveDate;
         startDate = planDate = rollupOfOptimizedPlanDates = null;
         replanDate = forecastDate = rollupOfOptimizedForecastDates =
-            EVSchedule.A_LONG_TIME_AGO;
+            rollupOfOptimizedReplanDates = EVSchedule.A_LONG_TIME_AGO;
+        earliestPlanDate = earliestReplanDate = earliestForecastDate =
+            EVSchedule.NEVER;
         errors = null;
         isRollupOfRollups = false;
     }
@@ -107,16 +124,37 @@ public class EVMetricsRollup extends EVMetrics {
             this.rollupOfOptimizedPlanDates = EVCalculator.maxPlanDate(
                     this.rollupOfOptimizedPlanDates, thatDate);
 
+            thatDate = thatRollUp.optimizedReplanDate();
+            if (thatDate == null) thatDate = that.replanDate();
+            this.rollupOfOptimizedReplanDates = EVCalculator.maxForecastDate(
+                    this.rollupOfOptimizedReplanDates, thatDate);
+
             thatDate = thatRollUp.optimizedForecastDate();
             if (thatDate == null) thatDate = that.independentForecastDate();
             this.rollupOfOptimizedForecastDates = EVCalculator.maxForecastDate(
                     this.rollupOfOptimizedForecastDates, thatDate);
+
+            this.earliestPlanDate = EVScheduleRollup.minDate(
+                this.earliestPlanDate, thatRollUp.earliestPlanDate);
+            this.earliestReplanDate = EVScheduleRollup.minDate(
+                this.earliestReplanDate, thatRollUp.earliestReplanDate);
+            this.earliestForecastDate = EVScheduleRollup.minDate(
+                this.earliestForecastDate, thatRollUp.earliestForecastDate);
+
         } else {
             this.rollupOfOptimizedPlanDates = EVCalculator.maxPlanDate(
                     this.rollupOfOptimizedPlanDates, that.planDate());
+            this.rollupOfOptimizedReplanDates = EVCalculator.maxForecastDate(
+                    this.rollupOfOptimizedReplanDates, that.replanDate());
             this.rollupOfOptimizedForecastDates = EVCalculator.maxForecastDate(
                     this.rollupOfOptimizedForecastDates,
                     that.independentForecastDate());
+            this.earliestPlanDate = EVScheduleRollup.minDate(
+                this.earliestPlanDate, that.planDate);
+            this.earliestReplanDate = EVScheduleRollup.minDate(
+                this.earliestReplanDate, that.replanDate);
+            this.earliestForecastDate = EVScheduleRollup.minDate(
+                this.earliestForecastDate, that.forecastDate);
         }
 
         if (that.errors != null) {
@@ -166,6 +204,12 @@ public class EVMetricsRollup extends EVMetrics {
         if (isRollupOfRollups) {
             optimizedPlanDate = filterNonUniqueDate(rollupOfOptimizedPlanDates,
                     planDate);
+
+            optimizedReplanDate = filterNonUniqueDate(
+                    rollupOfOptimizedReplanDates, replanDate);
+            if (optimizedReplanDate == EVSchedule.A_LONG_TIME_AGO)
+                optimizedReplanDate = null;
+
             optimizedForecastDate = filterNonUniqueDate(
                     rollupOfOptimizedForecastDates, forecastDate);
             if (optimizedForecastDate == EVSchedule.A_LONG_TIME_AGO)
@@ -174,6 +218,10 @@ public class EVMetricsRollup extends EVMetrics {
             optimizedPlanDate = s.getHypotheticalDate(totalPlan(), false);
             if (optimizedPlanDate == EVSchedule.NEVER)
                 optimizedPlanDate = null;
+
+            // calculate the replanned completion date.
+            EVForecastDateCalculators.REPLAN_EXTRAPOLATION
+                    .calculateForecastDates(null, s, this, null);
 
             // recalculate the optimized forecast date using a balanced
             // schedule extrapolation.
@@ -238,6 +286,10 @@ public class EVMetricsRollup extends EVMetrics {
         return optimizedPlanDate;
     }
 
+    public Date optimizedReplanDate() {
+        return optimizedReplanDate;
+    }
+
     public boolean isRollupOfRollups() {
         return isRollupOfRollups;
     }
@@ -257,6 +309,8 @@ public class EVMetricsRollup extends EVMetrics {
                 Date upi() { return optimizedForecastDateUPI(); } } );
         result.add(1, new DateMetricFormatter("Optimized_Plan_Date") {
                 Date val() { return optimizedPlanDate(); } } );
+        result.add(2, new DateMetricFormatter("Optimized_Replan_Date") {
+            Date val() { return optimizedReplanDate(); } } );
         return result;
     }
 

@@ -556,6 +556,7 @@ public class EVTaskListMerger {
             EVTask tempChild = (EVTask) node.clone();
             tempChild.assignedTo = node.getAssignedTo();
             tempChild.nodeTypeSpec = node.getAcceptableNodeTypes();
+            tempChild.maybeFallbackToOverspentDates();
             // EVTasks will ignore requests to add nodes that are already
             // in their list of children.  Short-circuit that logic by
             // choosing a new, random name for this temporary node.
