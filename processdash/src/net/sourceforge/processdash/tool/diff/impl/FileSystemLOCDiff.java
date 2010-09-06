@@ -91,12 +91,13 @@ public class FileSystemLOCDiff extends LOCDiffReportGenerator {
     }
 
     private void listAllFiles(TreeSet result, File dir, String basePath) {
-        if (!isDir(dir))
+        if (!isDir(dir) || dir.getName().startsWith("."))
             return;
         File [] files = dir.listFiles();
         for (int i = files.length;   i-- > 0; ) {
             String filename = files[i].getName();
-            if (!".".equals(filename) && !"..".equals(filename)) {
+            if (!".".equals(filename) && !"..".equals(filename)
+                    && !filename.endsWith("~")) {
                 if (isFile(files[i])) {
                     filename = files[i].getAbsolutePath();
                     if (filename.startsWith(basePath))
