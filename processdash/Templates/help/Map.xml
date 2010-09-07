@@ -34,6 +34,7 @@
   <mapID target="Colt" url="Topics/Overview/License-Colt.html" />
   <mapID target="Overlib" url="Topics/Overview/License-Overlib.html" />
   <mapID target="LicensePSP" url="Topics/Overview/License-PSP.html" />
+  <mapID target="LicenseExtras" url="Topics/Overview/License-Extras.html" />
 
   <mapID target="Planning" url="Topics/Planning/Planning.html" />
   <mapID target="EnteringData" url="Topics/Planning/EnteringData.html" />
