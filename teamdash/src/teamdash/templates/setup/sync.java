@@ -121,6 +121,11 @@ public class sync extends TinyCGIBase {
             .getVal("syncWBS.enableLogging", "forDelete");
 
 
+    public sync() {
+        charset = "UTF-8";
+    }
+
+
     protected void doPost() throws IOException {
         parseFormData();
         super.doPost();
