@@ -2385,6 +2385,7 @@ public class TaskScheduleDialog implements EVTask.Listener,
             if (flatModel == null) {
                 flatModel = model.getFlatModel();
                 flatColumnModel = createFlatColumnModel();
+                HierarchyNoteManager.addHierarchyNoteListener(flatModel);
             }
             changeTreeTableModel(flatModel, flatColumnModel);
             treeTable.setDragEnabled(true);
@@ -2470,6 +2471,7 @@ public class TaskScheduleDialog implements EVTask.Listener,
             case EVTaskList.REPLAN_DATE_COLUMN:
             case EVTaskList.FORECAST_DATE_COLUMN:
             case EVTaskList.LABELS_COLUMN:
+            case EVTaskList.NOTES_COLUMN:
             case EVTaskList.DEPENDENCIES_COLUMN:
             case EVTaskList.PCT_SPENT_COLUMN:
                 result.addColumn(cloneTableColumn(c));
@@ -2631,6 +2633,8 @@ public class TaskScheduleDialog implements EVTask.Listener,
         model.removeTreeModelListener((TaskJTreeTable)treeTable);
         model.getSchedule().setListener(null);
         model = null;
+        if (flatModel != null)
+            HierarchyNoteManager.removeHierarchyNoteListener(flatModel);
         treeTable.dispose();
         treeTable = null;
         scheduleTable = null;

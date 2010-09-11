@@ -58,6 +58,9 @@ import javax.swing.event.TreeModelListener;
 import javax.swing.table.TableModel;
 import javax.swing.tree.TreePath;
 
+import org.jfree.data.category.CategoryDataset;
+import org.jfree.data.xy.XYDataset;
+
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.ListData;
 import net.sourceforge.processdash.data.SaveableData;
@@ -72,6 +75,9 @@ import net.sourceforge.processdash.ev.ui.chart.XYChartData;
 import net.sourceforge.processdash.ev.ui.chart.XYChartSeries;
 import net.sourceforge.processdash.ev.ui.chart.XYNameDataset;
 import net.sourceforge.processdash.hier.DashHierarchy;
+import net.sourceforge.processdash.hier.Filter;
+import net.sourceforge.processdash.hier.HierarchyNoteEvent;
+import net.sourceforge.processdash.hier.HierarchyNoteListener;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.net.cache.ObjectCache;
 import net.sourceforge.processdash.ui.lib.AbstractTreeTableModel;
@@ -83,9 +89,6 @@ import net.sourceforge.processdash.util.StringUtils;
 import net.sourceforge.processdash.util.TimeZoneDateAdjuster;
 import net.sourceforge.processdash.util.TimeZoneUtils;
 import net.sourceforge.processdash.util.XMLUtils;
-
-import org.jfree.data.category.CategoryDataset;
-import org.jfree.data.xy.XYDataset;
 
 
 public class EVTaskList extends AbstractTreeTableModel
@@ -1499,6 +1502,17 @@ public class EVTaskList extends AbstractTreeTableModel
         return result;
     }
 
+    public Object getDeepestNoteFor(EVTask node) {
+        while (node != null && node != root) {
+            Object result = node.getNoteData();
+            if (result != null)
+                return result;
+            else
+                node = node.getParent();
+        }
+        return null;
+    }
+
     public List<EVTask> getFilteredLeaves(EVTaskFilter filter) {
         List allLeaves = null;
         if (calculator != null)
@@ -1546,6 +1560,8 @@ public class EVTaskList extends AbstractTreeTableModel
         public Object getValueAt(int row, int columnIndex) {
             if (columnIndex == 0)
                 return getRow(row).getFullName();
+            else if (columnIndex == NOTES_COLUMN)
+                return getDeepestNoteFor(getRow(row));
             else if (columnIndex == DEPENDENCIES_COLUMN)
                 return getAllDependenciesFor(getRow(row));
             else
@@ -1564,7 +1580,7 @@ public class EVTaskList extends AbstractTreeTableModel
     public FlatTreeModel getFlatModel() { return new FlatTreeModel(); }
 
     public class FlatTreeModel extends AbstractTreeTableModel
-        implements TreeModelListener, RecalcListener
+        implements TreeModelListener, RecalcListener, HierarchyNoteListener
     {
 
         private List evLeaves;
@@ -1606,6 +1622,8 @@ public class EVTaskList extends AbstractTreeTableModel
         public Object getValueAt(Object node, int column) {
             if (column == TASK_COLUMN && node != root)
                 return ((EVTask) node).getFullName();
+            else if (column == NOTES_COLUMN)
+                return getDeepestNoteFor((EVTask) node);
             else if (column == DEPENDENCIES_COLUMN)
                 return getAllDependenciesFor((EVTask) node);
             else
@@ -1816,6 +1834,28 @@ public class EVTaskList extends AbstractTreeTableModel
                     }
                 }
             }
+        }
+
+        public void notesChanged(HierarchyNoteEvent e) {
+            List<Integer> changedPositions = new ArrayList();
+            String path = e.getPath();
+            for (int i = evLeaves.size(); i-- > 0; ) {
+                EVTask t = (EVTask) evLeaves.get(i);
+                if (Filter.pathMatches(t.fullName, path, true))
+                    changedPositions.add(i);
+            }
+            if (changedPositions.isEmpty())
+                return;
+            int[] changedIndexes = new int[changedPositions.size()];
+            Object[] changedNodes = new Object[changedPositions.size()];
+            for (int i = 0;  i < changedIndexes.length; i++) {
+                Integer pos = changedPositions.get(i);
+                changedIndexes[i] = pos;
+                changedNodes[i] = evLeaves.get(pos);
+            }
+
+            fireTreeNodesChanged(this, ((EVTask) root).getPath(),
+                changedIndexes, changedNodes);
         }
 
     }
