@@ -60,51 +60,78 @@ data can save you a great deal of time later.</p>
 
 <ul>
 
-<li style='margin-top:9pt'>The Rate and Units columns allow you to
-include typical productivity rates (based on historical or estimated
-team averages) for a given task. For example, you might wish to state
-that a Code Review task takes place at a rate of 200 LOC/Hr, or that a
-PSP Task completes at a rate of 20 LOC/Hr. <i>If you do not have any
-idea of the expected productivity for a given task, enter a zero in
-the rate column</i>.</li>
+<li style='margin-top:9pt'><a name="pct"></a>The % column provides a
+convenient way to divide a larger task proportionately. Your team may
+have historical data that tells you the typical amount of time that is
+spent during each step of this workflow.  If you do not have
+historical data, your team may wish to estimate these percentages
+during the launch.  Either way, you can use the %&nbsp;column to
+designate that breakdown, as shown in the following example:
+
+<p class="figure"><img src="../Images/workflow-percentage-example.png"></p>
+
+<p>When you apply this workflow to a component in your team project,
+the WBS Editor will look at the time you have estimated for that
+component, and subdivide the time based upon the percentages you have
+entered.</p></li>
 
 
-<li style='margin-top:9pt'>The % column provides a convenient way to
-divide a larger task proportionately. Often, you may know the
-historical end-to-end productivity rate for an entire process, and you
-may know the percentage breakdowns for the steps in that process. In
-that case, you can use the % column to designate that breakdown.
-
-<p style='margin-top:9pt'>An example can illustrate this best. Imagine
-a hypothetical organizational process for crisis management. The
-phases in this process are named Planning, Stop, Drop, Roll, and
-Postmortem.  Historical data indicates that an individual enacting the
-process can address three crises per hour. Furthermore, the data
-indicates that the phases take 5%, 10%, 10%, 40%, and 35% of the total
-time, respectively. Then the correct way to capture the process would
-be as follows:</p>
+<li style='margin-top:9pt'><a name="rate"></a>The Rate and Units
+columns are also optional.  If you happen to know the typical
+productivity rates (based on historical or estimated team averages)
+for <u>all</u> the tasks in a workflow, you can enter those rates in
+this column.  For example, you might wish to state that a Code Review
+task takes place at a rate of 200 LOC/Hr, or that a PSP Task completes
+at a rate of 20 LOC/Hr.  Here is an example for a possible team
+software development process:
 
 <p class="figure"><img src="../Images/workflow-rate-example.png"></p>
 
-<p>It is worth noting, however, that the % column is strictly provided
-for convenience. In particular, there is no requirement that
-percentages must add to 100. If you do not need to use the percentage
-column to capture your productivity historical data, you can leave it
-at the default value of 100%.</p></li>
+<p>When you apply this workflow to a component in your team project,
+the WBS Editor will look at the estimated size for the component.  It
+will use that size, along with the percentages and productivity rates
+you have entered, to generate an effort estimate for each task in the
+component.</p>
+
+<p>An astute observer will notice that this behavior differs from the
+"percentage-only" behavior described in the bullet above.  This is a
+very important consideration.  When you examine a single team
+workflow, if <u>any</u> task has a number in the Rate column, the
+workflow will use size estimates to produce time/effort estimates.  If
+<u>no</u> rates are present, the workflow will let you enter a
+top-level time estimate, then use the percentages to spread the time
+across the tasks.  You should decide which mode you wish to use for
+each workflow, then either (a)&nbsp;leave the rate column blank, or
+(b)&nbsp;enter rates for every task.</p></li>
 
 
 <li style='margin-top:9pt'>The # People column allows you to indicate
 that a particular task is generally performed by a group of
-individuals. For example, if you created a Code Review task in your
+individuals. For example, if you create a Peer Review task in your
 process, you might wish to indicate that five people typically
-participate in a Code Review.
+participate in a Peer Review.
 
-<p>It is worth noting that this column is completely independent of
-the previous three columns. Thus, if you know that your team
-historically spends 15% of a project in code review, but five people
-are typically involved in that review, you would observe that each
-person is actually spending 3% of the overall time. In this case, 3
-would be the correct value to put in the % column.</p></li>
+<p>When a task in a workflow is performed by more than one person,
+effort estimates will be generated differently based on the presence
+of a value in the "%" column.  If you have placed a number in the "%"
+column, the WBS will understand that this task is a percentage of an
+overall workflow; so that percentage describes the total amount of
+work that will be spread across those individuals.  If you leave the
+"%" column blank and enter a Rate, the WBS will understand that each
+individual is independently working at that rate.</p>
+
+<p>An example illustrates this best.  When you examine the "Simple
+Process" workflow above, three individuals will be working on the
+"Code Inspection" task.  That task has been described as a task that
+requires "200 LOC/Hr".  So if you apply this workflow to a component
+that has 400 LOC, three people will be working on this task, and each
+one will spend two hours.  In contrast, the "Integration Test" task
+has been described as being 12% of a workflow that requires 10 LOC/Hr.
+For a 400 LOC component, that end-to-end workflow will take 40 hours.
+12% of 40 hours is 4.8 hours, so this is the total time that will be
+allocated to the "Integration Test" task.  Three people are assigned,
+and the time will be spread across them equally, so each one will
+spend 1.6 hours.</p></li>
 
 <li>The Script URLs column allows you to attach process scripts and
 other aids to the elements in a workflow. (<b>But please note:</b> the
@@ -159,13 +186,13 @@ workflows on the left.</p>
 
 <p class="figure"><img src="../Images/workflow-import-add-example.png"></p>
 
-<p>Workflows are identified by their names (for example, &quot;Crisis
-Management&quot; in the image below). If you import or export a
+<p>Workflows are identified by their names (for example, &quot;Simple
+Process&quot; in the image below). If you import or export a
 workflow which has the same name as an existing workflow in the
 destination table, the existing workflow will be overwritten. For
 example, in the image below, the user is importing workflows from an
-existing library.  They have selected the &quot;Crisis
-Management&quot; workflow in the library on the right. Since there is
+existing library.  They have selected the &quot;Simple
+Process&quot; workflow in the library on the right. Since there is
 already a workflow by that name in the project workflow list on the
 left, the application has automatically highlighted it, and changed
 the text on the Add button to &quot;Overwrite,&quot; indicating that

@@ -89,6 +89,17 @@ some particular group of WBS items, you may be able to save time by
 defining a common workflow instead.</p></li>
 
 
+<li style='margin-top:12.0pt'>To rearrange the order of two adjacent items,
+use the Move Up and Move Down buttons on the toolbar.  The move up button
+(<img src="../Images/icon-move-up.png">) will cause a WBS item to exchange
+places with its previous sibling.  If the item being moved has hierarchical
+children, they will be moved as well.  The move down button (<img
+src="../Images/icon-move-down.png">) will cause a WBS item to exchange
+places with the sibling that follows.  (Note that these operations could
+also be accomplished with Copy and Paste, but for the specific task of
+rearranging items, move up and move down can be more convenient.)</li>
+
+
 <li style='margin-top:12.0pt'>Each WBS item is represented by an icon
 to the left of the item name. This icon indicates whether the item is
 a software component, document, or task. If you hover the mouse
@@ -107,10 +118,10 @@ options.</li>
 
 <li>To change the types of <i>many</i> nodes simultaneously, it is
 more efficient to use the right hand side of the window.  Select the
-Task Time tab, select a cell in the Phase/Type column, and type Ctrl-C
-to copy the value to the clipboard. Then select a range of cells in
-the Phase/Type column and type Ctrl-V to paste the node type into all
-cells at once.</li>
+Task Time tab, select a cell in the Phase/Type column, and select
+"Copy WBS Data" from the Edit menu.  Then select a range of cells in
+the Phase/Type column and type "Paste WBS Data" to paste the node type
+into all cells at once.</li>
 
 <li style='margin-top:12.0pt'>To calculate metrics correctly, the Work
 Breakdown Structure Editor must enforce certain rules/restrictions on
@@ -130,8 +141,10 @@ problem encountered.</li>
 <li>Once your project has begun and individuals start collecting data, the
 WBS will be able to tell which tasks and components have been marked
 complete.  It will show this visually by drawing a strikethrough line on
-the name of any WBS element that is 100% complete.  This visual cue can
-help as you rebalance remaining work.</li>
+the name of any WBS element that is 100% complete.  For tasks that have
+been assigned to more than one individual, strikethrough will be used in the
+"Assigned To" column to indicate which individuals have marked the tasks
+complete.  These visual cues can help as you rebalance remaining work.</li>
 
 <li style='margin-top:12.0pt'>You can insert a list of tasks into the WBS
 by copying and pasting
