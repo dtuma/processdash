@@ -45,20 +45,10 @@ Optional: If you use Eclipse to edit Java code, take note:
      spend a lot of time thrashing each time files in its output
      directory are changed by ant.
 
-   * The process dashboard is designed to run from within its packaged
-     jarfile.  If you run directly from compiled .class files (the
-     default behavior when choosing "Run As > Java Application" from
-     within Eclipse), you may encounter unusual errors or behaviors.
-     For running or debugging from within Eclipse, create a launcher
+   * For running or debugging from within Eclipse, create a launcher
      with these properties:
 
      - The main class is net.sourceforge.processdash.ProcessDashboard
-
-     - The classpath is your JRE, followed by the "pspdash.jar" file in
-       the "dist" subdirectory of the project.  DON'T include the
-       project itself as part of the classpath.
-
-     - The sourcepath SHOULD contain the project itself as an entry.
 
      - The working directory should a directory on your hard drive
        somewhere, where dashboard data files can be stored.  You

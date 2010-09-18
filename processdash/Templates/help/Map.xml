@@ -166,6 +166,8 @@
   <mapID target="PreferencesTool" url="Topics/AdvancedTopics/PreferencesTool.html" />
         <mapID target="prefs.windowTitle" 
                url="Topics/AdvancedTopics/PreferencesTool.html#windowTitle" />
+        <mapID target="prefs.alwaysOnTop" 
+               url="Topics/AdvancedTopics/PreferencesTool.html#alwaysOnTop" />
         <mapID target="prefs.systemTray"
                url="Topics/AdvancedTopics/PreferencesTool.html#systemTray" />
         <mapID target="prefs.addOns"

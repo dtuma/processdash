@@ -71,13 +71,12 @@ Project/My Project/Prototype/Component C/Time==433.0
 Project/My Project/Prototype/Component C/leaf==TAG
 Project/My Project/Prototype/Component C/node==TAG
 Project/My Project/Prototype/Component D/Estimated Time=660.0
+Project/My Project/Prototype/Component D/Team_Note="<note author='My Name' timestamp='@1284313143164' format='text'>Note for Component D</note>
 Project/My Project/Prototype/Component D/Time==0.0
 Project/My Project/Prototype/Component D/leaf==TAG
 Project/My Project/Prototype/Component D/node==TAG
 Project/My Project/Prototype/EV_Task_Dependencies="<list><dependency tid='TL-9lith0.erv1uhdz/Project/My Project/Requirements' name='/My Project, Release 1/Project/My Project/Requirements' taskList='My Project, Release 1'/></list>
 Project/My Project/Prototype/node==TAG
-Project/My Project/Release 1/Component B/node==TAG
-Project/My Project/Release 1/Component C/node==TAG
 Project/My Project/Release 1/node==TAG
 Project/My Project/Requirements/Component A/Completed=@1136854015000
 Project/My Project/Requirements/Component A/Estimated Time=540.0
@@ -146,4 +145,3 @@ Task-Schedule/Task Tracking for July/Planned Hours=="@11572632000001200.0@115
 Task-Schedule/Task Tracking for July/Task List ID="yb4ibj.erv7i1rl
 Task-Schedule/Web Project Schedule/Planned Hours=="@11572632000001200.0@1157868000000
 Task-Schedule/Web Project Schedule/Task List ID="zbu8b8.erv7jgv0
-To Date/PSP/All/node=null

@@ -7,6 +7,122 @@
 
 <H1>Change History</H1>
 
+<h2>Features new in version 1.13</h2>
+
+<ul>
+
+<li>Several enhancements have been made in the Work Breakdown Structure
+Editor:</li>
+
+    <ul>
+
+    <li>A strikethrough font is now used in the "Assigned To" column to
+    indicate which individuals have completed a multi-person task.</li>
+
+    <li>"Move Up" and "Move Down" buttons have been added to the
+    toolbar.</li>
+
+    <li>The Team Member List will now allow you to reorder individual team
+    members using drag-and-drop.</li>
+
+    <li>If you are starting a new project iteration, you can now use Ctrl-C
+    and Ctrl-V to copy and paste team members from the old team member list
+    to the new team member list.</li>
+
+    <li>In the past, when individual team members open the WBS from their
+    personal dashboard, the WBS Editor would sometimes unexpectedly open in
+    read-only mode.  This problem has been corrected.</li>
+
+    <li>In the past, the Team Dashboard's Team Project Parameters and
+    Settings page displayed a checkbox allowing the team leader to decide
+    whether team members could edit the WBS.  This checkbox has been moved
+    into the Work Breakdown Structure Editor itself, in the "Edit &gt;
+    Preferences" dialog.  As a result, if a team leader has locked down the
+    WBS (forbidding edits by team members), they will need to reaffirm this
+    choice in the "Edit &gt; Preferences" dialog of the WBS Editor after
+    upgrading to version 1.13</li>
+
+    <li>If you insert a workflow underneath a component that has a LOC size
+    estimate, the Code task in that workflow will automatically inherit
+    that size estimate.</li>
+
+    <li>The selection colors have been modified to produce better
+    readability on Mac OS X.</li>
+
+    </ul>
+
+<li>Several enhancements have been made in the WBS Common Team Workflows
+window:</li>
+
+    <ul>
+
+    <li>It is now possible to define a workflow that distributes time
+    across various phases using percentages, even if your team does not use
+    size estimates or historical productivity rates.</li>
+
+    <li>The keyboard accessibility of the Common Team Workflows editor has
+    been improved.  Keystrokes such as Tab, Enter, Delete, Ctrl-C, Ctrl-V,
+    and Ctrl-X will now assume intuitive, spreadsheet-like behaviors when
+    the focus is not in the first column.</li>
+
+    <li>The Task Size Units column now supports autocompletion.</li>
+
+    </ul>
+
+
+<li>Several enhancements have been made in the Task &amp; Schedule
+window:</li>
+
+    <ul>
+
+    <li>When an individual views one of their personal earned value task
+    lists in the Task &amp; Schedule window, they will see a "Notes"
+    column that allows them to view and edit the notes associated with
+    each component or task.</li>
+
+    <li>When an individual views one of their personal earned value task
+    lists in the Task &amp; Schedule window, the schedule pane (in the
+    lower portion of the window) now contains a "Notes" column.  This
+    column can be used to record the reason why a particular week has an
+    unusual number of planned or actual direct task hours.</li>
+
+    <li>A strikethrough font is now used to indicate tasks that are 100%
+    complete.</li>
+
+    <li>When you toggle from "Tree View" to "Flat View" and back, the
+    currently selected task will be preserved.</li>
+
+    </ul>
+
+<li>The Defect Log Editor now provides a feature to Import defects from the
+system clipboard.  This can be used to copy and paste defects from an
+external source, like an Excel spreadsheet or a web page.</li>
+
+<li>The "Tools &gt; Preferences" dialog now shows an "Always on Top"
+option.  (This feature will only appear if you are using Java 1.6 or
+higher.)</li>
+
+<li>If you pause the timer on the main dashboard toolbar, it will pause the
+"Fix Time" timer on the currently active defect dialog as well.  If you
+subsequently resume the main dashboard timer, it will resume the defect fix
+timer as well.</li>
+
+<li>The dashboard has always allowed you to set an "END" date for a
+personal earned value schedule.  (This feature is typically used to record
+the date when an individual will unequivocally leave a project team, due to
+an impending reassignment.)  When an individual with an END date is
+assigned too much work, their personal schedule may project that certain
+tasks will "never" be completed.  Although that information is useful at an
+individual level, it can result in a frustrating lack of insight at the
+team level.  Now, when one of these schedules is a part of a team schedule,
+the team rollup schedule will hypothetically rebalance these tasks to the
+rest of the team, calculate the date when the rest of the team might
+complete the tasks, and display that completion date in the team's "merged"
+view.  The "Assigned To" column for such a task will indicate that the task
+has been hypothetically rebalanced to the team.</li>
+
+</ul>
+
 <h2>Features new in version 1.12</h2>
 
 <ul>

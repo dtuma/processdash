@@ -39,6 +39,7 @@ preferences a category.
 
         <checkbox id="window.alwaysOnTop"
                   setting="window.alwaysOnTop"
+                  helpId="prefs.alwaysOnTop"
                   requires="java version 1.6" />
     </grouping>
 
