@@ -156,6 +156,10 @@ public class sync extends TinyCGIBase {
                  initials, getOwner(), fullCopyMode, getPSPProperties(),
                  getDataRepository());
 
+            // double-check individual initials
+            if (checkForMismatchedIndivInitials(synch))
+                return;
+
             // start the synchronization process.
             if (parameters.containsKey(RUN_PARAM))
                 synchronize(synch);
@@ -264,11 +268,24 @@ public class sync extends TinyCGIBase {
                 RepairImportInstruction.maybeRepairForTeam(getDataContext());
 
         } else {
+            String initialsDataName = DataRepository.createDataName(
+                projectRoot, TeamDataConstants.INDIV_INITIALS);
+
+            // change the initials of the current team member, if requested.
+            String newInitials = (String) parameters.get(CHANGE_INITIALS);
+            if (StringUtils.hasValue(newInitials)) {
+                if (UNLISTED_INITIALS.equals(newInitials)) {
+                    signalError(UNLISTED_MEMBER);
+                } else if (!newInitials.startsWith("-")) {
+                    data.putValue(initialsDataName, StringData
+                            .create(newInitials.trim()));
+                }
+            }
+
             // get the initials of the current team member.
-            d = data.getSimpleValue(DataRepository.createDataName
-                                    (projectRoot, TeamDataConstants.INDIV_INITIALS));
+            d = data.getSimpleValue(initialsDataName);
             if (d == null || !d.test() ||
-                "tttt".equals(initials = d.format()))
+                "tttt".equals(initials = d.format().trim()))
                 signalError(INITIALS_MISSING);
 
             d = data.getSimpleValue(DataRepository.createDataName
@@ -397,6 +414,42 @@ public class sync extends TinyCGIBase {
 
         return !Settings.getBool(DISABLE_TEAM_IMPORT_REPAIR_SETTING, false);
     }
+
+    private boolean checkForMismatchedIndivInitials(HierarchySynchronizer synch)
+            throws TinyCGIException {
+        Map<String, String> mismatch = synch.checkIndivInitials();
+        if (mismatch == null)
+            return false;
+        else if (mismatch.isEmpty())
+            signalError(EMPTY_TEAM);
+
+        StringBuilder select = new StringBuilder();
+        select.append("<select name='" + CHANGE_INITIALS + "'>");
+        select.append("<option value='-'>Select your name...</option>");
+        for (Map.Entry<String, String> indiv : mismatch.entrySet()) {
+            String initialsHtml = HTMLUtils.escapeEntities(indiv.getKey());
+            String nameHtml = HTMLUtils.escapeEntities(indiv.getValue());
+            select.append("<option value='").append(initialsHtml).append("'>")
+                    .append(nameHtml).append("</option>");
+        }
+        select.append("<option value='" + UNLISTED_INITIALS
+                + "'>My name is not listed...</option>");
+        select.append("</select>");
+
+        String dataName = DataRepository.createDataName(projectRoot,
+            "setup//Member_List");
+        getDataRepository().putValue(dataName,
+            StringData.create(select.toString()));
+
+        out.write("<!-- SYNC-IS-NEEDED -->");
+        out.write("<html><head>");
+        out.write("<meta http-equiv='Refresh' CONTENT='0;URL="
+                + "syncFixInitials.shtm'>");
+        out.write("</head><body></body></html>");
+        return true;
+    }
+
+
 
     /** Redirect to the team project migration page */
     private void printMigrationRedirect() {
@@ -856,12 +909,16 @@ public class sync extends TinyCGIBase {
     private static final String WBS_FILE_MISSING = "wbsFileMissing";
     private static final String WBS_FILE_INACCESSIBLE = "wbsFileInaccessible";
     private static final String INITIALS_MISSING = "initialsMissing";
+    private static final String EMPTY_TEAM = "emptyTeam";
+    private static final String UNLISTED_MEMBER = "unlistedMember";
     private static final String HIER_EDITOR_OPEN = "hierEditorOpen";
 
     private static final String BACKGROUND_PARAM = "bg";
     private static final String BRIEF_PARAM = "brief";
     private static final String RUN_PARAM = "run";
     private static final String SAVE_PERMS = "savePerms";
+    private static final String CHANGE_INITIALS = "changeInitials";
+    private static final String UNLISTED_INITIALS = "-NL";
     private static final String COMPLETE_PREFIX = "COMPLETE:";
     private static final String DELETE_PREFIX = "DELETE:";
     private static final String COMPLETE_DATANAME = "complete_ //list";

@@ -38,6 +38,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -259,6 +260,27 @@ public class HierarchySynchronizer {
             out.print(i.next());
             out.println();
         }
+    }
+
+    public Map<String, String> checkIndivInitials() {
+        if (isTeam())
+            return null;
+
+        Map<String, String> result = new LinkedHashMap<String, String>();
+
+        for (Element e : XMLUtils.getChildElements(projectXML)) {
+            if (TEAM_MEMBER_TYPE.equals(e.getTagName())) {
+                String xmlInitials = e.getAttribute(INITIALS_ATTR);
+                String xmlName = e.getAttribute(NAME_ATTR);
+                if (initials.equalsIgnoreCase(xmlInitials))
+                    return null;
+                else if (XMLUtils.hasValue(xmlInitials)
+                        && XMLUtils.hasValue(xmlName))
+                    result.put(xmlInitials, xmlName);
+            }
+        }
+
+        return result;
     }
 
     private void loadProcessData() {

@@ -42,6 +42,26 @@ attempted to read this description from the file
      file, then try again.
   <!--#endif-->
 
+<!--#elif emptyTeam -->
+
+To synchronize your hierarchy with a team project, the dashboard searches
+through the team Work Breakdown Structure, looking for tasks that have been
+assigned to you.  However, at this time no team members have been entered
+in the Work Breakdown Structure yet.  This usually means that you need to
+<b>wait</b> until your team has created the detailed plan for this project.
+Check with your team leader to ensure that team planning is complete, then
+try again.
+
+<!--#elif unlistedMember -->
+
+To synchronize your hierarchy with a team project, the dashboard matches
+your intials against the task assignments in the Work Breakdown Structure
+to find tasks that are assigned to you.  Unfortunately, your initials do
+not appear in the Team Member List for this project.  Please contact your
+team leader or planning manager, and ask them to make certain you have been
+added to this project's Team Member List.  Then try the synchronization
+operation again.
+
 <!--#elif initialsMissing -->
 
 To synchronize your hierarchy with a team project, the dashboard must

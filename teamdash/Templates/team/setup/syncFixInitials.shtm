@@ -1,0 +1,36 @@
+<html><!--#do-not-translate-->
+<head>
+<title>Synchronization Problem</title>
+</head>
+<body>
+
+<h1>Synchronization Problem</h1>
+
+<p>To synchronize your hierarchy with a team project, the dashboard must
+know your initials.  The synchronization process matches your intials
+against the task assignments in the Work Breakdown Structure to find tasks
+that are assigned to you.</p>
+
+<p>When you joined the project, you stated that your initials are
+&quot;<tt><!--#echo [Indiv_Initials] --></tt>&quot;.  However, those
+initials don't match any of the entries in the Team Member List for this
+project.</p>
+
+<p>Usually, this just means that you typed a particular set of initials for
+yourself when you joined the team project, but your team has entered a
+slightly different set of initials for you in the WBS team member list.  To
+fix this problem, please choose your name from the following list, then
+click Next.</p>
+
+<form action="sync.class" method="post" style="margin-left: 1cm">
+
+<!--#echo var="[setup//Member_List]" encoding="none" -->
+
+<br/><br/>
+
+<input type="submit" name="Next" value="Next">
+
+</form>
+
+</body>
+</html>
