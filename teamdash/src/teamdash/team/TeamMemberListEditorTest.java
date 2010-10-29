@@ -61,6 +61,8 @@ public class TeamMemberListEditorTest implements TableModelListener {
                 teamList);
         editor.addSaveListener((SaveListener) EventHandler.create(
             SaveListener.class, this, "quit"));
+        editor.setCommitButtonIsSave(true);
+        editor.show();
     }
 
     public void quit() {

@@ -313,7 +313,7 @@ public class OpenWBSEditor extends TinyCGIBase {
         WBSEditor editor = (WBSEditor) editors.get(key);
         if (editor != null && !editor.isDisposed()) {
             if (showTeam)
-                editor.showTeamListEditor();
+                editor.showTeamListEditorWithSaveButton();
             else
                 editor.raiseWindow();
 

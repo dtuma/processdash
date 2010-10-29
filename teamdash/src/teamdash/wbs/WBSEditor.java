@@ -443,6 +443,8 @@ public class WBSEditor implements WindowListener, SaveListener,
         if (INTENT_WBS_EDITOR.equals(message)) {
             SwingUtilities.invokeLater(new Runnable() {
                 public void run() {
+                    if (teamListEditor != null)
+                        teamListEditor.setCommitButtonIsSave(false);
                     raiseWindow();
                 }});
             return "OK";
@@ -467,9 +469,18 @@ public class WBSEditor implements WindowListener, SaveListener,
     }
 
     public void showTeamListEditor() {
-        if (teamListEditor != null)
-            teamListEditor.show();
-        else {
+        maybeCreateTeamListEditor();
+        teamListEditor.show();
+    }
+
+    public void showTeamListEditorWithSaveButton() {
+        maybeCreateTeamListEditor();
+        teamListEditor.setCommitButtonIsSave(true);
+        teamListEditor.show();
+    }
+
+    private void maybeCreateTeamListEditor() {
+        if (teamListEditor == null) {
             teamListEditor = new TeamMemberListEditor
                 (teamProject.getProjectName(), teamProject.getTeamMemberList());
             teamListEditor.addSaveListener(this);
@@ -975,7 +986,7 @@ public class WBSEditor implements WindowListener, SaveListener,
             w.setSyncURL(syncURL);
             w.setIndivMode(indivMode);
             if (showTeamList)
-                w.showTeamListEditor();
+                w.showTeamListEditorWithSaveButton();
             else
                 w.show();
 

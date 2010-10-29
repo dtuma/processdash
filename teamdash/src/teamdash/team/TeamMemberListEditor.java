@@ -80,7 +80,6 @@ public class TeamMemberListEditor implements WindowListener, TableModelListener 
 
         frame.addWindowListener(this);
         frame.setSize(670, 200);
-        frame.setVisible(true);
     }
 
     public void show() {
@@ -210,13 +209,25 @@ public class TeamMemberListEditor implements WindowListener, TableModelListener 
                 cancel(); hide(); } });
         buttons.add(button);
 
-        saveButton = new JButton("Save");
+        saveButton = new JButton("OK");
         saveButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 if (save()) hide(); } });
         saveButton.setEnabled(false);
         buttons.add(saveButton);
         return buttons;
+    }
+
+    /**
+     * When used in the context of the WBS Editor, the Team Member List has
+     * an "OK" button.  When used as a standalone application, label the
+     * button "Save" instead.
+     * 
+     * @param showSave true if the commit button should display the word
+     *     "Save", false if it should display the word "OK".
+     */
+    public void setCommitButtonIsSave(boolean showSave) {
+        saveButton.setText(showSave ? "Save" : "OK");
     }
 
     private JScrollPane makeScrollPane(JTable table) {
