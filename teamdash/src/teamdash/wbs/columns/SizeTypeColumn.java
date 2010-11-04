@@ -116,6 +116,12 @@ public class SizeTypeColumn extends AbstractDataColumn {
             String objType = (String) e.getKey();
             String metric = (String) e.getValue();
 
+            // add columns for plan/actual size data
+            dataModel.addDataColumn(new SizeActualDataColumn(dataModel, metric,
+                    true));
+            dataModel.addDataColumn(new SizeActualDataColumn(dataModel, metric,
+                    false));
+
             if ("LOC".equals(metric)) continue;
 
             Pruner pruner = new WorkProductSizePruner(teamProcess, Arrays

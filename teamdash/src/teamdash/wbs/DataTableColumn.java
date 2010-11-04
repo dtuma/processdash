@@ -31,6 +31,8 @@ import javax.swing.table.TableColumn;
  */
 public class DataTableColumn extends TableColumn {
 
+    private String customColumnName;
+
     /** Create a DataTableColumn if we know the String ID of the column */
     public DataTableColumn(DataTableModel model, String columnID) {
         super();
@@ -65,13 +67,23 @@ public class DataTableColumn extends TableColumn {
      */
     public DataTableColumn(DataTableColumn orig) {
         setModelIndex(orig.getModelIndex());
-        setHeaderValue(orig.getHeaderValue());
+        Object headerValue = orig.getCustomColumnName();
+        if (headerValue == null)
+            headerValue = orig.getHeaderValue();
+        setHeaderValue(headerValue);
         setIdentifier(orig.getIdentifier());
         setPreferredWidth(orig.getPreferredWidth ());
         setCellRenderer(orig.getCellRenderer());
         setCellEditor(orig.getCellEditor());
     }
 
+    public String getCustomColumnName() {
+        return customColumnName;
+    }
+
+    public void setCustomColumnName(String customColumnName) {
+        this.customColumnName = customColumnName;
+    }
 
     private void init(DataTableModel model, DataColumn c, int columnIndex) {
         // set the index, header value, and identifier.
@@ -95,9 +107,17 @@ public class DataTableColumn extends TableColumn {
         if (c instanceof CustomEditedColumn)
             // install the column's preferred editor.
             tc.setCellEditor(((CustomEditedColumn) c).getCellEditor());
+
+        if (c instanceof CustomNamedColumn && tc instanceof DataTableColumn)
+            // make a note of the custom column name.
+            ((DataTableColumn) tc).customColumnName = ((CustomNamedColumn) c)
+                    .getCustomColumnName();
     }
 
     public String toString() {
-        return getHeaderValue().toString();
+        if (customColumnName != null)
+            return customColumnName;
+        else
+            return getHeaderValue().toString();
     }
 }

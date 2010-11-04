@@ -27,8 +27,12 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.Map;
 
+import org.xmlpull.v1.XmlSerializer;
+
 import net.sourceforge.processdash.data.DoubleData;
 import net.sourceforge.processdash.data.ListData;
+import net.sourceforge.processdash.data.NumberData;
+import net.sourceforge.processdash.data.SaveableData;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.StringData;
 import net.sourceforge.processdash.data.repository.DataRepository;
@@ -38,8 +42,6 @@ import net.sourceforge.processdash.templates.TemplateLoader;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.StringUtils;
 import net.sourceforge.processdash.util.XMLUtils;
-
-import org.xmlpull.v1.XmlSerializer;
 
 import teamdash.templates.setup.SyncDiscrepancy.EVSchedule;
 import teamdash.templates.setup.SyncDiscrepancy.ItemNote;
@@ -80,6 +82,7 @@ public class UserDataWriter extends TinyCGIBase {
                 writeDiscrepancies(ser);
                 writeNewTasks(ser, processID);
                 writeActualData(ser);
+                writeSizeData(ser);
             } catch (WrappedIOException wie) {
                 throw wie.getIOException();
             }
@@ -235,6 +238,69 @@ public class UserDataWriter extends TinyCGIBase {
         }
     }
 
+    private void writeSizeData(XmlSerializer ser) throws IOException {
+        DashHierarchy hier = getPSPProperties();
+        PropertyKey projectRoot = hier.findExistingKey(getPrefix());
+        if (projectRoot != null)
+            writePspSizeData(ser, hier, projectRoot);
+
+        ListData sizedObjects = ListData
+                .asListData(getData("Sized_Object_List"));
+        if (sizedObjects != null) {
+            for (int i = sizedObjects.size(); i-- > 0;)
+                writeLocalObjectSizeData(ser, (String) sizedObjects.get(i));
+        }
+    }
+
+    private void writePspSizeData(XmlSerializer ser, DashHierarchy hier,
+            PropertyKey node) throws IOException {
+        String path = node.path();
+        if (getData(path, "PSP Project") != null) {
+            double planSize = getNumberData(getData(path, EST_NC_LOC));
+            double actualSize = getNumberData(getData(path, NC_LOC));
+            String wbsId = getInheritedWbsIdForPath(path);
+            writeSizeDataTag(ser, wbsId, "LOC", planSize, actualSize, null);
+
+        } else {
+            for (int i = hier.getNumChildren(node);  i-- > 0; )
+                writePspSizeData(ser, hier, hier.getChildKey(node, i));
+        }
+    }
+
+    private void writeLocalObjectSizeData(XmlSerializer ser, String path)
+            throws IOException {
+        String description = getStringValue(path + "/Description");
+        String units = getStringValue(path + "/Sized_Object_Units");
+        double planSize = getNumberData(path + "/Estimated Size");
+        double actualSize = getNumberData(path + "/Size");
+        String wbsId = getInheritedWbsIdForPath(path);
+
+        writeSizeDataTag(ser, wbsId, units, planSize, actualSize, description);
+    }
+
+    private void writeSizeDataTag(XmlSerializer ser, String wbsId,
+            String units, double planSize, double actualSize, String description)
+            throws IOException {
+        boolean hasSize = (planSize > 0 || actualSize > 0);
+        boolean hasUnits = (hasValue(units) && !units.startsWith("Inspected "));
+        boolean hasWbsId = hasValue(wbsId);
+        if (hasSize && hasUnits && hasWbsId) {
+            if (NC_LOC.equals(units))
+                units = "LOC";
+
+            ser.startTag(null, SIZE_DATA_TAG);
+            ser.attribute(null, WBS_ID_ATTR, wbsId);
+            ser.attribute(null, UNITS_ATTR, units);
+            if (planSize > 0)
+                ser.attribute(null, EST_SIZE_ATTR, Double.toString(planSize));
+            if (actualSize > 0)
+                ser.attribute(null, ACTUAL_SIZE_ATTR, Double.toString(actualSize));
+            if (hasValue(description))
+                ser.attribute(null, DESCRIPTION_ATTR, description);
+            ser.endTag(null, SIZE_DATA_TAG);
+        }
+    }
+
     private void writeTimeDataAttr(XmlSerializer ser, String attrName,
             SimpleData time) throws IOException {
         if (hasValue(time) && time instanceof DoubleData) {
@@ -304,6 +370,17 @@ public class UserDataWriter extends TinyCGIBase {
         return getDataContext().getSimpleValue(dataName);
     }
 
+    private double getNumberData(String name) {
+        return getNumberData(getData(name));
+    }
+
+    private double getNumberData(SimpleData sd) {
+        if (sd instanceof NumberData)
+            return ((NumberData) sd).getDouble();
+        else
+            return 0;
+    }
+
     private String getStringData(SimpleData sd) {
         return (sd == null ? "" : sd.format());
     }
@@ -314,6 +391,12 @@ public class UserDataWriter extends TinyCGIBase {
 
     private String getWbsIdForPath(String path) {
         return getStringData(getData(path, TeamDataConstants.WBS_ID_DATA_NAME));
+    }
+
+    private String getInheritedWbsIdForPath(String path) {
+        SaveableData sd = getDataRepository().getInheritableValue(path,
+            TeamDataConstants.WBS_ID_DATA_NAME);
+        return (sd == null ? null : getStringData(sd.getSimpleValue()));
     }
 
     private boolean isPSPTask(String path) {
@@ -454,6 +537,20 @@ public class UserDataWriter extends TinyCGIBase {
     private static final String START_DATE_TAG = "started";
 
     private static final String COMPLETION_DATE_TAG = "completed";
+
+    private static final String NC_LOC = "New & Changed LOC";
+
+    private static final String EST_NC_LOC = "Estimated " + NC_LOC;
+
+    private static final String SIZE_DATA_TAG = "sizeData";
+
+    private static final String DESCRIPTION_ATTR = "description";
+
+    private static final String UNITS_ATTR = "units";
+
+    private static final String EST_SIZE_ATTR = "estSize";
+
+    private static final String ACTUAL_SIZE_ATTR = "actSize";
 
     private static final String PLAN_TIME_CHANGE_TAG = "planTimeChange";
 

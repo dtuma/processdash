@@ -45,10 +45,13 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
+import net.sourceforge.processdash.util.VersionUtils;
+
 import teamdash.XMLUtils;
 import teamdash.team.TeamMember;
 import teamdash.team.WeeklySchedule;
 import teamdash.wbs.columns.NotesColumn;
+import teamdash.wbs.columns.SizeActualDataColumn;
 import teamdash.wbs.columns.TeamActualTimeColumn;
 import teamdash.wbs.columns.TeamCompletionDateColumn;
 import teamdash.wbs.columns.TeamMemberActualTimeColumn;
@@ -67,6 +70,10 @@ public class WBSSynchronizer {
     private boolean needsWbsEvent = false;
 
     private boolean foundActualData = false;
+
+    private boolean foundActualSizeData = false;
+
+    private boolean sizeDataIncomplete = false;
 
     private Map<String, SyncHandler> handlers;
 
@@ -94,6 +101,7 @@ public class WBSSynchronizer {
     public void run() {
         effectiveDate = new Date(0);
         foundActualData = needsWbsEvent = false;
+        foundActualSizeData = sizeDataIncomplete = false;
         Element directDumpData = getDirectDumpData();
         Map<String, File> exportFiles = getExportFiles();
         Map<Integer, WBSNode> nodeMap = teamProject.getWBS().getNodeMap();
@@ -122,6 +130,21 @@ public class WBSSynchronizer {
      */
     public boolean getFoundActualData() {
         return foundActualData;
+    }
+
+    /**
+     * Return true if actual size data was found during the reverse-sync, and
+     * if all team members are reporting size.
+     * 
+     * Note that we only return true if <b>actual</b> size was discovered;
+     * plan size only does not count.  This is because plan sizes will
+     * appear immediately after the first sync, which occurs during the
+     * bottom-up planning phase of the launch.  The appearance of non-launch
+     * planned sizes would be a source of confusion.  So instead, we wait
+     * for teams to enter some actual size data before these tabs appear.
+     */
+    public boolean getFoundActualSizeData() {
+        return foundActualSizeData && !sizeDataIncomplete;
     }
 
     /**
@@ -240,6 +263,10 @@ public class WBSSynchronizer {
         logger.log(Level.FINE, "Reverse synchronizing data for {0}", m
                 .getName());
 
+        String dumpVersion = dumpData.getAttribute(DUMP_VERSION_ATTR);
+        if (VersionUtils.compareVersions(dumpVersion, MIN_SIZEDATA_VERSION) < 0)
+            sizeDataIncomplete = true;
+
         Date indivEffDate = XMLUtils.getXMLDate(dumpData, TIMESTAMP_ATTR);
         if (indivEffDate != null && indivEffDate.after(effectiveDate))
             effectiveDate = indivEffDate;
@@ -269,6 +296,8 @@ public class WBSSynchronizer {
             result.put(NOTE_CHANGE_TAG, new NoteSynchronizer());
         if (isEnabled(ACTUAL_DATA_TAG))
             result.put(ACTUAL_DATA_TAG, new ActualDataLoader());
+        if (isEnabled(SIZE_DATA_TAG))
+            result.put(SIZE_DATA_TAG, new SizeDataLoader());
         if (isEnabled(NEW_TASK_TAG))
             result.put(NEW_TASK_TAG, new NewTaskLoader());
         return result;
@@ -448,6 +477,28 @@ public class WBSSynchronizer {
             node.setAttribute(completionDateAttrName, date);
 
             foundActualData = true;
+        }
+
+    }
+
+    private class SizeDataLoader implements SyncHandler {
+
+        public void sync(TeamProject teamProject, TeamMember individual,
+                Map<Integer, WBSNode> nodeMap, Element sizeDataTag) {
+
+            int wbsId = XMLUtils.getXMLInt(sizeDataTag, WBS_ID_ATTR);
+            WBSNode node = nodeMap.get(wbsId);
+            if (node == null)
+                // no node with that WBS ID found? log the data to the root.
+                node = nodeMap.get(null);
+
+            String sizeUnits = sizeDataTag.getAttribute(UNITS_ATTR);
+            double planSize = XMLUtils.getXMLNum(sizeDataTag, EST_SIZE_ATTR);
+            double actSize = XMLUtils.getXMLNum(sizeDataTag, ACTUAL_SIZE_ATTR);
+            SizeActualDataColumn.storeData(node, sizeUnits, planSize, actSize);
+
+            if (actSize > 0)
+                foundActualSizeData = true;
         }
 
     }
@@ -634,6 +685,8 @@ public class WBSSynchronizer {
 
     private static final String EXPORT_FILENAME_ENDING = "-data.pdash";
 
+    private static final String DUMP_VERSION_ATTR = "dumpFileVersion";
+
     private static final String INITIALS_ATTR = "initials";
 
     private static final String TIMESTAMP_ATTR = "timestamp";
@@ -683,5 +736,17 @@ public class WBSSynchronizer {
     private static final String BASE_TIMESTAMP_ATTR = "baseTimestamp";
 
     private static final String AUTHOR_ATTR = "author";
+
+    private static final String MIN_SIZEDATA_VERSION = "3.10.1";
+
+    private static final String SIZE_DATA_TAG = "sizeData";
+
+    // private static final String DESCRIPTION_ATTR = "description";
+
+    private static final String UNITS_ATTR = "units";
+
+    private static final String EST_SIZE_ATTR = "estSize";
+
+    private static final String ACTUAL_SIZE_ATTR = "actSize";
 
 }

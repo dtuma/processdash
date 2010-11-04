@@ -95,6 +95,7 @@ import teamdash.wbs.WBSTabPanel.LoadTabsException;
 import teamdash.wbs.columns.PercentCompleteColumn;
 import teamdash.wbs.columns.PercentSpentColumn;
 import teamdash.wbs.columns.SizeAccountingColumnSet;
+import teamdash.wbs.columns.SizeActualDataColumn;
 import teamdash.wbs.columns.TeamActualTimeColumn;
 import teamdash.wbs.columns.TeamCompletionDateColumn;
 import teamdash.wbs.columns.TeamTimeColumn;
@@ -121,6 +122,7 @@ public class WBSEditor implements WindowListener, SaveListener,
     private String owner;
     private int mode;
     boolean showActualData = false;
+    boolean showActualSize = false;
     boolean readOnly = false;
     boolean indivMode = false;
     boolean exitOnClose = false;
@@ -190,6 +192,7 @@ public class WBSEditor implements WindowListener, SaveListener,
             reverseSynchronizer = new WBSSynchronizer(teamProject, data);
             reverseSynchronizer.run();
             showActualData = reverseSynchronizer.getFoundActualData();
+            showActualSize = reverseSynchronizer.getFoundActualSizeData();
         }
 
         // record the valid task types in this process.
@@ -217,19 +220,32 @@ public class WBSEditor implements WindowListener, SaveListener,
         String[] sizeMetrics = teamProject.getTeamProcess().getSizeMetrics();
         String[] sizeTabColIDs = new String[sizeMetrics.length+2];
         String[] sizeTabColNames = new String[sizeMetrics.length+2];
+        String[] planSizeTabColIDs = new String[sizeMetrics.length];
+        String[] actSizeTabColIDs = new String[sizeMetrics.length];
+        String[] sizeDataColNames = new String[sizeMetrics.length];
         sizeTabColIDs[0] = "Size";       sizeTabColNames[0] = "Size";
         sizeTabColIDs[1] = "Size-Units"; sizeTabColNames[1] = "Units";
         for (int i = 0; i < sizeMetrics.length; i++) {
-            sizeTabColIDs[i+2] = SizeAccountingColumnSet.getNCID(sizeMetrics[i]);
-            sizeTabColNames[i+2] = sizeMetrics[i];
+            String units = sizeMetrics[i];
+            sizeTabColIDs[i+2] = SizeAccountingColumnSet.getNCID(units);
+            sizeTabColNames[i+2] = units;
+            planSizeTabColIDs[i] = SizeActualDataColumn.getColumnID(units, true);
+            actSizeTabColIDs[i] = SizeActualDataColumn.getColumnID(units, false);
+            sizeDataColNames[i] = units;
         }
-        tabPanel.addTab("Size", sizeTabColIDs, sizeTabColNames);
+        tabPanel.addTab(showActualSize ? "Launch Size" : "Size", sizeTabColIDs,
+            sizeTabColNames);
 
-        tabPanel.addTab("Size Accounting",
+        tabPanel.addTab(showActualSize ? "Launch Size Accounting" : "Size Accounting",
                      new String[] { "Size-Units", "Base", "Deleted", "Modified", "Added",
                                     "Reused", "N&C", "Total" },
                      new String[] { "Units",  "Base", "Deleted", "Modified", "Added",
                                     "Reused", "N&C", "Total" });
+
+        if (showActualSize) {
+            tabPanel.addTab("Plan Size", planSizeTabColIDs, sizeDataColNames);
+            tabPanel.addTab("Actual Size", actSizeTabColIDs, sizeDataColNames);
+        }
 
         if (!isMode(MODE_MASTER))
             tabPanel.addTab((showActualData ? "Planned Time" : "Time"),
