@@ -1,4 +1,4 @@
-// Copyright (C) 2009 Tuma Solutions, LLC
+// Copyright (C) 2009-2010 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -49,7 +49,7 @@ public class BoundXmlRpcConnection extends AbstractBoundConnection<XmlRpcClient>
 
     protected DynamicAttributeValue password;
 
-    private String testMethodName;
+    protected String testMethodName;
 
 
     public BoundXmlRpcConnection(BoundMap map, Element xml) {
@@ -74,6 +74,11 @@ public class BoundXmlRpcConnection extends AbstractBoundConnection<XmlRpcClient>
 
     @Override
     protected XmlRpcClient openConnectionImpl() throws ErrorDataValueException {
+        return openConnectionImpl(true);
+    }
+
+    protected XmlRpcClient openConnectionImpl(boolean printException)
+            throws ErrorDataValueException {
         String username = null;
         String password = null;
         try {
@@ -126,7 +131,8 @@ public class BoundXmlRpcConnection extends AbstractBoundConnection<XmlRpcClient>
 
         } catch (Exception e) {
             // we were unable to open a connection; return null.
-            e.printStackTrace();
+            if (printException)
+                e.printStackTrace();
             return null;
         }
     }

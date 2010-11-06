@@ -37,7 +37,7 @@ public class CCQuerySupport {
      * @param client
      *                a preconfigured {@link XmlRpcClient} object to use
      * @param name
-     *                the name of the method, without the "ccollab3" namespace
+     *                the name of the method, without the "ccollab*" namespace
      * @param params
      *                the parameters to pass
      * @return the result returned from the RPC
@@ -46,7 +46,8 @@ public class CCQuerySupport {
      */
     public static Object execute(XmlRpcClient client, String name,
             Object... params) throws XmlRpcException {
-        return client.execute("ccollab3." + name, params);
+        String namespace = CCWebService.getNamespace(client);
+        return client.execute(namespace + name, params);
     }
 
     /**

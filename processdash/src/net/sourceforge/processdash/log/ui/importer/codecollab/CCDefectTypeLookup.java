@@ -79,13 +79,15 @@ public abstract class CCDefectTypeLookup extends CCQuerySupport {
         URL baseUrl, url;
         try {
             baseUrl = new URL(args[0]);
-            url = new URL(baseUrl, "/xmlrpc/server");
+            url = new URL(baseUrl, "/xmlrpc/secure");
         } catch (IOException ioe) {
             throw new RuntimeException("Malformed URL " + args[0]);
         }
 
         XmlRpcClientConfigImpl config = new XmlRpcClientConfigImpl();
         config.setServerURL(url);
+        config.setBasicUserName(args[1]);
+        config.setBasicPassword(args[2]);
 
         XmlRpcClient client = new XmlRpcClient();
         client.setConfig(config);

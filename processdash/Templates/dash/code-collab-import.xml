@@ -5,10 +5,9 @@
 
     <code-collaborator
         urlId="url"
-        urlSuffix="/xmlrpc/server"
+        urlSuffix="*automatic*"
 	usernameId="username"
-        passwordId="password"
-	testMethodName="ccollab3.getServerVersion" />
+        passwordId="password" />
 
     <textfield id="username"
         setting="user.name" />
