@@ -1895,8 +1895,9 @@ public class TaskScheduleDialog implements EVTask.Listener,
         JList taskLists = new JList(taskListDisplayNames);
         new JOptionPaneClickHandler().install(taskLists);
         JScrollPane sp = new JScrollPane(taskLists);
-        sp.setPreferredSize(new Dimension(200, 200));
+        sp.setPreferredSize(new Dimension(300, 300));
         Object message = new Object[] {
+            new JOptionPaneTweaker.MakeResizable(),
             resources.getString("Add_Schedule_Dialog.Instructions"), sp };
         if (JOptionPane.showConfirmDialog
             (frame, message,
