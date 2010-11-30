@@ -337,7 +337,48 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
 
     /** Make an educated guess for an appropriate team directory. */
     private String guessTeamDirectory() {
-        // we have no helpful team directory guessing logic for now.
+        // a recommended best practice is to use a single directory to hold the
+        // team dashboard data and the team project data. If the team
+        // dashboard data appears to be on a shared network drive, suggest
+        // reusing it for the team data directory.
+        try {
+            // Locate the directory where this team dashboard stores its data.
+            String settingsFilename = DashController.getSettingsFileName();
+            if (!StringUtils.hasValue(settingsFilename))
+                return null;
+            File settingsFile = new File(settingsFilename).getCanonicalFile();
+            File dataDir = settingsFile.getParentFile();
+            if (dataDir == null)
+                return null;
+
+            // In bridged mode, the data directory will be located in a parent
+            // dir called "working." If that appears to be the case, do not
+            // suggest the reuse of this temporary bridged directory.
+            File parent = dataDir.getParentFile();
+            if (parent != null && "working".equalsIgnoreCase(parent.getName()))
+                return null;
+
+            // On Unix systems, we don't have a way of testing for network
+            // filesystems.  Give the user the benefit of the doubt and assume
+            // that the Team Dashboard directory is located on the network.
+            String dataDirName = dataDir.getPath();
+            if (!isWindows())
+                return dataDirName;
+
+            // If the path is already in UNC format, return it.
+            if (dataDirName.startsWith("\\\\"))
+                return dataDirName;
+
+            // Try to convert the path to UNC format.  If successful, return
+            // the UNC formatted path.
+            String uncPath = getNetworkDriveList().toUNCName(dataDirName);
+            if (uncPath != null && uncPath.startsWith("\\\\"))
+                return uncPath;
+
+        } catch (Exception e) {
+        }
+
+        // We did our best.  Return null to indicate failure.
         return null;
     }
 
@@ -409,7 +450,21 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
 
     /** Display the team schedule name page */
     protected void showTeamSchedulePage() {
+        if (getValue(TEAM_SCHEDULE) == null)
+            putValue(TEAM_SCHEDULE, suggestTeamScheduleName());
+
         printRedirect(TEAM_SCHEDULE_URL);
+    }
+
+    private String suggestTeamScheduleName() {
+        String prefix = getPrefix();
+        if (prefix == null || prefix.length() < 2)
+            return null;
+        int slashPos = prefix.lastIndexOf('/');
+        if (slashPos == -1)
+            return null;
+        String projectName = prefix.substring(slashPos + 1);
+        return (StringUtils.hasValue(projectName) ? projectName : null);
     }
 
     /** Handle values posted from the team schedule name page */
