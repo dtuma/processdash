@@ -97,6 +97,8 @@
 </form>
 
 
+[!--#if http.allowRemote eq 'true' --]
+
 <h3>Useful Hyperlinks</h3>
 
 <p><b><i>(Note: These hyperlinks will only work while this dashboard
@@ -114,6 +116,7 @@ the current plan summary for this project (including the current
 earned value status) by visiting:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<script> writePlanLink(); </script>
 
+[!--#endif --]
 
 </body>
 </html>

@@ -133,6 +133,8 @@
 
 <h3>Useful Hyperlinks</h3>
 
+[!--#if http.allowRemote eq 'true' --]
+
 <p><b><i>(Note: These hyperlinks will only work while this dashboard
 is running.  If you shut down the dashboard, people trying to visit
 these hyperlinks will see a &quot;Page Not Found / Cannot Find
@@ -154,6 +156,8 @@ project (including the current earned value status) by visiting:</p>
 <p><b><i>(The following hyperlink will work, even if this dashboard is
 not running.)</i></b>
 [!--#endif--]
+
+[!--#endif http.allowRemote --]
 
 <p style="margin-bottom:0pt">Team members can join this project by
 pointing their web browser to:
