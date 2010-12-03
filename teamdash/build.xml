@@ -161,7 +161,7 @@ The author(s) may be contacted at:
       </manifest>
       <fileset refid="jnlpClasses"/>
     </jar>
-    <signjar jar="${jnlp.jar}" alias="tuma-solutions-2008"
+    <signjar jar="${jnlp.jar}" alias="tuma-solutions-2010"
 	storepass="${env.TDKSPW}"/>
   </target>
 
@@ -373,7 +373,7 @@ class dependency has been added in a dashboard class?)
 
     <antcall target="signjar">
         <param name="sign.jar" value="TeamTools.jar"/>
-	<param name="sign.alias" value="tuma-solutions-2008"/>
+	<param name="sign.alias" value="tuma-solutions-2010"/>
     </antcall>
   </target>
   <target name="TeamTools.jar" depends="TeamTools"/>
