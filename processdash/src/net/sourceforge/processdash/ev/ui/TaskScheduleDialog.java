@@ -143,6 +143,7 @@ import net.sourceforge.processdash.hier.ui.HierarchyNoteEditorDialog;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.net.cache.CachedObject;
 import net.sourceforge.processdash.net.cache.CachedURLObject;
+import net.sourceforge.processdash.net.http.WebServer;
 import net.sourceforge.processdash.ui.Browser;
 import net.sourceforge.processdash.ui.DashboardIconFactory;
 import net.sourceforge.processdash.ui.NodeSelectionDialog;
@@ -642,10 +643,12 @@ public class TaskScheduleDialog implements EVTask.Listener,
                     saveBaseline(); }};
             toolsMenu.add(saveBaselineAction);
 
-            collaborateAction = new TSAction("Buttons.Collaborate") {
-                public void actionPerformed(ActionEvent e) {
-                    showCollaborationWizard(); }};
-            toolsMenu.add(collaborateAction);
+            if (!isCollaborationBlocked()) {
+                collaborateAction = new TSAction("Buttons.Collaborate") {
+                    public void actionPerformed(ActionEvent e) {
+                        showCollaborationWizard(); }};
+                toolsMenu.add(collaborateAction);
+            }
 
             scheduleOptionsAction = new TSAction("Buttons.Schedule_Options") {
                 public void actionPerformed(ActionEvent e) {
@@ -667,6 +670,12 @@ public class TaskScheduleDialog implements EVTask.Listener,
         result.add(helpMenu);
 
         return result;
+    }
+
+
+    private boolean isCollaborationBlocked() {
+        String setting = Settings.getVal(WebServer.HTTP_ALLOWREMOTE_SETTING);
+        return "blocked".equalsIgnoreCase(setting);
     }
 
 

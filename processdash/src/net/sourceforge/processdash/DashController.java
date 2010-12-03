@@ -395,8 +395,11 @@ public class DashController {
         // export more often.
         InternalSettings.set(EXPORT_TIMES, "*");
 
-        // listen on any address, if we aren't already.
-        InternalSettings.set(WebServer.HTTP_ALLOWREMOTE_SETTING, "true");
+        // listen on any address if we aren't already, and if the feature
+        // hasn't been blocked
+        String httpRemote = Settings.getVal(WebServer.HTTP_ALLOWREMOTE_SETTING);
+        if (!"blocked".equalsIgnoreCase(httpRemote))
+            InternalSettings.set(WebServer.HTTP_ALLOWREMOTE_SETTING, "true");
 
         // listen on a repeatable port.
         String port = Settings.getVal(HTTP_PORT);

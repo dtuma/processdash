@@ -192,9 +192,13 @@ public class WebServer implements ContentSource {
                            .getResourceAsStream("mime_types"));
         } catch (Exception e) { e.printStackTrace(); }
         try {
-            LOCAL_HOST_ADDR = InetAddress.getLocalHost();
-            LOOPBACK_ADDR   = InetAddress.getByName("127.0.0.1");
+            LOOPBACK_ADDR   = InetAddress.getByName(null);
         } catch (UnknownHostException uhe) {}
+        try {
+            LOCAL_HOST_ADDR = InetAddress.getLocalHost();
+        } catch (UnknownHostException uhe) {
+            LOCAL_HOST_ADDR = LOOPBACK_ADDR;
+        }
     }
 
     private ClassLoader getParentClassLoader(String url) {
