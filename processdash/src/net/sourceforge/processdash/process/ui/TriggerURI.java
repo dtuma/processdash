@@ -78,6 +78,8 @@ public class TriggerURI {
         public void run() {
             try {
                 String uri = href;
+                if (uri.startsWith("http://localhost"))
+                    uri = new URL(uri).getFile();
                 // prepend a slash if needed
                 if (!uri.startsWith("/"))
                     uri = "/" + uri;
