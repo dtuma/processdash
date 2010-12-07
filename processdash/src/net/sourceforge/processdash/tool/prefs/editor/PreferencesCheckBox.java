@@ -38,8 +38,7 @@ public class PreferencesCheckBox extends BoundCheckBox {
 
         // Setting the value according to the current user's settings
         String settingName = xml.getAttribute(PreferencesForm.SETTING_TAG);
-        map.put(settingName,
-                Boolean.toString(Settings.getBool(settingName, false)));
+        map.put(settingName, Settings.getVal(settingName, "false"));
     }
 
 }
