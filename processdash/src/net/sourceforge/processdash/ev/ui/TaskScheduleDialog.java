@@ -1289,8 +1289,9 @@ public class TaskScheduleDialog implements EVTask.Listener,
 
             // in flat mode, display the full name of the node rather
             // than the terminal name
-            if (row > 0 && node != null && tree.getModel() == flatModel)
-                setText(node.getFullName());
+            if (node != null && tree.getModel() == flatModel)
+                setText((String) flatModel.getValueAt(node,
+                    EVTaskList.TASK_COLUMN));
 
             // retrieve the error string for this node
             if (node != null && model != null)

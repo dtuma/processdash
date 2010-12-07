@@ -1585,9 +1585,12 @@ public class EVTaskList extends AbstractTreeTableModel
 
         private List evLeaves;
 
+        private String commonPathPrefix;
+
         public FlatTreeModel() {
             super(EVTaskList.this.root);
             evLeaves = getEVLeaves();
+            commonPathPrefix = getCommonPathPrefix();
             EVTaskList.this.addTreeModelListener(this);
             EVTaskList.this.addRecalcListener(this);
         }
@@ -1597,6 +1600,23 @@ public class EVTaskList extends AbstractTreeTableModel
                 return new ArrayList(((EVCalculatorData) calculator).getReorderableEVLeaves());
             else
                 return new ArrayList(calculator.getEVLeaves());
+        }
+
+        private String getCommonPathPrefix() {
+            EVTask taskRoot = EVTaskList.this.getTaskRoot();
+            EVTask node = taskRoot;
+            // see if the root node only has one child (and drill down into
+            // the task hierarchy as long as only one child is present)
+            while (node.getNumChildren() == 1) {
+                node = node.getChild(0);
+            }
+            // if we found a single, regular task that is the ancestor of all
+            // the other tasks, then we know that all the tasks in the plan
+            // will share its full name as their path prefix.
+            if (node != taskRoot && node.getNumChildren() > 1) {
+                return node.getFullName();
+            }
+            return null;
         }
 
         public Class getColumnClass(int column) {
@@ -1620,14 +1640,31 @@ public class EVTaskList extends AbstractTreeTableModel
         }
 
         public Object getValueAt(Object node, int column) {
-            if (column == TASK_COLUMN && node != root)
-                return ((EVTask) node).getFullName();
+            if (column == TASK_COLUMN)
+                return getFlatNodeDisplayName((EVTask) node);
             else if (column == NOTES_COLUMN)
                 return getDeepestNoteFor((EVTask) node);
             else if (column == DEPENDENCIES_COLUMN)
                 return getAllDependenciesFor((EVTask) node);
             else
                 return EVTaskList.this.getValueAt(node, column);
+        }
+
+        private String getFlatNodeDisplayName(EVTask node) {
+            String result;
+            if (node == root) {
+                result = node.getName();
+                if (commonPathPrefix != null)
+                    // display the shared prefix on the root node.
+                    result = result + " - " + commonPathPrefix;
+            } else {
+                result = node.getFullName();
+                if (commonPathPrefix != null)
+                    // remove the shared prefix, along with the slash
+                    // character that follows it.
+                    result = result.substring(commonPathPrefix.length() + 1);
+            }
+            return result;
         }
 
         public int getChildCount(Object parent) {
