@@ -1,4 +1,4 @@
-// Copyright (C) 2000-2007 Tuma Solutions, LLC
+// Copyright (C) 2000-2010 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -103,7 +103,7 @@ public class CompletionButton extends JCheckBox implements ActionListener,
         parent.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
         if (isSelected()) {
             parent.getData().userPutValue(dataName, new DateData());
-            if (navSelector == null || !navSelector.selectNext()) {
+            if (selectNextTask() == false) {
                 parent.pauseTimer(); // stop the timer if it is running.
                 update();
             }
@@ -112,6 +112,12 @@ public class CompletionButton extends JCheckBox implements ActionListener,
             setToolTipText(resources.getString("Completion_Button_Tooltip"));
         }
         parent.setCursor(null);
+    }
+
+    private boolean selectNextTask() {
+        return Settings.getBool("completionCheckbox.autoSelectNext", true)
+                && navSelector != null
+                && navSelector.selectNext();
     }
 
     public void propertyChange(PropertyChangeEvent evt) {
