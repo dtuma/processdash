@@ -64,6 +64,7 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
 import teamdash.ActionCategoryComparator;
+import teamdash.wbs.columns.TeamTimeColumn;
 
 import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
 
@@ -97,6 +98,10 @@ public class WBSJTable extends JTable {
     private boolean disableIndentation = false;
     /** Should the enter key insert a new line into the WBS? */
     private boolean enterInsertsLine = true;
+    /** Should editing operations be optimized for a particular team member? */
+    private boolean optimizeForIndiv = false;
+    /** The initials of the individual for whom editing might be optimized */
+    private String optimizeForIndivInitials = null;
 
     /** Create a JTable to display a WBS. Construct a default icon menu. */
     public WBSJTable(WBSModel model, Map iconMap) {
@@ -152,6 +157,18 @@ public class WBSJTable extends JTable {
 
     public boolean getEnterInsertsLine() {
         return enterInsertsLine;
+    }
+
+    public boolean isOptimizeForIndiv() {
+        return optimizeForIndiv;
+    }
+
+    public void setOptimizeForIndiv(boolean optimizeForIndiv) {
+        this.optimizeForIndiv = optimizeForIndiv;
+    }
+
+    public void setOptimizeForIndivInitials(String initials) {
+        this.optimizeForIndivInitials = initials;
     }
 
 
@@ -966,7 +983,14 @@ public class WBSJTable extends JTable {
             WBSNode newNode = new WBSNode(wbsModel, "", type, indentLevel,
                     expanded);
 
+            if (optimizeForIndiv)
+                newNode.setAttribute(AUTO_ZERO_ATTR_1, optimizeForIndivInitials);
+
             row = wbsModel.add(row, newNode);
+
+            if (newNode.removeAttribute(AUTO_ZERO_ATTR_1) != null)
+                newNode.setAttribute(AUTO_ZERO_ATTR_2, optimizeForIndivInitials);
+
             setRowSelectionInterval(row, row);
             scrollRectToVisible(getCellRect(row, 0, true));
 
@@ -975,6 +999,17 @@ public class WBSJTable extends JTable {
         public void recalculateEnablement(int[] selectedRows) {
             setEnabled(!disableEditing && notEmpty(selectedRows));
         }
+        // Normally we would like to use a transient attribute to register an
+        // "auto zero user".  However, when the node is first added to the WBS,
+        // the WBS will discard all of the transient attributes.  So we store
+        // the value in a persistent attribute, then add the node to the WBS.
+        // The act of adding will cause recalculations to occur, which could
+        // cause the "auto zero user" to be applied.  But if the auto zero
+        // user was not applied during that addition/recalc, we move the
+        // registration from a persistent attribute to a transient one, so it
+        // will not be saved along with other WBS attributes.
+        private static final String AUTO_ZERO_ATTR_1 = TeamTimeColumn.AUTO_ZERO_USER_ATTR_PERSISTENT;
+        private static final String AUTO_ZERO_ATTR_2 = TeamTimeColumn.AUTO_ZERO_USER_ATTR_TRANSIENT;
     }
     final InsertAction INSERT_ACTION = new InsertAction();
 

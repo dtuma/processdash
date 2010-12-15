@@ -25,6 +25,7 @@ package teamdash.wbs.columns;
 
 import java.awt.Color;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -368,9 +369,37 @@ public class TeamTimeColumn extends TopDownBottomUpColumn {
             size = parse(dataModel.getValueAt(node, sizeColumn));
             units = String.valueOf(dataModel.getValueAt(node, unitsColumn));
             individualTimes = getIndivTimes(node);
+            maybeSetAutoZeroUser();
             figureTimePerPerson();
             figureNumPeople();
             figureTeamTime();
+        }
+
+        private void maybeSetAutoZeroUser() {
+            // check to see if an auto zero user has been set using either
+            // a persistent or transient attribute
+            String autoZeroInitials = (String) node.removeAttribute(
+                    AUTO_ZERO_USER_ATTR_PERSISTENT);
+            if (autoZeroInitials == null)
+                autoZeroInitials = (String) node.removeAttribute(
+                    AUTO_ZERO_USER_ATTR_TRANSIENT);
+            if (autoZeroInitials == null)
+                return;
+
+            // if an auto zero user has been registered, look for someone
+            // with those initials in our list of individuals
+            IndivTime targetIndiv = null;
+            for (IndivTime oneIndiv : individualTimes) {
+                if (oneIndiv.isAssigned())
+                    return;
+                else if (autoZeroInitials.equalsIgnoreCase(oneIndiv.initials))
+                    targetIndiv = oneIndiv;
+            }
+
+            // if we found a matching individual, set them as an "assigned
+            // but zero" user.
+            targetIndiv.setTime(Collections.singletonMap(autoZeroInitials
+                    .toLowerCase(), 0));
         }
 
         void figureTimePerPerson() {
@@ -621,7 +650,7 @@ public class TeamTimeColumn extends TopDownBottomUpColumn {
                 buf.append("</strike>");
             return buf;
         }
-        public void setTime(HashMap times) {
+        public void setTime(Map times) {
             String ilc = initials.toLowerCase();
             this.time = safe(parse(times.get(ilc)));
             this.zeroButAssigned = (time == 0 && times.containsKey(ilc));
@@ -913,6 +942,8 @@ public class TeamTimeColumn extends TopDownBottomUpColumn {
     static final String RATE_ATTR = "Rate";
     public static final String TPP_ATTR  = "Time Per Person";
     public static final String NUM_PEOPLE_ATTR = "# People";
+    public static final String AUTO_ZERO_USER_ATTR_PERSISTENT = "Auto Zero User";
+    public static final String AUTO_ZERO_USER_ATTR_TRANSIENT = "@Auto_Zero_User";
     private static final NumericDataValue BLANK =
         new NumericDataValue(0, false, true, null);
 }

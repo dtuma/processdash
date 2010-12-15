@@ -170,6 +170,10 @@ public class WBSNode implements Cloneable {
     public void setAttribute(String attrName, Object value) {
         attributes.put(attrName, value);
     }
+    /** Remove an attribute and return its previous value */
+    public Object removeAttribute(String attrName) {
+        return attributes.remove(attrName);
+    }
     /** Get a list of the attributes on this node */
     public Set listAttributeNames() {
         return Collections.unmodifiableSet(attributes.keySet());

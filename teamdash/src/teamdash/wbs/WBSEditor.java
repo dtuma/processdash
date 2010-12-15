@@ -90,6 +90,7 @@ import net.sourceforge.processdash.util.lock.LockUncertainException;
 import net.sourceforge.processdash.util.lock.ReadOnlyLockFailureException;
 import net.sourceforge.processdash.util.lock.SentLockMessageException;
 import teamdash.SaveListener;
+import teamdash.team.TeamMember;
 import teamdash.team.TeamMemberListEditor;
 import teamdash.wbs.WBSTabPanel.LoadTabsException;
 import teamdash.wbs.columns.PercentCompleteColumn;
@@ -143,6 +144,7 @@ public class WBSEditor implements WindowListener, SaveListener,
     private static Preferences preferences = Preferences.userNodeForPackage(WBSEditor.class);
     private static final String EXPANDED_NODES_KEY_SUFFIX = "_EXPANDEDNODES";
     private static final String EXPANDED_NODES_DELIMITER = Character.toString('\u0001');
+    private static final String OPTIMIZE_FOR_INDIV_KEY = "optimizeForIndiv";
     private static final String DATA_DUMP_FILE = "projDump.xml";
     private static final String WORKFLOW_DUMP_FILE = "workflowDump.xml";
     private static final String CUSTOM_TABS_FILE = "tabs.xml";
@@ -150,7 +152,8 @@ public class WBSEditor implements WindowListener, SaveListener,
     private static final String MEMBERS_CANNOT_EDIT_SETTING = "readOnlyForIndividuals";
 
     public WBSEditor(WorkingDirectory workingDirectory,
-            TeamProject teamProject, String owner) throws LockFailureException {
+            TeamProject teamProject, String owner, String initials)
+            throws LockFailureException {
 
         this.workingDirectory = workingDirectory;
         this.teamProject = teamProject;
@@ -307,7 +310,7 @@ public class WBSEditor implements WindowListener, SaveListener,
                 + " - Work Breakdown Structure"
                 + (teamProject.isReadOnly() ? " (Read-Only)" : ""));
         frame.setJMenuBar(buildMenuBar(tabPanel, teamProject.getWorkflows(),
-            teamProject.getMilestones()));
+            teamProject.getMilestones(), initials));
         frame.getContentPane().add(tabPanel);
         frame.getContentPane().add(teamTimePanel, BorderLayout.SOUTH);
         frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
@@ -591,7 +594,7 @@ public class WBSEditor implements WindowListener, SaveListener,
     }
 
     private JMenuBar buildMenuBar(WBSTabPanel tabPanel, WBSModel workflows,
-            WBSModel milestones) {
+            WBSModel milestones, String initials) {
         JMenuBar result = new JMenuBar();
 
         result.add(buildFileMenu(tabPanel.getFileActions()));
@@ -605,7 +608,7 @@ public class WBSEditor implements WindowListener, SaveListener,
                 && "true".equals(teamProject.getUserSetting("showMasterMenu")))
             result.add(buildMasterMenu(tabPanel.getMasterActions(teamProject)));
         if (!isMode(MODE_MASTER))
-            result.add(buildTeamMenu());
+            result.add(buildTeamMenu(initials));
 
         return result;
     }
@@ -678,11 +681,19 @@ public class WBSEditor implements WindowListener, SaveListener,
             result.add(masterActions[i]);
         return result;
     }
-    private JMenu buildTeamMenu() {
+    private JMenu buildTeamMenu(String initials) {
         JMenu result = new JMenu("Team");
         result.setMnemonic('T');
         if (isMode(MODE_PLAIN))
             result.add(new ShowTeamMemberListEditorMenuItem());
+
+        if (initials != null && !readOnly) {
+            TeamMember m = teamProject.getTeamMemberList().findTeamMember(
+                initials);
+            if (m != null)
+                result.add(new OptimizeEditingForIndivMenuItem(m));
+        }
+
         result.add(new ShowTeamTimePanelMenuItem());
         if (showActualData) {
             ButtonGroup g = new ButtonGroup();
@@ -946,9 +957,9 @@ public class WBSEditor implements WindowListener, SaveListener,
     public void windowDeactivated(WindowEvent e) {}
 
     public static WBSEditor createAndShowEditor(String[] locations,
-            boolean bottomUp, boolean indivMode, boolean showTeamList,
-            String syncURL, boolean exitOnClose, boolean forceReadOnly,
-            String owner) {
+            boolean bottomUp, boolean indivMode, String initials,
+            boolean showTeamList, String syncURL, boolean exitOnClose,
+            boolean forceReadOnly, String owner) {
 
         String message = (showTeamList
                 ? "Opening Team Member List..."
@@ -996,8 +1007,11 @@ public class WBSEditor implements WindowListener, SaveListener,
         if (owner == null && !forceReadOnly)
             owner = getOwnerName();
 
+        if (!indivMode)
+            initials = null;
+
         try {
-            WBSEditor w = new WBSEditor(workingDirectory, proj, owner);
+            WBSEditor w = new WBSEditor(workingDirectory, proj, owner, initials);
             w.setExitOnClose(exitOnClose);
             w.setSyncURL(syncURL);
             w.setIndivMode(indivMode);
@@ -1211,6 +1225,14 @@ public class WBSEditor implements WindowListener, SaveListener,
         preferences.putBoolean(getInsertOnEnterKey(projectId), value);
     }
 
+    private boolean getOptimizeForIndivPref() {
+        return preferences.getBoolean(OPTIMIZE_FOR_INDIV_KEY, true);
+    }
+
+    private void setOptimizeForIndivPref(boolean value) {
+        preferences.putBoolean(OPTIMIZE_FOR_INDIV_KEY, value);
+    }
+
     private void setDirty(boolean isDirty) {
         this.dirty = isDirty;
 
@@ -1234,12 +1256,13 @@ public class WBSEditor implements WindowListener, SaveListener,
 
         boolean bottomUp = Boolean.getBoolean("teamdash.wbs.bottomUp");
         boolean indivMode = Boolean.getBoolean("teamdash.wbs.indiv");
+        String indivInitials = System.getProperty("teamdash.wbs.indivInitials");
         boolean showTeam = Boolean.getBoolean("teamdash.wbs.showTeamMemberList");
         boolean readOnly = Boolean.getBoolean("teamdash.wbs.readOnly");
         String syncURL = System.getProperty("teamdash.wbs.syncURL");
         String owner = System.getProperty("teamdash.wbs.owner");
-        createAndShowEditor(locations, bottomUp, indivMode, showTeam, syncURL,
-            true, readOnly, owner);
+        createAndShowEditor(locations, bottomUp, indivMode, indivInitials,
+            showTeam, syncURL, true, readOnly, owner);
 
         new Timer(DAY_MILLIS, new UsageLogAction()).start();
     }
@@ -1487,6 +1510,24 @@ public class WBSEditor implements WindowListener, SaveListener,
         }
         public void actionPerformed(ActionEvent e) {
             showTeamListEditor();
+        }
+    }
+
+
+    private class OptimizeEditingForIndivMenuItem extends JCheckBoxMenuItem
+            implements ChangeListener {
+        public OptimizeEditingForIndivMenuItem(TeamMember t) {
+            super("Optimize Edit Operations for: " + t.getName());
+            boolean enabled = getOptimizeForIndivPref();
+            setSelected(enabled);
+            tabPanel.wbsTable.setOptimizeForIndiv(enabled);
+            tabPanel.wbsTable.setOptimizeForIndivInitials(t.getInitials());
+            addChangeListener(this);
+        }
+        public void stateChanged(ChangeEvent e) {
+            boolean enabled = isSelected();
+            tabPanel.wbsTable.setOptimizeForIndiv(enabled);
+            setOptimizeForIndivPref(enabled);
         }
     }
 
