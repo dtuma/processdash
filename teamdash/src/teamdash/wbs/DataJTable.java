@@ -107,6 +107,11 @@ public class DataJTable extends JTable {
                               this.pasteAction };
     }
 
+    public void setEditingEnabled(boolean enabled) {
+        ((DataTableModel) getModel()).setEditingEnabled(enabled);
+        pasteAction.setEnabled(enabled);
+    }
+
     @Override
     public Object getValueAt(int row, int column) {
         Object result = super.getValueAt(row, column);

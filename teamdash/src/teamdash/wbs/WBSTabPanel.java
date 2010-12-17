@@ -159,8 +159,7 @@ public class WBSTabPanel extends JPanel
 
     public void setReadOnly(boolean readOnly) {
         boolean editable = !readOnly;
-        DataTableModel dataModel = (DataTableModel) dataTable.getModel();
-        dataModel.setEditingEnabled(editable);
+        dataTable.setEditingEnabled(editable);
         wbsTable.setEditingEnabled(editable);
     }
 

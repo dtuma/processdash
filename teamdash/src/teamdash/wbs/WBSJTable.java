@@ -1357,6 +1357,9 @@ public class WBSJTable extends JTable {
             enablementCalculations.add(this);
         }
         public void actionPerformed(ActionEvent e) {
+            if (disableEditing)
+                return;
+
             // get a list of the currently selected rows.
             int[] rows = getSelectedRows();
             if (!isParentAndChildren(rows)) return;
@@ -1369,7 +1372,8 @@ public class WBSJTable extends JTable {
             }
         }
         public void recalculateEnablement(int[] selectedRows) {
-            setEnabled(selectedRows != null
+            setEnabled(!disableEditing
+                && selectedRows != null
                 && isParentAndChildren(selectedRows)
                 && selectedRows[0] > 1);
         }
@@ -1387,6 +1391,9 @@ public class WBSJTable extends JTable {
             enablementCalculations.add(this);
         }
         public void actionPerformed(ActionEvent e) {
+            if (disableEditing)
+                return;
+
             // get a list of the currently selected rows.
             int[] rows = getSelectedRows();
             if (!isParentAndChildren(rows)) return;
@@ -1399,7 +1406,8 @@ public class WBSJTable extends JTable {
             }
         }
         public void recalculateEnablement(int[] selectedRows) {
-            setEnabled(selectedRows != null
+            setEnabled(!disableEditing
+                && selectedRows != null
                 && isParentAndChildren(selectedRows)
                 && selectedRows[selectedRows.length-1] + 1 < getRowCount());
         }
