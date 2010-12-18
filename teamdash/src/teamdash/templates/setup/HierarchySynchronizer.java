@@ -502,6 +502,26 @@ public class HierarchySynchronizer {
         return getStringData(getData(path, TeamDataConstants.WBS_ID_DATA_NAME));
     }
 
+    private Set<String> allKnownWbsIds;
+    private void getAllKnownWbsIds() {
+        allKnownWbsIds = new HashSet<String>();
+        getAllKnownWbsIds(projectXML);
+    }
+    private void getAllKnownWbsIds(Element wbsNode) {
+        for (Element child : XMLUtils.getChildElements(wbsNode)) {
+            String type = child.getTagName();
+            if (NODE_TYPES.contains(type)) {
+                String childID = child.getAttribute(ID_ATTR);
+                if (XMLUtils.hasValue(childID))
+                    allKnownWbsIds.add(childID);
+                getAllKnownWbsIds(child);
+            }
+        }
+    }
+    private boolean isNodeStillPresentInWbs(String id) {
+        return StringUtils.hasValue(id) && allKnownWbsIds.contains(id);
+    }
+
     /** Nodes that came from the WBS will have a WBS ID.  Nodes that the user
      * created will not.  For such nodes, this method constructs a "pseudo ID"
      * composed of the ID of the nearest WBS parent, followed by the string
@@ -663,6 +683,7 @@ public class HierarchySynchronizer {
     private void doSync() throws HierarchyAlterationException {
         ListData nodeOrderData = new ListData();
         collectNodeOrderData(projectXML, nodeOrderData);
+        getAllKnownWbsIds();
         ListData labelData = null;
         if (isTeam())
             // for a team, get label data for all nodes in a project before
@@ -1491,8 +1512,16 @@ public class HierarchySynchronizer {
 
                 } else if (!nodeID.equals(currentNodeID)) {
                     // the node that is in the way represents some other WBS
-                    // node.  We can't co-opt it.
-                    needsMove = true;
+                    // node. Check to see if that node still exists elsewhere
+                    // in the team WBS.  If it does, we can't co-opt this node.
+                    // If it doesn't, the node in question was probably deleted
+                    // from the WBS, and a new node with the exact same name
+                    // was created in its place. This is a common misuse case
+                    // that occurs when someone "didn't really" intend to
+                    // delete a node - so in that case, we will silently reuse
+                    // the old node to have the new ID.
+                    if (isNodeStillPresentInWbs(currentNodeID))
+                        needsMove = true;
                 }
 
                 if (needsMove) {
