@@ -1706,6 +1706,7 @@ public class EVTaskList extends AbstractTreeTableModel
             int changedRows = Math.min(newLen, oldLen);
 
             evLeaves = newLeaves;
+            commonPathPrefix = getCommonPathPrefix();
 
             int[] childIndices = new int[changedRows];
             Object[] children = new Object[changedRows];
@@ -1859,12 +1860,20 @@ public class EVTaskList extends AbstractTreeTableModel
             return new int[] { insertionPos,
                     insertionPos + tasksToInsert.size() - 1 };
         }
-        private void extractNamedTask(List src, List dest, String fullname) {
+
+        private void extractNamedTask(List src, List dest,
+                String flatNameOfTaskToExtract) {
+            int extractNameLen = flatNameOfTaskToExtract.length();
+            int prefixLen = (commonPathPrefix == null
+                    ? 0 : commonPathPrefix.length() + 1);
             for (Iterator i = src.iterator(); i.hasNext();) {
                 Object obj = i.next();
                 if (obj instanceof EVTask) {
                     EVTask task = (EVTask) obj;
-                    if (fullname.equalsIgnoreCase(task.getFullName())) {
+                    String oneFullName = task.getFullName();
+                    if (oneFullName.length() == extractNameLen + prefixLen
+                            && flatNameOfTaskToExtract.regionMatches(true, 0,
+                                oneFullName, prefixLen, extractNameLen)) {
                         i.remove();
                         dest.add(task);
                         break;
