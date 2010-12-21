@@ -64,6 +64,7 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
 import teamdash.ActionCategoryComparator;
+import teamdash.wbs.columns.TeamActualTimeColumn;
 import teamdash.wbs.columns.TeamTimeColumn;
 
 import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
@@ -1105,14 +1106,8 @@ public class WBSJTable extends JTable {
             List nodesToDelete = wbsModel.getNodesForRows(rows, true);
             if (nodesToDelete == null || nodesToDelete.size() == 0
                     || containsReadOnlyNode(nodesToDelete)) return;
-            int size = nodesToDelete.size();
-            String message = "Delete "+size+(size==1 ? " item":" items")+
-                " from the "+selfName+"?";
-            Window window = SwingUtilities.getWindowAncestor(WBSJTable.this);
-            if (JOptionPane.showConfirmDialog
-                (window, message, "Confirm Deletion",
-                 JOptionPane.OK_CANCEL_OPTION) != JOptionPane.OK_OPTION)
-                 return;
+            if (maybeAskUserToConfirmDeletion(nodesToDelete) == false)
+                return;
 
             // cancel the previous cut operation, if there was one.
             cancelCut();
@@ -1129,6 +1124,26 @@ public class WBSJTable extends JTable {
 
             UndoList.madeChange(WBSJTable.this, "Delete WBS elements");
         }
+        private boolean maybeAskUserToConfirmDeletion(
+                List<WBSNode> nodesToDelete) {
+            if (checkForActualDataOnDelete == false
+                    || containsActualData(nodesToDelete) == false)
+                return true;
+
+            Window window = SwingUtilities.getWindowAncestor(WBSJTable.this);
+            Object message = (nodesToDelete.size() == 1 ? DELETE_ONE_MESSAGE
+                    : DELETE_MANY_MESSAGE);
+            int userChoice = JOptionPane.showConfirmDialog(window, message,
+                "Confirm Deletion", JOptionPane.OK_CANCEL_OPTION,
+                JOptionPane.WARNING_MESSAGE);
+            return userChoice == JOptionPane.OK_OPTION;
+        }
+        private boolean containsActualData(List<WBSNode> nodeList) {
+            for (WBSNode node : nodeList)
+                if (TeamActualTimeColumn.hasActualTime(node))
+                    return true;
+            return false;
+        }
         public void recalculateEnablement(int[] selectedRows) {
             setEnabled(!disableEditing
                     && notJustRoot(selectedRows)
@@ -1136,9 +1151,15 @@ public class WBSJTable extends JTable {
         }
     }
     final DeleteAction DELETE_ACTION = new DeleteAction();
-    /** This string is used by the delete action to compose a message
-     * which will be displayed to the user. */
-    String selfName = "work breakdown structure";
+    boolean checkForActualDataOnDelete = false;
+    private static final String[] DELETE_ONE_MESSAGE = {
+        "Actual data has been collected against the WBS item you are",
+        "about to delete.  Are you certain you want to delete it?"
+    };
+    private static final String[] DELETE_MANY_MESSAGE = {
+        "Some of the WBS items you are about to delete have actual data",
+        "associated with them. Are you certain you want to delete them?"
+    };
 
 
     /** An action to delete the value in the currently selected table cell. */

@@ -110,7 +110,6 @@ public class MilestonesEditor {
         // the next line is necessary; WBSJTable sets this property and we need
         // it turned off.  Otherwise, date cell editor changes get canceled.
         table.putClientProperty("terminateEditOnFocusLost", null);
-        table.selfName = "project milestone list";
         table.setIndentationDisabled(true);
 
         TableColumn col;

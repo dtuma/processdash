@@ -596,6 +596,7 @@ public class WBSTabPanel extends JPanel
             JMenu iconMenu, TaskIDSource idSource) {
         // create the WBS table to display the hierarchy
         wbsTable = new WBSJTable(wbs, iconMap, iconMenu, idSource);
+        wbsTable.checkForActualDataOnDelete = true;
         // create the table to display hierarchy data
         dataTable = new DataJTable(data);
         // link the tables together so they have the same scrolling behavior,

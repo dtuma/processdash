@@ -107,7 +107,6 @@ public class WorkflowEditor {
         table.getTableHeader().setReorderingAllowed(false);
         // install the default editor for table data.
         table.setDefaultEditor(Object.class, new WorkflowCellEditor());
-        table.selfName = "team workflow structure";
 
         // customize the behavior and appearance of the columns.
         for (int i = 0;  i < table.getColumnCount();  i++) {

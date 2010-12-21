@@ -55,6 +55,10 @@ public class TeamActualTimeColumn extends AbstractNumericColumn implements
     public static String getMilestoneRemainingTimeAttr(TeamMember m) {
         return getMilestoneRemainingTimeAttr(m.getInitials());
     }
+    public static boolean hasActualTime(WBSNode node) {
+        double time = node.getNumericAttribute(ACT_TIME_ATTR_NAME);
+        return time > 0;
+    }
 
     private static final String ACT_TIME_ATTR_NAME = "Actual_Team_Time";
 
