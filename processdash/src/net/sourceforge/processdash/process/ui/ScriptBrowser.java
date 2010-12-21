@@ -158,6 +158,7 @@ public class ScriptBrowser extends JDialog
             TreePath path = new TreePath
                 (treeModel.getPathToKey(useProps, currentPhase));
             tree.makeVisible(path);
+            tree.scrollPathToVisible(path);
             tree.getSelectionModel().addSelectionPath(path);
         }
 
