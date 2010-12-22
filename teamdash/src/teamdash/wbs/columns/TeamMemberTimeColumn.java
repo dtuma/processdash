@@ -23,6 +23,8 @@
 
 package teamdash.wbs.columns;
 
+import static teamdash.wbs.columns.TeamTimeColumn.getMemberAssignedZeroAttrName;
+
 import javax.swing.table.TableCellRenderer;
 
 import teamdash.team.TeamMember;
@@ -103,24 +105,38 @@ public class TeamMemberTimeColumn extends TopDownBottomUpColumn
     public static void changeInitials(DataTableModel dataModel,
                                       String oldInitials,
                                       String newInitials) {
+        // calculate the node attribute names applicable to this rename
+        String oldID = oldInitials + ATTR_SUFFIX;
+        String newID = newInitials + ATTR_SUFFIX;
+        String oldTopAttr = getTopDownAttrName(oldID);
+        String newTopAttr = getTopDownAttrName(newID);
+        String oldBtmAttr = getBottomUpAttrName(oldID);
+        String oldInherAttr = getInheritedAttrName(oldID);
+        String oldZeroAttr = getMemberAssignedZeroAttrName(oldInitials);
+        String newZeroAttr = getMemberAssignedZeroAttrName(newInitials);
+
         // perform the change, starting at the root of the wbs.
         changeInitials(dataModel.getWBSModel(),
                        dataModel.getWBSModel().getRoot(),
-                       oldInitials+ATTR_SUFFIX,
-                       newInitials+ATTR_SUFFIX);
+                       oldTopAttr, newTopAttr, oldBtmAttr, oldInherAttr,
+                       oldZeroAttr, newZeroAttr);
     }
 
     private static void changeInitials(WBSModel wbsModel, WBSNode node,
-                                       String oldID, String newID) {
-        node.setAttribute(getTopDownAttrName(newID),
-                          node.getAttribute(getTopDownAttrName(oldID)));
-        node.setAttribute(getTopDownAttrName  (oldID), null);
-        node.setAttribute(getBottomUpAttrName (oldID), null);
-        node.setAttribute(getInheritedAttrName(oldID), null);
+            String oldTopAttr, String newTopAttr, String oldBtmAttr,
+            String oldInherAttr, String oldZeroAttr, String newZeroAttr) {
+        node.setAttribute(newTopAttr, node.getAttribute(oldTopAttr));
+        node.setAttribute(oldTopAttr, null);
+        node.setAttribute(oldBtmAttr, null);
+        node.setAttribute(oldInherAttr, null);
+
+        node.setAttribute(newZeroAttr, node.getAttribute(oldZeroAttr));
+        node.setAttribute(oldZeroAttr, null);
 
         WBSNode[] children = wbsModel.getChildren(node);
         for (int i = children.length;   i-- > 0; )
-            changeInitials(wbsModel, children[i], oldID, newID);
+            changeInitials(wbsModel, children[i], oldTopAttr, newTopAttr,
+                oldBtmAttr, oldInherAttr, oldZeroAttr, newZeroAttr);
     }
 
     public static String getColumnID(TeamMember teamMember) {
