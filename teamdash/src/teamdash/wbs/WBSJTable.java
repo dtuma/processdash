@@ -40,6 +40,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.EventObject;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -99,10 +100,9 @@ public class WBSJTable extends JTable {
     private boolean disableIndentation = false;
     /** Should the enter key insert a new line into the WBS? */
     private boolean enterInsertsLine = true;
-    /** Should editing operations be optimized for a particular team member? */
-    private boolean optimizeForIndiv = false;
-    /** The initials of the individual for whom editing might be optimized */
-    private String optimizeForIndivInitials = null;
+    /** The initials of a team member for whom editing operations should
+     *  be optimized */
+    private String optimizeForIndiv = null;
 
     /** Create a JTable to display a WBS. Construct a default icon menu. */
     public WBSJTable(WBSModel model, Map iconMap) {
@@ -160,16 +160,12 @@ public class WBSJTable extends JTable {
         return enterInsertsLine;
     }
 
-    public boolean isOptimizeForIndiv() {
+    public String getOptimizeForIndiv() {
         return optimizeForIndiv;
     }
 
-    public void setOptimizeForIndiv(boolean optimizeForIndiv) {
-        this.optimizeForIndiv = optimizeForIndiv;
-    }
-
-    public void setOptimizeForIndivInitials(String initials) {
-        this.optimizeForIndivInitials = initials;
+    public void setOptimizeForIndiv(String initials) {
+        this.optimizeForIndiv = initials;
     }
 
 
@@ -984,13 +980,12 @@ public class WBSJTable extends JTable {
             WBSNode newNode = new WBSNode(wbsModel, "", type, indentLevel,
                     expanded);
 
-            if (optimizeForIndiv)
-                newNode.setAttribute(AUTO_ZERO_ATTR_1, optimizeForIndivInitials);
+            newNode.setAttribute(AUTO_ZERO_ATTR_1, optimizeForIndiv);
 
             row = wbsModel.add(row, newNode);
 
             if (newNode.removeAttribute(AUTO_ZERO_ATTR_1) != null)
-                newNode.setAttribute(AUTO_ZERO_ATTR_2, optimizeForIndivInitials);
+                newNode.setAttribute(AUTO_ZERO_ATTR_2, optimizeForIndiv);
 
             setRowSelectionInterval(row, row);
             scrollRectToVisible(getCellRect(row, 0, true));
@@ -1207,8 +1202,13 @@ public class WBSJTable extends JTable {
             List insertedNodes = new ArrayList();
             Arrays.sort(rows);
             for (int i = rows.length; i-- > 0; ) {
+                Map extraAttrs = null;
+                if (optimizeForIndiv != null)
+                    extraAttrs = Collections.singletonMap(
+                        TeamTimeColumn.AUTO_ZERO_USER_ATTR_TRANSIENT,
+                        optimizeForIndiv);
                 int[] insertedRows = wbsModel.insertWorkflow(rows[i],
-                        workflowName, workflows);
+                        workflowName, workflows, extraAttrs);
                 if (insertedRows != null && insertedRows.length > 0)
                     insertedNodes.addAll(wbsModel.getNodesForRows(insertedRows,
                             true));

@@ -896,8 +896,8 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
     }
 
 
-    public int[] insertWorkflow(int destRow,
-                                String workflowName, WBSModel workflows) {
+    public int[] insertWorkflow(int destRow, String workflowName,
+            WBSModel workflows, Map extraDefaultAttrs) {
         // locate the destination node for insertion.
         WBSNode destNode = getNodeForRow(destRow);
         if (destNode == null) return null;
@@ -918,7 +918,7 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
         addWorkflowSourceID(destNode, srcNode.getUniqueID());
 
         // calculate the list of nodes to insert.
-        ArrayList nodesToInsert =
+        List<WBSNode> nodesToInsert =
             calcInsertWorkflow(srcNode, destNode, workflows);
         if (nodesToInsert == null || nodesToInsert.isEmpty()) return null;
 
@@ -928,6 +928,20 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
         if (destDescendants != null && destDescendants.size() > 0)
             insertAfter = destDescendants.get(destDescendants.size() - 1);
         wbsNodes.addAll(insertAfter + 1, prepareNodesForInsertion(nodesToInsert));
+
+        // possibly set extra default attrs that were requested
+        if (extraDefaultAttrs != null && !extraDefaultAttrs.isEmpty()) {
+            for (Iterator i = extraDefaultAttrs.entrySet().iterator(); i
+                    .hasNext();) {
+                Map.Entry e = (Map.Entry) i.next();
+                String attr = (String) e.getKey();
+                Object value = e.getValue();
+                for (WBSNode node : nodesToInsert) {
+                    if (node.getAttribute(attr) == null)
+                        node.setAttribute(attr, value);
+                }
+            }
+        }
 
         // make certain some of the inserted nodes are visible.
         destNode.setExpanded(true);

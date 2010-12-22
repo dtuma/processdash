@@ -1516,18 +1516,21 @@ public class WBSEditor implements WindowListener, SaveListener,
 
     private class OptimizeEditingForIndivMenuItem extends JCheckBoxMenuItem
             implements ChangeListener {
+        private TeamMember teamMember;
         public OptimizeEditingForIndivMenuItem(TeamMember t) {
             super("Optimize Edit Operations for: " + t.getName());
-            boolean enabled = getOptimizeForIndivPref();
-            setSelected(enabled);
-            tabPanel.wbsTable.setOptimizeForIndiv(enabled);
-            tabPanel.wbsTable.setOptimizeForIndivInitials(t.getInitials());
+            this.teamMember = t;
+            setSelected(getOptimizeForIndivPref());
+            updateDependentObjects();
             addChangeListener(this);
         }
         public void stateChanged(ChangeEvent e) {
-            boolean enabled = isSelected();
-            tabPanel.wbsTable.setOptimizeForIndiv(enabled);
-            setOptimizeForIndivPref(enabled);
+            updateDependentObjects();
+            setOptimizeForIndivPref(isSelected());
+        }
+        private void updateDependentObjects() {
+            String initials = (isSelected() ? teamMember.getInitials() : null);
+            tabPanel.wbsTable.setOptimizeForIndiv(initials);
         }
     }
 
