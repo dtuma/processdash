@@ -487,7 +487,8 @@ public class TeamMemberListTable extends JTable {
      */
     private void showCustomizationWindow() {
         TeamMemberList tml = getTeamMemberList();
-        boolean readOnly = tml.isReadOnly();
+        boolean readOnly = tml.isReadOnly()
+            || tml.getOnlyEditableFor() != null;
 
         int currentDOW = tml.getStartOnDayOfWeek();
         JComboBox weekSelector = new JComboBox();
@@ -699,6 +700,9 @@ public class TeamMemberListTable extends JTable {
             if (getSelectedRowCount() == 1 && getSelectedColumnCount() == 1) {
                 int row = getSelectedRow();
                 int col = getSelectedColumn();
+                // if we are not allowed to edit this row of the table, abort.
+                if (!isCellEditable(row, 0))
+                    return;
                 Object value = getValueAt(row, col);
                 int type = getWeekType(value);
                 if (type == WeekData.TYPE_START || type == WeekData.TYPE_END) {
@@ -1048,6 +1052,9 @@ public class TeamMemberListTable extends JTable {
         public boolean importData(JComponent comp, Transferable t) {
             int desiredInsertionRow = getSelectedRow();
             if (desiredInsertionRow == -1) return false;
+
+            if (getTeamMemberList().getOnlyEditableFor() != null)
+                return false;
 
             Date zeroDay = getTeamMemberList().getZeroDay();
             List<TeamMember> list = TeamMemberClipSelection

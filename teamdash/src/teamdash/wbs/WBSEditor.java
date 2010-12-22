@@ -92,6 +92,7 @@ import net.sourceforge.processdash.util.lock.SentLockMessageException;
 import teamdash.SaveListener;
 import teamdash.team.TeamMember;
 import teamdash.team.TeamMemberListEditor;
+import teamdash.team.TeamMemberList.InitialsListener;
 import teamdash.wbs.WBSTabPanel.LoadTabsException;
 import teamdash.wbs.columns.PercentCompleteColumn;
 import teamdash.wbs.columns.PercentSpentColumn;
@@ -1515,22 +1516,36 @@ public class WBSEditor implements WindowListener, SaveListener,
 
 
     private class OptimizeEditingForIndivMenuItem extends JCheckBoxMenuItem
-            implements ChangeListener {
-        private TeamMember teamMember;
+            implements ChangeListener, InitialsListener {
+        private String initials;
         public OptimizeEditingForIndivMenuItem(TeamMember t) {
             super("Optimize Edit Operations for: " + t.getName());
-            this.teamMember = t;
+            this.initials = t.getInitials();
             setSelected(getOptimizeForIndivPref());
             updateDependentObjects();
             addChangeListener(this);
+            teamProject.getTeamMemberList().addInitialsListener(this);
         }
         public void stateChanged(ChangeEvent e) {
+            // this method is called when the user selects this menu option
+            // and toggles the state of our checkbox.
             updateDependentObjects();
             setOptimizeForIndivPref(isSelected());
         }
+        public void initialsChanged(String oldInitials, String newInitials) {
+            // this method is called when someone alters the initials of an
+            // individual in the team member list.
+            if (this.initials.equalsIgnoreCase(oldInitials)) {
+                this.initials = newInitials;
+                updateDependentObjects();
+            }
+        }
         private void updateDependentObjects() {
-            String initials = (isSelected() ? teamMember.getInitials() : null);
-            tabPanel.wbsTable.setOptimizeForIndiv(initials);
+            String optimizeFor = (isSelected() ? this.initials : null);
+            tabPanel.wbsTable.setOptimizeForIndiv(optimizeFor);
+            teamProject.getTeamMemberList().setOnlyEditableFor(optimizeFor);
+            if (teamListEditor != null)
+                teamListEditor.setOnlyEditableFor(optimizeFor);
         }
     }
 

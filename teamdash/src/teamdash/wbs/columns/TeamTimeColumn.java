@@ -398,8 +398,9 @@ public class TeamTimeColumn extends TopDownBottomUpColumn {
 
             // if we found a matching individual, set them as an "assigned
             // but zero" user.
-            targetIndiv.setTime(Collections.singletonMap(autoZeroInitials
-                    .toLowerCase(), 0));
+            if (targetIndiv != null)
+                targetIndiv.setTime(Collections.singletonMap(autoZeroInitials
+                        .toLowerCase(), 0));
         }
 
         void figureTimePerPerson() {

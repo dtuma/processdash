@@ -71,6 +71,9 @@ public class TeamMemberList extends AbstractTableModel implements EffortCalendar
     /** Is this team member list read only? */
     private boolean readOnly = false;
 
+    /** If set, only the team member with these initials can be edited */
+    private String onlyEditableFor = null;
+
     /** What day of the week would the user like the schedule to start?
      * This should be a value recognized by the java.util.Calendar class
      * for the DAY_OF_WEEK field. */
@@ -147,6 +150,7 @@ public class TeamMemberList extends AbstractTableModel implements EffortCalendar
     public TeamMemberList(TeamMemberList list) {
         this.teamMembers = copyTeamMemberList(list.teamMembers);
         this.readOnly = list.readOnly;
+        this.onlyEditableFor = list.onlyEditableFor;
         this.startOnDayOfWeek = list.startOnDayOfWeek;
         this.referenceDate = list.referenceDate;
         this.weekOffset = getDefaultWeekOffset();
@@ -160,6 +164,14 @@ public class TeamMemberList extends AbstractTableModel implements EffortCalendar
 
     public boolean isReadOnly() {
         return readOnly;
+    }
+
+    public String getOnlyEditableFor() {
+        return onlyEditableFor;
+    }
+
+    public void setOnlyEditableFor(String onlyEditableFor) {
+        this.onlyEditableFor = onlyEditableFor;
     }
 
     public int getStartOnDayOfWeek() {
@@ -414,6 +426,15 @@ public class TeamMemberList extends AbstractTableModel implements EffortCalendar
     public boolean isCellEditable(int row, int col) {
         if (isReadOnly())
             return false;
+
+        if (onlyEditableFor != null) {
+            if (col == INITIALS_COLUMN)
+                return false;
+            String initials = (String) getValueAt(row, INITIALS_COLUMN);
+            if (!onlyEditableFor.equalsIgnoreCase(initials))
+                return false;
+        }
+
         if (col < FIRST_WEEK_COLUMN)
             return true;
 

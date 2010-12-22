@@ -230,6 +230,11 @@ public class TeamMemberListEditor implements WindowListener, TableModelListener 
         saveButton.setText(showSave ? "Save" : "OK");
     }
 
+    public void setOnlyEditableFor(String initials) {
+        teamMemberList.setOnlyEditableFor(initials);
+        orig.setOnlyEditableFor(initials);
+    }
+
     private JScrollPane makeScrollPane(JTable table) {
         JScrollPane result = new JScrollPane(table);
         JPanel corner = new JPanel();
