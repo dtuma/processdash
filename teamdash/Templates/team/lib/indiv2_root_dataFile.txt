@@ -40,3 +40,17 @@ undefine([Simple Project Tag]);
           startsWith([{Project_WBS_ID_Filter}] & \"/\", [Project_WBS_ID]))";
 
 [Rollup_Namespaced_Phase_Metrics] = true;
+
+
+/*
+ * On the team side, the calculations assume that the team inspects
+ * the products that were produced.  But on the personal side, that
+ * isn't true - you are inspecting other people's products, not your
+ * own. Redefine the "Inspected" metrics to sum up the corresponding
+ * "Inspected" items from the Size Inventory form.
+ */
+<!--#foreach name=Metric list=Size_Metric_Data_Names -->
+<!--#foreach name=Estimated_ values=",Estimated ,," #-->
+[Estimated_Inspected Metric] = 0 + sumFor ("Estimated_Inspected Metric" , [Rollup_List]);
+<!--#endfor-->
+<!--#endfor-->
