@@ -586,7 +586,17 @@ public class WBSTabPanel extends JPanel
 
     /** Listen for changes in team member initials, and disable undo. */
     public void initialsChanged(String oldInitials, String newInitials) {
-        undoList.clear();
+        // other objects also listen for changes to team member initials,
+        // including the object that applies those changes to the WBS data.
+        // We don't have any insight into whether we are being notified
+        // first or last, but we must wait until those other clients have
+        // also received this message and done their work.  After that has
+        // happened, we can tell the undo list to clear (it will take a new
+        // data snapshot in the process).
+        SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+                undoList.clear();
+            }});
     }
 
 
