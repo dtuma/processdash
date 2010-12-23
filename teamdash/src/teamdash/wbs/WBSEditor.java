@@ -96,12 +96,15 @@ import teamdash.team.TeamMemberList.InitialsListener;
 import teamdash.wbs.WBSTabPanel.LoadTabsException;
 import teamdash.wbs.columns.PercentCompleteColumn;
 import teamdash.wbs.columns.PercentSpentColumn;
+import teamdash.wbs.columns.PlanTimeWatcher;
 import teamdash.wbs.columns.SizeAccountingColumnSet;
 import teamdash.wbs.columns.SizeActualDataColumn;
 import teamdash.wbs.columns.TeamActualTimeColumn;
 import teamdash.wbs.columns.TeamCompletionDateColumn;
 import teamdash.wbs.columns.TeamTimeColumn;
 import teamdash.wbs.columns.UnassignedTimeColumn;
+import teamdash.wbs.columns.PlanTimeWatcher.PlanTimeDiscrepancyEvent;
+import teamdash.wbs.columns.PlanTimeWatcher.PlanTimeDiscrepancyListener;
 
 public class WBSEditor implements WindowListener, SaveListener,
         LockMessageHandler {
@@ -311,7 +314,7 @@ public class WBSEditor implements WindowListener, SaveListener,
                 + " - Work Breakdown Structure"
                 + (teamProject.isReadOnly() ? " (Read-Only)" : ""));
         frame.setJMenuBar(buildMenuBar(tabPanel, teamProject.getWorkflows(),
-            teamProject.getMilestones(), initials));
+            teamProject.getMilestones(), data, initials));
         frame.getContentPane().add(tabPanel);
         frame.getContentPane().add(teamTimePanel, BorderLayout.SOUTH);
         frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
@@ -595,7 +598,7 @@ public class WBSEditor implements WindowListener, SaveListener,
     }
 
     private JMenuBar buildMenuBar(WBSTabPanel tabPanel, WBSModel workflows,
-            WBSModel milestones, String initials) {
+            WBSModel milestones, DataTableModel dataModel, String initials) {
         JMenuBar result = new JMenuBar();
 
         result.add(buildFileMenu(tabPanel.getFileActions()));
@@ -609,7 +612,7 @@ public class WBSEditor implements WindowListener, SaveListener,
                 && "true".equals(teamProject.getUserSetting("showMasterMenu")))
             result.add(buildMasterMenu(tabPanel.getMasterActions(teamProject)));
         if (!isMode(MODE_MASTER))
-            result.add(buildTeamMenu(initials));
+            result.add(buildTeamMenu(initials, dataModel));
 
         return result;
     }
@@ -682,7 +685,7 @@ public class WBSEditor implements WindowListener, SaveListener,
             result.add(masterActions[i]);
         return result;
     }
-    private JMenu buildTeamMenu(String initials) {
+    private JMenu buildTeamMenu(String initials, DataTableModel dataModel) {
         JMenu result = new JMenu("Team");
         result.setMnemonic('T');
         if (isMode(MODE_PLAIN))
@@ -691,8 +694,12 @@ public class WBSEditor implements WindowListener, SaveListener,
         if (initials != null && !readOnly) {
             TeamMember m = teamProject.getTeamMemberList().findTeamMember(
                 initials);
-            if (m != null)
-                result.add(new OptimizeEditingForIndivMenuItem(m));
+            if (m != null) {
+                WatchCoworkerTimesMenuItem watchMenu =
+                    new WatchCoworkerTimesMenuItem(dataModel);
+                result.add(new OptimizeEditingForIndivMenuItem(m, watchMenu));
+                result.add(watchMenu);
+            }
         }
 
         result.add(new ShowTeamTimePanelMenuItem());
@@ -1518,9 +1525,12 @@ public class WBSEditor implements WindowListener, SaveListener,
     private class OptimizeEditingForIndivMenuItem extends JCheckBoxMenuItem
             implements ChangeListener, InitialsListener {
         private String initials;
-        public OptimizeEditingForIndivMenuItem(TeamMember t) {
+        private WatchCoworkerTimesMenuItem watchMenu;
+        public OptimizeEditingForIndivMenuItem(TeamMember t,
+                WatchCoworkerTimesMenuItem watchMenu) {
             super("Optimize Edit Operations for: " + t.getName());
             this.initials = t.getInitials();
+            this.watchMenu = watchMenu;
             setSelected(getOptimizeForIndivPref());
             updateDependentObjects();
             addChangeListener(this);
@@ -1546,7 +1556,90 @@ public class WBSEditor implements WindowListener, SaveListener,
             teamProject.getTeamMemberList().setOnlyEditableFor(optimizeFor);
             if (teamListEditor != null)
                 teamListEditor.setOnlyEditableFor(optimizeFor);
+            watchMenu.update(this.initials, isSelected());
         }
+    }
+
+
+    private class WatchCoworkerTimesMenuItem extends JCheckBoxMenuItem
+            implements ChangeListener, PlanTimeDiscrepancyListener, Runnable {
+        PlanTimeWatcher watcher;
+        String initials;
+        List<String> coworkerDiscrepancies;
+        int invokeLaterCount;
+        public WatchCoworkerTimesMenuItem(DataTableModel dataModel) {
+            super("Show Warning When a Change Affects Someone Else");
+            setBorder(BorderFactory.createCompoundBorder(getBorder(),
+                new EmptyBorder(0, 15, 0, 0)));
+
+            int watcherCol = dataModel.findColumn(PlanTimeWatcher.COLUMN_ID);
+            watcher = (PlanTimeWatcher) dataModel.getColumn(watcherCol);
+            watcher.addPlanTimeDiscrepancyListener(this);
+
+            setSelected(true);
+            addChangeListener(this);
+        }
+        public void stateChanged(ChangeEvent e) {
+            updateDependentObjects();
+        }
+        void update(String initials, boolean enabled) {
+            this.initials = initials;
+            setEnabled(enabled);
+            updateDependentObjects();
+        }
+        private void updateDependentObjects() {
+            boolean active = isSelected() && isEnabled();
+            String restriction = (active ? initials : null);
+            watcher.setRestrictTo(restriction);
+        }
+        public void discrepancyNoted(PlanTimeDiscrepancyEvent e) {
+            this.coworkerDiscrepancies = e.getDiscrepantInitials();
+            this.invokeLaterCount = 3;
+            SwingUtilities.invokeLater(this);
+        }
+        public void run() {
+            if (--invokeLaterCount > 0) {
+                SwingUtilities.invokeLater(this);
+            } else {
+                showWarning();
+            }
+        }
+        private void showWarning() {
+            List message = new ArrayList();
+            if (coworkerDiscrepancies.size() == 1) {
+                String oneInitial = coworkerDiscrepancies.get(0);
+                message.add("The change you just made will affect the plan");
+                message.add("for " + getCoworkerName(oneInitial) + ".");
+            } else {
+                message.add("The change you just made will affect the plans");
+                message.add("of the following individuals:");
+                for (String oneInitial : coworkerDiscrepancies) {
+                    message.add("      " + getCoworkerName(oneInitial));
+                }
+            }
+            message.add(" ");
+            message.add("Are you certain you want to make this change?");
+            message.add(" ");
+
+            int userChoice = JOptionPane.showOptionDialog(frame, message
+                    .toArray(), "Confirm Change to Coworker's Plan",
+                JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null,
+                new Object[] { UNDO_CHANGE, KEEP_CHANGE }, UNDO_CHANGE);
+            if (userChoice == 0) {
+                tabPanel.undoList.undo();
+            }
+        }
+        private String getCoworkerName(String initials) {
+            TeamMember coworker = teamProject.getTeamMemberList()
+                .findTeamMember(initials);
+            if (coworker != null)
+                return coworker.getName();
+            else
+                // shouldn't happen!
+                return "the person with initials '" + initials + "'";
+        }
+        private static final String UNDO_CHANGE = "No, undo the change";
+        private static final String KEEP_CHANGE = "Yes, keep this change";
     }
 
 
