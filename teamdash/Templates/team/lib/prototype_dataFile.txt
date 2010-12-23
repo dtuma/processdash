@@ -74,8 +74,8 @@ undefine([Use_Rollup]);
 <!--#foreach name=Inspected_ values=",Inspected ,," #-->
 <!--#foreach name=Estimated_ values=",Estimated ,," #-->
 [Effective_Estimated_Inspected_DLD Lines] =
-    nvl([Estimated_Inspected_DLD Lines], 
-        [Estimated_Inspected_New & Changed LOC]);
+    nvlz([Estimated_Inspected_DLD Lines], 
+         [Estimated_Inspected_New & Changed LOC]);
 <!--#endfor--><!--#endfor-->
 
 <!--#foreach name=Phase list=Phase_List #-->
