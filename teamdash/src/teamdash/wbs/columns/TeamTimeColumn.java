@@ -170,7 +170,24 @@ public class TeamTimeColumn extends TopDownBottomUpColumn {
     protected void userChangingValue(WBSNode node, double value) {
         LeafNodeData leafData = getLeafNodeData(node);
         if (leafData != null)
+            // if this is a leaf node, pass this notification along to the
+            // LeafNodeData object so it can take the appropriate action
+            // (e.g., scaling the personal times appropriately)
             leafData.userSetTeamTime(value);
+
+        else if (Double.isNaN(value))
+            // if this is NOT a leaf node, and the user deleted the number
+            // from the "Team Time" column, they are probably trying to clear
+            // a top-down-bottom-up mismatch.  Oblige by deleting the top-down
+            // estimates for each individual team member.
+            clearIndividualTopDownBottomUpMismatches(node);
+    }
+
+    private void clearIndividualTopDownBottomUpMismatches(WBSNode node) {
+        for (int i = teamMemberColumns.size();  i-- > 0; ) {
+            int oneMemberColumn = teamMemberColumns.get(i);
+            dataModel.setValueAt("", node, oneMemberColumn);
+        }
     }
 
 
