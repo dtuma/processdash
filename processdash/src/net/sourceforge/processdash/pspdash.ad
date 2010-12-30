@@ -119,7 +119,7 @@ import.instructions=<list><importDir prefix="Imported" directory="./import"/></l
 # names currently in use, override this definition and check the
 # combo box lists in the probe dialog.
 #
-hiddenData=^(LOC|ESTIMATED Time|Design/Total Time)$|\\d|To Date|/Combined|^Cycles|Defect Type Standard|FreezeFlag|^Generic - Show|^PM/|_|//|node$|leaf$|^Prototypical|KLOC$
+hiddenData=^(LOC|ESTIMATED Time|Design/Total Time)$|\\d|To Date|/Combined|^Cycles|Defect Type Standard|FreezeFlag|^Generic - Show|^PM/|_|//|node$|leaf$|^Prototypical|Analyze Rollup Data|KLOC$
 
 
 #
