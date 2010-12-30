@@ -186,6 +186,10 @@
         <param name="PID" replace="true"
 	       value="<!--#echo var='Process_ID' encoding='data' -->"/>
     </file>
+    <!--#if Custom_Prototype_Data_Filename -->
+    <file in="extfile:<!--#echo Custom_Prototype_Data_Filename -->"
+          out="prototype_dataFile_custom.txt" encoding="data"/>
+    <!--#endif-->
 
     <!-- query files for various reports -->
     <file in="percent-def-free.rpt" encoding="none" />

@@ -366,3 +366,12 @@ undefine([Use_Rollup]);
  * Provide a hook for customized external document integration.
  */
 [FILES_XML] = ",/PID/files.xml,/PID/files2.xml,";
+
+
+<!--#if Custom_Prototype_Data_Filename -->
+/*
+ * If the process definition requested specific custom metrics,
+ * include them here.
+ */
+#include <PID/prototype_dataFile_custom.txt>
+<!--#endif-->
