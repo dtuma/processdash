@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2006 Tuma Solutions, LLC
+// Copyright (C) 2003-2010 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -35,6 +35,7 @@ import java.util.logging.Logger;
 
 import javax.swing.Timer;
 
+import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.repository.DataRepository;
 
 
@@ -85,7 +86,7 @@ public class FormDataSession implements FormDataListener {
         mgr.notifyListener(id, value);
     }
 
-    public synchronized void paintData(String id, String value, boolean readOnly) {
+    public void paintData(String id, String value, boolean readOnly) {
         log.entering("FormDataSession", "paintData",
                      new Object[] { id, value, Boolean.valueOf(readOnly) });
 
@@ -97,8 +98,8 @@ public class FormDataSession implements FormDataListener {
             }
             formDataEvents.add
                 (new FormDataEvent(++currentCoupon, id, value, readOnly));
+            formDataEvents.notify();
         }
-        notify();
     }
 
     private void touch() {
@@ -107,7 +108,9 @@ public class FormDataSession implements FormDataListener {
 
     private static final int EVENT_DELAY = 1000;
 
-    public FormDataEvent getNextEvent(int lastCoupon, boolean delay) {
+    public enum EventWaitDelay { NONE, AUTO, SHORT, LONG };
+
+    public FormDataEvent getNextEvent(int lastCoupon, EventWaitDelay delay) {
         // Iterate through all past events and return the first one with
         // a coupon number higher than the given number.
         FormDataEvent e = null;
@@ -117,33 +120,37 @@ public class FormDataSession implements FormDataListener {
                 e = (FormDataEvent) i.next();
                 if (e != null && e.getCoupon() > lastCoupon) return e;
             }
-        }
 
-        // if no event was found because the queue is empty, return null.
-        if (e == null) return null;
+            // No event was found.  If the caller does not want us to delay for
+            // events, return null.
+            if (delay == EventWaitDelay.NONE) return null;
 
-        // if no event was found, and the most recent event in the queue
-        // is fairly old, return null.
-        if (!delay && System.currentTimeMillis() - e.timestamp > EVENT_DELAY)
-            return null;
-
-        // otherwise, wait a small amount of time to see if another event
-        // arrives.
-        try {
-            synchronized (this) {
-                wait(EVENT_DELAY);
+            // No event was found, and the caller wants us to decide whether a
+            // short wait is appropriate
+            if (delay == EventWaitDelay.AUTO) {
+                // if the queue is empty, or the most recent event in the queue
+                // is fairly old, return null.
+                if (e == null
+                        || System.currentTimeMillis() - e.timestamp > EVENT_DELAY)
+                    return null;
             }
-        } catch (InterruptedException ie) {}
-        FormDataEvent le;
-        synchronized (formDataEvents) {
-            le = (FormDataEvent) formDataEvents.getLast();
+
+            // otherwise, wait some amount of time to see if another event
+            // arrives.
+            try {
+                int waitTime = delay == EventWaitDelay.LONG ? REFRESH_DELAY
+                        : EVENT_DELAY;
+                formDataEvents.wait(waitTime);
+            } catch (InterruptedException ie) {}
+
+            FormDataEvent le = (FormDataEvent) formDataEvents.getLast();
+            if (le != e)
+                // if a new event has arrived, find and return it.
+                return getNextEvent(lastCoupon, EventWaitDelay.NONE);
+            else
+                // if no new event has arrived, return null.
+                return null;
         }
-        if (le != e)
-            // if a new event has arrived, find and return it.
-            return getNextEvent(lastCoupon, delay);
-        else
-            // if no new event has arrived, return null.
-            return null;
     }
 
     // initialize SESSION_ID to a quasi-random number.  This will make it
@@ -162,8 +169,12 @@ public class FormDataSession implements FormDataListener {
         return nextID;
     }
 
+
+    static int REFRESH_DELAY =
+        1000 * Settings.getInt("browserData.refreshInterval", 15);
+
     private static int TIMEOUT_DURATION = 2 /*iterations*/ * 
-        Math.max(HandleForm.REFRESH_DELAY, 15000) /*milliseconds*/;
+        Math.max(REFRESH_DELAY, 15000) /*milliseconds*/;
 
     public synchronized static FormDataSession getSession(String sessionID) {
         FormDataSession result = null;

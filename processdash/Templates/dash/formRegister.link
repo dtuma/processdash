@@ -1,2 +1,2 @@
-class:net.sourceforge.processdash.data.applet.js.HandleForm
+class:net.sourceforge.processdash.data.applet.js.HandleFormIframe
 action=register

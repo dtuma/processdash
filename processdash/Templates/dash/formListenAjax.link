@@ -1,0 +1,2 @@
+class:net.sourceforge.processdash.data.applet.js.HandleFormAjax
+action=listen
