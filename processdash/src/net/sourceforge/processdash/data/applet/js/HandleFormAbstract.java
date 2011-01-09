@@ -192,7 +192,7 @@ abstract class HandleFormAbstract extends TinyCGIBase {
         out.write(Boolean.toString(e.isReadOnly()));
         out.write(",");
         out.write(Integer.toString(e.getCoupon()));
-        out.write(");");
+        out.write(");\n");
         writeScriptEnd();
         out.flush();
     }

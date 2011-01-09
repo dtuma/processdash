@@ -33,6 +33,10 @@ public class HandleFormAjax extends HandleFormAbstract {
         this.charset = "UTF-8";
     }
 
+    protected void doGet() {
+        writeCSRFFence();
+    }
+
     protected void doPost() throws IOException {
         parseFormData();
         super.doPost();
@@ -40,7 +44,7 @@ public class HandleFormAjax extends HandleFormAbstract {
 
     /** Write the CGI header. */
     protected void writeHeader() {
-        out.print("Content-type: text/javascript; charset=UTF-8\r\n");
+        out.print("Content-type: text/plain; charset=UTF-8\r\n");
         out.print("Expires: 0\r\n\r\n");
         out.flush();
     }
@@ -48,6 +52,7 @@ public class HandleFormAjax extends HandleFormAbstract {
     @Override
     protected void handleRegistrationImpl(final FormDataSession session)
             throws IOException {
+        writeCSRFFence();
         writeAckCommand();
         writeSessionCommand(session);
         writeDoneCommand(10);
@@ -61,6 +66,7 @@ public class HandleFormAjax extends HandleFormAbstract {
 
     @Override
     protected void afterHandleEdit(FormDataSession session) {
+        writeCSRFFence();
         writeAckCommand();
         if (session == null)
             writeReregisterCommand();
@@ -69,6 +75,7 @@ public class HandleFormAjax extends HandleFormAbstract {
 
     @Override
     protected void handleListenImpl(FormDataSession session, int coupon) {
+        writeCSRFFence();
         // if the session was unrecognized, ask the client to reregister.
         if (session == null) {
             writeReregisterCommand();
@@ -121,6 +128,13 @@ public class HandleFormAjax extends HandleFormAbstract {
         } while (e != null);
 
         return foundData;
+    }
+
+
+    protected void writeCSRFFence() {
+        // write a poison pill to help protect against cross-site request
+        // forgery attacks
+        out.write("alert('XSS!'); while(1); // CUTCUTCUT\n");
     }
 
 }

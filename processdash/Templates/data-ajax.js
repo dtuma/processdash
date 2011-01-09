@@ -396,7 +396,13 @@ function dispatchMessage(expectIdle) {
     var params = nextMessage.substring(queryPos+1);
 
     ackTimeoutID = self.setTimeout("ackTimeout()", DISPATCH_ACK_TIMEOUT);
-    new Ajax.Request(messageURL, { parameters: params });
+    new Ajax.Request(messageURL, { parameters: params, onComplete: dispatchScripts });
+}
+
+
+// private (should only be referenced by dispatch logic)
+function dispatchScripts(transport, json) {
+  eval(transport.responseText.replace(/^.*CUTCUTCUT/, ""));
 }
 
 
@@ -436,12 +442,13 @@ function listenForEvents() {
     var messageURL = "http://" + self.location.host
         + eval(LISTEN_MESSAGE_FUNC) + getMsgIDSuffix(msgID);
     LISTEN_AJAX_DISPATCHER = new Ajax.Request(messageURL,
-        { method: 'get',
-	  onComplete: listenComplete,
+        { onComplete: listenComplete,
 	  onException: listenException });
 }
 
 function listenComplete(transport, json) {
+    dispatchScripts(transport, json);
+
     if (LISTEN_AJAX_DISPATCHER == null || LISTEN_AJAX_DISPATCHER.transport != transport) {
         // when a form data session goes stale, this script will reregister for a
         // new session and be assigned a new session ID.  However, the listening
