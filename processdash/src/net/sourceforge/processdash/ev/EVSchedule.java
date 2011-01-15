@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2010 Tuma Solutions, LLC
+// Copyright (C) 2001-2011 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -1944,6 +1944,94 @@ public class EVSchedule implements TableModel {
         return new ConfidenceIntervalCompletionDateChartData(new EVScheduleChartEventAdapter(),
                                                              metrics);
     }
+
+
+    /**
+     * Abstract chart series for computing the trend of the discrepancy
+     * between a planned and actual value.  Extrapolates the plan for the
+     * effective time period.
+     */
+    private abstract class ActualTrendChartSeries extends ActualChartSeries {
+        double mult = 1.0;
+        public abstract double getPlanValue(Period p);
+        public abstract double getActualValue(Period p);
+        public Number getY(int itemIndex) {
+            Period p = get(itemIndex);
+
+            double plan = getPlanValue(p);
+            double actual = getActualValue(p);
+            double pct = p.getElapsedPercent(getEffectiveDate());
+
+            if (pct < 1) {
+                double prevPlan = 0;
+                if (p.previous != null)
+                    prevPlan = getPlanValue(p.previous);
+                double delta = plan - prevPlan;
+                plan = prevPlan + delta * pct;
+            }
+
+            return (actual - plan) * mult;
+        }
+    }
+    private class PlanTrendChartSeries extends ActualChartSeries {
+        public String getSeriesKey()  { return "Plan"; }
+        public Number getY(int itemIndex) {
+            return Integer.valueOf(0);
+        }
+    }
+
+
+    /**
+     * XYDataSource for charting the earned value trend
+     */
+    private class ActualValueTrendChartSeries extends ActualTrendChartSeries {
+        @Override public double getActualValue(Period p) {
+            return p.cumEarnedValue;
+        }
+        @Override public double getPlanValue(Period p) {
+            return p.cumPlanValue;
+        }
+    };
+    protected class ValueTrendChartData extends XYChartData {
+        ActualTrendChartSeries actual;
+        public ValueTrendChartData(ChartEventAdapter eventAdapter) {
+            super(eventAdapter);
+            series.add(new PlanTrendChartSeries());
+            series.add(actual = new ActualValueTrendChartSeries());
+        }
+        @Override
+        public void recalc() {
+            actual.mult = 100.0 / totalPlan();
+        }
+    }
+    public XYDataset getValueTrendChartData() {
+        return new ValueTrendChartData(new EVScheduleChartEventAdapter());
+    }
+
+
+    /**
+     * XYDataSource for charting the direct time trend
+     */
+    private class ActualTimeTrendChartSeries extends ActualTrendChartSeries {
+        ActualTimeTrendChartSeries() { mult = 1 / 60.0; }
+        @Override public double getActualValue(Period p) {
+            return p.cumActualDirectTime;
+        }
+        @Override public double getPlanValue(Period p) {
+            return p.cumPlanDirectTime;
+        }
+    };
+    protected class TimeTrendChartData extends XYChartData {
+        public TimeTrendChartData(ChartEventAdapter eventAdapter) {
+            super(eventAdapter);
+            series.add(new PlanTrendChartSeries());
+            series.add(new ActualTimeTrendChartSeries());
+        }
+    }
+    public XYDataset getTimeTrendChartData() {
+        return new TimeTrendChartData(new EVScheduleChartEventAdapter());
+    }
+
 
     /**
      * XYDatasource for charting planned-vs-actual time on completed periods
