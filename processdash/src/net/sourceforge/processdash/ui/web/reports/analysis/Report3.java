@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2006 Tuma Solutions, LLC
+// Copyright (C) 2001-2011 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -339,21 +339,21 @@ public class Report3 extends AnalysisPage implements DefectAnalyzer.Task {
         }
 
         if (inj != -1 && rem != -1) {
-            count[inj][rem] += 1;
+            count[inj][rem] += d.fix_count;
             time [inj][rem] += fixtime;
         }
 
         if (inj != -1) {
-            count[inj][TOTAL_REM] += 1;
+            count[inj][TOTAL_REM] += d.fix_count;
             time [inj][TOTAL_REM] += fixtime;
         }
 
         if (rem != -1) {
-            count[TOTAL_INJ][rem] += 1;
+            count[TOTAL_INJ][rem] += d.fix_count;
             time [TOTAL_INJ][rem] += fixtime;
         }
 
-        count[TOTAL_INJ][TOTAL_REM] += 1;
+        count[TOTAL_INJ][TOTAL_REM] += d.fix_count;
         time [TOTAL_INJ][TOTAL_REM] += fixtime;
     }
 

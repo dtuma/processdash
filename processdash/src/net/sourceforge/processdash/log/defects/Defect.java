@@ -1,4 +1,4 @@
-// Copyright (C) 1998-2010 Tuma Solutions, LLC
+// Copyright (C) 1998-2011 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -43,6 +43,8 @@ public class Defect implements Cloneable {
     public Date date;
     public String number, defect_type, phase_injected, phase_removed,
                   fix_time, fix_defect, description;
+    public int fix_count = 1;
+    public boolean fix_pending;
     public Map<String, String> extra_attrs;
 
     public Defect() {}
@@ -74,12 +76,23 @@ public class Defect implements Cloneable {
         fix_time = extractXmlAttr(XML.FIX_TIME_ATTR);
         fix_defect = extractXmlAttr(XML.FIX_DEFECT_ATTR);
         description = extractXmlAttr(XML.DESCRIPTION_ATTR);
+        fix_count = Math.max(1, extractXmlIntAttr(XML.FIX_COUNT_ATTR, 1));
+        fix_pending = "true".equals(extractXmlAttr(XML.FIX_PENDING_ATTR));
         date = XMLUtils.parseDate(extractXmlAttr(XML.DATE_ATTR));
     }
 
     private String extractXmlAttr(String name) {
         String result = extra_attrs.remove(name);
         return (result == null ? "" : result);
+    }
+
+    private int extractXmlIntAttr(String name, int defaultVal) {
+        try {
+            String value = extractXmlAttr(name);
+            if (hasValue(value))
+                return Integer.parseInt(value);
+        } catch (Exception e) {}
+        return defaultVal;
     }
 
     private String token(String s, boolean multiline) {
@@ -89,6 +102,10 @@ public class Defect implements Cloneable {
         s = s.replace('\t', ' ');
         s = s.replace('\n', (multiline ? '\u0001' : ' '));
         return s;
+    }
+
+    public boolean needsXmlSaveFormat() {
+        return fix_count > 1 || fix_pending;
     }
 
     public String toString() {
@@ -114,6 +131,10 @@ public class Defect implements Cloneable {
         ser.attribute(null, XML.FIX_TIME_ATTR, xmlToken(fix_time));
         ser.attribute(null, XML.FIX_DEFECT_ATTR, xmlToken(fix_defect));
         ser.attribute(null, XML.DESCRIPTION_ATTR, xmlToken(description));
+        if (fix_count > 1)
+            ser.attribute(null, XML.FIX_COUNT_ATTR, Integer.toString(fix_count));
+        if (fix_pending)
+            ser.attribute(null, XML.FIX_PENDING_ATTR, "true");
         if (date != null)
             ser.attribute(null, XML.DATE_ATTR, XMLUtils.saveDate(date));
         if (extra_attrs != null && !extra_attrs.isEmpty())
@@ -140,6 +161,8 @@ public class Defect implements Cloneable {
                         && eq(this.fix_time, that.fix_time)
                         && eq(this.fix_defect, that.fix_defect)
                         && eq(this.description, that.description)
+                        && (this.fix_count == that.fix_count)
+                        && (this.fix_pending == that.fix_pending)
                         && eq(this.extra_attrs, that.extra_attrs);
         }
         return false;
@@ -170,6 +193,8 @@ public class Defect implements Cloneable {
         result = (result << 1) ^ hc(this.fix_time);
         result = (result << 1) ^ hc(this.fix_defect);
         result = (result << 1) ^ hc(this.description);
+        result = (result << 1) ^ hc(this.fix_count);
+        result = (result << 1) ^ hc(this.fix_pending);
         result = (result << 1) ^ hc(this.extra_attrs);
         return result;
     }

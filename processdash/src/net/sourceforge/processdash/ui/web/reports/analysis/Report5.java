@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2008 Tuma Solutions, LLC
+// Copyright (C) 2001-2011 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -271,7 +271,7 @@ public class Report5 extends CGIChartBase implements DefectAnalyzer.Task {
                 break;
 
             case DEFECT_COUNT:
-                increment(getRow(d.defect_type), 1.0f);
+                increment(getRow(d.defect_type), d.fix_count);
                 break;
         }
     }

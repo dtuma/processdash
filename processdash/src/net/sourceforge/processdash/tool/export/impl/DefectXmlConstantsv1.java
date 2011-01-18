@@ -1,4 +1,4 @@
-// Copyright (C) 2004-2005 Tuma Solutions, LLC
+// Copyright (C) 2004-2011 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -33,6 +33,8 @@ public interface DefectXmlConstantsv1 extends XmlConstants {
     public static final String DESCRIPTION_ATTR = "desc";
     public static final String FIX_DEFECT_ATTR = "fd";
     public static final String FIX_TIME_ATTR = "ft";
+    public static final String FIX_COUNT_ATTR = "count";
+    public static final String FIX_PENDING_ATTR = "pending";
     public static final String REMOVED_ATTR = "rem";
     public static final String INJECTED_ATTR = "inj";
     public static final String DEFECT_TYPE_ATTR = "type";

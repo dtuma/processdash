@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2006 Tuma Solutions, LLC
+// Copyright (C) 2001-2011 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -382,9 +382,9 @@ public class Report4 extends AnalysisPage implements DefectAnalyzer.Task {
     }
 
     /** Increment a defect count for a particular defect type */
-    protected void increment(int [] row, int type) {
-        totals[type]++;
-        row[type]++;
+    protected void increment(int [] row, int type, int count) {
+        totals[type] += count;
+        row[type] += count;
     }
 
     /** Implement DefectAnalyzer.Task */
@@ -393,7 +393,7 @@ public class Report4 extends AnalysisPage implements DefectAnalyzer.Task {
 
         for (int i = categories.size();   i-- > 0; ) {
             Category c = (Category) categories.get(i);
-            if (c.matches(d)) increment(row, i);
+            if (c.matches(d)) increment(row, i, d.fix_count);
         }
     }
 

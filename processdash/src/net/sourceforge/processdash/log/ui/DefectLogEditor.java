@@ -1,4 +1,4 @@
-// Copyright (C) 1999-2010 Tuma Solutions, LLC
+// Copyright (C) 1999-2011 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -435,7 +435,7 @@ public class DefectLogEditor extends Component implements
         updateImportActions(selectedKey, defectLogKey);
         // apply the filter and load the vector (and the table)
         VTableModel model = (VTableModel)table.table.getModel();
-        Object[] row = new Object [9];
+        Object[] row = new Object [11];
         DefectListID dli;
         DefectListEntry dle;
         PropertyKey pk;
@@ -463,9 +463,11 @@ public class DefectLogEditor extends Component implements
                 row [3] = dle.defect.phase_injected;
                 row [4] = dle.defect.phase_removed;
                 row [5] = dle.defect.fix_time;
-                row [6] = dle.defect.fix_defect;
-                row [7] = dle.defect.description;
-                row [8] = FormatUtil.formatDate (dle.defect.date);
+                row [6] = Integer.toString(dle.defect.fix_count);
+                row [7] = dle.defect.fix_defect;
+                row [8] = dle.defect.fix_pending ? "*" : "";
+                row [9] = dle.defect.description;
+                row [10] = FormatUtil.formatDate (dle.defect.date);
                 model.addRow(row);
             }
         }
@@ -564,7 +566,7 @@ public class DefectLogEditor extends Component implements
 
         String[] columns = new String[] {
             "Project", "ID", "Type", "Injected", "Removed",
-            "Time", "Fix", "Description", "Date" };
+            "Time", "Count", "Fix", "Pending", "Description", "Date" };
 
         retPanel.setLayout(new BorderLayout());
         table = new ValidatingTable
@@ -574,7 +576,7 @@ public class DefectLogEditor extends Component implements
              resources.getStrings("Columns.", columns, ".Tooltip"),
              null, null, 0, true, null,
              new boolean[] {false, false, false, // no columns editable
-                            false, false, false,
+                            false, false, false, false, false,
                             false, false, false});
         DefectCellRenderer rend = new DefectCellRenderer();
         for (int col = 2;  col < 5;  col++)

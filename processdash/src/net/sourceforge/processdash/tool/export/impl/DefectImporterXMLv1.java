@@ -1,4 +1,4 @@
-// Copyright (C) 2004-2005 Tuma Solutions, LLC
+// Copyright (C) 2004-2011 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -83,7 +83,9 @@ public class DefectImporterXMLv1 implements ArchiveMetricsFileImporter.Handler,
                 d.phase_injected = e.getAttribute(INJECTED_ATTR);
                 d.phase_removed = e.getAttribute(REMOVED_ATTR);
                 d.fix_time = e.getAttribute(FIX_TIME_ATTR);
+                d.fix_count = Math.max(1, XMLUtils.getXMLInt(e, FIX_COUNT_ATTR));
                 d.fix_defect = massageFixDefect(e.getAttribute(FIX_DEFECT_ATTR));
+                d.fix_pending = "true".equals(e.getAttribute(FIX_PENDING_ATTR));
                 d.description = e.getAttribute(DESCRIPTION_ATTR);
 
                 ImportedDefectManager.ImportedDefect importedDefect =

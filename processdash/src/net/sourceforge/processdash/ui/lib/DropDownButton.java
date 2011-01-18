@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2008 Tuma Solutions, LLC
+// Copyright (C) 2001-2011 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -349,7 +349,7 @@ public class DropDownButton extends JPanel {
 
     /** An icon to draw a small downward-pointing arrow.
      */
-    private static class SmallDownArrow implements Icon {
+    static class SmallDownArrow implements Icon {
 
         Color arrowColor = Color.black;
 
@@ -372,7 +372,7 @@ public class DropDownButton extends JPanel {
 
     /** An icon to draw a disabled small downward-pointing arrow.
      */
-    private static class SmallDisabledDownArrow extends SmallDownArrow {
+    static class SmallDisabledDownArrow extends SmallDownArrow {
 
         public SmallDisabledDownArrow() {
             arrowColor = new Color(140, 140, 140);

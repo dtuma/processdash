@@ -1,4 +1,4 @@
-// Copyright (C) 1999-2010 Tuma Solutions, LLC
+// Copyright (C) 1999-2011 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -165,8 +165,12 @@ public class DefectLog {
             return;
         else if (Settings.getBool(USE_XML_SETTING, false))
             saveAsXML(defects);
-        else
-            saveAsTabDelimited(defects);
+        else {
+            if (saveAsTabDelimited(defects) == false) {
+                enableXmlStorageFormat();
+                saveAsXML(defects);
+            }
+        }
     }
 
     private void saveAsXML(Defect [] defects) {
@@ -189,7 +193,8 @@ public class DefectLog {
         } catch (IOException e) { System.out.println("IOException: " + e); };
     }
 
-    private void saveAsTabDelimited(Defect [] defects) {
+    private boolean saveAsTabDelimited(Defect [] defects) {
+        boolean savedSuccessfully = true;
         try {
             File defectFile = new File(defectLogFilename);
             Writer out = new BufferedWriter(new RobustFileWriter(defectFile));
@@ -199,12 +204,15 @@ public class DefectLog {
             if (defects != null)
                 for (int i = 0;   i < defects.length;   i++)
                     if (defects[i] != null) {
+                        if (defects[i].needsXmlSaveFormat())
+                            savedSuccessfully = false;
                         out.write(defects[i].toString());
                         out.write(newLine);
                     }
 
             out.close();
         } catch (IOException e) { System.out.println("IOException: " + e); };
+        return savedSuccessfully;
     }
 
     private Defect[] getDefects(BufferedReader in, int count) throws IOException
@@ -342,19 +350,23 @@ public class DefectLog {
     private void updateData(Defect defects[], Defect d) {
         String old_phase_injected, new_phase_injected;
         String old_phase_removed, new_phase_removed;
+        int old_fix_count, new_fix_count;
 
         old_phase_injected = old_phase_removed =
             new_phase_injected = new_phase_removed = null;
+        old_fix_count = new_fix_count = 0;
 
             // deleted defect
         if ("DELETE".equals(d.number)) {
             old_phase_injected = d.phase_injected;
             old_phase_removed = d.phase_removed;
+            old_fix_count = d.fix_count;
 
             // new defect
         } else if (d.number == null || "NEW".equals(d.number)) {
             new_phase_injected = d.phase_injected;
             new_phase_removed  = d.phase_removed;
+            new_fix_count = d.fix_count;
 
                                       // assign the defect a unique number
             int maxNum = 0;
@@ -369,29 +381,41 @@ public class DefectLog {
         } else {
             new_phase_injected = d.phase_injected;
             new_phase_removed = d.phase_removed;
+            new_fix_count = d.fix_count;
 
             int pos = findDefect(defects, d.number);
             if (pos != -1) {
                 old_phase_injected = defects[pos].phase_injected;
                 old_phase_removed = defects[pos].phase_removed;
+                old_fix_count = defects[pos].fix_count;
             }
         }
 
+        int fix_count_delta = new_fix_count - old_fix_count;
+
         if (old_phase_injected != null &&
             !old_phase_injected.equals(new_phase_injected))
-            incrementDataValue(old_phase_injected + DEF_INJ_SUFFIX, -1);
+            incrementDataValue(old_phase_injected + DEF_INJ_SUFFIX, -old_fix_count);
 
         if (new_phase_injected != null &&
             !new_phase_injected.equals(old_phase_injected))
-            incrementDataValue(new_phase_injected + DEF_INJ_SUFFIX, 1);
+            incrementDataValue(new_phase_injected + DEF_INJ_SUFFIX, new_fix_count);
+
+        if (fix_count_delta != 0 && old_phase_injected != null &&
+            old_phase_injected.equals(new_phase_injected))
+            incrementDataValue(old_phase_injected + DEF_INJ_SUFFIX, fix_count_delta);
 
         if (old_phase_removed != null &&
             !old_phase_removed.equals(new_phase_removed))
-            incrementDataValue(old_phase_removed + DEF_REM_SUFFIX, -1);
+            incrementDataValue(old_phase_removed + DEF_REM_SUFFIX, -old_fix_count);
 
         if (new_phase_removed != null &&
             !new_phase_removed.equals(old_phase_removed))
-            incrementDataValue(new_phase_removed + DEF_REM_SUFFIX, 1);
+            incrementDataValue(new_phase_removed + DEF_REM_SUFFIX, new_fix_count);
+
+        if (fix_count_delta != 0 && old_phase_removed != null &&
+            old_phase_removed.equals(new_phase_removed))
+            incrementDataValue(old_phase_removed + DEF_REM_SUFFIX, fix_count_delta);
     }
 
     /* * Recalculate ALL the data associated with this defect log.
@@ -403,12 +427,12 @@ public class DefectLog {
 
         class PhaseCounter extends HashMap<String, Integer> {
             public PhaseCounter() {};
-            public void increment(String var) {
+            public void increment(String var, int count) {
                 Integer i = get(var);
                 if (i == null)
-                    i = new Integer(1);
+                    i = new Integer(count);
                 else
-                    i = new Integer(1 + i.intValue());
+                    i = new Integer(count + i.intValue());
                 put(var, i);
             }
             public void storeDataValue(String var) {
@@ -420,9 +444,10 @@ public class DefectLog {
         PhaseCounter phaseData = new PhaseCounter();
 
         for (int i = defects.length;   i-- > 0; ) {
-            if (defects[i] == null) continue;
-            phaseData.increment(defects[i].phase_injected + DEF_INJ_SUFFIX);
-            phaseData.increment(defects[i].phase_removed + DEF_REM_SUFFIX);
+            Defect d = defects[i];
+            if (d == null) continue;
+            phaseData.increment(d.phase_injected + DEF_INJ_SUFFIX, d.fix_count);
+            phaseData.increment(d.phase_removed + DEF_REM_SUFFIX, d.fix_count);
         }
 
         // Iterate over all of the known phases for this defect log and store the
