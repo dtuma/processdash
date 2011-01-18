@@ -1,4 +1,4 @@
-// Copyright (C) 2000-2009 Tuma Solutions, LLC
+// Copyright (C) 2000-2011 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -59,8 +59,8 @@ public class DefectButton extends JButton implements ActionListener,
         enabled_icon = DashboardIconFactory.getDefectIcon();
         disabled_icon = DashboardIconFactory.getDisabledDefectIcon();
         if (MacGUIUtils.isMacOSX()) {
-            enabled_icon = new PaddedIcon(enabled_icon, 2, 0, 0, 0);
-            disabled_icon = new PaddedIcon(disabled_icon, 2, 0, 0, 0);
+            enabled_icon = new PaddedIcon(enabled_icon, 1, 2, 1, 2);
+            disabled_icon = new PaddedIcon(disabled_icon, 1, 2, 1, 2);
         } else {
             setMargin(new Insets(1, 2, 1, 2));
         }

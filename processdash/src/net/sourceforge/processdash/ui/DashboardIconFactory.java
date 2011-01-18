@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2010 Tuma Solutions, LLC
+// Copyright (C) 2003-2011 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -361,7 +361,9 @@ public class DashboardIconFactory {
         public void paintIcon(Component c, Graphics g, int x, int y) {
             // fill body with blue
             g.setColor(blue);
-            g.fillOval(x+3, y+2, 19, 9);
+            g.fillRect(x+4, y+4, 17, 5);
+            g.drawLine(x+9, y+3, x+17, y+3);
+            g.drawLine(x+9, y+9, x+17, y+9);
 
             // add green stripes
             g.setColor(green);
