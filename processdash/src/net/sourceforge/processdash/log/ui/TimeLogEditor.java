@@ -1,4 +1,4 @@
-// Copyright (C) 1999-2009 Tuma Solutions, LLC
+// Copyright (C) 1999-2011 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -36,6 +36,7 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.beans.EventHandler;
 import java.io.IOException;
+import java.text.DateFormatSymbols;
 import java.text.NumberFormat;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -48,6 +49,7 @@ import java.util.SortedMap;
 import java.util.StringTokenizer;
 import java.util.TreeMap;
 
+import javax.swing.AbstractAction;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
@@ -470,7 +472,9 @@ public class TimeLogEditor extends Object implements TreeSelectionListener,
         Date now = new Date();
         Calendar cal = Calendar.getInstance();
         cal.setTime(now);
-        cal.set(Calendar.DAY_OF_WEEK, cal.getFirstDayOfWeek());
+        cal.set(Calendar.DAY_OF_WEEK, getWeekFilterStartDay(cal));
+        if (cal.getTime().after(now))
+            cal.add(Calendar.DATE, -7);
         Date from = cal.getTime();
         cal.add(Calendar.DATE, 6);
         Date to = cal.getTime();
@@ -902,6 +906,7 @@ public class TimeLogEditor extends Object implements TreeSelectionListener,
         JMenu menu = button.getMenu();
         addFilterMenuItem(menu, "Filter.Today", "filterToday");
         addFilterMenuItem(menu, "Filter.Week", "filterThisWeek");
+        menu.add(createWeekFilterStartDaySubmenu());
         addFilterMenuItem(menu, "Filter.Month", "filterThisMonth");
         menu.addSeparator();
         addFilterMenuItem(menu, "Filter.Remove", "clearFilter");
@@ -969,6 +974,55 @@ public class TimeLogEditor extends Object implements TreeSelectionListener,
     private void addFilterMenuItem(JMenu menu, String resKey, String action) {
         JMenuItem menuItem = menu.add(getResource(resKey));
         menuItem.addActionListener(createActionListener(action));
+    }
+
+    private static final String WEEKDAY_SETTING_NAME = "timelog.weekFilterStartDay";
+
+    private JMenuItem createWeekFilterStartDaySubmenu() {
+        int filterStartDay = getWeekFilterStartDay(Calendar.getInstance());
+        String[] dayNames = new DateFormatSymbols().getWeekdays();
+        JMenu submenu = new JMenu();
+        for (int day = 1; day <= 7; day++)
+            submenu.add(new WeekFilterStartDayOption(submenu, dayNames, day,
+                    filterStartDay));
+        submenu.setFont(submenu.getFont().deriveFont(
+            submenu.getFont().getSize2D() * 0.8f));
+        return submenu;
+    }
+
+    private class WeekFilterStartDayOption extends AbstractAction {
+        JMenu parentMenu;
+        int day;
+
+        public WeekFilterStartDayOption(JMenu parentMenu, String[] dayNames,
+                int day, int chosenDay) {
+            this.parentMenu = parentMenu;
+            this.day = day;
+            int endDay = day - 1;
+            if (endDay == 0)
+                endDay = 7;
+            String text = resources.format("Filter.Weekday_Span_FMT",
+                dayNames[day], dayNames[endDay]);
+            putValue(NAME, text);
+            if (day == chosenDay)
+                updateParent();
+        }
+        private void updateParent() {
+            parentMenu.setText("     (" + getValue(NAME) + ")");
+        }
+        public void actionPerformed(ActionEvent e) {
+            InternalSettings.set(WEEKDAY_SETTING_NAME, Integer.toString(day));
+            updateParent();
+            filterThisWeek();
+        }
+    }
+
+    private int getWeekFilterStartDay(Calendar cal) {
+        int result = Settings.getInt(WEEKDAY_SETTING_NAME,
+            cal.getFirstDayOfWeek());
+        result = Math.max(result, 1);
+        result = Math.min(result, 7);
+        return result;
     }
 
     private ActionListener createActionListener(String methodName) {
