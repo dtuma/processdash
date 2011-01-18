@@ -65,6 +65,8 @@ public class TinyCGIBase implements TinyCGI {
     protected Map parameters = new HashMap();
     protected Interpolator interpolator = null;
     protected String charset = getDefaultCharset();
+    /** @since 1.13.0.6 */
+    protected String requestCharset = null;
 
     public void service(InputStream in, OutputStream out, Map env)
         throws IOException
@@ -155,6 +157,10 @@ public class TinyCGIBase implements TinyCGI {
 
         byte [] messageBody = new byte[length];
         FileUtils.readAndFillArray(inStream, messageBody);
+
+        String charset = requestCharset;
+        if (charset == null)
+            charset = this.charset;
         parseInput((String) env.get("SCRIPT_PATH"),
                    new String(messageBody, 0, length, charset));
     }
