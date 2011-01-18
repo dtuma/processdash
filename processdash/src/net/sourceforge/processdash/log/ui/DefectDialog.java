@@ -799,13 +799,12 @@ public class DefectDialog extends JDialog
         boolean running;
         JButton stopButton, startButton;
         public StartStopButtons() {
-            stopButton = makeButton("Stop_Fixing_Button");
-            startButton = makeButton("Start_Fixing_Button");
+            stopButton = makeButton();
+            startButton = makeButton();
             setRunning(false);
         }
-        private JButton makeButton(String resKey) {
+        private JButton makeButton() {
             JButton result = new JButton();
-            result.setToolTipText(resources.getString(resKey));
             result.setMargin(new Insets(0,0,0,0));
             result.setFocusPainted(false);
             result.addActionListener(StartStopButtons.this);
@@ -826,10 +825,14 @@ public class DefectDialog extends JDialog
             this.running = running;
             if (running) {
                 startButton.setIcon(DashboardIconFactory.getPlayGlowingIcon());
+                startButton.setToolTipText(resources.getString("Timing.Started"));
                 stopButton.setIcon(DashboardIconFactory.getPauseBlackIcon());
+                stopButton.setToolTipText(resources.getString("Timing.Pause"));
             } else {
                 stopButton.setIcon(DashboardIconFactory.getPauseGlowingIcon());
+                stopButton.setToolTipText(resources.getString("Timing.Paused"));
                 startButton.setIcon(DashboardIconFactory.getPlayBlackIcon());
+                startButton.setToolTipText(resources.getString("Timing.Start"));
             }
         }
     }
