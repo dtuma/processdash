@@ -37,8 +37,6 @@ import net.sourceforge.processdash.util.StringUtils;
 public class ExcelReport extends TinyCGIBase {
 
     public static final String EXPORT_TAG = "excel";
-    private static String exportMethod =
-        Settings.getVal("excel.exportMethod");
 
     protected void writeHeader() { }
 
@@ -89,14 +87,15 @@ public class ExcelReport extends TinyCGIBase {
     }
 
     private boolean useIQY() {
+        // check the user setting for a requested behavior
+        String exportMethod = Settings.getVal("excel.exportMethod");
         if ("mime".equalsIgnoreCase(exportMethod))
             return false;
         else if ("iqy".equalsIgnoreCase(exportMethod))
             return true;
-        else {
-            String userAgent = (String) env.get("HTTP_USER_AGENT");
-            return (userAgent.indexOf("MSIE") != -1);
-        }
+        else
+            // default behavior
+            return true;
     }
 
     private String getURI() {
