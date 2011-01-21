@@ -26,14 +26,17 @@ package net.sourceforge.processdash.ev.ui.chart;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.jfree.data.Range;
+import org.jfree.data.RangeInfo;
 import org.jfree.data.general.DatasetChangeListener;
+import org.jfree.data.general.DatasetUtilities;
 import org.jfree.data.xy.AbstractXYDataset;
 
 /**
  * Base class for implementing XYDataSource functionality.
  */
 public abstract class XYChartData extends AbstractXYDataset
-            implements RecalculableChartData {
+            implements RecalculableChartData, RangeInfo {
 
     /** Used to handle event-driven chart recalculation */
     private ChartDataEventRecalcHelper chartDataRecalcHelper;
@@ -87,6 +90,26 @@ public abstract class XYChartData extends AbstractXYDataset
         maybeRecalc();
         if (itemIndex == -1) return null;
         return series.get(seriesIndex).getY(itemIndex); }
+
+    public Range getRangeBounds(boolean includeInterval) {
+        Range result = DatasetUtilities.iterateXYRangeBounds(this);
+        for (XYChartSeries s : series) {
+            if (s instanceof RangeInfo) {
+                RangeInfo ri = (RangeInfo) s;
+                Range oneRange = ri.getRangeBounds(includeInterval);
+                result = Range.combine(result, oneRange);
+            }
+        }
+        return result;
+    }
+
+    public double getRangeLowerBound(boolean includeInterval) {
+        return getRangeBounds(includeInterval).getLowerBound();
+    }
+
+    public double getRangeUpperBound(boolean includeInterval) {
+        return getRangeBounds(includeInterval).getUpperBound();
+    }
 
     @Override
     public void addChangeListener(DatasetChangeListener l) {

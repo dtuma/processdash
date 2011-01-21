@@ -1951,8 +1951,10 @@ public class EVSchedule implements TableModel {
      * between a planned and actual value.  Extrapolates the plan for the
      * effective time period.
      */
-    private abstract class ActualTrendChartSeries extends ActualChartSeries {
+    private abstract class ActualTrendChartSeries extends ActualChartSeries
+            implements RangeInfo {
         double mult = 1.0;
+        double range;
         public abstract double getPlanValue(Period p);
         public abstract double getActualValue(Period p);
         public Number getY(int itemIndex) {
@@ -1971,6 +1973,25 @@ public class EVSchedule implements TableModel {
             }
 
             return (actual - plan) * mult;
+        }
+        public void recalc() {
+            int i = getItemCount() - 1;
+            Period p = get(i);
+            double max = Math.abs(getPlanValue(p)) * mult * 0.25;
+            while (i >= 0) {
+                double onePoint = Math.abs(getY(i--).doubleValue());
+                max = Math.max(max, onePoint);
+            }
+            range = max;
+        }
+        public Range getRangeBounds(boolean includeInterval) {
+            return new Range(-range, range);
+        }
+        public double getRangeLowerBound(boolean includeInterval) {
+            return -range;
+        }
+        public double getRangeUpperBound(boolean includeInterval) {
+            return range;
         }
     }
     private class PlanTrendChartSeries extends ActualChartSeries {
@@ -2002,6 +2023,7 @@ public class EVSchedule implements TableModel {
         @Override
         public void recalc() {
             actual.mult = 100.0 / totalPlan();
+            actual.recalc();
         }
     }
     public XYDataset getValueTrendChartData() {
@@ -2022,10 +2044,15 @@ public class EVSchedule implements TableModel {
         }
     };
     protected class TimeTrendChartData extends XYChartData {
+        ActualTimeTrendChartSeries actual;
         public TimeTrendChartData(ChartEventAdapter eventAdapter) {
             super(eventAdapter);
             series.add(new PlanTrendChartSeries());
-            series.add(new ActualTimeTrendChartSeries());
+            series.add(actual = new ActualTimeTrendChartSeries());
+        }
+        @Override
+        public void recalc() {
+            actual.recalc();
         }
     }
     public XYDataset getTimeTrendChartData() {

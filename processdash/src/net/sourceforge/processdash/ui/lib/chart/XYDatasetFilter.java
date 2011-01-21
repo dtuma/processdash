@@ -28,13 +28,16 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
+import org.jfree.data.Range;
+import org.jfree.data.RangeInfo;
 import org.jfree.data.general.DatasetChangeEvent;
 import org.jfree.data.general.DatasetChangeListener;
 import org.jfree.data.general.DatasetGroup;
+import org.jfree.data.general.DatasetUtilities;
 import org.jfree.data.xy.AbstractXYDataset;
 import org.jfree.data.xy.XYDataset;
 
-public class XYDatasetFilter extends AbstractXYDataset {
+public class XYDatasetFilter extends AbstractXYDataset implements RangeInfo {
 
     private XYDataset source;
     private boolean[] hideSeries;
@@ -154,6 +157,22 @@ public class XYDatasetFilter extends AbstractXYDataset {
         source.setGroup(group);
     }
 
+    public Range getRangeBounds(boolean includeInterval) {
+        if (source instanceof RangeInfo) {
+            RangeInfo ri = (RangeInfo) source;
+            return ri.getRangeBounds(includeInterval);
+        } else {
+            return DatasetUtilities.iterateXYRangeBounds(this);
+        }
+    }
+
+    public double getRangeLowerBound(boolean includeInterval) {
+        return getRangeBounds(includeInterval).getLowerBound();
+    }
+
+    public double getRangeUpperBound(boolean includeInterval) {
+        return getRangeBounds(includeInterval).getUpperBound();
+    }
 
 
 }
