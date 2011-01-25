@@ -9,7 +9,7 @@
       <mapref location="Map.xml"/>
       <homeID>QuickOverview</homeID>
    </maps>
-   <view>
+   <view mergetype="javax.help.UniteAppendMerge">
       <name>TOC</name>
       <label>Process Dashboard Help TOC</label>
       <type>javax.help.TOCView</type>

@@ -1,0 +1,67 @@
+<html>
+<head>
+<title>Earned Value vs. Cost</title>
+<link rel="stylesheet" type="text/css" href="../../style.css"></link>
+</head>
+<body>
+
+<h1>Earned Value vs. Cost</h1>
+
+<p>This chart displays planned and actual progress and cost at a glance.</p>
+
+<p>The horizontal axis depicts the passage of time.  The lines on the chart
+convey various measures of progress and cost:</p>
+
+<ul>
+
+<li>The red <b>"Plan Value"</b> line shows your planned progress.  This
+line corresponds exactly to the Plan line in the
+<a href="EV-cumValueChart.html">Cumulative Earned Value</a> chart; the only
+difference is that the vertical axis of this chart is labeled in hours
+instead of % complete.  Thus, the Plan line will start at zero, and end at
+the total number of hours you plan to spend on the tasks in this task
+list.</li>
+
+<li>The blue <b>"Actual Value"</b> line shows your actual progress.  Once
+again, this line corresponds exactly to the Actual line in the
+<a href="EV-cumValueChart.html">Cumulative Earned Value</a> chart.  In PSP,
+the value of a task is determined by its planned time; so each time you
+mark a task complete, the blue line will rise by the number of hours that
+you planned to spend on that task.</li>
+
+<li>The green <b>"Actual Cost"</b> line shows the actual time that has been
+spent on tasks that have been marked complete.  In other words, each time
+you mark a task complete, the green line will rise by the number of hours
+that you actually spent on that task.</li>
+
+</ul>
+
+<h3 NO_NUMBER="t">Interpretation</h3>
+
+<p>Comparing the red and blue lines will tell you whether you are ahead or
+behind schedule.  This may seem obvious, because these two lines display
+the exact same data as the Plan and Actual lines on the 
+<a href="EV-cumValueChart.html">Cumulative Earned Value</a> chart (just
+with a different vertical scale).</p>
+
+<p>Comparing the blue and green lines will tell you whether tasks are
+taking more or less time than expected.  If the green line is above the
+blue line, tasks are taking more time than planned.  If the green line is
+below the blue line, tasks are taking less time than planned.</p>
+
+<p>You can compare the red line to the green line to get a <u>rough</u>
+idea of whether you are devoting as much time to the project as planned.
+However, this comparison will only be an approximation, because the lines
+on this chart do not include data from incomplete tasks.  To accurately
+compare planned and actual time spent, view the
+<a href="EV-cumDirectTimeChart.html">Cumulative Direct Time</a> chart.</p>
+
+<p>This chart may be very familiar to individuals that have experience with
+traditional earned value management systems.  The red "Plan Value" line
+corresponds to BCWS (Budgeted Cost for Work Scheduled).  The blue "Actual
+Value" line corresponds to BCWP (Budgeted Cost for Work Performed).  And
+the green "Actual Cost" line corresponds to ACWP (Actual Cost for Work
+Performed).</p>
+
+</body>
+</html>
