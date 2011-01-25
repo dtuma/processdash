@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2010 Tuma Solutions, LLC
+// Copyright (C) 2001-2011 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -198,7 +198,8 @@ public abstract class CGIChartBase extends net.sourceforge.processdash.ui.web.Ti
         BufferedImage img = new BufferedImage
             (width, height, BufferedImage.TYPE_INT_RGB);
         Graphics2D g2 = img.createGraphics();
-        maybeAdjustFontSizes(chart, g2, width);
+        if ("auto".equals(getSetting("titleFontSize")))
+            maybeAdjustTitleFontSize(chart, g2, width);
         chart.draw(g2, new Rectangle2D.Double(0, 0, width, height), info);
         g2.dispose();
 
@@ -329,7 +330,7 @@ public abstract class CGIChartBase extends net.sourceforge.processdash.ui.web.Ti
 
     }
 
-    protected void maybeAdjustFontSizes(JFreeChart chart,
+    protected void maybeAdjustTitleFontSize(JFreeChart chart,
                                         Graphics2D g, int width) {
         // if the chart has no title, do nothing.
         if (chart.getTitle() == null) return;
