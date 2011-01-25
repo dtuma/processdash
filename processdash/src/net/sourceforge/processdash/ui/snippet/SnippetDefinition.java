@@ -1,4 +1,4 @@
-// Copyright (C) 2006-2009 Tuma Solutions, LLC
+// Copyright (C) 2006-2011 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -196,13 +196,24 @@ public class SnippetDefinition {
         if (contexts.contains("*"))
             return true;
 
+        boolean foundMatch = false;
+
         for (Iterator iter = contexts.iterator(); iter.hasNext();) {
             String contextName = (String) iter.next();
-            if (ctx.getValue(contextName) instanceof TagData)
-                return true;
+            boolean isProhibition = false;
+            if (contextName.startsWith("!")) {
+                contextName = contextName.substring(1);
+                isProhibition = true;
+            }
+            if (ctx.getValue(contextName) instanceof TagData) {
+                if (isProhibition)
+                    return false;
+                else
+                    foundMatch = true;
+            }
         }
 
-        return false;
+        return foundMatch;
     }
 
     /** Returns a list of modes this snippet supports, in addition to "view" */
