@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2010 Tuma Solutions, LLC
+// Copyright (C) 2001-2011 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -42,11 +42,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.swing.table.TableModel;
 
+import net.sourceforge.processdash.DashboardContext;
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.ev.DefaultTaskLabeler;
 import net.sourceforge.processdash.ev.EVDependencyCalculator;
@@ -64,8 +67,10 @@ import net.sourceforge.processdash.ev.EVTaskList;
 import net.sourceforge.processdash.ev.EVTaskListData;
 import net.sourceforge.processdash.ev.EVTaskListMerged;
 import net.sourceforge.processdash.ev.EVTaskListRollup;
+import net.sourceforge.processdash.ev.ui.TaskScheduleChartUtil.ChartItem;
 import net.sourceforge.processdash.ev.ui.chart.AbstractEVChart;
 import net.sourceforge.processdash.ev.ui.chart.AbstractEVTimeSeriesChart;
+import net.sourceforge.processdash.ev.ui.chart.HtmlEvChart;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.net.cache.CachedURLObject;
 import net.sourceforge.processdash.net.cms.CMSSnippetEnvironment;
@@ -77,6 +82,7 @@ import net.sourceforge.processdash.ui.lib.HTMLTreeTableWriter;
 import net.sourceforge.processdash.ui.lib.TreeTableModel;
 import net.sourceforge.processdash.ui.lib.chart.XYDatasetFilter;
 import net.sourceforge.processdash.ui.snippet.SnippetEnvironment;
+import net.sourceforge.processdash.ui.snippet.SnippetWidget;
 import net.sourceforge.processdash.ui.web.CGIChartBase;
 import net.sourceforge.processdash.ui.web.reports.ExcelReport;
 import net.sourceforge.processdash.util.FileUtils;
@@ -97,6 +103,7 @@ import org.jfree.ui.RectangleEdge;
 public class EVReport extends CGIChartBase {
 
     public static final String CHART_PARAM = "chart";
+    public static final String CHARTS_PARAM = "charts";
     public static final String TABLE_PARAM = "table";
     public static final String XML_PARAM = "xml";
     public static final String XLS_PARAM = "xls";
@@ -119,6 +126,7 @@ public class EVReport extends CGIChartBase {
 
 
     private static Resources resources = Resources.getDashBundle("EV");
+    private static Logger logger = Logger.getLogger(EVReport.class.getName());
 
     boolean drawingChart;
 
@@ -205,6 +213,8 @@ public class EVReport extends CGIChartBase {
                     writeCsv();
                 else if (parameters.get(MS_PROJ_XML_PARAM) != null)
                     writeMSProjXml();
+                else if (parameters.get(CHARTS_PARAM) != null)
+                    writeChartsPage();
                 else
                     writeHTML();
             } else if (TIME_CHART.equals(tableType))
@@ -802,6 +812,7 @@ public class EVReport extends CGIChartBase {
 
         if (!exportingToExcel()) {
             writeImageHtml(taskFilter != null);
+            interpOutLink(SHOW_CHARTS_LINK, EVReportSettings.PURPOSE_OTHER);
             out.print(HTMLTreeTableWriter.TREE_ICON_HEADER);
         }
 
@@ -1148,11 +1159,14 @@ public class EVReport extends CGIChartBase {
         "<script type='text/javascript' src='/lib/sorttable.js'></script>\n";
     static final String SORTTREE_HEADER =
         "<script type='text/javascript' src='/reports/evTreeSort.js'></script>\n";
-    static final String HEADER_HTML =
+    static final String SIMPLE_HEADER_HTML =
         HTMLUtils.HTML_TRANSITIONAL_DOCTYPE +
         "<html><head><title>%title%</title>\n" +
         "<link rel=stylesheet type='text/css' href='/style.css'>\n" +
         "<script type='text/javascript' src='/lib/overlib.js'></script>\n" +
+        "<link rel=stylesheet type='text/css' href='/reports/ev.css'>\n";
+    static final String HEADER_HTML =
+        SIMPLE_HEADER_HTML +
         HTMLTreeTableWriter.TREE_HEADER_ITEMS +
         REDUNDANT_EXCEL_HEADER +
         POPUP_HEADER +
@@ -1175,6 +1189,9 @@ public class EVReport extends CGIChartBase {
     static final String SHOW_WEEK_LINK = "<span " + HEADER_LINK_STYLE + ">"
             + "<span class='doNotPrint'><a href='week.class???'>"
             + "${Report.Show_Weekly_View}</a></span></span>";
+    static final String SHOW_CHARTS_LINK = "<div class='moreChartsLink doNotPrint'>"
+            + "<a href='ev.class??&charts'>${Report.Charts_Link}</a>"
+            + "</span></div>";
     static final String EXCEL_TIME_TD = "<td class='timeFmt'>";
 
 
@@ -1379,6 +1396,68 @@ public class EVReport extends CGIChartBase {
         if (parameters.get("hideLegend") == null)
             chart.getLegend().setPosition(RectangleEdge.RIGHT);
         return chart;
+    }
+
+    protected void writeChartsPage() {
+        String taskListDisplayName = EVTaskList.cleanupName(taskListName);
+        String taskListHTML = WebServer.encodeHtmlEntities(taskListDisplayName);
+        String title = resources.format("Report.Charts_Title_FMT", taskListHTML);
+
+        EVTaskFilter taskFilter = settings.getEffectiveFilter(evModel);
+        boolean hideNames = settings.getBool(CUSTOMIZE_HIDE_NAMES);
+
+        StringBuffer header = new StringBuffer(SIMPLE_HEADER_HTML);
+        StringUtils.findAndReplace(header, TITLE_VAR, title);
+        if (taskFilter != null)
+            header.append(FILTER_HEADER_HTML);
+        out.print(header);
+        out.print("</head><body>");
+        out.print("<h1>");
+        out.print(title);
+        out.print("</h1>");
+        printFilterInfo(out, taskFilter, false);
+
+        EVSchedule s = getEvSchedule(taskFilter);
+        writeCharts(evModel, s, taskFilter, hideNames);
+
+        // add space to the bottom of the page so the chart tooltips don't
+        // get truncated.
+        out.print("<div style='height: 1in; clear:both'>&nbsp;</div>\n");
+
+        out.print("</body></html>\n");
+    }
+
+    protected void writeCharts(EVTaskList evModel, EVSchedule schedule,
+            EVTaskFilter filter, boolean hideNames) {
+        DashboardContext ctx = getDashboardContext();
+        boolean filterInEffect = (filter != null);
+        boolean isRollup = (evModel instanceof EVTaskListRollup);
+        List<ChartItem> chartList = TaskScheduleChartUtil.getChartsForTaskList(
+            evModel.getID(), getDataRepository(), filterInEffect, isRollup,
+            hideNames);
+        for (ChartItem chart : chartList) {
+            try {
+                SnippetWidget w = chart.snip.getWidget("view", null);
+                if (w instanceof HtmlEvChart) {
+                    Map environment = TaskScheduleChartUtil.getEnvironment(
+                        evModel, schedule, filter, chart.snip, ctx);
+                    Map params = TaskScheduleChartUtil
+                            .getParameters(chart.settings);
+                    params.put("title", chart.name);
+                    params.put("width", "400");
+                    if (hideNames)
+                        params.put(CUSTOMIZE_HIDE_NAMES, "t");
+                    out.write("<div class='evChartItem'>");
+                    ((HtmlEvChart) w).writeChartAsHtml(out, environment, params);
+                    out.write("</div>");
+                }
+                out.write(" ");
+            } catch (Exception e) {
+                logger.log(Level.SEVERE, "Unexpected error when displaying "
+                        + "EV snippet widget with id '" + chart.snip.getId()
+                        + "'", e);
+            }
+        }
     }
 
     public void writeTimeTable() {

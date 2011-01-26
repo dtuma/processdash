@@ -1,4 +1,4 @@
-// Copyright (C) 2008 Tuma Solutions, LLC
+// Copyright (C) 2008-2011 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -39,6 +39,9 @@ public interface EVSnippetEnvironment extends SnippetEnvironment {
     /** Key that holds the user-assigned name of the EV snippet. */
     String EV_CUSTOM_SNIPPET_NAME_KEY = "evCustomSnippetName";
 
+    /** Key indicating that we are generating HTML output */
+    String HTML_OUTPUT_KEY = "evHtmlOutputTag";
+
     /** Data context key indicating that earned value data is being drawn */
     String EV_CONTEXT_KEY = "Earned Value Context";
 
@@ -47,19 +50,11 @@ public interface EVSnippetEnvironment extends SnippetEnvironment {
     String ROLLUP_EV_CONTEXT_KEY = "Rollup Earned Value Context";
 
     /** Data context key indicating that earned value data is being drawn for
-     * an unfiltered task list */
-    String UNFILTERED_EV_CONTEXT_KEY = "Unfiltered Earned Value Context";
-
-    /** Data context key indicating that earned value data is being drawn for
-     * an unfiltered, rolled up task list */
-    String UNFILTERED_ROLLUP_EV_CONTEXT_KEY = "Unfiltered Rollup Earned Value Context";
-
-    /** Data context key indicating that earned value data is being drawn for
      * a filtered task list */
     String FILTERED_EV_CONTEXT_KEY = "Filtered Earned Value Context";
 
     /** Data context key indicating that earned value data is being drawn for
-     * a filtered, rolled-up task list */
-    String FILTERED_ROLLUP_EV_CONTEXT_KEY = "Filtered Rollup Earned Value Context";
+     * an audience that should not see the names of individuals */
+    String ANON_EV_CONTEXT_KEY = "Anonymous Earned Value Context";
 
 }

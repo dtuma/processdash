@@ -1,0 +1,47 @@
+div.moreChartsLink {
+    padding: 5px 0px 20px 1in;
+    font-size: large;
+    font-style: italic;
+}
+
+div.evChartItem {
+    width: 400px;
+    height: 340px;
+    float: left;
+    margin: 10px;
+}
+
+div.licenseFooter {
+    border: 4px double black;
+    padding: 5px;
+}
+
+div.evChartItem div.licenseFooter {
+    text-align: center;
+}
+
+div.licenseStatusNotNeeded {
+    display: none;
+}
+
+div.evChartItem div.licenseStatusCurrent {
+    border: none;
+    font-size: small;
+}
+
+div.evChartItem div.licenseStatusGrace {
+    padding-left: 30px;
+    padding-right: 30px;
+    background-color: #ff9999;
+}
+
+div.evChartItem div.licenseStatusTrial {
+    padding-left: 30px;
+    padding-right: 30px;
+    background-color: #ccffcc;
+}
+
+div.evChartItem div.licenseStatusNoneFound,
+div.evChartItem div.licenseStatusExpired {
+    margin: 25% 10%;
+}

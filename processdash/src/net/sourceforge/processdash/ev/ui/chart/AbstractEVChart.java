@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2009 Tuma Solutions, LLC
+// Copyright (C) 2003-2011 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -31,6 +31,9 @@ import java.awt.Paint;
 import java.awt.Stroke;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -51,6 +54,7 @@ import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.net.http.TinyCGI;
 import net.sourceforge.processdash.ui.snippet.SnippetWidget;
+import net.sourceforge.processdash.ui.web.CGIChartBase;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 
 import org.jfree.chart.ChartPanel;
@@ -62,7 +66,7 @@ import org.jfree.data.xy.XYDataset;
 
 
 public abstract class AbstractEVChart<D extends Dataset, P extends Plot>
-        implements SnippetWidget {
+        implements SnippetWidget, HtmlEvChart {
     private static Resources resources = Resources.getDashBundle("EV.Chart");
 
     protected abstract D createDataset(Map env, Map params);
@@ -100,6 +104,18 @@ public abstract class AbstractEVChart<D extends Dataset, P extends Plot>
     public Component getWidgetComponent(Map environment, Map parameters) {
         D dataset = createDataset(environment, parameters);
         return buildChart(dataset, environment, parameters);
+    }
+
+    public void writeChartAsHtml(Writer out, Map environment, Map parameters)
+            throws IOException {
+        Map htmlEnv = new HashMap(environment);
+        htmlEnv.put(EVSnippetEnvironment.HTML_OUTPUT_KEY, Boolean.TRUE);
+        D dataset = createDataset(htmlEnv, parameters);
+        ChartPanel chartPanel = buildChart(dataset, htmlEnv, parameters);
+        JFreeChart chart = chartPanel.getChart();
+        if (chart != null) {
+            new HtmlWriter(out, parameters, chart).writeChartHtml();
+        }
     }
 
     protected Resources getResources(Map environment) {
@@ -215,6 +231,23 @@ public abstract class AbstractEVChart<D extends Dataset, P extends Plot>
                 fireStateChanged();
             }
         };
+    }
+
+    protected static class HtmlWriter extends CGIChartBase {
+        private JFreeChart chart;
+        public HtmlWriter(Writer out, Map params, JFreeChart chart) {
+            if (out instanceof PrintWriter) {
+                this.out = (PrintWriter) out;
+            } else {
+                this.out = new PrintWriter(out);
+            }
+            this.parameters = params;
+            this.chart = chart;
+        }
+        @Override protected void buildData() {}
+        @Override public JFreeChart createChart() { return chart; }
+        @Override protected boolean isHtmlMode() { return true; }
+        public void writeChartHtml() throws IOException { writeContents(); }
     }
 
 }

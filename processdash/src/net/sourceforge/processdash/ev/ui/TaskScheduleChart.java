@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2010 Tuma Solutions, LLC
+// Copyright (C) 2001-2011 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -83,9 +83,7 @@ import javax.swing.event.ListSelectionListener;
 import net.sourceforge.processdash.ApplicationEventListener;
 import net.sourceforge.processdash.ApplicationEventSource;
 import net.sourceforge.processdash.DashboardContext;
-import net.sourceforge.processdash.data.TagData;
 import net.sourceforge.processdash.data.repository.DataRepository;
-import net.sourceforge.processdash.data.util.SimpleDataContext;
 import net.sourceforge.processdash.ev.EVHierarchicalFilter;
 import net.sourceforge.processdash.ev.EVSchedule;
 import net.sourceforge.processdash.ev.EVScheduleFiltered;
@@ -94,7 +92,6 @@ import net.sourceforge.processdash.ev.EVTaskList;
 import net.sourceforge.processdash.ev.EVTaskListRollup;
 import net.sourceforge.processdash.ev.ui.TaskScheduleChartSettings.PersistenceException;
 import net.sourceforge.processdash.i18n.Resources;
-import net.sourceforge.processdash.net.http.TinyCGI;
 import net.sourceforge.processdash.ui.DashboardIconFactory;
 import net.sourceforge.processdash.ui.help.PCSH;
 import net.sourceforge.processdash.ui.lib.BoxUtils;
@@ -106,7 +103,6 @@ import net.sourceforge.processdash.ui.lib.WrappingText;
 import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
 import net.sourceforge.processdash.ui.snippet.ConfigurableSnippetWidget;
 import net.sourceforge.processdash.ui.snippet.SnippetDefinition;
-import net.sourceforge.processdash.ui.snippet.SnippetDefinitionManager;
 import net.sourceforge.processdash.ui.snippet.SnippetWidget;
 import net.sourceforge.processdash.util.Disposable;
 
@@ -190,65 +186,28 @@ public class TaskScheduleChart extends JFrame
 
     private Map<String, SnippetChartItem> getChartWidgets(EVTaskList tl,
             DataRepository data, boolean filterInEffect, boolean isRollup) {
-        Map<String, TaskScheduleChartSettings> chartSettings =
-            TaskScheduleChartSettings.getSettingsForTaskList(tl.getID(), data);
 
         Map<String, SnippetChartItem> result = new HashMap<String, SnippetChartItem>();
 
-        SimpleDataContext ctx = getContextTags(filterInEffect, isRollup);
-
-        SnippetDefinitionManager.initialize();
-        for (SnippetDefinition snip : SnippetDefinitionManager
-                .getSnippetsInCategory("ev")) {
-            if (snip.matchesContext(ctx)) {
-                try {
-                    SnippetChartItem item = new SnippetChartItem(snip);
-                    item.settings = chartSettings.remove(snip.getId());
-                    result.put(snip.getId(), item);
-                } catch (Exception e) {
-                    logger.log(Level.WARNING, "Problem with EV Chart Snippet '"
-                            + snip.getId() + "'", e);
+        List<TaskScheduleChartUtil.ChartItem> chartItems =
+            TaskScheduleChartUtil.getChartsForTaskList(tl.getID(), data,
+                    filterInEffect, isRollup, false);
+        for (TaskScheduleChartUtil.ChartItem oneChart : chartItems) {
+            try {
+                SnippetChartItem item = new SnippetChartItem(oneChart.snip);
+                if (oneChart.settings != null) {
+                    item.settings = oneChart.settings;
+                    item.id = oneChart.settings.getSettingsIdentifier();
+                    item.name = oneChart.name;
                 }
-            }
-        }
-
-        for (TaskScheduleChartSettings customChart : chartSettings.values()) {
-            SnippetChartItem base = result.get(customChart.getChartID());
-            if (base != null) {
-                SnippetChartItem custom = new SnippetChartItem(base.snip);
-                custom.settings = customChart;
-                custom.name = customChart.getCustomName();
-                custom.id = customChart.getSettingsIdentifier();
-                result.put(custom.id, custom);
+                result.put(item.id, item);
+            } catch (Exception e) {
+                logger.log(Level.WARNING, "Problem with EV Chart Snippet '"
+                        + oneChart.snip.getId() + "'", e);
             }
         }
 
         return result;
-    }
-
-    private SimpleDataContext getContextTags(boolean filterInEffect,
-            boolean isRollup) {
-        SimpleDataContext ctx = new SimpleDataContext();
-        TagData tag = TagData.getInstance();
-
-        ctx.put(EVSnippetEnvironment.EV_CONTEXT_KEY, tag);
-        if (isRollup)
-            ctx.put(EVSnippetEnvironment.ROLLUP_EV_CONTEXT_KEY, tag);
-
-        if (filterInEffect) {
-            ctx.put(EVSnippetEnvironment.FILTERED_EV_CONTEXT_KEY, tag);
-            if (isRollup)
-                ctx.put(EVSnippetEnvironment.FILTERED_ROLLUP_EV_CONTEXT_KEY,
-                    tag);
-
-        } else {
-            ctx.put(EVSnippetEnvironment.UNFILTERED_EV_CONTEXT_KEY, tag);
-            if (isRollup)
-                ctx.put(EVSnippetEnvironment.UNFILTERED_ROLLUP_EV_CONTEXT_KEY,
-                    tag);
-        }
-
-        return ctx;
     }
 
     private JComponent createChooserComponent(
@@ -725,17 +684,9 @@ public class TaskScheduleChart extends JFrame
                     this.widget = w;
                 }
 
-                Map environment = new HashMap();
-                environment.put(EVSnippetEnvironment.TASK_LIST_KEY, taskList);
-                environment.put(EVSnippetEnvironment.SCHEDULE_KEY, schedule);
-                environment.put(EVSnippetEnvironment.TASK_FILTER_KEY, filter);
-                environment.put(EVSnippetEnvironment.RESOURCES, snip
-                        .getResources());
-                environment.put(TinyCGI.DASHBOARD_CONTEXT, ctx);
-                environment.put(TinyCGI.DATA_REPOSITORY, ctx.getData());
-                environment.put(TinyCGI.PSP_PROPERTIES, ctx.getHierarchy());
-
-                Map params = getChartParameters();
+                Map environment = TaskScheduleChartUtil.getEnvironment(
+                    taskList, schedule, filter, snip, ctx);
+                Map params = TaskScheduleChartUtil.getParameters(settings);
 
                 return w.getWidgetComponent(environment, params);
 
@@ -755,34 +706,6 @@ public class TaskScheduleChart extends JFrame
                 return b;
             }
 
-        }
-
-        private Map getChartParameters() throws PersistenceException {
-            Map params = new HashMap();
-            if (settings != null) {
-                try {
-                    params.putAll(settings.getParameters());
-                    params.put(EVSnippetEnvironment.SNIPPET_VERSION,
-                        settings.getChartVersion());
-                    params.put(EVSnippetEnvironment.EV_CUSTOM_SNIPPET_NAME_KEY,
-                        settings.getCustomName());
-                } catch (PersistenceException pe) {
-                    // if this is a custom chart built by a user, we can't
-                    // guess how the chart should be drawn.  Rethrow
-                    // the exception.
-                    if (settings.getCustomName() != null)
-                        throw pe;
-
-                    // otherwise, if this is a standard chart and the
-                    // saved settings can't be read, revert back to the
-                    // default settings provided by that chart.
-                    logger.log(Level.SEVERE, "Unexpected problem reading "
-                            + "settings for chart with id '" + id
-                            + "' - reverting to defaults", pe);
-                    params = new HashMap();
-                }
-            }
-            return params;
         }
 
         public Component getConfigurationPane() {
