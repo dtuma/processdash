@@ -91,6 +91,7 @@ import net.sourceforge.processdash.ev.EVTaskFilter;
 import net.sourceforge.processdash.ev.EVTaskList;
 import net.sourceforge.processdash.ev.EVTaskListRollup;
 import net.sourceforge.processdash.ev.ui.TaskScheduleChartSettings.PersistenceException;
+import net.sourceforge.processdash.ev.ui.chart.HelpAwareEvChart;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.ui.DashboardIconFactory;
 import net.sourceforge.processdash.ui.help.PCSH;
@@ -105,6 +106,7 @@ import net.sourceforge.processdash.ui.snippet.ConfigurableSnippetWidget;
 import net.sourceforge.processdash.ui.snippet.SnippetDefinition;
 import net.sourceforge.processdash.ui.snippet.SnippetWidget;
 import net.sourceforge.processdash.util.Disposable;
+import net.sourceforge.processdash.util.StringUtils;
 
 
 public class TaskScheduleChart extends JFrame
@@ -129,7 +131,6 @@ public class TaskScheduleChart extends JFrame
     public TaskScheduleChart(EVTaskList tl, EVTaskFilter filter,
             DashboardContext ctx) {
         super(formatWindowTitle(tl, filter));
-        PCSH.enableHelpKey(this, "UsingTaskSchedule.chart");
         DashboardIconFactory.setWindowIcon(this);
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
         addWindowListener(new WindowAdapter() {
@@ -228,6 +229,17 @@ public class TaskScheduleChart extends JFrame
         list.getActionMap().put("deleteChart", new DeleteChartAction());
 
         return new JScrollPane(list);
+    }
+
+    private void configureHelp(SnippetWidget widget) {
+        String helpId = null;
+        if (widget instanceof HelpAwareEvChart) {
+            HelpAwareEvChart helpAware = (HelpAwareEvChart) widget;
+            helpId = helpAware.getHelpId();
+        }
+        if (!StringUtils.hasValue(helpId))
+            helpId = "TaskScheduleCharts";
+        PCSH.enableHelpKey(this, helpId);
     }
 
     private class ChartSelectionHandler implements ListSelectionListener {
@@ -674,6 +686,7 @@ public class TaskScheduleChart extends JFrame
                 cardLayout.show(displayArea, id);
                 getGlassPane().setVisible(false);
                 TaskScheduleChart.this.setCursor(null);
+                TaskScheduleChart.this.configureHelp(widget);
             }
         }
 
@@ -747,6 +760,7 @@ public class TaskScheduleChart extends JFrame
                 state = ChartItemState.INITIALIZING;
                 TaskScheduleChart.this.setCursor(Cursor
                         .getPredefinedCursor(Cursor.WAIT_CURSOR));
+                TaskScheduleChart.this.configureHelp(null);
             }
 
             @Override

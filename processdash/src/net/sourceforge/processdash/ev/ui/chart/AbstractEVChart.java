@@ -63,13 +63,31 @@ import org.jfree.chart.labels.XYSeriesLabelGenerator;
 import org.jfree.chart.plot.Plot;
 import org.jfree.data.general.Dataset;
 import org.jfree.data.xy.XYDataset;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 
 
 public abstract class AbstractEVChart<D extends Dataset, P extends Plot>
-        implements SnippetWidget, HtmlEvChart {
+        implements SnippetWidget, HtmlEvChart, HelpAwareEvChart {
     private static Resources resources = Resources.getDashBundle("EV.Chart");
 
+    protected String helpId;
+    protected String helpUri;
+
     protected abstract D createDataset(Map env, Map params);
+
+    public void setConfigElement(Element xml, String attrName) {
+        NodeList helpNodes = xml.getElementsByTagName("help");
+        if (helpNodes != null && helpNodes.getLength() == 1) {
+            Element help = (Element) helpNodes.item(0);
+            helpId = help.getAttribute("id");
+            helpUri = help.getAttribute("uri");
+        }
+    }
+
+    public String getHelpId() {
+        return helpId;
+    }
 
     private ChartPanel buildChart(D data, Map environment, Map parameters) {
         data = getAdjustedData(data);
