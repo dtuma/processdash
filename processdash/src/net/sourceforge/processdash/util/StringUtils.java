@@ -561,4 +561,28 @@ public class StringUtils
     public static String asString(Object value) {
         return (value == null ? null : value.toString());
     }
+
+    /**
+     * Trim whitespace from the ends of a string, and also canonicalize
+     * extraneous whitespace within the string. Inside the string, if two or
+     * more consecutive whitespace characters appear, or if unusual whitespace
+     * characters (like tab) are present, they will be replaced by a single
+     * space.
+     * 
+     * @param text
+     *            the string to trim
+     * @return the string with leading, trailing, and extraneous whitespace
+     *         removed
+     */
+    public static String trimAndCleanupWhitespace(String text) {
+        if (text == null)
+            return null;
+        // if the string contains internal sequences of two or more whitespace
+        // characters, replace those sequences with a single space.
+        StringBuilder result = new StringBuilder();
+        for (String word : text.trim().split("\\s+"))
+            result.append(' ').append(word);
+        return result.substring(1);
+    }
+
 }
