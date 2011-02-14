@@ -1,7 +1,7 @@
 <!--
 
 Team Functionality Add-ons for the Process Dashboard
-Copyright (C) 2002-2010 Tuma Solutions, LLC
+Copyright (C) 2002-2011 Tuma Solutions, LLC
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -30,7 +30,7 @@ The author(s) may be contacted at:
   <property environment="env"/>
   <property file="build.properties"/>
 
-  <property name="teamtools.version" value="3.10.5"/> 
+  <property name="teamtools.version" value="3.10.6"/> 
   <property name="teamtools.requires" value="1.13.0.3+"/>
 
   <property name="processdash.dir" value="../processdash"/>
