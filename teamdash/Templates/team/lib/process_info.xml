@@ -22,4 +22,19 @@
 
     <!--#endfor-->
 
+    <!--#foreach name=METRIC list=Size_Metric_List #-->
+
+        <sizeMetric name="<!--#echo METRIC_Name -->"
+                    longName="<!--#echo METRIC_Long_Name -->" />
+
+    <!--#endfor-->
+
+    <!--#if Process_Uses_DLD_Lines -->
+
+        <sizeMetric name="DLD Lines" longName="Detailed Design Lines" />
+
+    <!--#endif-->
+
+    <sizeMetric name="New &amp; Changed LOC" longName="LOC" />
+
 </custom-process-info>
