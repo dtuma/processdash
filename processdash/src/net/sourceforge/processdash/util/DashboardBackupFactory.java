@@ -1,4 +1,4 @@
-// Copyright (C) 2008 Tuma Solutions, LLC
+// Copyright (C) 2008-2011 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -89,6 +89,11 @@ public class DashboardBackupFactory {
             // don't back up invisible operating system files on Unix/Linux/Mac
             if (name.startsWith("."))
                 return name.equals(".pspdash");
+
+            // don't include the temporary files that are created by the
+            // RobustFileOutputStream
+            if (name.startsWith(RobustFileOutputStream.OUT_PREFIX))
+                return false; // don't copy around temporary files
 
             if (name.equals("log.txt") || // backup the log file
                 name.endsWith(".dat") || // backup data files

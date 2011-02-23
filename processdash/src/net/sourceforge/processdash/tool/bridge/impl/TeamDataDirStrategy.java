@@ -1,4 +1,4 @@
-// Copyright (C) 2008 Tuma Solutions, LLC
+// Copyright (C) 2008-2011 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -28,6 +28,7 @@ import java.io.FilenameFilter;
 
 import net.sourceforge.processdash.util.DashboardBackupFactory;
 import net.sourceforge.processdash.util.DirectoryBackup;
+import net.sourceforge.processdash.util.RobustFileOutputStream;
 
 public class TeamDataDirStrategy implements FileResourceCollectionStrategy {
 
@@ -68,6 +69,9 @@ public class TeamDataDirStrategy implements FileResourceCollectionStrategy {
 
             if (name.startsWith("."))
                 return false; // don't copy invisible unix files
+
+            if (name.startsWith(RobustFileOutputStream.OUT_PREFIX))
+                return false; // don't copy around temporary files
 
             if (name.equalsIgnoreCase(TeamServerPointerFile.FILE_NAME))
                 return false; // don't copy around any teamServer file!
