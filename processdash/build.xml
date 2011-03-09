@@ -3,7 +3,7 @@
 <!-- ===================================================================
 
 Process Dashboard - Data Automation Tool for high-maturity processes
-Copyright (C) 2001-2010 Tuma Solutions, LLC
+Copyright (C) 2001-2011 Tuma Solutions, LLC
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -104,8 +104,7 @@ Authors:
   <property name="libsrc"     value="${lib}/src"/>
   <property name="testsrc"    value="test/src"/>
   <property name="installer"  value="installer"/>
-  <property name="langpacks"
-                         value="${installer}/IzPack/bin/langpacks/installer"/>
+  <property name="installSrc"  value="${installer}/src"/>
   <property name="basePkg"    value="net/sourceforge/processdash"/>
   <property name="jarsurf"    value="${basePkg}/tool/export/jarsurf"/>
 
@@ -448,7 +447,8 @@ Authors:
 
   <target name="ant-tasks">
     <javac srcdir="${libsrc}" destdir="${libsrc}" debug="true"
-           includeAntRuntime="yes" classpath="${svg.jar}">
+           includeAntRuntime="yes" classpath="${svg.jar}"
+           target="1.5">
       <exclude name="net/sourceforge/processdash/ExtractAllBackups.java"/>
       <exclude name="net/sourceforge/processdash/PatchXmlTask.java"/>
     </javac>
@@ -616,11 +616,7 @@ Authors:
 
   <target name="installer"
           depends="installer-mergeJar,installer-macData,installer-langpacks">
-    <ant antfile="${installer}/build.xml" inheritAll="false">
-      <property name="alreadyRebuilt" value="true"/>
-      <property name="dontCleanDist" value="true"/>
-      <property name="dist" value="../dist"/>
-    </ant>
+    <ant antfile="${installer}/build.xml" inheritAll="false"/>
   </target>
 
   <target name="installer-mergeJar" depends="compile">
@@ -649,14 +645,11 @@ Authors:
 
   <target name="installer-langpacks" depends="ant-tasks">
     <i18n-updateLangpack resourcesDir="${resources}" javaLang="ja"
-        langpack="${langpacks}/jpn.xml"
-        textfile="${installer}/files/text-jpn.xml"/>
+        langpack="${installer}/files/text-jpn.xml"/>
     <i18n-updateLangpack resourcesDir="${resources}" javaLang="zh"
-        langpack="${langpacks}/chn.xml"
-        textfile="${installer}/files/text-chn.xml"/>
+        langpack="${installer}/files/text-chn.xml"/>
     <i18n-updateLangpack resourcesDir="${resources}" javaLang="de"
-        langpack="${langpacks}/deu.xml"
-        textfile="${installer}/files/text-deu.xml"/>
+        langpack="${installer}/files/text-deu.xml"/>
   </target>
 
 
@@ -708,6 +701,9 @@ Authors:
     <delete quiet="true" file="${dist}/extras.jar"/>
     <delete quiet="true" file="${dist}/pdash-src-*.zip"/>
     <delete><fileset dir="${libsrc}" includes="**/*.class"/></delete>
+    <delete><fileset dir="${installer}/files" includes="izpack-customizations.jar
+           cleanupMacData.jar mergeSettings.jar"/></delete>
+    <delete><fileset dir="${installSrc}" includes="**/*.class"/></delete>
   </target>
 
 

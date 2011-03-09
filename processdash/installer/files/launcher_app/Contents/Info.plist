@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN"
+                       "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+  <dict>
+    <key>CFBundleName</key>
+    <string>Quick Launcher</string>
+    <key>CFBundleShortVersionString</key>
+    <string>$APP_VER</string>
+    <key>CFBundleGetInfoString</key>
+    <string>$APP_VER</string>
+    <key>CFBundleAllowMixedLocalizations</key>
+    <string>false</string>
+    <key>CFBundleInfoDictionaryVersion</key>
+    <string>6.0</string>
+    <key>CFBundleExecutable</key>
+    <string>JavaApplicationStub</string>
+    <key>CFBundleDevelopmentRegion</key>
+    <string>English</string>
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+    <key>CFBundleSignature</key>
+    <string>????</string>
+    <key>CFBundleIconFile</key>
+    <string>Quick Launcher.icns</string>
+    <key>CFBundleDocumentTypes</key>
+    <array>
+      <dict>
+        <key>CFBundleTypeName</key>
+        <string>Process Dashboard Data Backup</string>
+        <key>CFBundleTypeRole</key>
+        <string>Viewer</string>
+        <key>CFBundleTypeIconFile</key>
+        <string>Process Dashboard.icns</string>
+        <key>CFBundleTypeExtensions</key>
+        <array>
+          <string>zip</string>
+          <string>pdbk</string>
+        </array>
+      </dict>
+    </array>
+    <key>Java</key>
+    <dict>
+      <key>MainClass</key>
+      <string>net.sourceforge.processdash.tool.quicklauncher.QuickLauncher</string>
+      <key>JVMVersion</key>
+      <string>1.5*</string>
+      <key>ClassPath</key>
+      <array>
+        <string>$JAVAROOT/empty.jar</string>
+        <string>$INSTALL_PATH/pspdash.jar</string>
+      </array>
+      <key>Properties</key>
+      <dict>
+        <key>maxMemory</key>
+        <string>${MAX_MEMORY}m</string>
+      </dict>
+    </dict>
+  </dict>
+</plist>

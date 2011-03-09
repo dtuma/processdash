@@ -1,6 +1,45 @@
 <?xml version='1.0' encoding='UTF-8' standalone='yes'?>
 
 <langpack>
+    <str id="DataDirPanel.empty_datadir">Sie müssen ein Verzeichnis für Ihre Daten wählen.</str>
+    <str id="DataDirPanel.info">Bitte wählen Sie ein Verzeichnis für Ihre persönichen Metriken.</str>
+    <str id="LicencePanel.deselect.message1">Sie haben angegeben, dass Sie dieser Lizenzvereinbarung nicht zustimmen.
+Möchten Sie das oder die Module</str>
+    <str id="LicencePanel.deselect.message2">aus der Installationsliste entfernen?</str>
+    <str id="LicencePanel.deselect.title">Paketauswahl rückgängig machen?</str>
+    <str id="PackageDownloader.error.info1">Das Paket:</str>
+    <str id="PackageDownloader.error.info2">konnte nicht heruntergeladen werden und wurde nicht installiert. Das kann vorkommen,
+wenn Sie keine Verbindung zum Internet haben oder wenn eine Firewall wirksam ist. Um 
+dieses Problem zu umgehen, laden Sie bitte anstatt dessen den Offline Installer herunter und 
+starten Sie diesen.</str>
+    <str id="PackageDownloader.error.title">Warnung bei der Installation</str>
+    <str id="PackageDownloader.info1">Herunterladen von &quot;</str>
+    <str id="PackageDownloader.info2">&quot;...</str>
+    <str id="PackageDownloader.title">Herunterladen...</str>
+    <str id="ShutdownDashboardPanel.error.info">Das Installationsprogramm hat ermittelt, dass Process Dashboard
+derzeit bereits auf diesem Rechner ausgeführt wird. Sie müssen diese
+laufende Anwendung beenden bevor Sie mit der Installation fortfahren
+können.</str>
+    <str id="ShutdownDashboardPanel.error.title">Process Dashboard wird ausgeführt</str>
+    <str id="ShutdownDashboardPanel.info">Wenn Sie Process Dashboard derzeit ausführen, kann
+das Installieren neuer Dateien unvorhersehbare Fehler mit sich bringen.
+Sie müssen daher auf jeden Fall Dashboard schließen falls es derzeit
+ausgeführt wird.</str>
+    <str id="TeamDataDirPanel.empty_datadir">Sie müssen ein Verzeichnis für Daten auswählen.</str>
+    <str id="TeamDataDirPanel.info">Wählen Sie bitte ein Verzeichnis für die Team-Konfigurationsdaten :</str>
+    <str id="TeamDataDirPanel.message">Das Verzeichnis, das Sie auswählen, wird verwendet, um Konfigurationsinformationen
+für Team Dashboard zu speichern.
+
+In der Regel sollten Teams ein Netzlaufwerk verwenden,
+sodass alle Mitglieder auf Dateien zugreifen können.</str>
+    <str id="installer.javaversion.info">Sie sollten Ihr Java Runtime Environment updaten!
+{0} {1} benötigt Version {2} oder
+eine höhere Version des Java Runtime Environment.  Derzeit verwenden Sie
+Java Runtime Environment in der Version {3}.
+       To download an updated version of the Java Runtime
+Environment, visit   {4}
+Then run this installer program again.</str>
+    <str id="installer.javaversion.title">{0} lässt sich nicht installieren</str>
     <str id="CondHTMLLicencePanel0.header">Sie haben sich dafür entschieden, folgende Inhalte zu installieren {0,choice,1#module|2#modules}:
           {1}
 
@@ -8,39 +47,43 @@ Der Verlag erteilt diese Erlaubnis unter der Bedingung dass Benutzer der folgend
     <str id="CondHTMLLicencePanel1.header">Sie haben sich dafür entschieden, die JavaHelp(TM) Software von Sun Microsystems zu installieren.  Um dieses optionale Modul herunterzuladen und zu installieren, müssen Sie der folgenden Lizenzvereinbarung zustimmen.</str>
     <str id="CondHTMLLicencePanel2.header">You have chosen to install the Charting and Reporting Extensions module, written by Tuma Solutions.  To download and install this optional module, you must consent to the following license agreement.</str>
     <str id="application.name">Process Dashboard</str>
-    <str id="pack.extras.description">Charting and Reporting Extensions from Tuma Solutions, LLC.
+    <str id="extras.description">Charting and Reporting Extensions from Tuma Solutions, LLC.
 
 This module is not required for full functionality of the Process Dashboard.  However, installing this module will provide enhanced functionality for charting, reporting, and analysis of your data.
 
 The contents of this module are copyrighted by Tuma Solutions, LLC, and are not open source.  Tuma Solutions requires that you consent to an additional license agreement to download and install this module.</str>
-    <str id="pack.extras.name">Charting and Reporting Extensions</str>
-    <str id="pack.javaHelp.description">Help browser von Sun Microsystems.
+    <str id="extras">Charting and Reporting Extensions</str>
+    <str id="javaHelp.description">Help browser von Sun Microsystems.
 
 Dieses Modul ist für die volle Funktionalität von Process Dashboard nicht erforderlich.  Wenn Sie es installieren, wird es für Sie leichter, die Hilfe-Dokumentation für Process Dashboard zu verwenden und Sie erhalten insbesondere die Möglichkeit zur Volltextsuche.
 
 Die Inhalte dieses Moduls stehen unter dem Copyright von Sun Microsystems und ihr Sourcecode ist nicht öffentlich zugänglich.  Sun Microsystems verlangt, dass Sie einer zusätzlichen Lizenzvereinbarung zustimmen, wenn Sie dieses Modul herunterladen und installieren möchten.</str>
-    <str id="pack.javaHelp.name">JavaHelp(TM) Help Browser</str>
-    <str id="pack.pdash.description">Der Kern der Anwendung Process Dashboard.
+    <str id="javaHelp">JavaHelp(TM) Help Browser</str>
+    <str id="pdash.description">Der Kern der Anwendung Process Dashboard.
 
 Process Dashboard wird unter der GNU General Public License verteilt.</str>
-    <str id="pack.pdash.name">Process Dashboard</str>
-    <str id="pack.pspForEng.description">Unterstützung für Studenten, die einen Personal Software Process(SM)-Kurs des SEI besuchen.
+    <str id="pdash">Process Dashboard</str>
+    <str id="pspForEng.description">Unterstützung für Studenten, die einen Personal Software Process(SM)-Kurs des SEI besuchen.
 
 This module incorporates templates, scripts, and other materials from the document &quot;PSP Materials.doc&quot; copyright (c) 2006 by Carnegie Mellon University.  These materials are reproduced with the permission of the Software Engineering Institute.
 
 The Software Engineering Institute requires that you consent to an additional license agreement to download, install and use this module.</str>
-    <str id="pack.pspForEng.name">PSP(SM) for Engineers</str>
-    <str id="pack.pspFundAdv.description">Support for students taking the SEI&apos;s Personal Software Process(SM) courses, PSP Fundamentals &amp; PSP Advanced.
+    <str id="pspForEng">PSP(SM) for Engineers</str>
+    <str id="pspFundAdv.description">Support for students taking the SEI&apos;s Personal Software Process(SM) courses, PSP Fundamentals &amp; PSP Advanced.
 
 This module incorporates templates, scripts, and other materials from the document &quot;PSP Materials.doc&quot; copyright (c) 2006 by Carnegie Mellon University.  These materials are reproduced with the permission of the Software Engineering Institute.
 
 The Software Engineering Institute requires that you consent to an additional license agreement to download, install and use this module.</str>
-    <str id="pack.pspFundAdv.name">PSP(SM) Fundamentals &amp; Advanced</str>
-    <str id="pack.pspProc.description">Vorlagen, Ablaufbeschreibungen und Formulare, die die Anwendung des Personal Software Process(SM) unterstützen.
+    <str id="pspFundAdv">PSP(SM) Fundamentals &amp; Advanced</str>
+    <str id="pspInstrTools.description">Tools to assist instructors of the PSP courses</str>
+    <str id="pspInstrTools">PSP(SM) Instructor Tools</str>
+    <str id="pspProc.description">Vorlagen, Ablaufbeschreibungen und Formulare, die die Anwendung des Personal Software Process(SM) unterstützen.
 
 This module incorporates templates, scripts, and other materials from the document &quot;PSP Materials.doc&quot; copyright (c) 2006 by Carnegie Mellon University.  These materials are reproduced with the permission of the Software Engineering Institute.
 
 The Software Engineering Institute requires that you consent to an additional license agreement to download, install and use this module.</str>
-    <str id="pack.pspProc.name">PSP(SM) Processes</str>
+    <str id="pspProc">PSP(SM) Processes</str>
+    <str id="teamTools.description">Tools enabling team leaders to create and manage team projects.</str>
+    <str id="teamTools">Tools for Team Leaders</str>
 
 </langpack>

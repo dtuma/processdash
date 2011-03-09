@@ -1,4 +1,0 @@
-pspProc==http://processdash.sourceforge.net/cgi-bin/webpack?file=pspProc
-pspForEng==http://processdash.sourceforge.net/cgi-bin/webpack?file=pspForEng
-javaHelp==http://processdash.sourceforge.net/cgi-bin/webpack?file=javaHelp
-teamTools==http://processdash.sourceforge.net/cgi-bin/webpack?file=teamTools

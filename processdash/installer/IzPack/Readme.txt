@@ -1,49 +1,37 @@
-[ IzPack 2.x-3.x - Readme ]
+IzPack Readme
+=============
 
-    > 1 - A quick introduction <
-    
-    IzPack 2 is a Java software installer builder released under the terms of
-the GNU GPL version 2 of the licence, or any later version. It is based around
-an installer compiler that uses XML files to describe your installation.
-IzPack is totally independant from the Operating System which runs it. It is 
-also very modular so that you can easely create and integrate your own panels
-(installation steps).
+IzPack is a one-stop solution for packaging, distributing and deploying
+applications.
 
-    Making installers can be made through 2 ways :
-- by using a GUI-based frontend that avoids you of typing the XML files and 
-submitting them to the command-line based compiler
-- by making the XML files yourself and submitting them to the command-line
-based compiler (usefull to integrate IzPack with another building process or
-development environment).
+It is fully cross-platform and generates a single installer. As such,
+it is an alternative to native solutions such as platform-specific 
+installers and package managers.
 
-    The IzPack homepage is http://www.izforge.com/izpack/ . You can contact the
-author : julien@izforge.com. A mailing-list is also available : 
-izpack.ml@izforge.com (send a email with 'subscribe' as the subject to 
-izpack.ml_request@izforge.com).
+IzPack-generated installers only require a Java virtual machine to run.
+It is however capable of providing integration with the host operating
+systems (e.g., creating desktop shortcuts or editing the Windows registry).
 
-    You can also get the latest development version (Unstable branch) from the
-CVS server. You can log in as 'anonymous'. The CVSROOT is :
-:pserver:login@cvs.tuxfamily.org:/cvsroot/izpack2 where 'login' can be replaced
-by your CVS login (ask one if you want to contribute) or 'anonymous'.
+Licensing
+=========
 
-    > 2 - The documentation <
-    
-    A documentation is available in the doc folder. It was generated with 
-LaTeX under GNU-Linux. You can print a book version by modifying the 
-izpack-doc.tex file (change the class from report to book) that is located in
-the src/doc folder (provided that you installed the source code). A makefile
-is available to compile the documentation, see the Readme file of the folder
-for more.
+IzPack is published under the terms of the Apache License, Version 2.0, 
+meaning that you can adapt it to your needs with very minimal constraints.
 
-    > 3 - Licencing issues <
-    
-    The licences used by IzPack or the libraries it uses are available in the 
-legal folder. IzPack is covered by the GNU GPL 2 and any derivative work based
-on it must also be covered by this licence.
+Some third-party components (e.g., look and feel libraries) may be released
+under different terms.
 
-    Generating an installer for commercial products is strongly encouraged, but
-distributing an installer using a panel that is not released under a free 
-licence compatible with GNU GPL 2 is not permitted as the installer is covered
-by this licence.
+Community
+=========
 
-# vim: fileformat=dos 
+IzPack is part of the Codehaus <http://codehaus.org/>
+
+* Web site: <http://izpack.org/>
+* Codehaus space: <http://xircles.codehaus.org/projects/izpack/>
+* Mailing-lists: <http://xircles.codehaus.org/projects/izpack/lists>
+* Confluence wiki: <http://docs.codehaus.org/display/IZPACK>
+* News feed: <http://feeds.feedburner.com/IzPack>
+* Subversion repository: <http://svn.codehaus.org/izpack/>
+* Git repository (synchronized from svn): <http://github.com/jponge/izpack/tree/master>
+* FishEye SVN browser: <http://svn.izpack.codehaus.org/>
+* JIRA issues tracker: <http://jira.codehaus.org/browse/IZPACK>

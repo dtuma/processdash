@@ -13,7 +13,20 @@
 	<javaversion>1.5</javaversion>
     </info>
 
-    <guiprefs height="480" resizable="yes" width="640"/>
+    <conditions>
+        <condition type="variable" id="teamDataIsNotHttp">
+            <name>TEAM_DATA_HTTP</name>
+            <value>false</value>
+        </condition>
+    </conditions>
+
+    <listeners>
+        <listener installer="com.izforge.izpack.pdash.DashboardPostInstallAction" />
+    </listeners>
+
+    <guiprefs height="480" resizable="yes" width="640">
+        <modifier key="langDisplayType" value="native"/>
+    </guiprefs>
 
     <locale>
         <langpack iso3="eng"/>
@@ -35,8 +48,7 @@
         <res src="files/DataDir-windows.txt" id="DataDirPanel.dir.windows"/>
         <res src="files/DataDir-macosx.txt" id="DataDirPanel.dir.macosx"/>
         <res src="files/TargetDir-macosx.txt" id="TargetPanel.dir.macosx"/>
-        <res src="files/WebInstallers.txt" id="WebInstallers.url"/>
-        <res src="files/shortcutSpec.xml" id="shortcutSpec.xml"/>
+        <res src="files/Win_shortcutSpec.xml" id="Win_shortcutSpec.xml"/>
         <res src="files/PspLicense.html" id="CondHTMLLicencePanel0.licence"
              excludeIf="pspTsp"/>
         <res src="files/PspTspLicense.html" id="CondHTMLLicencePanel0.licence"
@@ -50,17 +62,21 @@
              excludeIf="pspForEngInstr"/>
         <res src="files/custom-install-instr.ini" id="custom-install.ini"
              includeIf="pspForEngInstr"/>
-        <res src="files/text-eng.xml" id="text.xml"/>
-        <res src="files/text-jpn.xml" id="text.xml_jpn"/>
-        <res src="files/text-chn.xml" id="text.xml_chn"/>
-        <res src="files/text-deu.xml" id="text.xml_deu"/>
+        <res src="files/text-eng.xml" id="CustomLangpack.xml"/>
+        <res src="files/text-jpn.xml" id="CustomLangpack.xml_jpn"/>
+        <res src="files/text-chn.xml" id="CustomLangpack.xml_chn"/>
+        <res src="files/text-deu.xml" id="CustomLangpack.xml_deu"/>
 
         <!-- additional resources -->
     </resources>
 
     <!-- The panels to display -->
     <panels>
-        <panel classname="HelloPanel"/>
+        <panel classname="HelloPanel">
+            <actions>
+                <action stage="preactivate" classname="com.izforge.izpack.pdash.DashboardPreInstallAction"/>
+            </actions>
+        </panel>
         <panel classname="HTMLInfoPanel"/>
         <panel classname="HTMLLicencePanel"/>
         <panel classname="TargetPanel"/>
@@ -73,15 +89,24 @@
         <panel classname="ShutdownDashboardPanel"/>
         <panel classname="InstallPanel"/>
         <panel classname="ShortcutPanel"/>
-        <panel classname="FinishPanel"/>
+        <panel classname="SimpleFinishPanel"/>
     </panels>
     
     <!-- The native libraries to add -->
     <native type="izpack" name="ShellLink.dll"/>
+    <native type="izpack" name="ShellLink_x64.dll"/>
+
+    <!-- The custom java code to add -->
+    <jar src="files/izpack-customizations.jar"/>
+    <jar src="files/mergeSettings.jar"/>
+    <jar src="files/cleanupMacData.jar"/>
+
 
     <!-- The list of packages the user can install -->
     <packs>
-        <pack name="Process Dashboard" id="pdash" required="yes">
+
+        <!-- Process Dashboard package -->
+        <pack name="pdash" id="pdash" required="yes">
             <description>Process Dashboard</description>
 
             <file targetdir="$INSTALL_PATH" override="true"
@@ -92,12 +117,6 @@
 	          src="../src/net/sourceforge/processdash/ui/dashicon.ico"/>
             <file targetdir="$INSTALL_PATH" override="true"
 	          src="../src/net/sourceforge/processdash/ui/launcher.ico"/>
-            <file targetdir="$INSTALL_PATH" override="true"
-	          src="files/mergeSettings.jar"/>
-            <file targetdir="$INSTALL_PATH" override="true"
-	          src="files/cleanupMacData.jar">
-                <os name="Mac OS X"/>
-            </file>
 
             <!-- Create an Application icon on Mac OS X -->
             <fileset targetdir="$MAC_APPL/Process Dashboard.app"
@@ -112,7 +131,7 @@
             <parsable targetfile="$MAC_APPL/Process Dashboard.app/Contents/Resources/dataLocation.txt">
                 <os name="Mac OS X"/>
             </parsable>
-            <executable targetfile="/Applications/Process Dashboard.app/Contents/MacOS/JavaApplicationStub" stage="never">
+            <executable targetfile="$MAC_APPL/Process Dashboard.app/Contents/MacOS/JavaApplicationStub" stage="never">
 	        <os name="Mac OS X"/>
 	    </executable>
 
@@ -124,30 +143,12 @@
 	        <os family="unix"/>
 	    </executable>
 
-            <!-- migrate/cleanup data from old Mac installations -->
-            <executable targetfile="$INSTALL_PATH/cleanupMacData.jar"
-	         type="jar" stage="postinstall">
-                <os name="Mac OS X"/>
-		<args>
-		    <arg value="$DATA_PATH"/>
-		</args>
-	    </executable>
-
-            <!-- enhance user's config with externally provided settings -->
-            <executable targetfile="$INSTALL_PATH/mergeSettings.jar"
-	         type="jar" stage="postinstall">
-		<args>
-		    <arg value="$DATA_PATH"/>
-		    <arg value="$EXTERNAL_CONFIG_URL1"/>
-		    <arg value="$EXTERNAL_CONFIG_URL2"/>
-		</args>
-	    </executable>
-
 	    <!-- additional core files -->
         </pack>
 	
-        <pack name="PSP(SM) Processes" id="pspProc" required="no"
-	      excludeIf="noProc">
+
+        <!-- PSP(SM) Processes package -->
+        <pack name="pspProc" id="pspProc" required="no" excludeIf="noProc">
             <description>PSP(SM) Processes</description>
 
             <file targetdir="$INSTALL_PATH" override="true"
@@ -156,7 +157,9 @@
 	          src="../dist/importPSP.jar" />
         </pack>
 
-        <pack name="PSP(SM) for Engineers" id="pspForEng" required="no"
+
+        <!-- PSP(SM) for Engineers package -->
+        <pack name="pspForEng" id="pspForEng" required="no"
               includeIf="pspForEng">
             <description>PSP(SM) for Engineers</description>
 
@@ -177,8 +180,9 @@
             </fileset>
         </pack>
 
-        <pack name="PSP(SM) Fundamentals &amp; Advanced" id="pspFundAdv" required="no"
-              includeIf="pspFundAdv">
+
+        <!-- PSP(SM) Fundamentals / Advanced package -->
+        <pack name="pspFundAdv" id="pspFundAdv" required="no" includeIf="pspFundAdv">
             <description>PSP(SM) Fundamentals &amp; Advanced</description>
 
             <file targetdir="$INSTALL_PATH" override="true"
@@ -193,7 +197,9 @@
             </fileset>
         </pack>
 
-        <pack name="PSP(SM) Instructor Tools" id="pspInstrTools" required="no"
+
+        <!-- PSP(SM) Instructor Tools package -->
+        <pack name="pspInstrTools" id="pspInstrTools" required="no"
               includeIf="pspInstrTools">
             <description>Tools to assist instructors of the PSP for Engineers course</description>
 
@@ -203,25 +209,95 @@
 	          src="../dist/pspForEng.jar" />
             <file targetdir="$INSTALL_PATH" override="true"
 	          src="../dist/pspForEng-instr.jar"/>
+
+            <!-- Create Quick Launcher application on Mac OS X --> 
+            <fileset targetdir="$MAC_APPL/Process Dashboard Quick Launcher.app"
+                  dir="files/launcher_app" override="true">
+                <os name="Mac OS X"/>
+                <include name="Contents/"/>
+            </fileset>
+            <parsable targetfile="$MAC_APPL/Process Dashboard Quick Launcher.app/Contents/Info.plist">
+                <os name="Mac OS X"/>
+            </parsable>
+            <executable targetfile="$MAC_APPL/Process Dashboard Quick Launcher.app/Contents/MacOS/JavaApplicationStub" stage="never">
+	        <os name="Mac OS X"/>
+	    </executable>
         </pack>
 
-        <pack name="Charting and Reporting Extensions" id="extras"
-              required="no" includeIf="extras">
+
+        <!-- additional packs -->
+
+
+        <!-- Charting and Reporting Extensions package -->
+        <pack name="extras" id="extras" required="no" includeIf="extras">
             <description>Charting and Reporting Extension</description>
 
             <file targetdir="$INSTALL_PATH" override="true"
 	          src="../dist/extras.jar"/>
         </pack>
 
-        <pack name="JavaHelp(TM) Help Browser" id="javaHelp" required="no"
-              excludeIf="noHelp">
+
+        <!-- JavaHelp(TM) Help Browser package -->
+        <pack name="javaHelp" id="javaHelp" required="no" excludeIf="noHelp">
             <description>JavaHelp(TM) Help Browser</description>
 
             <file targetdir="$INSTALL_PATH" override="true"
 	          src="../dist/dashHelp.jar"/>
         </pack>
 	
-        <!-- additional packs -->
+
+	<!-- Tools for Team Leaders package -->
+        <pack name="teamTools" id="teamTools" required="no" preselected="no"
+              includeIf="teamTools">
+            <description>Tools enabling team leaders to create and manage team projects.</description>
+
+            <file targetdir="$INSTALL_PATH" override="true"
+                  src="files/teamicon.ico"/>
+            <singlefile target="$TEAM_DATA_PATH/icon.ico" override="false"
+                  src="files/teamicon.ico" condition="teamDataIsNotHttp"/>
+
+            <singlefile target="$TEAM_DATA_PATH/pspdash.ini" override="false"
+                  src="files/teamdash.ini" condition="teamDataIsNotHttp"/>
+
+            <!-- Create Team Dashboard application on Mac OS X --> 
+            <fileset targetdir="$MAC_APPL/Team Dashboard.app"
+                  dir="files/team_dash_app" override="true">
+                <os name="Mac OS X"/>
+                <include name="Contents/"/>
+            </fileset>
+            <parsable targetfile="$MAC_APPL/Team Dashboard.app/Contents/Info.plist">
+                <os name="Mac OS X"/>
+            </parsable>
+            <parsable targetfile="$MAC_APPL/Team Dashboard.app/Contents/Resources/dataLocation.txt">
+                <os name="Mac OS X"/>
+            </parsable>
+            <executable targetfile="$MAC_APPL/Team Dashboard.app/Contents/MacOS/JavaApplicationStub" stage="never">
+	        <os name="Mac OS X"/>
+	    </executable>
+
+            <!-- Create Quick Launcher application on Mac OS X --> 
+            <fileset targetdir="$MAC_APPL/Process Dashboard Quick Launcher.app"
+                  dir="files/launcher_app" override="true">
+                <os name="Mac OS X"/>
+                <include name="Contents/"/>
+            </fileset>
+            <parsable targetfile="$MAC_APPL/Process Dashboard Quick Launcher.app/Contents/Info.plist">
+                <os name="Mac OS X"/>
+            </parsable>
+            <executable targetfile="$MAC_APPL/Process Dashboard Quick Launcher.app/Contents/MacOS/JavaApplicationStub" stage="never">
+	        <os name="Mac OS X"/>
+	    </executable>
+
+            <singlefile target="$TEAM_DATA_PATH/run-dash.sh" override="false"
+                  src="files/run-team.sh" condition="teamDataIsNotHttp"/>
+            <parsable targetfile="$TEAM_DATA_PATH/run-dash.sh"
+                  condition="teamDataIsNotHttp"/>
+            <executable targetfile="$TEAM_DATA_PATH/run-dash.sh"
+	          stage="never" condition="teamDataIsNotHttp">
+	        <os family="unix"/>
+	    </executable>
+
+        </pack>
 
     </packs>
 </installation>

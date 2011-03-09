@@ -4,7 +4,7 @@
 <!-- ===================================================================
 
 Process Dashboard - Data Automation Tool for high-maturity processes
-Copyright (C) 2001-2009 Tuma Solutions, LLC
+Copyright (C) 2001-2011 Tuma Solutions, LLC
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -60,22 +60,32 @@ Authors:
     <property name="processdash" value=".."/>
     <property file="${processdash}/build.properties"/>
     <property file="${processdash}/lib/version.properties"/>
-    <property name="dist" value="dist"/>
 
     <property name="version" value="${dashboard-version}"/>
     <property name="launch4j.dir" location="launch4j" />
 
     <!-- the the IZPACK home directory -->
     <property name="izpack.dir" value="IzPack"/>
-    <property name="izpack.jar" value="${izpack.dir}/lib/compiler.jar"/>
+    <property name="izpack-installer.jar" value="${izpack.dir}/lib/installer.jar"/>
+    <property name="izpack-compiler.jar" value="${izpack.dir}/lib/standalone-compiler.jar"/>
+    <property name="files.dir" value="files"/>
+    <property name="izpack-custom.jar" value="${files.dir}/izpack-customizations.jar"/>
+    <property name="mergeSettings.jar" value="${files.dir}/mergeSettings.jar"/>
+    <property name="cleanupMacData.jar" value="${files.dir}/cleanupMacData.jar"/>
+    <property name="custom-src" value="src"/>
+    <property name="compile.target" value="1.5"/>
 
 
-
-    <target name="init" depends="-izpack-compile">
+    <target name="init" depends="-izpack-custom-compile">
+        <!-- Get the complete path to the current directory -->
+        <pathconvert property="installer.dir" dirSep="/">
+            <path><pathelement location="."/></path>
+        </pathconvert>
         <!-- create the dist directory if it doesn't exist -->
+        <property name="dist" value="${installer.dir}/../dist"/>
         <mkdir dir="${dist}"/>
         <!-- Allows us to use the IzPack Ant task -->
-        <taskdef name="izpack" classpath="${izpack.jar}"
+        <taskdef name="izpack" classpath="${izpack-compiler.jar}"
             classname="com.izforge.izpack.ant.IzPackTask"/>
         <!-- Allows us to use the launch4j Ant task -->
         <taskdef name="launch4j"
@@ -85,15 +95,29 @@ Authors:
         <condition property="isWindows"><os family="windows"/></condition>
     </target>
 
-    <target name="-izpack-compile" depends="-izpack-depend"
-            description="Recompile the IzPack code"
-            unless="izpack.upToDate">
-        <ant antfile="${izpack.dir}/src/build.xml" inheritAll="false"/>
+
+    <target name="-izpack-custom-compile" depends="-izpack-custom-depend"
+            description="Recompile the dashboard-specific IzPack code"
+            unless="izpackCustom.upToDate">
+        <javac srcdir="${custom-src}" destdir="${custom-src}"
+               debug="true" source="1.5" target="1.5">
+            <classpath>
+                <pathelement location="${izpack-installer.jar}"/>
+                <pathelement location="${mergeSettings.jar}"/>
+                <pathelement location="${cleanupMacData.jar}"/>
+            </classpath>
+        </javac>
+        <jar destfile="${izpack-custom.jar}" duplicate="fail"
+             basedir="${custom-src}" includes="**/*.class"/>
     </target>
-    <target name="-izpack-depend">
-        <uptodate property="izpack.upToDate" targetfile="${izpack.jar}">
-            <srcfiles dir="${izpack.dir}" includes="src/lib/"/>
+    <target name="-izpack-custom-depend">
+        <uptodate property="izpackCustom.upToDate" targetfile="${izpack-custom.jar}">
+            <srcfiles dir="src"/>
         </uptodate>
+    </target>
+    <target name="izpack-custom-clean">
+        <delete file="${izpack-custom.jar}"/>
+        <delete><fileset dir="${custom-src}" includes="**/*.class"/></delete>
     </target>
 
 
@@ -153,26 +177,17 @@ Authors:
     <target name="-izpack.jar">
         <property name="izpack.output"
             value="pdash-install-${qualifier}-${dashboard-version}"/>
-        <property name="izpack.type" value="standard-kunststoff"/>
-        <izpack input="${izpack.input}"
+        <property name="izpack.type" value="standard"/>
+        <izpack input="${installer.dir}/${izpack.input}"
             output="${dist}/${izpack.output}.jar"
             installerType="${izpack.type}"
-            basedir="." izPackDir="${izpack.dir}/"/>
+            basedir="${installer.dir}" izPackDir="${izpack.dir}/"/>
     </target>
 
     <target name="-izpack.exe" if="isWindows" unless="no-exe-needed">
         <launch4j configFile="files/launch4j-config.xml"
             jar="${dist}/${izpack.output}.jar"
             outfile="${dist}/${izpack.output}.exe"/>
-    </target>
-
-    <target name="web" depends="init,install-reg.xml"
-            description="Create a web-based installer for the dashboard">
-        <antcall target="-izpack.jar">
-            <param name="izpack.input" value="install-reg.xml"/>
-            <param name="izpack.type"  value="web-kunststoff"/>
-            <param name="qualifier"  value="web"/>
-        </antcall>
     </target>
 
     <target name="offline" depends="init,install-reg.xml"
@@ -342,7 +357,7 @@ pdash-install-${qualifier}-${dashboard-version}.jar
     </target>
 
 
-    <target name="clean">
+    <target name="clean" depends="izpack-custom-clean">
         <delete quiet="true" file="install-reg.xml"/>
         <delete quiet="true" file="install-cd.xml"/>
     </target>
