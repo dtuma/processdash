@@ -1,5 +1,0 @@
-http.allowRemote=true
-http.port=3000
-ev.enableRollup=true
-export.timesOfDay=*
-window.title=Team Dashboard

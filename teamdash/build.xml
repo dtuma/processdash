@@ -375,6 +375,8 @@ class dependency has been added in a dashboard class?)
         <param name="sign.jar" value="TeamTools.jar"/>
 	<param name="sign.alias" value="tuma-solutions-2010"/>
     </antcall>
+
+    <move file="TeamTools.jar" todir="${processdash.dist}"/>
   </target>
   <target name="TeamTools.jar" depends="TeamTools"/>
 
@@ -387,7 +389,7 @@ class dependency has been added in a dashboard class?)
         <pathelement location="${server.jar}"/>
       </classpath>
       <arg value="${teamProcess.xml}"/>
-      <arg value="."/>
+      <arg value="${processdash.dist}"/>
     </java>
   </target>
 
@@ -395,19 +397,15 @@ class dependency has been added in a dashboard class?)
     <pathconvert property="teamdash.dir" dirSep="/">
       <path><pathelement location="."/></path>
     </pathconvert>
-    <loadfile property="extraResources" srcFile="install/resources.xml">
-      <filterchain><expandproperties/></filterchain>
-    </loadfile>
+
+    <pathconvert property="pdash.dist.dir" dirSep="/">
+      <path><pathelement location="${processdash.dist}"/></path>
+    </pathconvert>
 
     <property name="extraPacks.xml" value="install/emptyFile.txt"/>
-    <loadfile property="extraPacks.external" srcFile="${extraPacks.xml}">
+    <loadfile property="extraPacks" srcFile="${extraPacks.xml}">
       <filterchain><expandproperties/></filterchain>
     </loadfile>
-    <loadfile property="extraPacks.internal" srcFile="install/packs.xml">
-      <filterchain><expandproperties/></filterchain>
-    </loadfile>
-    <property name="extraPacks"
-              value="${extraPacks.external} ${extraPacks.internal}"/>
 
     <property name="installerExtraIni" value=""/>
     <loadfile property="extraIni" srcFile="install/custom-install.ini">
@@ -431,9 +429,8 @@ class dependency has been added in a dashboard class?)
   <target name="installer" depends="TeamTools,TeamProcess,-installer-props">
     <ant antfile="${processdash.dir}/installer/build.xml" inheritAll="false"
          target="plain">
-      <property name="dist" value="${teamdash.dir}"/>
       <property name="qualifier" value="main"/>
-      <property name="additional.resources" value="${extraResources}"/>
+      <property name="install.flags" value="teamTools"/>
       <property name="additional.packs" value="${extraPacks}"/>
       <property name="custom-install.extra" value="${extraIni}"/>
       <property name="additional.core.files" value="${extraCoreFiles}"/>
@@ -446,8 +443,7 @@ class dependency has been added in a dashboard class?)
   <target name="installer-cd-only" depends="-installer-props">
     <ant antfile="${processdash.dir}/installer/build.xml" inheritAll="false"
          target="dist-CD">
-      <property name="dist" value="${teamdash.dir}"/>
-      <property name="install.flags" value="${install-flags}"/>
+      <property name="install.flags" value="teamTools,${install-flags}"/>
       <property name="additional.resources" value="${extraResources}"/>
       <property name="additional.packs" value="${extraPacks}"/>
       <property name="custom-install.extra" value="${extraIni}"/>
@@ -471,7 +467,7 @@ class dependency has been added in a dashboard class?)
 	  profileid="${launchProfile.id}"
 	  profileversion="${launchProfile.version}"
 	  signingprefix="profileSign"
-	  destfile="${launchProfile.filename}">
+	  destfile="${processdash.dist}/${launchProfile.filename}">
       <fileset dir="${processdash.dist}"
           includesfile="${processdash.lib}/fileset-install-jars.txt" />
       <fileset dir=".">

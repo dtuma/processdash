@@ -1,5 +1,5 @@
    <file targetdir="$INSTALL_PATH" override="true" 
-	 src="${teamdash.dir}/${teamProcess.zip}"/>
+	 src="${pdash.dist.dir}/${teamProcess.zip}"/>
 
    <file targetdir="$INSTALL_PATH" override="true" 
-         src="${teamdash.dir}/TeamTools.jar"/>
+         src="${pdash.dist.dir}/TeamTools.jar"/>
