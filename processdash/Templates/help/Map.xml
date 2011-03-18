@@ -138,6 +138,7 @@
   <mapID target="TaskScheduleSteps.loe" url="Topics/Planning/TaskScheduleSteps.html#loe" />
   <mapID target="TaskScheduleSteps.calTime" url="Topics/Planning/TaskScheduleSteps.html#calTime" />
   <mapID target="TaskScheduleSteps.progress" url="Topics/Planning/TaskScheduleSteps.html#progress" />
+  <mapID target="TaskScheduleDates" url="Topics/Planning/TaskScheduleDates.html" />
   <mapID target="TaskScheduleCharts" url="Topics/Planning/TaskScheduleCharts.html" />
   <mapID target="EV.cumValueChart" url="Topics/Planning/EV-cumValueChart.html" />
   <mapID target="EV.cumDirectTimeChart" url="Topics/Planning/EV-cumDirectTimeChart.html" />

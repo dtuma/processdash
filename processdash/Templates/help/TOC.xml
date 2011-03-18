@@ -43,6 +43,7 @@
       <tocitem image="PageIcon" target="UsingProbeTool" text="Using the PROBE Tool"/>
       <tocitem image="BookIcon" target="UsingTaskSchedule" text="Using the Task &amp; Schedule Tool">
         <tocitem image="PageIcon" target="TaskScheduleSteps" text="Creating a schedule step by step"/>
+        <tocitem image="PageIcon" target="TaskScheduleDates" text="Earned value date calculations"/>
         <tocitem image="BookIcon" target="TaskScheduleCharts" text="Using the earned value charts" mergetype="javax.help.SortMerge">
           <tocitem image="PageIcon" target="EV.cumDirectTimeChart" text="Cumulative Direct Time"/>
           <tocitem image="PageIcon" target="EV.cumValueChart" text="Cumulative Earned Value"/>
