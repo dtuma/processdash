@@ -47,7 +47,7 @@ public class DashboardPreInstallAction implements PanelAction,
         try {
             Integer.parseInt(maxMem);
         } catch (Exception exc) {
-            maxMem = "800";
+            maxMem = "500";
         }
         installdata.setVariable(MAX_MEMORY, maxMem);
     }

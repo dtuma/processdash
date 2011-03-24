@@ -49,6 +49,7 @@
         <res src="files/DataDir-macosx.txt" id="DataDirPanel.dir.macosx"/>
         <res src="files/TargetDir-macosx.txt" id="TargetPanel.dir.macosx"/>
         <res src="files/Win_shortcutSpec.xml" id="Win_shortcutSpec.xml"/>
+        <res src="files/Win_shortcutSpec.xml" id="Win_NT_shortcutSpec.xml"/>
         <res src="files/PspLicense.html" id="CondHTMLLicencePanel0.licence"
              excludeIf="pspTsp"/>
         <res src="files/PspTspLicense.html" id="CondHTMLLicencePanel0.licence"
