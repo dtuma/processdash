@@ -96,8 +96,17 @@ FOR_EACH_PHASE(sumUpToDatePhaseData);
 
 ==
 == Now that plain To Date values have been summed, manually perform the
-== necessary calculations for derived To Date metrics.  Also define
-== various aliases that appear on legacy plan summary forms.
+== necessary calculations for the derived "To Date" metrics that appear
+== on the Plan Summary Forms for the PSP assignments.  Note that we
+== CANNOT just let these calculations be inherited, because in the
+== traditional metrics datafile these would all be defined as lookup
+== expressions extracting a number from a single shared To Date
+== collection.  In contrast, we need a distinct "To Date" dataset
+== for each assignment, which isn't how the dashboard regularly works.
+== So we must define these manually.
+==
+== In addition, we will also define various aliases that appear on
+== legacy plan summary forms.
 ==
 
 [Size To Date] = [New & Changed LOC To Date];
@@ -112,6 +121,10 @@ FOR_EACH_PHASE(sumUpToDatePhaseData);
 [ESTIMATED Time To Date] = [Estimated Time To Date];
 [CPI To Date] = [Estimated Time To Date] / [Time To Date];
 
+[Design Review/Appraisal Rate To Date] =
+    60 * [Size To Date] / [Design Review/Time To Date];
+[Code Review/Appraisal Rate To Date] =
+    60 * [Size To Date] / [Code Review/Time To Date];
 [% Appraisal COQ To Date] =
     sumFor("Time To Date", [Appraisal_Phase_List]) / [Time To Date];
 [% Failure COQ To Date] =
@@ -136,9 +149,12 @@ FOR_EACH_PHASE(sumUpToDatePhaseData);
 [Quality_Profile_5 To Date] = iff([Design/Time To Date],
     [Design Review/Time To Date]  / ([Design/Time To Date] *
             inherit("Target Design Review/Design Ratio")), 1);
-[PQI To Date] = [Quality_Profile_1 To Date] * [Quality_Profile_2 To Date] *
-    [Quality_Profile_3 To Date] * [Quality_Profile_4 To Date] *
-    [Quality_Profile_5 To Date];
+[PQI To Date] =
+    min(1, max(0, [Quality_Profile_1 To Date])) *
+    min(1, max(0, [Quality_Profile_2 To Date])) *
+    min(1, max(0, [Quality_Profile_3 To Date])) *
+    min(1, max(0, [Quality_Profile_4 To Date])) *
+    min(1, max(0, [Quality_Profile_5 To Date]));
 
 #define calcToDatePhaseQuality(Phase)					      \
   [Phase/Defects Removed per Hour To Date] =				      \
