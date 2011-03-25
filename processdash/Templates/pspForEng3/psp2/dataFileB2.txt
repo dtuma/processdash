@@ -1,0 +1,13 @@
+=
+= This file provides a support for a PSP2 project in a PSP course, but does
+= NOT allow them to edit the quality plan for the project, and does not
+= reset the "To Date" metrics.
+=
+
+#include <psp2/dataFile.txt> exclude (
+    "FreezeFlag/.*", ".* To Date"
+)
+#include <pspForEng3/progData.txt>
+#include <pspForEng3/psp2/estimateDefects.txt>
+
+[PspForEngV3_PSP2] == TAG;
