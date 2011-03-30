@@ -14,6 +14,13 @@
     </info>
 
     <conditions>
+        <condition type="java" id="isUnix">
+            <java>
+                <class>com.izforge.izpack.util.OsVersion</class>
+                <field>IS_UNIX</field>
+             </java>
+             <returnvalue type="boolean">true</returnvalue>
+        </condition>
         <condition type="variable" id="teamDataIsNotHttp">
             <name>TEAM_DATA_HTTP</name>
             <value>false</value>
@@ -25,6 +32,7 @@
     </listeners>
 
     <guiprefs height="480" resizable="yes" width="640">
+        <modifier key="useFlags" value="no"/>
         <modifier key="langDisplayType" value="native"/>
     </guiprefs>
 
@@ -139,10 +147,9 @@
             <!-- create a script file for unix variants -->
             <file targetdir="$DATA_PATH" src="files/run-dash.sh"
 	          override="false"/>
-            <parsable targetfile="$DATA_PATH/run-dash.sh"/>
-            <executable targetfile="$DATA_PATH/run-dash.sh" stage="never">
-	        <os family="unix"/>
-	    </executable>
+            <parsable targetfile="$DATA_PATH/run-dash.sh" condition="isUnix"/>
+            <executable targetfile="$DATA_PATH/run-dash.sh" stage="never"
+                   condition="isUnix"/>
 
 	    <!-- additional core files -->
         </pack>
@@ -292,11 +299,9 @@
             <singlefile target="$TEAM_DATA_PATH/run-dash.sh" override="false"
                   src="files/run-team.sh" condition="teamDataIsNotHttp"/>
             <parsable targetfile="$TEAM_DATA_PATH/run-dash.sh"
-                  condition="teamDataIsNotHttp"/>
+                  condition="teamDataIsNotHttp+isUnix"/>
             <executable targetfile="$TEAM_DATA_PATH/run-dash.sh"
-	          stage="never" condition="teamDataIsNotHttp">
-	        <os family="unix"/>
-	    </executable>
+	          stage="never" condition="teamDataIsNotHttp+isUnix"/>
 
         </pack>
 
