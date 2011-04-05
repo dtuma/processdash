@@ -1,4 +1,4 @@
-// Copyright (C) 2002 Tuma Solutions, LLC
+// Copyright (C) 2002-2011 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -64,8 +64,9 @@ public class RegressionMethod extends AveragingMethod {
         }
 
         if (rating > 0) {
+            String resKey = "Method." + methodPurpose.getKey() + ".Betas_OK_FMT";
             observations.add
-                (resources.format("Method.Betas_OK_FMT",
+                (resources.format(resKey,
                                   methodPurpose.formatValue(beta0, -1),
                                   methodPurpose.formatBeta1(beta1)));
             rateCorrelation();
