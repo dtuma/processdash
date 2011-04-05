@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2009 Tuma Solutions, LLC
+// Copyright (C) 2002-2011 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -217,23 +217,23 @@ public abstract class ProbeMethod implements Comparable {
     }
 
     public void printChart(PrintWriter out) {
-        String url = buildChartURL();
-        if (url == null)
+        String params = buildXYChartParams();
+        if (params == null)
             out.print(NBSP);
         else {
-            out.print("<a href=\"");
-            out.print(url);
+            out.print("<a href=\"../full.htm?chart=xy&");
+            out.print(params);
             out.print("\" target=\"popup\" onClick=\"popup();\">");
-            out.print("<img border=\"0\" src=\"");
-            out.print(url);
-            out.print("&qf=probe/small.rpt\">");
+            out.print("<img border=\"0\" src=\"../xy.class?");
+            out.print(params);
+            out.print("&qf=probe/small.rpt\" width=\"100\" height=\"115\">");
             out.print("</a>\n");
         }
     }
 
 
 
-    protected String buildChartURL() {
+    protected String buildXYChartParams() {
         return null;
     }
 

@@ -96,10 +96,11 @@ public class AveragingMethod extends ProbeMethod {
     }
 
 
-    protected String buildChartURL() {
+    @Override
+    protected String buildXYChartParams() {
         if (getRating() > CANNOT_CALCULATE) {
             StringBuffer url = new StringBuffer();
-            url.append("../xy.class?for=%5b"+ProbeData.PROBE_LIST_NAME+"%5d");
+            url.append("for=%5b"+ProbeData.PROBE_LIST_NAME+"%5d");
             addParam(url, "title", getMethodName());
             addChartParam(url, 1, xColumn);
             addChartParam(url, 2, methodPurpose.getYColumn());
