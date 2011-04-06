@@ -350,6 +350,7 @@ var LISTEN_AJAX_DISPATCHER = null;
 var messageQueue = new Array();
 var nextMessageID = randNum();
 var ackTimeoutID = -1;
+var failedMsgCount = 0;
 
 // public - should be called by other javascript on page load.
 function initDispatch(listenFunc, connLostFunc) {
@@ -460,6 +461,7 @@ function listenComplete(transport, json) {
     } else if (transport.responseText) {
         // if we received a response from the dashboard, start another listening request to
         // pick up on future events.
+        failedMsgCount = 0;
         listenForEvents();
 
     } else {
@@ -467,9 +469,14 @@ function listenComplete(transport, json) {
         // completes "successfully." So the only way we can measure failure
         // is to test whether the response had content.  Our "listening" script
         // always returns at least one character; so if the response was an
-        // empty string, we know that the dashboard is no longer running and
-        // we should terminate operations.
-        self.setTimeout("abortMessageDispatch()", 1000);
+        // empty string, we suspect that the dashboard is no longer running and
+        // we should terminate operations.  But sometimes a request can abort
+        // for transient reasons, so we will retry a time or two before aborting.
+        if (failedMsgCount++ < 2) {
+            self.setTimeout("listenForEvents()", 50);
+	} else {
+	    self.setTimeout("abortMessageDispatch()", 1000);
+	}
     }
 }
 
