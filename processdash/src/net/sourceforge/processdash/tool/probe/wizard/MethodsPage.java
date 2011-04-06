@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2009 Tuma Solutions, LLC
+// Copyright (C) 2002-2011 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -193,6 +193,7 @@ public class MethodsPage extends WizardPage {
             Collections.sort(probeMethods);
             ((ProbeMethod) probeMethods.get(0)).setBest(true);
         }
+        maybeAutoselectOnlyViableMethod();
     }
 
     private String getDataName(String elemName) {
@@ -226,6 +227,22 @@ public class MethodsPage extends WizardPage {
         }
 
         return (getValue(dataElem) != null);
+    }
+
+    private void maybeAutoselectOnlyViableMethod() {
+        ProbeMethod viableMethod = null;
+        for (Iterator i = probeMethods.iterator(); i.hasNext();) {
+            ProbeMethod oneMethod = (ProbeMethod) i.next();
+            if (oneMethod.getRating() >= 0) {
+                if (viableMethod == null)
+                    viableMethod = oneMethod;
+                else
+                    // we have found a second viable method.  Change nothing.
+                    return;
+            }
+        }
+        if (viableMethod != null)
+            viableMethod.setSelected(true);
     }
 
     /** If only one method was displayed, write a statement explaining why,
