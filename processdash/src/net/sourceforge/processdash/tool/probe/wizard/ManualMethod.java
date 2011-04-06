@@ -1,4 +1,4 @@
-// Copyright (C) 2002 Tuma Solutions, LLC
+// Copyright (C) 2002-2011 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -62,6 +62,7 @@ public class ManualMethod extends ProbeMethod {
             if (isSelected) out.print("checked ");
         }
         out.print("name='" + purpose + "' ");
+        out.print("id='" + purpose + "MethodD' ");
         out.print("value='" + letter + "'>");
         out.print("<input type='text' name='"+ qual+FLD_ESTIMATE +"' value='");
         if (Double.isNaN(outputValue))
@@ -84,11 +85,9 @@ public class ManualMethod extends ProbeMethod {
     }
     private static final String SCRIPT =
         "<script>\n"+
-        "    var PURPOSEDoption = document.forms[0].PURPOSE.length - 1;\n"+
-        "    if (!(PURPOSEDoption > -1)) PURPOSEDoption = 0;\n"+
         "    function select_PURPOSED() {\n"+
-        "      if (document.forms[0].PURPOSE[PURPOSEDoption])\n"+
-        "        document.forms[0].PURPOSE[PURPOSEDoption].checked = true;\n"+
+        "      var PURPOSEDoption = document.getElementById(\"PURPOSEMethodD\");\n"+
+        "      if (PURPOSEDoption) PURPOSEDoption.checked = true;\n"+
         "    }\n"+
         "</script>\n";
 
