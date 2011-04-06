@@ -73,15 +73,22 @@ function imgHtmlSrc() {
 }
 
 // Resize the chart, in response to the window/frame being resized.
-function resizeChart() {
-    new Ajax.Updater('chart', imgHtmlSrc());
+var resizeToken = 0;
+function resizeChart(token) {
+    if (token == resizeToken) {
+        new Ajax.Updater('chart', imgHtmlSrc());
+    }
 }
-window.onresize = resizeChart;
+function deferredResize() {
+    var newToken = ++resizeToken;
+    self.setTimeout("resizeChart("+newToken+")", 100);
+}
+window.onresize = deferredResize;
 
 </script>
 
 </head>
 
 <body scroll="no"><div id="chart"></div><script>
-    resizeChart();
+    resizeChart(0);
 </script></body></html>
