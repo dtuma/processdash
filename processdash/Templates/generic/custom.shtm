@@ -1,6 +1,6 @@
 <!--
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2001-2003 Tuma Solutions, LLC
+// Copyright (C) 2001-2011 Tuma Solutions, LLC
 // 
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -33,6 +33,7 @@
 <SCRIPT>
     var SILENT=true;
     function refreshParent () { window.opener.location.reload(); }
+    function deferredClose() { self.setTimeout("window.close()", 300); }
 </SCRIPT>
 </HEAD>
 <BODY ONUNLOAD="refreshParent();">
@@ -52,7 +53,7 @@
 <TABLE><TR><TD NOWRAP><!--#echo Customize_Size_Units -->&nbsp;</TD>
     <TD><INPUT TYPE=text SIZE=15 NAME="Units	s"></TD></TR></TABLE>
 
-<INPUT TYPE="button" onClick="window.close();" VALUE="<!--#echo OK -->">
+<INPUT TYPE="button" onClick="deferredClose();" VALUE="<!--#echo OK -->">
 
 </FORM>
 
