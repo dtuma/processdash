@@ -194,6 +194,7 @@ public class CompressedInstanceLauncher extends DashboardInstance {
         List result = new ArrayList();
         ZipInputStream in = openZipStream(zipfile);
         collectDataDirectoryPrefixes(result, "", in);
+        FileUtils.safelyClose(in);
         return result;
     }
 
