@@ -24,6 +24,7 @@
 package net.sourceforge.processdash.tool.bridge.client;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URL;
 import java.util.List;
@@ -63,7 +64,10 @@ public class LocalWorkingDirectory extends AbstractWorkingDirectory implements
             super.acquireProcessLock(msg, lockHandler);
     }
 
-    public void prepare() throws IOException {}
+    public void prepare() throws IOException {
+        if (!targetDirectory.isDirectory())
+            throw new FileNotFoundException(targetDirectory.getPath());
+    }
 
     public void update() throws IOException {}
 
