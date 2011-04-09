@@ -1,4 +1,4 @@
-// Copyright (C) 1998-2010 Tuma Solutions, LLC
+// Copyright (C) 1998-2011 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -145,6 +145,7 @@ import net.sourceforge.processdash.ui.UserNotificationManager;
 import net.sourceforge.processdash.ui.help.PCSH;
 import net.sourceforge.processdash.ui.lib.ErrorReporter;
 import net.sourceforge.processdash.ui.lib.ExceptionDialog;
+import net.sourceforge.processdash.ui.lib.JLinkLabel;
 import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
 import net.sourceforge.processdash.ui.systray.SystemTrayManagement;
 import net.sourceforge.processdash.ui.web.psp.SizeEstimatingTemplate;
@@ -974,10 +975,10 @@ public class ProcessDashboard extends JFrame implements WindowListener,
                 lockOwnerName);
             return;
         } catch (ReadOnlyLockFailureException ro) {
-            showFilesAreReadOnlyMessage(workingDirectory.getDescription());
+            showFilesAreReadOnlyMessage(workingDirectory.getDescription(), ro);
             return;
         } catch (CannotCreateLockException e) {
-            showCannotCreateLockMessage(workingDirectory.getDescription());
+            showCannotCreateLockMessage(workingDirectory.getDescription(), e);
             return;
         } catch (AlreadyLockedException e) {
             otherUser = e.getExtraInfo();
@@ -1049,25 +1050,52 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         return System.getProperty("user.name");
     }
 
-    private void showFilesAreReadOnlyMessage(String location) {
+    private void showFilesAreReadOnlyMessage(String location,
+            ReadOnlyLockFailureException ro) {
         // the user does not have write access to all of the files in
         // the data directory.  They either need to open the dashboard
         // in read only mode, or exit.
-        showMustOpenReadOnlyMessage("ReadOnly.File_Permissions", location);
+        showMustOpenReadOnlyMessage("ReadOnly.File_Permissions", location,
+            ro.getFilePath());
     }
-    private void showCannotCreateLockMessage(String location) {
+    private void showCannotCreateLockMessage(String location, Exception e) {
         // the dashboard was unable to acquire a file lock on the specified
         // directory. The user either needs to open the dashboard in read
         // only mode, or exit.
-        showMustOpenReadOnlyMessage("ReadOnly.Cannot_Lock", location);
+        showMustOpenReadOnlyMessage("ReadOnly.Cannot_Lock", location, e);
     }
-    private void showMustOpenReadOnlyMessage(String resKey, String location) {
+
+    private void showMustOpenReadOnlyMessage(String resKey, String location,
+            final Object detailsMessage) {
         ResourceBundle res = ResourceBundle
                 .getBundle("Templates.resources.ProcessDashboard");
-        String title = res.getString(resKey + ".Title");
-        Object message = MessageFormat.format(
+        final String title = res.getString(resKey + ".Title");
+        String[] text = MessageFormat.format(
                 res.getString(resKey + ".Message_FMT"),
                 new Object[] { location }).split("\n");
+
+        ActionListener linkListener = null;
+        if (detailsMessage != null) {
+            linkListener = new ActionListener() {
+                public void actionPerformed(ActionEvent e) {
+                    ExceptionDialog.show(null, title, detailsMessage);
+                }};
+        }
+
+        Object[] message = new Object[text.length];
+        for (int i = 0; i < message.length; i++) {
+            if (text[i].contains("<a") == false)
+                message[i] = text[i];
+            else if (linkListener != null)
+                message[i] = new JLinkLabel(text[i], linkListener);
+            else {
+                String s = text[i];
+                s = StringUtils.findAndReplace(s, "<a>", "");
+                s = StringUtils.findAndReplace(s, "</a>", "");
+                message[i] = s;
+            }
+        }
+
         int userResponse = JOptionPane.showConfirmDialog(null, message,
                 title, JOptionPane.OK_CANCEL_OPTION,
                 JOptionPane.ERROR_MESSAGE);

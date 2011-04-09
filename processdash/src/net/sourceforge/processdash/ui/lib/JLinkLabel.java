@@ -1,4 +1,4 @@
-// Copyright (C) 2008 Tuma Solutions, LLC
+// Copyright (C) 2008-2011 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -25,6 +25,7 @@ package net.sourceforge.processdash.ui.lib;
 
 import java.awt.Color;
 import java.awt.Cursor;
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
@@ -90,6 +91,10 @@ public class JLinkLabel extends JPanel {
                             ActionEvent.ACTION_PERFORMED, href));
                 }
             });
+        }
+        @Override
+        public Dimension getMaximumSize() {
+            return super.getPreferredSize();
         }
     }
 
