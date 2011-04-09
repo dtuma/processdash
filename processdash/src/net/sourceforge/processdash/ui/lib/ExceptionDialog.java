@@ -1,4 +1,4 @@
-// Copyright (C) 2009 Tuma Solutions, LLC
+// Copyright (C) 2009-2011 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -28,6 +28,8 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.ArrayList;
@@ -53,8 +55,10 @@ public class ExceptionDialog {
      *            the items to display within the JOptionPane. Each item can be
      *            <ul>
      *            <li>A Throwable, which will be displayed in the dialog as a
-     *            text area showing the stack trace. (Note: the contents array
-     *            <b>must</b> contain exactly one Throwable.)</li>
+     *            text area showing the stack trace. (Note: if a copy link is
+     *            present, the contents array <b>must</b> contain exactly one
+     *            Throwable.  If no copy link is present, the contents array
+     *            can contain zero or one Throwable.)</li>
      * 
      *            <li>A string containing a hyperlink in &lt;a&gt;some
      *            text&lt;/a&gt; format. The embedded text will become a
@@ -76,6 +80,10 @@ public class ExceptionDialog {
         textArea.setLineWrap(false);
         textArea.setFont(textArea.getFont().deriveFont(
             textArea.getFont().getSize2D() * 0.8f));
+
+        CopyToClipboardHandler copyHandler = new CopyToClipboardHandler(textArea);
+        textArea.addFocusListener(copyHandler);
+
         JScrollPane scrollPane = new JScrollPane(textArea,
                 JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
                 JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
@@ -83,6 +91,7 @@ public class ExceptionDialog {
 
         List items = new ArrayList();
         boolean sawThrowable = false;
+        boolean sawCopyLink = false;
         for (Object o : contents) {
             if (o instanceof Throwable) {
                 if (sawThrowable)
@@ -96,16 +105,16 @@ public class ExceptionDialog {
 
             } else if (isCopyLink(o)) {
                 JLinkLabel errorTraceLabel = new JLinkLabel((String) o);
-                errorTraceLabel.addActionListener(new CopyToClipboardHandler(
-                        textArea));
+                errorTraceLabel.addActionListener(copyHandler);
                 items.add(errorTraceLabel);
+                sawCopyLink = true;
 
             } else if (o != null) {
                 items.add(o);
             }
         }
 
-        if (!sawThrowable)
+        if (sawCopyLink && !sawThrowable)
             throw new IllegalArgumentException(
                     "A Throwable must be included in the argument list");
 
@@ -128,7 +137,7 @@ public class ExceptionDialog {
             return false;
     }
 
-    private static class CopyToClipboardHandler implements ActionListener {
+    private static class CopyToClipboardHandler implements ActionListener, FocusListener {
 
         private JTextArea textArea;
         private Color bgColor;
@@ -145,11 +154,22 @@ public class ExceptionDialog {
             if (e.getSource() == timer) {
                 textArea.setBackground(bgColor);
             } else {
-                textArea.selectAll();
-                textArea.copy();
-                textArea.setBackground(textArea.getSelectionColor());
-                timer.start();
+                performCopy();
             }
+        }
+
+        public void focusGained(FocusEvent e) {
+            performCopy();
+        }
+
+        public void focusLost(FocusEvent e) {}
+
+        private void performCopy() {
+            textArea.setCaretPosition(textArea.getDocument().getLength());
+            textArea.moveCaretPosition(0);
+            textArea.copy();
+            textArea.setBackground(textArea.getSelectionColor());
+            timer.start();
         }
 
     }
