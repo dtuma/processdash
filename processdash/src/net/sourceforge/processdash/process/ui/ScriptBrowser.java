@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2009 Tuma Solutions, LLC
+// Copyright (C) 2001-2011 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -30,6 +30,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.util.List;
 
 import javax.swing.Box;
@@ -37,12 +38,14 @@ import javax.swing.BoxLayout;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JDialog;
+import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTree;
 import javax.swing.ScrollPaneConstants;
+import javax.swing.SwingConstants;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.event.TreeSelectionEvent;
@@ -59,6 +62,7 @@ import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.process.ScriptEnumerator;
 import net.sourceforge.processdash.process.ScriptID;
 import net.sourceforge.processdash.ui.help.PCSH;
+import net.sourceforge.processdash.ui.lib.MultiWindowCheckboxIcon;
 
 
 public class ScriptBrowser extends JDialog
@@ -73,6 +77,7 @@ public class ScriptBrowser extends JDialog
     protected DefaultListModel scriptList = null;
     protected JButton         displayButton = null;
     protected JList           list;
+    protected boolean keepDialogOpen = false;
     //  protected JList
 
     protected JButton editButton, deleteButton, closeButton;
@@ -133,8 +138,9 @@ public class ScriptBrowser extends JDialog
 
         /* And show it. */
         panel.setLayout(new BorderLayout());
-        panel.add("Center", new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
-                                           sp, sp2));
+        panel.add(new MultiLabel(), BorderLayout.NORTH);
+        panel.add(new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, sp, sp2),
+            BorderLayout.CENTER);
 
         Box buttonBox = new Box(BoxLayout.X_AXIS);
         buttonBox.add (Box.createGlue());
@@ -149,7 +155,7 @@ public class ScriptBrowser extends JDialog
         button.addActionListener(this);
         buttonBox.add (button);
         buttonBox.add (Box.createGlue());
-        panel.add("South", buttonBox);
+        panel.add(buttonBox, BorderLayout.SOUTH);
 
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 
@@ -171,7 +177,8 @@ public class ScriptBrowser extends JDialog
         if (selectedIndex == -1) return;
         ScriptID id = (ScriptID) scriptList.elementAt(selectedIndex);
         id.display();
-        dispose();
+        if (!keepDialogOpen)
+            dispose();
     }
 
 
@@ -239,6 +246,28 @@ public class ScriptBrowser extends JDialog
             if (defaultScript.scriptEquals(script))
                 list.getSelectionModel().addSelectionInterval(i-1, i-1);
         }
+    }
+
+    private class MultiLabel extends JLabel implements MouseListener {
+        MultiWindowCheckboxIcon icon;
+        public MultiLabel() {
+            super(" ", SwingConstants.RIGHT);
+            setIcon(icon = new MultiWindowCheckboxIcon());
+            setHorizontalTextPosition(SwingConstants.RIGHT);
+            setToolTipText(resources.getString("Script_Browser_Keep_Open"));
+            addMouseListener(this);
+        }
+
+        public void mouseClicked(MouseEvent e) {
+            keepDialogOpen = !keepDialogOpen;
+            icon.setChecked(keepDialogOpen);
+            repaint();
+        }
+
+        public void mouseEntered(MouseEvent e) {}
+        public void mouseExited(MouseEvent e) {}
+        public void mousePressed(MouseEvent e) {}
+        public void mouseReleased(MouseEvent e) {}
     }
 
 }

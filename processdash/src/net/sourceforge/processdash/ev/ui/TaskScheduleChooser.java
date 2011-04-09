@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2010 Tuma Solutions, LLC
+// Copyright (C) 2001-2011 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -25,12 +25,10 @@
 package net.sourceforge.processdash.ev.ui;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.FlowLayout;
 import java.awt.Frame;
-import java.awt.Graphics;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
@@ -46,7 +44,6 @@ import java.util.Map;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
-import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
@@ -69,6 +66,7 @@ import net.sourceforge.processdash.ev.EVTaskList;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.ui.help.PCSH;
 import net.sourceforge.processdash.ui.lib.JOptionPaneActionHandler;
+import net.sourceforge.processdash.ui.lib.MultiWindowCheckboxIcon;
 
 public class TaskScheduleChooser
     implements ActionListener, ListSelectionListener
@@ -442,14 +440,17 @@ public class TaskScheduleChooser
     }
 
     private class MultiLabel extends JLabel implements MouseListener {
+        MultiWindowCheckboxIcon icon;
         public MultiLabel() {
-            super(new MultiIcon());
+            setIcon(icon = new MultiWindowCheckboxIcon());
+            icon.setChecked(keepDialogOpen);
             setToolTipText(resources.getString("Keep_Window_Open_Option"));
             addMouseListener(this);
         }
 
         public void mouseClicked(MouseEvent e) {
             keepDialogOpen = !keepDialogOpen;
+            icon.setChecked(keepDialogOpen);
             repaint();
             InternalSettings.set(KEEP_OPEN, keepDialogOpen ? "true" : "false");
         }
@@ -460,42 +461,4 @@ public class TaskScheduleChooser
         public void mouseReleased(MouseEvent e) {}
     }
 
-    private class MultiIcon implements Icon {
-
-        private Color checkColor = Color.black;
-        private Color boxColor = Color.gray;
-        private Color frameColor = Color.black;
-        private Color titleBarColor = Color.blue.darker();
-        private Color windowColor = Color.white;
-
-        public int getIconHeight() {
-            return 11;
-        }
-
-        public int getIconWidth() {
-            return 25;
-        }
-
-        public void paintIcon(Component c, Graphics g, int x, int y) {
-            g.setColor(boxColor);
-            g.drawRect(x+0, y+1, 8, 8);
-            paintFrame(g, x+12, y);
-            paintFrame(g, x+16, y+3);
-
-            if (keepDialogOpen) {
-                g.setColor(checkColor);
-                for (int i=-1;  i < 4;  i++)
-                    g.drawLine(x+3+i, y+6-Math.abs(i), x+3+i, y+7-Math.abs(i));
-            }
-        }
-        private void paintFrame(Graphics g, int x, int y) {
-            g.setColor(frameColor);
-            g.drawRect(x, y, 8, 7);
-            g.setColor(windowColor);
-            g.fillRect(x+1, y+1, 7, 6);
-            g.setColor(titleBarColor);
-            g.drawLine(x+1, y+1, x+7, y+1);
-        }
-
-    }
 }
