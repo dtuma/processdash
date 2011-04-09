@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2009 Tuma Solutions, LLC
+// Copyright (C) 2001-2011 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -176,9 +176,9 @@ public class FileConcurrencyLock implements ConcurrencyLock {
             throw fe;
 
         } catch (Exception e) {
-            // If we were unable to obtain a lock, throw a FailureException
+            // If we were unable to obtain a lock, throw an appropriate exception
             releaseLock();
-            throw new LockFailureException(e);
+            throw new CannotCreateLockException(e);
         }
 
         logger.log(Level.FINE, "Obtained lock for: {0}", lockFile);

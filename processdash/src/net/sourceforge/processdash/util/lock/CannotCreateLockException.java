@@ -25,4 +25,10 @@ package net.sourceforge.processdash.util.lock;
 
 public class CannotCreateLockException extends LockFailureException {
 
+    public CannotCreateLockException() {}
+
+    public CannotCreateLockException(Throwable t) {
+        super(t);
+    }
+
 }
