@@ -983,7 +983,8 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         } catch (AlreadyLockedException e) {
             otherUser = e.getExtraInfo();
         } catch (LockFailureException e) {
-            otherUser = null;
+            showCannotCreateLockMessage(workingDirectory.getDescription(), e);
+            return;
         }
 
         ResourceBundle r = ResourceBundle
