@@ -1,4 +1,4 @@
-// Copyright (C) 2008 Tuma Solutions, LLC
+// Copyright (C) 2008-2011 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -173,7 +173,7 @@ public class FileResourceCollection implements ResourceCollection,
         for (String name : listResourceNames()) {
             File f = new File(directory, name);
             if (f.canWrite() == false)
-                throw new ReadOnlyLockFailureException();
+                throw new ReadOnlyLockFailureException(f);
         }
     }
 
