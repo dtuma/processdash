@@ -375,7 +375,7 @@ public class WBSEditor implements WindowListener, SaveListener,
         readWriteOption.setSelected(true);
 
         Object[] message = new Object[] { READ_ONLY_PROMPT_MESSAGE,
-                readWriteOption, readOnlyOption };
+                readOnlyOption, readWriteOption };
         JOptionPane.showMessageDialog(null, message, "Open Read-Only?",
             JOptionPane.QUESTION_MESSAGE);
 
