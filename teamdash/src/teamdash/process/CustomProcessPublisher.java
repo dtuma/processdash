@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Tuma Solutions, LLC
+// Copyright (C) 2002-2011 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -89,11 +89,7 @@ public class CustomProcessPublisher {
     public static void publish(CustomProcess process, File destFile,
             ContentSource contentSource, URL extBase) throws IOException {
 
-        CustomProcessPublisher pub = new CustomProcessPublisher(contentSource,
-                extBase);
-        FileOutputStream fos = new FileOutputStream(destFile);
-        pub.publish(process, fos);
-        pub.close();
+        publish(process, new FileOutputStream(destFile), contentSource, extBase);
     }
 
     public static void publish(CustomProcess process, OutputStream output,
@@ -261,6 +257,8 @@ public class CustomProcessPublisher {
             handleItemList(process, type);
         }
 
+        setParam("Is_Extfile_Allowed", extBase != null ? "t" : "");
+
         // parameters.put("USE_TO_DATE_DATA", "t");
     }
 
@@ -333,6 +331,18 @@ public class CustomProcessPublisher {
     }
 
     private void enhanceFilenameAttribute(String attrName, String filename) {
+        if (extBase == null) {
+            // we have a convention that when a custom process has "filename"
+            // parameters, those refer to external files outside the custom
+            // process XML file.  If we have no extBase, it means we cannot
+            // load external files (most likely because we are running inside a
+            // servlet process).  To avoid problems, we choose to silently
+            // ignore those custom process parameters.  Remove them from the
+            // parameter map to make it look like they have not been set.
+            parameters.remove(attrName);
+            return;
+        }
+
         String directory = "";
         String baseName = filename;
 
@@ -392,10 +402,17 @@ public class CustomProcessPublisher {
 
     private void initParam(CustomProcess.Item item) {
         String name = item.getAttr(CustomProcess.NAME);
+        name = CustomProcess.bouncyCapsToUnderlines(name);
+
         String value = item.getAttr(VALUE);
         if (value == null)
             value = "t";
-        setParam(CustomProcess.bouncyCapsToUnderlines(name), value);
+
+        setParam(name, value);
+
+        if (name.endsWith("Filename") || name.endsWith("File_Name")) {
+            enhanceFilenameAttribute(name, value);
+        }
     }
 
     protected void setParam(String parameter, String value) {

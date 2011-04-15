@@ -13,6 +13,10 @@
 
     <!-- calculate properties to use when generating other files. -->
     <file in="properties.txt" out="#properties" />
+    <!--#if !Is_Extfile_Allowed -->
+        <!--#set var='Document_List_ALL' value='' -->
+        <!--#set var='Legal_Footer_Snippet' value='' -->
+    <!--#endif-->
 
     <!-- generate the xml template file. -->
     <file in="template.xml" encoding="xml"
