@@ -1,4 +1,4 @@
-// Copyright (C) 2008-2009 Tuma Solutions, LLC
+// Copyright (C) 2008-2011 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -216,7 +216,7 @@ public class BridgedWorkingDirectory extends AbstractWorkingDirectory {
                     // harmless.  In the event that we never get a chance to
                     // recover, we will be able to display a warning to the
                     // user as they shut down.
-                } catch (Exception e) {
+                } catch (Throwable e) {
                     logger.log(Level.WARNING,
                         "Unexpected exception encountered when "
                                 + "uploading working files to server", e);
