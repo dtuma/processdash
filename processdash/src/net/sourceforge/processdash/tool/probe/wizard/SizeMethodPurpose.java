@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2009 Tuma Solutions, LLC
+// Copyright (C) 2002-2011 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -55,6 +55,10 @@ public class SizeMethodPurpose extends MethodPurpose {
 
     public double getExpectedBeta1() {
         return 1.0;
+    }
+
+    public double getBeta1MaxRatio() {
+        return 2;
     }
 
     public int getYColumn() {

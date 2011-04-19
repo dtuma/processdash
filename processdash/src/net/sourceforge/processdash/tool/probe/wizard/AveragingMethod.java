@@ -77,12 +77,13 @@ public class AveragingMethod extends ProbeMethod {
     protected void rateBeta1() {
         double expectedBeta1 = methodPurpose.getExpectedBeta1();
         double ratio = beta1 / expectedBeta1;
+        double maxRatio = methodPurpose.getBeta1MaxRatio();
 
         if (badDouble(ratio)) {
             errorMessages.add(resources.getString("Method.Not_Enough_Data"));
             rating = CANNOT_CALCULATE;
 
-        } else if (ratio > 2 || ratio < 0.5) {
+        } else if (ratio > maxRatio || ratio < 0.5) {
             rating = SERIOUS_PROBLEM;
             String resKey =
                 "Method." + methodPurpose.getKey() + ".Beta1_Problem_FMT";
