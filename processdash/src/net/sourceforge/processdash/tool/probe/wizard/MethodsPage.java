@@ -28,6 +28,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
+import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.DoubleData;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.StringData;
@@ -179,10 +180,13 @@ public class MethodsPage extends WizardPage {
                                            ProbeData.EST_OBJ_LOC));
             addMethod(new RegressionMethod(histData, "B", purpose,
                                            ProbeData.EST_NC_LOC));
-            addMethod(new AveragingMethod(histData, "C1", purpose,
-                                          ProbeData.EST_OBJ_LOC));
-            addMethod(new AveragingMethod(histData, "C2", purpose,
-                                          ProbeData.EST_NC_LOC));
+            boolean disallowC1 = disallowMethodC1();
+            if (disallowC1 == false) {
+                addMethod(new AveragingMethod(histData, "C1", purpose,
+                        ProbeData.EST_OBJ_LOC));
+            }
+            addMethod(new AveragingMethod(histData, (disallowC1 ? "C" : "C2"),
+                    purpose, ProbeData.EST_NC_LOC));
             buildExtraMethods(histData);
         }
         addMethod(new ManualMethod(histData, purpose, ProbeData.EST_OBJ_LOC,
@@ -230,8 +234,28 @@ public class MethodsPage extends WizardPage {
         return (getValue(dataElem) != null);
     }
 
+    protected boolean disallowMethodC1() {
+        return false;
+    }
+
     protected boolean isMethodDReadOnly() {
         return false;
+    }
+
+    protected boolean getBehavioralFlag(String settingName, String dataName,
+            boolean defaultValue) {
+        // First, check the user settings to see if the flag is set.
+        String settingVal = Settings.getVal(settingName);
+        if (StringUtils.hasValue(settingVal))
+            return "true".equalsIgnoreCase(settingVal);
+
+        // Next, check for a flag defined by the current project or its process.
+        SimpleData dataVal = getValue(dataName);
+        if (dataVal != null)
+            return dataVal.test();
+
+        // Otherwise, return the default value.
+        return defaultValue;
     }
 
     private void maybeAutoselectOnlyViableMethod() {

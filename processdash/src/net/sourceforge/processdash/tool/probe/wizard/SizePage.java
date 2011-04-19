@@ -23,8 +23,6 @@
 
 package net.sourceforge.processdash.tool.probe.wizard;
 
-import net.sourceforge.processdash.Settings;
-import net.sourceforge.processdash.util.StringUtils;
 
 
 public class SizePage extends MethodsPage {
@@ -35,15 +33,15 @@ public class SizePage extends MethodsPage {
     }
 
     @Override
-    protected boolean isMethodDReadOnly() {
-        // First, check the user settings.
-        String settingVal = Settings.getVal("probeWizard.readOnlySizeMethodD");
-        if (StringUtils.hasValue(settingVal))
-            return "true".equalsIgnoreCase(settingVal);
+    protected boolean disallowMethodC1() {
+        return getBehavioralFlag("probeWizard.disallowSizeMethodC1",
+            "PROBE_DISALLOW_SIZE_METHOD_C1", false);
+    }
 
-        // If there is no user setting, check with the enclosing project to
-        // see whether it requests a read-only size value.
-        return (getValue("PROBE_READ_ONLY_SIZE_METHOD_D") != null);
+    @Override
+    protected boolean isMethodDReadOnly() {
+        return getBehavioralFlag("probeWizard.readOnlySizeMethodD",
+            "PROBE_READ_ONLY_SIZE_METHOD_D", false);
     }
 
 }
