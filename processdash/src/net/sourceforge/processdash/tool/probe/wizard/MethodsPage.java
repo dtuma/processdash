@@ -185,7 +185,8 @@ public class MethodsPage extends WizardPage {
                                           ProbeData.EST_NC_LOC));
             buildExtraMethods(histData);
         }
-        addMethod(new ManualMethod(histData, purpose, ProbeData.EST_OBJ_LOC));
+        addMethod(new ManualMethod(histData, purpose, ProbeData.EST_OBJ_LOC,
+                isMethodDReadOnly()));
 
         if (probeMethods.size() == 1) {
             ((ProbeMethod) probeMethods.get(0)).setOnly(true);
@@ -227,6 +228,10 @@ public class MethodsPage extends WizardPage {
         }
 
         return (getValue(dataElem) != null);
+    }
+
+    protected boolean isMethodDReadOnly() {
+        return false;
     }
 
     private void maybeAutoselectOnlyViableMethod() {

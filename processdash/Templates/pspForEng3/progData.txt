@@ -43,6 +43,11 @@
 [PROBE_ONLY_COMPLETED] == false;
 
 
+= Tweak the behavior of the PROBE Wizard.
+
+[PROBE_READ_ONLY_SIZE_METHOD_D] == true;
+
+
 = Declare the "FOR_EACH_PHASE" macro, since it isn't available to us
 = in this datafile.
 

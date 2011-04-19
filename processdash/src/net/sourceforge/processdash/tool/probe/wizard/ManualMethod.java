@@ -30,14 +30,30 @@ import net.sourceforge.processdash.util.StringUtils;
 
 public class ManualMethod extends ProbeMethod {
 
+    private int xColumn;
 
-    public ManualMethod(ProbeData data, MethodPurpose purpose, int xColumn) {
+    /**
+     * In certain circumstances (e.g., PROBE Method D for Size during the SEI
+     * PSP Course), users should not be allowed to edit the value suggested
+     * by this method.
+     */
+    private boolean isReadOnly;
+
+
+    public ManualMethod(ProbeData data, MethodPurpose purpose, int xColumn,
+            boolean readOnly) {
         super(data, "D", purpose);
+        this.xColumn = xColumn;
+        this.isReadOnly = readOnly;
 
         this.inputValue = data.getCurrentValue(xColumn);
-        this.outputValue = data.getCurrentValue(purpose.getTargetColumn());
-        if (badDouble(this.outputValue))
-            this.outputValue = inputValue * purpose.getExpectedBeta1();
+        if (readOnly) {
+            this.outputValue = this.inputValue;
+        } else {
+            this.outputValue = data.getCurrentValue(purpose.getTargetColumn());
+            if (badDouble(this.outputValue))
+                this.outputValue = inputValue * purpose.getExpectedBeta1();
+        }
 
         this.beta1 = outputValue / inputValue;
         if (!badDouble(this.beta1)) this.beta0 = 0;
@@ -50,6 +66,11 @@ public class ManualMethod extends ProbeMethod {
 
 
     public void printOption(PrintWriter out) {
+        if (isReadOnly) {
+            super.printOption(out);
+            return;
+        }
+
         String purpose = methodPurpose.getKey();
         String letter = getMethodLetter();
         String qual = purpose + letter;
@@ -98,12 +119,17 @@ public class ManualMethod extends ProbeMethod {
         super.printExplanation(out);
 
         String resKey;
-        if (isBest || isOnly)
+        if (isReadOnly)
+            resKey = "Wizard.MethodD." + methodPurpose.getKey()
+                    + ".Read_Only_Advice_FMT";
+        else if (isBest || isOnly)
             resKey = "MethodD.Best_Advice_FMT";
         else
             resKey = "MethodD.Alternate_Advice_FMT";
-        out.print(resources.format
-                      (resKey, this.methodPurpose.getTargetName()));
+        int inputColumn = this.methodPurpose.mapInputColumn(xColumn);
+        out.print(resources.format(resKey,
+            this.methodPurpose.getTargetName(),
+            histData.getResultSet().getColName(inputColumn)));
     }
 
 

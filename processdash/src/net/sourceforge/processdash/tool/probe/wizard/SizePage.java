@@ -1,4 +1,4 @@
-// Copyright (C) 2002 Tuma Solutions, LLC
+// Copyright (C) 2002-2011 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -23,12 +23,27 @@
 
 package net.sourceforge.processdash.tool.probe.wizard;
 
+import net.sourceforge.processdash.Settings;
+import net.sourceforge.processdash.util.StringUtils;
+
 
 public class SizePage extends MethodsPage {
 
     public void settingDone() {
         super.settingDone();
         purpose = new SizeMethodPurpose(histData);
+    }
+
+    @Override
+    protected boolean isMethodDReadOnly() {
+        // First, check the user settings.
+        String settingVal = Settings.getVal("probeWizard.readOnlySizeMethodD");
+        if (StringUtils.hasValue(settingVal))
+            return "true".equalsIgnoreCase(settingVal);
+
+        // If there is no user setting, check with the enclosing project to
+        // see whether it requests a read-only size value.
+        return (getValue("PROBE_READ_ONLY_SIZE_METHOD_D") != null);
     }
 
 }
