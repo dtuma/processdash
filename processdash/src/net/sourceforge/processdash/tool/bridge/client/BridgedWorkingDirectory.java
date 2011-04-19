@@ -57,7 +57,7 @@ public class BridgedWorkingDirectory extends AbstractWorkingDirectory {
                 workingDirectoryParent);
 
         FileResourceCollection collection = new FileResourceCollection(
-                workingDirectory);
+                workingDirectory, false);
         collection.setStrategy(strategy);
 
         client = new ResourceBridgeClient(collection, remoteURL, strategy

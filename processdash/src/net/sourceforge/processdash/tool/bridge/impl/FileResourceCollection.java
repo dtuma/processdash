@@ -71,10 +71,15 @@ public class FileResourceCollection implements ResourceCollection,
 
 
     public FileResourceCollection(File directory) {
+        this(directory, true);
+    }
+
+    public FileResourceCollection(File directory, boolean enablePropSupport) {
         this.directory = directory;
         this.cachedData = Collections
                 .synchronizedMap(new HashMap<String, CachedFileData>());
-        this.propSupport = new PropertyChangeSupport(this);
+        if (enablePropSupport)
+            this.propSupport = new PropertyChangeSupport(this);
     }
 
     public void setStrategy(FileResourceCollectionStrategy strategy) {
@@ -132,7 +137,8 @@ public class FileResourceCollection implements ResourceCollection,
                 f.delete();
             }
             cachedData.remove(resourceName);
-            propSupport.firePropertyChange(resourceName, null, DELETED);
+            if (propSupport != null)
+                propSupport.firePropertyChange(resourceName, null, DELETED);
         }
     }
 
@@ -180,21 +186,31 @@ public class FileResourceCollection implements ResourceCollection,
     // Methods for resource change notification
 
     public void addResourceListener(PropertyChangeListener l) {
+        checkPropSupport();
         propSupport.addPropertyChangeListener(l);
     }
 
     public void addResourceListener(String resourceName,
             PropertyChangeListener l) {
+        checkPropSupport();
         propSupport.addPropertyChangeListener(resourceName, l);
     }
 
     public void removeResourceListener(PropertyChangeListener l) {
+        checkPropSupport();
         propSupport.removePropertyChangeListener(l);
     }
 
     public void removeResourceListener(String resourceName,
             PropertyChangeListener l) {
+        checkPropSupport();
         propSupport.removePropertyChangeListener(resourceName, l);
+    }
+
+    private void checkPropSupport() {
+        if (propSupport == null)
+            throw new IllegalStateException("Property change notification "
+                    + "is not enabled for this FileResourceCollection");
     }
 
 
@@ -333,8 +349,9 @@ public class FileResourceCollection implements ResourceCollection,
                 fd.checksum = getChecksum();
             }
 
-            propSupport.firePropertyChange(resourceName, null,
-                ADDED_OR_MODIFIED);
+            if (propSupport != null)
+                propSupport.firePropertyChange(resourceName, null,
+                    ADDED_OR_MODIFIED);
         }
 
     }

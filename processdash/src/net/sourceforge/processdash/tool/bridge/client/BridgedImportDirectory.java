@@ -1,4 +1,4 @@
-// Copyright (C) 2008 Tuma Solutions, LLC
+// Copyright (C) 2008-2011 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -51,7 +51,7 @@ public class BridgedImportDirectory implements ImportDirectory {
         this.importDirectory.mkdirs();
 
         FileResourceCollection localCollection = new FileResourceCollection(
-                importDirectory);
+                importDirectory, false);
         localCollection.setStrategy(strategy);
         this.client = new ResourceBridgeClient(localCollection, remoteURL, null);
 
