@@ -470,7 +470,7 @@ class dependency has been added in a dashboard class?)
 	  destfile="${processdash.dist}/${launchProfile.filename}">
       <fileset dir="${processdash.dist}"
           includesfile="${processdash.lib}/fileset-install-jars.txt" />
-      <fileset dir=".">
+      <fileset dir="${processdash.dist}">
         <include name="TeamTools.jar"/>
         <include name="${launchProfile.file1}"/>
         <include name="${launchProfile.file2}"/>
@@ -478,15 +478,6 @@ class dependency has been added in a dashboard class?)
       <fileset dir="install" includes="${skipConsentFile}"/>
       <fileset file="${licenseFile}"/>
     </packageLaunchProfile>
-  </target>
-
-  <target name="publish" depends="TeamProcess">
-    <copy todir="${processdash.dir}/dist">
-      <fileset dir=".">
-        <include name="${teamProcess.zip}"/>
-	<include name="TeamTools.jar"/>
-      </fileset>
-    </copy>
   </target>
 
   <target name="dist" depends="installer-cd"/>
