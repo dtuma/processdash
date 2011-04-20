@@ -1,4 +1,4 @@
-// Copyright (C) 2006 Tuma Solutions, LLC
+// Copyright (C) 2006-2011 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -25,13 +25,21 @@ package net.sourceforge.processdash.ui.web.psp;
 
 import java.awt.Toolkit;
 import java.awt.datatransfer.StringSelection;
+import java.io.BufferedOutputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import net.sourceforge.processdash.Settings;
+import net.sourceforge.processdash.data.DataContext;
+import net.sourceforge.processdash.data.ImmutableDoubleData;
 import net.sourceforge.processdash.data.ListData;
 import net.sourceforge.processdash.data.StringData;
+import net.sourceforge.processdash.data.TagData;
+import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.data.util.ResultSet;
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.PropertyKey;
@@ -47,9 +55,13 @@ public class StudataExporter extends TinyCGIBase {
         ResultSet data = ResultSet.get(getDataRepository(), parameters,
                 "/To Date/PSP/All", getPSPProperties());
 
+        adjustDataAndPaths(projectPaths, data);
+
         String clipboardData = getClipboardData(projectPaths, data);
         Toolkit.getDefaultToolkit().getSystemClipboard().setContents(
                 new StringSelection(clipboardData), null);
+
+        writeXmlFile(getStudentProfilePath(), projectPaths, data);
 
         String studentName = getOwner();
         String forStudent = "";
@@ -105,6 +117,53 @@ public class StudataExporter extends TinyCGIBase {
         return projectPaths;
     }
 
+    private void adjustDataAndPaths(List projectPaths, ResultSet data) {
+        for (Iterator i = projectPaths.iterator(); i.hasNext();) {
+            String path = (String) i.next();
+            int row = indexOfPath(data, path);
+
+            // if this path is not represented in the result data,
+            // remove it from the list of project paths.
+            if (row == -1) {
+                i.remove();
+                continue;
+            }
+
+            // if this path is a PSP0 project, zero out the time estimates.
+            if (hasTag(path, "PSP0"))
+                clobberPSP0TimeEstimates(data, row);
+        }
+    }
+
+    private void clobberPSP0TimeEstimates(ResultSet data, int row) {
+        for (int col = data.numCols();  col > 0;  col--) {
+            String colName = data.getColName(col);
+            if (colName.endsWith("EstTime"))
+                data.setData(row, col, ImmutableDoubleData.READ_ONLY_ZERO);
+        }
+    }
+
+    private String getStudentProfilePath() {
+        DashHierarchy hier = getDashboardContext().getHierarchy();
+        PropertyKey parent = hier.findExistingKey(getPrefix());
+        int numKids = hier.getNumChildren(parent);
+        for (int i = 0;  i < numKids;  i++) {
+            PropertyKey child = hier.getChildKey(parent, i);
+            String path = child.path();
+            if (hasTag(path, "PspForEngV3_Student_Profile"))
+                return path;
+        }
+
+        // no student profile was found.  Create an imaginary one; it will
+        // still allow the name and programming language to be exported.
+        return getPrefix() + "/No Student Profile Found";
+    }
+
+    private boolean hasTag(String path, String tagName) {
+        String dataName = DataRepository.createDataName(path, tagName);
+        return (getDataRepository().getSimpleValue(dataName) instanceof TagData);
+    }
+
     private String getClipboardData(List projectPaths, ResultSet data) {
         StringBuffer result = new StringBuffer();
         for (Iterator i = projectPaths.iterator(); i.hasNext();) {
@@ -112,8 +171,6 @@ public class StudataExporter extends TinyCGIBase {
             int row = indexOfPath(data, path);
             if (row != -1)
                 copyRowData(data, row, result);
-            else
-                i.remove();
         }
         return result.toString();
     }
@@ -131,4 +188,20 @@ public class StudataExporter extends TinyCGIBase {
             dest.append(data.format(row, col)).append("\t");
         dest.append(data.format(row, data.numCols())).append("\n");
     }
+
+    private void writeXmlFile(String studentProfilePath, List projectPaths,
+            ResultSet data) throws IOException {
+        // TODO: a GUI is needed for editing this path.
+        String outputFilename = Settings.getVal("studata.outputFile");
+        if (outputFilename == null)
+            return;
+
+        OutputStream out = new BufferedOutputStream(new FileOutputStream(
+                outputFilename));
+        DataContext profileData = getDataRepository().getSubcontext(
+            studentProfilePath);
+        StudataExporterXml.writeXmlData(out, profileData, projectPaths, data);
+        out.close();
+    }
+
 }
