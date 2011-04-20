@@ -1,4 +1,4 @@
-// Copyright (C) 2009 Tuma Solutions, LLC
+// Copyright (C) 2009-2011 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -53,7 +53,7 @@ public class PspForEngQuickLinks extends PspForEngBase {
             printLink(target, null, "reports/probe/probe.class?page=report",
                 "PROBE Report");
         }
-        printLink(target, PARENT, "pspForEng/studata", "Copy STUDATA");
+        printLink(target, PARENT, "pspForEng/studata", "Export STUDATA");
     }
 
     private Mode getMode() {
