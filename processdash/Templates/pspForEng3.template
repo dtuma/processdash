@@ -11,7 +11,12 @@
 ### latest materials
 ######################################################################
 
-PropertyKey<top><PSP for Engineers>=Prop[][pspForEngV3][][pspForEng3/rootData.txt][][0][10][PropertyKey<top/PSP for Engineers><Program 1>][PropertyKey<top/PSP for Engineers><Program 2>][PropertyKey<top/PSP for Engineers><Program 3>][PropertyKey<top/PSP for Engineers><Program 4>][PropertyKey<top/PSP for Engineers><Interim Report>][PropertyKey<top/PSP for Engineers><Program 5>][PropertyKey<top/PSP for Engineers><Program 6>][PropertyKey<top/PSP for Engineers><Program 7>][PropertyKey<top/PSP for Engineers><Program 8>][PropertyKey<top/PSP for Engineers><Final Report>]
+PropertyKey<top><PSP for Engineers>=Prop[][pspForEngV3][][pspForEng3/rootData.txt][][0][11][PropertyKey<top/PSP for Engineers><Student Profile>][PropertyKey<top/PSP for Engineers><Program 1>][PropertyKey<top/PSP for Engineers><Program 2>][PropertyKey<top/PSP for Engineers><Program 3>][PropertyKey<top/PSP for Engineers><Program 4>][PropertyKey<top/PSP for Engineers><Interim Report>][PropertyKey<top/PSP for Engineers><Program 5>][PropertyKey<top/PSP for Engineers><Program 6>][PropertyKey<top/PSP for Engineers><Program 7>][PropertyKey<top/PSP for Engineers><Program 8>][PropertyKey<top/PSP for Engineers><Final Report>]
+
+
+# Student Profile
+
+PropertyKey<top/PSP for Engineers><Student Profile>=Prop[][pfeStudentProfile][][pspForEng3/profileData.txt][<>][0][0]
 
 
 # Program 1

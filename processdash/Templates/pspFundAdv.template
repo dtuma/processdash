@@ -10,7 +10,12 @@
 ### Property keys for the PSP Fundamentals & Advanced courses
 ######################################################################
 
-PropertyKey<top><PSP Fundamentals & Advanced>=Prop[][pspFundAdv][][pspForEng3/rootData.txt][][0][8][PropertyKey<top/PSP Fundamentals & Advanced><Program 1>][PropertyKey<top/PSP Fundamentals & Advanced><Program 2>][PropertyKey<top/PSP Fundamentals & Advanced><Program 3>][PropertyKey<top/PSP Fundamentals & Advanced><Program 4>][PropertyKey<top/PSP Fundamentals & Advanced><Program 5>][PropertyKey<top/PSP Fundamentals & Advanced><Program 6>][PropertyKey<top/PSP Fundamentals & Advanced><Program 7>][PropertyKey<top/PSP Fundamentals & Advanced><Analysis Report>]
+PropertyKey<top><PSP Fundamentals & Advanced>=Prop[][pspFundAdv][][pspForEng3/rootData.txt][][0][9][PropertyKey<top/PSP Fundamentals & Advanced><Student Profile>][PropertyKey<top/PSP Fundamentals & Advanced><Program 1>][PropertyKey<top/PSP Fundamentals & Advanced><Program 2>][PropertyKey<top/PSP Fundamentals & Advanced><Program 3>][PropertyKey<top/PSP Fundamentals & Advanced><Program 4>][PropertyKey<top/PSP Fundamentals & Advanced><Program 5>][PropertyKey<top/PSP Fundamentals & Advanced><Program 6>][PropertyKey<top/PSP Fundamentals & Advanced><Program 7>][PropertyKey<top/PSP Fundamentals & Advanced><Analysis Report>]
+
+
+# Student Profile
+
+PropertyKey<top/PSP Fundamentals & Advanced><Student Profile>=Prop[][pfeStudentProfile][][pspForEng3/profileData.txt][<>][0][0]
 
 
 # Program 1

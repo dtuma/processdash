@@ -1,0 +1,24 @@
+
+==
+== The following elements identify the data in this file as the student
+== profile for a PSP class.
+==
+
+[PspForEngV3_Student_Profile] == TAG;
+[node] == TAG;
+[leaf] == TAG;
+
+
+==
+== Inherit the language setting from the "PSP for Engineers" datafile,
+== and allow changes to write through to there.
+==
+
+[ProjectLang] = [../Project/Language];
+
+
+==
+== Calculate the date to use in the XML student data export.
+==
+
+[Profile_Date] = [Completed] || [../Started];

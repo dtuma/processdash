@@ -11,12 +11,17 @@
 ### to build an arbitrary assignment sequence for a PSP class
 ######################################################################
 
-PropertyKey<top><PSP Course Flex Components>=Prop[][][][pspForEng3/rootData.txt][>][0][9][PropertyKey<top/PSP Course Flex Components><Root>][PropertyKey<top/PSP Course Flex Components><PSP0>][PropertyKey<top/PSP Course Flex Components><PSP0.1>][PropertyKey<top/PSP Course Flex Components><PSP1>][PropertyKey<top/PSP Course Flex Components><PSP1.1>][PropertyKey<top/PSP Course Flex Components><PSP2>][PropertyKey<top/PSP Course Flex Components><PSP2B>][PropertyKey<top/PSP Course Flex Components><PSP2.1>][PropertyKey<top/PSP Course Flex Components><Report>]
+PropertyKey<top><PSP Course Flex Components>=Prop[][][][pspForEng3/rootData.txt][>][0][10][PropertyKey<top/PSP Course Flex Components><Root>][PropertyKey<top/PSP Course Flex Components><Student Profile>][PropertyKey<top/PSP Course Flex Components><PSP0>][PropertyKey<top/PSP Course Flex Components><PSP0.1>][PropertyKey<top/PSP Course Flex Components><PSP1>][PropertyKey<top/PSP Course Flex Components><PSP1.1>][PropertyKey<top/PSP Course Flex Components><PSP2>][PropertyKey<top/PSP Course Flex Components><PSP2B>][PropertyKey<top/PSP Course Flex Components><PSP2.1>][PropertyKey<top/PSP Course Flex Components><Report>]
 
 
 # Course Root
 
 PropertyKey<top/PSP Course Flex Components><Root>=Prop[][pspCourseRoot][][pspForEng3/rootData.txt][][0][0]
+
+
+# Student Profile
+
+PropertyKey<top/PSP Course Flex Components><Student Profile>=Prop[][pfeStudentProfile][][pspForEng3/profileData.txt][<>][0][0]
 
 
 # PSP0
