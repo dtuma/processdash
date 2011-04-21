@@ -1,4 +1,4 @@
-// Copyright (C) 2006 Tuma Solutions, LLC
+// Copyright (C) 2006-2011 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -42,6 +42,12 @@ public class InstanceLauncherFactory {
 
     private static final Resources resources = QuickLauncher.resources;
 
+    private boolean showMessageForUnrecognizedFile = false;
+
+    public void setShowMessageForUnrecognizedFile(
+            boolean showMessageForUnrecognizedFile) {
+        this.showMessageForUnrecognizedFile = showMessageForUnrecognizedFile;
+    }
 
     public DashboardInstance getLauncher(Component comp, File f) {
         String basename = f.getName().toLowerCase();
@@ -52,8 +58,16 @@ public class InstanceLauncherFactory {
             return getDirLauncher(comp, f);
         }
 
-        if (!f.isFile())
+        if (!f.isFile()) {
+            if (showMessageForUnrecognizedFile) {
+                JOptionPane.showMessageDialog(comp,
+                        resources.formatStrings("Errors.File_Not_Found_FMT",
+                                f.getPath()),
+                        resources.getString("Errors.No_Data_Found"),
+                        JOptionPane.ERROR_MESSAGE);
+            }
             return null;
+        }
 
         if (FileBackupManager.inBackupSet(f.getParentFile(), basename))
             return getDirLauncher(comp, f.getParentFile());
@@ -61,6 +75,13 @@ public class InstanceLauncherFactory {
         if (CompressedInstanceLauncher.isCompressedInstanceFilename(basename))
             return getZipLauncher(comp, f);
 
+        if (showMessageForUnrecognizedFile) {
+            JOptionPane.showMessageDialog(comp,
+                    resources.formatStrings("Errors.Unrecognized_File_FMT",
+                            f.getPath()),
+                    resources.getString("Errors.No_Data_Found"),
+                    JOptionPane.ERROR_MESSAGE);
+        }
         return null;
     }
 

@@ -108,6 +108,9 @@ public class QuickLauncher {
             else
                 processFactory = new DashboardProcessFactoryForking();
 
+            // if additional JVM properties are added here in the future,
+            // consider adding them to the SimpleInternalLauncher as well
+
             processFactory.addVmArg("-D" + Settings.SYS_PROP_PREFIX
                     + "backup.extraDirectories=");
 

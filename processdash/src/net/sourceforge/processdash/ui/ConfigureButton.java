@@ -1,4 +1,4 @@
-// Copyright (C) 1999-2009 Tuma Solutions, LLC
+// Copyright (C) 1999-2011 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -58,6 +58,7 @@ import net.sourceforge.processdash.tool.export.ui.wizard.ShowExportWizardAction;
 import net.sourceforge.processdash.tool.export.ui.wizard.ShowImportWizardAction;
 import net.sourceforge.processdash.tool.prefs.OpenPreferencesDialogAction;
 import net.sourceforge.processdash.tool.probe.ProbeDialog;
+import net.sourceforge.processdash.tool.quicklauncher.OpenDatasetAction;
 import net.sourceforge.processdash.ui.help.DashHelpBroker;
 import net.sourceforge.processdash.ui.help.PCSH;
 
@@ -181,7 +182,9 @@ public class ConfigureButton extends JMenuBar implements ActionListener, Hierarc
             toolMenu.add(new ShowImportWizardAction(resources.getString(IMPORT)));
             toolMenu.add(new ShowExportWizardAction(resources.getString(EXPORT)));
         }
-        toolMenu.add(new SaveBackupAction(parent.getData()));
+        SaveBackupAction saveBackupAction = new SaveBackupAction(parent.getData());
+        toolMenu.add(saveBackupAction);
+        toolMenu.add(new OpenDatasetAction(parent, saveBackupAction));
         toolMenu.add(new OpenLOCDiffAction());
         addToolExtensions(toolMenu);
     }

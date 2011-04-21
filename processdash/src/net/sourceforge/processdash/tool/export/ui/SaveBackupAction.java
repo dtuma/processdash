@@ -1,4 +1,4 @@
-// Copyright (C) 2007-2010 Tuma Solutions, LLC
+// Copyright (C) 2007-2011 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -24,6 +24,7 @@
 package net.sourceforge.processdash.tool.export.ui;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.io.BufferedOutputStream;
@@ -59,6 +60,8 @@ public class SaveBackupAction extends AbstractAction {
     private DataContext dataContext;
 
     private BackupCoordinator backupCoordinator = null;
+
+    private File lastBackupDirectory;
 
     private static final Resources resources = Resources
             .getDashBundle("ProcessDashboard");
@@ -132,7 +135,7 @@ public class SaveBackupAction extends AbstractAction {
                 return;
             }
 
-            doOnSwingThread("showSucess");
+            doOnSwingThread("showSuccess");
 
             try {
                 Thread.sleep(2000);
@@ -140,10 +143,12 @@ public class SaveBackupAction extends AbstractAction {
             }
         }
 
+        @SuppressWarnings("unused")
         public void promptForDestFile() {
             destFile = getDestFile();
         }
 
+        @SuppressWarnings("unused")
         public void showProgressDialog() {
             progressDialog.setLocationRelativeTo(null);
             progressDialog.setVisible(true);
@@ -167,6 +172,7 @@ public class SaveBackupAction extends AbstractAction {
             out.close();
         }
 
+        @SuppressWarnings("unused")
         public void showErrorMessage() {
             String[] message = resources
                     .getStrings("Save_Backup.Error.Message");
@@ -175,10 +181,12 @@ public class SaveBackupAction extends AbstractAction {
                 JOptionPane.ERROR_MESSAGE);
         }
 
-        public void showSucess() {
-            progressDialog.showSucess();
+        @SuppressWarnings("unused")
+        public void showSuccess() {
+            progressDialog.showSuccess();
         }
 
+        @SuppressWarnings("unused")
         public void finished() {
             progressDialog.dispose();
             backupCoordinator = null;
@@ -227,7 +235,7 @@ public class SaveBackupAction extends AbstractAction {
             pack();
         }
 
-        public void showSucess() {
+        public void showSuccess() {
             String finished = resources
                     .getString("Save_Backup.Progress.Finished");
             setTitle(finished);
@@ -255,7 +263,7 @@ public class SaveBackupAction extends AbstractAction {
     private File getDestFile() {
         JFileChooser fc = new JFileChooser();
         fc.setAcceptAllFileFilterUsed(false);
-        fc.setSelectedFile(new File(fc.getCurrentDirectory(),
+        fc.setSelectedFile(new File(getDefaultDirectory(fc),
                 getDefaultFilename()));
         fc.setDialogTitle(resources.getString("Save_Backup.Window_Title"));
         fc.addChoosableFileFilter(makeFilter(PDBK));
@@ -265,11 +273,41 @@ public class SaveBackupAction extends AbstractAction {
             return null;
 
         File dest = fc.getSelectedFile();
+        saveDefaultDirectory(dest);
         if (dest == null)
             return null;
 
         ExampleFileFilter ff = (ExampleFileFilter) fc.getFileFilter();
         return ff.maybeAppendExtension(dest);
+    }
+
+    public File selectBackupFile(Component parent, String title) {
+        JFileChooser fc = new JFileChooser();
+        if (lastBackupDirectory != null)
+            fc.setCurrentDirectory(lastBackupDirectory);
+        fc.setDialogTitle(title);
+        ExampleFileFilter ff = makeFilter(PDBK);
+        ff.addExtension("zip");
+        fc.addChoosableFileFilter(ff);
+
+        if (fc.showOpenDialog(parent) != JFileChooser.APPROVE_OPTION)
+            return null;
+
+        File result = fc.getSelectedFile();
+        saveDefaultDirectory(result);
+        return result;
+    }
+
+    private void saveDefaultDirectory(File f) {
+        if (f != null)
+            lastBackupDirectory = f.getParentFile();
+    }
+
+    private File getDefaultDirectory(JFileChooser fc) {
+        if (lastBackupDirectory != null)
+            return lastBackupDirectory;
+        else
+            return fc.getCurrentDirectory();
     }
 
     private String getDefaultFilename() {
