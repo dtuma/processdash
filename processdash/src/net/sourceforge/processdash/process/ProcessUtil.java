@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2007 Tuma Solutions, LLC
+// Copyright (C) 2003-2011 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -37,6 +37,8 @@ import net.sourceforge.processdash.util.FormatUtil;
 
 
 public class ProcessUtil {
+
+    public static final String DEFAULT_SIZE_UNITS = "LOC";
 
     static Resources resources = Resources.getGlobalBundle();
 
@@ -96,6 +98,14 @@ public class ProcessUtil {
             val = getValue(getGlobalName(stringName));
 
         return val == null ? "" : val.format();
+    }
+
+    public String getSizeUnits() {
+        String result = getProcessString("Size Units", false).trim();
+        if (result.length() > 0)
+            return result;
+        else
+            return DEFAULT_SIZE_UNITS;
     }
 
     public String getSizeMetric() {

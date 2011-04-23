@@ -1,4 +1,4 @@
-// Copyright (C) 2009 Tuma Solutions, LLC
+// Copyright (C) 2009-2011 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -32,9 +32,11 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 
 import net.sourceforge.processdash.data.DataContext;
+import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.StringData;
 import net.sourceforge.processdash.data.repository.DataNameFilter;
 import net.sourceforge.processdash.data.repository.DataRepository;
+import net.sourceforge.processdash.process.ProcessUtil;
 import net.sourceforge.processdash.util.StringUtils;
 
 public class SizePerItemTable {
@@ -64,6 +66,8 @@ public class SizePerItemTable {
 
     private String tableName;
 
+    private String sizeUnits;
+
     private List<String> categoryNames;
 
     private double[][] sizeData;
@@ -71,6 +75,10 @@ public class SizePerItemTable {
 
     public String getTableName() {
         return tableName;
+    }
+
+    public String getSizeUnits() {
+        return sizeUnits;
     }
 
     public List<String> getCategoryNames() {
@@ -87,9 +95,18 @@ public class SizePerItemTable {
 
     public SizePerItemTable(String tableName, String spec)
             throws ParseException {
+        this(tableName, null, spec);
+    }
+
+    public SizePerItemTable(String tableName, String sizeUnits, String spec)
+            throws ParseException {
         this.tableName = tableName;
         if (!StringUtils.hasValue(tableName))
             throw new ParseException("Table_Name_Missing");
+
+        this.sizeUnits = (sizeUnits == null ? null : sizeUnits.trim());
+        if (!StringUtils.hasValue(this.sizeUnits))
+            this.sizeUnits = ProcessUtil.DEFAULT_SIZE_UNITS;
 
         this.categoryNames = new ArrayList<String>();
         String[] catSpecs = spec.replace('|', '\n').trim().split("[\r\n]+");
@@ -130,11 +147,14 @@ public class SizePerItemTable {
 
     public void save(DataContext data) {
         String dataName = DATA_PREFIX + tableName;
+        String unitsName = dataName + UNITS_SUFFIX;
         if (categoryNames.isEmpty()) {
             data.putValue(dataName, null);
+            data.putValue(unitsName, null);
             CACHE.remove(tableName);
         } else {
             data.putValue(dataName, StringData.create(format("|")));
+            data.putValue(unitsName, StringData.create(sizeUnits));
             CACHE.put(tableName, this);
         }
     }
@@ -160,14 +180,20 @@ public class SizePerItemTable {
         SizePerItemTable result = CACHE.get(tableName);
         if (result == null) {
             try {
-                String spec = data.getSimpleValue(DATA_PREFIX + tableName)
-                        .format();
-                result = new SizePerItemTable(tableName, spec);
+                String spec = getStrVal(data, DATA_PREFIX + tableName);
+                String units = getStrVal(data, DATA_PREFIX + tableName
+                        + UNITS_SUFFIX);
+                result = new SizePerItemTable(tableName, units, spec);
                 CACHE.put(tableName, result);
             } catch (Exception e) {
             }
         }
         return result;
+    }
+
+    private static String getStrVal(DataContext data, String name) {
+        SimpleData sd = data.getSimpleValue(name);
+        return (sd == null ? null : sd.format());
     }
 
     public static SortedMap<String, SizePerItemTable> getDefinedTables(
@@ -177,7 +203,7 @@ public class SizePerItemTable {
         Iterator k = data.getKeys(null, NAME_FILTER);
         while (k.hasNext()) {
             String name = (String) k.next();
-            if (name.startsWith(DATA_PREFIX)) {
+            if (name.startsWith(DATA_PREFIX) && !name.endsWith(UNITS_SUFFIX)) {
                 String tableName = name.substring(DATA_PREFIX.length());
                 SizePerItemTable table = getByName(tableName, data);
                 if (table != null)
@@ -187,6 +213,24 @@ public class SizePerItemTable {
 
         return result;
     }
+
+    public static SortedMap<String, SizePerItemTable> getDefinedTables(
+        DataRepository data, String sizeUnits) {
+        if (sizeUnits != null)
+            sizeUnits = sizeUnits.trim();
+        if (!StringUtils.hasValue(sizeUnits))
+            return new TreeMap();
+
+        SortedMap<String, SizePerItemTable> result = getDefinedTables(data);
+        for (Iterator i = result.entrySet().iterator(); i.hasNext();) {
+            Map.Entry e = (Map.Entry) i.next();
+            SizePerItemTable oneTable = (SizePerItemTable) e.getValue();
+            if (!oneTable.getSizeUnits().equalsIgnoreCase(sizeUnits))
+                i.remove();
+        }
+        return result;
+    }
+
 
     private static class NameFilter implements DataNameFilter.PrefixLocal {
         public boolean acceptPrefixLocalName(String prefix, String localName) {
@@ -203,5 +247,7 @@ public class SizePerItemTable {
 
 
     private static final String DATA_PREFIX = "/Size Per Item Table/";
+
+    private static final String UNITS_SUFFIX = "/Size Units";
 
 }

@@ -1,4 +1,4 @@
-// Copyright (C) 2009 Tuma Solutions, LLC
+// Copyright (C) 2009-2011 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -31,6 +31,7 @@ import net.sourceforge.processdash.DashController;
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.DoubleData;
 import net.sourceforge.processdash.i18n.Resources;
+import net.sourceforge.processdash.process.ProcessUtil;
 import net.sourceforge.processdash.tool.probe.SizePerItemTable.ParseException;
 import net.sourceforge.processdash.tool.probe.SizePerItemTable.RelativeSize;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
@@ -43,6 +44,7 @@ public class EditSizePerItemTables extends TinyCGIBase {
     private static final String SCRIPT = "sizePerItemEdit";
     private static final String ACTION = "action";
     private static final String NAME = "name";
+    private static final String UNITS = "units";
     private static final String CONTENTS = "contents";
     private static final String SAVE = "save";
     private static final String HEADER_KEY = "headerKey";
@@ -66,7 +68,8 @@ public class EditSizePerItemTables extends TinyCGIBase {
         parseFormData();
         if (parameters.containsKey(SAVE) && Settings.isReadWrite()) {
             try {
-                save(getParameter(NAME), getParameter(CONTENTS));
+                save(getParameter(NAME), getParameter(UNITS),
+                    getParameter(CONTENTS));
                 getDataRepository().putValue(CHANGE_DATA_NAME,
                     new DoubleData(uniqueNumber));
             } catch (ParseException e) {
@@ -102,7 +105,7 @@ public class EditSizePerItemTables extends TinyCGIBase {
         else if (action == Action.Edit)
             editExisting(table);
         else if (action == Action.Delete)
-            deleteExisting(name);
+            deleteExisting(name, table.getSizeUnits());
         else if (action == Action.Copy)
             copyExisting(table);
         else
@@ -165,7 +168,9 @@ public class EditSizePerItemTables extends TinyCGIBase {
 
                 out.print("<tr><td class='pad'><ul><li>&quot;<b>");
                 out.print(htmlName);
-                out.print("</b>&quot;</li></ul></td>");
+                out.print("</b>&quot;&nbsp;(");
+                out.print(esc(e.getValue().getSizeUnits()));
+                out.print(")</li></ul></td>");
 
                 for (Action opt : Action.values()) {
                     out.print("<td class='pad'><a href='" + SCRIPT + "?"
@@ -188,12 +193,14 @@ public class EditSizePerItemTables extends TinyCGIBase {
     }
 
 
-    private void showTable(SizePerItemTable table ) throws IOException {
+    private void showTable(SizePerItemTable table) throws IOException {
         writeHTMLHeader();
 
         out.print("<h2>");
         out.print(esc(table.getTableName()));
         out.println("</h2>");
+
+        showUnits(table.getSizeUnits(), false);
 
         interpOut("<table border class='view'><tr>"
             + "<th>${Category}</th>"
@@ -223,20 +230,21 @@ public class EditSizePerItemTables extends TinyCGIBase {
 
 
     private void editExisting(SizePerItemTable table) throws IOException {
-        drawForm("Edit_Existing", table.getTableName(), false, table, null);
+        drawForm("Edit_Existing", table.getTableName(), false, table
+                .getSizeUnits(), table, null);
     }
 
     private void createNew() throws IOException {
         drawForm("Create_New", resources.getString("Enter_New_Name"), true,
-            null, null);
+            new ProcessUtil(getDataContext()).getSizeUnits(), null, null);
     }
 
     private void copyExisting(SizePerItemTable table) throws IOException {
         drawForm("Copy_Existing", resources.getString("Enter_New_Name"), true,
-            table, null);
+            table.getSizeUnits(), table, null);
     }
 
-    protected void deleteExisting(String tableName) throws IOException {
+    protected void deleteExisting(String tableName, String units) throws IOException {
         writeHTMLHeader();
         out.print("<h2>");
         out.print(resources.getHTML("Delete_Existing"));
@@ -244,6 +252,7 @@ public class EditSizePerItemTables extends TinyCGIBase {
         out.print(resources.getHTML("Delete_Existing_Prompt"));
         out.println("<form action='" + SCRIPT + "' method='POST'>");
         showName(tableName, false);
+        showUnits(units, false);
         out.print("<input type='hidden' name='" + CONTENTS + "' value=''>");
 
         out.print("<p><input type=submit name='"+SAVE+"' value='");
@@ -259,13 +268,14 @@ public class EditSizePerItemTables extends TinyCGIBase {
     private void redrawForm(ParseException e) throws IOException {
         String headerKey = getParameter(HEADER_KEY);
         String nameToDisplay = getParameter(NAME);
+        String units = getParameter(UNITS);
         boolean nameEditable = parameters.containsKey(NAME_EDITABLE);
-        drawForm(headerKey, nameToDisplay, nameEditable, null, e);
+        drawForm(headerKey, nameToDisplay, nameEditable, units, null, e);
     }
 
     protected void drawForm(String headerKey, String nameToDisplay,
-            boolean nameEditable, SizePerItemTable table, ParseException err)
-            throws IOException {
+            boolean nameEditable, String sizeUnits, SizePerItemTable table,
+            ParseException err) throws IOException {
 
         writeHTMLHeader();
         out.print("<h2>");
@@ -274,6 +284,7 @@ public class EditSizePerItemTables extends TinyCGIBase {
         out.println("<form action='" + SCRIPT + "' method='POST'>");
         showError(err);
         showName(nameToDisplay, nameEditable);
+        showUnits(sizeUnits, true);
         showEditBox(table);
 
         out.print("<input type='hidden' name='" + HEADER_KEY + "' value='"
@@ -320,7 +331,23 @@ public class EditSizePerItemTables extends TinyCGIBase {
         out.print(editable ? "text size='40'" : "hidden");
         out.print(" name='" + NAME + "' value='");
         out.print(HTMLUtils.escapeEntities(tableName));
-        out.print("'>");
+        out.print("'></p>");
+    }
+
+    protected void showUnits(String units, boolean editable) throws IOException {
+        out.print("<p><b>");
+        out.print(resources.getHTML("Size_Units_Prompt"));
+        out.print("</b>&nbsp;");
+
+        if (!editable)
+            out.print(units == null ? "?????" : HTMLUtils.escapeEntities(units));
+
+        out.print("<input type=");
+        out.print(editable ? "text size='10'" : "hidden");
+        out.print(" name='" + UNITS + "' value='");
+        if (units != null)
+            out.print(HTMLUtils.escapeEntities(units));
+        out.print("'></p>");
     }
 
     protected void showEditBox(SizePerItemTable table) throws IOException {
@@ -339,10 +366,11 @@ public class EditSizePerItemTables extends TinyCGIBase {
         out.println("</textarea>");
     }
 
-    private void save(String name, String contents) throws ParseException {
+    private void save(String name, String units, String contents)
+            throws ParseException {
         if (resources.getString("Enter_New_Name").equals(name))
             name = null;
-        SizePerItemTable table = new SizePerItemTable(name, contents);
+        SizePerItemTable table = new SizePerItemTable(name, units, contents);
         table.save(getDataRepository());
     }
 

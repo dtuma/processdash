@@ -1,4 +1,4 @@
-// Copyright (C) 2009 Tuma Solutions, LLC
+// Copyright (C) 2009-2011 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -32,6 +32,8 @@ import java.util.SortedMap;
 import java.util.Map.Entry;
 
 import net.sourceforge.processdash.Settings;
+import net.sourceforge.processdash.i18n.Resources;
+import net.sourceforge.processdash.process.ProcessUtil;
 import net.sourceforge.processdash.tool.probe.SizePerItemTable;
 import net.sourceforge.processdash.tool.probe.SizePerItemTable.RelativeSize;
 import net.sourceforge.processdash.util.FormatUtil;
@@ -42,6 +44,8 @@ public class SizeEstimatingTemplate2 extends SizeEstimatingTemplate {
 
     private List<Section> sections = null;
     private Map<String, OutputStrategy> strategies;
+
+    private static final Resources resources = Resources.getDashBundle("PROBE");
 
     public SizeEstimatingTemplate2() {
         strategies = new HashMap<String, OutputStrategy>();
@@ -102,10 +106,11 @@ public class SizeEstimatingTemplate2 extends SizeEstimatingTemplate {
     private void initSizeTypeData() {
         StringBuffer options = new StringBuffer("<option>\n");
         StringBuffer sizeData = new StringBuffer(
-            "<script>DashSET.itemSizes = {\n");
+            "<script>DashSET.itemSizes = { \n");
 
+        String sizeUnits = new ProcessUtil(getDataContext()).getSizeUnits();
         SortedMap<String, SizePerItemTable> tables = SizePerItemTable
-                .getDefinedTables(getDataRepository());
+                .getDefinedTables(getDataRepository(), sizeUnits);
         for (Entry<String, SizePerItemTable> e : tables.entrySet()) {
             String sizePerItemTableName = e.getKey();
             SizePerItemTable sizePerItemTable = e.getValue();
@@ -131,6 +136,14 @@ public class SizeEstimatingTemplate2 extends SizeEstimatingTemplate {
             }
 
             options.append("</optgroup>\n");
+        }
+        if (tables.isEmpty()) {
+            String messageHtml = resources
+                    .getHTML("SizePerItem.Errors.No_Types_Message");
+            String tooltip = resources.format(
+                "SizePerItem.Errors.No_Types_Tooltip_FMT", sizeUnits);
+            options.append("<option value=\"-\" title=\"").append(esc(tooltip))
+                    .append("\">").append(messageHtml).append("\n");
         }
 
         sizeData.setLength(sizeData.length()-2);
