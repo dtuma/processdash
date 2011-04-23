@@ -30,6 +30,7 @@ import java.util.List;
 
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.DoubleData;
+import net.sourceforge.processdash.data.ImmutableDoubleData;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.StringData;
 import net.sourceforge.processdash.util.StringUtils;
@@ -98,6 +99,8 @@ public class MethodsPage extends WizardPage {
         // Save the estimated value
         estimate = getNum(qual, ProbeMethod.FLD_ESTIMATE);
         if (estimate == N_A) return false;
+        if (!ImmutableDoubleData.READ_ONLY_ZERO.lessThan(estimate))
+            return false;
         putValue(targetDataElement, estimate);
 
         // Save beta0 and beta1
