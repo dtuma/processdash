@@ -82,6 +82,12 @@ The author(s) may be contacted at:
     <uri>/pspForEng3/psp0.1/sizeReminder</uri>
   </snippet>
 
+  <snippet id="pspForEng.PhaseSumProblemTest" version="1.0" category="advice">
+    <resources>CMS.Snippet.Anonymous</resources>
+    <context>Phase_Sum_Problem_Capable</context>
+    <uri>/pspForEng3/psp2/phaseSumProblemTest</uri>
+  </snippet>
+
   <snippet id="pspForEng.defectLogScanner" version="1.0" category="instructor"
            requires="pspForEng-instr">
     <resources>PspForEng.DefectLogScanner</resources>

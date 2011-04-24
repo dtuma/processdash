@@ -71,6 +71,13 @@ unlockEstimatedPhaseData(Test);
 = estimated Test time to reflect the time that is left over after other
 = phases are complete.
 
-[Test/Estimated Time] = [Estimated Time] -
-    sumFor("Estimated Time", "Planning", "Design", "Design Review",
-           "Code", "Code Review", "Compile", "Postmortem");
+[Estimated_Non_Test_Time] = sumFor("Estimated Time",
+           "Planning", "Design", "Design Review", "Code",
+           "Code Review", "Compile", "Postmortem");
+
+[Test/Estimated Time] = max(0, [Estimated Time] - [Estimated_Non_Test_Time]);
+
+[Phase_Sum_Problem_Capable] = TAG;
+[Phase_Sum_Problem] = abs([Estimated Time]
+			  - [Estimated_Non_Test_Time]
+			  - [Test/Estimated Time]) > 0.5;
