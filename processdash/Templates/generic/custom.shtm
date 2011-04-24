@@ -42,7 +42,7 @@
 <INPUT TYPE=hidden NAME=requiredTag VALUE="Generic Tag">
 
 <TABLE><TR><TD NOWRAP><!--#echo Customize_Header -->&nbsp;</TD>
-    <TD><INPUT TYPE=text SIZE=30 NAME="Project//Name	sr==p"></TD></TR></TABLE>
+    <TD><!--#echo PATH_TRANSLATED --></TD></TR></TABLE>
 
 <TABLE><TR><TD><INPUT TYPE=checkbox NAME="Generic - Show Defects	s"></TD>
     <TD>&nbsp;<!--#echo Customize_Show_Defects --></TD></TR></TABLE>

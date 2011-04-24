@@ -1,0 +1,169 @@
+/* -*- mode:c -*-
+=============================================================================
+== Process Dashboard - Data Automation Tool for high-maturity processes
+== Copyright (C) 2002-2011 Tuma Solutions, LLC
+== 
+== This program is free software; you can redistribute it and/or
+== modify it under the terms of the GNU General Public License
+== as published by the Free Software Foundation; either version 3
+== of the License, or (at your option) any later version.
+==
+== Additional permissions also apply; see the README-license.txt
+== file in the project root directory for more information.
+== 
+== This program is distributed in the hope that it will be useful,
+== but WITHOUT ANY WARRANTY; without even the implied warranty of
+== MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+== GNU General Public License for more details.
+== 
+== You should have received a copy of the GNU General Public License
+== along with this program; if not, see <http://www.gnu.org/licenses/>.
+== 
+== The author(s) may be contacted at:
+==     processdash@tuma-solutions.com
+==     processdash-devel@lists.sourceforge.net
+*/
+
+
+[Generic Size Estimating Template Tag] = TAG;
+
+
+/*
+ * Dynamic lists of user-entered data.
+ */
+
+[Base_Parts_List] = "0";
+[New_Objects_List] = "0";
+[Reused_Objects_List] = "0";
+
+[Base_Parts_Prefix_List] =
+        map([^] &/ "Base_Parts" &/ [_], [Base_Parts_List]);
+[New_Objects_Prefix_List] =
+        map([^] &/ "New Objects" &/ [_], [New_Objects_List]);
+[Reused_Objects_Prefix_List] =
+        map([^] &/ "Reused Objects" &/ [_], [Reused_Objects_List]);
+
+
+/*
+ * Data Elements to track Estimated Size.
+ */
+
+[Estimated Size] = ?NaN;
+[Estimated Added & Modified Size] = [Estimated Size];
+
+[Base_Parts/0/Base]     = 0;
+[Base_Parts/0/Deleted]  = 0;
+[Base_Parts/0/Modified] = 0;
+[Base_Parts/0/Added]    = 0;
+[Reused Objects/0/Size]  = 0;
+
+
+[Estimated Base Size]        = sumFor("Base",     [Base_Parts_Prefix_List]);
+[Estimated Deleted Size]     = sumFor("Deleted",  [Base_Parts_Prefix_List]);
+[Estimated Modified Size]    = sumFor("Modified", [Base_Parts_Prefix_List]);
+[Estimated Base Added Size]  = sumFor("Added",    [Base_Parts_Prefix_List]);
+[Estimated New Objects Size] = sumFor("Size",     [New_Objects_Prefix_List]);
+[Estimated Reused Size]      = sumFor("Size",  [Reused_Objects_Prefix_List]);
+[Estimated New Reused Size] = 0 + sumFor("Size",
+        filter(lookup([_] &/ "New Reused?"), [New_Objects_Prefix_List]));
+
+[Estimated Additions Size] = [Estimated Base Added Size] +
+                             [Estimated New Objects Size];
+
+[Estimated Proxy Size] = [Estimated Base Added Size] +
+                         [Estimated New Objects Size] +
+                         [Estimated Modified Size];
+[Estimated Added Size] =
+        [Estimated Added & Modified Size] - [Estimated Modified Size];
+
+[Estimated Total Size] = [Estimated Base Size] + [Estimated Reused Size]
+        + [Estimated Added & Modified Size] - [Estimated Modified Size]
+        - [Estimated Deleted Size];
+
+[Estimated Max Size] = [Estimated Added & Modified Size/UPI];
+[Estimated Min Size] = [Estimated Added & Modified Size/LPI];
+[Estimated Added & Modified Size/Beta0] = 0;
+[Estimated Added & Modified Size/Beta1] = 0;
+[Estimated Added & Modified Size/Range] = 0;
+[Estimated Added & Modified Size/UPI] = 0;
+[Estimated Added & Modified Size/LPI] = 0;
+[Estimated Total Size/Range] = [Estimated Added & Modified Size/Range];
+[Estimated Added & Modified Size/Interval Percent] = 0;
+[Estimated Added & Modified Size/Probe Method] = "D  ";
+[Estimated Added & Modified Size/R Squared] = 0;
+
+
+
+/*
+ * Data Elements to track Actual Size
+ */
+
+[Base_Parts/0/Actual Base]     = 0;
+[Base_Parts/0/Actual Deleted]  = 0;
+[Base_Parts/0/Actual Modified] = 0;
+[Base_Parts/0/Actual Added]    = 0;
+[Reused Objects/0/Actual Size]  = 0;
+
+[Total Size]    = ?NaN;
+
+
+[Base Size]       = sumFor("Actual Base",     [Base_Parts_Prefix_List]);
+[Deleted Size]    = sumFor("Actual Deleted",  [Base_Parts_Prefix_List]);
+[Modified Size]   = sumFor("Actual Modified", [Base_Parts_Prefix_List]);
+[Base Added Size] = sumFor("Actual Added",    [Base_Parts_Prefix_List]);
+
+[Added & Modified Size] = [Size];
+[Size] = [Added Size] + [Modified Size];
+[Added Size] = [Total Size] - [Base Size] + [Deleted Size] - [Reused Size];
+
+[New Objects Size]    = sumFor("Actual Size",    [New_Objects_Prefix_List]);
+[Reused Size]         = sumFor("Actual Size", [Reused_Objects_Prefix_List]);
+[New Reused Size] = 0 + sumFor("Actual Size",
+       filter(lookup([_] &/ "Actual New Reused?"), [New_Objects_Prefix_List]));
+
+[Additions Size] = [Base Added Size] + [New Objects Size];
+
+[Proxy Size] =  [Base Added Size] + [New Objects Size] + [Modified Size];
+
+
+/*
+ * Data elements for PROBE-estimated time values
+ */
+
+[Estimated Max Time] = [Estimated Time/UPI];
+[Estimated Min Time] = [Estimated Time/LPI];
+
+[Estimated Time/Beta0] = 0;
+[Estimated Time/Beta1] = 0;
+[Estimated Time/Range] = 0;
+[Estimated Time/UPI] = 0;
+[Estimated Time/LPI] = 0;
+[Estimated Time/Interval Percent] = 0;
+[Estimated Time/Probe Method] = "D  ";
+[Estimated Time/R Squared] = 0;
+
+
+/*
+ * Instructions for the PROBE Wizard
+ */
+
+[PROBE_INPUT_SIZE_METRIC_NAME] == "Estimated Proxy Size";
+[PROBE_TARGET_SIZE_METRIC_NAME] == "Added & Modified Size";
+[PROBE_NO_EDIT_INPUT] == TAG;
+
+
+/*
+ * Calculations to test for PROBE estimating process problems
+ */
+
+#define checkProbeMismatch(Metric)                                 \
+        [PROBE_Last_Run_Value/Metric] > 0 &&                       \
+        abs([PROBE_Last_Run_Value/Metric] - [Metric]) > 0.5
+
+[PROBE_Input_Mismatch] = checkProbeMismatch(Estimated Proxy Size);
+[PROBE_Time_Output_Mismatch] = 
+    !startsWith("D", [Estimated Time/Probe Method])
+    && checkProbeMismatch(Estimated Time);
+[PROBE_Size_Output_Mismatch] =
+    !startsWith("D", [Estimated Added & Modified Size/Probe Method])
+    && checkProbeMismatch(Estimated Added & Modified Size);

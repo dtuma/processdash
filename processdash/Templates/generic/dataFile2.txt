@@ -54,6 +54,9 @@
 [Generic - Show Defects] = "True";
 [Generic - Show Size]    = "True";
 [Units]                  = "${/Templates:Generic.Default_Units}";
+[Size Units] =
+    genericSizeUnits("Units", "${/Templates:Generic.Default_Units}");
+[SIZE_METRIC_LABEL] = [Size Units];
 
 
 /*
@@ -62,6 +65,8 @@
 
 [Defects Injected per Hour] = 60 * [Defects Injected] / [Time];
 [Defects Removed per Hour]  = 60 * [Defects Removed] / [Time];
+[Estimated Added & Modified Size] = [Estimated Size];
+[Added & Modified Size] = [Size];
 
 /*
  * Data Elements for the planning phase

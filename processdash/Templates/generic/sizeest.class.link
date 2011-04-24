@@ -1,0 +1,7 @@
+class:net.sourceforge.processdash.ui.web.psp.SizeEstimatingTemplate2
+templateUri=/psp-lib/sizeest.htm
+title=Size Estimating Template
+replace1==LOC->Size
+replace2==Size Estimating Template Tag->Generic Size Estimating Template Tag
+replace3==Estimated Object LOC->Estimated Proxy Size
+replace4==Estimated New &amp; Changed LOC->Estimated Added &amp; Modified Size

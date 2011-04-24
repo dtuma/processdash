@@ -63,6 +63,7 @@ public class SizeEstimatingTemplate2 extends SizeEstimatingTemplate {
         String srcLoc = (String) parameters.get("templateUri");
         String srcUri = resolveRelativeURI(srcLoc);
         String text = getRequestAsString(srcUri);
+        text = performTextualReplacements(text);
         List<Section> sections = new ArrayList<Section>();
         String[] sectionData = text.split("<!--@@");
         for (int i = 1; i < sectionData.length; i++) {
@@ -70,6 +71,20 @@ public class SizeEstimatingTemplate2 extends SizeEstimatingTemplate {
         }
         this.sections = sections;
     }
+
+    private String performTextualReplacements(String text) {
+        for (int i = 1;  true;  i++) {
+            String instruction = getParameter("replace" + i);
+            if (instruction == null)
+                break;
+            int delimPos = instruction.indexOf("->");
+            String find = instruction.substring(0, delimPos);
+            String replace = instruction.substring(delimPos+2);
+            text = StringUtils.findAndReplace(text, find, replace);
+        }
+        return text;
+    }
+
 
     String sizeTypeInit;
 
@@ -89,6 +104,12 @@ public class SizeEstimatingTemplate2 extends SizeEstimatingTemplate {
         if (parameters.containsKey("testzero"))
             uniqueNumber = 0;
 
+        if (!StringUtils.hasValue(getPrefix())
+                && parameters.containsKey("title")) {
+            writeEmptyTitleDocument();
+            return;
+        }
+
         this.isLegacy = hasValue(BASE_ADDITIONS_DATANAME);
         this.isMismatch = hasValue(MISMATCH_FLAG_DATANAME);
         boolean disableFreezing = hasValue(DISABLE_FREEZING_DATANAME);
@@ -101,6 +122,13 @@ public class SizeEstimatingTemplate2 extends SizeEstimatingTemplate {
             s.print();
 
         uniqueNumber++;
+    }
+
+    private void writeEmptyTitleDocument() throws IOException {
+        String title = getParameter("title");
+        out.print("<html><head><title>");
+        out.print(esc(title));
+        out.print("</title></head></html>");
     }
 
     private void initSizeTypeData() {

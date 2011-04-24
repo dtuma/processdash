@@ -34,6 +34,7 @@ import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.i18n.Translator;
 import net.sourceforge.processdash.util.FormatUtil;
+import net.sourceforge.processdash.util.StringUtils;
 
 
 public class ProcessUtil {
@@ -122,7 +123,11 @@ public class ProcessUtil {
     }
 
     public String getSizeAbbrLabel() {
-        return Translator.translate(getSizeAbbr());
+        String result = getProcessString("SIZE_METRIC_LABEL");
+        if (StringUtils.hasValue(result))
+            return result;
+        else
+            return Translator.translate(getSizeAbbr());
     }
 
     public String getAggrSizeLabel() {

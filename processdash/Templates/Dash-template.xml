@@ -35,8 +35,19 @@ The author(s) may be contacted at:
   <template name="Timer" ID="Timer" defineRollup="no"
             dataFile="Timer/dataFile.txt" href="Timer/script.htm"/>
 
-  <template name="Generic" ID="Generic" defectLog="true" defineRollup="no"
+  <template name="Imaginary Legacy Generic Template" ID="Generic"
+            defectLog="true" defineRollup="no" imaginary="true"
             dataFile="generic/dataFile2.txt" htmlID="sum"
+	    constraints="{Generic Phase(-1)">
+    <html ID="sum" title="Generic Project Planning Summary"
+          href="generic/summary.class"/>
+
+    <phase name="Planning" type="plan"/>
+    <phase name="Postmortem" type="pm"/>
+  </template>
+
+  <template name="Generic" ID="Generic" defectLog="true" defineRollup="no"
+            dataFile="generic/dataFile3.txt" htmlID="sum"
 	    constraints="{Generic Phase(-1)">
     <html ID="sum" title="Generic Project Planning Summary"
           href="generic/summary.class"/>
@@ -303,6 +314,8 @@ The author(s) may be contacted at:
      resources="Defects.ImportForm.CodeCollab"
      specLocation="dash/code-collab-import.xml"
      class="net.sourceforge.processdash.log.ui.importer.FormImporter" />
+
+  <scriptSource dataName="Process_URLs"/>
 
   <scriptSource dataName="User URLs"/>
 
