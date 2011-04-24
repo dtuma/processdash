@@ -65,7 +65,7 @@ PropertyKey<top/PSP for Engineers/Program 4><Postmortem>=Prop[][][][][ME<>][0][0
 
 # Interim Report
 
-PropertyKey<top/PSP for Engineers><Interim Report>=Prop[true][Generic][][pspForEng2/RI/dataFile2.txt][<Generic Phase(-1)][0][2][PropertyKey<top/PSP for Engineers/Interim Report><Planning>][PropertyKey<top/PSP for Engineers/Interim Report><Postmortem>]
+PropertyKey<top/PSP for Engineers><Interim Report>=Prop[true][Generic][][pspForEng3/report/dataFile.txt][<Generic Phase(-1)][0][2][PropertyKey<top/PSP for Engineers/Interim Report><Planning>][PropertyKey<top/PSP for Engineers/Interim Report><Postmortem>]
 PropertyKey<top/PSP for Engineers/Interim Report><Planning>=Prop[][][][][ME<>][0][0]
 PropertyKey<top/PSP for Engineers/Interim Report><Postmortem>=Prop[][][][][ME<>][0][0]
 
@@ -124,6 +124,6 @@ PropertyKey<top/PSP for Engineers/Program 8><Postmortem>=Prop[][][][][ME<>][0][0
 
 # Final Report
 
-PropertyKey<top/PSP for Engineers><Final Report>=Prop[true][Generic][][pspForEng2/RF/dataFile2.txt][<Generic Phase(-1)][0][2][PropertyKey<top/PSP for Engineers/Final Report><Planning>][PropertyKey<top/PSP for Engineers/Final Report><Postmortem>]
+PropertyKey<top/PSP for Engineers><Final Report>=Prop[true][Generic][][pspForEng3/report/dataFile.txt][<Generic Phase(-1)][0][2][PropertyKey<top/PSP for Engineers/Final Report><Planning>][PropertyKey<top/PSP for Engineers/Final Report><Postmortem>]
 PropertyKey<top/PSP for Engineers/Final Report><Planning>=Prop[][][][][ME<>][0][0]
 PropertyKey<top/PSP for Engineers/Final Report><Postmortem>=Prop[][][][][ME<>][0][0]
