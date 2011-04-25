@@ -79,6 +79,10 @@ The author(s) may be contacted at:
      class="net.sourceforge.processdash.log.time.ImportedTimeLogManager$CacheMinder"
      settingPrefix="importedTimeLogCacheMinder"/>
 
+  <background-task ordinal="501" whenDefault="*"
+     class="net.sourceforge.processdash.util.ThreadMonitor$PrintDeadlockTask"
+     settingPrefix="deadlockMonitor"/>
+
 
   <!-- definitions for snippets that are provided by the dashboard -->
 
