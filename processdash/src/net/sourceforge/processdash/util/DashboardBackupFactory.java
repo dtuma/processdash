@@ -32,7 +32,7 @@ import java.util.Set;
 
 public class DashboardBackupFactory {
 
-    private static int keepBackupsNumDays = 21;
+    private static int keepBackupsNumDays = 42;
     private static int maxHistLogSize = 500000;
 
     public static int getKeepBackupsNumDays() {
