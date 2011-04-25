@@ -32,6 +32,7 @@ import java.util.logging.Logger;
 
 import net.sourceforge.processdash.tool.bridge.impl.FileResourceCollection;
 import net.sourceforge.processdash.tool.bridge.impl.FileResourceCollectionStrategy;
+import net.sourceforge.processdash.util.DirectoryBackup;
 import net.sourceforge.processdash.util.lock.AlreadyLockedException;
 import net.sourceforge.processdash.util.lock.LockFailureException;
 import net.sourceforge.processdash.util.lock.LockMessage;
@@ -42,6 +43,8 @@ public class BridgedWorkingDirectory extends AbstractWorkingDirectory {
 
 
     ResourceBridgeClient client;
+
+    DirectoryBackup startupBackupTask;
 
     Worker worker;
 
@@ -60,6 +63,8 @@ public class BridgedWorkingDirectory extends AbstractWorkingDirectory {
                 workingDirectory, false);
         collection.setStrategy(strategy);
 
+        startupBackupTask = strategy.getBackupHandler(workingDirectory);
+
         client = new ResourceBridgeClient(collection, remoteURL, strategy
                 .getUnlockedFilter());
         client.setSourceIdentifier(getSourceIdentifier());
@@ -72,6 +77,14 @@ public class BridgedWorkingDirectory extends AbstractWorkingDirectory {
             // working directory!
             throw new IllegalStateException(
                     "Process lock has not been obtained");
+
+        // Make a local backup of the initial data in the working directory.
+        // This way, its former contents will be saved before we overwrite the
+        // files with data from the server.
+        if (startupBackupTask != null) {
+            startupBackupTask.backup("startup");
+            startupBackupTask = null;
+        }
 
         for (int numTries = 5; numTries-- > 0;)
             if (client.syncDown() == false)
