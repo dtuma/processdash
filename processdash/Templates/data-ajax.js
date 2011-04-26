@@ -235,7 +235,7 @@ if (unlocked) {
     unlockURL = window.location.href.replace(/unlock/, "")
         .replace(/([?&])&/, "$1").replace(/[?&]$/, "");
     unlockHTML =
-        '<br><A HREF="javascript:gotoUnLockURL();">' +
+        '<A HREF="javascript:gotoUnLockURL();">' +
         '<!--#echo Lock_Message --></A>';
 } else {
     if (window.location.search == "") {
@@ -244,7 +244,7 @@ if (unlocked) {
         unlockURL = window.location.href + "&unlock";
     }
     unlockHTML =
-        '<br><A HREF="javascript:displayUnlockWarning();">' +
+        '<A HREF="javascript:displayUnlockWarning();">' +
         '<!--#echo Unlock_Message --></A>';
 }
 
@@ -277,7 +277,6 @@ function writeExportHTML() {
     document.writeln("<A HREF='/reports/form2html.class'>" +
                      "<!--#echo Export_To_HTML --></A>");
     var url = urlEncode(window.location.pathname +
-                        window.location.hash +
                         window.location.search);
     url = "/reports/form2html.class?uri=" + url;
     url = urlEncode(url);
@@ -294,22 +293,21 @@ function writeHelpLink() {
 
 function writeFooter() {
     if (!SILENT) {
-        document.write('<span class=doNotPrint>');
+        document.write('<div id="dataExportFooter" class="doNotPrint">');
 	<!--#if !READ_ONLY -->
         document.write(unlockHTML);
         document.write("&nbsp; &nbsp; &nbsp; &nbsp;");
 	<!--#endif-->
         writeExportHTML();
         writeHelpLink();
-        document.write('</span>');
+        document.write('</div>');
     }
 }
 
 function writeExcelOnlyFooter() {
-    document.write('<span class=doNotPrint>');
+    document.write('<div id="dataExportFooter" class="doNotPrint">');
 
     var url = urlEncode(window.location.pathname +
-                        window.location.hash +
                         window.location.search);
     url = "/reports/form2html.class?uri=" + url;
     url = urlEncode(url);
@@ -317,7 +315,7 @@ function writeExcelOnlyFooter() {
     document.writeln("<A HREF='/reports/excel.iqy?uri=" +url+
                      "&fullPage'><!--#echo Export_to_Excel --></A>");
 
-    document.write('</span>');
+    document.write('</div>');
 }
 
 
@@ -632,6 +630,32 @@ function setupSelectValues(elem) {
     }
 }
 
+function setSelectValue(select, value, readOnly) {
+    maybeRemoveUnexpectedOption(select);
+
+    select.value = value;
+    if (select.value == value) {
+	return;
+    } else {
+	addUnexpectedOption(select, value);
+	select.value = value;
+    }
+}
+
+function maybeRemoveUnexpectedOption(select) {
+    var optLen = select.options.length;
+    if (select.options[optLen - 1].className == "unexpected") {
+        select.options.length = optLen - 1;
+    }
+}
+
+function addUnexpectedOption(select, value) {
+    var opt = new Option(value, value);
+    opt.className = "unexpected";
+    var optLenth = select.options.length;
+    select.options[optLenth] = opt;
+}
+
 
 /*
  * Several utility routines that look up various attributes of an element
@@ -742,7 +766,7 @@ function paintField(elemNum, value, readOnly, coupon) {
 
     case "select-one" :
     case "select-multiple":
-        elem.value = value;
+        setSelectValue(elem, value, readOnly);
         break;
     }
     valueList[elemNum] = value;
