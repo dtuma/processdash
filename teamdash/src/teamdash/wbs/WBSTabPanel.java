@@ -55,9 +55,9 @@ import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
+import javax.swing.JLayeredPane;
 import javax.swing.JMenu;
 import javax.swing.JOptionPane;
-import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
@@ -72,13 +72,13 @@ import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 
-import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
-import net.sourceforge.processdash.util.RobustFileWriter;
-
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
+
+import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
+import net.sourceforge.processdash.util.RobustFileWriter;
 
 import teamdash.ActionCategoryComparator;
 import teamdash.XMLUtils;
@@ -86,7 +86,7 @@ import teamdash.team.TeamMemberList;
 
 /** Class to display the WBS editor panel
  */
-public class WBSTabPanel extends JPanel
+public class WBSTabPanel extends JLayeredPane
     implements TeamMemberList.InitialsListener
 {
 
@@ -139,7 +139,6 @@ public class WBSTabPanel extends JPanel
     /** Create a WBSTabPanel */
     public WBSTabPanel(WBSModel wbs, DataTableModel data, Map iconMap,
             JMenu iconMenu, TaskIDSource idSource) {
-        setOpaque(false);
         setLayout(layout = new GridBagLayout());
 
         undoList = new UndoList(wbs);
@@ -635,6 +634,7 @@ public class WBSTabPanel extends JPanel
         c.insets.top = 25;
         c.insets.bottom = 1;
         add(splitPane);
+        setLayer(splitPane, 30);
         layout.setConstraints(splitPane, c);
     }
 
@@ -679,6 +679,7 @@ public class WBSTabPanel extends JPanel
         c.insets.left = c.insets.right = c.insets.bottom = 10;
         c.insets.top = 30;
         add(scrollPane);
+        setLayer(scrollPane, 20);
         layout.setConstraints(scrollPane, c);
     }
 
@@ -699,6 +700,7 @@ public class WBSTabPanel extends JPanel
         c.insets.top = c.insets.bottom = c.insets.right = 0;
         c.insets.left = 215;
         add(tabbedPane);
+        setLayer(tabbedPane, 10);
         layout.setConstraints(tabbedPane, c);
     }
 
@@ -724,6 +726,7 @@ public class WBSTabPanel extends JPanel
         c.insets.left = 10;
         c.insets.right = c.insets.bottom = c.insets.top = 0;
         add(toolBar);
+        setLayer(toolBar, 0);
         layout.setConstraints(toolBar, c);
     }
 
