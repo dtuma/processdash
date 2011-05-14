@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2010 Tuma Solutions, LLC
+// Copyright (C) 2001-2011 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -118,6 +118,8 @@ import javax.swing.tree.TreeCellRenderer;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 
+import org.w3c.dom.Element;
+
 import com.xduke.xswing.DataTipManager;
 
 import net.sourceforge.processdash.ApplicationEventListener;
@@ -144,6 +146,7 @@ import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.net.cache.CachedObject;
 import net.sourceforge.processdash.net.cache.CachedURLObject;
 import net.sourceforge.processdash.net.http.WebServer;
+import net.sourceforge.processdash.templates.ExtensionManager;
 import net.sourceforge.processdash.ui.Browser;
 import net.sourceforge.processdash.ui.DashboardIconFactory;
 import net.sourceforge.processdash.ui.NodeSelectionDialog;
@@ -195,6 +198,7 @@ public class TaskScheduleDialog implements EVTask.Listener,
             closeAction, saveAction, errorAction, filteredChartAction,
             saveBaselineAction, collaborateAction, filteredReportAction,
             weekReportAction, scheduleOptionsAction;
+    private List<TSAction> altReportActions;
 
     protected boolean disableTaskPruning;
 
@@ -544,6 +548,7 @@ public class TaskScheduleDialog implements EVTask.Listener,
         box.add(makeDropDownButton(chartAction, filteredChartAction));
         box.add(Box.createHorizontalStrut(2));
 
+        altReportActions = buildAltReportActions();
         weekReportAction = new TSAction("Buttons.Weekly_Report") {
             public void actionPerformed(ActionEvent e) {
                 showWeekReport(); }};
@@ -555,7 +560,7 @@ public class TaskScheduleDialog implements EVTask.Listener,
             public void actionPerformed(ActionEvent e) {
                 showHTML(); }};
         box.add(makeDropDownButton(reportAction, weekReportAction,
-            filteredReportAction));
+            altReportActions, filteredReportAction));
         box.add(Box.createHorizontalStrut(2));
 
         closeAction = new TSAction("Close") {
@@ -577,6 +582,31 @@ public class TaskScheduleDialog implements EVTask.Listener,
         result.setMaximumSize(size);
 
         return result;
+    }
+
+    private List<TSAction> buildAltReportActions() {
+        List<TSAction> result = new ArrayList();
+        List<Element> altViews = ExtensionManager
+                .getXmlConfigurationElements("ev-report-view");
+        if (altViews != null)
+            for (Element view : altViews)
+                result.add(new ShowAltReportAction(view));
+        return result;
+    }
+
+
+    private DropDownButton makeDropDownButton(Object... actionItems) {
+        List actions = new ArrayList();
+        for (Object item : actionItems) {
+            if (item instanceof TSAction) {
+                actions.add((TSAction) item);
+            } else if (item instanceof List) {
+                actions.addAll((List) item);
+            }
+        }
+        TSAction[] actionArray = new TSAction[actions.size()];
+        actionArray = (TSAction[]) actions.toArray(actionArray);
+        return makeDropDownButton(actionArray);
     }
 
     private DropDownButton makeDropDownButton(TSAction... actions) {
@@ -619,6 +649,8 @@ public class TaskScheduleDialog implements EVTask.Listener,
         viewMenu.add(filteredChartAction);
         viewMenu.add(reportAction);
         viewMenu.add(weekReportAction);
+        for (TSAction t : altReportActions)
+            viewMenu.add(t);
         viewMenu.add(filteredReportAction);
         viewMenu.add(errorAction);
         if (flatViewAction != null) {
@@ -741,6 +773,7 @@ public class TaskScheduleDialog implements EVTask.Listener,
 
     abstract class TSAction extends AbstractAction {
 
+        protected TSAction() {}
         public TSAction(String resKey) {
             this(resKey, resKey);
         }
@@ -766,6 +799,26 @@ public class TaskScheduleDialog implements EVTask.Listener,
         }
         public void setSelected(boolean selected) {
             buttonModel.setSelected(selected);
+        }
+    }
+
+    class ShowAltReportAction extends TSAction {
+        String uri;
+        public ShowAltReportAction(Element xml) {
+            // Get the URI of the report
+            String uri = xml.getAttribute("href");
+            if (uri.startsWith("/"))
+                uri = uri.substring(1);
+            this.uri = "//" + uri;
+
+            // Get the resource bundle for messages
+            String resourcePrefix = xml.getAttribute("resources");
+            Resources res = Resources.getDashBundle(resourcePrefix);
+            setText(res.getString("Menu_Text"));
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            showReport(taskListName, null, uri);
         }
     }
 

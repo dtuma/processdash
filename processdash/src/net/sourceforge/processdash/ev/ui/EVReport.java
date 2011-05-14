@@ -95,6 +95,7 @@ import org.jfree.chart.JFreeChart;
 import org.jfree.data.xy.AbstractXYDataset;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.ui.RectangleEdge;
+import org.w3c.dom.Element;
 
 
 
@@ -802,8 +803,10 @@ public class EVReport extends CGIChartBase {
 
         out.print(isSnippet ? "<h2>" : "<h1>");
         out.print(title);
-        if (!exportingToExcel())
+        if (!exportingToExcel()) {
             interpOutLink(SHOW_WEEK_LINK, EVReportSettings.PURPOSE_WEEK);
+            printAlternateViewLinks();
+        }
         printCustomizationLink();
         out.print(isSnippet ? "</h2>" : "</h1>");
 
@@ -966,6 +969,9 @@ public class EVReport extends CGIChartBase {
         interpOutLink(html, EVReportSettings.PURPOSE_OTHER);
     }
     private void interpOutLink(String html, int purpose) {
+        interpOutLink(html, purpose, resources);
+    }
+    private void interpOutLink(String html, int purpose, Resources resources) {
         html = StringUtils.findAndReplace(html, "@@@", settings.getEffectivePrefix());
         String query = settings.getQueryString(purpose);
         html = StringUtils.findAndReplace(html, "???", query);
@@ -981,7 +987,7 @@ public class EVReport extends CGIChartBase {
 
 
 
-    static void printFilterInfo(PrintWriter out, EVTaskFilter filter,
+    public static void printFilterInfo(PrintWriter out, EVTaskFilter filter,
             boolean textOnly) {
         if (filter == null)
             return;
@@ -1016,6 +1022,31 @@ public class EVReport extends CGIChartBase {
         }
 
         out.println("</h2>");
+    }
+
+
+    private void printAlternateViewLinks() {
+        List<Element> altViews = ExtensionManager
+                .getXmlConfigurationElements("ev-report-view");
+        if (altViews != null)
+            for (Element view : altViews)
+                printAlternateViewLink(view);
+    }
+
+    private void printAlternateViewLink(Element view) {
+        // Get the URI of the report
+        String uri = view.getAttribute("href");
+        if (uri.startsWith("/"))
+            uri = uri.substring(1);
+
+        // Get the resource bundle for messages
+        String resourcePrefix = view.getAttribute("resources");
+        Resources res = Resources.getDashBundle(resourcePrefix);
+
+        // Construct the link HTML and print it
+        String linkHtml = StringUtils.findAndReplace(SHOW_ALT_LINK, "[URI]",
+            uri);
+        interpOutLink(linkHtml, EVReportSettings.PURPOSE_OTHER, res);
     }
 
 
@@ -1172,7 +1203,7 @@ public class EVReport extends CGIChartBase {
         POPUP_HEADER +
         SORTTABLE_HEADER +
         SORTTREE_HEADER;
-    static final String FILTER_HEADER_HTML =
+    public static final String FILTER_HEADER_HTML =
         "<link rel=stylesheet type='text/css' href='/reports/filter-style.css'>\n";
     static final String HEADER_LINK_STYLE = " style='font-size: medium; " +
         "font-style: italic; font-weight: normal; margin-left: 0.5cm' ";
@@ -1189,6 +1220,9 @@ public class EVReport extends CGIChartBase {
     static final String SHOW_WEEK_LINK = "<span " + HEADER_LINK_STYLE + ">"
             + "<span class='doNotPrint'><a href='week.class???'>"
             + "${Report.Show_Weekly_View}</a></span></span>";
+    static final String SHOW_ALT_LINK = "<span " + HEADER_LINK_STYLE + ">"
+            + "<span class='doNotPrint'><a href='../[URI]???'>"
+            + "${Link_Text}</a></span></span>";
     static final String SHOW_CHARTS_LINK = "<div class='moreChartsLink doNotPrint'>"
             + "<a href='ev.class??&charts'>${Report.Charts_Link}</a>"
             + "</span></div>";
