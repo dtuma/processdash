@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2010 Tuma Solutions, LLC
+// Copyright (C) 2001-2011 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -1484,24 +1484,6 @@ public class EVTaskList extends AbstractTreeTableModel
         return newDataName;
     }
 
-    public Object getAllDependenciesFor(EVTask forNode) {
-        EVTask node = forNode;
-        Set result = null;
-        while (node != null) {
-            List deps = node.getDependencies();
-            if (deps != null) {
-                if (result == null)
-                    result = new HashSet();
-                for (Iterator i = deps.iterator(); i.hasNext();) {
-                    EVTaskDependency d = (EVTaskDependency) i.next();
-                    result.add(d.getWithNewParent(forNode));
-                }
-            }
-            node = node.getParent();
-        }
-        return result;
-    }
-
     public Object getDeepestNoteFor(EVTask node) {
         while (node != null && node != root) {
             Object result = node.getNoteData();
@@ -1563,7 +1545,7 @@ public class EVTaskList extends AbstractTreeTableModel
             else if (columnIndex == NOTES_COLUMN)
                 return getDeepestNoteFor(getRow(row));
             else if (columnIndex == DEPENDENCIES_COLUMN)
-                return getAllDependenciesFor(getRow(row));
+                return getRow(row).getAllDependencies();
             else
                 return EVTaskList.this.getValueAt(getRow(row), columnIndex);
         }
@@ -1645,7 +1627,7 @@ public class EVTaskList extends AbstractTreeTableModel
             else if (column == NOTES_COLUMN)
                 return getDeepestNoteFor((EVTask) node);
             else if (column == DEPENDENCIES_COLUMN)
-                return getAllDependenciesFor((EVTask) node);
+                return ((EVTask) node).getAllDependencies();
             else
                 return EVTaskList.this.getValueAt(node, column);
         }
