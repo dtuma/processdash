@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2006 Tuma Solutions, LLC
+// Copyright (C) 2001-2011 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -166,6 +166,7 @@ public class OpenDocument extends TinyCGIBase {
 
     public static final String DISPLAY_NAME_PROP = "_Display_Name";
     public static final String COMMENT_PROP = "_Comment";
+    public static final String HEADER_PROP = "_Header";
 
     public static final String TEMPLATE_ROOT_WIN = "\\Templates\\";
     public static final String TEMPLATE_ROOT_UNIX = "/Templates/";
@@ -281,7 +282,7 @@ public class OpenDocument extends TinyCGIBase {
         if (isTemplateURL(template)) try {
             // if this template begins with one of the template roots, it
             // isn't really a file at all, but is actually a pseudo-URL.
-            templateURL = template.toURL().toString();
+            templateURL = template.toURI().toURL().toString();
             templateURL = templateURL.substring
                 (templateURL.indexOf(TEMPLATE_ROOT_UNIX) +
                  TEMPLATE_ROOT_UNIX.length() - 1);
@@ -328,10 +329,10 @@ public class OpenDocument extends TinyCGIBase {
             } catch (IOException ioe) { remoteRequest = true; }
 
             if (remoteRequest || "redirect".equals(docOpenSetting))
-                out.print("Location: " + result.toURL() + "\r\n\r\n");
+                out.print("Location: " + result.toURI().toURL() + "\r\n\r\n");
             else {
                 // open the document using the Browser class.
-                Browser.openDoc(result.toURL().toString());
+                Browser.openDoc(result.toURI().toURL().toString());
 
                 // now print a null document which takes the user back to
                 // the original page they were viewing.
@@ -484,8 +485,6 @@ public class OpenDocument extends TinyCGIBase {
             if ("[".equals(token)) {
                 token = tok.nextToken(); // get the name of the data element.
                 tok.nextToken(); // discard the "]" following the element.
-                // FIXME - catch exceptions, and also ensure that the
-                // discarded token is in fact a "]" character.
 
                 String impliedPath = null;
                 if (firstItem && parentPath != null)
@@ -591,7 +590,8 @@ public class OpenDocument extends TinyCGIBase {
         String metaName;
         while ((beg = name.indexOf('{')) != -1) {
             end = name.indexOf('}', beg);
-            // FIXME: error handling if end is -1
+            if (end == -1)
+                break;
 
             metaName = name.substring(beg+1, end);
             PathVariable pv = (PathVariable) metaPathVariables.get(metaName);
@@ -776,13 +776,18 @@ public class OpenDocument extends TinyCGIBase {
             out.println(message);
             out.print("<P>");
         }
+
+        String headerInfo = getProp(e, filename + HEADER_PROP, null);
+        if (headerInfo != null)
+            out.println("<p>" + HTMLUtils.escapeEntities(headerInfo) + "</p>");
+
         String filenameDisplayName = HTMLUtils.escapeEntities
             (getProp(e, filename + DISPLAY_NAME_PROP, filename));
         message = resources.format
             ("Provide_Info_Prompt_FMT", filenameDisplayName,
              new Integer(isTemplate ? 1 : 0),
              new Integer(reason));
-        out.println(message);
+        out.println("<p>" + message + "</p>");
 
         out.print("<form method='POST' action='");
         out.print((String) env.get("SCRIPT_PATH"));
@@ -861,8 +866,7 @@ public class OpenDocument extends TinyCGIBase {
                     (new ByteArrayInputStream(getRequest(url, true)));
                 documentMap.put(url, result);
             } catch (SAXException se) {
-                //throw new IOException("Invalid XML file");
-                // FIXME: display error message
+                se.printStackTrace();
                 return null;
             }
             try {
