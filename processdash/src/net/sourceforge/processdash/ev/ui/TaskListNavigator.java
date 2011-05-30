@@ -1,4 +1,4 @@
-// Copyright (C) 2006-2007 Tuma Solutions, LLC
+// Copyright (C) 2006-2011 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -98,6 +98,8 @@ public class TaskListNavigator implements TaskNavigationSelector.NavMenuUI,
 
     private String taskListPath;
 
+    private boolean autoSelectFirstTask;
+
     private Set listeningToData;
 
     private JMenu menu;
@@ -125,6 +127,8 @@ public class TaskListNavigator implements TaskNavigationSelector.NavMenuUI,
         this.taskListPath = Settings.getVal(TASK_LIST_PATH_SETTING);
         if (!StringUtils.hasValue(this.taskListPath))
             this.taskListPath = null;
+        this.autoSelectFirstTask = !TaskNavigationSelector
+                .preserveActiveTaskOnNavChange();
 
         this.listeningToData = new HashSet();
 
@@ -235,9 +239,13 @@ public class TaskListNavigator implements TaskNavigationSelector.NavMenuUI,
 
         this.taskList = newTaskList;
         reloadMenus();
+
+        if (newTaskList != null && autoSelectFirstTask) {
+            autoSelectFirstTask = false;
+            maybeSelectFirstTask();
+        }
     }
 
-    /*
     private void maybeSelectFirstTask() {
         String currentTask = activeTaskModel.getPath();
         JMenuItem firstItem = null;
@@ -256,7 +264,6 @@ public class TaskListNavigator implements TaskNavigationSelector.NavMenuUI,
         if (firstItem != null)
             firstItem.doClick();
     }
-    */
 
     public boolean selectNext() {
         String currentTask = menu.getActionCommand();

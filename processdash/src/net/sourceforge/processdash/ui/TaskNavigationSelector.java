@@ -1,4 +1,4 @@
-// Copyright (C) 2006-2007 Tuma Solutions, LLC
+// Copyright (C) 2006-2011 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -194,6 +194,13 @@ public class TaskNavigationSelector {
         else
             return path.replaceAll("/", " / ").trim();
     }
+
+    public static boolean preserveActiveTaskOnNavChange() {
+        return Settings.getBool(PRESERVE_ACTIVE_TASK_SETTING, false);
+    }
+
+    private static final String PRESERVE_ACTIVE_TASK_SETTING =
+        "navigator.preserveActiveTaskOnNavChange";
 
     private static final String NAVIGATOR_TYPE_SETTING = "navigator.type";
     private static final String HIERARCHY_TYPE = "hierarchy";

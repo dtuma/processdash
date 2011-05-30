@@ -1,4 +1,4 @@
-// Copyright (C) 1999-2010 Tuma Solutions, LLC
+// Copyright (C) 1999-2011 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -103,7 +103,8 @@ public class HierarchyMenu implements ActionListener, PropertyChangeListener,
 
             addMenuItemsForChildren(props);
 
-            syncSelectedChildToHierarchy();
+            syncSelectedChildToHierarchy(isFirstMenu
+                    && TaskNavigationSelector.preserveActiveTaskOnNavChange());
 
             if (statusCalc != null) {
                 statusCalc.addActionListener(this);
@@ -136,10 +137,6 @@ public class HierarchyMenu implements ActionListener, PropertyChangeListener,
         }
     }
 
-    private int getNumChildren() {
-        return (menu == null ? 0 : menu.getMenuComponentCount());
-    }
-
     public String getNavMenuDisplayName() {
         if (self == PropertyKey.ROOT)
             return null;
@@ -148,32 +145,43 @@ public class HierarchyMenu implements ActionListener, PropertyChangeListener,
     }
 
     public boolean selectNext() {
+        return selectNextImpl() == SelectNextResult.HANDLED;
+    }
+
+    private enum SelectNextResult { REJECTED, HANDLED, DEFER_TO_PARENT };
+
+    private SelectNextResult selectNextImpl() {
         // if this is the terminal HierarchyButton without a menu, we
-        // cannot perform selectNext.  Return false.
-        if (child == null) { return false; }
+        // cannot perform selectNext. Ask our parent to handle it.
+        if (child == null)
+            return SelectNextResult.DEFER_TO_PARENT;
 
-        // otherwise, try to delegate this task to our child.  If the child is
-        // able to perform a selectNext, we're done.
-        if ((child != null) && child.selectNext()) return true;
-
-        // if our child had only one subchild (extremely common in team
-        // projects), then it will never be able to selectNext.  We'll
-        // perform a selectNext on its behalf.  But if our child had
-        // multiple children, stop here.
-        if (child.getNumChildren() > 1) { return false; }
+        // otherwise, try to delegate this task to our child. If the child is
+        // able to handle the request, we're done.
+        SelectNextResult result = child.selectNextImpl();
+        if (result != SelectNextResult.DEFER_TO_PARENT)
+            return result;
 
         // calculate the number position of the next item to be selected.
         DashHierarchy props = parent.getProperties ();
         int sel = props.getSelectedChild (self) + 1;
         PropertyKey newSelKey = props.getChildKey(self, sel);
 
-        // if that item is past the end of our list, we cannot perform
-        // selectNext. Return false.
-        if (newSelKey == null) { return false; }
+        // if that item is past the end of our list, we can't handle the request
+        if (newSelKey == null) {
+            if (sel == 1)
+                // if we only had one child (not uncommon in team projects),
+                // defer the selectNext operation to our parent.
+                return SelectNextResult.DEFER_TO_PARENT;
+            else
+                // if we had more than one child, but the final child was
+                // already selected, abort the selectNext operation.
+                return SelectNextResult.REJECTED;
+        }
 
         // select the next item on our menu.
         activeTaskModel.setNode(newSelKey);
-        return true;
+        return SelectNextResult.HANDLED;
     }
 
     public void delete() {
@@ -197,10 +205,11 @@ public class HierarchyMenu implements ActionListener, PropertyChangeListener,
      * 
      * @return true if a change was made, false if no changes were needed.
      */
-    private boolean syncSelectedChildToHierarchy() {
+    private boolean syncSelectedChildToHierarchy(boolean preserveActiveTask) {
 
         PropertyKey activeTask = activeTaskModel.getNode();
-        if (isFirstMenu && activeTask != null && !activeTask.isChildOf(self)
+        if (preserveActiveTask && isFirstMenu && activeTask != null
+                && !activeTask.isChildOf(self)
                 && !activeTask.equals(self) && !self.isChildOf(activeTask)) {
             // The active task is outside our list of descendants!  This can
             // happen to the topmost HierarchyMenu if it is not anchored at the
@@ -304,7 +313,7 @@ public class HierarchyMenu implements ActionListener, PropertyChangeListener,
     }
 
     public void propertyChange(PropertyChangeEvent evt) {
-        if (syncSelectedChildToHierarchy() == false && child != null)
+        if (syncSelectedChildToHierarchy(true) == false && child != null)
             child.propertyChange(evt);
     }
 
@@ -328,7 +337,7 @@ public class HierarchyMenu implements ActionListener, PropertyChangeListener,
         String path = null;
         if (JOptionPane.showConfirmDialog(parent, message, title,
                 JOptionPane.OK_CANCEL_OPTION) == JOptionPane.OK_OPTION)
-            path = getSelectedPathForHierarchyNavigator(tree);
+            path = getSelectedPathForHierarchyNavigator(tree, context);
         tree.setModel(null);
 
         if (path != null) {
@@ -338,7 +347,8 @@ public class HierarchyMenu implements ActionListener, PropertyChangeListener,
         return false;
     }
 
-    private static String getSelectedPathForHierarchyNavigator(JTree tree) {
+    private static String getSelectedPathForHierarchyNavigator(JTree tree,
+            DashboardContext context) {
         TreePath selectedPath = tree.getSelectionPath();
         if (selectedPath == null)
             // no node was selected
@@ -350,15 +360,44 @@ public class HierarchyMenu implements ActionListener, PropertyChangeListener,
             // not sure if this can happen, but be safe.
             return null;
 
-        if (node.getChildCount() == 0)
+        if (node.getChildCount() == 0) {
             // don't allow the user to select leaf nodes.  The HierarchyMenu
-            // class can't handle that very well.
+            // class can't handle that very well.  Instead, use the parent of
+            // the leaf node.
+            maybeSelectChildWithinParent(context, node.getPath());
             node = (HierarchyTreeNode) node.getParent();
+        }
 
         if (node == null)
             return null;
         else
             return node.getPath();
+    }
+
+    /**
+     * If the user selected a leaf node, we will choose to navigate within the
+     * parent instead. In that scenario, if we will be changing the active task
+     * to the user's selection (instead of preserving the active task), we'll
+     * arrange for the user's chosen leaf to be the selected child of its parent.
+     */
+    private static void maybeSelectChildWithinParent(DashboardContext context,
+            String path) {
+        if (TaskNavigationSelector.preserveActiveTaskOnNavChange())
+            return;
+
+        DashHierarchy hier = context.getHierarchy();
+        PropertyKey childKey = hier.findExistingKey(path);
+        if (childKey == null)
+            return;
+        PropertyKey parent = childKey.getParent();
+        if (parent == null)
+            return;
+        for (int i = hier.getNumChildren(parent);  i-- > 0; ) {
+            if (hier.getChildKey(parent, i).equals(childKey)) {
+                hier.setSelectedChild(parent, i);
+                break;
+            }
+        }
     }
 
     private static PropertyKey getRootKeyFromSetting(ProcessDashboard dash) {
