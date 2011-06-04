@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Tuma Solutions, LLC
+// Copyright (C) 2002-2011 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -420,7 +420,7 @@ public class WBSSynchronizer {
 
         public void sync(TeamProject teamProject, TeamMember individual,
                 Map<Integer, WBSNode> nodeMap, Element noteTag) {
-            int wbsId = XMLUtils.getXMLInt(noteTag, WBS_ID_ATTR);
+            Object wbsId = getNodeMapKey(noteTag, WBS_ID_ATTR);
             WBSNode node = nodeMap.get(wbsId);
             if (node == null)
                 return;
@@ -672,6 +672,14 @@ public class WBSSynchronizer {
                 node.setNumericAttribute(attrName, value);
         }
 
+    }
+
+    private static Object getNodeMapKey(Element e, String tagName) {
+        int wbsId = XMLUtils.getXMLInt(e, tagName);
+        if (wbsId == -1 && "root".equals(e.getAttribute(tagName)))
+            return null;
+        else
+            return wbsId;
     }
 
     private static boolean eq(double a, double b) {

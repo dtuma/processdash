@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Tuma Solutions, LLC
+// Copyright (C) 2002-2011 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -1444,6 +1444,118 @@ public class HierarchySynchronizer {
                 dataRepository.restoreDefaultValue(dataName);
             }
         }
+
+        protected void maybeSaveNote(String path, Element node, String nodeID) {
+            HierarchyNote wbsNote = getNoteData(node);
+            Map<String, HierarchyNote> currentNotes = HierarchyNoteManager
+                    .getNotesForPath(data, path);
+            HierarchyNote localNote = (currentNotes == null ? null
+                    : currentNotes.get(TEAM_NOTE_KEY));
+            HierarchyNote lastSyncNote = (currentNotes == null ? null
+                    : currentNotes.get(TEAM_NOTE_LAST_SYNC_KEY));
+
+            // if the value from the WBS has changed since last sync,
+            if (!eq(lastSyncNote, wbsNote)) {
+
+                if (eq(localNote, lastSyncNote)) {
+                    // our local value agrees with the last synced value, so
+                    // we should propagate the new WBS value along.
+                    localNote = lastSyncNote = wbsNote;
+                    saveNoteData(data, path,
+                            TEAM_NOTE_KEY, wbsNote,
+                            TEAM_NOTE_LAST_SYNC_KEY, wbsNote,
+                            TEAM_NOTE_CONFLICT_KEY, null);
+
+                } else if (wbsNote == null) {
+                    // the note has been modified locally, but no longer exists
+                    // in the WBS (possibly because the WBS was restored from a
+                    // backup).  Clear conflict flags, and allow our local
+                    // modification to be reverse synced.
+                    saveNoteData(forceData(), path, TEAM_NOTE_CONFLICT_KEY,
+                            null);
+
+                } else if (!eq(ownerName, wbsNote.getAuthor())) {
+                    // our local value has been modified since the last sync,
+                    // but some other user has altered the note in the meantime.
+                    // record the new value of the note as a conflict.
+                    saveNoteData(forceData(), path, TEAM_NOTE_CONFLICT_KEY,
+                            wbsNote);
+
+                } else {
+                    // the note value in the WBS was written by the user who is
+                    // performing this sync.
+
+                    // it is possible that the user has locally edited the note
+                    // multiple times between sync operations.  In that case,
+                    // their local value might be more recent than the value
+                    // that has been reverse-synced to the WBS.  Check to see
+                    // whether this is true.
+                    boolean wbsIsOutOfDate = true;
+                    if (localNote != null && wbsNote != null
+                            && localNote.getTimestamp() != null
+                            && wbsNote.getTimestamp() != null)
+                        wbsIsOutOfDate = localNote.getTimestamp().after(
+                            wbsNote.getTimestamp());
+
+                    if (wbsIsOutOfDate) {
+                        // The current user has already modified the note since
+                        // the last reverse sync.  But it's still OK to clear
+                        // any conflict flags, and make a note that the WBS
+                        // now has a value we entered.  This is important to
+                        // allow our local modification to reverse sync properly.
+                        lastSyncNote = wbsNote;
+                        saveNoteData(forceData(), path,
+                                TEAM_NOTE_LAST_SYNC_KEY, wbsNote,
+                                TEAM_NOTE_CONFLICT_KEY, null);
+
+                    } else {
+                        // If the WBS is equal to the local value, it means
+                        // the local value has been reverse synced successfully.
+                        // If the WBS is more recent than the local value, it
+                        // means that the current user has opened the WBS and
+                        // edited the value there.  Either way, all values
+                        // should be synced to the WBS value.
+                        localNote = lastSyncNote = wbsNote;
+                        saveNoteData(data, path,
+                                TEAM_NOTE_KEY, wbsNote,
+                                TEAM_NOTE_LAST_SYNC_KEY, wbsNote,
+                                TEAM_NOTE_CONFLICT_KEY, null);
+                    }
+                }
+            }
+
+            if (!eq(localNote, lastSyncNote)) {
+                // add reverse sync data
+                discrepancies.add(new SyncDiscrepancy.ItemNote(path, nodeID,
+                        lastSyncNote, localNote));
+            }
+        }
+
+        protected HierarchyNote getNoteData(Element node) {
+            NodeList nl = node.getChildNodes();
+            for (int i = 0; i < nl.getLength(); i++) {
+                Node child = nl.item(i);
+                if (child instanceof Element) {
+                    Element childElem = (Element) child;
+                    if (childElem.getTagName().equals(NOTE_TYPE)) {
+                        try {
+                            return new HierarchyNote(childElem);
+                        } catch (InvalidNoteSpecification e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            }
+            return null;
+        }
+
+        protected void saveNoteData(DataContext data, String path, Object... notes) {
+            Map<String, HierarchyNote> noteData = new HashMap<String, HierarchyNote>();
+            for (int i = 0;  i < notes.length;  i += 2)
+                noteData.put((String) notes[i], (HierarchyNote) notes[i+1]);
+            HierarchyNoteManager.saveNotesForPath(data, path, noteData);
+        }
+
     }
 
     private class SyncProjectNode extends SyncNode {
@@ -1455,6 +1567,8 @@ public class HierarchySynchronizer {
                 String projIDs = node.getAttribute(TASK_ID_ATTR);
                 setTaskIDs(pathPrefix, cleanupProjectIDs(projIDs));
                 maybeFixPreviouslyClobberedTeamTimeElement(pathPrefix);
+                if (!isTeam())
+                    maybeSaveNote(pathPrefix, node, ROOT_NODE_PSEUDO_ID);
             } catch (Exception e) {}
 
             return super.syncNode(worker, pathPrefix, node);
@@ -1778,117 +1892,6 @@ public class HierarchySynchronizer {
             }
 
             return result;
-        }
-
-        protected void maybeSaveNote(String path, Element node, String nodeID) {
-            HierarchyNote wbsNote = getNoteData(node);
-            Map<String, HierarchyNote> currentNotes = HierarchyNoteManager
-                    .getNotesForPath(data, path);
-            HierarchyNote localNote = (currentNotes == null ? null
-                    : currentNotes.get(TEAM_NOTE_KEY));
-            HierarchyNote lastSyncNote = (currentNotes == null ? null
-                    : currentNotes.get(TEAM_NOTE_LAST_SYNC_KEY));
-
-            // if the value from the WBS has changed since last sync,
-            if (!eq(lastSyncNote, wbsNote)) {
-
-                if (eq(localNote, lastSyncNote)) {
-                    // our local value agrees with the last synced value, so
-                    // we should propagate the new WBS value along.
-                    localNote = lastSyncNote = wbsNote;
-                    saveNoteData(data, path,
-                            TEAM_NOTE_KEY, wbsNote,
-                            TEAM_NOTE_LAST_SYNC_KEY, wbsNote,
-                            TEAM_NOTE_CONFLICT_KEY, null);
-
-                } else if (wbsNote == null) {
-                    // the note has been modified locally, but no longer exists
-                    // in the WBS (possibly because the WBS was restored from a
-                    // backup).  Clear conflict flags, and allow our local
-                    // modification to be reverse synced.
-                    saveNoteData(forceData(), path, TEAM_NOTE_CONFLICT_KEY,
-                            null);
-
-                } else if (!eq(ownerName, wbsNote.getAuthor())) {
-                    // our local value has been modified since the last sync,
-                    // but some other user has altered the note in the meantime.
-                    // record the new value of the note as a conflict.
-                    saveNoteData(forceData(), path, TEAM_NOTE_CONFLICT_KEY,
-                            wbsNote);
-
-                } else {
-                    // the note value in the WBS was written by the user who is
-                    // performing this sync.
-
-                    // it is possible that the user has locally edited the note
-                    // multiple times between sync operations.  In that case,
-                    // their local value might be more recent than the value
-                    // that has been reverse-synced to the WBS.  Check to see
-                    // whether this is true.
-                    boolean wbsIsOutOfDate = true;
-                    if (localNote != null && wbsNote != null
-                            && localNote.getTimestamp() != null
-                            && wbsNote.getTimestamp() != null)
-                        wbsIsOutOfDate = localNote.getTimestamp().after(
-                            wbsNote.getTimestamp());
-
-                    if (wbsIsOutOfDate) {
-                        // The current user has already modified the note since
-                        // the last reverse sync.  But it's still OK to clear
-                        // any conflict flags, and make a note that the WBS
-                        // now has a value we entered.  This is important to
-                        // allow our local modification to reverse sync properly.
-                        lastSyncNote = wbsNote;
-                        saveNoteData(forceData(), path,
-                                TEAM_NOTE_LAST_SYNC_KEY, wbsNote,
-                                TEAM_NOTE_CONFLICT_KEY, null);
-
-                    } else {
-                        // If the WBS is equal to the local value, it means
-                        // the local value has been reverse synced successfully.
-                        // If the WBS is more recent than the local value, it
-                        // means that the current user has opened the WBS and
-                        // edited the value there.  Either way, all values
-                        // should be synced to the WBS value.
-                        localNote = lastSyncNote = wbsNote;
-                        saveNoteData(data, path,
-                                TEAM_NOTE_KEY, wbsNote,
-                                TEAM_NOTE_LAST_SYNC_KEY, wbsNote,
-                                TEAM_NOTE_CONFLICT_KEY, null);
-                    }
-                }
-            }
-
-            if (!eq(localNote, lastSyncNote)) {
-                // add reverse sync data
-                discrepancies.add(new SyncDiscrepancy.ItemNote(path, nodeID,
-                        lastSyncNote, localNote));
-            }
-        }
-
-        protected HierarchyNote getNoteData(Element node) {
-            NodeList nl = node.getChildNodes();
-            for (int i = 0; i < nl.getLength(); i++) {
-                Node child = nl.item(i);
-                if (child instanceof Element) {
-                    Element childElem = (Element) child;
-                    if (childElem.getTagName().equals(NOTE_TYPE)) {
-                        try {
-                            return new HierarchyNote(childElem);
-                        } catch (InvalidNoteSpecification e) {
-                            e.printStackTrace();
-                        }
-                    }
-                }
-            }
-            return null;
-        }
-
-        protected void saveNoteData(DataContext data, String path, Object... notes) {
-            Map<String, HierarchyNote> noteData = new HashMap<String, HierarchyNote>();
-            for (int i = 0;  i < notes.length;  i += 2)
-                noteData.put((String) notes[i], (HierarchyNote) notes[i+1]);
-            HierarchyNoteManager.saveNotesForPath(data, path, noteData);
         }
 
     }
