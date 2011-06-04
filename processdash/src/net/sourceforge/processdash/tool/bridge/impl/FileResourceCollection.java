@@ -268,7 +268,7 @@ public class FileResourceCollection implements ResourceCollection,
         public long getLastModified() {
             long now = System.currentTimeMillis();
             long lastCheckAge = now - lastChecked;
-            if (lastCheckAge > 5000) {
+            if (lastCheckAge > 5000 || lastCheckAge < 0) {
                 long realLastMod = f.lastModified();
                 synchronized (this) {
                     if (realLastMod != lastModified) {
