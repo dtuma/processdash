@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Tuma Solutions, LLC
+// Copyright (C) 2002-2011 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -373,7 +373,7 @@ public class MoveProjectWorker {
 
     private static final String LOCK_FILE = "teamProject.lock";
     private static final String MARKER_FILE =
-        "00-This-Directory-is-Obsolete.txt";
+        TeamDataConstants.OBSOLETE_DIR_MARKER_FILENAME;
     private static final String MOVE_FILE_NAME = "moved-data.pdash";
     private static final String XML_HEADER =
         "<?xml version='1.0' encoding='UTF-8' standalone='yes' ?>\n";

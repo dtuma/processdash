@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Tuma Solutions, LLC
+// Copyright (C) 2002-2011 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -337,6 +337,17 @@ public class sync extends TinyCGIBase {
             if (serverURL != null) {
                 data.putValue(urlDataName, StringData.create(serverURL.toString()));
                 wbsLocation = new URL(serverURL.toString() + "/" + HIER_FILENAME);
+
+                // if the physical directory is now obsolete, remove the pointers
+                // to that directory so we never attempt to look there again.
+                File obsoleteDirMarkerFile = new File(teamDirectory,
+                        TeamDataConstants.OBSOLETE_DIR_MARKER_FILENAME);
+                if (obsoleteDirMarkerFile.isFile()) {
+                    data.putValue(DataRepository.createDataName(projectRoot,
+                        TeamDataConstants.TEAM_DIRECTORY), null);
+                    data.putValue(DataRepository.createDataName(projectRoot,
+                        TeamDataConstants.TEAM_DIRECTORY_UNC), null);
+                }
             }
             else {
                 // locate the wbs file in the team data directory.

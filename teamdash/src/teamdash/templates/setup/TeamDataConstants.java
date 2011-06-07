@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Tuma Solutions, LLC
+// Copyright (C) 2002-2011 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -47,5 +47,7 @@ public interface TeamDataConstants {
     public static final String LAST_SYNC_TIMESTAMP = "WBS_Last_Sync_Timestamp";
 
     public static final String DISSEMINATION_DIRECTORY = "disseminate";
+    public static final String OBSOLETE_DIR_MARKER_FILENAME =
+        "00-This-Directory-is-Obsolete.txt";
 
 }
