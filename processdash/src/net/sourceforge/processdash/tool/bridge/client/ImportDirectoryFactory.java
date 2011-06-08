@@ -1,4 +1,4 @@
-// Copyright (C) 2008-2010 Tuma Solutions, LLC
+// Copyright (C) 2008-2011 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -53,14 +53,21 @@ public class ImportDirectoryFactory {
 
     private File baseDirectory;
 
+    private String[] preferCachesFor;
+
     private ImportDirectoryFactory() {
         cache = Collections
                 .synchronizedMap(new HashMap<String, ImportDirectory>());
         baseDirectory = null;
+        preferCachesFor = null;
     }
 
     public void setBaseDirectory(File dir) {
         this.baseDirectory = dir;
+    }
+
+    public void setPreferCachesFor(String[] preferCachesFor) {
+        this.preferCachesFor = preferCachesFor;
     }
 
     /**
@@ -114,6 +121,17 @@ public class ImportDirectoryFactory {
             // If the location is a URL, try contacting that server and
             // retrieving the data.
             if (TeamServerSelector.isUrlFormat(location)) {
+                // See if a cached version of the data is available.  If so,
+                // and a cached version is preferred, return it.
+                ImportDirectory c = getCachedImportDirectory(location);
+                if (isViable(c, REQUIRE_CONTENTS)) {
+                    if (preferCacheFor(location))
+                        return c;
+                    else
+                        fallbackResult = c;
+                }
+
+                // See if we can contact the team server.
                 URL remoteURL = TeamServerSelector.resolveServerURL(location);
                 if (remoteURL != null) {
                     try {
@@ -124,11 +142,6 @@ public class ImportDirectoryFactory {
                                     + remoteURL, e);
                     }
                 }
-                // If we couldn't contact the server, see if we happen to
-                // have a cached copy of that directory from the server.
-                ImportDirectory c = getCachedImportDirectory(location);
-                if (isViable(c, REQUIRE_CONTENTS))
-                    fallbackResult = c;
             }
 
             // The location is a filename.  Create an ImportDirectory object
@@ -204,6 +217,19 @@ public class ImportDirectoryFactory {
         ImportDirectory result = new BridgedImportDirectory(urlStr,
                 TeamDataDirStrategy.INSTANCE);
         return putInCache(urlStr, result);
+    }
+
+    private boolean preferCacheFor(String location) {
+        if (location == null || preferCachesFor == null)
+            return false;
+
+        location = location.toLowerCase();
+        for (String preferCacheToken : preferCachesFor)
+            if ("*".equals(preferCacheToken)
+                    || location.contains(preferCacheToken))
+                return true;
+
+        return false;
     }
 
     private ImportDirectory getCachedImportDirectory(String url) {

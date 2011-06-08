@@ -1,4 +1,4 @@
-// Copyright (C) 2008 Tuma Solutions, LLC
+// Copyright (C) 2008-2011 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -53,6 +53,9 @@ public class DynamicImportDirectory implements ImportDirectory {
     /** The currently active ImportDirectory <b>(never null)</b> */
     private ImportDirectory delegate;
 
+    /** The time when we last checked for the need to replace the delegate */
+    private long lastUpdateDelegateTime;
+
 
     private static final Logger logger = Logger
             .getLogger(DynamicImportDirectory.class.getName());
@@ -83,9 +86,10 @@ public class DynamicImportDirectory implements ImportDirectory {
     }
 
     private void maybeUpdateDelegate() {
-        if (isUpdateNeeded()) {
+        if (isUpdateDelegateNeeded()) {
             ImportDirectory newDelegate = ImportDirectoryFactory.getInstance()
                     .getImpl(locations);
+            lastUpdateDelegateTime = System.currentTimeMillis();
 
             if (newDelegate != null && newDelegate != delegate) {
                 this.delegate = newDelegate;
@@ -97,10 +101,18 @@ public class DynamicImportDirectory implements ImportDirectory {
         }
     }
 
-    private boolean isUpdateNeeded() {
+    private boolean isUpdateDelegateNeeded() {
         // if we have no delegate, we need to update!
         if (delegate == null)
             return true;
+
+        // this method may get called overzealously by code in different
+        // layers of the application.  If it is called more than once within a
+        // few milliseconds, don't repeat the update.
+        long now = System.currentTimeMillis();
+        long lastUpdateDelegateAge = now - lastUpdateDelegateTime;
+        if (lastUpdateDelegateAge > 0 && lastUpdateDelegateAge < 1000)
+            return false;
 
         // Our main preference is a BridgedImportDirectory. If we already
         // have one, stick with it. Note: the implication of this decision

@@ -1,4 +1,4 @@
-// Copyright (C) 2005-2008 Tuma Solutions, LLC
+// Copyright (C) 2005-2011 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -52,7 +52,19 @@ public class ImportManager extends AbstractManager {
     }
 
     public static void init(DataRepository dataRepository) {
+        // to speed startup, arrange for some directories to prefer cached data
+        String cachePrefSetting = Settings.getVal(
+            "import.preferCachesOnStartupFor", "disseminate");
+        if (StringUtils.hasValue(cachePrefSetting))
+            ImportDirectoryFactory.getInstance().setPreferCachesFor(
+                cachePrefSetting.split(","));
+
+        // perform the actual initalization
         getInstance().setData(dataRepository, true);
+
+        // now that startup is finished, stop preferring cached data
+        ImportDirectoryFactory.getInstance().setPreferCachesFor(null);
+
         if (getInstance().urlValueChanged)
             getInstance().saveSetting();
         DataImporter.waitForAllInitialized();
