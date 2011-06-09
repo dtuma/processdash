@@ -1,4 +1,4 @@
-// Copyright (C) 2009 Tuma Solutions, LLC
+// Copyright (C) 2009-2011 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -139,7 +139,7 @@ public class DefectLogProblemReport extends PspForEngDefectBase {
         int diff = remPhasePos - injPhasePos;
         if (diff < 0)
             misorderedDefects.add(d.number);
-        else if (diff == 0)
+        else if (diff == 0 && !failurePhaseList.contains(inj))
             samePhaseDefects.add(d.number);
     }
 
