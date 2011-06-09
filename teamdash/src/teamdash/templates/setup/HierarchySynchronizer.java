@@ -2031,6 +2031,7 @@ public class HierarchySynchronizer {
 
             String path = getPath(pathPrefix, node);
             maybeSaveInspSizeData(path, node);
+            maybeClearTimeValue(worker, path, node);
 
             String phaseName = node.getAttribute(PHASE_NAME_ATTR);
             if (XMLUtils.hasValue(phaseName) == false) {
@@ -2095,6 +2096,35 @@ public class HierarchySynchronizer {
                     StringData.create("Inspected " + inspUnits));
         }
 
+        private void maybeClearTimeValue(SyncWorker worker, String path,
+                Element node) {
+            // when a user opens the WBS and subdivides an existing task, the
+            // next "sync to WBS" operation will copy those subtasks into the
+            // plan. In most cases, we will need to delete the estimated time
+            // value from the parent task (which used to be a leaf but now has
+            // children).  Otherwise, the user is likely to end up with a
+            // top-down-bottom-up mismatch error in their personal plan.
+
+            if (parseTime(node) > 0)
+                return;  // this node has a time estimate in the WBS; abort
+
+            if (isHierarchyLeaf(path))
+                return;  // not a parent node, abort
+
+            SimpleData timeEstimate = getData(path, EST_TIME_DATA_NAME);
+            if (timeEstimate == null)
+                return;  // no time estimate is present, nothing to clear.
+
+            // check to see if the time estimate agrees with the last synced
+            // value.  If so, it means that the time estimate came from the
+            // WBS.  And since the WBS doesn't have a time estimate anymore,
+            // we should delete the estimate from this plan to stay in sync.
+            SimpleData lastSyncTimeEstimate = getData(path, AbstractSyncWorker
+                    .syncDataName(EST_TIME_DATA_NAME));
+            if (timeEstimate.equals(lastSyncTimeEstimate))
+                putData(path, EST_TIME_DATA_NAME, null);
+        }
+
         protected boolean okToChangeTimeEstimate(String path) {
             // in the new style framework, we only want to record estimates on
             // leaf tasks. If this code is executing, the WBS thinks that
@@ -2102,7 +2132,10 @@ public class HierarchySynchronizer {
             // the task in their own dashboard, making it a parent. We need to
             // check for that scenario, and decline to write an estimate into
             // the non-leaf parent.
+            return isHierarchyLeaf(path);
+        }
 
+        protected boolean isHierarchyLeaf(String path) {
             PropertyKey key = hierarchy.findExistingKey(path);
             if (key == null) return false;
 
