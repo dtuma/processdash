@@ -245,7 +245,7 @@ public class TableOfMetrics extends TinyCGIBase {
                     return null;
             }});
 
-        SPECIAL_DATA.put("CPI", new MetricsTableColumn.SpecialDataElement() {
+        SPECIAL_DATA.put("CPI To Date", new MetricsTableColumn.SpecialDataElement() {
             public String getDataName(MetricsTableColumn column) {
                 if (column == MetricsTableColumn.TO_DATE)
                     return "CPI To Date";
