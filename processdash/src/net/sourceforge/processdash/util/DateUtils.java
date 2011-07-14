@@ -42,6 +42,13 @@ public class DateUtils {
     public static final long WEEKS = 7 * DAYS;
     public static final long WEEK = WEEKS;
 
+    public static Date maxDate(Date a, Date b) {
+        if (a == null) return b;
+        if (b == null) return a;
+        if (a.compareTo(b) > 0) return a;
+        return b;
+    }
+
     public static Date minDate(Date a, Date b) {
         if (a == null) return b;
         if (b == null) return a;
