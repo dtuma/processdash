@@ -268,6 +268,7 @@ Draggable.prototype = {
       // abort on form elements, fixes a Firefox issue
       var src = Event.element(event);
       if(src.tagName && (
+        src.tagName=='A' ||                   // processdash addition
         src.tagName=='INPUT' ||
         src.tagName=='SELECT' ||
         src.tagName=='OPTION' ||
