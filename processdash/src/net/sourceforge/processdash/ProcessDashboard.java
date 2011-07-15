@@ -958,7 +958,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
             Object[] message = new Object[] {
                     res.getString("ReadOnly.Recommended.Message").split("\n"),
                     readOnlyOption, readWriteOption };
-            JOptionPane.showMessageDialog(null, message, title,
+            JOptionPane.showMessageDialog(ss, message, title,
                     JOptionPane.QUESTION_MESSAGE);
             if (readOnlyOption.isSelected())
                 InternalSettings.setReadOnly(true);
@@ -996,7 +996,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         String message = MessageFormat.format(r
                 .getString("Errors.Concurrent_Use_Message2_FMT"), otherUser);
 
-        if (JOptionPane.showConfirmDialog(null, message.split("\n"), title,
+        if (JOptionPane.showConfirmDialog(ss, message.split("\n"), title,
             JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
             InternalSettings.setReadOnly(true);
         } else {
@@ -1038,7 +1038,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
                     .getBundle("Templates.resources.ProcessDashboard");
             String title = res.getString("Enter_Name_Dialog.Title");
             String message = res.getString("Enter_Name_Dialog.Prompt");
-            result = JOptionPane.showInputDialog(null, message, title,
+            result = JOptionPane.showInputDialog(ss, message, title,
                 JOptionPane.PLAIN_MESSAGE);
             if (result != null) {
                 prefs.put("ownerName", result);
@@ -1097,7 +1097,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
             }
         }
 
-        int userResponse = JOptionPane.showConfirmDialog(null, message,
+        int userResponse = JOptionPane.showConfirmDialog(ss, message,
                 title, JOptionPane.OK_CANCEL_OPTION,
                 JOptionPane.ERROR_MESSAGE);
         if (userResponse == JOptionPane.OK_OPTION) {
@@ -1114,7 +1114,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         String title = resources.getString("Errors.Data_Sharing_Violation_Title");
         String[] message = resources.formatStrings(
             "Errors.Data_Sharing_Violation_Message_FMT", location);
-        JOptionPane.showMessageDialog(null, message, title,
+        JOptionPane.showMessageDialog(ss, message, title,
             JOptionPane.ERROR_MESSAGE);
     }
 
@@ -1132,7 +1132,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         }
 
         JOptionPane.showMessageDialog
-            (null,
+            (ss,
              resources.formatStrings("Errors.Read_File_Error.Message_FMT",
                                      resources.getString(resourceKey),
                                      filename),
