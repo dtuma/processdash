@@ -419,6 +419,8 @@ public class EVTask implements Cloneable, DataListener {
                 add(new EVTask(c, fullName));
             else if (EVTaskDependency.DEPENDENCY_TAG.equals(c.getTagName()))
                 getDependencies(true).add(new EVTaskDependency(c));
+            else if (HierarchyNote.NOTE_TAG.equals(c.getTagName()))
+                try { setTaskNote(new HierarchyNote(c)); } catch (Exception ex) {}
         }
     }
 
@@ -612,6 +614,20 @@ public class EVTask implements Cloneable, DataListener {
 
     protected void loadTaskNote() {
         noteData = HierarchyNoteManager.getNotesForPath(data, fullName);
+    }
+
+    /** This method is NOT a public API, because it does not interface with
+     * the real persistence mechanism for task notes.  This method simply
+     * provides a way to attach a transient note to this EV task. The note
+     * will be lost whenever the object is discarded.
+     */
+    protected void setTaskNote(HierarchyNote note) {
+        if (note == null) {
+            noteData = null;
+        } else {
+            noteData = Collections.singletonMap(HierarchyNoteManager.NOTE_KEY,
+                note);
+        }
     }
 
     protected void resetActualDate() {
@@ -818,9 +834,11 @@ public class EVTask implements Cloneable, DataListener {
     /** Returns the name of this task. */
     public String getName() { return name; }
     public String toString() { return name; }
+    protected void setName(String name) { this.name = name; }
 
     /** Returns the task IDs associated with this task. */
     public List<String> getTaskIDs() { return taskIDs; }
+    protected void setTaskIDs(List<String> taskIDs) { this.taskIDs = taskIDs; }
 
     /** Returns the flag associated with this task node.
      * 
@@ -976,6 +994,10 @@ public class EVTask implements Cloneable, DataListener {
             return parent.getAssignedTo();
         else
             return null;
+    }
+
+    protected void setAssignedTo(List<String> assignedTo) {
+        this.assignedTo = assignedTo;
     }
 
     public Map<String, HierarchyNote> getNoteData() {
@@ -1178,10 +1200,18 @@ public class EVTask implements Cloneable, DataListener {
         return actualStartDate;
     }
 
+    protected void setActualStartDate(Date actualStartDate) {
+        this.actualStartDate = actualStartDate;
+    }
+
     /** Returns the date this task is planned to be completed. */
     public Date getPlanDate() {
         if (isValuePruned()) return null;
         return planDate;
+    }
+
+    protected void setPlanDate(Date planDate) {
+        this.planDate = planDate;
     }
 
     /** Returns the date we planned to complete this task in the baseline
@@ -1215,6 +1245,10 @@ public class EVTask implements Cloneable, DataListener {
      */
     public Date getDateCompleted() {
         return dateCompleted;
+    }
+
+    protected void setDateCompleted(Date d) {
+        dateCompleted = d;
     }
 
     public String getDateCompleteError() {
@@ -1642,10 +1676,11 @@ public class EVTask implements Cloneable, DataListener {
 
     public void saveToXML(StringBuffer result, boolean whitespace) {
         String indent = (whitespace ? "  " : "");
-        saveToXML(result, whitespace, indent);
+        saveToXML(result, whitespace, indent, false);
     }
 
-    protected void saveToXML(StringBuffer result, boolean whitespace, String indent) {
+    protected void saveToXML(StringBuffer result, boolean whitespace,
+            String indent, boolean includeNotes) {
         result.append(indent)
             .append("<task name='").append(XMLUtils.escapeAttribute(name))
             .append("' pt='").append(planValue)
@@ -1691,16 +1726,23 @@ public class EVTask implements Cloneable, DataListener {
 
         String newline = (whitespace ? "\n" : "");
 
-        if (isLeaf() && !hasValue(dependencies))
+        if (isLeaf() && !hasValue(dependencies)
+                && !(includeNotes && noteData != null))
             result.append("'/>").append(newline);
         else {
             result.append("'>").append(newline);
             String subIndent = (whitespace ? (indent + "  ") : "");
+            if (includeNotes && noteData != null) {
+                HierarchyNote note = noteData.get(HierarchyNoteManager.NOTE_KEY);
+                if (note != null)
+                    result.append(subIndent).append(note.getAsXML()).append(
+                        newline);
+            }
             if (hasValue(dependencies))
                 for (EVTaskDependency dep : dependencies)
                     dep.getAsXML(result, subIndent, true);
             for (int i = 0;   i < getNumChildren();   i++)
-                getChild(i).saveToXML(result, whitespace, subIndent);
+                getChild(i).saveToXML(result, whitespace, subIndent, includeNotes);
             result.append(indent).append("</task>").append(newline);
         }
     }

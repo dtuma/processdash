@@ -1,4 +1,4 @@
-// Copyright (C) 2007 Tuma Solutions, LLC
+// Copyright (C) 2007-2011 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -204,7 +204,7 @@ public class HierarchyNote {
         }
     }
 
-    private static final String NOTE_TAG = "note";
+    public static final String NOTE_TAG = "note";
 
     private static final String AUTHOR_ATTR = "author";
 
