@@ -1,4 +1,4 @@
-// Copyright (C) 2007 Tuma Solutions, LLC
+// Copyright (C) 2007-2011 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -40,6 +40,10 @@ public class ConfigurableLanguageFilter extends AbstractLanguageFilter
     protected Resources res;
     protected String[] commentStarters;
     protected String[] commentEnders;
+    protected String[] stringStarters;
+    protected char[] stringEscapes;
+    protected String[] stringEmbeds;
+    protected String[] stringEnders;
     protected String[] filenameEndings;
     protected String[] firstLinePatterns;
     protected String[][] options;
@@ -60,6 +64,30 @@ public class ConfigurableLanguageFilter extends AbstractLanguageFilter
     @Override
     protected String[] getCommentEnders() {
         return commentEnders;
+    }
+
+    /** Return the list of strings that start string literals */
+    @Override
+    protected String[] getStringStarters() {
+        return stringStarters;
+    }
+
+    /** Return the list of escape characters for string literals */
+    @Override
+    protected char[] getStringEscapes() {
+        return stringEscapes;
+    }
+
+    /** Return the list of embedded escape sequences for string literals */
+    @Override
+    protected String[] getStringEmbeds() {
+        return stringEmbeds;
+    }
+
+    /** Return the list of strings that end string literals */
+    @Override
+    protected String[] getStringEnders() {
+        return stringEnders;
     }
 
     /** Return the list of filename suffixes that suggest this filter */
@@ -140,6 +168,7 @@ public class ConfigurableLanguageFilter extends AbstractLanguageFilter
         loadFilterID(xml);
         loadResourceBundle(xml);
         loadCommentSyntaxInformation(xml);
+        loadStringSyntaxInformation(xml);
         loadFilenameEndings(xml);
         loadOptions(xml);
         loadFirstLinePatterns(xml);
@@ -201,6 +230,52 @@ public class ConfigurableLanguageFilter extends AbstractLanguageFilter
 
         commentStarters = starters.toArray(new String[starters.size()]);
         commentEnders = enders.toArray(new String[enders.size()]);
+    }
+
+    /** Read the string syntaxes recognized by this filter */
+    protected void loadStringSyntaxInformation(Element xml) {
+        NodeList nodes = xml.getElementsByTagName(STRING_SYNTAX_TAG);
+        if (nodes.getLength() == 0)
+            return;
+
+        String[] starts = new String[nodes.getLength()];
+        char[] escapes = new char[nodes.getLength()];
+        String[] embeds = new String[nodes.getLength()];
+        String[] ends = new String[nodes.getLength()];
+
+        for (int i = 0; i < nodes.getLength(); i++) {
+            Element e = (Element) nodes.item(i);
+            String start = e.getAttribute(STRING_BEGIN_ATTR);
+            String delim = e.getAttribute(STRING_DELIM_ATTR);
+            String end = e.getAttribute(STRING_END_ATTR);
+            if (hasValue(delim)) {
+                starts[i] = ends[i] = delim;
+            } else if (hasValue(start) && hasValue(end)) {
+                starts[i] = start;
+                ends[i] = end;
+            } else {
+                throw new IllegalArgumentException("Either "
+                        + STRING_DELIM_ATTR + " or both "
+                        + STRING_BEGIN_ATTR + " and "
+                        + STRING_END_ATTR + " must be provided for <"
+                        + STRING_SYNTAX_TAG + "> tag");
+            }
+
+            String escape = e.getAttribute(STRING_ESCAPE_ATTR);
+            escapes[i] = (hasValue(escape) ? escape.charAt(0) : (char) 0);
+
+            String embed = e.getAttribute(STRING_EMBED_ATTR);
+            if (hasValue(embed)) {
+                if ("\\n".equals(embed))
+                    embed = "\n";
+                embeds[i] = embed;
+            }
+        }
+
+        stringStarters = starts;
+        stringEscapes = escapes;
+        stringEmbeds = embeds;
+        stringEnders = ends;
     }
 
     /** Read the filename suffixes that suggest the use of this filter */
@@ -352,6 +427,12 @@ public class ConfigurableLanguageFilter extends AbstractLanguageFilter
     protected static final String COMMENT_SYNTAX_TAG = "commentSyntax";
     protected static final String COMMENT_BEGIN_ATTR = "beginsWith";
     protected static final String COMMENT_END_ATTR = "endsWith";
+    protected static final String STRING_SYNTAX_TAG = "stringSyntax";
+    protected static final String STRING_DELIM_ATTR = "delimiter";
+    protected static final String STRING_BEGIN_ATTR = COMMENT_BEGIN_ATTR;
+    protected static final String STRING_END_ATTR = COMMENT_END_ATTR;
+    protected static final String STRING_ESCAPE_ATTR = "escapeChar";
+    protected static final String STRING_EMBED_ATTR = "mayInclude";
     protected static final String FILENAME_SUFFIXES_ATTR = "fileSuffixes";
     protected static final String OPTION_TAG = "option";
     protected static final String OPTION_TEXT_ATTR = "text";

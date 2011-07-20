@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2007 Tuma Solutions, LLC
+// Copyright (C) 2001-2011 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -135,7 +135,9 @@ public class AbstractLanguageFilter implements LanguageFilter {
 
     /** Insert flags in a file to highlight the syntax of the language. */
     public void highlightSyntax(StringBuffer file) {
-        flagComments(file, getCommentStarters(), getCommentEnders());
+        flagComments(file, getCommentStarters(), getCommentEnders(),
+            getStringStarters(), getStringEscapes(), getStringEmbeds(),
+            getStringEnders());
     }
 
 
@@ -166,49 +168,137 @@ public class AbstractLanguageFilter implements LanguageFilter {
 
     protected void flagComments(StringBuffer file,
                                 String[] commentStarters,
-                                String[] commentEnders) {
+                                String[] commentEnders,
+                                String[] stringStarters,
+                                char[] stringEscapes,
+                                String[] stringEmbeds,
+                                String[] stringEnders) {
         if (commentStarters == null || commentEnders == null) return;
 
-        int begin, b, end, i, selectedStyle, pos = 0;
-        String beginPattern, endPattern;
-        while (true) {
-            begin = Integer.MAX_VALUE;
-            selectedStyle = -1;
-            for (i = commentStarters.length;   i-- > 0; ) {
-                b = StringUtils.indexOf(file, commentStarters[i], pos);
-                if (b != -1 && b < begin) {
-                    begin = b;
-                    selectedStyle = i;
+        int pos = 0;
+        FindResult nextString = findFirst(file, 0, stringStarters);
+        COMMENT: while (true) {
+            FindResult nextComment = findFirst(file, pos, commentStarters);
+
+            // no comments found? we're done.
+            if (nextComment == null) break;
+
+            // check to see if the comment is contained within a string literal
+            if (nextString != null && nextString.beg < pos)
+                nextString = findFirst(file, pos, stringStarters);
+            STRING: while (nextString != null && nextString.beg < nextComment.beg) {
+                // find the end of this string literal.
+                int stringEnd = findStringEnd(file, nextString, stringStarters,
+                    stringEscapes, stringEmbeds, stringEnders);
+
+                if (stringEnd == -1) {
+                    // the end of this string was not found - an apparent
+                    // syntax error. Ignore it and process the comment.
+                    break STRING;
+
+                } else if (stringEnd < nextComment.beg) {
+                    // this string ends before our target comment.  Look to
+                    // see if another string appears after this one, but
+                    // before the comment.
+                    nextString = findFirst(file, stringEnd, stringStarters);
+
+                } else if (stringEnd == nextComment.beg) {
+                    // the comment begins immediately after the end of the
+                    // string.  break out of this loop and continue with
+                    // processing of the comment.
+                    break STRING;
+
+                } else if (stringEnd > nextComment.beg) {
+                    // the comment starter is inside this string literal.
+                    // look for the next comment that appears after the end
+                    // of this string.
+                    pos = stringEnd;
+                    continue COMMENT;
                 }
             }
 
-            // no comments found? we're done.
-            if (selectedStyle == -1) break;
-
             // retrieve the strings that describe the comment style we found.
-            beginPattern = commentStarters[selectedStyle];
-            endPattern   = commentEnders  [selectedStyle];
+            String beginPattern = commentStarters[nextComment.style];
+            String endPattern   = commentEnders  [nextComment.style];
 
             // search for the end of the comment.
-            end = StringUtils.indexOf
-                (file, endPattern, begin + beginPattern.length());
+            int end = StringUtils.indexOf(file, endPattern,
+                    nextComment.beg + beginPattern.length());
             if (end == -1)
                 end = file.length();
             else
                 end += endPattern.length();
 
             // insert comment indicators before and after the string.
-            file.insert(end,   COMMENT_END_STR);
-            file.insert(begin, COMMENT_START_STR);
+            file.insert(end, COMMENT_END_STR);
+            file.insert(nextComment.beg, COMMENT_START_STR);
 
+            // if we have an active string pointer that begins after the end
+            // of the comment, advance its position by 2 to account for the
+            // marker characters we just inserted.
+            if (nextString != null && nextString.beg >= end)
+                nextString.beg += 2;
+
+            // advance the search position to the end of the comment we just
+            // marked.  The added "2" accounts for the new marker characters.
             pos = end+2;
         }
         StringUtils.findAndReplace(file, "\n" + COMMENT_END,
                                    COMMENT_END + "\n");
     }
 
+    private class FindResult {
+        int beg = Integer.MAX_VALUE;
+        int style = -1;
+    }
+
+    private FindResult findFirst(StringBuffer data, int pos, String[] patterns) {
+        if (patterns == null)
+            return null;
+
+        FindResult result = new FindResult();
+        for (int i = patterns.length;   i-- > 0; ) {
+            int b = StringUtils.indexOf(data, patterns[i], pos);
+            if (b != -1 && b < result.beg) {
+                result.beg = b;
+                result.style = i;
+            }
+        }
+        return (result.style == -1 ? null : result);
+    }
+
+    private int findStringEnd(StringBuffer data, FindResult str,
+            String[] stringStarters, char[] stringEscapes,
+            String[] stringEmbeds, String[] stringEnders) {
+        String beginPattern = stringStarters[str.style];
+        char escapeChar = stringEscapes[str.style];
+        String embedPattern = stringEmbeds[str.style];
+        String endPattern = stringEnders[str.style];
+        if (endPattern == null)
+            endPattern = beginPattern;
+
+        int pos = str.beg + beginPattern.length();
+        while (pos < data.length()) {
+            if (StringUtils.startsWith(data, embedPattern, pos))
+                pos += embedPattern.length();
+            else if (data.charAt(pos) == escapeChar)
+                pos += 2;
+            else if (data.charAt(pos) == '\n')
+                return pos;
+            else if (StringUtils.startsWith(data, endPattern, pos))
+                return pos + endPattern.length();
+            else
+                pos++;
+        }
+        return -1;
+    }
+
     protected String[] getCommentStarters() { return null; }
     protected String[] getCommentEnders()   { return null; }
+    protected String[] getStringStarters()  { return null; }
+    protected char[]   getStringEscapes()   { return null; }
+    protected String[] getStringEmbeds()    { return null; }
+    protected String[] getStringEnders()    { return null; }
     protected String[] getDefaultFilenameEndings() { return null; }
 
     protected String[] getFilenameEndings() {

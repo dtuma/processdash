@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2003 Tuma Solutions, LLC
+// Copyright (C) 2001-2011 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -33,6 +33,18 @@ public class PascalFilter extends AbstractLanguageFilter {
 
     private static final String[] COMMENT_ENDERS   = { "\n", "}" };
     protected String[] getCommentEnders()   { return COMMENT_ENDERS; }
+
+    private static final String[] STRING_STARTERS = { "'" };
+    protected String[] getStringStarters() { return STRING_STARTERS; }
+
+    private static final char[] STRING_ESCAPES = { 0 };
+    protected char[] getStringEscapes() { return STRING_ESCAPES; }
+
+    private static final String[] STRING_EMBEDS = { "''" };
+    protected String[] getStringEmbeds()   { return STRING_EMBEDS; }
+
+    private static final String[] STRING_ENDERS = { "'" };
+    protected String[] getStringEnders()   { return STRING_ENDERS; }
 
     private static final String[] FILENAME_ENDINGS = { ".pas" };
     protected String[] getDefaultFilenameEndings() {

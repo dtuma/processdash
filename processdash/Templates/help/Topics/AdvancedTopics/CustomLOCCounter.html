@@ -182,6 +182,10 @@ filter:</p>
       &lt;commentSyntax beginsWith=&quot;<font color="#008800"><b>//</b></font>&quot; /&gt;
       &lt;commentSyntax beginsWith=&quot;<font color="#008800"><b>/*</b></font>&quot; endsWith=&quot;<font color="#008800"><b>*/</b></font>&quot; /&gt;
 
+      &lt;stringSyntax delimiter=&quot;<font color="#008800"><b>&amp;quot;</b></font>&quot; escapeChar=&quot;<font color="#008800"><b>\</b></font>&quot; /&gt;
+      &lt;stringSyntax delimiter=&quot;<font color="#008800"><b>&amp;apos;</b></font>&quot; escapeChar=&quot;<font color="#008800"><b>\</b></font>&quot; /&gt;
+      &lt;stringSyntax beginsWith=&quot;<font color="#008800"><b>@&amp;quot;</b></font>&quot; endsWith=&quot;<font color="#008800"><b>&amp;quot;</b></font>&quot; mayInclude=&quot;<font color="#008800"><b>&amp;quot;&amp;quot;</b></font>&quot; /&gt;
+
       &lt;possibleFirstLine&gt;<font color="#008800"><b>#include</b></font>&lt;/possibleFirstLine&gt;
       &lt;possibleFirstLine&gt;<font color="#008800"><b>#define</b></font>&lt;/possibleFirstLine&gt;
       &lt;possibleFirstLine&gt;<font color="#008800"><b>#if</b></font>&lt;/possibleFirstLine&gt;
@@ -251,7 +255,68 @@ describe a language without comments, or alternatively, a language where
 comments are included in LOC counts.  The "Default" filter is a
 preinstalled example of this.</p>
 
-<h3 NO_NUMBER>Step 2(d): List Possible First Lines (Optional)</h3>
+<h3 NO_NUMBER>Step 2(d): Define String Literal Syntax</h3>
+
+<p>The LOC counter is primarily focused on identifying comments so
+those can be excluded from the count.  However, there are occasions
+when a comment indicator can appear inside a string literal.  Here is
+an example taken from a C program:</p>
+
+<table border="1"><tr>
+<td valign="top"><pre> 
+  printf("Visit http://example.com/ for more information");</pre></td>
+</tr></table>
+
+<p>In this line of code, the "<tt>//</tt>" that appears inside the
+string literal could be mistaken as the start of a single-line
+comment, which would prevent any subsequent changes on the line from
+being considered toward the "modified" count.  To avoid this type of
+mistake, you can tell the LOC counter about the syntax for string
+literals in your programming language.</p>
+
+<p>You can declare any number of string literal styles for a language
+filter by creating embedded <tt>&lt;stringSyntax&gt;</tt>
+elements. Each <tt>&lt;stringSyntax&gt;</tt> element must have one of
+the following:</p>
+
+<ul>
+
+<li>a <tt>delimiter</tt> attribute, indicating the string of
+characters that begin and end a string literal</li>
+
+<li><tt>beginsWith</tt> and <tt>endsWith</tt> attributes, indicating
+the strings of characters that begin and end the string literal.</li>
+
+</ul>
+
+<p>An <tt>escapeChar</tt> attribute can optionally be specified,
+indicating a character (such as <tt>\</tt>) that is used to escape the
+following character inside the string.</p>
+
+<p>In addition, a <tt>mayInclude</tt> attribute can optionally be
+specified to indicate a sequence of characters that are treated
+specially within the string literal and which should not signal the
+end of the string.  A common example would be doubled-up delimiter
+characters, which occur in languages like Visual Basic.  If your
+language allows the newline character to appear within a string
+literal, you can specify "<tt>\n</tt>" for this attribute; otherwise
+the LOC counter will treat the end-of-line as the end of an improperly
+formed string constant.</p>
+
+<p>These attributes provide support for the vast majority of string
+literal constructs in the most popular languages.  Some languages (for
+example, Perl) provide very flexible string quoting mechanisms that
+would become extremely complex to recognize without implementing a
+parser.  If you use a language whose string rules cannot be expressed
+with this XML syntax, keep in mind that the LOC counter will not be
+able to detect comment indicators that appear within the more complex
+string constructs.  Fortunately, this is fairly rare; however, you
+should be wary of comment indicators that appear inside string
+literals, and adjust your LOC counts if you know these are
+present.</p>
+
+
+<h3 NO_NUMBER>Step 2(e): List Possible First Lines (Optional)</h3>
 
 <p>During the "LOC Filter Selection" process, if a file is encountered
 whose filename doesn't match any recognized suffix, the dashboard will look
@@ -277,7 +342,7 @@ most language filters will not need to use them.  In particular, remember
 that these are only used as a last resort; normally files will be
 categorized based on their filename suffix.</p>
 
-<h3 NO_NUMBER>Step 2(e): List Ignored Lines (Optional)</h3>
+<h3 NO_NUMBER>Step 2(f): List Ignored Lines (Optional)</h3>
 
 <p>In addition to comments, there may be other lines of code that you wish
 to exclude from LOC counts.  These can be specified by creating embedded
