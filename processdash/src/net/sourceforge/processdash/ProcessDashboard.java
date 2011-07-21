@@ -958,7 +958,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
             Object[] message = new Object[] {
                     res.getString("ReadOnly.Recommended.Message").split("\n"),
                     readOnlyOption, readWriteOption };
-            JOptionPane.showMessageDialog(ss, message, title,
+            JOptionPane.showMessageDialog(hideSS(), message, title,
                     JOptionPane.QUESTION_MESSAGE);
             if (readOnlyOption.isSelected())
                 InternalSettings.setReadOnly(true);
@@ -996,7 +996,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         String message = MessageFormat.format(r
                 .getString("Errors.Concurrent_Use_Message2_FMT"), otherUser);
 
-        if (JOptionPane.showConfirmDialog(ss, message.split("\n"), title,
+        if (JOptionPane.showConfirmDialog(hideSS(), message.split("\n"), title,
             JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
             InternalSettings.setReadOnly(true);
         } else {
@@ -1038,7 +1038,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
                     .getBundle("Templates.resources.ProcessDashboard");
             String title = res.getString("Enter_Name_Dialog.Title");
             String message = res.getString("Enter_Name_Dialog.Prompt");
-            result = JOptionPane.showInputDialog(ss, message, title,
+            result = JOptionPane.showInputDialog(hideSS(), message, title,
                 JOptionPane.PLAIN_MESSAGE);
             if (result != null) {
                 prefs.put("ownerName", result);
@@ -1097,7 +1097,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
             }
         }
 
-        int userResponse = JOptionPane.showConfirmDialog(ss, message,
+        int userResponse = JOptionPane.showConfirmDialog(hideSS(), message,
                 title, JOptionPane.OK_CANCEL_OPTION,
                 JOptionPane.ERROR_MESSAGE);
         if (userResponse == JOptionPane.OK_OPTION) {
@@ -1114,7 +1114,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         String title = resources.getString("Errors.Data_Sharing_Violation_Title");
         String[] message = resources.formatStrings(
             "Errors.Data_Sharing_Violation_Message_FMT", location);
-        JOptionPane.showMessageDialog(ss, message, title,
+        JOptionPane.showMessageDialog(hideSS(), message, title,
             JOptionPane.ERROR_MESSAGE);
     }
 
@@ -1132,7 +1132,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         }
 
         JOptionPane.showMessageDialog
-            (ss,
+            (hideSS(),
              resources.formatStrings("Errors.Read_File_Error.Message_FMT",
                                      resources.getString(resourceKey),
                                      filename),
@@ -1554,6 +1554,21 @@ public class ProcessDashboard extends JFrame implements WindowListener,
     public static void dropSplashScreen() {
         if (ss != null) ss.okayToDispose();
         ss = null;
+    }
+
+    private static Component hideSS() {
+        // on many flavors of Unix (reported on Solaris and RedHat Linux),
+        // JOptionPane dialog boxes inexplicably appear behind the splash
+        // screen.  After testing, it appears that calling toBack() on the
+        // splash screen will resolve the problem.  However, this must not
+        // be called for Windows or Mac, because on those platforms toBack()
+        // will truly bury the splash screen behind all other open windows
+        // for all other applications.
+        String osName = System.getProperty("os.name").toLowerCase();
+        if (!osName.contains("windows") && !osName.contains("mac os"))
+            if (ss != null)
+                ss.toBack();
+        return ss;
     }
 
     private void maybeNotifyOpened() {
