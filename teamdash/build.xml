@@ -470,11 +470,8 @@ class dependency has been added in a dashboard class?)
 	  destfile="${processdash.dist}/${launchProfile.filename}">
       <fileset dir="${processdash.dist}"
           includesfile="${processdash.lib}/fileset-install-jars.txt" />
-      <fileset dir="${processdash.dist}">
-        <include name="TeamTools.jar"/>
-        <include name="${launchProfile.file1}"/>
-        <include name="${launchProfile.file2}"/>
-      </fileset>
+      <fileset dir="${processdash.dist}"
+          includes="TeamTools.jar ${launchProfile.files}"/>
       <fileset dir="install" includes="${skipConsentFile}"/>
       <fileset file="${licenseFile}"/>
     </packageLaunchProfile>
