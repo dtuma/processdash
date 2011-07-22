@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2007 Tuma Solutions, LLC
+// Copyright (C) 2001-2011 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -30,6 +30,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 
 import net.sourceforge.processdash.Settings;
+import net.sourceforge.processdash.data.DoubleData;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.StringData;
 import net.sourceforge.processdash.data.repository.DataRepository;
@@ -44,6 +45,7 @@ public class DefectTypeStandard extends OptionList {
     public String getName() { return defectTypeName; }
 
     private static final String DATA_PREFIX = "/Defect Type Standard/";
+    private static final String PRIORITY_PREFIX = "/Defect Type Priority/";
     private static final String SETTING_DATA_NAME = "Defect Type Standard";
     private static final String CONTENTS_DATA_NAME =
         "Defect Type Standard Contents";
@@ -80,10 +82,13 @@ public class DefectTypeStandard extends OptionList {
         }
 
         // No setting was found in the hierarchy for this project.  Look in
-        // the user settings, or fall back to a global default standard
+        // the user settings for a global default.
         String defectTypeName = Settings.getVal("defectTypeStandard");
+
+        // If the user didn't have a global default set, find the installed
+        // defect type standard with the highest preference/priority.
         if (defectTypeName == null)
-            defectTypeName = DEFAULT_NAME;
+            defectTypeName = getNameOfMostPreferredStandard();
 
         return getByName(defectTypeName, r);
     }
@@ -100,6 +105,27 @@ public class DefectTypeStandard extends OptionList {
         DefectTypeStandard result = new DefectTypeStandard(contents);
         result.defectTypeName = defectTypeName;
         return result;
+    }
+
+    private static String getNameOfMostPreferredStandard() {
+        if (mostPreferredName != null)
+            return mostPreferredName;
+
+        String bestName = DEFAULT_NAME;
+        double bestPriority = -1;
+        for (String oneName : getDefinedStandards(data)) {
+            SimpleData sd = data.getSimpleValue(PRIORITY_PREFIX + oneName);
+            if (sd instanceof DoubleData) {
+                double onePriority = ((DoubleData) sd).getDouble();
+                if (onePriority > bestPriority) {
+                    bestName = oneName;
+                    bestPriority = onePriority;
+                }
+            }
+        }
+
+        mostPreferredName = bestName;
+        return mostPreferredName;
     }
 
     /** Get the named defect type standard. */
@@ -216,6 +242,8 @@ public class DefectTypeStandard extends OptionList {
     /** Cache of previously created defect types. */
     private static Hashtable cache = new Hashtable();
 
+    /** The name of the most preferred defect type standard. */
+    private static String mostPreferredName = null;
 
     /** Defect standard to use if everything else fails */
     private static final String DEFAULT_NAME = "Generic";
