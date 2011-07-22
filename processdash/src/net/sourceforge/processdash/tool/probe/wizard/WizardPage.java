@@ -117,6 +117,10 @@ public abstract class WizardPage {
             out.print("<input type=hidden name="+Wizard.NEXT_PAGE+
                       " value="+nextPage+">");
 
+        writeFooterButtons();
+    }
+
+    protected void writeFooterButtons() {
         // align the button(s) to the right.
         out.print("<table width='100%'><tr><td width='100%' align=right>");
 

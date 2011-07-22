@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2009 Tuma Solutions, LLC
+// Copyright (C) 2002-2011 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -79,6 +79,26 @@ public class CheckPage extends WizardPage {
         out.print(StringUtils.findAndReplace(resources.getString(resKey),
                 "<a>", CLOSE_WINDOW_HYPERLINK));
         out.println("</p>");
+    }
+
+    @Override
+    protected void writeFooterButtons() {
+        if (cmpFlag == LOW_PROD || cmpFlag == HIGH_PROD)
+            writeReestimationButtons();
+        else
+            super.writeFooterButtons();
+    }
+
+    private void writeReestimationButtons() {
+        out.write("<p style='text-align: center'>");
+        out.print("<input type=submit name=continue value=\"");
+        out.print(resources.getHTML("Check.Reevaluate_Button"));
+        out.print("\"></p>");
+
+        out.write("<p style='text-align: center'>");
+        out.print("<input type=button name=finish value=\"");
+        out.print(resources.getHTML("Check.Keep_Estimates_Button"));
+        out.print("\" onClick='window.close()'></p>");
     }
 
     public boolean parseFormData() {
