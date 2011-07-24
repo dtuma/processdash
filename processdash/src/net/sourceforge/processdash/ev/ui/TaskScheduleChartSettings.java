@@ -1,4 +1,4 @@
-// Copyright (C) 2009-2010 Tuma Solutions, LLC
+// Copyright (C) 2009-2011 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -23,12 +23,18 @@
 
 package net.sourceforge.processdash.ev.ui;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.w3c.dom.Element;
+
+import net.sourceforge.processdash.data.ListData;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.StringData;
 import net.sourceforge.processdash.data.repository.DataNameFilter;
@@ -38,8 +44,6 @@ import net.sourceforge.processdash.net.cms.XmlParamDataPersisterV1;
 import net.sourceforge.processdash.util.HttpQueryParser;
 import net.sourceforge.processdash.util.StringUtils;
 import net.sourceforge.processdash.util.XMLUtils;
-
-import org.w3c.dom.Element;
 
 public class TaskScheduleChartSettings {
 
@@ -335,6 +339,61 @@ public class TaskScheduleChartSettings {
         return result;
     }
 
+    /**
+     * In some settings, the user is given an option of selecting a subset of
+     * charts and arranging them in a preferred ordering.  This method will
+     * retrieve that preferred ordering for a given task list.
+     */
+    public static List<String> getPreferredChartOrdering(String taskListID,
+            DataRepository data) {
+        SimpleData sd = data.getSimpleValue(SETTINGS_PREFIX + taskListID
+                + CHART_ORDERING_SETTING);
+        if (sd == null)
+            sd = data.getSimpleValue(SETTINGS_PREFIX + GLOBAL_QUALIFIER
+                    + CHART_ORDERING_SETTING);
+        ListData l = ListData.asListData(sd);
+        return (l == null ? Collections.EMPTY_LIST : l.asList());
+    }
+
+    /**
+     * In some settings, the user is given an option of selecting a subset of
+     * charts and arranging them in a preferred ordering.  This method will
+     * save that preferred ordering for a given task list.
+     */
+    public static void savePreferredChartOrdering(String taskListID,
+            List<String> chartIds, DataRepository data) {
+
+        // When more than one person opens a particular dataset, someone may
+        // have a older version of the charts (or may not have the charting
+        // add-on installed at all).  In that case, the person with fewer
+        // charts may save a list that is incomplete (does not contain all of
+        // the available chart IDs).  Look through the previous version of our
+        // saved setting, find any items that are missing from the new list,
+        // and insert them into the new list in our best guess of the right
+        // order.  Note that we can't reliably infer the ordering intent of a
+        // user who isn't working with a full set of charts.  But fortunately,
+        // if the user with missing charts makes no changes to the order, the
+        // algorithm below will effectively retain the previous ordering
+        // without changes.
+        List<String> newChartIds = new ArrayList<String>(chartIds);
+        List<String> oldOrder = getPreferredChartOrdering(taskListID, data);
+        int insertPos = 0;
+        for (String oneId : oldOrder) {
+            int pos = newChartIds.indexOf(oneId);
+            if (pos == -1) {
+                newChartIds.add(insertPos++, oneId);
+            } else {
+                insertPos = pos+1;
+            }
+        }
+
+        // Now that we have constructed the list, save it to the repository.
+        ListData l = new ListData();
+        for (String id : newChartIds)
+            l.add(id);
+        data.putValue(SETTINGS_PREFIX + taskListID + CHART_ORDERING_SETTING, l);
+    }
+
     private static String getTaskListPrefix(String taskListID) {
         return SETTINGS_PREFIX + taskListID + "/";
     }
@@ -343,6 +402,8 @@ public class TaskScheduleChartSettings {
     private static final String GLOBAL_QUALIFIER = "global";
     private static final String GLOBAL_SETTINGS_PREFIX = SETTINGS_PREFIX
             + GLOBAL_QUALIFIER + "/";
+    private static final String CHART_ORDERING_SETTING = ":Chart Order";
+    public static final String SECONDARY_CHART_MARKER = "*More*";
 
     private static final String PERSISTER_ATTR = "persister";
     private static final String XML_PERSISTER_ID = "xml.v1";

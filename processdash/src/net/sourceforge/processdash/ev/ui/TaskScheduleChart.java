@@ -91,6 +91,7 @@ import net.sourceforge.processdash.ev.EVTaskFilter;
 import net.sourceforge.processdash.ev.EVTaskList;
 import net.sourceforge.processdash.ev.EVTaskListRollup;
 import net.sourceforge.processdash.ev.ui.TaskScheduleChartSettings.PersistenceException;
+import net.sourceforge.processdash.ev.ui.TaskScheduleChartUtil.ChartListPurpose;
 import net.sourceforge.processdash.ev.ui.chart.HelpAwareEvChart;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.ui.DashboardIconFactory;
@@ -192,7 +193,8 @@ public class TaskScheduleChart extends JFrame
 
         List<TaskScheduleChartUtil.ChartItem> chartItems =
             TaskScheduleChartUtil.getChartsForTaskList(tl.getID(), data,
-                    filterInEffect, isRollup, false);
+                    filterInEffect, isRollup, false,
+                    ChartListPurpose.ChartWindow);
         for (TaskScheduleChartUtil.ChartItem oneChart : chartItems) {
             try {
                 SnippetChartItem item = new SnippetChartItem(oneChart.snip);

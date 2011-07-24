@@ -75,6 +75,8 @@ public class TaskScheduleChartUtil {
     }
 
 
+    public enum ChartListPurpose { ChartWindow, ReportMain, ReportAll };
+
     /**
      * Retrieve a list of charts that are applicable for a particular task list.
 
@@ -91,7 +93,7 @@ public class TaskScheduleChartUtil {
      */
     public static List<ChartItem> getChartsForTaskList(String taskListID,
             DataRepository data, boolean filterInEffect, boolean isRollup,
-            boolean hideNames) {
+            boolean hideNames, ChartListPurpose purpose) {
         Map<String, TaskScheduleChartSettings> chartSettings =
             TaskScheduleChartSettings.getSettingsForTaskList(taskListID, data);
 
@@ -123,8 +125,33 @@ public class TaskScheduleChartUtil {
             }
         }
 
+        List preferredCharts = new ArrayList<ChartItem>();
+        if (purpose == ChartListPurpose.ReportMain
+                || purpose == ChartListPurpose.ReportAll) {
+            List<String> preferredChartOrdering = TaskScheduleChartSettings
+                    .getPreferredChartOrdering(taskListID, data);
+            for (String oneId : preferredChartOrdering) {
+                if (TaskScheduleChartSettings.SECONDARY_CHART_MARKER
+                        .equals(oneId)) {
+                    if (purpose == ChartListPurpose.ReportMain)
+                        break;
+                    else
+                        preferredCharts.add(null);
+                } else {
+                    ChartItem chart = result.remove(oneId);
+                    if (chart != null)
+                        preferredCharts.add(chart);
+                }
+            }
+            if (purpose == ChartListPurpose.ReportMain)
+                return preferredCharts;
+            else if (!preferredCharts.contains(null))
+                preferredCharts.add(null);
+        }
+
         List finalResult = new ArrayList<ChartItem>(result.values());
         Collections.sort(finalResult);
+        finalResult.addAll(0, preferredCharts);
         return finalResult;
     }
 

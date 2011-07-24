@@ -1,9 +1,3 @@
-div.moreChartsLink {
-    padding: 5px 0px 20px 1in;
-    font-size: large;
-    font-style: italic;
-}
-
 div.evChartItem {
     width: 400px;
     height: 340px;
@@ -44,4 +38,27 @@ div.evChartItem div.licenseStatusTrial {
 div.evChartItem div.licenseStatusNoneFound,
 div.evChartItem div.licenseStatusExpired {
     margin: 25% 10%;
+}
+
+div#chartOrderBlock {
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+div#chartOrderBlockShow, div#chartOrderBlockHide {
+    min-height: 30px;
+}
+
+div.chartOrderItem {
+    margin: 2px 2px 2px 40px;
+    border: 1px solid black;
+    padding: 3px;
+    cursor: move;
+    background-color: #ccccff;
+    font-size: small;
+}
+
+div.chartOrderItem.standardChartItem {
+    background-color: #fff;
+    cursor: inherit;
 }

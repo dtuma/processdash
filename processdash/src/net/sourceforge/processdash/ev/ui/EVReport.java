@@ -33,6 +33,7 @@ import java.text.DateFormat;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -68,6 +69,7 @@ import net.sourceforge.processdash.ev.EVTaskListData;
 import net.sourceforge.processdash.ev.EVTaskListMerged;
 import net.sourceforge.processdash.ev.EVTaskListRollup;
 import net.sourceforge.processdash.ev.ui.TaskScheduleChartUtil.ChartItem;
+import net.sourceforge.processdash.ev.ui.TaskScheduleChartUtil.ChartListPurpose;
 import net.sourceforge.processdash.ev.ui.chart.AbstractEVChart;
 import net.sourceforge.processdash.ev.ui.chart.AbstractEVTimeSeriesChart;
 import net.sourceforge.processdash.ev.ui.chart.HtmlEvChart;
@@ -105,6 +107,7 @@ public class EVReport extends CGIChartBase {
 
     public static final String CHART_PARAM = "chart";
     public static final String CHARTS_PARAM = "charts";
+    public static final String CHART_OPTIONS_PARAM = "chartOptions";
     public static final String TABLE_PARAM = "table";
     public static final String XML_PARAM = "xml";
     public static final String XLS_PARAM = "xls";
@@ -216,6 +219,8 @@ public class EVReport extends CGIChartBase {
                     writeMSProjXml();
                 else if (parameters.get(CHARTS_PARAM) != null)
                     writeChartsPage();
+                else if (parameters.get(CHART_OPTIONS_PARAM) != null)
+                    writeChartOptions();
                 else
                     writeHTML();
             } else if (TIME_CHART.equals(tableType))
@@ -770,6 +775,7 @@ public class EVReport extends CGIChartBase {
             settings.store(CUSTOMIZE_HIDE_FORECAST_LINE, true);
             settings.store(CUSTOMIZE_HIDE_NAMES, true);
             settings.store(CUSTOMIZE_LABEL_FILTER, false);
+            saveChartOrderingPreference();
             out.println("window.opener.location.reload();");
         }
         out.println("window.close();");
@@ -790,6 +796,7 @@ public class EVReport extends CGIChartBase {
         String title = resources.format("Report.Title_FMT", taskListHTML);
 
         EVTaskFilter taskFilter = settings.getEffectiveFilter(evModel);
+        EVSchedule s = getEvSchedule(taskFilter);
 
         EVTaskDataWriter taskDataWriter = getEffectiveTaskDataWriter();
 
@@ -806,6 +813,7 @@ public class EVReport extends CGIChartBase {
         if (!exportingToExcel()) {
             interpOutLink(SHOW_WEEK_LINK, EVReportSettings.PURPOSE_WEEK);
             printAlternateViewLinks();
+            interpOutLink(SHOW_CHARTS_LINK, EVReportSettings.PURPOSE_OTHER);
         }
         printCustomizationLink();
         out.print(isSnippet ? "</h2>" : "</h1>");
@@ -815,11 +823,14 @@ public class EVReport extends CGIChartBase {
 
         if (!exportingToExcel()) {
             writeImageHtml(taskFilter != null);
-            interpOutLink(SHOW_CHARTS_LINK, EVReportSettings.PURPOSE_OTHER);
+            out.print("<div style='clear:both'></div>");
+            writeCharts(evModel, s, taskFilter,
+                settings.getBool(CUSTOMIZE_HIDE_NAMES), "350",
+                ChartListPurpose.ReportMain);
+            out.print("<div style='clear:both'>&nbsp;</div>");
             out.print(HTMLTreeTableWriter.TREE_ICON_HEADER);
         }
 
-        EVSchedule s = getEvSchedule(taskFilter);
         EVMetrics m = s.getMetrics();
 
         Map errors = m.getErrors();
@@ -1055,7 +1066,8 @@ public class EVReport extends CGIChartBase {
             out.print("<span " + HEADER_LINK_STYLE + ">"
                     + "<span class='doNotPrint'><a href='");
             out.print(settings.getEffectivePrefix());
-            out.print("ev-customize.shtm?a");
+            out.print("ev-customize.shtm?tlid=");
+            out.print(HTMLUtils.urlEncode(evModel.getID()));
             if ((evModel instanceof EVTaskListRollup))
                 out.print("&isRollup");
             if (!parameters.containsKey(EVReportSettings.LABEL_FILTER_PARAM)
@@ -1071,7 +1083,7 @@ public class EVReport extends CGIChartBase {
             out.print("<script>\n" +
                     "function openCustomizeWindow() {\n" +
                     "    var newWind = window.open ('', 'customize',\n" +
-                    "        'scrollbars=yes,dependent=yes,resizable=yes,width=420,height=250');\n" +
+                    "        'scrollbars=yes,dependent=yes,resizable=yes,width=420,height=720');\n" +
                     "    newWind.focus();\n" +
                     "}\n" +
                     "</script>\n");
@@ -1223,9 +1235,9 @@ public class EVReport extends CGIChartBase {
     static final String SHOW_ALT_LINK = "<span " + HEADER_LINK_STYLE + ">"
             + "<span class='doNotPrint'><a href='../[URI]???'>"
             + "${Link_Text}</a></span></span>";
-    static final String SHOW_CHARTS_LINK = "<div class='moreChartsLink doNotPrint'>"
-            + "<a href='ev.class??&charts'>${Report.Charts_Link}</a>"
-            + "</span></div>";
+    static final String SHOW_CHARTS_LINK = "<span " + HEADER_LINK_STYLE + ">"
+            + "<span class='doNotPrint'><a href='ev.class??&charts'>"
+            + "${Report.Charts_Link}</a></span></span>";
     static final String EXCEL_TIME_TD = "<td class='timeFmt'>";
 
 
@@ -1452,7 +1464,8 @@ public class EVReport extends CGIChartBase {
         printFilterInfo(out, taskFilter, false);
 
         EVSchedule s = getEvSchedule(taskFilter);
-        writeCharts(evModel, s, taskFilter, hideNames);
+        writeCharts(evModel, s, taskFilter, hideNames, "400",
+            ChartListPurpose.ReportAll);
 
         // add space to the bottom of the page so the chart tooltips don't
         // get truncated.
@@ -1462,14 +1475,17 @@ public class EVReport extends CGIChartBase {
     }
 
     protected void writeCharts(EVTaskList evModel, EVSchedule schedule,
-            EVTaskFilter filter, boolean hideNames) {
+            EVTaskFilter filter, boolean hideNames, String width,
+            ChartListPurpose p) {
         DashboardContext ctx = getDashboardContext();
         boolean filterInEffect = (filter != null);
         boolean isRollup = (evModel instanceof EVTaskListRollup);
         List<ChartItem> chartList = TaskScheduleChartUtil.getChartsForTaskList(
             evModel.getID(), getDataRepository(), filterInEffect, isRollup,
-            hideNames);
+            hideNames, p);
         for (ChartItem chart : chartList) {
+            if (chart == null)
+                continue;
             try {
                 SnippetWidget w = chart.snip.getWidget("view", null);
                 if (w instanceof HtmlEvChart) {
@@ -1478,10 +1494,11 @@ public class EVReport extends CGIChartBase {
                     Map params = TaskScheduleChartUtil
                             .getParameters(chart.settings);
                     params.put("title", chart.name);
-                    params.put("width", "400");
+                    params.put("width", width);
                     if (hideNames)
                         params.put(CUSTOMIZE_HIDE_NAMES, "t");
-                    out.write("<div class='evChartItem'>");
+                    out.write("<div class='evChartItem' style='width:" + width
+                            + "px'>");
                     ((HtmlEvChart) w).writeChartAsHtml(out, environment, params);
                     out.write("</div>");
                 }
@@ -1493,6 +1510,77 @@ public class EVReport extends CGIChartBase {
             }
         }
     }
+
+    private void writeChartOptions() {
+        String taskListId = getParameter("tlid");
+        boolean isRollup = parameters.containsKey("isRollup");
+        List<ChartItem> chartList = TaskScheduleChartUtil.getChartsForTaskList(
+            taskListId, getDataRepository(), false, isRollup, false,
+            ChartListPurpose.ReportAll);
+        Iterator<ChartItem> i = chartList.iterator();
+
+        out.write("<div id='chartOrderBlock'>\n");
+
+        out.write("<div>");
+        out.write(resources.getString("Report.Customize.Show_On_Report_HTML"));
+        out.write("</div>\n");
+        out.write("<div class='chartOrderItem standardChartItem'>");
+        out.write(resources.getHTML("Report.Customize.Standard_Chart_Name"));
+        out.write("</div>\n");
+
+        out.write("<div id='chartOrderBlockShow'>\n");
+        while (i.hasNext()) {
+            if (!writeChartOrderingItem(i.next()))
+                break;
+        }
+        out.write("</div>\n"); // chartOrderBlockShow
+
+        out.write("<div>"
+                + resources.getString("Report.Customize.Show_On_More_Charts_HTML")
+                + "<input type='hidden' name='chartOrder' " + "value='"
+                + TaskScheduleChartSettings.SECONDARY_CHART_MARKER
+                + "'></div>\n");
+
+        out.write("<div id='chartOrderBlockHide'>\n");
+        while (i.hasNext()) {
+            writeChartOrderingItem(i.next());
+        }
+        out.write("</div>\n");  // chartOrderBlockHide
+
+        out.write("</div>\n");  // chartOrderBlock
+    }
+
+    private boolean writeChartOrderingItem(ChartItem chart) {
+        if (chart == null)
+            return false;
+        try {
+            SnippetWidget w = chart.snip.getWidget("view", null);
+            if (w instanceof HtmlEvChart) {
+                String chartId;
+                if (chart.settings != null)
+                    chartId = chart.settings.getSettingsIdentifier();
+                else
+                    chartId = chart.snip.getId();
+                out.write("<div class='chartOrderItem'>");
+                out.write("<input type='hidden' name='chartOrder' value='");
+                out.write(HTMLUtils.escapeEntities(chartId));
+                out.write("'>");
+                out.write(HTMLUtils.escapeEntities(chart.name));
+                out.write("</div>\n");
+            }
+        } catch (Exception e) {}
+        return true;
+    }
+
+    private void saveChartOrderingPreference() {
+        String taskListID = getParameter("tlid");
+        String[] chartOrder = (String[]) parameters.get("chartOrder_ALL");
+        if (taskListID != null && chartOrder != null) {
+            TaskScheduleChartSettings.savePreferredChartOrdering(taskListID,
+                Arrays.asList(chartOrder), getDataRepository());
+        }
+    }
+
 
     public void writeTimeTable() {
         if (evModel != null)
