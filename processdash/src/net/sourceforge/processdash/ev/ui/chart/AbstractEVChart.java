@@ -89,6 +89,10 @@ public abstract class AbstractEVChart<D extends Dataset, P extends Plot>
         return helpId;
     }
 
+    public String getHelpUri() {
+        return helpUri;
+    }
+
     private ChartPanel buildChart(D data, Map environment, Map parameters) {
         data = getAdjustedData(data);
         JFreeChart chart = createChart(data);

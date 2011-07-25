@@ -29,6 +29,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.Writer;
+import java.net.URI;
 import java.text.DateFormat;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
@@ -49,6 +50,12 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.swing.table.TableModel;
+
+import org.jfree.chart.JFreeChart;
+import org.jfree.data.xy.AbstractXYDataset;
+import org.jfree.data.xy.XYDataset;
+import org.jfree.ui.RectangleEdge;
+import org.w3c.dom.Element;
 
 import net.sourceforge.processdash.DashboardContext;
 import net.sourceforge.processdash.Settings;
@@ -72,6 +79,7 @@ import net.sourceforge.processdash.ev.ui.TaskScheduleChartUtil.ChartItem;
 import net.sourceforge.processdash.ev.ui.TaskScheduleChartUtil.ChartListPurpose;
 import net.sourceforge.processdash.ev.ui.chart.AbstractEVChart;
 import net.sourceforge.processdash.ev.ui.chart.AbstractEVTimeSeriesChart;
+import net.sourceforge.processdash.ev.ui.chart.HelpAwareEvChart;
 import net.sourceforge.processdash.ev.ui.chart.HtmlEvChart;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.net.cache.CachedURLObject;
@@ -93,12 +101,6 @@ import net.sourceforge.processdash.util.HTTPUtils;
 import net.sourceforge.processdash.util.OrderedListMerger;
 import net.sourceforge.processdash.util.StringUtils;
 
-import org.jfree.chart.JFreeChart;
-import org.jfree.data.xy.AbstractXYDataset;
-import org.jfree.data.xy.XYDataset;
-import org.jfree.ui.RectangleEdge;
-import org.w3c.dom.Element;
-
 
 
 /** CGI script for reporting earned value data in HTML.
@@ -107,6 +109,7 @@ public class EVReport extends CGIChartBase {
 
     public static final String CHART_PARAM = "chart";
     public static final String CHARTS_PARAM = "charts";
+    public static final String SINGLE_CHART_PARAM = "showChart";
     public static final String CHART_OPTIONS_PARAM = "chartOptions";
     public static final String TABLE_PARAM = "table";
     public static final String XML_PARAM = "xml";
@@ -825,8 +828,8 @@ public class EVReport extends CGIChartBase {
             writeImageHtml(taskFilter != null);
             out.print("<div style='clear:both'></div>");
             writeCharts(evModel, s, taskFilter,
-                settings.getBool(CUSTOMIZE_HIDE_NAMES), "350",
-                ChartListPurpose.ReportMain);
+                settings.getBool(CUSTOMIZE_HIDE_NAMES), 350, 300,
+                ChartListPurpose.ReportMain, null, null);
             out.print("<div style='clear:both'>&nbsp;</div>");
             out.print(HTMLTreeTableWriter.TREE_ICON_HEADER);
         }
@@ -941,6 +944,7 @@ public class EVReport extends CGIChartBase {
 
 
     private void writeImageHtml(boolean showCombined) throws IOException {
+        boolean exporting = isExporting();
         Map realParameters = this.parameters;
         Map imgParams = new HashMap();
         this.parameters = imgParams;
@@ -948,18 +952,30 @@ public class EVReport extends CGIChartBase {
         imgParams.put("initGradColor", "#bebdff");
         imgParams.put("finalGradColor", "#bebdff");
         imgParams.put("html", "t");
+        imgParams.put("noBorder", "t");
+        if (exporting)
+            imgParams.put("EXPORT", realParameters.get("EXPORT"));
 
         out.write("<pre>");
         if (showCombined) {
             imgParams.put("width", "720");
+            if (!exporting)
+                imgParams.put("href",
+                    getChartDrillDownUrl("pdash.ev.cumCombinedChart"));
             writeCombinedChart();
 
         } else {
+            if (!exporting)
+                imgParams.put("href",
+                    getChartDrillDownUrl("pdash.ev.cumValueChart"));
             writeValueChart();
 
             imgParams.put("width", "320");
             imgParams.put("hideLegend", "t");
             imgParams.remove("title");
+            if (!exporting)
+                imgParams.put("href",
+                    getChartDrillDownUrl("pdash.ev.cumDirectTimeChart"));
             writeTimeChart();
         }
         out.write("</pre>\n");
@@ -1076,17 +1092,10 @@ public class EVReport extends CGIChartBase {
                 out.print("&showLabelFilter");
             if (evModel.getMetadata(EVMetadata.Baseline.SNAPSHOT_ID) != null)
                 out.print("&hasBaseline");
-            out.print("' target='customize' onClick='openCustomizeWindow();'>");
+            out.print("' target='customize' onClick='PdashEV.openCustomizeWindow();'>");
             out.print(HTMLUtils.escapeEntities(resources
                     .getDlgString("Customize")));
             out.print("</a></span></span>");
-            out.print("<script>\n" +
-                    "function openCustomizeWindow() {\n" +
-                    "    var newWind = window.open ('', 'customize',\n" +
-                    "        'scrollbars=yes,dependent=yes,resizable=yes,width=420,height=720');\n" +
-                    "    newWind.focus();\n" +
-                    "}\n" +
-                    "</script>\n");
         }
     }
 
@@ -1207,6 +1216,7 @@ public class EVReport extends CGIChartBase {
         "<html><head><title>%title%</title>\n" +
         "<link rel=stylesheet type='text/css' href='/style.css'>\n" +
         "<script type='text/javascript' src='/lib/overlib.js'></script>\n" +
+        "<script type='text/javascript' src='/reports/ev.js'></script>\n" +
         "<link rel=stylesheet type='text/css' href='/reports/ev.css'>\n";
     static final String HEADER_HTML =
         SIMPLE_HEADER_HTML +
@@ -1464,43 +1474,219 @@ public class EVReport extends CGIChartBase {
         printFilterInfo(out, taskFilter, false);
 
         EVSchedule s = getEvSchedule(taskFilter);
-        writeCharts(evModel, s, taskFilter, hideNames, "400",
-            ChartListPurpose.ReportAll);
 
-        // add space to the bottom of the page so the chart tooltips don't
-        // get truncated.
-        out.print("<div style='height: 1in; clear:both'>&nbsp;</div>\n");
+        String singleChartId = getParameter(SINGLE_CHART_PARAM);
+        if (singleChartId == null)
+            writeChartsGalleryPage(taskFilter, hideNames, s);
+        else
+            writeSingleChartPage(taskFilter, hideNames, s, singleChartId);
 
         out.print("</body></html>\n");
     }
 
-    protected void writeCharts(EVTaskList evModel, EVSchedule schedule,
-            EVTaskFilter filter, boolean hideNames, String width,
-            ChartListPurpose p) {
+
+    private void writeChartsGalleryPage(EVTaskFilter taskFilter,
+            boolean hideNames, EVSchedule s) {
+
+        if (!isExporting()) {
+            out.write("<p class='doNotPrint'><i>"
+                    + resources.getHTML("Report.Charts_More_Detail")
+                    + "</i></p>");
+        }
+
+        // display all of the charts that are relevant to this task list.
+        writeCharts(evModel, s, taskFilter, hideNames, 400, 300,
+            ChartListPurpose.ReportAll, null, null);
+
+        // add space to the bottom of the page so the chart tooltips don't
+        // get truncated.
+        out.print("<div style='height: 1in; clear:both'>&nbsp;</div>\n");
+    }
+
+    protected void writeSingleChartPage(EVTaskFilter taskFilter,
+            boolean hideNames, EVSchedule s, String singleChartId) {
+
+        out.write("<div class='singleChartWrapper'>\n");
+
+        // display the single chart that was requested via query parameters
+        out.write("<div class='singleChartHolder'>\n");
+        Map<String, String> chartHelp = new HashMap<String, String>();
+        List<ChartItem> allCharts = writeCharts(evModel, s, taskFilter,
+            hideNames, 800, 500, ChartListPurpose.ReportAll, singleChartId,
+            chartHelp);
+        out.write("</div>\n"); // singleChartHolder
+
+        // display a drop-down selector that can be used to select a
+        // different chart to display
+        out.write("<div class='singleChartSelector'><form>\n<b>");
+        out.write(resources.getHTML("Report.Select_Chart"));
+        out.write("</b>&nbsp;<select id='chartSelector' name='chartSelector' "
+                + "onchange='PdashEV.selectSingleChart(this)'>\n");
+        out.write("<option value='ALL'>"
+                + resources.getHTML("Report.Show_Gallery") + "</option>\n");
+        out.write("<option value=''> </option>\n");
+        for (ChartItem chart : allCharts) {
+            out.write("<option value='");
+            String chartId = getChartId(chart);
+            out.write(HTMLUtils.escapeEntities(chartId));
+            if (chartId.equals(singleChartId))
+                out.write("' selected='selected");
+            out.write("'>");
+            out.write(HTMLUtils.escapeEntities(chart.name));
+            out.write("</option>\n");
+        }
+        out.write("</select></form></div>\n"); // singleChartSelector
+
+        out.write("</div>"); // singleChartWrapper
+
+        // write out the help topic for the current chart, if one is found.
+        String chartHelpUri = chartHelp.get(singleChartId);
+        if (chartHelpUri != null) {
+            try {
+                String helpContent = getRequestAsString(chartHelpUri);
+                helpContent = fixChartHelpContent(helpContent,
+                    chartHelpUri, chartHelp);
+
+                out.write("<div style='clear:both'></div>\n");
+                out.write("<div class='singleChartHelp'>\n");
+                out.write(helpContent);
+                out.write("</div>"); // singleChartHelp
+            } catch (Exception e) {
+            }
+        }
+    }
+
+    private String fixChartHelpContent(String helpContent,
+            String helpBaseUri, Map<String, String> chartHelp) {
+
+        // discard headers and footers from the help content
+        int cutStart = helpContent.indexOf("</h1>");
+        if (cutStart != -1)
+            helpContent = helpContent.substring(cutStart + 5);
+        int cutEnd = helpContent.lastIndexOf("</body");
+        if (cutEnd != -1)
+            helpContent = helpContent.substring(0, cutEnd);
+
+        // create a map of the chart help topics
+        Map<String, String> chartUrls = new HashMap<String, String>();
+        for (Map.Entry<String, String> e : chartHelp.entrySet()) {
+            String chartId = e.getKey();
+            String chartUrl = getChartDrillDownUrl(chartId);
+            String helpUri = e.getValue();
+            String helpName = hrefFileName(helpUri);
+            chartUrls.put(helpName, chartUrl);
+        }
+
+        // find and fix all the hrefs in this help topic:
+        //   * If any hrefs point to the help topic for a different chart,
+        //     rewrite the href so it actually loads the "drill-down page"
+        //     for that chart instead.
+        //   * For links that point to some non-chart help topic, rewrite the
+        //     href to be absolute (so the help-relative URI won't break)
+
+        StringBuilder html = new StringBuilder(helpContent);
+        int pos = 0;
+        while (true) {
+            // find the next href in the document.
+            pos = html.indexOf("href=", pos);
+            if (pos == -1)
+                break; // no more hrefs to fix
+
+            pos += 6;
+            int beg = pos;  // the first character of the href value itself
+            char delim = html.charAt(beg-1);
+            int end = html.indexOf(String.valueOf(delim), beg);
+            if (end == -1)
+                continue; // invalid href syntax.  Skip to the next one.
+
+            // extract the href value
+            String oneHref = html.substring(beg, end);
+            // extract the final portion of the path name
+            String oneName = hrefFileName(oneHref);
+            // see if that name refers to one of the charts we can display
+            String chartUrl = chartUrls.get(oneName);
+            if (chartUrl != null) {
+                // replace the href with a chart drill-down URL
+                html.replace(beg, end, chartUrl);
+                pos = beg + chartUrl.length();
+            } else {
+                try {
+                    // make the URL absolute, and set a "target" attribute
+                    // so it will open in another window.
+                    URI base = new URI(helpBaseUri);
+                    URI target = base.resolve(oneHref);
+                    String newUri = target.toString();
+                    html.replace(beg, end, newUri);
+                    html.insert(beg-6, "target='evHelp' ");
+                    pos = beg + newUri.length() + 16;
+                } catch (Exception e) {
+                    // problems resolving the URI?  Turn the link into an
+                    // anchor so it can't be clicked on anymore.
+                    html.replace(beg-6, beg-2, "name");
+                }
+            }
+        }
+
+        return html.toString();
+    }
+
+    private String hrefFileName(String href) {
+        int slashPos = href.lastIndexOf('/');
+        return href.substring(slashPos + 1);
+    }
+
+
+    protected List<ChartItem> writeCharts(EVTaskList evModel,
+            EVSchedule schedule, EVTaskFilter filter, boolean hideNames,
+            int width, int height, ChartListPurpose p,
+            String singleChartId, Map<String, String> chartHelpMap) {
         DashboardContext ctx = getDashboardContext();
+        Object exportMarker = parameters.get("EXPORT");
         boolean filterInEffect = (filter != null);
         boolean isRollup = (evModel instanceof EVTaskListRollup);
         List<ChartItem> chartList = TaskScheduleChartUtil.getChartsForTaskList(
             evModel.getID(), getDataRepository(), filterInEffect, isRollup,
             hideNames, p);
-        for (ChartItem chart : chartList) {
-            if (chart == null)
+
+        for (Iterator i = chartList.iterator(); i.hasNext();) {
+            ChartItem chart = (ChartItem) i.next();
+            if (chart == null) {
+                i.remove();
                 continue;
+            }
             try {
                 SnippetWidget w = chart.snip.getWidget("view", null);
                 if (w instanceof HtmlEvChart) {
+                    String chartId = getChartId(chart);
+                    if (chartHelpMap != null && w instanceof HelpAwareEvChart) {
+                        String helpUri = ((HelpAwareEvChart) w).getHelpUri();
+                        if (StringUtils.hasValue(helpUri))
+                            chartHelpMap.put(chartId, helpUri);
+                    }
+
+                    if (singleChartId != null && !singleChartId.equals(chartId))
+                        continue;
+
                     Map environment = TaskScheduleChartUtil.getEnvironment(
                         evModel, schedule, filter, chart.snip, ctx);
                     Map params = TaskScheduleChartUtil
                             .getParameters(chart.settings);
                     params.put("title", chart.name);
-                    params.put("width", width);
+                    params.put("width", Integer.toString(width));
+                    params.put("height", Integer.toString(height));
+                    params.put("noBorder", "t");
                     if (hideNames)
                         params.put(CUSTOMIZE_HIDE_NAMES, "t");
+                    if (exportMarker != null)
+                        params.put("EXPORT", exportMarker);
+                    else if (singleChartId == null)
+                        params.put("href", getChartDrillDownUrl(chartId));
                     out.write("<div class='evChartItem' style='width:" + width
-                            + "px'>");
+                            + "px; height:" + (height + 40) + "px'>");
                     ((HtmlEvChart) w).writeChartAsHtml(out, environment, params);
                     out.write("</div>");
+                } else {
+                    i.remove();
                 }
                 out.write(" ");
             } catch (Exception e) {
@@ -1509,6 +1695,16 @@ public class EVReport extends CGIChartBase {
                         + "'", e);
             }
         }
+        return chartList;
+    }
+
+    private String getChartDrillDownUrl(String chartId) {
+        String result = "ev.class"
+            + settings.getQueryString(EVReportSettings.PURPOSE_OTHER);
+        result = HTMLUtils.appendQuery(result, CHARTS_PARAM);
+        if (chartId != null)
+            result = HTMLUtils.appendQuery(result, SINGLE_CHART_PARAM, chartId);
+        return result;
     }
 
     private void writeChartOptions() {
@@ -1523,7 +1719,9 @@ public class EVReport extends CGIChartBase {
 
         out.write("<div>");
         out.write(resources.getString("Report.Customize.Show_On_Report_HTML"));
-        out.write("</div>\n");
+        out.write(" <span class='chartOrderTooltip' title='");
+        out.write(resources.getHTML("Report.Customize.Charts_Hidden_Tooltip"));
+        out.write("'>*</span></div>\n");
         out.write("<div class='chartOrderItem standardChartItem'>");
         out.write(resources.getHTML("Report.Customize.Standard_Chart_Name"));
         out.write("</div>\n");
@@ -1556,20 +1754,22 @@ public class EVReport extends CGIChartBase {
         try {
             SnippetWidget w = chart.snip.getWidget("view", null);
             if (w instanceof HtmlEvChart) {
-                String chartId;
-                if (chart.settings != null)
-                    chartId = chart.settings.getSettingsIdentifier();
-                else
-                    chartId = chart.snip.getId();
                 out.write("<div class='chartOrderItem'>");
                 out.write("<input type='hidden' name='chartOrder' value='");
-                out.write(HTMLUtils.escapeEntities(chartId));
+                out.write(HTMLUtils.escapeEntities(getChartId(chart)));
                 out.write("'>");
                 out.write(HTMLUtils.escapeEntities(chart.name));
                 out.write("</div>\n");
             }
         } catch (Exception e) {}
         return true;
+    }
+
+    private String getChartId(ChartItem chart) {
+        if (chart.settings != null)
+            return chart.settings.getSettingsIdentifier();
+        else
+            return chart.snip.getId();
     }
 
     private void saveChartOrderingPreference() {

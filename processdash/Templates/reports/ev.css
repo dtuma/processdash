@@ -49,16 +49,35 @@ div#chartOrderBlockShow, div#chartOrderBlockHide {
     min-height: 30px;
 }
 
+span.chartOrderTooltip {
+    font-weight: bold;
+    color: #f50;
+    cursor: help;
+}
+
 div.chartOrderItem {
     margin: 2px 2px 2px 40px;
     border: 1px solid black;
     padding: 3px;
     cursor: move;
     background-color: #ccccff;
-    font-size: small;
+    font-size: smaller;
 }
 
 div.chartOrderItem.standardChartItem {
     background-color: #fff;
     cursor: inherit;
+}
+
+div.singleChartWrapper {
+    position: relative;
+}
+div.singleChartHolder {
+    padding-top: 20px;
+}
+div.singleChartSelector {
+    position: absolute; 
+    top: 0px;
+    width: 700px;
+    text-align: center;
 }

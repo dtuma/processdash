@@ -27,4 +27,6 @@ public interface HelpAwareEvChart {
 
     public String getHelpId();
 
+    public String getHelpUri();
+
 }

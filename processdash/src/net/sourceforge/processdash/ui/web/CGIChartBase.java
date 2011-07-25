@@ -265,7 +265,7 @@ public abstract class CGIChartBase extends net.sourceforge.processdash.ui.web.Ti
 
         // imagemaps have hyperlink borders by default, even if we don't
         // have a URL we're pointing to.  Turn that border off.
-        if (!StringUtils.hasValue(href))
+        if (!StringUtils.hasValue(href) || parameters.containsKey("noBorder"))
             out.write(" border=\"0\"");
 
         // Our client might want to add attributes to the image tag. Look
