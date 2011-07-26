@@ -1,4 +1,4 @@
-// Copyright (C) 2008-2010 Tuma Solutions, LLC
+// Copyright (C) 2008-2011 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -89,6 +89,36 @@ public class TeamServerSelector {
 
         String result = System.getProperty(DEFAULT_TEAM_SERVER_PROPERTY);
         return (isUrlFormat(result) ? result : null);
+    }
+
+    /**
+     * If the working directory is a {@link BridgedWorkingDirectory} to a
+     * server at version 2.0 or higher, and no default team server URL has
+     * been set, set one.
+     */
+    public static void maybeSetDefaultTeamServerUrl(WorkingDirectory wd) {
+        if (isTeamServerUseDisabled())
+            return;  // team server use is disabled
+
+        if (!(wd instanceof BridgedWorkingDirectory))
+            return; // working directory is not bridged to a server
+
+        if (isDefaultTeamServerConfigured())
+            return; // a default team server is already configured.
+
+        // get the remote URL of the bridged working directory
+        String remoteCollectionUrl = wd.getDescription();
+        if (!remoteCollectionUrl.startsWith("http"))
+            return;
+
+        // is the bridged working directory on a server running 2.0 or higher?
+        if (testServerURL(remoteCollectionUrl, "2.0") != null) {
+            // calculate the "base" url for data sharing, and set it as the
+            // default team server URL.
+            String serverBaseUrl = getServerBaseURL(remoteCollectionUrl);
+            if (serverBaseUrl != null)
+                System.setProperty(DEFAULT_TEAM_SERVER_PROPERTY, serverBaseUrl);
+        }
     }
 
     /**
@@ -287,6 +317,14 @@ public class TeamServerSelector {
 
         String collectionPath = serverURL.substring(slashPos);
         return baseURL + collectionPath;
+    }
+
+    private static String getServerBaseURL(String collectionURL) {
+        int slashPos = collectionURL.lastIndexOf('/');
+        if (slashPos == -1)
+            return null;
+        else
+            return collectionURL.substring(0, slashPos);
     }
 
 

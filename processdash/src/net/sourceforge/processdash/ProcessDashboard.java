@@ -706,6 +706,11 @@ public class ProcessDashboard extends JFrame implements WindowListener,
             System.exit(1);
         }
 
+        // Check to see if a legacy shortcut is being used to launch a dataset
+        // that is now hosted on a team server.  If so, possibly configure the
+        // team server URL as the "default team server."
+        TeamServerSelector.maybeSetDefaultTeamServerUrl(workingDirectory);
+
         File cwd = workingDirectory.getDirectory();
         System.setProperty("user.dir", cwd.getAbsolutePath());
     }
