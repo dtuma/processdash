@@ -224,15 +224,50 @@ public class DefectTypeStandard extends OptionList {
                        : StringData.create(defectTypeName)));
     }
 
+    /**
+     * Return the name of the defect type standard setting that is in effect for
+     * a specific node of the hierarchy.
+     * 
+     * @param r     the data repository
+     * @param path  the path of a node in the hierarchy
+     * @return One of the following values, as appropriate:
+     *         <ul>
+     *         <li><tt>null</tt>, indicating that this node is inheriting the
+     *         setting from its parent</li>
+     *         <li>A string, indicating the name of a standard which has been
+     *         set by the user on this node, and which can be retrieved via the
+     *         {@link #getByName(String, DataRepository)} method</li>
+     *         <li>A string starting with a space, indicating the name of an
+     *         "inline" standard inherited from some other location (such as a
+     *         standard set by a team project and inherited by the personal
+     *         plans in that project).</li>
+     *         </ul>
+     */
     public static String getSetting(DataRepository r, String path) {
         data = r;
         if (path == null) path = "";
+
+        // check for a user setting pointing to a defined standard
         String dataName = DataRepository.createDataName(path, SETTING_DATA_NAME);
-        SimpleData defectSetting = data.getSimpleValue(dataName);
-        String result = null;
-        if (defectSetting != null) result = defectSetting.format();
-        if (result != null && result.trim().length() == 0) result = null;
-        return result;
+        SimpleData d = data.getSimpleValue(dataName);
+        if (d != null && d.test()) {
+            String result = d.format().trim();
+            if (result.length() > 0)
+                return result;
+        }
+
+        // check for an ad-hoc, inline standard
+        dataName = DataRepository.createDataName(path, CONTENTS_DATA_NAME);
+        d = data.getSimpleValue(dataName);
+        if (d != null && d.test()) {
+            String result = getFromContents(d.format()).getName();
+            if (result != null)
+                result = " " + result;
+            return result;
+        }
+
+        // no standard set at this branch of the hierarchy.
+        return null;
     }
 
 

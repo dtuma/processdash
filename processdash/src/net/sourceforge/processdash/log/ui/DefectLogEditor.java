@@ -45,6 +45,7 @@ import java.util.StringTokenizer;
 import java.util.Vector;
 
 import javax.swing.Action;
+import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.JButton;
@@ -202,23 +203,26 @@ public class DefectLogEditor extends Component implements
         typeSelectionTooltip = resources.getString("Log.Type_Selector_Tooltip");
 
         JPanel selectorPanel = new JPanel(false);
+        selectorPanel.setLayout(new BorderLayout(5, 5));
+        selectorPanel.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
         JLabel typeLabel = new JLabel
             (resources.getString("Log.Type_Selector_Label"));
         typeLabel.setToolTipText(typeSelectionTooltip);
-        selectorPanel.add(typeLabel);
+        selectorPanel.add(typeLabel, BorderLayout.WEST);
 
         dtsSelector = new JComboBox();
         dtsSelector.setRenderer(new DtsListCellRenderer());
         dtsSelector.setActionCommand ("dts");
         dtsSelector.addActionListener (this);
-        selectorPanel.add(dtsSelector);
+        dtsSelector.setMinimumSize(dtsSelector.getPreferredSize());
+        selectorPanel.add(dtsSelector, BorderLayout.CENTER);
 
         dtsEditButton = new JButton(resources.getString("Log.Edit_Types_Button"));
         dtsEditButton.setToolTipText
             (resources.getString("Log.Edit_Types_Tooltip"));
         dtsEditButton.setActionCommand ("dtsEdit");
         dtsEditButton.addActionListener (this);
-        selectorPanel.add(dtsEditButton);
+        selectorPanel.add(dtsEditButton, BorderLayout.EAST);
 
         JPanel result = new JPanel();
         result.setLayout(new BorderLayout());
@@ -238,11 +242,12 @@ public class DefectLogEditor extends Component implements
 
         buildingDtsSelector = true;
         String selectedType = DefectTypeStandard.getSetting(data, selectedPath);
+        boolean isInlineType = (selectedType != null && selectedType.startsWith(" "));
         int selectedItem = 0;
 
         String[] standards = DefectTypeStandard.getDefinedStandards(data);
         dtsSelector.removeAllItems();
-        dtsSelector.addItem(inheritTypeSelection);
+        dtsSelector.addItem(isInlineType ? selectedType : inheritTypeSelection);
 
         for (int i = 0;   i < standards.length;   i++) {
             dtsSelector.addItem(standards[i]);
@@ -250,7 +255,7 @@ public class DefectLogEditor extends Component implements
                 selectedItem = i+1;
         }
 
-        if (selectedItem == 0 && selectedType != null) {
+        if (selectedItem == 0 && selectedType != null && !isInlineType) {
             selectedItem = dtsSelector.getItemCount();
             dtsSelector.addItem("\t" + selectedType);
             dtsSelector.setForeground(Color.red);
@@ -273,9 +278,14 @@ public class DefectLogEditor extends Component implements
                                                       boolean isSelected,
                                                       boolean cellHasFocus) {
             boolean hasError = false;
-            if (value instanceof String && ((String) value).startsWith("\t")) {
-                hasError = true;
-                value = ((String) value).substring(1);
+            if (value instanceof String) {
+                String s = (String) value;
+                if (s.startsWith("\t")) {
+                    hasError = true;
+                    value = s.substring(1);
+                } else if (s.startsWith(" ")) {
+                    value = s.substring(1);
+                }
             }
 
             Component result = super.getListCellRendererComponent
@@ -550,7 +560,7 @@ public class DefectLogEditor extends Component implements
             if (Settings.isReadOnly()) return;
             if (buildingDtsSelector) return;
             String type = (String) dtsSelector.getSelectedItem();
-            if (type == inheritTypeSelection) type = null;
+            if (type == inheritTypeSelection || type.startsWith(" ")) type = null;
             if (type == null || !type.startsWith("\t"))
                 DefectTypeStandard.saveDefault(data, getSelectedPath(), type);
             refreshDefectTypeSelector();
