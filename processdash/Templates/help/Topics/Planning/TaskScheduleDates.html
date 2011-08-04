@@ -245,7 +245,11 @@ original PSP process.  However, since the Replan date is a calculation invented
 by the Process Dashboard, there is no need to discard precision in this manner.
 So when cross-referencing the cumulative planned times between the task list
 and the schedule list, the dashboard will extrapolate into the middle of a
-calendar period to calculate a more specific date.</li>
+calendar period to calculate a more specific date.  (Please note that this is a
+simple linear extrapolation.  It does not take working hours into account, so
+replan dates may fall on weekends or holidays.  Like any other EV projection,
+these dates are only intended to facilitate tracking and coordination; it would
+be an error in planning judgement to interpret them literally.)</li>
 
 <li>Sometimes your team may hold project relaunch meetings where you perform a
 "replan."  However, it is just a coincidence that this column has a similar
