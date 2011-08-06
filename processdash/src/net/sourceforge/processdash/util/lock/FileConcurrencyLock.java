@@ -310,7 +310,7 @@ public class FileConcurrencyLock implements ConcurrencyLock {
     /** Release this concurrency lock.
      */
     public synchronized void releaseLock() {
-        releaseLock(true);
+        releaseLock(isLocked());
     }
 
     public synchronized void releaseLock(boolean deleteMetadata) {
