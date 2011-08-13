@@ -834,8 +834,24 @@ public class EVTaskList extends AbstractTreeTableModel
     }
 
     private Object getTaskLabelsText(EVTask n) {
-        List labels = getLabelsForTask(n);
-        return StringUtils.join(labels, ", ");
+        List<String> labels = getLabelsForTask(n);
+        if (labels == null || labels.isEmpty())
+            return "";
+
+        if (labels.size() == 1) {
+            String label = labels.get(0);
+            return (label.startsWith("_") ? "" : label);
+        }
+
+        StringBuilder result = new StringBuilder();
+        for (String label : labels) {
+            if (!label.startsWith("_"))
+                result.append(", ").append(label);
+        }
+        if (result.length() > 0)
+            return result.substring(2);
+        else
+            return "";
     }
 
     private boolean labelsAreInUse(EVTask task) {
