@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Tuma Solutions, LLC
+// Copyright (C) 2002-2011 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -40,6 +40,7 @@ import teamdash.XMLUtils;
 import teamdash.team.TeamMember;
 import teamdash.team.TeamMemberList;
 import teamdash.wbs.columns.DirectSizeTypeColumn;
+import teamdash.wbs.columns.LabelSource;
 import teamdash.wbs.columns.MilestoneColumn;
 import teamdash.wbs.columns.MilestoneDeferredColumn;
 import teamdash.wbs.columns.NotesColumn;
@@ -92,8 +93,8 @@ public class WBSDataWriter {
     private int[] sizeAccountingColumns = new int[SIZE_COLUMN_IDS.length];
     /** This column number of the direct size units column */
     private int directSizeUnitsColumn;
-    /** The column number of the task labels column */
-    private int labelsColumn;
+    /** The column numbers of the task labels column */
+    private int[] labelColumns;
     /** The column number of the task dependencies column */
     private int dependencyColumn;
     /** Maps XML tag names to objects capable of writing their attributes.
@@ -124,8 +125,7 @@ public class WBSDataWriter {
                     dataModel.findColumn(SIZE_COLUMN_IDS[i]);
             directSizeUnitsColumn =
                 dataModel.findColumn(DirectSizeTypeColumn.COLUMN_ID);
-            labelsColumn =
-                dataModel.findColumn(TaskLabelColumn.COLUMN_ID);
+            labelColumns = dataModel.getLabelSourceColumns();
             dependencyColumn =
                 dataModel.findColumn(TaskDependencyColumn.COLUMN_ID);
         }
@@ -268,19 +268,18 @@ public class WBSDataWriter {
         if (dataModel == null)
             return null;
 
-        String result = (String) WrappedValue.unwrap(dataModel.getValueAt(node,
-                labelsColumn));
+        String result = null;
+
+        for (int col : labelColumns) {
+            LabelSource ls = (LabelSource) dataModel.getColumn(col);
+            result = appendLabels(result, ls.getLabels(node));
+        }
 
         if (milestonesModel != null) {
             int milestoneID = MilestoneColumn.getMilestoneID(node);
             String milestoneName = TaskLabelColumn.convertToLabel(
                     milestonesModel.getNameForMilestone(milestoneID));
-            if (milestoneName != null) {
-                if (result == null)
-                    result = milestoneName;
-                else
-                    result = result + "," + milestoneName;
-            }
+            result = appendLabels(result, milestoneName);
         }
 
         if (result != null)
@@ -289,6 +288,12 @@ public class WBSDataWriter {
             result = NO_LABELS_VAL;
 
         return result;
+    }
+
+    private String appendLabels(String result, String newLabels) {
+        if (newLabels == null) return result;
+        else if (result == null) return newLabels;
+        else return result + "," + newLabels;
     }
 
 

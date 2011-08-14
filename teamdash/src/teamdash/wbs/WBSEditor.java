@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Tuma Solutions, LLC
+// Copyright (C) 2002-2011 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -276,8 +276,9 @@ public class WBSEditor implements WindowListener, SaveListener,
                         "Completed", "%C", "%S", "Actual Time" });
 
         tabPanel.addTab("Task Details",
-                new String[] { "Milestone", "Labels", "Dependencies", "Notes" },
-                new String[] { "Milestone", "Task Labels", "Task Dependencies", "Notes" });
+                new String[] { "Milestone", "Labels", WBSTabPanel.CUSTOM_COLUMNS_ID,
+                               "Dependencies", "Notes" },
+                new String[] { "Milestone", "Task Labels", "", "Task Dependencies", "Notes" });
 
         if (showActualData)
             tabPanel.addTab("Actual Time",

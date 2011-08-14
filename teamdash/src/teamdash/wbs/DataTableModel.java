@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Tuma Solutions, LLC
+// Copyright (C) 2002-2011 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -39,6 +39,8 @@ import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableColumnModel;
 
 import teamdash.team.TeamMemberList;
+import teamdash.wbs.columns.CustomColumnManager;
+import teamdash.wbs.columns.LabelSource;
 import teamdash.wbs.columns.MilestoneColumn;
 import teamdash.wbs.columns.NotesColumn;
 import teamdash.wbs.columns.PlanTimeWatcher;
@@ -72,10 +74,14 @@ public class DataTableModel extends AbstractTableModel {
     private boolean[][] dependencies;
     /** A set of columns that need recalculating */
     private Set dirtyColumns;
+    /** A list of the columns which are sources of label data */
+    private IntList labelSources;
     /** A timer for triggering recalculations */
     private Timer recalcJanitorTimer;
     /** Object which manages columns for team members */
     private TeamMemberColumnManager memberColumnManager;
+    /** Object which manages custom columns */
+    private CustomColumnManager customColumnManager;
 
     /** Should editing be disabled? */
     private boolean disableEditing = false;
@@ -91,6 +97,7 @@ public class DataTableModel extends AbstractTableModel {
 
         columns = new ArrayList();
         dirtyColumns = new HashSet();
+        labelSources = new IntList();
 
         recalcJanitorTimer = new Timer(1000, new RecalcJanitor());
         recalcJanitorTimer.setRepeats(false);
@@ -216,6 +223,8 @@ public class DataTableModel extends AbstractTableModel {
         columns.add(column);
         if (column instanceof IndexAwareDataColumn)
             ((IndexAwareDataColumn) column).setColumnIndex(newColumnIndex);
+        if (column instanceof LabelSource)
+            labelSources.add(newColumnIndex);
 
         // if the dependencies are already computed, update them.
         if (dependencies != null)
@@ -239,6 +248,10 @@ public class DataTableModel extends AbstractTableModel {
             return ((IndexAwareDataColumn) column).getColumnIndex();
         else
             return columns.indexOf(column);
+    }
+
+    public int[] getLabelSourceColumns() {
+        return labelSources.getAsArray();
     }
 
     /** Add a list of data columns and remove another list of data columns.
@@ -301,6 +314,11 @@ public class DataTableModel extends AbstractTableModel {
         return result;
     }
 
+    /** Add all custom columns to the given column model. */
+    public void addCustomColumns(TableColumnModel columnModel) {
+        customColumnManager.addColumnsToColumnModel(columnModel);
+    }
+
 
     /** Create a set of data columns for this data model.
      * @param currentUser */
@@ -324,6 +342,8 @@ public class DataTableModel extends AbstractTableModel {
         addDataColumn(new NotesColumn(currentUser));
         addDataColumn(new PlanTimeWatcher(this));
         memberColumnManager = new TeamMemberColumnManager(this, teamList);
+        customColumnManager = new CustomColumnManager(this, teamProcess
+                .getProcessID());
     }
 
     /** Return the work breakdown structure model that this data model

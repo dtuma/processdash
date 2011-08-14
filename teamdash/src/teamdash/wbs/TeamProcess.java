@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Tuma Solutions, LLC
+// Copyright (C) 2002-2011 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -48,6 +48,8 @@ public class TeamProcess {
     private String processName;
     /** The version number of the team process */
     private String processVersion;
+    /** The name/version ID of the team process */
+    private String processID;
 
     /** An immutable list of the names of the phases in this
      * process (Strings) */
@@ -85,6 +87,10 @@ public class TeamProcess {
 
     public String getProcessVersion() {
         return processVersion;
+    }
+
+    public String getProcessID() {
+        return processID;
     }
 
     /** Return a list of the phases in this process. */
@@ -147,6 +153,7 @@ public class TeamProcess {
             process = new CustomProcess(xml);
             this.processName = process.getName();
             this.processVersion = process.getVersion();
+            this.processID = process.getProcessID();
         } catch (IOException ioe) {}
         if (process == null)
             process = new CustomProcess();

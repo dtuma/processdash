@@ -699,6 +699,10 @@
   <scriptSource class="teamdash.templates.setup.WorkflowScriptSource"
           dataName="PID /Project_Workflow_URL_List"/>
 
+  <!--#if Custom_Wbs_Column_Spec -->
+  <customWbsColumns specFile="/PID/wbsColumnSpec.xml"/>
+  <!--#endif-->
+
   <messageHandler processID="PID"
           class="teamdash.templates.setup.MoveTeamDirMessageHandler">
     <include templateID="PID/IndivRoot"/>

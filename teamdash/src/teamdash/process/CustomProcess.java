@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Tuma Solutions, LLC
+// Copyright (C) 2002-2011 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -206,6 +206,8 @@ public class CustomProcess {
 
     public String getName() { return processName; }
     public void setName(String name) { processName = makeSafe(name); }
+    public String getAbbr() { return processAbbr; }
+    public void setAbbr(String abbr) { processAbbr = makeSafe(processAbbr); }
     public String getVersion() { return processVersion; }
     public void setVersion(String version) {
         version = makeSafe(version);
@@ -228,7 +230,7 @@ public class CustomProcess {
 
     // Input/output functionality
 
-    String getProcessID() {
+    public String getProcessID() {
         StringBuffer result = new StringBuffer();
         if (XMLUtils.hasValue(processAbbr))
             result.append(makeUltraSafe(processAbbr));

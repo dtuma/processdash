@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Tuma Solutions, LLC
+// Copyright (C) 2002-2011 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -38,9 +38,13 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import org.w3c.dom.Element;
+
 import net.sourceforge.processdash.DashController;
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.net.http.WebServer;
+import net.sourceforge.processdash.templates.ExtensionManager;
+import net.sourceforge.processdash.templates.TemplateLoader;
 import net.sourceforge.processdash.tool.bridge.client.TeamServerSelector;
 import net.sourceforge.processdash.tool.export.mgr.ExternalResourceManager;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
@@ -225,6 +229,8 @@ public class OpenWBSEditor extends TinyCGIBase {
         result.put("teamdash.wbs.reverseSyncURL", getReverseSyncURL());
         result.put("teamdash.wbs.owner", getOwner());
         result.put("teamdash.wbs.processSpecURL", getProcessURL());
+        result.put(teamdash.wbs.columns.CustomColumnManager.SYS_PROP_NAME,
+            getCustomColumnSpecURLs());
 
         return result;
     }
@@ -243,6 +249,25 @@ public class OpenWBSEditor extends TinyCGIBase {
         Object processURL = parameters.get("processURL");
         if (processURL instanceof String)
             return (String) processURL;
+        else
+            return null;
+    }
+
+    private String getCustomColumnSpecURLs() {
+        List<Element> configElements = ExtensionManager
+                .getXmlConfigurationElements("customWbsColumns");
+        if (configElements == null || configElements.isEmpty())
+            return null;
+
+        StringBuffer result = new StringBuffer();
+        for (Element xml : configElements) {
+            String uri = xml.getAttribute("specFile");
+            URL url = TemplateLoader.resolveURL(uri);
+            if (url != null)
+                result.append(" ").append(url.toString());
+        }
+        if (result.length() > 0)
+            return result.substring(1);
         else
             return null;
     }

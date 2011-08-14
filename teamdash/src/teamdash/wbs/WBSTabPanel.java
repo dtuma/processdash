@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Tuma Solutions, LLC
+// Copyright (C) 2002-2011 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -114,6 +114,7 @@ public class WBSTabPanel extends JLayeredPane
 
     public static final String TEAM_MEMBER_PLAN_TIMES_ID = "TeamMemberTimes";
     public static final String TEAM_MEMBER_ACTUAL_TIMES_ID = "TeamMemberActualTimes";
+    public static final String CUSTOM_COLUMNS_ID = "CustomColumnSet";
 
     WBSColumnSelectorDialog columnSelectorDialog;
     WBSJTable wbsTable;
@@ -220,6 +221,8 @@ public class WBSTabPanel extends JLayeredPane
             } else if (TEAM_MEMBER_ACTUAL_TIMES_ID.equals(columnIDs[i])) {
                 tableModel.addTeamMemberActualTimes(columnModel);
                 isProtected = true;
+            } else if (CUSTOM_COLUMNS_ID.equals(columnIDs[i])) {
+                tableModel.addCustomColumns(columnModel);
             } else {
                 try {
                     TableColumn tableColumn =

@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Tuma Solutions, LLC
+// Copyright (C) 2002-2011 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -45,9 +45,11 @@ import teamdash.wbs.ErrorValue;
 import teamdash.wbs.ItalicCellRenderer;
 import teamdash.wbs.WBSModel;
 import teamdash.wbs.WBSNode;
+import teamdash.wbs.WrappedValue;
 
 public class TaskLabelColumn extends AbstractDataColumn implements
-        CustomRenderedColumn, CustomEditedColumn, CalculatedDataColumn {
+        CustomRenderedColumn, CustomEditedColumn, CalculatedDataColumn,
+        LabelSource {
 
     public static final String COLUMN_ID = "Labels";
 
@@ -126,6 +128,10 @@ public class TaskLabelColumn extends AbstractDataColumn implements
             val = null;
 
         node.setAttribute(EXPLICIT_VALUE_ATTR, val);
+    }
+
+    public String getLabels(WBSNode node) {
+        return (String) WrappedValue.unwrap(getValueAt(node));
     }
 
     public static String convertToLabel(String text) {
