@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Tuma Solutions, LLC
+// Copyright (C) 2002-2011 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -43,15 +43,18 @@ import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.ImmutableStringData;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.repository.DataRepository;
+import net.sourceforge.processdash.hier.DashHierarchy;
+import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.net.http.WebServer;
 import net.sourceforge.processdash.process.ScriptID;
 import net.sourceforge.processdash.templates.DashPackage;
-import net.sourceforge.processdash.templates.TemplateLoader;
 import net.sourceforge.processdash.templates.DashPackage.InvalidDashPackage;
+import net.sourceforge.processdash.templates.TemplateLoader;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.NetworkDriveList;
+import net.sourceforge.processdash.util.ObjectCounter;
 import net.sourceforge.processdash.util.StringUtils;
 import net.sourceforge.processdash.util.XMLUtils;
 
@@ -238,6 +241,14 @@ public class TeamStartBootstrap extends TinyCGIBase {
                 putValue("setup//Process_Name{"+pid+"}", processName);
             }
             putValue(TEAM_PID_LIST, pidList);
+
+            if (getValue(TEAM_PID) == null) {
+                // identify a suggested process, and write it into the repository.
+                String suggestedPid = findMostCommonlyUsedTeamProcessId();
+                if (suggestedPid == null)
+                    suggestedPid = chooseMostCustomProcessId(processes.keySet());
+                putValue(TEAM_PID, suggestedPid);
+            }
         }
 
         // display the process selection page.
@@ -280,6 +291,44 @@ public class TeamStartBootstrap extends TinyCGIBase {
                 i.remove();
         }
         return templates;
+    }
+
+    /** Look at past projects to see if a particular team process has been
+     * used often.  If so, return that process ID.
+     */
+    private String findMostCommonlyUsedTeamProcessId() {
+        ObjectCounter<String> counts = new ObjectCounter<String>();
+        countProcessUsage(counts, getPSPProperties(), PropertyKey.ROOT);
+        return chooseMostCustomProcessId(counts.getMostCommonObjects());
+    }
+
+    private void countProcessUsage(ObjectCounter<String> counts,
+            DashHierarchy hier, PropertyKey node) {
+        String templateId = hier.getID(node);
+        if (templateId != null && templateId.endsWith("/TeamRoot")) {
+            counts.add(templateId);
+        } else {
+            for (int i = hier.getNumChildren(node);  i-- > 0;)
+                countProcessUsage(counts, hier, hier.getChildKey(node, i));
+        }
+    }
+
+    private String chooseMostCustomProcessId(Iterable<String> pids) {
+        String result = null;
+        if (pids != null) {
+            for (String onePid : pids) {
+                int resultPref = getProcessCustomizationRating(result);
+                int onePref = getProcessCustomizationRating(onePid);
+                result = (resultPref > onePref ? result : onePid);
+            }
+        }
+        return result;
+    }
+    private int getProcessCustomizationRating(String templateId) {
+        if (templateId == null) return -1;
+        if (templateId.startsWith("PDSSD/")) return 0; // open source process
+        if (templateId.startsWith("TSP/")) return 1;  // the TSP process
+        return 2;  // a custom process
     }
 
 
