@@ -21,9 +21,11 @@
 package net.sourceforge.processdash.util;
 
 
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.StringTokenizer;
@@ -242,6 +244,38 @@ public class HTMLUtils {
             }
         }
     }
+
+    /**
+     * Parse the parameters associated with a URL, and return them as a Map.
+     * 
+     * @param url
+     *            a complete URL, or just the query string portion of a URL
+     * @return a Map of param = value pairs, as returned by the
+     *         {@link HttpQueryParser} class.
+     * @since Process Dashboard version 1.13.0.17
+     */
+    public static Map parseQuery(String url) {
+        if (url == null)
+            return Collections.EMPTY_MAP;
+
+        String query;
+        int queryPos = url.indexOf('?');
+        if (queryPos == -1)
+            query = url;
+        else
+            query = url.substring(queryPos + 1);
+
+        Map result = new HashMap();
+        try {
+            QUERY_PARSER.parse(result, query);
+        } catch (IOException ioe) {
+            // does not occur for the simple query parser class
+        }
+        return result;
+    }
+
+    private static final HttpQueryParser QUERY_PARSER = new HttpQueryParser();
+
 
     public static String cssLinkHtml(String href) {
         return "<link rel=\"stylesheet\" type=\"text/css\" href=\"" + href
