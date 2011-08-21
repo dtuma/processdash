@@ -723,6 +723,8 @@ public class ProcessDashboard extends JFrame implements WindowListener,
                 return "OK";
             }
             else if (LockMessage.LOCK_LOST_MESSAGE.equals(msg)) {
+                logger.severe("The write lock was lost on the "
+                        + workingDirectory);
                 showLostLockMessage("Ongoing_Advice");
                 return "OK";
             }
@@ -1384,6 +1386,11 @@ public class ProcessDashboard extends JFrame implements WindowListener,
                 && warnUserAboutUnsavedData(unsavedData) == false) {
             return false;
         }
+
+        if (unsavedData.isEmpty())
+            logger.info("Successfully saved all data.");
+        else
+            logger.severe("Unable to save all data; unsavedData = " + unsavedData);
 
         // If we reach this point, all data has been successfully saved, and
         // we know for *certain* that we will be shutting down.  We disable
