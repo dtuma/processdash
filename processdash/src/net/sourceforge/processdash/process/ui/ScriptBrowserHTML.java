@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2009 Tuma Solutions, LLC
+// Copyright (C) 2003-2011 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -40,11 +40,11 @@ import net.sourceforge.processdash.util.HTMLUtils;
 public class ScriptBrowserHTML extends TinyCGIBase {
 
     private static String LEAF_IMAGE =
-        "<IMG WIDTH=13 HEIGHT=16 SRC='leaf.png'>";
+        "<IMG WIDTH=13 HEIGHT=16 SRC='/Images/leaf.png'>";
     private static String NODE_IMAGE =
-        "<IMG WIDTH=16 HEIGHT=13 SRC='node.png'>";
+        "<IMG WIDTH=16 HEIGHT=13 SRC='/Images/node.png'>";
     private static String SCRIPT_IMAGE =
-        "<IMG WIDTH=10 HEIGHT=13 SRC='script.png'>";
+        "<IMG WIDTH=10 HEIGHT=13 SRC='/Images/script.png'>";
 
     protected void writeContents() throws IOException {
         String prefix = getPrefix();
@@ -64,7 +64,7 @@ public class ScriptBrowserHTML extends TinyCGIBase {
         if (prefix.length() > 0) {
             out.write("<B>");
             out.write(prefix);
-            out.write("</B>");
+            out.write("</B><BR>");
         }
 
         for (int i=0;   i < props.getNumChildren(key);   i++)
@@ -109,7 +109,7 @@ public class ScriptBrowserHTML extends TinyCGIBase {
         out.write("&nbsp;<A HREF='");
         out.write(url);
         out.write("'>");
-        out.write(HTMLUtils.escapeEntities(script.getDisplayName()));
+        out.write(HTMLUtils.escapeEntities(script.getDisplayName().trim()));
         out.write("</A><BR>\n");
     }
 }
