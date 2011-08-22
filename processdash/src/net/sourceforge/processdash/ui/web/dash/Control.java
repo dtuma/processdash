@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2009 Tuma Solutions, LLC
+// Copyright (C) 2001-2011 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -27,12 +27,15 @@ package net.sourceforge.processdash.ui.web.dash;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Date;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.swing.SwingUtilities;
 
 
 import net.sourceforge.processdash.DashController;
 import net.sourceforge.processdash.ProcessDashboard;
+import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.log.defects.RepairDefectCounts;
 import net.sourceforge.processdash.ui.ConsoleWindow;
 import net.sourceforge.processdash.ui.help.PCSH;
@@ -53,9 +56,11 @@ public class Control extends TinyCGIBase {
 
     /** Generate CGI script output. */
     protected void writeContents() throws IOException {
-        DashController.checkIP(env.get("REMOTE_ADDR"));
         printNullDocument = true;
         taskName = (String) env.get("SCRIPT_NAME");
+
+        if (shouldForbidRemote())
+            DashController.checkIP(env.get("REMOTE_ADDR"));
 
         raiseWindow();
         showConsole();
@@ -71,6 +76,21 @@ public class Control extends TinyCGIBase {
         if (printNullDocument)
             DashController.printNullDocument(out);
     }
+
+    private boolean shouldForbidRemote() {
+        Matcher m = TASK_NAME_PATTERN.matcher(taskName);
+        if (m.matches()) {
+            String taskShortName = m.group(1);
+            String settingName = "control.allowRemote." + taskShortName;
+            boolean remoteAllowed = Settings.getBool(settingName, false);
+            if (remoteAllowed)
+                return false;
+        }
+        return true;
+    }
+
+    private static final Pattern TASK_NAME_PATTERN = Pattern
+            .compile(".*/([^/.]+)(.class)?");
 
     private boolean isTask(String task) {
         return taskName.indexOf(task) != -1;

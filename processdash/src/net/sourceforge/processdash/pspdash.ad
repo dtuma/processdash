@@ -152,6 +152,10 @@ ev.Forecast.Range.Use_Current=true
 ev.Forecast.Range.Use_Historical_Data=false
 
 
+control.allowRemote.setPath=true
+control.allowRemote.startTiming=true
+control.allowRemote.stopTiming=true
+
 
 #
 # Default settings for charts
