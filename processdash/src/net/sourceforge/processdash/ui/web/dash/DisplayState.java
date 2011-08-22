@@ -73,7 +73,9 @@ public class DisplayState extends TinyCGIBase {
             writeHierarchy(xml, getPSPProperties(), PropertyKey.ROOT);
             xml.endDocument();
         } catch (Exception e) {
-            throw new IOException(e);
+            IOException ioe = new IOException();
+            ioe.initCause(e);
+            throw ioe;
         }
     }
 
