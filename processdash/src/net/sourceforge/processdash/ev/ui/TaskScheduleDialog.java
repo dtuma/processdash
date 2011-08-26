@@ -1392,7 +1392,7 @@ public class TaskScheduleDialog implements EVTask.Listener,
                 }
 
             // use strikethrough for completed (but otherwise normal) tasks
-            } else if (node != null && node.getPercentComplete() == 1.0
+            } else if (node != null && node.getPercentComplete() > 0.99999
                     && errorStr == null) {
                 result.setFont(getFont(false, true, result));
             }
