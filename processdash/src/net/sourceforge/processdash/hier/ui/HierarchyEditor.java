@@ -1,4 +1,4 @@
-// Copyright (C) 1999-2010 Tuma Solutions, LLC
+// Copyright (C) 1999-2011 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -1269,11 +1269,22 @@ public class HierarchyEditor extends Object implements TreeModelListener, TreeSe
     class RemoveAction extends Object implements ActionListener {
         // Removes the selected item as long as it isn't root.
         public void actionPerformed(ActionEvent e) {
-            DefaultMutableTreeNode lastItem = getSelectedNode();
+            DefaultMutableTreeNode nodeToRemove = getSelectedNode();
+            if (nodeToRemove == null || nodeToRemove == treeModel.getRoot())
+                return;
 
-            if(lastItem != null &&
-                lastItem != (DefaultMutableTreeNode)treeModel.getRoot())
-                treeModel.removeNodeFromParent(lastItem);
+            PropertyKey key = treeModel.getPropKey(useProps, nodeToRemove.getPath());
+            if (key == null)
+                return;
+            String path = key.path();
+
+            String title = resource.getString("HierarchyDeleteWarningTitle");
+            String[] message = resource.format("HierarchyDeleteWarning_FMT",
+                    path).split("\n");
+            int userChoice = JOptionPane.showConfirmDialog(frame, message,
+                title, JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+            if (userChoice == JOptionPane.YES_OPTION)
+                treeModel.removeNodeFromParent(nodeToRemove);
         }
     } // End of PropertyFrame.RemoveAction
 
