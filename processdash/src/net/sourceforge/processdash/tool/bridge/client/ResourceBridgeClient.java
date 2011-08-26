@@ -1,4 +1,4 @@
-// Copyright (C) 2008-2010 Tuma Solutions, LLC
+// Copyright (C) 2008-2011 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -37,6 +37,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -103,6 +104,10 @@ public class ResourceBridgeClient implements ResourceBridgeConstants {
     }
 
     public synchronized boolean syncDown() throws IOException {
+        return syncDown(null);
+    }
+
+    public synchronized boolean syncDown(SyncFilter filter) throws IOException {
         ProfTimer pt = new ProfTimer(logger, "ResourceBridgeClient.syncDown["
                 + remoteUrl + "]");
         // compare hashcodes to see if the local and remote directories have
@@ -115,6 +120,7 @@ public class ResourceBridgeClient implements ResourceBridgeConstants {
 
         // make a complete comparison of local-vs-remote changes.
         ResourceCollectionDiff diff = getDiff();
+        applySyncFilter(diff, filter);
         pt.click("Computed local-vs-remote diff");
         if (diff == null || diff.noDifferencesFound())
             return false;
@@ -150,12 +156,18 @@ public class ResourceBridgeClient implements ResourceBridgeConstants {
      *                 if any other problem prevents the sync from succeeding
      */
     public synchronized boolean syncUp() throws IOException, LockFailureException {
+        return syncUp(null);
+    }
+
+    public synchronized boolean syncUp(SyncFilter filter) throws IOException,
+            LockFailureException {
         if (userName == null)
             throw new NotLockedException();
 
         ProfTimer pt = new ProfTimer(logger, "ResourceBridgeClient.syncUp["
                 + remoteUrl + "]");
         ResourceCollectionDiff diff = getDiff();
+        applySyncFilter(diff, filter);
         pt.click("Computed local-vs-remote diff");
         if (diff == null || diff.noDifferencesFound()) {
             logger.finer("no changes to sync up");
@@ -441,6 +453,25 @@ public class ResourceBridgeClient implements ResourceBridgeConstants {
         ResourceCollectionInfo remoteList = XmlCollectionListing
                 .parseListing(new BufferedInputStream(conn.getInputStream()));
         return new ResourceCollectionDiff(localList, remoteList);
+    }
+
+    private void applySyncFilter(ResourceCollectionDiff diff, SyncFilter filter) {
+        if (diff != null && filter != null) {
+            applySyncFilter(diff, filter, diff.getOnlyInA());
+            applySyncFilter(diff, filter, diff.getOnlyInB());
+            applySyncFilter(diff, filter, diff.getDiffering());
+        }
+    }
+
+    private void applySyncFilter(ResourceCollectionDiff diff,
+            SyncFilter filter, List<String> resourceNames) {
+        for (Iterator<String> i = resourceNames.iterator(); i.hasNext();) {
+            String resourceName = i.next();
+            long localTime = diff.getA().getLastModified(resourceName);
+            long remoteTime = diff.getB().getLastModified(resourceName);
+            if (!filter.shouldSync(resourceName, localTime, remoteTime))
+                i.remove();
+        }
     }
 
     private ResourceCollectionInfo downloadFiles(URLConnection conn)

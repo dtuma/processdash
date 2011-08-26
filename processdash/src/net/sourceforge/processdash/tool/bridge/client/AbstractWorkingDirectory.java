@@ -1,4 +1,4 @@
-// Copyright (C) 2008 Tuma Solutions, LLC
+// Copyright (C) 2008-2011 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -24,6 +24,12 @@
 package net.sourceforge.processdash.tool.bridge.client;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 
 import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.lock.FileConcurrencyLock;
@@ -86,10 +92,42 @@ public abstract class AbstractWorkingDirectory implements WorkingDirectory {
         processLock.acquireLock(msg, lockHandler, null);
     }
 
+    protected String getMetadata(String name) throws IOException {
+        File metadataFile = getMetadataFile(name);
+        if (!metadataFile.isFile())
+            return null;
+        InputStream in = new FileInputStream(metadataFile);
+        byte[] data = FileUtils.slurpContents(in, true);
+        return new String(data, METADATA_ENCODING);
+    }
+
+    protected void setMetadata(String name, String value) throws IOException {
+        File metadataFile = getMetadataFile(name);
+        if (value == null) {
+            metadataFile.delete();
+        } else {
+            File metadataDir = metadataFile.getParentFile();
+            if (!metadataDir.isDirectory())
+                metadataDir.mkdirs();
+            Writer out = new OutputStreamWriter(new FileOutputStream(
+                    metadataFile), METADATA_ENCODING);
+            out.write(value);
+            out.close();
+        }
+    }
+
+    private File getMetadataFile(String name) {
+        File metadataDir = new File(workingDirectory, "metadata");
+        return new File(metadataDir, name + ".txt");
+    }
+
     public String toString() {
         return getClass().getSimpleName() + "[" + getDescription() + "]";
     }
 
     public static final String NO_PROCESS_LOCK_PROPERTY =
         WorkingDirectory.class.getName() + ".noProcessLock";
+
+    private static final String METADATA_ENCODING = "UTF-8";
+
 }

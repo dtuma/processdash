@@ -86,8 +86,9 @@ public class BridgedWorkingDirectory extends AbstractWorkingDirectory {
             startupBackupTask = null;
         }
 
+        SyncFilter filter = getSyncDownFilter();
         for (int numTries = 5; numTries-- > 0;)
-            if (client.syncDown() == false)
+            if (client.syncDown(filter) == false)
                 return;
 
         throw new IOException("Unable to sync down");
@@ -135,6 +136,7 @@ public class BridgedWorkingDirectory extends AbstractWorkingDirectory {
                     logger.log(Level.FINE,
                         "Unable to save default excluded files", e);
                 }
+                saveSyncTimestamp();
                 return true;
             }
         }
@@ -181,6 +183,99 @@ public class BridgedWorkingDirectory extends AbstractWorkingDirectory {
         }
     }
 
+    private SyncFilter getSyncDownFilter() {
+        long timestamp;
+        try {
+            timestamp = Long.parseLong(getMetadata(SYNC_TIMESTAMP));
+        } catch (Exception e) {
+            // if the sync timestamp is not present or cannot be read, don't
+            // use a sync down filter.
+            return null;
+        }
+        return new SyncDownFilter(timestamp);
+    }
+
+    private void saveSyncTimestamp() {
+        try {
+            setMetadata(SYNC_TIMESTAMP,
+                Long.toString(System.currentTimeMillis()));
+        } catch (IOException ioe) {
+        }
+    }
+
+
+    private class SyncDownFilter implements SyncFilter {
+
+        private long lastSyncTimestamp;
+
+        public SyncDownFilter(long lastSyncTimestamp) {
+            this.lastSyncTimestamp = lastSyncTimestamp;
+        }
+
+        /**
+         * When running in bridged mode, the dashboard flushes all data to the
+         * server periodically, and when it shuts down. Unfortunately, there
+         * could still be scenarios in which the dashboard shuts down without
+         * getting a chance to connect to the server and save changes.
+         * 
+         * Fortunately, many datasets are personal use datasets, used by a
+         * single individual. If an individual's dashboard closes without saving
+         * data, and no one else has opened the dataset in the meantime, there
+         * isn't any reason why we can't recover from the earlier connectivity
+         * problem and upload our locally changed files.
+         * 
+         * If a file was locally created/modified after our the most recent
+         * connection to the server, and if the file has not been modified on
+         * the server in the meantime, this class will detect that pattern and
+         * ask the syncDown logic NOT to retrieve the obsolete file from the
+         * server. Then, we will automatically save the locally modified file
+         * to the server when we perform our next syncUp operation.
+         */
+        public boolean shouldSync(String name, long localTimestamp,
+                long remoteTimestamp) {
+
+            if (localTimestamp <= 0) {
+                // file does not exist locally; it's only on the server.  We
+                // want to copy it down to get the complete set of resources.
+                return true;
+            }
+
+            if (remoteTimestamp <= 0) {
+                // the file exists locally, but not on the server.
+
+                if (localTimestamp > lastSyncTimestamp)
+                    // The local file was created/modified sometime after our
+                    // last server sync.  We want to keep it around.
+                    return false;
+
+                else
+                    // the last modification of our local file occurred before
+                    // the last syncUp operation.  That means that the file
+                    // must have been deleted on the server at some later
+                    // point in time.  We should abide by the server's
+                    // instructions and delete the file too.
+                    return true;
+            }
+
+            // the file exists in both places, but differs.
+            if (remoteTimestamp <= lastSyncTimestamp)
+                // the file on the server is older than our last syncUp
+                // operation.  That means it must be the file that we wrote. If
+                // our local file is newer, we want to keep our local changes.
+                return false;
+
+            else
+                // the file on the server is newer than our last syncUp
+                // operation.  This indicates an unfortunate situation where
+                // the file was modified concurrently by two different people.
+                // In this case, the server "wins" and we must retrieve its
+                // version to stay in sync.
+                return true;
+        }
+
+    }
+
+
     private class Worker extends Thread {
 
         private volatile boolean isRunning;
@@ -215,7 +310,8 @@ public class BridgedWorkingDirectory extends AbstractWorkingDirectory {
                         flushCountdown--;
                     else {
                         resetFlushFrequency();
-                        client.syncUp();
+                        if (client.syncUp())
+                            saveSyncTimestamp();
                     }
                 } catch (LockUncertainException lue) {
                 } catch (LockFailureException lfe) {
@@ -259,5 +355,7 @@ public class BridgedWorkingDirectory extends AbstractWorkingDirectory {
     private static final long ONE_MINUTE = 60 * 1000;
 
     private static final int FLUSH_FREQUENCY = 5;
+
+    private static final String SYNC_TIMESTAMP = "syncUpTimestamp";
 
 }
