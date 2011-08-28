@@ -38,9 +38,11 @@ show up on the other forms as well).</p>
 <p>The Size Estimating Template can theoretically be used to estimate any
 type of work, so the official version of this form includes a header field
 describing the unit of size measurement used for the numbers on the form.
-However, the dashboard currently focuses on support for software development,
-so this value is hardcoded to "LOC".  Future versions of the dashboard may
-allow you to capture and categorize different types of size data.</p>
+However, the PSP process definitions are currently focused on support for
+software development, so this value will be hardcoded to "LOC" for PSP
+tasks.  If you are using the Size Estimating Template in conjunction with
+a <a href="../Overview/ProcessScripts.html#generic">generic project</a>,
+you should enter the appropriate size metric in this field.</p>
 
 <h2><a name="baseLOC"></a>Base Parts</h2>
 
@@ -77,27 +79,31 @@ subroutines, new methods, etc. - whatever makes the most sense for your
 estimating needs.</p>
 
 <p>Blanks are provided to enter the description of each added part, the type
-of functionality that is being added, the number of methods that are going to
-be added of this type, the relative size of these methods, and
-estimates/measures of the LOC that are being added.</p>
+of part that is being added, the number of items that are going to be added
+of this type, the relative size of these items, and the numeric
+estimate/measure of the size of each added part.</p>
 
-<P>The type field includes a default set of categories, namely Calculation,
+<P>When you are estimating in LOC (for example, for a PSP task), the type
+field will include a default set of categories: namely Calculation,
 Data, I/O, Logic, Setup or Text.  However, you can define your own categories
 by clicking on the hyperlink at the top of the column.  New PSP users should
 usually stick to the preset types; as you gain experience, you may use your
 PSP training to define your own proxy categories.  Select the category that
 best fits the type of each added part.</p>
 
-<P>The number of methods really only applies to object oriented and/or object
-based languages.  If you are not programming in such a language, you can
-leave the field blank or put "1" in this entry to indicate that you are
-creating functions or subroutines.</p>
+<P>The number of items can be useful when you are estimating a high-level
+object.  For example, if you are estimating the size of an object or class in
+an object-oriented language, you could use this field to record the number of
+methods that will be present in an object you plan to create.  If you are
+using some custom proxy type category, this field could capture the count of
+proxy elements you plan to produce.  If these scenarios don't apply, you can
+leave this field blank or enter the number "1".</p>
 
-<P>The relative size pull down allows you to choose from subjective size 
-categories such as Very Small, Small, Medium, Large, and Very Large.  The 
-division between categories will vary by programming language and by your 
-experience.  The categorization of relative size is only to help you in your 
-estimates.</P>
+<P>The relative size pull down allows you to choose from subjective size
+categories such as Very Small, Small, Medium, Large, and Very Large.  To
+produce the most accurate estimates, you should aim for a level of planning
+granularity that allows most of your planned parts to be of Medium size, with
+a balance of smaller and larger parts.</P>
 
 <p>After you enter values in the previous three columns, the data in the
 proxy category table will be used to produce an estimated size.  If the
@@ -153,9 +159,9 @@ see the <a href="UsingProbeTool.html">Using the PROBE tool</a> help topic.</p>
 
 <h2><a name="postmortem"></a>Entering Actual data during Postmortem</h2>
 
-<P>Once you reach the Postmortem phase and you have the Actual data for LOC, 
+<P>Once you reach the Postmortem phase and you have the Actual size data, 
 you should return to this form to enter the actuals for the various measures 
-on the form (base, deleted, modified, and added LOC, LOC counts for the 
+on the form (base, deleted, modified, and added size, counts for the 
 various objects, etc.).</p> 
 
 <p class="ifpsp" align="center"><img src="../../Images/QSEnterActualLOC.png"></p>

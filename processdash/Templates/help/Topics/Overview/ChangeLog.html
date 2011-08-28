@@ -7,6 +7,241 @@
 
 <H1>Change History</H1>
 
+<h2>Features new in version 1.14</h2>
+
+<ul>
+
+<li>Significant changes were made to the earned value support:
+
+    <ul>
+
+    <li>It is now possible to customize the set of charts that appear on the
+        earned value report.  In addition, clicking on these charts now opens
+        a page displaying a larger chart with helpful instructions on how the
+        chart can be used and interpreted.</li>
+
+    <li>The Earned Value report now includes a "More Charts" hyperlink.
+        Clicking on this link makes it possible to see all of the EV charts
+        in the web browser.  (Previously, many of these charts were only
+        available in the "Chart" dialog of the Task &amp; Schedule
+        window.)</li>
+
+    <li>New charts have been added to display the Earned Value Trend and the
+        Direct Time Trend.</li>
+
+    <li>The earned value report now includes a "Kanban View" of the tasks
+        that have been completed recently, the tasks that are in progress,
+        and the tasks that are planned for the near future.</li>
+
+    <li>New topics have been added to the online help for each of the earned
+        value charts.  These topics explain how to interpret the data in each
+        chart, and provide helpful analysis tips for people who are new to
+        earned value tracking.</li>
+
+    <li>A new help topic has been added that explains the difference between
+        Plan, Replan, and Forecast dates.  This help topic explains these
+        three calculations in detail, so users can understand and appreciate
+        the differences between the dates that are generated.</li>
+
+    </ul></li>
+
+<li>The WBS now has a special "personal editing mode."  When the WBS is
+opened from a personal dashboard instead of the Team Dashboard (and the team
+leader has not disabled edits by team members), the WBS becomes aware of the
+individual who opened it, and changes its behavior:
+
+    <ul>
+
+    <li>Newly created tasks are automatically assigned to the individual who
+        opened the WBS.</li>
+
+    <li>If the individual makes a change that affects one of their coworkers,
+        the WBS will display a warning and offer to undo the change.</li>
+
+    <li>The individual is only allowed to edit their own row in the Team
+        Member List.</li>
+
+    <li>The individual can disable these features if desired by toggling a
+        checkbox in the "Team" menu.  (So for example, these new features
+        will not prevent a Planning Manager from making changes to their
+        coworker's tasks.)</li>
+
+    </ul></li>
+
+<li>Numerous changes were made to provide better support for the SEI PSP
+courses:
+
+    <ul>
+
+    <li>A new Student Profile element has been added to the PSP course
+        assignment sequence, giving students an opportunity to answer
+        questions about their job position, experience, and so on.</li>
+
+    <li>The Analysis Report exercises now allow the use of the Size
+        Estimating Template and PROBE.</li>
+
+    <li>"To Date" metrics are no longer reset on the first PSP2 project in a
+        PSP Fundamentals &amp; Advanced course.</li>
+
+    <li>During the PSP course, PROBE Method D for Size will require students
+        to use their Estimated Proxy Size verbatim; they will not be allowed
+        to edit the number.</li>
+
+    <li>During the PSP course, the PROBE Wizard will not offer PROBE Method
+        C1 for Size as a selectable option.</li>
+
+    <li>The final page of the PROBE Wizard has always performed a sanity
+        check on the planned productivity. If it is unrealistic, the wizard
+        prints a warning message and takes the user back to reevaluate their
+        estimates.  Unfortunately, that warning message was easy to overlook,
+        resulting in confusion when the PROBE wizard looped back to the
+        earlier pages.  The buttons and messages on the sanity check page
+        have been altered to make it more clear that a planning error may be
+        present.</li>
+
+    <li>When students are allowed to edit the quality plan and they produce
+        phase times that do not sum up properly, an error message is now
+        displayed on the Project Plan Summary.</li>
+
+    <li>Student data can now be exported to an XML file.</li>
+
+    </ul></li>
+
+<li>When capturing defect data, individuals can now:
+
+    <ul>
+
+    <li>Make a single entry to represent several related defects that were
+        found and fixed simultaneously.</li>
+
+    <li>Mark a defect as "pending" (i.e. found, but not yet removed).</li>
+
+    <li>Alter the date associated with the defect entry.</li>
+
+    </ul></li>
+
+<li>Several usability enhancements have been made to the WBS Editor and the
+    team project integration features:
+
+    <ul>
+
+    <li>The Team Project Setup Wizard will now provide suggested default
+        values for the team process, the name of the EV schedule, and the
+        location of the Team Project Network Directory.</li>
+
+    <li>If an individual enters their initials incorrectly when joining a
+        team project, the "Sync to WBS" operation will detect this error and
+        display a message, helping them to correct it.</li>
+
+    <li>Actual Size is now displayed in the WBS Editor for each component in
+        the hieararchy.</li>
+
+    <li>When a note is attached to the root node of the project in the WBS
+        Editor, that note will now be copied down into the personal plans of
+        each individual.  This can be used to record helpful project-specific
+        URLs for team use.</li>
+
+    <li>In the past, if a node was deleted from the WBS and a new node was
+        created in its place with the same name, the Sync to WBS operation
+        would perform a similar delete/recreate operation.  Now, the Sync to
+        WBS attempts to detect this scenario and reuse the existing node
+        instead of deleting/recreating it.  (Note: deleting/recreating nodes
+        in the WBS is still discouraged; but now when the mistake occurs, the
+        consequence should be less severe.)</li>
+
+    <li>In the past, the WBS editor would display a confirmation prompt every
+        time you request to delete a node.  Now, the WBS Editor will only
+        display this confirmation prompt when the node to be deleted has
+        actual time associated with it - and the warning message has been
+        altered to describe this new condition.</li>
+
+    <li>In the past, when a leaf task in the WBS was subdivided, the next
+        "sync to WBS" operation would often result in a "top-down-bottom-up"
+        error in the personal plan of the affected individual.  This problem
+        has been corrected.</li>
+
+    </ul></li>
+
+<li>Significant changes were made to the installer for the Process Dashboard:
+
+    <ul>
+
+    <li>On 64-bit Windows, sometimes the installer would not create Process
+        Dashboard shortcuts.  This problem has been corrected.</li>
+
+    <li>If a user has less than 800MB of memory (for example, because they
+        are running in a virtual machine), the Process Dashboard shortcuts
+        would fail to start the application.  The installer has been adjusted
+        to create shortcuts that work on systems with only 500MB of memory.
+        (Note that the Process Dashboard does not require or use that much
+        memory; the problem was with the shortcut icon itself, not the
+        application.)</li>
+
+    </ul></li>
+
+<li>Several changes have been made to improve compatibility with various
+programs and operating systems:
+
+    <ul>
+
+    <li>The "Export to Excel" hyperlinks have been tweaked to improve
+        compatibility with a variety of web browsers and with newer versions
+        of Microsoft Office.</li>
+
+    <li>On some versions of Unix (for example, Solaris and RedHat), the
+        Process Dashboard would sometimes appear to hang at the splash
+        screen.  This was occurring when a dialog box was displayed (to
+        prompt for some type of input), because the Unix window manager was
+        improperly stacking the dialog box behind the splash screen.  This
+        problem has been corrected.</li>
+
+    <li>If the dashboard data directory was unreachable (for example, because
+        it was on a network drive that was unavailable), or if other
+        operating-system-specific problems prevented the dashboard from
+        locking the data, the dashboard was incorrectly displaying a message
+        claiming that someone on another computer had locked the data.  This
+        error message has been corrected and clarified.</li>
+
+    <li>The "Import Defects from Code Collaborator" feature was not working
+        against Code Collaborator version 6.  This problem has been
+        corrected.</li>
+
+    </ul></li>
+
+<li>The "Generic" process template now allows the use of the Size Estimating
+Template and PROBE.  (This functionality will appear for projects created
+using the Generic process template <b>after</b> upgrading to version
+1.14.)</li>
+
+<li>The "C &gt; Tools" menu now includes an "Open Dataset" option, giving all
+users the ability to open data backup ZIP files.</li>
+
+<li>When users filter the Time Log Editor to display the current week, they
+can now easily select which day of the week to use as the starting
+point.</li>
+
+<li>In the past, when a user made a change to a data value within the Process
+Dashboard, that change might take 30 seconds to appear on the Project Plan
+Summary form in their web browser.  Now, these changes will appear in the web
+browser immediately.</li>
+
+<li>The LOC counter that is built in to the Process Dashboard will now count
+lines appropriately even when comment indicators appear within string
+literals.</li>
+
+<li>When all the tasks in a earned value task list share a common path prefix
+(common for team projects), the Flat View will extract that common prefix,
+making the display easier to read.</li>
+
+<li>In the defect log editor, a combo box displays the defect type standard
+that has been set at each level of the hierarchy. In the past, when a defect
+type standard had been set at the team project level, nothing was displayed
+in this combo box for individual, leading people to think that their standard
+had not taken effect. Now, this combo box will display the name of the defect
+type standard that was set by the team project, minimizing confusion.</li>
+
+</ul>
+
 <h2>Features new in version 1.13</h2>
 
 <ul>
