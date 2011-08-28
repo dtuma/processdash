@@ -101,32 +101,36 @@ public class DisplayState extends TinyCGIBase {
     }
 
     private void writeHierarchy() throws IOException {
-        Set attrs = new HashSet();
-        String[] attrParam = (String[]) parameters.get("attr_ALL");
-        if (attrParam != null)
-            attrs.addAll(Arrays.asList(attrParam));
+        Set dataToShow = new HashSet();
+        String[] showParam = (String[]) parameters.get("show_ALL");
+        if (showParam != null)
+            dataToShow.addAll(Arrays.asList(showParam));
 
         startXml();
-        writeHierarchy(xml, getPSPProperties(), PropertyKey.ROOT, attrs);
+        writeHierarchy(xml, getPSPProperties(), PropertyKey.ROOT, dataToShow);
         finishXml();
     }
 
     private void writeHierarchy(XmlSerializer xml, DashHierarchy hier,
-            PropertyKey node, Set attrs) throws IOException {
+            PropertyKey node, Set dataToShow) throws IOException {
         xml.startTag(null, "node");
         xml.attribute(null, "name", node.name());
-        if (attrs.contains("path"))
+        if (dataToShow.contains("path"))
             xml.attribute(null, "path", node.path());
         String id = hier.getID(node);
-        if (XMLUtils.hasValue(id) && attrs.contains("type"))
+        if (XMLUtils.hasValue(id) && dataToShow.contains("type"))
             xml.attribute(null, "type", id);
 
         int numChildren = hier.getNumChildren(node);
-        if (attrs.contains("leaf"))
+        if (dataToShow.contains("leaf"))
             xml.attribute(null, "leaf", Boolean.toString(numChildren == 0));
 
+        if (dataToShow.contains("scripts"))
+            writeScripts(node.path(), dataToShow.contains("scriptAncestors"),
+                dataToShow.contains("scriptTriggers"));
+
         for (int i = 0; i < numChildren; i++)
-            writeHierarchy(xml, hier, hier.getChildKey(node, i), attrs);
+            writeHierarchy(xml, hier, hier.getChildKey(node, i), dataToShow);
 
         xml.endTag(null, "node");
     }
@@ -172,16 +176,17 @@ public class DisplayState extends TinyCGIBase {
             }
 
             // write an XML entry for this script.
-            writeScript(xml, oneScript, isDefault);
+            writeScript(xml, oneScript, isDefault, includeAncestors);
         }
     }
 
     private void writeScript(XmlSerializer xml, ScriptID scriptID,
-            boolean isDefault) throws IOException {
+            boolean isDefault, boolean writePath) throws IOException {
         xml.startTag(null, "script");
         xml.attribute(null, "href", scriptID.getHref());
         xml.attribute(null, "name", scriptID.getDisplayName());
-        xml.attribute(null, "path", scriptID.getDataPath());
+        if (writePath)
+            xml.attribute(null, "path", scriptID.getDataPath());
         if (isDefault)
             xml.attribute(null, "default", "true");
         xml.endTag(null, "script");
