@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2009 Tuma Solutions, LLC
+// Copyright (C) 2002-2011 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -180,6 +180,14 @@ public class EVWeekReport extends TinyCGIBase {
         if (lastWeek.before(startDate)) lastWeek = startDate;
         Date effDateDisplay = new Date(effDate.getTime() - 1000);
         Date nextWeekDisplay = new Date(nextWeek.getTime() - 1000);
+
+        // calculate flags describing whether the actual current date falls
+        // within our reporting period
+        long now = System.currentTimeMillis();
+        boolean reportingPeriodIncludesToday = (lastWeek.getTime() < now
+                && now <= effDate.getTime());
+        boolean reportingPeriodPrecedesToday = (effDate.getTime() < now
+                && now <= nextWeek.getTime());
 
         // Calculate future cutoff dates for task dependency display
         Date dependDate = getFutureCutoffDate(effDate,
@@ -379,7 +387,13 @@ public class EVWeekReport extends TinyCGIBase {
                 + "<td class=header>${Summary.Actual}</td>"
                 + "<td class=header>${Summary.Ratio}</td></tr>\n");
 
-        interpOut("<tr><td class=left>${Summary.This_Week}</td><td></td>");
+        String thisWeekKey;
+        if (reportingPeriodIncludesToday) thisWeekKey = "This_Week";
+        else if (reportingPeriodPrecedesToday) thisWeekKey = "Last_Week";
+        else thisWeekKey = "This_Period";
+        out.print("<tr><td class=left>"
+                + resources.getHTML("Summary." + thisWeekKey)
+                + "</td><td></td>");
         if (taskFilter == null) {
             printTimeData(weekSlice.getPlanDirectTime(),
                     weekSlice.getActualDirectTime());
@@ -389,7 +403,8 @@ public class EVWeekReport extends TinyCGIBase {
                      weekSlice.earnedValue()/totalPlanTime);
         out.print("</tr>\n");
 
-        interpOut("<tr><td class=left>${Summary.To_Date}</td><td></td>");
+        out.print("<tr><td class=left>" + encodeHTML(resources.format(
+                "Summary.To_Date_FMT", effDateDisplay)) + "</td><td></td>");
         if (taskFilter == null) {
             printTimeData(weekSlice.getCumPlanDirectTime(),
                           weekSlice.getCumActualDirectTime());
@@ -445,10 +460,19 @@ public class EVWeekReport extends TinyCGIBase {
             tableWriter.setCellRenderer(EVTaskList.TASK_COLUMN,
                     EVReport.EV_CELL_RENDERER);
 
-            out.print("<h3 title='");
-            out.print(HTMLUtils.escapeEntities(resources.format(
-                "Completed_Tasks.Header_Tip_FMT", lastWeek, effDateDisplay)));
-            interpOut("'>${Completed_Tasks.Header}</h3>\n");
+            String completedTasksTooltip = encodeHTML(resources.format(
+                "Completed_Tasks.Header_Tip_FMT", lastWeek, effDateDisplay));
+            String completedTasksHeader;
+            if (reportingPeriodIncludesToday)
+                completedTasksHeader = resources
+                        .getHTML("Completed_Tasks.Header");
+            else if (reportingPeriodPrecedesToday)
+                completedTasksHeader = resources
+                        .getHTML("Completed_Tasks.Header_Last");
+            else
+                completedTasksHeader = completedTasksTooltip;
+            out.print("<h3 title='" + completedTasksTooltip + "'>"
+                    + completedTasksHeader + "</h3>\n");
             if (!oneCompletedLastWeek)
                 interpOut("<p><i>${None}</i>\n");
             else {
@@ -506,10 +530,16 @@ public class EVWeekReport extends TinyCGIBase {
             // put the "task with timing icons" renderer back in place if necessary
             tableWriter.setCellRenderer(EVTaskList.TASK_COLUMN, taskRenderer);
 
-            out.print("<h3 title='");
-            out.print(HTMLUtils.escapeEntities(resources.format(
-                "Tasks_In_Progress.Header_Tip_FMT", effDateDisplay)));
-            interpOut("'>${Tasks_In_Progress.Header}</h3>\n");
+            String inProgressTooltip = encodeHTML(resources.format(
+                "Tasks_In_Progress.Header_Tip_FMT", effDateDisplay));
+            String inProgressHeader;
+            if (reportingPeriodIncludesToday || reportingPeriodPrecedesToday)
+                inProgressHeader = resources.getHTML("Tasks_In_Progress.Header");
+            else
+                inProgressHeader = encodeHTML(resources.format(
+                    "Tasks_In_Progress.Header_Long_FMT", effDateDisplay));
+            out.print("<h3 title='" + inProgressTooltip + "'>"
+                    + inProgressHeader + "</h3>\n");
             if (!oneInProgressThisWeek)
                 interpOut("<p><i>${None}</i>\n");
             else {
@@ -575,10 +605,18 @@ public class EVWeekReport extends TinyCGIBase {
                 out.println("</tr>\n</table>");
             }
 
-            out.print("<h3 title='");
-            out.print(HTMLUtils.escapeEntities(resources.format(
-                "Due_Tasks.Header_Tip_FMT", effDateDisplay, nextWeekDisplay)));
-            interpOut("'>${Due_Tasks.Header}</h3>\n");
+            String dueTasksTooltip = encodeHTML(resources.format(
+                "Due_Tasks.Header_Tip_FMT", effDateDisplay, nextWeekDisplay));
+            String dueTasksHeader;
+            if (reportingPeriodIncludesToday)
+                dueTasksHeader = resources.getHTML("Due_Tasks.Header");
+            else if (reportingPeriodPrecedesToday)
+                dueTasksHeader = resources.getHTML("Due_Tasks.Header_This");
+            else
+                dueTasksHeader = encodeHTML(resources.format(
+                    "Due_Tasks.Header_Long_FMT", nextWeekDisplay));
+            out.print("<h3 title='" + dueTasksTooltip + "'>" + dueTasksHeader
+                    + "</h3>\n");
             if (!oneDueNextWeek)
                 interpOut("<p><i>${None}</i>\n");
             else {
@@ -1264,7 +1302,7 @@ public class EVWeekReport extends TinyCGIBase {
         if (text instanceof Date)
             text = EVSchedule.formatDate((Date) text);
 
-        return WebServer.encodeHtmlEntities(text.toString());
+        return HTMLUtils.escapeEntities(text.toString());
     }
 
     final static String getResource(String key) {
