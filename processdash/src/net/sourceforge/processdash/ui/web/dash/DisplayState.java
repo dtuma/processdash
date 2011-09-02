@@ -165,7 +165,7 @@ public class DisplayState extends TinyCGIBase {
 
             // skip this script if it is a trigger URL, and we were requested
             // not to include trigger entries.
-            if (!includeTriggers && TriggerURI.isTrigger(oneHref))
+            if (!includeTriggers && TriggerURI.isMandatoryTrigger(oneHref))
                 continue;
 
             // set a flag if this is the default script

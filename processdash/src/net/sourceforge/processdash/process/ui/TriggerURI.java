@@ -1,4 +1,4 @@
-// Copyright (C) 2007 Tuma Solutions, LLC
+// Copyright (C) 2007-2011 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -57,7 +57,18 @@ public class TriggerURI {
 
 
     public static boolean isTrigger(String uri) {
-        return uri != null && uri.indexOf("trigger") != -1;
+        return uri != null
+                && (uri.contains("?trigger") || uri.contains("&trigger"));
+    }
+
+    public static boolean isOptionalTrigger(String uri) {
+        return uri != null
+                && (uri.contains("?trigger=optional")
+                 || uri.contains("&trigger=optional"));
+    }
+
+    public static boolean isMandatoryTrigger(String uri) {
+        return isTrigger(uri) && !isOptionalTrigger(uri);
     }
 
     public static void handle(String uri) {
