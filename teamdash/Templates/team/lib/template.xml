@@ -61,7 +61,7 @@
     <html ID="wbsBU" href="PID/setup/openWBS.shtm?trigger&amp;bottomUp"
         title="    View Bottom-Up Work Breakdown Structure"
         inPackage="teamTools version 2.4.4"/>
-    <html ID="sync" href="PID/setup/sync.class?trigger&amp;master"
+    <html ID="sync" href="PID/setup/sync.class?trigger=optional&amp;master"
         title="    Sync Work Breakdown Structure"/>
 
     <html ID="tools" href="PID/master_tools.shtm"
@@ -150,7 +150,7 @@
     <html ID="editWBS" href="PID/setup/openWBS.shtm?trigger&amp;forteam"
         title="Edit Work Breakdown Structure"
         inPackage="teamTools version 2.4.4"/>
-    <html ID="sync" href="PID/setup/sync.class?trigger&amp;team"
+    <html ID="sync" href="PID/setup/sync.class?trigger=optional&amp;team"
         title="    Sync Work Breakdown Structure"/>
 
     <html ID="tools" href="PID/team_tools.shtm"
@@ -286,12 +286,12 @@
     <html ID="editWBS" href="PID/setup/openWBS.shtm?trigger&amp;indiv"
         title="Open Team Work Breakdown Structure"
         inPackage="teamTools version 2.4.7"/>
-    <html ID="sync" href="PID/setup/sync.class?trigger&amp;indiv"
+    <html ID="sync" href="PID/setup/sync.class?trigger=optional&amp;indiv"
         title="    Sync Work Breakdown Structure"/>
 
     <html ID="params" href="PID/indiv_project_parameters.shtm"
         title="Edit Project Parameters and Settings"/>
-    <html ID="export" href="control/exportNow.class?trigger"
+    <html ID="export" href="control/exportNow.class"
         title="Export My Data Now"/>
 
   </template>
@@ -417,12 +417,12 @@
     <html ID="editWBS" href="PID/setup/openWBS.shtm?trigger&amp;indiv"
         title="Open Team Work Breakdown Structure"
         inPackage="teamTools version 2.4.7"/>
-    <html ID="sync" href="PID/setup/sync.class?trigger&amp;indiv"
+    <html ID="sync" href="PID/setup/sync.class?trigger=optional&amp;indiv"
         title="    Sync Work Breakdown Structure"/>
 
     <html ID="params" href="PID/indiv_project_parameters.shtm"
         title="Edit Project Parameters and Settings"/>
-    <html ID="export" href="control/exportNow.class?trigger"
+    <html ID="export" href="control/exportNow.class"
         title="Export My Data Now"/>
 
   </template>
