@@ -34,6 +34,7 @@ import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.log.time.RolledUpTimeLog;
 import net.sourceforge.processdash.log.time.TimeLog;
 import net.sourceforge.processdash.log.time.TimeLogEntry;
+import net.sourceforge.processdash.log.time.TimeLogWriter;
 import net.sourceforge.processdash.process.ProcessUtil;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.FormatUtil;
@@ -67,8 +68,48 @@ public class TimeLogReport extends TinyCGIBase {
         "<P class=doNotPrint><I>${Caveat}</I></P>";
 
 
+    @Override
+    protected void writeHeader() {}
+
     /** Generate CGI script output. */
     protected void writeContents() throws IOException {
+        List timeLogEntries = getTimeLogEntries();
+
+        String format = getParameter(FORMAT_PARAM);
+        if (FORMAT_XML.equals(format))
+            writeXml(timeLogEntries);
+        else
+            writeHtml(timeLogEntries);
+    }
+
+    private List getTimeLogEntries() throws IOException {
+        TimeLog tl;
+        String type = getParameter("type");
+        if ("rollup".equals(type))
+            tl = new RolledUpTimeLog.FromResultSet(getDashboardContext(),
+                    getPrefix(), parameters);
+        else
+            tl = getDashboardContext().getTimeLog();
+        List l = Collections.list(tl.filter(getPrefix(), null, null));
+        Collections.sort(l);
+        return l;
+    }
+
+
+
+    /** Write time log data in XML format */
+    private void writeXml(List timeLogEntries) throws IOException {
+        out.write("Content-Type: text/xml\r\n\r\n");
+        out.flush();
+
+        TimeLogWriter.write(outStream, timeLogEntries.iterator(), false);
+    }
+
+
+
+    /** Write time log data in HTML format */
+    private void writeHtml(List l) throws IOException {
+        super.writeHeader();
 
         String path = getPrefix();
         String title = For(path);
@@ -80,16 +121,6 @@ public class TimeLogReport extends TinyCGIBase {
         header = StringUtils.findAndReplace(header, "%for path%", title);
         header = StringUtils.findAndReplace(header, "%css%", cssLinkHTML());
         out.print(header);
-
-        TimeLog tl;
-        String type = getParameter("type");
-        if ("rollup".equals(type))
-            tl = new RolledUpTimeLog.FromResultSet(getDashboardContext(),
-                    getPrefix(), parameters);
-        else
-            tl = getDashboardContext().getTimeLog();
-        List l = Collections.list(tl.filter(path, null, null));
-        Collections.sort(l);
 
         ProcessUtil procUtil = new ProcessUtil(getDataContext());
 
@@ -123,6 +154,7 @@ public class TimeLogReport extends TinyCGIBase {
             if (!isExportingToExcel())
                 out.print(resources.interpolate(EXPORT_LINK,
                         HTMLUtils.ESC_ENTITIES));
+            String type = getParameter("type");
             if (!isExporting() && !"rollup".equals(type)
                     && !parameters.containsKey("noDisclaimer")) {
                 StringBuffer html = new StringBuffer(resources.interpolate(
@@ -143,4 +175,8 @@ public class TimeLogReport extends TinyCGIBase {
         else
             return "";
     }
+
+    private static final String FORMAT_PARAM = "format";
+    private static final String FORMAT_XML = "xml";
+
 }
