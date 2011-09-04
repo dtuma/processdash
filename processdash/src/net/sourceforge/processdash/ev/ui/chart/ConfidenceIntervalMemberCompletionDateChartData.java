@@ -1,4 +1,4 @@
-// Copyright (C) 2008 Tuma Solutions, LLC
+// Copyright (C) 2008-2011 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -27,15 +27,20 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.jfree.data.DomainInfo;
+import org.jfree.data.Range;
+
 import net.sourceforge.processdash.ev.EVSchedule;
 import net.sourceforge.processdash.ev.EVTaskList;
 import net.sourceforge.processdash.ev.EVTaskListRollup;
 import net.sourceforge.processdash.ev.ci.SingleValueConfidenceInterval;
 
 public class ConfidenceIntervalMemberCompletionDateChartData extends
-    ConfidenceIntervalChartData {
+    ConfidenceIntervalChartData implements DomainInfo {
 
     private EVTaskListRollup rollup;
+
+    private Double lowerBound, upperBound;
 
     public ConfidenceIntervalMemberCompletionDateChartData(
             ChartEventAdapter eventAdapter, EVTaskListRollup rollup) {
@@ -46,6 +51,7 @@ public class ConfidenceIntervalMemberCompletionDateChartData extends
 
     public void recalc() {
         clearSeries();
+        lowerBound = upperBound = null;
 
         Set<String> ambiguousNames = getRepeatedPersonNames();
 
@@ -75,6 +81,24 @@ public class ConfidenceIntervalMemberCompletionDateChartData extends
             if (forecastDate != null && !forecastDate.equals(EVSchedule.NEVER))
                 maybeAddSeries(new SinglePointXYChartSeries(seriesName,
                         forecastDate.getTime(), 0));
+        }
+    }
+
+    @Override
+    protected boolean maybeAddSeries(XYChartSeries s) {
+        if (super.maybeAddSeries(s)) {
+            double seriesLow = s.getX(0).doubleValue();
+            if (lowerBound == null || seriesLow < lowerBound)
+                lowerBound = seriesLow;
+
+            int i = (int) (s.getItemCount() * 0.75);
+            double seriesHigh = s.getX(i).doubleValue();
+            if (upperBound == null || seriesHigh > upperBound)
+                upperBound = seriesHigh;
+
+            return true;
+        } else {
+            return false;
         }
     }
 
@@ -110,6 +134,19 @@ public class ConfidenceIntervalMemberCompletionDateChartData extends
             return null;
 
         return taskListName.substring(parenPos + 1, taskListName.length() - 1);
+    }
+
+    public Range getDomainBounds(boolean includeInterval) {
+        return new Range(getDomainLowerBound(includeInterval),
+                getDomainUpperBound(includeInterval));
+    }
+
+    public double getDomainLowerBound(boolean includeInterval) {
+        return lowerBound == null ? 0 : lowerBound.doubleValue();
+    }
+
+    public double getDomainUpperBound(boolean includeInterval) {
+        return upperBound == null ? 0 : upperBound.doubleValue();
     }
 
 }

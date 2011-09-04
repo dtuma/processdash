@@ -1,4 +1,4 @@
-// Copyright (C) 2006-2008 Tuma Solutions, LLC
+// Copyright (C) 2006-2011 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -28,6 +28,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
+import org.jfree.data.DomainInfo;
 import org.jfree.data.Range;
 import org.jfree.data.RangeInfo;
 import org.jfree.data.general.DatasetChangeEvent;
@@ -37,7 +38,8 @@ import org.jfree.data.general.DatasetUtilities;
 import org.jfree.data.xy.AbstractXYDataset;
 import org.jfree.data.xy.XYDataset;
 
-public class XYDatasetFilter extends AbstractXYDataset implements RangeInfo {
+public class XYDatasetFilter extends AbstractXYDataset implements DomainInfo,
+        RangeInfo {
 
     private XYDataset source;
     private boolean[] hideSeries;
@@ -155,6 +157,18 @@ public class XYDatasetFilter extends AbstractXYDataset implements RangeInfo {
     @Override
     public void setGroup(DatasetGroup group) {
         source.setGroup(group);
+    }
+
+    public Range getDomainBounds(boolean includeInterval) {
+        return DatasetUtilities.findDomainBounds(source);
+    }
+
+    public double getDomainLowerBound(boolean includeInterval) {
+        return getDomainBounds(includeInterval).getLowerBound();
+    }
+
+    public double getDomainUpperBound(boolean includeInterval) {
+        return getDomainBounds(includeInterval).getUpperBound();
     }
 
     public Range getRangeBounds(boolean includeInterval) {
