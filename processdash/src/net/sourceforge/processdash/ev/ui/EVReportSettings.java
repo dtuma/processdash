@@ -1,4 +1,4 @@
-// Copyright (C) 2006-2010 Tuma Solutions, LLC
+// Copyright (C) 2006-2011 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -26,6 +26,7 @@ package net.sourceforge.processdash.ev.ui;
 import java.util.List;
 import java.util.Map;
 
+import net.sourceforge.processdash.InternalSettings;
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.DateData;
 import net.sourceforge.processdash.data.ImmutableDoubleData;
@@ -85,6 +86,15 @@ public class EVReportSettings {
         return (val != null ? val.test() : defaultVal);
     }
 
+    /** Return the value of a string parameter or setting */
+    public String getStr(String name) {
+        String defaultVal = Settings.getVal("ev."+name);
+        if (!usingCustomizationSettings)
+            return defaultVal;
+        SimpleData val = getValue("settings//" + name);
+        return (val != null ? val.format() : defaultVal);
+    }
+
 
     /** Save the value of a setting to the data repository.
      * 
@@ -102,6 +112,21 @@ public class EVReportSettings {
 
         setValue("settings//" + settingName, val);
         touchSettingsTimestamp();
+    }
+
+    /** Save the default value of a setting to the user settings.
+     * 
+     * @param settingName the name of the setting.  (The value of the setting
+     *    will be read from the parameters used to create this object.)
+     * @param isBool true if this is a boolean setting, false if it is a string.
+     */
+    public void storeDefault(String settingName, boolean isBool) {
+        String val = null;
+        if (isBool)
+            val = (parameters.containsKey(settingName) ? "true" : "false");
+        else if (parameters.get(settingName) instanceof String)
+            val = getParameter(settingName);
+        InternalSettings.set("ev." + settingName, val);
     }
 
 
@@ -345,15 +370,16 @@ public class EVReportSettings {
     }
 
     private String getSettingDataName(String name) {
-        String prefix;
-        if (parameters.containsKey(TASKLIST_PARAM))
-            prefix = "/" + taskListName;
-        else
-            prefix = this.prefix;
-
-        return DataRepository.createDataName(prefix, name);
+        return DataRepository.createDataName(getSettingsPrefix(), name);
     }
 
+    /** Return the prefix that was used to create this settings object */
+    public String getSettingsPrefix() {
+        if (parameters.containsKey(TASKLIST_PARAM))
+            return "/" + taskListName;
+        else
+            return this.prefix;
+    }
 
     private boolean isTimestampRecent() {
         DateData settingsTimestamp = (DateData) getValue("settings//timestamp");
