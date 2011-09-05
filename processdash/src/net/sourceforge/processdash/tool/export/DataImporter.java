@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2010 Tuma Solutions, LLC
+// Copyright (C) 2001-2011 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -366,10 +366,14 @@ public class DataImporter extends Thread {
         String prefix = prefixes.get(filename);
         if (prefix == null) return;
         logger.info("closing import " + getDescription(filename));
+        closeImportedFile(data, prefix);
+        modTimes.remove(filename);
+    }
+
+    public static void closeImportedFile(DataRepository data, String prefix) {
         data.closeDatafile(prefix);
         ImportedDefectManager.closeDefects(prefix);
         ImportedTimeLogManager.getInstance().closeTimeLogs(prefix);
-        modTimes.remove(filename);
     }
 
 
