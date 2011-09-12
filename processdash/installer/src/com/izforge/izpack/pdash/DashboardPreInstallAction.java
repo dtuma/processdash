@@ -1,5 +1,6 @@
 package com.izforge.izpack.pdash;
 
+import java.lang.management.ManagementFactory;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
@@ -13,6 +14,7 @@ import com.izforge.izpack.installer.ScriptParser;
 import com.izforge.izpack.util.AbstractUIHandler;
 import com.izforge.izpack.util.os.RegistryDefaultHandler;
 import com.izforge.izpack.util.os.RegistryHandler;
+import com.sun.management.OperatingSystemMXBean;
 
 public class DashboardPreInstallAction implements PanelAction,
         DashboardInstallConstants {
@@ -42,14 +44,39 @@ public class DashboardPreInstallAction implements PanelAction,
     private void setMaxMemory() {
         // read the max memory preference from the external configuration, and
         // set it in the installation data
-        String maxMem = ExternalConfiguration.getConfig().getProperty(
+        String maxMemSetting = ExternalConfiguration.getConfig().getProperty(
             "max.memory");
+        int maxMem;
         try {
-            Integer.parseInt(maxMem);
+            maxMem = Integer.parseInt(maxMemSetting);
         } catch (Exception exc) {
-            maxMem = "500";
+            maxMem = 800; // default value
         }
-        installdata.setVariable(MAX_MEMORY, maxMem);
+        maxMem = limitToHalfOfSystemMemory(maxMem);
+        installdata.setVariable(MAX_MEMORY, Integer.toString(maxMem));
+    }
+
+    /**
+     * If we specify an Xmx memory ceiling that is larger than the amount of
+     * space available to the OS, the JVM will display an error dialog and
+     * fail to launch. Perform a check to see how much space is available and
+     * limit our application to half of available memory.
+     */
+    private int limitToHalfOfSystemMemory(int maxMem) {
+        try {
+            Object bean = ManagementFactory.getOperatingSystemMXBean();
+            OperatingSystemMXBean osMxBean = (OperatingSystemMXBean) bean;
+            long systemMemoryBytes = osMxBean.getTotalPhysicalMemorySize();
+            long systemMemoryMegabytes = systemMemoryBytes >> 20;
+            long halfOfMemory = systemMemoryMegabytes / 2;
+            if (maxMem > halfOfMemory)
+                maxMem = (int) halfOfMemory;
+            return maxMem;
+        } catch (Throwable t) {
+            // If we are not running in a Sun JVM, the code above will fail.
+            // In that case, use a conservative threshhold.
+            return Math.min(maxMem, 500);
+        }
     }
 
     private void setMacApplicationDir() {
