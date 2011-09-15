@@ -62,6 +62,7 @@
         <res src="files/TargetDir-macosx.txt" id="TargetPanel.dir.macosx"/>
         <res src="files/Win_shortcutSpec.xml" id="Win_shortcutSpec.xml"/>
         <res src="files/Win_shortcutSpec.xml" id="Win_NT_shortcutSpec.xml"/>
+        <res src="files/Unix_shortcutSpec.xml" id="Unix_shortcutSpec.xml"/>
         <res src="files/PspLicense.html" id="CondHTMLLicencePanel0.licence"
              excludeIf="pspTsp"/>
         <res src="files/PspTspLicense.html" id="CondHTMLLicencePanel0.licence"
@@ -131,7 +132,11 @@
             <file targetdir="$INSTALL_PATH" override="true"
 	          src="../src/net/sourceforge/processdash/ui/dashicon.ico"/>
             <file targetdir="$INSTALL_PATH" override="true"
+                  src="files/dashicon.png"/>
+            <file targetdir="$INSTALL_PATH" override="true"
 	          src="../src/net/sourceforge/processdash/ui/launcher.ico"/>
+            <file targetdir="$INSTALL_PATH" override="true"
+                  src="files/launcher.png"/>
 
             <!-- Create an Application icon on Mac OS X -->
             <fileset targetdir="$MAC_APPL/Process Dashboard.app"
@@ -267,6 +272,8 @@
 
             <file targetdir="$INSTALL_PATH" override="true"
                   src="files/teamicon.ico"/>
+            <file targetdir="$INSTALL_PATH" override="true"
+                  src="files/teamicon.png"/>
             <singlefile target="$TEAM_DATA_PATH/icon.ico" override="false"
                   src="files/teamicon.ico" condition="teamDataIsNotHttp"/>
 
