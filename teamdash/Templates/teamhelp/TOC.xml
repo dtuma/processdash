@@ -71,6 +71,8 @@
                               image="PageIcon" target="TeamImportMSProj" />
             <tocitem text="Editing WBS Metrics"
                               image="PageIcon" target="TeamEditWBSMetrics" />
+            <tocitem text="Edits by Team Members"
+                              image="PageIcon" target="TeamWBSIndiv" />
             <tocitem text="The Role of the WBS"
                               image="PageIcon" target="TeamWBSUnderstanding" />
             <tocitem text="Editing the WBS After Project Launch"
