@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2009 Tuma Solutions, LLC
+// Copyright (C) 2003-2011 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -121,6 +121,11 @@ public class DisplayConfig extends TinyCGIBase {
             out.println("   </PRE></DIV>");
         }
 
+        printRes("<DIV>${JVM_Header}");
+        out.print("<PRE class='indent'>");
+        out.println(HTMLUtils.escapeEntities(jvmInfo));
+        out.println("   </PRE></DIV>");
+
         printRes("<DIV>${Add_On.Header}");
 
         List<DashPackage> packages = TemplateLoader.getPackages();
@@ -169,7 +174,9 @@ public class DisplayConfig extends TinyCGIBase {
 
         // Showing a link to "more details" if we are in brief mode
         if (brief) {
-            printRes("<p><a href=\"/control/showenv.class\">${More_Details}</a></p>");
+            printRes("<p><a href=\"/control/showenv.class\">${More_Details}</a>"
+                    + "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"
+                    + "<a href=\"/control/showConsole.class?trigger\">${Show_Log}</a></p>");
         }
 
         out.println("</BODY></HTML>");
@@ -179,6 +186,7 @@ public class DisplayConfig extends TinyCGIBase {
     File installationDirectory;
     File configFile;
     String dataURL;
+    String jvmInfo;
 
     private void loadConfigurationInformation() {
         dataDirectory = null;
@@ -206,6 +214,10 @@ public class DisplayConfig extends TinyCGIBase {
             File dashJar = new File(dash.filename);
             installationDirectory = dashJar.getParentFile();
         }
+
+        jvmInfo = System.getProperty("java.vendor") + " JRE "
+                + System.getProperty("java.version") + "; "
+                + System.getProperty("os.name");
     }
 
     private String cleanupFilename(String filename) {

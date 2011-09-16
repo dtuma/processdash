@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2003 Tuma Solutions, LLC
+// Copyright (C) 2001-2011 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -44,7 +44,7 @@ public class ConsoleWindow extends JFrame {
     public ConsoleWindow() { this(true); }
 
     public ConsoleWindow(boolean install) {
-        super("Console Output");
+        super("Process Dashboard Debug Log");
         JMenuBar menubar = new JMenuBar();
         setJMenuBar(menubar);
 
@@ -63,14 +63,14 @@ public class ConsoleWindow extends JFrame {
         item = new JMenuItem("Close");
         item.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
-                    hide(); } });
+                    setVisible(false); } });
         menubar.add(item);
 
         textArea = new JTextArea();
         textArea.setEditable(false);
         textArea.setCaretColor(textArea.getBackground());
         getContentPane().add(new JScrollPane(textArea));
-        setSize(new Dimension(200, 200));
+        setSize(new Dimension(700, 350));
         if (install) install();
     }
 
@@ -97,7 +97,7 @@ public class ConsoleWindow extends JFrame {
     }
     public static void showInstalledConsole() {
         if (INSTALLED_CONSOLE_WINDOW != null)
-            INSTALLED_CONSOLE_WINDOW.show();
+            INSTALLED_CONSOLE_WINDOW.setVisible(true);
     }
 
     // WARNING - doesn't correctly translate bytes to chars.
