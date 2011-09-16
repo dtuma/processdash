@@ -1,4 +1,4 @@
-// Copyright (C) 2008-2010 Tuma Solutions, LLC
+// Copyright (C) 2008-2011 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -51,8 +51,8 @@ import javax.swing.event.HyperlinkListener;
 import org.w3c.dom.Element;
 
 import net.sourceforge.processdash.i18n.Resources;
+import net.sourceforge.processdash.process.ui.TriggerURI;
 import net.sourceforge.processdash.templates.ExtensionManager;
-import net.sourceforge.processdash.ui.help.PCSH;
 import net.sourceforge.processdash.util.XMLUtils;
 
 /**
@@ -119,35 +119,28 @@ public class AboutDialog extends JDialog implements HyperlinkListener {
         setVisible(true);
     }
 
-    private JPanel getContentPanel(String textLocation) {
+    private JPanel getContentPanel(String href) {
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 
-        JEditorPane editorPane = getEditorPane(textLocation);
+        Component editorPane = getEditorPane(href);
 
         panel.add(new JScrollPane(editorPane));
         return panel;
     }
 
-    private JEditorPane getEditorPane(String text) {
-        JEditorPane editorPane = new JEditorPane();
-
-        editorPane.setContentType("text/html");
-        editorPane.setEditable(false);
-        editorPane.addHyperlinkListener(this);
-        editorPane.setAlignmentX(Component.CENTER_ALIGNMENT);
-
-        if (text.toLowerCase().startsWith("<html>")) {
-            editorPane.setText(text);
-        } else {
-            try {
-                editorPane.setPage(Browser.mapURL(text));
-            } catch (IOException ioe) {
-                System.err.println(ioe);
-            }
+    private Component getEditorPane(String href) {
+        try {
+            String url = Browser.mapURL(href);
+            JEditorPane editorPane = new JEditorPane(new URL(url));
+            editorPane.setEditable(false);
+            editorPane.addHyperlinkListener(this);
+            editorPane.setAlignmentX(Component.CENTER_ALIGNMENT);
+            return editorPane;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return new JLabel();
         }
-
-        return editorPane;
     }
 
     private void addTabsFromExtensions(JTabbedPane tabbedPane) {
@@ -184,8 +177,8 @@ public class AboutDialog extends JDialog implements HyperlinkListener {
     public void hyperlinkUpdate(HyperlinkEvent e) {
         if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
             String url = e.getURL().toString();
-            if (url.startsWith("http://help/"))
-                PCSH.displayHelpTopic(url.substring(12));
+            if (TriggerURI.isTrigger(url))
+                TriggerURI.handle(url);
             else
                 Browser.launch(url);
         }
