@@ -1,4 +1,4 @@
-// Copyright (C) 2006-2009 Tuma Solutions, LLC
+// Copyright (C) 2006-2011 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -111,9 +111,6 @@ public class QuickLauncher {
             // if additional JVM properties are added here in the future,
             // consider adding them to the SimpleInternalLauncher as well
 
-            processFactory.addVmArg("-D" + Settings.SYS_PROP_PREFIX
-                    + "backup.extraDirectories=");
-
             String userLang = System.getProperty("user.language");
             if (userLang != null)
                 processFactory.addVmArg("-Duser.language=" + userLang);
@@ -177,7 +174,8 @@ public class QuickLauncher {
         contents.add(new OptionCheckbox("Read_Only", "-DreadOnly=true", null,
                 processFactory, false));
         contents.add(new OptionCheckbox("Disable_Export", "-D"
-                + Settings.SYS_PROP_PREFIX + "export.disableAutoExport=true",
+                + Settings.SYS_PROP_PREFIX + "export.disableAutoExport=true\n"
+                + "-D" + Settings.SYS_PROP_PREFIX + "backup.extraDirectories=",
                 null, processFactory, true));
         contents.add(new OptionCheckbox("Use_External_Templates", null, "-D"
                 + Settings.SYS_PROP_PREFIX + "templates.disableSearchPath=true",

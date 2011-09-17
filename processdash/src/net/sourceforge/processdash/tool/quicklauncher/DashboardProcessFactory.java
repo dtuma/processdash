@@ -1,4 +1,4 @@
-// Copyright (C) 2006-2007 Tuma Solutions, LLC
+// Copyright (C) 2006-2011 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -41,12 +41,14 @@ abstract class DashboardProcessFactory {
         if (vmArgs == null)
             vmArgs = new LightweightSet();
         if (arg != null)
-            vmArgs.add(arg);
+            for (String oneArg : arg.split("\n"))
+                vmArgs.add(oneArg);
     }
 
     public void removeVmArg(String arg) {
         if (vmArgs != null && arg != null)
-            vmArgs.remove(arg);
+            for (String oneArg : arg.split("\n"))
+                vmArgs.remove(oneArg);
     }
 
     public boolean hasVmArg(String arg) {
