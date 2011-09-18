@@ -33,6 +33,10 @@
         that have been completed recently, the tasks that are in progress,
         and the tasks that are planned for the near future.</li>
 
+    <li>By default, the bars on the Gantt charts depict dates from the
+        Forecast column of the task list.  Now, a configuration button makes
+        it possible to depict Plan, Replan, or Baseline dates instead.</li>
+
     <li>In the past, the Weekly EV report used generic phrases such as "Tasks
         Completed This Week."  This wording was confusing for views of data
         in the past or the future.  These section headings have been altered
@@ -141,6 +145,11 @@ courses:
     <li>Actual Size is now displayed in the WBS Editor for each component in
         the hieararchy.</li>
 
+    <li>The charts in the Rollup Plan Summary report will now use
+        consistent colors to represent the various phases in the standard
+        metrics collection frameworks.  This makes it easier to correlate
+        data between several charts.</li>
+
     <li>When a note is attached to the root node of the project in the WBS
         Editor, that note will now be copied down into the personal plans of
         each individual.  This can be used to record helpful project-specific
@@ -169,7 +178,8 @@ courses:
 
 <li>Significant changes were made to the installer for the Process Dashboard:
 
-    <ul>
+    <ul>The installer can now create application shortcuts for many
+        users on Unix and Linux platforms.</ul>
 
     <li>On 64-bit Windows, sometimes the installer would not create Process
         Dashboard shortcuts.  This problem has been corrected.</li>
@@ -177,7 +187,7 @@ courses:
     <li>If a user has less than 800MB of memory (for example, because they
         are running in a virtual machine), the Process Dashboard shortcuts
         would fail to start the application.  The installer has been adjusted
-        to create shortcuts that work on systems with only 500MB of memory.
+        to create shortcuts that work on systems with limited memory.
         (Note that the Process Dashboard does not require or use that much
         memory; the problem was with the shortcut icon itself, not the
         application.)</li>
