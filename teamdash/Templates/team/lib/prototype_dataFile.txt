@@ -358,6 +358,15 @@ undefine([Use_Rollup]);
 <!--#endfor-->
 
 /*
+ * Store the colors of the phases if they were specified.
+ */
+<!--#foreach name=PHASE list=Phase_List #-->
+<!--#if PHASE_Color #-->
+[/PID/<!--#echo PHASE_Name -->/Phase_Color] == "<!--#echo PHASE_Color -->";
+<!--#endif#-->
+<!--#endfor-->
+
+/*
  * Enable display of the earned value "week" form.
  */
 [/Enable_EV_Week_form] = TAG;
