@@ -75,7 +75,7 @@ Authors:
 
   <property file="${lib}/version.properties"/>
 
-  <property name="eng.version"      value="3.1"/><!-- VERSION -->
+  <property name="eng.version"      value="3.2"/><!-- VERSION -->
   <property name="eng.requires"     value="1.10.6+"/><!-- VERSION -->
   <property name="l10nTool.version" value="1.1"/><!-- VERSION -->
   <property name="l10nTool.requires" value="1.10.7b+"/><!-- VERSION -->
