@@ -105,9 +105,11 @@ public class MakeDashMessage extends Task {
         if (src != null)
             result = readSrc();
         else
-            result = getProject().replaceProperties(xml);
+            result = xml;
 
-        if (result.trim().startsWith("<xml") == false) {
+        result = getProject().replaceProperties(result);
+
+        if (result.trim().startsWith("<?xml") == false) {
             if (result.trim().startsWith("<messages") == false) {
                 result = "<messages>\n" + result + "\n</messages>";
             }
