@@ -185,6 +185,8 @@
             <file targetdir="$INSTALL_PATH" override="true"
 	          src="../dist/pspProc2.jar" />
             <file targetdir="$INSTALL_PATH" override="true"
+	          src="../dist/importPSP.jar" />
+            <file targetdir="$INSTALL_PATH" override="true"
 	          src="../dist/pspForEng.jar" />
 		  
             <!-- copy the pspForEng data files into the data directory. -->
@@ -207,6 +209,8 @@
             <file targetdir="$INSTALL_PATH" override="true"
 	          src="../dist/pspProc2.jar" />
             <file targetdir="$INSTALL_PATH" override="true"
+	          src="../dist/importPSP.jar" />
+            <file targetdir="$INSTALL_PATH" override="true"
 	          src="../dist/pspForEng.jar" />
 		  
             <!-- copy the pspFundAdv data files into the data directory. -->
@@ -224,6 +228,8 @@
 
             <file targetdir="$INSTALL_PATH" override="true"
 	          src="../dist/pspProc2.jar" />
+            <file targetdir="$INSTALL_PATH" override="true"
+	          src="../dist/importPSP.jar" />
             <file targetdir="$INSTALL_PATH" override="true"
 	          src="../dist/pspForEng.jar" />
             <file targetdir="$INSTALL_PATH" override="true"
