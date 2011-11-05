@@ -1,0 +1,46 @@
+body {
+    background-color: #ffffff;
+}
+
+div.metrics table {
+    margin-bottom: 2em;
+}
+div.metrics table td {
+    white-space: nowrap;
+}
+
+pre {
+    margin-top: 0px;
+    margin-bottom: 0px;
+}
+table.locDiff td {
+    white-space: pre;
+    font-family: monospace;
+    font-size: 10pt;
+}
+span.comment {
+    color: #32cd32;
+}
+
+td.locDelHdr {
+    background-color: #ff0000;
+}
+td.locDelBody {
+    text-decoration: line-through;
+    color: #ff0000;
+}
+td.locDelBody span.comment {
+    color: #ff00ff;
+}
+
+td.locAddHdr {
+    background-color: #0000ff;
+}
+
+td.locAddBody {
+    color: #0000ff;
+    font-weight: bold;
+}
+td.locAddBody span.comment {
+    color: #32cdcc;
+}
