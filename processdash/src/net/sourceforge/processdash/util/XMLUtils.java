@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2010 Tuma Solutions, LLC
+// Copyright (C) 2001-2011 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -39,6 +39,10 @@ import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
 
 import net.sourceforge.processdash.i18n.Resources;
 
@@ -353,6 +357,76 @@ public class XMLUtils {
                 }
             }
         }
+        return result;
+    }
+
+    private static ThreadLocal<XPath> XPATH_POOL = new ThreadLocal<XPath>() {
+        @Override
+        protected XPath initialValue() {
+            return XPathFactory.newInstance().newXPath();
+        }
+    };
+
+    /**
+     * @return an XPath object that can be used by the current thread
+     * @since 1.14.1
+     */
+    public static XPath xPath() {
+        return XPATH_POOL.get();
+    }
+
+    /**
+     * @return the string obtained from evaluating an XPath expression
+     * @since 1.14.1
+     */
+    public static String xPathStr(String expr, Object context) {
+        try {
+            return xPath().evaluate(expr, context);
+        } catch (XPathExpressionException e) {
+            throw new IllegalArgumentException(expr, e);
+        }
+    }
+
+    /**
+     * @return a list of nodes obtained from evaluating an XPath expression
+     * @since 1.14.1
+     */
+    public static List<Node> xPathNodes(String expr, Object context) {
+        return xPathObjects(expr, context);
+    }
+
+    /**
+     * @return a list of elements obtained from evaluating an XPath expression
+     * @since 1.14.1
+     */
+    public static List<Element> xPathElems(String expr, Object context) {
+        return xPathObjects(expr, context);
+    }
+
+    static <T> List<T> xPathObjects(String expr, Object context) {
+        try {
+            NodeList nodes = (NodeList) xPath().evaluate(expr, context,
+                XPathConstants.NODESET);
+            List<T> result = new ArrayList<T>(nodes.getLength());
+            for (int i = 0;  i < nodes.getLength();  i++)
+                result.add((T) nodes.item(i));
+            return result;
+        } catch (XPathExpressionException e) {
+            throw new IllegalArgumentException(e);
+        }
+    }
+
+
+    /**
+     * @return find a list of elements obtained from evaluating an XPath
+     *         expression, and return the text contents of those elements.
+     * @since 1.14.1
+     */
+    public static List<String> xPathElemsText(String expr, Object context) {
+        List<Element> elems = XMLUtils.xPathElems(expr, context);
+        List<String> result = new ArrayList<String>(elems.size());
+        for (Element elem : elems)
+            result.add(XMLUtils.getTextContents(elem));
         return result;
     }
 
