@@ -31,9 +31,9 @@ import net.sourceforge.processdash.ui.web.TinyCGIBase;
 
 
 
-public class LOCDiffDialog extends TinyCGIBase {
+public class OpenLOCDiffScript extends TinyCGIBase {
 
-    public LOCDiffDialog() {}
+    public OpenLOCDiffScript() {}
 
     /** Write the CGI header. */
     protected void writeHeader() {
