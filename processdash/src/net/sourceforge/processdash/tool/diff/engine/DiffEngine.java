@@ -50,6 +50,8 @@ public class DiffEngine {
 
     private boolean skipIdenticalFiles;
 
+    private volatile boolean aborted;
+
     protected EventListenerList listeners;
 
     protected Logger logger = Logger.getLogger(DiffEngine.class.getName());
@@ -61,6 +63,7 @@ public class DiffEngine {
         this.diffAnalyzer = MultiversionDiffAnalyzer.INSTANCE;
         this.filesToAnalyze = new ArrayList<FileToAnalyze>();
         this.skipIdenticalFiles = true;
+        this.aborted = false;
         this.listeners = new EventListenerList();
     }
 
@@ -112,12 +115,24 @@ public class DiffEngine {
         this.filesToAnalyze.addAll(files.getFilesToAnalyze());
     }
 
+    public List<FileToAnalyze> getFilesToAnalyze() {
+        return filesToAnalyze;
+    }
+
     public boolean isSkipIdenticalFiles() {
         return skipIdenticalFiles;
     }
 
     public void setSkipIdenticalFiles(boolean skipIdenticalFiles) {
         this.skipIdenticalFiles = skipIdenticalFiles;
+    }
+
+    public void abort() {
+        this.aborted = true;
+    }
+
+    public boolean isAborted() {
+        return aborted;
     }
 
     public void addDiffListener(DiffListener l) {
@@ -131,11 +146,14 @@ public class DiffEngine {
 
     public void run() {
         checkPreconditions();
-        fireAnalysisStarting();
+        if (!aborted)
+            fireAnalysisStarting();
         for (FileToAnalyze file : filesToAnalyze) {
-            analyzeFileAndFireEvents(file);
+            if (!aborted)
+                analyzeFileAndFireEvents(file);
         }
-        fireAnalysisFinished();
+        if (!aborted)
+            fireAnalysisFinished();
     }
 
     public void checkPreconditions() {

@@ -39,6 +39,10 @@ public class Main extends AbstractLOCDiffReport {
 
     private SvnFileSet files;
 
+    public Main(String... args) throws IOException {
+        this(new ArrayList<String>(Arrays.asList(args)));
+    }
+
     public Main(List<String> args) throws IOException {
         createSvnExecutor(args);
         createFileset(args);
@@ -50,7 +54,7 @@ public class Main extends AbstractLOCDiffReport {
         configureBaseDirectory(args);
         configureSvnOptions(args);
         configureNumThreads(args);
-        svn.validateAndLoadBaseInfo();
+        svn.validate();
     }
 
     private void configureBaseDirectory(List<String> args) {
@@ -86,7 +90,7 @@ public class Main extends AbstractLOCDiffReport {
             svn.setNumThreads(numThreads);
     }
 
-    private void createFileset(List<String> args) throws IOException {
+    private void createFileset(List<String> args) {
         files = new SvnFileSet(svn);
         boolean sawChanges = false;
         if (configureLogToken(args)) sawChanges = true;
@@ -94,16 +98,23 @@ public class Main extends AbstractLOCDiffReport {
         configureLocalMods(args, sawChanges == false);
     }
 
-    private boolean configureLogToken(List<String> args) throws IOException {
+    private boolean configureLogToken(List<String> args) {
         String token = getArg(args, "-logToken");
-        if (token == null)
+        String regexp = getArg(args, "-logRegexp");
+        if (token != null)
+            files.setLogMessageToken(token);
+        else if (regexp != null)
+            files.setLogMessageTokenRegexp(regexp);
+        else
             return false;
 
-        String limit = getArg(args, "-logLimit");
-        if (limit == null)
-            files.addLogMessageToken(token, 180);
-        else
-            files.addLogMessageToken(token, limit);
+        String limit = getArg(args, "-logLimitRev");
+        Integer limitDays = getInt(args, "-logLimitDays");
+        if (limit != null)
+            files.setLogMessageTokenLimit(limit);
+        else if (limitDays != null)
+            files.setLogMessageTokenLimit(limitDays);
+
         return true;
     }
 
@@ -158,13 +169,14 @@ public class Main extends AbstractLOCDiffReport {
 
     public static void main(String[] args) {
         try {
-            new Main(new ArrayList<String>(Arrays.asList(args))).run();
-        } catch (SvnNotFoundException e) {
+            new Main(args).run();
+        } catch (SvnDiffException.AppNotFound e) {
             System.err.println("Could not locate the 'svn' executable");
-        } catch (SvnNotWorkingCopyException e) {
+        } catch (SvnDiffException.NotWorkingCopy e) {
             System.err.println("Not a svn working copy");
         } catch (IOException ioe) {
-
+            System.err.println("Unexpected problem encountered:");
+            ioe.printStackTrace();
         }
     }
 

@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeSet;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -53,6 +54,10 @@ public class SvnFileSet implements FileAnalysisSet {
     protected FilenameComparator filenameComparator;
 
     protected List<String> revisionsToTrack;
+
+    protected Pattern token;
+
+    protected String tokenLimitRevision;
 
     protected boolean includeLocalMods;
 
@@ -89,51 +94,66 @@ public class SvnFileSet implements FileAnalysisSet {
      * contained a particular token.
      * 
      * @param token the token to search for in the historical log messages
-     * @param maxDays the maximum number of days in the past to search
-     * @throws IOException if an error is encountered
      */
-    public void addLogMessageToken(String token, int maxDays)
-            throws IOException {
+    public void setLogMessageToken(String token) {
+        if (XMLUtils.hasValue(token))
+            this.token = Pattern.compile(token, Pattern.LITERAL
+                    + Pattern.CASE_INSENSITIVE);
+        else
+            this.token = null;
+    }
+
+    /**
+     * Request that changes be displayed for revisions whose log message
+     * contained a particular regular expression.
+     * 
+     * @param token the expression to search for in the historical log messages
+     */
+    public void setLogMessageTokenRegexp(String regexp) {
+        if (XMLUtils.hasValue(regexp))
+            this.token = Pattern.compile(regexp, Pattern.CASE_INSENSITIVE);
+        else
+            this.token = null;
+    }
+
+    /**
+     * Request that changes be displayed for revisions whose log message
+     * contained a particular regular expression.
+     * 
+     * @param token the expression to search for in the historical log messages
+     */
+    public void setLogMessageTokenRegexp(Pattern regexp) {
+        this.token = regexp;
+    }
+
+    /**
+     * Configure a limit on how far back to search in the logs for the token.
+     * 
+     * @param cutoff the maximum number of days in the past to search
+     */
+    public void setLogMessageTokenLimit(int maxDays) {
         long now = System.currentTimeMillis();
         Date cutoff = new Date(now - maxDays * DateUtils.DAYS);
-        addLogMessageToken(token, cutoff);
+        setLogMessageTokenLimit(cutoff);
     }
 
     /**
-     * Request that changes be displayed for revisions whose log message
-     * contained a particular token.
+     * Configure a limit on how far back to search in the logs for the token.
      * 
-     * @param token the token to search for in the historical log messages
      * @param cutoff the maximum date in the past to search through logs
-     * @throws IOException if an error is encountered
      */
-    public void addLogMessageToken(String token, Date cutoff)
-            throws IOException {
+    public void setLogMessageTokenLimit(Date cutoff) {
         String dateStr = new SimpleDateFormat("yyyy-MM-dd").format(cutoff);
-        addLogMessageToken(token, "{" + dateStr + "}");
+        setLogMessageTokenLimit("{" + dateStr + "}");
     }
 
     /**
-     * Request that changes be displayed for revisions whose log message
-     * contained a particular token.
+     * Configure a limit on how far back to search in the logs for the token.
      * 
-     * @param token the token to search for in the historical log messages
      * @param limitRevision the oldest revision to consider in the search
-     * @throws IOException if an error is encountered
      */
-    public void addLogMessageToken(String token, String limitRevision)
-            throws IOException {
-        logger.fine("Searching through logs for token '" + token + "'");
-        List<Element> logEntries = XMLUtils.xPathElems("/log/logentry", //
-            svn.execXml("log", "--xml", "-r", limitRevision + ":HEAD"));
-        for (Element log : logEntries) {
-            String logMessage = XMLUtils.xPathStr("msg", log);
-            if (logMessage.contains(token)) {
-                String revision = log.getAttribute("revision");
-                revisionsToTrack.add(revision);
-                logger.fine("Token found in revision " + revision);
-            }
-        }
+    public void setLogMessageTokenLimit(String limitRevision) {
+        this.tokenLimitRevision = limitRevision;
     }
 
     /**
@@ -163,6 +183,9 @@ public class SvnFileSet implements FileAnalysisSet {
         files = new ArrayList<SvnFile>();
         filesByPath = new HashMap<String, SvnFile>();
 
+        if (token != null)
+            searchLogsForToken();
+
         if (!revisionsToTrack.isEmpty())
             processLogEntries();
 
@@ -175,6 +198,24 @@ public class SvnFileSet implements FileAnalysisSet {
         enqueueFileRetrievalTasks();
 
         return files;
+    }
+
+    private void searchLogsForToken() throws IOException {
+        // if no token limit was specified, install a default of 180 days.
+        if (!XMLUtils.hasValue(tokenLimitRevision))
+            setLogMessageTokenLimit(180);
+
+        logger.fine("Searching through logs for token '" + token + "'");
+        List<Element> logEntries = XMLUtils.xPathElems("/log/logentry", //
+            svn.execXml("log", "--xml", "-r", tokenLimitRevision + ":HEAD"));
+        for (Element log : logEntries) {
+            String logMessage = XMLUtils.xPathStr("msg", log);
+            if (token.matcher(logMessage).find()) {
+                String revision = log.getAttribute("revision");
+                revisionsToTrack.add(revision);
+                logger.fine("Token found in revision " + revision);
+            }
+        }
     }
 
     protected void processLogEntries() throws IOException {

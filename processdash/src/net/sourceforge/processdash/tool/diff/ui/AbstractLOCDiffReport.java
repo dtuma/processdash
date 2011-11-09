@@ -80,8 +80,13 @@ public class AbstractLOCDiffReport {
         if (getFlag(args, "-countUnchanged"))
             engine.setSkipIdenticalFiles(false);
 
-        String remainingOptions = StringUtils.join(args, " ");
-        engine.setFileOptions(remainingOptions);
+        // by default, pass all remaining unprocessed options to the DiffEngine
+        setEngineOptions(args);
+    }
+
+    protected void setEngineOptions(List<String> args) {
+        String engineOptions = StringUtils.join(args, " ");
+        engine.setFileOptions(engineOptions);
     }
 
     protected String getArg(List<String> args, String flag) {

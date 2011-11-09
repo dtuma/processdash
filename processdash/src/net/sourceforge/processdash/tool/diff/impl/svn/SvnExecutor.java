@@ -93,7 +93,7 @@ public class SvnExecutor {
 
     public void setBaseDirectory(File baseDirectory) {
         if (!baseDirectory.isDirectory())
-            throw new SvnNotWorkingCopyException(new FileNotFoundException(
+            throw new SvnDiffException.NotWorkingCopy(new FileNotFoundException(
                     baseDirectory.getPath()));
 
         this.baseDirectory = baseDirectory;
@@ -136,22 +136,26 @@ public class SvnExecutor {
     /**
      * Ensure that the configuration of this object is correct.
      * 
-     * @throws SvnNotFoundException
+     * @throws SvnDiffException.AppNotFound
      *             if the svn executable could not be found.
-     * @throws SvnNotWorkingCopyException
+     * @throws SvnDiffException.NotWorkingCopy
      *             if the {@link #baseDirectory} has not been configured, or if
      *             it does not point to a svn working copy
-     * @throws SvnException
+     * @throws SvnDiffException
      *             if any other unexpected problem is encountered.
      */
-    public void validateAndLoadBaseInfo() throws SvnNotFoundException,
-            SvnNotWorkingCopyException, SvnException {
+    public void validate() throws SvnDiffException {
+        validateAndLoadBaseInfo();
+    }
+
+
+    protected void validateAndLoadBaseInfo() throws SvnDiffException {
         try {
             InputStream in = exec("help");
             while (in.read() != -1)
                 ;
         } catch (Exception e) {
-            throw new SvnNotFoundException(e);
+            throw new SvnDiffException.AppNotFound(e);
         }
 
         try {
@@ -160,13 +164,13 @@ public class SvnExecutor {
             this.rootUrl = XMLUtils.xPathStr("/info/entry/repository/root", xml);
 
         } catch (Exception e) {
-            throw new SvnNotWorkingCopyException(e);
+            throw new SvnDiffException.NotWorkingCopy(e);
         }
 
         if (baseUrl.startsWith(rootUrl))
             basePrefix = baseUrl.substring(rootUrl.length());
         else
-            throw new SvnException(
+            throw new SvnDiffException(
                     "Unexpected relationship between base/root URL");
     }
 

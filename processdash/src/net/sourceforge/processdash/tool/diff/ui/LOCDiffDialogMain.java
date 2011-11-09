@@ -21,22 +21,19 @@
 //     processdash@tuma-solutions.com
 //     processdash-devel@lists.sourceforge.net
 
-package net.sourceforge.processdash.tool.diff.impl.svn;
+package net.sourceforge.processdash.tool.diff.ui;
 
-public class SvnException extends RuntimeException {
+import java.util.List;
 
-    public SvnException() {}
+import net.sourceforge.processdash.tool.diff.HardcodedFilterLocator;
+import net.sourceforge.processdash.tool.diff.engine.DefaultLanguageFilterSelector;
+import net.sourceforge.processdash.tool.diff.engine.LanguageFilterSelector;
 
-    public SvnException(String message) {
-        super(message);
+public class LOCDiffDialogMain {
+    public static void main(String[] args) {
+        List panels = HardcodedLOCDiffPanelLocator.getPanels();
+        List filters = HardcodedFilterLocator.getFilters();
+        LanguageFilterSelector lfs = new DefaultLanguageFilterSelector(filters);
+        new LOCDiffDialog(panels, lfs);
     }
-
-    public SvnException(Throwable cause) {
-        super(cause);
-    }
-
-    public SvnException(String message, Throwable cause) {
-        super(message, cause);
-    }
-
 }

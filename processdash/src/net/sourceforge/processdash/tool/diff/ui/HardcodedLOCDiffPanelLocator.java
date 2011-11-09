@@ -21,12 +21,18 @@
 //     processdash@tuma-solutions.com
 //     processdash-devel@lists.sourceforge.net
 
-package net.sourceforge.processdash.tool.diff.impl.svn;
+package net.sourceforge.processdash.tool.diff.ui;
 
-public class SvnNotFoundException extends SvnException {
+import java.util.ArrayList;
+import java.util.List;
 
-    public SvnNotFoundException(Throwable cause) {
-        super(cause);
+public class HardcodedLOCDiffPanelLocator {
+
+    public static List<LOCDiffDialog.Panel> getPanels() {
+        List<LOCDiffDialog.Panel> result = new ArrayList();
+        result.add(new FileSystemLOCDiffPanel());
+        result.add(new SvnLOCDiffPanel());
+        return result;
     }
 
 }
