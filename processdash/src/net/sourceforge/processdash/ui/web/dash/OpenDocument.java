@@ -49,6 +49,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.MissingResourceException;
 import java.util.StringTokenizer;
+import java.util.UUID;
 
 import net.sourceforge.processdash.DashController;
 import net.sourceforge.processdash.Settings;
@@ -60,7 +61,6 @@ import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.data.util.InterpolatingFilter;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.net.http.WebServer;
-import net.sourceforge.processdash.ui.Browser;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.StringUtils;
@@ -155,6 +155,7 @@ public class OpenDocument extends TinyCGIBase {
     public static final String FILE_PARAM = "file";
     public static final String PAGE_COUNT_PARAM = "pageCount";
     public static final String CONFIRM_PARAM = "confirm";
+    public static final String POST_TOKEN = "postToken";
     public static final String FILE_XML_DATANAME = "FILES_XML";
 
     public static final String NAME_ATTR = "name";
@@ -170,6 +171,8 @@ public class OpenDocument extends TinyCGIBase {
 
     public static final String TEMPLATE_ROOT_WIN = "\\Templates\\";
     public static final String TEMPLATE_ROOT_UNIX = "/Templates/";
+
+    private static final DocumentOpener DOC_OPENER = new DocumentOpenerImpl();
 
     private static final Resources resources =
         Resources.getTemplateBundle("dash.file");
@@ -224,8 +227,15 @@ public class OpenDocument extends TinyCGIBase {
             return;
         }
 
+        if (!nameIsSafe(result)) {
+            // if the user has requested to create or open a file with an
+            // unsafe filename, display a form asking for different values.
+            displayNeedInfoForm(filename, result, false, UNSAFE_NAME, file);
+            return;
+        }
+
         if (!result.exists()) {
-            if (getParameter(CONFIRM_PARAM) == null) {
+            if (getParameter(CONFIRM_PARAM) == null || !checkPostToken()) {
                 // if the file does not exist, display the form to
                 // confirm with the user that they really want the
                 // file autocreated.  This additionally gives them an
@@ -251,7 +261,10 @@ public class OpenDocument extends TinyCGIBase {
         if (result.exists()) {
             // If we were able to find the named file, and it exists,
             // redirect the user there.
-            redirectTo(filename, result);
+            if (checkReferer() || checkPostToken())
+                redirectTo(filename, result);
+            else
+                displayNeedInfoForm(filename, null, false, OPEN_CONFIRM, file);
             return;
         }
 
@@ -296,6 +309,13 @@ public class OpenDocument extends TinyCGIBase {
             return;
         }
 
+        if (!nameIsSafe(template)) {
+            // if the user has requested to create or open a template with an
+            // unsafe filename, display a form asking for different values.
+            displayNeedInfoForm(filename, template, true, UNSAFE_NAME, file);
+            return;
+        }
+
         // We have located the template and it exists! Create the
         // desired document based upon the template.
         File resultDir = result.getParentFile();
@@ -328,12 +348,12 @@ public class OpenDocument extends TinyCGIBase {
                 DashController.checkIP(env.get("REMOTE_ADDR"));
             } catch (IOException ioe) { remoteRequest = true; }
 
-            if (remoteRequest || "redirect".equals(docOpenSetting))
-                out.print("Location: " + result.toURI().toURL() + "\r\n\r\n");
-            else {
-                // open the document using the Browser class.
-                Browser.openDoc(result.toURI().toURL().toString());
+            boolean redirectSetting = "redirect".equals(Settings
+                    .getVal("extDoc.openMethod"));
 
+            if (!remoteRequest && !redirectSetting
+                    && DOC_OPENER.openDocument(result)) {
+                // we successfully opened the document in an external app.
                 // now print a null document which takes the user back to
                 // the original page they were viewing.
                 out.print("Expires: 0\r\n");
@@ -345,7 +365,14 @@ public class OpenDocument extends TinyCGIBase {
                 out.println("<HTML><HEAD><SCRIPT>");
                 out.print("history.go("+back+");");
                 out.println("</SCRIPT></HEAD><BODY></BODY></HTML>");
+
+            } else {
+                // If we could not open the document using a DocumentOpener
+                // object, try sending a redirect request to the web browser.
+                // Perhaps the browser will be able to open the local document.
+                out.print("Location: " + result.toURI().toURL() + "\r\n\r\n");
             }
+
         } catch (MalformedURLException mue) {
             System.out.println("Exception: " + mue);
             displayNeedInfoForm(filename, result, false, CANNOT_LOCATE, null);
@@ -645,7 +672,7 @@ public class OpenDocument extends TinyCGIBase {
             // Check to see if a value was POSTed to this CGI script for this
             // data element.  If so, it would override any previous value.
             String postedValue = getParameter(name);
-            if (postedValue != null) {
+            if (postedValue != null && checkPostToken()) {
                 value = postedValue;
                 if (pathStartsWith(value, impliedPath)) {
                     // the user supplied an absolute path.  Rewrite it so it
@@ -769,8 +796,9 @@ public class OpenDocument extends TinyCGIBase {
         out.print("<html><head><title>"+title+"</title></head>\n"+
                   "<body><h1>"+title+"</h1>\n");
         if (file != null && reason != CREATE_CONFIRM) {
+            String resPrefix = (reason == UNSAFE_NAME ? "Unsafe" : "Missing");
             message = resources.format
-                ("Missing_File_Message_FMT",
+                (resPrefix + "_File_Message_FMT",
                  HTMLUtils.escapeEntities(file.getPath()),
                  new Integer(isTemplate ? 1 : 0));
             out.println(message);
@@ -826,6 +854,9 @@ public class OpenDocument extends TinyCGIBase {
         if (! (isTemplate == false && reason == MISSING_META) )
             out.print("<input type='hidden' name='"+CONFIRM_PARAM+"' "+
                       "value='1'>\n");
+        String postToken = generatePostToken();
+        out.print("<input type='hidden' name='" + POST_TOKEN + "' value='"
+                + WebServer.encodeHtmlEntities(postToken) + "'>\n");
         String pageCount = getParameter(PAGE_COUNT_PARAM);
         pageCount = (pageCount == null ? "x" : pageCount + "x");
         out.print("<input type='hidden' name='"+PAGE_COUNT_PARAM+"' value='");
@@ -840,11 +871,49 @@ public class OpenDocument extends TinyCGIBase {
     private static final int MISSING_META = 0;
     private static final int MISSING_INFO = 1;
     private static final int CANNOT_LOCATE = 2;
-    private static final int CREATE_CONFIRM = 3;
+    private static final int UNSAFE_NAME = 3;
+    private static final int OPEN_CONFIRM = 4;
+    private static final int CREATE_CONFIRM = 99;
 
+    private String generatePostToken() {
+        UUID uuid = UUID.randomUUID();
+        String result = uuid.toString();
+        getDataRepository().putValue(getPostTokenDataName(),
+            StringData.create(result));
+        return result;
+    }
 
-    protected static String docOpenSetting =
-        Settings.getVal("extDoc.openMethod");
+    private boolean checkPostToken() {
+        String method = (String) env.get("REQUEST_METHOD");
+        if (! "POST".equalsIgnoreCase(method))
+            return false;
+
+        SimpleData storedToken = getDataRepository().getSimpleValue(
+            getPostTokenDataName());
+        if (storedToken == null)
+            return false;
+
+        String postedToken = getParameter(POST_TOKEN);
+        if (postedToken == null)
+            return false;
+
+        return postedToken.equals(storedToken.format());
+    }
+
+    private String getPostTokenDataName() {
+        String filename = getParameter(FILE_PARAM);
+        return getPrefix() + "//POST_TOKEN//" + filename;
+    }
+
+    private boolean checkReferer() {
+        String referer = (String) env.get("HTTP_REFERER");
+        if (referer == null)
+            return false;
+
+        String hostname = (String) env.get("HTTP_HOST");
+        String requestPrefix = "http://" + hostname + "/";
+        return (referer.startsWith(requestPrefix));
+    }
 
 
     /** a collection of XML documents describing the various files

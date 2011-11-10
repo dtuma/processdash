@@ -61,14 +61,10 @@ public class Browser {
      * Starts the browser for the current platform.
      * @param url The link to point the browser to.
      */
-    public static void launch(String url) { launch(url, false); }
-    public static void openDoc(String url) { launch(url, true); }
-
-    private static void launch(String url, boolean document)
+    public static void launch(String url)
     {
         url = mapURL(url);
         String cmd = Settings.getFile("browser.command");
-        if (document && isWindows()) cmd = null;
 
         try {
             if (cmd != null) {
