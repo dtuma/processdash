@@ -61,6 +61,7 @@ import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.data.util.InterpolatingFilter;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.net.http.WebServer;
+import net.sourceforge.processdash.ui.Browser;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.StringUtils;
@@ -261,7 +262,7 @@ public class OpenDocument extends TinyCGIBase {
         if (result.exists()) {
             // If we were able to find the named file, and it exists,
             // redirect the user there.
-            if (checkReferer() || checkPostToken())
+            if (checkPostToken() || (checkReferer() && confirmOpenUnnecessary()))
                 redirectTo(filename, result);
             else
                 displayNeedInfoForm(filename, null, false, OPEN_CONFIRM, file);
@@ -910,9 +911,12 @@ public class OpenDocument extends TinyCGIBase {
         if (referer == null)
             return false;
 
-        String hostname = (String) env.get("HTTP_HOST");
-        String requestPrefix = "http://" + hostname + "/";
-        return (referer.startsWith(requestPrefix));
+        String expectedPrefix = Browser.mapURL("/");
+        return referer.startsWith(expectedPrefix);
+    }
+
+    private boolean confirmOpenUnnecessary() {
+        return Settings.getBool("extDoc.confirmOpen", false) == false;
     }
 
 
