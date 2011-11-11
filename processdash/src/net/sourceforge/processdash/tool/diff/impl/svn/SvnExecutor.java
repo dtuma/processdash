@@ -190,7 +190,9 @@ public class SvnExecutor {
         try {
             return XMLUtils.parse(in);
         } catch (SAXException e) {
-            throw new IOException(e);
+            IOException ioe = new IOException();
+            ioe.initCause(e);
+            throw ioe;
         }
     }
 

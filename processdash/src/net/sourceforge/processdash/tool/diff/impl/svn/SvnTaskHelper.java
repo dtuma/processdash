@@ -51,7 +51,8 @@ public class SvnTaskHelper {
         if (ioe != null)
             throw ioe;
         else if (interruptedException != null)
-            throw new IOException(interruptedException);
+
+            throw newIOException(interruptedException);
     }
 
     public void execute(SvnExecutor svn) {
@@ -61,13 +62,19 @@ public class SvnTaskHelper {
         } catch (IOException ioe) {
             resultEx = ioe;
         } catch (Exception ex) {
-            resultEx = new IOException(ex);
+            resultEx = newIOException(ex);
         }
         synchronized (this) {
             this.ioe = resultEx;
             this.complete = true;
             notifyAll();
         }
+    }
+
+    private static IOException newIOException(Throwable t) {
+        IOException ioe = new IOException();
+        ioe.initCause(t);
+        return ioe;
     }
 
 }
