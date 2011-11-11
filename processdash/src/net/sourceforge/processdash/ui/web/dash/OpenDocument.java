@@ -49,7 +49,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.MissingResourceException;
 import java.util.StringTokenizer;
-import java.util.UUID;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.xml.sax.SAXException;
 
 import net.sourceforge.processdash.DashController;
 import net.sourceforge.processdash.Settings;
@@ -61,17 +65,11 @@ import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.data.util.InterpolatingFilter;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.net.http.WebServer;
-import net.sourceforge.processdash.ui.Browser;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.StringUtils;
 import net.sourceforge.processdash.util.XMLDepthFirstIterator;
 import net.sourceforge.processdash.util.XMLUtils;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.xml.sax.SAXException;
 
 
 
@@ -151,12 +149,11 @@ import org.xml.sax.SAXException;
  * The mechanism is very flexible, and driven by XML files (which would
  * presumably be written by the process author).
  */
-public class OpenDocument extends TinyCGIBase {
+public final class OpenDocument extends TinyCGIBase {
 
     public static final String FILE_PARAM = "file";
     public static final String PAGE_COUNT_PARAM = "pageCount";
     public static final String CONFIRM_PARAM = "confirm";
-    public static final String POST_TOKEN = "postToken";
     public static final String FILE_XML_DATANAME = "FILES_XML";
 
     public static final String NAME_ATTR = "name";
@@ -855,9 +852,7 @@ public class OpenDocument extends TinyCGIBase {
         if (! (isTemplate == false && reason == MISSING_META) )
             out.print("<input type='hidden' name='"+CONFIRM_PARAM+"' "+
                       "value='1'>\n");
-        String postToken = generatePostToken();
-        out.print("<input type='hidden' name='" + POST_TOKEN + "' value='"
-                + WebServer.encodeHtmlEntities(postToken) + "'>\n");
+        writePostTokenFormElement(true);
         String pageCount = getParameter(PAGE_COUNT_PARAM);
         pageCount = (pageCount == null ? "x" : pageCount + "x");
         out.print("<input type='hidden' name='"+PAGE_COUNT_PARAM+"' value='");
@@ -876,43 +871,10 @@ public class OpenDocument extends TinyCGIBase {
     private static final int OPEN_CONFIRM = 4;
     private static final int CREATE_CONFIRM = 99;
 
-    private String generatePostToken() {
-        UUID uuid = UUID.randomUUID();
-        String result = uuid.toString();
-        getDataRepository().putValue(getPostTokenDataName(),
-            StringData.create(result));
-        return result;
-    }
 
-    private boolean checkPostToken() {
-        String method = (String) env.get("REQUEST_METHOD");
-        if (! "POST".equalsIgnoreCase(method))
-            return false;
-
-        SimpleData storedToken = getDataRepository().getSimpleValue(
-            getPostTokenDataName());
-        if (storedToken == null)
-            return false;
-
-        String postedToken = getParameter(POST_TOKEN);
-        if (postedToken == null)
-            return false;
-
-        return postedToken.equals(storedToken.format());
-    }
-
-    private String getPostTokenDataName() {
-        String filename = getParameter(FILE_PARAM);
-        return getPrefix() + "//POST_TOKEN//" + filename;
-    }
-
-    private boolean checkReferer() {
-        String referer = (String) env.get("HTTP_REFERER");
-        if (referer == null)
-            return false;
-
-        String expectedPrefix = Browser.mapURL("/");
-        return referer.startsWith(expectedPrefix);
+    @Override
+    protected String getDefaultPostTokenDataNameSuffix() {
+        return getParameter(FILE_PARAM);
     }
 
     private boolean confirmOpenUnnecessary() {
