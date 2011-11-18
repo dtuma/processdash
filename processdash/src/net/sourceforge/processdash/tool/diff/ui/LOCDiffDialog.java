@@ -28,13 +28,17 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 import java.beans.EventHandler;
 import java.io.IOException;
 import java.util.List;
 import java.util.prefs.Preferences;
 
+import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
+import javax.swing.InputMap;
 import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -42,6 +46,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JTabbedPane;
+import javax.swing.KeyStroke;
 
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.tool.diff.engine.DiffEngine;
@@ -107,6 +112,7 @@ public class LOCDiffDialog {
         content.setBorder(BorderFactory.createEmptyBorder(5, 5, 10, 5));
         content.add(createTabPanel(panels), BorderLayout.CENTER);
         content.add(createButtonPanel(), BorderLayout.SOUTH);
+        setupWindowKeyBindings(content);
 
         frame.getContentPane().add(content);
         frame.pack();
@@ -142,6 +148,25 @@ public class LOCDiffDialog {
 
         return BoxUtils.hbox(BoxUtils.GLUE, compareButton, BoxUtils.GLUE,
             closeButton, BoxUtils.GLUE);
+    }
+
+    private void setupWindowKeyBindings(JComponent c) {
+        InputMap inputMap = c
+                .getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+
+        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0),
+            "closeDialog");
+        c.getActionMap().put("closeDialog", new AbstractAction() {
+            public void actionPerformed(ActionEvent e) {
+                closeDialog();
+            }});
+
+        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0),
+            "doCount");
+        c.getActionMap().put("doCount", new AbstractAction() {
+            public void actionPerformed(ActionEvent e) {
+                doCount();
+            }});
     }
 
     public void closeDialog() {

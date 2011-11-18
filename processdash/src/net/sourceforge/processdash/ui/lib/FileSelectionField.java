@@ -26,6 +26,7 @@ package net.sourceforge.processdash.ui.lib;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -35,9 +36,13 @@ import java.util.prefs.Preferences;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JFileChooser;
+import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
+import javax.swing.event.MenuKeyEvent;
+import javax.swing.event.MenuKeyListener;
 
 import net.sourceforge.processdash.util.StringUtils;
 
@@ -54,6 +59,8 @@ public class FileSelectionField extends JPanel {
     private JTextField textField;
 
     private DropDownButton browseButton;
+
+    private ActionHandler handler;
 
     private JFileChooser fileChooser;
 
@@ -74,13 +81,9 @@ public class FileSelectionField extends JPanel {
 
         browseButton = new DropDownButton(buttonText);
         browseButton.setMainButtonBehavior(DropDownButton.NO_ACTION);
-        ActionHandler handler = new ActionHandler();
+        handler = new ActionHandler();
         browseButton.getButton().addActionListener(handler);
-        for (String dir : prefDirectories) {
-            JMenuItem dirItem = new JMenuItem(dir);
-            dirItem.addActionListener(handler);
-            browseButton.getMenu().add(dirItem);
-        }
+        rebuildMenus();
         add(browseButton);
 
         Dimension d = getPreferredSize();
@@ -113,6 +116,7 @@ public class FileSelectionField extends JPanel {
             if (path != null) {
                 prefDirectories.remove(path);
                 prefDirectories.add(0, path);
+                rebuildMenus();
             }
         }
         prefs.put(prefsKey, StringUtils.join(prefDirectories,
@@ -128,6 +132,16 @@ public class FileSelectionField extends JPanel {
             result.addAll(Arrays.asList(dirs));
         }
         return result;
+    }
+
+    private void rebuildMenus() {
+        JMenu browseMenu = browseButton.getMenu();
+        browseMenu.removeAll();
+        for (String dir : prefDirectories) {
+            JMenuItem dirItem = new DeletableMenuItem(dir, browseMenu);
+            dirItem.addActionListener(handler);
+            browseMenu.add(dirItem);
+        }
     }
 
     private void browse() {
@@ -161,6 +175,47 @@ public class FileSelectionField extends JPanel {
             }
         }
 
+    }
+
+
+    private class DeletableMenuItem extends JMenuItem implements MenuKeyListener {
+
+        private JMenu menu;
+
+        public DeletableMenuItem(String dirPath, JMenu menu) {
+            super(dirPath);
+            this.menu = menu;
+        }
+
+        @Override
+        public void addNotify() {
+            super.addNotify();
+            addMenuKeyListener(this);
+        }
+
+        @Override
+        public void removeNotify() {
+            removeMenuKeyListener(this);
+            super.removeNotify();
+        }
+
+        public void menuKeyPressed(MenuKeyEvent e) {}
+
+        public void menuKeyReleased(MenuKeyEvent e) {
+            if (e.getKeyCode() == KeyEvent.VK_DELETE && isArmed()) {
+                prefDirectories.remove(getText());
+                savePreferences(false);
+
+                SwingUtilities.invokeLater(new Runnable() {
+                    public void run() {
+                        setVisible(false);
+                        menu.remove(DeletableMenuItem.this);
+                    }
+                });
+            }
+        }
+
+        public void menuKeyTyped(MenuKeyEvent e) {}
     }
 
 }
