@@ -33,6 +33,7 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.Reader;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -152,7 +153,7 @@ public class HtmlDiffReportWriter extends DiffAdapter {
         // write redlines, if applicable
         if (diff.hasRedlines() && noRedlines == false) {
             out.write("<hr>\n");
-            writeFileRedlines(diff, "file" + pos);
+            writeFileRedlines(diff, getFileAnchor(diff, pos));
         }
     }
 
@@ -267,11 +268,9 @@ public class HtmlDiffReportWriter extends DiffAdapter {
                         .getResourceAsStream("HtmlDiffReportWriter.css"),
                 "UTF-8"));
 
-        out.write("<style type=\"text/css\">\n");
         int c;
         while ((c = in.read()) != -1)
             out.write(c);
-        out.write("</style>\n");
     }
 
     private void writeMetrics() {
@@ -315,10 +314,12 @@ public class HtmlDiffReportWriter extends DiffAdapter {
                 out.write("<tr><td>");
                 boolean hasRedlines = file.hasRedlines() && !noRedlines;
                 if (hasRedlines)
-                    out.write("<a href='#file" + i + "'>");
+                    out.write("<a href=\"#" + getFileAnchor(file, i) + "\">");
                 out.write(HTMLUtils.escapeEntities(file.getFile().getFilename()));
                 if (hasRedlines)
-                    out.write("</a>");
+                    out.write("<span title=\""
+                            + resources.getHTML("Report.SET_Drag_Tooltip")
+                            + "\" class=\"setHelp\">&nbsp;</span></a>");
                 out.write("</td>");
                 for (AccountingType col : AccountingType.values()) {
                     if (SHOW_COLUMNS[type.ordinal()][col.ordinal()]) {
@@ -376,6 +377,52 @@ public class HtmlDiffReportWriter extends DiffAdapter {
     private void writeHtmlFooter() {
         out.write("</body></html>");
     }
+
+    private String getFileAnchor(DiffResult r, int pos) {
+        StringBuilder result = new StringBuilder();
+        result.append("diffFile:");
+        for (AccountingType t : AccountingType.values()) {
+            result.append(t.toString().charAt(0));
+            result.append(r.getLocCount(t));
+            result.append(":");
+        }
+        encodeForAnchor(result, r.getFile().getFilename());
+        return result.toString();
+    }
+
+    private void encodeForAnchor(StringBuilder dest, String s) {
+        try {
+            for (int i = 0; i < s.length(); i++) {
+                char c = s.charAt(i);
+                if (isAcceptableIdChar(c)) {
+                    dest.append(c);
+                } else if (c < 128) {
+                    appendAnchorEncodedByte(dest, (byte) c);
+                } else {
+                    for (byte b : s.substring(i, i+1).getBytes("UTF-8"))
+                        appendAnchorEncodedByte(dest, b);
+                }
+            }
+        } catch (UnsupportedEncodingException e) {
+            // can't happen...java guarantees the availability of UTF-8
+        }
+    }
+
+    private static boolean isAcceptableIdChar(char c) {
+        if ('A' <= c && c <= 'Z') return true;
+        if ('a' <= c && c <= 'z') return true;
+        if ('0' <= c && c <= '9') return true;
+        if (c == '-' || c == '.') return true;
+        return false;
+    }
+    private static void appendAnchorEncodedByte(StringBuilder dest, byte b) {
+        dest.append('_');
+        String hex = Integer.toHexString(b);
+        if (hex.length() == 1)
+            dest.append('0');
+        dest.append(hex);
+    }
+
 
     private static Resources resources = Resources.getDashBundle("LOCDiff");
 
