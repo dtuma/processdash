@@ -1,4 +1,4 @@
-// Copyright (C) 2009-2010 Tuma Solutions, LLC
+// Copyright (C) 2009-2011 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -23,13 +23,19 @@
 
 package net.sourceforge.processdash.log.ui.importer.codecollab;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.apache.xmlrpc.XmlRpcException;
 import org.apache.xmlrpc.client.XmlRpcClient;
 
 public class CCQuerySupport {
+
+    private static final Logger logger = Logger.getLogger(CCQuerySupport.class
+            .getName());
 
     /**
      * Execute an RPC call and return the result.
@@ -46,8 +52,17 @@ public class CCQuerySupport {
      */
     public static Object execute(XmlRpcClient client, String name,
             Object... params) throws XmlRpcException {
-        String namespace = CCWebService.getNamespace(client);
-        return client.execute(namespace + name, params);
+        try {
+            String namespace = CCWebService.getNamespace(client);
+            return client.execute(namespace + name, params);
+        } catch (XmlRpcException x) {
+            String paramStr = (params == null ? "()"
+                    : Arrays.asList(params).toString());
+            logger.log(Level.WARNING,
+                "Encountered problem when executing XML RPC Query " + name
+                        + paramStr, x);
+            throw x;
+        }
     }
 
     /**

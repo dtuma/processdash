@@ -1,4 +1,4 @@
-// Copyright (C) 2009-2010 Tuma Solutions, LLC
+// Copyright (C) 2009-2011 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -61,7 +61,7 @@ public class CCWebService extends BoundXmlRpcConnection {
         this.urlSuffix = new DynamicAttributeValue(URL_SUFFIX_4);
         this.namespace = NAMESPACE4;
         this.testMethodName = NAMESPACE4 + TEST_METHOD_NAME;
-        XmlRpcClient result = super.openConnectionImpl(false);
+        XmlRpcClient result = super.openConnectionImpl(true);
 
         // if that fails, try connecting to the older server API.
         if (result == null) {
