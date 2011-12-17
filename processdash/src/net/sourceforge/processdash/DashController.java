@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2010 Tuma Solutions, LLC
+// Copyright (C) 2001-2011 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -232,6 +232,16 @@ public class DashController {
         } catch (Exception e) {
         }
         return result[0];
+    }
+
+    /**
+     * @see BackgroundTaskManager#suspend(long, long)
+     * @since 1.14.1
+     */
+    public static void suspendBackroundTasks(long suspendMillis,
+            long waitForCurrentTaskMillis) {
+        BackgroundTaskManager.getInstance().suspend(suspendMillis,
+            waitForCurrentTaskMillis);
     }
 
     public static void startTiming() {

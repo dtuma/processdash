@@ -149,6 +149,7 @@ import net.sourceforge.processdash.ui.lib.JLinkLabel;
 import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
 import net.sourceforge.processdash.ui.systray.SystemTrayManagement;
 import net.sourceforge.processdash.ui.web.psp.SizeEstimatingTemplate;
+import net.sourceforge.processdash.util.DateUtils;
 import net.sourceforge.processdash.util.FallbackObjectFactory;
 import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.FormatUtil;
@@ -1381,6 +1382,8 @@ public class ProcessDashboard extends JFrame implements WindowListener,
     }
 
     boolean quit() {
+        BackgroundTaskManager.getInstance().suspend(30 * DateUtils.MINUTES,
+            30 * DateUtils.SECONDS);
         List unsavedData = saveAllData();
         if (unsavedData.isEmpty() == false
                 && warnUserAboutUnsavedData(unsavedData) == false) {

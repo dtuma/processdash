@@ -1,4 +1,4 @@
-// Copyright (C) 2007-2009 Tuma Solutions, LLC
+// Copyright (C) 2007-2011 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -80,6 +80,8 @@ public class BackgroundTaskManager {
 
     private static DashboardPermission INIT_PERMISSION = new DashboardPermission(
             "backgroundTaskManager.initialize");
+    private static DashboardPermission SUSPEND_PERMISSION = new DashboardPermission(
+            "backgroundTaskManager.suspend");
 
     public synchronized static void initialize(DashboardContext dashContext) {
         INIT_PERMISSION.checkPermission();
@@ -98,6 +100,28 @@ public class BackgroundTaskManager {
         doAddTask(new UserTask(id, r));
     }
 
+    /**
+     * Stop the processing of background tasks for some period of time.
+     *
+     * @param delayMillis
+     *            the number of milliseconds to stop processing.
+     * @param waitMillis
+     *            if less than or equal to zero, any currently running
+     *            background task will be allowed to asynchronously run to
+     *            completion. Otherwise, an attempt will be made to stop the
+     *            current task, and this call will wait up to the given number
+     *            of milliseconds for the task to finish. (If no task is
+     *            currently running, this parameter is unused.)
+     * @since 1.14.1
+     */
+    public void suspend(long delayMillis, long waitMillis) {
+        doSuspend(delayMillis, waitMillis);
+    }
+
+    public boolean isSuspended() {
+        return System.currentTimeMillis() < suspendUntil;
+    }
+
 
 
     private List definedTasks;
@@ -108,6 +132,8 @@ public class BackgroundTaskManager {
 
     private BackgroundTaskExecutor currentTaskExecutor;
 
+    private volatile long suspendUntil;
+
     private static final Logger logger = Logger
     .getLogger(BackgroundTaskManager.class.getName());
 
@@ -115,6 +141,7 @@ public class BackgroundTaskManager {
     private BackgroundTaskManager() {
         tasksAwaitingExecution = Collections.synchronizedList(new ArrayList());
         initialized = false;
+        suspendUntil = -1;
     }
 
     private synchronized void setContext(DashboardContext dashContext) {
@@ -198,7 +225,7 @@ public class BackgroundTaskManager {
     }
 
     private synchronized void startExecutingTasks() {
-        if (currentTaskExecutor == null)
+        if (currentTaskExecutor == null || !currentTaskExecutor.running)
             currentTaskExecutor = new BackgroundTaskExecutor();
 
         else if (currentTaskExecutor.appearsStuck()) {
@@ -209,11 +236,34 @@ public class BackgroundTaskManager {
     }
 
     private synchronized Runnable getNextTask() {
-        if (tasksAwaitingExecution.isEmpty()) {
+        if (tasksAwaitingExecution.isEmpty() || isSuspended()) {
             currentTaskExecutor = null;
             return null;
         } else
             return (Runnable) tasksAwaitingExecution.remove(0);
+    }
+
+    private void doSuspend(long delayMillis, long waitMillis) {
+        SUSPEND_PERMISSION.checkPermission();
+        BackgroundTaskExecutor bte;
+        synchronized (this) {
+            long newSuspendUntil = System.currentTimeMillis() + delayMillis;
+            this.suspendUntil = Math.max(this.suspendUntil, newSuspendUntil);
+            bte = currentTaskExecutor;
+        }
+
+        ActionListener taskRestarter = new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                startExecutingTasks();
+            }};
+        Timer t = new Timer((int) delayMillis + 5000, taskRestarter);
+        t.setRepeats(false);
+        t.start();
+
+        if (bte != null) {
+            if (waitMillis > 0)
+                bte.waitForTermination(waitMillis);
+        }
     }
 
 
@@ -414,6 +464,19 @@ public class BackgroundTaskManager {
 
             try {
                 interrupt();
+            } catch (Exception e) {}
+        }
+
+        public void waitForTermination(long waitMillis) {
+            // try interrupting the current task. (Probably won't have
+            // much of an effect.)
+            try {
+                interrupt();
+            } catch (Exception e) {}
+
+            // now, wait up to waitMillis for this thread to terminate.
+            try {
+                join(waitMillis);
             } catch (Exception e) {}
         }
     }
