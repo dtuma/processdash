@@ -1,4 +1,4 @@
-// Copyright (C) 2007-2010 Tuma Solutions, LLC
+// Copyright (C) 2007-2011 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -40,6 +40,7 @@ import java.util.zip.ZipOutputStream;
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.tool.bridge.client.ImportDirectory;
 import net.sourceforge.processdash.tool.bridge.client.ImportDirectoryFactory;
+import net.sourceforge.processdash.tool.bridge.impl.DashboardInstanceStrategy;
 import net.sourceforge.processdash.tool.bridge.impl.TeamServerPointerFile;
 import net.sourceforge.processdash.tool.export.DataImporter;
 import net.sourceforge.processdash.tool.export.mgr.ImportDirectoryInstruction;
@@ -152,6 +153,8 @@ public class ExternalResourceArchiverXMLv1 implements ExternalResourceArchiver,
     private boolean isFileToArchive(String filename) {
         filename = filename.toLowerCase();
         if (TeamServerPointerFile.FILE_NAME.equalsIgnoreCase(filename))
+            return false;
+        if (DashboardInstanceStrategy.LOCK_FILE_NAME.equalsIgnoreCase(filename))
             return false;
         return filename.endsWith(DataImporter.EXPORT_FILE_OLD_SUFFIX)
                 || filename.endsWith(DataImporter.EXPORT_FILE_SUFFIX)
