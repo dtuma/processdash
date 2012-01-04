@@ -1,4 +1,4 @@
-// Copyright (C) 2008-2009 Tuma Solutions, LLC
+// Copyright (C) 2008-2012 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -84,6 +84,18 @@ public interface ResourceBridgeConstants {
     String ASSERT_LOCK_ACTION = "assertLock";
 
     /**
+     * value of action parameter requesting the bridge to enable this lock
+     * for offline use
+     */
+    String ENABLE_OFFLINE_LOCK_ACTION = "enableOfflineLock";
+
+    /**
+     * value of action parameter requesting the bridge to disable this lock
+     * for offline use
+     */
+    String DISABLE_OFFLINE_LOCK_ACTION = "disableOfflineLock";
+
+    /**
      * value of action parameter indicating that the lock should be released on
      * this collection
      */
@@ -167,6 +179,16 @@ public interface ResourceBridgeConstants {
      * ID for the collection to be created.
      */
     String NEW_COLLECTION_ID_PARAM = "newCollectionId";
+
+    /**
+     * After a successful lock action, this HTTP response header will contain a
+     * value from the {@link OfflineLockStatus} enumeration to indicate whether
+     * the lock is enabled for offline use. (Older versions of the protocol,
+     * which do not support offline mode, will not include this header.)
+     * 
+     * @since PDES 2.6
+     */
+    String OFFLINE_LOCK_HEADER = "X-Process-Dashboard-Lock-Offline-Status";
 
     /**
      * When a lock action or write action could not be completed, this HTTP
