@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2011 Tuma Solutions, LLC
+// Copyright (C) 2001-2012 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -186,9 +186,11 @@ public class HtmlDiffReportWriter extends DiffAdapter {
             if (text.endsWith("\n"))
                 text = text.substring(0, text.length()-1);
             String html = LocDiffUtils.fixupLineForHtml(text, tabWidth);
+            if (text.startsWith("\n"))
+                out.print("&nbsp;");
             out.print(html);
             if (text.endsWith("\n"))
-                out.print(" ");
+                out.print("&nbsp;");
 
             out.println("</pre></td></tr>");
         }
