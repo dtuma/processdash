@@ -1,4 +1,4 @@
-// Copyright (C) 2008-2010 Tuma Solutions, LLC
+// Copyright (C) 2008-2012 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -68,6 +68,13 @@ public class WorkingDirectoryFactory {
                 URL u = TeamServerSelector.resolveServerURL(loc);
                 if (u != null)
                     return get(fileLocation, u.toString(), purpose);
+
+                // If the server is not reachable, but we happen to have a
+                // local working directory that is in offline mode, use it.
+                BridgedWorkingDirectory wd = (BridgedWorkingDirectory) get(
+                    fileLocation, loc, purpose);
+                if (wd.isOfflineLockEnabled())
+                    return wd;
 
             } else {
                 // test "regular" locations to see if the directory exists

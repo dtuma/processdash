@@ -1,4 +1,4 @@
-// Copyright (C) 2008-2011 Tuma Solutions, LLC
+// Copyright (C) 2008-2012 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -44,16 +44,12 @@ import net.sourceforge.processdash.util.lock.SentLockMessageException;
 public class LocalWorkingDirectory extends AbstractWorkingDirectory implements
         ConcurrencyLockApprover {
 
-    protected FileResourceCollectionStrategy strategy;
-
     protected FileConcurrencyLock writeLock;
 
     protected LocalWorkingDirectory(File targetDirectory,
             FileResourceCollectionStrategy strategy,
             File workingDirectoryParent) {
-        super(targetDirectory, null, strategy.getLockFilename(),
-                workingDirectoryParent);
-        this.strategy = strategy;
+        super(targetDirectory, null, strategy, workingDirectoryParent);
     }
 
 
@@ -108,9 +104,7 @@ public class LocalWorkingDirectory extends AbstractWorkingDirectory implements
     }
 
     public URL doBackup(String qualifier) throws IOException {
-        File result = strategy.getBackupHandler(targetDirectory).backup(
-            qualifier);
-        return result.toURI().toURL();
+        return super.doBackupImpl(targetDirectory, qualifier);
     }
 
     public boolean flushData() throws LockFailureException, IOException {

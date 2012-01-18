@@ -1,4 +1,4 @@
-// Copyright (C) 2008 Tuma Solutions, LLC
+// Copyright (C) 2008-2012 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -33,6 +33,14 @@ public class LockFailureException extends Exception {
 
     public LockFailureException(Throwable cause) {
         super("Unable to Acquire Lock", cause);
+    }
+
+    /**
+     * Returns true if the occurrence of this exception indicates that no lock
+     * is in place.
+     */
+    public boolean isFatal() {
+        return true;
     }
 
 }

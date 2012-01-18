@@ -23,32 +23,8 @@
 
 package net.sourceforge.processdash.tool.bridge;
 
-/**
- * Enumeration constants indicating the offline status of a resource collection
- * lock.
- */
-public enum OfflineLockStatus {
+public interface OfflineLockStatusListener {
 
-    /**
-     * No lock is currently held on a particular resource collection, so it
-     * cannot be enabled for offline use.
-     */
-    NotLocked,
-
-    /**
-     * Offline lock mode is not supported by a particular resource collection.
-     */
-    Unsupported,
-
-    /**
-     * Offline lock mode is supported by this resource collection, but the
-     * collection is not currently locked for offline use.
-     */
-    Disabled,
-
-    /**
-     * A resource collection is locked and the lock is enabled for offline use.
-     */
-    Enabled
+    public void setOfflineLockStatus(OfflineLockStatus status);
 
 }

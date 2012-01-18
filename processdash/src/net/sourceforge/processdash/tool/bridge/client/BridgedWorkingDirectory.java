@@ -1,4 +1,4 @@
-// Copyright (C) 2008-2011 Tuma Solutions, LLC
+// Copyright (C) 2008-2012 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -27,26 +27,64 @@ import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.swing.SwingUtilities;
+
+import net.sourceforge.processdash.tool.bridge.OfflineLockStatus;
+import net.sourceforge.processdash.tool.bridge.OfflineLockStatusListener;
+import net.sourceforge.processdash.tool.bridge.ResourceCollectionInfo;
+import net.sourceforge.processdash.tool.bridge.ResourceFilter;
+import net.sourceforge.processdash.tool.bridge.ResourceFilterFactory;
+import net.sourceforge.processdash.tool.bridge.ResourceListing;
 import net.sourceforge.processdash.tool.bridge.impl.FileResourceCollection;
 import net.sourceforge.processdash.tool.bridge.impl.FileResourceCollectionStrategy;
-import net.sourceforge.processdash.util.DirectoryBackup;
+import net.sourceforge.processdash.util.StringUtils;
 import net.sourceforge.processdash.util.lock.AlreadyLockedException;
 import net.sourceforge.processdash.util.lock.LockFailureException;
 import net.sourceforge.processdash.util.lock.LockMessage;
 import net.sourceforge.processdash.util.lock.LockMessageHandler;
 import net.sourceforge.processdash.util.lock.LockUncertainException;
+import net.sourceforge.processdash.util.lock.OfflineLockLostException;
 
+/**
+ * Working directory implementation in which data is saved persistently to a
+ * server.
+ * 
+ * This class can toggle between two different modes:
+ * <ul>
+ * 
+ * <li>In regular mode, the server owns the "gold copy" of the data and the
+ * local computer holds a cached, working copy. We check out a copy
+ * of the data on startup, copy changes back periodically, and make certain to
+ * flush all changes back to the server on shutdown. We also must ping the
+ * server periodically to let it know we are still using the data; otherwise it
+ * may give our lock away to another user.</li>
+ * 
+ * <li>In offline mode, the local computer owns the "gold copy" of the data and
+ * the server holds a "best effort" backup. Changes are still copied back to the
+ * server periodically in an effort to keep the server backup up-to-date, but
+ * the client can disconnect from the network for extended periods of time and
+ * the server will still hold the lock for this computer.</li>
+ * 
+ * </ul>
+ */
 public class BridgedWorkingDirectory extends AbstractWorkingDirectory {
 
 
     ResourceBridgeClient client;
 
-    DirectoryBackup startupBackupTask;
-
     Worker worker;
+
+    OfflineLockStatus offlineStatus;
+
+    OfflineLockStatusChangeHandler offlineStatusHandler;
 
     Thread shutdownHook;
 
@@ -56,19 +94,21 @@ public class BridgedWorkingDirectory extends AbstractWorkingDirectory {
 
     protected BridgedWorkingDirectory(File targetDirectory, String remoteURL,
             FileResourceCollectionStrategy strategy, File workingDirectoryParent) {
-        super(targetDirectory, remoteURL, strategy.getLockFilename(),
-                workingDirectoryParent);
+        super(targetDirectory, remoteURL, strategy, workingDirectoryParent);
 
         FileResourceCollection collection = new FileResourceCollection(
                 workingDirectory, false);
         collection.setStrategy(strategy);
 
-        startupBackupTask = strategy.getBackupHandler(workingDirectory);
-
         client = new ResourceBridgeClient(collection, remoteURL, strategy
                 .getUnlockedFilter());
         client.setSourceIdentifier(getSourceIdentifier());
-        client.setExtraLockData(processLock.getLockHash());
+        try {
+            initializeOfflineLockData();
+        } catch (IOException ioe) {}
+
+        offlineStatusHandler = new OfflineLockStatusChangeHandler();
+        client.setOfflineLockStatusListener(offlineStatusHandler);
     }
 
     public void prepare() throws IOException {
@@ -78,14 +118,31 @@ public class BridgedWorkingDirectory extends AbstractWorkingDirectory {
             throw new IllegalStateException(
                     "Process lock has not been obtained");
 
+        // read and initialize data relating to offline lock mode.  (Although
+        // we did this during the constructor, we swallowed exceptions there.
+        // Retry and propagate any exceptions that might be thrown.)
+        if (offlineStatus == null)
+            initializeOfflineLockData();
+
+        // If we are in offline mode, no additional prep work is required,
+        // because our local working directory already contains the "gold copy"
+        // of the data.  Otherwise, for online mode, we need to retrieve the
+        // latest versions of the data from the server.
+        if (isOfflineLockEnabled() == false)
+            doOnlinePrepare();
+    }
+
+    private void doOnlinePrepare() throws IOException {
         // Make a local backup of the initial data in the working directory.
         // This way, its former contents will be saved before we overwrite the
         // files with data from the server.
-        if (startupBackupTask != null) {
-            startupBackupTask.backup("startup");
-            startupBackupTask = null;
-        }
+        doBackupImpl(workingDirectory, "startup");
 
+        // retrieve the latest data from the server.
+        doSyncDown();
+    }
+
+    private void doSyncDown()  throws IOException {
         SyncFilter filter = getSyncDownFilter();
         for (int numTries = 5; numTries-- > 0;)
             if (client.syncDown(filter) == false)
@@ -102,11 +159,15 @@ public class BridgedWorkingDirectory extends AbstractWorkingDirectory {
      *             or if it does not own a process lock
      */
     public void update() throws IOException {
-        if (worker == null)
-            prepare();
+        if (!processLock.isLocked())
+            // don't attempt to sync down if we don't own the rights to the
+            // working directory!
+            throw new IllegalStateException("Process lock has not been obtained");
+        else if (worker == null && isOfflineLockEnabled() == false)
+            doSyncDown();
         else
             throw new IllegalStateException("update should not be called in "
-                    + "read-write mode.");
+                    + "offline or read-write mode.");
     }
 
     public File getDirectory() {
@@ -116,41 +177,149 @@ public class BridgedWorkingDirectory extends AbstractWorkingDirectory {
     public void acquireWriteLock(LockMessageHandler lockHandler,
             String ownerName) throws AlreadyLockedException,
             LockFailureException {
-        client.acquireLock(ownerName);
+        if (isOfflineLockEnabled())
+            resumeOfflineWriteLock(ownerName);
+        else
+            acquireOnlineWriteLock(ownerName);
         worker = new Worker(lockHandler);
         registerShutdownHook();
     }
 
+    private void resumeOfflineWriteLock(String ownerName)
+            throws LockFailureException {
+        try {
+            client.resumeOfflineLock(ownerName);
+        } catch (LockFailureException e) {
+            // At some time in the past, we had an offline lock.  But someone
+            // apparently broke our lock while the dashboard was not running.
+
+            // if all local files precede the SYNC_TIMESTAMP, that means
+            // they have been saved to the server successfully, so no local
+            // data has been lost.  Make an attempt to switch to regular
+            // (online) lock mode.  If that is successful, don't bother
+            // the user about having lost their offline lock.
+            if (syncTimestampIsRecent()) {
+                try {
+                    doOnlinePrepare();
+                    acquireOnlineWriteLock(ownerName);
+                    return;
+                } catch (IOException ioe) {
+                    logger.log(Level.SEVERE, "Unable to prepare bridged "
+                            + "working directory when attempting to recover "
+                            + "from a broken offline lock.", ioe);
+                }
+            }
+
+            throw new OfflineLockLostException(e, getSyncTimestamp());
+        }
+    }
+
+    private void acquireOnlineWriteLock(String ownerName)
+            throws LockFailureException {
+        client.acquireLock(ownerName);
+    }
+
     public void assertWriteLock() throws LockFailureException {
-        client.assertLock();
+        try {
+            client.assertLock();
+        } catch (LockUncertainException lue) {
+            // If we have an offline lock, there is no need to throw an
+            // exception when the server is unreachable.
+            if (isOfflineLockEnabled() == false)
+                throw lue;
+        }
     }
 
     public boolean flushData() throws LockFailureException, IOException {
-        for (int numTries = 5; numTries-- > 0;) {
-            if (client.syncUp() == false) {
-                if (worker != null)
-                    worker.resetFlushFrequency();
-                try {
-                    client.saveDefaultExcludedFiles();
-                } catch (Exception e) {
-                    logger.log(Level.FINE,
-                        "Unable to save default excluded files", e);
+        // try to contact the server and flush all data.
+        try {
+            for (int numTries = 5; numTries-- > 0;) {
+                if (client.syncUp() == false) {
+                    if (worker != null)
+                        worker.resetFlushFrequency();
+                    try {
+                        client.saveDefaultExcludedFiles();
+                    } catch (Exception e) {
+                        logger.log(Level.FINE,
+                            "Unable to save default excluded files", e);
+                    }
+                    saveSyncTimestamp();
+                    return true;
                 }
-                saveSyncTimestamp();
-                return true;
             }
+        } catch (IOException ioe) {
+            // if we are operating in offline lock mode, our local data is the
+            // "gold standard," so we can consider all data to be persistently
+            // saved even if we were unable to contact the server.
+            if (isOfflineLockEnabled())
+                return true;
+            else
+                throw ioe;
         }
+
+        // when we are NOT operating in offline lock mode, return false to
+        // indicate that the data has not been saved persistently to the server.
         return false;
     }
 
+    /**
+     * Enable or disable the lock for offline use.
+     * 
+     * @param offlineEnabled
+     *            true if the lock should be enabled for offline use
+     * @throws LockFailureException
+     *             if a lock was not already held, if the server could not be
+     *             reached, or if any other problem prevents the offline
+     *             enablement state from being changed.
+     */
+    public void setOfflineLockEnabled(boolean offlineEnabled)
+            throws LockFailureException {
+        client.setOfflineLockEnabled(offlineEnabled);
+    }
+
+    public boolean isOfflineLockEnabled() {
+        return offlineStatus == OfflineLockStatus.Enabled;
+    }
+
+    public OfflineLockStatus getOfflineLockStatus() {
+        return offlineStatus;
+    }
+
+    public void addOfflineLockStatusListener(OfflineLockStatusListener l) {
+        offlineStatusHandler.addListener(l);
+    }
+
+    public void removeOfflineLockStatusListener(OfflineLockStatusListener l) {
+        offlineStatusHandler.removeListener(l);
+    }
+
     public URL doBackup(String qualifier) throws IOException {
-        return client.doBackup(qualifier);
+        if (worker != null) {
+            try {
+                // Contact the server and ask it to record a backup.  Note that
+                // we do no contact the server when we are in read-only mode
+                // (e.g. worker == null), and we discard the server result when
+                // we are in offline mode. In both of those scenarios, our local
+                // data is potentially not in sync with the server. There isn't
+                // a lot of value in retrieving a server backup that potentially
+                // doesn't match the data the user is currently looking at in
+                // the GUI.
+                URL serverResult = client.doBackup(qualifier);
+                if (isOfflineLockEnabled() == false)
+                    return serverResult;
+            } catch (IOException ioe) {
+            }
+        }
+
+        // make a backup of the local directory.
+        return doBackupImpl(workingDirectory, qualifier);
     }
 
     public void releaseLocks() {
         if (worker != null)
             worker.shutDown();
-        client.releaseLock();
+        if (isOfflineLockEnabled() == false)
+            client.releaseLock();
         if (processLock != null)
             processLock.releaseLock();
         unregisterShutdownHook();
@@ -183,6 +352,57 @@ public class BridgedWorkingDirectory extends AbstractWorkingDirectory {
         }
     }
 
+    /** read and initialize data relating to offline lock mode. */
+    private void initializeOfflineLockData() throws IOException {
+        client.setExtraLockData(getWorkingDirectoryGuid());
+        readOfflineLockStateFromMetadata();
+    }
+
+    private String getWorkingDirectoryGuid() throws IOException {
+        String result = getMetadata(DIR_GUID);
+        if (!StringUtils.hasValue(result)) {
+            UUID uuid = UUID.randomUUID();
+            result = uuid.toString();
+            setMetadata(DIR_GUID, result);
+        }
+        return result;
+    }
+
+    private void readOfflineLockStateFromMetadata() throws IOException {
+        if (StringUtils.hasValue(getMetadata(OFFLINE_LOCK_MODE)))
+            offlineStatus = OfflineLockStatus.Enabled;
+        else
+            offlineStatus = OfflineLockStatus.NotLocked;
+    }
+
+    private boolean updateLockStatusFromServer(OfflineLockStatus newStatus) {
+        OfflineLockStatus oldStatus = offlineStatus;
+        if (newStatus == oldStatus)
+            return false;
+
+        boolean oldEnabled = (oldStatus == OfflineLockStatus.Enabled);
+        boolean newEnabled = (newStatus == OfflineLockStatus.Enabled);
+        if (oldEnabled != newEnabled) {
+            try {
+                logger.info("Offline bridged lock is now " + newStatus);
+                setMetadata(OFFLINE_LOCK_MODE, newEnabled ? "enabled" : null);
+            } catch (IOException e) {
+                // this is a serious problem, worth logging; but fortunately,
+                // other mechanisms will allow us to recover gracefully
+                logger.severe("Unable to write offline status[" + newStatus
+                        + "] to metadata.");
+            }
+        }
+
+        offlineStatus = newStatus;
+        return true;
+    }
+
+    @Override
+    public String getModeDescriptor() {
+        return (isOfflineLockEnabled() ? ", offline lock enabled" : "");
+    }
+
     private SyncFilter getSyncDownFilter() {
         long timestamp;
         try {
@@ -200,6 +420,30 @@ public class BridgedWorkingDirectory extends AbstractWorkingDirectory {
             setMetadata(SYNC_TIMESTAMP,
                 Long.toString(System.currentTimeMillis()));
         } catch (IOException ioe) {
+        }
+    }
+
+    private Date getSyncTimestamp() {
+        try {
+            return new Date(Long.parseLong(getMetadata(SYNC_TIMESTAMP)));
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private boolean syncTimestampIsRecent() {
+        try {
+            String timestamp = getMetadata(SYNC_TIMESTAMP);
+            if (timestamp == null)
+                return false;
+            ResourceFilter filter = ResourceFilterFactory
+                    .getForRequest(Collections.singletonMap(
+                        ResourceFilterFactory.LAST_MOD_PARAM, timestamp));
+            ResourceCollectionInfo changedFiles = new ResourceListing(
+                    client.localCollection, filter);
+            return changedFiles.listResourceNames().isEmpty();
+        } catch (Exception e) {
+            return false;
         }
     }
 
@@ -276,6 +520,38 @@ public class BridgedWorkingDirectory extends AbstractWorkingDirectory {
     }
 
 
+    private class OfflineLockStatusChangeHandler implements
+            OfflineLockStatusListener, Runnable {
+
+        private List<OfflineLockStatusListener> listeners = new ArrayList();
+
+        public void addListener(OfflineLockStatusListener l) {
+            listeners.add(l);
+        }
+
+        public void removeListener(OfflineLockStatusListener l) {
+            listeners.remove(l);
+        }
+
+        public void setOfflineLockStatus(OfflineLockStatus status) {
+            if (updateLockStatusFromServer(status) && !listeners.isEmpty())
+                SwingUtilities.invokeLater(this);
+        }
+
+        public void run() {
+            // listeners are notified asynchronously, on the Swing event
+            // dispatch thread.  The asynchronicity prevents them from
+            // performing time-consuming operations in the middle of a
+            // sensitive lock operation.
+            List<OfflineLockStatusListener> toNotify = new ArrayList(listeners);
+            for (OfflineLockStatusListener l : toNotify) {
+                l.setOfflineLockStatus(getOfflineLockStatus());
+            }
+        }
+
+    }
+
+
     private class Worker extends Thread {
 
         private volatile boolean isRunning;
@@ -283,6 +559,8 @@ public class BridgedWorkingDirectory extends AbstractWorkingDirectory {
         private LockMessageHandler lockHandler;
 
         private volatile int flushCountdown;
+
+        private volatile int fullFlushCountdown;
 
         public Worker(LockMessageHandler lockHandler) {
             super("WorkingDirBridge.Worker(" + remoteURL + ")");
@@ -312,6 +590,14 @@ public class BridgedWorkingDirectory extends AbstractWorkingDirectory {
                         resetFlushFrequency();
                         if (client.syncUp())
                             saveSyncTimestamp();
+
+                        if (fullFlushCountdown > 1) {
+                            fullFlushCountdown--;
+                        } else {
+                            // once an hour, save the log.txt file as well
+                            client.saveDefaultExcludedFiles();
+                            fullFlushCountdown = FULL_FLUSH_FREQUENCY;
+                        }
                     }
                 } catch (LockUncertainException lue) {
                 } catch (LockFailureException lfe) {
@@ -355,6 +641,12 @@ public class BridgedWorkingDirectory extends AbstractWorkingDirectory {
     private static final long ONE_MINUTE = 60 * 1000;
 
     private static final int FLUSH_FREQUENCY = 5;
+
+    private static final int FULL_FLUSH_FREQUENCY = 12;
+
+    private static final String DIR_GUID = "workingDirGUID";
+
+    private static final String OFFLINE_LOCK_MODE = "offlineLockMode";
 
     private static final String SYNC_TIMESTAMP = "syncUpTimestamp";
 

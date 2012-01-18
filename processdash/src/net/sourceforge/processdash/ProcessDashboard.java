@@ -1,4 +1,4 @@
-// Copyright (C) 1998-2011 Tuma Solutions, LLC
+// Copyright (C) 1998-2012 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -165,6 +165,7 @@ import net.sourceforge.processdash.util.lock.LockFailureException;
 import net.sourceforge.processdash.util.lock.LockMessage;
 import net.sourceforge.processdash.util.lock.LockMessageHandler;
 import net.sourceforge.processdash.util.lock.LockUncertainException;
+import net.sourceforge.processdash.util.lock.OfflineLockLostException;
 import net.sourceforge.processdash.util.lock.ReadOnlyLockFailureException;
 import net.sourceforge.processdash.util.lock.SentLockMessageException;
 
@@ -988,6 +989,9 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         } catch (CannotCreateLockException e) {
             showCannotCreateLockMessage(workingDirectory.getDescription(), e);
             return;
+        } catch (OfflineLockLostException e) {
+            showLostOfflineLockMessage(workingDirectory.getDescription(), e);
+            return;
         } catch (AlreadyLockedException e) {
             otherUser = e.getExtraInfo();
         } catch (LockFailureException e) {
@@ -1073,15 +1077,23 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         // only mode, or exit.
         showMustOpenReadOnlyMessage("ReadOnly.Cannot_Lock", location, e);
     }
+    private void showLostOfflineLockMessage(String location,
+            OfflineLockLostException e) {
+        // the user locked their dataset for offline use, but someone broke
+        // the lock while the dashboard was not running. The user either needs
+        // to open the dashboard in read only mode, or exit.
+        showMustOpenReadOnlyMessage("ReadOnly.Lost_Offline_Lock",
+            e.getSyncTimestamp(), null);
+    }
 
-    private void showMustOpenReadOnlyMessage(String resKey, String location,
+    private void showMustOpenReadOnlyMessage(String resKey, Object messageArg,
             final Object detailsMessage) {
         ResourceBundle res = ResourceBundle
                 .getBundle("Templates.resources.ProcessDashboard");
         final String title = res.getString(resKey + ".Title");
         String[] text = MessageFormat.format(
                 res.getString(resKey + ".Message_FMT"),
-                new Object[] { location }).split("\n");
+                new Object[] { messageArg }).split("\n");
 
         ActionListener linkListener = null;
         if (detailsMessage != null) {
@@ -1417,6 +1429,14 @@ public class ProcessDashboard extends JFrame implements WindowListener,
             data = null;
         }
         ImportedTimeLogManager.getInstance().dispose();
+
+        // The final shutdown sequence above (including, for example, the "export
+        // all" operation) might have made minor/trivial changes to a few data
+        // files.  Perform one last flush (on a best-effort basis) to persist
+        // those changes.  If the flush does not succeed, we can ignore it because
+        // the trivial changes can be lost without significant repercussions.
+        flushWorkingData();
+
         logger.fine("Removing concurrency lock");
         workingDirectory.releaseLocks();
 

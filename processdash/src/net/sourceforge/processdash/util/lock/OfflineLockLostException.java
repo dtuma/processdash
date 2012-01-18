@@ -21,34 +21,21 @@
 //     processdash@tuma-solutions.com
 //     processdash-devel@lists.sourceforge.net
 
-package net.sourceforge.processdash.tool.bridge;
+package net.sourceforge.processdash.util.lock;
 
-/**
- * Enumeration constants indicating the offline status of a resource collection
- * lock.
- */
-public enum OfflineLockStatus {
+import java.util.Date;
 
-    /**
-     * No lock is currently held on a particular resource collection, so it
-     * cannot be enabled for offline use.
-     */
-    NotLocked,
+public class OfflineLockLostException extends LockFailureException {
 
-    /**
-     * Offline lock mode is not supported by a particular resource collection.
-     */
-    Unsupported,
+    private Date syncTimestamp;
 
-    /**
-     * Offline lock mode is supported by this resource collection, but the
-     * collection is not currently locked for offline use.
-     */
-    Disabled,
+    public OfflineLockLostException(Throwable cause, Date syncTimestamp) {
+        super(cause);
+        this.syncTimestamp = syncTimestamp;
+    }
 
-    /**
-     * A resource collection is locked and the lock is enabled for offline use.
-     */
-    Enabled
+    public Date getSyncTimestamp() {
+        return syncTimestamp;
+    }
 
 }

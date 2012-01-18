@@ -1,4 +1,4 @@
-// Copyright (C) 2008-2011 Tuma Solutions, LLC
+// Copyright (C) 2008-2012 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -30,7 +30,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.net.URL;
 
+import net.sourceforge.processdash.tool.bridge.impl.FileResourceCollectionStrategy;
 import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.lock.FileConcurrencyLock;
 import net.sourceforge.processdash.util.lock.LockFailureException;
@@ -43,6 +45,8 @@ public abstract class AbstractWorkingDirectory implements WorkingDirectory {
 
     protected String remoteURL;
 
+    protected FileResourceCollectionStrategy strategy;
+
     protected String lockFilename;
 
     protected File workingDirectory;
@@ -50,10 +54,11 @@ public abstract class AbstractWorkingDirectory implements WorkingDirectory {
     protected FileConcurrencyLock processLock;
 
     protected AbstractWorkingDirectory(File targetDirectory, String remoteURL,
-            String lockFilename, File workingDirectoryParent) {
+            FileResourceCollectionStrategy strategy, File workingDirectoryParent) {
         this.targetDirectory = targetDirectory;
         this.remoteURL = remoteURL;
-        this.lockFilename = lockFilename;
+        this.strategy = strategy;
+        this.lockFilename = strategy.getLockFilename();
 
         this.workingDirectory = new File(workingDirectoryParent, getWorkingId());
 
@@ -86,10 +91,20 @@ public abstract class AbstractWorkingDirectory implements WorkingDirectory {
             return targetDirectory.getPath();
     }
 
+    public String getModeDescriptor() {
+        return "";
+    }
+
     public void acquireProcessLock(String msg, LockMessageHandler lockHandler)
             throws SentLockMessageException, LockFailureException {
         workingDirectory.mkdirs();
         processLock.acquireLock(msg, lockHandler, null);
+    }
+
+    protected URL doBackupImpl(File directory, String qualifier)
+            throws IOException {
+        File result = strategy.getBackupHandler(directory).backup(qualifier);
+        return result.toURI().toURL();
     }
 
     protected String getMetadata(String name) throws IOException {
@@ -122,7 +137,8 @@ public abstract class AbstractWorkingDirectory implements WorkingDirectory {
     }
 
     public String toString() {
-        return getClass().getSimpleName() + "[" + getDescription() + "]";
+        return getClass().getSimpleName() + "[" + getDescription()
+                + getModeDescriptor() + "]";
     }
 
     public static final String NO_PROCESS_LOCK_PROPERTY =

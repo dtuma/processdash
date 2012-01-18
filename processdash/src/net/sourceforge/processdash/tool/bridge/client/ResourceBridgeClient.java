@@ -1,4 +1,4 @@
-// Copyright (C) 2008-2011 Tuma Solutions, LLC
+// Copyright (C) 2008-2012 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -44,6 +44,8 @@ import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+import net.sourceforge.processdash.tool.bridge.OfflineLockStatus;
+import net.sourceforge.processdash.tool.bridge.OfflineLockStatusListener;
 import net.sourceforge.processdash.tool.bridge.ResourceBridgeConstants;
 import net.sourceforge.processdash.tool.bridge.ResourceCollection;
 import net.sourceforge.processdash.tool.bridge.ResourceCollectionInfo;
@@ -83,6 +85,10 @@ public class ResourceBridgeClient implements ResourceBridgeConstants {
 
     String extraLockData;
 
+    OfflineLockStatus offlineLockStatus;
+
+    OfflineLockStatusListener offlineLockStatusListener;
+
     private static final Logger logger = Logger
             .getLogger(ResourceBridgeClient.class.getName());
 
@@ -93,6 +99,7 @@ public class ResourceBridgeClient implements ResourceBridgeConstants {
         this.remoteUrl = remoteUrl;
         this.syncDownOnlyFiles = syncDownOnlyFiles;
         this.userId = getUserId();
+        this.offlineLockStatus = OfflineLockStatus.NotLocked;
     }
 
     public synchronized void setSourceIdentifier(String sourceIdentifier) {
@@ -101,6 +108,20 @@ public class ResourceBridgeClient implements ResourceBridgeConstants {
 
     public synchronized void setExtraLockData(String extraLockData) {
         this.extraLockData = extraLockData;
+    }
+
+    public void setOfflineLockStatusListener(OfflineLockStatusListener l) {
+        this.offlineLockStatusListener = l;
+    }
+
+    public OfflineLockStatus getOfflineLockStatus() {
+        return offlineLockStatus;
+    }
+
+    private void setOfflineLockStatus(OfflineLockStatus s) {
+        this.offlineLockStatus = s;
+        if (offlineLockStatusListener != null)
+            offlineLockStatusListener.setOfflineLockStatus(s);
     }
 
     public synchronized boolean syncDown() throws IOException {
@@ -277,14 +298,47 @@ public class ResourceBridgeClient implements ResourceBridgeConstants {
                 + remoteUrl + "]");
         try {
             this.userName = userName;
-            doPostRequest(ACQUIRE_LOCK_ACTION);
+            doLockPostRequest(ACQUIRE_LOCK_ACTION);
             pt.click("Acquired bridged lock");
         } catch (LockFailureException lfe) {
             this.userName = null;
             throw lfe;
         } catch (Exception e) {
             this.userName = null;
+            setOfflineLockStatus(OfflineLockStatus.NotLocked);
             throw new LockFailureException(e);
+        }
+    }
+
+    /**
+     * Reassert a lock that was enabled for offline use during a previous
+     * session.
+     * 
+     * If the lock could be reobtained, this will return successfully - even if
+     * the lock is no longer enabled for offline use. After calling this method,
+     * clients should call {@link #getOfflineLockStatus()} to ensure that the
+     * lock is in the mode they expect.
+     */
+    public synchronized void resumeOfflineLock(String userName)
+            throws LockFailureException {
+        if (!StringUtils.hasValue(extraLockData))
+            throw new IllegalStateException("No extra lock data has been set");
+
+        ProfTimer pt = new ProfTimer(logger,
+                "ResourceBridgeClient.resumeOfflineLock[" + remoteUrl + "]");
+        try {
+            this.userName = userName;
+            doLockPostRequest(ASSERT_LOCK_ACTION);
+            pt.click("Resumed offline bridged lock");
+        } catch (LockFailureException lfe) {
+            this.userName = null;
+            throw lfe;
+        } catch (Exception e) {
+            // when operating in offline mode, it is not unusual for the server
+            // to be unreachable, which could result in IOExceptions or other
+            // errors.  Give caller the benefit of the doubt and mark the lock
+            // as offline; then continue normally.
+            setOfflineLockStatus(OfflineLockStatus.Enabled);
         }
     }
 
@@ -295,7 +349,7 @@ public class ResourceBridgeClient implements ResourceBridgeConstants {
         ProfTimer pt = new ProfTimer(logger, "ResourceBridgeClient.pingLock["
                 + remoteUrl + "]");
         try {
-            doPostRequest(PING_LOCK_ACTION);
+            doLockPostRequest(PING_LOCK_ACTION);
             pt.click("Pinged bridged lock");
         } catch (LockFailureException lfe) {
             throw lfe;
@@ -305,13 +359,29 @@ public class ResourceBridgeClient implements ResourceBridgeConstants {
     }
 
     public synchronized void assertLock() throws LockFailureException {
+        doAssertLock(ASSERT_LOCK_ACTION);
+    }
+
+    public synchronized void setOfflineLockEnabled(boolean offlineEnabled)
+            throws LockFailureException {
+        if (!StringUtils.hasValue(extraLockData))
+            throw new IllegalStateException("No extra lock data has been set");
+
+        if (offlineEnabled)
+            doAssertLock(ENABLE_OFFLINE_LOCK_ACTION);
+        else
+            doAssertLock(DISABLE_OFFLINE_LOCK_ACTION);
+    }
+
+    private synchronized void doAssertLock(String action)
+            throws LockFailureException {
         if (userName == null)
             throw new NotLockedException();
 
-        ProfTimer pt = new ProfTimer(logger, "ResourceBridgeClient.assertLock["
-                + remoteUrl + "]");
+        ProfTimer pt = new ProfTimer(logger, "ResourceBridgeClient." + action
+                + "[" + remoteUrl + "]");
         try {
-            doPostRequest(ASSERT_LOCK_ACTION);
+            doLockPostRequest(action);
             pt.click("Asserted bridged lock");
         } catch (LockFailureException lfe) {
             throw lfe;
@@ -327,7 +397,8 @@ public class ResourceBridgeClient implements ResourceBridgeConstants {
         ProfTimer pt = new ProfTimer(logger,
                 "ResourceBridgeClient.releaseLock[" + remoteUrl + "]");
         try {
-            doPostRequest(RELEASE_LOCK_ACTION);
+            doLockPostRequest(RELEASE_LOCK_ACTION);
+            setOfflineLockStatus(OfflineLockStatus.NotLocked);
             pt.click("Released bridged lock");
         } catch (Exception e) {
             // We don't throw any error here, because if we fail to release
@@ -574,19 +645,43 @@ public class ResourceBridgeClient implements ResourceBridgeConstants {
     }
 
     private void doPostRequest(String action, Object... params)
+        throws IOException, LockFailureException {
+        doPostRequest(action, null, params);
+    }
+
+    private void doLockPostRequest(String action, Object... params)
             throws IOException, LockFailureException {
-        doPostRequest(new URL(remoteUrl), userName, userId, sourceIdentifier,
-            extraLockData, action, params);
+        doPostRequest(action, offlineLockStatusResponseAnalyzer, params);
+    }
+
+    private void doPostRequest(String action,
+            HttpResponseAnalyzer responseAnalyzer, Object... params)
+            throws IOException, LockFailureException {
+        try {
+            doPostRequest(new URL(remoteUrl), userName, userId,
+                sourceIdentifier, extraLockData, responseAnalyzer, action,
+                params);
+        } catch (LockFailureException lfe) {
+            if (lfe.isFatal())
+                setOfflineLockStatus(OfflineLockStatus.NotLocked);
+            throw lfe;
+        }
     }
 
     private static byte[] doAnonymousPostRequest(URL remoteUrl, String action,
             Object... params) throws IOException, LockFailureException {
-        return doPostRequest(remoteUrl, null, null, null, null, action, params);
+        return doPostRequest(remoteUrl, null, null, null, null, null, action,
+            params);
+    }
+
+    private interface HttpResponseAnalyzer {
+        public void analyze(URLConnection conn);
     }
 
     private static byte[] doPostRequest(URL remoteUrl, String userName,
             String userId, String sourceIdentifier, String extraLockData,
-            String action, Object... params) throws IOException,
+            HttpResponseAnalyzer responseAnalyzer, String action,
+            Object... params) throws IOException,
             LockFailureException {
         if (userId == null)
             userId = getUserId();
@@ -600,6 +695,8 @@ public class ResourceBridgeClient implements ResourceBridgeConstants {
         maybeSetParameter(request, EXTRA_LOCK_DATA, extraLockData);
         try {
             InputStream in = request.post(params);
+            if (responseAnalyzer != null)
+                responseAnalyzer.analyze(request.getConnection());
             return FileUtils.slurpContents(in, true);
         } catch (IOException ioe) {
             checkForLockException(request.getConnection());
@@ -612,6 +709,35 @@ public class ResourceBridgeClient implements ResourceBridgeConstants {
         if (paramValue != null)
             request.setParameter(paramName, paramValue);
     }
+
+
+    /**
+     * Look at the headers from an HTTP response, and see if they specify an
+     * offline lock status.  Based on the presence or absence of that header,
+     * return the offline lock status that is in effect.
+     * 
+     * This method treats the absence of the offline lock status header as the
+     * status "unsupported". Therefore, this should only be used on POST actions
+     * that are expected to return the header (e.g., lock actions).
+     */
+    private static OfflineLockStatus getOfflineLockStatus(URLConnection conn) {
+        OfflineLockStatus status = OfflineLockStatus.Unsupported;
+        try {
+            String statusHeader = conn.getHeaderField(OFFLINE_LOCK_HEADER);
+            if (StringUtils.hasValue(statusHeader))
+                status = OfflineLockStatus.valueOf(statusHeader);
+        } catch (Exception e) {
+            status = OfflineLockStatus.Unsupported;
+        }
+        return status;
+    }
+
+    private HttpResponseAnalyzer offlineLockStatusResponseAnalyzer =
+        new HttpResponseAnalyzer() {
+            public void analyze(URLConnection conn) {
+                setOfflineLockStatus(getOfflineLockStatus(conn));
+            }
+        };
 
 
     /**

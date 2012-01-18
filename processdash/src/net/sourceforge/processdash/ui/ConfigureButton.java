@@ -1,4 +1,4 @@
-// Copyright (C) 1999-2011 Tuma Solutions, LLC
+// Copyright (C) 1999-2012 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -81,7 +81,7 @@ public class ConfigureButton extends JMenuBar implements ActionListener, Hierarc
     static final String BUG_URL =   "http://www.processdash.com/bugTracker";
     static final String FORUM_URL = "http://www.processdash.com/helpForum";
 
-    Resources resources = Resources.getDashBundle("ProcessDashboard.Menu");
+    static Resources resources = Resources.getDashBundle("ProcessDashboard.Menu");
     Logger logger = Logger.getLogger(ConfigureButton.class.getName());
 
                                   // menu labels
@@ -177,6 +177,7 @@ public class ConfigureButton extends JMenuBar implements ActionListener, Hierarc
         toolMenu.enableInputMethods(false);
 
         toolMenu.add(new OpenPreferencesDialogAction(parent));
+        toolMenu.add(new OfflineModeToggleMenuItem(parent.getWorkingDirectory()));
         toolMenu.add(makeMenuItem(PROBE_DIALOG));
         if (Settings.isReadWrite()) {
             toolMenu.add(new ShowImportWizardAction(resources.getString(IMPORT)));
