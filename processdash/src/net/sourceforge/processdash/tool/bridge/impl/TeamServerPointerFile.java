@@ -1,4 +1,4 @@
-// Copyright (C) 2008 Tuma Solutions, LLC
+// Copyright (C) 2008-2012 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -36,6 +36,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.RobustFileOutputStream;
 import net.sourceforge.processdash.util.XMLUtils;
 
@@ -82,6 +83,23 @@ public class TeamServerPointerFile {
         return result;
     }
 
+
+    public void addServerEntry(String instanceUrl) throws IOException {
+        int slashPos = instanceUrl.lastIndexOf('/');
+        if (slashPos == -1)
+            throw new IOException("Unexpected URL pattern");
+
+        String serverBaseUrl = instanceUrl.substring(0, slashPos);
+        String uniqueID = HTMLUtils.urlDecode(instanceUrl
+                .substring(slashPos + 1));
+
+        Map<String, String> attrs = new HashMap<String, String>();
+        attrs.put(TeamServerPointerFile.BASE_URL_ATTR, serverBaseUrl);
+        attrs.put(TeamServerPointerFile.INSTANCE_ID_ATTR, uniqueID);
+        attrs.put(TeamServerPointerFile.INSTANCE_URL_ATTR, instanceUrl);
+
+        addServerEntry(attrs);
+    }
 
     public void addServerEntry(Map<String, String> attrs) throws IOException {
         // if this object has been in existence for a long period of time,

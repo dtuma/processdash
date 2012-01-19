@@ -423,6 +423,13 @@ public class BridgedWorkingDirectory extends AbstractWorkingDirectory {
         }
     }
 
+    public void clearSyncTimestamp() {
+        try {
+            setMetadata(SYNC_TIMESTAMP, null);
+        } catch (IOException ioe) {
+        }
+    }
+
     private Date getSyncTimestamp() {
         try {
             return new Date(Long.parseLong(getMetadata(SYNC_TIMESTAMP)));

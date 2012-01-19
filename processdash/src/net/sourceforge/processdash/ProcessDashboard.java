@@ -127,6 +127,7 @@ import net.sourceforge.processdash.tool.bridge.client.ImportDirectoryFactory;
 import net.sourceforge.processdash.tool.bridge.client.TeamServerSelector;
 import net.sourceforge.processdash.tool.bridge.client.WorkingDirectory;
 import net.sourceforge.processdash.tool.bridge.client.WorkingDirectoryFactory;
+import net.sourceforge.processdash.tool.bridge.impl.DatasetAutoMigrator;
 import net.sourceforge.processdash.tool.export.mgr.ExportManager;
 import net.sourceforge.processdash.tool.export.mgr.ExternalResourceManager;
 import net.sourceforge.processdash.tool.export.mgr.ImportManager;
@@ -284,6 +285,10 @@ public class ProcessDashboard extends JFrame implements WindowListener,
             pt.click("Tried to acquire write lock");
         }
 
+        // check for a dataset migration import request
+        DatasetAutoMigrator.maybeRun(workingDirectory,
+            new DatasetAutoMigrator.DialogParentSource() {
+                public Component getDialogParent() { return hideSS(); }});
 
         // run the backup process as soon as possible
         fileBackupManager = new FileBackupManager(workingDirectory);
