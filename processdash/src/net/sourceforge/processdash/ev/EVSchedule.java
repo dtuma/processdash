@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2011 Tuma Solutions, LLC
+// Copyright (C) 2001-2012 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -586,9 +586,10 @@ public class EVSchedule implements TableModel {
     public EVSchedule(Date startDate, double hoursPerWeek, int endWeek,
             Map exceptions, double levelOfEffort, boolean datesLocked) {
         this();
+        double minutesPerWeek = Math.round(hoursPerWeek * 60);
         setLevelOfEffort(levelOfEffort);
         get(1).setBeginDate(startDate);
-        get(1).setPlanDirectTime(hoursPerWeek * 60);
+        get(1).setPlanDirectTime(minutesPerWeek);
         this.datesLocked = datesLocked;
         cleanUp();
 
@@ -605,8 +606,8 @@ public class EVSchedule implements TableModel {
                 .intValue();
         if (maxTweakWeek != endWeek)
             maxTweakWeek++;
-        if (hoursPerWeek > 0) {
-            double totalTime = hoursPerWeek * (maxTweakWeek + 1) * 60.0;
+        if (minutesPerWeek > 0) {
+            double totalTime = minutesPerWeek * (maxTweakWeek + 1);
             getPlannedCompletionDate(totalTime, totalTime);
             getLast().clearAutomaticFlag();
         } else {
