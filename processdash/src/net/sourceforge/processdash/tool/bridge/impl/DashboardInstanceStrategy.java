@@ -1,4 +1,4 @@
-// Copyright (C) 2008 Tuma Solutions, LLC
+// Copyright (C) 2008-2012 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -28,6 +28,7 @@ import java.io.FilenameFilter;
 
 import net.sourceforge.processdash.util.DashboardBackupFactory;
 import net.sourceforge.processdash.util.DirectoryBackup;
+import net.sourceforge.processdash.util.FileUtils;
 
 public class DashboardInstanceStrategy implements
         FileResourceCollectionStrategy {
@@ -53,6 +54,28 @@ public class DashboardInstanceStrategy implements
 
     public FilenameFilter getUnlockedFilter() {
         return null;
+    }
+
+    public boolean isFilePossiblyCorrupt(File file) {
+        String name = file.getName().toLowerCase();
+
+        if ((Character.isDigit(name.charAt(0)) && name.endsWith(".dat"))
+                || name.equals("global.dat"))
+            // our data files always start with a #include directive
+            return !FileUtils.fileContentsStartWith(file, "UTF-8", "#include ");
+
+        else if (name.equals("state") || name.endsWith(".xml"))
+            // the timelog and state files start with an XML prolog
+            return !FileUtils.fileContentsStartWith(file, "UTF-8", "<?xml ");
+
+        else if (name.equals("pspdash.ini"))
+            // the pspdash.ini file begins with a specific comment
+            return !FileUtils.fileContentsStartWith(file, "UTF-8",
+                "# User preferences for the PSP Dashboard tool");
+
+        else
+            // No checks at this time for corrupt defect logs or other files
+            return false;
     }
 
 }

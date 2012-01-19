@@ -512,8 +512,9 @@ public class BridgedWorkingDirectory extends AbstractWorkingDirectory {
             if (remoteTimestamp <= lastSyncTimestamp)
                 // the file on the server is older than our last syncUp
                 // operation.  That means it must be the file that we wrote. If
-                // our local file is newer, we want to keep our local changes.
-                return false;
+                // our local file is newer, we want to keep our local changes,
+                // unless the local file happens to be corrupt.
+                return syncOnlyIfFileIsCorrupt(name);
 
             else
                 // the file on the server is newer than our last syncUp
@@ -522,6 +523,21 @@ public class BridgedWorkingDirectory extends AbstractWorkingDirectory {
                 // In this case, the server "wins" and we must retrieve its
                 // version to stay in sync.
                 return true;
+        }
+
+        private boolean syncOnlyIfFileIsCorrupt(String name) {
+            // Some users have encountered a problem where their computer
+            // crashes, corrupting a dashboard file in the process.  If that
+            // has occurred, we want to discard the corrupted file and retrieve
+            // a fresh copy from the server.
+            //
+            // This method is called when a file is present on both the client
+            // and the server, and we are considering keeping the local file
+            // because it is newer.  We perform a quick test of the local file
+            // to see if it appears to be corrupt.  If so, we return true to
+            // indicate that we want to sync down the server version.
+            File file = new File(workingDirectory, name);
+            return strategy.isFilePossiblyCorrupt(file);
         }
 
     }

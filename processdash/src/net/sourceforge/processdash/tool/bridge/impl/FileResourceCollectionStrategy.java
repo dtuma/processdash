@@ -1,4 +1,4 @@
-// Copyright (C) 2008 Tuma Solutions, LLC
+// Copyright (C) 2008-2012 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -33,5 +33,7 @@ public interface FileResourceCollectionStrategy extends
     public DirectoryBackup getBackupHandler(File directory);
 
     public String getLockFilename();
+
+    public boolean isFilePossiblyCorrupt(File file);
 
 }

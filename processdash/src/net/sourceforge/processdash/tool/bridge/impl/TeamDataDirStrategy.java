@@ -1,4 +1,4 @@
-// Copyright (C) 2008-2011 Tuma Solutions, LLC
+// Copyright (C) 2008-2012 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -28,6 +28,7 @@ import java.io.FilenameFilter;
 
 import net.sourceforge.processdash.util.DashboardBackupFactory;
 import net.sourceforge.processdash.util.DirectoryBackup;
+import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.RobustFileOutputStream;
 
 public class TeamDataDirStrategy implements FileResourceCollectionStrategy {
@@ -50,6 +51,17 @@ public class TeamDataDirStrategy implements FileResourceCollectionStrategy {
 
     public FilenameFilter getUnlockedFilter() {
         return UNLOCKED_TEAM_DATA_FILE_FILTER;
+    }
+
+    public boolean isFilePossiblyCorrupt(File file) {
+        String name = file.getName().toLowerCase();
+        if (name.endsWith(".xml"))
+            // we cannot check for an XML prolog because several files
+            // (including wbs.xml and team.xml) do not start with a prolog.
+            // so instead we just check for a "<" character.
+            return !FileUtils.fileContentsStartWith(file, "UTF-8", "<");
+        else
+            return false;
     }
 
     // The WBS_FILE_FILTER supplied by the dashboard backup factory is only

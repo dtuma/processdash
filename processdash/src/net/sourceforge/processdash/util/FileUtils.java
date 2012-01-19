@@ -35,6 +35,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.io.Reader;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
@@ -356,6 +357,32 @@ public class FileUtils {
             } else if (filter.accept(baseDir, name)) {
                 result.add(name);
             }
+        }
+    }
+
+    /**
+     * Return true if the file exists, can be read, and if its first line
+     * starts with a given prefix.
+     * 
+     * @param f the file to test
+     * @param encoding the character encoding used by the file
+     * @param prefix the prefix to look for
+     * @since 1.14.1
+     */
+    public static boolean fileContentsStartWith(File f, String encoding,
+            String prefix) {
+        InputStream in = null;
+        try {
+            in = new BufferedInputStream(new FileInputStream(f));
+            Reader r = new InputStreamReader(in, encoding);
+            for (int i = 0;  i < prefix.length();  i++)
+                if (r.read() != prefix.charAt(i))
+                    return false;
+            return true;
+        } catch (IOException ioe) {
+            return false;
+        } finally {
+            safelyClose(in);
         }
     }
 
