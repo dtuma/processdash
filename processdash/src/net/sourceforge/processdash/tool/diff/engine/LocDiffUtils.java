@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2011 Tuma Solutions, LLC
+// Copyright (C) 2001-2012 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -267,18 +267,18 @@ public class LocDiffUtils {
 
 
     /**
-     * Create a line of HTML code that can be used to display a particular line
+     * Create a block of HTML code that can be used to display a particular block
      * of code.
      * 
-     * @param line
-     *            a single line of code to display
+     * @param text
+     *            a block of code to display
      * @param tabWidth
      *            the number of space characters that are equivalent to a single
      *            tab character
-     * @return a line of HTML code
+     * @return a block of HTML code
      */
-    public static String fixupLineForHtml(String line, int tabWidth) {
-        StringBuffer buf = new StringBuffer(line);
+    public static String fixupCodeForHtml(String text, int tabWidth) {
+        StringBuffer buf = new StringBuffer(text);
 
         // convert tabs to spaces.
         tabsToSpaces(buf, tabWidth);
@@ -299,35 +299,57 @@ public class LocDiffUtils {
 
 
     /**
-     * Convert tabs to spaces in a single line of text.
+     * Convert tabs to spaces in a block of text.
      * 
-     * @param line
-     *            the line of text to convert, which could potentially contain
+     * @param text
+     *            the block of text to convert, which could potentially contain
      *            the {@link LanguageFilter#COMMENT_START} or
      *            {@link LanguageFilter#COMMENT_END} marking characters
      * @param tabWidth
      *            the number of spaces that are equivalent to a single tab
-     *            character
+     *            character; must be less than 20
      */
-    public static void tabsToSpaces(StringBuffer line, int tabWidth) {
-        int tabPos = StringUtils.indexOf(line, "\t"), spacesNeeded;
+    public static void tabsToSpaces(StringBuffer text, int tabWidth) {
+        int tabPos = StringUtils.indexOf(text, "\t");
         while (tabPos != -1) {
-            spacesNeeded = tabWidth
-                    - (tabPos - countInvisibleChars(line, tabPos)) % tabWidth;
-            line.replace(tabPos, tabPos + 1, "        ".substring(0,
+            int spacesNeeded = tabWidth - (getColumnPos(text, tabPos) % tabWidth);
+            text.replace(tabPos, tabPos + 1, "                    ".substring(0,
                 spacesNeeded));
-            tabPos = StringUtils.indexOf(line, "\t", tabPos);
+            tabPos = StringUtils.indexOf(text, "\t", tabPos);
         }
     }
 
-    private static int countInvisibleChars(StringBuffer s, int endPos) {
+    /**
+     * Retrieve the column position of a particular character in a text block.
+     * 
+     * The text block can contain {@link LanguageFilter#COMMENT_START} and/or
+     * {@link LanguageFilter#COMMENT_END} marking characters, and the column
+     * measurement will still be correct. However, no tab characters should
+     * appear in the text block before the requested position.
+     * 
+     * @param text the block of text
+     * @param pos the position of a character in that block
+     * @return the column number that this character would appear in.  The
+     *         first column is column zero.
+     */
+    private static int getColumnPos(StringBuffer text, int pos) {
         int result = 0;
-        while (endPos-- > 0)
-            switch (s.charAt(endPos)) {
-            case COMMENT_START:
-            case COMMENT_END:
+        while (pos-- > 0) {
+            switch (text.charAt(pos)) {
+            case '\n': case '\r':
+                // we have reached the end of the previous line in a multi-line
+                // text block.  Stop counting and return our result.
+                return result;
+
+            case COMMENT_START: case COMMENT_END:
+                // comment start/end characters are artificial markers that
+                // don't count toward the visible character count
+                break;
+
+            default:
                 result++;
             }
+        }
         return result;
     }
 

@@ -185,7 +185,7 @@ public class HtmlDiffReportWriter extends DiffAdapter {
             String text = f.text;
             if (text.endsWith("\n"))
                 text = text.substring(0, text.length()-1);
-            String html = LocDiffUtils.fixupLineForHtml(text, tabWidth);
+            String html = LocDiffUtils.fixupCodeForHtml(text, tabWidth);
             if (text.startsWith("\n"))
                 out.print("&nbsp;");
             out.print(html);
