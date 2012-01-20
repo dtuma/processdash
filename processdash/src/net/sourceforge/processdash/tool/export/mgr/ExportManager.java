@@ -1,4 +1,4 @@
-// Copyright (C) 2005-2009 Tuma Solutions, LLC
+// Copyright (C) 2005-2012 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -254,7 +254,7 @@ public class ExportManager extends AbstractManager {
                     .getString("ExportAutoExporting"), resource
                     .getString("ExportExportingDataDots"));
 
-        ExportJanitor janitor = new ExportJanitor(data);
+        final ExportJanitor janitor = new ExportJanitor(data);
         janitor.startExportAllOperation();
 
         for (Iterator iter = tasks.iterator(); iter.hasNext();) {
@@ -269,10 +269,14 @@ public class ExportManager extends AbstractManager {
             }
         }
 
-        if (p != null)
+        if (p != null) {
+            p.addTask(new Runnable() { public void run() {
+                janitor.finishExportAllOperation(); }});
             p.run();
 
-        janitor.finishExportAllOperation();
+        } else {
+            janitor.finishExportAllOperation();
+        }
 
         System.out.println("Completed user-scheduled data export.");
         Runtime.getRuntime().gc();
