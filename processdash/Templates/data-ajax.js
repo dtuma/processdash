@@ -2,7 +2,7 @@
 // <!--#echo defaultEncoding="html,javaStr" -->
 /****************************************************************************
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2000-2011 Tuma Solutions, LLC
+// Copyright (C) 2000-2012 Tuma Solutions, LLC
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -48,6 +48,8 @@ var debug = false;
 if (debug) { document.write("running data.js<P>"); }
 
 var SILENT;
+
+var onPaintField;
 
 var ieVersion = 0;
 var nsVersion = 0;
@@ -528,7 +530,7 @@ function checkEditable() {
     return checkElemEditable(this);
 }
 function checkElemEditable(elem) {
-    return (elem.className != "readOnlyElem");
+  return !Element.hasClassName("readOnlyElem");
 }
 
 
@@ -749,7 +751,13 @@ function paintField(elemNum, value, readOnly, coupon) {
     var elem = document.getElementById(getElemID(elemNum));
     if (elem == null) return;
 
-    elem.className = (readOnly ? "readOnlyElem" : "editableElem");
+    if (readOnly) {
+      Element.removeClassName(elem, "editableElem");
+      Element.addClassName(elem, "readOnlyElem");
+    } else {
+      Element.addClassName(elem, "editableElem");
+      Element.removeClassName(elem, "readOnlyElem");
+    }
     switch (elem.type.toLowerCase()) {
 
     case "checkbox":
@@ -771,6 +779,8 @@ function paintField(elemNum, value, readOnly, coupon) {
     }
     valueList[elemNum] = value;
     changeCoupon = coupon;
+
+    if (onPaintField) onPaintField(elem, value, readOnly);
 }
 
 function getRegistrationURL() {
