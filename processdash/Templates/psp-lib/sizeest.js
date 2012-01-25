@@ -1,4 +1,3 @@
-// -*- tab-width: 2 -*-
 /****************************************************************************
 // Process Dashboard - Data Automation Tool for high-maturity processes
 // Copyright (C) 2009-2012 Tuma Solutions, LLC
@@ -325,6 +324,9 @@ var DashSET = {
     // check to see if the actual size fields are read-only.
     DashSET.initializeReadOnly();
 
+    // register interest in data element "paint field" events
+    addPaintFieldObserver(DashSET.checkPaintEventForDiffAnnotationData);
+
     if (DashSET.isReadOnly) {
       var cancelDrop = DashSET.cancelDrop.bindAsEventListener(DashSET);
       document.body.ondragover = cancelDrop;
@@ -336,7 +338,8 @@ var DashSET = {
 
     DashSET.registerAnnotationFocusEvents();
 
-    onPaintField = DashSET.checkPaintEventForDiffAnnotationData;
+    // check to see if a previous view of this page sent us instructions.
+    DashSET.checkForStoredPageReloadInstructions();
   },
 
   initializeReadOnly:
@@ -423,7 +426,8 @@ var DashSET = {
     // find the drop-capable row associated with the event.  Abort if the
     // data was not dropped onto an appropriately capable row.
     var row = DashSET.getRowForDiffAnnotationEvent(event);
-    if (!row) return;
+    var table = DashSET.tableForEvent;
+    if (!row || !table) return;
 
     // get the diff annotation data associated with the dropped content.
     // abort if the dropped content is not recognized.
@@ -433,6 +437,25 @@ var DashSET = {
     var data = DashSET.getDiffTransferData(text);
     if (!data) return;
 
+    // If the user is adding a new row, check to see if an empty row is
+    // present in the table that we can use.  If not, reload the page to
+    // create an empty row, and add the data there.
+    if (DashSET.eventRowIsInsertion) {
+      row = DashSET.findFirstEmptyTableRow(table);
+      if (!row) {
+        DashSET.reloadPageForDiffInsertion(table, data.token);
+        return;
+      }
+    }
+
+    // The table, row, and data are valid.  Proceed with the drop operation.
+    DashSET.handleDropOfData(table.id, row, data);
+  },
+
+  // Perform the actions necessary to effect the drop of a piece of diff
+  // annotation data on a particular row of a particular table.
+  handleDropOfData:
+  function(tableId, row, data) {
     // if the dropped content corresponds to a bit of annotation data that was
     // already associated with the current row, show the annotation bubble and
     // abort.  Otherwise, if it was previously dropped onto a different row of
@@ -442,16 +465,80 @@ var DashSET = {
       return;
     }
 
-    if (DashSET.eventRowIsInsertion)
-      return;  // TODO: not yet implemented
-
     // apply the annotated diff information to this row of the SET.
-    var typeMap = DashSET.DIFF_ANNOTATION_TYPE_MAP[DashSET.tableForEvent.id];
+    var typeMap = DashSET.DIFF_ANNOTATION_TYPE_MAP[tableId];
     if (!typeMap) return;
     DashSET.applyDiffAnnotationData(row, data, typeMap, true);
 
     // show the annotation bubble, reflecting the new changes.
     DashSET.showDiffAnnotationForRow(row);
+  },
+
+  // A page refresh is needed to add new rows to the SET.  When the user drops
+  // a diff annotation onto an "add more rows" link, This routine reloads the
+  // page to create an extra row - but first it stores data that the reloaded
+  // page can use to apply the diff annotation.
+  reloadPageForDiffInsertion:
+  function(table, token) {
+    // get the URL that should be used to perform an "add more rows" operation
+    // for this table
+    var addMoreCell = document.getElementsByClassName("addMoreCell", table)[0];
+    if (!addMoreCell) return;
+    var url = addMoreCell.getElementsByTagName("a")[0].href;
+
+    // save the scrollbar positions so we can restore them after the reload
+    DashSET.createCookie("scrollX", window.pageXOffset
+                || document.documentElement.scrollLeft
+                || document.body.scrollLeft
+                || 0, 1);
+    DashSET.createCookie("scrollY", window.pageYOffset
+                || document.documentElement.scrollTop
+                || document.body.scrollTop
+                || 0, 1);
+
+    // record information about the diff annotation data that is to be added
+    // after the reload
+    DashSET.createCookie("addDiffToTable", table.id, 1);
+    DashSET.createCookie("diffToken", encodeURIComponent(token), 1);
+
+    // reload the page to add more rows to this table
+    window.location.replace(url);
+  },
+
+  // check to see whether a previous incarnation of this page recorded
+  // instructions that we are to follow.
+  checkForStoredPageReloadInstructions:
+  function() {
+    // if applicable, reset the scroll bars to their previous positions.
+    var scrollX = DashSET.extractCookie("scrollX");
+    var scrollY = DashSET.extractCookie("scrollY");
+    if (scrollX && scrollY)
+      window.scrollTo(parseInt(scrollX), parseInt(scrollY));
+
+    // if a diff annotation was stored, make a record of it so we can insert
+    // it after the data on the page has been loaded.
+    var tableId = DashSET.extractCookie("addDiffToTable");
+    var token = decodeURIComponent(DashSET.extractCookie("diffToken") || "");
+    if (tableId && token) {
+      DashSET.storedDiffInsertionInfo = [tableId, token];
+      addDataLoadedObserver(DashSET.handleDiffInsertionAfterPageReload);
+    }
+  },
+
+  // this method is called after all of the data on the page has been loaded,
+  // to apply an inserted diff annotation that was stored immediately before
+  // the page reload.
+  handleDiffInsertionAfterPageReload:
+  function() {
+    if (!DashSET.storedDiffInsertionInfo) return;
+    var tableId = DashSET.storedDiffInsertionInfo[0];
+    var token   = DashSET.storedDiffInsertionInfo[1];
+    DashSET.storedDiffInsertionInfo = null;
+
+    var row = DashSET.findFirstEmptyTableRow($(tableId));
+    var data = DashSET.getDiffTransferData(token);
+    if (row && data)
+      DashSET.handleDropOfData(tableId, row, data);
   },
 
   // Alter the data in a particular row of the table, to either add or
@@ -616,10 +703,33 @@ var DashSET = {
          row == allTableRows[1] ||
          row == allTableRows[allTableRows.length-1]);
 
-    // TODO: row insertion is not yet supported
-    if (DashSET.eventRowIsInsertion) return null;
-
     return row;
+  },
+
+  // Look through a SET table, and find the first row that contains no data.
+  // Returns null if no empty row was found.
+  findFirstEmptyTableRow:
+  function(table) {
+    if (!DashSET.isTag(table, "table")) return null;
+    var tableRows = $A(table.getElementsByTagName("tr"));
+    if (tableRows.length < 4) return null;
+    return tableRows.slice(2, -1).find(DashSET.tableRowIsEmpty);
+  },
+
+  // return true if a particular row of a SET table contains no text fields
+  // containing data.
+  tableRowIsEmpty:
+  function(row) {
+    var inputFields = $A(row.getElementsByTagName("input"));
+    return inputFields.all(DashSET.inputElemIsNontextOrEmpty);
+  },
+
+  // return true if a particular input element is empty, or if it is not a
+  // text field.
+  inputElemIsNontextOrEmpty:
+  function(field) {
+    return (field.type.toLowerCase() != "text"
+            || !field.value || field.value == "0");
   },
 
   // find the diff-annotation-capable table associated with a particular
@@ -713,6 +823,7 @@ var DashSET = {
     // check to see if this is a paint event for a diff annotation field.
     if (elem.name.match(/Diff_Annotation_Data/)) {
       var row = Event.findElement({target:elem}, "tr");
+      if (!row) return;
       // update the CSS class to reflect whether this row has annotations.
       if (value) {
         Element.addClassName(row, "diffDataAnnotated");
@@ -840,6 +951,44 @@ var DashSET = {
     return $A(cell.childNodes).find(function(elem) {
       return ['INPUT', 'SELECT'].include(elem.tagName.toUpperCase());
     });
+  },
+
+  isTag:
+  function(elem, tagName) {
+    return (elem && elem.tagName
+            && elem.tagName.toLowerCase() == tagName.toLowerCase());
+  },
+
+  createCookie:
+  function(name, value, minutes) {
+    var date = new Date();
+    date.setTime(date.getTime() + (minutes * 60 * 1000));
+    var expires = "; expires=" + date.toUTCString();
+    document.cookie = "DashSET_" + name + "=" + value + expires + "; path=/";
+  },
+
+  readCookie:
+  function(name) {
+    var nameEQ = "DashSET_" + name + "=";
+    var ca = document.cookie.split(';');
+    for(var i=0; i < ca.length; i++) {
+      var c = ca[i];
+      while (c.charAt(0) == ' ') c = c.substring(1, c.length);
+      if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length, c.length);
+    }
+    return null;
+  },
+
+  eraseCookie:
+  function(name) {
+    DashSET.createCookie(name, "", -1000);
+  },
+
+  extractCookie:
+  function(name) {
+    var result = DashSET.readCookie(name);
+    DashSET.eraseCookie(name);
+    return result;
   },
 
   _ignoredField: true
