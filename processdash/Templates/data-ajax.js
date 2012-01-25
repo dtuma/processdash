@@ -50,6 +50,7 @@ if (debug) { document.write("running data.js<P>"); }
 var SILENT;
 
 var onPaintField;
+var onDataLoaded;
 
 var ieVersion = 0;
 var nsVersion = 0;
@@ -518,6 +519,12 @@ var elementList;
  */
 var valueList;
 
+/*
+ * A list keeping track of which data elements have been painted.
+ */
+var elementPaintedList = new Array();
+elementPaintedList.waitingCount = -1;
+
 
 
 /*
@@ -558,7 +565,7 @@ function changeNotifyElem(elem) {
                        "&f=" + elemNum +
                        "&v=" + urlEncode(value));
         else
-            paintField(elemNum, valueList[elemNum], true, changeCoupon);
+            paintInternal(elemNum, valueList[elemNum], true, changeCoupon);
 
     }
 }
@@ -730,11 +737,19 @@ function connectionLost() {
 function paintAll(message) {
     for (i = 0;   i < elementList.length;   i++) {
         elem = elementList[i];
-        paintField(getElemNum(elem.id), message, true, 0);
+        paintInternal(getElemNum(elem.id), message, true, 0);
     }
 }
 
 function paintField(elemNum, value, readOnly, coupon) {
+    doPaintField(elemNum, value, readOnly, coupon, false);
+}
+
+function paintInternal(elemNum, value, readOnly, coupon) {
+    doPaintField(elemNum, value, readOnly, coupon, true);
+}
+
+function doPaintField(elemNum, value, readOnly, coupon, internal) {
     if (elemNum == -1) {
         if (value == "page-refresh") {
             var url = window.location.href;
@@ -780,7 +795,41 @@ function paintField(elemNum, value, readOnly, coupon) {
     valueList[elemNum] = value;
     changeCoupon = coupon;
 
-    if (onPaintField) onPaintField(elem, value, readOnly);
+    if (!internal) {
+        if (onPaintField) {
+            for (var i = 0; i < onPaintField.length; i++) {
+                var func = onPaintField[i];
+                try {
+                    func(elem, value, readOnly);
+                } catch (e) {}
+            }
+        }
+
+        if (!elementPaintedList[elemNum]) {
+            elementPaintedList[elemNum] = true;
+            elementPaintedList.waitingCount--;
+
+            if (elementPaintedList.waitingCount == 0) {
+                while (onDataLoaded && onDataLoaded.length)
+                    self.setTimeout(onDataLoaded.pop(), 100);
+                onDataLoaded = null;
+            }
+        }
+    }
+}
+
+function addPaintFieldObserver(f) {
+    onPaintField = onPaintField || new Array();
+    onPaintField.push(f);
+}
+
+function addDataLoadedObserver(f) {
+    if (elementPaintedList.waitingCount == 0) {
+        f();
+    } else {
+        onDataLoaded = onDataLoaded || new Array();
+        onDataLoaded.push(f);
+    }
 }
 
 function getRegistrationURL() {
@@ -793,6 +842,11 @@ function getRegistrationURL() {
 function registerData() {
     assignIdentifiers();
     changeCoupon = 0;
+
+    var paintList = new Array();
+    paintList.waitingCount = elementList.length;
+    elementPaintedList = paintList;
+
     addMessage(getRegistrationURL());
 }
 
