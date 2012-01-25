@@ -563,28 +563,22 @@ var DashSET = {
         "diffAnnotationData", row)[0];
     var diffDataVal = diffData.value;
 
-    // potentially alter the description field on the row
+    // potentially alter the description field on the row based on an
+    // annotation that is being added.
     var descr = DashSET.getRowElem(row, "descColumn");
-    if (descr) {
-      if (add) {
-        if (!descr.value && !diffDataVal) {
-          // if we are adding annotation data, the description field is 
-          // currently blank, and no other diff data is present on the
-          // row, use the annotated "name" as the description
-          descr.value = data.name;
-        } else if (descr.value ==
-                   DashSET.getSingleDiffAnnotationName(diffDataVal)) {
-          // if this row contains exactly one diff annotation whose name
-          // matches the description field (a sign that we probably filled
-          // it in ourselves), and we are now adding a second set of diff
-          // annotation data, clear out the (now-obsolete) description field.
-          descr.value = "";
-        }
-      } else {
-        // if we are removing annotation data, and the description field
-        // appears to match the annotated "name" (a sign that we probably
-        // filled it in ourselves), remove that automatic description.
-        if (descr.value == data.name) descr.value = "";
+    if (descr && add) {
+      if (!descr.value && !diffDataVal) {
+        // if we are adding annotation data, the description field is 
+        // currently blank, and no other diff data is present on the
+        // row, use the annotated "name" as the description
+        descr.value = data.name;
+      } else if (descr.value ==
+                 DashSET.getSingleDiffAnnotationName(diffDataVal)) {
+        // if this row contains exactly one diff annotation whose name
+        // matches the description field (a sign that we probably filled
+        // it in ourselves), and we are now adding a second set of diff
+        // annotation data, clear out the (now-obsolete) description field.
+        descr.value = "";
       }
     }
 
@@ -597,6 +591,24 @@ var DashSET = {
       if (diffDataVal == ",") diffDataVal = "";
     }
     diffData.value = diffDataVal;
+
+    // potentially alter the description field on the row based on an
+    // annotation that is being removed.
+    if (descr && !add) {
+      // if we are removing annotation data, and the description field
+      // appears to match the annotated "name" (a sign that we probably
+      // filled it in ourselves), remove that automatic description.
+      if (descr.value == data.name) {
+	descr.value = "";
+      }
+      // after removing this diff annotation, if only one diff token remains
+      // on this row and the row has no description, use that token's name
+      // as the description.
+      var oneName = DashSET.getSingleDiffAnnotationName(diffDataVal);
+      if (oneName && !descr.value) {
+	descr.value = oneName;
+      }
+    }
 
     // check and see whether any diff annotations are in effect for this row.
     if (diffDataVal) {
