@@ -324,16 +324,24 @@ var DashSET = {
     // check to see if the actual size fields are read-only.
     DashSET.initializeReadOnly();
 
+    // if the current SET template does not support drag-and-drop diff
+    // operations, register events to abort those operations and exit.
+    if (DashSET.diffDropUnsupported) {
+      document.body.ondragover = DashSET.eventHandler(DashSET.cancelDrop);
+      document.body.ondrop = DashSET.eventHandler(DashSET.dropUnsupported);
+      return;
+    }
+
     // register interest in data element "paint field" events
     addPaintFieldObserver(DashSET.checkPaintEventForDiffAnnotationData);
 
     if (DashSET.isReadOnly) {
-      var cancelDrop = DashSET.cancelDrop.bindAsEventListener(DashSET);
+      var cancelDrop = DashSET.eventHandler(DashSET.cancelDrop);
       document.body.ondragover = cancelDrop;
       document.body.ondrop     = cancelDrop;
     } else {
-      document.body.ondragover = DashSET.dragOver.bindAsEventListener(DashSET);
-      document.body.ondrop     = DashSET.drop.bindAsEventListener(DashSET);
+      document.body.ondragover = DashSET.eventHandler(DashSET.dragOver);
+      document.body.ondrop     = DashSET.eventHandler(DashSET.drop);
     }
 
     DashSET.registerAnnotationFocusEvents();
@@ -344,6 +352,9 @@ var DashSET = {
 
   initializeReadOnly:
   function() {
+    var diffSupportMarker = $("Diff_Annotation_Data_Supported");
+    DashSET.diffDropUnsupported = !diffSupportMarker;
+
     var reusedFields = $A($("reusedObjects").getElementsByTagName("input"));
     DashSET.isReadOnly = reusedFields.pluck("name").any(function(name) {
       return name.indexOf("Description]r") != -1; });
@@ -403,6 +414,17 @@ var DashSET = {
   // instruct the web browser to cancel a drop operation
   cancelDrop:
   function(event) {
+    Event.stop(event);
+    return false;
+  },
+
+  // abort a drop operation because the user doesn't have the latest version
+  // of the PSP process plugin.
+  dropUnsupported:
+  function(event) {
+    if (DashSET.OLD_PSP_PROCESS_MATERIALS_MESSAGE)
+      window.alert(DashSET.OLD_PSP_PROCESS_MATERIALS_MESSAGE);
+
     Event.stop(event);
     return false;
   },
@@ -599,14 +621,14 @@ var DashSET = {
       // appears to match the annotated "name" (a sign that we probably
       // filled it in ourselves), remove that automatic description.
       if (descr.value == data.name) {
-	descr.value = "";
+        descr.value = "";
       }
       // after removing this diff annotation, if only one diff token remains
       // on this row and the row has no description, use that token's name
       // as the description.
       var oneName = DashSET.getSingleDiffAnnotationName(diffDataVal);
       if (oneName && !descr.value) {
-	descr.value = oneName;
+        descr.value = oneName;
       }
     }
 
@@ -930,6 +952,11 @@ var DashSET = {
 //----------------------------------------------------------------------
 
   useCommaForDecimal: false,
+
+  eventHandler:
+  function(func) {
+    return func.bindAsEventListener(DashSET);
+  },
 
   setField:
   function(destElem, num) {
