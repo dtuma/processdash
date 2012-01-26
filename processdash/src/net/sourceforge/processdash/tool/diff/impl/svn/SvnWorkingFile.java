@@ -1,4 +1,4 @@
-// Copyright (C) 2011 Tuma Solutions, LLC
+// Copyright (C) 2011-2012 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -28,6 +28,8 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
+import net.sourceforge.processdash.util.TimedInputStream;
+
 public class SvnWorkingFile implements SvnFileVersion, SvnTask {
 
     private String relativePath;
@@ -47,7 +49,7 @@ public class SvnWorkingFile implements SvnFileVersion, SvnTask {
 
     public InputStream getContents() throws IOException {
         helper.waitTillReady();
-        return new FileInputStream(file);
+        return new TimedInputStream(new FileInputStream(file));
     }
 
     public SvnTaskHelper getTaskHelper() {
