@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2011 Tuma Solutions, LLC
+// Copyright (C) 2002-2012 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -124,6 +124,8 @@ public class WBSEditor implements WindowListener, SaveListener,
     File workflowDumpFile;
     WBSSynchronizer reverseSynchronizer;
     File customTabsFile;
+    ChangeHistory changeHistory;
+    File changeHistoryFile;
     private String owner;
     private int mode;
     boolean showActualData = false;
@@ -152,6 +154,7 @@ public class WBSEditor implements WindowListener, SaveListener,
     private static final String DATA_DUMP_FILE = "projDump.xml";
     private static final String WORKFLOW_DUMP_FILE = "workflowDump.xml";
     private static final String CUSTOM_TABS_FILE = "tabs.xml";
+    private static final String CHANGE_HISTORY_FILE = "changeHistory.xml";
     private static final String PROMPT_READ_ONLY_SETTING = "promptForReadOnly";
     private static final String MEMBERS_CANNOT_EDIT_SETTING = "readOnlyForIndividuals";
 
@@ -169,6 +172,7 @@ public class WBSEditor implements WindowListener, SaveListener,
         this.dataDumpFile = new File(storageDir, DATA_DUMP_FILE);
         this.workflowDumpFile = new File(storageDir, WORKFLOW_DUMP_FILE);
         this.customTabsFile = new File(storageDir, CUSTOM_TABS_FILE);
+        this.changeHistoryFile = new File(storageDir, CHANGE_HISTORY_FILE);
         this.readOnly = teamProject.isReadOnly();
         this.dirtyListener = new DirtyListener();
         setDirty(false);
@@ -306,6 +310,8 @@ public class WBSEditor implements WindowListener, SaveListener,
         if (isMode(MODE_BOTTOM_UP))
             teamTimePanel.setShowBalancedBar(false);
         teamTimePanel.setShowRemainingWork(showActualData == true);
+
+        changeHistory = new ChangeHistory(changeHistoryFile);
 
         try {
             new MacOSXWBSHelper(this);
@@ -838,6 +844,10 @@ public class WBSEditor implements WindowListener, SaveListener,
 
         // write out custom tabs file
         tabPanel.saveTabs(customTabsFile);
+
+        // write out the change history file
+        changeHistory.addEntry(owner);
+        changeHistory.write(changeHistoryFile);
 
         if (workingDirectory.flushData() == false)
             return false;
