@@ -1,0 +1,2 @@
+net.sourceforge.processdash.i18n.WBSRuntimeTemplateClassLoader
+net.sourceforge.processdash.i18n.WBSDevelopmentTemplateClassLoader

@@ -1,7 +1,7 @@
 <!--
 
 Team Functionality Add-ons for the Process Dashboard
-Copyright (C) 2002-2011 Tuma Solutions, LLC
+Copyright (C) 2002-2012 Tuma Solutions, LLC
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -261,6 +261,7 @@ The author(s) may be contacted at:
       <root classname="teamdash.wbs.WBSEditor"/>
       <root classname="teamdash.templates.tools.OpenWBSEditor"/>
       <root classname="teamdash.FilenameMapperExtResMgr"/>
+      <root classname="net.sourceforge.processdash.i18n.WBSRuntimeTemplateClassLoader"/>
     </classfileset>
 
     <!-- also compute the classes needed from processdash packages -->
@@ -336,6 +337,7 @@ class dependency has been added in a dashboard class?)
         <include name="teamdash/**/*.png"/>
         <include name="teamdash/**/*.gif"/>
         <include name="teamdash/**/default-user-settings.txt"/>
+        <include name="net/sourceforge/processdash/i18n/*.txt"/>
       </fileset>
       <fileset refid="dashClasses"/>
 
