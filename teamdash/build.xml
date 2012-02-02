@@ -275,10 +275,13 @@ The author(s) may be contacted at:
       <root classname="net.sourceforge.processdash.util.RobustFileWriter"/>
       <root classname="net.sourceforge.processdash.util.RuntimeUtils"/>
       <root classname="net.sourceforge.processdash.util.StringUtils"/>
+      <root classname="net.sourceforge.processdash.util.TempFileFactory"/>
       <root classname="net.sourceforge.processdash.util.VersionUtils"/>
       <root classname="net.sourceforge.processdash.util.UsageLogger"/>
       <root classname="net.sourceforge.processdash.ui.macosx.MacGUIUtils"/>
+      <root classname="net.sourceforge.processdash.ui.lib.ExampleFileFilter"/>
       <root classname="net.sourceforge.processdash.ui.lib.JDateTimeChooserCellEditor"/>
+      <root classname="net.sourceforge.processdash.ui.lib.SwingWorker"/>
     </classfileset>
 
     <!-- count the number of processdash classes we are using -->
@@ -296,7 +299,7 @@ The author(s) may be contacted at:
                 dashClassesMsg = dashClassesMsg + "\n    " + dashClassesList[i];
             }
         }
-        if (classCount > 80) {
+        if (classCount > 83) {
             project.setProperty("dashClasses.overflowCount", classCount);
             project.setProperty("dashClasses.overflowing", dashClassesMsg);
         }
@@ -340,12 +343,16 @@ class dependency has been added in a dashboard class?)
         <include name="net/sourceforge/processdash/i18n/*.txt"/>
       </fileset>
       <fileset refid="dashClasses"/>
+      <fileset dir="${processdash.dir}/src">
+        <include name="net/sourceforge/processdash/util/TempFileFactory.properties"/>
+      </fileset>
 
       <!-- include the wbs-editor-related templates -->
       <fileset dir=".">
         <include name="Templates/team/tools/index.shtm" />
         <include name="Templates/team/tools/OpenWBSEditor.class.link" />
         <include name="Templates/team/tools/TeamTools.jar.link" />
+        <include name="Templates/resources/WBSEditor*" />
       </fileset>
 
       <!-- include the helpset for team functionality -->

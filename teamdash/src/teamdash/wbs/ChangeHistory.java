@@ -87,6 +87,14 @@ public class ChangeHistory {
         return result;
     }
 
+    public Entry getLastEntry() {
+        List<Entry> entries = getEntries();
+        if (entries.isEmpty())
+            return null;
+        else
+            return entries.get(entries.size() - 1);
+    }
+
     public Entry addEntry(String userName) {
         Element newTag = xml.getOwnerDocument().createElement(CHANGE_ENTRY_TAG);
         newTag.setAttribute(UID_ATTR, createUid());

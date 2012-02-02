@@ -107,7 +107,7 @@ import teamdash.wbs.columns.PlanTimeWatcher.PlanTimeDiscrepancyEvent;
 import teamdash.wbs.columns.PlanTimeWatcher.PlanTimeDiscrepancyListener;
 
 public class WBSEditor implements WindowListener, SaveListener,
-        LockMessageHandler {
+        LockMessageHandler, WBSFilenameConstants {
 
     public static final String INTENT_WBS_EDITOR = "showWbsEditor";
     public static final String INTENT_TEAM_EDITOR = "showTeamListEditor";
@@ -126,7 +126,7 @@ public class WBSEditor implements WindowListener, SaveListener,
     File customTabsFile;
     ChangeHistory changeHistory;
     File changeHistoryFile;
-    private String owner;
+    String owner;
     private int mode;
     boolean showActualData = false;
     boolean showActualSize = false;
@@ -151,10 +151,6 @@ public class WBSEditor implements WindowListener, SaveListener,
     private static final String EXPANDED_NODES_KEY_SUFFIX = "_EXPANDEDNODES";
     private static final String EXPANDED_NODES_DELIMITER = Character.toString('\u0001');
     private static final String OPTIMIZE_FOR_INDIV_KEY = "optimizeForIndiv";
-    private static final String DATA_DUMP_FILE = "projDump.xml";
-    private static final String WORKFLOW_DUMP_FILE = "workflowDump.xml";
-    private static final String CUSTOM_TABS_FILE = "tabs.xml";
-    private static final String CHANGE_HISTORY_FILE = "changeHistory.xml";
     private static final String PROMPT_READ_ONLY_SETTING = "promptForReadOnly";
     private static final String MEMBERS_CANNOT_EDIT_SETTING = "readOnlyForIndividuals";
 
@@ -628,8 +624,11 @@ public class WBSEditor implements WindowListener, SaveListener,
         JMenu result = new JMenu("File");
         result.setMnemonic('F');
         result.add(saveAction = new SaveAction());
-        if (!isMode(MODE_BOTTOM_UP))
+        result.addSeparator();
+        if (!isMode(MODE_BOTTOM_UP)) {
+            result.add(new WBSSaveAsAction(this));
             result.add(importFromCsvAction = new ImportFromCsvAction());
+        }
         for (int i = 0; i < fileActions.length; i++) {
             result.add(fileActions[i]);
         }
@@ -1264,7 +1263,7 @@ public class WBSEditor implements WindowListener, SaveListener,
         }
     }
 
-    private boolean isDirty() {
+    public boolean isDirty() {
         return this.dirty;
     }
 

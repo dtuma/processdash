@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Tuma Solutions, LLC
+// Copyright (C) 2002-2012 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -48,13 +48,14 @@ import org.w3c.dom.NodeList;
 
 import teamdash.team.TeamMemberList;
 
-public class TeamProject {
+public class TeamProject implements WBSFilenameConstants {
 
     private Element projectSettings;
     private String projectName;
     private String projectID;
     private File directory;
     private TeamMemberList teamList;
+    private Element teamProcessXml;
     private TeamProcess teamProcess;
     private WBSModel wbs;
     private WBSModel workflows;
@@ -113,13 +114,30 @@ public class TeamProject {
 
     /** Save the team project */
     public boolean save() {
+        if (readOnly)
+            return true;
+        else
+            return saveTo(directory);
+    }
+
+    /** Save a copy of all project files to an additional, external directory */
+    public boolean saveCopy(File copyDirectory) {
+        // save a copy of all regular, commonly edited project files.
+        boolean result = saveTo(copyDirectory);
+        // in addition to those project files, save a copy of the settings
+        // and process data that provide context for the project.
+        result = saveProjectSettings(copyDirectory) && result;
+        result = saveUserSettings(copyDirectory) && result;
+        result = saveTeamProcessXml(copyDirectory) && result;
+        return result;
+    }
+
+    private boolean saveTo(File directory) {
         boolean result = true;
-        if (!readOnly) {
-            result = saveTeamList() && result;
-            result = saveWBS() && result;
-            result = saveWorkflows() && result;
-            result = saveMilestones() && result;
-        }
+        result = saveTeamList(directory) && result;
+        result = saveWBS(directory) && result;
+        result = saveWorkflows(directory) && result;
+        result = saveMilestones(directory) && result;
         return result;
     }
 
@@ -216,7 +234,7 @@ public class TeamProject {
     public void putUserSetting(String name, String value) {
         userSettings.put(name, value);
         if (!readOnly)
-            saveUserSettings();
+            saveUserSettings(directory);
     }
 
     public void putUserSetting(String name, boolean value) {
@@ -247,6 +265,22 @@ public class TeamProject {
             return doc.getDocumentElement();
         } catch (Exception e) {
             return null;
+        }
+    }
+
+    /** Save an XML file.  Return false on error. */
+    private boolean saveXML(Element xml, File dir, String filename) {
+        try {
+            File file = new File(dir, filename);
+            BufferedWriter out = new BufferedWriter(
+                new RobustFileWriter(file, "utf-8"));
+            out.write(XMLUtils.getAsText(xml));
+            out.flush();
+            out.close();
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
         }
     }
 
@@ -346,17 +380,25 @@ public class TeamProject {
         return projDir.getPath();
     }
 
-    private void saveUserSettings() {
+    private boolean saveProjectSettings(File externalDir) {
+        if (projectSettings == null)
+            return true;
+        return saveXML(projectSettings, externalDir, SETTINGS_FILENAME);
+    }
+
+    private boolean saveUserSettings(File directory) {
         File userSettingsFile = new File(directory, USER_SETTINGS_FILENAME);
         try {
             RobustFileOutputStream out = new RobustFileOutputStream(
                     userSettingsFile);
             userSettings.store(out, null);
             out.close();
+            return true;
         } catch (IOException ioe) {
             System.out.println("Encountered problem when saving "
                     + userSettingsFile);
             ioe.printStackTrace();
+            return false;
         }
     }
 
@@ -380,32 +422,31 @@ public class TeamProject {
     }
 
     /** Save the list of team members */
-    boolean saveTeamList() {
-        if (!readOnly)
-            try {
-                // For now, we save the data to two different files:
-                // "team.xml" and "team2.xml".  "team.xml" will be read - and
-                // possibly overwritten incorrectly - by older versions of the
-                // TeamTools code.  "team2.xml" will be preferred by newer
-                // versions, and shouldn't get clobbered.
-                File f = new File(directory, TEAM_LIST_FILENAME2);
-                RobustFileWriter out = new RobustFileWriter(f, "UTF-8");
-                BufferedWriter buf = new BufferedWriter(out);
-                teamList.getAsXML(buf);
-                buf.flush();
-                out.close();
+    private boolean saveTeamList(File directory) {
+        try {
+            // For now, we save the data to two different files:
+            // "team.xml" and "team2.xml".  "team.xml" will be read - and
+            // possibly overwritten incorrectly - by older versions of the
+            // TeamTools code.  "team2.xml" will be preferred by newer
+            // versions, and shouldn't get clobbered.
+            File f = new File(directory, TEAM_LIST_FILENAME2);
+            RobustFileWriter out = new RobustFileWriter(f, "UTF-8");
+            BufferedWriter buf = new BufferedWriter(out);
+            teamList.getAsXML(buf);
+            buf.flush();
+            out.close();
 
-                f = new File(directory, TEAM_LIST_FILENAME);
-                out = new RobustFileWriter(f, "UTF-8");
-                buf = new BufferedWriter(out);
-                teamList.getAsXML(buf);
-                buf.flush();
-                out.close();
+            f = new File(directory, TEAM_LIST_FILENAME);
+            out = new RobustFileWriter(f, "UTF-8");
+            buf = new BufferedWriter(out);
+            teamList.getAsXML(buf);
+            buf.flush();
+            out.close();
 
-            } catch (Exception e) {
-                e.printStackTrace();
-                return false;
-            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
         return true;
     }
 
@@ -444,7 +485,15 @@ public class TeamProject {
         // create a team process from the XML we found.  If we didn't find
         // anything, xml will equal null and a default team process will be
         // created instead.
+        teamProcessXml = xml;
         teamProcess = new TeamProcess(xml);
+    }
+
+    private boolean saveTeamProcessXml(File externalDir) {
+        if (teamProcessXml == null)
+            return true;
+        else
+            return saveXML(teamProcessXml, externalDir, PROCESS_FILENAME);
     }
 
     /** Open the file containing the work breakdown structure */
@@ -479,19 +528,18 @@ public class TeamProject {
     }
 
     /** Save the work breakdown structure */
-    boolean saveWBS() {
-        if (!readOnly)
-            try {
-                File f = new File(directory, WBS_FILENAME);
-                RobustFileWriter out = new RobustFileWriter(f, "UTF-8");
-                BufferedWriter buf = new BufferedWriter(out);
-                wbs.getAsXML(buf);
-                buf.flush();
-                out.close();
-            } catch (Exception e) {
-                e.printStackTrace();
-                return false;
-            }
+    private boolean saveWBS(File directory) {
+        try {
+            File f = new File(directory, WBS_FILENAME);
+            RobustFileWriter out = new RobustFileWriter(f, "UTF-8");
+            BufferedWriter buf = new BufferedWriter(out);
+            wbs.getAsXML(buf);
+            buf.flush();
+            out.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
         return true;
     }
 
@@ -514,19 +562,18 @@ public class TeamProject {
     }
 
     /** Save the common workflows */
-    boolean saveWorkflows() {
-        if (!readOnly)
-            try {
-                File f = new File(directory, FLOW_FILENAME);
-                RobustFileWriter out = new RobustFileWriter(f, "UTF-8");
-                BufferedWriter buf = new BufferedWriter(out);
-                workflows.getAsXML(buf);
-                buf.flush();
-                out.close();
-            } catch (Exception e) {
-                e.printStackTrace();
-                return false;
-            }
+    private boolean saveWorkflows(File directory) {
+        try {
+            File f = new File(directory, FLOW_FILENAME);
+            RobustFileWriter out = new RobustFileWriter(f, "UTF-8");
+            BufferedWriter buf = new BufferedWriter(out);
+            workflows.getAsXML(buf);
+            buf.flush();
+            out.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
         return true;
     }
 
@@ -549,19 +596,18 @@ public class TeamProject {
     }
 
     /** Save the project milestones */
-    boolean saveMilestones() {
-        if (!readOnly)
-            try {
-                File f = new File(directory, MILESTONES_FILENAME);
-                RobustFileWriter out = new RobustFileWriter(f, "UTF-8");
-                BufferedWriter buf = new BufferedWriter(out);
-                milestones.getAsXML(buf);
-                buf.flush();
-                out.close();
-            } catch (Exception e) {
-                e.printStackTrace();
-                return false;
-            }
+    private boolean saveMilestones(File directory) {
+        try {
+            File f = new File(directory, MILESTONES_FILENAME);
+            RobustFileWriter out = new RobustFileWriter(f, "UTF-8");
+            BufferedWriter buf = new BufferedWriter(out);
+            milestones.getAsXML(buf);
+            buf.flush();
+            out.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
         return true;
     }
 
@@ -616,14 +662,6 @@ public class TeamProject {
     }
     */
 
-    private static final String TEAM_LIST_FILENAME = "team.xml";
-    private static final String TEAM_LIST_FILENAME2 = "team2.xml";
-    private static final String WBS_FILENAME = "wbs.xml";
-    private static final String FLOW_FILENAME = "workflow.xml";
-    private static final String MILESTONES_FILENAME = "milestones.xml";
-    private static final String PROCESS_FILENAME = "process.xml";
-    private static final String SETTINGS_FILENAME = "settings.xml";
-    private static final String USER_SETTINGS_FILENAME = "user-settings.ini";
 
     private static final String[] ALL_FILENAMES = {
         TEAM_LIST_FILENAME,
