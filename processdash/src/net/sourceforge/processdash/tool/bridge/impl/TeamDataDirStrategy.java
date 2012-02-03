@@ -33,6 +33,8 @@ import net.sourceforge.processdash.util.RobustFileOutputStream;
 
 public class TeamDataDirStrategy implements FileResourceCollectionStrategy {
 
+    public static final String LOCK_FILE_NAME = "teamProject.lock";
+
     public static TeamDataDirStrategy INSTANCE = new TeamDataDirStrategy();
 
     private TeamDataDirStrategy() {}
@@ -46,7 +48,7 @@ public class TeamDataDirStrategy implements FileResourceCollectionStrategy {
     }
 
     public String getLockFilename() {
-        return "teamProject.lock";
+        return LOCK_FILE_NAME;
     }
 
     public FilenameFilter getUnlockedFilter() {

@@ -78,9 +78,14 @@ public class WorkingDirectoryFactory {
 
             } else {
                 // test "regular" locations to see if the directory exists
-                File dir = new File(loc);
-                if (dir.isDirectory())
-                    return get(dir, purpose);
+                File file = new File(loc);
+                if (file.isDirectory())
+                    return get(file, purpose);
+
+                // test to see if this is a WBS ZIP file
+                if (file.isFile() && purpose == PURPOSE_WBS
+                        && CompressedWorkingDirectory.isZipFormat(loc))
+                    return getZip(file, purpose);
             }
         }
 
@@ -155,6 +160,12 @@ public class WorkingDirectoryFactory {
         } else {
             throw new NullPointerException();
         }
+    }
+
+    private WorkingDirectory getZip(File file, int purpose) {
+        FileResourceCollectionStrategy strategy = getStrategy(purpose);
+        return new CompressedWorkingDirectory(file, strategy,
+                DirectoryPreferences.getMasterWorkingDirectory());
     }
 
     private FileResourceCollectionStrategy getStrategy(int purpose) {
