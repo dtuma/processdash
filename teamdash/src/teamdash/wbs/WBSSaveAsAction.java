@@ -39,7 +39,6 @@ import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 
 import net.sourceforge.processdash.i18n.Resources;
-import net.sourceforge.processdash.ui.lib.ExampleFileFilter;
 import net.sourceforge.processdash.ui.lib.SwingWorker;
 import net.sourceforge.processdash.util.FileUtils;
 
@@ -47,12 +46,17 @@ public class WBSSaveAsAction extends AbstractAction {
 
     private WBSEditor wbsEditor;
 
+    private WBSOpenFileAction openAction;
+
     private static final Resources resources = Resources
             .getDashBundle("WBSEditor.Save_As");
 
-    public WBSSaveAsAction(WBSEditor wbsEditor) {
+    public WBSSaveAsAction(WBSEditor wbsEditor, WBSOpenFileAction openAction) {
         super(resources.getString("Menu"));
+        putValue(MNEMONIC_KEY, new Integer(resources.getString("Mnemonic")
+            .charAt(0)));
         this.wbsEditor = wbsEditor;
+        this.openAction = openAction;
     }
 
     public void actionPerformed(ActionEvent e) {
@@ -82,7 +86,7 @@ public class WBSSaveAsAction extends AbstractAction {
         // prompt the user to select a file to save to
         JFileChooser fileChooser = makeFileChooser();
         int userChoice = fileChooser.showSaveDialog(wbsEditor.frame);
-        lastDirectory = fileChooser.getCurrentDirectory();
+        openAction.lastDirectory = fileChooser.getCurrentDirectory();
         if (userChoice != JFileChooser.APPROVE_OPTION)
             return null;
 
@@ -105,19 +109,11 @@ public class WBSSaveAsAction extends AbstractAction {
         return f;
     }
 
-    private JFileChooser makeFileChooser() {
-        JFileChooser fc = new JFileChooser();
-        fc.setAcceptAllFileFilterUsed(false);
+    JFileChooser makeFileChooser() {
+        JFileChooser fc = openAction.makeFileChooser();
         fc.setDialogTitle(resources.getString("Dialog_Title"));
-        fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
-        fc.setFileFilter(new ExampleFileFilter("zip", resources
-                .getString("File_Type_Description")));
-        if (lastDirectory != null)
-            fc.setCurrentDirectory(lastDirectory);
         return fc;
     }
-
-    private File lastDirectory;
 
 
     private void displayResults(File destFile, WorkerThread workerThread) {
@@ -133,10 +129,17 @@ public class WBSSaveAsAction extends AbstractAction {
                 resources.formatStrings("Success.Saved_Message_FMT",
                         destFile.getPath()),
                 " ",
-                resources.getStrings("Success.Still_Real_WBS_Message")
+                resources.formatStrings("Success.Still_Old_"
+                        + wbsEditor.workingDirResKey() + "_FMT",
+                    wbsEditor.workingDirectory.getDescription()),
+                " ",
+                resources.getString("Success.Open_New_Window_Prompt")
         };
-        JOptionPane.showMessageDialog(wbsEditor.frame, message, title,
+        int userChoice = JOptionPane.showConfirmDialog(wbsEditor.frame,
+            message, title, JOptionPane.YES_NO_OPTION,
             JOptionPane.PLAIN_MESSAGE);
+        if (userChoice == JOptionPane.YES_OPTION)
+            openAction.openFile(destFile);
     }
 
     private void displayErrorDialog(IOException exceptionEncountered) {

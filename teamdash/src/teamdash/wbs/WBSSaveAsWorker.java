@@ -52,6 +52,10 @@ import net.sourceforge.processdash.util.TempFileFactory;
  * alternative plans during a launch, they can save each one into a separate ZIP
  * file.</li>
  * 
+ * <li><b>What-If Scenarios:</b> During a project, a team leader might wish
+ * to explore various replanning experiments without altering the team's
+ * real plan.</li>
+ * 
  * <li><b>Offline Work:</b> When an individual wants to take a copy of the WBS
  * and work with it offline, they can save it into a ZIP.</li>
  * 
@@ -77,11 +81,8 @@ public class WBSSaveAsWorker implements WBSFilenameConstants {
                 new FileOutputStream(zipFile)));
 
         // initialize the data structure for tracking content that has been
-        // added to the ZIP. "claim" that we already wrote the two dump files,
-        // just to prevent those files from being added later.
+        // added to the ZIP.
         zipFileEntries = new HashSet<String>();
-        zipFileEntries.add(DATA_DUMP_FILE);
-        zipFileEntries.add(WORKFLOW_DUMP_FILE);
 
         // test to see if the team project directory is reachable.
         checkConnectivity();

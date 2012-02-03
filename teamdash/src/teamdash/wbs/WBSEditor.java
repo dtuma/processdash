@@ -71,7 +71,10 @@ import javax.swing.event.ChangeListener;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 
+import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.tool.bridge.client.BridgedWorkingDirectory;
+import net.sourceforge.processdash.tool.bridge.client.CompressedWorkingDirectory;
+import net.sourceforge.processdash.tool.bridge.client.TeamServerSelector;
 import net.sourceforge.processdash.tool.bridge.client.WorkingDirectory;
 import net.sourceforge.processdash.tool.bridge.client.WorkingDirectoryFactory;
 import net.sourceforge.processdash.tool.export.mgr.ExternalLocationMapper;
@@ -79,6 +82,7 @@ import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
 import net.sourceforge.processdash.util.DashboardBackupFactory;
 import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.PreferencesUtils;
+import net.sourceforge.processdash.util.RuntimeUtils;
 import net.sourceforge.processdash.util.StringUtils;
 import net.sourceforge.processdash.util.UsageLogger;
 import net.sourceforge.processdash.util.lock.AlreadyLockedException;
@@ -89,11 +93,13 @@ import net.sourceforge.processdash.util.lock.LockMessageHandler;
 import net.sourceforge.processdash.util.lock.LockUncertainException;
 import net.sourceforge.processdash.util.lock.ReadOnlyLockFailureException;
 import net.sourceforge.processdash.util.lock.SentLockMessageException;
+
 import teamdash.SaveListener;
 import teamdash.team.TeamMember;
 import teamdash.team.TeamMemberListEditor;
 import teamdash.team.TeamMemberList.InitialsListener;
 import teamdash.wbs.WBSTabPanel.LoadTabsException;
+import teamdash.wbs.columns.CustomColumnManager;
 import teamdash.wbs.columns.PercentCompleteColumn;
 import teamdash.wbs.columns.PercentSpentColumn;
 import teamdash.wbs.columns.PlanTimeWatcher;
@@ -147,6 +153,7 @@ public class WBSEditor implements WindowListener, SaveListener,
     private static final int MODE_MASTER = 4;
     private static final int MODE_BOTTOM_UP = 8;
 
+    private static Resources resources = Resources.getDashBundle("WBSEditor");
     private static Preferences preferences = Preferences.userNodeForPackage(WBSEditor.class);
     private static final String EXPANDED_NODES_KEY_SUFFIX = "_EXPANDEDNODES";
     private static final String EXPANDED_NODES_DELIMITER = Character.toString('\u0001');
@@ -313,9 +320,16 @@ public class WBSEditor implements WindowListener, SaveListener,
             new MacOSXWBSHelper(this);
         } catch (Throwable t) {}
 
-        frame = new JFrame(teamProject.getProjectName()
+        String windowTitle;
+        if (workingDirectory instanceof CompressedWorkingDirectory)
+            windowTitle = workingDirectory.getDescription();
+        else
+            windowTitle = teamProject.getProjectName();
+        windowTitle = windowTitle
                 + " - Work Breakdown Structure"
-                + (teamProject.isReadOnly() ? " (Read-Only)" : ""));
+                + (teamProject.isReadOnly() ? " (Read-Only)" : "");
+
+        frame = new JFrame(windowTitle);
         frame.setJMenuBar(buildMenuBar(tabPanel, teamProject.getWorkflows(),
             teamProject.getMilestones(), data, initials));
         frame.getContentPane().add(tabPanel);
@@ -519,20 +533,14 @@ public class WBSEditor implements WindowListener, SaveListener,
         saveAction.setEnabled(false);
         importFromCsvAction.setEnabled(false);
 
-        JOptionPane.showMessageDialog(frame, LOST_LOCK_MESSAGE,
-                "Network Connectivity Problems", JOptionPane.ERROR_MESSAGE);
+        String title = resources.getString("Errors.Lost_Lock.Title");
+        Object[] message = resources.getStrings("Errors.Lost_Lock.Message");
+        if (isDirty())
+            message = new Object[] { message, " ",
+                    resources.getStrings("Errors.Lost_Lock.Save_Advice") };
+        JOptionPane.showMessageDialog(frame, message, title,
+            JOptionPane.ERROR_MESSAGE);
     }
-    private static final String[] LOST_LOCK_MESSAGE = {
-        "Although you opened the work breakdown structure in read-write",
-        "mode, your connection to the network was broken, and your lock",
-        "on the WBS was lost.  In the meantime, another individual has",
-        "opened the work breakdown structure for editing, so your lock",
-        "could not be reclaimed.",
-        " ",
-        "As a result, you will no longer be able to save changes to the",
-        "work breakdown structure.  You are strongly encouraged to close",
-        "and reopen the work breakdown structure editor."
-    };
 
     private void showEditPreferencesDialog() {
         JCheckBox readOnlyPrompt = new JCheckBox(
@@ -626,7 +634,10 @@ public class WBSEditor implements WindowListener, SaveListener,
         result.add(saveAction = new SaveAction());
         result.addSeparator();
         if (!isMode(MODE_BOTTOM_UP)) {
-            result.add(new WBSSaveAsAction(this));
+            WBSOpenFileAction openAction = new WBSOpenFileAction(frame);
+            result.add(new WBSSaveAsAction(this, openAction));
+            result.add(openAction);
+            result.addSeparator();
             result.add(importFromCsvAction = new ImportFromCsvAction());
         }
         for (int i = 0; i < fileActions.length; i++) {
@@ -860,33 +871,17 @@ public class WBSEditor implements WindowListener, SaveListener,
     }
 
     private void showSaveErrorMessage() {
-        if (workingDirectory instanceof BridgedWorkingDirectory) {
-            SAVE_ERROR_MSG[3] = BRIDGED_ADVICE;
-            SAVE_ERROR_MSG[4] = "";
-        } else {
-            SAVE_ERROR_MSG[3] = LOCAL_ADVICE;
-            SAVE_ERROR_MSG[4] = "      " + workingDirectory.getDescription();
-        }
+        String title = resources.getString("Errors.Cannot_Save.Title");
+        Object[] message = resources.formatStrings("Errors.Cannot_Save."
+                        + workingDirResKey() + "_FMT", workingDirectory
+                        .getDescription());
+        if (isDirty())
+            message = new Object[] { message, " ",
+                    resources.getStrings("Errors.Cannot_Save.Save_Advice") };
 
-        JOptionPane.showMessageDialog(frame, SAVE_ERROR_MSG,
-                "Unable to Save", JOptionPane.ERROR_MESSAGE);
+        JOptionPane.showMessageDialog(frame, message, title,
+            JOptionPane.ERROR_MESSAGE);
     }
-
-    private static final String[] SAVE_ERROR_MSG = {
-        "The Work Breakdown Structure Editor encountered an unexpected error",
-        "and was unable to save data. This problem might have been caused by",
-        "poor network connectivity, or by read-only file permissions. Please",
-        "",
-        "",
-        " ",
-        "Then, try saving again. If you shut down the Work Breakdown Structure",
-        "Editor without resolving this problem, any changes you have made will",
-        "be lost."
-    };
-    private static final String LOCAL_ADVICE =
-        "check to ensure that you can write to the following location:";
-    private static final String BRIDGED_ADVICE =
-        "doublecheck your network connection.";
 
     private void maybeTriggerSyncOperation() {
         if (syncURL != null)
@@ -996,7 +991,7 @@ public class WBSEditor implements WindowListener, SaveListener,
             dir = proj.getStorageDirectory();
             if (!dir.isDirectory()) {
                 waitFrame.dispose();
-                showBadFilenameError(locations[locations.length-1]);
+                showCannotOpenError(locations[locations.length-1]);
                 return null;
             }
             workingDirectory = null;
@@ -1014,6 +1009,12 @@ public class WBSEditor implements WindowListener, SaveListener,
             }
             dir = workingDirectory.getDirectory();
             proj = new TeamProject(dir, "Team Project");
+
+            if (workingDirectory instanceof CompressedWorkingDirectory) {
+                if (!((CompressedWorkingDirectory) workingDirectory)
+                        .getTargetZipFile().canWrite())
+                    forceReadOnly = true;
+            }
         }
 
         if (indivMode && proj.getBoolUserSetting(MEMBERS_CANNOT_EDIT_SETTING))
@@ -1057,7 +1058,6 @@ public class WBSEditor implements WindowListener, SaveListener,
         WorkingDirectory workingDirectory = WorkingDirectoryFactory
                 .getInstance().get(WorkingDirectoryFactory.PURPOSE_WBS,
                     locations);
-        String locationDescr = workingDirectory.getDescription();
 
         try {
             workingDirectory.acquireProcessLock(intent, handler);
@@ -1074,7 +1074,11 @@ public class WBSEditor implements WindowListener, SaveListener,
         try {
             workingDirectory.prepare();
             File dir = workingDirectory.getDirectory();
-            workingDirIsGood = dir.isDirectory();
+            if (workingDirectory instanceof CompressedWorkingDirectory) {
+                workingDirIsGood = new File(dir, WBS_FILENAME).isFile();
+            } else {
+                workingDirIsGood = dir.isDirectory();
+            }
         } catch (IOException e) {
             // do nothing.  An exception means that "workingDirIsGood" will
             // remain false, so we will display an error message below.
@@ -1084,11 +1088,7 @@ public class WBSEditor implements WindowListener, SaveListener,
             return workingDirectory;
         }
         else {
-            if (workingDirectory instanceof BridgedWorkingDirectory) {
-                showBadServerError(locationDescr);
-            } else {
-                showBadFilenameError(locationDescr);
-            }
+            showCannotOpenError(workingDirectory);
             return null;
         }
     }
@@ -1109,26 +1109,39 @@ public class WBSEditor implements WindowListener, SaveListener,
             JOptionPane.ERROR_MESSAGE);
     }
 
-    private static void showBadServerError(String url) {
-        String[] message = new String[] {
-                "The Work Breakdown Structure Editor attempted to read",
-                "project data from the following location:",
-                "        " + url,
-                "Unfortunately, this server could not be contacted.  Make",
-                "certain you are connected to the network and try again." };
-        JOptionPane.showMessageDialog(null, message,
-                "Could not Open Project Files", JOptionPane.ERROR_MESSAGE);
+
+    private static void showCannotOpenError(WorkingDirectory workingDirectory) {
+        showCannotOpenError(workingDirResKey(workingDirectory),
+            workingDirectory.getDescription());
+    }
+    private static void showCannotOpenError(String location) {
+        showCannotOpenError(workingDirResKey(location), location);
+    }
+    private static void showCannotOpenError(String resKey, String description) {
+        String title = resources.getString("Errors.Cannot_Open.Title");
+        String[] message = resources.formatStrings("Errors.Cannot_Open."
+                + resKey + "_FMT", description);
+        JOptionPane.showMessageDialog(null, message, title,
+            JOptionPane.ERROR_MESSAGE);
     }
 
-    private static void showBadFilenameError(String filename) {
-        String[] message = new String[] {
-                "The Work Breakdown Structure Editor attempted to open",
-                "project data located in the directory:",
-                "        " + filename,
-                "Unfortunately, this directory could not be found.  You",
-                "may need to map a network drive to edit this data." };
-        JOptionPane.showMessageDialog(null, message,
-                "Could not Open Project Files", JOptionPane.ERROR_MESSAGE);
+    String workingDirResKey() {
+        return workingDirResKey(workingDirectory);
+    }
+
+    private static String workingDirResKey(String location) {
+        if (location.startsWith("http")) return "Server";
+        else if (location.endsWith(".zip")) return "Zip";
+        else return "Dir";
+    }
+
+    private static String workingDirResKey(Object workingDirectory) {
+        if (workingDirectory instanceof BridgedWorkingDirectory)
+            return "Server";
+        else if (workingDirectory instanceof CompressedWorkingDirectory)
+            return "Zip";
+        else
+            return "Dir";
     }
 
     private static class LockMessageDispatcher implements LockMessageHandler {
@@ -1269,6 +1282,9 @@ public class WBSEditor implements WindowListener, SaveListener,
 
     public static void main(String args[]) {
         ExternalLocationMapper.getInstance().loadDefaultMappings();
+        RuntimeUtils.autoregisterPropagatedSystemProperties();
+        for (String prop : PROPS_TO_PROPAGATE)
+            RuntimeUtils.addPropagatedSystemProperty(prop, null);
 
         String[] locations = args;
 
@@ -1284,6 +1300,12 @@ public class WBSEditor implements WindowListener, SaveListener,
 
         new Timer(DAY_MILLIS, new UsageLogAction()).start();
     }
+
+    private static final String[] PROPS_TO_PROPAGATE = {
+        TeamServerSelector.DEFAULT_TEAM_SERVER_PROPERTY,
+        CustomColumnManager.SYS_PROP_NAME,
+        "teamdash.wbs.owner"
+    };
 
 
     private static class UsageLogAction implements ActionListener {
