@@ -1,4 +1,4 @@
-// Copyright (C) 2005-2010 Tuma Solutions, LLC
+// Copyright (C) 2005-2012 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -328,6 +328,8 @@ public class FileUtils {
      *                by a terminal "/" character on the <code>name</code>
      *                parameter.</li>
      *                </ul>
+     *                As of version 1.14.2, the filter can be null to indicate
+     *                that all files and directories should be included.
 
      * @return a list of filenames in and underneath the given directory that
      *     match the filter.  the forward slash will be used as a directory
@@ -352,9 +354,9 @@ public class FileUtils {
             String name = prefix + f.getName();
             if (f.isDirectory()) {
                 name = name + "/";
-                if (filter.accept(baseDir, name))
+                if (filter == null || filter.accept(baseDir, name))
                     listFilesRecursively(result, baseDir, filter, f, name);
-            } else if (filter.accept(baseDir, name)) {
+            } else if (filter == null || filter.accept(baseDir, name)) {
                 result.add(name);
             }
         }
