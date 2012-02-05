@@ -616,6 +616,10 @@ public class TeamProject implements WBSFilenameConstants {
         return true;
     }
 
+    public long getFileModificationTime() {
+        return fileModTime;
+    }
+
     private void setCreatedWithVersionAttribute(WBSModel model) {
         try {
             String version = TeamProject.class.getPackage()

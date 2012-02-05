@@ -315,7 +315,7 @@ public class WBSEditor implements WindowListener, SaveListener,
             teamTimePanel.setShowBalancedBar(false);
         teamTimePanel.setShowRemainingWork(showActualData == true);
 
-        changeHistory = new ChangeHistory(changeHistoryFile);
+        initializeChangeHistory();
 
         try {
             new MacOSXWBSHelper(this);
@@ -1357,6 +1357,31 @@ public class WBSEditor implements WindowListener, SaveListener,
     public boolean isDirty() {
         return this.dirty;
     }
+
+    private void initializeChangeHistory() {
+        changeHistory = new ChangeHistory(changeHistoryFile);
+
+        if (!(workingDirectory instanceof CompressedWorkingDirectory)) {
+            // If some team members open the WBS with an older version of the
+            // WBS Editor, change history entries will not be generated when
+            // they save. On startup, check for this condition and assign a new
+            // change history UID to the current state of the WBS.
+            //
+            // (Note that we don't need to test for this with a
+            // CompressedWorkingDirectory because only the new version of the
+            // WBS Editor can open those;  and because the nature of the
+            // "Save As" operation often creates file modification timestamps
+            // that are out of order.)
+            Entry lastChangeHistoryEntry = changeHistory.getLastEntry();
+            long lastChangeHistoryTime = (lastChangeHistoryEntry == null ? 0
+                    : lastChangeHistoryEntry.getTimestamp().getTime());
+            long lastFileModTime = teamProject.getFileModificationTime();
+            long diff = lastFileModTime - lastChangeHistoryTime;
+            if (diff > 6000)
+                changeHistory.addEntry("Various individuals");
+        }
+    }
+
 
     public static void main(String args[]) {
         ExternalLocationMapper.getInstance().loadDefaultMappings();
