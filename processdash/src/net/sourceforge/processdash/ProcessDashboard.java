@@ -1386,6 +1386,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         try {
             if (osHelper != null) osHelper.dispose();
             SystemTrayManagement.getIcon().dispose();
+            UserNotificationManager.getInstance().maybeHideNotifications();
             setVisible(false);
 
             logger.fine("Backing up data directory");
