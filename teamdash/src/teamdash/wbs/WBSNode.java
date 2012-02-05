@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Tuma Solutions, LLC
+// Copyright (C) 2002-2012 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -373,10 +373,18 @@ public class WBSNode implements Cloneable {
 
     /** Make a deep copy of a list of WBSNodes */
     public static List cloneNodeList(List nodesToCopy) {
+        return cloneNodeList(nodesToCopy, null);
+    }
+
+    /** Make a deep copy of a list of WBSNodes, possibly changing the model */
+    public static List cloneNodeList(List nodesToCopy, WBSModel newModel) {
         List result = new ArrayList();
         Iterator i = nodesToCopy.iterator();
-        while (i.hasNext())
-            result.add(((WBSNode) i.next()).clone());
+        while (i.hasNext()) {
+            WBSNode node = (WBSNode) ((WBSNode) i.next()).clone();
+            if (newModel != null) node.wbsModel = newModel;
+            result.add(node);
+        }
         return result;
     }
 

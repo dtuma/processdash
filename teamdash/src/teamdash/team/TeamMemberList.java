@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Tuma Solutions, LLC
+// Copyright (C) 2002-2012 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -206,6 +206,10 @@ public class TeamMemberList extends AbstractTableModel implements EffortCalendar
         fireTableRowsUpdated(0, getRowCount()-1);
     }
 
+    public void resetWeekOffset() {
+        setWeekOffset(getDefaultWeekOffset());
+    }
+
     public void setDirty(boolean dirty) {
         isDirty = dirty;
     }
@@ -269,6 +273,7 @@ public class TeamMemberList extends AbstractTableModel implements EffortCalendar
     public void copyFrom(TeamMemberList newMembers) {
         this.teamMembers = copyTeamMemberList(newMembers.getTeamMembers());
         this.startOnDayOfWeek = newMembers.startOnDayOfWeek;
+        this.referenceDate = newMembers.referenceDate;
         recalcZeroDay();
         fireTableDataChanged();
     }

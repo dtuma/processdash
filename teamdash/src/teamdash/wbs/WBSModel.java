@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Tuma Solutions, LLC
+// Copyright (C) 2002-2012 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -151,6 +151,10 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
         loadXML(e);
         validator = new WBSModelValidator(this);
         validator.recalc();
+    }
+
+    public WBSModelValidator getValidator() {
+        return validator;
     }
 
     /** Add a node to the end of this work breakdown structure.
@@ -840,7 +844,7 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
     /** Make this WBS be a copy of the given WBS.
      */
     public void copyFrom(WBSModel w) {
-        wbsNodes = (ArrayList) WBSNode.cloneNodeList(w.wbsNodes);
+        wbsNodes = (ArrayList) WBSNode.cloneNodeList(w.wbsNodes, this);
         recalcRows(false);
         fireTableDataChanged();
     }

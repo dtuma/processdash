@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Tuma Solutions, LLC
+// Copyright (C) 2002-2012 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -437,7 +437,7 @@ public class TeamMemberListTable extends JTable {
      * Set the customization hyperlink to have text matching the first weekly
      * date column label
      */
-    private void updateCustomizationHyperlinkText() {
+    void updateCustomizationHyperlinkText() {
         String text = getColumnName(TeamMemberList.FIRST_WEEK_COLUMN + 1);
         String html = "<html><font color='blue'><u>" + text
                 + "</u></font></html>";

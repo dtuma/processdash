@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2011 Tuma Solutions, LLC
+// Copyright (C) 2002-2012 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -267,7 +267,8 @@ public class WBSTabPanel extends JLayeredPane
     protected void removeTab(int index) {
         tabProperties.remove(index);
         tableColumnModels.remove(index);
-        tabbedPane.setSelectedIndex(index-1);
+        if (tabbedPane.getSelectedIndex() == index)
+            tabbedPane.setSelectedIndex(index-1);
         tabbedPane.remove(index);
     }
 
@@ -955,6 +956,19 @@ public class WBSTabPanel extends JLayeredPane
             e.initCause(exception);
             throw e;
         }
+    }
+
+    /**
+     * Delete all of our custom tabs, and load replacement tabs from a file.
+     */
+    public void replaceCustomTabs(File file) throws LoadTabsException {
+        if (isTabEditable(tabbedPane.getSelectedIndex()))
+            tabbedPane.setSelectedIndex(0);
+        for (int i = tabbedPane.getTabCount()-1; i-- > 0; ) {
+            if (isTabEditable(i))
+                removeTab(i);
+        }
+        loadTabs(file);
     }
 
     /**

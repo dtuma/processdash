@@ -98,6 +98,7 @@ import teamdash.SaveListener;
 import teamdash.team.TeamMember;
 import teamdash.team.TeamMemberListEditor;
 import teamdash.team.TeamMemberList.InitialsListener;
+import teamdash.wbs.ChangeHistory.Entry;
 import teamdash.wbs.WBSTabPanel.LoadTabsException;
 import teamdash.wbs.columns.CustomColumnManager;
 import teamdash.wbs.columns.PercentCompleteColumn;
@@ -445,8 +446,7 @@ public class WBSEditor implements WindowListener, SaveListener,
             taskTypes.add(phase + " Task");
         taskTypes.add("PSP Task");
 
-        model.getRoot().setAttribute(
-            WBSModelValidator.VALID_TASK_TYPES_ATTR_NAME, taskTypes);
+        model.getValidator().setValidTaskTypes(taskTypes);
         model.fireTableCellUpdated(0, 0);
     }
 
@@ -456,6 +456,9 @@ public class WBSEditor implements WindowListener, SaveListener,
 
     public void setIndivMode(boolean indivMode) {
         this.indivMode = indivMode;
+
+        if (replaceAction != null)
+            replaceAction.setEnabled(!indivMode && !readOnly);
     }
 
     private void setSyncURL(String syncURL) {
@@ -531,7 +534,8 @@ public class WBSEditor implements WindowListener, SaveListener,
         readOnly = true;
         tabPanel.setReadOnly(true);
         saveAction.setEnabled(false);
-        importFromCsvAction.setEnabled(false);
+        if (replaceAction != null) replaceAction.setEnabled(false);
+        if (importFromCsvAction != null) importFromCsvAction.setEnabled(false);
 
         String title = resources.getString("Errors.Lost_Lock.Title");
         Object[] message = resources.getStrings("Errors.Lost_Lock.Message");
@@ -627,7 +631,7 @@ public class WBSEditor implements WindowListener, SaveListener,
 
         return result;
     }
-    private Action saveAction, importFromCsvAction;
+    private Action saveAction, replaceAction, importFromCsvAction;
     private JMenu buildFileMenu(Action[] fileActions) {
         JMenu result = new JMenu("File");
         result.setMnemonic('F');
@@ -637,6 +641,7 @@ public class WBSEditor implements WindowListener, SaveListener,
             WBSOpenFileAction openAction = new WBSOpenFileAction(frame);
             result.add(new WBSSaveAsAction(this, openAction));
             result.add(openAction);
+            result.add(replaceAction = new WBSReplaceAction(this, openAction));
             result.addSeparator();
             result.add(importFromCsvAction = new ImportFromCsvAction());
         }
@@ -729,6 +734,79 @@ public class WBSEditor implements WindowListener, SaveListener,
         return result;
     }
 
+    void replaceDataFrom(TeamProject srcProject) {
+        if (!SwingUtilities.isEventDispatchThread())
+            // the replacement actions below will fire many events that trigger
+            // GUI repaints.  As a result, we must execute this logic on the
+            // Swing event dispatch thread to avoid thread safety issues.
+            throw new IllegalStateException();
+
+        File srcDir = srcProject.getStorageDirectory();
+
+        replaceTeamMemberList(srcProject);
+        replaceWorkflows(srcProject);
+        replaceMilestones(srcProject);
+        replaceWBS(srcProject);
+        replaceTabs(srcDir);
+        appendReplacementChange(srcDir);
+
+        if (isMode(MODE_HAS_MASTER))
+            MasterWBSUtil.mergeFromMaster(teamProject);
+        if (reverseSynchronizer != null)
+            reverseSynchronizer.run();
+
+        setDirty(true);
+    }
+
+    private void replaceTeamMemberList(TeamProject src) {
+        teamProject.getTeamMemberList().copyFrom(src.getTeamMemberList());
+        if (teamListEditor != null)
+            teamListEditor.origListWasReplaced();
+    }
+
+    private void replaceWorkflows(TeamProject src) {
+        if (workflowEditor != null) {
+            workflowEditor.stopEditing();
+            workflowEditor.undoList.clear();
+        }
+        teamProject.getWorkflows().copyFrom(src.getWorkflows());
+    }
+
+    private void replaceMilestones(TeamProject src) {
+        if (milestonesEditor != null) {
+            milestonesEditor.stopEditing();
+            milestonesEditor.undoList.clear();
+        }
+        teamProject.getMilestones().copyFrom(src.getMilestones());
+    }
+
+    private void replaceWBS(TeamProject src) {
+        tabPanel.stopCellEditing();
+        tabPanel.undoList.clear();
+
+        WBSModel thisProjectWbs = teamProject.getWBS();
+        String rootNodeName = thisProjectWbs.getRoot().getName();
+        thisProjectWbs.copyFrom(src.getWBS());
+        thisProjectWbs.getRoot().setName(rootNodeName);
+    }
+
+    private void replaceTabs(File srcDir) {
+        try {
+            File tabsFile = new File(srcDir, CUSTOM_TABS_FILE);
+            if (tabsFile.isFile())
+                tabPanel.replaceCustomTabs(tabsFile);
+        } catch (LoadTabsException e) {}
+    }
+
+    private void appendReplacementChange(File srcDir) {
+        // in the change history for this WBS, add an entry to reflect that
+        // we set the state equal to the last change in the replacement data.
+        ChangeHistory hist = new ChangeHistory(srcDir);
+        Entry e = hist.getLastEntry();
+        if (e != null)
+            changeHistory.addEntry(e.getUid(), owner);
+    }
+
     private boolean save() {
         if (readOnly)
             return true;
@@ -743,7 +821,7 @@ public class WBSEditor implements WindowListener, SaveListener,
         return saver.saveResult;
     }
 
-    private static JDialog createWaitDialog(JFrame frame, String message) {
+    static JDialog createWaitDialog(JFrame frame, String message) {
         JDialog dialog = new JDialog(frame, "Please Wait", true);
         dialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
         dialog.getContentPane().add(buildWaitContents(message));

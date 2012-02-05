@@ -61,7 +61,12 @@ public class WBSOpenFileAction extends AbstractAction {
     }
 
     private File promptForFile() {
+        return promptForExistingFile(resources.getString("Dialog_Title"));
+    }
+
+    File promptForExistingFile(String dialogTitle) {
         JFileChooser fc = makeFileChooser();
+        fc.setDialogTitle(dialogTitle);
         while (true) {
             int userChoice = fc.showOpenDialog(parentFrame);
             lastDirectory = fc.getCurrentDirectory();
@@ -137,7 +142,6 @@ public class WBSOpenFileAction extends AbstractAction {
     JFileChooser makeFileChooser() {
         JFileChooser fc = new JFileChooser();
         fc.setAcceptAllFileFilterUsed(false);
-        fc.setDialogTitle(resources.getString("Dialog_Title"));
         fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
         fc.setFileFilter(new ExampleFileFilter("zip", resources
                 .getString("File_Type_Description")));

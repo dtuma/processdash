@@ -96,8 +96,12 @@ public class ChangeHistory {
     }
 
     public Entry addEntry(String userName) {
+        return addEntry(createUid(), userName);
+    }
+
+    public Entry addEntry(String uid, String userName) {
         Element newTag = xml.getOwnerDocument().createElement(CHANGE_ENTRY_TAG);
-        newTag.setAttribute(UID_ATTR, createUid());
+        newTag.setAttribute(UID_ATTR, uid);
         newTag.setAttribute(USER_ATTR, userName);
         xml.appendChild(newTag);
 
@@ -112,6 +116,11 @@ public class ChangeHistory {
     }
 
     public void write(File f) throws IOException {
+        // if we were given a directory, write to the change history file there
+        if (f.isDirectory())
+            f = new File(f, WBSFilenameConstants.CHANGE_HISTORY_FILE);
+
+        // write the XML to the file
         BufferedWriter out = new BufferedWriter(
                 new RobustFileWriter(f, "utf-8"));
         getAsXML(out);
@@ -124,6 +133,10 @@ public class ChangeHistory {
     }
 
     private static Element readChangeHistoryFromFile(File f) {
+        // if we were given a directory, examine the change history file there
+        if (f.isDirectory())
+            f = new File(f, WBSFilenameConstants.CHANGE_HISTORY_FILE);
+
         // try reading the file if it exists
         if (f.isFile()) {
             try {

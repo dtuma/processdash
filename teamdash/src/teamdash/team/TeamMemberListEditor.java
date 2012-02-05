@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Tuma Solutions, LLC
+// Copyright (C) 2002-2012 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -96,6 +96,17 @@ public class TeamMemberListEditor implements WindowListener, TableModelListener 
         frame.setVisible(false);
     }
 
+    public void origListWasReplaced() {
+        // revert back to the contents of the "orig" list, and hide this window
+        cancel();
+        hide();
+
+        // scroll the week offset to the start of the new schedule
+        teamMemberList.resetWeekOffset();
+        // notify the customization hyperlink so it can update its date
+        ((TeamMemberListTable) table).updateCustomizationHyperlinkText();
+    }
+
     private boolean checkForErrors() {
         Object[] errors = teamMemberList.getErrors();
         if (errors == null) return true;
@@ -161,6 +172,7 @@ public class TeamMemberListEditor implements WindowListener, TableModelListener 
             table.getCellEditor().stopCellEditing();
         // revert back to the original version of the team member list.
         teamMemberList.copyFrom(orig);
+        ((TeamMemberListTable) table).updateCustomizationHyperlinkText();
 
         teamMemberList.setDirty(false);
 

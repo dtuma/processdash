@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Tuma Solutions, LLC
+// Copyright (C) 2002-2012 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -24,6 +24,7 @@
 
 package teamdash.wbs;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Set;
 import java.util.StringTokenizer;
@@ -64,9 +65,15 @@ public class WBSModelValidator implements TableModelListener {
 
     private Collection validTaskTypes;
 
+    public Collection getValidTaskTypes() {
+        return validTaskTypes;
+    }
+
+    public void setValidTaskTypes(Collection validTaskTypes) {
+        this.validTaskTypes = new ArrayList(validTaskTypes);
+    }
+
     public void recalc() {
-        validTaskTypes = (Collection) wbsModel.getRoot().getAttribute(
-            VALID_TASK_TYPES_ATTR_NAME);
         recalc(wbsModel.getRoot());
     }
 
