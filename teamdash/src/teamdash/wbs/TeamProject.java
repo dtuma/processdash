@@ -36,15 +36,16 @@ import java.util.HashSet;
 import java.util.Properties;
 import java.util.Set;
 
-import net.sourceforge.processdash.tool.bridge.client.ImportDirectory;
-import net.sourceforge.processdash.tool.bridge.client.ImportDirectoryFactory;
-import net.sourceforge.processdash.util.RobustFileOutputStream;
-import net.sourceforge.processdash.util.RobustFileWriter;
-import net.sourceforge.processdash.util.XMLUtils;
-
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
+
+import net.sourceforge.processdash.tool.bridge.client.ImportDirectory;
+import net.sourceforge.processdash.tool.bridge.client.ImportDirectoryFactory;
+import net.sourceforge.processdash.util.FileUtils;
+import net.sourceforge.processdash.util.RobustFileOutputStream;
+import net.sourceforge.processdash.util.RobustFileWriter;
+import net.sourceforge.processdash.util.XMLUtils;
 
 import teamdash.team.TeamMemberList;
 
@@ -258,13 +259,16 @@ public class TeamProject implements WBSFilenameConstants {
 
     /** Open and parse an XML file. @return null on error. */
     private Element openXML(File file) {
+        InputStream in = null;
         try {
-            Document doc = XMLUtils.parse(new BufferedInputStream(
-                    new FileInputStream(file)));
+            in = new FileInputStream(file);
+            Document doc = XMLUtils.parse(new BufferedInputStream(in));
             fileModTime = Math.max(fileModTime, file.lastModified());
             return doc.getDocumentElement();
         } catch (Exception e) {
             return null;
+        } finally {
+            FileUtils.safelyClose(in);
         }
     }
 
@@ -338,9 +342,10 @@ public class TeamProject implements WBSFilenameConstants {
         try {
             in = new BufferedInputStream(in);
             p.load(in);
-            in.close();
         } catch (Exception e) {
             e.printStackTrace();
+        } finally {
+            FileUtils.safelyClose(in);
         }
     }
 
