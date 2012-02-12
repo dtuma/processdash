@@ -1,4 +1,4 @@
-// Copyright (C) 2007-2009 Tuma Solutions, LLC
+// Copyright (C) 2007-2012 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -24,6 +24,7 @@
 package net.sourceforge.processdash.ui.lib.binding;
 
 import java.awt.Container;
+import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -157,11 +158,29 @@ public class BoundForm extends BoundMap {
             c.gridx = 0; c.gridy = componentCount;
             c.anchor = GridBagConstraints.WEST;
             c.weightx = 1; c.gridwidth = 2;
+            configComponentStretch(component, c);
             c.insets = new Insets(5, 5, 5, 5);
             container.add(component, c);
         }
 
         componentCount++;
+    }
+
+    @SuppressWarnings("static-access")
+    private void configComponentStretch(JComponent component,
+            GridBagConstraints c) {
+        Dimension pref = component.getPreferredSize();
+        if (pref == null)
+            return;
+        c.weighty = pref.getHeight();
+
+        Dimension max = component.getMaximumSize();
+        if (max == null)
+            return;
+        boolean stretchX = (max.getWidth() > pref.getWidth());
+        boolean stretchY = (max.getHeight() > pref.getHeight());
+        c.fill = (stretchX ? (stretchY ? c.BOTH     : c.HORIZONTAL)
+                           : (stretchY ? c.VERTICAL : c.NONE));
     }
 
 }
