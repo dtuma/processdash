@@ -1,4 +1,4 @@
-// Copyright (C) 2000-2009 Tuma Solutions, LLC
+// Copyright (C) 2000-2012 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -40,7 +40,9 @@ import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JSeparator;
 
+import net.sourceforge.processdash.InternalSettings;
 import net.sourceforge.processdash.ProcessDashboard;
+import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.Filter;
 import net.sourceforge.processdash.hier.PropertyKey;
@@ -66,11 +68,15 @@ public class ScriptButton extends DropDownButton implements
     private static final String MORE_TEXT = Resources.getGlobalBundle()
               .getDlgString("More");
 
+    private static final String DROP_DOWN_BEHAVIOR_PREF = Settings.PREFS_PREFIX
+              + "scriptButton.clickOpensDefault";
+
     ProcessDashboard parent = null;
     Icon enabled_icon = null;
     Icon disabled_icon = null;
     String scriptFilename = null;
     String path  = null;
+    boolean clickOpensDefault = true;
     List<ScriptID> paths = null; // A list of valid script paths for the popup menu
     JMenuItem moreItem = null;
 
@@ -96,6 +102,7 @@ public class ScriptButton extends DropDownButton implements
         dash.getActiveTaskModel().addPropertyChangeListener(this);
         dash.getHierarchy().addHierarchyListener(this);
         ScriptEnumerator.addListener(this);
+        InternalSettings.addPropertyChangeListener(DROP_DOWN_BEHAVIOR_PREF, this);
         updateAll();
     }
 
@@ -107,6 +114,10 @@ public class ScriptButton extends DropDownButton implements
     }
 
     private void updateAll() {
+        String clickPref = Settings.getVal(DROP_DOWN_BEHAVIOR_PREF);
+        clickOpensDefault = "true".equals(clickPref);
+        setMainButtonBehavior(clickOpensDefault ? RUN_FIRST_MENU_OPTION
+                : OPEN_DROP_DOWN_MENU);
         PropertyKey currentPhase = parent.getActiveTaskModel().getNode();
         path = (currentPhase == null ? null : currentPhase.path());
         setPaths(ScriptEnumerator.getScripts(parent, currentPhase));

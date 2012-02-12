@@ -110,6 +110,7 @@
   <mapID target="UsingProbeTool.regression" url="Topics/Planning/UsingProbeTool.html#regression" />
   <mapID target="UsingSizeEstimatingTemplate.reusedObjects" url="Topics/Planning/UsingSizeEstimatingTemplate.html#reusedObjects" />
   <mapID target="AccessingScripts.pullDown" url="Topics/Execution/AccessingScripts.html#pullDown" />
+  <mapID target="AccessingScripts.clickOpensDefault" url="Topics/Execution/AccessingScripts.html#clickOpensDefault" />
   <mapID target="AccessingScripts.scriptBrowser" url="Topics/Execution/AccessingScripts.html#scriptBrowser" />
   <mapID target="UsingProbeTool.significance" url="Topics/Planning/UsingProbeTool.html#significance" />
   <mapID target="UsingSizeEstimatingTemplate.time" url="Topics/Planning/UsingSizeEstimatingTemplate.html#time" />
