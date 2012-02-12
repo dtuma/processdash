@@ -1,4 +1,4 @@
-// Copyright (C) 2000-2009 Tuma Solutions, LLC
+// Copyright (C) 2000-2012 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -26,17 +26,24 @@ package net.sourceforge.processdash;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.Enumeration;
+import java.util.HashSet;
 import java.util.Properties;
+import java.util.Set;
 import java.util.StringTokenizer;
+import java.util.prefs.Preferences;
 
 import net.sourceforge.processdash.security.DashboardPermission;
 
 public class Settings {
 
     public static final String SYS_PROP_PREFIX = Settings.class.getName() + ".";
+    public static final String PREFS_PREFIX = "userPref.";
     public static final String READ_ONLY = "READ_ONLY";
     protected static Properties settings = null;
     protected static Properties serializable = null, defaults = null;
+    protected static Preferences userPreferences =
+        Preferences.userNodeForPackage(Settings.class).node("userPrefs");
+    static Set<String> legacyPrefNames = new HashSet<String>();
     protected static String homedir = null;
     static boolean readOnly;
     static boolean followMode;
@@ -73,6 +80,9 @@ public class Settings {
                 public String run() {
                     return System.getProperty(SYS_PROP_PREFIX + name);
                 }});
+
+        if (result == null && isPrefName(name))
+            result = getPrefImpl(name);
 
         if (result != null)
             return result;
@@ -146,6 +156,18 @@ public class Settings {
                 return result.substring(0, result.length() - 1);
             else
                 return result;
+    }
+
+    protected static String getPrefImpl(String name) {
+        if (name.startsWith(PREFS_PREFIX))
+            name = name.substring(PREFS_PREFIX.length());
+        return userPreferences.get(name, null);
+    }
+
+    protected static boolean isPrefName(String name) {
+        return name.startsWith(PREFS_PREFIX)
+            || name.startsWith("autoUpdate.")
+            || legacyPrefNames.contains(name);
     }
 
     public static Properties getSettings() {

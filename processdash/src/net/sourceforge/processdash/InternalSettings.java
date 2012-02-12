@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2010 Tuma Solutions, LLC
+// Copyright (C) 2001-2012 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -33,6 +33,7 @@ import java.io.Writer;
 import java.net.URL;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -86,6 +87,7 @@ public class InternalSettings extends Settings {
                 systemDefaults.load(in);
                 in.close();
                 filterOperatingSystemSpecificSettings(systemDefaults);
+                addLegacyPrefNames(systemDefaults.getProperty("legacyUserPrefs", ""));
                 defaults = systemDefaults;
             }
 
@@ -174,6 +176,13 @@ public class InternalSettings extends Settings {
         else
             return "unix";
     }
+    private static void addLegacyPrefNames(String spec) {
+        if (spec != null) {
+            String[] legacyPrefs = spec.trim().split("\\s+");
+            legacyPrefNames.addAll(Arrays.asList(legacyPrefs));
+            legacyPrefNames.remove("");
+        }
+    }
     public static final String getSettingsFilename() {
         return "pspdash.ini";
     }
@@ -239,8 +248,12 @@ public class InternalSettings extends Settings {
             return;
 
         String oldValue = getVal(name);
+        boolean needsSave = true;
 
-        if (value == null) {
+        if (isPrefName(name)) {
+            needsSave = setPrefImpl(name, value);
+
+        } else if (value == null) {
             fsettings.remove(name);
             // revert back to the original default value
             value = fsettings.getProperty(name);
@@ -255,12 +268,32 @@ public class InternalSettings extends Settings {
         if (System.getProperty(propName) != null)
             System.getProperties().remove(propName);
 
-        serializable = null;
-        dirty = true;
+        if (needsSave) {
+            serializable = null;
+            dirty = true;
 
-        saveSettings();
+            saveSettings();
+        }
 
         maybeFirePropertyChange(name, oldValue, value);
+    }
+
+    private static boolean setPrefImpl(String name, String value) {
+        if (name.startsWith(PREFS_PREFIX))
+            name = name.substring(PREFS_PREFIX.length());
+        if (value == null)
+            userPreferences.remove(name);
+        else
+            userPreferences.put(name, value);
+
+        if (fsettings.containsKey(name)) {
+            // if this is a legacy preference that was recorded in the
+            // pspdash.ini file at some time in the past, remove it.
+            fsettings.remove(name);
+            return true;
+        } else {
+            return false;
+        }
     }
 
     public static void setDefaultValue(String name, String defaultValue) {
