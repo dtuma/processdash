@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Tuma Solutions, LLC
+// Copyright (C) 2002-2012 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -30,6 +30,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.TableColumn;
@@ -65,6 +67,8 @@ public class TeamMemberColumnManager
     /** A list of AffectedTableColumnModel objects for each affected
      * TableColumnModel */
     private List affectedColumnModels;
+    /** A list of objects that wish to be notified about column changes */
+    private List<ChangeListener> listeners;
 
 
 
@@ -75,6 +79,7 @@ public class TeamMemberColumnManager
         this.planTimeColumnList = new ArrayList<TeamMemberTimeColumn>();
         this.actualTimeColumnList = new ArrayList<TeamMemberActualTimeColumn>();
         this.affectedColumnModels = new ArrayList();
+        this.listeners = new ArrayList();
 
         createColumns();
 
@@ -92,6 +97,16 @@ public class TeamMemberColumnManager
     /** Get a list of the TeamMemberActualTimeColumn objects for each team member */
     public List<TeamMemberActualTimeColumn> getActualTimeColumns() {
         return Collections.unmodifiableList(actualTimeColumnList);
+    }
+
+    /** Register a listener that should be notified about column changes */
+    public void addTeamMemberColumnListener(ChangeListener l) {
+        listeners.add(l);
+    }
+
+    /** Unregister a column change listener */
+    public void removeTeamMemberColumnListener(ChangeListener l) {
+        listeners.remove(l);
     }
 
 
@@ -142,6 +157,11 @@ public class TeamMemberColumnManager
             obsoleteColumns.addAll(obsoleteActualTimeColumns);
             dataModel.addRemoveDataColumns(newColumns, obsoleteColumns);
         }
+
+        // alert any listeners that have registered interest
+        ChangeEvent e = new ChangeEvent(this);
+        for (ChangeListener l : listeners)
+            l.stateChanged(e);
     }
 
 

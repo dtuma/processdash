@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Tuma Solutions, LLC
+// Copyright (C) 2002-2012 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -32,6 +32,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.table.TableCellRenderer;
 
 import teamdash.team.TeamMember;
@@ -51,7 +53,7 @@ import teamdash.wbs.WBSNode;
 /** This column manages the calculation and interrelationship of several
  * tightly related columns dealing with team time.
  */
-public class TeamTimeColumn extends TopDownBottomUpColumn {
+public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListener {
 
     public static final String COLUMN_ID = "Time";
 
@@ -79,6 +81,8 @@ public class TeamTimeColumn extends TopDownBottomUpColumn {
         m.addDataColumn(resourcesColumn = new ResourcesColumn());
         m.addDataColumn(noErrorColumn = new TeamTimeNoErrorColumn());
         m.addDataColumn(unassignedTimeColumn = new UnassignedTimeColumn(m));
+
+        m.addTeamMemberColumnListener(this);
     }
 
 
@@ -88,6 +92,15 @@ public class TeamTimeColumn extends TopDownBottomUpColumn {
         else if ("Task Size Units".equals(ID)) {
             unitsColumn = columnNumber;
             teamMemberColumns = dataModel.getTeamMemberColumnIDs();
+        }
+    }
+
+    // messaged when the list of team member columns changes
+    public void stateChanged(ChangeEvent e) {
+        IntList newCols = dataModel.getTeamMemberColumnIDs();
+        if (!newCols.equals(teamMemberColumns)) {
+            teamMemberColumns = newCols;
+            dataModel.columnChanged(this);
         }
     }
 

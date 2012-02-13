@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2011 Tuma Solutions, LLC
+// Copyright (C) 2002-2012 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.Set;
 
 import javax.swing.Timer;
+import javax.swing.event.ChangeListener;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.AbstractTableModel;
@@ -314,6 +315,12 @@ public class DataTableModel extends AbstractTableModel {
         return result;
     }
 
+    /** Register a listener that should be notified about team member column
+     * changes */
+    public void addTeamMemberColumnListener(ChangeListener l) {
+        memberColumnManager.addTeamMemberColumnListener(l);
+    }
+
     /** Add all custom columns to the given column model. */
     public void addCustomColumns(TableColumnModel columnModel) {
         customColumnManager.addColumnsToColumnModel(columnModel);
@@ -331,6 +338,7 @@ public class DataTableModel extends AbstractTableModel {
         addDataColumn(new WBSNodeColumn(wbsModel));
         SizeTypeColumn.createSizeColumns(this, teamProcess);
         addDataColumn(new PhaseColumn(this, teamProcess));
+        memberColumnManager = new TeamMemberColumnManager(this, teamList);
         addDataColumn(new TaskSizeColumn(this, teamProcess));
         addDataColumn(new TaskSizeUnitsColumn(this, teamProcess));
         addDataColumn(new TeamTimeColumn(this));
@@ -341,7 +349,6 @@ public class DataTableModel extends AbstractTableModel {
                 teamProcess.getIconMap()));
         addDataColumn(new NotesColumn(currentUser));
         addDataColumn(new PlanTimeWatcher(this));
-        memberColumnManager = new TeamMemberColumnManager(this, teamList);
         customColumnManager = new CustomColumnManager(this, teamProcess
                 .getProcessID());
     }

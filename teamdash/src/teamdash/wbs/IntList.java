@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Tuma Solutions, LLC
+// Copyright (C) 2002-2012 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -112,6 +112,34 @@ public class IntList {
     public int[] getAsArray() {
         int[] result = new int[length];
         System.arraycopy(contents, 0, result, 0, length);
+        return result;
+    }
+
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this)
+            return true;
+
+        if (obj instanceof IntList) {
+            IntList that = (IntList) obj;
+            if (this.length != that.length)
+                return false;
+            for (int i = length;  i-- > 0; )
+                if (this.get(i) != that.get(i))
+                    return false;
+            return true;
+        }
+
+        return false;
+    }
+
+
+    @Override
+    public int hashCode() {
+        int result = 1;
+        for (int i = 0;  i < length;  i++)
+            result = 31 * result + contents[i];
         return result;
     }
 
