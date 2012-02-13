@@ -1,4 +1,4 @@
-// Copyright (C) 2006-2011 Tuma Solutions, LLC
+// Copyright (C) 2006-2012 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -36,6 +36,7 @@ import javax.swing.ListSelectionModel;
 import net.sourceforge.processdash.FileBackupManager;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.ui.lib.JOptionPaneClickHandler;
+import net.sourceforge.processdash.util.FileUtils;
 
 
 public class InstanceLauncherFactory {
@@ -104,6 +105,19 @@ public class InstanceLauncherFactory {
         }
 
         if (dirs == null || dirs.isEmpty()) {
+            // No data dirs found?  See if the dir contains any files at all.
+            String[] files = dir.list();
+            if (files != null && files.length == 0) {
+                // if the directory is completely empty, offer to create a
+                // new dataset there.
+                if (offerToCreateNewDataset(comp, dir))
+                    return new DirectoryInstanceLauncher(dir);
+                else
+                    return null;
+            }
+
+            // If the directory is not empty, show an error message stating
+            // that no dashboard data was found.
             JOptionPane.showMessageDialog(comp,
                     resources.formatStrings("Errors.Dir.No_Data_Found_FMT",
                             dir.getAbsolutePath()),
@@ -131,6 +145,38 @@ public class InstanceLauncherFactory {
             return null;
         else
             return new DirectoryInstanceLauncher(dir);
+    }
+
+    private boolean offerToCreateNewDataset(Component comp, File dir) {
+        String title = resources.getString("Create.Dialog_Title");
+        String[] message = resources.formatStrings("Create.Message_FMT",
+                dir.getPath());
+        String team = resources.getString("Create.Team_Option");
+        String personal = resources.getString("Create.Personal_Option");
+        String cancel = resources.getString("Cancel");
+        int userChoice = JOptionPane.showOptionDialog(comp, message, title,
+            JOptionPane.OK_OPTION, JOptionPane.QUESTION_MESSAGE, null,
+            new Object[] { team, personal, cancel }, cancel);
+
+        if (userChoice == 0) {
+            // new team dataset
+            copyFile("teamdash.ini", dir, "pspdash.ini");
+            copyFile("teamicon.ico", dir, "icon.ico");
+            return true;
+        } else if (userChoice == 1) {
+            // new personal dataset
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    private void copyFile(String resourceName, File dir, String filename) {
+        try {
+            File dest = new File(dir, filename);
+            FileUtils.copyFile(InstanceLauncherFactory.class
+                    .getResourceAsStream(resourceName), dest);
+        } catch (IOException ioe) {}
     }
 
     private DashboardInstance getZipLauncher(Component comp, File f) {
