@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2011 Tuma Solutions, LLC
+// Copyright (C) 2002-2012 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -56,6 +56,7 @@ import net.sourceforge.processdash.net.http.TinyCGIException;
 import net.sourceforge.processdash.net.http.WebServer;
 import net.sourceforge.processdash.ui.lib.HTMLTableWriter;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
+import net.sourceforge.processdash.util.FastDateFormat;
 import net.sourceforge.processdash.util.FormatUtil;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.StringUtils;
@@ -67,6 +68,7 @@ import net.sourceforge.processdash.util.StringUtils;
 public class EVWeekReport extends TinyCGIBase {
 
     private static final String EFF_DATE_PARAM = "eff";
+    private static final String ADJ_EFF_DATE_PARAM = "adjustEff";
     private static final String SPLIT_PARAM = "split";
 
     // Used to indicate if a task is behind, ahead or on schedule
@@ -116,24 +118,30 @@ public class EVWeekReport extends TinyCGIBase {
             effDate = new Date(Long.parseLong(effDateParam));
         } catch (Exception e) {}
 
-        if (effDate == null) {
+        if (effDate == null || parameters.containsKey(ADJ_EFF_DATE_PARAM)) {
             // if the user hasn't specified an effective date, then use the
             // current time to round the effective date to the nearest week.
             // With a Sunday - Saturday schedule, the following line will show
             // the report for the previous week through Tuesday, and will
             // start showing the next week's report on Wednesday.
-            Date now = EVCalculator.getFixedEffectiveDate();
+            Date now = effDate;
+            if (now == null) now = EVCalculator.getFixedEffectiveDate();
             if (now == null) now = new Date();
+            int dayOffset = (effDate == null ? 3 : 7);
             Date effDateTime = new Date(now.getTime()
-                    + EVSchedule.WEEK_MILLIS * 3 / 7);
+                    + EVSchedule.WEEK_MILLIS * dayOffset / 7);
 
             // now, identify the schedule boundary that precedes the effective
             // date and time; use that as the effective date.
             Date scheduleEnd = schedule.getLast().getEndDate();
             Date firstPeriodEnd = schedule.get(1).getEndDate();
-            if (effDateTime.compareTo(scheduleEnd) >= 0)
-                effDate = scheduleEnd;
-            else if (effDateTime.compareTo(firstPeriodEnd) <= 0)
+            if (effDateTime.compareTo(scheduleEnd) >= 0) {
+                if (effDate == null)
+                    effDate = scheduleEnd;
+                else
+                    effDate = extrapolateWeekAfterScheduleEnd(effDateTime,
+                        scheduleEnd);
+            } else if (effDateTime.compareTo(firstPeriodEnd) <= 0)
                 effDate = firstPeriodEnd;
             else
                 effDate = schedule.getPeriodStart(effDateTime);
@@ -149,6 +157,13 @@ public class EVWeekReport extends TinyCGIBase {
             purpose = SPLIT_REPORT;
         writeReport(taskListName, evModel, effDate, settings, taskFilter,
             purpose);
+    }
+
+    private Date extrapolateWeekAfterScheduleEnd(Date effDate, Date scheduleEnd) {
+        long diff = effDate.getTime() - scheduleEnd.getTime();
+        long weeks = diff / EVSchedule.WEEK_MILLIS;
+        Date result = adjustDate(scheduleEnd, weeks * EVSchedule.WEEK_MILLIS);
+        return result;
     }
 
     private static final int PLAIN_REPORT = 0;
@@ -319,6 +334,8 @@ public class EVWeekReport extends TinyCGIBase {
                 if (lastWeek.compareTo(startDate) > 0)
                     printNavLink(lastWeek, "Previous", settings, purpose);
                 printNavLink(nextWeek, "Next", settings, purpose);
+                if (!isExporting())
+                    printGoToDateLink(effDate, schedule, settings, purpose);
             }
             out.print("</h2>\n");
 
@@ -911,20 +928,44 @@ public class EVWeekReport extends TinyCGIBase {
 
     private void printNavLink(Date effDate, String resKey,
             EVReportSettings settings, int purpose) {
+        printNavLink(Long.toString(effDate.getTime()), resKey, settings,
+            purpose, null, null);
+    }
+
+    private void printNavLink(String effDateParam, String resKey,
+            EVReportSettings settings, int purpose, String extraHtml,
+            String onClick) {
         StringBuffer href = new StringBuffer("week.class");
-        HTMLUtils.appendQuery(href, EFF_DATE_PARAM,
-                Long.toString(effDate.getTime()));
+        HTMLUtils.appendQuery(href, EFF_DATE_PARAM, effDateParam);
         HTMLUtils.appendQuery(href,
                 settings.getQueryString(EVReportSettings.PURPOSE_NAV_LINK));
         if (purpose == SPLIT_REPORT)
             HTMLUtils.appendQuery(href, SPLIT_PARAM, "t");
 
-        out.print("&nbsp;&nbsp;<span class='nav'><a href='");
+        out.print("&nbsp;&nbsp;<span class='nav'>");
+        if (extraHtml != null)
+            out.print(extraHtml);
+        out.print("<a href='");
         out.print(href);
+        if (onClick != null)
+            out.print("' onclick='" + onClick);
         out.print("'>");
         out.print(resources.getHTML(resKey));
         out.print("</a></span>");
     }
+
+
+    private void printGoToDateLink(Date effDate, EVSchedule schedule,
+            EVReportSettings settings, int purpose) {
+        Date start = schedule.get(0).getEndDate();
+        String jacsFields = "<input type='text' id='JacsOut' value='"
+                + JACS_DATE_FMT.format(effDate) + "'><input type='hidden' "
+                + "id='JacsStart' value='" + start.getTime() + "'>";
+        printNavLink("00000000", "Go_To_Date", settings, purpose, jacsFields,
+            "return PdashEV.showGoToDateCalendar(this, event)");
+    }
+    private static final FastDateFormat JACS_DATE_FMT = FastDateFormat
+            .getInstance("yyyy-MM-dd");
 
 
     private double parseTime(Object time) {
@@ -1202,7 +1243,7 @@ public class EVWeekReport extends TinyCGIBase {
 
     private void printExpansionIcon() {
         if (!isExportingToExcel())
-            out.print("<a onclick='toggleExpanded(this); return false;' " +
+            out.print("<a onclick='PdashEV.toggleExpanded(this); return false;' " +
                         "class='expIcon' href='#'></a>&nbsp;");
     }
 
@@ -1232,6 +1273,7 @@ public class EVWeekReport extends TinyCGIBase {
     static final String HEADER_HTML =
         "<html><head><title>%title%</title>\n" +
         "<link rel=stylesheet type='text/css' href='/style.css'>\n" +
+        "<link rel=stylesheet type='text/css' href='/lib/jacs.css'>\n" +
         "<style> td { text-align:right } td.left { text-align:left } "+
         "td.center { text-align: center } " +
         "td.error  { font-style: italic; font-weight: bold; color: red; " +
@@ -1253,28 +1295,12 @@ public class EVWeekReport extends TinyCGIBase {
         ".collapsed a.expIcon { background-image: url(\"/Images/plus.png\"); }\n" +
         ".collapsed .hideIfCollapsed { display:none }\n" +
         ".expanded .hideIfExpanded { display:none }\n" +
+        "h1 { margin-top: 0px }\n" +
+        "#JacsOut { border: 0px; padding: 0px; width: 0px; color: #fff }\n" +
         "</style>\n"+
         "<script type='text/javascript' src='/lib/prototype.js'> </script>\n" +
-        "<script>\n" +
-        "function toggleExpanded(elem) {\n" +
-        "    elem = findExpandableElem($(elem));\n" +
-        "    if (elem) {\n" +
-        "        if (Element.hasClassName(elem, \"expanded\")) {\n" +
-        "           Element.removeClassName(elem, \"expanded\");\n" +
-        "           Element.addClassName(elem, \"collapsed\");\n" +
-        "       } else {\n" +
-        "           Element.removeClassName(elem, \"collapsed\");\n" +
-        "           Element.addClassName(elem, \"expanded\");\n" +
-        "       }\n" +
-        "    }\n" +
-        "}\n" +
-        "function findExpandableElem(elem) {\n" +
-        "    if (!elem) return elem;\n" +
-        "    if (Element.hasClassName(elem, \"expanded\")) { return elem; }\n" +
-        "    if (Element.hasClassName(elem, \"collapsed\")) { return elem; }\n" +
-        "    return findExpandableElem(elem.parentNode);\n" +
-        "}\n" +
-        "</script>\n" +
+        "<script type='text/javascript' src='/lib/jacs.js'> </script>\n" +
+        "<script type='text/javascript' src='/reports/ev.js'> </script>\n" +
         EVReport.REDUNDANT_EXCEL_HEADER +
         EVReport.SORTTABLE_HEADER +
         EVReport.POPUP_HEADER +
