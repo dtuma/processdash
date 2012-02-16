@@ -1,4 +1,4 @@
-// Copyright (C) 2005 Tuma Solutions, LLC
+// Copyright (C) 2005-2012 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -24,7 +24,9 @@
 package net.sourceforge.processdash.ui.lib;
 
 import javax.swing.JTable;
+import javax.swing.table.DefaultTableColumnModel;
 import javax.swing.table.TableColumn;
+import javax.swing.table.TableColumnModel;
 
 public class TableUtils {
 
@@ -46,6 +48,38 @@ public class TableUtils {
         if (tooltips != null)
             ToolTipTableCellRendererProxy
                     .installHeaderToolTips(table, tooltips);
+    }
+
+    public static TableColumnModel cloneTableColumnModel(TableColumnModel m) {
+        DefaultTableColumnModel result = new DefaultTableColumnModel();
+        for (int i = 0;  i < m.getColumnCount();  i++)
+            result.addColumn(cloneTableColumn(m.getColumn(i)));
+        return result;
+    }
+
+    public static TableColumn cloneTableColumn(TableColumn c) {
+        TableColumn result = new TableColumn(c.getModelIndex(),
+                c.getPreferredWidth(), c.getCellRenderer(),
+                c.getCellEditor());
+        result.setMaxWidth(c.getMaxWidth());
+        result.setMinWidth(c.getMinWidth());
+        result.setResizable(c.getResizable());
+        result.setHeaderValue(c.getHeaderValue());
+        result.setHeaderRenderer(c.getHeaderRenderer());
+        result.setIdentifier(c.getIdentifier());
+        return result;
+    }
+
+    public static int convertColumnIndexToView(TableColumnModel model,
+            int modelCol) {
+        if (modelCol < 0)
+            return modelCol;
+        for (int viewCol = 0; viewCol < model.getColumnCount(); viewCol++) {
+            if (model.getColumn(viewCol).getModelIndex() == modelCol) {
+                return viewCol;
+            }
+        }
+        return -1;
     }
 
 }

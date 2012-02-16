@@ -1495,7 +1495,7 @@ public class EVSchedule implements TableModel {
     /// Table model
     ///
 
-    private static final String[] COLUMN_KEYS = {
+    public static final String[] COLUMN_KEYS = {
         "From", "To", "PT", "PDT", "CPT", "CPV", "Time", "PctI",
         "DTime", "CT", "Notes", "EV" };
 

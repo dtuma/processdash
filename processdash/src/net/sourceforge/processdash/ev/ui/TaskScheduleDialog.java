@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2011 Tuma Solutions, LLC
+// Copyright (C) 2001-2012 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -113,6 +113,7 @@ import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
+import javax.swing.table.TableModel;
 import javax.swing.text.JTextComponent;
 import javax.swing.tree.TreeCellRenderer;
 import javax.swing.tree.TreeModel;
@@ -154,12 +155,16 @@ import net.sourceforge.processdash.ui.help.PCSH;
 import net.sourceforge.processdash.ui.lib.DeferredSelectAllExecutor;
 import net.sourceforge.processdash.ui.lib.DropDownButton;
 import net.sourceforge.processdash.ui.lib.ErrorReporter;
+import net.sourceforge.processdash.ui.lib.GuiPrefs;
 import net.sourceforge.processdash.ui.lib.JDateTimeChooserCellEditor;
 import net.sourceforge.processdash.ui.lib.JDialogCellEditor;
 import net.sourceforge.processdash.ui.lib.JOptionPaneClickHandler;
 import net.sourceforge.processdash.ui.lib.JOptionPaneTweaker;
+import net.sourceforge.processdash.ui.lib.JTableColumnVisibilityAction;
+import net.sourceforge.processdash.ui.lib.JTableColumnVisibilityButton;
 import net.sourceforge.processdash.ui.lib.JTreeTable;
 import net.sourceforge.processdash.ui.lib.PaintUtils;
+import net.sourceforge.processdash.ui.lib.TableUtils;
 import net.sourceforge.processdash.ui.lib.ToolTipTableCellRendererProxy;
 import net.sourceforge.processdash.ui.lib.ToolTipTimingCustomizer;
 import net.sourceforge.processdash.ui.lib.TreeModelWillChangeListener;
@@ -183,6 +188,8 @@ public class TaskScheduleDialog implements EVTask.Listener,
     protected JTable scheduleTable;
     /** Frame containing everything */
     protected JFrame frame;
+    /** object managing preferred sizes/states of GUI elements */
+    protected GuiPrefs guiPrefs;
     /** the dashboard */
     protected DashboardContext dash;
     protected String taskListName;
@@ -255,6 +262,9 @@ public class TaskScheduleDialog implements EVTask.Listener,
         model.addRecalcListener(this);
         model.getSchedule().setListener(this);
 
+        // Create the GUI preferences object
+        guiPrefs = new GuiPrefs(TaskScheduleDialog.class, model.getID());
+
         // Create a JTreeTable to display the task list.
         treeTable = new TaskJTreeTable(model);
         treeTable.setShowGrid(true);
@@ -275,15 +285,16 @@ public class TaskScheduleDialog implements EVTask.Listener,
 
         int totalWidth = 0;
         treeColumnModel = treeTable.getColumnModel();
-        for (int i = 0;  i < EVTaskList.colWidths.length;  i++) {
-            int width = EVTaskList.colWidths[i];
+        for (int i = treeColumnModel.getColumnCount();  i-- > 0; ) {
+            TableColumn column = treeColumnModel.getColumn(i);
             if (hiddenCols.contains(new Integer(i))) {
-                width = 0;
-                treeColumnModel.getColumn(i).setMinWidth(0);
-                treeColumnModel.getColumn(i).setMaxWidth(0);
+                treeColumnModel.removeColumn(column);
+            } else {
+                column.setIdentifier(EVTaskList.COLUMN_KEYS[i].toLowerCase());
+                int width = EVTaskList.colWidths[i];
+                column.setPreferredWidth(width);
+                totalWidth += width;
             }
-            treeColumnModel.getColumn(i).setPreferredWidth(width);
-            totalWidth += width;
         }
         configureEditor(treeTable);
 
@@ -306,13 +317,16 @@ public class TaskScheduleDialog implements EVTask.Listener,
         ToolTipTableCellRendererProxy.installHeaderToolTips
             (scheduleTable, model.getSchedule().getColumnTooltips());
                                 // set default widths for the columns
-        for (int i = 0;  i < EVSchedule.colWidths.length;  i++)
-            scheduleTable.getColumnModel().getColumn(i)
-                .setPreferredWidth(EVSchedule.colWidths[i]);
+        for (int i = 0;  i < EVSchedule.colWidths.length;  i++) {
+            TableColumn column = scheduleTable.getColumnModel().getColumn(i);
+            column.setIdentifier(EVSchedule.COLUMN_KEYS[i].toLowerCase());
+            column.setPreferredWidth(EVSchedule.colWidths[i]);
+        }
         configureEditor(scheduleTable);
 
-        // possibly hide the direct columns if they aren't needed
-        showHideDirectColumns();
+        // hide columns such as direct time or labels if they aren't needed
+        showHideColumns();
+        flatColumnModel = createFlatColumnModel();
 
         // record user preference for pruning enablement
         disableTaskPruning = Settings.getBool("ev.disablePruning", false);
@@ -328,6 +342,9 @@ public class TaskScheduleDialog implements EVTask.Listener,
                              JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
                              JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
         sp.setPreferredSize(new Dimension(10, 10));
+        sp.setCorner(JScrollPane.UPPER_RIGHT_CORNER,
+            new JTableColumnVisibilityButton(treeTable, resources, " .*",
+                    EVTaskList.TASK_COLUMN));
         Box topBox = newVBox
             (sp,
              Box.createVerticalStrut(2),
@@ -361,6 +378,16 @@ public class TaskScheduleDialog implements EVTask.Listener,
         frame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
 
         frame.setSize(new Dimension(totalWidth + 20, 600));
+
+        guiPrefs.load("treeTable", treeTable);
+        guiPrefs.load("scheduleTable", scheduleTable);
+        guiPrefs.load(frame);
+        guiPrefs.load(jsp);
+        if (flatViewAction != null) {
+            guiPrefs.load("flatView", flatViewAction.buttonModel);
+            if (isFlatView()) toggleFlatView();
+        }
+
         frame.setVisible(true);
 
         // if the task list is empty, open the add task dialog immediately.
@@ -653,6 +680,11 @@ public class TaskScheduleDialog implements EVTask.Listener,
             viewMenu.add(t);
         viewMenu.add(filteredReportAction);
         viewMenu.add(errorAction);
+        viewMenu.addSeparator();
+        viewMenu.add(JTableColumnVisibilityAction.getForTable(treeTable));
+        viewMenu.add(new TSAction("Column_Chooser.Reset_Columns") {
+            public void actionPerformed(ActionEvent e) {
+                guiPrefs.reset("treeTable", "flatTable"); }});
         if (flatViewAction != null) {
             viewMenu.addSeparator();
             JCheckBoxMenuItem item = new JCheckBoxMenuItem(flatViewAction);
@@ -1878,7 +1910,7 @@ public class TaskScheduleDialog implements EVTask.Listener,
 
         // Calculating the schedule may mean that direct time columns now
         // need to be displayed or hidden
-        showHideDirectColumns();
+        showHideColumns();
 
         // Since rows may have been added or deleted to the schedule, and
         // rows may have changed to or from automatic rows, update the
@@ -2446,12 +2478,15 @@ public class TaskScheduleDialog implements EVTask.Listener,
             treeTable.setSelectionMode(
                     ListSelectionModel.SINGLE_INTERVAL_SELECTION);
         } else {
+            boolean isFirstTimeForFlatView = false;
             if (flatModel == null) {
+                isFirstTimeForFlatView = true;
                 flatModel = model.getFlatModel();
-                flatColumnModel = createFlatColumnModel();
                 HierarchyNoteManager.addHierarchyNoteListener(flatModel);
             }
             changeTreeTableModel(flatModel, flatColumnModel);
+            if (isFirstTimeForFlatView)
+                guiPrefs.load("flatTable", treeTable);
             treeTable.setDragEnabled(true);
             treeTable.setSelectionMode(
                     ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
@@ -2538,7 +2573,7 @@ public class TaskScheduleDialog implements EVTask.Listener,
             case EVTaskList.NOTES_COLUMN:
             case EVTaskList.DEPENDENCIES_COLUMN:
             case EVTaskList.PCT_SPENT_COLUMN:
-                result.addColumn(cloneTableColumn(c));
+                result.addColumn(TableUtils.cloneTableColumn(c));
                 break;
 
             default:
@@ -2550,18 +2585,6 @@ public class TaskScheduleDialog implements EVTask.Listener,
         TableColumn c = result.getColumn(0);
         c.setPreferredWidth(c.getWidth() + extraWidth);
 
-        return result;
-    }
-    private TableColumn cloneTableColumn(TableColumn c) {
-        TableColumn result = new TableColumn(c.getModelIndex(),
-                c.getPreferredWidth(), c.getCellRenderer(),
-                c.getCellEditor());
-        result.setMaxWidth(c.getMaxWidth());
-        result.setMinWidth(c.getMinWidth());
-        result.setResizable(c.getResizable());
-        result.setHeaderValue(c.getHeaderValue());
-        result.setHeaderRenderer(c.getHeaderRenderer());
-        result.setIdentifier(c.getIdentifier());
         return result;
     }
 
@@ -2618,21 +2641,28 @@ public class TaskScheduleDialog implements EVTask.Listener,
         setDirty(true);
     }
 
-    protected void showHideDirectColumns() {
+    protected void showHideColumns() {
         // update the task table
-        for (int j = EVTaskList.HIDABLE_COLUMN_LIST.length;   j-- > 0; ) {
-            int i = EVTaskList.HIDABLE_COLUMN_LIST[j];
-            showHideColumn(treeColumnModel.getColumn(i),
-                           model.getColumnName(i),
-                           EVTaskList.colWidths[i]);
-        }
+        showHideColumns(treeColumnModel, treeTable.getModel(),
+            EVTaskList.HIDABLE_COLUMN_LIST, EVTaskList.colWidths);
+        showHideColumns(flatColumnModel, treeTable.getModel(),
+            EVTaskList.HIDABLE_COLUMN_LIST, EVTaskList.colWidths);
 
         // update the schedule table
-        for (int j = EVSchedule.DIRECT_COLUMN_LIST.length;   j-- > 0; ) {
-            int i = EVSchedule.DIRECT_COLUMN_LIST[j];
-            showHideColumn(scheduleTable.getColumnModel().getColumn(i),
-                           model.getSchedule().getColumnName(i),
-                           EVSchedule.colWidths[i]);
+        showHideColumns(scheduleTable.getColumnModel(), model.getSchedule(),
+            EVSchedule.DIRECT_COLUMN_LIST, EVSchedule.colWidths);
+    }
+
+    private void showHideColumns(TableColumnModel columnModel,
+            TableModel tableModel, int[] hidableColumns, int[] columnWidths) {
+        if (columnModel == null)
+            return;
+
+        for (int i : hidableColumns) {
+            int viewPos = TableUtils.convertColumnIndexToView(columnModel, i);
+            if (viewPos != -1)
+                showHideColumn(columnModel.getColumn(viewPos), tableModel
+                        .getColumnName(i), columnWidths[i]);
         }
     }
 
@@ -2682,6 +2712,8 @@ public class TaskScheduleDialog implements EVTask.Listener,
     }
 
     protected void close() {
+        guiPrefs.saveAll();
+
         TaskScheduleChooser.close(taskListName);
         if (dash instanceof ApplicationEventSource)
             ((ApplicationEventSource) dash)

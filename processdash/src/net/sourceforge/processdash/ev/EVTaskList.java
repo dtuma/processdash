@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2011 Tuma Solutions, LLC
+// Copyright (C) 2001-2012 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -995,7 +995,7 @@ public class EVTaskList extends AbstractTreeTableModel
     //////////////////////////////////////////////////////////////////////
 
 
-    private static final String[] COLUMN_KEYS = {
+    public static final String[] COLUMN_KEYS = {
         "Task", "NodeType", "PT", "PDT", "BT", "Time", "DTime", "PV", "CPT",
         "CPV", "Who", "Baseline_Date", "Plan_Date", "Replan_Date",
         "Forecast_Date", "Date", "Labels", "Notes", "Depn", "PctC", "PctS",
