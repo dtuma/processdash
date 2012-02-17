@@ -23,13 +23,18 @@
 
 package teamdash.wbs.columns;
 
+import javax.swing.table.TableCellRenderer;
+
+import teamdash.wbs.CustomRenderedColumn;
 import teamdash.wbs.DataTableModel;
+import teamdash.wbs.ItalicNumericCellRenderer;
 import teamdash.wbs.NumericDataValue;
 import teamdash.wbs.TeamProcess;
 import teamdash.wbs.WBSNode;
 import teamdash.wbs.WrappedValue;
 
-public class TaskSizeColumn extends SizeAliasColumn {
+public class TaskSizeColumn extends SizeAliasColumn implements
+        CustomRenderedColumn {
 
     private int unitsColumn = -1;
 
@@ -100,8 +105,11 @@ public class TaskSizeColumn extends SizeAliasColumn {
         if (result instanceof NumericDataValue && result != BLANK) {
             NumericDataValue ndv = (NumericDataValue) result;
             boolean editable = ndv.isEditable || canEditTaskSizeUnits(node);
-            result = new NumericDataValue(ndv.value, editable, false,
-                    ndv.errorMessage, ndv.expectedValue);
+            String error = ndv.errorMessage;
+            if (error == null && editable && !ndv.isEditable)
+                error = INHERITED_SIZE_MESSAGE;
+            result = new NumericDataValue(ndv.value, editable, false, error,
+                    ndv.expectedValue);
         }
         return result;
     }
@@ -131,7 +139,16 @@ public class TaskSizeColumn extends SizeAliasColumn {
         }
     }
 
+    public TableCellRenderer getCellRenderer() {
+        return TASK_SIZE_RENDERER;
+    }
+
     private static final String ATTR_NAME = EditableSizeColumn.ATTR_NAME;
+
+    private static final String INHERITED_SIZE_MESSAGE =
+        "Inherited from enclosing component";
+    private static final TableCellRenderer TASK_SIZE_RENDERER =
+        new ItalicNumericCellRenderer(INHERITED_SIZE_MESSAGE);
 
     public boolean recalculate() { return true; }
 
