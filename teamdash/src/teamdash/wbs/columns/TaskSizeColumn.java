@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Tuma Solutions, LLC
+// Copyright (C) 2002-2012 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -27,6 +27,7 @@ import teamdash.wbs.DataTableModel;
 import teamdash.wbs.NumericDataValue;
 import teamdash.wbs.TeamProcess;
 import teamdash.wbs.WBSNode;
+import teamdash.wbs.WrappedValue;
 
 public class TaskSizeColumn extends SizeAliasColumn {
 
@@ -65,10 +66,21 @@ public class TaskSizeColumn extends SizeAliasColumn {
         return getSizeColumn(node) == -1;
     }
 
+    private boolean canEditTaskSizeUnits(WBSNode node) {
+        return unitsColumn != -1
+            && dataModel.isCellEditable(node, unitsColumn);
+    }
+
     public boolean isCellEditable(WBSNode node) {
-        // if the user has entered a custom size metric for this node, then
-        // the size value is editable.
+        // if this is a task with a custom unit of size measure, the size
+        // is editable.
         if (isCustomTaskSize(node))
+            return true;
+
+        // if the task size units column is editable, then we can auto-
+        // alter it to have a custom unit (which would, in turn, make this
+        // value editable).  If so, this cell is effectively editable too.
+        if (canEditTaskSizeUnits(node))
             return true;
 
         // otherwise, ask our superclass if the value is editable.
@@ -87,7 +99,8 @@ public class TaskSizeColumn extends SizeAliasColumn {
         Object result = super.getValueAt(node);
         if (result instanceof NumericDataValue && result != BLANK) {
             NumericDataValue ndv = (NumericDataValue) result;
-            result = new NumericDataValue(ndv.value, ndv.isEditable, false,
+            boolean editable = ndv.isEditable || canEditTaskSizeUnits(node);
+            result = new NumericDataValue(ndv.value, editable, false,
                     ndv.errorMessage, ndv.expectedValue);
         }
         return result;
@@ -95,9 +108,26 @@ public class TaskSizeColumn extends SizeAliasColumn {
 
     public void setValueAt(Object aValue, WBSNode node) {
         if (isCustomTaskSize(node)) {
+            // if this node already has a custom task size in effect, just
+            // update the existing custom size value.
             node.setNumericAttribute(ATTR_NAME, NumericDataValue.parse(aValue));
-        } else {
+
+        } else if (super.isCellEditable(node)) {
+            // if this node does not have a custom size, but if the underlying
+            // aliased size column is editable, write the data through.
             super.setValueAt(aValue, node);
+
+        } else if (canEditTaskSizeUnits(node)) {
+            // this node is NOT using a custom size unit, and the currently
+            // chosen size metric is not editable.  However, the units column
+            // is editable, so we can alter it to become custom.  That will
+            // allow us to store a new custom size value which will become
+            // the new size.
+            node.setNumericAttribute(ATTR_NAME, NumericDataValue.parse(aValue));
+            Object units = WrappedValue.unwrap(dataModel.getValueAt(node,
+                unitsColumn));
+            String newUnits = (units == null ? "-" : units + " ");
+            dataModel.setValueAt(newUnits, node, unitsColumn);
         }
     }
 
