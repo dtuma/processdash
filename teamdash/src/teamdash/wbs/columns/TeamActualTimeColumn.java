@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Tuma Solutions, LLC
+// Copyright (C) 2002-2012 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -40,6 +40,7 @@ import teamdash.wbs.DataTableModel;
 import teamdash.wbs.NumericDataValue;
 import teamdash.wbs.WBSModel;
 import teamdash.wbs.WBSNode;
+import teamdash.wbs.WBSSynchronizer.ActualSubtaskData;
 
 public class TeamActualTimeColumn extends AbstractNumericColumn implements
         CalculatedDataColumn {
@@ -75,6 +76,7 @@ public class TeamActualTimeColumn extends AbstractNumericColumn implements
     private String[] nodeTimeAttrs;
     private String[] actTimeAttrs;
     private String[] completionDateAttrs;
+    private String[] subtaskDataAttrs;
     private String[] planTimeAttrs;
 
     public TeamActualTimeColumn(DataTableModel dataModel,
@@ -108,6 +110,7 @@ public class TeamActualTimeColumn extends AbstractNumericColumn implements
         nodeTimeAttrs = new String[teamSize];
         actTimeAttrs = new String[teamSize];
         completionDateAttrs = new String[teamSize];
+        subtaskDataAttrs = new String[teamSize];
         planTimeAttrs = new String[teamSize];
 
         for (int i = 0; i < initials.length; i++) {
@@ -119,6 +122,8 @@ public class TeamActualTimeColumn extends AbstractNumericColumn implements
                     .getResultDataAttrName(m);
             completionDateAttrs[i] = TeamCompletionDateColumn
                     .getMemberNodeDataAttrName(m);
+            subtaskDataAttrs[i] = TeamMemberActualTimeColumn
+                    .getSubtaskDataAttrName(m);
             planTimeAttrs[i] = TopDownBottomUpColumn
                     .getTopDownAttrName(TeamMemberTimeColumn.getColumnID(m));
         }
@@ -204,9 +209,34 @@ public class TeamActualTimeColumn extends AbstractNumericColumn implements
                         earnedValue[0] += memberPlanTime;
                         timeCalc[i].addCompletedTask(memberPlanTime,
                             actualTime[i], milestone);
-                    } else
-                        timeCalc[i].addRemainingTask(memberPlanTime,
-                            actualTime[i], milestone);
+                    } else {
+                        // See if subtask data is present for this task
+                        List<ActualSubtaskData> subtaskData = (List) node
+                                .getAttribute(subtaskDataAttrs[i]);
+                        if (subtaskData != null && !subtaskData.isEmpty()) {
+                            // if subtask data is present, record each subtask
+                            // as an independent task
+                            for (ActualSubtaskData subtask : subtaskData) {
+                                if (subtask.getCompletionDate() != null) {
+                                    // this subtask was completed
+                                    earnedValue[0] += subtask.getPlanTime();
+                                    timeCalc[i].addCompletedTask(
+                                        subtask.getPlanTime(),
+                                        subtask.getActualTime(), milestone);
+                                } else {
+                                    // this subtask is remaining
+                                    timeCalc[i].addRemainingTask(
+                                        subtask.getPlanTime(),
+                                        subtask.getActualTime(), milestone);
+                                }
+                            }
+                        } else {
+                            // there is no subtask data for this node. Just
+                            // record a plain remaining task.
+                            timeCalc[i].addRemainingTask(memberPlanTime,
+                                actualTime[i], milestone);
+                        }
+                    }
                 }
             }
 

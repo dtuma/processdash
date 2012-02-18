@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2011 Tuma Solutions, LLC
+// Copyright (C) 2002-2012 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -449,6 +449,7 @@ public class WBSSynchronizer {
         private TeamMember m;
         private String actualTimeAttrName;
         private String completionDateAttrName;
+        private String subtaskDataAttrName;
 
         private void setTeamMember(TeamMember m) {
             if (this.m != m) {
@@ -458,6 +459,8 @@ public class WBSSynchronizer {
                         .getNodeDataAttrName(m);
                 completionDateAttrName = TeamCompletionDateColumn
                         .getMemberNodeDataAttrName(m);
+                subtaskDataAttrName = TeamMemberActualTimeColumn
+                        .getSubtaskDataAttrName(m);
             }
         }
 
@@ -476,9 +479,34 @@ public class WBSSynchronizer {
             Date date = XMLUtils.getXMLDate(actualDataTag, COMPLETION_DATE_ATTR);
             node.setAttribute(completionDateAttrName, date);
 
+            List subtaskData = null;
+            NodeList subtaskNodes = actualDataTag
+                    .getElementsByTagName(SUBTASK_DATA_TAG);
+            if (subtaskNodes != null && subtaskNodes.getLength() > 0) {
+                subtaskData = new ArrayList();
+                for (int i = 0;  i < subtaskNodes.getLength();  i++)
+                    subtaskData.add(new ActualSubtaskData(
+                            (Element) subtaskNodes.item(i)));
+            }
+            node.setAttribute(subtaskDataAttrName, subtaskData);
+
             foundActualData = true;
         }
 
+    }
+
+    public class ActualSubtaskData {
+        double planTime;
+        double actualTime;
+        Date completionDate;
+        private ActualSubtaskData(Element xml) {
+            planTime = XMLUtils.getXMLNum(xml, EST_TIME_ATTR);
+            actualTime = XMLUtils.getXMLNum(xml, TIME_ATTR);
+            completionDate = XMLUtils.getXMLDate(xml, COMPLETION_DATE_ATTR);
+        }
+        public double getPlanTime()     { return planTime;       }
+        public double getActualTime()   { return actualTime;     }
+        public Date getCompletionDate() { return completionDate; }
     }
 
     private class SizeDataLoader implements SyncHandler {
@@ -716,6 +744,8 @@ public class WBSSynchronizer {
     private static final String DEFAULT_HOURS_VAL = "DEFAULT";
 
     private static final String ACTUAL_DATA_TAG = "actualData";
+
+    private static final String SUBTASK_DATA_TAG = "subtaskData";
 
     // private static final String START_DATE_ATTR = "started";
 

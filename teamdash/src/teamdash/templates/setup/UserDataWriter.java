@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Tuma Solutions, LLC
+// Copyright (C) 2002-2012 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -167,8 +167,8 @@ public class UserDataWriter extends TinyCGIBase {
         SimpleData completionDate = getData(path, "Completed");
         writeTimeDataAttr(ser, EST_TIME_ATTR, estimatedTime);
         writeTimeDataAttr(ser, TIME_ATTR, actualTime);
-        writeActualDataAttr(ser, START_DATE_TAG, startDate);
-        writeActualDataAttr(ser, COMPLETION_DATE_TAG, completionDate);
+        writeActualDataAttr(ser, START_DATE_ATTR, startDate);
+        writeActualDataAttr(ser, COMPLETION_DATE_ATTR, completionDate);
 
         if (isPSPTask(path)) {
             // if this is a PSP project, write the node type "/PSP/"
@@ -207,7 +207,7 @@ public class UserDataWriter extends TinyCGIBase {
             PropertyKey node, boolean isRoot) throws IOException {
 
         if (!isRoot)
-            writeActualDataForNode(ser, node);
+            writeActualDataForNode(ser, hier, node);
 
         int numChildren = hier.getNumChildren(node);
         for (int i = 0;  i < numChildren;  i++) {
@@ -216,8 +216,8 @@ public class UserDataWriter extends TinyCGIBase {
         }
     }
 
-    private void writeActualDataForNode(XmlSerializer ser, PropertyKey node)
-            throws IOException {
+    private void writeActualDataForNode(XmlSerializer ser, DashHierarchy hier,
+            PropertyKey node) throws IOException {
         String path = node.path();
         String wbsID = getWbsIdForPath(path);
         if (!hasValue(wbsID))
@@ -226,15 +226,65 @@ public class UserDataWriter extends TinyCGIBase {
         SimpleData actualTime = getData(path, "Time");
         SimpleData startDate = getData(path, "Started");
         SimpleData completionDate = getData(path, "Completed");
+        boolean reportSubtasks = isPSPTaskWithReportableSubtaskData(hier, node,
+            actualTime, completionDate);
 
         if (hasValue(actualTime) || hasValue(startDate)
-                || hasValue(completionDate)) {
+                || hasValue(completionDate) || reportSubtasks) {
             ser.startTag(null, ACTUAL_DATA_TAG);
             ser.attribute(null, WBS_ID_ATTR, wbsID);
             writeTimeDataAttr(ser, TIME_ATTR, actualTime);
-            writeActualDataAttr(ser, START_DATE_TAG, startDate);
-            writeActualDataAttr(ser, COMPLETION_DATE_TAG, completionDate);
+            writeActualDataAttr(ser, START_DATE_ATTR, startDate);
+            writeActualDataAttr(ser, COMPLETION_DATE_ATTR, completionDate);
+            if (reportSubtasks)
+                writeActualDataForPSPPhases(ser, hier, node);
             ser.endTag(null, ACTUAL_DATA_TAG);
+        }
+    }
+
+    private boolean isPSPTaskWithReportableSubtaskData(DashHierarchy hier,
+            PropertyKey node, SimpleData actualTime, SimpleData completionDate) {
+        // if this isn't a PSP project, return false.
+        if (getData(node.path(), "PSP Project") == null)
+            return false;
+
+        // if the entire PSP task has been marked complete, we don't need to
+        // report subtask data.
+        if (hasValue(completionDate))
+            return false;
+
+        // if time has been logged to any of the phases, we need to report how
+        // the actual time was spread across the phases. return true.
+        if (hasValue(actualTime))
+            return true;
+
+        // check to see if any of the phases have been marked complete (with
+        // no actual time logged). if so, return true.
+        for (int i = hier.getNumChildren(node);  i-- > 0; ) {
+            PropertyKey phase = hier.getChildKey(node, i);
+            if (hasValue(getData(phase.path(), "Completed")))
+                return true;
+        }
+
+        // This PSP task has no interesting subtask data.  Save CPU cycles and
+        // don't write subtask data for this task.
+        return false;
+    }
+
+    private void writeActualDataForPSPPhases(XmlSerializer ser,
+            DashHierarchy hier, PropertyKey node) throws IOException {
+        // iterate over the phases in this PSP process
+        for (int i = hier.getNumChildren(node);  i-- > 0; ) {
+            PropertyKey phase = hier.getChildKey(node, i);
+            String path = phase.path();
+
+            // for each phase, write an XML element containing subtask data.
+            ser.startTag(null, SUBTASK_DATA_TAG);
+            writeTimeDataAttr(ser, EST_TIME_ATTR, getData(path, "Estimated Time"));
+            writeTimeDataAttr(ser, TIME_ATTR, getData(path, "Time"));
+            writeActualDataAttr(ser, START_DATE_ATTR, getData(path, "Started"));
+            writeActualDataAttr(ser, COMPLETION_DATE_ATTR, getData(path, "Completed"));
+            ser.endTag(null, SUBTASK_DATA_TAG);
         }
     }
 
@@ -534,9 +584,11 @@ public class UserDataWriter extends TinyCGIBase {
 
     private static final String ACTUAL_DATA_TAG = "actualData";
 
-    private static final String START_DATE_TAG = "started";
+    private static final String SUBTASK_DATA_TAG = "subtaskData";
 
-    private static final String COMPLETION_DATE_TAG = "completed";
+    private static final String START_DATE_ATTR = "started";
+
+    private static final String COMPLETION_DATE_ATTR = "completed";
 
     private static final String NC_LOC = "New & Changed LOC";
 
