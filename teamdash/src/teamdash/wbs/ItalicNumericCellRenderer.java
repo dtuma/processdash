@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Tuma Solutions, LLC
+// Copyright (C) 2002-2012 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -57,7 +57,7 @@ public class ItalicNumericCellRenderer extends DataTableCellNumericRenderer {
             (table, value, isSelected, hasFocus, row, column);
 
         NumericDataValue num = (NumericDataValue) value;
-        if (num.errorMessage != null &&
+        if (num != null && num.errorMessage != null &&
             num.errorMessage.equals(messageToItalicize)) {
             result.setForeground(Color.black);
             result.setFont(getItalicFont(result));
