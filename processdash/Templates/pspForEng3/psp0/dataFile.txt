@@ -11,3 +11,10 @@
 =
 
 [Show_Size_Block] = [../Enable_PSP0_Size_Blocks];
+
+
+=
+= Do not display the optional "Size" block in the PSP0 script
+=
+
+[PSP0_HIDE_SIZE_BLOCK_IN_SCRIPT] = true;
