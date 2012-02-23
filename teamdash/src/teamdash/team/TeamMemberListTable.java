@@ -600,6 +600,8 @@ public class TeamMemberListTable extends JTable {
             boolean cellIsModifiable = false;
 
             WeekData week = (WeekData) value;
+            if (week == null)
+                return component;
 
             switch (week.getType()) {
             case WeekData.TYPE_OUTSIDE_SCHEDULE:

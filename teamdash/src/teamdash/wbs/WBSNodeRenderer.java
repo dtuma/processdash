@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Tuma Solutions, LLC
+// Copyright (C) 2002-2012 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -75,6 +75,10 @@ public class WBSNodeRenderer extends DefaultTableCellRenderer {
          boolean hasFocus, int row, int column)
     {
         WBSNode node = (WBSNode) value;
+        if (node == null)
+            return super.getTableCellRendererComponent(table, null, isSelected,
+                hasFocus, row, column);
+
         String name = node.getName();
         if (name == null || name.trim().length() == 0) name = "( empty )";
 
