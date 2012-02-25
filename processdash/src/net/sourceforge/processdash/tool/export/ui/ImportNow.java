@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2008 Tuma Solutions, LLC
+// Copyright (C) 2002-2012 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -54,8 +54,7 @@ public class ImportNow extends TinyCGIBase {
             String referer = (String) env.get("HTTP_REFERER");
             if (StringUtils.hasValue(referer)) {
                 String uri = HTMLUtils.appendQuery(referer, "rl");
-                out.println("<meta http-equiv='Refresh' content='4;URL=" + uri
-                        + "'>");
+                writeRedirectInstruction(uri, 4);
             }
         }
 

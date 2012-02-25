@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2006 Tuma Solutions, LLC
+// Copyright (C) 2002-2012 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -57,9 +57,9 @@ public class ExportNow extends TinyCGIBase {
         String uri = (String) env.get("REQUEST_URI");
         uri = uri + (uri.indexOf('?') == -1 ? "?run" : "&run");
         interpOut("<html><head>\n"
-                + "<title>${ExportExportingDataDots}</title>\n"
-                + "<meta http-equiv='Refresh' content='1;URL=" + uri + "'>\n"
-                + "</head>\n"
+                + "<title>${ExportExportingDataDots}</title>\n");
+        writeRedirectInstruction(uri, 1);
+        interpOut("</head>\n"
                 + "<body><h1>${ExportExportingDataDots}</h1>\n"
                 + "${ExportExportingMessage}\n"
                 + "</body></html>");
