@@ -476,8 +476,12 @@ public class GuiPrefs {
         @Override
         boolean load() {
             int pref = getInt("selected");
-            buttonModel.setSelected(pref == 1);
-            return pref != -1;
+            if (pref == -1) {
+                return false;
+            } else {
+                buttonModel.setSelected(pref == 1);
+                return true;
+            }
         }
 
         @Override
