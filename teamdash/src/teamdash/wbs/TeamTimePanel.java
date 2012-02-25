@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Tuma Solutions, LLC
+// Copyright (C) 2002-2012 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -38,6 +38,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.beans.EventHandler;
 import java.text.DateFormat;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
@@ -108,6 +109,8 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
     private boolean showRemainingWork;
     /** Should the balanced bar include unassigned work? */
     private boolean includeUnassigned;
+    /** Should we show the number of hours each team member spends per week? */
+    private boolean showHoursPerWeek;
     /** Should we show lines for commit dates? */
     private boolean showCommitDates;
     /** Should we show milestone markers on individual bars? */
@@ -122,6 +125,8 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
     private int balancedBarPos;
     /** The font to use when drawing labels on colored bars */
     private Font labelFont;
+    /** The number format for displaying hours per week information */
+    private NumberFormat hoursPerWeekFormat;
     /** The color to use for depicting overtasked time in a colored bar */
     private Color overtaskedColor = Color.red;
     /** A timer used to recalc once after receiving multiple TableModelEvents */
@@ -149,6 +154,10 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
         this.recalcTimer = new Timer(100, EventHandler.create(
             ActionListener.class, this, "recalc"));
         this.recalcTimer.setRepeats(false);
+
+        this.hoursPerWeekFormat = NumberFormat.getInstance();
+        this.hoursPerWeekFormat.setGroupingUsed(false);
+        this.hoursPerWeekFormat.setMinimumFractionDigits(0);
 
         setLayout(layout = new GridBagLayout());
         rebuildPanelContents();
@@ -185,6 +194,18 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
     public void setIncludeUnassigned(boolean includeUnassigned) {
         if (this.includeUnassigned != includeUnassigned) {
             this.includeUnassigned = includeUnassigned;
+            recalc();
+        }
+    }
+
+    public boolean isShowHoursPerWeek() {
+        return showHoursPerWeek;
+    }
+
+    public void setShowHoursPerWeek(boolean showHoursPerWeek) {
+        if (this.showHoursPerWeek != showHoursPerWeek) {
+            this.showHoursPerWeek = showHoursPerWeek;
+            rebuildPanelContents();
             recalc();
         }
     }
@@ -244,14 +265,14 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
         balancedBar.setMinimumSize(d);
         balancedBar.setPreferredSize(d);
         GridBagConstraints c = new GridBagConstraints();
-        c.gridx = 2; c.gridy = 0;
+        c.gridx = 3; c.gridy = 0;
         layout.setConstraints(balancedBar, c);
 
         // create and add the panel displaying milestone commit dates.
         commitDatePane = new CommitDatePane();
         add(commitDatePane);
         c = new GridBagConstraints();
-        c.gridx = 1; c.gridy = 0;
+        c.gridx = 2; c.gridy = 0;
         c.fill = GridBagConstraints.BOTH;
         c.insets.left = c.insets.right = 0;
         c.insets.top = c.insets.bottom = 0;
@@ -271,9 +292,15 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
         nc.anchor = GridBagConstraints.WEST;
         nc.insets.left = nc.insets.right = 5;
         nc.insets.top = nc.insets.bottom = 0;
+        // create a constraints object for hours per week
+        GridBagConstraints hc = new GridBagConstraints();
+        hc.gridx = 1;
+        hc.anchor = GridBagConstraints.CENTER;
+        hc.insets.left = hc.insets.right = 0;
+        hc.insets.top = hc.insets.bottom = 0;
         // create a constraints object for the horizontal bars.
         GridBagConstraints bc = new GridBagConstraints();
-        bc.gridx = 1;
+        bc.gridx = 2;
         bc.fill = GridBagConstraints.BOTH;
         bc.insets.left = bc.insets.right = COLORED_BAR_SIDE_INSET;
         bc.insets.top = bc.insets.bottom = 0;
@@ -303,6 +330,13 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
             nc.gridy = row;
             add(name);
             layout.setConstraints(name, nc);
+
+            if (isShowHoursPerWeek()) {
+                JLabel hours = bar.getHoursPerWeekLabel();
+                hc.gridy = row;
+                add(hours);
+                layout.setConstraints(hours, hc);
+            }
 
             bc.gridy = row;
             add(bar);
@@ -704,6 +738,9 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
         /** The pixel position of the start of the bar */
         private int startPos;
 
+        /** A label displaying hours per week */
+        private JLabel hoursPerWeekLabel;
+
         private List<MilestoneMark> milestoneMarks;
 
 
@@ -723,6 +760,13 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
                     0.59 * ((rgb >> 8) & 0xff) +
                     0.11 * (rgb & 0xff));
             barIsDark = (gray < 128);
+
+            hoursPerWeekLabel = new JLabel();
+            hoursPerWeekLabel.setToolTipText("Hours per Week (Nominal)");
+        }
+
+        public JLabel getHoursPerWeekLabel() {
+            return hoursPerWeekLabel;
         }
 
         /**
@@ -792,6 +836,9 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
                     dateString = dateString + " - OVERTASKED";
                 setLabel(qualifier + ": ", dateString, "");
             }
+
+            hoursPerWeekLabel.setText(hoursPerWeekFormat.format(teamMember
+                    .getHoursPerWeek()));
         }
 
         public double getTotalHours() {
@@ -879,6 +926,12 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
             // this will paint the background and the insets.
             super.paint(g);
 
+            if (labelFont == null) {
+                Insets i = getInsets();
+                labelFont = createPlainFont(getHeight() - i.top - i.bottom - 2);
+            }
+            hoursPerWeekLabel.setFont(labelFont);
+
             if (finishTime > 0 && maxScheduleLength > 0) {
                 // now paint the bar.
                 double leftPos = Math.max(lagTime, 0) / maxScheduleLength;
@@ -912,8 +965,6 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
                 }
 
                 if (label != null && label.length() > 0) {
-                    if (labelFont == null)
-                        labelFont = createPlainFont(barHeight - 2);
                     int labelWidth = SwingUtilities.computeStringWidth(
                         getFontMetrics(labelFont), label);
                     int labelPos = calcLabelPos(barLeft, barRight, barWidth,

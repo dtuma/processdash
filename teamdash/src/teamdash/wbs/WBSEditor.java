@@ -78,6 +78,7 @@ import net.sourceforge.processdash.tool.bridge.client.TeamServerSelector;
 import net.sourceforge.processdash.tool.bridge.client.WorkingDirectory;
 import net.sourceforge.processdash.tool.bridge.client.WorkingDirectoryFactory;
 import net.sourceforge.processdash.tool.export.mgr.ExternalLocationMapper;
+import net.sourceforge.processdash.ui.lib.GuiPrefs;
 import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
 import net.sourceforge.processdash.util.DashboardBackupFactory;
 import net.sourceforge.processdash.util.FileUtils;
@@ -124,6 +125,7 @@ public class WBSEditor implements WindowListener, SaveListener,
     MilestonesDataModel milestonesModel;
     JFrame frame;
     WBSTabPanel tabPanel;
+    GuiPrefs guiPrefs;
     TeamTimePanel teamTimePanel;
     WBSDataWriter dataWriter;
     File dataDumpFile;
@@ -170,8 +172,6 @@ public class WBSEditor implements WindowListener, SaveListener,
         this.teamProject = teamProject;
         acquireLock(owner);
 
-        MacGUIUtils.tweakLookAndFeel();
-
         File storageDir = teamProject.getStorageDirectory();
         this.dataDumpFile = new File(storageDir, DATA_DUMP_FILE);
         this.workflowDumpFile = new File(storageDir, WORKFLOW_DUMP_FILE);
@@ -188,12 +188,6 @@ public class WBSEditor implements WindowListener, SaveListener,
         }
 
         WBSModel model = teamProject.getWBS();
-
-        // set expanded nodes on model based on saved user preferences
-        Set expandedNodes = getExpandedNodesPref(teamProject.getProjectID());
-        if (expandedNodes != null) {
-            model.setExpandedNodeIDs(expandedNodes);
-        }
 
         TaskDependencySource taskDependencySource = getTaskDependencySource();
         DataTableModel data = new DataTableModel
@@ -226,6 +220,22 @@ public class WBSEditor implements WindowListener, SaveListener,
             } catch (IOException e) {}
         }
         this.owner = owner;
+
+        initializeChangeHistory();
+
+        /*
+         * Build the items in the user interface
+         */
+
+        MacGUIUtils.tweakLookAndFeel();
+
+        guiPrefs = new GuiPrefs(WBSEditor.class, teamProject.getProjectID());
+
+        // set expanded nodes in model based on saved user preferences
+        Set expandedNodes = getExpandedNodesPref(teamProject.getProjectID());
+        if (expandedNodes != null) {
+            model.setExpandedNodeIDs(expandedNodes);
+        }
 
         tabPanel = new WBSTabPanel(model, data, teamProject.getTeamProcess(),
                 taskDependencySource);
@@ -314,8 +324,6 @@ public class WBSEditor implements WindowListener, SaveListener,
         if (isMode(MODE_BOTTOM_UP))
             teamTimePanel.setShowBalancedBar(false);
         teamTimePanel.setShowRemainingWork(showActualData == true);
-
-        initializeChangeHistory();
 
         try {
             new MacOSXWBSHelper(this);
@@ -730,6 +738,7 @@ public class WBSEditor implements WindowListener, SaveListener,
             result.add(new BottomUpShowReplanMenuItem(g));
             result.add(new BottomUpShowPlanMenuItem(g));
         }
+        result.add(new BottomUpShowHoursPerWeekMenuItem());
         result.add(new BottomUpIncludeUnassignedMenuItem());
         return result;
     }
@@ -1017,6 +1026,7 @@ public class WBSEditor implements WindowListener, SaveListener,
             setExpandedNodesPref(teamProject.getProjectID(), expandedNodes);
             setInsertOnEnterPref(teamProject.getProjectID(),
                 tabPanel.wbsTable.getEnterInsertsLine());
+            guiPrefs.saveAll();
 
             shutDown();
         }
@@ -1543,12 +1553,13 @@ public class WBSEditor implements WindowListener, SaveListener,
         }
     }
 
-    private class ShowCommitDatesMenuItem extends JCheckBoxMenuItem implements
+    private class ShowCommitDatesMenuItem extends CheckBoxMenuItem implements
             ChangeListener {
         public ShowCommitDatesMenuItem() {
             super("Show Commit Dates on Balancing Panel");
             setSelected(true);
             addChangeListener(this);
+            load("teamTimePanel.showCommitDates");
         }
 
         public void stateChanged(ChangeEvent e) {
@@ -1556,12 +1567,13 @@ public class WBSEditor implements WindowListener, SaveListener,
         }
     }
 
-    private class ShowMilestoneMarksMenuItem extends JCheckBoxMenuItem
+    private class ShowMilestoneMarksMenuItem extends CheckBoxMenuItem
             implements ChangeListener {
         public ShowMilestoneMarksMenuItem() {
             super("Show Milestone Marks for Team Members");
             setSelected(true);
             addChangeListener(this);
+            load("teamTimePanel.showMilestoneMarks");
         }
 
         public void stateChanged(ChangeEvent e) {
@@ -1778,7 +1790,7 @@ public class WBSEditor implements WindowListener, SaveListener,
     }
 
 
-    private class ShowTeamTimePanelMenuItem extends JCheckBoxMenuItem
+    private class ShowTeamTimePanelMenuItem extends CheckBoxMenuItem
     implements ChangeListener {
         public ShowTeamTimePanelMenuItem() {
             super("Show Bottom Up Time Panel");
@@ -1786,6 +1798,7 @@ public class WBSEditor implements WindowListener, SaveListener,
             setSelected(teamTimePanel.isVisible());
             addChangeListener(this);
             showTeamTimePanelMenuItem = this;
+            load("teamTimePanel.showPanel");
         }
         public void stateChanged(ChangeEvent e) {
             teamTimePanel.setVisible(getState());
@@ -1822,7 +1835,21 @@ public class WBSEditor implements WindowListener, SaveListener,
         }
     }
 
-    private class BottomUpIncludeUnassignedMenuItem extends JCheckBoxMenuItem
+    private class BottomUpShowHoursPerWeekMenuItem extends CheckBoxMenuItem
+            implements ChangeListener {
+        public BottomUpShowHoursPerWeekMenuItem() {
+            super("Show Individual Hours Per Week");
+            setBorder(BorderFactory.createCompoundBorder(getBorder(),
+                new EmptyBorder(0, 15, 0, 0)));
+            addChangeListener(this);
+            load("teamTimePanel.showHoursPerWeek");
+        }
+        public void stateChanged(ChangeEvent e) {
+            teamTimePanel.setShowHoursPerWeek(getState());
+        }
+    }
+
+    private class BottomUpIncludeUnassignedMenuItem extends CheckBoxMenuItem
             implements ChangeListener {
         public BottomUpIncludeUnassignedMenuItem() {
             super("Include Unassigned Effort in Balanced Team Calculation");
@@ -1830,10 +1857,20 @@ public class WBSEditor implements WindowListener, SaveListener,
             setBorder(BorderFactory.createCompoundBorder(getBorder(),
                 new EmptyBorder(0, 15, 0, 0)));
             addChangeListener(this);
+            load("teamTimePanel.includeUnassignedTime");
         }
 
         public void stateChanged(ChangeEvent e) {
             teamTimePanel.setIncludeUnassigned(isSelected());
+        }
+    }
+
+    private abstract class CheckBoxMenuItem extends JCheckBoxMenuItem {
+        public CheckBoxMenuItem(String name) {
+            super(name);
+        }
+        protected void load(String prefsKey) {
+            guiPrefs.load(prefsKey, getModel());
         }
     }
 
