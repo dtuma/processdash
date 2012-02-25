@@ -738,8 +738,10 @@ public class WBSEditor implements WindowListener, SaveListener,
             result.add(new BottomUpShowReplanMenuItem(g));
             result.add(new BottomUpShowPlanMenuItem(g));
         }
-        result.add(new BottomUpShowHoursPerWeekMenuItem());
-        result.add(new BottomUpIncludeUnassignedMenuItem());
+        if (isMode(MODE_PLAIN)) {
+            result.add(new BottomUpShowHoursPerWeekMenuItem());
+            result.add(new BottomUpIncludeUnassignedMenuItem());
+        }
         return result;
     }
 
