@@ -60,6 +60,7 @@ import teamdash.team.TeamMember;
 import teamdash.team.TeamMemberList;
 import teamdash.wbs.columns.MilestoneColorColumn;
 import teamdash.wbs.columns.MilestoneCommitDateColumn;
+import teamdash.wbs.columns.MilestoneVisibilityColumn;
 import teamdash.wbs.columns.TeamActualTimeColumn;
 import teamdash.wbs.columns.TeamMemberTimeColumn;
 import teamdash.wbs.columns.UnassignedTimeColumn;
@@ -565,6 +566,8 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
             boolean hasCommitDates = false;
             List<CommitDate> newDates = new ArrayList<CommitDate>();
             for (WBSNode node : getMilestones()) {
+                if (MilestoneVisibilityColumn.isHidden(node))
+                    continue;
                 CommitDate commitDate = new CommitDate(node);
                 if (commitDate.isEmpty() == false)
                     hasCommitDates = true;
@@ -801,7 +804,8 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
                         milestoneEffort, cumMilestoneEffort);
                 if (mark.effort > 0) {
                     cumMilestoneEffort = mark.cumEffort;
-                    if (mark.markTime > 0)
+                    if (mark.markTime > 0
+                            && !MilestoneVisibilityColumn.isHidden(milestone))
                         milestoneMarks.add(mark);
                 }
                 if (milestone.getUniqueID() == balanceThroughMilestone)

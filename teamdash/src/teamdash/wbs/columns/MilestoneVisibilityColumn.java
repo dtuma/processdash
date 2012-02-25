@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2012 Tuma Solutions, LLC
+// Copyright (C) 2012 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -27,19 +27,19 @@ import javax.swing.table.TableCellRenderer;
 
 import teamdash.wbs.WBSNode;
 
-public class MilestoneDeferredColumn extends MilestoneBooleanColumn {
+public class MilestoneVisibilityColumn extends MilestoneBooleanColumn {
 
-    public static final String COLUMN_ID = "Milestone Deferred";
+    public static final String COLUMN_ID = "Milestone Hidden";
 
-    private static final String ATTR_NAME = "Defer Sync";
+    private static final String ATTR_NAME = "Hidden";
 
-    public MilestoneDeferredColumn() {
+    public MilestoneVisibilityColumn() {
         super(ATTR_NAME);
         columnID = COLUMN_ID;
-        columnName = "Defer Sync";
+        columnName = "Hide";
     }
 
-    public static boolean isDeferred(WBSNode node) {
+    public static boolean isHidden(WBSNode node) {
         return (node.getAttribute(ATTR_NAME) != null);
     }
 
@@ -48,7 +48,7 @@ public class MilestoneDeferredColumn extends MilestoneBooleanColumn {
     }
 
     public static final TableCellRenderer CELL_RENDERER = new CellRenderer(
-            "When checked, tasks for this milestone will not be copied to "
-                    + "team member project plans");
+            "When checked, milestone marks and commit dates for this milestone"
+                    + " will not be shown on the bottom-up time panel");
 
 }

@@ -49,6 +49,7 @@ import teamdash.team.ColorCellEditor;
 import teamdash.team.ColorCellRenderer;
 import teamdash.wbs.columns.MilestoneCommitDateColumn;
 import teamdash.wbs.columns.MilestoneDeferredColumn;
+import teamdash.wbs.columns.MilestoneVisibilityColumn;
 
 
 public class MilestonesEditor {
@@ -133,9 +134,13 @@ public class MilestonesEditor {
         ColorCellRenderer.setUpColorRenderer(table);
         col.setPreferredWidth(40);
 
+        col = table.getColumn("Hide");
+        col.setCellRenderer(MilestoneVisibilityColumn.CELL_RENDERER);
+        col.setPreferredWidth(15);
+
         col = table.getColumn("Defer Sync");
         col.setCellRenderer(MilestoneDeferredColumn.CELL_RENDERER);
-        col.setPreferredWidth(35);
+        col.setPreferredWidth(45);
 
         undoList = new UndoList(milestonesModel.getWBSModel());
         undoList.setForComponent(table);
