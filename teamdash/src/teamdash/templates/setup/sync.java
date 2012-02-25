@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2011 Tuma Solutions, LLC
+// Copyright (C) 2002-2012 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -454,8 +454,7 @@ public class sync extends TinyCGIBase {
 
         out.write("<!-- SYNC-IS-NEEDED -->");
         out.write("<html><head>");
-        out.write("<meta http-equiv='Refresh' CONTENT='0;URL="
-                + "syncFixInitials.shtm'>");
+        printRedirectInstruction("syncFixInitials.shtm", 0);
         out.write("</head><body></body></html>");
         return true;
     }
@@ -466,8 +465,7 @@ public class sync extends TinyCGIBase {
     private void printMigrationRedirect() {
         out.write("<!-- SYNC-IS-NEEDED -->");
         out.write("<html><head>");
-        out.write("<meta http-equiv='Refresh' CONTENT='0;URL="
-                + "migrateIndivConfirm.shtm'>");
+        printRedirectInstruction("migrateIndivConfirm.shtm", 0);
         out.write("</head><body></body></html>");
     }
 
@@ -694,7 +692,7 @@ public class sync extends TinyCGIBase {
         out.print("<!-- SYNC-IS-NEEDED -->\n");
         out.print("<html><head>");
         out.print("<title>Synchronizing Work Breakdown Structure</title>");
-        out.print("<meta http-equiv='Refresh' content='1;URL=sync.class?run'>");
+        printRedirectInstruction("sync.class?run", 1);
         out.print("</head>");
         out.print("<body><h1>Synchronizing...</h1>");
         out.print("Please wait.");
@@ -893,15 +891,27 @@ public class sync extends TinyCGIBase {
      */
     private void showErrorPage(String reason, String value) throws IOException {
         out.write("<html><head>");
-        out.write("<meta http-equiv='Refresh' CONTENT='0;URL=syncError.shtm?");
-        out.write(reason);
+        StringBuffer uri = new StringBuffer("syncError.shtm?").append(reason);
         if (value != null)
-            out.write("=" + HTMLUtils.urlEncode(value));
+            uri.append("=").append(HTMLUtils.urlEncode(value));
         if (isTeam)
-            out.write("&isTeam");
+            uri.append("&isTeam");
         if (isMaster)
-            out.write("&isMaster");
-        out.write("'></head><body></body></html>");
+            uri.append("&isMaster");
+        printRedirectInstruction(uri.toString(), 0);
+        out.write("</head><body></body></html>");
+    }
+
+    private void printRedirectInstruction(String url, int delay) {
+        try {
+            writeRedirectInstruction(url, delay);
+        } catch (Error e) {
+            // if the user is not running PD 1.14.3 or higher, the method
+            // above will not exist and an error will be thrown. Fall back
+            // and write an old-style meta-redirect instruction instead.
+            out.write("<meta http-equiv=\"Refresh\" content=\"" + delay
+                    + ";URL=" + url + "\">");
+        }
     }
 
     static final String MASTER_ROOT = "/MasterRoot";
