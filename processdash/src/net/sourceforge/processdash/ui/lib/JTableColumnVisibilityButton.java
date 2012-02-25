@@ -30,6 +30,7 @@ import java.awt.Shape;
 import java.util.ResourceBundle;
 
 import javax.swing.JButton;
+import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.border.EtchedBorder;
 
@@ -76,4 +77,8 @@ public class JTableColumnVisibilityButton extends JButton {
         }
     }
 
+    public JScrollPane install(JScrollPane sp) {
+        sp.setCorner(JScrollPane.UPPER_RIGHT_CORNER, this);
+        return sp;
+    }
 }
