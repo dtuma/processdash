@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2011 Tuma Solutions, LLC
+// Copyright (C) 2001-2012 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -42,6 +42,7 @@ import java.util.UUID;
 
 import net.sourceforge.processdash.DashboardContext;
 import net.sourceforge.processdash.ProcessDashboard;
+import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.DataContext;
 import net.sourceforge.processdash.data.DateData;
 import net.sourceforge.processdash.data.SimpleData;
@@ -495,6 +496,28 @@ public class TinyCGIBase implements TinyCGI {
     }
 
 
+    /**
+     * Some scripts may wish to display a page, then redirect to another page
+     * after a short delay. For example, this is a common way to display a
+     * "please wait" page, followed by a page that actually performs the work.
+     * 
+     * A meta-refresh tag would normally be used for this purpose, but some web
+     * browsers (namely, newer versions of IE with High security enabled) ignore
+     * the meta refresh tag. This method writes a block of HTML that can be
+     * included within the &lt;head&gt; block of a webpage.
+     * 
+     * @param uri the uri to redirect to
+     * @param delay the number of seconds to wait before redirecting
+     * @since 1.14.3
+     */
+    protected void writeRedirectInstruction(String uri, int delay) {
+        if (Settings.getBool("http.useMetaRefresh", false)) {
+            out.write("<meta http-equiv=\"Refresh\" content=\"" + delay
+                    + ";URL=" + uri + "\">");
+        } else {
+            out.write(HTMLUtils.redirectScriptHtml(uri, delay));
+        }
+    }
 
     protected String cssLinkHTML() {
         String style = (String) parameters.get("style");

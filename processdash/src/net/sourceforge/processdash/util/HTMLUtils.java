@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2011 Tuma Solutions, LLC
+// Copyright (C) 2001-2012 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -285,6 +285,44 @@ public class HTMLUtils {
     public static String scriptLinkHtml(String href) {
         return "<script type=\"text/javascript\" src=\"" + href
                 + "\"></script>\n";
+    }
+
+    /**
+     * Some scripts may wish to display a page, then redirect to another page
+     * after a short delay. For example, this is a common way to display a
+     * "please wait" page, followed by a page that actually performs the work.
+     * 
+     * A meta-refresh tag would normally be used for this purpose, but some web
+     * browsers (namely, newer versions of IE with High security enabled) ignore
+     * the meta refresh tag. This method generates a block of HTML that can be
+     * placed in the &lt;head&gt; of a webpage.
+     * 
+     * @param uri
+     *            the URI to redirect to; may be absolute or relative. Must
+     *            be a well-formed URI, not containing forbidden characters
+     * @param delay
+     *            the number of seconds to delay before redirecting; can be 0
+     *            for an immediate redirect
+     * @since 1.14.3
+     */
+    public static String redirectScriptHtml(String uri, int delay) {
+        if (uri.indexOf('"') != -1)
+            throw new IllegalArgumentException(
+                    "URIs cannot contain double-quote characters");
+
+        StringBuffer result = new StringBuffer();
+        result.append("<script type=\"text/javascript\"> ");
+
+        if (delay > 0)
+            result.append("var metaRefreshTimeout = window.setTimeout(function(){ ");
+
+        result.append("window.location.replace(\"").append(uri).append("\");");
+
+        if (delay > 0)
+            result.append(" }, ").append(delay * 1000).append("); ");
+
+        result.append("</script>");
+        return result.toString();
     }
 
 }
