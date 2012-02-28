@@ -69,9 +69,7 @@ public class JTableColumnVisibilityAction extends AbstractAction {
         for (int i : readOnlyColumns)
             makeColumnReadOnly(i);
 
-        ImageIcon icon = new ImageIcon(IMAGE_BYTES);
-        putValue(Action.SMALL_ICON, icon);
-        putValue(Action.LARGE_ICON_KEY, icon);
+        putValue(Action.SMALL_ICON, new ImageIcon(IMAGE_BYTES));
         putValue(Action.NAME, resources.getString("Column_Chooser.Title"));
 
         table.getActionMap().put(ACTION_KEY, this);
