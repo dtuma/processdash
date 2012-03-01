@@ -1,4 +1,4 @@
-// Copyright (C) 2008 Tuma Solutions, LLC
+// Copyright (C) 2008-2012 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -49,16 +49,13 @@ public class OverspentDiscItemRenderer extends StandardDiscItemRenderer {
     private static final BasicStroke OVERSPENT_CIRCLE_STROKE = new BasicStroke(2.0f);
 
     /** The overspent circle color */
-    private static final Color OVERSPENT_COLOR = Color.red;
+    private Color overspentColor;
 
     /** The alpha value of the most transparent part of the overspent section */
     private static final int ALPHA = 10;
 
     /** The color used to draw the overspent section */
-    private static final Color OVERSPENT_SECTION_COLOR = new Color(OVERSPENT_COLOR.getRed(),
-                                                                   OVERSPENT_COLOR.getGreen(),
-                                                                   OVERSPENT_COLOR.getBlue(),
-                                                                   ALPHA);
+    private Color overspentGradientFill;
 
     /** The number of ellipses drawn in the overspent section */
     private static final double NUM_CIRCLES_OVERSPENT_SECTION = 20;
@@ -84,9 +81,15 @@ public class OverspentDiscItemRenderer extends StandardDiscItemRenderer {
     private boolean showQuantiles;
 
     public OverspentDiscItemRenderer(CategoryDataset underlyingDataset) {
+        this(underlyingDataset, Color.red);
+    }
+
+    public OverspentDiscItemRenderer(CategoryDataset underlyingDataset,
+            Color overspentColor) {
         this.underlyingDataset = underlyingDataset;
 
-        this.showQuantiles = true;
+        setShowQuantiles(true);
+        setOverspentColor(overspentColor);
     }
 
     public boolean isShowQuantiles() {
@@ -95,6 +98,16 @@ public class OverspentDiscItemRenderer extends StandardDiscItemRenderer {
 
     public void setShowQuantiles(boolean showQuantiles) {
         this.showQuantiles = showQuantiles;
+    }
+
+    public Color getOverspentColor() {
+        return overspentColor;
+    }
+
+    public void setOverspentColor(Color c) {
+        this.overspentColor = c;
+        this.overspentGradientFill = new Color(c.getRed(), c.getGreen(),
+                c.getBlue(), ALPHA);
     }
 
     @Override
@@ -113,7 +126,7 @@ public class OverspentDiscItemRenderer extends StandardDiscItemRenderer {
         if (plannedTime.doubleValue() < actualDirectTime.doubleValue()) {
             // The task is overspent.
 
-            g2.setColor(OVERSPENT_SECTION_COLOR);
+            g2.setColor(overspentGradientFill);
 
             // We draw multiple red ellipses to represent the overspent section. The first
             //  one we draw is as big as the entire disc and the last one has the same
@@ -145,7 +158,7 @@ public class OverspentDiscItemRenderer extends StandardDiscItemRenderer {
 
             // We finally draw the overspent delimitation circle
             shape = getEllipseShape(discShape, overspentCircleWidth);
-            g2.setColor(OVERSPENT_COLOR);
+            g2.setColor(overspentColor);
             g2.setStroke(OVERSPENT_CIRCLE_STROKE);
             g2.draw(shape);
         }
