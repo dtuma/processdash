@@ -35,6 +35,8 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Random;
+import java.util.Set;
 
 import javax.swing.table.AbstractTableModel;
 
@@ -62,7 +64,7 @@ public class TeamMemberList extends AbstractTableModel implements EffortCalendar
 
 
     /** The list of team members */
-    private ArrayList teamMembers = new ArrayList();
+    private ArrayList<TeamMember> teamMembers = new ArrayList();
 
     /** True if we should always keep an empty team member at the end of
      * the list */
@@ -143,7 +145,7 @@ public class TeamMemberList extends AbstractTableModel implements EffortCalendar
         // determine what date to scroll to initially
         weekOffset = getDefaultWeekOffset();
 
-        isDirty = false;
+        isDirty = assignMissingUniqueIDs();
     }
 
     /** Create a cloned copy of the given team member list */
@@ -731,6 +733,37 @@ public class TeamMemberList extends AbstractTableModel implements EffortCalendar
 
 
 
+    /**
+     * Look through this list and assign unique IDs to any individuals who do
+     * not already have them.
+     * 
+     * @return true if any IDs were assigned, false if all team members already
+     *         had IDs.
+     */
+    public boolean assignMissingUniqueIDs() {
+        Set<Integer> usedIDs = new HashSet<Integer>();
+        for (TeamMember m : teamMembers)
+            usedIDs.add(m.getId());
+        if (!usedIDs.contains(-1))
+            return false;
+
+        boolean madeChange = false;
+        Random rand = new Random();
+        for (TeamMember m : teamMembers) {
+            if (m.getId() == -1 && !m.isEmpty()) {
+                int newID;
+                do {
+                    newID = Math.abs(rand.nextInt());
+                } while (newID == 0 || usedIDs.contains(newID));
+                usedIDs.add(newID);
+                m.setId(newID);
+                madeChange = true;
+            }
+        }
+        return madeChange;
+    }
+
+
 
     /** An object describing a change in a team member list.
      *
@@ -761,23 +794,22 @@ public class TeamMemberList extends AbstractTableModel implements EffortCalendar
         ArrayList origList =  new ArrayList(this.teamMembers);
         ArrayList newList =  new ArrayList(newMembers.teamMembers);
         ArrayList deltas = new ArrayList();
-        for (int search = 0;   search < 2;   search++) {
-            Iterator i = origList.iterator();
-            while (i.hasNext()) {
-                TeamMember origMember = (TeamMember) i.next();
-                Delta d = findTeamMember(origMember, newList, search);
-                if (d != null) {
-                    i.remove();
-                    newList.remove(d.after);
-                    if (d.description.length() > 0) deltas.add(d);
-                }
+        for (Iterator i = origList.iterator(); i.hasNext();) {
+            TeamMember origMember = (TeamMember) i.next();
+            Delta d = findTeamMember(origMember, newList);
+            if (d != null) {
+                i.remove();
+                newList.remove(d.after);
+                if (d.description.length() > 0) deltas.add(d);
             }
         }
         if (origList.size() > 0) {
             Iterator i = origList.iterator();
             while (i.hasNext()) {
                 TeamMember t = (TeamMember) i.next();
-                deltas.add(new Delta(t, null, "Delete " + t.getName()));
+                String message = TeamMember.resources.format(
+                    "Compare_Members.Delete_FMT", t.getName());
+                deltas.add(new Delta(t, null, message));
             }
         }
 
@@ -785,26 +817,43 @@ public class TeamMemberList extends AbstractTableModel implements EffortCalendar
         return (Delta[]) deltas.toArray(new Delta[0]);
     }
 
-    /** Try to find a team member in the given list which looks similar to
+    /** Try to find a team member in the given list whose ID matches
      * the one passed in.
      *
      * @param t a team member to find a match for
      * @param l a list of team members to look in
-     * @param search if 0, two team members will be considered a "match" only
-     * if their names are equal. if 1, two team members will "match" if their
-     * initials are equal.
      * @return Delta null if no matching team member could be found.
      * Otherwise, a Delta object comparing two team members.
      */
-    private Delta findTeamMember(TeamMember t, ArrayList l, int search) {
+    private Delta findTeamMember(TeamMember t, ArrayList l) {
         Iterator i = l.iterator();
         while (i.hasNext()) {
             TeamMember s = (TeamMember) i.next();
-            String diff = t.compareToMember(s, search == 1);
+            String diff = t.compareToMember(s);
             if (diff != null)
                 return new Delta(t, s, diff);
         }
         return null;
+    }
+
+    /** During an edit session, someone might reuse a row in the team member
+     * list to delete an individual and replace them with someone else. When
+     * that occurs, the new team member will (incorrectly) still have the
+     * unique ID from the deleted team member.  Look for and clear out any
+     * IDs that match this pattern.
+     */
+    protected void eraseDeletedTeamMemberIDs(Delta[] changes) {
+        if (changes != null && changes.length > 0) {
+            for (Delta d : changes) {
+                if (d.before != null && d.after == null) {
+                    TeamMember deleted = d.before;
+                    for (TeamMember m : teamMembers) {
+                        if (m.getId() == deleted.getId())
+                            m.setId(-1);
+                    }
+                }
+            }
+        }
     }
 
     /** notify any registered InitialsListeners about the any changes to

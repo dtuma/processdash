@@ -151,6 +151,10 @@ public class TeamMemberListEditor implements WindowListener, TableModelListener 
             orig.calculateDelta(teamMemberList);
         if (!confirmDestructiveChanges(irreversibleChanges)) return false;
 
+        // Assign IDs to any newly added team members.
+        teamMemberList.eraseDeletedTeamMemberIDs(irreversibleChanges);
+        teamMemberList.assignMissingUniqueIDs();
+
         // commit and save the changes
         orig.publishChanges(irreversibleChanges);
         orig.copyFrom(teamMemberList);

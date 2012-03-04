@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Tuma Solutions, LLC
+// Copyright (C) 2002-2012 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -34,6 +34,7 @@ import java.util.regex.Pattern;
 
 import org.w3c.dom.Element;
 
+import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.util.NullSafeObjectUtils;
 import net.sourceforge.processdash.util.XMLUtils;
 
@@ -45,6 +46,8 @@ import net.sourceforge.processdash.util.XMLUtils;
  */
 public class TeamMember implements Cloneable {
 
+    /** An internal ID that is guaranteed to be unique within a team project */
+    private int id;
     /** The full name of the team member (e.g. John Doe)*/
     private String name;
     /** A query string provided by the lookup service for future reference */
@@ -72,6 +75,7 @@ public class TeamMember implements Cloneable {
      */
     public TeamMember(String name, String initials, Color color, int startWeek,
             Date zeroDay) {
+        this.id = -1;
         this.name = trim(name);
         this.initials = trim(initials);
         this.color = color;
@@ -81,6 +85,9 @@ public class TeamMember implements Cloneable {
     /** Create a team member object using data in the given XML element. */
     public TeamMember(Element e, Date teamZeroDay) {
         Map<String, String> attrs = XMLUtils.getAttributesAsMap(e);
+        // extract the ID attribute from the element.
+        this.id = XMLUtils.getXMLInt(e, ID_ATTR);
+        attrs.remove(ID_ATTR);
         // extract the name from the element.
         this.name = trim(attrs.remove(NAME_ATTR));
         // extract server identify information from the element.
@@ -107,6 +114,10 @@ public class TeamMember implements Cloneable {
         if (str.length() == 0) return null;
         return str;
     }
+
+    // getter/setter for the ID property
+    public int getId() { return id; }
+    void setId(int id) { this.id = id; }
 
     // getter/setter for the name property.
     public String getName() { return name; }
@@ -165,7 +176,7 @@ public class TeamMember implements Cloneable {
 
     public WeeklySchedule getSchedule() { return schedule; }
 
-    /** returns true if this individual has no name or initials. */
+    /** returns true if this individual has no name and no initials. */
     public boolean isEmpty() {
         if (name != null && name.trim().length() > 0) return false;
         if (initials != null && initials.trim().length() > 0) return false;
@@ -177,6 +188,10 @@ public class TeamMember implements Cloneable {
         out.write("  <"+TAG_NAME+" "+NAME_ATTR+"='");
         if (name != null)
             out.write(XMLUtils.escapeAttribute(name));
+        if (id != -1) {
+            out.write("' "+ID_ATTR+"='");
+            out.write(Integer.toString(id));
+        }
         if (serverIdentityInfo != null) {
             out.write("' "+SERVER_IDENTITY_ATTR+"='");
             out.write(XMLUtils.escapeAttribute(serverIdentityInfo));
@@ -225,37 +240,43 @@ public class TeamMember implements Cloneable {
      * object.
      *
      * @param that another team member object to compare to.
-     * @param considerInitials if true, this method will take the initials into
-     * consideration during the comparison.
      * @return One of the following:<ul>
-     * <li>the empty string if the two objects represent the same individual
-     * (both name and initials match).
-         * <li>null if the two objects don't appear to represent the same
-         * individual (the names don't match, and if considerInitials is true,
-         * neither do the initials)
-     * <li>A user-readable string describing the change that would need to be
-     * made to this object for it look like the object passed in.
+     *         <li>null if the two objects don't appear to represent the same
+     *         individual.</li>
+     *         <li>the empty string if the two objects represent the same
+     *         individual, and the name and intiials match.</li>
+     *         <li>A user-readable string describing the changes that would
+     *         need to be made to this object for it look like the object
+     *         passed in.</li>
+     *         </ul>
      */
-    public String compareToMember(TeamMember that, boolean considerInitials) {
+    public String compareToMember(TeamMember that) {
+        if (this.id == -1 || this.id != that.id)
+            return null;
+
         boolean differentName = (this.name == null ||
                                  !this.name.equals(that.name));
-        if (differentName && !considerInitials) return null;
         boolean differentInitials = (this.initials == null ||
                                      !this.initials.equals(that.initials));
         if (differentName && differentInitials) return null;
 
-        String result = "";
-
+        String resKey;
         if (differentName)
-            result = "Rename " + this.name + " to '" + that.name + "'";
+            resKey = "Compare_Members.Name_Change_FMT";
         else if (differentInitials)
-            result = "Change initials for " + this.name + " to '" +
-                that.initials + "'";
+            resKey = "Compare_Members.Initials_Change_FMT";
+        else
+            return "";
 
-        return result;
+        return resources.format(resKey, this.name, that.name, this.initials,
+            that.initials);
     }
 
+    static final Resources resources = Resources
+            .getDashBundle("WBSEditor.Team");
+
     static final String TAG_NAME = "teamMember";
+    private static final String ID_ATTR = "tmid";
     private static final String NAME_ATTR = "name";
     private static final String SERVER_IDENTITY_ATTR = "serverIdentityData";
     private static final String INITIALS_ATTR = "initials";
