@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2011 Tuma Solutions, LLC
+// Copyright (C) 2003-2012 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -247,9 +247,12 @@ public abstract class AbstractEVChart<D extends Dataset, P extends Plot>
         }
     }
 
+    protected void propertyChangeNotify(PropertyChangeEvent evt) {}
+
     protected PropertyChangeListener getPropertyChangeNotifier() {
         return new PropertyChangeListener() {
             public void propertyChange(PropertyChangeEvent evt) {
+                propertyChangeNotify(evt);
                 fireStateChanged();
             }
         };
