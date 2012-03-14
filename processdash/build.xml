@@ -799,6 +799,32 @@ Authors:
     </jar>
   </target>
 
+  <target name="standaloneDiff" depends="compile">
+    <classfileset id="locDiffClasses" dir="${build}">
+      <root classname="net.sourceforge.processdash.tool.diff.ui.LOCDiffCmdLineMain"/>
+      <root classname="net.sourceforge.processdash.ui.WindowIconImageSetter15"/>
+      <root classname="net.sourceforge.processdash.ui.WindowIconImageSetter16"/>
+    </classfileset>
+    <jar destfile="${dist}/dashLocDiff.jar" duplicate="fail">
+      <manifest>
+        <attribute name="Main-Class"
+            value="net.sourceforge.processdash.tool.diff.ui.LOCDiffCmdLineMain"/>
+        <attribute name="Implementation-Version" value="${version}"/>
+      </manifest>
+      <fileset refid="locDiffClasses"/>
+      <fileset dir="Templates">
+        <include name="resources/(Resources)*"/>
+        <include name="resources/LOCDiff*"/>
+      </fileset>
+      <fileset dir="src">
+        <include name="net/sourceforge/processdash/ui/dashicon.ico" />
+        <include name="net/sourceforge/processdash/tool/diff/ui/HtmlDiffReportWriter.css" />
+      </fileset>
+      <zipfileset src="${image4j.jar}"/>
+      <zipfileset src="${kxml.jar}"/>
+    </jar>
+  </target>
+
   <target name="customjar">
     <jar destfile="${dist}/custom-report-fix.jar" basedir="." includes="Templates/reports/custom/create.shtm">
       <manifest>
