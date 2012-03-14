@@ -1,4 +1,4 @@
-// Copyright (C) 2009 Tuma Solutions, LLC
+// Copyright (C) 2009-2012 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -132,6 +132,7 @@ public class BoundRadioButtons extends JPanel implements ActionListener {
             button.setActionCommand(option.value);
             button.addActionListener(this);
             button.setSelected(option.isDefaultOption);
+            button.putClientProperty(Option.class, option);
 
             buttonGroup.add(button);
             buttonPannel.add(button);
@@ -184,14 +185,26 @@ public class BoundRadioButtons extends JPanel implements ActionListener {
     public void updateFromMap() {
         Object value = map.get(this.propertyName);
 
+        boolean buttonFound = false;
         if (value != null && value instanceof String) {
             Enumeration<AbstractButton> buttons = buttonGroup.getElements();
-            boolean buttonFound = false;
 
             while (buttons.hasMoreElements() && !buttonFound) {
                 AbstractButton button = buttons.nextElement();
 
                 if (((String) value).equalsIgnoreCase(button.getActionCommand())) {
+                    button.setSelected(true);
+                    buttonFound = true;
+                }
+            }
+        }
+
+        if (!buttonFound) {
+            Enumeration<AbstractButton> buttons = buttonGroup.getElements();
+            while (buttons.hasMoreElements() && !buttonFound) {
+                AbstractButton button = buttons.nextElement();
+                Option option = (Option) button.getClientProperty(Option.class);
+                if (option != null && option.isDefaultOption) {
                     button.setSelected(true);
                     buttonFound = true;
                 }
