@@ -28,7 +28,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -222,30 +221,10 @@ public class TeamMemberColumnManager
      */
     public void tableChanged(TableModelEvent e) {
 
-        // update time data for any team members whose initials have changed.
-        // since it is possible for two team members to have swapped initials
-        // (or for larger cycles to exist), we perform the changes in 2 steps:
-        //   (1) Rename the data from the old initials to something which is
-        //       not a legal initials value, and is thus safe to avoid
-        //       collisions with real data.
-        //   (2) Rename the data from its interim value to the new initials.
+        // process any pending changes to the initials of team members
         if (initialsToChange != null) {
-            Iterator i = initialsToChange.keySet().iterator();
-            while (i.hasNext()) {
-                String oldInitials = (String) i.next();
-                TeamMemberTimeColumn.changeInitials
-                    (dataModel, oldInitials, oldInitials + " ");
-            }
-
-            i = initialsToChange.entrySet().iterator();
-            while (i.hasNext()) {
-                Map.Entry me = (Map.Entry) i.next();
-                String oldInitials = (String) me.getKey();
-                String newInitials = (String) me.getValue();
-                TeamMemberTimeColumn.changeInitials
-                    (dataModel, oldInitials + " ", newInitials);
-            }
-
+            TeamMemberTimeColumn.changeInitials(dataModel.getWBSModel(),
+                initialsToChange);
             initialsToChange = null;
         }
 

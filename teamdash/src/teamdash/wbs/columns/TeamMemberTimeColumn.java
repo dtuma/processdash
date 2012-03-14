@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Tuma Solutions, LLC
+// Copyright (C) 2002-2012 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -24,6 +24,8 @@
 package teamdash.wbs.columns;
 
 import static teamdash.wbs.columns.TeamTimeColumn.getMemberAssignedZeroAttrName;
+
+import java.util.Map;
 
 import javax.swing.table.TableCellRenderer;
 
@@ -98,11 +100,39 @@ public class TeamMemberTimeColumn extends TopDownBottomUpColumn
 
 
     /** Instances of this column use a team member's initials to store
+     * and retrieve data. Therefore, when the initials have changed for
+     * several team members, it is necessary to rename all of the data
+     * appropriately. This method performs that operation.
+     */
+    public static void changeInitials(WBSModel wbsModel,
+            Map<String, String> initialsToChange) {
+        // update time data for any team members whose initials have changed.
+        // since it is possible for two team members to have swapped initials
+        // (or for larger cycles to exist), we perform the changes in 2 steps:
+        //   (1) Rename the data from the old initials to something which is
+        //       not a legal initials value, and is thus safe to avoid
+        //       collisions with real data.
+        //   (2) Rename the data from its interim value to the new initials.
+
+        for (String oldInitials : initialsToChange.keySet()) {
+            TeamMemberTimeColumn.changeInitials
+                (wbsModel, oldInitials, oldInitials + " ");
+        }
+
+        for (Map.Entry<String, String> me : initialsToChange.entrySet()) {
+            String oldInitials = me.getKey();
+            String newInitials = me.getValue();
+            TeamMemberTimeColumn.changeInitials
+                (wbsModel, oldInitials + " ", newInitials);
+        }
+    }
+
+    /** Instances of this column use a team member's initials to store
      * and retrieve data. Therefore, when a team member's initials change,
      * it is necessary to rename all of the data appropriately. This method
      * performs that operation.
      */
-    public static void changeInitials(DataTableModel dataModel,
+    public static void changeInitials(WBSModel wbsModel,
                                       String oldInitials,
                                       String newInitials) {
         // calculate the node attribute names applicable to this rename
@@ -116,8 +146,7 @@ public class TeamMemberTimeColumn extends TopDownBottomUpColumn
         String newZeroAttr = getMemberAssignedZeroAttrName(newInitials);
 
         // perform the change, starting at the root of the wbs.
-        changeInitials(dataModel.getWBSModel(),
-                       dataModel.getWBSModel().getRoot(),
+        changeInitials(wbsModel, wbsModel.getRoot(),
                        oldTopAttr, newTopAttr, oldBtmAttr, oldInherAttr,
                        oldZeroAttr, newZeroAttr);
     }
