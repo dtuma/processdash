@@ -24,7 +24,9 @@
 package net.sourceforge.processdash.ui.snippet;
 
 import java.awt.Component;
+import java.beans.PropertyChangeListener;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
@@ -32,6 +34,7 @@ import java.util.Map;
 import org.xml.sax.SAXException;
 
 import net.sourceforge.processdash.i18n.Resources;
+import net.sourceforge.processdash.net.http.WebServer;
 import net.sourceforge.processdash.ui.lib.binding.BoundForm;
 import net.sourceforge.processdash.util.XMLUtils;
 
@@ -42,14 +45,22 @@ public class WidgetConfigurationHelper extends BoundForm {
     /**
      * Create a WidgetConfigurationHelper
      * 
-     * @param specUrl a URL that the XML spec can be read from
-     * @param resources the resources that should be used to build the form
-     * @param parameters the map of parameters that were passed to the chart
-     * @param paramNames the name of parameters that represent
-     *                   user-configurable settings
+     * @param specUrl
+     *            a URL that the XML spec can be read from
+     * @param resources
+     *            the resources that should be used to build the form
+     * @param propListener
+     *            a property change listener that should be notified about
+     *            changes to the configuration settings
+     * @param parameters
+     *            the map of parameters that were passed to the chart
+     * @param paramNames
+     *            the name of parameters that represent user-configurable
+     *            settings
      */
     public WidgetConfigurationHelper(URL specUrl, Resources resources,
-            Map parameters, String... paramNames) {
+            PropertyChangeListener propListener, Map parameters,
+            String... paramNames) {
         this.paramNames = paramNames;
         setResources(resources);
         setConfigurationParameters(parameters);
@@ -62,16 +73,64 @@ public class WidgetConfigurationHelper extends BoundForm {
         } catch (IOException e) {
             throw new IllegalArgumentException("Unable to open XML spec", e);
         }
+
+        if (propListener != null)
+            addPropertyChangeListener(propListener);
     }
 
+    /**
+     * Create a WidgetConfigurationHelper
+     * 
+     * @param specUri
+     *            a uri to a dashboard resource (e.g., relative to the
+     *            "Templates" directory) that the XML spec can be read from
+     * @param resources
+     *            the resources that should be used to build the form
+     * @param propListener
+     *            a property change listener that should be notified about
+     *            changes to the configuration settings
+     * @param parameters
+     *            the map of parameters that were passed to the chart
+     * @param paramNames
+     *            the name of parameters that represent user-configurable
+     *            settings
+     */
+    public WidgetConfigurationHelper(String specUri, Resources resources,
+            PropertyChangeListener propListener, Map parameters,
+            String... paramNames) {
+        this(parseDashboardTemplateUri(specUri), resources, propListener,
+                parameters, paramNames);
+    }
+
+    private static URL parseDashboardTemplateUri(String specUri) {
+        try {
+            if (!specUri.startsWith("/"))
+                specUri = "/" + specUri;
+            return new URL(WebServer.DASHBOARD_PROTOCOL + ":" + specUri);
+        } catch (MalformedURLException e) {
+            throw new IllegalArgumentException(
+                    "Bad spec URI '" + specUri + "'", e);
+        }
+    }
+
+
+    /**
+     * @see ConfigurableSnippetWidget#getWidgetConfigurationPane()
+     */
     public Component getWidgetConfigurationPane() {
         return getContainer();
     }
 
+    /**
+     * @see ConfigurableSnippetWidget#getConfigurationParameters()
+     */
     public Map getConfigurationParameters() {
         return copyParameters(this, new HashMap());
     }
 
+    /**
+     * @see ConfigurableSnippetWidget#setConfigurationParameters(Map)
+     */
     public void setConfigurationParameters(Map parameters) {
         copyParameters(parameters, this);
     }
