@@ -83,6 +83,18 @@ public class TreeDiff<ID, Content> {
         return getChangedNodeIDs(type).contains(id);
     }
 
+    public boolean nodeWasChanged(ID id, TreeNodeChange.Type[] types) {
+        for (Type t : types)
+            if (nodeWasChanged(id, t))
+                return true;
+        return false;
+    }
+
+    public boolean nodeWasChanged(ID id, TreeNodeChange.Type firstType,
+            TreeNodeChange.Type... additionalTypes) {
+        return (nodeWasChanged(id, firstType)
+                || nodeWasChanged(id, additionalTypes));
+    }
 
     private void computeChanges() {
         // initialize data objects

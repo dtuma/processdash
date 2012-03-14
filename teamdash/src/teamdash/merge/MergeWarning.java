@@ -24,7 +24,7 @@
 package teamdash.merge;
 
 
-public class MergeWarning<ID, Content> {
+public class MergeWarning<ID> {
 
     public enum Severity {
         INFO, CONFLICT

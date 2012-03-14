@@ -63,7 +63,7 @@ public class TreeNode<ID, Content> {
 
 
     /** Alter the content that is associated with this node. */
-    protected void setContent(Content content) {
+    public void setContent(Content content) {
         this.content = content;
     }
 

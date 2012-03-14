@@ -1,0 +1,18 @@
+<teamList firstDayOfWeek='1' referenceDate='@1284588000000'>
+  <teamMember name='Person A' tmid='10' initials='aa' color='#9933ff' startWeek='0' hoursPerWeek='1.0' unrecognizedAttrFoo='foo' unrecognizedAttrBar='bar'>
+    <scheduleException week='2' hours='2.0'/>
+    <scheduleException week='4' hours='3.0'/>
+  </teamMember>
+  <teamMember name='Person B' tmid='20' initials='bb' color='#6666ff' startWeek='0' hoursPerWeek='2.0'>
+    <scheduleException week='3' hours='9.0'/>
+  </teamMember>
+  <teamMember name='Person C' tmid='30' initials='cc' color='#00ccff' startWeek='1' endWeek='6' hoursPerWeek='3.0'/>
+  <teamMember name='Person D' tmid='40' initials='dd' color='#66ff99' startWeek='0' hoursPerWeek='4.0'>
+    <scheduleException week='2' hours='0.0'/>
+    <scheduleException week='5' hours='0.0'/>
+  </teamMember>
+  <teamMember name='Person E' tmid='50' initials='ee' color='#ffff66' startWeek='2' hoursPerWeek='5.0'>
+    <scheduleException week='0' hours='8.0'/>
+  </teamMember>
+  <teamMember name='Person F' tmid='60' initials='ff' color='#ffcc66' startWeek='0' endWeek='7' hoursPerWeek='6.0'/>
+</teamList>

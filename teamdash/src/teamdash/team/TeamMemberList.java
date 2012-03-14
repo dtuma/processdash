@@ -247,14 +247,18 @@ public class TeamMemberList extends AbstractTableModel implements EffortCalendar
 
     /** Get a list of all the non-empty team members.
      */
-    public List getTeamMembers() {
-        ArrayList result = new ArrayList();
+    public List<TeamMember> getTeamMembers() {
+        ArrayList<TeamMember> result = new ArrayList();
         Iterator i = teamMembers.iterator();
         while (i.hasNext()) {
             TeamMember m = (TeamMember) i.next();
             if (!m.isEmpty()) result.add(m);
         }
         return result;
+    }
+
+    void setTeamMembers(List newMembers) {
+        this.teamMembers = copyTeamMemberList(newMembers);
     }
 
     /** Find the team member with the given initials */
@@ -266,6 +270,15 @@ public class TeamMemberList extends AbstractTableModel implements EffortCalendar
                 if (initials.equalsIgnoreCase(m.getInitials()))
                     return m;
             }
+        }
+        return null;
+    }
+
+    /** Find the team member with the given ID */
+    public TeamMember findTeamMemberByID(int id) {
+        for (TeamMember m : teamMembers) {
+            if (m.getId() == id)
+                return m;
         }
         return null;
     }

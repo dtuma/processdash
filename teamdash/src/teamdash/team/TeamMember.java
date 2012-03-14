@@ -28,6 +28,7 @@ import java.awt.Color;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -106,6 +107,16 @@ public class TeamMember implements Cloneable {
         this.extraAttributes = attrs;
     }
 
+    protected TeamMember(int id, Map map, Date zeroDay) {
+        this.id = id;
+        this.name = (String) map.get(NAME_ATTR);
+        this.serverIdentityInfo = (String) map.get(SERVER_IDENTITY_ATTR);
+        this.initials = (String) map.get(INITIALS_ATTR);
+        this.color = (Color) map.get(COLOR_ATTR);
+        this.extraAttributes = (Map) map.get(EXTRA_ATTRS);
+        this.schedule = new WeeklySchedule(map, zeroDay);
+    }
+
     /** Convenience method - trim whitespace from the ends of a string.
      * if the result would be an empty string, this will return null. */
     private static String trim(String str) {
@@ -159,6 +170,8 @@ public class TeamMember implements Cloneable {
     }
     public boolean hasColor() { return color != null; }
     public void setColor(Color color) { this.color = color; }
+
+    Map getExtraAttributes() { return extraAttributes; }
 
     // getter/setter for the "start date" property.
     public Date getStartDate() { return schedule.getStartDate(); }
@@ -224,6 +237,17 @@ public class TeamMember implements Cloneable {
         }
     }
 
+    protected Map<String, Object> getAsMap() {
+        Map<String, Object> result = new HashMap<String, Object>();
+        result.put(NAME_ATTR, getName());
+        result.put(SERVER_IDENTITY_ATTR, serverIdentityInfo);
+        result.put(INITIALS_ATTR, getInitials());
+        result.put(COLOR_ATTR, getColor());
+        result.put(EXTRA_ATTRS, extraAttributes);
+        schedule.getAsMap(result);
+        return result;
+    }
+
     /** Make a copy of this team member object. */
     public Object clone() {
         try {
@@ -277,9 +301,10 @@ public class TeamMember implements Cloneable {
 
     static final String TAG_NAME = "teamMember";
     private static final String ID_ATTR = "tmid";
-    private static final String NAME_ATTR = "name";
-    private static final String SERVER_IDENTITY_ATTR = "serverIdentityData";
-    private static final String INITIALS_ATTR = "initials";
-    private static final String COLOR_ATTR = "color";
+    static final String NAME_ATTR = "name";
+    static final String SERVER_IDENTITY_ATTR = "serverIdentityData";
+    static final String INITIALS_ATTR = "initials";
+    static final String COLOR_ATTR = "color";
+    static final String EXTRA_ATTRS = "extraAttributes";
 
 }

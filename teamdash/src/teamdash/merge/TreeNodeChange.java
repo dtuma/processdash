@@ -57,6 +57,10 @@ public class TreeNodeChange<ID, Content> {
         return type;
     }
 
+    void setType(Type type) {
+        this.type = type;
+    }
+
     public TreeNode<ID, Content> getNode() {
         return node;
     }

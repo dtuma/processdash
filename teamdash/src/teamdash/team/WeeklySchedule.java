@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Tuma Solutions, LLC
+// Copyright (C) 2002-2012 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -73,6 +73,25 @@ public class WeeklySchedule implements EffortCalendar {
         this.hoursPerWeek = that.hoursPerWeek;
         this.exceptions = new HashMap(that.exceptions);
         this.maxExceptionWeek = that.maxExceptionWeek;
+    }
+
+    WeeklySchedule(Map map, Date zeroDay) {
+        this.zeroDay = zeroDay;
+        this.startWeek = (Integer) map.get(START_WEEK_ATTR);
+        this.endWeek =  (Integer) map.get(END_WEEK_ATTR);
+        setHoursPerWeek((Double) map.get(HOURS_PER_WEEK_ATTR));
+
+        this.exceptions = new HashMap();
+        for (Iterator i = map.entrySet().iterator(); i.hasNext();) {
+            Map.Entry e = (Map.Entry) i.next();
+            String attr = (String) e.getKey();
+            if (attr.startsWith(EXCEPTION_TAG)) {
+                String weekStr = attr.substring(EXCEPTION_TAG.length()+1);
+                int weekNum = Integer.parseInt(weekStr);
+                double time = (Double) e.getValue();
+                addException(weekNum, time);
+            }
+        }
     }
 
     public WeeklySchedule(Element xml, Date zeroDay) {
@@ -356,6 +375,19 @@ public class WeeklySchedule implements EffortCalendar {
         }
     }
 
+    protected void getAsMap(Map<String, Object> result) {
+        result.put(START_WEEK_ATTR, startWeek);
+        result.put(END_WEEK_ATTR, endWeek);
+        result.put(HOURS_PER_WEEK_ATTR, hoursPerWeek.getHours());
+
+        for (Iterator i = exceptions.entrySet().iterator(); i.hasNext();) {
+            Map.Entry e = (Map.Entry) i.next();
+            String attr = EXCEPTION_TAG + "_" + e.getKey();
+            WeekData wd = (WeekData) e.getValue();
+            result.put(attr, wd.getHours());
+        }
+    }
+
 
     private boolean eq(double a, double b) {
         return Math.abs(a - b) < 0.01;
@@ -405,13 +437,13 @@ public class WeeklySchedule implements EffortCalendar {
 
     private static final String START_CALENDAR_ATTR = "startCalendarDate";
 
-    private static final String START_WEEK_ATTR = "startWeek";
+    static final String START_WEEK_ATTR = "startWeek";
 
-    private static final String END_WEEK_ATTR = "endWeek";
+    static final String END_WEEK_ATTR = "endWeek";
 
-    private static final String HOURS_PER_WEEK_ATTR = "hoursPerWeek";
+    static final String HOURS_PER_WEEK_ATTR = "hoursPerWeek";
 
-    private static final String EXCEPTION_TAG = "scheduleException";
+    static final String EXCEPTION_TAG = "scheduleException";
 
     private static final String WEEK_ATTR = "week";
 

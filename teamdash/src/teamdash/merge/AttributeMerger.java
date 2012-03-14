@@ -23,15 +23,9 @@
 
 package teamdash.merge;
 
-public interface ContentMerger<ID, Content> {
+public interface AttributeMerger<ID, Type> {
 
-    public interface ErrorReporter<ID> {
-        public void addMergeWarning(MergeWarning<ID> w);
-    }
-
-    public boolean isEqual(Content a, Content b);
-
-    public Content mergeContent(TreeNode<ID, Content> destNode, Content base,
-            Content main, Content incoming, ErrorReporter<ID> err);
+    Type mergeAttribute(ID nodeID, String attrName, Type base, Type main,
+            Type incoming, ContentMerger.ErrorReporter<ID> err);
 
 }

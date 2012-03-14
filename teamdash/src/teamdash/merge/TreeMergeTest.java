@@ -249,6 +249,23 @@ public class TreeMergeTest extends TestCase {
             "R{c{cc}m}", "R{c{cc}m{i}}");
     }
 
+    public void testDuplicatedAdd() {
+        assertConflictFreeMerge("R{a,b}", "R{a,b,c}", "R{a,b,c}", "R{a,b,c}");
+    }
+
+    public void testDuplicatedAddWithConflictingParent() {
+        assertConflictingMerge("R{a,b}", "R{a,b,c}", "R{a,b{c}}", "R{a,b,c}",
+            idList(), conflict("c", Type.Add, Type.Add));
+        assertConflictingMerge("R{a,b}", "R{a,b{c}}", "R{a,b,c}", "R{a,b{c}}",
+            idList(), conflict("c", Type.Add, Type.Add));
+    }
+
+    public void testDuplicatedAddWithContentChanges() {
+        assertConflictFreeMerge("R{a,b}", "R{a,b,c}", "R{a,b,c'}", "R{a,b,c'}");
+        assertConflictingMerge("R{a,b}", "R{a,b,c^}", "R{a,b,c'}", "R{a,b,c!!!}",
+            idList(), conflict("c", Type.Edit, Type.Edit));
+    }
+
     public void testMergeOkToDeleteReorderedNode() {
         assertConflictFreeMerge("R{a,b,c}", "R{a,c,b}", "R{a,c}", "R{a,c}");
         assertConflictFreeMerge("R{a{b,c,d}e}", "R{e,a{d,c,b}}", "R{e}", "R{e}");
@@ -380,21 +397,21 @@ public class TreeMergeTest extends TestCase {
 
     private static void assertConflictingMerge(String specB, String specM,
             String specI, String expected, List<String> undeletedNodes,
-            MergeWarning<String, String>... warnings) {
+            MergeWarning<String>... warnings) {
         TreeMerger<String, String> merge = runMerge(specB, specM, specI);
         assertEquals(expected, merge.getMergedTree());
         assertSetEquals(Arrays.asList(warnings), merge.getMergeWarnings());
         assertSetEquals(undeletedNodes, merge.getMergedUndeletedNodeIDs());
     }
 
-    private static MergeWarning<String, String> conflict(String id, Type main,
+    private static MergeWarning<String> conflict(String id, Type main,
             Type incoming) {
         return conflict(id, main, id, incoming);
     }
 
-    private static MergeWarning<String, String> conflict(String mainID,
+    private static MergeWarning<String> conflict(String mainID,
             Object mainType, String incomingID, Object incomingType) {
-        return new MergeWarning<String, String>(Severity.CONFLICT, mainID,
+        return new MergeWarning<String>(Severity.CONFLICT, mainID,
                 mainType, incomingID, incomingType);
     }
 
@@ -515,7 +532,9 @@ public class TreeMergeTest extends TestCase {
 
         public String mergeContent(TreeNode<String, String> destNode,
                 String base, String main, String incoming,
-                ErrorReporter<String, String> err) {
+                ErrorReporter<String> err) {
+            if (base == null)
+                base = "";
             if (isEqual(base, main))
                 return incoming;
             else if (isEqual(base, incoming))
@@ -523,7 +542,7 @@ public class TreeMergeTest extends TestCase {
             else if (isEqual(main, incoming))
                 return main;
 
-            err.addMergeWarning(new MergeWarning<String, String>(
+            err.addMergeWarning(new MergeWarning<String>(
                     Severity.CONFLICT, destNode.getID(), Type.Edit, Type.Edit));
             return "!!!";
         }

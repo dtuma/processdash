@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
@@ -59,8 +60,8 @@ public class TreeMerger<ID, C> {
     /** The merged tree */
     private TreeNode<ID, C> merged;
 
-    /** A list of warnings produced during the merge operation */
-    private List<MergeWarning<ID, C>> mergeWarnings;
+    /** A collection of warnings produced during the merge operation */
+    private Set<MergeWarning<ID>> mergeWarnings;
 
     /** A list of nodes that were deleted in one branch or the other, but
      * that are being retained for the conflict resolution phase */
@@ -75,11 +76,23 @@ public class TreeMerger<ID, C> {
         this.contentMerger = contentMerger;
     }
 
+    public TreeNode<ID, C> getBaseTree() {
+        return base;
+    }
+
+    public TreeNode<ID, C> getMainTree() {
+        return main;
+    }
+
+    public TreeNode<ID, C> getIncomingTree() {
+        return incoming;
+    }
+
     public TreeNode<ID, C> getMergedTree() {
         return merged;
     }
 
-    public List<MergeWarning<ID, C>> getMergeWarnings() {
+    public Set<MergeWarning<ID>> getMergeWarnings() {
         return mergeWarnings;
     }
 
@@ -90,7 +103,7 @@ public class TreeMerger<ID, C> {
     /** Merge the data from the two trees */
     public void run() {
         // initialize data structures
-        mergeWarnings = new ArrayList<MergeWarning<ID,C>>();
+        mergeWarnings = new LinkedHashSet<MergeWarning<ID>>();
 
         // compute diffs of each tree from the base.
         mainDiff = new TreeDiff<ID, C>(base, main, contentMerger);
@@ -187,6 +200,19 @@ public class TreeMerger<ID, C> {
             maybeUndeleteParents = true;
         }
 
+        if (nodeWasAddedInBothBranches(change)) {
+            // this node was not present in the base tree, but both branches
+            // added it.  Check to see if they placed it in the same location.
+            if (nodeHasDifferentTargetParents(change))
+                addConflict(changedID, Type.Add, Type.Add);
+
+            // We do not want to add the node to the tree twice, so we don't
+            // want to preserve this "add" operation.  However, this incoming
+            // operation may have content that we need to preserve.  So we
+            // modify this change to become an "edit" operation instead.
+            change.setType(Type.Edit);
+        }
+
         if (maybeUndeleteParents) {
             // if we need parents to exist, check that they do.
             TreeNode<ID, C> parent = change.getParent();
@@ -215,19 +241,26 @@ public class TreeMerger<ID, C> {
             // the node was not moved in the incoming branch.
             return false;
 
+        return nodeHasDifferentTargetParents(change);
+    }
+
+    /** Did both trees perform a move or add operation, but specify
+     * different target parents? */
+    private boolean nodeHasDifferentTargetParents(TreeNodeChange<ID, C> change) {
         ID changedID = change.getNodeID();
-        if (!mainDiff.nodeWasChanged(changedID, Type.Move))
-            // the node was not moved in the main branch.
+        if (!mainDiff.nodeWasChanged(changedID, Type.Move, Type.Add))
+            // the node was not moved/added in the main branch, so the main
+            // branch is not specifying a target parent.
             return false;
 
-        // the node was moved in both branches.  Check to see if both moves
-        // placed the node in the same location.
+        // the node was moved or added in both branches.  Check to see if both
+        // moves placed the node in the same location.
         ID mainParentID = main.findNode(changedID).getParent().getID();
         ID incParentID = incoming.findNode(changedID).getParent().getID();
         if (mainParentID.equals(incParentID))
             return false;
 
-        // the two branches have apparently moved the node to different places.
+        // the two branches have apparently put the node in different places.
         return true;
     }
 
@@ -242,6 +275,17 @@ public class TreeMerger<ID, C> {
         // check whether the main tree has deleted our target parent.
         ID parentID = change.getParentID();
         return mainDiff.nodeWasChanged(parentID, Type.Delete);
+    }
+
+    /** Was this node added to the tree by both branches? */
+    private boolean nodeWasAddedInBothBranches(TreeNodeChange<ID, C> change) {
+        if (change.getType() != Type.Add)
+            // the node was not added in the incoming branch.
+            return false;
+
+        // check to see if the main tree also added this node.
+        ID changedID = change.getNodeID();
+        return mainDiff.nodeWasChanged(changedID, Type.Add);
     }
 
     /**
@@ -305,10 +349,11 @@ public class TreeMerger<ID, C> {
         TreeNode<ID, C> targetNode = merged.findNode(changedID);
 
         C mergedContent;
-        if (mainDiff.nodeWasChanged(changedID, Type.Edit)) {
+        if (mainDiff.nodeWasChanged(changedID, Type.Edit, Type.Add)) {
             // this node was edited in both branches.  Ask our merger to sort
             // out the new content appropriately
-            C baseContent = base.findNode(changedID).getContent();
+            TreeNode<ID, C> baseNode = base.findNode(changedID);
+            C baseContent = baseNode == null ? null : baseNode.getContent();
             C mainContent = main.findNode(changedID).getContent();
             mergedContent = contentMerger.mergeContent(targetNode, baseContent,
                 mainContent, incomingContent, editMergeConflictLogger);
@@ -639,7 +684,7 @@ public class TreeMerger<ID, C> {
      *     branch
      */
     private void addConflict(ID id, Type mainChangeType, Type incomingChangeType) {
-        mergeWarnings.add(new MergeWarning<ID, C>(Severity.CONFLICT, id,
+        mergeWarnings.add(new MergeWarning<ID>(Severity.CONFLICT, id,
                 mainChangeType, incomingChangeType));
     }
 
@@ -653,12 +698,12 @@ public class TreeMerger<ID, C> {
      */
     private void addConflict(ID mainID, Object mainChangeType, ID incomingID,
             Object incomingChangeType) {
-        mergeWarnings.add(new MergeWarning<ID, C>(Severity.CONFLICT, mainID,
+        mergeWarnings.add(new MergeWarning<ID>(Severity.CONFLICT, mainID,
                 mainChangeType, incomingID, incomingChangeType));
     }
 
-    private class EditMergeConflictLogger implements ContentMerger.ErrorReporter<ID, C> {
-        public void addMergeWarning(MergeWarning<ID, C> w) {
+    private class EditMergeConflictLogger implements ContentMerger.ErrorReporter<ID> {
+        public void addMergeWarning(MergeWarning<ID> w) {
             mergeWarnings.add(w);
         }
     }
