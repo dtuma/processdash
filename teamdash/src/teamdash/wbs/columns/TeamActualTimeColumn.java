@@ -324,11 +324,11 @@ public class TeamActualTimeColumn extends AbstractNumericColumn implements
         }
 
         public void addCompletedTask(double planTime, double actualTime, int milestone) {
-            completedTasks.add(new TaskData(planTime, actualTime, milestone));
+            completedTasks.add(new TaskData(planTime, actualTime, milestone, true));
         }
 
         public void addRemainingTask(double planTime, double actualTime, int milestone) {
-            remainingTasks.add(new TaskData(planTime, actualTime, milestone));
+            remainingTasks.add(new TaskData(planTime, actualTime, milestone, false));
         }
 
         public void saveCalculatedValues(String initials) {
@@ -385,17 +385,20 @@ public class TeamActualTimeColumn extends AbstractNumericColumn implements
             double delta;
             double timeRemaining;
 
-            public TaskData(double planTime, double actualTime, int milestone) {
+            public TaskData(double planTime, double actualTime, int milestone,
+                    boolean isComplete) {
 
                 this.planTime = planTime;
                 this.actualTime = actualTime;
                 this.milestone = milestone;
                 almostDoneCost = actualTime / ALMOST_DONE_PERCENTAGE;
                 delta = planTime - almostDoneCost;
-                if (delta > 0)
-                    underspentTime += delta;
-                else
-                    overspentTime += delta;
+                if (!isComplete) {
+                    if (delta > 0)
+                        underspentTime += delta;
+                    else
+                        overspentTime += delta;
+                }
             }
 
             public void setDeltaRatio(double deltaRatio) {
