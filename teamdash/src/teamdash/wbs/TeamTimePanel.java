@@ -715,6 +715,9 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
         /** True if we should paint the label with a light color */
         private boolean labelIsLight;
 
+        /** What is the effective date of the data for this team member */
+        private Date indivEffectiveDate;
+
         /** When we're showing remaining time, how many hours should we add to
          * account for the portion of the schedule that has already passed? */
         private double effectivePastHours;
@@ -751,8 +754,9 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
             this.teamMember = teamMember;
             this.columnNumber = findTimeColumn();
 
+            this.indivEffectiveDate = getIndivEffectiveDate();
             effectivePastHours = teamMember.getSchedule().getEffortForDate(
-                teamEffectiveDate);
+                indivEffectiveDate);
 
             setBorder(BorderFactory.createBevelBorder(BevelBorder.LOWERED));
             // use the color associated with the given team member.
@@ -872,6 +876,15 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
             }
 
             return super.getToolTipText(event);
+        }
+
+        private Date getIndivEffectiveDate() {
+            String initials = teamMember.getInitials();
+            Date result = (Date) dataModel.getWBSModel().getRoot().getAttribute(
+                WBSSynchronizer.getIndivEffectiveDateAttrName(initials));
+            if (result == null) result = teamEffectiveDate;
+            if (result == null) result = new Date();
+            return result;
         }
 
         private double getEffectiveRemainingHours() {

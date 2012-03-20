@@ -85,8 +85,11 @@ public class WBSSynchronizer {
         return id.replace('_', '-') + " (Synced)";
     }
 
+    private static final String EFFECTIVE_DATE_SUFFIX =
+        "@Actual_Data_Effective_Date";
+
     public static final String EFFECTIVE_DATE_ATTR =
-        "Team@Actual_Data_Effective_Date";
+        "Team" + EFFECTIVE_DATE_SUFFIX;
 
     public static final String SYNC_NODE_TYPE_ATTR =
         getSyncAttrName("Node Type");
@@ -268,6 +271,8 @@ public class WBSSynchronizer {
             sizeDataIncomplete = true;
 
         Date indivEffDate = XMLUtils.getXMLDate(dumpData, TIMESTAMP_ATTR);
+        teamProject.getWBS().getRoot().setAttribute(
+            getIndivEffectiveDateAttrName(m.getInitials()), indivEffDate);
         if (indivEffDate != null && indivEffDate.after(effectiveDate))
             effectiveDate = indivEffDate;
 
@@ -715,6 +720,10 @@ public class WBSSynchronizer {
             return false;
         else
             return Math.abs(a - b) < 0.01;
+    }
+
+    public static final String getIndivEffectiveDateAttrName(String initials) {
+        return "Ind" + initials.toLowerCase() + EFFECTIVE_DATE_SUFFIX;
     }
 
     private static final String USER_DUMP_ENTRY_NAME = "userDump.xml";
