@@ -1,4 +1,4 @@
-// Copyright (C) 1998-2010 Tuma Solutions, LLC
+// Copyright (C) 1998-2012 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -2705,7 +2705,7 @@ public class DataRepository implements Repository, DataContext,
                     (new InvalidDatafileFormat
                         ("There is no '=' character on the line: '" + line + "'."));
 
-            name = line.substring(0, equalsPosition);
+            name = line.substring(0, equalsPosition).replace(EQUALS_SIGN_REPL, '=');
             value = line.substring(equalsPosition+1);
             putVal(name, value);
         }
@@ -3612,7 +3612,7 @@ public class DataRepository implements Repository, DataContext,
                 if (valStr == null || valStr.length() == 0)
                     continue;
 
-                name = name.substring(prefixLength);
+                name = name.substring(prefixLength).replace('=', EQUALS_SIGN_REPL);
                 valuesToSave.add(name + (editable ? "=" : "==") + valStr);
             }
 
@@ -4109,4 +4109,5 @@ public class DataRepository implements Repository, DataContext,
     private static final boolean NOT_MODIFYING_DATAFILE = false;
     private static final boolean REQUIRE_WRITABLE = true;
     private static final boolean DO_NOT_REQUIRE_WRITABLE = false;
+    private static final char EQUALS_SIGN_REPL = (char) 5;
 }
