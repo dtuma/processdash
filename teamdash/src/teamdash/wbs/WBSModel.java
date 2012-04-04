@@ -44,6 +44,8 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import net.sourceforge.processdash.util.StringUtils;
+
 
 /** This class maintains a tree-like work breakdown structure, and
  * exposes it via a table model.
@@ -1006,6 +1008,28 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
         node.setIndentLevel(node.getIndentLevel() + indentDelta);
         node.setAttribute(WORKFLOW_SOURCE_IDS_ATTR, node.getUniqueID());
         dest.add(node);
+    }
+
+    public void remapWorkflowSourceIDs(Map<Integer, Integer> idMap) {
+        for (WBSNode node : this.wbsNodes) {
+            String ids = (String) node.getAttribute(WORKFLOW_SOURCE_IDS_ATTR);
+            if (ids != null && ids.length() > 0) {
+                boolean madeChange = false;
+                String[] list = ids.split(",");
+                for (int i = 0; i < list.length; i++) {
+                    Integer oneID = Integer.parseInt(list[i]);
+                    Integer newID = idMap.get(oneID);
+                    if (newID != null) {
+                        list[i] = Integer.toString(newID);
+                        madeChange = true;
+                    }
+                }
+                if (madeChange) {
+                    String newVal = StringUtils.join(Arrays.asList(list), ",");
+                    node.setAttribute(WORKFLOW_SOURCE_IDS_ATTR, newVal);
+                }
+            }
+        }
     }
 
     public String filterNodeType(WBSNode node) {

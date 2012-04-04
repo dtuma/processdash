@@ -24,6 +24,7 @@
 package teamdash.wbs.columns;
 
 import java.awt.Component;
+import java.util.Map;
 
 import javax.swing.JTable;
 import javax.swing.event.TableModelEvent;
@@ -191,6 +192,23 @@ public class MilestoneColumn extends AbstractDataColumn implements
         }
 
     }
+
+
+    public static void remapNodeIDs(WBSModel model, Map<Integer, Integer> idMap) {
+        remapNodeIDs(model.getRoot(), idMap);
+        for (WBSNode node : model.getDescendants(model.getRoot()))
+            remapNodeIDs(node, idMap);
+    }
+
+    private static void remapNodeIDs(WBSNode node, Map<Integer, Integer> idMap) {
+        Integer nodeValue = getIntegerAttr(node, EXPLICIT_VALUE_ATTR);
+        if (nodeValue != null) {
+            Integer newValue = idMap.get(nodeValue);
+            if (newValue != null)
+                node.setAttribute(EXPLICIT_VALUE_ATTR, newValue);
+        }
+    }
+
 
 
     private static final Integer NO_MILESTONE = -1;

@@ -23,6 +23,7 @@
 
 package teamdash.wbs.columns;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -31,6 +32,8 @@ import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
+
+import net.sourceforge.processdash.util.StringUtils;
 
 import teamdash.wbs.CalculatedDataColumn;
 import teamdash.wbs.CustomEditedColumn;
@@ -290,6 +293,40 @@ public class TaskDependencyColumn extends AbstractDataColumn implements
             }
         }
 
+    }
+
+    public static void remapNodeIDs(WBSModel model, String projectId,
+            Map<Integer, Integer> idMap) {
+        String idPrefix = projectId + ":";
+        for (WBSNode node : model.getDescendants(model.getRoot()))
+            remapNodeIDs(idPrefix, node, idMap);
+    }
+
+    private static void remapNodeIDs(String idPrefix, WBSNode node,
+            Map<Integer, Integer> idMap) {
+        String depIdList = (String) node.getAttribute(ID_LIST_ATTR);
+        if (depIdList == null || depIdList.length() == 0)
+            return;
+
+        String[] deps = depIdList.split(",");
+        boolean madeChange = false;
+        int prefixLen = idPrefix.length();
+        for (int i = 0;  i < deps.length;  i++) {
+            String oneDep = deps[i];
+            if (oneDep.startsWith(idPrefix)) {
+                Integer oldID = Integer.parseInt(oneDep.substring(prefixLen));
+                Integer newID = idMap.get(oldID);
+                if (newID != null) {
+                    deps[i] = idPrefix + newID;
+                    madeChange = true;
+                }
+            }
+        }
+        if (madeChange) {
+            String newValue = StringUtils.join(Arrays.asList(deps), ",");
+            node.setAttribute(ID_LIST_ATTR, newValue);
+            node.setAttribute(TASK_LIST_ATTR, null);
+        }
     }
 
 }
