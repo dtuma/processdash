@@ -166,6 +166,19 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
         recalcRows();
     }
 
+    /**
+     * Add a node to the end of this WBS; but do not alter its unique ID and do
+     * not recalculate dependent values (like the list of visible rows).
+     * 
+     * This method is appropriate for situations where the WBS node structure
+     * has been determined in advance (like a merging scenario).  The caller
+     * assumes all responsibility for ensuring that node IDs are unique, and
+     * that the dependent values (like the row list) are eventually updated.
+     */
+    synchronized void addImpl(WBSNode node) {
+        wbsNodes.add(node);
+    }
+
     /** Insert a node into this work breakdown structure.
      * 
      * @param beforeRow the row where the node should be inserted.
@@ -846,9 +859,31 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
     /** Make this WBS be a copy of the given WBS.
      */
     public void copyFrom(WBSModel w) {
-        wbsNodes = (ArrayList) WBSNode.cloneNodeList(w.wbsNodes, this);
-        recalcRows(false);
-        fireTableDataChanged();
+        if (w != this) {
+            wbsNodes = (ArrayList) WBSNode.cloneNodeList(w.wbsNodes, this);
+            recalcRows(false);
+            fireTableDataChanged();
+        }
+    }
+
+    /**
+     * @return true if this object contains the exact same list of nodes as
+     * another WBSModel.
+     */
+    public boolean isEqualTo(WBSModel that) {
+        // first, check to see if we have the same number of nodes.  If not,
+        // these two WBS models are not equal.
+        if (this.wbsNodes.size() != that.wbsNodes.size())
+            return false;
+
+        // next, walk the list of nodes and make certain they are all equal.
+        // if we find a mismatch, these two WBS models are not equal.
+        for (int i = 0;  i < this.wbsNodes.size();  i++)
+            if (!this.wbsNodes.get(i).isEqualTo(that.wbsNodes.get(i)))
+                return false;
+
+        // no differences were found.  The WBS models are equal.
+        return true;
     }
 
     protected void loadXML(Element e) {

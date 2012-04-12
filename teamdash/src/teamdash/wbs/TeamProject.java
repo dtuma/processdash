@@ -59,7 +59,7 @@ public class TeamProject implements WBSFilenameConstants {
     private Element teamProcessXml;
     private TeamProcess teamProcess;
     private WBSModel wbs;
-    private WBSModel workflows;
+    private WorkflowWBSModel workflows;
     private MilestonesWBSModel milestones;
     private long fileModTime;
     private String masterProjectID;
@@ -76,6 +76,16 @@ public class TeamProject implements WBSFilenameConstants {
         this.directory = directory;
         this.readOnly = false;
         reload();
+    }
+
+    TeamProject(File directory, String projectName, TeamMemberList teamList,
+            WBSModel wbs, WorkflowWBSModel workflows,
+            MilestonesWBSModel milestones) {
+        this(directory, projectName);
+        this.teamList = teamList;
+        this.wbs = wbs;
+        this.workflows = workflows;
+        this.milestones = milestones;
     }
 
     /** Discard all data structures and reload them from the filesystem.
@@ -168,7 +178,7 @@ public class TeamProject implements WBSFilenameConstants {
     }
 
     /** Get the common workflows for this project */
-    public WBSModel getWorkflows() {
+    public WorkflowWBSModel getWorkflows() {
         return workflows;
     }
 

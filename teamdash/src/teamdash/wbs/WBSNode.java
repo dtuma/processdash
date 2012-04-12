@@ -38,6 +38,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
+import net.sourceforge.processdash.util.NullSafeObjectUtils;
+
 import teamdash.XMLUtils;
 
 /** This class represents a node in the work breakdown structure hierarchy.
@@ -343,6 +345,33 @@ public class WBSNode implements Cloneable {
         }
     }
 
+    /**
+     * Return a copy of the map of attributes for this node.
+     * 
+     * @param discardTransientData
+     *            true if transient data should not be included in the result
+     * @param discardActualData
+     *            true if actual data should not be included in the result
+     * @return a copy of the node attributes, possibly excluding the attributes
+     *         in question
+     */
+    public Map getAttributeMap(boolean discardTransientData,
+            boolean discardActualData) {
+        Map result = new HashMap(attributes.size());
+        for (Iterator i = attributes.entrySet().iterator(); i.hasNext();) {
+            Map.Entry e = (Map.Entry) i.next();
+            String attrName = (String) e.getKey();
+            int transientAttrType = getTransientAttrType(attrName);
+            if (transientAttrType == ACTUAL_DATA_ATTR && discardActualData)
+                continue;
+            if (transientAttrType == TRANSIENT_ATTR && discardTransientData)
+                continue;
+
+            result.put(attrName, e.getValue());
+        }
+        return result;
+    }
+
     private static final int NON_TRANSIENT_ATTR = 0;
     private static final int TRANSIENT_ATTR = 1;
     private static final int ACTUAL_DATA_ATTR = 2;
@@ -370,6 +399,15 @@ public class WBSNode implements Cloneable {
     }
 
 
+    public boolean isEqualTo(WBSNode that) {
+        return this.uniqueID == that.uniqueID
+            && this.indentLevel == that.indentLevel
+            && this.readOnly == that.readOnly
+            && NullSafeObjectUtils.EQ(this.name, that.name)
+            && NullSafeObjectUtils.EQ(this.type, that.type)
+            && this.getAttributeMap(true, true).equals(
+                    that.getAttributeMap(true, true));
+    }
 
     /** Make a deep copy of a list of WBSNodes */
     public static List cloneNodeList(List nodesToCopy) {

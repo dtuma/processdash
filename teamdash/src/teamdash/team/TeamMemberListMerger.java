@@ -40,6 +40,7 @@ import teamdash.merge.TreeMerger;
 import teamdash.merge.TreeNode;
 import teamdash.merge.ContentMerger.ErrorReporter;
 import teamdash.merge.MergeWarning.Severity;
+import teamdash.wbs.TeamProject;
 
 public class TeamMemberListMerger {
 
@@ -70,6 +71,12 @@ public class TeamMemberListMerger {
      * in the incoming WBS */
     private Map<String, String> changesNeededToIncomingInitials;
 
+
+    public TeamMemberListMerger(TeamProject base, TeamProject main,
+            TeamProject incoming) {
+        this(base.getTeamMemberList(), main.getTeamMemberList(), incoming
+                .getTeamMemberList());
+    }
 
     public TeamMemberListMerger(TeamMemberList base, TeamMemberList main,
             TeamMemberList incoming) {
