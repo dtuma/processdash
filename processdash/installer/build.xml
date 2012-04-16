@@ -273,7 +273,17 @@ Authors:
         <antcall target="-izpack">
             <param name="izpack.input" value="install-cd.xml"/>
         </antcall>
-        
+
+        <antcall target="-package-CD">
+            <param name="izpack.input" value="install-cd.xml"/>
+        </antcall>
+
+	<delete file="install-cd.xml"/>
+	<delete file="cd-custom.ini"/>
+        <antcall target="-install-CD-delete"/>
+    </target>
+
+    <target name="-package-CD" depends="init">
 	<echo file="cd-config.ini">1.5
 ${jreInstExe}
 pdash-install-${qualifier}-${dashboard-version}.jar
@@ -295,10 +305,7 @@ pdash-install-${qualifier}-${dashboard-version}.jar
 		prefix="data"/>
 	</zip>
 
-	<delete file="install-cd.xml"/>
-	<delete file="cd-custom.ini"/>
 	<delete file="cd-config.ini"/>
-        <antcall target="-install-CD-delete"/>
     </target>
 
     <target name="-install-CD-delete" if="delete-cd-file">
