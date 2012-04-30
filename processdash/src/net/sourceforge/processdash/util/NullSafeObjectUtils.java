@@ -37,4 +37,14 @@ public class NullSafeObjectUtils {
             return false;
         return a.equals(b);
     }
+
+    /**
+     * Returns the hashcode for an object, or zero if the parameter is null.
+     * 
+     * @since 1.14.4
+     */
+    public static int HC(Object a) {
+        return (a == null ? 0 : a.hashCode());
+    }
+
 }
