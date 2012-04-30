@@ -44,8 +44,11 @@ public class MapContentMerger<ID> implements ContentMerger<ID, Map> {
 
     private Map<PatternList, AttributeMerger<ID, Object>> handlers;
 
+    private Class mapClass;
+
     public MapContentMerger() {
         handlers = new LinkedHashMap();
+        mapClass = HashMap.class;
     }
 
     public void setDefaultHandler(AttributeMerger handler) {
@@ -62,11 +65,20 @@ public class MapContentMerger<ID> implements ContentMerger<ID, Map> {
         handlers.put(pat, handler);
     }
 
+    public void setMapClass(Class mapClass) {
+        this.mapClass = mapClass;
+    }
+
     public boolean isEqual(Map a, Map b) {
         return EQ(a, b);
     }
 
     public Map mergeContent(TreeNode<ID, Map> destNode, Map base, Map main,
+            Map incoming, ContentMerger.ErrorReporter<ID> err) {
+        return mergeContent(destNode.getID(), base, main, incoming, err);
+    }
+
+    public Map mergeContent(ID destNodeID, Map base, Map main,
             Map incoming, ContentMerger.ErrorReporter<ID> err) {
 
         // short-circuit: if one of the branches has a null map, return the map
@@ -94,7 +106,7 @@ public class MapContentMerger<ID> implements ContentMerger<ID, Map> {
                 Object baseValue = base.get(attrName);
                 Object mainValue = main.get(attrName);
                 Object incomingValue = incoming.get(attrName);
-                Object mergedValue = mergeAttribute(destNode.getID(), attrName,
+                Object mergedValue = mergeAttribute(destNodeID, attrName,
                     baseValue, mainValue, incomingValue, err);
                 result.put(attrName, mergedValue);
             }
@@ -103,8 +115,12 @@ public class MapContentMerger<ID> implements ContentMerger<ID, Map> {
         return result;
     }
 
-    protected HashMap createMergedMap() {
-        return new HashMap();
+    protected Map createMergedMap() {
+        try {
+            return (Map) mapClass.newInstance();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     protected Object mergeAttribute(ID nodeID, String attrName, Object base,

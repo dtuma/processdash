@@ -54,6 +54,7 @@ public abstract class AbstractWBSModelMerger<W extends WBSModel> {
         this.main = main;
         this.incoming = incoming;
         this.contentMerger = new MapContentMerger<Integer>();
+        this.contentMerger.setMapClass(WBSNodeContent.class);
     }
 
     public W getBase() {
@@ -104,8 +105,9 @@ public abstract class AbstractWBSModelMerger<W extends WBSModel> {
     }
 
     protected TreeNode<Integer, WBSNodeContent> buildTree(WBSNode node) {
-        TreeNode<Integer, WBSNodeContent> result = new TreeNode(node
-                .getUniqueID(), new WBSNodeContent(node));
+        int nodeId = (node.getIndentLevel() == 0 ? -1000 : node.getUniqueID());
+        TreeNode<Integer, WBSNodeContent> result = new TreeNode(nodeId,
+            new WBSNodeContent(node));
         for (WBSNode child : node.getWbsModel().getChildren(node))
             result.addChild(buildTree(child));
         return result;
@@ -151,9 +153,11 @@ public abstract class AbstractWBSModelMerger<W extends WBSModel> {
     }
 
 
-    protected class WBSNodeContent extends HashMap {
+    public static class WBSNodeContent extends HashMap {
 
         WBSNode node;
+
+        public WBSNodeContent() {}
 
         public WBSNodeContent(WBSNode node) {
             this.node = node;
@@ -161,7 +165,17 @@ public abstract class AbstractWBSModelMerger<W extends WBSModel> {
             put(NODE_TYPE, node.getType());
             if (node.isReadOnly())
                 put(NODE_READ_ONLY, "true");
-            putAll(node.getAttributeMap(true, true));
+
+            Map<String, Object> attrs = node.getAttributeMap(true, true);
+            for (Map.Entry<String, Object> e : attrs.entrySet()) {
+                String attrName = e.getKey();
+                Object value = e.getValue();
+                if (value != null) {
+                    String valueStr = value.toString();
+                    if (valueStr != null && valueStr.length() > 0)
+                        put(attrName, valueStr);
+                }
+            }
         }
 
         public void storeData(WBSNode dest) {

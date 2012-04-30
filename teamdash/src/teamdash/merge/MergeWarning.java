@@ -23,6 +23,8 @@
 
 package teamdash.merge;
 
+import static net.sourceforge.processdash.util.NullSafeObjectUtils.HC;
+
 
 public class MergeWarning<ID> {
 
@@ -91,10 +93,10 @@ public class MergeWarning<ID> {
 
     @Override
     public int hashCode() {
-        int result = severity.hashCode();
-        result = (result << 3) ^ key.hashCode();
-        result = (result << 3) ^ mainNodeID.hashCode();
-        result = (result << 3) ^ incomingNodeID.hashCode();
+        int result = HC(severity);
+        result = (result << 3) ^ HC(key);
+        result = (result << 3) ^ HC(mainNodeID);
+        result = (result << 3) ^ HC(incomingNodeID);
         return result;
     }
 

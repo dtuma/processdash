@@ -366,6 +366,8 @@ public class WBSNode implements Cloneable {
                 continue;
             if (transientAttrType == TRANSIENT_ATTR && discardTransientData)
                 continue;
+            if (e.getValue() == null)
+                continue;
 
             result.put(attrName, e.getValue());
         }
