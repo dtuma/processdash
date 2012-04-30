@@ -26,6 +26,8 @@ package teamdash.wbs;
 import java.io.File;
 import java.util.Map;
 
+import teamdash.merge.DefaultAttributeMerger;
+import teamdash.merge.MapContentMerger;
 import teamdash.team.TeamMemberList;
 import teamdash.team.TeamMemberListMerger;
 import teamdash.wbs.columns.TeamMemberTimeColumn;
@@ -52,14 +54,17 @@ public class TeamProjectMerger {
     }
 
     public void run() {
+        // merge the various data structures in the team project.
         TeamMemberList team = mergeTeams();
         WorkflowWBSModel workflows = mergeWorkflows();
         MilestonesWBSModel milestones = mergeMilestones();
         WBSModel wbs = mergeWBS();
+        Map userSettings = mergeUserSettings();
 
+        // create a TeamProject object to hold the merged data.
         File dir = new File("no such directory " + System.currentTimeMillis());
         merged = new TeamProject(dir, "Unused", team, wbs, workflows,
-                milestones);
+                milestones, userSettings);
     }
 
     private TeamMemberList mergeTeams() {
@@ -98,6 +103,18 @@ public class TeamProjectMerger {
     private WBSModel mergeWBS() {
         WBSMerger wbsMerger = new WBSMerger(base, main, incoming);
         return wbsMerger.getMerged();
+    }
+
+    private Map mergeUserSettings() {
+        // merge settings silently, preferring the value from main if
+        // the two branches include conflicting edits
+        MapContentMerger<String> settingsMerger = new MapContentMerger();
+        settingsMerger.setDefaultHandler(
+                DefaultAttributeMerger.SILENTLY_PREFER_MAIN);
+        Map result = settingsMerger.mergeContent("unused",
+                base.getUserSettings(), main.getUserSettings(),
+                incoming.getUserSettings(), null);
+        return result;
     }
 
 }

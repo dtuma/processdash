@@ -33,6 +33,7 @@ import java.io.InputStream;
 import java.net.URL;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
@@ -80,12 +81,16 @@ public class TeamProject implements WBSFilenameConstants {
 
     TeamProject(File directory, String projectName, TeamMemberList teamList,
             WBSModel wbs, WorkflowWBSModel workflows,
-            MilestonesWBSModel milestones) {
-        this(directory, projectName);
+            MilestonesWBSModel milestones, Map<String, String> userSettings) {
+        this.projectName = projectName;
+        this.directory = directory;
+        this.readOnly = false;
         this.teamList = teamList;
         this.wbs = wbs;
         this.workflows = workflows;
         this.milestones = milestones;
+        this.userSettings = new Properties();
+        this.userSettings.putAll(userSettings);
     }
 
     /** Discard all data structures and reload them from the filesystem.
@@ -138,13 +143,13 @@ public class TeamProject implements WBSFilenameConstants {
         // in addition to those project files, save a copy of the settings
         // and process data that provide context for the project.
         result = saveProjectSettings(copyDirectory) && result;
-        result = saveUserSettings(copyDirectory) && result;
         result = saveTeamProcessXml(copyDirectory) && result;
         return result;
     }
 
     private boolean saveTo(File directory) {
         boolean result = true;
+        result = saveUserSettings(directory) && result;
         result = saveTeamList(directory) && result;
         result = saveWBS(directory) && result;
         result = saveWorkflows(directory) && result;
@@ -230,6 +235,11 @@ public class TeamProject implements WBSFilenameConstants {
     /** Return the project settings */
     protected Element getProjectSettings() {
         return projectSettings;
+    }
+
+    /** Return the map of user settings */
+    Properties getUserSettings() {
+        return userSettings;
     }
 
     /** Return the value of a user setting */
