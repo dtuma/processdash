@@ -571,8 +571,8 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
         return result;
     }
 
-    public List getNodesForRows(int[] rowNumbers, boolean excludeRoot) {
-        ArrayList result = new ArrayList();
+    public List<WBSNode> getNodesForRows(int[] rowNumbers, boolean excludeRoot) {
+        ArrayList<WBSNode> result = new ArrayList();
         IntList nodeIndexes = getIndexesForRows(rowNumbers, excludeRoot);
         for (int i = 0;   i < nodeIndexes.size();   i++)
             result.add(wbsNodes.get(nodeIndexes.get(i)));
