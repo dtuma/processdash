@@ -91,9 +91,17 @@ public class TeamMemberListEditor implements WindowListener, TableModelListener 
     }
 
     public void hide() {
-        MacGUIUtils.setDirty(frame, teamMemberList.isDirty());
-        saveButton.setEnabled(teamMemberList.isDirty());
+        MacGUIUtils.setDirty(frame, isDirty());
+        saveButton.setEnabled(isDirty());
         frame.setVisible(false);
+    }
+
+    public boolean isVisible() {
+        return frame.isVisible();
+    }
+
+    public boolean isDirty() {
+        return teamMemberList.isDirty();
     }
 
     public void origListWasReplaced() {
@@ -139,9 +147,7 @@ public class TeamMemberListEditor implements WindowListener, TableModelListener 
         if (teamMemberList.isReadOnly())
             return true;
 
-        if (table.isEditing())
-            // stop editing the current table cell.
-            table.getCellEditor().stopCellEditing();
+        stopEditing();
 
         // don't save if there are errors.
         if (!checkForErrors()) return false;
@@ -172,8 +178,7 @@ public class TeamMemberListEditor implements WindowListener, TableModelListener 
     }
 
     public void cancel() {
-        if (table.isEditing())
-            table.getCellEditor().stopCellEditing();
+        stopEditing();
         // revert back to the original version of the team member list.
         teamMemberList.copyFrom(orig);
         ((TeamMemberListTable) table).updateCustomizationHyperlinkText();
@@ -192,7 +197,7 @@ public class TeamMemberListEditor implements WindowListener, TableModelListener 
 
         boolean shouldHide = false;
 
-        if (teamMemberList.isDirty()) {
+        if (isDirty()) {
             int choice =
                 JOptionPane.showConfirmDialog(
                     frame,
@@ -214,6 +219,12 @@ public class TeamMemberListEditor implements WindowListener, TableModelListener 
 
         if (shouldHide)
             hide();
+    }
+
+    public void stopEditing() {
+        if (table.isEditing())
+            // stop editing the current table cell.
+            table.getCellEditor().stopCellEditing();
     }
 
     private JPanel buildButtons() {
@@ -295,8 +306,8 @@ public class TeamMemberListEditor implements WindowListener, TableModelListener 
 
     public void tableChanged(TableModelEvent e) {
         if (!teamMemberList.isReadOnly() && saveButton != null) {
-            MacGUIUtils.setDirty(frame, teamMemberList.isDirty());
-            saveButton.setEnabled(teamMemberList.isDirty());
+            MacGUIUtils.setDirty(frame, isDirty());
+            saveButton.setEnabled(isDirty());
         }
     }
 
