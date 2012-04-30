@@ -90,11 +90,11 @@ public class MapContentMergerTest extends TestCase {
 
     public void testSpecialHandlers() {
         MapContentMerger merger = new MapContentMerger();
-        merger.addHandler("a", new DefaultAttributeMerger());
+        merger.addHandler("a", DefaultAttributeMerger.SILENTLY_PREFER_MAIN);
         merger.addHandler("b", new DefaultAttributeMerger(Severity.INFO));
         merger.addHandler("c.*", new DefaultAttributeMerger(Severity.CONFLICT,
                 "cKey"));
-        merger.addHandler("d", new DefaultAttributeMerger(true));
+        merger.addHandler("d", DefaultAttributeMerger.SILENTLY_PREFER_INCOMING);
         merger.addHandler("e.*", new DefaultAttributeMerger(Severity.INFO,
                 "eKey", true));
 

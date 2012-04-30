@@ -35,16 +35,8 @@ public class DefaultAttributeMerger<ID, Type> implements
 
     private boolean chooseIncoming;
 
-    public DefaultAttributeMerger() {
-        this(null, null);
-    }
-
     public DefaultAttributeMerger(Severity severity) {
         this(severity, "");
-    }
-
-    public DefaultAttributeMerger(boolean chooseIncoming) {
-        this(null, null, chooseIncoming);
     }
 
     public DefaultAttributeMerger(Severity severity, String warningKey) {
@@ -76,5 +68,10 @@ public class DefaultAttributeMerger<ID, Type> implements
     protected Type selectResult(Type main, Type incoming) {
         return (chooseIncoming ? incoming : main);
     }
+
+    public static final DefaultAttributeMerger SILENTLY_PREFER_MAIN =
+            new DefaultAttributeMerger(null, null, false);
+    public static final DefaultAttributeMerger SILENTLY_PREFER_INCOMING =
+            new DefaultAttributeMerger(null, null, true);
 
 }

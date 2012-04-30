@@ -201,7 +201,7 @@ public class TeamMemberListMerger {
         // if both branches edit the color of a team member, don't flag a
         // conflict. Just accept the color of the incoming branch.
         result.addHandler(TeamMember.COLOR_ATTR,
-            new DefaultAttributeMerger(true));
+            DefaultAttributeMerger.SILENTLY_PREFER_INCOMING);
 
         // if there are multiple conflicting edits to schedule exceptions,
         // just report a single error
