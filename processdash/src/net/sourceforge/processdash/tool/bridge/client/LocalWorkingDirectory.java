@@ -103,6 +103,11 @@ public class LocalWorkingDirectory extends AbstractWorkingDirectory implements
             writeLock.assertLock();
     }
 
+    public void releaseWriteLock() {
+        if (writeLock != null)
+            writeLock.releaseLock();
+    }
+
     public URL doBackup(String qualifier) throws IOException {
         return super.doBackupImpl(targetDirectory, qualifier);
     }

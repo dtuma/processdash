@@ -63,6 +63,8 @@ public class FileResourceCollection implements ResourceCollection,
 
     Map<String, CachedFileData> cachedData;
 
+    volatile long cacheInvalidationTimestamp;
+
     PropertyChangeSupport propSupport;
 
     final Object writeLock = new Object();
@@ -183,6 +185,10 @@ public class FileResourceCollection implements ResourceCollection,
         }
     }
 
+    public void recheckAllFileTimestamps() {
+        cacheInvalidationTimestamp = System.currentTimeMillis() + 1;
+    }
+
     // Methods for resource change notification
 
     public void addResourceListener(PropertyChangeListener l) {
@@ -244,7 +250,7 @@ public class FileResourceCollection implements ResourceCollection,
     }
 
 
-    protected static class CachedFileData {
+    protected class CachedFileData {
 
         private File f;
 
@@ -268,7 +274,8 @@ public class FileResourceCollection implements ResourceCollection,
         public long getLastModified() {
             long now = System.currentTimeMillis();
             long lastCheckAge = now - lastChecked;
-            if (lastCheckAge > 5000 || lastCheckAge < 0) {
+            if (lastCheckAge > 5000 || lastCheckAge < 0
+                    || lastChecked < cacheInvalidationTimestamp) {
                 long realLastMod = f.lastModified();
                 synchronized (this) {
                     if (realLastMod != lastModified) {

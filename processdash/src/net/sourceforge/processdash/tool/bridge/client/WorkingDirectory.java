@@ -1,4 +1,4 @@
-// Copyright (C) 2008-2009 Tuma Solutions, LLC
+// Copyright (C) 2008-2012 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -118,6 +118,14 @@ public interface WorkingDirectory {
      * @throws LockFailureException if we have lost the lock
      */
     public void assertWriteLock() throws LockFailureException;
+
+    /**
+     * Release the write lock on this directory.
+     * 
+     * This method does not release the process lock; to accomplish that, use
+     * {@link #releaseLocks()}.
+     */
+    public void releaseWriteLock();
 
     /**
      * Make certain all buffered data has been saved persistently.

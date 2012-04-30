@@ -127,6 +127,10 @@ public class CompressedWorkingDirectory extends AbstractWorkingDirectory {
         // no-op for now
     }
 
+    public void releaseWriteLock() {
+        // no-op for now
+    }
+
     public URL doBackup(String qualifier) throws IOException {
         return super.doBackupImpl(extractDirectory, qualifier);
     }

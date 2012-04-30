@@ -78,9 +78,13 @@ import net.sourceforge.processdash.util.lock.OfflineLockLostException;
 public class BridgedWorkingDirectory extends AbstractWorkingDirectory {
 
 
+    FileResourceCollection collection;
+
     ResourceBridgeClient client;
 
     Worker worker;
+
+    boolean allowUpdateWhenLocked;
 
     OfflineLockStatus offlineStatus;
 
@@ -96,8 +100,7 @@ public class BridgedWorkingDirectory extends AbstractWorkingDirectory {
             FileResourceCollectionStrategy strategy, File workingDirectoryParent) {
         super(targetDirectory, remoteURL, strategy, workingDirectoryParent);
 
-        FileResourceCollection collection = new FileResourceCollection(
-                workingDirectory, false);
+        collection = new FileResourceCollection(workingDirectory, false);
         collection.setStrategy(strategy);
 
         client = new ResourceBridgeClient(collection, remoteURL, strategy
@@ -107,6 +110,7 @@ public class BridgedWorkingDirectory extends AbstractWorkingDirectory {
             initializeOfflineLockData();
         } catch (IOException ioe) {}
 
+        allowUpdateWhenLocked = false;
         offlineStatusHandler = new OfflineLockStatusChangeHandler();
         client.setOfflineLockStatusListener(offlineStatusHandler);
     }
@@ -143,6 +147,7 @@ public class BridgedWorkingDirectory extends AbstractWorkingDirectory {
     }
 
     private void doSyncDown()  throws IOException {
+        discardLocallyCachedFileData();
         SyncFilter filter = getSyncDownFilter();
         for (int numTries = 5; numTries-- > 0;)
             if (client.syncDown(filter) == false)
@@ -163,11 +168,20 @@ public class BridgedWorkingDirectory extends AbstractWorkingDirectory {
             // don't attempt to sync down if we don't own the rights to the
             // working directory!
             throw new IllegalStateException("Process lock has not been obtained");
-        else if (worker == null && isOfflineLockEnabled() == false)
+        else if ((worker == null || allowUpdateWhenLocked)
+                && isOfflineLockEnabled() == false)
             doSyncDown();
         else
             throw new IllegalStateException("update should not be called in "
                     + "offline or read-write mode.");
+    }
+
+    public boolean isAllowUpdateWhenLocked() {
+        return allowUpdateWhenLocked;
+    }
+
+    public void setAllowUpdateWhenLocked(boolean allowUpdateWhenLocked) {
+        this.allowUpdateWhenLocked = allowUpdateWhenLocked;
     }
 
     public File getDirectory() {
@@ -230,9 +244,18 @@ public class BridgedWorkingDirectory extends AbstractWorkingDirectory {
         }
     }
 
+    public void releaseWriteLock() {
+        if (worker != null) {
+            worker.shutDown();
+            worker = null;
+        }
+        client.releaseLock();
+    }
+
     public boolean flushData() throws LockFailureException, IOException {
         // try to contact the server and flush all data.
         try {
+            discardLocallyCachedFileData();
             for (int numTries = 5; numTries-- > 0;) {
                 if (client.syncUp() == false) {
                     if (worker != null)
@@ -260,6 +283,15 @@ public class BridgedWorkingDirectory extends AbstractWorkingDirectory {
         // when we are NOT operating in offline lock mode, return false to
         // indicate that the data has not been saved persistently to the server.
         return false;
+    }
+
+    private void discardLocallyCachedFileData() {
+        // To avoid excessive file I/O, the FileResourceCollection class
+        // caches certain file information and does not bother refreshing it
+        // until a certain amount of time has passed.  In some scenarios, we
+        // cannot afford that luxury, so we need to recheck the files to
+        // see if any have changed.
+        collection.recheckAllFileTimestamps();
     }
 
     /**
