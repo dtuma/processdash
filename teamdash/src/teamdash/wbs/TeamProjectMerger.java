@@ -54,6 +54,9 @@ public class TeamProjectMerger {
     }
 
     public void run() {
+        // alter the node IDs in the incoming branch to ensure the best match.
+        TeamProjectNodeIDMatcher.performMatch(base, main, incoming);
+
         // merge the various data structures in the team project.
         TeamMemberList team = mergeTeams();
         WorkflowWBSModel workflows = mergeWorkflows();
