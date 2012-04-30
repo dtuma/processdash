@@ -126,6 +126,7 @@ public class WBSTabPanel extends JLayeredPane
     JFileChooser fileChooser;
     UndoList undoList;
     ArrayList tableColumnModels = new ArrayList();
+    boolean customTabsDirty = false;
     GridBagLayout layout;
     ArrayList tabProperties = new ArrayList();
     List enablementCalculations = new LinkedList();
@@ -386,6 +387,7 @@ public class WBSTabPanel extends JLayeredPane
             if (null == tabName)
                 return;
 
+            customTabsDirty = true;
             int tabIndex = addTab(tabName, new DefaultTableColumnModel(), new TabProperties(true, false));
             tabbedPane.setSelectedIndex(tabIndex);
             showColumnSelector();
@@ -408,6 +410,7 @@ public class WBSTabPanel extends JLayeredPane
             if (null == tabName)
                 return;
 
+            customTabsDirty = true;
             tabbedPane.setTitleAt(tabbedPane.getSelectedIndex(), tabName);
             notifyAllListeners();
         }
@@ -432,6 +435,7 @@ public class WBSTabPanel extends JLayeredPane
             if (null == tabName)
                 return;
 
+            customTabsDirty = true;
             TableColumnModel columns = copyColumnsDeep(
                     (TableColumnModel) tableColumnModels.get(tabbedPane.getSelectedIndex()));
             int tabIndex = addTab(tabName, columns, new TabProperties(true, false));
@@ -459,6 +463,7 @@ public class WBSTabPanel extends JLayeredPane
                     JOptionPane.OK_CANCEL_OPTION);
             if (confirm == JOptionPane.OK_OPTION) {
                 removeTab(tabbedPane.getSelectedIndex());
+                customTabsDirty = true;
 
                 if (!editableTabsExist())
                     EXPORT_TABS_ACTION.setEnabled(false);
@@ -480,6 +485,7 @@ public class WBSTabPanel extends JLayeredPane
         }
 
         public void actionPerformed(ActionEvent e) {
+            customTabsDirty = true;
             showColumnSelector();
             notifyAllListeners();
         }
@@ -553,6 +559,7 @@ public class WBSTabPanel extends JLayeredPane
                 File file = getFile();
                 if (null != file) {
                     loadTabs(file);
+                    customTabsDirty = true;
                     notifyAllListeners();
                 }
             } catch (LoadTabsException exception) {
@@ -969,6 +976,7 @@ public class WBSTabPanel extends JLayeredPane
                 removeTab(i);
         }
         loadTabs(file);
+        customTabsDirty = true;
     }
 
     /**
@@ -1003,6 +1011,13 @@ public class WBSTabPanel extends JLayeredPane
             IOException exception = new IOException(SAVE_TABS_ERROR_MESSAGE);
             exception.initCause(e);
             throw exception;
+        }
+    }
+
+    public void saveCustomTabsIfChanged(File file) throws IOException {
+        if (customTabsDirty) {
+            saveTabs(file);
+            customTabsDirty = false;
         }
     }
 
