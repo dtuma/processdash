@@ -41,6 +41,9 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Random;
 import java.util.Set;
 import java.util.prefs.Preferences;
 
@@ -132,6 +135,7 @@ public class WBSEditor implements WindowListener, SaveListener,
     WBSDataWriter workflowWriter;
     File workflowDumpFile;
     WBSSynchronizer reverseSynchronizer;
+    TeamProjectMergeCoordinator mergeCoordinator;
     File customTabsFile;
     ChangeHistory changeHistory;
     File changeHistoryFile;
@@ -140,6 +144,7 @@ public class WBSEditor implements WindowListener, SaveListener,
     boolean showActualData = false;
     boolean showActualSize = false;
     boolean readOnly = false;
+    boolean simultaneousEditing = false;
     boolean indivMode = false;
     boolean exitOnClose = false;
     String syncURL = null;
@@ -163,6 +168,7 @@ public class WBSEditor implements WindowListener, SaveListener,
     private static final String OPTIMIZE_FOR_INDIV_KEY = "optimizeForIndiv";
     private static final String PROMPT_READ_ONLY_SETTING = "promptForReadOnly";
     private static final String MEMBERS_CANNOT_EDIT_SETTING = "readOnlyForIndividuals";
+    private static final String ALLOW_SIMULTANEOUS_EDIT_SETTING = "allowSimultaneousEditing";
 
     public WBSEditor(WorkingDirectory workingDirectory,
             TeamProject teamProject, String owner, String initials)
@@ -355,54 +361,53 @@ public class WBSEditor implements WindowListener, SaveListener,
         if (maybePromptForReadOnly())
             return;
 
+        maybeSetupSimultaneousEditing();
+
         try {
             workingDirectory.acquireWriteLock(this, owner);
         } catch (ReadOnlyLockFailureException e) {
-            if (showFilesAreReadOnlyMessage(teamProject, workingDirectory
-                    .getDescription()) == false)
+            if (!showOpenReadOnlyMessage("Errors.Read_Only_Files.Message_FMT"))
                 throw e;
         } catch (CannotCreateLockException e) {
-            if (showCannotCreateLockMessage(teamProject, workingDirectory
-                    .getDescription()) == false)
+            if (!showOpenReadOnlyMessage("Errors.Cannot_Create_Lock.Message_FMT"))
                 throw e;
         } catch (LockFailureException e) {
-            String otherOwner = null;
-            if (e instanceof AlreadyLockedException)
-                otherOwner = ((AlreadyLockedException) e).getExtraInfo();
-            if (otherOwner == null)
-                otherOwner = "someone on another machine";
-            CONCURRENCY_MESSAGE[1] += (otherOwner + ".");
-
-            int userResponse = JOptionPane.showConfirmDialog(null,
-                    CONCURRENCY_MESSAGE, "Open Project in Read-Only Mode",
-                    JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
-            if (userResponse == JOptionPane.YES_OPTION)
-                teamProject.setReadOnly(true);
-            else
+            if (!simultaneousEditing
+                    && !showOpenReadOnlyMessage(
+                            "Errors.Concurrent_Use.Message_FMT",
+                            getOtherLockHolder(e)))
                 throw e;
         }
+
+        if (simultaneousEditing)
+            workingDirectory.releaseWriteLock();
     }
-    private static final String[] CONCURRENCY_MESSAGE = {
-        "The Work Breakdown Structure for this project is currently",
-        "open for editing by ",
-        " ",
-        "Would you like to open the project anyway, in read-only mode?"
-    };
 
     private boolean maybePromptForReadOnly() {
         if (teamProject.getBoolUserSetting(PROMPT_READ_ONLY_SETTING) == false)
             return false;
 
-        JRadioButton readWriteOption = new JRadioButton("Open in read-write mode");
-        JRadioButton readOnlyOption = new JRadioButton("Open in read-only mode");
+        if (workingDirectory instanceof CompressedWorkingDirectory)
+            return false;
+
+        JRadioButton readWriteOption = new JRadioButton(resources
+                .getString("Recommend_Read_Only.Option_Read_Write"));
+        JRadioButton readOnlyOption = new JRadioButton(resources
+                .getString("Recommend_Read_Only.Option_Read_Only"));
         ButtonGroup group = new ButtonGroup();
         group.add(readWriteOption);
         group.add(readOnlyOption);
         readWriteOption.setSelected(true);
 
-        Object[] message = new Object[] { READ_ONLY_PROMPT_MESSAGE,
+        String title = resources.getString("Recommend_Read_Only.Title");
+        String explanationKey;
+        if (teamProject.getBoolUserSetting(ALLOW_SIMULTANEOUS_EDIT_SETTING))
+            explanationKey = "Recommend_Read_Only.Simultaneous_Prompt";
+        else
+            explanationKey = "Recommend_Read_Only.Exclusive_Prompt";
+        Object[] message = new Object[] { resources.getStrings(explanationKey),
                 readOnlyOption, readWriteOption };
-        JOptionPane.showMessageDialog(null, message, "Open Read-Only?",
+        JOptionPane.showMessageDialog(null, message, title,
             JOptionPane.QUESTION_MESSAGE);
 
         if (readWriteOption.isSelected())
@@ -411,13 +416,54 @@ public class WBSEditor implements WindowListener, SaveListener,
         teamProject.setReadOnly(true);
         return true;
     }
-    private static final String[] READ_ONLY_PROMPT_MESSAGE = {
-        "The Work Breakdown Structure is shared by the",
-        "entire team. If you only intend to view data",
-        "(not modify anything), you should open the WBS",
-        "in read-only mode, so others can make changes.",
-        "Which would you like to do?"
-    };
+
+    private void maybeSetupSimultaneousEditing() {
+        // if simultaneous editing is not enabled, do nothing.
+        if (!teamProject.getBoolUserSetting(ALLOW_SIMULTANEOUS_EDIT_SETTING))
+            return;
+
+        // simultaneous editing does not make sense for a ZIP file.
+        if (workingDirectory instanceof CompressedWorkingDirectory)
+            return;
+
+        try {
+            mergeCoordinator = new TeamProjectMergeCoordinator(teamProject,
+                workingDirectory);
+            simultaneousEditing = true;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private boolean showOpenReadOnlyMessage(String resKey) {
+        String location = workingDirectory.getDescription();
+        return showOpenReadOnlyMessage(resKey, location);
+    }
+
+    private boolean showOpenReadOnlyMessage(String resKey, String formatArg) {
+        String title = resources.getString("Errors.Open_Read_Only.Title");
+        Object[] message = new Object[] {
+                resources.formatStrings(resKey, formatArg), " ",
+                resources.getString("Errors.Open_Read_Only.Prompt") };
+        int userResponse = JOptionPane.showConfirmDialog(null, message, title,
+                JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+        if (userResponse == JOptionPane.YES_OPTION) {
+            teamProject.setReadOnly(true);
+            return true;
+        }
+        return false;
+    }
+
+    private static String getOtherLockHolder(Exception e) {
+        String otherOwner = null;
+        if (e instanceof AlreadyLockedException)
+            otherOwner = ((AlreadyLockedException) e).getExtraInfo();
+        if (otherOwner == null || otherOwner.length() == 0)
+            otherOwner = resources
+                    .getString("Errors.Concurrent_Use.Anonymous_User");
+        return otherOwner;
+    }
+
 
     private void setMode(TeamProject teamProject) {
         if (teamProject instanceof TeamProjectBottomUp)
@@ -568,7 +614,15 @@ public class WBSEditor implements WindowListener, SaveListener,
         membersCanEdit.setSelected(membersCanEditSetting);
         membersCanEdit.setEnabled(!indivMode);
 
-        Object[] message = new Object[] { readOnlyPrompt, membersCanEdit };
+        JCheckBox allowSimulEdit = new JCheckBox(
+                "Allow multiple people to edit the WBS simultaneously (experimental)");
+        boolean simulEditSetting = teamProject
+                .getBoolUserSetting(ALLOW_SIMULTANEOUS_EDIT_SETTING);
+        allowSimulEdit.setSelected(simulEditSetting);
+        allowSimulEdit.setEnabled(!indivMode);
+
+        Object[] message = new Object[] { readOnlyPrompt, membersCanEdit,
+                allowSimulEdit };
         int userChoice = JOptionPane.showConfirmDialog(frame, message,
             "Edit Preferences", JOptionPane.OK_CANCEL_OPTION,
             JOptionPane.PLAIN_MESSAGE);
@@ -588,6 +642,13 @@ public class WBSEditor implements WindowListener, SaveListener,
         if (newMembersCanEditSetting != membersCanEditSetting) {
             teamProject.putUserSetting(MEMBERS_CANNOT_EDIT_SETTING,
                 !newMembersCanEditSetting);
+            madeChange = true;
+        }
+
+        boolean newSimulEditSetting = allowSimulEdit.isSelected();
+        if (newSimulEditSetting != simulEditSetting) {
+            teamProject.putUserSetting(ALLOW_SIMULTANEOUS_EDIT_SETTING,
+                newSimulEditSetting);
             madeChange = true;
         }
 
@@ -745,13 +806,48 @@ public class WBSEditor implements WindowListener, SaveListener,
         return result;
     }
 
-    void replaceDataFrom(TeamProject srcProject) {
-        if (!SwingUtilities.isEventDispatchThread())
-            // the replacement actions below will fire many events that trigger
+    synchronized boolean mergeExternalChanges() throws IOException {
+        if (mergeCoordinator == null)
+            return false;
+
+        TeamProjectMerger merger = mergeCoordinator.doMerge();
+        if (merger == null)
+            return false; // no merge needed
+
+        replaceDataFrom(merger.getMerged());
+
+        // reload the change history file to reflect external edits
+        changeHistory = new ChangeHistory(changeHistoryFile);
+
+        return true;
+    }
+
+    void replaceDataFrom(final TeamProject srcProject) {
+
+        if (SwingUtilities.isEventDispatchThread()) {
+            replaceDataFromImpl(srcProject);
+
+        } else {
+            // The data replacement actions will fire many events that trigger
             // GUI repaints.  As a result, we must execute this logic on the
             // Swing event dispatch thread to avoid thread safety issues.
-            throw new IllegalStateException();
+            // Hopefully it can finish quickly.
+            try {
+                SwingUtilities.invokeAndWait(new Runnable() {
+                    public void run() {
+                        replaceDataFromImpl(srcProject);
+                    }});
+            } catch (Exception e) {
+                if (e.getCause() instanceof RuntimeException) {
+                    throw (RuntimeException) e.getCause();
+                } else {
+                    throw new RuntimeException(e);
+                }
+            }
+        }
+    }
 
+    private void replaceDataFromImpl(TeamProject srcProject) {
         File srcDir = srcProject.getStorageDirectory();
 
         replaceTeamMemberList(srcProject);
@@ -759,6 +855,7 @@ public class WBSEditor implements WindowListener, SaveListener,
         replaceMilestones(srcProject);
         replaceWBS(srcProject);
         replaceTabs(srcDir);
+        replaceUserSettings(srcProject);
         appendReplacementChange(srcDir);
 
         if (isMode(MODE_HAS_MASTER))
@@ -776,29 +873,85 @@ public class WBSEditor implements WindowListener, SaveListener,
     }
 
     private void replaceWorkflows(TeamProject src) {
+        WBSJTable table = null;
         if (workflowEditor != null) {
             workflowEditor.stopEditing();
             workflowEditor.undoList.clear();
+            table = workflowEditor.table;
         }
-        teamProject.getWorkflows().copyFrom(src.getWorkflows());
+        replaceWBSModel(teamProject.getWorkflows(), src.getWorkflows(), table);
     }
 
     private void replaceMilestones(TeamProject src) {
+        WBSJTable table = null;
         if (milestonesEditor != null) {
             milestonesEditor.stopEditing();
             milestonesEditor.undoList.clear();
+            table = milestonesEditor.table;
         }
-        teamProject.getMilestones().copyFrom(src.getMilestones());
+        replaceWBSModel(teamProject.getMilestones(), src.getMilestones(), table);
     }
 
     private void replaceWBS(TeamProject src) {
         tabPanel.stopCellEditing();
         tabPanel.undoList.clear();
+        replaceWBSModel(teamProject.getWBS(), src.getWBS(), tabPanel.wbsTable);
+    }
 
-        WBSModel thisProjectWbs = teamProject.getWBS();
-        String rootNodeName = thisProjectWbs.getRoot().getName();
-        thisProjectWbs.copyFrom(src.getWBS());
-        thisProjectWbs.getRoot().setName(rootNodeName);
+    private void replaceWBSModel(WBSModel dest, WBSModel src, WBSJTable table) {
+        // record the WBS nodes that are currently selected, and arrange
+        // for them to be restored later
+        if (table != null)
+            new WBSTableSelectionRestorer(dest, table);
+
+        // check to see if the source and target WBS are the same. If so, we
+        // don't need to perform any model replacement and we can return
+        // immediately. Fire an event though, in case earlier steps in a
+        // merging operation have made internal changes to this model.
+        if (src == dest) {
+            dest.fireTableDataChanged();
+            return;
+        }
+
+        // copy the set of expanded nodes from this project to the new data
+        Set expandedNodes = dest.getExpandedNodeIDs();
+        src.setExpandedNodeIDs(expandedNodes);
+
+        // copy the WBS from the source to this dest
+        String rootNodeName = dest.getRoot().getName();
+        dest.copyFrom(src);
+        dest.getRoot().setName(rootNodeName);
+    }
+
+    private class WBSTableSelectionRestorer implements Runnable {
+        private WBSModel wbsModel;
+        private WBSJTable table;
+        private List<Integer> selectedNodeIDs;
+        private WBSTableSelectionRestorer(WBSModel model, WBSJTable table) {
+            this.wbsModel = model;
+            this.table = table;
+
+            int[] selectedRows = table.getSelectedRows();
+            if (selectedRows == null || selectedRows.length == 0)
+                return;
+            this.selectedNodeIDs = new ArrayList();
+            for (WBSNode node : wbsModel.getNodesForRows(selectedRows, true))
+                selectedNodeIDs.add(node.getUniqueID());
+
+            SwingUtilities.invokeLater(this);
+        }
+        public void run() {
+            Map<Integer, WBSNode> nodeMap = wbsModel.getNodeMap();
+            table.clearSelection();
+            for (int nodeId : selectedNodeIDs) {
+                WBSNode node = nodeMap.get(nodeId);
+                if (node != null) {
+                    int row = wbsModel.getRowForNode(node);
+                    if (row != -1)
+                        table.getSelectionModel().addSelectionInterval(row, row);
+                }
+            }
+        }
     }
 
     private void replaceTabs(File srcDir) {
@@ -807,6 +960,12 @@ public class WBSEditor implements WindowListener, SaveListener,
             if (tabsFile.isFile())
                 tabPanel.replaceCustomTabs(tabsFile);
         } catch (LoadTabsException e) {}
+    }
+
+    private void replaceUserSettings(TeamProject srcProject) {
+        Properties thisProjectSettings = teamProject.getUserSettings();
+        thisProjectSettings.clear();
+        thisProjectSettings.putAll(srcProject.getUserSettings());
     }
 
     private void appendReplacementChange(File srcDir) {
@@ -822,7 +981,10 @@ public class WBSEditor implements WindowListener, SaveListener,
         if (readOnly)
             return true;
 
-        tabPanel.stopCellEditing();
+        // finish all editing sessions in progress
+        stopAllCellEditingSessions();
+        if (maybeSaveTeamMemberList() == false)
+            return false;
 
         JDialog dialog = createWaitDialog(frame, "Saving Data...");
         SaveThread saver = new SaveThread(dialog);
@@ -830,6 +992,22 @@ public class WBSEditor implements WindowListener, SaveListener,
         dialog.setVisible(true);
         setDirty(!saver.saveResult);
         return saver.saveResult;
+    }
+
+    private void stopAllCellEditingSessions() {
+        tabPanel.stopCellEditing();
+        if (teamListEditor != null) teamListEditor.stopEditing();
+        if (workflowEditor != null) workflowEditor.stopEditing();
+        if (milestonesEditor != null) milestonesEditor.stopEditing();
+    }
+
+    private boolean maybeSaveTeamMemberList() {
+        if (teamListEditor != null && teamListEditor.isVisible()) {
+            teamListEditor.stopEditing();
+            if (teamListEditor.isDirty() && teamListEditor.save() == false)
+                return false;
+        }
+        return true;
     }
 
     static JDialog createWaitDialog(JFrame frame, String message) {
@@ -919,7 +1097,8 @@ public class WBSEditor implements WindowListener, SaveListener,
 
         } catch (LockUncertainException lue) {
         } catch (LockFailureException fe) {
-            showLostLockMessage();
+            if (simultaneousEditing == false)
+                showLostLockMessage();
             return false;
         } catch (IOException e) {
             e.printStackTrace();
@@ -933,37 +1112,108 @@ public class WBSEditor implements WindowListener, SaveListener,
         if (readOnly || workingDirectory == null)
             return true;
 
-        workingDirectory.assertWriteLock();
+        // merge in any changes that have been saved by other individuals.
+        mergeExternalChanges();
 
-        if (teamProject.save() == false)
-            return false;
+        // ensure that we have a lock for editing the data.
+        if (simultaneousEditing) {
+            acquireSimultaneousEditWriteLock();
+        } else {
+            workingDirectory.assertWriteLock();
+        }
 
-        dataWriter.write(dataDumpFile);
-        workflowWriter.write(workflowDumpFile);
+        try {
+            // Doublecheck to see if someone else saved changes while we were
+            // waiting for our simultaneous editing write lock.
+            if (simultaneousEditing)
+                mergeExternalChanges();
 
-        // write out custom tabs file
-        tabPanel.saveTabs(customTabsFile);
+            if (teamProject.save() == false)
+                return false;
 
-        // write out the change history file
-        changeHistory.addEntry(owner);
-        changeHistory.write(changeHistoryFile);
+            dataWriter.write(dataDumpFile);
+            workflowWriter.write(workflowDumpFile);
 
-        if (workingDirectory.flushData() == false)
-            return false;
+            // write out custom tabs file, if the tabs have changed
+            tabPanel.saveCustomTabsIfChanged(customTabsFile);
 
-        String qualifier = "saved";
-        if (owner != null && owner.trim().length() > 0)
-            qualifier = "saved_by_" + FileUtils.makeSafe(owner.trim());
-        workingDirectory.doBackup(qualifier);
+            // write out the change history file
+            changeHistory.addEntry(owner);
+            changeHistory.write(changeHistoryFile);
 
-        return true;
+            if (workingDirectory.flushData() == false)
+                return false;
+
+            if (mergeCoordinator != null)
+                mergeCoordinator.acceptChangesInMain();
+
+            String qualifier = "saved";
+            if (owner != null && owner.trim().length() > 0)
+                qualifier = "saved_by_" + FileUtils.makeSafe(owner.trim());
+            workingDirectory.doBackup(qualifier);
+
+            return true;
+
+        } finally {
+            if (simultaneousEditing)
+                workingDirectory.releaseWriteLock();
+        }
+    }
+
+    private void acquireSimultaneousEditWriteLock() throws LockFailureException {
+        int timeoutSeconds = Integer.getInteger(
+            "teamdash.wbs.acquireLockTimeout", 60);
+        long timeoutTimestamp = System.currentTimeMillis()
+                + (timeoutSeconds * 1000);
+        Random r = null;
+        AlreadyLockedException ale = null;
+
+        while (System.currentTimeMillis() < timeoutTimestamp) {
+            try {
+                workingDirectory.acquireWriteLock(this, owner);
+                return;
+
+            } catch (AlreadyLockedException e) {
+                // if someone else is holding the lock, wait for a moment to see
+                // if they release it.  Then try again.
+                ale = e;
+                try {
+                    // wait a randomly selected amount of time between 0.5 and
+                    // 1.5 seconds.  Randomness is included in case several
+                    // processes are attempting to get the lock at the same time
+                    if (r == null)
+                        r = new Random();
+                    Thread.sleep(500 + r.nextInt(1000));
+                } catch (InterruptedException e1) {}
+
+            } catch (ReadOnlyLockFailureException e) {
+                showSaveErrorMessage("Errors.Read_Only_Files.Message_FMT");
+                throw e;
+            } catch (LockFailureException e) {
+                showSaveErrorMessage("Errors.Cannot_Create_Lock.Message_FMT");
+                throw e;
+            }
+        }
+
+        // we were unable to secure a lock within a reasonable amount of time.
+        // display an error message stating who has the file locked.
+        showSaveErrorMessage("Errors.Concurrent_Use.Message_FMT",
+            getOtherLockHolder(ale));
+        throw (ale != null ? ale : new LockFailureException());
     }
 
     private void showSaveErrorMessage() {
+        String resKey = "Errors.Cannot_Save." + workingDirResKey() + "_FMT";
+        showSaveErrorMessage(resKey);
+    }
+
+    private void showSaveErrorMessage(String resKey) {
+        showSaveErrorMessage(resKey, workingDirectory.getDescription());
+    }
+
+    private void showSaveErrorMessage(String resKey, String formatArg) {
         String title = resources.getString("Errors.Cannot_Save.Title");
-        Object[] message = resources.formatStrings("Errors.Cannot_Save."
-                        + workingDirResKey() + "_FMT", workingDirectory
-                        .getDescription());
+        Object[] message = resources.formatStrings(resKey, formatArg);
         if (isDirty())
             message = new Object[] { message, " ",
                     resources.getStrings("Errors.Cannot_Save.Save_Advice") };
@@ -1257,48 +1507,6 @@ public class WBSEditor implements WindowListener, SaveListener,
         }
 
     }
-
-    private static boolean showFilesAreReadOnlyMessage(TeamProject teamProject,
-            String location) {
-        READ_ONLY_FILES_MESSAGE[2] = "      " + location;
-        return showOpenReadOnlyMessage(teamProject, READ_ONLY_FILES_MESSAGE);
-    }
-    private static boolean showCannotCreateLockMessage(TeamProject teamProject,
-            String location) {
-        CANNOT_GET_LOCK_MESSAGE[2] = "      " + location;
-        return showOpenReadOnlyMessage(teamProject, CANNOT_GET_LOCK_MESSAGE);
-    }
-    private static boolean showOpenReadOnlyMessage(TeamProject teamProject,
-            String[] message) {
-        int userResponse = JOptionPane.showConfirmDialog(null,
-                message, "Open Project in Read-Only Mode",
-                JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
-        if (userResponse == JOptionPane.YES_OPTION) {
-            teamProject.setReadOnly(true);
-            return true;
-        }
-        return false;
-    }
-    private static final String[] READ_ONLY_FILES_MESSAGE = {
-        "The Work Breakdown Structure Editor stores data for this project",
-        "into XML files located at:",
-        "",
-        " ",
-        "Unfortunately, the current filesystem permissions do not allow",
-        "you to modify those files.  Would you like to open the project",
-        "anyway, in read-only mode?"
-    };
-    private static final String[] CANNOT_GET_LOCK_MESSAGE = {
-        "The Work Breakdown Structure Editor stores data for this project",
-        "into XML files located at:",
-        "",
-        " ",
-        "The WBS Editor attempted to lock those files for writing, but the",
-        "operating system was unable to secure a write lock.  This is an",
-        "unusual situation, possibly caused by the current configuration of",
-        "the remote network directory.  Would you like to open the project",
-        "anyway, in read-only mode?"
-    };
 
     private static String getOwnerName() {
         String result = preferences.get("ownerName", null);

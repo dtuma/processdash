@@ -49,7 +49,6 @@ import javax.swing.JDialog;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
-import javax.swing.SwingUtilities;
 
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.ui.lib.ExceptionDialog;
@@ -381,13 +380,7 @@ public class WBSReplaceAction extends AbstractAction {
 
             try {
                 // tell the WBS Editor to perform the replacement.
-                // Unfortunately we must do this on the Swing event thread,
-                // because many of the replacement actions will fire events
-                // that repaint GUIs.  Hopefully it can finish quickly.
-                SwingUtilities.invokeAndWait(new Runnable() {
-                    public void run() {
-                        wbsEditor.replaceDataFrom(replacementProject);
-                    }});
+                wbsEditor.replaceDataFrom(replacementProject);
             } catch (Exception e) {
                 // we had a problem with the data replacement.
                 logger.log(Level.SEVERE,
