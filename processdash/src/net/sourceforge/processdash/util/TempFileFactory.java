@@ -1,4 +1,4 @@
-// Copyright (C) 2009 Tuma Solutions, LLC
+// Copyright (C) 2009-2012 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -29,8 +29,11 @@ import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Properties;
+import java.util.Timer;
+import java.util.TimerTask;
 
 /**
  * This class provides a service similar to File.createTempFile(), with two
@@ -51,6 +54,8 @@ import java.util.Properties;
 public class TempFileFactory {
 
     private static final String DEFAULT_QUALIFIER = "pdash-tmp-";
+
+    private static final String DIR_IN_USE_FILENAME = ".tmp-directory-in-use";
 
     private String qualifier;
 
@@ -186,11 +191,57 @@ public class TempFileFactory {
 
     public File createTempDirectory(String prefix, String suffix)
             throws IOException {
+        return createTempDirectory(prefix, suffix, false, false);
+    }
+
+    /**
+     * Create a new, empty temporary directory.
+     * 
+     * @param prefix
+     *            a prefix to use in the name of the directory. (Will actually
+     *            appear after the qualifier and timestamp.)
+     * @param suffix
+     *            a suffix to use for the name of the directory.
+     * @param preserveWhileRunning
+     *            if true, arrange for this directory to be retained
+     *            indefinitely as long as this process is running. (This class
+     *            will not automatically delete the directory, even if the
+     *            process continues running for a period that is longer than the
+     *            {@link #getMaxAgeDays()}.)
+     * @param deleteOnExit
+     *            if true, automatically delete this directory and its contents
+     *            when the process shuts down.
+     * @since 1.14.4
+     */
+    public File createTempDirectory(String prefix, String suffix,
+            boolean preserveWhileRunning, boolean deleteOnExit)
+            throws IOException {
         File result = createTempFile(prefix, suffix);
-        if (result.delete() && result.mkdir())
+        if (result.delete() && result.mkdir()) {
+            if (preserveWhileRunning)
+                PRESERVATION_HELPER.addDirectory(result);
+            if (deleteOnExit)
+                DIR_DELETION_HELPER.addDirectory(result);
             return result;
-        else
+        } else
             throw new IOException("Could not create temporary directory");
+    }
+
+    /**
+     * Write a marker file into the given temp directory to indicate that it
+     * is in use, and should not be deleted - even if it is several days old.
+     * 
+     * @since 1.14.4
+     */
+    public static void touchTempDirectory(File dir) {
+        if (!dir.isDirectory())
+            return;
+
+        try {
+            File f = new File(dir, DIR_IN_USE_FILENAME);
+            f.createNewFile();
+            f.setLastModified(System.currentTimeMillis());
+        } catch (IOException e) {}
     }
 
     private void maybeCleanup(File cleanupDir) {
@@ -233,8 +284,16 @@ public class TempFileFactory {
             if (age < maxAgeDays * DAY_MILLIS)
                 continue;
 
-            // the file/directory should be deleted.
+            // test to see if a recent "in use" marker file is present
             File f = new File(cleanupDir, name);
+            File dirInUseMarker = new File(f, DIR_IN_USE_FILENAME);
+            if (dirInUseMarker.isFile()) {
+                age = now - dirInUseMarker.lastModified();
+                if (age < maxAgeDays * DAY_MILLIS)
+                    continue;
+            }
+
+            // the file/directory should be deleted.
             if (f.isFile()) {
                 f.delete();
             } else if (f.isDirectory()) {
@@ -284,6 +343,47 @@ public class TempFileFactory {
         return result;
     }
 
+    private static class DirectoryPreservationHelper extends TimerTask {
+        private ArrayList<File> preservedDirs;
+        private Timer timer;
+        private synchronized void addDirectory(File dir) {
+            if (preservedDirs == null) {
+                preservedDirs = new ArrayList<File>();
+                timer = new Timer("TempFileFactory.preservationTimer", true);
+                timer.schedule(this, DAY_MILLIS/2, DAY_MILLIS/2);
+            }
+            preservedDirs.add(dir);
+            touchTempDirectory(dir);
+        }
+        @Override
+        public void run() {
+            if (preservedDirs != null)
+                for (File dir : preservedDirs)
+                    touchTempDirectory(dir);
+        }
+    }
+
+    private static class DirectoryDeletionShutdownHook implements Runnable {
+        private ArrayList<File> dirsToDelete;
+        private synchronized void addDirectory(File dir) {
+            if (dirsToDelete == null) {
+                dirsToDelete = new ArrayList<File>();
+                Thread t = new Thread(this, "TempFileFactory.shutdownHook");
+                t.setDaemon(true);
+                Runtime.getRuntime().addShutdownHook(t);
+            }
+            dirsToDelete.add(dir);
+        }
+        public void run() {
+            if (dirsToDelete != null)
+                for (File dir : dirsToDelete)
+                    try {
+                        FileUtils.deleteDirectory(dir, true);
+                    } catch (IOException e) {}
+        }
+
+    }
+
     private static final DateFormat DATE_FMT = new SimpleDateFormat(
             "yyyyMMddHH");
     private static final int DATE_FMT_LEN = 10;
@@ -292,5 +392,10 @@ public class TempFileFactory {
         60 /*minutes*/ * 60 /*seconds*/ * 1000 /*millis*/;
 
     private static final long DAY_MILLIS = 24 /*hours*/ * HOUR_MILLIS;
+
+    private static final DirectoryPreservationHelper PRESERVATION_HELPER =
+            new DirectoryPreservationHelper();
+    private static final DirectoryDeletionShutdownHook DIR_DELETION_HELPER =
+            new DirectoryDeletionShutdownHook();
 
 }
