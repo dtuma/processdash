@@ -164,7 +164,6 @@ public class TeamMemberListMergerTest extends TestCase {
         TeamMemberListMerger merge = new TeamMemberListMerger(base, a, b);
         assertWarnings(merge.getMergeWarnings(),
             conflict(10, TeamMember.NAME_ATTR),
-            conflict(10, TeamMember.SERVER_IDENTITY_ATTR),
             conflict(10, TeamMember.INITIALS_ATTR),
             conflict(10, WeeklySchedule.HOURS_PER_WEEK_ATTR),
             conflict(10, WeeklySchedule.START_WEEK_ATTR),
@@ -180,7 +179,6 @@ public class TeamMemberListMergerTest extends TestCase {
         merge = new TeamMemberListMerger(base, b, a);
         assertWarnings(merge.getMergeWarnings(),
             conflict(10, TeamMember.NAME_ATTR),
-            conflict(10, TeamMember.SERVER_IDENTITY_ATTR),
             conflict(10, TeamMember.INITIALS_ATTR),
             conflict(10, WeeklySchedule.HOURS_PER_WEEK_ATTR),
             conflict(10, WeeklySchedule.START_WEEK_ATTR),

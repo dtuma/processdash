@@ -203,6 +203,18 @@ public class TeamMemberListMerger {
         result.addHandler(TeamMember.COLOR_ATTR,
             DefaultAttributeMerger.SILENTLY_PREFER_INCOMING);
 
+        // if both branches edit the server identity of a team member, don't
+        // flag a conflict. Just accept the identity of the main branch. The
+        // rationale here is that a change to a server identity will also
+        // change the display name of the user, and the two values need to stay
+        // in sync with each other. Since the merge conflict resolution
+        // preferred the name from the main branch, we must prefer the server
+        // identity too. We make this preference silent, because the user
+        // will already have received an alert about the name conflict, and
+        // they won't understand the distinction between name/server identity.
+        result.addHandler(TeamMember.SERVER_IDENTITY_ATTR,
+            DefaultAttributeMerger.SILENTLY_PREFER_MAIN);
+
         // if there are multiple conflicting edits to schedule exceptions,
         // just report a single error
         result.addHandler(WeeklySchedule.EXCEPTION_TAG + "_.*",
