@@ -23,6 +23,7 @@
 
 package teamdash.merge;
 
+import static net.sourceforge.processdash.util.NullSafeObjectUtils.EQ;
 import static net.sourceforge.processdash.util.NullSafeObjectUtils.HC;
 
 
@@ -85,10 +86,10 @@ public class MergeWarning<ID> {
             return false;
 
         MergeWarning that = (MergeWarning) obj;
-        return this.severity.equals(that.severity)
-                && this.key.equals(that.key)
-                && this.mainNodeID.equals(that.mainNodeID)
-                && this.incomingNodeID.equals(that.incomingNodeID);
+        return EQ(this.severity, that.severity)
+                && EQ(this.key, that.key)
+                && EQ(this.mainNodeID, that.mainNodeID)
+                && EQ(this.incomingNodeID, that.incomingNodeID);
     }
 
     @Override
