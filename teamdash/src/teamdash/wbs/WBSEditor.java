@@ -99,6 +99,8 @@ import net.sourceforge.processdash.util.lock.ReadOnlyLockFailureException;
 import net.sourceforge.processdash.util.lock.SentLockMessageException;
 
 import teamdash.SaveListener;
+import teamdash.merge.ui.MergeConflictDialog;
+import teamdash.merge.ui.MergeConflictNotification.ModelType;
 import teamdash.team.TeamMember;
 import teamdash.team.TeamMemberListEditor;
 import teamdash.team.TeamMemberList.InitialsListener;
@@ -135,6 +137,7 @@ public class WBSEditor implements WindowListener, SaveListener,
     WBSDataWriter workflowWriter;
     File workflowDumpFile;
     WBSSynchronizer reverseSynchronizer;
+    MergeConflictDialog mergeConflictDialog;
     TeamProjectMergeCoordinator mergeCoordinator;
     File customTabsFile;
     ChangeHistory changeHistory;
@@ -429,6 +432,7 @@ public class WBSEditor implements WindowListener, SaveListener,
         try {
             mergeCoordinator = new TeamProjectMergeCoordinator(teamProject,
                 workingDirectory);
+            mergeConflictDialog = new MergeConflictDialog(teamProject);
             simultaneousEditing = true;
         } catch (IOException e) {
             e.printStackTrace();
@@ -581,6 +585,9 @@ public class WBSEditor implements WindowListener, SaveListener,
             teamListEditor = new TeamMemberListEditor
                 (teamProject.getProjectName(), teamProject.getTeamMemberList());
             teamListEditor.addSaveListener(this);
+            if (mergeConflictDialog != null)
+                mergeConflictDialog.setHyperlinkHandler(ModelType.TeamList,
+                    teamListEditor);
         }
     }
 
@@ -815,6 +822,7 @@ public class WBSEditor implements WindowListener, SaveListener,
             return false; // no merge needed
 
         replaceDataFrom(merger.getMerged());
+        mergeConflictDialog.addNotifications(merger.getConflicts());
 
         // reload the change history file to reflect external edits
         changeHistory = new ChangeHistory(changeHistoryFile);
@@ -1080,6 +1088,8 @@ public class WBSEditor implements WindowListener, SaveListener,
             SwingUtilities.invokeLater(new Runnable() {
                 public void run() {
                     saveDialog.dispose();
+                    if (mergeConflictDialog != null)
+                        mergeConflictDialog.maybeShow(frame);
                 }});
         }
 

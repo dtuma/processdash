@@ -47,11 +47,13 @@ import javax.swing.event.TableModelListener;
 import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
 
 import teamdash.SaveListener;
+import teamdash.merge.ui.MergeConflictHyperlinkHandler;
 
 
 /** A graphical user interface for editing the list of team members.
  */
-public class TeamMemberListEditor implements WindowListener, TableModelListener {
+public class TeamMemberListEditor implements WindowListener,
+        TableModelListener, MergeConflictHyperlinkHandler {
 
     /** The list of team members we are editing. */
     private TeamMemberList teamMemberList;
@@ -113,6 +115,20 @@ public class TeamMemberListEditor implements WindowListener, TableModelListener 
         teamMemberList.resetWeekOffset();
         // notify the customization hyperlink so it can update its date
         ((TeamMemberListTable) table).updateCustomizationHyperlinkText();
+    }
+
+    public boolean displayHyperlinkedItem(String item) {
+        int id = Integer.parseInt(item);
+        int pos = teamMemberList.findTeamMemberPosByID(id);
+        if (pos == -1)
+            return false;
+
+        table.setRowSelectionInterval(pos, pos);
+        table.setColumnSelectionInterval(0, 0);
+        table.scrollRectToVisible(table.getCellRect(pos, 0, true));
+
+        show();
+        return true;
     }
 
     private boolean checkForErrors() {

@@ -283,6 +283,11 @@ public class TeamMemberList extends AbstractTableModel implements EffortCalendar
         return null;
     }
 
+    public int findTeamMemberPosByID(int id) {
+        TeamMember t = findTeamMemberByID(id);
+        return (t == null ? -1 : teamMembers.indexOf(t));
+    }
+
     /** Alter this team list so it contains the nonempty members
      * in the given list. */
     public void copyFrom(TeamMemberList newMembers) {

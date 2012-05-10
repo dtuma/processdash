@@ -24,11 +24,15 @@
 package teamdash.wbs;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import teamdash.merge.DefaultAttributeMerger;
 import teamdash.merge.MapContentMerger;
+import teamdash.merge.ui.MergeConflictNotification;
 import teamdash.team.TeamMemberList;
+import teamdash.team.TeamMemberListMergeConflictNotificationFactory;
 import teamdash.team.TeamMemberListMerger;
 import teamdash.wbs.columns.TeamMemberTimeColumn;
 
@@ -42,15 +46,22 @@ public class TeamProjectMerger {
 
     private TeamProject merged;
 
+    private List<MergeConflictNotification> conflicts;
+
     public TeamProjectMerger(TeamProject base, TeamProject main,
             TeamProject incoming) {
         this.base = base;
         this.main = main;
         this.incoming = incoming;
+        this.conflicts = new ArrayList<MergeConflictNotification>();
     }
 
     public TeamProject getMerged() {
         return merged;
+    }
+
+    public List<MergeConflictNotification> getConflicts() {
+        return conflicts;
     }
 
     public void run() {
@@ -74,6 +85,10 @@ public class TeamProjectMerger {
         // calculate the merged team member list.
         TeamMemberListMerger teamMerger = new TeamMemberListMerger(base, main,
                 incoming);
+
+        // record any conflicts that occurred during the merge
+        conflicts.addAll(TeamMemberListMergeConflictNotificationFactory
+                .createAll(teamMerger));
 
         // the team member merge may have caused initials to change in the
         // main and incoming projects. Apply those changes to the WBS.
