@@ -661,7 +661,17 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
             if (rows[i] == nodePos) return i;
         return -1;
     }
+    public int makeVisible(WBSNode node) {
+        int pos = wbsNodes.indexOf(node);
+        if (pos == -1)
+            return -1;
+        makeVisible(pos, true);
+        return nodePosToRow(pos);
+    }
     private void makeVisible(int nodePos) {
+        makeVisible(nodePos, false);
+    }
+    private void makeVisible(int nodePos, boolean notify) {
         if (nodePos < 0 || nodePos > wbsNodes.size()-1) return;
         WBSNode n = (WBSNode) wbsNodes.get(nodePos);
         do {
@@ -669,7 +679,7 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
             if (n == null) break;
             n.setExpanded(true);
         } while (true);
-        recalcRows(false);
+        recalcRows(notify);
     }
     private boolean makeVisible(int[] nodePosList) {
         boolean expandedNodes = false;

@@ -44,9 +44,11 @@ import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.TableColumn;
 
+import teamdash.merge.ui.MergeConflictHyperlinkHandler;
+
 /** A graphical user interface for editing common workflows.
  */
-public class WorkflowEditor {
+public class WorkflowEditor implements MergeConflictHyperlinkHandler {
 
     /** The team project that these workflows belong to. */
     TeamProject teamProject;
@@ -95,6 +97,15 @@ public class WorkflowEditor {
 
     public void stopEditing() {
         UndoList.stopCellEditing(table);
+    }
+
+    public boolean displayHyperlinkedItem(String item) {
+        int nodeId = Integer.parseInt(item);
+        if (table.selectAndShowNode(nodeId) == false)
+            return false;
+
+        show();
+        return true;
     }
 
 

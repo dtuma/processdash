@@ -82,12 +82,13 @@ import net.sourceforge.processdash.util.RobustFileWriter;
 
 import teamdash.ActionCategoryComparator;
 import teamdash.XMLUtils;
+import teamdash.merge.ui.MergeConflictHyperlinkHandler;
 import teamdash.team.TeamMemberList;
 
 /** Class to display the WBS editor panel
  */
 public class WBSTabPanel extends JLayeredPane
-    implements TeamMemberList.InitialsListener
+    implements TeamMemberList.InitialsListener, MergeConflictHyperlinkHandler
 {
 
     private static final String SAVE_TABS_ERROR_MESSAGE = "An unexpected error has prevented the file from being saved.";
@@ -290,6 +291,11 @@ public class WBSTabPanel extends JLayeredPane
             result.put(key, colModel);
         }
         return result;
+    }
+
+    public boolean displayHyperlinkedItem(String item) {
+        int wbsId = Integer.parseInt(item);
+        return wbsTable.selectAndShowNode(wbsId);
     }
 
     /** Get a list of file-related actions for the work breakdown structure */

@@ -236,6 +236,30 @@ public class WBSJTable extends JTable {
         }
     }
 
+    public boolean selectAndShowNode(int wbsNodeId) {
+        // find the node in the model with the specified ID
+        WBSNode node = wbsModel.getNodeMap().get(wbsNodeId);
+        return selectAndShowNode(node);
+    }
+
+    public boolean selectAndShowNode(WBSNode node) {
+        if (node == null)
+            return false;
+
+        // ensure that the node in question is visible, and retrieve its row
+        int row = wbsModel.makeVisible(node);
+        if (row == -1)
+            return false;
+
+        // stop any editing session that might be in progress
+        if (isEditing()) editor.stopCellEditing();
+        UndoList.stopCellEditing(this);
+
+        // select the row for the node in question, and scroll to it
+        selectRows(new int[] { row }, true);
+        return true;
+    }
+
 
     /** Return a list of actions useful for editing the wbs */
     public Action[] getEditingActions() {

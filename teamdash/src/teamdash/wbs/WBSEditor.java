@@ -250,6 +250,8 @@ public class WBSEditor implements WindowListener, SaveListener,
                 taskDependencySource);
         tabPanel.setReadOnly(readOnly);
         teamProject.getTeamMemberList().addInitialsListener(tabPanel);
+        if (mergeConflictDialog != null)
+            mergeConflictDialog.setHyperlinkHandler(ModelType.Wbs, tabPanel);
 
         String[] sizeMetrics = teamProject.getTeamProcess().getSizeMetrics();
         String[] sizeTabColIDs = new String[sizeMetrics.length+2];
@@ -674,7 +676,9 @@ public class WBSEditor implements WindowListener, SaveListener,
         else {
             workflowEditor = new WorkflowEditor(teamProject);
             workflowEditor.addChangeListener(this.dirtyListener);
-            //workflowEditor.addSaveListener(this);
+            if (mergeConflictDialog != null)
+                mergeConflictDialog.setHyperlinkHandler(ModelType.Workflows,
+                    workflowEditor);
         }
     }
 
@@ -684,6 +688,9 @@ public class WBSEditor implements WindowListener, SaveListener,
         else {
             milestonesEditor = new MilestonesEditor(teamProject, milestonesModel);
             milestonesEditor.addChangeListener(this.dirtyListener);
+            if (mergeConflictDialog != null)
+                mergeConflictDialog.setHyperlinkHandler(ModelType.Milestones,
+                    milestonesEditor);
         }
         milestonesEditor.show();
     }
