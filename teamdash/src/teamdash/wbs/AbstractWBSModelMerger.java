@@ -27,6 +27,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -34,6 +35,8 @@ import teamdash.merge.MapContentMerger;
 import teamdash.merge.MergeWarning;
 import teamdash.merge.TreeMerger;
 import teamdash.merge.TreeNode;
+import teamdash.merge.ui.MergeConflictNotification;
+import teamdash.merge.ui.MergeConflictNotification.ModelType;
 
 public abstract class AbstractWBSModelMerger<W extends WBSModel> {
 
@@ -78,6 +81,16 @@ public abstract class AbstractWBSModelMerger<W extends WBSModel> {
             return Collections.EMPTY_SET;
         else
             return treeMerger.getMergeWarnings();
+    }
+
+    public List<MergeConflictNotification> getConflictNotifications() {
+        if (treeMerger == null)
+            return Collections.EMPTY_LIST;
+
+        List<MergeConflictNotification> result =
+            WBSModelMergeConflictNotificationFactory.createAll(this);
+
+        return result;
     }
 
     public Set<Integer> getMergedUndeletedNodeIDs() {
@@ -136,6 +149,8 @@ public abstract class AbstractWBSModelMerger<W extends WBSModel> {
     }
 
     protected abstract W createWbsModel();
+
+    protected abstract ModelType getModelType();
 
     private void buildWBSChildren(W model,
             TreeNode<Integer, WBSNodeContent> treeNode, int depth) {

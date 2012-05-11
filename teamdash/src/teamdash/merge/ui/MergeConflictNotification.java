@@ -69,6 +69,9 @@ public class MergeConflictNotification {
         this.attributes = new HashMap<String, Object>();
         this.userOptions = new LinkedHashMap<String, MergeConflictHandler>();
 
+        putAttribute(MODEL_TYPE, MergeConflictDialog.resources.getString(
+            model.name() + ".Model_Name"));
+
         this.argAttrNames.add(MAIN_NODE);
         this.argAttrNames.add(INCOMING_NODE);
         if (mergeWarning instanceof AttributeMergeWarning) {
@@ -197,6 +200,8 @@ public class MergeConflictNotification {
     }
 
 
+
+    public static final String MODEL_TYPE = "modelType";
 
     public static final String INCOMING_NODE = "incomingNode";
 

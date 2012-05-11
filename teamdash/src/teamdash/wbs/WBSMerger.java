@@ -23,6 +23,8 @@
 
 package teamdash.wbs;
 
+import teamdash.merge.ui.MergeConflictNotification.ModelType;
+
 public class WBSMerger extends AbstractWBSModelMerger<WBSModel> {
 
     public WBSMerger(TeamProject base, TeamProject main, TeamProject incoming) {
@@ -38,6 +40,11 @@ public class WBSMerger extends AbstractWBSModelMerger<WBSModel> {
     @Override
     protected WBSModel createWbsModel() {
         return new WBSModel();
+    }
+
+    @Override
+    protected ModelType getModelType() {
+        return ModelType.Wbs;
     }
 
 }

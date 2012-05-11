@@ -40,6 +40,7 @@ import teamdash.merge.TreeMerger;
 import teamdash.merge.TreeNode;
 import teamdash.merge.ContentMerger.ErrorReporter;
 import teamdash.merge.MergeWarning.Severity;
+import teamdash.merge.ui.MergeConflictNotification;
 import teamdash.wbs.TeamProject;
 
 public class TeamMemberListMerger {
@@ -93,6 +94,10 @@ public class TeamMemberListMerger {
 
     public Set<MergeWarning<Integer>> getMergeWarnings() {
         return mergeWarnings;
+    }
+
+    public List<MergeConflictNotification> getConflictNotifications() {
+        return TeamMemberListMergeConflictNotificationFactory.createAll(this);
     }
 
     public Map<Integer, Integer> getChangesMadeToIncomingIDs() {

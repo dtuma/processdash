@@ -70,7 +70,10 @@ public class MapContentMerger<ID> implements ContentMerger<ID, Map> {
     }
 
     public boolean isEqual(Map a, Map b) {
-        return EQ(a, b);
+        boolean result = EQ(a, b);
+        if (!result)
+            System.out.println("Unequal maps");
+        return result;
     }
 
     public Map mergeContent(TreeNode<ID, Map> destNode, Map base, Map main,

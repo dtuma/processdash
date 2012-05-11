@@ -32,7 +32,6 @@ import teamdash.merge.DefaultAttributeMerger;
 import teamdash.merge.MapContentMerger;
 import teamdash.merge.ui.MergeConflictNotification;
 import teamdash.team.TeamMemberList;
-import teamdash.team.TeamMemberListMergeConflictNotificationFactory;
 import teamdash.team.TeamMemberListMerger;
 import teamdash.wbs.columns.TeamMemberTimeColumn;
 
@@ -87,8 +86,7 @@ public class TeamProjectMerger {
                 incoming);
 
         // record any conflicts that occurred during the merge
-        conflicts.addAll(TeamMemberListMergeConflictNotificationFactory
-                .createAll(teamMerger));
+        conflicts.addAll(teamMerger.getConflictNotifications());
 
         // the team member merge may have caused initials to change in the
         // main and incoming projects. Apply those changes to the WBS.
@@ -107,19 +105,34 @@ public class TeamProjectMerger {
     }
 
     private WorkflowWBSModel mergeWorkflows() {
+        // calculate the merged workflows
         WorkflowMerger workflowMerger = new WorkflowMerger(base, main,
                 incoming);
+
+        // record any conflicts that occurred during the merge
+        conflicts.addAll(workflowMerger.getConflictNotifications());
+
         return workflowMerger.getMerged();
     }
 
     private MilestonesWBSModel mergeMilestones() {
+        // calculate the merged workflows
         MilestonesMerger milestonesMerger = new MilestonesMerger(base, main,
                 incoming);
+
+        // record any conflicts that occurred during the merge
+        conflicts.addAll(milestonesMerger.getConflictNotifications());
+
         return milestonesMerger.getMerged();
     }
 
     private WBSModel mergeWBS() {
+        // calculate the merged workflows
         WBSMerger wbsMerger = new WBSMerger(base, main, incoming);
+
+        // record any conflicts that occurred during the merge
+        conflicts.addAll(wbsMerger.getConflictNotifications());
+
         return wbsMerger.getMerged();
     }
 
