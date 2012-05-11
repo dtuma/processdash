@@ -60,7 +60,7 @@ public abstract class TaskDependencySourceAbstract implements
             return UNKNOWN_NODE_DISPLAY_NAME;
 
         String result = model.getFullName(node);
-        if (result == null) {
+        if (result == null || result.startsWith("null/")) {
             nodeCache.remove(nodeId);
             return getDisplayNameForNode(model, nodeCache, nodeId);
         } else
