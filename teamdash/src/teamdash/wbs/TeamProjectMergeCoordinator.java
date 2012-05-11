@@ -155,6 +155,7 @@ public class TeamProjectMergeCoordinator {
     }
 
     private static final List<String> FILENAMES = Arrays.asList(
+        TeamProject.SETTINGS_FILENAME, //
         TeamProject.USER_SETTINGS_FILENAME, //
         TeamProject.TEAM_LIST_FILENAME, //
         TeamProject.FLOW_FILENAME, //
