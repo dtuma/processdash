@@ -266,24 +266,27 @@ The author(s) may be contacted at:
 
     <!-- also compute the classes needed from processdash packages -->
     <classfileset id="dashClasses" dir="${processdash.dir}/antbin">
-      <root classname="net.sourceforge.processdash.tool.bridge.client.WorkingDirectoryFactory"/>
       <root classname="net.sourceforge.processdash.tool.bridge.client.ImportDirectoryFactory"/>
+      <root classname="net.sourceforge.processdash.tool.bridge.client.WorkingDirectoryFactory"/>
       <root classname="net.sourceforge.processdash.tool.export.mgr.ExternalLocationMapper"/>
+      <root classname="net.sourceforge.processdash.ui.lib.ExampleFileFilter"/>
+      <root classname="net.sourceforge.processdash.ui.lib.ExceptionDialog"/>
+      <root classname="net.sourceforge.processdash.ui.lib.GuiPrefs"/>
+      <root classname="net.sourceforge.processdash.ui.lib.JDateTimeChooserCellEditor"/>
+      <root classname="net.sourceforge.processdash.ui.lib.SwingWorker"/>
+      <root classname="net.sourceforge.processdash.ui.lib.WrappingHtmlLabel"/>
+      <root classname="net.sourceforge.processdash.ui.macosx.MacGUIUtils"/>
       <root classname="net.sourceforge.processdash.util.Diff"/>
       <root classname="net.sourceforge.processdash.util.HTMLUtils"/>
       <root classname="net.sourceforge.processdash.util.NullSafeObjectUtils"/>
+      <root classname="net.sourceforge.processdash.util.PatternList"/>
       <root classname="net.sourceforge.processdash.util.PreferencesUtils"/>
       <root classname="net.sourceforge.processdash.util.RobustFileWriter"/>
       <root classname="net.sourceforge.processdash.util.RuntimeUtils"/>
       <root classname="net.sourceforge.processdash.util.StringUtils"/>
       <root classname="net.sourceforge.processdash.util.TempFileFactory"/>
-      <root classname="net.sourceforge.processdash.util.VersionUtils"/>
       <root classname="net.sourceforge.processdash.util.UsageLogger"/>
-      <root classname="net.sourceforge.processdash.ui.macosx.MacGUIUtils"/>
-      <root classname="net.sourceforge.processdash.ui.lib.ExampleFileFilter"/>
-      <root classname="net.sourceforge.processdash.ui.lib.GuiPrefs"/>
-      <root classname="net.sourceforge.processdash.ui.lib.JDateTimeChooserCellEditor"/>
-      <root classname="net.sourceforge.processdash.ui.lib.SwingWorker"/>
+      <root classname="net.sourceforge.processdash.util.VersionUtils"/>
     </classfileset>
 
     <!-- count the number of processdash classes we are using -->
@@ -301,7 +304,7 @@ The author(s) may be contacted at:
                 dashClassesMsg = dashClassesMsg + "\n    " + dashClassesList[i];
             }
         }
-        if (classCount > 94) {
+        if (classCount > 98) {
             project.setProperty("dashClasses.overflowCount", classCount);
             project.setProperty("dashClasses.overflowing", dashClassesMsg);
         }

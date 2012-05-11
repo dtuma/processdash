@@ -81,6 +81,7 @@ import net.sourceforge.processdash.tool.bridge.client.TeamServerSelector;
 import net.sourceforge.processdash.tool.bridge.client.WorkingDirectory;
 import net.sourceforge.processdash.tool.bridge.client.WorkingDirectoryFactory;
 import net.sourceforge.processdash.tool.export.mgr.ExternalLocationMapper;
+import net.sourceforge.processdash.ui.lib.ExceptionDialog;
 import net.sourceforge.processdash.ui.lib.GuiPrefs;
 import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
 import net.sourceforge.processdash.util.DashboardBackupFactory;
@@ -719,6 +720,8 @@ public class WBSEditor implements WindowListener, SaveListener,
         JMenu result = new JMenu("File");
         result.setMnemonic('F');
         result.add(saveAction = new SaveAction());
+        if (mergeCoordinator != null)
+            result.add(new RefreshAction());
         result.addSeparator();
         if (!isMode(MODE_BOTTOM_UP)) {
             WBSOpenFileAction openAction = new WBSOpenFileAction(frame);
@@ -1670,6 +1673,43 @@ public class WBSEditor implements WindowListener, SaveListener,
         }
         public void actionPerformed(ActionEvent e) {
             save();
+        }
+    }
+
+    private class RefreshAction extends AbstractAction {
+        public RefreshAction() {
+            super(resources.getString("File_Refresh.Menu"));
+            putValue(SHORT_DESCRIPTION, resources
+                    .getString("File_Refresh.Tooltip"));
+        }
+        public void actionPerformed(ActionEvent e) {
+            try {
+                String messageKey = null;
+                if (mergeExternalChanges() == false) {
+                    messageKey = "File_Refresh.No_Merge_Message";
+                } else if (mergeConflictDialog.maybeShow(frame) == false) {
+                    messageKey = "File_Refresh.Merge_Message";
+                }
+                if (messageKey != null)
+                    JOptionPane.showMessageDialog(frame,
+                        resources.getStrings(messageKey),
+                        resources.getString("File_Refresh.Title"),
+                        JOptionPane.PLAIN_MESSAGE);
+
+            } catch (IOException ioe) {
+                String title = resources.getString("Errors.Cannot_Refresh.Title");
+                String[] message = resources.formatStrings(
+                    "Errors.Cannot_Refresh." + workingDirResKey() + "_FMT",
+                    workingDirectory.getDescription());
+                JOptionPane.showMessageDialog(frame, message, title,
+                    JOptionPane.ERROR_MESSAGE);
+
+            } catch (Exception ex) {
+                String title = resources.getString("Errors.Cannot_Refresh.Title");
+                String[] message = resources
+                        .getStrings("Errors.Cannot_Refresh.Internal_Error");
+                ExceptionDialog.show(frame, title, message, ex);
+            }
         }
     }
 

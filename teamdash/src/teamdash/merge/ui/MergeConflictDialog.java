@@ -107,14 +107,16 @@ public class MergeConflictDialog {
         }
     }
 
-    public void maybeShow(Component relativeTo) {
-        if (notificationList.getComponentCount() > 0) {
+    public boolean maybeShow(Component relativeTo) {
+        boolean notificationsPresent = notificationList.getComponentCount() > 0;
+        if (notificationsPresent) {
             if (!frame.isVisible())
                 frame.setLocationRelativeTo(relativeTo);
             frame.setVisible(true);
             frame.setState(JFrame.NORMAL);
             frame.toFront();
         }
+        return notificationsPresent;
     }
 
 
