@@ -26,7 +26,6 @@ package teamdash.wbs;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -168,18 +167,19 @@ public abstract class AbstractWBSModelMerger<W extends WBSModel> {
     }
 
 
-    public static class WBSNodeContent extends HashMap {
+    public static class WBSNodeContent extends HashMap<String, String> {
 
         WBSNode node;
+
+        boolean readOnly;
 
         public WBSNodeContent() {}
 
         public WBSNodeContent(WBSNode node) {
             this.node = node;
+            this.readOnly = node.isReadOnly();
             put(NODE_NAME, node.getName());
             put(NODE_TYPE, node.getType());
-            if (node.isReadOnly())
-                put(NODE_READ_ONLY, "true");
 
             Map<String, Object> attrs = node.getAttributeMap(true, true);
             for (Map.Entry<String, Object> e : attrs.entrySet()) {
@@ -194,24 +194,21 @@ public abstract class AbstractWBSModelMerger<W extends WBSModel> {
         }
 
         public void storeData(WBSNode dest) {
-            for (Iterator i = entrySet().iterator(); i.hasNext();) {
-                Map.Entry e = (Map.Entry) i.next();
-                String attrName = (String) e.getKey();
-                Object value = e.getValue();
+            for (Map.Entry<String, String> e : entrySet()) {
+                String attrName = e.getKey();
+                String value = e.getValue();
                 if (attrName.equals(NODE_NAME))
                     dest.setName((String) value);
                 else if (attrName.equals(NODE_TYPE))
                     dest.setType((String) value);
-                else if (attrName.equals(NODE_READ_ONLY))
-                    dest.setReadOnly(value != null);
                 else
                     dest.setAttribute(attrName, value);
             }
+            node.setReadOnly(this.readOnly);
         }
     }
 
-    protected static final String NODE_NAME = "WBSNode.name";
-    protected static final String NODE_TYPE = "WBSNode.type";
-    protected static final String NODE_READ_ONLY = "WBSNode.readOnly";
+    protected static final String NODE_NAME = "WBSNode_Name";
+    protected static final String NODE_TYPE = "WBSNode_Type";
 
 }

@@ -78,6 +78,10 @@ public class MergeWarning<ID> {
         return incomingNodeID;
     }
 
+    public boolean matches(String s) {
+        return key.equals(s);
+    }
+
     @Override
     public boolean equals(Object obj) {
         if (obj == null)

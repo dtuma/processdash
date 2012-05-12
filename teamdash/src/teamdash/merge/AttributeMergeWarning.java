@@ -61,6 +61,11 @@ public class AttributeMergeWarning<ID> extends MergeWarning<ID> {
     }
 
     @Override
+    public boolean matches(String s) {
+        return attributeName.equals(s) || super.matches(s);
+    }
+
+    @Override
     public boolean equals(Object obj) {
         if (!super.equals(obj))
             return false;

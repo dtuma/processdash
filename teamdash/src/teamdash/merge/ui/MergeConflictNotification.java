@@ -33,15 +33,41 @@ import java.util.MissingResourceException;
 
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.StringUtils;
+
 import teamdash.merge.AttributeMergeWarning;
 import teamdash.merge.MergeWarning;
 import teamdash.team.TeamMember;
+import teamdash.wbs.TeamProject;
 import teamdash.wbs.WBSNode;
 
 public class MergeConflictNotification {
 
     public enum ModelType {
-        Wbs, Workflows, Milestones, TeamList
+        Wbs {
+            public Object getAssociatedModel(TeamProject teamProject) {
+                return teamProject.getWBS();
+            }
+        },
+
+        Workflows {
+            public Object getAssociatedModel(TeamProject teamProject) {
+                return teamProject.getWorkflows();
+            }
+        },
+
+        Milestones {
+            public Object getAssociatedModel(TeamProject teamProject) {
+                return teamProject.getMilestones();
+            }
+        },
+
+        TeamList {
+            public Object getAssociatedModel(TeamProject teamProject) {
+                return teamProject.getTeamMemberList();
+            }
+        };
+
+        public abstract Object getAssociatedModel(TeamProject teamProject);
     };
 
     private ModelType model;
@@ -82,7 +108,7 @@ public class MergeConflictNotification {
         }
     }
 
-    public ModelType getModel() {
+    public ModelType getModelType() {
         return model;
     }
 

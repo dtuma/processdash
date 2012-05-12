@@ -30,6 +30,7 @@ import java.util.MissingResourceException;
 
 import teamdash.merge.AttributeMergeWarning;
 import teamdash.merge.MergeWarning;
+import teamdash.merge.ui.MergeConflictHandler;
 import teamdash.merge.ui.MergeConflictNotification;
 import teamdash.merge.ui.MergeConflictNotification.ModelType;
 
@@ -66,6 +67,11 @@ public class WBSModelMergeConflictNotificationFactory {
         result.putNodeAttributes(mainNode, incomingNode);
 
         if (mw instanceof AttributeMergeWarning) {
+            if (mw.matches(AbstractWBSModelMerger.NODE_NAME)) {
+                NODE_NAME_HANDLER.install(result);
+            } else if (mw.matches(AbstractWBSModelMerger.NODE_TYPE)) {
+                NODE_TYPE_HANDLER.install(result);
+            }
             // FIXME: need to handle attribute warnings
 
         } else {
@@ -80,9 +86,11 @@ public class WBSModelMergeConflictNotificationFactory {
             // the various WBS model types.  Thus, we switch to a plain
             // resource message key that is not prefixed by the model type.
             result.setMessageKey(mw.getKey());
-        }
 
-        result.addUserOption(MergeConflictNotification.ACCEPT, null);
+            // structural conflicts can only be accepted; resolution options
+            // are not available at this time.
+            result.addUserOption(MergeConflictNotification.ACCEPT, null);
+        }
 
         try {
             result.formatDescription();
@@ -93,5 +101,58 @@ public class WBSModelMergeConflictNotificationFactory {
             return null;
         }
     }
+
+
+
+    private static abstract class WbsNodeHandler implements MergeConflictHandler {
+
+        public void install(MergeConflictNotification notification) {
+            // reset the merge key to a generic value
+            String attrName = notification
+                    .getAttribute(MergeConflictNotification.ATTR_NAME);
+            notification.setMessageKey(attrName);
+
+            // register handlers for accepting and overriding the change
+            notification.addUserOption(MergeConflictNotification.ACCEPT, null);
+            notification.addUserOption(MergeConflictNotification.OVERRIDE, this);
+        }
+
+        public void handle(MergeConflictNotification notification,
+                TeamProject teamProject) {
+            // retrieve the WBSModel that this notification is associated with
+            ModelType modelType = notification.getModelType();
+            WBSModel model = (WBSModel) modelType
+                    .getAssociatedModel(teamProject);
+
+            // retrieve the node from that model that was affected
+            AttributeMergeWarning<Integer> amw =
+                (AttributeMergeWarning) notification.getMergeWarning();
+            Integer nodeId = amw.getIncomingNodeID();
+            WBSNode node = model.getNodeMap().get(nodeId);
+            if (node == null)
+                return;
+
+            // make the change
+            alterNode(node, amw.getIncomingValue());
+
+            // fire a table model event to trigger repaints
+            int row = model.getRowForNode(node);
+            if (row != -1)
+                model.fireTableCellUpdated(row, 0);
+        }
+
+        protected abstract void alterNode(WBSNode node, Object value);
+
+    }
+
+    private static final WbsNodeHandler NODE_NAME_HANDLER = new WbsNodeHandler() {
+        protected void alterNode(WBSNode node, Object value) {
+            node.setName((String) value);
+        }};
+
+    private static final WbsNodeHandler NODE_TYPE_HANDLER = new WbsNodeHandler() {
+        protected void alterNode(WBSNode node, Object value) {
+            node.setType((String) value);
+        }};
 
 }
