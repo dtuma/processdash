@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Tuma Solutions, LLC
+// Copyright (C) 2002-2012 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -45,6 +45,7 @@ public class WorkflowPercentageColumn extends AbstractNumericColumn implements
         this.columnName = "%";
         this.columnID = COLUMN_ID;
         this.preferredWidth = 60;
+        setAttributeNameForPattern(ATTR_NAME);
     }
 
     public boolean isCellEditable(WBSNode node) {

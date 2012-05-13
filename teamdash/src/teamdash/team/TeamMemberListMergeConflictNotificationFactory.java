@@ -51,7 +51,7 @@ public class TeamMemberListMergeConflictNotificationFactory {
         result.putNodeAttributes(
             merger.main.findTeamMemberByID(mw.getMainNodeID()),
             merger.incoming.findTeamMemberByID(mw.getIncomingNodeID()));
-        result.addUserOption(MergeConflictNotification.ACCEPT, null);
+        result.addUserOption(MergeConflictNotification.DISMISS, null);
         try {
             result.formatDescription();
             return result;

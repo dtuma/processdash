@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Tuma Solutions, LLC
+// Copyright (C) 2002-2012 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -23,11 +23,16 @@
 
 package teamdash.wbs.columns;
 
+import net.sourceforge.processdash.util.PatternList;
+
+import teamdash.wbs.ConflictCapableDataColumn;
 import teamdash.wbs.IndexAwareDataColumn;
+import teamdash.wbs.WBSNode;
 
 /** Abstract implementation of DataColumn interface.
  */
-public abstract class AbstractDataColumn implements IndexAwareDataColumn {
+public abstract class AbstractDataColumn implements IndexAwareDataColumn,
+        ConflictCapableDataColumn {
 
     /** The value of this field will be returned as the column ID */
     protected String columnID;
@@ -47,6 +52,8 @@ public abstract class AbstractDataColumn implements IndexAwareDataColumn {
      * column width */
     protected int preferredWidth = -1;
 
+    protected PatternList attributeNamePattern = null;
+
     public String getColumnID()   { return columnID;     }
     public String getColumnName() { return columnName;   }
     public Class getColumnClass() { return String.class; }
@@ -56,5 +63,15 @@ public abstract class AbstractDataColumn implements IndexAwareDataColumn {
     public String[] getAffectedColumnIDs() { return null; }
     public void resetDependentColumns() {}
     public int getPreferredWidth() { return preferredWidth; }
+    public PatternList getAttributeNamePattern() { return attributeNamePattern; }
+    protected void setAttributeNameForPattern(String name) {
+        attributeNamePattern = new PatternList("^" + name + "$");
+    }
+    public Object getValueForDisplay(String value, WBSNode node) {
+        return getValueAt(node);
+    }
+    public void storeConflictResolutionValue(Object value, WBSNode node) {
+        setValueAt(value, node);
+    }
 
 }

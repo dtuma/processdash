@@ -21,33 +21,13 @@
 //     processdash@tuma-solutions.com
 //     processdash-devel@lists.sourceforge.net
 
-package teamdash.wbs;
+package teamdash.merge.ui;
 
 import teamdash.merge.ui.MergeConflictNotification.ModelType;
-import teamdash.wbs.columns.TeamTimeColumn;
+import teamdash.wbs.DataTableModel;
 
-public class WorkflowMerger extends AbstractWBSModelMerger<WorkflowWBSModel> {
+public interface DataModelSource {
 
-    public WorkflowMerger(TeamProject base, TeamProject main,
-            TeamProject incoming) {
-        this(base.getWorkflows(), main.getWorkflows(), incoming.getWorkflows());
-    }
-
-    public WorkflowMerger(WorkflowWBSModel base, WorkflowWBSModel main,
-            WorkflowWBSModel incoming) {
-        super(base, main, incoming);
-        contentMerger.addHandler(TeamTimeColumn.RATE_ATTR, SILENTLY_PREFER_MAIN);
-        run();
-    }
-
-    @Override
-    protected WorkflowWBSModel createWbsModel() {
-        return new WorkflowWBSModel();
-    }
-
-    @Override
-    protected ModelType getModelType() {
-        return ModelType.Workflows;
-    }
+    public DataTableModel getDataModel(ModelType type);
 
 }

@@ -30,6 +30,7 @@ import java.util.Map;
 
 import teamdash.merge.DefaultAttributeMerger;
 import teamdash.merge.MapContentMerger;
+import teamdash.merge.ui.DataModelSource;
 import teamdash.merge.ui.MergeConflictNotification;
 import teamdash.team.TeamMemberList;
 import teamdash.team.TeamMemberListMerger;
@@ -59,7 +60,10 @@ public class TeamProjectMerger {
         return merged;
     }
 
-    public List<MergeConflictNotification> getConflicts() {
+    public List<MergeConflictNotification> getConflicts(
+            DataModelSource dataModelSource) {
+        WBSModelMergeConflictNotificationFactory.refineAll(conflicts,
+            dataModelSource);
         return conflicts;
     }
 

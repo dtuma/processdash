@@ -53,9 +53,10 @@ import net.sourceforge.processdash.ui.lib.WrappingHtmlLabel;
 
 import teamdash.merge.MergeWarning;
 import teamdash.merge.ui.MergeConflictNotification.ModelType;
+import teamdash.wbs.DataTableModel;
 import teamdash.wbs.TeamProject;
 
-public class MergeConflictDialog {
+public class MergeConflictDialog implements DataModelSource {
 
     private TeamProject teamProject;
 
@@ -66,6 +67,8 @@ public class MergeConflictDialog {
     private JScrollPane scrollPane;
 
     private Map<ModelType, MergeConflictHyperlinkHandler> hyperlinkHandlers;
+
+    private Map<ModelType, DataTableModel> dataModels;
 
     static final Resources resources = Resources
             .getDashBundle("WBSEditor.Merge");
@@ -89,6 +92,7 @@ public class MergeConflictDialog {
         content.add(scrollPane, BorderLayout.CENTER);
 
         hyperlinkHandlers = new HashMap();
+        dataModels = new HashMap();
 
         frame.getContentPane().add(content);
         frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
@@ -98,6 +102,14 @@ public class MergeConflictDialog {
     public void setHyperlinkHandler(ModelType type,
             MergeConflictHyperlinkHandler handler) {
         hyperlinkHandlers.put(type, handler);
+    }
+
+    public void setDataModel(ModelType type, DataTableModel dataModel) {
+        dataModels.put(type, dataModel);
+    }
+
+    public DataTableModel getDataModel(ModelType type) {
+        return dataModels.get(type);
     }
 
     public void addNotifications(List<MergeConflictNotification> nn) {
@@ -223,8 +235,14 @@ public class MergeConflictDialog {
         private void runUserOption(String option) {
             MergeConflictHandler handler = notification.getUserOptions().get(
                 option);
-            if (handler != null)
-                handler.handle(notification, teamProject);
+            if (handler != null) {
+                try {
+                    handler.handle(notification, teamProject);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    Toolkit.getDefaultToolkit().beep();
+                }
+            }
 
             removeThisItem();
         }

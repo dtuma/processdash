@@ -23,31 +23,14 @@
 
 package teamdash.wbs;
 
-import teamdash.merge.ui.MergeConflictNotification.ModelType;
-import teamdash.wbs.columns.TeamTimeColumn;
+import net.sourceforge.processdash.util.PatternList;
 
-public class WorkflowMerger extends AbstractWBSModelMerger<WorkflowWBSModel> {
+public interface ConflictCapableDataColumn extends DataColumn {
 
-    public WorkflowMerger(TeamProject base, TeamProject main,
-            TeamProject incoming) {
-        this(base.getWorkflows(), main.getWorkflows(), incoming.getWorkflows());
-    }
+    public PatternList getAttributeNamePattern();
 
-    public WorkflowMerger(WorkflowWBSModel base, WorkflowWBSModel main,
-            WorkflowWBSModel incoming) {
-        super(base, main, incoming);
-        contentMerger.addHandler(TeamTimeColumn.RATE_ATTR, SILENTLY_PREFER_MAIN);
-        run();
-    }
+    public Object getValueForDisplay(String value, WBSNode node);
 
-    @Override
-    protected WorkflowWBSModel createWbsModel() {
-        return new WorkflowWBSModel();
-    }
-
-    @Override
-    protected ModelType getModelType() {
-        return ModelType.Workflows;
-    }
+    public void storeConflictResolutionValue(Object value, WBSNode node);
 
 }

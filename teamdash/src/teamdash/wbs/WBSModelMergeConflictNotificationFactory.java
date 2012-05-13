@@ -24,12 +24,17 @@
 package teamdash.wbs;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.MissingResourceException;
 
+import net.sourceforge.processdash.i18n.Resources;
+import net.sourceforge.processdash.util.PatternList;
+
 import teamdash.merge.AttributeMergeWarning;
 import teamdash.merge.MergeWarning;
+import teamdash.merge.ui.DataModelSource;
 import teamdash.merge.ui.MergeConflictHandler;
 import teamdash.merge.ui.MergeConflictNotification;
 import teamdash.merge.ui.MergeConflictNotification.ModelType;
@@ -41,12 +46,13 @@ public class WBSModelMergeConflictNotificationFactory {
         List<MergeConflictNotification> result = new ArrayList();
 
         ModelType modelType = merger.getModelType();
+        Map<Integer, WBSNode> baseNodeMap = merger.base.getNodeMap();
         Map<Integer, WBSNode> mainNodeMap = merger.main.getNodeMap();
         Map<Integer, WBSNode> incomingNodeMap = merger.incoming.getNodeMap();
 
         for (MergeWarning<Integer> warning : merger.getMergeWarnings()) {
             MergeConflictNotification notification = create(merger, modelType,
-                mainNodeMap, incomingNodeMap, warning);
+                baseNodeMap, mainNodeMap, incomingNodeMap, warning);
             if (notification != null)
                 result.add(notification);
         }
@@ -55,6 +61,7 @@ public class WBSModelMergeConflictNotificationFactory {
 
     private static MergeConflictNotification create(
             AbstractWBSModelMerger merger, ModelType modelType,
+            Map<Integer, WBSNode> baseNodeMap,
             Map<Integer, WBSNode> mainNodeMap,
             Map<Integer, WBSNode> incomingNodeMap, MergeWarning<Integer> mw) {
 
@@ -71,8 +78,11 @@ public class WBSModelMergeConflictNotificationFactory {
                 NODE_NAME_HANDLER.install(result);
             } else if (mw.matches(AbstractWBSModelMerger.NODE_TYPE)) {
                 NODE_TYPE_HANDLER.install(result);
+            } else {
+                WBSNode baseNode = baseNodeMap.get(mw.getIncomingNodeID());
+                result.putAttribute(MergeConflictNotification.BASE_NODE,
+                    baseNode, false);
             }
-            // FIXME: need to handle attribute warnings
 
         } else {
             // for structural changes, record the parent nodes in case the
@@ -87,19 +97,138 @@ public class WBSModelMergeConflictNotificationFactory {
             // resource message key that is not prefixed by the model type.
             result.setMessageKey(mw.getKey());
 
-            // structural conflicts can only be accepted; resolution options
-            // are not available at this time.
-            result.addUserOption(MergeConflictNotification.ACCEPT, null);
+            // structural conflicts can only be acknowledged and dismissed;
+            // resolution options are not available at this time.
+            result.addUserOption(MergeConflictNotification.DISMISS, null);
         }
 
+        return result;
+    }
+
+
+
+    public static void refineAll(List<MergeConflictNotification> notifications,
+            DataModelSource dataModelSource) {
+
+        for (Iterator i = notifications.iterator(); i.hasNext();) {
+            MergeConflictNotification n = (MergeConflictNotification) i.next();
+            if (refine(n, dataModelSource) == false)
+                i.remove();
+        }
+    }
+
+
+    private static boolean refine(MergeConflictNotification mcn,
+            DataModelSource dms) {
+
+        // When faced with generic attribute conflicts, the "createAll" method
+        // will have generated notifications that have no user options at all.
+        // detect this pattern and attempt to refine these notifications.
+        if (mcn.getUserOptions().isEmpty()) {
+            if (!refineAttributeNotification(mcn, dms))
+                return false;
+        }
+
+        // Now, check to make certain the notification has a registered
+        // description.  If it doesn't, log an error and don't display the
+        // conflict notification to the user.
         try {
-            result.formatDescription();
-            return result;
+            mcn.formatDescription();
+            return true;
         } catch (MissingResourceException mre) {
             System.err.println("Unexpected merge conflict key for "
-                    + modelType.name() + ": " + mre.getKey());
-            return null;
+                    + mcn.getModelType().name() + ": " + mre.getKey());
+            return false;
         }
+    }
+
+    private static boolean refineAttributeNotification(
+            MergeConflictNotification mcn, DataModelSource dms) {
+
+        if (!(mcn.getMergeWarning() instanceof AttributeMergeWarning))
+            return false;
+
+        ModelType modelType = mcn.getModelType();
+        AttributeMergeWarning amw = (AttributeMergeWarning) mcn.getMergeWarning();
+        DataTableModel dataModel = dms.getDataModel(modelType);
+        ConflictCapableDataColumn column = findColumnForAttribute(dataModel,
+            amw.getAttributeName());
+        if (column == null)
+            return false;
+
+        String columnId = column.getColumnID().replace(' ', '_');
+        mcn.putAttribute("columnId", columnId);
+        mcn.putAttribute("columnName", column.getColumnName());
+
+        String explicitMessageKey = modelType.name() + ".Attribute." + columnId;
+
+        String nullDisplay;
+        try {
+            nullDisplay = resources.getHTML(explicitMessageKey + ".Blank");
+        } catch (MissingResourceException mre) {
+            nullDisplay = resources.getHTML("WBSNode_Attribute.Blank");
+        }
+
+        WBSNode baseNode = mcn.getAttribute(MergeConflictNotification.BASE_NODE);
+        String baseValue = (String) amw.getBaseValue();
+        Object baseDisp = column.getValueForDisplay(baseValue, baseNode);
+        if (baseDisp == null) baseDisp = nullDisplay;
+
+        WBSNode mainNode = mcn.getAttribute(MergeConflictNotification.MAIN_NODE);
+        String mainValue = (String) amw.getMainValue();
+        Object mainDisp = column.getValueForDisplay(mainValue, mainNode);
+        if (mainDisp == null) mainDisp = nullDisplay;
+
+        WBSNode incNode = mcn.getAttribute(MergeConflictNotification.INCOMING_NODE);
+        String incValue = (String) amw.getIncomingValue();
+        Object incDisp = column.getValueForDisplay(incValue, incNode);
+        if (incDisp == null) incDisp = nullDisplay;
+
+        mcn.putValueAttributes(baseDisp, mainDisp, incDisp);
+
+        boolean supportsOverride;
+
+        if (MergeConflictNotification.definesDescription(explicitMessageKey)) {
+            // this column has explicitly defined a message it wants to
+            // display, so we will use that message.
+            mcn.setMessageKey(explicitMessageKey);
+            // see if this column has defined a message for the
+            // 'override' option.
+            supportsOverride = mcn.definesMessageForUserOption(
+                MergeConflictNotification.OVERRIDE);
+
+        } else {
+            // use a generic message.
+            mcn.setMessageKey("WBSNode_Attribute");
+            supportsOverride = true;
+        }
+
+        // Add "accept" as an option that is always present
+        mcn.addUserOption(MergeConflictNotification.ACCEPT, null);
+        // Add an "alter" option if it is supported
+        if (supportsOverride)
+            mcn.addUserOption(MergeConflictNotification.OVERRIDE,
+                new WbsNodeAttributeHandler(dataModel, column));
+
+        return true;
+    }
+
+    private static ConflictCapableDataColumn findColumnForAttribute(
+            DataTableModel model, String attrName) {
+        if (model == null)
+            return null;
+
+        for (int i = model.getColumnCount();  i-- > 0; ) {
+            DataColumn column = model.getColumn(i);
+            if (column instanceof ConflictCapableDataColumn) {
+                ConflictCapableDataColumn ccdc = (ConflictCapableDataColumn) column;
+                PatternList pattern = ccdc.getAttributeNamePattern();
+                if (pattern != null && pattern.matches(attrName))
+                    return ccdc;
+            }
+        }
+
+        return null;
     }
 
 
@@ -137,6 +266,10 @@ public class WBSModelMergeConflictNotificationFactory {
 
             // fire a table model event to trigger repaints
             int row = model.getRowForNode(node);
+            fireEvent(model, node, row);
+        }
+
+        protected void fireEvent(WBSModel model, WBSNode node, int row) {
             if (row != -1)
                 model.fireTableCellUpdated(row, 0);
         }
@@ -154,5 +287,34 @@ public class WBSModelMergeConflictNotificationFactory {
         protected void alterNode(WBSNode node, Object value) {
             node.setType((String) value);
         }};
+
+
+    private static class WbsNodeAttributeHandler extends WbsNodeHandler {
+        private DataTableModel dataModel;
+        private ConflictCapableDataColumn column;
+
+        public WbsNodeAttributeHandler(DataTableModel dataModel,
+                ConflictCapableDataColumn column) {
+            this.dataModel = dataModel;
+            this.column = column;
+        }
+
+        @Override
+        protected void alterNode(WBSNode node, Object value) {
+            column.storeConflictResolutionValue(value, node);
+        }
+
+        @Override
+        protected void fireEvent(WBSModel model, WBSNode node, int row) {
+            int colPos = dataModel.findIndexOfColumn(column);
+            if (row != -1 && colPos != -1)
+                dataModel.fireTableCellUpdated(row, colPos);
+            dataModel.columnChanged(column);
+        }
+
+    }
+
+    private static final Resources resources = Resources
+            .getDashBundle("WBSEditor.Merge");
 
 }

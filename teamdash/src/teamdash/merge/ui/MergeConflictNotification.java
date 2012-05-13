@@ -126,8 +126,13 @@ public class MergeConflictNotification {
     }
 
     public void putAttribute(String attrName, Object attrValue) {
+        putAttribute(attrName, attrValue, true);
+    }
+
+    public void putAttribute(String attrName, Object attrValue,
+            boolean addToArgs) {
         attributes.put(attrName, attrValue);
-        if (!argAttrNames.contains(attrName))
+        if (addToArgs && !argAttrNames.contains(attrName))
             argAttrNames.add(attrName);
     }
 
@@ -174,8 +179,16 @@ public class MergeConflictNotification {
         return html.toString();
     }
 
+    public static boolean definesDescription(String messageKey) {
+        return definesResKey(messageKey + ".Message_HTML_FMT");
+    }
+
     public String formatDescription() {
         return formatImpl(messageKey + ".Message_HTML_FMT");
+    }
+
+    public boolean definesMessageForUserOption(String key) {
+        return definesResKey(messageKey + "." + key + "_HTML_FMT");
     }
 
     public String formatUserOption(String key) {
@@ -192,6 +205,15 @@ public class MergeConflictNotification {
         result = StringUtils.findAndReplace(result, "<a>", hyperlink);
 
         return result;
+    }
+
+    private static boolean definesResKey(String resKey) {
+        try {
+            MergeConflictDialog.resources.getString(resKey);
+            return true;
+        } catch (MissingResourceException mre) {
+            return false;
+        }
     }
 
     private String formatImpl(String resKey) {
@@ -229,9 +251,11 @@ public class MergeConflictNotification {
 
     public static final String MODEL_TYPE = "modelType";
 
-    public static final String INCOMING_NODE = "incomingNode";
+    public static final String BASE_NODE = "baseNode";
 
     public static final String MAIN_NODE = "mainNode";
+
+    public static final String INCOMING_NODE = "incomingNode";
 
     public static final String ATTR_NAME = "attributeName";
 
@@ -240,6 +264,8 @@ public class MergeConflictNotification {
     public static final String MAIN_VAL = "mainVal";
 
     public static final String INCOMING_VAL = "incomingVal";
+
+    public static final String DISMISS = "Dismiss";
 
     public static final String ACCEPT = "Accept";
 

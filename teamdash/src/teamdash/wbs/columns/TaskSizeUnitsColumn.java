@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Tuma Solutions, LLC
+// Copyright (C) 2002-2012 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -73,6 +73,7 @@ implements CalculatedDataColumn, CustomEditedColumn {
         this.preferredWidth = 80;
         this.dependentColumns = new String[] { SizeTypeColumn.COLUMN_ID };
         this.mainSizeUnitsColumn = -1;
+        setAttributeNameForPattern(ATTR_NAME);
     }
 
     public void storeDependentColumn(String ID, int columnNumber) {

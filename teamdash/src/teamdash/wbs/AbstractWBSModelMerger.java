@@ -30,6 +30,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import teamdash.merge.AttributeMerger;
+import teamdash.merge.DefaultAttributeMerger;
 import teamdash.merge.MapContentMerger;
 import teamdash.merge.MergeWarning;
 import teamdash.merge.TreeMerger;
@@ -204,11 +206,14 @@ public abstract class AbstractWBSModelMerger<W extends WBSModel> {
                 else
                     dest.setAttribute(attrName, value);
             }
-            node.setReadOnly(this.readOnly);
+            dest.setReadOnly(this.readOnly);
         }
     }
 
     protected static final String NODE_NAME = "WBSNode_Name";
     protected static final String NODE_TYPE = "WBSNode_Type";
+
+    protected static final AttributeMerger SILENTLY_PREFER_MAIN =
+        DefaultAttributeMerger.SILENTLY_PREFER_MAIN;
 
 }

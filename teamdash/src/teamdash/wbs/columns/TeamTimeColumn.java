@@ -970,7 +970,7 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
 
 
     private static final String DATA_ATTR_NAME = "Time_Data";
-    static final String RATE_ATTR = "Rate";
+    public static final String RATE_ATTR = "Rate";
     public static final String TPP_ATTR  = "Time Per Person";
     public static final String NUM_PEOPLE_ATTR = "# People";
     public static final String AUTO_ZERO_USER_ATTR_PERSISTENT = "Auto Zero User";

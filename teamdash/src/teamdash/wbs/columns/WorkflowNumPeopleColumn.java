@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Tuma Solutions, LLC
+// Copyright (C) 2002-2012 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -38,6 +38,7 @@ public class WorkflowNumPeopleColumn extends AbstractDataColumn implements
         this.wbsModel = wbsModel;
         this.columnName = this.columnID = COLUMN_ID;
         this.preferredWidth = 60;
+        setAttributeNameForPattern(ATTR_NAME);
     }
 
     public boolean isCellEditable(WBSNode node) {
@@ -73,8 +74,9 @@ public class WorkflowNumPeopleColumn extends AbstractDataColumn implements
         if (pos != -1) s = s.substring(0, pos).trim();
 
         try {
-            int numPeople = Integer.parseInt(s);
-            node.setNumericAttribute(ATTR_NAME, numPeople);
+            int numPeople = (int) Double.parseDouble(s);
+            if (numPeople > 0)
+                node.setNumericAttribute(ATTR_NAME, numPeople);
         } catch (NumberFormatException nfe) { }
     }
 

@@ -244,7 +244,7 @@ public class DataTableModel extends AbstractTableModel {
             initializeColumnDependencies();
     }
 
-    private int findIndexOfColumn(Object column) {
+    public int findIndexOfColumn(Object column) {
         if (column instanceof IndexAwareDataColumn)
             return ((IndexAwareDataColumn) column).getColumnIndex();
         else

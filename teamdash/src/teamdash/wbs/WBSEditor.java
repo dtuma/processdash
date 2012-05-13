@@ -204,8 +204,13 @@ public class WBSEditor implements WindowListener, SaveListener,
             (model, teamProject.getTeamMemberList(),
              teamProject.getTeamProcess(), teamProject.getMilestones(),
              taskDependencySource, owner);
+        if (mergeConflictDialog != null)
+            mergeConflictDialog.setDataModel(ModelType.Wbs, data);
 
         milestonesModel = new MilestonesDataModel(teamProject.getMilestones());
+        if (mergeConflictDialog != null)
+            mergeConflictDialog.setDataModel(ModelType.Milestones,
+                milestonesModel);
 
         if (isMode(MODE_PLAIN)) {
             reverseSynchronizer = new WBSSynchronizer(teamProject, data);
@@ -677,9 +682,12 @@ public class WBSEditor implements WindowListener, SaveListener,
         else {
             workflowEditor = new WorkflowEditor(teamProject);
             workflowEditor.addChangeListener(this.dirtyListener);
-            if (mergeConflictDialog != null)
+            if (mergeConflictDialog != null) {
                 mergeConflictDialog.setHyperlinkHandler(ModelType.Workflows,
                     workflowEditor);
+                mergeConflictDialog.setDataModel(ModelType.Workflows,
+                    workflowEditor.workflowModel);
+            }
         }
     }
 
@@ -832,7 +840,8 @@ public class WBSEditor implements WindowListener, SaveListener,
             return false; // no merge needed
 
         replaceDataFrom(merger.getMerged());
-        mergeConflictDialog.addNotifications(merger.getConflicts());
+        mergeConflictDialog.addNotifications(merger
+                .getConflicts(mergeConflictDialog));
 
         // reload the change history file to reflect external edits
         changeHistory = new ChangeHistory(changeHistoryFile);
@@ -1684,6 +1693,7 @@ public class WBSEditor implements WindowListener, SaveListener,
         }
         public void actionPerformed(ActionEvent e) {
             try {
+                stopAllCellEditingSessions();
                 String messageKey = null;
                 if (mergeExternalChanges() == false) {
                     messageKey = "File_Refresh.No_Merge_Message";

@@ -1,4 +1,4 @@
-// Copyright (C) 2010 Tuma Solutions, LLC
+// Copyright (C) 2010-2012 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -41,6 +41,7 @@ public class WorkflowScriptColumn extends AbstractDataColumn implements
         this.columnID = COLUMN_ID;
         this.columnName = COLUMN_NAME;
         this.preferredWidth = 200;
+        setAttributeNameForPattern(VALUE_ATTR);
     }
 
     public Object getValueAt(WBSNode node) {
