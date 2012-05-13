@@ -246,14 +246,14 @@ public class WBSJTable extends JTable {
         if (node == null)
             return false;
 
+        // stop any editing session that might be in progress
+        if (isEditing()) getCellEditor().stopCellEditing();
+        UndoList.stopCellEditing(this);
+
         // ensure that the node in question is visible, and retrieve its row
         int row = wbsModel.makeVisible(node);
         if (row == -1)
             return false;
-
-        // stop any editing session that might be in progress
-        if (isEditing()) editor.stopCellEditing();
-        UndoList.stopCellEditing(this);
 
         // select the row for the node in question, and scroll to it
         selectRows(new int[] { row }, true);

@@ -90,6 +90,7 @@ public class MilestonesEditor implements MergeConflictHyperlinkHandler {
     }
 
     public void show() {
+        frame.setExtendedState(JFrame.NORMAL);
         frame.setVisible(true);
         frame.toFront();
     }
@@ -99,6 +100,9 @@ public class MilestonesEditor implements MergeConflictHyperlinkHandler {
     }
 
     public void stopEditing() {
+        if (table.isEditing())
+            // stop editing the current table cell.
+            table.getCellEditor().stopCellEditing();
         UndoList.stopCellEditing(table);
     }
 
