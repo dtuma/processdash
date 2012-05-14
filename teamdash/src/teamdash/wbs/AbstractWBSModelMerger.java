@@ -30,6 +30,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import net.sourceforge.processdash.util.PatternList;
+
 import teamdash.merge.AttributeMerger;
 import teamdash.merge.DefaultAttributeMerger;
 import teamdash.merge.MapContentMerger;
@@ -152,6 +154,22 @@ public abstract class AbstractWBSModelMerger<W extends WBSModel> {
     protected abstract W createWbsModel();
 
     protected abstract ModelType getModelType();
+
+    protected void ignoreAttributeConflicts(String... attributeNames) {
+        PatternList pattern = new PatternList();
+        for (String attr : attributeNames) {
+            String regexp = (isRegexp(attr) ? attr : "^" + attr + "$");
+            pattern.addRegexp(regexp);
+        }
+        contentMerger.addHandler(pattern, SILENTLY_PREFER_MAIN);
+    }
+
+    private boolean isRegexp(String s) {
+        if (s.startsWith("^")) return true;
+        if (s.endsWith("$")) return true;
+        if (s.indexOf('*') != -1) return true;
+        return false;
+    }
 
     private void buildWBSChildren(W model,
             TreeNode<Integer, WBSNodeContent> treeNode, int depth) {

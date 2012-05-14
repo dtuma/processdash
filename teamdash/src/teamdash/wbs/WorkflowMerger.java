@@ -36,7 +36,10 @@ public class WorkflowMerger extends AbstractWBSModelMerger<WorkflowWBSModel> {
     public WorkflowMerger(WorkflowWBSModel base, WorkflowWBSModel main,
             WorkflowWBSModel incoming) {
         super(base, main, incoming);
-        contentMerger.addHandler(TeamTimeColumn.RATE_ATTR, SILENTLY_PREFER_MAIN);
+
+        // register handlers for attributes as needed.
+        ignoreAttributeConflicts(TeamTimeColumn.RATE_ATTR);
+
         run();
     }
 

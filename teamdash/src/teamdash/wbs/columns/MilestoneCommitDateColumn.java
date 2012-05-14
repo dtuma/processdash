@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Tuma Solutions, LLC
+// Copyright (C) 2002-2012 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -58,6 +58,7 @@ public class MilestoneCommitDateColumn extends AbstractDataColumn implements
     public MilestoneCommitDateColumn() {
         this.columnName = this.columnID = COLUMN_ID;
         this.preferredWidth = 65;
+        setAttributeNameForPattern(VALUE_ATTR);
     }
 
     public Class getColumnClass() {
@@ -127,6 +128,18 @@ public class MilestoneCommitDateColumn extends AbstractDataColumn implements
         }
         node.setAttribute(VALUE_ATTR, storageVal);
         node.setAttribute(CACHED_DATE_ATTR, dateVal);
+    }
+
+    @Override
+    public Object getValueForDisplay(String value, WBSNode node) {
+        Object date = getValueAt(node);
+        return CELL_RENDERER.format(date);
+    }
+
+    @Override
+    public void storeConflictResolutionValue(Object storageValue, WBSNode node) {
+        node.setAttribute(VALUE_ATTR, storageValue);
+        node.setAttribute(CACHED_DATE_ATTR, null);
     }
 
     private static final DateFormat DISPLAY_FMT = DateFormat.getDateInstance();

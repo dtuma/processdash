@@ -24,6 +24,8 @@
 package teamdash.wbs;
 
 import teamdash.merge.ui.MergeConflictNotification.ModelType;
+import teamdash.wbs.columns.MilestoneColorColumn;
+import teamdash.wbs.columns.MilestoneCommitDateColumn;
 
 public class MilestonesMerger extends AbstractWBSModelMerger<MilestonesWBSModel> {
 
@@ -36,7 +38,12 @@ public class MilestonesMerger extends AbstractWBSModelMerger<MilestonesWBSModel>
     public MilestonesMerger(MilestonesWBSModel base, MilestonesWBSModel main,
             MilestonesWBSModel incoming) {
         super(base, main, incoming);
-        // TODO register appropriate handlers for attributes.
+
+        // register handlers for attributes as needed.
+        ignoreAttributeConflicts(
+            MilestoneCommitDateColumn.MASTER_VALUE_ATTR,
+            MilestoneColorColumn.VALUE_ATTR);
+
         run();
     }
 
