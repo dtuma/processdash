@@ -903,26 +903,28 @@ public class WBSEditor implements WindowListener, SaveListener,
         WBSJTable table = null;
         if (workflowEditor != null) {
             workflowEditor.stopEditing();
-            workflowEditor.undoList.clear();
             table = workflowEditor.table;
         }
         replaceWBSModel(teamProject.getWorkflows(), src.getWorkflows(), table);
+        if (workflowEditor != null)
+            workflowEditor.undoList.clear();
     }
 
     private void replaceMilestones(TeamProject src) {
         WBSJTable table = null;
         if (milestonesEditor != null) {
             milestonesEditor.stopEditing();
-            milestonesEditor.undoList.clear();
             table = milestonesEditor.table;
         }
         replaceWBSModel(teamProject.getMilestones(), src.getMilestones(), table);
+        if (milestonesEditor != null)
+            milestonesEditor.undoList.clear();
     }
 
     private void replaceWBS(TeamProject src) {
         tabPanel.stopCellEditing();
-        tabPanel.undoList.clear();
         replaceWBSModel(teamProject.getWBS(), src.getWBS(), tabPanel.wbsTable);
+        tabPanel.undoList.clear();
     }
 
     private void replaceWBSModel(WBSModel dest, WBSModel src, WBSJTable table) {
