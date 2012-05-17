@@ -146,6 +146,7 @@ public class WBSTabPanel extends JLayeredPane
 
         undoList = new UndoList(wbs);
         undoList.setForComponent(this);
+        undoList.setMemorySensitive(true);
 
         // build the components to display in this panel
         makeTables(wbs, data, iconMap, iconMenu, idSource);

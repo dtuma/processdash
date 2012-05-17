@@ -51,8 +51,15 @@ import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
  */
 public class UndoList {
 
-    /** How many levels of undo should be maintained? */
+    /** How many levels of undo should ideally be maintained? */
     public static final int MAX_LEVELS = 20;
+
+    /** What is the minimum number of levels of undo to maintain? */
+    public static final int MIN_LEVELS = 2;
+
+    /** Discard undo states if they would cause us to retain less than this
+     * percentage of free memory */
+    public static final double FREE_MEM_RATIO = 0.3;
 
     /** The Undo/Redo Actions category */
     public static final String UNDO_ACTION_CATEGORY =
@@ -61,6 +68,9 @@ public class UndoList {
 
     /** Support the ability to undo/redo changes made to this object */
     private SnapshotSource snapshotSource;
+
+    /** Should this undo list be sensitive to memory usage? */
+    private boolean memorySensitive;
 
     /** A list of historical snapshots of the object, for undo
      * purposes. The item on the top of the stack represents the state
@@ -112,6 +122,14 @@ public class UndoList {
                 "Redo", redoAction));
         this.currentState = snapshotSource.getSnapshot();
         this.changeListeners = new EventListenerList();
+    }
+
+    public boolean isMemorySensitive() {
+        return memorySensitive;
+    }
+
+    public void setMemorySensitive(boolean memorySensitive) {
+        this.memorySensitive = memorySensitive;
     }
 
     /** Retrieve an action that triggers an undo operation */
@@ -170,11 +188,25 @@ public class UndoList {
 
         //System.out.println("UndoList.madeChange("+description+")");
         undoList.push(currentState);
-        if (undoList.size() > MAX_LEVELS)
+        while (shouldDiscardOldestState())
             undoList.remove(0);
         currentState = snapshotSource.getSnapshot();
         redoList = null;
         refreshActions();
+    }
+
+    private boolean shouldDiscardOldestState() {
+        if (undoList.size() > MAX_LEVELS)
+            return true;
+        if (!memorySensitive)
+            return false;
+        if (undoList.size() < MIN_LEVELS)
+            return false;
+
+        Runtime.getRuntime().gc();
+        double memRatio = ((double) Runtime.getRuntime().freeMemory())
+                / Runtime.getRuntime().maxMemory();
+        return memRatio < FREE_MEM_RATIO;
     }
 
     /** Perform an undo operation. */
