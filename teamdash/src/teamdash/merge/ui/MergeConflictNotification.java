@@ -25,6 +25,7 @@ package teamdash.merge.ui;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -229,15 +230,23 @@ public class MergeConflictNotification {
     }
 
     private Object getMessageArg(String attrName) {
-        Object result = getAttribute(attrName);
-        if (result instanceof WBSNode) {
-            WBSNode wbsNode = (WBSNode) result;
+        Object value = getAttribute(attrName);
+        if (value == null || value instanceof Date || value instanceof Number) {
+            return value;
+        } else if (value instanceof WBSNode) {
+            WBSNode wbsNode = (WBSNode) value;
             return getNodeHyperlink(wbsNode.getName(), wbsNode.getUniqueID());
-        } else if (result instanceof TeamMember) {
-            TeamMember teamMember = (TeamMember) result;
+        } else if (value instanceof TeamMember) {
+            TeamMember teamMember = (TeamMember) value;
             return getNodeHyperlink(teamMember.getName(), teamMember.getId());
         } else {
-            return result;
+            String text = value.toString();
+            if (text == null)
+                return null;
+            else if (text.startsWith("<html>") && text.endsWith("</html>"))
+                return text.substring(6, text.length()- 7);
+            else
+                return HTMLUtils.escapeEntities(text);
         }
     }
 
