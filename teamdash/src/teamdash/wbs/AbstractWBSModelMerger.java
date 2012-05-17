@@ -122,12 +122,15 @@ public abstract class AbstractWBSModelMerger<W extends WBSModel> {
 
     protected TreeNode<Integer, WBSNodeContent> buildTree(WBSNode node) {
         int nodeId = (node.getIndentLevel() == 0 ? -1000 : node.getUniqueID());
-        TreeNode<Integer, WBSNodeContent> result = new TreeNode(nodeId,
-            new WBSNodeContent(node));
+        WBSNodeContent content = new WBSNodeContent(node);
+        tweakTreeNodeContent(content);
+        TreeNode<Integer, WBSNodeContent> result = new TreeNode(nodeId, content);
         for (WBSNode child : node.getWbsModel().getChildren(node))
             result.addChild(buildTree(child));
         return result;
     }
+
+    protected void tweakTreeNodeContent(WBSNodeContent content) {}
 
     protected W buildWBS(TreeNode<Integer, WBSNodeContent> treeNode) {
         // Create a new, empty WBS model
@@ -158,8 +161,10 @@ public abstract class AbstractWBSModelMerger<W extends WBSModel> {
     protected void ignoreAttributeConflicts(String... attributeNames) {
         PatternList pattern = new PatternList();
         for (String attr : attributeNames) {
-            String regexp = (isRegexp(attr) ? attr : "^" + attr + "$");
-            pattern.addRegexp(regexp);
+            if (isRegexp(attr))
+                pattern.addRegexp(attr);
+            else
+                pattern.addLiteralEquals(attr);
         }
         contentMerger.addHandler(pattern, SILENTLY_PREFER_MAIN);
     }

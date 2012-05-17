@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Tuma Solutions, LLC
+// Copyright (C) 2002-2012 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -362,6 +362,15 @@ public class TopDownBottomUpColumn extends AbstractNumericColumn
     /** When the user edits and changes a value, this function is called
      * for each affected node before the change is made. */
     protected void userChangingValue(WBSNode node, double value) {}
+
+
+    @Override
+    public Object getValueForDisplay(String value, WBSNode node) {
+        if (value == null || value.length() == 0)
+            return 0;
+        else
+            return Double.valueOf(value);
+    }
 
 
     public void storeDependentColumn(String ID, int columnNumber) { }

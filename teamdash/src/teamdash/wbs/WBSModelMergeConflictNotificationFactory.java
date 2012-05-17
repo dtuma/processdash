@@ -157,8 +157,8 @@ public class WBSModelMergeConflictNotificationFactory {
             return false;
 
         String columnId = column.getColumnID().replace(' ', '_');
-        mcn.putAttribute("columnId", columnId);
-        mcn.putAttribute("columnName", column.getColumnName());
+        mcn.putAttribute(COLUMN_ID, columnId);
+        mcn.putAttribute(COLUMN_NAME, column.getColumnName());
 
         String explicitMessageKey = modelType.name() + ".Attribute." + columnId;
 
@@ -209,6 +209,9 @@ public class WBSModelMergeConflictNotificationFactory {
         if (supportsOverride)
             mcn.addUserOption(MergeConflictNotification.OVERRIDE,
                 new WbsNodeAttributeHandler(dataModel, column));
+
+        // give the column a final chance to tweak the configuration
+        column.adjustConflictNotification(mcn);
 
         return true;
     }
@@ -313,6 +316,10 @@ public class WBSModelMergeConflictNotificationFactory {
         }
 
     }
+
+    private static final String COLUMN_ID = "columnId";
+
+    public static final String COLUMN_NAME = "columnName";
 
     private static final Resources resources = Resources
             .getDashBundle("WBSEditor.Merge");

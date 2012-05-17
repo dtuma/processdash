@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2011 Tuma Solutions, LLC
+// Copyright (C) 2002-2012 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -62,6 +62,7 @@ public class TaskLabelColumn extends AbstractDataColumn implements
         this.columnName = this.columnID = COLUMN_ID;
         this.preferredWidth = 200;
         this.wbsModel = dataModel.getWBSModel();
+        setAttributeNameForPattern(EXPLICIT_VALUE_ATTR);
     }
 
     public boolean recalculate() {

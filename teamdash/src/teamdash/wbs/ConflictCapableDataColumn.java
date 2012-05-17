@@ -23,6 +23,7 @@
 
 package teamdash.wbs;
 
+import teamdash.merge.ui.MergeConflictNotification;
 import net.sourceforge.processdash.util.PatternList;
 
 public interface ConflictCapableDataColumn extends DataColumn {
@@ -30,6 +31,8 @@ public interface ConflictCapableDataColumn extends DataColumn {
     public PatternList getAttributeNamePattern();
 
     public Object getValueForDisplay(String value, WBSNode node);
+
+    public void adjustConflictNotification(MergeConflictNotification mcn);
 
     public void storeConflictResolutionValue(Object value, WBSNode node);
 

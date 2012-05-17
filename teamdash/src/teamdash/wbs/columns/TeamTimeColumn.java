@@ -73,6 +73,7 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
         this.dependentColumns = new String[] { "Task Size", "Task Size Units" };
         this.teamMemberColumns = new IntList();
         this.preferredWidth = 55;
+        setAttributeNameForPattern(topDownAttrName);
 
         // create and add our interrelated columns.
         m.addDataColumn(rateColumn = new RateColumn());
@@ -975,6 +976,7 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
     public static final String NUM_PEOPLE_ATTR = "# People";
     public static final String AUTO_ZERO_USER_ATTR_PERSISTENT = "Auto Zero User";
     public static final String AUTO_ZERO_USER_ATTR_TRANSIENT = "@Auto_Zero_User";
+    public static final String TEAM_TIME_ATTR = getNodeDataAttrName();
     private static final NumericDataValue BLANK =
         new NumericDataValue(0, false, true, null);
 }

@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Tuma Solutions, LLC
+// Copyright (C) 2002-2012 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -100,6 +100,7 @@ public class TaskDependencyColumn extends AbstractDataColumn implements
         this.columnID = COLUMN_ID;
         this.columnName = COLUMN_NAME;
         this.preferredWidth = 400;
+        setAttributeNameForPattern(ID_LIST_ATTR);
 
         dataModel.getWBSModel().addTableModelListener(
                 new InsertedNodeDependencyRelinker());
@@ -228,6 +229,17 @@ public class TaskDependencyColumn extends AbstractDataColumn implements
         }
         for (int j = 0; j < 10; j++)
             node.setAttribute(NAME_ATTR_PREFIX + (pos++), null);
+    }
+
+    @Override
+    public Object getValueForDisplay(String value, WBSNode node) {
+        return readDependenciesForNode(node);
+    }
+
+    @Override
+    public void storeConflictResolutionValue(Object value, WBSNode node) {
+        node.setAttribute(ID_LIST_ATTR, value);
+        node.setAttribute(TASK_LIST_ATTR, null);
     }
 
     /** When nodes are inserted into a WBS, the WBSModel changes their IDs to

@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Tuma Solutions, LLC
+// Copyright (C) 2002-2012 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -65,6 +65,7 @@ public class MilestoneColumn extends AbstractDataColumn implements
         this.dataModel = dataModel;
         this.wbsModel = dataModel.getWBSModel();
         this.milestoneModel = milestoneModel;
+        setAttributeNameForPattern(EXPLICIT_VALUE_ATTR);
 
         milestoneModel.addTableModelListener(new MilestoneNameListener());
     }
@@ -155,6 +156,11 @@ public class MilestoneColumn extends AbstractDataColumn implements
             id = null;
 
         node.setAttribute(EXPLICIT_VALUE_ATTR, id);
+    }
+
+    @Override
+    public void storeConflictResolutionValue(Object value, WBSNode node) {
+        node.setAttribute(EXPLICIT_VALUE_ATTR, value);
     }
 
 

@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Tuma Solutions, LLC
+// Copyright (C) 2002-2012 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -23,7 +23,11 @@
 
 package teamdash.wbs.columns;
 
+import net.sourceforge.processdash.util.PatternList;
+
+import teamdash.merge.ui.MergeConflictNotification;
 import teamdash.wbs.CalculatedDataColumn;
+import teamdash.wbs.ConflictCapableDataColumn;
 import teamdash.wbs.DataTableModel;
 import teamdash.wbs.NumericDataValue;
 import teamdash.wbs.WBSModel;
@@ -64,6 +68,7 @@ public class SizeAccountingColumnSet {
             m.addDataColumn(column);
         else
             m.addDataColumn(new NodeTypeColumnFilter(column, editableType));
+        column.setAttributeNameForPattern(column.topDownAttrName);
     }
 
     public static String getBaseID(String id)     { return "Base-"     + id; }
@@ -81,6 +86,7 @@ public class SizeAccountingColumnSet {
         public AddedSizeColumn(DataTableModel m, String name, Pruner p) {
             super(m, name, name, p);
             setHideInheritedValues(true);
+            setAttributeNameForPattern(topDownAttrName);
         }
 
         @Override
@@ -253,7 +259,8 @@ public class SizeAccountingColumnSet {
      * (Of course, LOC are a different story altogether, since LOC estimates
      * will only be written and synched for PSP tasks.)
      */
-    private static class NodeTypeColumnFilter implements CalculatedDataColumn {
+    private static class NodeTypeColumnFilter implements CalculatedDataColumn,
+            ConflictCapableDataColumn {
 
         CalculatedDataColumn column;
         String editableType;
@@ -320,5 +327,21 @@ public class SizeAccountingColumnSet {
             column.setValueAt(aValue, node);
         }
         public void resetDependentColumns() {}
+
+        public PatternList getAttributeNamePattern() {
+            return ccdc().getAttributeNamePattern();
+        }
+        public Object getValueForDisplay(String value, WBSNode node) {
+            return ccdc().getValueForDisplay(value, node);
+        }
+        public void adjustConflictNotification(MergeConflictNotification mcn) {
+            ccdc().adjustConflictNotification(mcn);
+        }
+        public void storeConflictResolutionValue(Object value, WBSNode node) {
+            ccdc().storeConflictResolutionValue(value, node);
+        }
+        private ConflictCapableDataColumn ccdc() {
+            return (ConflictCapableDataColumn) column;
+        }
     }
 }

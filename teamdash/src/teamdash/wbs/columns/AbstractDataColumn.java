@@ -25,6 +25,7 @@ package teamdash.wbs.columns;
 
 import net.sourceforge.processdash.util.PatternList;
 
+import teamdash.merge.ui.MergeConflictNotification;
 import teamdash.wbs.ConflictCapableDataColumn;
 import teamdash.wbs.IndexAwareDataColumn;
 import teamdash.wbs.WBSNode;
@@ -65,11 +66,12 @@ public abstract class AbstractDataColumn implements IndexAwareDataColumn,
     public int getPreferredWidth() { return preferredWidth; }
     public PatternList getAttributeNamePattern() { return attributeNamePattern; }
     protected void setAttributeNameForPattern(String name) {
-        attributeNamePattern = new PatternList("^" + name + "$");
+        attributeNamePattern = new PatternList().addLiteralEquals(name);
     }
     public Object getValueForDisplay(String value, WBSNode node) {
         return getValueAt(node);
     }
+    public void adjustConflictNotification(MergeConflictNotification mcn) {}
     public void storeConflictResolutionValue(Object value, WBSNode node) {
         setValueAt(value, node);
     }

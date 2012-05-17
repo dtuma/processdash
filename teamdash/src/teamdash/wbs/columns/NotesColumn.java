@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Tuma Solutions, LLC
+// Copyright (C) 2002-2012 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -83,6 +83,7 @@ public class NotesColumn extends AbstractDataColumn implements
         this.columnName = COLUMN_NAME;
         this.preferredWidth = 400;
         this.authorName = authorName;
+        setAttributeNameForPattern(VALUE_ATTR);
     }
 
 
@@ -160,6 +161,16 @@ public class NotesColumn extends AbstractDataColumn implements
         }
         html.append("</body></html>");
         return html.toString();
+    }
+
+
+    @Override
+    public Object getValueForDisplay(String text, WBSNode node) {
+        if (text == null || text.trim().length() == 0)
+            return null;
+        if (text.length() > 50)
+            text = text.substring(0, 47) + "...";
+        return "\"" + text + "\"";
     }
 
 

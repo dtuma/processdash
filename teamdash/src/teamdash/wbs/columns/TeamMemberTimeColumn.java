@@ -29,6 +29,7 @@ import java.util.Map;
 
 import javax.swing.table.TableCellRenderer;
 
+import teamdash.merge.ui.MergeConflictNotification;
 import teamdash.team.TeamMember;
 import teamdash.wbs.CustomRenderedColumn;
 import teamdash.wbs.DataTableModel;
@@ -58,6 +59,7 @@ public class TeamMemberTimeColumn extends TopDownBottomUpColumn
               teamMember.getInitials(),
               getColumnID(teamMember));
         this.teamMember = teamMember;
+        setAttributeNameForPattern(topDownAttrName);
     }
 
     /** Return true if this column can be reused to display data for the
@@ -79,6 +81,12 @@ public class TeamMemberTimeColumn extends TopDownBottomUpColumn
     public Object getValueAt(WBSNode node) {
         NumericDataValue value = (NumericDataValue) super.getValueAt(node);
         return new TeamMemberTime(value, teamMember.getColor());
+    }
+
+    @Override
+    public void adjustConflictNotification(MergeConflictNotification mcn) {
+        mcn.setMessageKey("Wbs.Team_Member_Time");
+        mcn.putAttribute("teamMemberName", teamMember.getName());
     }
 
     public Class getColumnClass() {
@@ -175,5 +183,8 @@ public class TeamMemberTimeColumn extends TopDownBottomUpColumn
     public static String getMemberNodeDataAttrName(TeamMember m) {
         return getTopDownAttrName(getColumnID(m));
     }
+
+    public static final String TEAM_MEMBER_TIME_SUFFIX =
+        getTopDownAttrName(ATTR_SUFFIX);
 
 }
