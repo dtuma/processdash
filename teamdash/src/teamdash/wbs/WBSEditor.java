@@ -1688,6 +1688,7 @@ public class WBSEditor implements WindowListener, SaveListener,
     private class RefreshAction extends AbstractAction {
         public RefreshAction() {
             super(resources.getString("File_Refresh.Menu"));
+            putValue(MNEMONIC_KEY, new Integer('R'));
             putValue(SHORT_DESCRIPTION, resources
                     .getString("File_Refresh.Tooltip"));
         }
