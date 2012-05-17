@@ -62,7 +62,7 @@ public class PatternList {
     public PatternList() {
     }
 
-    public PatternList(String[] patterns) {
+    public PatternList(String... patterns) {
         for (int i = 0; i < patterns.length; i++) {
             addRegexp(patterns[i]);
         }
@@ -109,6 +109,30 @@ public class PatternList {
                 containsItems = addToList(containsItems, regexp);
         }
 
+        return this;
+    }
+
+    /** @since 1.14.4 */
+    public PatternList addLiteralEquals(String s) {
+        equalsItems = addToList(equalsItems, s);
+        return this;
+    }
+
+    /** @since 1.14.4 */
+    public PatternList addLiteralStartsWith(String s) {
+        startsWithItems = addToList(startsWithItems, s);
+        return this;
+    }
+
+    /** @since 1.14.4 */
+    public PatternList addLiteralEndsWith(String s) {
+        endsWithItems = addToList(endsWithItems, s);
+        return this;
+    }
+
+    /** @since 1.14.4 */
+    public PatternList addLiteralContains(String s) {
+        containsItems = addToList(containsItems, s);
         return this;
     }
 
