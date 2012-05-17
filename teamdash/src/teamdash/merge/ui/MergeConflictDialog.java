@@ -42,12 +42,14 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JTable;
 import javax.swing.Scrollable;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 import javax.swing.border.Border;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
+import javax.swing.event.TableModelListener;
 
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.ui.lib.WrappingHtmlLabel;
@@ -56,6 +58,7 @@ import teamdash.merge.MergeWarning;
 import teamdash.merge.ui.MergeConflictNotification.ModelType;
 import teamdash.wbs.DataTableModel;
 import teamdash.wbs.TeamProject;
+import teamdash.wbs.UndoList;
 
 public class MergeConflictDialog implements DataModelSource {
 
@@ -245,6 +248,8 @@ public class MergeConflictDialog implements DataModelSource {
             if (handler != null) {
                 try {
                     handler.handle(notification, teamProject);
+                    UndoList.madeChange(getAssociatedTable(), option
+                            + " editing conflict");
                 } catch (Exception e) {
                     e.printStackTrace();
                     Toolkit.getDefaultToolkit().beep();
@@ -252,6 +257,17 @@ public class MergeConflictDialog implements DataModelSource {
             }
 
             removeThisItem();
+        }
+
+        private JTable getAssociatedTable() {
+            DataTableModel model = dataModels.get(notification.getModelType());
+            if (model != null) {
+                for (Object l : model.getListeners(TableModelListener.class)) {
+                    if (l instanceof JTable)
+                        return (JTable) l;
+                }
+            }
+            return null;
         }
 
         private void followItemHyperlink(String typeName, String command) {
