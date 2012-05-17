@@ -43,6 +43,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.Scrollable;
+import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 import javax.swing.border.Border;
 import javax.swing.event.HyperlinkEvent;
@@ -122,8 +123,14 @@ public class MergeConflictDialog implements DataModelSource {
     public boolean maybeShow(Component relativeTo) {
         boolean notificationsPresent = notificationList.getComponentCount() > 0;
         if (notificationsPresent) {
-            if (!frame.isVisible())
+            if (!frame.isVisible()) {
+                SwingUtilities.invokeLater(new Runnable() {
+                    public void run() {
+                        notificationList.scrollRectToVisible(new Rectangle(0,
+                                0, 1, 1));
+                    }});
                 frame.setLocationRelativeTo(relativeTo);
+            }
             frame.setVisible(true);
             frame.setState(JFrame.NORMAL);
             frame.toFront();
