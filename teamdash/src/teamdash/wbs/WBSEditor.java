@@ -1131,6 +1131,9 @@ public class WBSEditor implements WindowListener, SaveListener,
             return false;
         } catch (IOException e) {
             e.printStackTrace();
+        } catch (Exception e) {
+            showSaveInternalErrorMessage(e);
+            return false;
         }
 
         showSaveErrorMessage();
@@ -1249,6 +1252,17 @@ public class WBSEditor implements WindowListener, SaveListener,
 
         JOptionPane.showMessageDialog(frame, message, title,
             JOptionPane.ERROR_MESSAGE);
+    }
+
+    private void showSaveInternalErrorMessage(Exception e) {
+        String title = resources.getString("Errors.Cannot_Save.Title");
+        String[] message = resources
+                .getStrings("Errors.Cannot_Save.Internal_Error");
+        Object[] saveAdvice = new Object[0];
+        if (isDirty())
+            saveAdvice = new Object[] { " ",
+                    resources.getStrings("Errors.Cannot_Save.Save_Advice") };
+        ExceptionDialog.show(frame, title, message, e, saveAdvice);
     }
 
     private void maybeTriggerSyncOperation() {
