@@ -73,7 +73,7 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
         this.dependentColumns = new String[] { "Task Size", "Task Size Units" };
         this.teamMemberColumns = new IntList();
         this.preferredWidth = 55;
-        setAttributeNameForPattern(topDownAttrName);
+        setConflictAttributeName(topDownAttrName);
 
         // create and add our interrelated columns.
         m.addDataColumn(rateColumn = new RateColumn());

@@ -65,7 +65,7 @@ public class MilestoneColumn extends AbstractDataColumn implements
         this.dataModel = dataModel;
         this.wbsModel = dataModel.getWBSModel();
         this.milestoneModel = milestoneModel;
-        setAttributeNameForPattern(EXPLICIT_VALUE_ATTR);
+        setConflictAttributeName(EXPLICIT_VALUE_ATTR);
 
         milestoneModel.addTableModelListener(new MilestoneNameListener());
     }

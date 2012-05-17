@@ -45,7 +45,7 @@ public class WorkflowPercentageColumn extends AbstractNumericColumn implements
         this.columnName = "%";
         this.columnID = COLUMN_ID;
         this.preferredWidth = 60;
-        setAttributeNameForPattern(ATTR_NAME);
+        setConflictAttributeName(ATTR_NAME);
     }
 
     public boolean isCellEditable(WBSNode node) {

@@ -68,7 +68,7 @@ public class SizeAccountingColumnSet {
             m.addDataColumn(column);
         else
             m.addDataColumn(new NodeTypeColumnFilter(column, editableType));
-        column.setAttributeNameForPattern(column.topDownAttrName);
+        column.setConflictAttributeName(column.topDownAttrName);
     }
 
     public static String getBaseID(String id)     { return "Base-"     + id; }
@@ -86,7 +86,7 @@ public class SizeAccountingColumnSet {
         public AddedSizeColumn(DataTableModel m, String name, Pruner p) {
             super(m, name, name, p);
             setHideInheritedValues(true);
-            setAttributeNameForPattern(topDownAttrName);
+            setConflictAttributeName(topDownAttrName);
         }
 
         @Override
@@ -328,11 +328,11 @@ public class SizeAccountingColumnSet {
         }
         public void resetDependentColumns() {}
 
-        public PatternList getAttributeNamePattern() {
-            return ccdc().getAttributeNamePattern();
+        public PatternList getConflictAttributeNamePattern() {
+            return ccdc().getConflictAttributeNamePattern();
         }
-        public Object getValueForDisplay(String value, WBSNode node) {
-            return ccdc().getValueForDisplay(value, node);
+        public Object getConflictDisplayValue(String value, WBSNode node) {
+            return ccdc().getConflictDisplayValue(value, node);
         }
         public void adjustConflictNotification(MergeConflictNotification mcn) {
             ccdc().adjustConflictNotification(mcn);

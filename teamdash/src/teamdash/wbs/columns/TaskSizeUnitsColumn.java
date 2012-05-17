@@ -73,7 +73,7 @@ implements CalculatedDataColumn, CustomEditedColumn {
         this.preferredWidth = 80;
         this.dependentColumns = new String[] { SizeTypeColumn.COLUMN_ID };
         this.mainSizeUnitsColumn = -1;
-        setAttributeNameForPattern(ATTR_NAME);
+        setConflictAttributeName(ATTR_NAME);
     }
 
     public void storeDependentColumn(String ID, int columnNumber) {

@@ -171,17 +171,17 @@ public class WBSModelMergeConflictNotificationFactory {
 
         WBSNode baseNode = mcn.getAttribute(MergeConflictNotification.BASE_NODE);
         String baseValue = (String) amw.getBaseValue();
-        Object baseDisp = column.getValueForDisplay(baseValue, baseNode);
+        Object baseDisp = column.getConflictDisplayValue(baseValue, baseNode);
         if (baseDisp == null) baseDisp = nullDisplay;
 
         WBSNode mainNode = mcn.getAttribute(MergeConflictNotification.MAIN_NODE);
         String mainValue = (String) amw.getMainValue();
-        Object mainDisp = column.getValueForDisplay(mainValue, mainNode);
+        Object mainDisp = column.getConflictDisplayValue(mainValue, mainNode);
         if (mainDisp == null) mainDisp = nullDisplay;
 
         WBSNode incNode = mcn.getAttribute(MergeConflictNotification.INCOMING_NODE);
         String incValue = (String) amw.getIncomingValue();
-        Object incDisp = column.getValueForDisplay(incValue, incNode);
+        Object incDisp = column.getConflictDisplayValue(incValue, incNode);
         if (incDisp == null) incDisp = nullDisplay;
 
         mcn.putValueAttributes(baseDisp, mainDisp, incDisp);
@@ -225,7 +225,7 @@ public class WBSModelMergeConflictNotificationFactory {
             DataColumn column = model.getColumn(i);
             if (column instanceof ConflictCapableDataColumn) {
                 ConflictCapableDataColumn ccdc = (ConflictCapableDataColumn) column;
-                PatternList pattern = ccdc.getAttributeNamePattern();
+                PatternList pattern = ccdc.getConflictAttributeNamePattern();
                 if (pattern != null && pattern.matches(attrName))
                     return ccdc;
             }

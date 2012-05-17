@@ -58,7 +58,7 @@ public class MilestoneCommitDateColumn extends AbstractDataColumn implements
     public MilestoneCommitDateColumn() {
         this.columnName = this.columnID = COLUMN_ID;
         this.preferredWidth = 65;
-        setAttributeNameForPattern(VALUE_ATTR);
+        setConflictAttributeName(VALUE_ATTR);
     }
 
     public Class getColumnClass() {
@@ -131,7 +131,7 @@ public class MilestoneCommitDateColumn extends AbstractDataColumn implements
     }
 
     @Override
-    public Object getValueForDisplay(String value, WBSNode node) {
+    public Object getConflictDisplayValue(String value, WBSNode node) {
         Object date = getValueAt(node);
         return CELL_RENDERER.format(date);
     }

@@ -49,7 +49,7 @@ public class WorkflowRateColumn extends AbstractNumericColumn
         this.dependentColumns = new String[] {
             WorkflowNumPeopleColumn.COLUMN_ID,
             WorkflowPercentageColumn.COLUMN_ID };
-        setAttributeNameForPattern(ATTR_NAME);
+        setConflictAttributeName(ATTR_NAME);
     }
 
     public boolean isCellEditable(WBSNode node) {

@@ -83,7 +83,7 @@ public class NotesColumn extends AbstractDataColumn implements
         this.columnName = COLUMN_NAME;
         this.preferredWidth = 400;
         this.authorName = authorName;
-        setAttributeNameForPattern(VALUE_ATTR);
+        setConflictAttributeName(VALUE_ATTR);
     }
 
 
@@ -165,7 +165,7 @@ public class NotesColumn extends AbstractDataColumn implements
 
 
     @Override
-    public Object getValueForDisplay(String text, WBSNode node) {
+    public Object getConflictDisplayValue(String text, WBSNode node) {
         if (text == null || text.trim().length() == 0)
             return null;
         if (text.length() > 50)

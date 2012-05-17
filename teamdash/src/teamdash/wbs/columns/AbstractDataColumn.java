@@ -53,7 +53,7 @@ public abstract class AbstractDataColumn implements IndexAwareDataColumn,
      * column width */
     protected int preferredWidth = -1;
 
-    protected PatternList attributeNamePattern = null;
+    protected PatternList conflictAttributeNamePattern = null;
 
     public String getColumnID()   { return columnID;     }
     public String getColumnName() { return columnName;   }
@@ -64,11 +64,13 @@ public abstract class AbstractDataColumn implements IndexAwareDataColumn,
     public String[] getAffectedColumnIDs() { return null; }
     public void resetDependentColumns() {}
     public int getPreferredWidth() { return preferredWidth; }
-    public PatternList getAttributeNamePattern() { return attributeNamePattern; }
-    protected void setAttributeNameForPattern(String name) {
-        attributeNamePattern = new PatternList().addLiteralEquals(name);
+    public PatternList getConflictAttributeNamePattern() {
+        return conflictAttributeNamePattern;
     }
-    public Object getValueForDisplay(String value, WBSNode node) {
+    protected void setConflictAttributeName(String name) {
+        conflictAttributeNamePattern = new PatternList().addLiteralEquals(name);
+    }
+    public Object getConflictDisplayValue(String value, WBSNode node) {
         return getValueAt(node);
     }
     public void adjustConflictNotification(MergeConflictNotification mcn) {}

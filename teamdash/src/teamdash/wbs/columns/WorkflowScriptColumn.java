@@ -41,7 +41,7 @@ public class WorkflowScriptColumn extends AbstractDataColumn implements
         this.columnID = COLUMN_ID;
         this.columnName = COLUMN_NAME;
         this.preferredWidth = 200;
-        setAttributeNameForPattern(VALUE_ATTR);
+        setConflictAttributeName(VALUE_ATTR);
     }
 
     public Object getValueAt(WBSNode node) {

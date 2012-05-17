@@ -365,7 +365,7 @@ public class TopDownBottomUpColumn extends AbstractNumericColumn
 
 
     @Override
-    public Object getValueForDisplay(String value, WBSNode node) {
+    public Object getConflictDisplayValue(String value, WBSNode node) {
         if (value == null || value.length() == 0)
             return 0;
         else

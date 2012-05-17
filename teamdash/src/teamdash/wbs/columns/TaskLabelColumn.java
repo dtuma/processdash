@@ -62,7 +62,7 @@ public class TaskLabelColumn extends AbstractDataColumn implements
         this.columnName = this.columnID = COLUMN_ID;
         this.preferredWidth = 200;
         this.wbsModel = dataModel.getWBSModel();
-        setAttributeNameForPattern(EXPLICIT_VALUE_ATTR);
+        setConflictAttributeName(EXPLICIT_VALUE_ATTR);
     }
 
     public boolean recalculate() {

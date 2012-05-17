@@ -28,9 +28,9 @@ import net.sourceforge.processdash.util.PatternList;
 
 public interface ConflictCapableDataColumn extends DataColumn {
 
-    public PatternList getAttributeNamePattern();
+    public PatternList getConflictAttributeNamePattern();
 
-    public Object getValueForDisplay(String value, WBSNode node);
+    public Object getConflictDisplayValue(String value, WBSNode node);
 
     public void adjustConflictNotification(MergeConflictNotification mcn);
 

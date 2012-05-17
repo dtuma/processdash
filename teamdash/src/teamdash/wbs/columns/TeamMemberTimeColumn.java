@@ -59,7 +59,7 @@ public class TeamMemberTimeColumn extends TopDownBottomUpColumn
               teamMember.getInitials(),
               getColumnID(teamMember));
         this.teamMember = teamMember;
-        setAttributeNameForPattern(topDownAttrName);
+        setConflictAttributeName(topDownAttrName);
     }
 
     /** Return true if this column can be reused to display data for the

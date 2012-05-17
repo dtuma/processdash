@@ -100,7 +100,7 @@ public class TaskDependencyColumn extends AbstractDataColumn implements
         this.columnID = COLUMN_ID;
         this.columnName = COLUMN_NAME;
         this.preferredWidth = 400;
-        setAttributeNameForPattern(ID_LIST_ATTR);
+        setConflictAttributeName(ID_LIST_ATTR);
 
         dataModel.getWBSModel().addTableModelListener(
                 new InsertedNodeDependencyRelinker());
@@ -232,7 +232,7 @@ public class TaskDependencyColumn extends AbstractDataColumn implements
     }
 
     @Override
-    public Object getValueForDisplay(String value, WBSNode node) {
+    public Object getConflictDisplayValue(String value, WBSNode node) {
         return readDependenciesForNode(node);
     }
 
