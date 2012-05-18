@@ -50,6 +50,8 @@ public class TeamProjectMergeCoordinator {
 
     private FileResourceCollection baseDir;
 
+    private TeamProjectMergeListener mergeListener;
+
     private long baseHashcode;
 
     public TeamProjectMergeCoordinator(TeamProject teamProject,
@@ -72,6 +74,10 @@ public class TeamProjectMergeCoordinator {
 
         if (workingDir instanceof BridgedWorkingDirectory)
             ((BridgedWorkingDirectory) workingDir).setAllowUpdateWhenLocked(true);
+    }
+
+    public void setMergeListener(TeamProjectMergeListener mergeListener) {
+        this.mergeListener = mergeListener;
     }
 
     public synchronized TeamProjectMerger doMerge() throws IOException {
@@ -100,8 +106,29 @@ public class TeamProjectMergeCoordinator {
         TeamProject base = new QuickTeamProject(baseDir.getDirectory(), "base");
         TeamProject main = new QuickTeamProject(mainDir.getDirectory(), "main");
         TeamProject incoming = this.teamProject;
+
+        if (mergeListener != null) {
+            mergeListener.mergeStarting();
+            mergeListener.mergeDataNotify("base", baseDir.getDirectory());
+            mergeListener.mergeDataNotify("main", mainDir.getDirectory());
+            mergeListener.mergeDataNotify("incoming", incoming);
+        }
+
         TeamProjectMerger merger = new TeamProjectMerger(base, main, incoming);
-        merger.run();
+
+        try {
+            merger.run();
+        } catch (RuntimeException e) {
+            if (mergeListener != null)
+                mergeListener.mergeException(e);
+            throw e;
+        }
+
+        if (mergeListener != null) {
+            mergeListener.mergeDataNotify("merged", merger.getMerged());
+            mergeListener.mergeFinished();
+        }
+
         copyMainToBase();
         return merger;
     }

@@ -140,6 +140,7 @@ public class WBSEditor implements WindowListener, SaveListener,
     WBSSynchronizer reverseSynchronizer;
     MergeConflictDialog mergeConflictDialog;
     TeamProjectMergeCoordinator mergeCoordinator;
+    TeamProjectMergeDebugger mergeDebugger;
     File customTabsFile;
     ChangeHistory changeHistory;
     File changeHistoryFile;
@@ -440,6 +441,8 @@ public class WBSEditor implements WindowListener, SaveListener,
         try {
             mergeCoordinator = new TeamProjectMergeCoordinator(teamProject,
                 workingDirectory);
+            mergeDebugger = new TeamProjectMergeDebugger();
+            mergeCoordinator.setMergeListener(mergeDebugger);
             mergeConflictDialog = new MergeConflictDialog(teamProject);
             simultaneousEditing = true;
         } catch (IOException e) {
@@ -731,6 +734,10 @@ public class WBSEditor implements WindowListener, SaveListener,
         if (mergeCoordinator != null)
             result.add(new RefreshAction());
         result.addSeparator();
+        if (mergeDebugger != null) {
+            result.add(new SaveMergeDebugZipAction());
+            result.addSeparator();
+        }
         if (!isMode(MODE_BOTTOM_UP)) {
             WBSOpenFileAction openAction = new WBSOpenFileAction(frame);
             result.add(new WBSSaveAsAction(this, openAction));
@@ -1260,11 +1267,28 @@ public class WBSEditor implements WindowListener, SaveListener,
         String title = resources.getString("Errors.Cannot_Save.Title");
         String[] message = resources
                 .getStrings("Errors.Cannot_Save.Internal_Error");
-        Object[] saveAdvice = new Object[0];
+
+        Object debugZipMsg = getDebugZipMessage(
+            "Errors.Cannot_Save.Internal_Error_File_FMT", e);
+
+        Object saveAdvice = null;
         if (isDirty())
             saveAdvice = new Object[] { " ",
                     resources.getStrings("Errors.Cannot_Save.Save_Advice") };
-        ExceptionDialog.show(frame, title, message, e, saveAdvice);
+
+        ExceptionDialog.show(frame, title, message, e, debugZipMsg, saveAdvice);
+    }
+
+    private Object getDebugZipMessage(String resKey, Exception e) {
+        if (mergeDebugger == null)
+            return null;
+
+        mergeDebugger.mergeException(e);
+        File debugZipFile = mergeDebugger.makeZipOfCurrentMerge();
+        if (debugZipFile == null)
+            return null;
+
+        return resources.formatStrings(resKey, debugZipFile.getPath());
     }
 
     private void maybeTriggerSyncOperation() {
@@ -1735,8 +1759,32 @@ public class WBSEditor implements WindowListener, SaveListener,
                 String title = resources.getString("Errors.Cannot_Refresh.Title");
                 String[] message = resources
                         .getStrings("Errors.Cannot_Refresh.Internal_Error");
-                ExceptionDialog.show(frame, title, message, ex);
+                Object debugZipMsg = getDebugZipMessage(
+                    "Errors.Cannot_Refresh.Internal_Error_File_FMT", ex);
+                ExceptionDialog.show(frame, title, message, ex, debugZipMsg);
             }
+        }
+    }
+
+    private class SaveMergeDebugZipAction extends AbstractAction {
+        public SaveMergeDebugZipAction() {
+            super("Save Simultaneous Editing Debug File");
+        }
+        public void actionPerformed(ActionEvent e) {
+            File zip = mergeDebugger.makeZipOfAllMerges();
+            Object message = new Object[] {
+                    "The following debug file has been created, recording the",
+                    "contents of your team plan and the history of all changes",
+                    "made by you and others during the current editing session:",
+                    "        " + zip,
+                    " ",
+                    "If the simultaneous editing feature is not behaving as",
+                    "you would expect, please send this file to the Process",
+                    "Dashboard development team along with a description of",
+                    "the unusual behavior you observed."
+            };
+            JOptionPane.showMessageDialog(frame, message, "Debug File Saved",
+                JOptionPane.PLAIN_MESSAGE);
         }
     }
 
