@@ -1732,22 +1732,80 @@ public class WBSEditor implements WindowListener, SaveListener,
             putValue(SHORT_DESCRIPTION, resources
                     .getString("File_Refresh.Tooltip"));
         }
-        public void actionPerformed(ActionEvent e) {
-            try {
-                stopAllCellEditingSessions();
-                String messageKey = null;
-                if (mergeExternalChanges() == false) {
-                    messageKey = "File_Refresh.No_Merge_Message";
-                } else if (mergeConflictDialog.maybeShow(frame) == false) {
-                    messageKey = "File_Refresh.Merge_Message";
-                }
-                if (messageKey != null)
-                    JOptionPane.showMessageDialog(frame,
-                        resources.getStrings(messageKey),
-                        resources.getString("File_Refresh.Title"),
-                        JOptionPane.PLAIN_MESSAGE);
+        public synchronized void actionPerformed(ActionEvent e) {
+            new RefreshWorker().doRefresh();
+        }
+    }
 
-            } catch (IOException ioe) {
+    private class RefreshWorker implements Runnable {
+
+        boolean done;
+        JDialog dialog;
+        boolean dataWasMerged;
+        Exception mergeException;
+
+        public void doRefresh() {
+            stopAllCellEditingSessions();
+
+            synchronized (this) {
+                // start the work.
+                done = false;
+                new Thread(this).start();
+
+                // if no merge is needed, the work could possibly complete in a
+                // fraction of a second. Pause a moment to see if that happens.
+                // (Swing paint ops will freeze for this duration, so we choose
+                // not to wait very long.)
+                try {
+                    wait(200);
+                } catch (InterruptedException ie) {}
+
+                // if the work isn't done yet, create a "please wait" dialog.
+                if (!done)
+                    dialog = createWaitDialog(frame, resources
+                        .getString("File_Refresh.Wait_Message"));
+            }
+
+            if (dialog != null)
+                // this will block until the work is done
+                dialog.setVisible(true);
+
+            showResults();
+        }
+
+        public void run() {
+            long start = System.currentTimeMillis();
+            try {
+                // do the work.
+                dataWasMerged = mergeExternalChanges();
+            } catch (Exception e) {
+                mergeException = e;
+            }
+            synchronized (this) {
+                done = true;
+                notifyAll();
+            }
+
+            // flashing windows are annoying to the user. Pause for a moment to
+            // ensure that the wait dialog is displayed for at least a second.
+            long elapsed = System.currentTimeMillis() - start;
+            long sleep = Math.max(100, 1000 - elapsed);
+            try {
+                Thread.sleep(sleep);
+            } catch (InterruptedException e) {}
+
+            synchronized (this) {
+                if (dialog != null)
+                    SwingUtilities.invokeLater(new Runnable() {
+                        public void run() { dialog.dispose(); }});
+            }
+        }
+
+        private void showResults() {
+            dialog = null;
+            String messageKey = null;
+
+            if (mergeException instanceof IOException) {
                 String title = resources.getString("Errors.Cannot_Refresh.Title");
                 String[] message = resources.formatStrings(
                     "Errors.Cannot_Refresh." + workingDirResKey() + "_FMT",
@@ -1755,14 +1813,28 @@ public class WBSEditor implements WindowListener, SaveListener,
                 JOptionPane.showMessageDialog(frame, message, title,
                     JOptionPane.ERROR_MESSAGE);
 
-            } catch (Exception ex) {
+            } else if (mergeException != null) {
                 String title = resources.getString("Errors.Cannot_Refresh.Title");
                 String[] message = resources
                         .getStrings("Errors.Cannot_Refresh.Internal_Error");
                 Object debugZipMsg = getDebugZipMessage(
-                    "Errors.Cannot_Refresh.Internal_Error_File_FMT", ex);
-                ExceptionDialog.show(frame, title, message, ex, debugZipMsg);
+                    "Errors.Cannot_Refresh.Internal_Error_File_FMT",
+                    mergeException);
+                ExceptionDialog.show(frame, title, message, mergeException,
+                    debugZipMsg);
+
+            } else if (dataWasMerged == false) {
+                messageKey = "File_Refresh.No_Merge_Message";
+
+            } else if (mergeConflictDialog.maybeShow(frame) == false) {
+                messageKey = "File_Refresh.Merge_Message";
             }
+
+            if (messageKey != null)
+                JOptionPane.showMessageDialog(frame,
+                    resources.getStrings(messageKey),
+                    resources.getString("File_Refresh.Title"),
+                    JOptionPane.PLAIN_MESSAGE);
         }
     }
 
