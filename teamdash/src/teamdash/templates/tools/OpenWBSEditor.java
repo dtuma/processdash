@@ -25,6 +25,7 @@ package teamdash.templates.tools;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.management.ManagementFactory;
 import java.net.URL;
 import java.net.URLConnection;
 import java.text.DateFormat;
@@ -39,6 +40,8 @@ import java.util.Locale;
 import java.util.Map;
 
 import org.w3c.dom.Element;
+
+import com.sun.management.OperatingSystemMXBean;
 
 import net.sourceforge.processdash.DashController;
 import net.sourceforge.processdash.Settings;
@@ -298,9 +301,9 @@ public class OpenWBSEditor extends TinyCGIBase {
         List cmd = new ArrayList();
         cmd.add(jreExecutable);
 
-        String extraArgs = Settings.getVal("wbs.jvmArgs", "-Xmx500m");
-        if (StringUtils.hasValue(extraArgs))
-            cmd.addAll(Arrays.asList(extraArgs.split("\\s+")));
+        String extraArgs = Settings.getVal("wbs.jvmArgs", "");
+        extraArgs = maybeAddJvmMemoryArg(extraArgs);
+        cmd.addAll(Arrays.asList(extraArgs.trim().split("\\s+")));
 
         // propagate security-related system properties
         cmd.addAll(Arrays.asList(RuntimeUtils.getPropagatedJvmArgs()));
@@ -327,6 +330,35 @@ public class OpenWBSEditor extends TinyCGIBase {
             cmd.add(directory);
 
         return (String[]) cmd.toArray(new String[cmd.size()]);
+    }
+
+    private String maybeAddJvmMemoryArg(String extraArgs) {
+        if (!extraArgs.contains("-Xmx")) {
+            long mem = getDefaultMaxMemory();
+            extraArgs = extraArgs + " -Xmx" + mem + "m";
+        }
+        return extraArgs;
+    }
+
+    /**
+     * If we specify an Xmx memory ceiling that is larger than the amount of
+     * space available to the OS, the JVM will display an error dialog and
+     * fail to launch. Perform a check to see how much space is available and
+     * limit the WBS Editor process to half of available memory.
+     */
+    private long getDefaultMaxMemory() {
+        try {
+            Object bean = ManagementFactory.getOperatingSystemMXBean();
+            OperatingSystemMXBean osMxBean = (OperatingSystemMXBean) bean;
+            long systemMemoryBytes = osMxBean.getTotalPhysicalMemorySize();
+            long systemMemoryMegabytes = systemMemoryBytes >> 20;
+            long halfOfMemory = systemMemoryMegabytes / 2;
+            return halfOfMemory;
+        } catch (Throwable t) {
+            // If we are not running in a Sun JVM, the code above will fail.
+            // In that case, use a conservative threshhold.
+            return 500;
+        }
     }
 
     private static class OutputConsumer extends Thread {
