@@ -463,10 +463,11 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
     void recalcRowsForExpansionEvent() { recalcRows(true, true); }
     void recalcRows(boolean notify) { recalcRows(notify, false); }
     void recalcRows(boolean notify, boolean isExpansionOnly) {
-        clearCachedNodeData();
-
         IntList resultList = new IntList(wbsNodes.size());
-        recalcRows(resultList, 0);
+        if (isExpansionOnly)
+            recalcRows(resultList, 0);
+        else
+            recalcStructureAndRows(resultList);
         int[] oldRows = rows;
         rows = resultList.getAsArray();
         if (notify)
@@ -477,25 +478,71 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
             }
     }
 
-    private void clearCachedNodeData() {
-        for (Iterator i = wbsNodes.iterator(); i.hasNext();) {
-            WBSNode node = (WBSNode) i.next();
-            for (int j = 0; j < CACHING_ATTRS.length; j++) {
-                node.setAttribute(CACHING_ATTRS[j], null);
-            }
-        }
-    }
-
     private void recalcRows(IntList resultList, int nodePos) {
         resultList.add(nodePos);
 
         WBSNode node = (WBSNode) wbsNodes.get(nodePos);
         if (nodePos == 0 || node.isExpanded()) {
-            IntList children = getChildIndexes(node, nodePos);
+            IntList children = getChildIndexes(node);
 
             if (children != null)
                 for (int i=0;   i < children.size();   i++)
                     recalcRows(resultList, children.get(i));
+        }
+    }
+
+    // In a single pass through the list of WBS nodes, calculate the parents,
+    // the child indexes, and the nodes which are visible on each row.
+    private void recalcStructureAndRows(IntList rows) {
+        // add an entry for the root node
+        rows.add(0);
+        StructureData sd = new StructureData(0);
+
+        // iterate over other nodes, calculate their structure, and add them
+        // to the row list if applicable
+        for (int i = 1;  i < wbsNodes.size();  i++) {
+            sd = sd.appendNextRow(i);
+            if (sd.visible)
+                rows.add(i);
+        }
+    }
+
+    private class StructureData {
+        StructureData parent;
+        int nodePos;
+        WBSNode node;
+        boolean visible;
+        boolean expanded;
+        IntList childIndexes;
+
+        public StructureData(int nodePos) {
+            this.nodePos = nodePos;
+            this.node = wbsNodes.get(nodePos);
+            this.expanded = (nodePos == 0 || node.isExpanded());
+            this.visible = true;
+            this.childIndexes = new IntList();
+            node.setAttribute(CACHED_PARENT, null);
+            node.setAttribute(CACHED_CHILDREN, null);
+            node.setAttribute(CACHED_REORDERABLE_CHILDREN, null);
+            node.setAttribute(CACHED_CHILD_INDEXES, childIndexes);
+        }
+
+        public StructureData appendNextRow(int nodePos) {
+            StructureData result = new StructureData(nodePos);
+
+            StructureData parent = this;
+            while (parent.node.getIndentLevel() >= result.node.getIndentLevel())
+                parent = parent.parent;
+            result.setParent(parent);
+
+            return result;
+        }
+
+        private void setParent(StructureData parent) {
+            this.parent = parent;
+            this.node.setAttribute(CACHED_PARENT, parent.node);
+            this.visible = parent.visible && parent.expanded;
+            parent.childIndexes.add(this.nodePos);
         }
     }
 
@@ -903,8 +950,9 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
             Node n = wbsElements.item(i);
             if (n instanceof Element &&
                 WBSNode.ELEMENT_NAME.equals(((Element) n).getTagName()))
-                add(new WBSNode(this, (Element) n));
+                addImpl(new WBSNode(this, (Element) n));
         }
+        recalcRows(false);
     }
 
     public void getAsXML(Writer out) throws IOException {
@@ -1245,7 +1293,5 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
         "_cached_reorderable_child_list_";
     private static final String CACHED_CHILD_INDEXES = "_cached_child_ind_";
     private static final String CACHED_PARENT = "_cached_parent_node_";
-    private static final String[] CACHING_ATTRS = { CACHED_CHILDREN,
-            CACHED_REORDERABLE_CHILDREN, CACHED_CHILD_INDEXES, CACHED_PARENT };
     private static final boolean CACHE = true;
 }
