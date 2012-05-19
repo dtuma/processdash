@@ -60,6 +60,7 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
     int sizeColumn = -1;
     int unitsColumn = -1;
     IntList teamMemberColumns;
+    String[] teamMemberInitials;
     RateColumn rateColumn;
     TimePerPersonColumn timePerPersonColumn;
     NumPeopleColumn numPeopleColumn;
@@ -71,7 +72,7 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
     public TeamTimeColumn(DataTableModel m) {
         super(m, "Time", COLUMN_ID);
         this.dependentColumns = new String[] { "Task Size", "Task Size Units" };
-        this.teamMemberColumns = new IntList();
+        this.setTeamMemberColumns(new IntList());
         this.preferredWidth = 55;
         setConflictAttributeName(topDownAttrName);
 
@@ -92,7 +93,7 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
             sizeColumn = columnNumber;
         else if ("Task Size Units".equals(ID)) {
             unitsColumn = columnNumber;
-            teamMemberColumns = dataModel.getTeamMemberColumnIDs();
+            setTeamMemberColumns(dataModel.getTeamMemberColumnIDs());
         }
     }
 
@@ -100,7 +101,7 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
     public void stateChanged(ChangeEvent e) {
         IntList newCols = dataModel.getTeamMemberColumnIDs();
         if (!newCols.equals(teamMemberColumns)) {
-            teamMemberColumns = newCols;
+            setTeamMemberColumns(newCols);
             dataModel.columnChanged(this);
         }
     }
@@ -108,7 +109,16 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
 
     public void resetDependentColumns() {
         sizeColumn = unitsColumn = -1;
-        teamMemberColumns = new IntList();
+        setTeamMemberColumns(new IntList());
+    }
+
+
+    private void setTeamMemberColumns(IntList newCols) {
+        teamMemberColumns = newCols;
+
+        teamMemberInitials = new String[newCols.size()];
+        for (int i = 0; i < teamMemberInitials.length; i++)
+            teamMemberInitials[i] = dataModel.getColumnName(newCols.get(i));
     }
 
 
@@ -263,7 +273,8 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
     protected IndivTime[] getIndivTimes(WBSNode node) {
         IndivTime[] result = new IndivTime[teamMemberColumns.size()];
         for (int i = teamMemberColumns.size();   i-- > 0; )
-            result[i] = new IndivTime(node, teamMemberColumns.get(i));
+            result[i] = new IndivTime(node, teamMemberColumns.get(i),
+                    teamMemberInitials[i]);
         return result;
     }
 
@@ -642,11 +653,11 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
         boolean zeroButAssigned;
         boolean completed;
 
-        public IndivTime(WBSNode node, int column) {
+        public IndivTime(WBSNode node, int column, String initials) {
             this.node = node;
             this.column = column;
             this.time = safe(parse(dataModel.getValueAt(node, column)));
-            this.initials = dataModel.getColumnName(column);
+            this.initials = initials;
             this.zeroAttrName = getMemberAssignedZeroAttrName(this.initials);
             this.zeroButAssigned = (node.getAttribute(zeroAttrName) != null);
 
