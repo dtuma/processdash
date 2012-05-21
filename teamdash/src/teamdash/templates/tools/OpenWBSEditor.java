@@ -353,7 +353,19 @@ public class OpenWBSEditor extends TinyCGIBase {
             long systemMemoryBytes = osMxBean.getTotalPhysicalMemorySize();
             long systemMemoryMegabytes = systemMemoryBytes >> 20;
             long halfOfMemory = systemMemoryMegabytes / 2;
-            return halfOfMemory;
+            long result = halfOfMemory;
+
+            // A 32-bit JVM will only be able to allocate 2GB of memory for
+            // the entire process.  This includes the all of the memory pools
+            // in the JVM (not just the heap).  If we can't tell that we're
+            // running in a 64-bit JVM, choose a conservative max heap size
+            // to ensure that we don't hit the limit.  (The 'conservative'
+            // number below was identified by experimentation with JRE1.7 on
+            // Windows 7.)
+            if (!"64".equals(System.getProperty("sun.arch.data.model")))
+                result = Math.min(halfOfMemory, 1400);
+
+            return result;
         } catch (Throwable t) {
             // If we are not running in a Sun JVM, the code above will fail.
             // In that case, use a conservative threshhold.
