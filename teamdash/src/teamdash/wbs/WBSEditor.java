@@ -45,6 +45,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Random;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.prefs.Preferences;
 
 import javax.swing.AbstractAction;
@@ -1116,8 +1117,7 @@ public class WBSEditor implements WindowListener, SaveListener,
             SwingUtilities.invokeLater(new Runnable() {
                 public void run() {
                     saveDialog.dispose();
-                    if (mergeConflictDialog != null)
-                        mergeConflictDialog.maybeShow(frame);
+                    showMergeFollowUpInfo("File_Refresh.Save_Title", false);
                 }});
         }
 
@@ -1289,6 +1289,45 @@ public class WBSEditor implements WindowListener, SaveListener,
             return null;
 
         return resources.formatStrings(resKey, debugZipFile.getPath());
+    }
+
+    private void showMergeFollowUpInfo(String titleKey,
+            boolean showEvenIfNameListIsEmpty) {
+        if (mergeConflictDialog == null)
+            return;
+
+        Object message = getUserNamesForMergedChanges();
+        if (mergeConflictDialog.maybeShow(frame))
+            return;
+
+        if (message == null) {
+            if (showEvenIfNameListIsEmpty == false)
+                return;
+            message = resources.getStrings("File_Refresh.Merge_Message");
+        } else {
+            message = new Object[] {
+                resources.getStrings("File_Refresh.Merge_Message_Names"),
+                message };
+        }
+        JOptionPane.showMessageDialog(frame, message,
+                resources.getString(titleKey), JOptionPane.PLAIN_MESSAGE);
+    }
+
+    private String[] getUserNamesForMergedChanges() {
+        if (mergeCoordinator == null)
+            return null;
+
+        Set<String> names = new TreeSet<String>();
+        for (Entry change : mergeCoordinator.getMergedChanges(true))
+            names.add(change.getUser());
+        if (names.isEmpty())
+            return null;
+
+        String[] result = new String[names.size()];
+        int i = 0;
+        for (String name : names)
+            result[i++] = "        \u2022 " + name;
+        return result;
     }
 
     private void maybeTriggerSyncOperation() {
@@ -1803,7 +1842,6 @@ public class WBSEditor implements WindowListener, SaveListener,
 
         private void showResults() {
             dialog = null;
-            String messageKey = null;
 
             if (mergeException instanceof IOException) {
                 String title = resources.getString("Errors.Cannot_Refresh.Title");
@@ -1824,17 +1862,14 @@ public class WBSEditor implements WindowListener, SaveListener,
                     debugZipMsg);
 
             } else if (dataWasMerged == false) {
-                messageKey = "File_Refresh.No_Merge_Message";
-
-            } else if (mergeConflictDialog.maybeShow(frame) == false) {
-                messageKey = "File_Refresh.Merge_Message";
-            }
-
-            if (messageKey != null)
                 JOptionPane.showMessageDialog(frame,
-                    resources.getStrings(messageKey),
+                    resources.getStrings("File_Refresh.No_Merge_Message"),
                     resources.getString("File_Refresh.Title"),
                     JOptionPane.PLAIN_MESSAGE);
+
+            } else {
+                showMergeFollowUpInfo("File_Refresh.Title", true);
+            }
         }
     }
 

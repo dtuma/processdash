@@ -26,6 +26,7 @@ package teamdash.wbs;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -40,6 +41,8 @@ import net.sourceforge.processdash.tool.bridge.report.ListingHashcodeCalculator;
 import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.TempFileFactory;
 
+import teamdash.wbs.ChangeHistory.Entry;
+
 public class TeamProjectMergeCoordinator {
 
     private TeamProject teamProject;
@@ -49,6 +52,8 @@ public class TeamProjectMergeCoordinator {
     private FileResourceCollection mainDir;
 
     private FileResourceCollection baseDir;
+
+    private List<Entry> mergedChanges;
 
     private TeamProjectMergeListener mergeListener;
 
@@ -68,6 +73,9 @@ public class TeamProjectMergeCoordinator {
         tempFileFactory.useTempSubdirectory("pdash-tmp");
         this.baseDir = makeCollection(tempFileFactory.createTempDirectory(
             "dir", ".tmp", true, true));
+
+        // create a list to record the changes that we have merged.
+        this.mergedChanges = new ArrayList();
 
         // populate the base branch with the starting contents of the main dir
         copyMainToBase();
@@ -96,6 +104,13 @@ public class TeamProjectMergeCoordinator {
         } else {
             return performMerge();
         }
+    }
+
+    public List<Entry> getMergedChanges(boolean clearList) {
+        List<Entry> result = new ArrayList<Entry>(mergedChanges);
+        if (clearList)
+            mergedChanges.clear();
+        return result;
     }
 
     public synchronized void acceptChangesInMain() throws IOException {
@@ -129,6 +144,7 @@ public class TeamProjectMergeCoordinator {
             mergeListener.mergeFinished();
         }
 
+        recordMergedChangeHistoryEntries();
         copyMainToBase();
         return merger;
     }
@@ -161,6 +177,24 @@ public class TeamProjectMergeCoordinator {
             FILENAMES);
     }
 
+    private void recordMergedChangeHistoryEntries() {
+        ChangeHistory baseChanges = new ChangeHistory(baseDir.getDirectory());
+        ChangeHistory mainChanges = new ChangeHistory(mainDir.getDirectory());
+
+        Entry lastBaseChange = baseChanges.getLastEntry();
+        if (lastBaseChange == null)
+            return;
+        String lastBaseChangeUid = lastBaseChange.getUid();
+
+        boolean sawLastBaseChange = false;
+        for (Entry mainChange : mainChanges.getEntries()) {
+            if (sawLastBaseChange)
+                mergedChanges.add(mainChange);
+            else if (mainChange.getUid().equals(lastBaseChangeUid))
+                sawLastBaseChange = true;
+        }
+    }
+
     /**
      * In a master project/subproject environment, the TeamProject object
      * automatically creates ImportDirectory objects for all of the
@@ -182,6 +216,7 @@ public class TeamProjectMergeCoordinator {
     }
 
     private static final List<String> FILENAMES = Arrays.asList(
+        WBSFilenameConstants.CHANGE_HISTORY_FILE, //
         TeamProject.SETTINGS_FILENAME, //
         TeamProject.USER_SETTINGS_FILENAME, //
         TeamProject.TEAM_LIST_FILENAME, //
