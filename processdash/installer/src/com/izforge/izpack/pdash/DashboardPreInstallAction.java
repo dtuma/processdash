@@ -72,14 +72,14 @@ public class DashboardPreInstallAction implements PanelAction,
             if (maxMem > halfOfMemory)
                 maxMem = (int) halfOfMemory;
 
-            // A 32-bit JVM will only be able to allocate 2GB of memory for
-            // the entire process.  This includes the all of the memory pools
-            // in the JVM (not just the heap).  If we can't tell that we're
-            // running in a 64-bit JVM, choose a conservative max heap size
-            // to ensure that we don't hit the limit.  (The 'conservative'
-            // number below was identified by experimentation with JRE1.7 on
-            // Windows 7.)
-            if (!"64".equals(System.getProperty("sun.arch.data.model")))
+            // Systems today may have a lot of memory - 4 or 6GB - and half
+            // of that value will still be excessive.  In addition, requesting
+            // half of 4GB would result in a process that exceeds the memory
+            // limitations of a 32-bit JVM.  Look at the type of system we are
+            // running, and choose a more conservative limit as appropriate.
+            if ("64".equals(System.getProperty("sun.arch.data.model")))
+                maxMem = Math.min(maxMem, 2000);
+            else
                 maxMem = Math.min(maxMem, 1400);
 
             return maxMem;
