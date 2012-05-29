@@ -1,4 +1,4 @@
-// Copyright (C) 2006 Tuma Solutions, LLC
+// Copyright (C) 2006-2012 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -23,6 +23,7 @@
 
 package net.sourceforge.processdash.data.compiler.function;
 
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -62,6 +63,19 @@ public class Globsearch extends AbstractFunction {
         } catch (Exception e) {}
 
         return result;
+    }
+
+    /** @since 1.14.5 */
+    public static Set<String> getTags(ListData taggedData) {
+        if (taggedData == null || taggedData.size() < 3)
+            return Collections.EMPTY_SET;
+
+        String tagPrefix = asString(taggedData.get(0));
+        if (!StringUtils.hasValue(tagPrefix))
+            return Collections.EMPTY_SET;
+
+        List tagList = taggedData.asList().subList(1, taggedData.size());
+        return GlobEngine.getTags(tagPrefix, tagList);
     }
 
 }
