@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Tuma Solutions, LLC
+// Copyright (C) 2002-2012 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -24,15 +24,20 @@
 package teamdash.templates.setup;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.Vector;
 
+import net.sourceforge.processdash.data.ListData;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.StringData;
+import net.sourceforge.processdash.data.compiler.function.Globsearch;
 import net.sourceforge.processdash.data.repository.DataEvent;
 import net.sourceforge.processdash.data.repository.DataListener;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.util.HTMLUtils;
+
+import org.json.simple.JSONArray;
 
 public class selectLabelFilter extends selectWBS {
 
@@ -49,9 +54,12 @@ public class selectLabelFilter extends selectWBS {
 
         String snippetDestUri = getParameter("destUri");
 
-        out.print("<html><head><title>Choose Label Filter</title>\n"
-                + "<link rel=stylesheet type='text/css' href='/style.css'>\n"
-                + "</head><body><h3>Choose Label Filter</h3>\n"
+        out.print("<html><head><title>Choose Label Filter</title>\n");
+        out.print(HTMLUtils.cssLinkHtml("/style.css"));
+        out.print(HTMLUtils.cssLinkHtml("autocomplete.css"));
+        out.print(HTMLUtils.scriptLinkHtml("/lib/prototype.js"));
+        out.print(HTMLUtils.scriptLinkHtml("/lib/scriptaculous.js"));
+        out.print("</head><body><h3>Choose Label Filter</h3>\n"
                 + "<p>You can filter the view of project metrics, defects, and "
                 + "earned value by selecting a label filter.  Only items from "
                 + "the work breakdown structure whose labels match the filter "
@@ -72,7 +80,7 @@ public class selectLabelFilter extends selectWBS {
                 projectRoot);
         if (currentFilter != null)
             out.print(HTMLUtils.escapeEntities(currentFilter));
-        out.print("'/></td></tr>\n");
+        out.print("' id='labelFilter'/></td></tr>\n");
         out.print("<tr><td></td><td>"
                 + "<input type='submit' name='apply' value='Apply Filter'/> "
                 + "<input type='submit' name='remove' value='Remove Filter'/>"
@@ -98,7 +106,35 @@ public class selectLabelFilter extends selectWBS {
                 + "copied to this project when you synchronize it to the WBS. "
                 + "To perform these operations, see the Team Project Tools "
                 + "and Settings page.</i></p>\n");
+        JSONArray labels = getDefinedLabelsArray(projectRoot);
+        if (!labels.isEmpty()) {
+            out.write("<div id='autocomplete' style='display:none'></div>\n");
+            out.write("<script language='JavaScript'>\n");
+            out.write("    var labels = "  + labels + ";\n");
+            out.write("    new Autocompleter.Local('labelFilter', "
+                    + "'autocomplete', labels, "
+                    + "{ tokens: ' |()-'.split(''), partialChars: 1 });\n");
+            out.write("</script>\n");
+        }
         out.print("</body></html>\n");
+    }
+
+    private JSONArray getDefinedLabelsArray(String projectRoot) {
+        String dataName = DataRepository.createDataName(projectRoot,
+            LABELS_DATA_NAME);
+        SimpleData labelsValue = getDataRepository().getSimpleValue(dataName);
+        ListData list = ListData.asListData(labelsValue);
+
+        JSONArray result = new JSONArray();
+        try {
+            result.addAll(Globsearch.getTags(list));
+            Collections.sort(result, String.CASE_INSENSITIVE_ORDER);
+        } catch (Throwable t) {
+            // the Globsearch.getTags() method was added in PD 1.14.5.  In
+            // earlier versions, this will throw an exception.  Gracefully
+            // degrade and diable autocompletion support.
+        }
+        return result;
     }
 
 
