@@ -38,6 +38,7 @@ import java.util.regex.Pattern;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.xml.sax.SAXException;
 
 import net.sourceforge.processdash.tool.diff.engine.FileAnalysisSet;
 import net.sourceforge.processdash.tool.diff.engine.FileToAnalyze;
@@ -222,10 +223,20 @@ public class SvnFileSet implements FileAnalysisSet {
         logger.fine("Processing log entries for revisions " + revisionsToTrack);
         String logRevisionRange = getLogRevisionRange();
         if (logRevisionRange != null) {
-            List<Element> logEntries = XMLUtils.xPathElems("/log/logentry", //
-                svn.execXml("log", "-v", "--xml", "-r", logRevisionRange));
-            for (Element oneLog : logEntries)
-                processLogEntry(oneLog);
+            try {
+                List<Element> logEntries = XMLUtils.xPathElems("/log/logentry", //
+                    svn.execXml("log", "-v", "--xml", "-r", logRevisionRange));
+                for (Element oneLog : logEntries)
+                    processLogEntry(oneLog);
+            } catch (IOException ioe) {
+                // If the given revision does not exist in this branch of the
+                // repository, svn will generate an error which is invalid XML.
+                // Detect this and return normally, without recording any diffs.
+                if (ioe.getCause() instanceof SAXException)
+                    return;
+                else
+                    throw ioe;
+            }
         }
 
         discardApparentDirectories();
