@@ -2471,8 +2471,13 @@ public class TaskScheduleDialog implements EVTask.Listener,
     }
 
     protected void toggleFlatView() {
+        boolean isCurrentlyFlat = (treeTable.getColumnModel() == flatColumnModel);
+        boolean shouldBeFlat = isFlatView();
+        if (shouldBeFlat == isCurrentlyFlat)
+            return;
+
         List<EVTask> selectedTasks = getSelectedTasks();
-        if (!isFlatView()) {
+        if (shouldBeFlat == false) {
             changeTreeTableModel(model, treeColumnModel);
             treeTable.setDragEnabled(false);
             treeTable.setSelectionMode(
