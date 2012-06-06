@@ -170,8 +170,8 @@ public class JTableColumnVisibilityAction extends AbstractAction {
         }
     }
 
-    public void saveColumnVisibility(Preferences prefs, TableColumnModel orig) {
-        TableColumnModel changed = table.getColumnModel();
+    public void saveColumnVisibility(Preferences prefs, TableColumnModel orig,
+            TableColumnModel changed) {
         for (TableColumn column : columnCache.values()) {
             Object id = column.getIdentifier();
             boolean inOrig = modelContainsColumn(orig, id);

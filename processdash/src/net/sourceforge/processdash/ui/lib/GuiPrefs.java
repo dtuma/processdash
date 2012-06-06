@@ -446,7 +446,7 @@ public class GuiPrefs {
             }
 
             if (visibility != null)
-                visibility.saveColumnVisibility(prefs, orig);
+                visibility.saveColumnVisibility(prefs, orig, cols);
         }
 
         private class ColPos implements Comparable<ColPos> {
