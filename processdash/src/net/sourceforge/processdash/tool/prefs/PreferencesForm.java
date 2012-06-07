@@ -35,6 +35,7 @@ import java.util.logging.Logger;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 
+import net.sourceforge.processdash.InternalSettings;
 import net.sourceforge.processdash.templates.TemplateLoader;
 import net.sourceforge.processdash.tool.prefs.editor.PreferencesCheckBox;
 import net.sourceforge.processdash.tool.prefs.editor.PreferencesDatasetEncodingconverter;
@@ -88,6 +89,8 @@ public class PreferencesForm extends BoundForm {
         addElementType(MANUAL_ENTRY_TAG, ManuallyEnteredPreferencesList.class);
         addElementType(DATASET_ENCODING_CONVERTER,
             PreferencesDatasetEncodingconverter.class);
+
+        put("os." + InternalSettings.getOSPrefix(), "true");
 
         selectCategory(category);
         panel.setLayout(new BorderLayout());

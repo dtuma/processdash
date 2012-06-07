@@ -54,6 +54,12 @@ preferences a category.
                   disabledIf="systemTray.disabled" />
     </grouping>
 
+    <checkbox id="useLargeFonts"
+              setting="userPref.useLargeFonts"
+              unlessPropIsSet="os.mac"
+              requiresRestart="true"
+              helpId="prefs.largeFonts" />
+
     <checkbox id="scriptButton.clickOpensDefault"
               setting="userPref.scriptButton.clickOpensDefault"
               helpId="AccessingScripts.clickOpensDefault" />

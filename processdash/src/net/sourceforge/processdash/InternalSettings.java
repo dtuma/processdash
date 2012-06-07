@@ -165,7 +165,7 @@ public class InternalSettings extends Settings {
         }
         settings.putAll(matchingValues);
     }
-    static String getOSPrefix() {
+    public static String getOSPrefix() {
         String os = System.getProperty("os.name").toLowerCase();
         if (os.indexOf("windows") != -1)
             return "windows";

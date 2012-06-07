@@ -113,6 +113,8 @@ public class JTreeTable extends JTable {
         if (tree.getRowHeight() < 1) {
             // Metal looks better like this.
             setRowHeight(18);
+        } else if (getRowHeight() > 1) {
+            setRowHeight(getRowHeight());
         }
     }
 
@@ -137,6 +139,10 @@ public class JTreeTable extends JTable {
 
             // Force the JTable and JTree to share their row selection models.
             tree.setSelectionModel(selectionWrapper);
+
+            // Set the row height to be the same as the table
+            if (getRowHeight() > 1)
+                tree.setRowHeight(getRowHeight());
         }
 
         // install the data model for the table.

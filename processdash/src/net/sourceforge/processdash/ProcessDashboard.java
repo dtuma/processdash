@@ -147,6 +147,7 @@ import net.sourceforge.processdash.ui.help.PCSH;
 import net.sourceforge.processdash.ui.lib.ErrorReporter;
 import net.sourceforge.processdash.ui.lib.ExceptionDialog;
 import net.sourceforge.processdash.ui.lib.JLinkLabel;
+import net.sourceforge.processdash.ui.lib.LargeFontsHelper;
 import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
 import net.sourceforge.processdash.ui.systray.SystemTrayManagement;
 import net.sourceforge.processdash.ui.web.psp.SizeEstimatingTemplate;
@@ -1655,6 +1656,8 @@ public class ProcessDashboard extends JFrame implements WindowListener,
     }
     private static void mainImpl(String[] args) {
         DashboardSecurity.setupSecurityManager();
+
+        LargeFontsHelper.maybeInitialize();
 
         ss = new DashboardSplashScreen();
         ss.displayFor(3000);      // show for at least 3 seconds.
