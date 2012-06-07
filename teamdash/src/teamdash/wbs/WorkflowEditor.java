@@ -119,8 +119,6 @@ public class WorkflowEditor implements MergeConflictHyperlinkHandler {
             (workflowModel.getWBSModel(), process.getIconMap(),
              process.getNodeTypeMenu());
         table.setModel(workflowModel);
-        // reset the row height, for proper display of wbs node icons.
-        table.setRowHeight(19);
         // don't allow reordering, since the text displayed in several of the
         // columns is meant to be read from left to right.
         table.getTableHeader().setReorderingAllowed(false);

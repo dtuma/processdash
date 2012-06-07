@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Tuma Solutions, LLC
+// Copyright (C) 2002-2012 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -119,7 +119,10 @@ public class WBSJTable extends JTable {
         wbsModel = model;
         taskIDSource = idSource;
 
-        setRowHeight(19);
+        if (getRowHeight() < 1)
+            setRowHeight(19);
+        else
+            setRowHeight(getRowHeight() + 3);
         buildCustomActionMaps();
 
         renderer = new WBSNodeRenderer(model, iconMap);

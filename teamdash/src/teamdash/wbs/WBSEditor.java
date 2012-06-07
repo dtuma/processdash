@@ -84,6 +84,7 @@ import net.sourceforge.processdash.tool.bridge.client.WorkingDirectoryFactory;
 import net.sourceforge.processdash.tool.export.mgr.ExternalLocationMapper;
 import net.sourceforge.processdash.ui.lib.ExceptionDialog;
 import net.sourceforge.processdash.ui.lib.GuiPrefs;
+import net.sourceforge.processdash.ui.lib.LargeFontsHelper;
 import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
 import net.sourceforge.processdash.util.DashboardBackupFactory;
 import net.sourceforge.processdash.util.FileUtils;
@@ -1421,6 +1422,8 @@ public class WBSEditor implements WindowListener, SaveListener,
             boolean bottomUp, boolean indivMode, String initials,
             boolean showTeamList, String syncURL, boolean exitOnClose,
             boolean forceReadOnly, String owner) {
+
+        LargeFontsHelper.maybeInitialize();
 
         String message = (showTeamList
                 ? "Opening Team Member List..."

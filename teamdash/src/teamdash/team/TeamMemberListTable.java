@@ -563,7 +563,7 @@ public class TeamMemberListTable extends JTable {
             regularFont = TeamMemberListTable.this.getFont();
             italicFont = regularFont.deriveFont(Font.ITALIC);
             Font smallFont = regularFont
-                    .deriveFont(regularFont.getSize2D() - 2);
+                    .deriveFont(Math.min(10, regularFont.getSize2D() - 2));
 
             outsideSchedule = new JPanel();
 
