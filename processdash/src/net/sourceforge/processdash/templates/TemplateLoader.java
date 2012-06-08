@@ -1,4 +1,4 @@
-// Copyright (C) 1998-2010 Tuma Solutions, LLC
+// Copyright (C) 1998-2012 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -67,6 +67,7 @@ import net.sourceforge.processdash.process.ScriptID;
 import net.sourceforge.processdash.process.ScriptNameResolver;
 import net.sourceforge.processdash.security.DashboardPermission;
 import net.sourceforge.processdash.templates.DashPackage.InvalidDashPackage;
+import net.sourceforge.processdash.tool.bridge.client.DirectoryPreferences;
 import net.sourceforge.processdash.ui.lib.ErrorReporter;
 import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.HTMLUtils;
@@ -433,6 +434,8 @@ public class TemplateLoader {
      * <LI>Next, look in any JAR files contained in that directory.
      * <LI>Next, look in any JAR files contained in the parent of that
      *     directory.
+     * <LI>If there is a Templates directory underneath the master application
+     *     directory, look there for the file, or for JARs containing the file.
      * <LI>If there is a Templates directory alongside the pspdash.jar file,
      *     look there, first for the file, then for JARs containing the file.
      * <LI>If there are any JAR files next to the pspdash.jar file, look in
@@ -454,6 +457,15 @@ public class TemplateLoader {
             StringTokenizer tok = new StringTokenizer(userSetting, ";");
             while (tok.hasMoreTokens())
                 addTemplateURLs(tok.nextToken(), result);
+        }
+
+        File appDir = DirectoryPreferences.getApplicationDirectory();
+        File appTemplateDir = new File(appDir, TEMPLATE_DIRNAME);
+        if (appTemplateDir.isDirectory()) {
+            try {
+                result.add(appTemplateDir.toURI().toURL());
+                scanDirForJarFiles(appTemplateDir, result);
+            } catch (MalformedURLException e) {}
         }
 
         String baseDir = getBaseDir();
