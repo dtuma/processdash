@@ -1,4 +1,4 @@
-// Copyright (C) 2004-2011 Tuma Solutions, LLC
+// Copyright (C) 2004-2012 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -82,7 +82,7 @@ public class DefectExporterXMLv1 implements DefectExporter,
             writeAttr(DEFECT_TYPE_ATTR, d.defect_type);
             writeAttr(INJECTED_ATTR, d.phase_injected);
             writeAttr(REMOVED_ATTR, d.phase_removed);
-            writeAttr(FIX_TIME_ATTR, d.fix_time);
+            writeAttr(FIX_TIME_ATTR, Float.toString(d.getFixTime()));
             writeAttr(FIX_DEFECT_ATTR, d.fix_defect);
             if (d.fix_count > 1)
                 writeAttr(FIX_COUNT_ATTR, Integer.toString(d.fix_count));

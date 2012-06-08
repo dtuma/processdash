@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2011 Tuma Solutions, LLC
+// Copyright (C) 2001-2012 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -26,7 +26,6 @@ package net.sourceforge.processdash.ui.web.reports.analysis;
 
 import java.io.IOException;
 import java.text.NumberFormat;
-import java.text.ParseException;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -331,12 +330,7 @@ public class Report3 extends AnalysisPage implements DefectAnalyzer.Task {
     public void analyze(String path, Defect d) {
         int inj = injectionCategories.indexOf(cleanPhase(d.phase_injected));
         int rem = removalCategories.indexOf(cleanPhase(d.phase_removed));
-        float fixtime = 0;
-        try {
-            fixtime = nf.parse(d.fix_time).floatValue();
-        } catch (ParseException e) {
-            System.out.println("Invalid defect fix time '"+d.fix_time+"'.");
-        }
+        float fixtime = d.getFixTime();
 
         if (inj != -1 && rem != -1) {
             count[inj][rem] += d.fix_count;

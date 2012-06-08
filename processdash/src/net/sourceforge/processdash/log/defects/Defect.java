@@ -1,4 +1,4 @@
-// Copyright (C) 1998-2011 Tuma Solutions, LLC
+// Copyright (C) 1998-2012 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -104,6 +104,74 @@ public class Defect implements Cloneable {
         return s;
     }
 
+    public float getFixTime() {
+        try {
+            return getFixTimeOrErr();
+        } catch (ParseException e) {
+            return 0;
+        }
+    }
+
+    public float getFixTimeOrErr() throws ParseException {
+        if (fixTimeIsEmpty())
+            return 0;
+
+        String timeStr = this.fix_time.trim();
+        int commaPos = timeStr.lastIndexOf(',');
+        if (commaPos == -1) {
+            // no comma implies plain java numeric format, eg 1234.5
+            try {
+                return Float.parseFloat(timeStr);
+            } catch (NumberFormatException nfe) {
+                throw new ParseException("Unparseable fix time: " + timeStr, 0);
+            }
+
+        } else if (commaPos + 2 == timeStr.length()) {
+            // European decimal format, eg "1.234,5"
+            return COMMA_FIX_TIME_FMT.parse(timeStr).floatValue();
+
+        } else {
+            // US decimal format, eg "1,234.5"
+            return DECIMAL_FIX_TIME_FMT.parse(timeStr).floatValue();
+        }
+    }
+
+    public String getLocalizedFixTime() {
+        try {
+            if (fixTimeIsEmpty())
+                return "";
+            else
+                return LOCAL_FIX_TIME_FMT.format(getFixTimeOrErr());
+        } catch (ParseException pe) {
+            return fix_time;
+        }
+    }
+
+    private String getFixTimeXmlStr() {
+        try {
+            if (fixTimeIsEmpty())
+                return "";
+            else
+                return Float.toString(getFixTimeOrErr());
+        } catch (ParseException pe) {
+            return fix_time;
+        }
+    }
+
+    private boolean fixTimeIsEmpty() {
+        return fix_time == null || fix_time.trim().length() == 0;
+    }
+
+    private static final NumberFormat DECIMAL_FIX_TIME_FMT = NumberFormat
+        .getNumberInstance(Locale.US);
+    private static final NumberFormat COMMA_FIX_TIME_FMT = NumberFormat
+        .getNumberInstance(Locale.FRANCE);
+    private static final NumberFormat LOCAL_FIX_TIME_FMT = NumberFormat
+        .getNumberInstance();
+    static {
+        LOCAL_FIX_TIME_FMT.setMaximumFractionDigits(1);
+    }
+
     public boolean needsXmlSaveFormat() {
         return fix_count > 1 || fix_pending;
     }
@@ -128,7 +196,7 @@ public class Defect implements Cloneable {
         ser.attribute(null, XML.DEFECT_TYPE_ATTR, xmlToken(defect_type));
         ser.attribute(null, XML.INJECTED_ATTR, xmlToken(phase_injected));
         ser.attribute(null, XML.REMOVED_ATTR, xmlToken(phase_removed));
-        ser.attribute(null, XML.FIX_TIME_ATTR, xmlToken(fix_time));
+        ser.attribute(null, XML.FIX_TIME_ATTR, xmlToken(getFixTimeXmlStr()));
         ser.attribute(null, XML.FIX_DEFECT_ATTR, xmlToken(fix_defect));
         ser.attribute(null, XML.DESCRIPTION_ATTR, xmlToken(description));
         if (fix_count > 1)

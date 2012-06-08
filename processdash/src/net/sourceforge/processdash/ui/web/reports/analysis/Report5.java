@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2011 Tuma Solutions, LLC
+// Copyright (C) 2001-2012 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -26,11 +26,13 @@ package net.sourceforge.processdash.ui.web.reports.analysis;
 
 
 import java.io.IOException;
-import java.text.NumberFormat;
-import java.text.ParseException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+
+import org.jfree.chart.ChartFactory;
+import org.jfree.chart.JFreeChart;
+import org.jfree.chart.plot.PlotOrientation;
 
 import net.sourceforge.processdash.data.DoubleData;
 import net.sourceforge.processdash.data.util.ResultSet;
@@ -43,10 +45,6 @@ import net.sourceforge.processdash.ui.web.reports.DiscChart;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.StringUtils;
 
-import org.jfree.chart.ChartFactory;
-import org.jfree.chart.JFreeChart;
-import org.jfree.chart.plot.PlotOrientation;
-
 
 
 public class Report5 extends CGIChartBase implements DefectAnalyzer.Task {
@@ -54,7 +52,6 @@ public class Report5 extends CGIChartBase implements DefectAnalyzer.Task {
     private static final Resources resources =
         Resources.getDashBundle("Analysis.Pareto");
     private static final String PATH_TO_REPORTS = AnalysisPage.PATH_TO_REPORTS;
-    private NumberFormat nf = NumberFormat.getNumberInstance();
 
     private static final int DEFECT_COUNT = 0;
     private static final int FIX_TIME = 1;
@@ -258,16 +255,11 @@ public class Report5 extends CGIChartBase implements DefectAnalyzer.Task {
     }
     /** Increment the data for a particular defect type */
     protected void increment(float [] row, float data) { row[0] += data; }
-    protected void increment(float [] row, String data) {
-        try {
-            increment(row, nf.parse(data).floatValue());
-        } catch (ParseException nfe) {}
-    }
 
     public void analyze(String path, Defect d) {
         switch (reportType) {
             case FIX_TIME:
-                increment(getRow(d.defect_type), d.fix_time);
+                increment(getRow(d.defect_type), d.getFixTime());
                 break;
 
             case DEFECT_COUNT:

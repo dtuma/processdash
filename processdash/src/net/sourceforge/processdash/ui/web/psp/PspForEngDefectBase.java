@@ -1,4 +1,4 @@
-// Copyright (C) 2009 Tuma Solutions, LLC
+// Copyright (C) 2009-2012 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -42,11 +42,7 @@ public abstract class PspForEngDefectBase extends PspForEngBase implements
     }
 
     protected double fixTime(Defect d) {
-        try {
-            return nf.parse(d.fix_time).doubleValue();
-        } catch (Exception e) {
-            return 0;
-        }
+        return d.getFixTime();
     }
 
 }

@@ -1,4 +1,4 @@
-// Copyright (C) 1999-2011 Tuma Solutions, LLC
+// Copyright (C) 1999-2012 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -472,7 +472,7 @@ public class DefectLogEditor extends Component implements
                 row [2] = dle.defect.defect_type;
                 row [3] = dle.defect.phase_injected;
                 row [4] = dle.defect.phase_removed;
-                row [5] = dle.defect.fix_time;
+                row [5] = dle.defect.getLocalizedFixTime();
                 row [6] = Integer.toString(dle.defect.fix_count);
                 row [7] = dle.defect.fix_defect;
                 row [8] = dle.defect.fix_pending ? "*" : "";
