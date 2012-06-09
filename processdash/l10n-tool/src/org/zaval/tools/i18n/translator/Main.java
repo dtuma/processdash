@@ -71,6 +71,12 @@ public class Main
       }
    }
    
+   public static void setDestDir(String destDir) {
+       if (!"".equals(destDir))
+           if (new File(destDir).isDirectory())
+               t.setDestDir(destDir);
+   }
+
    public static void setFilter(Comparator filter) {
        if (t != null)
            t.setTranslationNeededTester(filter);

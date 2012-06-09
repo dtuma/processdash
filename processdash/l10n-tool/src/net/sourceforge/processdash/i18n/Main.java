@@ -1,4 +1,4 @@
-// Copyright (C) 2007-2009 Tuma Solutions, LLC
+// Copyright (C) 2007-2012 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -33,6 +33,11 @@ public class Main {
     // one in net.sourceforge.processdash.i18n.OpenLocalizationToolAction
     public static final String RESOURCE_SEPARATOR = ";";
     
+    // The property that indicates the directory to place new files
+    // Warning : This constant must be syschronized with the
+    // one in net.sourceforge.processdash.i18n.OpenLocalizationToolAction
+    public static final String PROPERTY_RESOURCES_DEST_DIR = "translate.destDir";
+    
     // The property that indicates what URL to navigate to to access the help topic
     // Warning : This constant must be syschronized with the
     // one in net.sourceforge.processdash.i18n.OpenLocalizationToolAction
@@ -42,11 +47,14 @@ public class Main {
         String filenames = System.getProperty(PROPERTY_RESOURCES_TO_TRANSLATE);
         String[] packages = filenames.split(RESOURCE_SEPARATOR);
         
+        String destDir = System.getProperty(PROPERTY_RESOURCES_DEST_DIR);
+
         String helpURL = System.getProperty(PROPERTY_HELP_URL);
         
         try {
             org.zaval.tools.i18n.translator.BundleSet.setDefaultComparator(new TranslationSorter());
             org.zaval.tools.i18n.translator.Main.main(packages);
+            org.zaval.tools.i18n.translator.Main.setDestDir(destDir);
             org.zaval.tools.i18n.translator.Main.setFilter(new TranslationFilter());
             org.zaval.tools.i18n.translator.Main.setSaveListener(new TranslationsSavedListener());
             org.zaval.tools.i18n.translator.Main.setHelpListener(new TranslationHelpListener(helpURL));

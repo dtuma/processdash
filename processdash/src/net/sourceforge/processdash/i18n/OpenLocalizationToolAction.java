@@ -1,4 +1,4 @@
-// Copyright (C) 2007-2009 Tuma Solutions, LLC
+// Copyright (C) 2007-2012 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -39,6 +39,7 @@ import net.sourceforge.processdash.templates.ExtensionManager;
 import net.sourceforge.processdash.templates.TemplateLoader;
 import net.sourceforge.processdash.ui.Browser;
 import net.sourceforge.processdash.util.RuntimeUtils;
+import net.sourceforge.processdash.util.StringUtils;
 
 public class OpenLocalizationToolAction extends AbstractAction {
 
@@ -55,6 +56,11 @@ public class OpenLocalizationToolAction extends AbstractAction {
     // Warning : This constant must be syschronized with the
     // one in net.sourceforge.processdash.i18n.Main
     public static final String RESOURCE_SEPARATOR = ";";
+
+    // The property that indicates the directory to place new files
+    // Warning : This constant must be syschronized with the
+    // one in net.sourceforge.processdash.i18n.Main
+    public static final String PROPERTY_RESOURCES_DEST_DIR = "translate.destDir";
 
     // The property that indicates what URL to navigate to to access the help topic
     // Warning : This constant must be syschronized with the
@@ -105,7 +111,10 @@ public class OpenLocalizationToolAction extends AbstractAction {
         String[] propagatedArgs = RuntimeUtils.getPropagatedJvmArgs();
         cmd.addAll(Arrays.asList (propagatedArgs));
 
-        cmd.add("-D" + PROPERTY_RESOURCES_TO_TRANSLATE + "=" + getPackages());
+        String destDir = getDestDir();
+        cmd.add("-D" + PROPERTY_RESOURCES_DEST_DIR + "=" + destDir);
+
+        cmd.add("-D" + PROPERTY_RESOURCES_TO_TRANSLATE + "=" + getPackages(destDir));
 
         // The url that is used to accesss the help topics
         String helpURL = Browser.mapURL(HELP_URL);
@@ -146,12 +155,27 @@ public class OpenLocalizationToolAction extends AbstractAction {
     }
 
     /**
+     * Returns the directory where new translations should be saved
+     */
+    private String getDestDir() {
+        File templatesDir = TemplateLoader.getApplicationTemplateDir();
+        templatesDir.mkdirs();
+        if (templatesDir.isDirectory())
+            return templatesDir.getAbsolutePath();
+        else
+            return "";
+    }
+
+    /**
      * Returns a String containing all packages we want to translate,
      *  starting with the dashboardJar
      */
-    private String getPackages() {
+    private String getPackages(String appTemplateDirName) {
+        // add the application JAR file to the list, in position zero.
         StringBuffer packageFilenames = new StringBuffer(dashboardJar);
 
+        // scan other dashboard add-ons to see if they contain localizable
+        // resources.
         List packages = TemplateLoader.getPackages();
         for (Object p : packages) {
             DashPackage pkg = (DashPackage) p;
@@ -159,6 +183,21 @@ public class OpenLocalizationToolAction extends AbstractAction {
 
             if (filename != null && !filename.equals(dashboardJar) && pkg.localizable)
                 packageFilenames.append(RESOURCE_SEPARATOR + filename);
+        }
+
+        // Previously saved translations are not packaged as "official" add-ons.
+        // They do not contain a manifest, so they will not be picked up as
+        // packages by the loop above.  Look for these files and include them.
+        if (StringUtils.hasValue(appTemplateDirName)) {
+            File destDir = new File(appTemplateDirName);
+            File[] appTemplateFiles = destDir.listFiles();
+            if (appTemplateFiles != null) {
+                for (File f : appTemplateFiles) {
+                    String name = f.getName().toLowerCase();
+                    if (name.startsWith("pspdash_") && name.endsWith(".jar"))
+                        packageFilenames.append(RESOURCE_SEPARATOR + f.getPath());
+                }
+            }
         }
 
         return packageFilenames.toString();

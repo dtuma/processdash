@@ -31,6 +31,9 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import net.sourceforge.processdash.DashController;
 import net.sourceforge.processdash.ProcessDashboard;
@@ -167,6 +170,7 @@ public class DisplayConfig extends TinyCGIBase {
 
                     out.println("</tr>");
             }
+            maybePrintCustomTranslationPackages(brief);
             out.print("</TABLE>");
         }
 
@@ -181,6 +185,40 @@ public class DisplayConfig extends TinyCGIBase {
 
         out.println("</BODY></HTML>");
     }
+
+    private void maybePrintCustomTranslationPackages(boolean brief) {
+        maybePrintCustomTranslationPackages(installationDirectory, brief);
+        maybePrintCustomTranslationPackages(TemplateLoader
+                .getApplicationTemplateDir(), brief);
+    }
+    private void maybePrintCustomTranslationPackages(File dir, boolean brief) {
+        File[] dirFiles = (dir == null ? null : dir.listFiles());
+        if (dirFiles == null) return;
+
+        for (File f : dirFiles) {
+            Matcher m = TRANSLATION_FILENAME_PAT.matcher(f.getName());
+            if (m.matches()) {
+                String langCode = m.group(1);
+                Locale locale = new Locale(langCode);
+                String packageName = resources.format(
+                    "Add_On.Translations_FMT", locale.getDisplayLanguage());
+
+                out.print("<tr><td>");
+                out.print(HTMLUtils.escapeEntities(packageName));
+                out.print("</td><td> - </td>");
+
+                if (!brief) {
+                    String fn = cleanupFilename(f.getPath());
+                    out.print("<td>" + HTMLUtils.escapeEntities(fn) + "</td>");
+                }
+
+                out.println("</tr>");
+            }
+        }
+    }
+    private static final Pattern TRANSLATION_FILENAME_PAT = Pattern.compile(
+        "pspdash_(..).*jar", Pattern.CASE_INSENSITIVE);
+
 
     File dataDirectory;
     File installationDirectory;

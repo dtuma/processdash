@@ -427,6 +427,12 @@ implements TranslatorConstants
 
    void store(String lng, String fn)
    throws IOException
+   {
+       store(lng, fn, null);
+   }
+
+   void store(String lng, String fn, String destDir)
+   throws IOException
    {      
       LangItem lang = set.getLanguage(lng);
       if(fn==null) fn = lang.getLangFile();
@@ -440,8 +446,17 @@ implements TranslatorConstants
       }
 
       if(fn==null){
-         store(lng, "autosaved.properties");
+         store(lng, "autosaved.properties", destDir);
          return;
+      }
+
+      if (destDir != null) {
+          File f = new File(fn);
+          if (!f.exists()) {
+              f = new File(destDir, f.getName());
+              fn = f.getPath();
+              lang.setLangFile(fn);
+          }
       }
 
       if ( fn.endsWith( RES_EXTENSION ) )

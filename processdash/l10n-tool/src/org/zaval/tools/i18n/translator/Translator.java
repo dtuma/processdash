@@ -121,6 +121,7 @@ implements TranslatorConstants
 
     private Vector tabOrder = new Vector();
     private String destZipFile;
+    private String destDir;
     private ActionListener saveListener, helpListener;
 
     public Translator( SafeResourceBundle res )
@@ -765,7 +766,7 @@ implements TranslatorConstants
           if (!advancedMode && destZipFile != null)
              bundle.storeAllInZip(destZipFile);
           else
-             bundle.store(NATIVE_LANGUAGE, null);
+             bundle.store(NATIVE_LANGUAGE, null, destDir);
        }
        catch(Exception e){
           infoException(e);
@@ -1800,6 +1801,11 @@ implements TranslatorConstants
         }
         tree.requestFocus();
     }
+
+    public void setDestDir(String destDir) {
+        this.destDir = destDir;
+    }
+
     public void setTranslationNeededTester(Comparator translationNeededTester) {
         this.translationNeededTester = translationNeededTester;
         setAllIndicators();

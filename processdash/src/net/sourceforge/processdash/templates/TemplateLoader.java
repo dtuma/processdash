@@ -459,8 +459,7 @@ public class TemplateLoader {
                 addTemplateURLs(tok.nextToken(), result);
         }
 
-        File appDir = DirectoryPreferences.getApplicationDirectory();
-        File appTemplateDir = new File(appDir, TEMPLATE_DIRNAME);
+        File appTemplateDir = getApplicationTemplateDir();
         if (appTemplateDir.isDirectory()) {
             try {
                 result.add(appTemplateDir.toURI().toURL());
@@ -776,6 +775,15 @@ public class TemplateLoader {
 
         // we can't see much difference between the two files.  Just pick one.
         return a;
+    }
+
+    /**
+     * Return the master application template directory.
+     */
+    public static File getApplicationTemplateDir() {
+        File appDir = DirectoryPreferences.getApplicationDirectory();
+        File appTemplateDir = new File(appDir, TEMPLATE_DIRNAME);
+        return appTemplateDir;
     }
 
     /**
