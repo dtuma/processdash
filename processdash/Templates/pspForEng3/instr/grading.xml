@@ -313,7 +313,7 @@
 <parameters>
   <enum name="Range">
     <item>
-      <param name="Message">The defects you recorded translate to [Test/Defect Density] defects per KLOC, which is fairly low.  Did you record all of the defects you found?</param>
+      <param name="Message">The defects you recorded translate to [Defect Density] defects per KLOC, which is fairly low.  Did you record all of the defects you found?</param>
       <param name="MessageType">Warning</param>
       <param name="Number">30</param>
       <param name="Operator">LT</param>
