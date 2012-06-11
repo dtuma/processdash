@@ -561,6 +561,36 @@ public class TinyCGIBase implements TinyCGI {
     protected String getParameter(String name) {
         return (String) parameters.get(name);
     }
+    /**
+     * Return the base URL of the dashboard web server, as it was accessed
+     * during the HTTP request that invoked this script.  The result will
+     * include the protocol, the hostname, and the port.  It will not include
+     * a trailing slash.
+     * 
+     * Examples: http://localhost:2468 or http://somehostname:3000
+     * 
+     * @since 1.14.3.1
+     */
+    protected String getRequestURLBase() {
+        WebServer ws = getTinyWebServer();
+
+        // get the host that was used to make this request from the http headers
+        String fullHostAndPort = (String) env.get("HTTP_HOST");
+        if (StringUtils.hasValue(fullHostAndPort))
+            return "http://" + fullHostAndPort;
+
+        // if the http request did not contain a host header, reconstruct the
+        // host and port from other values at our disposal.
+        String host = (String) env.get("SERVER_ADDR");
+        if (!StringUtils.hasValue(host))
+            host = ws.getHostName(true);
+
+        // get the port number that the server is listening on
+        int port = ws.getPort();
+
+        // return the appropriate value
+        return "http://" + host + ":" + port;
+    }
     /** get the effective prefix, set via the URL */
     protected String getPrefix() {
         String result = (String) parameters.get("hierarchyPath");

@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2011 Tuma Solutions, LLC
+// Copyright (C) 2001-2012 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -396,10 +396,8 @@ public class EVReport extends CGIChartBase {
         return null;
     }
     private void writeUrlLine(String line) {
-        String host = getTinyWebServer().getHostName(true);
-        String port = (String) env.get("SERVER_PORT");
         String path = (String) env.get("PATH_INFO");
-        String newBase = host + ":" + port + path;
+        String newBase = getRequestURLBase() + path;
 
         // need to escape the result for quoted printable display. Since it's
         // a URL, the only unsafe character it might contain is the '=' sign.
@@ -407,7 +405,7 @@ public class EVReport extends CGIChartBase {
 
         // replace the generic host/path information in the URL with the
         // specific information we've built.
-        line = StringUtils.findAndReplace(line, "localhost:2468/++", newBase);
+        line = StringUtils.findAndReplace(line, "http://localhost:2468/++", newBase);
 
         while (line.length() > 76) {
             int pos = line.indexOf('=', 70);
