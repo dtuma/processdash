@@ -1099,7 +1099,8 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
     private void appendWorkflowNode(List dest, WBSNode node, int indentDelta) {
         node = (WBSNode) node.clone();
         node.setIndentLevel(node.getIndentLevel() + indentDelta);
-        node.setAttribute(WORKFLOW_SOURCE_IDS_ATTR, node.getUniqueID());
+        node.setAttribute(WORKFLOW_SOURCE_IDS_ATTR,
+            Integer.toString(node.getUniqueID()));
         dest.add(node);
     }
 
