@@ -1105,6 +1105,9 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
     }
 
     public void remapWorkflowSourceIDs(Map<Integer, Integer> idMap) {
+        if (idMap == null || idMap.isEmpty())
+            return;
+
         for (WBSNode node : this.wbsNodes) {
             String ids = (String) node.getAttribute(WORKFLOW_SOURCE_IDS_ATTR);
             if (ids != null && ids.length() > 0) {

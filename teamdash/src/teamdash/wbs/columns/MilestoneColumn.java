@@ -201,9 +201,11 @@ public class MilestoneColumn extends AbstractDataColumn implements
 
 
     public static void remapNodeIDs(WBSModel model, Map<Integer, Integer> idMap) {
-        remapNodeIDs(model.getRoot(), idMap);
-        for (WBSNode node : model.getDescendants(model.getRoot()))
-            remapNodeIDs(node, idMap);
+        if (idMap != null && !idMap.isEmpty()) {
+            remapNodeIDs(model.getRoot(), idMap);
+            for (WBSNode node : model.getDescendants(model.getRoot()))
+                remapNodeIDs(node, idMap);
+        }
     }
 
     private static void remapNodeIDs(WBSNode node, Map<Integer, Integer> idMap) {

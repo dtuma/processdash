@@ -309,9 +309,11 @@ public class TaskDependencyColumn extends AbstractDataColumn implements
 
     public static void remapNodeIDs(WBSModel model, String projectId,
             Map<Integer, Integer> idMap) {
-        String idPrefix = projectId + ":";
-        for (WBSNode node : model.getDescendants(model.getRoot()))
-            remapNodeIDs(idPrefix, node, idMap);
+        if (idMap != null && !idMap.isEmpty()) {
+            String idPrefix = projectId + ":";
+            for (WBSNode node : model.getDescendants(model.getRoot()))
+                remapNodeIDs(idPrefix, node, idMap);
+        }
     }
 
     private static void remapNodeIDs(String idPrefix, WBSNode node,
