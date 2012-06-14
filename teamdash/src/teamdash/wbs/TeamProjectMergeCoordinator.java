@@ -201,7 +201,7 @@ public class TeamProjectMergeCoordinator {
      * interrelated projects.  That is unnecessary for our purposes, so we
      * create this subclass which skips the ImportDirectory creation step.
      */
-    private static class QuickTeamProject extends TeamProject {
+    static class QuickTeamProject extends TeamProject {
 
         public QuickTeamProject(File directory, String projectName) {
             super(directory, projectName);
