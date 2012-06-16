@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2011 Tuma Solutions, LLC
+// Copyright (C) 2002-2012 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -55,6 +55,7 @@ import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.RuntimeUtils;
 import net.sourceforge.processdash.util.StringUtils;
 import net.sourceforge.processdash.util.XMLUtils;
+
 import teamdash.FilenameMapper;
 import teamdash.wbs.WBSEditor;
 
@@ -132,8 +133,19 @@ public class OpenWBSEditor extends TinyCGIBase {
             return null;
         if (uri.startsWith("http"))
             return uri;
-        WebServer ws = getTinyWebServer();
-        return "http://" + ws.getHostName(true) + ":" + ws.getPort() + uri;
+        return getRequestURLBase() + uri;
+    }
+
+    protected String getRequestURLBase() {
+        try {
+            return super.getRequestURLBase();
+        } catch (Throwable t) {
+            // this method will not be present in the superclass prior to
+            // dashboard 1.14.3.1.  If the method is not found, fall back to
+            // an earlier implementation of this logic.
+            WebServer ws = getTinyWebServer();
+            return "http://" + ws.getHostName(false) + ":" + ws.getPort();
+        }
     }
 
     private void openInProcess(String url, String directory) {
@@ -413,12 +425,9 @@ public class OpenWBSEditor extends TinyCGIBase {
     private void writeJnlpFile(String url, String directory) {
         out.print("Content-type: application/x-java-jnlp-file\r\n\r\n");
 
-        WebServer ws = getTinyWebServer();
         out.print("<?xml version='1.0' encoding='utf-8'?>\n");
-        out.print("<jnlp spec='1.0+' codebase='http://");
-        out.print(ws.getHostName(true));
-        out.print(":");
-        out.print(ws.getPort());
+        out.print("<jnlp spec='1.0+' codebase='");
+        out.print(getRequestURLBase());
         out.print("/'>\n");
 
         out.print("<information>\n");
@@ -433,7 +442,7 @@ public class OpenWBSEditor extends TinyCGIBase {
         int pos = path.lastIndexOf('/');
         String jarPath = path.substring(1, pos+1) + "TeamTools.jar";
         out.print("<resources>\n");
-        out.print("<j2se version='1.5+' initial-heap-size='2M' max-heap-size='200M'/>\n");
+        out.print("<j2se version='1.5+' initial-heap-size='2M' max-heap-size='800M'/>\n");
         out.print("<jar href='");
         out.print(jarPath);
         out.print("'/>\n");
