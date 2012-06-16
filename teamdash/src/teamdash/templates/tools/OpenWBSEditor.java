@@ -226,7 +226,7 @@ public class OpenWBSEditor extends TinyCGIBase {
         if (parameters.containsKey("team"))
             result.put("teamdash.wbs.showTeamMemberList", "true");
 
-        if (Settings.getBool("READ_ONLY", false)
+        if (Boolean.getBoolean("forceReadOnly")
                 || "true".equalsIgnoreCase(getParameter("forceReadOnly")))
             result.put("teamdash.wbs.readOnly", "true");
 
