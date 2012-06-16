@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2010 Tuma Solutions, LLC
+// Copyright (C) 2001-2012 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -115,6 +115,8 @@ public class WebServer implements ContentSource {
     private String startupTimestamp, startupTimestampHeader;
     private InheritableThreadLocal effectiveClientSocket =
         new InheritableThreadLocal();
+    private InheritableThreadLocal currentRequestEnvironment =
+        new InheritableThreadLocal();
 
     public static final String PROTOCOL = "HTTP/1.0";
     public static final String DEFAULT_TEXT_MIME_TYPE =
@@ -126,6 +128,7 @@ public class WebServer implements ContentSource {
     public static final String CGI_MIME_TYPE = "application/x-httpd-cgi";
     public static final String TIMESTAMP_HEADER = "Dash-Startup-Timestamp";
     public static final String PACKAGE_ENV_PREFIX = "Dash_Package_";
+    public static final String PARENT_ENV_KEY = "*Parent Request Environment*";
     public static final String CMS_URI_PREFIX = "cms/";
     public static final String CMS_SCRIPT_PATH = "dash/cms.link";
     public static final String LINK_SUFFIX = ".link";
@@ -302,6 +305,11 @@ public class WebServer implements ContentSource {
                 if (in  != null) in.close();
                 if (clientSocket != null) clientSocket.close();
             } catch (IOException ioe) {}
+
+            if (env != null) {
+                Object parentEnv = env.get(PARENT_ENV_KEY);
+                currentRequestEnvironment.set(parentEnv);
+            }
 
             headerOut = null;
             in = null;
@@ -676,6 +684,9 @@ public class WebServer implements ContentSource {
                         env.put(e.getKey(), e.getValue());
                 }
             }
+
+            env.put(PARENT_ENV_KEY, currentRequestEnvironment.get());
+            currentRequestEnvironment.set(env);
         }
 
         private class InetAddrHostName {

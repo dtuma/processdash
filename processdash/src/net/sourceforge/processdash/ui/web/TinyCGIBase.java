@@ -572,6 +572,7 @@ public class TinyCGIBase implements TinyCGI {
      * @since 1.14.3.1
      */
     protected String getRequestURLBase() {
+        Map env = getBaseEnvironment();
         WebServer ws = getTinyWebServer();
 
         // get the host that was used to make this request from the http headers
@@ -590,6 +591,16 @@ public class TinyCGIBase implements TinyCGI {
 
         // return the appropriate value
         return "http://" + host + ":" + port;
+    }
+    protected Map getBaseEnvironment() {
+        Map result = env;
+        while (true) {
+            Map parent = (Map) result.get(WebServer.PARENT_ENV_KEY);
+            if (parent == null)
+                return result;
+            else
+                result = parent;
+        }
     }
     /** get the effective prefix, set via the URL */
     protected String getPrefix() {
