@@ -1,4 +1,4 @@
-//Copyright (C) 2003-2010 Tuma Solutions, LLC
+//Copyright (C) 2003-2012 Tuma Solutions, LLC
 //Process Dashboard - Data Automation Tool for high-maturity processes
 //
 //This program is free software; you can redistribute it and/or
@@ -36,6 +36,7 @@ import java.util.Map;
 import java.util.Properties;
 
 import net.sourceforge.processdash.Settings;
+import net.sourceforge.processdash.data.ListData;
 import net.sourceforge.processdash.ev.ci.ConfidenceInterval;
 import net.sourceforge.processdash.ev.ci.ConfidenceIntervalProvider;
 import net.sourceforge.processdash.ev.ci.EVConfidenceIntervalUtils;
@@ -63,8 +64,9 @@ public abstract class EVCalculator {
         return evLeaves;
     }
 
-    protected void sortEVLeafList(List evLeaves) {
+    protected void sortEVLeafList(List<EVTask> evLeaves) {
         Collections.sort(evLeaves, new EVLeafComparator(evLeaves));
+        insertTasksWithinPspProcess(evLeaves);
     }
 
     private class EVLeafComparator implements Comparator {
@@ -106,6 +108,206 @@ public abstract class EVCalculator {
         public int hashCode() {
             return super.hashCode();
         }
+    }
+
+    protected void insertTasksWithinPspProcess(List<EVTask> evLeaves) {
+        List<EVTask> pspPostmortemTasks = findPspPostmortemPhaseTasks(evLeaves);
+        for (EVTask onePostmortemTask : pspPostmortemTasks)
+            maybeReorderTasksAfterPostmortemTask(evLeaves, onePostmortemTask);
+    }
+
+    private List<EVTask> findPspPostmortemPhaseTasks(List<EVTask> evLeaves) {
+        List<EVTask> result = new LinkedList<EVTask>();
+        for (EVTask oneLeaf : evLeaves) {
+            if (isPspPostmortemPhase(oneLeaf))
+                result.add(oneLeaf);
+        }
+        return result;
+    }
+
+    private boolean isPspPostmortemPhase(EVTask task) {
+        return (task.isLeaf() //
+                && "Postmortem".equals(task.getName()) //
+                && task.isNodeTypeImplicit() //
+                && "Postmortem".equals(task.getNodeType()) //
+
+                // Look to see if the parent task contains other PSP phases.
+                // But do not check for the review phases, since this could be
+                // a PSP0-PSP1.1 task. And do not check for Postmortem, because
+                // we already know that it is present.
+                && taskContainsChildren(task.getParent(), "Planning",
+                        "Design", "Code", "Compile", "Test"));
+    }
+
+    private boolean taskContainsChildren(EVTask parentTask,
+            String... childNames) {
+        if (parentTask == null)
+            return false;
+        for (String oneChildName : childNames) {
+            if (!taskContainsChildNamed(parentTask, oneChildName))
+                return false;
+        }
+        return true;
+    }
+
+    private boolean taskContainsChildNamed(EVTask parentTask, String childName) {
+        for (int i = parentTask.getNumChildren();  i-- > 0; ) {
+            if (childName.equals(parentTask.getChild(i).getName()))
+                return true;
+        }
+        return false;
+    }
+
+    private void maybeReorderTasksAfterPostmortemTask(List<EVTask> evLeaves,
+            EVTask onePmTask) {
+        // find this task within the ev leaf list.
+        int pmTaskPos = evLeaves.indexOf(onePmTask);
+        if (pmTaskPos == -1)
+            return;
+
+        // identify the EVTask which is the parent of the PSP task which
+        // contains this postmortem phase.
+        EVTask pspTask = onePmTask.getParent();
+        if (pspTask == null)
+            return;
+        EVTask parentOfPspTask = pspTask.getParent();
+        if (parentOfPspTask == null)
+            return;
+        int pspChildPos = parentOfPspTask.getChildIndex(pspTask);
+        if (pspChildPos == -1)
+            return;
+
+        // get a list of the official, acceptable phases in the controlling
+        // process definition.
+        ListData phaseListSpec = onePmTask.getAcceptableNodeTypes();
+        if (phaseListSpec == null || !phaseListSpec.test())
+            return;
+        List phaseList = phaseListSpec.asList();
+        int postmortemPos = phaseList.indexOf("Postmortem");
+        if (postmortemPos == -1)
+            return;
+
+        // find the tasks that immediately follow this postmortem task which
+        // are reordering candidates, and move them if applicable.
+        int planTaskOrdinal = pspTask.getChild(0).taskOrdinal;
+        int pmTaskOrdinal = onePmTask.taskOrdinal;
+        int lastTaskOrdinal = pmTaskOrdinal;
+        EVTask lastReorderedTask = null;
+        for (int i = pspChildPos; ++i < parentOfPspTask.getNumChildren(); ) {
+            // Examine each of the siblings that follows the PSP task.
+            EVTask oneSubsequentTask = parentOfPspTask.getChild(i);
+            int oneSubsequentTaskPos = evLeaves.indexOf(oneSubsequentTask);
+
+            // we only reorder leaf tasks.  If we find a child that is not a
+            // leaf task, break out of the reordering loop.
+            if (oneSubsequentTaskPos == -1)
+                break;
+
+            // if we find a task whose ordinal precedes the planning phase or
+            // follows the postmortem phase, we can be certain that the user
+            // has reordered that task at some time in the past.  In that case,
+            // stop searching for reorderable tasks.
+            if (oneSubsequentTask.taskOrdinal < planTaskOrdinal
+                    || oneSubsequentTask.taskOrdinal > pmTaskOrdinal)
+                break;
+
+            // tasks are only reorderable if they inherited their ordinal from
+            // the task that precedes them in the hierarchy.  If their ordinal
+            // differs, that implies that they were moved by the user at some
+            // time in the past. If so, don't try moving this task; but still
+            // keep looking at subsequent tasks to see if they need to be moved.
+            if (oneSubsequentTask.taskOrdinal == lastTaskOrdinal) {
+
+                // find the nominal position in the leaf list where this task
+                // should be inserted, based on its type.
+                int insertionPos = getInsertionPosWithinPspPhases(evLeaves,
+                    oneSubsequentTask, pmTaskPos, phaseList,
+                    lastReorderedTask);
+
+                // when the insertion pos routine returns -1, this is a flag
+                // that we should stop searching for reorderable tasks.
+                if (insertionPos == -1)
+                    break;
+
+                // If the task needs to be reordered, do it.
+                if (insertionPos != oneSubsequentTaskPos
+                        && insertionPos != oneSubsequentTaskPos + 1) {
+                    evLeaves.remove(oneSubsequentTaskPos);
+                    if (insertionPos > oneSubsequentTaskPos)
+                        insertionPos--;
+                    evLeaves.add(insertionPos, oneSubsequentTask);
+                    pmTaskPos = evLeaves.indexOf(onePmTask);
+                }
+            }
+
+            // Keep track of the last task and ordinal we've seen.
+            lastReorderedTask = oneSubsequentTask;
+            lastTaskOrdinal = oneSubsequentTask.taskOrdinal;
+        }
+    }
+
+    private int getInsertionPosWithinPspPhases(List<EVTask> evLeaves,
+            EVTask taskToReorder, int pmTaskPos, List phaseList,
+            EVTask lastReorderedTask) {
+        // get the type of this task, and find that type's numeric position
+        // within the official list of phases.
+        String taskType = taskToReorder.getNodeType();
+        int taskTypePos = phaseList.indexOf(taskType);
+        if (taskTypePos == -1)
+            return -1; // unrecognized phase type?  Abort.
+
+        // retrieve the numeric position of certain critical PSP phases.
+        int designPos = phaseList.indexOf("Design");
+        int testPos = phaseList.indexOf("Test");
+
+        // We DO NOT want to sort PSP Postmortem phases at the very end of the
+        // task list, after things like integration and system test.  To avoid
+        // this, we check to see if the type of the reorderable task follows
+        // the PSP unit test phase.  If so, do not reorder it.  (Note that we
+        // WILL consider reordering if it is a PSP unit test phase; this
+        // allows people to define several types of unit testing that they wish
+        // to perform.)
+        if (taskTypePos > testPos)
+            return -1;
+
+        // walk backward in the flat view for tasks preceding this task.
+        int insertAfterPos = pmTaskPos - 1;
+        while (insertAfterPos > 0) {
+            // examine a task in the task list to see if it should be a
+            // predecessor of the potentially reorderable task.
+            EVTask predecessorCandidate = evLeaves.get(insertAfterPos);
+
+            // reorderable tasks should not be reordered relative to each
+            // other.  if we encounter the previous task that was reordered,
+            // stop and insert this new task after it.
+            if (predecessorCandidate == lastReorderedTask)
+                return insertAfterPos + 1;
+
+            // if this predecessor has a type that precedes the type of
+            // the reorderable task in question, we should insert the
+            // reorderable task after this predecessor.
+            String predecessorType = predecessorCandidate.getNodeType();
+            int predecessorTypePos = phaseList.indexOf(predecessorType);
+            if (predecessorTypePos <= taskTypePos)
+                return insertAfterPos + 1;
+
+            // The PSP "Design" phase is immediately preceded by the "Planning"
+            // phase.  Tasks never need to be moved before the start of the PSP
+            // process itself; so the earliest that we will ever insert a task
+            // is immediately before "Design".  If our target predecessor
+            // already precedes "Design", we should stop our backward search.
+            if (predecessorTypePos < designPos)
+                return insertAfterPos + 1;
+
+            // It doesn't appear that we've found the insertion pos yet.
+            // Move backward in the list and keep searching.
+            insertAfterPos--;
+        }
+
+        // if our PSP task was the first item in a task list, the loop above
+        // could terminate just before reaching the initial planning phase.  In
+        // that case, we want to insert our task just after planning.
+        return 1;
     }
 
 
