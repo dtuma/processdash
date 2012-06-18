@@ -26,7 +26,6 @@ package net.sourceforge.processdash.ui.snippet;
 import java.awt.Component;
 import java.beans.PropertyChangeListener;
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
@@ -34,7 +33,7 @@ import java.util.Map;
 import org.xml.sax.SAXException;
 
 import net.sourceforge.processdash.i18n.Resources;
-import net.sourceforge.processdash.net.http.WebServer;
+import net.sourceforge.processdash.templates.TemplateLoader;
 import net.sourceforge.processdash.ui.lib.binding.BoundForm;
 import net.sourceforge.processdash.util.XMLUtils;
 
@@ -98,21 +97,9 @@ public class WidgetConfigurationHelper extends BoundForm {
     public WidgetConfigurationHelper(String specUri, Resources resources,
             PropertyChangeListener propListener, Map parameters,
             String... paramNames) {
-        this(parseDashboardTemplateUri(specUri), resources, propListener,
+        this(TemplateLoader.resolveURL(specUri), resources, propListener,
                 parameters, paramNames);
     }
-
-    private static URL parseDashboardTemplateUri(String specUri) {
-        try {
-            if (!specUri.startsWith("/"))
-                specUri = "/" + specUri;
-            return new URL(WebServer.DASHBOARD_PROTOCOL + ":" + specUri);
-        } catch (MalformedURLException e) {
-            throw new IllegalArgumentException(
-                    "Bad spec URI '" + specUri + "'", e);
-        }
-    }
-
 
     /**
      * @see ConfigurableSnippetWidget#getWidgetConfigurationPane()

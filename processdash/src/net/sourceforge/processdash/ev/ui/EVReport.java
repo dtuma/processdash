@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.io.Writer;
 import java.net.URI;
 import java.text.DateFormat;
@@ -1679,9 +1680,16 @@ public class EVReport extends CGIChartBase {
                         params.put("EXPORT", exportMarker);
                     else if (singleChartId == null)
                         params.put("href", getChartDrillDownUrl(chartId));
+
+                    // write the chart to an in-memory buffer. If any errors
+                    // occur, we will fall out to the exception handler.
+                    StringWriter buf = new StringWriter();
+                    ((HtmlEvChart) w).writeChartAsHtml(buf, environment, params);
+                    // The generation of the chart was successful.  Write out
+                    // the chart, surrounded by a DIV to control layout.
                     out.write("<div class='evChartItem' style='width:" + width
                             + "px; height:" + (height + 40) + "px'>");
-                    ((HtmlEvChart) w).writeChartAsHtml(out, environment, params);
+                    out.write(buf.toString());
                     out.write("</div>");
                 } else {
                     i.remove();
