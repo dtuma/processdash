@@ -132,6 +132,7 @@ undefine([Use_Rollup]);
         <!--#endfor-->
     <!--#else#-->
         [<!--#echo Phase_Name -->/Estimated_Defects_Injected_So_Far] =
+            [Before Development/Estimated_Defects Injected] +
             [<!--#echo Phase_Name -->/Estimated_Defects Injected];
         [<!--#echo Phase_Name -->/Estimated_Defects_Removed_So_Far] =
             [<!--#echo Phase_Name -->/Estimated_Defects Removed];
@@ -143,6 +144,7 @@ undefine([Use_Rollup]);
     <!--#endif-->
 
 <!--#endfor--><!--#endfor-->
+[Before Development/Estimated Defects Injected] == 0;
 
 
 /*
