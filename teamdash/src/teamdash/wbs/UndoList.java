@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Tuma Solutions, LLC
+// Copyright (C) 2002-2012 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -55,11 +55,11 @@ public class UndoList {
     public static final int MAX_LEVELS = 20;
 
     /** What is the minimum number of levels of undo to maintain? */
-    public static final int MIN_LEVELS = 2;
+    public static final int MIN_LEVELS = 4;
 
-    /** Discard undo states if they would cause us to retain less than this
-     * percentage of free memory */
-    public static final double FREE_MEM_RATIO = 0.3;
+    /** Discard undo states if they would cause us to use more than this
+     * percentage of the max available memory */
+    public static final double USED_MEM_RATIO = 0.7;
 
     /** The Undo/Redo Actions category */
     public static final String UNDO_ACTION_CATEGORY =
@@ -200,13 +200,16 @@ public class UndoList {
             return true;
         if (!memorySensitive)
             return false;
-        if (undoList.size() < MIN_LEVELS)
+        if (undoList.size()-1 < MIN_LEVELS)
             return false;
 
         Runtime.getRuntime().gc();
-        double memRatio = ((double) Runtime.getRuntime().freeMemory())
-                / Runtime.getRuntime().maxMemory();
-        return memRatio < FREE_MEM_RATIO;
+        long freeMemory = Runtime.getRuntime().freeMemory();
+        long totalMemory = Runtime.getRuntime().totalMemory();
+        long usedMemory = totalMemory - freeMemory;
+        long maxMemory = Runtime.getRuntime().maxMemory();
+        double memRatio = ((double) usedMemory) / maxMemory;
+        return memRatio > USED_MEM_RATIO;
     }
 
     /** Perform an undo operation. */
