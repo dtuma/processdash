@@ -80,7 +80,7 @@ public class SvnFile implements FileToAnalyzeSubtitled {
     /// Methods for modifying the revision history of this object
 
     protected void addVersion(SvnFileVersion v, boolean trackChanges) {
-        if (isDeleted())
+        if (isDeleted() && v != SvnEmptyFile.DELETED)
             throw new IllegalStateException(
                     "Cannot append version to deleted file");
 
