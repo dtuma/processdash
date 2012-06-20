@@ -1040,7 +1040,10 @@ public class WBSEditor implements WindowListener, SaveListener,
     }
 
     private boolean maybeSaveTeamMemberList() {
-        if (teamListEditor != null && teamListEditor.isVisible()) {
+        // If the WBS Editor frame and the Team Member List are both showing,
+        // save changes to the team member list before we save the WBS.
+        if (teamListEditor != null && teamListEditor.isVisible()
+                && frame.isVisible()) {
             teamListEditor.stopEditing();
             if (teamListEditor.isDirty() && teamListEditor.save() == false)
                 return false;
