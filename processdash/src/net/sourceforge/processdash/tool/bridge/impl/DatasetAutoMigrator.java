@@ -26,7 +26,9 @@ package net.sourceforge.processdash.tool.bridge.impl;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Frame;
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -51,6 +53,7 @@ import net.sourceforge.processdash.ui.lib.SwingWorker;
 import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.RobustFileOutputStream;
 import net.sourceforge.processdash.util.StringUtils;
+import net.sourceforge.processdash.util.VersionUtils;
 import net.sourceforge.processdash.util.lock.FileConcurrencyLock;
 import net.sourceforge.processdash.util.lock.LockFailureException;
 
@@ -160,6 +163,8 @@ public class DatasetAutoMigrator {
 
     private ResourceBundle resources;
 
+    private boolean enableOfflineMode;
+
     public DatasetAutoMigrator(BridgedWorkingDirectory workingDir,
             File sourceDir, DialogParentSource dps) {
         this.workingDir = workingDir;
@@ -232,6 +237,7 @@ public class DatasetAutoMigrator {
     private void migrateData() {
         try {
             ensureDirectoryIsNotInUse();
+            checkForOfflineModeSupport();
             copyDataFiles();
             updateSettings();
             flushWorkingData();
@@ -263,6 +269,41 @@ public class DatasetAutoMigrator {
         }
     }
 
+    private void checkForOfflineModeSupport() {
+        // when we migrate data into the enterprise server, the user will end
+        // up with two shortcuts: an old shortcut that launches the version of
+        // the dashboard that is installed on their local hard drive, and a
+        // new shortcut that dynamically downloads the application from the
+        // server.  Until they delete the old shortcut, they could possibly
+        // end up using it from time to time to open their data.  If their old
+        // version is older than 1.14.1, it will not understand the
+        // "Work Offline" logic; so to avoid problems we only want to put the
+        // dataset into offline mode if their installed version is 1.14.1 or
+        // higher.  The simplest way to detect this is to look at the log.txt
+        // file in the source directory; it will contain a line near the top
+        // of the file indicating the version number that was used the last
+        // time the data was opened.
+        try {
+            File logFile = new File(sourceDir, "log.txt");
+            BufferedReader in = new BufferedReader(new FileReader(logFile));
+            String line;
+            while ((line = in.readLine()) != null) {
+                int versionTokenPos = line.indexOf(VERSION_TOKEN);
+                if (versionTokenPos != -1) {
+                    String version = line.substring(versionTokenPos
+                            + VERSION_TOKEN.length()).trim();
+                    if (VersionUtils.compareVersions(version,
+                        MIN_OFFLINE_VERSION) >= 0)
+                        enableOfflineMode = true;
+                    break;
+                }
+            }
+        } catch (Exception e) {
+        }
+    }
+    private static final String VERSION_TOKEN = "Process Dashboard version ";
+    private static final String MIN_OFFLINE_VERSION = "1.14.1";
+
     private void copyDataFiles() throws IOException {
         // Copy all important data files from the source directory to the
         // working directory.
@@ -292,7 +333,8 @@ public class DatasetAutoMigrator {
         try {
             // Enable offline mode by default, because is most similar to the
             // mode of operation the user is accustomed to.
-            workingDir.setOfflineLockEnabled(true);
+            if (enableOfflineMode)
+                workingDir.setOfflineLockEnabled(true);
         } catch (Exception e) {
             // ignore exceptions. If the lock stays in online mode, that's OK.
         }
