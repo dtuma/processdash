@@ -116,11 +116,13 @@ implements CalculatedDataColumn, CustomEditedColumn {
         } else if (mainSizeUnitsColumn != -1) {
             // for non-leaf tasks, defer to the wisdom of the main
             // "Units" column.  If it comes up blank, try the default value.
-            Object result = WrappedValue.unwrap(dataModel.getValueAt(node,
-                mainSizeUnitsColumn));
-            if (valueIsEmpty(result))
+            Object result = dataModel.getValueAt(node, mainSizeUnitsColumn);
+            Object mainSizeUnits = WrappedValue.unwrap(result);
+            if (valueIsEmpty(mainSizeUnits))
                 result = getDefaultValue(node);
-            return new ReadOnlyValue(result);
+            if (!(result instanceof ReadOnlyValue))
+                result = new ReadOnlyValue(result);
+            return result;
 
         } else {
             // return null if we haven't been told the id of the

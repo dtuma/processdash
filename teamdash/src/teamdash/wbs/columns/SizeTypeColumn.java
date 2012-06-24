@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Tuma Solutions, LLC
+// Copyright (C) 2002-2012 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -28,7 +28,10 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.Map;
 
+import teamdash.wbs.CalculatedDataColumn;
 import teamdash.wbs.DataTableModel;
+import teamdash.wbs.HtmlRenderedValue;
+import teamdash.wbs.NumericDataValue;
 import teamdash.wbs.ReadOnlyValue;
 import teamdash.wbs.TeamProcess;
 import teamdash.wbs.WBSNode;
@@ -41,7 +44,8 @@ import teamdash.wbs.WBSNode;
  *     size-related columns
  * </ul>
  */
-public class SizeTypeColumn extends AbstractDataColumn {
+public class SizeTypeColumn extends AbstractDataColumn implements
+        CalculatedDataColumn {
 
     /** The ID we use for this column in the data model */
     static final String COLUMN_ID = "Size-Units";
@@ -52,6 +56,8 @@ public class SizeTypeColumn extends AbstractDataColumn {
     /** Maps node types to related size units */
     private Map sizeMetrics;
 
+    /** the column that is holding the new & changed LOC value */
+    private int locSizeColumn = -1;
 
     private DataTableModel dataModel;
 
@@ -60,8 +66,23 @@ public class SizeTypeColumn extends AbstractDataColumn {
         this.sizeMetrics = sizeMetrics;
         this.columnID = COLUMN_ID;
         this.columnName = "Units";
+        this.dependentColumns = new String[] {
+                SizeAccountingColumnSet.getNCID("LOC") };
     }
 
+
+    @Override
+    public void resetDependentColumns() {
+        locSizeColumn = -1;
+    }
+
+    public void storeDependentColumn(String ID, int columnNumber) {
+        locSizeColumn = columnNumber;
+    }
+
+    public boolean recalculate() {
+        return false;
+    }
 
     public boolean isCellEditable(WBSNode node) {
         return sizeMetrics.get(node.getType()) == null;
@@ -72,9 +93,39 @@ public class SizeTypeColumn extends AbstractDataColumn {
         Object result = sizeMetrics.get(node.getType());
         if (result == null)
             result = node.getAttribute(ATTR_NAME);
-        else
+        else {
+            if (shouldHide(node.getType(), result, node))
+                result = new HtmlRenderedValue(result, "");
             result = new ReadOnlyValue(result);
+        }
         return result;
+    }
+
+
+    private boolean shouldHide(String type, Object units, WBSNode node) {
+        // only hide the "LOC" size units moniker
+        if (!"LOC".equals(units))
+            return false;
+
+        // only hide LOC for the project and the generic "Component" type
+        if (!"Project".equals(type) && !"Component".equals(type))
+            return false;
+
+        // if we don't know the position of the LOC size column, abort.
+        if (locSizeColumn == -1)
+            return false;
+
+        // If a nonzero LOC value is present, don't hide the LOC moniker
+        Object locSizeVal = dataModel.getValueAt(node, locSizeColumn);
+        double locSize = NumericDataValue.parse(locSizeVal);
+        if (locSize > 0)
+            return false;
+
+        // we apparently have a "Project" or "Component" type with no real
+        // LOC attached. Hide the "LOC" moniker.  This reduces confusion for
+        // non-software teams who don't understand LOC, but who constantly
+        // make use of the generic "Component" type.
+        return true;
     }
 
 
