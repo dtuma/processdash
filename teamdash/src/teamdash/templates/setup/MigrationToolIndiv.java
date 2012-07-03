@@ -682,7 +682,7 @@ public class MigrationToolIndiv {
 
         List<String> cmd = new ArrayList<String>();
         cmd.add(RuntimeUtils.getJreExecutable());
-        cmd.add("-Xmx200m");
+        cmd.add("-Xmx800m");
         cmd.add("-jar");
         cmd.add(RuntimeUtils.getClasspathFile(ProcessDashboard.class).getPath());
         String[] cmdLine = cmd.toArray(new String[cmd.size()]);
