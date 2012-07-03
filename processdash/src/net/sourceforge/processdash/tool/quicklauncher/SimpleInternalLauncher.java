@@ -27,6 +27,7 @@ import java.awt.Component;
 import java.io.File;
 
 import net.sourceforge.processdash.Settings;
+import net.sourceforge.processdash.util.RuntimeUtils;
 
 public class SimpleInternalLauncher {
 
@@ -70,8 +71,11 @@ public class SimpleInternalLauncher {
             if (userLang != null)
                 processFactory.addVmArg("-Duser.language=" + userLang);
 
-            int maxMem = Settings.getInt("maxMemory", 200);
-            processFactory.addVmArg("-Xmx" + maxMem + "M");
+            int maxMem = Settings.getInt("maxMemory", -1);
+            if (maxMem > 0)
+                processFactory.addVmArg("-Xmx" + maxMem + "M");
+            else
+                processFactory.addVmArg(RuntimeUtils.getJvmHeapArg());
         }
 
         return processFactory;
