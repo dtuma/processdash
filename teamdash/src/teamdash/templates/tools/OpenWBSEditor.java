@@ -375,13 +375,13 @@ public class OpenWBSEditor extends TinyCGIBase {
             if ("64".equals(System.getProperty("sun.arch.data.model")))
                 result = Math.min(halfOfMemory, 2000);
             else
-                result = Math.min(halfOfMemory, 1400);
+                result = Math.min(halfOfMemory, 1000);
 
             return result;
         } catch (Throwable t) {
             // If we are not running in a Sun JVM, the code above will fail.
             // In that case, use a conservative threshhold.
-            return 500;
+            return 800;
         }
     }
 
