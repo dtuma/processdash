@@ -23,6 +23,7 @@
 
 package teamdash.wbs.columns;
 
+import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.util.PatternList;
 
 import teamdash.merge.ui.MergeConflictNotification;
@@ -34,6 +35,9 @@ import teamdash.wbs.WBSNode;
  */
 public abstract class AbstractDataColumn implements IndexAwareDataColumn,
         ConflictCapableDataColumn {
+
+    public static final Resources resources = Resources
+            .getDashBundle("WBSEditor.Columns");
 
     /** The value of this field will be returned as the column ID */
     protected String columnID;

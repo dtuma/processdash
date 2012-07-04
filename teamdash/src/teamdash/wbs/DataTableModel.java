@@ -41,6 +41,7 @@ import javax.swing.table.TableColumnModel;
 
 import teamdash.team.TeamMemberList;
 import teamdash.wbs.columns.CustomColumnManager;
+import teamdash.wbs.columns.ErrorNotesColumn;
 import teamdash.wbs.columns.LabelSource;
 import teamdash.wbs.columns.MilestoneColumn;
 import teamdash.wbs.columns.NotesColumn;
@@ -348,6 +349,7 @@ public class DataTableModel extends AbstractTableModel {
         addDataColumn(new TaskDependencyColumn(this, dependencySource,
                 teamProcess.getIconMap()));
         addDataColumn(new NotesColumn(currentUser));
+        addDataColumn(new ErrorNotesColumn(currentUser));
         addDataColumn(new PlanTimeWatcher(this));
         customColumnManager = new CustomColumnManager(this, teamProcess
                 .getProcessID());

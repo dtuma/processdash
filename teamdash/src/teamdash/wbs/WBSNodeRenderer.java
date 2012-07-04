@@ -37,6 +37,7 @@ import javax.swing.table.DefaultTableCellRenderer;
 
 import net.sourceforge.processdash.util.HTMLUtils;
 
+import teamdash.wbs.columns.ErrorNotesColumn;
 import teamdash.wbs.columns.NotesColumn;
 import teamdash.wbs.columns.PercentCompleteColumn;
 
@@ -74,6 +75,9 @@ public class WBSNodeRenderer extends DefaultTableCellRenderer {
         (JTable table, Object value, boolean isSelected,
          boolean hasFocus, int row, int column)
     {
+        // clear the background color
+        setBackground(null);
+
         WBSNode node = (WBSNode) value;
         if (node == null)
             return super.getTableCellRendererComponent(table, null, isSelected,
@@ -117,7 +121,14 @@ public class WBSNodeRenderer extends DefaultTableCellRenderer {
         } else {
             result.setFont(getFont(false, result));
             result.setForeground(node.isReadOnly() ? Color.gray : Color.black);
-            nameToolTip = NotesColumn.getTooltipAt(node, false);
+            String errorNotesTip = ErrorNotesColumn.getTooltipAt(node, false);
+            if (errorNotesTip != null) {
+                setBackground(isSelected ? ERROR_NOTE_SELECTED_BACKGROUND
+                        : ERROR_NOTE_BACKGROUND);
+                nameToolTip = errorNotesTip;
+            } else {
+                nameToolTip = NotesColumn.getTooltipAt(node, false);
+            }
         }
 
         return result;
@@ -157,7 +168,7 @@ public class WBSNodeRenderer extends DefaultTableCellRenderer {
         else if (delta > -ICON_HORIZ_SPACING)
             return iconToolTip;
         else
-            return null;
+            return nameToolTip;
     }
 
 
@@ -255,4 +266,7 @@ public class WBSNodeRenderer extends DefaultTableCellRenderer {
     }
     /** static shared instance of a PlusIcon */
     static Icon PLUS_ICON = new PlusIcon();
+
+    private static Color ERROR_NOTE_BACKGROUND = new Color(255, 200, 200);
+    private static Color ERROR_NOTE_SELECTED_BACKGROUND = new Color(216, 175, 194);
 }

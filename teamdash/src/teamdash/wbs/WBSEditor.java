@@ -105,22 +105,23 @@ import teamdash.SaveListener;
 import teamdash.merge.ui.MergeConflictDialog;
 import teamdash.merge.ui.MergeConflictNotification.ModelType;
 import teamdash.team.TeamMember;
-import teamdash.team.TeamMemberListEditor;
 import teamdash.team.TeamMemberList.InitialsListener;
+import teamdash.team.TeamMemberListEditor;
 import teamdash.wbs.ChangeHistory.Entry;
 import teamdash.wbs.WBSTabPanel.LoadTabsException;
 import teamdash.wbs.columns.CustomColumnManager;
+import teamdash.wbs.columns.ErrorNotesColumn;
 import teamdash.wbs.columns.PercentCompleteColumn;
 import teamdash.wbs.columns.PercentSpentColumn;
 import teamdash.wbs.columns.PlanTimeWatcher;
+import teamdash.wbs.columns.PlanTimeWatcher.PlanTimeDiscrepancyEvent;
+import teamdash.wbs.columns.PlanTimeWatcher.PlanTimeDiscrepancyListener;
 import teamdash.wbs.columns.SizeAccountingColumnSet;
 import teamdash.wbs.columns.SizeActualDataColumn;
 import teamdash.wbs.columns.TeamActualTimeColumn;
 import teamdash.wbs.columns.TeamCompletionDateColumn;
 import teamdash.wbs.columns.TeamTimeColumn;
 import teamdash.wbs.columns.UnassignedTimeColumn;
-import teamdash.wbs.columns.PlanTimeWatcher.PlanTimeDiscrepancyEvent;
-import teamdash.wbs.columns.PlanTimeWatcher.PlanTimeDiscrepancyListener;
 
 public class WBSEditor implements WindowListener, SaveListener,
         LockMessageHandler, WBSFilenameConstants {
@@ -315,8 +316,9 @@ public class WBSEditor implements WindowListener, SaveListener,
 
         tabPanel.addTab("Task Details",
                 new String[] { "Milestone", "Labels", WBSTabPanel.CUSTOM_COLUMNS_ID,
-                               "Dependencies", "Notes" },
-                new String[] { "Milestone", "Task Labels", "", "Task Dependencies", "Notes" });
+                               "Dependencies", "Notes", ErrorNotesColumn.COLUMN_ID },
+                new String[] { "Milestone", "Task Labels", "", "Task Dependencies",
+                               "Notes", null });
 
         if (showActualData)
             tabPanel.addTab("Actual Time",
@@ -816,15 +818,21 @@ public class WBSEditor implements WindowListener, SaveListener,
         if (isMode(MODE_PLAIN))
             result.add(new ShowTeamMemberListEditorMenuItem());
 
-        if (initials != null && !readOnly) {
-            TeamMember m = teamProject.getTeamMemberList().findTeamMember(
-                initials);
-            if (m != null) {
+        TeamMember m = null;
+        if (initials != null)
+            m = teamProject.getTeamMemberList().findTeamMember(initials);
+        if (m != null) {
+            if (!readOnly) {
                 WatchCoworkerTimesMenuItem watchMenu =
                     new WatchCoworkerTimesMenuItem(dataModel);
                 result.add(new OptimizeEditingForIndivMenuItem(m, watchMenu));
                 result.add(watchMenu);
             }
+
+            // make nodes visible if they have a data problem and they are
+            // assigned to this user
+            ErrorNotesColumn.showNodesWithErrors(teamProject.getWBS(),
+                null, new AssignedToMemberTest(dataModel, m));
         }
 
         result.add(new ShowTeamTimePanelMenuItem());
