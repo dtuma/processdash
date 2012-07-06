@@ -97,10 +97,7 @@ public class WorkflowEditor implements MergeConflictHyperlinkHandler {
     }
 
     public void stopEditing() {
-        if (table.isEditing())
-            // stop editing the current table cell.
-            table.getCellEditor().stopCellEditing();
-        UndoList.stopCellEditing(table);
+        table.stopCellEditing();
     }
 
     public boolean displayHyperlinkedItem(String item) {

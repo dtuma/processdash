@@ -100,10 +100,7 @@ public class MilestonesEditor implements MergeConflictHyperlinkHandler {
     }
 
     public void stopEditing() {
-        if (table.isEditing())
-            // stop editing the current table cell.
-            table.getCellEditor().stopCellEditing();
-        UndoList.stopCellEditing(table);
+        table.stopCellEditing();
     }
 
     public boolean displayHyperlinkedItem(String item) {
@@ -186,6 +183,8 @@ public class MilestonesEditor implements MergeConflictHyperlinkHandler {
             IconFactory.getCopyMilestoneIcon()));
         addToolbarButton(tweakAction(table.PASTE_ACTION, "Paste Milestones",
             IconFactory.getPasteMilestoneIcon()));
+        addToolbarButton(table.MOVEUP_ACTION);
+        addToolbarButton(table.MOVEDOWN_ACTION);
         addToolbarButton(table.DELETE_ACTION);
         toolBar.addSeparator();
         addToolbarButton(new SortMilestonesAction());

@@ -250,8 +250,7 @@ public class WBSJTable extends JTable {
             return false;
 
         // stop any editing session that might be in progress
-        if (isEditing()) getCellEditor().stopCellEditing();
-        UndoList.stopCellEditing(this);
+        stopCellEditing();
 
         // ensure that the node in question is visible, and retrieve its row
         int row = wbsModel.makeVisible(node);
@@ -261,6 +260,16 @@ public class WBSJTable extends JTable {
         // select the row for the node in question, and scroll to it
         selectRows(new int[] { row }, true);
         return true;
+    }
+
+    /**
+     * Stop any editing session that might be in progress, saving the changes.
+     * If no editing session is in progress, this method will have no effect.
+     */
+    public void stopCellEditing() {
+        if (isEditing())
+            getCellEditor().stopCellEditing();
+        UndoList.stopCellEditing(this);
     }
 
 
@@ -1412,6 +1421,9 @@ public class WBSJTable extends JTable {
             int[] rows = getSelectedRows();
             if (!isParentAndChildren(rows)) return;
 
+            // stop editing the current cell.
+            stopCellEditing();
+
             WBSNode node = wbsModel.getNodeForRow(rows[0]);
             int[] finalRows = wbsModel.moveNodeUp(node);
             if (finalRows != null) {
@@ -1445,6 +1457,9 @@ public class WBSJTable extends JTable {
             // get a list of the currently selected rows.
             int[] rows = getSelectedRows();
             if (!isParentAndChildren(rows)) return;
+
+            // stop editing the current cell.
+            stopCellEditing();
 
             WBSNode node = wbsModel.getNodeForRow(rows[0]);
             int[] finalRows = wbsModel.moveNodeDown(node);
