@@ -42,6 +42,7 @@
   <mapID target="TeamIndivPlans" url="Topics/CreateMemberPlans.html" />
   <mapID target="TeamBottomUp" url="Topics/ViewBottomUpPlan.html" />
   <mapID target="TeamQualityPlan" url="Topics/CreateQualityPlan.html" />
+  <mapID target="TeamAlternativePlans" url="Topics/AlternativePlans.html" />
   <mapID target="TeamLaunchSnapshot" url="Topics/SaveLaunchSnapshot.html" />
   <mapID target="TeamEditWBS" url="Topics/EditingTheWBS.html" />
   <mapID target="TeamInsertWorkflow" url="Topics/InsertingWorkflows.html" />

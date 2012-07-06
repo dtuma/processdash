@@ -61,6 +61,8 @@
                               image="PageIcon" target="TeamBottomUp" />
          <tocitem text="Quality Plan"
                               image="PageIcon" target="TeamQualityPlan" />
+         <tocitem text="Alternative Plans"
+                              image="PageIcon" target="TeamAlternativePlans" />
          <tocitem text="Save Backup"
                               image="PageIcon" target="TeamLaunchSnapshot" />
          <tocitem text="Editing the WBS"
