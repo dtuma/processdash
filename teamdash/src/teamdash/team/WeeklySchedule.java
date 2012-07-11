@@ -88,8 +88,10 @@ public class WeeklySchedule implements EffortCalendar {
             if (attr.startsWith(EXCEPTION_TAG)) {
                 String weekStr = attr.substring(EXCEPTION_TAG.length()+1);
                 int weekNum = Integer.parseInt(weekStr);
-                double time = (Double) e.getValue();
-                addException(weekNum, time);
+                if (e.getValue() instanceof Double) {
+                    double time = (Double) e.getValue();
+                    addException(weekNum, time);
+                }
             }
         }
     }
