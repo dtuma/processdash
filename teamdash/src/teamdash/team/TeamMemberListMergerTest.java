@@ -364,6 +364,25 @@ public class TeamMemberListMergerTest extends TestCase {
         assertTrue(merge.getChangesNeededToMainInitials().isEmpty());
     }
 
+    public void testExceptionRemoval() {
+        TeamMemberList base = loadTeam("mergeTestData1");
+        TeamMemberList a = new TeamMemberList(base);
+        TeamMemberList b = new TeamMemberList(base);
+
+        TeamMember atm = a.get(0);
+        TeamMember btm = b.get(0);
+        WeeklySchedule btms = btm.getSchedule();
+
+        atm.setName("New A Name");
+        btms.removeException(4);
+
+        TeamMemberListMerger merge = new TeamMemberListMerger(base, a, b);
+        TeamMember mtm = merge.getMerged().get(0);
+        assertEquals("New A Name", mtm.getName());
+        WeekData weekData = mtm.getSchedule().getWeekData(4);
+        assertEquals(WeekData.TYPE_DEFAULT, weekData.getType());
+    }
+
 
     private static void assertEquals(TeamMember expected, TeamMember actual) {
         assertEquals(expected.getId(), actual.getId());
