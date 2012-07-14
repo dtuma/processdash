@@ -1280,13 +1280,49 @@ public class EVSchedule implements TableModel {
         return true;
     }
 
-    protected int findIndexOfFinalPlannedPeriod() {
+    protected int findIndexOfFinalPlanValuePeriod() {
+        return Math.min(findIndexOfFinalPeriodWithPlannedTime(),
+            findIndexOfPlannedCompletionPeriod());
+    }
+
+    protected int findIndexOfFinalPlanTimePeriod() {
+        int extendToPeriod = findIndexOfActualCompletionPeriod();
+        if (extendToPeriod == -1)
+            extendToPeriod = effectivePeriod;
+        return Math.max(extendToPeriod, findIndexOfFinalPlanValuePeriod());
+    }
+
+    protected int findIndexOfFinalPeriodWithPlannedTime() {
         for (int i = periods.size();   i-- > 1; ) {
             Period p = get(i);
             if (p != null && p.getPlanDirectTime() > 0)
                 return i;
         }
         return 1;
+    }
+
+    protected int findIndexOfPlannedCompletionPeriod() {
+        // get the total amount of planned value in the schedule.  Subtract a
+        // small "fuzz factor" amount to simplify floating point comparisons
+        double totalPlanValueCutoff = metrics.totalPlanTime - 0.05;
+        for (int i = 1; i < periods.size(); i++) {
+            Period p = get(i);
+            if (p != null && p.getCumPlanValue() > totalPlanValueCutoff)
+                return i;
+        }
+        return periods.size() - 1;
+    }
+
+    protected int findIndexOfActualCompletionPeriod() {
+        // get the total amount of planned value in the schedule.  Subtract a
+        // small "fuzz factor" amount to simplify floating point comparisons
+        double totalPlanValueCutoff = metrics.totalPlanTime - 0.05;
+        for (int i = 1; i < periods.size(); i++) {
+            Period p = get(i);
+            if (p != null && p.getCumEarnedValue() > totalPlanValueCutoff)
+                return i;
+        }
+        return -1;
     }
 
     /** examines two different dates to see if one is in daylight
@@ -1701,9 +1737,6 @@ public class EVSchedule implements TableModel {
         public String getSeriesKey() {
             return (isBaseline ? "Baseline" : "Plan");
         }
-        public int getItemCount() {
-            return findIndexOfFinalPlannedPeriod()+1;
-        }
         public Number getX(int itemIndex) {
             return new Long(get(itemIndex).endDate.getTime()); }
     }
@@ -1796,6 +1829,8 @@ public class EVSchedule implements TableModel {
     }
 
     private class PlanTimeSeries extends PlanChartSeries {
+        public int getItemCount() {
+            return findIndexOfFinalPlanTimePeriod() + 1; }
         public Number getY(int itemIndex) {
             return new Double(get(itemIndex).cumPlanDirectTime / 60.0); } }
     private XYChartSeries getBaselineTimeSeries() {
@@ -1853,6 +1888,8 @@ public class EVSchedule implements TableModel {
     private class PlanValueSeries extends PlanChartSeries {
         double mult;
         PlanValueSeries(double m) { mult = m; }
+        public int getItemCount() {
+            return findIndexOfFinalPlanValuePeriod() + 1; }
         public Number getY(int itemIndex) {
             return new Double(get(itemIndex).cumPlanValue * mult); } }
     private XYChartSeries getBaselineValueSeries(double mult) {
