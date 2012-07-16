@@ -142,7 +142,7 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
                 result.errorMessage =
                     "You need to create tasks underneath this "
                     + node.getType().toLowerCase();
-                result.errorColor = Color.red;
+                result.errorColor = Color.blue;
             }
 
         } else { // not a leaf task
@@ -181,7 +181,15 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
             else
                 node.setNumericAttribute(topDownAttrName, leafData.teamTime);
         } else {
-            unassignedTimeColumn.clearUnassignedTime(node);
+            double teamTime = 0;
+            // If this is a leaf component (not a task), any time attached to
+            // it will be unassigned time.
+            if (wbsModel.isLeaf(node))
+                teamTime = safe(node.getNumericAttribute(topDownAttrName));
+            if (teamTime == 0)
+                unassignedTimeColumn.clearUnassignedTime(node);
+            else
+                unassignedTimeColumn.setUnassignedTime(node, teamTime);
         }
 
         // Then, recalculate as usual.
