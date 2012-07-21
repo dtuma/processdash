@@ -80,6 +80,7 @@ public class ExternalResourceManifestXMLv1 implements
         ser.startDocument(ENCODING, null);
         ser.startTag(null, DOC_ROOT_ELEM);
 
+        Collections.sort(mappingEntries);
         for (MappingEntry e : mappingEntries) {
             String origURL = e.getOriginalURL();
             String origPath = e.getOriginalPath();
@@ -138,7 +139,7 @@ public class ExternalResourceManifestXMLv1 implements
         return result;
     }
 
-    private class MappingEntry {
+    private class MappingEntry implements Comparable<MappingEntry> {
 
         private String originalPath;
 
@@ -167,6 +168,10 @@ public class ExternalResourceManifestXMLv1 implements
 
         public String getNewPath() {
             return newPath;
+        }
+
+        public int compareTo(MappingEntry that) {
+            return this.newPath.compareTo(that.newPath);
         }
 
     }
