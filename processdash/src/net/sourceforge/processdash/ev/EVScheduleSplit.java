@@ -66,7 +66,9 @@ public class EVScheduleSplit extends EVSchedule {
 
                 double newCumTime =
                     p.cumPlanDirectTime + defaultPlanDirectTime;
-                super.getPlannedCompletionDate(newCumTime, newCumTime);
+                if (super.getPlannedCompletionDate(newCumTime, newCumTime)
+                        == NEVER)
+                    break;
             }
         }
 
