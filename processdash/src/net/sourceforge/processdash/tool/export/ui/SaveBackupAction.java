@@ -1,4 +1,4 @@
-// Copyright (C) 2007-2011 Tuma Solutions, LLC
+// Copyright (C) 2007-2012 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -34,6 +34,7 @@ import java.io.OutputStream;
 import java.lang.reflect.Method;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Set;
 
 import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
@@ -47,10 +48,13 @@ import javax.swing.JProgressBar;
 import javax.swing.SwingUtilities;
 
 import net.sourceforge.processdash.DashController;
+import net.sourceforge.processdash.DashboardContext;
 import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.data.DataContext;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.tool.quicklauncher.CompressedInstanceLauncher;
+import net.sourceforge.processdash.tool.redact.RedactFilterer;
+import net.sourceforge.processdash.tool.redact.ui.RedactFilterConfigDialog;
 import net.sourceforge.processdash.ui.lib.ExampleFileFilter;
 import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.XorOutputStream;
@@ -66,9 +70,10 @@ public class SaveBackupAction extends AbstractAction {
     private static final Resources resources = Resources
             .getDashBundle("ProcessDashboard");
 
-    public SaveBackupAction(DataContext dataContext) {
+    public SaveBackupAction(DashboardContext dashContext) {
         super(resources.getString("Menu.Save_Backup"));
-        this.dataContext = dataContext;
+        this.dataContext = dashContext.getData();
+        RedactFilterer.setDashboardContext(dashContext);
     }
 
     public void actionPerformed(ActionEvent e) {
@@ -85,6 +90,8 @@ public class SaveBackupAction extends AbstractAction {
         ProgressDialog progressDialog;
 
         File destFile;
+
+        Set<String> redactFilters;
 
         public BackupCoordinator() {
             progressDialog = new ProgressDialog();
@@ -145,7 +152,17 @@ public class SaveBackupAction extends AbstractAction {
 
         @SuppressWarnings("unused")
         public void promptForDestFile() {
-            destFile = getDestFile();
+            promptForDestFile(getDefaultFilename());
+        }
+
+        private void promptForDestFile(String defaultFilename) {
+            redactFilters = null;
+            destFile = getDestFile(defaultFilename);
+            if (destFile != null && destFile.getName().endsWith(RPDBK)) {
+                redactFilters = RedactFilterConfigDialog.promptForFilters();
+                if (redactFilters == null)
+                    promptForDestFile(removeFilenameSuffix(destFile.getName()));
+            }
         }
 
         @SuppressWarnings("unused")
@@ -168,7 +185,10 @@ public class SaveBackupAction extends AbstractAction {
                 out = new XorOutputStream(out,
                         CompressedInstanceLauncher.PDASH_BACKUP_XOR_BITS);
 
-            FileUtils.copyFile(backupFile, out);
+            if (redactFilters == null)
+                FileUtils.copyFile(backupFile, out);
+            else
+                new RedactFilterer(redactFilters).doFilter(backupFile, out);
             out.close();
         }
 
@@ -260,13 +280,14 @@ public class SaveBackupAction extends AbstractAction {
 
     }
 
-    private File getDestFile() {
+    private File getDestFile(String defaultFilename) {
         JFileChooser fc = new JFileChooser();
         fc.setAcceptAllFileFilterUsed(false);
         fc.setSelectedFile(new File(getDefaultDirectory(fc),
-                getDefaultFilename()));
+                defaultFilename));
         fc.setDialogTitle(resources.getString("Save_Backup.Window_Title"));
         fc.addChoosableFileFilter(makeFilter(PDBK));
+        fc.addChoosableFileFilter(makeFilter(RPDBK));
         fc.addChoosableFileFilter(makeFilter("zip"));
 
         if (fc.showSaveDialog(null) != JFileChooser.APPROVE_OPTION)
@@ -287,6 +308,7 @@ public class SaveBackupAction extends AbstractAction {
             fc.setCurrentDirectory(lastBackupDirectory);
         fc.setDialogTitle(title);
         ExampleFileFilter ff = makeFilter(PDBK);
+        ff.addExtension(RPDBK);
         ff.addExtension("zip");
         fc.addChoosableFileFilter(ff);
 
@@ -321,6 +343,14 @@ public class SaveBackupAction extends AbstractAction {
         return "pdash-" + owner + fmt.format(new Date());
     }
 
+    private String removeFilenameSuffix(String filename) {
+        int dotPos = filename.lastIndexOf('.');
+        if (dotPos == -1)
+            return filename;
+        else
+            return filename.substring(0, dotPos);
+    }
+
     private ExampleFileFilter makeFilter(String ext) {
         String descr = resources.getString("Save_Backup." + ext
                 + ".File_Description");
@@ -328,5 +358,6 @@ public class SaveBackupAction extends AbstractAction {
     }
 
     private static final String PDBK = CompressedInstanceLauncher.PDASH_BACKUP_EXTENSION;
+    private static final String RPDBK = RedactFilterer.REDACTED_PDASH_BACKUP_EXTENSION;
 
 }

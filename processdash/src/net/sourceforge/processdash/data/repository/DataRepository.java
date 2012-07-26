@@ -4109,5 +4109,5 @@ public class DataRepository implements Repository, DataContext,
     private static final boolean NOT_MODIFYING_DATAFILE = false;
     private static final boolean REQUIRE_WRITABLE = true;
     private static final boolean DO_NOT_REQUIRE_WRITABLE = false;
-    private static final char EQUALS_SIGN_REPL = (char) 5;
+    public static final char EQUALS_SIGN_REPL = (char) 5;
 }
