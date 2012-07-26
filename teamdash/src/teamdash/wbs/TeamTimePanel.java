@@ -41,9 +41,11 @@ import java.text.DateFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.swing.BorderFactory;
 import javax.swing.JLabel;
@@ -80,6 +82,8 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
     private MilestonesDataModel milestonesModel;
     /** The layout object managing this panel */
     private GridBagLayout layout;
+    /** A colored bar displaying milestone completion dates for the team */
+    private TeamMilestoneBar teamMilestoneBar;
     /** A list of the bar charts for each individual (each is a
      * TeamMemberBar object). */
     private List<TeamMemberBar> teamMemberBars;
@@ -307,9 +311,13 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
         bc.insets.top = bc.insets.bottom = 0;
         bc.weightx = bc.weighty = 1;
         int row = 1;
+
+        // create a horizontal bar to show balanced team milestone dates
+        teamMilestoneBar = new TeamMilestoneBar();
+        teamMemberBars.add(teamMilestoneBar);
+
+        // create horizontal progress bars for each team member
         for (int i = 0;   i < teamMembers.size();   i++) {
-            // for each team member, create a name label and a horizontal
-            // progress bar.
             TeamMember m = (TeamMember) teamMembers.get(i);
 
             // if we're only showing remaining time, and this team member's
@@ -327,7 +335,13 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
             TeamMemberBar bar = new TeamMemberBar(m);
             teamMemberBars.add(bar);
 
-            JLabel name = new JLabel(m.getName());
+            teamMilestoneBar.effectivePastHours += bar.effectivePastHours;
+        }
+        teamMilestoneBar.effectivePastHours += historicalTeamMemberCollateralTime;
+
+        // add all horizontal bars to our panel.
+        for (TeamMemberBar bar : teamMemberBars) {
+            JLabel name = new JLabel(bar.teamMember.getName());
             nc.gridy = row;
             add(name);
             layout.setConstraints(name, nc);
@@ -379,6 +393,7 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
     public void recalc() {
         recalcTimer.stop();
         recalcStartDate();
+        teamMilestoneBar.reset();
         double totalTime = recalcIndividuals() + getUnassignedTime();
         recalcTeam(totalTime);
         revalidate();
@@ -412,6 +427,9 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
         // recalculate each team member's schedule. Keep track of the longest
         // duration we've seen so far, and the total effective time.
         for (TeamMemberBar tmb : teamMemberBars) {
+            if (tmb instanceof TeamMilestoneBar)
+                continue;
+
             tmb.recalc();
             totalTime += tmb.getTotalHours();
             maxLen = Math.max(maxLen, tmb.getFinishTime());
@@ -468,6 +486,7 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
             maxScheduleLength = Math.max(maxScheduleLength,
                 commitDatePane.maxDate - leftTimeBoundary);
         // calculate the optimal finish time
+        teamMilestoneBar.recalc(totalHours);
         Date balancedDate = teamList.getDateForEffort(totalHours);
         if (balancedDate == null) {
             balancedLength = -1;
@@ -720,7 +739,7 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
 
         /** When we're showing remaining time, how many hours should we add to
          * account for the portion of the schedule that has already passed? */
-        private double effectivePastHours;
+        protected double effectivePastHours;
 
         /** The total number of effective hours in this individual's schedule */
         private double totalHours;
@@ -749,6 +768,8 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
 
         private List<MilestoneMark> milestoneMarks;
 
+        protected boolean hideTerminalMilestoneMark;
+
 
         public TeamMemberBar(TeamMember teamMember) {
             this.teamMember = teamMember;
@@ -768,7 +789,8 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
                     0.11 * (rgb & 0xff));
             barIsDark = (gray < 128);
 
-            hoursPerWeekLabel = new JLabel();
+            hoursPerWeekLabel = new JLabel(hoursPerWeekFormat.format(teamMember
+                    .getHoursPerWeek()));
             hoursPerWeekLabel.setToolTipText("Hours per Week (Nominal)");
         }
 
@@ -782,7 +804,7 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
          * the beginning of the schedule)
          */
         public void recalc() {
-            Date startDate = teamMember.getStartDate();
+            Date startDate = getStartDate();
             lagTime = startDate.getTime() - leftTimeBoundary;
             if (lagTime < 0) {
                 startTooltip = teamMember.getName()
@@ -815,19 +837,30 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
                 if (milestone.getUniqueID() == balanceThroughMilestone)
                     break;
             }
+            if (teamMilestoneBar != null)
+                teamMilestoneBar.addHoursToTeamMilestoneEffort(milestoneEffort);
 
-            String qualifier = getDateQualifier();
+            recalcTotalHours(cumMilestoneEffort);
+        }
+
+        protected void recalcTotalHours(double cumMilestoneEffort) {
             if (balanceThroughMilestone > 0) {
                 totalHours = cumMilestoneEffort;
-                qualifier = balanceThroughMilestoneName + " - Optimal "
-                        + qualifier;
             } else if (showRemainingWork) {
                 totalHours = getEffectiveRemainingHours();
             } else {
                 totalHours = getTotalAssignedHours();
             }
-            Date finishDate = teamMember.getSchedule().getDateForEffort(
-                totalHours);
+            recalcFinishDate();
+        }
+
+        protected void setTotalHours(double totalHours) {
+            this.totalHours = totalHours;
+            recalcFinishDate();
+        }
+
+        private void recalcFinishDate() {
+            Date finishDate = getDateForEffort(totalHours);
 
             if (finishDate == null) {
                 finishTime = -1;
@@ -842,11 +875,12 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
                 String dateString = dateFormat.format(finishDate);
                 if (endTime > 0 && finishTime > endTime)
                     dateString = dateString + " - OVERTASKED";
+                String qualifier = getDateQualifier();
+                if (balanceThroughMilestone > 0)
+                    qualifier = balanceThroughMilestoneName + " - Optimal "
+                            + qualifier;
                 setLabel(qualifier + ": ", dateString, "");
             }
-
-            hoursPerWeekLabel.setText(hoursPerWeekFormat.format(teamMember
-                    .getHoursPerWeek()));
         }
 
         public double getTotalHours() {
@@ -912,7 +946,15 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
                 return 0;
         }
 
-        private Map<Integer, Double> getMilestoneEffort() {
+        protected Date getStartDate() {
+            return teamMember.getStartDate();
+        }
+
+        protected Date getDateForEffort(double hours) {
+            return teamMember.getSchedule().getDateForEffort(hours);
+        }
+
+        protected Map<Integer, Double> getMilestoneEffort() {
             String attrName;
             if (showRemainingWork)
                 attrName = TeamActualTimeColumn
@@ -1097,7 +1139,7 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
 
                 effort = effortVal.doubleValue();
                 cumEffort = startingEffort + effort;
-                Date when = teamMember.getSchedule().getDateForEffort(cumEffort);
+                Date when = getDateForEffort(cumEffort);
                 if (when == null) {
                     markTime = -1;
                     return;
@@ -1113,6 +1155,9 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
             public void paint(Graphics g, int leftInset, int totalWidth,
                     int height) {
                 if (markTime < 0)
+                    return;
+                if (hideTerminalMilestoneMark
+                        && Math.abs(markTime - finishTime) < 60000)
                     return;
 
                 double markPos = markTime / maxScheduleLength;
@@ -1135,6 +1180,74 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
 
             }
         }
+    }
+
+    private class TeamMilestoneBar extends TeamMemberBar {
+
+        private Map<Integer, Double> teamMilestoneEffort;
+
+        public TeamMilestoneBar() {
+            super(new TeamMember("Team (Balanced)", " Team ", Color.darkGray,
+                    0, teamList.getZeroDay()));
+            effectivePastHours = 0;
+            hideTerminalMilestoneMark = true;
+
+            getHoursPerWeekLabel().setText("");
+        }
+
+        @Override
+        protected Date getStartDate() {
+            return new Date(teamStartTime);
+        }
+
+        @Override
+        protected Date getDateForEffort(double hours) {
+            return teamList.getDateForEffort(hours);
+        }
+
+        @Override
+        protected Map<Integer, Double> getMilestoneEffort() {
+            return teamMilestoneEffort;
+        }
+
+        @Override
+        protected void recalcTotalHours(double cumMilestoneEffort) {
+            // do nothing; our total hours value will be set elsewhere
+        }
+
+        public void reset() {
+            teamMilestoneEffort = new HashMap<Integer, Double>();
+        }
+
+        public void recalc(double totalHours) {
+            if (includeUnassigned)
+                addHoursToTeamMilestoneEffort(getUnassignedMilestoneTime());
+
+            recalc();
+            setTotalHours(totalHours);
+        }
+
+        private Map<Integer, Double> getUnassignedMilestoneTime() {
+            WBSNode rootNode = dataModel.getWBSModel().getRoot();
+            return (Map<Integer, Double>) rootNode.getAttribute(
+                UnassignedTimeColumn.MILESTONE_UNASSIGNED_TIME_ATTR);
+        }
+
+        public void addHoursToTeamMilestoneEffort(Map<Integer, Double> hours) {
+            if (hours != null && hours != teamMilestoneEffort) {
+                for (Entry<Integer, Double> s : hours.entrySet()) {
+                    Integer milestoneID = s.getKey();
+                    Double newVal = s.getValue();
+                    Double currVal = teamMilestoneEffort.get(milestoneID);
+                    if (currVal == null) {
+                        teamMilestoneEffort.put(milestoneID, newVal);
+                    } else if (newVal != null) {
+                        teamMilestoneEffort.put(milestoneID, currVal + newVal);
+                    }
+                }
+            }
+        }
+
     }
 
     private DateFormat dateFormat = DateFormat.getDateInstance();
