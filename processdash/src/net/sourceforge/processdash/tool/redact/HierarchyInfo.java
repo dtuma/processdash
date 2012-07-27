@@ -154,7 +154,9 @@ public class HierarchyInfo {
 
             createNodesForChildren(data, rootNode, xml);
         } catch (SAXException e) {
-            throw new IOException(e);
+            IOException ioe = new IOException();
+            ioe.initCause(e);
+            throw ioe;
         }
     }
 
