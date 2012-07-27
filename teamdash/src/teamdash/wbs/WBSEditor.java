@@ -417,7 +417,7 @@ public class WBSEditor implements WindowListener, SaveListener,
 
         String title = resources.getString("Recommend_Read_Only.Title");
         String explanationKey;
-        if (teamProject.getBoolUserSetting(ALLOW_SIMULTANEOUS_EDIT_SETTING))
+        if (teamProject.getBoolUserSetting(ALLOW_SIMULTANEOUS_EDIT_SETTING, true))
             explanationKey = "Recommend_Read_Only.Simultaneous_Prompt";
         else
             explanationKey = "Recommend_Read_Only.Exclusive_Prompt";
@@ -434,8 +434,8 @@ public class WBSEditor implements WindowListener, SaveListener,
     }
 
     private void maybeSetupSimultaneousEditing() {
-        // if simultaneous editing is not enabled, do nothing.
-        if (!teamProject.getBoolUserSetting(ALLOW_SIMULTANEOUS_EDIT_SETTING))
+        // if simultaneous editing is disabled, do nothing.
+        if (!teamProject.getBoolUserSetting(ALLOW_SIMULTANEOUS_EDIT_SETTING, true))
             return;
 
         // simultaneous editing does not make sense for a ZIP file.
@@ -637,9 +637,9 @@ public class WBSEditor implements WindowListener, SaveListener,
         membersCanEdit.setEnabled(!indivMode);
 
         JCheckBox allowSimulEdit = new JCheckBox(
-                "Allow multiple people to edit the WBS simultaneously (experimental)");
+                "Allow multiple people to edit the WBS simultaneously");
         boolean simulEditSetting = teamProject
-                .getBoolUserSetting(ALLOW_SIMULTANEOUS_EDIT_SETTING);
+                .getBoolUserSetting(ALLOW_SIMULTANEOUS_EDIT_SETTING, true);
         allowSimulEdit.setSelected(simulEditSetting);
         allowSimulEdit.setEnabled(!indivMode);
 
@@ -652,6 +652,7 @@ public class WBSEditor implements WindowListener, SaveListener,
             return;
 
         boolean madeChange = false;
+        boolean restartRequired = false;
 
         boolean newReadOnlyPromptSetting = readOnlyPrompt.isSelected();
         if (newReadOnlyPromptSetting != readOnlyPromptSetting) {
@@ -672,6 +673,7 @@ public class WBSEditor implements WindowListener, SaveListener,
             teamProject.putUserSetting(ALLOW_SIMULTANEOUS_EDIT_SETTING,
                 newSimulEditSetting);
             madeChange = true;
+            restartRequired = true;
         }
 
         if (madeChange) {
@@ -681,6 +683,11 @@ public class WBSEditor implements WindowListener, SaveListener,
                 ex.printStackTrace();
             }
         }
+
+        if (restartRequired)
+            JOptionPane.showMessageDialog(frame, "You will need to close and "
+                    + "reopen the WBS Editor for your changes to take effect.",
+                "Restart Required", JOptionPane.INFORMATION_MESSAGE);
     }
 
     private void showWorkflowEditor() {

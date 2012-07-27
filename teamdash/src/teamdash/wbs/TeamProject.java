@@ -249,7 +249,16 @@ public class TeamProject implements WBSFilenameConstants {
 
     /** Return the value of a boolean user setting */
     public boolean getBoolUserSetting(String name) {
-        return "true".equals(getUserSetting(name));
+        return getBoolUserSetting(name, false);
+    }
+
+    /** Return the value of a boolean user setting */
+    public boolean getBoolUserSetting(String name, boolean defaultValue) {
+        String setting = getUserSetting(name);
+        if (setting == null || setting.length() == 0)
+            return defaultValue;
+        else
+            return "true".equals(setting);
     }
 
     public void putUserSetting(String name, String value) {
