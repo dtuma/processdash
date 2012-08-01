@@ -44,6 +44,9 @@ The author(s) may be contacted at:
   <property name="swingx.jar" value="lib/swingx-0.9.1.jar"/>
   <property name="swingx-src.jar" value="lib/swingx-0.9.1-src.zip"/>
   <property name="poi.jar" value="lib/poi-3.0.1-FINAL-20070705.jar"/>
+  <property name="apple-eawt.jar" value="lib/com-apple-eawt.jar"/>
+  <property name="servlet.jar" value="lib/servlet-api.jar"/>
+  <property name="junit.jar" value="lib/junit-4.3.1.jar"/>
   <property name="TeamProcessCGI.jar"
       value="Templates/team/lib/TeamProcessCGI.jar"/>
   <property name="server.dir" value="generateProcess"/>
@@ -54,6 +57,10 @@ The author(s) may be contacted at:
   <property name="teamhelp.images" value="${teamhelp}/Images"/>
   <property name="teamhelp.imgsrc" value="${teamhelp}/Images/constr"/>
 
+  <property name="src" value="src"/>
+  <property name="build" value="antbin"/>
+  <property name="compile.target" value="1.5"/>
+  <property name="debug" value="on"/>
 
 
   <property name="javahelp.home" value="${env.JAVAHELP_HOME}"/>
@@ -62,6 +69,7 @@ The author(s) may be contacted at:
   <!-- if the "noBuild" property is set, set all other noBuild vars too -->
   <target name="-noBuild-init" if="noBuild">
     <property name="noBuild.filelist" value="true"/>
+    <property name="noBuild.compile" value="true"/>
     <property name="noBuild.server" value="true"/>
     <property name="noBuild.TeamTools" value="true"/>
     <property name="noBuild.TeamProcess" value="true"/>
@@ -92,13 +100,32 @@ The author(s) may be contacted at:
   </target>
 
 
+  <target name="compile" depends="-noBuild-init" unless="noBuild.compile">
+    <!-- Compile the java code from ${src} into ${build} -->
+    <mkdir dir="${build}"/>
+    <javac srcdir="${src}" destdir="${build}" debug="${debug}"
+           includeAntRuntime="no" target="${compile.target}">
+      <classpath>
+        <pathelement location="${pspdash.jar}"/>
+        <pathelement location="${swingx.jar}"/>
+        <pathelement location="${poi.jar}"/>
+        <pathelement location="${apple-eawt.jar}"/>
+        <pathelement location="${servlet.jar}"/>
+        <pathelement location="${junit.jar}"/>
+      </classpath>
+    </javac>
+  </target>
+
   <target name="TeamProcessCGI"
-          depends="-noBuild-init" unless="noBuild.TeamProcessCGI">
+          depends="-noBuild-init,compile" unless="noBuild.TeamProcessCGI">
     <!-- Create a signed jarfile of cgi scripts -->  
     <jar destfile="${TeamProcessCGI.jar}" duplicate="fail">
-      <fileset dir="bin">
+      <fileset dir="${build}">
         <include name="teamdash/templates/setup/"/>
         <include name="teamdash/FilenameMapper*"/>
+      </fileset>
+      <fileset dir="${src}">
+        <include name="teamdash/templates/setup/migrate.properties"/>
       </fileset>
     </jar>
     <antcall target="signjar">
@@ -113,7 +140,7 @@ The author(s) may be contacted at:
       description="Build a JAR file to deploy to the server, where the custom process generator will run">
 
     <!-- compute the classes needed for the custom process servlet -->
-    <classfileset id="servletClasses" dir="bin">
+    <classfileset id="servletClasses" dir="${build}">
       <root classname="teamdash.process.CustomProcessServlet"/>
       <root classname="teamdash.process.GenerateProcess"/>
     </classfileset>
@@ -152,7 +179,7 @@ The author(s) may be contacted at:
 
   <target name="jnlp-jar" 
        description="Build the JAR file for the JNLP framework editor app">
-    <classfileset id="jnlpClasses" dir="bin"
+    <classfileset id="jnlpClasses" dir="${build}"
       rootclass="teamdash.process.CustomProcessEditorJNLP"/>
     <jar destfile="${jnlp.jar}" duplicate="fail">
       <!-- specify the manifest file contents -->
@@ -256,9 +283,9 @@ The author(s) may be contacted at:
 
 
   <target name="TeamTools"
-          depends="-noBuild-init,javahelp" unless="noBuild.TeamTools">
+          depends="-noBuild-init,javahelp,compile" unless="noBuild.TeamTools">
     <!-- compute the classes needed for the team tools jar file -->
-    <classfileset id="teamToolsClasses" dir="bin">
+    <classfileset id="teamToolsClasses" dir="${build}">
       <root classname="teamdash.wbs.WBSEditor"/>
       <root classname="teamdash.templates.tools.OpenWBSEditor"/>
       <root classname="teamdash.FilenameMapperExtResMgr"/>
@@ -342,14 +369,16 @@ class dependency has been added in a dashboard class?)
 
       <!-- include the compiled files -->
       <fileset refid="teamToolsClasses"/>
-      <fileset dir="bin">
-        <include name="teamdash/wbs/excel/"/>
+      <fileset dir="${build}" includes="teamdash/wbs/excel/"/>
+      <fileset refid="dashClasses"/>
+
+      <!-- include non-java resources files -->
+      <fileset dir="${src}">
         <include name="teamdash/**/*.png"/>
         <include name="teamdash/**/*.gif"/>
         <include name="teamdash/**/default-user-settings.txt"/>
         <include name="net/sourceforge/processdash/i18n/*.txt"/>
       </fileset>
-      <fileset refid="dashClasses"/>
       <fileset dir="${processdash.dir}/src">
         <include name="net/sourceforge/processdash/util/TempFileFactory.properties"/>
       </fileset>
@@ -505,6 +534,11 @@ class dependency has been added in a dashboard class?)
         <arg value="${sign.jar}"/>
         <arg value="${sign.alias}"/>
     </exec>
+  </target>
+
+  <target name="clean">
+    <delete dir="${build}"/>
+    <delete file="${TeamProcessCGI.jar}"/>
   </target>
 
 </project>
