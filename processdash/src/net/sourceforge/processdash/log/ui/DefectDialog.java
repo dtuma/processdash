@@ -441,6 +441,7 @@ public class DefectDialog extends JDialog
         d.fix_time = fix_time.getText();
         try {
             d.fix_count = (int) FormatUtil.parseNumber(fix_count.getText());
+            d.fix_count = Math.max(0, d.fix_count);
         } catch (ParseException nfe) {
             d.fix_count = 1;
         }

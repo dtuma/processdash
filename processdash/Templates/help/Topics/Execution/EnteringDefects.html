@@ -104,6 +104,16 @@ question have the same type, injection/removal phase, and description.  If
 you use the Fix Count field to record several unrelated defects, it will
 thwart your ability to analyze the defect data effectively.</p>
 
+<p>As a very special case, you can enter the number "0" in this field to
+indicate that something isn't really a defect after all, or that it is a
+defect but should be ignored when calculating quality metrics.  (For example,
+this might be appropriate if you find and fix a defect in legacy code that you
+did not write.) If you enter a zero in this field, the defect will still
+appear in defect logs and other reports, but it will not contribute to the
+"Defects Injected" or "Defects Removed" counts on the plan summary form.  As
+such, it will not affect calculations for yield, defect density, defect
+removal rates, or other quality metrics.</p>
+
 
 <a name="fixDefects"></a><h2>Fix Defect</h2>
 <P>The "Fix Defect" entry is where you can put the ID number of another 

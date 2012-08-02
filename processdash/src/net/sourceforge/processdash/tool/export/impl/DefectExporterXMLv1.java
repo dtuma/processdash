@@ -84,7 +84,7 @@ public class DefectExporterXMLv1 implements DefectExporter,
             writeAttr(REMOVED_ATTR, d.phase_removed);
             writeAttr(FIX_TIME_ATTR, Float.toString(d.getFixTime()));
             writeAttr(FIX_DEFECT_ATTR, d.fix_defect);
-            if (d.fix_count > 1)
+            if (d.fix_count != 1)
                 writeAttr(FIX_COUNT_ATTR, Integer.toString(d.fix_count));
             if (d.fix_pending)
                 writeAttr(FIX_PENDING_ATTR, "true");

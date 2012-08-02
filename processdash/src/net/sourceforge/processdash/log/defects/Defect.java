@@ -76,7 +76,7 @@ public class Defect implements Cloneable {
         fix_time = extractXmlAttr(XML.FIX_TIME_ATTR);
         fix_defect = extractXmlAttr(XML.FIX_DEFECT_ATTR);
         description = extractXmlAttr(XML.DESCRIPTION_ATTR);
-        fix_count = Math.max(1, extractXmlIntAttr(XML.FIX_COUNT_ATTR, 1));
+        fix_count = Math.max(0, extractXmlIntAttr(XML.FIX_COUNT_ATTR, 1));
         fix_pending = "true".equals(extractXmlAttr(XML.FIX_PENDING_ATTR));
         date = XMLUtils.parseDate(extractXmlAttr(XML.DATE_ATTR));
     }
@@ -173,7 +173,7 @@ public class Defect implements Cloneable {
     }
 
     public boolean needsXmlSaveFormat() {
-        return fix_count > 1 || fix_pending;
+        return fix_count != 1 || fix_pending;
     }
 
     public String toString() {
@@ -199,7 +199,7 @@ public class Defect implements Cloneable {
         ser.attribute(null, XML.FIX_TIME_ATTR, xmlToken(getFixTimeXmlStr()));
         ser.attribute(null, XML.FIX_DEFECT_ATTR, xmlToken(fix_defect));
         ser.attribute(null, XML.DESCRIPTION_ATTR, xmlToken(description));
-        if (fix_count > 1)
+        if (fix_count != 1)
             ser.attribute(null, XML.FIX_COUNT_ATTR, Integer.toString(fix_count));
         if (fix_pending)
             ser.attribute(null, XML.FIX_PENDING_ATTR, "true");
