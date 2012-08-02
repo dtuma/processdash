@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2011 Tuma Solutions, LLC
+// Copyright (C) 2002-2012 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -102,6 +102,7 @@ public class HierarchySynchronizer {
     private String ownerName;
     private boolean oldStyleSync;
     private Element projectXML;
+    private Map<Element, List<Element>> prunedChildren;
     private String dumpFileVersion;
     private Date startDate;
     private int endWeek;
@@ -314,6 +315,7 @@ public class HierarchySynchronizer {
             in = new BufferedInputStream(wbsLocation.openStream());
             Document doc = XMLUtils.parse(in);
             projectXML = doc.getDocumentElement();
+            prunedChildren = new HashMap<Element, List<Element>>();
 
             String projectTaskID = projectXML.getAttribute(TASK_ID_ATTR);
             projectTaskID = cleanupProjectIDs(projectTaskID);
@@ -384,7 +386,7 @@ public class HierarchySynchronizer {
             int childPrunable = pruneWBS(child, onlyPruneTasks, keepIDs,
                 pseudoIDs);
             if (childPrunable == PRUNE)
-                e.removeChild(child);
+                pruneChild(e, child);
             prunable = Math.max(prunable, childPrunable);
         }
 
@@ -405,6 +407,23 @@ public class HierarchySynchronizer {
             e.setAttribute(PRUNED_ATTR, "true");
 
         return prunable;
+    }
+
+    private void pruneChild(Element parent, Element child) {
+        // remove the child from the XML document tree.
+        parent.removeChild(child);
+        // make a note of the removal for later reference.
+        List<Element> pruneList = prunedChildren.get(parent);
+        if (pruneList == null) {
+            pruneList = new ArrayList<Element>();
+            prunedChildren.put(parent, pruneList);
+        }
+        pruneList.add(child);
+    }
+
+    private List<Element> getChildrenPrunedFrom(Element parent) {
+        List<Element> result = prunedChildren.get(parent);
+        return (result == null ? Collections.EMPTY_LIST : result);
     }
 
     /** Ensure that the children of the given element have unique names, by
@@ -2345,6 +2364,8 @@ public class HierarchySynchronizer {
     private double timeRatioTotal, timeRatioPersonal;
 
     private void sumUpConstructionPhases(Element node, List phaseList) {
+        // check to see if this node represents a phase from the given phase
+        // list. If so, sum up the time that is attached to this node
         String phaseName = node.getAttribute(PHASE_NAME_ATTR);
         if (phaseName == null || phaseName.length() == 0)
             phaseName = node.getTagName();
@@ -2352,6 +2373,7 @@ public class HierarchySynchronizer {
         if (phaseList.contains(phaseName) &&
             timeAttr != null && timeAttr.length() != 0)
             addTimeData(timeAttr);
+        // recurse and sum up time attached to the children of this node.
         NodeList children = node.getChildNodes();
         int len = children.getLength();
         Node child;
@@ -2360,6 +2382,11 @@ public class HierarchySynchronizer {
             if (child instanceof Element)
                 sumUpConstructionPhases((Element) child, phaseList);
         }
+        // since we are summing up time for the entire team, we also need to
+        // consider nodes that were pruned from the hierarchy because they were
+        // assigned to other individuals.
+        for (Element prunedChild : getChildrenPrunedFrom(node))
+            sumUpConstructionPhases(prunedChild, phaseList);
     }
     private void addTimeData(String attr) {
         StringTokenizer tok = new StringTokenizer(attr, ",");
