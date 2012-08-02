@@ -100,6 +100,7 @@ public class MapContentMerger<ID> implements ContentMerger<ID, Map> {
 
         // iterate over the keys, and create the merged result
         Map result = createMergedMap();
+        Map<String, AttributeConflictMapMerger> acmms = new HashMap();
         for (Object key : allKeys) {
             if (key instanceof String) {
                 String attrName = (String) key;
@@ -107,10 +108,16 @@ public class MapContentMerger<ID> implements ContentMerger<ID, Map> {
                 Object mainValue = main.get(attrName);
                 Object incomingValue = incoming.get(attrName);
                 Object mergedValue = mergeAttribute(destNodeID, attrName,
-                    baseValue, mainValue, incomingValue, err);
+                    baseValue, mainValue, incomingValue, err, acmms);
                 result.put(attrName, mergedValue);
             }
         }
+
+        // if any AttributeConflictMapMerger handlers were encountered, give
+        // them a chance to perform final processing.
+        for (Entry<String, AttributeConflictMapMerger> acmm : acmms.entrySet())
+            acmm.getValue().mergeMapAfterAttrConflict(destNodeID,
+                acmm.getKey(), base, main, incoming, result, err);
 
         return result;
     }
@@ -124,7 +131,8 @@ public class MapContentMerger<ID> implements ContentMerger<ID, Map> {
     }
 
     protected Object mergeAttribute(ID nodeID, String attrName, Object base,
-            Object main, Object incoming, ErrorReporter<ID> err) {
+            Object main, Object incoming, ErrorReporter<ID> err,
+            Map<String, AttributeConflictMapMerger> acmms) {
 
         // If the value agrees in both branches, return it.
         if (EQ(main, incoming))
@@ -141,6 +149,8 @@ public class MapContentMerger<ID> implements ContentMerger<ID, Map> {
         // Get an appropriate handler, and ask it to merge this conflicting
         // attribute.
         AttributeMerger<ID, Object> handler = getHandler(attrName);
+        if (handler instanceof AttributeConflictMapMerger)
+            acmms.put(attrName, (AttributeConflictMapMerger) handler);
         Object merged = handler.mergeAttribute(nodeID, attrName, base, main,
             incoming, err);
         return merged;

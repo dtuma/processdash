@@ -34,8 +34,12 @@ import net.sourceforge.processdash.util.PatternList;
 import teamdash.merge.AttributeMergeWarning;
 import teamdash.merge.AttributeMerger;
 import teamdash.merge.ContentMerger.ErrorReporter;
+import teamdash.merge.DependentAttributeMerger;
 import teamdash.merge.MergeWarning.Severity;
 import teamdash.merge.ui.MergeConflictNotification.ModelType;
+import teamdash.wbs.columns.AbstractNotesColumn;
+import teamdash.wbs.columns.ErrorNotesColumn;
+import teamdash.wbs.columns.NotesColumn;
 
 public class WBSMerger extends AbstractWBSModelMerger<WBSModel> {
 
@@ -49,7 +53,15 @@ public class WBSMerger extends AbstractWBSModelMerger<WBSModel> {
         contentMerger.addHandler(
             new PatternList().addLiteralEndsWith(" (Top Down)"),
             TOP_DOWN_BOTTOM_UP_MERGER);
+        addNoteAttrHandler(NotesColumn.VALUE_ATTR);
+        addNoteAttrHandler(ErrorNotesColumn.VALUE_ATTR);
         run();
+    }
+
+    private void addNoteAttrHandler(String attrName) {
+        contentMerger.addHandler(new PatternList().addLiteralEquals(attrName),
+            new DependentAttributeMerger(Severity.CONFLICT).setDependentAttrs(
+                attrName, AbstractNotesColumn.getMetadataAttrs(attrName)));
     }
 
     @Override

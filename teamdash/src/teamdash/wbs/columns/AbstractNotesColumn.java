@@ -165,6 +165,11 @@ public abstract class AbstractNotesColumn extends AbstractDataColumn implements
         return html.toString();
     }
 
+    public static String[] getMetadataAttrs(String valueAttr) {
+        return new String[] { valueAttr + AUTHOR_SUFFIX,
+                valueAttr + TIMESTAMP_SUFFIX };
+    }
+
 
     @Override
     public Object getConflictDisplayValue(String text, WBSNode node) {
