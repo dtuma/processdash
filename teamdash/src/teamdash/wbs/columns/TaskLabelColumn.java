@@ -127,12 +127,17 @@ public class TaskLabelColumn extends AbstractDataColumn implements
         String inheritedValue = (String) node.getAttribute(INHERITED_VALUE_ATTR);
         if (val != null && val.equals(inheritedValue))
             val = null;
+        else if (" ".equals(val) && inheritedValue == null)
+            val = null;
 
         node.setAttribute(EXPLICIT_VALUE_ATTR, val);
     }
 
     public String getLabels(WBSNode node) {
-        return (String) WrappedValue.unwrap(getValueAt(node));
+        String result = (String) WrappedValue.unwrap(getValueAt(node));
+        if (" ".equals(result))
+            result = null;
+        return result;
     }
 
     public static String convertToLabel(String text) {
