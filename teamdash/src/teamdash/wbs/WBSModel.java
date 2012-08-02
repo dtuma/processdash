@@ -231,6 +231,7 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
             result.put(n.getUniqueID(), n);
         }
         result.put(null, getRoot());
+        result.put(-1000, getRoot());
         return result;
     }
 

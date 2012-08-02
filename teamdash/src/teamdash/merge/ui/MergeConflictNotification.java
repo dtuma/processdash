@@ -235,7 +235,9 @@ public class MergeConflictNotification {
             return value;
         } else if (value instanceof WBSNode) {
             WBSNode wbsNode = (WBSNode) value;
-            return getNodeHyperlink(wbsNode.getName(), wbsNode.getUniqueID());
+            int wbsNodeId = (wbsNode.getIndentLevel() == 0 ? -1000
+                    : wbsNode.getUniqueID());
+            return getNodeHyperlink(wbsNode.getName(), wbsNodeId);
         } else if (value instanceof TeamMember) {
             TeamMember teamMember = (TeamMember) value;
             return getNodeHyperlink(teamMember.getName(), teamMember.getId());
