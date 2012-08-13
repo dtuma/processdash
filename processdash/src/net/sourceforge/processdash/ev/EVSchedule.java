@@ -1288,7 +1288,7 @@ public class EVSchedule implements TableModel {
     protected int findIndexOfFinalPlanTimePeriod() {
         int extendToPeriod = findIndexOfActualCompletionPeriod();
         if (extendToPeriod == -1)
-            extendToPeriod = effectivePeriod;
+            extendToPeriod = Math.min(periods.size() - 1, effectivePeriod);
         return Math.max(extendToPeriod, findIndexOfFinalPlanValuePeriod());
     }
 
