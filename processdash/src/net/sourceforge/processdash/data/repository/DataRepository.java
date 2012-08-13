@@ -3464,6 +3464,14 @@ public class DataRepository implements Repository, DataContext,
                     && workingExplicitNames.hasNext());
         }
         public Object next() {
+            Object result;
+            do {
+                result = nextImpl();
+            } while (result == REITERATE_TOKEN);
+            return result;
+        }
+        private final Object REITERATE_TOKEN = new Object();
+        private Object nextImpl() {
             ThreadThrottler.tick();
 
             // first, try to return one of the default names inherited by the
@@ -3502,7 +3510,7 @@ public class DataRepository implements Repository, DataContext,
 
             if (!files.isEmpty() || !explicitDataNames.isEmpty()) {
                 loadNextWorkingFile();
-                return next();
+                return REITERATE_TOKEN;
             } else {
                 // in certain very rare occasions, another thread might
                 // have closed a file or deleted a data element since our
