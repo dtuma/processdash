@@ -97,4 +97,12 @@ public class FilterDataContainingTaskNames extends AbstractDataStringFilter {
         return StringUtils.join(Arrays.asList(tags), "<");
     }
 
+    @EnabledFor(" To Date Subset Prefix$")
+    public String hashToDateSubsetPrefix(String prefix) {
+        if (prefix.startsWith("/To Date/"))
+            return prefix;
+        else
+            return pathNameMapper.getString(prefix);
+    }
+
 }
