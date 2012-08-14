@@ -118,6 +118,32 @@
 </table>
 
 
+<!--#if indiv -->
+
+[!--#include file="setup/selectPspRollup" parse=t --]
+[!--#if PSP_ROLLUP_SELECTOR --]
+
+<h2>PSP Task Planning</h2>
+
+<table cellpadding=3>
+
+<tr>
+<td>PSP tasks in this project should base their "Plan" column and PROBE
+calculations on this set of "To Date" data:</td>
+</tr>
+
+<tr>
+<td class=indented><b>Default:</b>
+[!--#echo var="PSP_ROLLUP_SELECTOR" encoding="none" --]</td>
+</tr>
+
+</table>
+
+[!--#endif--]
+
+<!--#endif-->
+
+
 <!--#if not VVIS -->
 
 <h2>Quality Profile Parameters</h2>

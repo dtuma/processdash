@@ -101,6 +101,7 @@ public class HierarchySynchronizer {
     private String initials, initialsPattern;
     private String ownerName;
     private boolean oldStyleSync;
+    private String pspToDateSubset;
     private Element projectXML;
     private Map<Element, List<Element>> prunedChildren;
     private String dumpFileVersion;
@@ -188,6 +189,7 @@ public class HierarchySynchronizer {
                 this.taskNodeID = processID + "/IndivEmptyNode";
                 this.oldStyleSync = true;
             }
+            this.pspToDateSubset = getStringData(getData(projectPath, PSP_SUBSET));
             this.deletionPermissions = Collections.EMPTY_LIST;
             this.completionPermissions = Collections.EMPTY_LIST;
             this.deferredDeletions = new ArrayList();
@@ -1361,6 +1363,7 @@ public class HierarchySynchronizer {
         HierarchyNoteManager.NOTE_BASE_KEY;
     private static final String TEAM_NOTE_CONFLICT_KEY =
         HierarchyNoteManager.NOTE_CONFLICT_KEY;
+    static final String PSP_SUBSET = "PSP To Date Subset Prefix";
     static final String MISC_CHANGE_COMMENT =
         "Updated miscellaneous project information";
 
@@ -1683,6 +1686,7 @@ public class HierarchySynchronizer {
             if (currentTemplateID == null) {
                 worker.addTemplate(path, templateID);
                 changes.add("Created '"+path+"'");
+                nodeWasAdded(worker, path, node);
 
             // if it exists but with the wrong template ID, convert it.
             } else if (!currentTemplateID.equals(templateID)) {
@@ -1699,6 +1703,8 @@ public class HierarchySynchronizer {
 
             return true;
         }
+
+        protected void nodeWasAdded(SyncWorker worker, String path, Element node) {}
 
         protected List getCompatibleNodesWithID(String nodeID) {
             List result = findHierarchyNodesByID(nodeID);
@@ -2283,6 +2289,11 @@ public class HierarchySynchronizer {
             super.filterOutKnownChildren(node, childrenToDelete);
         }
 
+        @Override
+        protected void nodeWasAdded(SyncWorker w, String path, Element node) {
+            if (pspToDateSubset != null)
+                putData(path, PSP_SUBSET, StringData.create(pspToDateSubset));
+        }
 
     }
 
