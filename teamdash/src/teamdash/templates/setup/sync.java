@@ -33,6 +33,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -115,6 +116,13 @@ public class sync extends TinyCGIBase {
     /** true if the user wants us to copy all software component and document
      * nodes in the WBS, even if they aren't assigned to them */
     private boolean fullCopyMode;
+    /** The default to date subset to use for new PSP tasks */
+    private String pspToDateSubset;
+    /** Whether the user should be prompted to select the to date subset to
+     * use for new PSP tasks */
+    private boolean promptForPspToDateSubset;
+    /** An HTML element that can be used to select a PSP subset */
+    private String pspSubsetSelector;
 
 
     private static String ENABLE_SYNC_LOGGING = Settings
@@ -153,7 +161,8 @@ public class sync extends TinyCGIBase {
             // create a synchronization object.
             HierarchySynchronizer synch = new HierarchySynchronizer
                 (projectRoot, processID, wbsLocation, workflowLocation,
-                 initials, getOwner(), fullCopyMode, getPSPProperties(),
+                 initials, getOwner(), fullCopyMode, pspToDateSubset,
+                 promptForPspToDateSubset, getPSPProperties(),
                  getDataRepository());
 
             // double-check individual initials
@@ -263,6 +272,8 @@ public class sync extends TinyCGIBase {
             initials = (isMaster ? HierarchySynchronizer.SYNC_MASTER
                     : HierarchySynchronizer.SYNC_TEAM);
             migrationNeeded = conversionNeeded = false;
+            pspToDateSubset = pspSubsetSelector = null;
+            promptForPspToDateSubset = false;
 
             if (shouldRepairTeamImport())
                 RepairImportInstruction.maybeRepairForTeam(getDataContext());
@@ -297,6 +308,34 @@ public class sync extends TinyCGIBase {
             conversionNeeded = (d != null && d.test());
 
             RepairImportInstruction.maybeRepairForIndividual(getDataContext());
+
+            // check to see if the user has registered a To Date rollup that
+            // they wish to use for new PSP tasks in this team project
+            d = data.getSimpleValue(DataRepository.createDataName
+                (projectRoot, HierarchySynchronizer.PSP_SUBSET));
+            pspToDateSubset = (d != null && d.test() ? d.format() : null);
+            if (pspToDateSubset != null) {
+                // make certain their selection points to a valid rollup.
+                d = data.getSimpleValue(DataRepository.createDataName(
+                    pspToDateSubset, "PSP Rollup Tag"));
+                if (d == null || !d.test())
+                    pspToDateSubset = null;
+            }
+
+            // check to see if the user wants to be prompted for the PSP rollup
+            // that should be used for each new PSP task
+            d = data.getSimpleValue(PROMPT_FOR_PSP_SUBSET);
+            if (d != null && d.test()) {
+                // if they want to be prompted, double-check to ensure that
+                // multiple PSP rollups are still present in this dashboard
+                pspSubsetSelector = SelectPspRollup.getRollupSelector(
+                    getDataContext(), PSP_SUBSET_PREFIX + "#####",
+                    pspToDateSubset);
+                promptForPspToDateSubset = (pspSubsetSelector != null);
+            } else {
+                pspSubsetSelector = null;
+                promptForPspToDateSubset = false;
+            }
         }
 
         // we no longer check to see if the user wants us to perform a full wbs
@@ -492,10 +531,12 @@ public class sync extends TinyCGIBase {
 
         } else if (isTeam == false
                 && (synch.getTaskDeletions().isEmpty() == false ||
-                    synch.getTaskCompletions().isEmpty() == false)) {
+                    synch.getTaskCompletions().isEmpty() == false) ||
+                    synch.getPspTasksNeedingSubsetPrompt().isEmpty() == false) {
 
             printPermissionsPage(synch.getTaskDeletions(),
-                    synch.getTaskCompletions());
+                    synch.getTaskCompletions(),
+                    synch.getPspTasksNeedingSubsetPrompt());
 
         } else {
             printWaitPage();
@@ -579,8 +620,11 @@ public class sync extends TinyCGIBase {
      * destructive changes to their hierarchy.
      * @param taskDeletions a list of tasks we would like to delete
      * @param taskCompletions a list of tasks we would like to mark complete
+     * @param pspTasksNeedingSubset a list of PSP tasks whose To Date subset
+     *    needs configuring
      */
-    private void printPermissionsPage(List taskDeletions, List taskCompletions) {
+    private void printPermissionsPage(List taskDeletions, List taskCompletions,
+            List pspTasksNeedingSubset) {
         out.print("<!-- SYNC-IS-NEEDED -->\n");
         out.print("<html><head>\n");
         out.print("<title>Synchronizing Work Breakdown Structure</title>\n");
@@ -589,11 +633,14 @@ public class sync extends TinyCGIBase {
         out.print("<h1>Synchronizing Work Breakdown Structure</h1>\n");
         out.print("<form action='sync.class' method='post'>\n");
         out.print("<input type='hidden' name='"+SAVE_PERMS+"' value='1'/>\n");
-        out.print("<p>Several of the tasks in your hierarchy have been "
+
+        if (!taskDeletions.isEmpty() || !taskCompletions.isEmpty()) {
+            out.print("<p>Several of the tasks in your hierarchy have been "
                 + "deleted from the project's work breakdown structure, "
                 + "have been reassigned to other individuals, or have "
                 + "been deferred until future iterations.  These tasks "
                 + "can be removed from your project automatically.</p>\n");
+        }
 
         if (!taskDeletions.isEmpty()) {
             out.print("<h2>Tasks to Delete</h2>\n");
@@ -627,6 +674,20 @@ public class sync extends TinyCGIBase {
             }
         }
 
+        if (!pspTasksNeedingSubset.isEmpty()) {
+            out.print("<h2>PSP Tasks to Configure</h2>");
+            out.print("<p>The following PSP tasks have been added to your "
+                + "personal plan.  Please select the \"To Date\" rollup that "
+                + "each task should use as the basis for the \"Plan\" column "
+                + "and PROBE calculations:</p>\n"
+                + "<div style='margin-left:1cm'>\n");
+            for (int i = 0;  i < pspTasksNeedingSubset.size();  i++) {
+                String path = (String) pspTasksNeedingSubset.get(i);
+                printSubsetItem(i, path);
+            }
+            out.print("</div>\n");
+        }
+
         out.print("<p><input type='submit' name='OK' value='OK'/></p>");
         out.print("</form></body></html>\n");
     }
@@ -641,6 +702,16 @@ public class sync extends TinyCGIBase {
         out.print("<br/>\n");
     }
 
+    private void printSubsetItem(int i, String path) {
+        path = HTMLUtils.escapeEntities(path);
+        String selector = StringUtils.findAndReplace(pspSubsetSelector,
+            "#####", path);
+        out.print(path);
+        out.print("&nbsp;&nbsp;&nbsp;");
+        out.print(selector);
+        out.print("<br/>\n");
+    }
+
 
 
     /** Parse data from the permissions form, and save it to the repository.
@@ -648,18 +719,26 @@ public class sync extends TinyCGIBase {
     private void savePermissionData() {
         ListData delete = new ListData();
         ListData complete = new ListData();
+        ListData pspSubsets = new ListData();
         for (Iterator i = parameters.entrySet().iterator(); i.hasNext();) {
             Map.Entry e = (Map.Entry) i.next();
             if (e.getValue() == null  || "".equals(e.getValue()))
                 continue;
             String name = (String) e.getKey();
-            if (name.startsWith(DELETE_PREFIX))
+            if (name.endsWith("_ALL"))
+                ;
+            else if (name.startsWith(DELETE_PREFIX))
                 delete.add(name.substring(DELETE_PREFIX.length()));
             else if (name.startsWith(COMPLETE_PREFIX))
                 complete.add(name.substring(COMPLETE_PREFIX.length()));
+            else if (name.startsWith(PSP_SUBSET_PREFIX)) {
+                pspSubsets.add(name.substring(PSP_SUBSET_PREFIX.length()));
+                pspSubsets.add(e.getValue());
+            }
         }
         getDataRepository().putValue(getDataName(DELETE_DATANAME), delete);
         getDataRepository().putValue(getDataName(COMPLETE_DATANAME), complete);
+        getDataRepository().putValue(getDataName(PSP_SUBSET_DATANAME), pspSubsets);
         printWaitPage();
     }
 
@@ -676,6 +755,20 @@ public class sync extends TinyCGIBase {
                 getDataName(COMPLETE_DATANAME));
         if (list instanceof ListData)
             synch.setCompletionPermissions(((ListData) list).asList());
+        list = getDataRepository().getSimpleValue(
+            getDataName(PSP_SUBSET_DATANAME));
+        if (list instanceof ListData)
+            synch.setPspSubsetSelections(listToMap((ListData) list));
+    }
+
+    private Map listToMap(ListData l) {
+        Map result = new HashMap();
+        for (int i = 1;  i < l.size();  i += 2) {
+            Object key = l.get(i - 1);
+            Object value = l.get(i);
+            result.put(key, value);
+        }
+        return result;
     }
 
     private String getDataName(String name) {
@@ -922,6 +1015,7 @@ public class sync extends TinyCGIBase {
     private static final String DISABLE_TEAM_IMPORT_REPAIR_SETTING = "disableTeamImportRepairs";
     private static final String MIGRATE_DATA_NAME = "Team_Project_Migration_Needed";
     private static final String CONVERT_DATA_NAME = "Team_Project_Conversion_Needed";
+    private static final String PROMPT_FOR_PSP_SUBSET = "/Prompt_for_PSP_Subset_On_WBS_Sync";
     static final String HIER_FILENAME = "projDump.xml";
     private static final String WORKFLOW_FILENAME = "workflowDump.xml";
 
@@ -942,8 +1036,10 @@ public class sync extends TinyCGIBase {
     private static final String UNLISTED_INITIALS = "-NL";
     private static final String COMPLETE_PREFIX = "COMPLETE:";
     private static final String DELETE_PREFIX = "DELETE:";
+    private static final String PSP_SUBSET_PREFIX = "PSPSUBSET:";
     private static final String COMPLETE_DATANAME = "complete_ //list";
     private static final String DELETE_DATANAME = "delete_ //list";
+    private static final String PSP_SUBSET_DATANAME = "pspsubset_ //list";
     private static final String CHANGES_DATANAME = "changes_ //list";
 
     private static final String READ_ONLY_MODE_ERR_MESSAGE =

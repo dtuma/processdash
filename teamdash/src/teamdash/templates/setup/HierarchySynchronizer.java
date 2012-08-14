@@ -48,10 +48,16 @@ import java.util.TimeZone;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+
 import net.sourceforge.processdash.DashController;
 import net.sourceforge.processdash.data.DataContext;
 import net.sourceforge.processdash.data.DateData;
 import net.sourceforge.processdash.data.DoubleData;
+import net.sourceforge.processdash.data.ImmutableDoubleData;
 import net.sourceforge.processdash.data.ListData;
 import net.sourceforge.processdash.data.NumberData;
 import net.sourceforge.processdash.data.SaveableData;
@@ -60,28 +66,23 @@ import net.sourceforge.processdash.data.StringData;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.ev.EVMetadata;
 import net.sourceforge.processdash.ev.EVSchedule;
+import net.sourceforge.processdash.ev.EVSchedule.Period;
 import net.sourceforge.processdash.ev.EVTaskDependency;
 import net.sourceforge.processdash.ev.EVTaskList;
 import net.sourceforge.processdash.ev.EVTaskListData;
-import net.sourceforge.processdash.ev.EVSchedule.Period;
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.Filter;
+import net.sourceforge.processdash.hier.HierarchyAlterer.HierarchyAlterationException;
 import net.sourceforge.processdash.hier.HierarchyNote;
+import net.sourceforge.processdash.hier.HierarchyNote.InvalidNoteSpecification;
 import net.sourceforge.processdash.hier.HierarchyNoteManager;
 import net.sourceforge.processdash.hier.PropertyKey;
-import net.sourceforge.processdash.hier.HierarchyAlterer.HierarchyAlterationException;
-import net.sourceforge.processdash.hier.HierarchyNote.InvalidNoteSpecification;
 import net.sourceforge.processdash.log.defects.Defect;
 import net.sourceforge.processdash.log.defects.DefectAnalyzer;
 import net.sourceforge.processdash.templates.DashPackage;
 import net.sourceforge.processdash.util.StringUtils;
 import net.sourceforge.processdash.util.ThreadThrottler;
 import net.sourceforge.processdash.util.XMLUtils;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
 
 public class HierarchySynchronizer {
@@ -102,6 +103,7 @@ public class HierarchySynchronizer {
     private String ownerName;
     private boolean oldStyleSync;
     private String pspToDateSubset;
+    private boolean promptForPspToDateSubset;
     private Element projectXML;
     private Map<Element, List<Element>> prunedChildren;
     private String dumpFileVersion;
@@ -125,6 +127,9 @@ public class HierarchySynchronizer {
      * permission to complete nothing. */
     private List completionPermissions = Collections.EMPTY_LIST;
 
+    /** map of to-date subsets that should be used for various psp tasks. */
+    private Map<String, String> pspSubsetSelections = Collections.EMPTY_MAP;
+
     /** Does the caller just want to find out if anything needs changing? */
     private boolean whatIfMode = true;
 
@@ -143,6 +148,7 @@ public class HierarchySynchronizer {
 
     private List deletionsPerformed;
     private List completionsPerformed;
+    private List pspTasksNeedingSubsetPrompt;
 
     private Map sizeConstrPhases;
     private List allConstrPhases;
@@ -156,6 +162,8 @@ public class HierarchySynchronizer {
                                  String initials,
                                  String ownerName,
                                  boolean fullCopyMode,
+                                 String defaultPspSubset,
+                                 boolean promptForPspSubset,
                                  DashHierarchy hierarchy,
                                  DataRepository data) throws IOException {
         this.projectPath = projectPath;
@@ -189,10 +197,12 @@ public class HierarchySynchronizer {
                 this.taskNodeID = processID + "/IndivEmptyNode";
                 this.oldStyleSync = true;
             }
-            this.pspToDateSubset = getStringData(getData(projectPath, PSP_SUBSET));
+            this.pspToDateSubset = defaultPspSubset;
+            this.promptForPspToDateSubset = promptForPspSubset;
             this.deletionPermissions = Collections.EMPTY_LIST;
             this.completionPermissions = Collections.EMPTY_LIST;
             this.deferredDeletions = new ArrayList();
+            this.pspTasksNeedingSubsetPrompt = new ArrayList();
         }
 
         loadProcessData();
@@ -236,6 +246,10 @@ public class HierarchySynchronizer {
         this.completionPermissions = p;
     }
 
+    public void setPspSubsetSelections(Map<String, String> selections) {
+        this.pspSubsetSelections = selections;
+    }
+
     public boolean isTeam() {
         return initials == SYNC_TEAM || initials == SYNC_MASTER;
     }
@@ -256,6 +270,9 @@ public class HierarchySynchronizer {
         return completionsPerformed;
     }
 
+    public List getPspTasksNeedingSubsetPrompt() {
+        return pspTasksNeedingSubsetPrompt;
+    }
 
     public void dumpChanges(PrintWriter out) {
         Iterator i = changes.iterator();
@@ -1364,6 +1381,8 @@ public class HierarchySynchronizer {
     private static final String TEAM_NOTE_CONFLICT_KEY =
         HierarchyNoteManager.NOTE_CONFLICT_KEY;
     static final String PSP_SUBSET = "PSP To Date Subset Prefix";
+    private static final String NEEDS_PSP_SUBSET_PROMPT = PSP_SUBSET
+            + "///Needs Prompt";
     static final String MISC_CHANGE_COMMENT =
         "Updated miscellaneous project information";
 
@@ -2000,6 +2019,10 @@ public class HierarchySynchronizer {
             return (d == null);
     }
 
+    private boolean testData(SimpleData d) {
+        return (d == null ? false : d.test());
+    }
+
     private static ListData asListData(String d) {
         if (StringUtils.hasValue(d))
             return new ListData(d);
@@ -2251,6 +2274,19 @@ public class HierarchySynchronizer {
             if (!isPrunedNode(node)) {
                 maybeSaveTimeValue(worker, path, node);
             }
+            if (testData(getData(path, NEEDS_PSP_SUBSET_PROMPT))) {
+                String rollup = pspSubsetSelections.get(path);
+                if (rollup != null && rollup.length() > 0) {
+                    putData(path, PSP_SUBSET, StringData.create(rollup));
+                    putData(path, NEEDS_PSP_SUBSET_PROMPT, null);
+                    changes.add("Configured the task '" + path
+                            + "' to draw its historical data from '" + rollup
+                            + "'");
+                } else {
+                    pspTasksNeedingSubsetPrompt.add(path);
+                    changes.add(null);
+                }
+            }
         }
 
         protected boolean okToChangeTimeEstimate(String path) {
@@ -2293,6 +2329,8 @@ public class HierarchySynchronizer {
         protected void nodeWasAdded(SyncWorker w, String path, Element node) {
             if (pspToDateSubset != null)
                 putData(path, PSP_SUBSET, StringData.create(pspToDateSubset));
+            if (promptForPspToDateSubset)
+                putData(path, NEEDS_PSP_SUBSET_PROMPT, ImmutableDoubleData.TRUE);
         }
 
     }
