@@ -124,7 +124,7 @@ public class WorkingDirectoryFactory {
     }
 
     public WorkingDirectory get(File targetDirectory, int purpose) {
-        URL serverURL = TeamServerSelector.getServerURL(targetDirectory);
+        URL serverURL = TeamServerSelector.getServerURL(targetDirectory, true);
         String serverUrlStr = (serverURL == null ? null : serverURL.toString());
         return get(targetDirectory, serverUrlStr, purpose);
     }

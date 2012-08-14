@@ -1,4 +1,4 @@
-// Copyright (C) 2008-2011 Tuma Solutions, LLC
+// Copyright (C) 2008-2012 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -31,6 +31,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLEncoder;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -162,6 +163,30 @@ public class TeamServerSelector {
      *         that directory
      */
     public static URL getServerURL(File dir, String minVersion) {
+        return getServerURL(dir, minVersion, false);
+    }
+
+    /**
+     * Look in a particular real directory and see if its contents have been
+     * migrated to a team server. If not, return null. Otherwise, try returning
+     * the URL of the server which appears to be closest / most responsive. If
+     * no server could be contacted but the offlineOK parameter is true, a URL
+     * will be returned anyway.
+     * 
+     * @param dir
+     *            a directory on the filesystem
+     * @param offlineOK
+     *            if true, return a URL if one is available, even if the
+     *            corresponding server is not reachable
+     * @return the URL of a team server data collection representing the data in
+     *         that directory
+     */
+    public static URL getServerURL(File dir, boolean offlineOK) {
+        return getServerURL(dir, null, offlineOK);
+    }
+
+    private static URL getServerURL(File dir, String minVersion,
+            boolean offlineOK) {
         if (isTeamServerUseDisabled() || dir == null)
             return null;
 
@@ -197,6 +222,18 @@ public class TeamServerSelector {
             if (elapsed < bestTimeSoFar) {
                 bestTimeSoFar = elapsed;
                 result = u;
+            }
+        }
+
+        if (result == null && offlineOK) {
+            List<String> instanceURLs = pointerFile.getInstanceURLs();
+            if (!instanceURLs.isEmpty()) {
+                try {
+                    // select one of the URLs at random. (Of course, with
+                    // the current PDES deployment scenario, we expect exactly
+                    // one URL to be present anyway.)
+                    result = new URL(instanceURLs.get(0));
+                } catch (Exception ex) {}
             }
         }
 
