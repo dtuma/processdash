@@ -68,15 +68,15 @@ public abstract class AbstractWorkingDirectory implements WorkingDirectory {
     }
 
     protected String getWorkingId() {
-        if (targetDirectory != null) {
-            String path = targetDirectory.getAbsolutePath();
-            return FileUtils.makeSafeIdentifier(path);
-
-        } else {
+        if (remoteURL != null) {
             String url = remoteURL;
             if (url.startsWith("https"))
                 url = "http" + url.substring(5);
             return FileUtils.makeSafeIdentifier(url);
+
+        } else {
+            String path = targetDirectory.getAbsolutePath();
+            return FileUtils.makeSafeIdentifier(path);
         }
     }
 
