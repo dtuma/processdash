@@ -63,6 +63,8 @@ import net.sourceforge.processdash.util.Initializable;
 
 public class QuickLauncher {
 
+    public static final String QUICK_LAUNCH_MODE_PROP = "quickLauncher.mode";
+
     static Resources resources = Resources.getDashBundle("QuickLauncher");
 
     public static void main(String[] args) {
@@ -110,6 +112,8 @@ public class QuickLauncher {
 
             // if additional JVM properties are added here in the future,
             // consider adding them to the SimpleInternalLauncher as well
+
+            processFactory.addVmArg("-D" + QUICK_LAUNCH_MODE_PROP + "=true");
 
             String userLang = System.getProperty("user.language");
             if (userLang != null)

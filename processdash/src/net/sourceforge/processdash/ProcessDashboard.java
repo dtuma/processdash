@@ -128,6 +128,7 @@ import net.sourceforge.processdash.tool.bridge.client.TeamServerSelector;
 import net.sourceforge.processdash.tool.bridge.client.WorkingDirectory;
 import net.sourceforge.processdash.tool.bridge.client.WorkingDirectoryFactory;
 import net.sourceforge.processdash.tool.bridge.impl.DatasetAutoMigrator;
+import net.sourceforge.processdash.tool.bridge.impl.JnlpRelauncher;
 import net.sourceforge.processdash.tool.export.mgr.ExportManager;
 import net.sourceforge.processdash.tool.export.mgr.ExternalResourceManager;
 import net.sourceforge.processdash.tool.export.mgr.ImportManager;
@@ -688,6 +689,9 @@ public class ProcessDashboard extends JFrame implements WindowListener,
     private void configureWorkingDirectory(String location) {
         workingDirectory = WorkingDirectoryFactory.getInstance().get(
             location, WorkingDirectoryFactory.PURPOSE_DASHBOARD);
+        if (JnlpRelauncher.maybeRelaunch(workingDirectory))
+            System.exit(0);
+
         String locationDescr = workingDirectory.getDescription();
 
         try {
