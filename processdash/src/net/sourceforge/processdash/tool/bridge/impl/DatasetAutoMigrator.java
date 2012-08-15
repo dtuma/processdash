@@ -276,9 +276,9 @@ public class DatasetAutoMigrator {
         // new shortcut that dynamically downloads the application from the
         // server.  Until they delete the old shortcut, they could possibly
         // end up using it from time to time to open their data.  If their old
-        // version is older than 1.14.1, it will not understand the
+        // version is older than 1.14.7, it will not properly handle the
         // "Work Offline" logic; so to avoid problems we only want to put the
-        // dataset into offline mode if their installed version is 1.14.1 or
+        // dataset into offline mode if their installed version is 1.14.7 or
         // higher.  The simplest way to detect this is to look at the log.txt
         // file in the source directory; it will contain a line near the top
         // of the file indicating the version number that was used the last
@@ -302,7 +302,7 @@ public class DatasetAutoMigrator {
         }
     }
     private static final String VERSION_TOKEN = "Process Dashboard version ";
-    private static final String MIN_OFFLINE_VERSION = "1.14.1";
+    private static final String MIN_OFFLINE_VERSION = "1.14.7";
 
     private void copyDataFiles() throws IOException {
         // Copy all important data files from the source directory to the
@@ -471,7 +471,7 @@ public class DatasetAutoMigrator {
             "timelog.xml" };
 
     // a file we write to the source directory to indicate it has been migrated
-    private static final String MARKER_FILE = "00-This-Directory-is-Obsolete.txt";
+    static final String MARKER_FILE = "00-This-Directory-is-Obsolete.txt";
 
     // pspdash.ini setting to record the fact that we've migrated data into
     // this working directory
