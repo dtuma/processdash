@@ -1299,12 +1299,13 @@ public class EVWeekReport extends TinyCGIBase {
         "#JacsOut { border: 0px; padding: 0px; width: 0px; color: #fff }\n" +
         "</style>\n"+
         "<script type='text/javascript' src='/lib/prototype.js'> </script>\n" +
-        "<script type='text/javascript' src='/lib/jacs.js'> </script>\n" +
         "<script type='text/javascript' src='/reports/ev.js'> </script>\n" +
         EVReport.REDUNDANT_EXCEL_HEADER +
         EVReport.SORTTABLE_HEADER +
         EVReport.POPUP_HEADER +
-        "</head><body><h1>%title%</h1>\n";
+        "</head><body>" +
+        "<script type='text/javascript' src='/lib/jacs.js'> </script>\n" +
+        "<h1>%title%</h1>\n";
     static final String FILTER_HEADER_HTML = EVReport.FILTER_HEADER_HTML;
 
     static final String EXPORT_HTML =
