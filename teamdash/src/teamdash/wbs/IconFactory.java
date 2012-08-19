@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Tuma Solutions, LLC
+// Copyright (C) 2002-2012 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -167,6 +167,24 @@ public class IconFactory {
     }
     private static Icon DELETE_ICON = null;
 
+    public static Icon getFilterOnIcon() {
+        if (FILTER_ON_ICON == null) FILTER_ON_ICON = loadIconResource("filter-on.png");
+        return FILTER_ON_ICON;
+    }
+    private static Icon FILTER_ON_ICON = null;
+
+    public static Icon getFilterOffIcon() {
+        if (FILTER_OFF_ICON == null) FILTER_OFF_ICON = loadIconResource("filter-off.png");
+        return FILTER_OFF_ICON;
+    }
+    private static Icon FILTER_OFF_ICON = null;
+
+    public static Icon getFilterDeleteIcon() {
+        if (FILTER_DELETE_ICON == null) FILTER_DELETE_ICON = loadIconResource("filter-delete.png");
+        return FILTER_DELETE_ICON;
+    }
+    private static Icon FILTER_DELETE_ICON = null;
+
     public static Icon getInsertOnEnterIcon() {
         if (INSERT_ON_ENTER_ICON == null)
             INSERT_ON_ENTER_ICON = loadIconResource("enter-key-insert-on.png");
@@ -265,6 +283,12 @@ public class IconFactory {
         return SORT_DATES_ICON;
     }
     private static Icon SORT_DATES_ICON = null;
+
+    public static Icon getHelpIcon() {
+        if (HELP_ICON == null) HELP_ICON = loadIconResource("help.png");
+        return HELP_ICON;
+    }
+    private static Icon HELP_ICON = null;
 
     /** Convenience method for mixing colors.
      * @param r the ratio to use when mixing; must be between 0.0 and 1.0 .

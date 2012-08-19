@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Tuma Solutions, LLC
+// Copyright (C) 2002-2012 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -138,7 +138,8 @@ public class AutocompletingDataTableCellEditor extends ComboBoxCellEditor {
     public Component getTableCellEditorComponent(JTable table, Object value,
             boolean isSelected, int row, int column) {
 
-        setupEditor.restart();
+        if (column != -1)
+            setupEditor.restart();
 
         return super.getTableCellEditorComponent(table, value, isSelected, row,
             column);

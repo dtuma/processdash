@@ -53,6 +53,10 @@ public class ErrorNotesColumn extends AbstractNotesColumn {
                 resources.getStrings("Error_Notes.Edit_Dialog_Header"), " " };
     }
 
+    public static String getTextAt(WBSNode node) {
+        return getTextAt(node, VALUE_ATTR);
+    }
+
     public static String getTooltipAt(WBSNode node, boolean includeByline) {
         return getTooltipAt(node, includeByline, VALUE_ATTR);
     }

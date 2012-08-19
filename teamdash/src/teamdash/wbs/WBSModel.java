@@ -480,9 +480,15 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
     }
 
     private void recalcRows(IntList resultList, int nodePos) {
+        WBSNode node = (WBSNode) wbsNodes.get(nodePos);
+
+        // check to see if this node was hidden by a filtering operation.  If
+        // so, this node and its children should not appear in the row list.
+        if (nodePos > 0 && isHiddenByFilter(node))
+            return;
+
         resultList.add(nodePos);
 
-        WBSNode node = (WBSNode) wbsNodes.get(nodePos);
         if (nodePos == 0 || node.isExpanded()) {
             IntList children = getChildIndexes(node);
 
@@ -520,7 +526,7 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
             this.nodePos = nodePos;
             this.node = wbsNodes.get(nodePos);
             this.expanded = (nodePos == 0 || node.isExpanded());
-            this.visible = true;
+            this.visible = !isHiddenByFilter(node);
             this.childIndexes = new IntList();
             node.setAttribute(CACHED_PARENT, null);
             node.setAttribute(CACHED_CHILDREN, null);
@@ -542,7 +548,7 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
         private void setParent(StructureData parent) {
             this.parent = parent;
             this.node.setAttribute(CACHED_PARENT, parent.node);
-            this.visible = parent.visible && parent.expanded;
+            this.visible = this.visible && parent.visible && parent.expanded;
             parent.childIndexes.add(this.nodePos);
         }
     }
@@ -599,6 +605,128 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
                     changeType, isExpansionOnly));
         }
         return true;
+    }
+
+
+
+    /** A collection of IDs for nodes that should be hidden */
+    private Set<Integer> filteredNodeIDs;
+
+    public void filterRows(WBSFilter... filters) {
+        if (filters == null || filters.length == 0
+                || (filters.length == 1 && filters[0] == null)) {
+            this.filteredNodeIDs = null;
+        } else {
+            Set<Integer> newHiddenNodes = new HashSet();
+            calcfilteredNodes(filters, 0, getRoot(), newHiddenNodes);
+            newHiddenNodes.remove(getRoot().getUniqueID());
+            this.filteredNodeIDs = newHiddenNodes;
+        }
+        recalcRows(true, true);
+    }
+
+    /**
+     * Iterate over the nodes hierarchically, determining which ones should be
+     * hidden and which should be visible.
+     * 
+     * @param filters
+     *            a list of filters which nodes must match. Note that a single
+     *            node does not need to match all of the filters; rather, the
+     *            list of filters must be satified by a node and its ancestors.
+     *            If this condition is met, the node, its ancestors, and its
+     *            descendants will all match, and none will be filtered.
+     * @param alreadyMatchedLen
+     *            the number of initial entires in the "filters" array that have
+     *            been satisfied by ancestors of this node.
+     * @param node
+     *            a node to match
+     * @param filteredIDs
+     *            a collection where we should write the IDs of nodes that do
+     *            not match the filter.
+     * 
+     * @return true if this node matches, false if it should be filtered.
+     */
+    private boolean calcfilteredNodes(WBSFilter[] filters,
+            int alreadyMatchedLen, WBSNode node, Set<Integer> filteredIDs) {
+        // check to see if this node matches all of the remaining filters.
+        int matchLen = filterMatchLen(filters, alreadyMatchedLen, node);
+        boolean shouldShow = (matchLen == filters.length);
+
+        // if this node matches, all of its decendants match too; so we don't
+        // need to recurse, we can return immediately.
+        if (shouldShow)
+            return true;
+
+        // recurse over each of our children.
+        for (WBSNode child : getChildren(node)) {
+            // if one of our children matches the remaining filters, we match.
+            if (calcfilteredNodes(filters, matchLen, child, filteredIDs))
+                shouldShow = true;
+        }
+
+        // if we don't match all the filters, and our decendants don't either,
+        // this node should be hidden.
+        if (shouldShow == false)
+            filteredIDs.add(node.getUniqueID());
+        return shouldShow;
+    }
+
+    /**
+     * Determine whether a node matches any of the filters in an array. If so,
+     * reorder the array to place the matching filters first, and return the
+     * number of filters that were matched.
+     * 
+     * @param filters
+     *            a list of filters to match against. Items in this array in
+     *            positions greater than or equal to alreadyMatchedLen may be
+     *            reordered to place matching filters first.
+     * @param alreadyMatchedLen
+     *            the number of filters at the beginning of the array that have
+     *            already been satisfied, and which do not need to be evaluated
+     *            for this node. Those initial filters will not be reordered by
+     *            this method.
+     * @param node
+     *            the node that we should evaluate the filters for.
+     * 
+     * @return the total number of filters that were matched by this node, plus
+     *         the alreadyMatchedLen
+     */
+    private int filterMatchLen(WBSFilter[] filters, int alreadyMatchedLen,
+            WBSNode node) {
+        int len = alreadyMatchedLen;
+        for (int pos = len;  pos < filters.length;  pos++) {
+            WBSFilter f = filters[pos];
+            if (f.match(node)) {
+                if (pos != len) {
+                    // swap array entries to put the matching filter first.
+                    filters[pos] = filters[len];
+                    filters[len] = f;
+                }
+                len++;
+            }
+        }
+        return len;
+    }
+
+    private boolean isHiddenByFilter(WBSNode node) {
+        if (filteredNodeIDs == null || node == null)
+            return false;
+        else
+            return filteredNodeIDs.contains(node.getUniqueID());
+    }
+
+    public void remapFilteredNodeIDs(Map<Integer, Integer> idMap) {
+        if (filteredNodeIDs != null && idMap != null && !idMap.isEmpty()) {
+            Set<Integer> newFilter = new HashSet<Integer>();
+            for (Integer oldID : filteredNodeIDs) {
+                Integer newID = idMap.get(oldID);
+                if (newID != null)
+                    newFilter.add(newID);
+                else
+                    newFilter.add(oldID);
+            }
+            filteredNodeIDs = newFilter;
+        }
     }
 
 
@@ -722,7 +850,18 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
     private void makeVisible(int nodePos, boolean notify) {
         if (nodePos < 0 || nodePos > wbsNodes.size()-1) return;
         WBSNode n = (WBSNode) wbsNodes.get(nodePos);
+
+        // if the node in question is currently filtered, we will be making
+        // it visible again.  This means that all of its descendants should
+        // also be made visible.
+        if (isHiddenByFilter(n)) {
+            for (WBSNode desc : getDescendants(n))
+                filteredNodeIDs.remove(desc.getUniqueID());
+        }
+
         do {
+            if (filteredNodeIDs != null)
+                filteredNodeIDs.remove(n.getUniqueID());
             n = getParent(n);
             if (n == null) break;
             n.setExpanded(true);

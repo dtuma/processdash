@@ -712,6 +712,7 @@ public class WBSJTable extends JTable {
         public void recalculateEnablement(int[] selectedRows) {
             setEnabled(!disableEditing
                     && !disableIndentation
+                    && !isFiltered()
                     && notJustRoot(selectedRows)
                     && !containsReadOnlyNode(selectedRows));
         }
@@ -737,6 +738,7 @@ public class WBSJTable extends JTable {
         public void recalculateEnablement(int[] selectedRows) {
             if (disableEditing
                     || disableIndentation
+                    || isFiltered()
                     || notJustRoot(selectedRows) == false
                     || containsReadOnlyNode(selectedRows))
                 setEnabled(false);
@@ -811,7 +813,9 @@ public class WBSJTable extends JTable {
             WBSJTable.this.recalculateEnablement();
         }
         public void recalculateEnablement(int[] selectedRows) {
-            setEnabled(!disableEditing && notJustRoot(selectedRows));
+            setEnabled(!disableEditing
+                    && !isFiltered()
+                    && notJustRoot(selectedRows));
         }
         public void lostOwnership(Clipboard clipboard, Transferable contents) {
             cancelCut();
@@ -846,7 +850,7 @@ public class WBSJTable extends JTable {
             WBSJTable.this.recalculateEnablement();
         }
         public void recalculateEnablement(int[] selectedRows) {
-            setEnabled(notJustRoot(selectedRows));
+            setEnabled(!isFiltered() && notJustRoot(selectedRows));
         }
     }
     final CopyAction COPY_ACTION = new CopyAction();
@@ -966,9 +970,10 @@ public class WBSJTable extends JTable {
             }
         }
         public void recalculateEnablement(int[] selectedRows) {
-            setEnabled(!disableEditing &&
-                       notEmpty(selectedRows) &&
-                       getLocation() != null);
+            setEnabled(!disableEditing
+                    && !isFiltered()
+                    && notEmpty(selectedRows)
+                    && getLocation() != null);
         }
     }
     final PasteAction PASTE_ACTION = new PasteAction();
@@ -1029,7 +1034,9 @@ public class WBSJTable extends JTable {
             UndoList.madeChange(WBSJTable.this, "Insert WBS element");
         }
         public void recalculateEnablement(int[] selectedRows) {
-            setEnabled(!disableEditing && notEmpty(selectedRows));
+            setEnabled(!disableEditing
+                    && !isFiltered()
+                    && notEmpty(selectedRows));
         }
         // Normally we would like to use a transient attribute to register an
         // "auto zero user".  However, when the node is first added to the WBS,
@@ -1177,6 +1184,7 @@ public class WBSJTable extends JTable {
         }
         public void recalculateEnablement(int[] selectedRows) {
             setEnabled(!disableEditing
+                    && !isFiltered()
                     && notJustRoot(selectedRows)
                     && !containsReadOnlyNode(selectedRows));
         }
@@ -1259,7 +1267,9 @@ public class WBSJTable extends JTable {
         }
 
         public void recalculateEnablement(int[] selectedRows) {
-            setEnabled(!disableEditing && notEmpty(selectedRows));
+            setEnabled(!disableEditing
+                    && !isFiltered()
+                    && notEmpty(selectedRows));
         }
     }
     private InsertWorkflowAction INSERT_WORKFLOW_ACTION = null;
@@ -1292,7 +1302,7 @@ public class WBSJTable extends JTable {
         }
 
         public void recalculateEnablement(int[] selectedRows) {
-            setEnabled(!disableEditing);
+            setEnabled(!disableEditing && !isFiltered());
         }
     }
 
@@ -1433,6 +1443,7 @@ public class WBSJTable extends JTable {
         }
         public void recalculateEnablement(int[] selectedRows) {
             setEnabled(!disableEditing
+                && !isFiltered()
                 && selectedRows != null
                 && isParentAndChildren(selectedRows)
                 && selectedRows[0] > 1);
@@ -1470,12 +1481,21 @@ public class WBSJTable extends JTable {
         }
         public void recalculateEnablement(int[] selectedRows) {
             setEnabled(!disableEditing
+                && !isFiltered()
                 && selectedRows != null
                 && isParentAndChildren(selectedRows)
                 && selectedRows[selectedRows.length-1] + 1 < getRowCount());
         }
     }
     final MoveDownAction MOVEDOWN_ACTION = new MoveDownAction();
+
+
+    public boolean isFiltered() {
+        return FILTER_ACTION.isActive();
+    }
+
+    final WBSFilterAction FILTER_ACTION = new WBSFilterAction(this);
+
 
 
     /** Recalculate enablement following changes in selection */

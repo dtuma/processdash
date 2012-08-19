@@ -58,6 +58,7 @@ public class TeamProjectNodeIDMatcher {
 
         // Finally, apply these remapped IDs to the affected attributes in
         // the main WBS.
+        incoming.getWBS().remapFilteredNodeIDs(wbsIDMappings);
         incoming.getWBS().remapWorkflowSourceIDs(workflowIDMappings);
         MilestoneColumn.remapNodeIDs(incoming.getWBS(), milestoneIDMappings);
         TaskDependencyColumn.remapNodeIDs(incoming.getWBS(), incoming
