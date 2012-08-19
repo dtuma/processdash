@@ -185,8 +185,12 @@ public class TaskLabelColumn extends AbstractDataColumn implements
 
         private void collectLabels(Set labels, WBSNode node) {
             String nodeValue = (String) node.getAttribute(EXPLICIT_VALUE_ATTR);
-            if (nodeValue != null)
+            if (nodeValue != null) {
                 labels.add(nodeValue);
+                for (String l : nodeValue.split(NON_LABEL_CHARS_REGEXP))
+                    if (l.length() > 0)
+                        labels.add(l);
+            }
 
             WBSNode[] children = wbsModel.getChildren(node);
             for (int i = 0; i < children.length; i++)
