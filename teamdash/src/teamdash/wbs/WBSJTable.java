@@ -64,11 +64,11 @@ import javax.swing.SwingUtilities;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
+import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
+
 import teamdash.ActionCategoryComparator;
 import teamdash.wbs.columns.TeamActualTimeColumn;
 import teamdash.wbs.columns.TeamTimeColumn;
-
-import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
 
 
 /** Displays the nodes of a WBSModel in a JTable, and installs custom
@@ -1488,6 +1488,9 @@ public class WBSJTable extends JTable {
         }
     }
     final MoveDownAction MOVEDOWN_ACTION = new MoveDownAction();
+
+
+    final WBSFindAction FIND_ACTION = new WBSFindAction(this);
 
 
     public boolean isFiltered() {

@@ -729,6 +729,59 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
         }
     }
 
+    /**
+     * Find a WBSNode that matches the given filter
+     * 
+     * @param f the filter for searching
+     * @param after search after a particular node
+     * @param wrap if true, search should wrap around if no match is found
+     * @return the next matching node found, or null if there were no matches
+     */
+    public WBSNode findNextNodeMatching(WBSFilter f, WBSNode after, boolean wrap) {
+        int pos = -1;
+        if (after != null)
+            pos = wbsNodes.indexOf(after);
+
+        for (pos++; pos < wbsNodes.size();  pos++) {
+            WBSNode node = wbsNodes.get(pos);
+            if (f.match(node))
+                return node;
+        }
+
+        if (wrap)
+            return findNextNodeMatching(f, null, false);
+        else
+            return null;
+    }
+
+    /**
+     * Find a WBSNode that matches the given filter
+     * 
+     * @param f the filter for searching
+     * @param before search before a particular node
+     * @param wrap if true, search should wrap around if no match is found
+     * @return the next matching node found, or null if there were no matches
+     */
+    public WBSNode findPreviousNodeMatching(WBSFilter f, WBSNode before,
+            boolean wrap) {
+        int pos = -1;
+        if (before != null)
+            pos = wbsNodes.indexOf(before);
+        if (pos == -1)
+            pos = wbsNodes.size();
+
+        for (pos--; pos >= 0;  pos--) {
+            WBSNode node = wbsNodes.get(pos);
+            if (f.match(node))
+                return node;
+        }
+
+        if (wrap)
+            return findPreviousNodeMatching(f, null, false);
+        else
+            return null;
+    }
+
 
 
     protected IntList getIndexesForRows(int[] rowNumbers,

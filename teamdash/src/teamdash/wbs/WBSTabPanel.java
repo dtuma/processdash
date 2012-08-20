@@ -323,6 +323,7 @@ public class WBSTabPanel extends JLayeredPane
         result.add(undoList.getRedoAction());
         result.addAll(Arrays.asList(wbsTable.getEditingActions()));
         result.addAll(Arrays.asList(dataTable.getEditingActions()));
+        result.add(wbsTable.FIND_ACTION);
         result.add(wbsTable.FILTER_ACTION);
 
         Comparator<Action> comparator = new ActionCategoryComparator(editMenuActionOrder);
@@ -735,6 +736,7 @@ public class WBSTabPanel extends JLayeredPane
         for (int i = 0;   i < editingActions.length;   i++)
             if (editingActions[i].getValue(Action.SMALL_ICON) != null)
                 addToolbarButton(editingActions[i]);
+        addToolbarButton(wbsTable.FIND_ACTION);
         addToolbarButton(wbsTable.FILTER_ACTION);
         wbsTable.FILTER_ACTION.setWbsTabPanel(this);
         addToolbarButton(wbsTable.TOGGLE_ENTER_BEHAVIOR_ACTION);

@@ -167,6 +167,12 @@ public class IconFactory {
     }
     private static Icon DELETE_ICON = null;
 
+    public static Icon getFindIcon() {
+        if (FIND_ICON == null) FIND_ICON = loadIconResource("find.png");
+        return FIND_ICON;
+    }
+    private static Icon FIND_ICON = null;
+
     public static Icon getFilterOnIcon() {
         if (FILTER_ON_ICON == null) FILTER_ON_ICON = loadIconResource("filter-on.png");
         return FILTER_ON_ICON;
