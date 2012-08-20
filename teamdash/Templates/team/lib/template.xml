@@ -51,23 +51,23 @@
 
     <html ID="tasklist"
         href="control/showTaskSchedule.class?trigger&amp;PID-master"
-        title="Open Earned Value Task &amp; Schedule"/>
+        title="Project Task &amp; Schedule"/>
     <html ID="week" href="reports/week.class?tl=auto&amp;PID-master"
-        title="    Open Weekly Earned Value Report"/>
+        title="    Weekly Earned Value Report"/>
 
     <html ID="wbsTD" href="PID/setup/openWBS.shtm?trigger&amp;master"
-        title="Edit Top-Down Work Breakdown Structure"
+        title="Top-Down Work Breakdown Structure"
         inPackage="teamTools version 2.4.4"/>
     <html ID="wbsBU" href="PID/setup/openWBS.shtm?trigger&amp;bottomUp"
-        title="    View Bottom-Up Work Breakdown Structure"
+        title="    Bottom-Up Work Breakdown Structure"
         inPackage="teamTools version 2.4.4"/>
     <html ID="sync" href="PID/setup/sync.class?trigger=optional&amp;master"
         title="    Sync Work Breakdown Structure"/>
 
     <html ID="tools" href="PID/master_tools.shtm"
-        title="Master Project Tools and Settings"/>
+        title="Master Project Tools"/>
     <html ID="params" href="PID/master_project_parameters.shtm"
-        title="    Edit Project Parameters and Settings"/>
+        title="    Project Parameters and Settings"/>
     <html ID="import" href="control/importNow.class"
         title="    Import All Data Now"/>
     <html ID="timelog" href="control/showTimeLog?type=rollup&amp;for=[Corresponding_Project_Nodes]&amp;mergePrefixes&amp;trigger"
@@ -143,20 +143,20 @@
 
     <html ID="tasklist"
         href="control/showTaskSchedule.class?trigger&amp;PID-team"
-        title="Open Earned Value Task &amp; Schedule"/>
+        title="Project Task &amp; Schedule"/>
     <html ID="week" href="reports/week.class?tl=auto&amp;PID-team"
-        title="    Open Weekly Earned Value Report"/>
+        title="    Weekly Earned Value Report"/>
 
     <html ID="editWBS" href="PID/setup/openWBS.shtm?trigger&amp;forteam"
-        title="Edit Work Breakdown Structure"
+        title="Work Breakdown Structure Editor"
         inPackage="teamTools version 2.4.4"/>
     <html ID="sync" href="PID/setup/sync.class?trigger=optional&amp;team"
         title="    Sync Work Breakdown Structure"/>
 
     <html ID="tools" href="PID/team_tools.shtm"
-        title="Team Project Tools and Settings"/>
+        title="Team Project Tools"/>
     <html ID="params" href="PID/team_project_parameters.shtm"
-        title="    Edit Project Parameters and Settings"/>
+        title="    Project Parameters and Settings"/>
     <html ID="import" href="control/importNow.class"
         title="    Import All Data Now"/>
     <html ID="timelog" href="control/showTimeLog?type=rollup&amp;for=[Corresponding_Project_Nodes]&amp;mergePrefixes&amp;trigger"
@@ -279,18 +279,18 @@
 
     <html ID="tasklist"
         href="control/showTaskSchedule.class?trigger&amp;PID-indiv"
-        title="Open Earned Value Task &amp; Schedule"/>
+        title="Project Task &amp; Schedule"/>
     <html ID="week" href="reports/week.class?tl=auto&amp;PID-indiv"
-        title="    Open Weekly Earned Value Report"/>
+        title="    Weekly Earned Value Report"/>
 
     <html ID="editWBS" href="PID/setup/openWBS.shtm?trigger&amp;indiv"
-        title="Open Team Work Breakdown Structure"
+        title="Work Breakdown Structure Editor"
         inPackage="teamTools version 2.4.7"/>
     <html ID="sync" href="PID/setup/sync.class?trigger=optional&amp;indiv"
         title="    Sync Work Breakdown Structure"/>
 
     <html ID="params" href="PID/indiv_project_parameters.shtm"
-        title="Edit Project Parameters and Settings"/>
+        title="Project Parameters and Settings"/>
     <html ID="export" href="control/exportNow.class"
         title="Export My Data Now"/>
 
@@ -410,18 +410,18 @@
 
     <html ID="tasklist"
         href="control/showTaskSchedule.class?trigger&amp;PID-indiv"
-        title="Open Earned Value Task &amp; Schedule"/>
+        title="Project Task &amp; Schedule"/>
     <html ID="week" href="reports/week.class?tl=auto&amp;PID-indiv"
-        title="    Open Weekly Earned Value Report"/>
+        title="    Weekly Earned Value Report"/>
 
     <html ID="editWBS" href="PID/setup/openWBS.shtm?trigger&amp;indiv"
-        title="Open Team Work Breakdown Structure"
+        title="Work Breakdown Structure Editor"
         inPackage="teamTools version 2.4.7"/>
     <html ID="sync" href="PID/setup/sync.class?trigger=optional&amp;indiv"
         title="    Sync Work Breakdown Structure"/>
 
     <html ID="params" href="PID/indiv_project_parameters.shtm"
-        title="Edit Project Parameters and Settings"/>
+        title="Project Parameters and Settings"/>
     <html ID="export" href="control/exportNow.class"
         title="Export My Data Now"/>
 
