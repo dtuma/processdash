@@ -28,6 +28,8 @@ import java.util.regex.Pattern;
 
 import teamdash.wbs.columns.ErrorNotesColumn;
 import teamdash.wbs.columns.NotesColumn;
+import teamdash.wbs.columns.PercentCompleteColumn;
+import teamdash.wbs.columns.TeamActualTimeColumn;
 
 public class WBSFilterFactory {
 
@@ -126,6 +128,33 @@ public class WBSFilterFactory {
         }
     };
 
+
+    public enum TaskStatus { Not_Started, In_Progress, Completed };
+
+    public static WBSFilter createTaskStatusFilter(final TaskStatus... statuses) {
+        return new WBSFilter() {
+            public boolean match(WBSNode node) {
+                TaskStatus status = getStatus(node);
+                if (status != null) {
+                    for (TaskStatus oneStatus : statuses)
+                        if (status == oneStatus)
+                            return true;
+                }
+                return false;
+            }
+        };
+    }
+
+    private static TaskStatus getStatus(WBSNode node) {
+        if (node.getWbsModel().isLeaf(node) == false)
+            return null;
+        else if (PercentCompleteColumn.isComplete(node))
+            return TaskStatus.Completed;
+        else if (TeamActualTimeColumn.hasActualTime(node))
+            return TaskStatus.In_Progress;
+        else
+            return TaskStatus.Not_Started;
+    }
 
 
     private static abstract class TextFilter implements WBSFilter {

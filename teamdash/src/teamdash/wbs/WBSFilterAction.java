@@ -52,11 +52,15 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.table.TableCellEditor;
 
+import org.jdesktop.swingx.autocomplete.AutoCompleteDecorator;
+
 import net.sourceforge.processdash.i18n.Resources;
 
+import teamdash.wbs.WBSFilterFactory.TaskStatus;
 import teamdash.wbs.columns.MilestoneColumn;
 import teamdash.wbs.columns.TaskLabelColumn;
 
@@ -101,6 +105,8 @@ public class WBSFilterAction extends AbstractAction {
     private TextField nameFilter;
 
     private TextField assignedToFilter;
+
+    private TaskStatusField taskStatusFilter;
 
     private CompletingField labelFilter;
 
@@ -161,6 +167,12 @@ public class WBSFilterAction extends AbstractAction {
         panel.add(assignedToFilter); layout.setConstraints(assignedToFilter, vc);
 
         lc.gridy++;  vc.gridy++;
+        label = new JLabel(resources.getString("Items.Task_Status"));
+        panel.add(label);  layout.setConstraints(label, lc);
+        taskStatusFilter = new TaskStatusField();
+        panel.add(taskStatusFilter); layout.setConstraints(taskStatusFilter, vc);
+
+        lc.gridy++;  vc.gridy++;
         label = new JLabel(resources.getString("Items.Labels"));
         panel.add(label);  layout.setConstraints(label, lc);
         labelFilter = new CompletingField(TaskLabelColumn.COLUMN_ID, "[ ,]+");
@@ -192,6 +204,9 @@ public class WBSFilterAction extends AbstractAction {
         bc.insets = new Insets(8, 0, 0, 0);
         panel.add(buttonBox);  layout.setConstraints(buttonBox, bc);
 
+        panel.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(
+            KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "removeFilter");
+        panel.getActionMap().put("removeFilter", removeAction);
 
         dialog = new JDialog((Frame) getDialogParent(),
                 resources.getString("Title"), false);
@@ -215,6 +230,10 @@ public class WBSFilterAction extends AbstractAction {
         if (filt != null)
             filters.add(WBSFilterFactory.createAnd(WBSFilterFactory.IS_LEAF,
                 filt));
+
+        filt = taskStatusFilter.createTaskStatusFilter();
+        if (filt != null)
+            filters.add(filt);
 
         filt = labelFilter.createDataColumnFilter();
         if (filt != null)
@@ -448,7 +467,7 @@ public class WBSFilterAction extends AbstractAction {
     private class CompletingField extends AbstractFilterField implements
             KeyListener {
 
-        private JComboBox valueField;
+        protected JComboBox valueField;
 
         private TableCellEditor cellEditor;
 
@@ -462,11 +481,8 @@ public class WBSFilterAction extends AbstractAction {
 
         @Override
         protected JComponent makeComponent() {
-            // look up the column in the data table.  Ask it to provide an
-            // editing component for us to use.
-            cellEditor = ((CustomEditedColumn) column).getCellEditor();
-            valueField = (JComboBox) cellEditor.getTableCellEditorComponent(
-                tabPanel.dataTable, "", false, 0, -1);
+            // create the combo box to hold our values.
+            valueField = getComboBox();
 
             // the table-cell-editor component won't have a border.  Give it
             // the same border and preferred size as the plain-text editors
@@ -477,6 +493,14 @@ public class WBSFilterAction extends AbstractAction {
             e.setBorder(tf.getBorder());
             valueField.setPreferredSize(tf.getPreferredSize());
             return valueField;
+        }
+
+        protected JComboBox getComboBox() {
+            // look up the column in the data table.  Ask it to provide an
+            // editing component for us to use.
+            cellEditor = ((CustomEditedColumn) column).getCellEditor();
+            return (JComboBox) cellEditor.getTableCellEditorComponent(
+                tabPanel.dataTable, "", false, 0, -1);
         }
 
         /** Reload the list of auto-completed values for this editor */
@@ -506,5 +530,54 @@ public class WBSFilterAction extends AbstractAction {
         public void keyTyped(KeyEvent e) {}
 
     }
+
+    private class TaskStatusField extends CompletingField {
+
+        public TaskStatusField() {
+            super(null);
+        }
+
+        protected JComboBox getComboBox() {
+            String[] items = new String[TASK_STATUS_RES_KEYS.length + 1];
+            items[0] = "";
+            for (int i = 0; i < TASK_STATUS_RES_KEYS.length; i++)
+                items[i + 1] = resources.getString("Items.Task_Status."
+                        + TASK_STATUS_RES_KEYS[i]);
+
+            JComboBox result = new JComboBox(items);
+            result.setSelectedIndex(0);
+            AutoCompleteDecorator.decorate(result);
+            return result;
+        }
+
+        public WBSFilter createTaskStatusFilter() {
+            int selIndex = valueField.getSelectedIndex();
+            if (selIndex > 0 && selIndex < TASK_STATUS_OPTIONS.length)
+                return WBSFilterFactory
+                        .createTaskStatusFilter(TASK_STATUS_OPTIONS[selIndex]);
+            else
+                return null;
+        }
+
+        @Override
+        public void keyPressed(KeyEvent e) {
+            if (e.getKeyCode() == KeyEvent.VK_DELETE) {
+                clearValue();
+                e.consume();
+            } else
+                super.keyPressed(e);
+        }
+
+
+    }
+
+    private static final String[] TASK_STATUS_RES_KEYS = { "Not_Started",
+            "In_Progress", "Incomplete", "Completed" };
+    private static final TaskStatus[][] TASK_STATUS_OPTIONS = {
+        null, //
+        { TaskStatus.Not_Started }, //
+        { TaskStatus.In_Progress }, //
+        { TaskStatus.Not_Started , TaskStatus.In_Progress }, //
+        { TaskStatus.Completed } };
 
 }
