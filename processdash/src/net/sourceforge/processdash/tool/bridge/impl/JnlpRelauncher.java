@@ -192,7 +192,7 @@ public class JnlpRelauncher {
 
         // check to see if the file exists and is executable.
         File f = new File(javaws);
-        if (f.canExecute())
+        if (f.isFile())
             return javaws;
         else
             return null;
