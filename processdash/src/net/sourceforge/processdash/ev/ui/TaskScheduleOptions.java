@@ -1,4 +1,4 @@
-// Copyright (C) 2008-2009 Tuma Solutions, LLC
+// Copyright (C) 2008-2012 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -65,6 +65,8 @@ public class TaskScheduleOptions {
 
     private JDialog dialog;
 
+    private OptionRadio rezeroOption;
+
     private OptionHyperlinkCheckbox histDataOption;
 
 //    private OptionHyperlinkCheckbox estErrorsOption;
@@ -85,16 +87,17 @@ public class TaskScheduleOptions {
         content.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
         if (taskList instanceof EVTaskListData) {
-            content.add(makeRow(resources.getString("Rezero.Prompt")));
+            content.add(makeRow(resources.getString("Rezero2.Prompt")));
 
             ButtonGroup rezeroGroup = new ButtonGroup();
             content.add(makeRow(INDENT, new OptionRadio(rezeroGroup,
-                    "Rezero.Do_Not_rezero", EVMetadata.REZERO_ON_START_DATE,
+                    "Rezero2.Do_Not_rezero", EVMetadata.REZERO_ON_START_DATE,
                     "false", false)));
 
-            content.add(makeRow(INDENT, new OptionRadio(rezeroGroup,
-                    "Rezero.Rezero", EVMetadata.REZERO_ON_START_DATE,
-                    "true", true)));
+            rezeroOption = new OptionRadio(rezeroGroup, null,
+                    EVMetadata.REZERO_ON_START_DATE, "true", true);
+            updateRezeroOptionText();
+            content.add(makeRow(INDENT, rezeroOption));
         }
 
         content.add(makeRow(resources.getString("Forecast_Ranges.Prompt")));
@@ -129,8 +132,14 @@ public class TaskScheduleOptions {
     }
 
     public void show() {
+        updateRezeroOptionText();
         dialog.setVisible(true);
         dialog.toFront();
+    }
+
+    private void updateRezeroOptionText() {
+        rezeroOption.setText(resources.format("Rezero2.Rezero_FMT",
+                taskList.getSchedule().getStartDate()));
     }
 
     public void editHistoricalData() {
