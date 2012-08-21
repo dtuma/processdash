@@ -117,6 +117,12 @@ public class RedactFilterUtils {
         }
     }
 
+    public static final StringMapper HASH_STRING = new StringMapper() {
+        public String getString(String str) {
+            return hash(str);
+        }
+    };
+
     public static final String hash(String s) {
         return hash(s, false, 99);
     }

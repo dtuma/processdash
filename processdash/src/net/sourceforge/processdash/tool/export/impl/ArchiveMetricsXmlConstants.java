@@ -1,4 +1,4 @@
-// Copyright (C) 2005-2009 Tuma Solutions, LLC
+// Copyright (C) 2005-2012 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -46,6 +46,14 @@ public interface ArchiveMetricsXmlConstants extends XmlConstants {
     public static final String EXPORTED_TAG = "exported";
 
     public static final String OWNER_ATTR = "byOwner";
+
+    public static final String USERNAME_ATTR = "byUser";
+
+    public static final String FROM_DATASET_TAG = "fromDataset";
+
+    public static final String FROM_DATASET_ID_ATTR = "datasetID";
+
+    public static final String FROM_DATASET_LOCATION_ATTR = "location";
 
     public static final String WHEN_ATTR = "when";
 

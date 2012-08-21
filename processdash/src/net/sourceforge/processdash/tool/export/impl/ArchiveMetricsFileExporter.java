@@ -1,4 +1,4 @@
-// Copyright (C) 2005-2010 Tuma Solutions, LLC
+// Copyright (C) 2005-2012 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -42,6 +42,12 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
+import org.w3c.dom.Element;
+import org.xmlpull.v1.XmlPullParserException;
+import org.xmlpull.v1.XmlPullParserFactory;
+import org.xmlpull.v1.XmlSerializer;
+
+import net.sourceforge.processdash.DashController;
 import net.sourceforge.processdash.DashboardContext;
 import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.data.util.TopDownBottomUpJanitor;
@@ -57,11 +63,6 @@ import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.StringUtils;
 import net.sourceforge.processdash.util.ThreadThrottler;
 import net.sourceforge.processdash.util.XMLUtils;
-
-import org.w3c.dom.Element;
-import org.xmlpull.v1.XmlPullParserException;
-import org.xmlpull.v1.XmlPullParserFactory;
-import org.xmlpull.v1.XmlSerializer;
 
 public class ArchiveMetricsFileExporter implements Runnable,
         ArchiveMetricsXmlConstants, CompletionStatus.Capable,
@@ -200,8 +201,13 @@ public class ArchiveMetricsFileExporter implements Runnable,
         String owner = ProcessDashboard.getOwnerName(ctx.getData());
         if (owner != null)
             xml.attribute(null, OWNER_ATTR, owner);
+        String username = System.getProperty("user.name");
+        if (username != null && username.length() > 0)
+            xml.attribute(null, USERNAME_ATTR, username);
 
         xml.attribute(null, WHEN_ATTR, XMLUtils.saveDate(new Date()));
+
+        writeFromDatasetTag(xml);
 
         List packages = TemplateLoader.getPackages();
         for (Iterator i = packages.iterator(); i.hasNext();) {
@@ -218,6 +224,18 @@ public class ArchiveMetricsFileExporter implements Runnable,
         xml.ignorableWhitespace(NEWLINE + INDENT);
         xml.endTag(null, EXPORTED_TAG);
         xml.ignorableWhitespace(NEWLINE);
+    }
+
+    private void writeFromDatasetTag(XmlSerializer xml) throws IOException {
+        xml.ignorableWhitespace(NEWLINE + INDENT + INDENT);
+        xml.startTag(null, FROM_DATASET_TAG);
+        xml.attribute(null, FROM_DATASET_ID_ATTR, DashController.getDatasetID());
+        if (ctx instanceof ProcessDashboard) {
+            ProcessDashboard dash = (ProcessDashboard) ctx;
+            String location = dash.getWorkingDirectory().getDescription();
+            xml.attribute(null, FROM_DATASET_LOCATION_ATTR, location);
+        }
+        xml.endTag(null, FROM_DATASET_TAG);
     }
 
     private void writeManifestFileEntry(XmlSerializer xml, String filename,
