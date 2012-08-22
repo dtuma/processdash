@@ -1,4 +1,4 @@
-// Copyright (C) 2007-2009 Tuma Solutions, LLC
+// Copyright (C) 2007-2012 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -31,15 +31,15 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.ZipOutputStream;
 
+import net.sourceforge.processdash.DashboardContext;
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.tool.export.impl.ExternalResourceArchiver;
 import net.sourceforge.processdash.tool.export.impl.ExternalResourceArchiverXMLv1;
 import net.sourceforge.processdash.tool.export.impl.ExternalResourceAutoLocator;
 import net.sourceforge.processdash.tool.export.impl.ExternalResourceManifestXMLv1;
 import net.sourceforge.processdash.tool.export.impl.ExternalResourceXmlConstantsv1;
-import net.sourceforge.processdash.util.DirectoryBackup.ExtraContentSupplier;
 
-public class ExternalResourceManager implements ExtraContentSupplier {
+public class ExternalResourceManager {
 
     public static final String INITIALIZATION_MODE_PROPERTY_NAME = //
     ExternalResourceManager.class.getName() + ".initMode";
@@ -60,6 +60,8 @@ public class ExternalResourceManager implements ExtraContentSupplier {
         return INSTANCE;
     }
 
+    DashboardContext dashboardContext = null;
+
     ExternalLocationMapper mapper = null;
 
     File defaultMapDataSource = null;
@@ -70,13 +72,14 @@ public class ExternalResourceManager implements ExtraContentSupplier {
         return filename.indexOf(ExternalResourceXmlConstantsv1.ARCHIVE_PATH) != -1;
     }
 
-    public void addExtraContentToBackup(ZipOutputStream out) throws IOException {
-        addExternalResourcesToBackup(out);
+    public void setDashboardContext(DashboardContext dashboardContext) {
+        this.dashboardContext = dashboardContext;
     }
 
     public void addExternalResourcesToBackup(ZipOutputStream out)
             throws IOException {
         ExternalResourceArchiver archiver = new ExternalResourceArchiverXMLv1();
+        archiver.setDashboardContext(dashboardContext);
         dispatchAllImportInstructions(archiver);
         archiver.export(out);
     }

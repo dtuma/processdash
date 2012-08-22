@@ -267,6 +267,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         DefectAnalyzer.setDataDirectory(property_directory);
         CmsDefaultConfig.setPersistenceDirectories(
             getCmsPersistenceDirs(prop_file.getParentFile()));
+        ExternalResourceManager.getInstance().setDashboardContext(this);
         ExternalResourceManager.getInstance().initializeMappings(
                 prop_file.getParentFile());
         try {

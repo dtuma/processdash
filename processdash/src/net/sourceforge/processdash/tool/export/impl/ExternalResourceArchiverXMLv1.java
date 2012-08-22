@@ -1,4 +1,4 @@
-// Copyright (C) 2007-2011 Tuma Solutions, LLC
+// Copyright (C) 2007-2012 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -26,9 +26,12 @@ package net.sourceforge.processdash.tool.export.impl;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Executor;
@@ -37,7 +40,12 @@ import java.util.concurrent.Executors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
+import net.sourceforge.processdash.DashController;
+import net.sourceforge.processdash.DashboardContext;
 import net.sourceforge.processdash.Settings;
+import net.sourceforge.processdash.hier.DashHierarchy;
+import net.sourceforge.processdash.hier.Prop;
+import net.sourceforge.processdash.templates.TemplateLoader;
 import net.sourceforge.processdash.tool.bridge.client.ImportDirectory;
 import net.sourceforge.processdash.tool.bridge.client.ImportDirectoryFactory;
 import net.sourceforge.processdash.tool.bridge.impl.DashboardInstanceStrategy;
@@ -54,11 +62,16 @@ public class ExternalResourceArchiverXMLv1 implements ExternalResourceArchiver,
     private boolean keepFileModificationTimes = Settings.getBool(
         "backup.keepExternalFileTimes", true);
 
+    private DashboardContext dashboardContext;
     private List<ImportDirectoryInstruction> importInstructions =
         new ArrayList<ImportDirectoryInstruction>();
     private ExternalResourceManifestXMLv1 manifest =
         new ExternalResourceManifestXMLv1();
     private IOException exceptionEncountered;
+
+    public void setDashboardContext(DashboardContext dashboardContext) {
+        this.dashboardContext = dashboardContext;
+    }
 
     public Object dispatch(ImportDirectoryInstruction instr) {
         importInstructions.add(instr);
@@ -67,6 +80,7 @@ public class ExternalResourceArchiverXMLv1 implements ExternalResourceArchiver,
 
     public void export(ZipOutputStream out) throws IOException {
         archiveDirectories(out);
+        archiveFrameworkMetadata(out);
         manifest.write(out);
     }
 
@@ -199,6 +213,96 @@ public class ExternalResourceArchiverXMLv1 implements ExternalResourceArchiver,
                 out.closeEntry();
             }
         }
+    }
+
+    private void archiveFrameworkMetadata(ZipOutputStream out) {
+        for (String processID : getTeamProcessIDsInUse())
+            archiveFrameworkMetadata(out, processID);
+    }
+
+    /** Get the IDs of all team processes in use by this dashboard dataset */
+    private Set<String> getTeamProcessIDsInUse() {
+        Set<String> templateIDs = getTeamProcessIDs();
+
+        Set<String> result = new HashSet<String>();
+        DashHierarchy hier = dashboardContext.getHierarchy();
+        for (Iterator i = hier.values().iterator(); i.hasNext();) {
+            Prop prop = (Prop) i.next();
+            String oneID = prop.getID();
+            if (oneID != null && oneID.endsWith("Root")) {
+                int slashPos = oneID.indexOf('/');
+                if (slashPos != -1) {
+                    String oneProcessID = oneID.substring(0, slashPos);
+                    if (templateIDs.contains(oneProcessID))
+                        result.add(oneProcessID);
+                }
+            }
+        }
+
+        return result;
+
+    }
+
+    /** Get the IDs of all team process add-ons known to the dashboard */
+    private Set<String> getTeamProcessIDs() {
+        Set<String> teamProcessIDs = new HashSet<String>();
+        Set<String> templateIDs = DashController.getTemplates().keySet();
+        for (String oneID : templateIDs) {
+            if (oneID.endsWith(TEAM_ROOT_SUFFIX)) {
+                String processID = oneID.substring(0, oneID.length()
+                        - TEAM_ROOT_SUFFIX.length());
+                teamProcessIDs.add(processID);
+            }
+        }
+        return teamProcessIDs;
+    }
+    private static final String TEAM_ROOT_SUFFIX = "/TeamRoot";
+
+    private void archiveFrameworkMetadata(ZipOutputStream out, String processID) {
+        // get the URL of the process template.xml file
+        URL u = TemplateLoader.resolveURL(processID + "-template.xml");
+        if (u == null)
+            return;
+
+        // get the bsae URL of the JAR file containing the template.xml file
+        String baseUrl = u.toString();
+        int exclPos = baseUrl.indexOf("!/");
+        if (exclPos == -1)
+            return;
+        baseUrl = baseUrl.substring(0, exclPos + 2);
+
+        // try adding the settings.xml file to our output ZIP.  If the
+        // settings.xml file could not be found, abort.
+        String newPath = MCF_SUBDIR + "/" + processID;
+        boolean foundSettings = addFrameworkMetadataToArchive(out, baseUrl,
+                newPath, "settings.xml");
+        if (!foundSettings)
+            return;
+
+        // add other optional items to our output ZIP as well
+        addFrameworkMetadataToArchive(out, baseUrl, newPath, "process_info.xml");
+        String version = TemplateLoader.getPackageVersion(processID);
+        manifest.addMetricsCollectionFramework(processID, version, newPath);
+    }
+
+    private boolean addFrameworkMetadataToArchive(ZipOutputStream out,
+            String baseUrl, String newPath, String file) {
+        try {
+            String fullUrl = baseUrl + file;
+            InputStream in = new URL(fullUrl).openStream();
+            ByteArrayOutputStream buf = new ByteArrayOutputStream();
+            FileUtils.copyFile(in, buf);
+            in.close();
+
+            synchronized (out) {
+                String path = ARCHIVE_PATH + "/" + newPath + "/" + file;
+                out.putNextEntry(new ZipEntry(path));
+                buf.writeTo(out);
+                out.closeEntry();
+            }
+            return true;
+        } catch (IOException ioe) {}
+        return false;
     }
 
     public static void cleanupBogusArchiveDirectory(File baseDir) {

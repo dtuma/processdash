@@ -1,4 +1,4 @@
-// Copyright (C) 2007-2008 Tuma Solutions, LLC
+// Copyright (C) 2007-2012 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -38,5 +38,13 @@ public interface ExternalResourceXmlConstantsv1 extends XmlConstants {
     public String ORIGINAL_URL = "origURL";
 
     public String NEW_PATH = "newPath";
+
+    public String MCF_ELEM = "mcfMetadata";
+
+    public String MCF_ID = "mcfID";
+
+    public String MCF_VERSION = "mcfVersion";
+
+    public String MCF_SUBDIR = "mcf";
 
 }

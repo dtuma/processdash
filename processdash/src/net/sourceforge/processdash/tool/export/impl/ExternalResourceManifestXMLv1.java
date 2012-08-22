@@ -1,4 +1,4 @@
-// Copyright (C) 2007-2008 Tuma Solutions, LLC
+// Copyright (C) 2007-2012 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -49,8 +49,11 @@ public class ExternalResourceManifestXMLv1 implements
 
     private List<MappingEntry> mappingEntries;
 
+    private List<MCFEntry> mcfEntries;
+
     public ExternalResourceManifestXMLv1() {
         this.mappingEntries = new ArrayList<MappingEntry>();
+        this.mcfEntries = new ArrayList<MCFEntry>();
     }
 
     public boolean isEmpty() {
@@ -59,6 +62,11 @@ public class ExternalResourceManifestXMLv1 implements
 
     public void addMapping(String origPath, String origUrl, String newPath) {
         mappingEntries.add(new MappingEntry(origPath, origUrl, newPath));
+    }
+
+    public void addMetricsCollectionFramework(String frameworkID,
+            String version, String newPath) {
+        mcfEntries.add(new MCFEntry(frameworkID, version, newPath));
     }
 
     public void write(ZipOutputStream out) throws IOException {
@@ -81,18 +89,12 @@ public class ExternalResourceManifestXMLv1 implements
         ser.startTag(null, DOC_ROOT_ELEM);
 
         Collections.sort(mappingEntries);
-        for (MappingEntry e : mappingEntries) {
-            String origURL = e.getOriginalURL();
-            String origPath = e.getOriginalPath();
-            String newPath = e.getNewPath();
-            ser.startTag(null, IMPORT_DIR_ELEM);
-            if (StringUtils.hasValue(origURL))
-                ser.attribute(null, ORIGINAL_URL, origURL);
-            if (StringUtils.hasValue(origPath))
-                ser.attribute(null, ORIGINAL_PATH, origPath);
-            ser.attribute(null, NEW_PATH, newPath);
-            ser.endTag(null, IMPORT_DIR_ELEM);
-        }
+        for (MappingEntry e : mappingEntries)
+            e.write(ser);
+
+        Collections.sort(mcfEntries);
+        for (MCFEntry e : mcfEntries)
+            e.write(ser);
 
         ser.endTag(null, DOC_ROOT_ELEM);
         ser.endDocument();
@@ -125,15 +127,20 @@ public class ExternalResourceManifestXMLv1 implements
         NodeList directories = doc.getElementsByTagName(IMPORT_DIR_ELEM);
         for (int i=0;  i < directories.getLength();  i++) {
             Element e = (Element) directories.item(i);
-            String origPath = e.getAttribute(ORIGINAL_PATH);
-            String origURL = e.getAttribute(ORIGINAL_URL);
-            String newPath = e.getAttribute(NEW_PATH);
-            File newDir = new File(archiveDir, newPath);
-            if (XMLUtils.hasValue(origPath))
-                result.put(origPath, newDir.getAbsolutePath());
-            if (XMLUtils.hasValue(origURL))
-                result.put(origURL, newDir.getAbsolutePath());
-            mappingEntries.add(new MappingEntry(origPath, origURL, newPath));
+            MappingEntry me = new MappingEntry(e);
+            mappingEntries.add(me);
+
+            File newDir = new File(archiveDir, me.newPath);
+            result.put(me.originalPath, newDir.getAbsolutePath());
+            result.put(me.originalURL, newDir.getAbsolutePath());
+        }
+        result.remove(null);
+
+        NodeList frameworks = doc.getElementsByTagName(MCF_ELEM);
+        for (int i=0;  i < frameworks.getLength();  i++) {
+            Element e = (Element) frameworks.item(i);
+            MCFEntry me = new MCFEntry(e);
+            mcfEntries.add(me);
         }
 
         return result;
@@ -147,6 +154,12 @@ public class ExternalResourceManifestXMLv1 implements
 
         private String newPath;
 
+        protected MappingEntry(Element xml) {
+            this(xml.getAttribute(ORIGINAL_PATH),
+                 xml.getAttribute(ORIGINAL_URL),
+                 xml.getAttribute(NEW_PATH));
+        }
+
         protected MappingEntry(String originalPath, String originalURL,
                 String newPath) {
             this.originalPath = nvl(originalPath);
@@ -154,26 +167,61 @@ public class ExternalResourceManifestXMLv1 implements
             this.newPath = nvl(newPath);
         }
 
-        private String nvl(String s) {
-            return (StringUtils.hasValue(s) ? s : null);
-        }
-
-        public String getOriginalPath() {
-            return originalPath;
-        }
-
-        public String getOriginalURL() {
-            return originalURL;
-        }
-
-        public String getNewPath() {
-            return newPath;
+        public void write(XmlSerializer ser) throws IOException {
+            ser.startTag(null, IMPORT_DIR_ELEM);
+            if (StringUtils.hasValue(originalURL))
+                ser.attribute(null, ORIGINAL_URL, originalURL);
+            if (StringUtils.hasValue(originalPath))
+                ser.attribute(null, ORIGINAL_PATH, originalPath);
+            ser.attribute(null, NEW_PATH, newPath);
+            ser.endTag(null, IMPORT_DIR_ELEM);
         }
 
         public int compareTo(MappingEntry that) {
             return this.newPath.compareTo(that.newPath);
         }
 
+    }
+
+    private class MCFEntry implements Comparable<MCFEntry> {
+
+        private String frameworkID;
+
+        private String frameworkVersion;
+
+        private String newPath;
+
+        protected MCFEntry(Element xml) {
+            this(xml.getAttribute(MCF_ID),
+                 xml.getAttribute(MCF_VERSION),
+                 xml.getAttribute(NEW_PATH));
+        }
+
+        protected MCFEntry(String frameworkID, String frameworkVersion,
+                String newPath) {
+            this.frameworkID = nvl(frameworkID);
+            this.frameworkVersion = nvl(frameworkVersion);
+            this.newPath = nvl(newPath);
+        }
+
+        public void write(XmlSerializer ser) throws IOException {
+            ser.startTag(null, MCF_ELEM);
+            if (StringUtils.hasValue(frameworkID))
+                ser.attribute(null, MCF_ID, frameworkID);
+            if (StringUtils.hasValue(frameworkVersion))
+                ser.attribute(null, MCF_VERSION, frameworkVersion);
+            ser.attribute(null, NEW_PATH, newPath);
+            ser.endTag(null, MCF_ELEM);
+        }
+
+        public int compareTo(MCFEntry that) {
+            return this.newPath.compareTo(that.newPath);
+        }
+
+    }
+
+    private static String nvl(String s) {
+        return (StringUtils.hasValue(s) ? s : null);
     }
 
 }

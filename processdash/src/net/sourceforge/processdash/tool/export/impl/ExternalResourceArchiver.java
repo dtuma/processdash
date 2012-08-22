@@ -1,4 +1,4 @@
-// Copyright (C) 2007 Tuma Solutions, LLC
+// Copyright (C) 2007-2012 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -26,9 +26,15 @@ package net.sourceforge.processdash.tool.export.impl;
 import java.io.IOException;
 import java.util.zip.ZipOutputStream;
 
+import net.sourceforge.processdash.DashboardContext;
 import net.sourceforge.processdash.tool.export.mgr.ImportInstructionDispatcher;
 
 public interface ExternalResourceArchiver extends ImportInstructionDispatcher {
+
+    /**
+     * Register the dashboard context that is in use.
+     */
+    public void setDashboardContext(DashboardContext ctx);
 
     /**
      * Archive external resources by adding them to a ZIP file.
