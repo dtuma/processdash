@@ -177,7 +177,7 @@ The author(s) may be contacted at:
   </target>
 
 
-  <target name="jnlp-jar" 
+  <target name="jnlp-jar"  depends="compile"
        description="Build the JAR file for the JNLP framework editor app">
     <classfileset id="jnlpClasses" dir="${build}"
       rootclass="teamdash.process.CustomProcessEditorJNLP"/>
