@@ -49,7 +49,9 @@ import javax.swing.SwingUtilities;
 
 import net.sourceforge.processdash.DashController;
 import net.sourceforge.processdash.DashboardContext;
+import net.sourceforge.processdash.InternalSettings;
 import net.sourceforge.processdash.ProcessDashboard;
+import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.DataContext;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.tool.quicklauncher.CompressedInstanceLauncher;
@@ -57,6 +59,7 @@ import net.sourceforge.processdash.tool.redact.RedactFilterer;
 import net.sourceforge.processdash.tool.redact.ui.RedactFilterConfigDialog;
 import net.sourceforge.processdash.ui.lib.ExampleFileFilter;
 import net.sourceforge.processdash.util.FileUtils;
+import net.sourceforge.processdash.util.StringUtils;
 import net.sourceforge.processdash.util.XorOutputStream;
 
 public class SaveBackupAction extends AbstractAction {
@@ -286,9 +289,13 @@ public class SaveBackupAction extends AbstractAction {
         fc.setSelectedFile(new File(getDefaultDirectory(fc),
                 defaultFilename));
         fc.setDialogTitle(resources.getString("Save_Backup.Window_Title"));
-        fc.addChoosableFileFilter(makeFilter(PDBK));
-        fc.addChoosableFileFilter(makeFilter(RPDBK));
-        fc.addChoosableFileFilter(makeFilter("zip"));
+        String defaultType = Settings.getVal(TYPE_PREF, ZIP);
+        for (String type : BACKUP_FILE_TYPES) {
+            ExampleFileFilter filter = makeFilter(type);
+            fc.addChoosableFileFilter(filter);
+            if (type.equalsIgnoreCase(defaultType))
+                fc.setFileFilter(filter);
+        }
 
         if (fc.showSaveDialog(null) != JFileChooser.APPROVE_OPTION)
             return null;
@@ -299,7 +306,11 @@ public class SaveBackupAction extends AbstractAction {
             return null;
 
         ExampleFileFilter ff = (ExampleFileFilter) fc.getFileFilter();
-        return ff.maybeAppendExtension(dest);
+        File result = ff.maybeAppendExtension(dest);
+        String resultType = ff.getExtension(result);
+        if (StringUtils.hasValue(resultType))
+            InternalSettings.set(TYPE_PREF, resultType);
+        return result;
     }
 
     public File selectBackupFile(Component parent, String title) {
@@ -308,9 +319,10 @@ public class SaveBackupAction extends AbstractAction {
             fc.setCurrentDirectory(lastBackupDirectory);
         fc.setDialogTitle(title);
         ExampleFileFilter ff = makeFilter(PDBK);
-        ff.addExtension(RPDBK);
-        ff.addExtension("zip");
+        for (String type : BACKUP_FILE_TYPES)
+            ff.addExtension(type);
         fc.addChoosableFileFilter(ff);
+        fc.setFileFilter(ff);
 
         if (fc.showOpenDialog(parent) != JFileChooser.APPROVE_OPTION)
             return null;
@@ -321,15 +333,25 @@ public class SaveBackupAction extends AbstractAction {
     }
 
     private void saveDefaultDirectory(File f) {
-        if (f != null)
+        if (f != null) {
             lastBackupDirectory = f.getParentFile();
+            if (lastBackupDirectory != null)
+                InternalSettings.set(DIR_PREF, lastBackupDirectory.getPath());
+        }
     }
 
     private File getDefaultDirectory(JFileChooser fc) {
         if (lastBackupDirectory != null)
             return lastBackupDirectory;
-        else
-            return fc.getCurrentDirectory();
+
+        String path = Settings.getVal(DIR_PREF);
+        if (StringUtils.hasValue(path)) {
+            File result = new File(path);
+            if (result.isDirectory())
+                return result;
+        }
+
+        return fc.getCurrentDirectory();
     }
 
     private String getDefaultFilename() {
@@ -359,5 +381,10 @@ public class SaveBackupAction extends AbstractAction {
 
     private static final String PDBK = CompressedInstanceLauncher.PDASH_BACKUP_EXTENSION;
     private static final String RPDBK = RedactFilterer.REDACTED_PDASH_BACKUP_EXTENSION;
+    private static final String ZIP = "zip";
+    private static final String[] BACKUP_FILE_TYPES = { PDBK, RPDBK, ZIP };
+
+    private static final String DIR_PREF = "userPref.saveBackup.dir";
+    private static final String TYPE_PREF = "userPref.saveBackup.type";
 
 }
