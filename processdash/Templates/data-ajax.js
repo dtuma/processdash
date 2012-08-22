@@ -539,6 +539,11 @@ function checkEditable() {
 function checkElemEditable(elem) {
   return !Element.hasClassName("readOnlyElem");
 }
+function checkEditableKeystroke(event) {
+    var e = event || window.event;
+    if (e && e.keyCode == 9) return true; // allow the tab key
+    return checkEditable();
+}
 
 
 /*
@@ -599,7 +604,7 @@ function registerElement(elem) {
         case "text" :
         case "textarea" :
             if (debug) document.writeln("Setting "+elem.name+".onKeyDown<BR>");
-            elem.onkeydown = checkEditable;
+            elem.onkeydown = checkEditableKeystroke;
             if (debug) document.writeln("Setting "+elem.name+".onChange<BR>");
             elem.onchange = changeNotify;
             break;

@@ -2,7 +2,7 @@
 // <!--#echo defaultEncoding="html,javaStr" -->
 /****************************************************************************
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2000-2009 Tuma Solutions, LLC
+// Copyright (C) 2000-2012 Tuma Solutions, LLC
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -544,6 +544,11 @@ function checkEditable() {
 function checkElemEditable(elem) {
     return (elem.className != "readOnlyElem");
 }
+function checkEditableKeystroke(event) {
+    var e = event || window.event;
+    if (e && e.keyCode == 9) return true; // allow the tab key
+    return checkEditable();
+}
 
 
 /*
@@ -604,7 +609,7 @@ function registerElement(elem) {
         case "text" :
         case "textarea" :
             if (debug) document.writeln("Setting "+elem.name+".onKeyDown<BR>");
-            elem.onkeydown = checkEditable;
+            elem.onkeydown = checkEditableKeystroke;
             if (debug) document.writeln("Setting "+elem.name+".onChange<BR>");
             elem.onchange = changeNotify;
             break;
