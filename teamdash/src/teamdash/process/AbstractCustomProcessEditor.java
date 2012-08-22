@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Tuma Solutions, LLC
+// Copyright (C) 2002-2012 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -38,7 +38,9 @@ import java.io.File;
 import java.io.IOException;
 import java.text.NumberFormat;
 import java.text.ParsePosition;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
 import javax.swing.Box;
@@ -304,6 +306,8 @@ public abstract class AbstractCustomProcessEditor {
             return false;
         }
 
+        maybeRemoveCustomProcessNameMetadata();
+
         // if the structure of the process has changed,
         if (isStructureChanged() &&
         // and it had a real name when it was opened,
@@ -330,6 +334,37 @@ public abstract class AbstractCustomProcessEditor {
                 return true;
             }
         return true;
+    }
+
+    /**
+     * Many bits of metadata are not shown to the user by this editor and are
+     * thus not editable. Some of those metadata elements provide customized
+     * names for various components in a custom process.  This method checks
+     * to see if the user has changed the name of their custom process.  If so,
+     * it clears out the affected metadata.
+     */
+    private void maybeRemoveCustomProcessNameMetadata() {
+        // if the current process doesn't have an "original name", it was
+        // created from scratch instead of being loaded from an external file.
+        // in that case, there should be no metadata to clear.
+        if (origProcessName == null || origProcessName.length() == 0)
+            return;
+
+        // if the name of the process has not changed since it was opened,
+        // we will retain any metadata that might be present
+        if (process.getName().equalsIgnoreCase(origProcessName))
+            return;
+
+        // clear out any abbreviation that was registered for the process.
+        process.setAbbr(null);
+
+        // clear out the parameter that give a custom dashboard package name
+        List itemList = process.getItemList(CustomProcessPublisher.PARAM_ITEM);
+        for (Iterator i = itemList.iterator(); i.hasNext();) {
+            CustomProcess.Item item = (CustomProcess.Item) i.next();
+            if ("dashPackageName".equals(item.getAttr("name")))
+                i.remove();
+        }
     }
 
     private static final String[] STRUCTURE_CHANGED_MESSAGE = {

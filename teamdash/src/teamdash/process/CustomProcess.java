@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2011 Tuma Solutions, LLC
+// Copyright (C) 2002-2012 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -207,7 +207,7 @@ public class CustomProcess {
     public String getName() { return processName; }
     public void setName(String name) { processName = makeSafe(name); }
     public String getAbbr() { return processAbbr; }
-    public void setAbbr(String abbr) { processAbbr = makeSafe(processAbbr); }
+    public void setAbbr(String abbr) { processAbbr = makeSafe(abbr); }
     public String getVersion() { return processVersion; }
     public void setVersion(String version) {
         version = makeSafe(version);

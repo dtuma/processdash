@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2011 Tuma Solutions, LLC
+// Copyright (C) 2002-2012 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -70,7 +70,7 @@ public class CustomProcessPublisher {
 
     private static final String EXT_FILE_PREFIX = "extfile:";
 
-    private static final String PARAM_ITEM = "param";
+    protected static final String PARAM_ITEM = "param";
 
     private static final String VALUE = "value";
 
