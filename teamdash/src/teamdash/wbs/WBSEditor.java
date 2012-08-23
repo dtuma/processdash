@@ -445,7 +445,10 @@ public class WBSEditor implements WindowListener, SaveListener,
         try {
             mergeCoordinator = new TeamProjectMergeCoordinator(teamProject,
                 workingDirectory);
-            mergeDebugger = new TeamProjectMergeDebugger();
+            if (Boolean.getBoolean("teamdash.wbs.mergeDebugging"))
+                mergeDebugger = new TeamProjectMergeDebugger();
+            else
+                mergeDebugger = new TeamProjectMergeDebuggerSimple();
             mergeCoordinator.setMergeListener(mergeDebugger);
             mergeConflictDialog = new MergeConflictDialog(teamProject);
             simultaneousEditing = true;
@@ -745,7 +748,7 @@ public class WBSEditor implements WindowListener, SaveListener,
         if (mergeCoordinator != null)
             result.add(new RefreshAction());
         result.addSeparator();
-        if (mergeDebugger != null) {
+        if (mergeDebugger != null && mergeDebugger.supportsZipOfAllMerges()) {
             result.add(new SaveMergeDebugZipAction());
             result.addSeparator();
         }

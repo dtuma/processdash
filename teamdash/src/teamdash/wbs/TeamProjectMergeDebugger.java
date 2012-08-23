@@ -46,12 +46,26 @@ public class TeamProjectMergeDebugger implements TeamProjectMergeListener {
 
 
     public TeamProjectMergeDebugger() throws IOException {
+        createDebugDir();
+        this.debugId = 0;
+    }
+
+    protected TeamProjectMergeDebugger(boolean ignored) {
+        this.debugId = 0;
+    }
+
+    protected void createDebugDir() throws IOException {
+        if (debugDir != null)
+            return;
+
         TempFileFactory tempFileFactory = new TempFileFactory("wbs-tmp-");
         tempFileFactory.useTempSubdirectory("pdash-tmp");
         this.debugDir = tempFileFactory.createTempDirectory("debugDir", ".tmp",
             true, true);
+    }
 
-        this.debugId = 0;
+    public boolean supportsZipOfAllMerges() {
+        return true;
     }
 
     public File makeZipOfAllMerges() {
