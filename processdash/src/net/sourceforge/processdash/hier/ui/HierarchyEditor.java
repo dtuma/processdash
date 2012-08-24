@@ -1,4 +1,4 @@
-// Copyright (C) 1999-2011 Tuma Solutions, LLC
+// Copyright (C) 1999-2012 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -131,6 +131,7 @@ public class HierarchyEditor extends Object implements TreeModelListener, TreeSe
     protected JMenuItem saveMenuItem;
     protected JMenuItem revertMenuItem;
     protected JMenuItem deleteMenuItem;
+    protected Action renameAction;
     protected Action moveUpAction;
     protected Action moveDownAction;
     protected Action cutAction;
@@ -564,6 +565,9 @@ public class HierarchyEditor extends Object implements TreeModelListener, TreeSe
         deleteMenuItem.addActionListener(new RemoveAction());
         deleteMenuItem.setEnabled (false);
 
+        menu.add(renameAction = new RenameAction());
+        renameAction.setEnabled(false);
+
         menu.add(moveUpAction = new MoveUpAction());
         moveUpAction.setEnabled(false);
 
@@ -657,6 +661,7 @@ public class HierarchyEditor extends Object implements TreeModelListener, TreeSe
 
         updateTemplateMenu (templateChildren, myID);
 
+        renameAction.setEnabled(editable);
         pasteAction.setEnabled(canPaste(myID, myPath, templateChildren, cutNode));
     }
 
@@ -1287,6 +1292,17 @@ public class HierarchyEditor extends Object implements TreeModelListener, TreeSe
                 treeModel.removeNodeFromParent(nodeToRemove);
         }
     } // End of PropertyFrame.RemoveAction
+
+    class RenameAction extends AbstractAction {
+        public RenameAction() {
+            super(resource.getString("Rename"));
+        }
+        public void actionPerformed(ActionEvent e) {
+            DefaultMutableTreeNode node = getSelectedNode();
+            if (node != null)
+                startEditingNode(node);
+        }
+    }
 
     /** MoveUpAction swaps the selected node with its preceeding sibling. */
     class MoveUpAction extends AbstractAction {
