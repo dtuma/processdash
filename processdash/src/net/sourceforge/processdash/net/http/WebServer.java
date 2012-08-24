@@ -113,6 +113,7 @@ public class WebServer implements ContentSource {
 //    private static int ALLOW_REMOTE_CONNECTIONS_SETTING = ALLOW_REMOTE_NEVER;
     private int port;
     private String startupTimestamp, startupTimestampHeader;
+    boolean translationEnabled = false;
     private InheritableThreadLocal effectiveClientSocket =
         new InheritableThreadLocal();
     private InheritableThreadLocal currentRequestEnvironment =
@@ -384,7 +385,7 @@ public class WebServer implements ContentSource {
             // decide what to do with the file based on its mime-type.
             String initial_mime_type =
                 getMimeTypeFromName(conn.getURL().getFile());
-            if (!Translator.isTranslating() &&
+            if (!isTranslating() &&
                 SERVER_PARSED_MIME_TYPE.equals(initial_mime_type))
                 servePreprocessedFile(conn, "text/html");
             else if (CGI_MIME_TYPE.equals(initial_mime_type))
@@ -852,8 +853,7 @@ public class WebServer implements ContentSource {
             if (content == null)
                 sendError( 500, "Internal Error", "Couldn't read file." );
 
-            boolean translate =
-                Translator.isTranslating() && !nonTranslatedPath(path);
+            boolean translate = isTranslating() && !nonTranslatedPath(path);
 
             boolean preprocess = false;
             if (SERVER_PARSED_MIME_TYPE.equals(mime_type)) {
@@ -905,6 +905,10 @@ public class WebServer implements ContentSource {
                 outputStream.flush();
                 content.close();
             }
+        }
+
+        private boolean isTranslating() {
+            return translationEnabled && Translator.isTranslating();
         }
 
         private int getContentLength(final URLConnection conn) {
@@ -1759,6 +1763,7 @@ public class WebServer implements ContentSource {
         CREATE_PERMISSION.checkPermission();
         startupTimestamp = Long.toString((new Date()).getTime());
         startupTimestampHeader = TIMESTAMP_HEADER + ": " + startupTimestamp;
+        translationEnabled = Settings.getBool("http.autoTranslate", false);
         initAllowRemote();
 
         try {
