@@ -1,4 +1,4 @@
-// Copyright (C) 2006-2009 Tuma Solutions, LLC
+// Copyright (C) 2006-2012 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -48,6 +48,9 @@ abstract class DashboardInstance {
 
     /** The name of a file that will ALWAYS exist in a data directory */
     protected static final String DATA_DIR_FILE_ITEM = "global.dat";
+
+    /** The name of a file that will ALWAYS exist in a WBS directory */
+    protected static final String WBS_DIR_FILE_ITEM = "wbs.xml";
 
     static final Resources resources = QuickLauncher.resources;
 
@@ -113,7 +116,7 @@ abstract class DashboardInstance {
     public abstract void launch(DashboardProcessFactory processFactory);
 
     protected void launchApp(DashboardProcessFactory processFactory,
-            List vmArgs, File pspdataDir) throws LaunchException {
+            List vmArgs, File launchTarget) throws LaunchException {
         try {
             setStatus(LAUNCHING);
 
@@ -132,13 +135,20 @@ abstract class DashboardInstance {
                 extraVmArgs.add(titleArg);
             }
 
-            process = processFactory.launchDashboard(pspdataDir, extraVmArgs,
-                    null);
+            process = createProcess(processFactory, launchTarget, extraVmArgs,
+                null);
         } catch (Exception e) {
             String message = resources.format("Errors.Cant_Launch", e
                     .getLocalizedMessage());
             throw new LaunchException(message, e);
         }
+    }
+
+    protected Process createProcess(DashboardProcessFactory processFactory,
+            File launchTarget, List extraVmArgs, List extraArgs)
+            throws Exception {
+        return processFactory.launchDashboard(launchTarget, extraVmArgs,
+            extraArgs);
     }
 
     protected void waitForCompletion() {

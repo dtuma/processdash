@@ -1,4 +1,4 @@
-// Copyright (C) 2007 Tuma Solutions, LLC
+// Copyright (C) 2007-2012 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -75,6 +75,13 @@ public class DashboardProcessFactorySameJVM extends DashboardProcessFactory {
             return new String[0];
         else
             return (String[]) extraArgs.toArray(new String[extraArgs.size()]);
+    }
+
+    @Override
+    public Process launchWBS(File wbsFile, List extraVmArgs, List extraArgs)
+            throws Exception {
+        throw new IllegalStateException(
+                "Same-JVM mode does not support the launching of WBS files");
     }
 
 }

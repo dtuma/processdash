@@ -1,4 +1,4 @@
-// Copyright (C) 2006-2007 Tuma Solutions, LLC
+// Copyright (C) 2006-2012 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -25,6 +25,8 @@ package net.sourceforge.processdash.tool.quicklauncher;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import net.sourceforge.processdash.ProcessDashboard;
@@ -73,10 +75,24 @@ class DashboardProcessFactoryForking extends DashboardProcessFactory {
 
     public Process launchDashboard(File pspdataDir, List extraVmArgs, List extraArgs)
             throws Exception {
+        return launchProcess(classpath, mainClassName, pspdataDir, extraVmArgs,
+            extraArgs);
+    }
+
+    @Override
+    public Process launchWBS(File wbsFile, List extraVmArgs, List extraArgs)
+            throws Exception {
+        return launchProcess(getWbsClasspath(), WBS_EDITOR_MAIN_CLASS, null,
+            extraVmArgs, Collections.singletonList(wbsFile.getAbsolutePath()));
+    }
+
+    private Process launchProcess(String classpath, String mainClassName,
+            File cwd, List extraVmArgs, List extraArgs) throws Exception {
         List cmd = new ArrayList();
         cmd.add(jreExecutable);
         cmd.add("-cp");
         cmd.add(classpath);
+        cmd.addAll(Arrays.asList(RuntimeUtils.getPropagatedJvmArgs()));
         if (vmArgs != null)
             cmd.addAll(vmArgs);
         if (extraVmArgs != null)
@@ -86,7 +102,7 @@ class DashboardProcessFactoryForking extends DashboardProcessFactory {
             cmd.addAll(extraArgs);
 
         String[] cmdLine = (String[]) cmd.toArray(new String[cmd.size()]);
-        Process result = Runtime.getRuntime().exec(cmdLine, null, pspdataDir);
+        Process result = Runtime.getRuntime().exec(cmdLine, null, cwd);
         return result;
     }
 
@@ -128,6 +144,30 @@ class DashboardProcessFactoryForking extends DashboardProcessFactory {
         }
 
         return result.toString();
+    }
+
+    private String getWbsClasspath() {
+        // if the classpath is a list of several files/directories, extract
+        // just the first one.
+        String basePath = classpath;
+        int sepPos = basePath.indexOf(System.getProperty("path.separator"));
+        if (sepPos > 0)
+            basePath = basePath.substring(0, sepPos);
+
+        File teamToolsJarDir;
+        File dashboardClasspath = new File(basePath);
+        File parentDir = dashboardClasspath.getParentFile();
+        if (dashboardClasspath.isFile()) {
+            // if the dashboard is a JAR file, we'll expect the TeamTools.jar
+            // file to be present in the same directory.
+            teamToolsJarDir = parentDir;
+        } else {
+            // if the dashboard classes were in a "bin" directory, we'll
+            // expect the TeamTools.jar file to be in a sibling "dist" directory
+            teamToolsJarDir = new File(parentDir, "dist");
+        }
+
+        return new File(teamToolsJarDir, "TeamTools.jar").getAbsolutePath();
     }
 
 }

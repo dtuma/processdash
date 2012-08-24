@@ -1,4 +1,4 @@
-// Copyright (C) 2006-2007 Tuma Solutions, LLC
+// Copyright (C) 2006-2012 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -56,6 +56,7 @@ class DirectoryInstanceLauncher extends DashboardInstance {
                 pspdataDir);
     }
 
+    @Override
     public boolean equals(Object obj) {
         if (obj instanceof DirectoryInstanceLauncher) {
             DirectoryInstanceLauncher that = (DirectoryInstanceLauncher) obj;
@@ -63,6 +64,11 @@ class DirectoryInstanceLauncher extends DashboardInstance {
         }
 
         return false;
+    }
+
+    @Override
+    public int hashCode() {
+        return pspdataDir == null ? -1 : pspdataDir.hashCode();
     }
 
     static List getDataDirectoriesWithinDir(File dir) throws IOException {

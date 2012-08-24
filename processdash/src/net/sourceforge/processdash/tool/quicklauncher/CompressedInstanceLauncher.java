@@ -1,4 +1,4 @@
-// Copyright (C) 2006-2009 Tuma Solutions, LLC
+// Copyright (C) 2006-2012 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -190,15 +190,15 @@ public class CompressedInstanceLauncher extends DashboardInstance {
                 || basename.endsWith(PDASH_BACKUP_EXTENSION);
     }
 
-    static List getDataDirectoriesWithinZip(File zipfile) throws IOException {
+    static List getLaunchTargetsWithinZip(File zipfile) throws IOException {
         List result = new ArrayList();
         ZipInputStream in = openZipStream(zipfile);
-        collectDataDirectoryPrefixes(result, "", in);
+        collectLaunchTargetPrefixes(result, "", in);
         FileUtils.safelyClose(in);
         return result;
     }
 
-    private static void collectDataDirectoryPrefixes(List result,
+    private static void collectLaunchTargetPrefixes(List result,
             String prepend, ZipInputStream in) throws IOException {
         ZipEntry e;
         while ((e = in.getNextEntry()) != null) {
@@ -207,10 +207,16 @@ public class CompressedInstanceLauncher extends DashboardInstance {
                 int prefixLen = filename.length() - DATA_DIR_FILE_ITEM.length();
                 String prefix = filename.substring(0, prefixLen);
                 result.add(prepend + prefix);
+                result.remove(WBS_DIR_FILE_ITEM);
+
+            } else if (filename.equals(WBS_DIR_FILE_ITEM)
+                    && "".equals(prepend) && result.isEmpty()) {
+                result.add(WBS_DIR_FILE_ITEM);
+
             } else if (isCompressedInstanceFilename(filename)
                     && filename.toLowerCase().indexOf("backup/") == -1) {
                 ZipInputStream subIn = openZipStream(in, filename);
-                collectDataDirectoryPrefixes(result, prepend + filename
+                collectLaunchTargetPrefixes(result, prepend + filename
                         + SUBZIP_SEPARATOR, subIn);
             }
         }

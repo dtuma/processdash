@@ -1,4 +1,4 @@
-// Copyright (C) 2006-2011 Tuma Solutions, LLC
+// Copyright (C) 2006-2012 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -33,6 +33,8 @@ abstract class DashboardProcessFactory {
 
     protected List vmArgs;
 
+    protected static final String WBS_EDITOR_MAIN_CLASS = "teamdash.wbs.WBSEditor";
+
     protected static final Resources resources = QuickLauncher.resources;
 
     public DashboardProcessFactory() {}
@@ -56,6 +58,9 @@ abstract class DashboardProcessFactory {
     }
 
     public abstract Process launchDashboard(File pspdataDir, List extraVmArgs,
+            List extraArgs) throws Exception;
+
+    public abstract Process launchWBS(File wbsZipFile, List extraVmArgs,
             List extraArgs) throws Exception;
 
 }

@@ -1,4 +1,4 @@
-// Copyright (C) 2006-2011 Tuma Solutions, LLC
+// Copyright (C) 2006-2012 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -115,10 +115,6 @@ public class QuickLauncher {
 
             processFactory.addVmArg("-D" + QUICK_LAUNCH_MODE_PROP + "=true");
 
-            String userLang = System.getProperty("user.language");
-            if (userLang != null)
-                processFactory.addVmArg("-Duser.language=" + userLang);
-
             String maxMem = System.getProperty("maxMemory");
             if (maxMem != null)
                 processFactory.addVmArg("-Xmx" + maxMem);
@@ -175,8 +171,8 @@ public class QuickLauncher {
 
         contents.add(new JLabel(resources.getString("Window_Prompt")));
 
-        contents.add(new OptionCheckbox("Read_Only", "-DreadOnly=true", null,
-                processFactory, false));
+        contents.add(new OptionCheckbox("Read_Only", "-DreadOnly=true\n"
+                + "-Dteamdash.wbs.readOnly=true", null, processFactory, false));
         contents.add(new OptionCheckbox("Disable_Export", "-D"
                 + Settings.SYS_PROP_PREFIX + "export.disableAutoExport=true\n"
                 + "-D" + Settings.SYS_PROP_PREFIX + "backup.extraDirectories=",

@@ -183,7 +183,7 @@ public class InstanceLauncherFactory {
         List prefixes;
         try {
             prefixes = CompressedInstanceLauncher
-                    .getDataDirectoriesWithinZip(f);
+                    .getLaunchTargetsWithinZip(f);
         } catch (IOException e) {
             JOptionPane.showMessageDialog(comp,
                     resources.formatStrings("Errors.Zip.Read_Error_FMT",
@@ -202,8 +202,13 @@ public class InstanceLauncherFactory {
             return null;
         }
 
-        if (prefixes.size() == 1)
-            return new CompressedInstanceLauncher(f, (String) prefixes.get(0));
+        if (prefixes.size() == 1) {
+            String prefix = (String) prefixes.get(0);
+            if (DashboardInstance.WBS_DIR_FILE_ITEM.equals(prefix))
+                return new WbsZipInstanceLauncher(f);
+            else
+                return new CompressedInstanceLauncher(f, prefix);
+        }
 
         JList list = new JList(prefixes.toArray());
         list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);

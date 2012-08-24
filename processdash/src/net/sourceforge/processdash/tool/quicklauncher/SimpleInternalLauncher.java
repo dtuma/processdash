@@ -95,6 +95,7 @@ public class SimpleInternalLauncher {
         }
         public void run() {
             launcher.launch(processFactory);
+            launcher.waitForCompletion();
         }
     }
 
