@@ -25,6 +25,7 @@ package teamdash.wbs;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
+import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
@@ -35,6 +36,7 @@ import java.awt.Insets;
 import java.awt.Rectangle;
 import java.awt.Stroke;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.beans.EventHandler;
 import java.text.DateFormat;
@@ -48,6 +50,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import javax.swing.BorderFactory;
+import javax.swing.Icon;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
@@ -108,6 +111,8 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
     private JPanel balancedBar;
     /** Should the balanced bar be shown, or hidden */
     private boolean showBalancedBar;
+    /** Should the bars for each team member be shown, or hidden */
+    private boolean showTeamMemberBars;
     /** The panel displaying milestone commit dates */
     private CommitDatePane commitDatePane;
     /** Should the bars show total project data, or just remaining project data */
@@ -148,6 +153,7 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
         this.milestonesModel = milestones;
         this.teamMemberBars = new ArrayList<TeamMemberBar>();
         this.showBalancedBar = true;
+        this.showTeamMemberBars = true;
         this.showRemainingWork = false;
         this.includeUnassigned = true;
         this.showCommitDates = true;
@@ -177,7 +183,29 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
     }
 
     public void setShowBalancedBar(boolean showBalancedBar) {
-        this.showBalancedBar = showBalancedBar;
+        if (this.showBalancedBar != showBalancedBar) {
+            this.showBalancedBar = showBalancedBar;
+            if (!showBalancedBar)
+                showTeamMemberBars = true;
+            rebuildPanelContents();
+            recalc();
+        }
+    }
+
+    public boolean isShowTeamMemberBars() {
+        return showTeamMemberBars;
+    }
+
+    public void setShowTeamMemberBars(boolean showTeamMemberBars) {
+        // only allow this setting to be toggled if we are showing the balanced
+        // team bar too.  Otherwise, we could end up with no bars to display.
+        if (showBalancedBar) {
+            if (this.showTeamMemberBars != showTeamMemberBars) {
+                this.showTeamMemberBars = showTeamMemberBars;
+                rebuildPanelContents();
+                recalc();
+            }
+        }
     }
 
     public boolean isShowRemainingWork() {
@@ -341,7 +369,14 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
 
         // add all horizontal bars to our panel.
         for (TeamMemberBar bar : teamMemberBars) {
-            JLabel name = new JLabel(bar.teamMember.getName());
+            // possibly skip over this row if requested
+            if (bar instanceof TeamMilestoneBar) {
+                if (!showBalancedBar) continue;
+            } else {
+                if (!showTeamMemberBars) continue;
+            }
+
+            JLabel name = bar.getNameLabel();
             nc.gridy = row;
             add(name);
             layout.setConstraints(name, nc);
@@ -794,6 +829,13 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
             hoursPerWeekLabel.setToolTipText("Hours per Week (Nominal)");
         }
 
+        public JLabel getNameLabel() {
+            JLabel result = new JLabel(teamMember.getName());
+            if (showBalancedBar)
+                result.setIcon(SPACER_ICON);
+            return result;
+        }
+
         public JLabel getHoursPerWeekLabel() {
             return hoursPerWeekLabel;
         }
@@ -1196,6 +1238,16 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
         }
 
         @Override
+        public JLabel getNameLabel() {
+            JLabel result = super.getNameLabel();
+            result.setIcon(showTeamMemberBars ? IconFactory.getMinusIcon()
+                    : IconFactory.getPlusIcon());
+            result.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+            result.addMouseListener(toggleMembers);
+            return result;
+        }
+
+        @Override
         protected Date getStartDate() {
             return new Date(teamStartTime);
         }
@@ -1249,6 +1301,14 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
         }
 
     }
+
+    private MouseAdapter toggleMembers = new MouseAdapter() {
+        public void mouseClicked(MouseEvent e) {
+            setShowTeamMemberBars(!isShowTeamMemberBars());
+        }
+    };
+
+    private static final Icon SPACER_ICON = IconFactory.getEmptyIcon(9, 9);
 
     private DateFormat dateFormat = DateFormat.getDateInstance();
 

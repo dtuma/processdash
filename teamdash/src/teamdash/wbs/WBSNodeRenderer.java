@@ -240,32 +240,11 @@ public class WBSNodeRenderer extends DefaultTableCellRenderer {
         }
     }
 
-
-
-    /** Icon class for displaying a minus sign in a box */
-    private static class MinusIcon implements Icon {
-        public int getIconWidth()  { return 9; }
-        public int getIconHeight() { return 9; }
-        public void paintIcon(Component c, Graphics g, int x, int y) {
-            g.setColor(Color.black);
-            g.drawRect(x, y, 8, 8);          // square box
-            g.drawLine(x+2, y+4, x+6, y+4);  // minus symbol
-        }
-    }
     /** static shared instance of a MinusIcon */
-    static Icon MINUS_ICON = new MinusIcon();
+    static Icon MINUS_ICON = IconFactory.getMinusIcon();
 
-
-
-    /** Icon class for displaying a plus sign in a box */
-    private static class PlusIcon extends MinusIcon {
-        public void paintIcon(Component c, Graphics g, int x, int y) {
-            super.paintIcon(c, g, x, y);
-            g.drawLine(x+4, y+2, x+4, y+6);  // vertical bar of plus symbol
-        }
-    }
     /** static shared instance of a PlusIcon */
-    static Icon PLUS_ICON = new PlusIcon();
+    static Icon PLUS_ICON = IconFactory.getPlusIcon();
 
     private static Color ERROR_NOTE_BACKGROUND = new Color(255, 200, 200);
     private static Color ERROR_NOTE_SELECTED_BACKGROUND = new Color(216, 175, 194);

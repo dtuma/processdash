@@ -91,6 +91,20 @@ public class IconFactory {
         return new MilestoneIcon(DEFAULT_COLOR);
     }
 
+    public static Icon getPlusIcon() {
+        return PLUS_ICON;
+    }
+    private static final Icon PLUS_ICON = new PlusIcon();
+
+    public static Icon getMinusIcon() {
+        return MINUS_ICON;
+    }
+    private static final Icon MINUS_ICON = new MinusIcon();
+
+    public static Icon getEmptyIcon(int width, int height) {
+        return new EmptyIcon(width, height);
+    }
+
 
 
     // Icons used in toolbars and menus
@@ -695,6 +709,34 @@ public class IconFactory {
             g.drawLine(7, 14, 13, 8); // bottom right shadow
         }
 
+    }
+
+    private static class MinusIcon implements Icon {
+        public int getIconWidth()  { return 9; }
+        public int getIconHeight() { return 9; }
+        public void paintIcon(Component c, Graphics g, int x, int y) {
+            g.setColor(Color.black);
+            g.drawRect(x, y, 8, 8);          // square box
+            g.drawLine(x+2, y+4, x+6, y+4);  // minus symbol
+        }
+    }
+
+    private static class PlusIcon extends MinusIcon {
+        public void paintIcon(Component c, Graphics g, int x, int y) {
+            super.paintIcon(c, g, x, y);
+            g.drawLine(x+4, y+2, x+4, y+6);  // vertical bar of plus symbol
+        }
+    }
+
+    private static class EmptyIcon implements Icon {
+        int width, height;
+        protected EmptyIcon(int width, int height) {
+            this.width = width;
+            this.height = height;
+        }
+        public int getIconWidth() { return width; }
+        public int getIconHeight() { return height; }
+        public void paintIcon(Component c, Graphics g, int x, int y) {}
     }
 
 
