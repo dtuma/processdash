@@ -25,9 +25,12 @@ package teamdash.wbs;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
+import java.awt.Cursor;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.io.BufferedInputStream;
@@ -70,6 +73,7 @@ import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JRadioButton;
 import javax.swing.JRadioButtonMenuItem;
+import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 import javax.swing.border.Border;
@@ -88,6 +92,7 @@ import net.sourceforge.processdash.tool.bridge.client.WorkingDirectoryFactory;
 import net.sourceforge.processdash.tool.export.mgr.ExternalLocationMapper;
 import net.sourceforge.processdash.ui.lib.ExceptionDialog;
 import net.sourceforge.processdash.ui.lib.GuiPrefs;
+import net.sourceforge.processdash.ui.lib.JOptionPaneTweaker;
 import net.sourceforge.processdash.ui.lib.LargeFontsHelper;
 import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
 import net.sourceforge.processdash.util.DashboardBackupFactory;
@@ -2216,7 +2221,7 @@ public class WBSEditor implements WindowListener, SaveListener,
         List<String> coworkerDiscrepancies;
         int invokeLaterCount;
         public WatchCoworkerTimesMenuItem(DataTableModel dataModel) {
-            super("Show Warning When a Change Affects Someone Else");
+            super(resources.getString("PlanWatcher.Menu"));
             setBorder(BorderFactory.createCompoundBorder(getBorder(),
                 new EmptyBorder(0, 15, 0, 0)));
 
@@ -2256,21 +2261,21 @@ public class WBSEditor implements WindowListener, SaveListener,
             List message = new ArrayList();
             if (coworkerDiscrepancies.size() == 1) {
                 String oneInitial = coworkerDiscrepancies.get(0);
-                message.add("The change you just made will affect the plan");
-                message.add("for " + getCoworkerName(oneInitial) + ".");
+                message.add(resources.formatStrings(
+                    "PlanWatcher.Warn_Single_FMT", getCoworkerName(oneInitial)));
             } else {
-                message.add("The change you just made will affect the plans");
-                message.add("of the following individuals:");
+                message.add(resources.getStrings("PlanWatcher.Warn_Multiple"));
                 for (String oneInitial : coworkerDiscrepancies) {
                     message.add("      " + getCoworkerName(oneInitial));
                 }
             }
             message.add(" ");
-            message.add("Are you certain you want to make this change?");
+            message.add(resources.getString("PlanWatcher.Prompt"));
             message.add(" ");
+            message.add(createHelpLabel());
 
             int userChoice = JOptionPane.showOptionDialog(frame, message
-                    .toArray(), "Confirm Change to Coworker's Plan",
+                    .toArray(), resources.getString("PlanWatcher.Title"),
                 JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null,
                 new Object[] { UNDO_CHANGE, KEEP_CHANGE }, UNDO_CHANGE);
             if (userChoice == 0) {
@@ -2284,10 +2289,35 @@ public class WBSEditor implements WindowListener, SaveListener,
                 return coworker.getName();
             else
                 // shouldn't happen!
-                return "the person with initials '" + initials + "'";
+                return resources.format("Initials_FMT", initials);
         }
-        private static final String UNDO_CHANGE = "No, undo the change";
-        private static final String KEEP_CHANGE = "Yes, keep this change";
+        private String UNDO_CHANGE = resources.getString("PlanWatcher.Undo");
+        private String KEEP_CHANGE = resources.getString("PlanWatcher.Keep");
+
+        private Component createHelpLabel() {
+            final JLabel helpLabel = new JLabel(
+                    resources.getString("PlanWatcher.Help.Prompt"),
+                    IconFactory.getHelpIcon(), SwingConstants.CENTER);
+            Font f = helpLabel.getFont();
+            helpLabel.setFont(f.deriveFont(f.getSize2D() * 0.8f));
+            helpLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 10, 0));
+            helpLabel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+            helpLabel.addMouseListener(new MouseAdapter() {
+                public void mouseClicked(MouseEvent e) {
+                    showExplanation();
+                }});
+
+            return new JOptionPaneTweaker() {
+                public void doTweak(JDialog dialog) {
+                    dialog.getContentPane().add(helpLabel, BorderLayout.SOUTH);
+                }};
+        }
+        protected void showExplanation() {
+            JOptionPane.showMessageDialog(frame,
+                resources.getStrings("PlanWatcher.Help.Explanation"),
+                resources.getString("PlanWatcher.Help.Title"),
+                JOptionPane.INFORMATION_MESSAGE);
+        }
     }
 
 
