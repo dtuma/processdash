@@ -34,6 +34,10 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
+import java.net.InetAddress;
+import java.net.Socket;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
@@ -1754,6 +1758,7 @@ public class WBSEditor implements WindowListener, SaveListener,
             showTeam, syncURL, true, readOnly, owner);
 
         new Timer(DAY_MILLIS, new UsageLogAction()).start();
+        maybeNotifyOpened();
     }
 
     private static final String[] PROPS_TO_PROPAGATE = {
@@ -1762,6 +1767,29 @@ public class WBSEditor implements WindowListener, SaveListener,
         "teamdash.wbs.owner"
     };
 
+    private static void maybeNotifyOpened() {
+        Integer portToNotify = Integer.getInteger(NOTIFY_ON_OPEN_PORT_PROPERTY);
+        if (portToNotify != null) {
+            try {
+                Socket s = new Socket(InetAddress.getLocalHost(), portToNotify
+                        .intValue());
+                Writer out = new OutputStreamWriter(s.getOutputStream(),
+                        "UTF-8");
+                out.write("<?xml version='1.0' encoding='UTF-8'?>");
+                out.write("<pdashNotification");
+                out.write(" instanceId='"
+                        + System.getProperty(NOTIFY_ON_OPEN_ID_PROPERTY));
+                out.write("'>");
+                out.write("<event type='opened'/>");
+                out.write("</pdashNotification>");
+                out.close();
+                s.close();
+            } catch (Exception e) {}
+        }
+    }
+    private static final String NOTIFY_ON_OPEN_PREFIX = "net.sourceforge.processdash.ProcessDashboard.notifyOnOpen.";
+    private static final String NOTIFY_ON_OPEN_PORT_PROPERTY = NOTIFY_ON_OPEN_PREFIX + "port";
+    private static final String NOTIFY_ON_OPEN_ID_PROPERTY = NOTIFY_ON_OPEN_PREFIX + "id";
 
     private static class UsageLogAction implements ActionListener {
         private UsageLogger logger;
