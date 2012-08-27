@@ -23,10 +23,12 @@
 
 package teamdash.wbs;
 
+import net.sourceforge.processdash.util.PatternList;
 import net.sourceforge.processdash.util.VersionUtils;
 import net.sourceforge.processdash.util.XMLUtils;
 
 import teamdash.team.TeamMemberList;
+import teamdash.wbs.columns.TeamTimeColumn;
 import teamdash.wbs.columns.WBSNodeColumn;
 import teamdash.wbs.columns.WorkflowNumPeopleColumn;
 import teamdash.wbs.columns.WorkflowPercentageColumn;
@@ -81,5 +83,11 @@ public class WorkflowModel extends DataTableModel {
     }
 
     private static final String MIN_URL_VERSION = "3.9.0";
+
+    public static final PatternList WORKFLOW_ATTRS = new PatternList()
+            .addLiteralStartsWith("Workflow ")
+            .addLiteralEquals(TeamTimeColumn.RATE_ATTR)
+            .addLiteralEquals(WorkflowSizeUnitsColumn.ATTR_NAME)
+            .addLiteralEquals(WorkflowNumPeopleColumn.ATTR_NAME);
 
 }

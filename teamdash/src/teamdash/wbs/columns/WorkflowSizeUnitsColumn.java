@@ -1,4 +1,4 @@
-// Copyright (C) 2010 Tuma Solutions, LLC
+// Copyright (C) 2010-2012 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -102,5 +102,7 @@ public class WorkflowSizeUnitsColumn extends TaskSizeUnitsColumn implements
         }
 
     }
+
+    public static final String ATTR_NAME = COLUMN_ID;
 
 }

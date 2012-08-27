@@ -44,6 +44,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import net.sourceforge.processdash.util.PatternList;
 import net.sourceforge.processdash.util.StringUtils;
 
 
@@ -1189,7 +1190,7 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
 
 
     public int[] insertWorkflow(int destRow, String workflowName,
-            WBSModel workflows, Map extraDefaultAttrs) {
+            WBSModel workflows, PatternList attrsToKeep, Map extraDefaultAttrs) {
         // locate the destination node for insertion.
         WBSNode destNode = getNodeForRow(destRow);
         if (destNode == null) return null;
@@ -1213,6 +1214,13 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
         List<WBSNode> nodesToInsert =
             calcInsertWorkflow(srcNode, destNode, workflows);
         if (nodesToInsert == null || nodesToInsert.isEmpty()) return null;
+
+        // possibly clear extraneous attributes that are undesirable to keep.
+        if (attrsToKeep != null) {
+            for (WBSNode node : nodesToInsert)
+                node.discardAttributesExcept(attrsToKeep,
+                    WORKFLOW_SOURCE_IDS_ATTR);
+        }
 
         // insert the nodes after the last descendant of the dest node.
         IntList destDescendants = getDescendantIndexes(destNode, destPos);

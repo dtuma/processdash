@@ -27,6 +27,7 @@ package teamdash.wbs;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -39,6 +40,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
 import net.sourceforge.processdash.util.NullSafeObjectUtils;
+import net.sourceforge.processdash.util.PatternList;
 
 import teamdash.XMLUtils;
 
@@ -315,6 +317,46 @@ public class WBSNode implements Cloneable {
             return result;
         } catch (CloneNotSupportedException cnse) {
             return null;        // can't happen?
+        }
+    }
+
+
+
+    /**
+     * Remove extraneous data attributes from this node.
+     * 
+     * @param attrsToKeep
+     *            one or more objects describing attribute names that should be
+     *            retained. Each object can be either (a) a String, (b) a
+     *            Collection of Strings, or (c) a PatternList. If an attribute
+     *            matches one of the provided tests, it will be retained; other
+     *            attributes will be discarded.
+     */
+    public void discardAttributesExcept(Object... attrsToKeep) {
+        Iterator i = attributes.keySet().iterator();
+        while (i.hasNext()) {
+            String attrName = (String) i.next();
+            if (!attrNameMatchesTests(attrName, attrsToKeep))
+                i.remove();
+        }
+    }
+    private boolean attrNameMatchesTests(String attrName, Object[] tests) {
+        for (Object t : tests)
+            if (attrNameMatchesTest(attrName, t))
+                return true;
+        return false;
+    }
+    private boolean attrNameMatchesTest(String attrName, Object test) {
+        if (test instanceof Collection) {
+            return ((Collection) test).contains(attrName);
+        } else if (test instanceof PatternList) {
+            return ((PatternList) test).matches(attrName);
+        } else if (test instanceof String) {
+            return ((String) test).equals(attrName);
+        } else if (test instanceof Object[]) {
+            return attrNameMatchesTests(attrName, (Object[]) test);
+        } else {
+            return false;
         }
     }
 

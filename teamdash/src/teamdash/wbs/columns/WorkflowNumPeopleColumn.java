@@ -85,6 +85,6 @@ public class WorkflowNumPeopleColumn extends AbstractDataColumn implements
         return WorkflowTableCellRenderer.INSTANCE;
     }
 
-    private static final String ATTR_NAME = TeamTimeColumn.NUM_PEOPLE_ATTR;
+    public static final String ATTR_NAME = TeamTimeColumn.NUM_PEOPLE_ATTR;
     static final String COLUMN_ID = "# People";
 }

@@ -1252,7 +1252,8 @@ public class WBSJTable extends JTable {
                         TeamTimeColumn.AUTO_ZERO_USER_ATTR_TRANSIENT,
                         optimizeForIndiv);
                 int[] insertedRows = wbsModel.insertWorkflow(rows[i],
-                        workflowName, workflows, extraAttrs);
+                        workflowName, workflows, WorkflowModel.WORKFLOW_ATTRS,
+                        extraAttrs);
                 if (insertedRows != null && insertedRows.length > 0)
                     insertedNodes.addAll(wbsModel.getNodesForRows(insertedRows,
                             true));
