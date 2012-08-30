@@ -1,4 +1,4 @@
-// Copyright (C) 2011 Tuma Solutions, LLC
+// Copyright (C) 2011-2012 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -121,6 +121,9 @@ public class CustomColumnManager {
         if (TYPE_ANCESTOR_SELECTION.equals(type))
             return new AncestorSelectionColumn(dataModel, id, name, e);
 
+        else if (TYPE_TEXT.equals(type))
+            return new CustomTextColumn(dataModel, id, name, e);
+
         System.out.println("Unrecognized type '" + type
                 + "' for custom column with id '" + id + "' - ignoring");
         return null;
@@ -141,5 +144,7 @@ public class CustomColumnManager {
     private static final String COLUMN_PROCESS_ATTR = "forProcess";
 
     private static final String TYPE_ANCESTOR_SELECTION = "AncestorSelectionColumn";
+
+    private static final String TYPE_TEXT = "TextColumn";
 
 }
