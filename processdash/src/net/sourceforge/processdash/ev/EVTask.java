@@ -1286,18 +1286,18 @@ public class EVTask implements Cloneable, DataListener {
     }
 
     public String getPercentSpentText() {
-        if (actualTime == 0 || planTime == 0 || isValuePruned()) return "";
+        if (actualDirectTime == 0 || planValue == 0 || isValuePruned()) return "";
         return formatIntPercent(getPercentSpent());
     }
 
     /** Returns the percent spent for this task and subtasks.
      * 
-     * Percent Spent is defined as total actual time divided by total planned
-     * time.  This calculation includes all time, not just time spent during
-     * the current EV schedule.
+     * Percent Spent is defined as actual direct time divided by planned direct
+     * time.  This calculation only includes time spent during the current
+     * EV schedule.
      */
     public double getPercentSpent() {
-        return actualTime / planTime;
+        return actualDirectTime / planValue;
     }
 
     /** Returns the actual value earned (minutes) in this node and its
