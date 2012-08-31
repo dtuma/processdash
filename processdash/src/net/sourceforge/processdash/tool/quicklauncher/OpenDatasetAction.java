@@ -1,4 +1,4 @@
-// Copyright (C) 2011 Tuma Solutions, LLC
+// Copyright (C) 2011-2012 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -52,7 +52,7 @@ public class OpenDatasetAction extends AbstractAction {
     }
 
     public void actionPerformed(ActionEvent e) {
-        String title = resources.getString("Open_Dataset.From_Backup");
+        String title = resources.getString("Menu.Open_Dataset");
         File file = saveAction.selectBackupFile(parent, title);
         if (file != null) {
             launcher.launchFile(parent, file);
