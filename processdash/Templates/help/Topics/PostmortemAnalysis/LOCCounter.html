@@ -113,20 +113,47 @@ can be very useful for peer reviews.</p>
 will also show summary tables listing the files that were added, modified, or
 deleted, with individual LOC counts for each file.</p>
 
-<p class="ifpsp">If you are using the PSP
-<a href="../Planning/UsingSizeEstimatingTemplate.html">Size Estimating
-Template</a>, you can drag items from these summary tables and drop them onto
-rows of the Size Estimating Template.  The actual LOC for the file in
-question will be applied to the target row in the Size Estimating Template.
-(That this feature is most useful if your conceptual design lists items at a
-file-level granularity or above.  If you prefer to create separate rows in
-the Size Estimating Template for each added or modified method, you will need
-to perform your own manual accounting of the LOC for each Size Estimating
-row.)  You can drag several items from the LOC report onto the same row of
-the Size Estimating Template, and the actual LOC contributions from each file
-will be summed.  If you drop a file onto the wrong row, you can drag it to a
-different row or delete it entirely.</p>
+<h2>Entering PSP Size Data</h2>
 
+<p>If you are using the PSP
+<a href="../Planning/UsingSizeEstimatingTemplate.html">Size Estimating
+Template</a>, you can drag items from the LOC Report summary tables and drop
+them onto rows of the Size Estimating Template.  The actual LOC for the file
+in question will be applied to the target row in the Size Estimating Template.
+(This this feature is most useful if your conceptual design lists items at a
+file-level granularity or above.  If you prefer to create separate rows in the
+Size Estimating Template for each added or modified method, you will need to
+perform your own manual accounting of the LOC for each Size Estimating row.)
+You can drag several items from the LOC report onto the same row of the Size
+Estimating Template, and the actual LOC contributions from each file will be
+summed.  If you drop a file onto the wrong row, you can drag it to a different
+row or delete it entirely.</p>
+
+<p>Entering actual LOC on the Size Estimating Template is a good way to
+improve your planning performance.  As you apply the actual LOC to the rows of
+the Size Estimating Template, compare the actuals to your original plan.  The
+differences can help you to understand the types of planning errors you
+typically make, which can help you to improve your plans in the future.</p>
+
+<p>However, the data on the Size Estimating Template is <b>not</b> the
+official source of information for computing the size of a PSP program.  The
+official source is the Actual Added and Modified field in the "Size" section
+of the PSP Project Plan Summary form.</p>
+
+<p class="ifpsp" align="center"><img src="../../Images/QSEnterActualLOCPPS.png"></p>
+
+<p>The actual Added and Modified field is calculated from the values that
+appear in the actual Base, Deleted, Modified, Reused, and Total Size fields on
+the Project Plan Summary form.  During postmortem, you should open the Project
+Plan Summary form and enter these values.  This task is generally very fast
+and easy, because these aggregate numbers are readily available in a table
+near the top of the LOC Counter Report.</p>
+
+<p>To receive good analyses from the PSP, it is <b>very important</b> for the
+"Actual Added and Modified" field to contain the right size.  Therefore, you
+should always open the PSP Project Plan Summary form during the Postmortem
+phase of each PSP project and enter these values, even if you don't take the
+time to fill out the Actual columns of the Size Estimating Template.</p>
 
 <h2>Advanced Usage</h2>
 

@@ -7,8 +7,18 @@
 
 <H1>Exporting your data</H1>
 
-<p>The Data Export Wizard can save dashboard metrics data in a
-compressed, structured file format.  To open the Data Export Wizard,
+<H2>Exporting Team Project Data</H2>
+
+<p>If you are participating on a team project, the dashboard will
+automatically export your team project data on a periodic basis.  However,
+there may be times that you wish to publish your latest data immediately (for
+example, if you are on your way to a team meeting).  Just click the script
+menu and choose the "Export My Data Now" option.</p>
+
+<H2>Advanced: Exporting Non-Project Data</H2>
+
+<p>If you have been collecting data that is not part of a team project,
+you can export that data if you wish.  Just
 choose &quot;Tools&nbsp;<img src="../../Images/rarrow.png">&nbsp;Export&quot;
 from the <a href="../Execution/ConfigureMenu.html">configuration menu</a>.</p>
 
@@ -83,24 +93,22 @@ on the initial page of the Data Import Wizard.</p>
 to Excel...".  When this link is clicked, an Excel sheet will come up that 
 contains the data from that form.</p>
 
-<P>There is a subtle difference between the way that this export is handled 
-in Internet Explorer versus the way it is handled in other browsers.</p>
+<p>By default, the data will be exported <b>dynamically</b> as a linked
+workbook.  When the workbook opens, Excel will connect to the dashboard and
+retrieve the data items.  At any time, you can ask Excel to refresh the data
+by right-clicking on the data and choosing "Refresh."  This dynamic refresh
+behavior can be very powerful.  For example, you can create additional sheets
+in the workbook to analyze and chart the raw data, then save the workbook.  In
+the future, you can make sure the dashboard is running, reopen this workbook,
+and ask Excel to refresh the data.  Excel will reload the raw data and your
+charts will update.</p>
 
-<ul>
- <li><B><A NAME="static">Static export</A>:</B> In other browsers, the
-   sheet will have static data elements that contain the values of the
-   process variables at the instant that the export was done.</li>
- <li><B>Dynamic export:</B> In Internet Explorer, the sheet will be a
-   linked spreadsheet.  Excel will connect to the dashboard and retrieve
-   the data items.  Excel will typically also display a floating "External
-   data" toolbar, which can be used to refresh the data (as long as the
-   dashboard is still running).  By clicking the "Data Range Properties"
-   button on this floating toolbar, Excel can be configured to refresh the
-   data automatically whenever the spreadsheet is opened.</li>
-</ul>
-
-<P>If this feature doesn't seem to be working for you, see the <A
-HREF="../Troubleshooting/FAQ.html#BadExcel">related FAQ</A>.
+<p><A NAME="static"></A>In some web browsers, that dynamic behavior may not
+work properly.  In that case, you can try switching to a <b>static</b> export.
+The static export will show the values of process variables at the instant
+that the export was done.  For instructions on configuring for static
+exports, see the <A
+HREF="../Troubleshooting/FAQ.html#BadExcel">related FAQ</A>.</p>
 
 <P>The "Export to Excel..." option will appear on 
 <UL>
@@ -116,8 +124,7 @@ HREF="../Troubleshooting/FAQ.html#BadExcel">related FAQ</A>.
  <li>the HTML report that is displayed when you click the
   &quot;Report&quot; button on the <A
   HREF="../Planning/UsingTaskSchedule.html">task &amp; schedule tool</A></li>
- <li>the R3 report</li>
- <li>the R4 report</li>
+ <li>...and many other reports</li>
 </ul>
 
 <h1><a name="importPSP"></a>Importing Historical PSP Data</h1>

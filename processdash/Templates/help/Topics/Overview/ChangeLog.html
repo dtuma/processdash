@@ -7,6 +7,236 @@
 
 <H1>Change History</H1>
 
+<h2>Features new in version 1.15</h2>
+
+<ul>
+
+<li>It is now possible for multiple individuals to edit the Work Breakdown
+Structure at the same time:
+
+    <ul>
+
+    <li>When you save changes to the WBS, the application will check to see if
+        other individuals have recently saved changes as well.  If they have,
+        the save operation will merge their changes into your view.</li>
+
+    <li>If you wish to merge other people's recently saved changes into your
+        view without saving your own in-progress edits, a new "Refresh Data"
+        option is available on the "File" menu for this purpose.</li>
+
+    <li>In either case, if the merge identifies editing conflicts (where you
+        and another individual have made conflicting edits to the same value),
+        warning messages will be displayed.  These warnings include hyperlinks
+        that help you to locate and recover from the editing conflict.</li>
+
+    </ul></li>
+
+<li>The Work Breakdown Structure Editor now includes a feature to save data to
+a ZIP file.  This feature can be used to:
+
+    <ul>
+
+    <li>Create multiple alternative plans during a launch</li>
+
+    <li>Explore what-if replanning scenarios in the middle of a team
+        project iteration</li>
+
+    <li>Save edits if the network server is temporarily unreachable</li>
+
+    <li>Copy components tasks, milestones, team members, and workflows
+        into a new team project iteration</li>
+
+    </ul></li>
+
+<li>Many other significant changes were made to the Work Breakdown Structure
+Editor:
+
+    <ul>
+
+    <li>The WBS Editor now includes a filtering function. This makes it
+        possible to focus in on the set of components and tasks that contain
+        certain words in the name or notes, that are assigned to various
+        people, that are complete/incomplete, or that have certain labels or
+        milestones.</li>
+
+    <li>The WBS Editor now includes a search feature.  This makes it possible
+        to quickly find components or tasks whose name or notes contain
+        particular words.</li>
+
+    <li>The colored balancing bars in the WBS Editor have been enhanced to
+        calculate dates that align more closely to the "Replan" dates in the
+        team earned value report.</li>
+
+    <li>The colored balancing bars can now display the typical number of hours
+        per week each team member has in their schedule.  A new menu option
+        makes it possible to toggle this display on and off.</li>
+
+    <li>On the colored balancing bars, it is now possible to hide the colored
+        diamonds and commit date lines for selected milestones.  This can help
+        reduce clutter when many intermediate milestones are present.</li>
+
+    <li>In the WBS Editor, the Task Details tab now contains a "Data Problems"
+        column.  When a coach, planning manager, quality manager, or other
+        individual discovers a problem for a particular component or task,
+        they can type a description of the problem in this field.  Doing so
+        will display a red highlight behind the component/task, making it
+        easier to bring the item to the attention of another individual.</li>
+
+    <li>Move Up and Move Down buttons are now provided on the toolbar of the
+        WBS Editor Milestones window.</li>
+
+    <li>The "Task Time" tab of the WBS Editor includes a column called "Task
+        Size." When you create tasks underneath a component, the numbers in
+        this column are automatically inherited from that component.  Now,
+        these numbers are editable as well, so you can override the size for
+        a particular task.</li>
+
+    <li>The WBS Editor's memory footprint has been changed to help improve
+        performance for teams with very large work breakdown structures.</li>
+
+    <li>Historically, if a Team Dashboard was opened in read-only mode, the
+        read-only flag would also propagate to any WBS Editor windows that
+        were opened.  This linkage has been broken.  As a result, an
+        individual can now open the Team Dashboard in read-only mode (for
+        example, to view team rollups), and then open the WBS Editor to make
+        changes if problems are noted.</li>
+
+    </ul></li>
+
+<li>During a project launch, teams commonly need to perform high-level
+capacity planning - for example, to estimate the end-to-end project schedule
+and to choose the scope for various project iterations.  Several changes have
+been made to facilitate this activity:
+
+    <ul>
+
+    <li>The WBS balancing panel now includes a "Team" row in addition to the
+        colored bars for each team member.  This new team row displays the
+        balanced completion dates for each milestone, making it easier to
+        distribute work across a series of future iterations.</li>
+
+    <li>In earlier versions of the dashboard, teams would have to create
+        "placeholder" tasks to record time estimates for this future work.
+        Now, rough time estimates (and milestones) can be entered directly on
+        WBS components that have no subtasks, and the vertical black balancing
+        bar will take these time estimates into account.</li>
+
+    <li>Teams may wish to enter vacation time or other schedule exceptions in
+        the WBS Editor Team Member List months in advance.  In the past, this
+        would cause the team earned value charts to extend artificially far
+        into the future (to include the week when the exception was recorded).
+        The earned value charts have been enhanced to avoid this problem.</li>
+
+    </ul></li>
+
+<li>Several changes have been made to improve the usability of the user
+interface:
+
+    <ul>
+
+    <li>Historically, clicking the script button has opened the "default"
+        script, form, or report for the currently active task.  To view the
+        menu of other available scripts and forms, it was necessary to click
+        the small down-arrow to the right of the script button.  In practice,
+        however, opening the script menu is a far more common action.
+        Accordingly, the behavior of the main script button has been changed
+        to open the menu instead of opening the default script.  For users who
+        prefer the former behavior, a checkbox is provided in the Tools &gt;
+        Preferences window to revert back.</li>
+
+    <li>In the Task &amp; Schedule window, it is now possible to choose the
+        set of columns you prefer to see in the Task list.  This can reduce
+        clutter and make it easier to focus on the information that is most
+        important to you.  In addition, if the table columns are resized or
+        rearranged, these changes will be remembered the next time you open
+        that task list.</li>
+
+    <li>Several common items on the script menu have been given clearer,
+        simpler names to reduce confusion and to lower the learning curve for
+        people who are beginning their first team project.</li>
+
+    <li>The Preferences tool now includes an option to enable large fonts
+        throughout the application.</li>
+
+    </ul></li>
+
+<li>Several enhancements have been made to the charts and reports:
+
+    <ul>
+
+    <li>The Weekly EV Report has always included "Previous" and "Next" links
+        to scroll forward and backward in time.  Now, it also includes a link
+        for jumping directly to a specific date.</li>
+
+    <li>When applying a label filter to the Team Project Rollup Plan Summary,
+        autocompletion support is now provided as you type.</li>
+
+    <li>The Tasks In Progress chart is now configurable, allowing you to
+        change the red overspent rings to either black or white.</li>
+
+    <li>When viewing the Kanban chart for a team, you can now filter the list
+        of tasks by assigned individual.</li>
+
+    </ul></li>
+
+<li>Several enhancements have been made to the LOC Counting support:
+
+    <ul>
+
+    <li>The LOC counter now includes support for counting changes made to
+        files in a subversion repository.  The count can include uncommitted
+        changes made to a working copy as well as changes made in past
+        revisions.  Multiple past revisions can be listed, and need not be not
+        consecutive.</li>
+
+    <li>The LOC Counter report is often used during the postmortem phase of a
+        PSP project to measure added, deleted, and modified lines of code.
+        Now, individuals can drag data from that report and drop it onto a row
+        in the Size Estimating Template to apply actual size metrics.</li>
+
+    </ul></li>
+
+<li>When creating tasks and workflows in the WBS, it is a best practice to use
+a PSP Task to represent detailed software development activities.  Several
+improvements have been made to this support:
+
+    <ul>
+
+    <li>In the WBS, a PSP Task can be followed by Design and Code Inspection
+        tasks to represent the associated peer reviews.  When this pattern has
+        been followed, the Task &amp; Schedule "Flat&nbsp;View" will now
+        automatically insert the inspections into the correct order within the
+        phases of the PSP task.</li>
+
+    <li>The dashboard has always allowed individuals to configure multiple
+        collections of "To Date" data that can be used to track different
+        types of work.  Now, new options on the Team Project Parameters and
+        Settings page allow individuals to select which "To Date" rollup they
+        would like to use for new PSP tasks.</li>
+
+    </ul></li>
+
+<li>Teams sometimes encounter, fix, and log defects that should not
+technically count against their quality metrics.  (For example, they might fix
+a defect in legacy code that they inherited from some external source.)
+Individuals can now enter <tt>0</tt> in the "Fix Count" field of the defect
+dialog to indicate that a defect should not count against quality metrics such
+as yield or defect density.</li>
+
+<li>If you drag-and-drop an empty directory onto the Quick Launcher, it will
+now ask you if you wish to create a new Team or Personal dataset there.</li>
+
+<li>When saving a data backup file, it has historically been possible to save
+in either ZIP or PDBK format.  Now, a third option is available: "Redacted
+Process Dashboard Backup."  Choosing this format allows you to select various
+categories of data (for example, names of individuals, projects and tasks)
+that should be scrambled or removed from the backup.  This can be a useful
+tool to protect privacy or confidentiality.</li>
+
+
+
+</ul>
+
 <h2>Features new in version 1.14</h2>
 
 <ul>
@@ -264,7 +494,7 @@ type standard that was set by the team project, minimizing confusion.</li>
 <ul>
 
 <li>Several enhancements have been made in the Work Breakdown Structure
-Editor:</li>
+Editor:
 
     <ul>
 
@@ -301,10 +531,10 @@ Editor:</li>
     <li>The selection colors have been modified to produce better
     readability on Mac OS X.</li>
 
-    </ul>
+    </ul></li>
 
 <li>Several enhancements have been made in the WBS Common Team Workflows
-window:</li>
+window:
 
     <ul>
 
@@ -319,11 +549,11 @@ window:</li>
 
     <li>The Task Size Units column now supports autocompletion.</li>
 
-    </ul>
+    </ul></li>
 
 
 <li>Several enhancements have been made in the Task &amp; Schedule
-window:</li>
+window:
 
     <ul>
 
@@ -344,7 +574,7 @@ window:</li>
     <li>When you toggle from "Tree View" to "Flat View" and back, the
     currently selected task will be preserved.</li>
 
-    </ul>
+    </ul></li>
 
 <li>The Defect Log Editor now provides a feature to Import defects from the
 system clipboard.  This can be used to copy and paste defects from an
