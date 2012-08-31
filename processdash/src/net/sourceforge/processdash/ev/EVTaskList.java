@@ -800,7 +800,7 @@ public class EVTaskList extends AbstractTreeTableModel
         totalActualTime = taskRoot.actualCurrentTime;
 
         double directTimeDelta = taskRoot.planTime - taskRoot.planValue;
-        showDirectTimeColumns = Math.abs(directTimeDelta) > 0.1;
+        showDirectTimeColumns = Math.abs(directTimeDelta) > 0.99;
         showBaselineColumns = (calculator != null
                 && calculator.getBaselineDataSource() != null);
         showNodeTypeColumn = taskRoot.isUsingNodeTypes();
