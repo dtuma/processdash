@@ -36,7 +36,6 @@ public class WBSFilterFactory {
     public static int IGNORE_CASE = 1;
     public static int WHOLE_WORDS = 2;
     public static int ENTIRE_VALUE = 4;
-    public static int DEFAULT_MASK = IGNORE_CASE + WHOLE_WORDS;
 
     public static WBSFilter createAnd(final List<WBSFilter> filters) {
         return createAnd(toArray(filters));
@@ -81,7 +80,7 @@ public class WBSFilterFactory {
 
 
     public static WBSFilter createNodeNameFilter(String... tokens) {
-        return new TextFilter(DEFAULT_MASK, tokens) {
+        return new TextFilter(IGNORE_CASE, tokens) {
             protected String getNodeText(WBSNode node) {
                 return node.getName();
             }
@@ -95,7 +94,7 @@ public class WBSFilterFactory {
     }
 
     public static WBSFilter createWbsNoteFilter(String... tokens) {
-        return new TextFilter(DEFAULT_MASK, tokens) {
+        return new TextFilter(IGNORE_CASE, tokens) {
             protected String getNodeText(WBSNode node) {
                 return NotesColumn.getTextAt(node);
             }
@@ -103,7 +102,7 @@ public class WBSFilterFactory {
     }
 
     public static WBSFilter createErrorNoteFilter(String... tokens) {
-        return new TextFilter(DEFAULT_MASK, tokens) {
+        return new TextFilter(IGNORE_CASE, tokens) {
             protected String getNodeText(WBSNode node) {
                 return ErrorNotesColumn.getTextAt(node);
             }

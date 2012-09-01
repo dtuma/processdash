@@ -373,7 +373,7 @@ public class WBSFilterAction extends AbstractAction {
         private String split;
 
         /** The mask to use for text comparisons */
-        int mask = WBSFilterFactory.DEFAULT_MASK;
+        int mask = WBSFilterFactory.IGNORE_CASE + WBSFilterFactory.WHOLE_WORDS;
 
         public AbstractFilterField(String columnID) {
             this(columnID, "\\s*\\|+\\s*");
