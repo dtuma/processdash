@@ -1,6 +1,6 @@
 <html>[!--#do-not-translate--]
 <head>
-<title>Master Project Tools and Settings</title>
+<title>Master Project Tools</title>
 <link rel=stylesheet type="text/css" href="style.css">
 <script src="fixSlash.js"></script>
 <script>
@@ -46,7 +46,7 @@
 
 <h1>[!--#echo PATH_TRANSLATED --]</h1>
 
-<h2>Master Project Tools and Settings</h2>
+<h2>Master Project Tools</h2>
 
 <p><form action="master_project_parameters.shtm" method="GET">
 <input type=submit name="submit" value="Edit project parameters and settings">
@@ -57,14 +57,14 @@
 </form>
 
 [!--#if Dash_Package_pspdash ge 'version 1.7.1b.8' --]
-[!--#if REMOTE_ADDR eq '127.0.0.1' --]
+[!--#if HTTP_HOST =~ '^localhost:' --]
 <p><form action="../control/showTimeLog" method="POST">
 <input type=hidden name="type" value="rollup">
 <input type=hidden name="for" value="[Corresponding_Project_Nodes]">
 <input type=hidden name="mergePrefixes" value="t">
 <input type=submit name="submit" value="View Rolled-Up Time Log">
 </form>
-[!--#endif REMOTE_ADDR --]
+[!--#endif HTTP_HOST --]
 [!--#endif 1.7.1b.8 --]
 
 <p><form action="/dash/archive.class" method="POST">
