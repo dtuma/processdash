@@ -17,9 +17,10 @@ planning and tracking.</p>
 <h2><a name="pps"></a>Project Plan Summary</h2>
 
 <p>The Team Project Plan Summary is a very useful tool for tracking
-team progress. You can open the team plan summary by selecting it from
-the drop-down menu on the Script button of the Team Dashboard
-window. The Team Project Plan Summary contains earned value reports
+team progress. You can open the team plan summary by opening the Team
+Dashboard, selecting your team project, clicking the script button,
+and choosing the Rollup Plan Summary option from the script menu.
+The Team Project Plan Summary contains earned value reports
 for the project, quality reports and charts, and reports of overall
 project metrics.</p>
 
@@ -27,7 +28,7 @@ project metrics.</p>
 meetings. As long as the Team Dashboard is running on a computer that
 is connected to the network, you can view the team plan summary in a
 Web browser on any other computer on the network (for example, a
-computer in your conference room). The Team Project Tools and Settings
+computer in your conference room). The Team Project Tools
 page will provide you with the URL you can use to remotely access the
 plan summary.</p>
 
@@ -180,14 +181,14 @@ these steps.</p>
 <ol>
 
 <li style='margin-top:6.0pt'>Select the team project in the team
-dashboard, and choose Edit Work Breakdown Structure from the script
+dashboard, and choose Work Breakdown Structure Editor from the script
 menu.</li>
 
 <li style='margin-top:6.0pt'>On the Team menu, turn on the Show Bottom
 Up Time Panel option.  After individuals have begun collecting actual
 data for the project, the colored balancing bars will update to
 reflect planned time <i>remaining</i>.  You can use the colored bars
-to balance the remaining work, and their end dates will correspond to
+to balance the remaining work, and their end dates will roughly correspond to
 the "Replan" dates in each team members earned value schedule.</li>
 
 <li style='margin-top:6.0pt'>Switch to the Task Time tab of the Work
@@ -215,6 +216,55 @@ change should take the following steps:
 
 </ol>
 
+<h2><a name="dataProblems"></a>Bringing Problems to the Team's Attention</h2>
+
+<p>While reviewing data, you may sometimes discover problems with the plan or
+with actual data.  For example, an inspection might be done but one team
+member forgot to mark it complete.  Or an individual might have marked a PSP
+task complete without entering any actual size data.  You can annotate these
+problems by switching to the Task Details tab and entering a value in the Data
+Problems column.</p>
+
+<p class="figure"><img src="../Images/wbs-data-problem.png"></p>
+
+<p>When a note is entered into the Data Problems column:</p>
+
+<ul>
+
+<li>The name of the WBS item (on the left side of the window) will be
+highlighted in red.</li>
+
+<li>If you hover the mouse over the name of the WBS item, the tooltip will
+display the notes that were entered into the Data Problems column.</li>
+
+<li>If this WBS item is assigned to one or more individuals, then when those
+people open the WBS Editor from their personal dashboard, rows will
+automatically be expanded to make the erroneous rows visible.</li>
+
+</ul>
+
+<p>The presence of a note in the Data Problems column will not have any effect
+on team rollups or earned value calculations.  This column is strictly a
+communications tool to facilitate the job of coaches, quality managers, team
+leaders, etc.  When the problem has been resolved, you can clear the error
+flag by deleting the note from the Data Problems column.</p>
+
+<h2><a name="whatIf"></a>Exploring What-if scenarios</h2>
+
+<p>During the launch, the team creates a comprehensive plan.  But change is
+inevitable, and at times you may be asked to explore the impact of a major
+plan change.  For example, stakeholders might want to know the schedule impact
+of a significant change in scope.  Or management might need to know the
+project impact that would result from gaining or losing team members.</p>
+
+<p>To explore these "what-if" scenarios, choose "Save a Copy" from the "File"
+menu of the WBS Editor.  You can explore changes in this copy without
+corrupting the real team plan.</p>
+
+<p>For more information on this feature, see the help topic on
+<a href="AlternativePlans.html">exploring alternative plans</a>.
+
+
 <h2><a name="quickLauncher"></a>Using the Quick Launcher</h2>
 
 <p>When you install the Process Dashboard, it creates a shortcut that
@@ -232,6 +282,10 @@ personal or team dashboard, and choosing C&nbsp;&#8594;&nbsp;Tools&nbsp;&#8594;&
 data backup file onto the Quick Launcher window, and a dashboard
 window will open displaying the data exactly as it appeared when the
 backup was made.</p>
+
+<p>If you do not have a Quick Launcher shortcut, you can open the Process
+Dashboard and choose C&nbsp;&#8594;&nbsp;Tools&nbsp;&#8594;&nbsp;Open Dataset.
+Then select the data backup file you would like to open.</p>
 
 <p>For more information on the creation and use of data backups, see
 the <a href="../../help/Topics/AdvancedTopics/BackupData.html">data

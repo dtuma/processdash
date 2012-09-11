@@ -25,9 +25,8 @@ team continues to capture these on a whiteboard, it is helpful to have
 one person copy these into the dashboard's Work Breakdown Structure
 Editor in real-time.</p>
 
-<p>To open the Work Breakdown Structure Editor, select the Edit Work
-Breakdown Structure option from the script menu for the team
-project.</p>
+<p>To open the Work Breakdown Structure Editor, select the corresponding
+option from the script menu for the team project.</p>
 
 <p class="figure"><img src="../Images/team-scripts-wbs.png"></p>
 
@@ -83,15 +82,58 @@ wish to hierarchically subdivide them to mirror this decision.</p>
 
 <p class="figure"><img src="../Images/wbs-editor-concept.png"></p>
 
-<p><a name="milestones"></a>Your team may also wish to capture
-milestones, commit dates, and/or iterations for the project.  To do
-this, click the Milestones menu on the WBS Editor window, and select
-Edit Milestones.</p>
+<p>Of course, it is also important to produce a rough understanding of the
+amount of effort that the project will require.  Your team may use a variety
+of planning techniques (such as fuzzy logic, wide-band delphi, or PROBE) to
+estimate the approximate amount of time each component will require.  In
+accordance with TSP planning techniques, these should be "direct time"
+estimates, corresponding with the amount of direct time per week that each
+team member estimated that they would be able to spend on project work.  As
+you produce these estimates, you can switch to the Task Time tab and enter
+them in the Time column.</p>
+
+<p class="figure"><img src="../Images/wbs-editor-concept-time.png"></p>
+
+<p>These rough time estimates form the basis for the team's capacity planning.
+Stakeholders will be interested in knowing how long it will take to finish the
+project, and when various iterative deliverables might be ready.  To see this
+information, click the Team menu and select the "Show Bottom Up Time Panel"
+option.  Also, look on the Team menu and ensure that the box is checked to
+"Include Unassigned Effort in Balanced Team Calculation." With these settings
+in place, the black horizontal "Team" bar will show the date when the team
+might be able to complete all of the work for the entire project.  At this
+early stage in the planning process, it is probably most helpful to hide the
+colored bars for each team member by clicking the icon to the left of the
+"Team (Balanced)" label.</p>
+
+<h2><a name="milestones"></a>Iterations and Milestones</h2>
+
+<p>Most teams will also need to plan the iterative development approach for
+the project.  Many decisions factor into this iteration plan, including the
+prioritization of work and the relative amount of effort that can be allocated
+to each cycle.  To explore these tradeofs, click the Milestones menu on the
+WBS Editor window, and select Edit Milestones.</p>
 
 <p class="figure"><img src="../Images/milestones-editor.png"></p>
 
-<p>Each milestone should have a unique name.  Commit dates are
-optional.</p>
+<p>You can enter milestones corresponding to cycles/iterations, to noteworthy
+schedule events, or to external commitments.  Place the milestones in
+approximate chronological order.  Each milestone should have a unique name.
+Commit dates are optional.</p>
+
+<p>Back on the WBS Editor, choose the Task Details tab and select the most
+appropriate Milestone for each component.  As you do, diamonds on the
+horizontal black "Team (Balanced)" bar will indicate the approximate dates
+when the team could finish all of the components allocated to a particular
+milestone.  As you change the milestone assignments for various components,
+the diamonds will update dynamically to indicate the optimal date when each
+milestone could finish.</p>
+
+<p class="figure"><img src="../Images/wbs-editor-concept-milestones.png"></p>
+
+<p>If your capacity planning needs are complex, you may benefit from the
+techniques decribed in the <a href="AlternativePlans.html">alternative
+plans</a> help topic.</p>
 
 <p>There is not a Save button on the Milestones Editor. Instead,
 milestones are automatically saved when you save the main work

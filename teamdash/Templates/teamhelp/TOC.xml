@@ -7,8 +7,6 @@
                               image="BookIcon" target="TeamUseOverview">
       <tocitem text="Obtaining the Dashboard"
                               image="PageIcon" target="TeamObtain" />
-      <tocitem text="Installing the Dashboard"
-                              image="PageIcon" target="TeamInstall" />
       <tocitem text="Organizational Tailoring"
                               image="BookIcon" target="TeamTailoring">
          <tocitem text="Metrics Framework"
@@ -18,8 +16,10 @@
       </tocitem>
       <tocitem text="Prep for Team Launch"
                                image="BookIcon" target="TeamLaunchPrep" >
-         <tocitem text="Create Data Directory"
-                              image="PageIcon" target="TeamDataDir" />
+         <tocitem text="Create Team Directory"
+                              image="PageIcon" target="TeamConfigDir" />
+         <tocitem text="Installing the Dashboard"
+                              image="PageIcon" target="TeamInstall" />
          <tocitem text="Create Project"
                               image="PageIcon" target="TeamMakeProj" />
          <tocitem text="Invite Members"
@@ -75,6 +75,8 @@
                               image="PageIcon" target="TeamEditWBSMetrics" />
             <tocitem text="Edits by Team Members"
                               image="PageIcon" target="TeamWBSIndiv" />
+            <tocitem text="Simultaneous Editing"
+                              image="PageIcon" target="TeamWBSSimul" />
             <tocitem text="The Role of the WBS"
                               image="PageIcon" target="TeamWBSUnderstanding" />
             <tocitem text="Editing the WBS After Project Launch"

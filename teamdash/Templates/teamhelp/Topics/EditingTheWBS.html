@@ -116,11 +116,11 @@ options.</li>
 
 <ul>
 
-<li>To change the types of <i>many</i> nodes simultaneously, it is
+<li>To change the types of <i>many</i> items simultaneously, it is
 more efficient to use the right hand side of the window.  Select the
 Task Time tab, select a cell in the Phase/Type column, and select
 "Copy WBS Data" from the Edit menu.  Then select a range of cells in
-the Phase/Type column and type "Paste WBS Data" to paste the node type
+the Phase/Type column and type "Paste WBS Data" to paste the item type
 into all cells at once.</li>
 
 <li style='margin-top:12.0pt'>To calculate metrics correctly, the Work
@@ -154,6 +154,59 @@ each line in Word), and copy the names to the clipboard. Then,
 highlight a row in the WBS, and click the paste button on the
 toolbar&nbsp;(<img src="../Images/icon-paste.png">). The tasks will be
 inserted before the selected row.</li>
+
+<li style='margin-top:12.0pt'>To quickly find a particular item in the Work
+Breakdown Structure, click the find (<img src="../Images/icon-find.png">)
+button on the toolbar.  Enter a word or phrase to find the next/previous item
+whose name or notes contain that text.</li>
+
+<li style='margin-top:12.0pt'>If you wish to find a all of the items that
+match a particular set of criteria, click the filter (<img
+src="../Images/icon-filter-off.png">) button on the toolbar.  In the window
+that appears, specify the criteria that you are interested in and click the
+Apply Filter button.  The filter button will "light up" to indicate that a
+filter is in effect (<img src="../Images/icon-filter-on.png">), and the WBS
+Editor will hide items that do not match your criteria.  Notes:
+
+    <ul style='margin-top:6pt'>
+
+    <li>In the name, milestones, and notes fields, you can enter multiple
+        values separated by the vertical bar (<tt>|</tt>) character, and it
+        will find items that match any of those values.</li>
+
+    <li>In the Assigned To filter, you can list the initials of several people
+        to find tasks that are assigned to any one of them.  (This can be a
+        helpful way to perform workload balancing.)</li>
+
+    <li>In the labels field, you can enter multiple labels separated by
+        commas, and it will find items that have any of those labels.</li>
+
+    <li>If a particular item matches, the WBS Editor will display all of its
+        parents and children as well.</li>
+
+    <li>If you enter multiple criteria, they all must match.  However, these
+        matches can occur at different levels of the hierarchy; so for
+        example, you could search for incomplete tasks underneath a component
+        whose name contained a particular word.</li>
+
+    <li>Although nonmatching items are hidden from view, the WBS Editor will
+        not automatically expand the items that do match.  If you would like
+        to see all of the matches, highlight the root of the project and click
+        the Expand All icon on the toolbar.</li>
+
+    <li>Although nonmatching items are hidden from view, they are still
+        present and can still be affected by editing operations.  For example,
+        if you edit the top-down time estimate for an entire component, it
+        will still scale all of the tasks underneath that component, including
+        the ones that are hidden by the filter.</li>
+
+    <li>While the filter is in effect, you will not be able to edit the
+        hierarchical structure of the WBS.  For example, you will not be able
+        to insert, delete, or move any components or tasks.  If you need to
+        make these types of changes, you will need to remove the filter
+        first.</li>
+
+    </ul></li>
 
 <li style='margin-top:12.0pt'>The Work Breakdown Structure Editor
 provides extensive undo and redo support via the undo (<img

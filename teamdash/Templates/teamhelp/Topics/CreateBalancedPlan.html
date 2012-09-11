@@ -8,16 +8,15 @@
 <h1>Develop Balanced Project Plan</h1>
 <b>(TSP Launch Meeting Nos. 4 and 6)</b>
 
-<p>Using previously available TSP planning tools, it has been
-necessary to create a balanced project plan in two steps. First, an
-unbalanced top-down plan is created for the project. After this plan
-is segregated into individual plans, a second effort is initiated to
-reassign work so the individual plans will be balanced.</p>
+<p>Different teams use different planning styles during their project launch.
+For example, some teams begin by creating an unbalanced top-down plan for the
+project.  After this plan is segregated into individual plans, a second effort
+is initiated to reassign work so the individual plans will be balanced.</p>
 
-<p>The team support for the Process Dashboard makes it possible to
-perform these two tasks simultaneously. As a result, you may wish to
-consider merging TSP launch meeting No. 4 and meeting No. 6 into a
-single launch meeting.</p>
+<p>In contrast, the team support for the Process Dashboard makes it possible
+to perform these two tasks simultaneously. As a result, you may wish to
+consider merging TSP launch meeting No. 4 and meeting No. 6 into a single
+launch meeting.</p>
 
 <h2><a name="refining"></a>Refining Project Components</h2>
 
@@ -62,6 +61,14 @@ individual's dashboard hierarchy. As a result, you do not need to
 explicitly add the PSP2.1 phases (Design, Design Review, Code, Code
 Review, Compile, Test) in places where you have added a PSP Task.</p>
 
+<p>Of course, the PSP Task focuses on the "personal" portion of the
+development lifecycle, so it does not automatically include Design
+Inspection and Code Inspection tasks.  Those tasks should be entered as
+separate rows that immediately follow the PSP Task.  If you follow this
+pattern, the inspection tasks will automatically be inserted into the
+correct order between the phases of the PSP Task in the individual's
+"Flat View" task list.</p>
+
 <p>Generally, tasks should be subdivided until they are 10 hours or
 less. PSP Task elements, however, will be automatically subdivided
 into phases when they are copied into an individual's schedule. Thus,
@@ -85,6 +92,20 @@ best estimate of the time needed for a WBS item, and enter this
 estimate on the Task Time tab.  The WBS will spread your time estimate
 across the tasks in the workflow according to the percentages you
 entered in the Workflow editor.</p>
+
+<p>These workflow tools make it very easy to create a large number of
+tasks quickly.  Unfortunately, if teams aren't paying attention, they
+can sometimes accidentally divide the work into tasks that are too
+small.  If you have many tasks in your plan that are measured in
+minutes rather than hours, you may be falling into this trap.  When
+personal plans contain a large number of small tasks, this can
+dramatically increase the amount of effort individuals must devote to
+daily metrics collection activities, which can foster an inaccurate
+perception that TSP requires "too much overhead."  This perception can
+jeopardize your organization's chances for successful adoption of the
+TSP, so coaches should watch for this planning antipattern and advise
+teams to adjust their planning style.</p>
+
 
 <p>For more information on editing values in the table on the right-hand
 side of the screen, see the <a href="EditingWBSMetrics.html">Editing
@@ -136,7 +157,7 @@ menu, select the Show Bottom Up Time Panel option.</p>
 
 <p class="figure"><img src="../Images/wbs-team-panel.png"></p>
 
-<p>The Bottom Up Time Panel displays an entry for each team
+<p>The Bottom Up Time Panel displays a colored bar for each team
 member. The horizontal bars indicate the start date and relative
 length of each team member's personal schedule.  Each bar also shows
 the planned end date for each team member.  If an individual is <a
@@ -146,9 +167,9 @@ end of their bar will indicate that they are overtasked.</p>
 
 <p>In addition, a vertical black bar shows the <i>balanced team
 completion date</i>. This is the calculated date that the project
-would complete if the work is balanced optimally. (If you hover the
-mouse over this vertical bar, a tool tip will display the calculated
-date.)  It is easy to balance the schedule visually, since any team
+would complete if the work is balanced optimally. This date is
+also displayed on the horizontal black bar that represents the entire
+team.  It is easy to balance the schedule visually, since any team
 member whose bar extends to the right of the vertical black line is
 over-tasked, and any team member whose bar falls short of the vertical
 black line is under-tasked. For example, in the image above, Jane
@@ -157,7 +178,9 @@ Smith has been assigned more work than any other team member.</p>
 <p>During team planning, there will be times that you will prefer not
 to see the Bottom Up Time Panel. You can alternately show and hide
 this panel by selecting the Show Bottom Up Time Panel option from the
-Team menu.</p>
+Team menu.  Or if you only need to see the balanced team duration, you
+can click the icon to the left of the "Team (Balanced)" label to
+collapse the team member bars.</p>
 
 <h2><a name="details"></a>Editing Task Details</h2>
 
@@ -170,7 +193,9 @@ about the tasks in your plan.</p>
 you can use this column to associate project components and tasks with
 particular milestones.  Once you do this, color-coded diamonds will
 appear on the Bottom Up Time Panel to indicate when each team member
-will complete their work for a given milestone:</p>
+will complete their work for a given milestone, and when the team as
+a whole could complete each milestone if the work was perfectly
+balanced:</p>
 
 <p class="figure"><img src="../Images/wbs-team-panel-milestones.png"></p>
 
@@ -180,6 +205,12 @@ colored diamonds to this vertical line, you can determine whether team
 members are overcommitted for a particular milestone.  If so, you may
 need to reassign work so that each team member can finish their tasks
 before the commit date.</p>
+
+<p>If your team has a large number of internal milestones (for example, for
+items such as "Code Complete" or "Deliver to Test"), the large number of
+diamonds may make the balancing bars difficult to read.  In that case, you
+can optionally hide the diamonds for certain milestones by opening the
+Milestones window and checking the box in the "Hide" column as desired.</p>
 
 <p>If a particular milestone is critical, you may wish to balance the
 workload through that milestone.  Click the Milestones menu and choose

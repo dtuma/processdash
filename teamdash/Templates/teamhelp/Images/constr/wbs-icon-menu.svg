@@ -1,24 +1,32 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!-- Created with Inkscape (http://www.inkscape.org/) -->
+
 <svg
    xmlns:dc="http://purl.org/dc/elements/1.1/"
-   xmlns:cc="http://web.resource.org/cc/"
+   xmlns:cc="http://creativecommons.org/ns#"
    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
    xmlns:svg="http://www.w3.org/2000/svg"
    xmlns="http://www.w3.org/2000/svg"
    xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="788"
-   height="410"
+   width="769"
+   height="433"
    id="svg2"
    sodipodi:version="0.32"
-   inkscape:version="0.44"
-   sodipodi:docbase="C:\Tuma\projects\teamdash\Templates\teamhelp\Images\constr"
+   inkscape:version="0.47 r22583"
    sodipodi:docname="wbs-icon-menu.svg"
    version="1.0">
   <defs
-     id="defs4" />
+     id="defs4">
+    <inkscape:perspective
+       sodipodi:type="inkscape:persp3d"
+       inkscape:vp_x="0 : 205 : 1"
+       inkscape:vp_y="0 : 1000 : 0"
+       inkscape:vp_z="788 : 205 : 1"
+       inkscape:persp3d-origin="394 : 136.66667 : 1"
+       id="perspective3650" />
+  </defs>
   <sodipodi:namedview
      id="base"
      pagecolor="#ffffff"
@@ -42,7 +50,9 @@
      width="788px"
      showguides="true"
      inkscape:guide-bbox="true"
-     borderlayer="true" />
+     borderlayer="true"
+     showgrid="false"
+     inkscape:window-maximized="0" />
   <metadata
      id="metadata7">
     <rdf:RDF>
@@ -57,18 +67,19 @@
   <g
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
-     id="layer1">
+     id="layer1"
+     transform="translate(0,23)">
     <image
-       y="1"
-       x="1"
-       id="image1963"
-       height="487"
-       width="786"
        sodipodi:absref="C:\Tuma\projects\teamdash\Templates\teamhelp\Images\constr\wbs-icon-menu.png"
-       xlink:href="wbs-icon-menu.png" />
+       xlink:href="wbs-icon-menu.png"
+       width="767"
+       height="510"
+       id="image1963"
+       x="1"
+       y="-22" />
     <path
-       style="fill:white;fill-opacity:1;fill-rule:evenodd;stroke:white;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="M 307.75653,408 L 329.64983,392.07759 L 353.03587,407.00485 L 379.90493,391.58002 L 404.78369,406.0097 L 429.66244,390.58487 L 453.54604,406.50728 L 475.93692,391.58002 L 499.32296,407.00485 L 503.30356,434.86905 L 302.78078,441.33753 L 307.75653,408 z "
+       style="fill:#ffffff;fill-opacity:1;fill-rule:evenodd;stroke:#ffffff;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="M 321.75653,408 L 343.64983,392.07759 L 367.03587,407.00485 L 393.90493,391.58002 L 418.78369,406.0097 L 443.66244,390.58487 L 467.54604,406.50728 L 489.93692,391.58002 L 513.32296,407.00485 L 517.30356,434.86905 L 316.78078,441.33753 L 321.75653,408 Z"
        id="path1966"
        sodipodi:nodetypes="cccccccccccc" />
   </g>

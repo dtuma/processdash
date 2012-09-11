@@ -17,7 +17,8 @@
   <mapID target="TeamFormsReports.org" url="Topics/FormsReports.html#org" />
   <mapID target="TeamFormsReports.cm" url="Topics/FormsReports.html#cm" />
   <mapID target="TeamLaunchPrep" url="Topics/LaunchPrep.html" />
-  <mapID target="TeamDataDir" url="Topics/TeamDataDir.html" />
+  <mapID target="TeamDataDir" url="Topics/TeamConfigDir.html" />
+  <mapID target="TeamConfigDir" url="Topics/TeamConfigDir.html" />
   <mapID target="TeamMakeProj" url="Topics/MakeTeamProject.html" />
   <mapID target="TeamInviteJoin" url="Topics/InviteJoin.html" />
   <mapID target="TeamMemberJoin" url="Topics/MembersJoin.html" />
@@ -50,6 +51,7 @@
   <mapID target="TeamEditWBSMetrics" url="Topics/EditingWBSMetrics.html" />
   <mapID target="TeamWBSIndiv" url="Topics/EditingWBSIndiv.html" />
   <mapID target="TeamWBSDuringProj" url="Topics/EditingWBSDuringProject.html" />
+  <mapID target="TeamWBSSimul" url="Topics/SimultaneousWBSEditing.html" />
   <mapID target="TeamWBSUnderstanding" url="Topics/UnderstandingWBS.html" />
 
   <mapID target="TeamRunningProj" url="Topics/RunningTheProject.html" />

@@ -1,24 +1,32 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!-- Created with Inkscape (http://www.inkscape.org/) -->
+
 <svg
    xmlns:dc="http://purl.org/dc/elements/1.1/"
-   xmlns:cc="http://web.resource.org/cc/"
+   xmlns:cc="http://creativecommons.org/ns#"
    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
    xmlns:svg="http://www.w3.org/2000/svg"
    xmlns="http://www.w3.org/2000/svg"
    xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="567"
-   height="132"
+   width="575"
+   height="143"
    id="svg2854"
    sodipodi:version="0.32"
-   inkscape:version="0.44"
-   sodipodi:docbase="C:\Tuma\projects\teamdash\Templates\teamhelp\Images\constr"
-   sodipodi:docname="team-indiv-example.svg"
+   inkscape:version="0.47 r22583"
+   sodipodi:docname="indiv-dashboard-example-annotated.svg"
    version="1.0">
   <defs
-     id="defs2856" />
+     id="defs2856">
+    <inkscape:perspective
+       sodipodi:type="inkscape:persp3d"
+       inkscape:vp_x="0 : 66 : 1"
+       inkscape:vp_y="0 : 1000 : 0"
+       inkscape:vp_z="567 : 66 : 1"
+       inkscape:persp3d-origin="283.5 : 44 : 1"
+       id="perspective2860" />
+  </defs>
   <sodipodi:namedview
      id="base"
      pagecolor="#ffffff"
@@ -29,17 +37,19 @@
      objecttolerance="10"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="1.5823009"
-     inkscape:cx="283.5"
-     inkscape:cy="66.51062"
+     inkscape:zoom="1.7408696"
+     inkscape:cx="284.23841"
+     inkscape:cy="71.5"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
-     inkscape:window-width="1036"
-     inkscape:window-height="750"
-     inkscape:window-x="110"
-     inkscape:window-y="110"
+     inkscape:window-width="1101"
+     inkscape:window-height="851"
+     inkscape:window-x="136"
+     inkscape:window-y="116"
      width="567px"
-     height="132px" />
+     height="132px"
+     showgrid="false"
+     inkscape:window-maximized="0" />
   <metadata
      id="metadata2859">
     <rdf:RDF>
@@ -55,18 +65,18 @@
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
      id="layer1"
-     transform="translate(-1,-1.362183)">
+     transform="translate(-1,9.637817)">
     <image
-       y="2.3621831"
-       x="2"
+       sodipodi:absref="C:\Tuma\projects\teamdash\Templates\teamhelp\Images\constr\../indiv-dashboard-example.png"
+       xlink:href="../indiv-dashboard-example.png"
+       width="573"
+       height="65"
        id="image2935"
-       height="54"
-       width="565"
-       sodipodi:absref="C:\Tuma\projects\teamdash\Templates\teamhelp\Images\indiv-dashboard-example.png"
-       xlink:href="../indiv-dashboard-example.png" />
+       x="2"
+       y="-8.6378164" />
     <text
        xml:space="preserve"
-       style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
+       style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;font-family:Arial"
        x="2.9186466"
        y="81.879028"
        id="text2938"
@@ -77,7 +87,7 @@
          y="81.879028">Play/Pause button</tspan></text>
     <text
        xml:space="preserve"
-       style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
+       style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;font-family:Arial"
        x="221"
        y="81.879028"
        id="text2944"
@@ -88,58 +98,57 @@
          y="81.879028">Hierarchy Menus</tspan></text>
     <text
        xml:space="preserve"
-       style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
-       x="399"
+       style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;font-family:Arial"
+       x="405"
        y="82.859985"
        id="text2948"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
          id="tspan2950"
-         x="399"
+         x="405"
          y="82.859985">Note Indicator</tspan></text>
     <text
        xml:space="preserve"
-       style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
-       x="384.80591"
+       style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;font-family:Arial"
+       x="390.80591"
        y="104.03162"
        id="text2952"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
          id="tspan2954"
-         x="384.80591"
+         x="390.80591"
          y="104.03162">Dependency Indicator</tspan></text>
     <text
        xml:space="preserve"
-       style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
-       x="380"
+       style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;font-family:Arial"
+       x="386"
        y="128.35999"
        id="text2956"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
          id="tspan2958"
-         x="380"
+         x="386"
          y="128.35999">Task Completion Checkbox</tspan></text>
     <path
-       style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="M 162.99999,50.359985 C 164.64762,49.593064 163.27581,61.609985 173.98597,61.609985 C 212.46468,61.609985 261.62972,61.609985 261.62972,61.609985 L 270.41851,69.109985 L 280.18383,61.109985 C 280.18383,61.109985 420.91314,61.871645 485.25555,61.609985 C 496.75606,61.559245 495.87533,50.734985 495.87533,50.734985"
+       style="fill:none;stroke:#000000;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;stroke-miterlimit:4;stroke-dasharray:none"
+       d="m 169.06302,45.262639 c 1.64701,-0.972837 0.27572,14.270589 10.98182,14.270589 38.46414,0 87.61056,0 87.61056,0 l 8.78546,9.513726 9.76162,-10.147975 c 0,0 140.67602,0.966164 204.99407,0.634249 11.49615,-0.06436 10.61575,-13.794903 10.61575,-13.794903"
        id="path2960"
        sodipodi:nodetypes="cscccsc" />
     <path
-       style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="M 512,49.359985 L 490,71.359985"
+       style="fill:none;stroke:#000000;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;stroke-miterlimit:4;stroke-dasharray:none"
+       d="M 517.9639,45.949527 L 496.0361,71.323889"
        id="path2972" />
     <path
-       style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="M 531,49.359985 L 506.88045,91.136265"
+       style="fill:none;stroke:#000000;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;stroke-miterlimit:4;stroke-dasharray:none"
+       d="M 536.98043,45.933001 L 512.90002,91.116696"
        id="path2974" />
     <path
-       style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="M 549,49.359985 L 539,111.35999"
+       style="fill:none;stroke:#000000;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;stroke-miterlimit:4;stroke-dasharray:none"
+       d="m 554.98494,45.35407 L 545,111.3"
        id="path2976" />
     <path
-       style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="M 20.5,69 L 45.5,45"
-       id="path2980"
-       transform="translate(1,1.362183)" />
+       style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 21.5,70.362183 L 45.5,45"
+       id="path2980" />
   </g>
 </svg>

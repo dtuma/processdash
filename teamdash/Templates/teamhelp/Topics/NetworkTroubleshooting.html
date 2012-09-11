@@ -7,129 +7,78 @@
 
 <h1>Troubleshooting Network Connectivity</h1>
 
-<p>The Team Dashboard provides many services to team members, such as
-the ability to join a team project or view the team project
-plan. These services are generally reached by pointing your Web
-browser at an appropriate URL.</p>
+<p>An individual must "join" a team project to create a link from their
+personal dashboard to the relevant team project.  During this process, small
+messages are passed between the shared Team Dashboard and the personal Process
+Dashboard.</p>
 
-<p>If you are unable to view a URL given to you by your team leader,
-try the steps below to resolve the problem.</p>
+<p>Unfortunately, firewalls or other network configuration problems can
+sometimes prevent these messages from being transmitted successfully.  This
+problem typically manifests itself via a "Server not found" or "This page
+cannot be displayed" error message when an individual attempts to join the
+team project.  If this happens in your organization, follow the steps below to
+resolve the problem.</p>
 
 <ol>
 
-<li style='margin-top:12.0pt'>Contact your team leader and ensure that
-(a)&nbsp;the Team Dashboard is running, and (b)&nbsp;the computer
-running the Team Dashboard is connected to the network. If your team
-leader verifies that the Team Dashboard is running and its computer is
-connected to the network, but you still cannot connect, continue to
-the next step.</li>
+<li style='margin-top:12.0pt'>First, double-check that the Team Dashboard is
+still running.  If you closed the team dashboard, restart it.  Then visit the
+Team Project Tools page and resend the "joining hyperlink" to the team members
+who need it.</li>
 
-<li style='margin-top:12.0pt'>Take a look at the URL you are
-attempting to visit. It will look something like this:
+<li style='margin-top:12.0pt'>If the Team Dashboard is running, but
+individuals are still seeing the error message, go to the Team Dashboard
+window and choose "C&nbsp;&#8594;&nbsp;Tools&nbsp;&#8594;&nbsp;Preferences."
+On the "Miscellaneous" preferences page, check the box to "Use numeric IP when
+constructing sharable URLs."  Click OK to apply this change, then visit the
+Team Project Tools page again.  The "joining hyperlink" will have changed as a
+result of checking the box above. Send the new URL to the team members who
+need it, and ask them to try joining again.</li>
 
-<pre style="margin-left:1cm">http://<span style='background:yellow'>team-computer</span>:3000/...</pre>
+<li style='margin-top:12.0pt'>If these steps still do not work, your team will
+need to follow a two-step joining process instead.  On the Team Dashboard
+toolbar, choose "C&nbsp;&#8594;&nbsp;Help&nbsp;&#8594;&nbsp;About Process
+Dashboard".  When the About window appears, select the Configuration tab.
+This tab will state the directory where your data is located.  This path is
+the <a href="TeamConfigDir.html">Team Configuration Directory</a>; communicate
+this path to each of the team members.  Then, ask each team member to take the
+following steps:
 
-The URL will begin with the characters &quot;<tt>http://</tt>&quot;
-and will then have the name of your team leader's computer, followed
-by a colon (<tt>:</tt>) and a number. The team computer name may
-include several words separated by periods (<tt>.</tt>). Copy down
-this <i>team computer name</i>, as the steps below will require
-it.</li>
+  <ul>
 
+  <li style='margin-top:12.0pt'><a name="indivSteps"></a>Open your team
+      member Personal Dashboard, and choose
+      "C&nbsp;&#8594;&nbsp;Tools&nbsp;&#8594;&nbsp;Open&nbsp;Dataset".  When
+      the Open Dataset window appears, browse to the Team Configuration
+      Directory that your team leader told you about.  Then change the "Files
+      of Type" selector to "All Files," and double-click on the file
+      <tt>0.dat</tt>.</li>
 
-<li style='margin-top:12.0pt'>Many organizations require their
-employees to use a proxy server when accessing the Internet. If your
-Web browser attempts to use a proxy server to contact your team
-leader's computer, it is likely to fail. Ensure that your Web browser
-is properly configured.
+  <li style='margin-top:12.0pt'>The Team Dashboard will open locally on your
+      computer.  It may display a message telling you that you have to open in
+      read-only mode; if so, click Yes to continue.  Then on the Team
+      Dashboard toolbar, click the Script Button and choose Team Project
+      Tools.</li>
 
-    <ul>
+  <li style='margin-top:12.0pt'>Scroll to the bottom of the Team Project Tools
+      page, and find the link that reads, "Team members can join this project
+      by pointing their web browser to..."  Click that link.</li>
 
-    <li>If you are using <b>Internet Explorer</b>, choose Tools&nbsp;&#8594;&nbsp;Internet Options. Select the
-    Connections tab and click the LAN Settings button. Then ensure
-    that the <i>Bypass proxy server for local addresses</i> box is
-    checked.
+  <li style='margin-top:12.0pt'>You should see the first page of the Team
+      Project Setup Wizard.  Follow the steps in that wizard to join the team
+      project.</li>
 
-    <p class="figure"><img src="../Images/proxy-ie.png"></p></li>
+  <li style='margin-top:12.0pt'>When you have finished joining the project,
+      you can shut down the Team Dashboard.</li>
 
-
-    <li>If you are using <b>Netscape</b> or <b>Firefox</b>, choose
-    Tools&nbsp;&#8594;&nbsp;Options. Open the
-    Advanced&nbsp;&#8594;&nbsp;Network preference page, click on the
-    Connection Settings button, and add the
-    team computer name to the <i>No Proxy for:</i> field.
-
-    <p class="figure"><img src="../Images/proxy-moz.png"></p></li>
-
-    </ul>
-
-After making this configuration change in your browser, try refreshing
-the page in your browser.  If it still does not appear, continue to
-the next step.</li>
-
-
-<li style='margin-top:12.0pt'>To determine whether your computer can
-contact the team leader's computer, open up a command prompt window,
-and type the following command:
-
-<pre style="margin-left:1cm">ping <span style='background:yellow'>team-computer</span></pre>
-
-replacing the highlighted letters with the name of the team computer
-you copied from the team project URL.  If you see the message,
-
-<pre style="margin-left:1cm">Unknown host <span style='background:yellow'>team-computer</span></pre>
-
-then your computer is having trouble finding the IP address of the
-team computer.  You may be able to work around the problem by
-using an IP address directly.  Contact your local support staff
-and ask them to help you look up the IP address of your team
-leader's computer - it will be a number like
-<tt>10.20.30.40</tt>. Then edit the URL you are trying to visit,
-replacing the computer name with the IP address:
-
-<pre style="margin-left:1cm">http://<span style='background:yellow'>10.20.30.40</span>:3000/...</pre>
-
-If the page still does not appear, continue to the next step.</li>
-
-
-<li style='margin-top:12.0pt'>If none of the above approaches work,
-your organization's network may be configured to block peer-to-peer
-traffic.  To work around the problem, each team member can take these
-steps:
-
-<ul>
-
-<li>Install the Process Dashboard, choose the "Tools for Team Leaders"
-installation option, and enter the correct location of the Team
-Configuration Directory when prompted. See the <a
-href="Installing.html">installation</a> help topic for more
-information.</li>
-
-<li>Simultaneously open your Personal Dashboard <b>and</b> the Team
-Dashboard on your local computer.  (Note: only one team member can
-have the Team Dashboard open at a time, so some inter-team
-coordination will be needed.)</li>
-
-<li>In the Team Dashboard, use the Script Button menu to open the
-Team Project Tools and Settings page, then click on the link to
-join the team project.</li>
-
-<li>Walk through the steps in the Team Project Setup Wizard to
-join the team project.</li>
-
-<li>Shut down the Team Dashboard, to give other team members a
-chance to join.</li>
-
-</ul>
-
-</li>
+  </ul></li>
 
 </ol>
 
-
-
-
-
+<!-- Add blank space to the bottom of the page, so we can scroll to -->
+<!-- all of the HTML anchors named above -->
+<p class="hideInBook">
+&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;<br>&nbsp;</p>
 
 </body>
 </html>

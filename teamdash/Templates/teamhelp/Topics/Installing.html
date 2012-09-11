@@ -7,6 +7,10 @@
 
 <h1>Install Process Dashboard</h1>
 
+<p>If you have installed the dashboard in the past, you <b><u>do not</u></b>
+need to uninstall.  Just run the new installer and choose the default values
+for all prompts, and it will upgrade you to the latest version.</p>
+
 <p>Run the installation program by following the steps
 described below:</p>
 
@@ -57,13 +61,10 @@ location, make certain that location is correctly displayed in this field.
 If the directory is incorrect and you neglect to edit it, you can run the
 installer a second time to set the data location correctly.<br>&nbsp;</li>
 
-<li>Team leaders and process mentors will be prompted to identify a
-directory where team configuration information will be
-stored. Choosing a directory on a shared network server is generally
-required. The team leader or program manager should identify a shared
-network directory that all individuals can access. Then, the program
-manager and all team leads should select that <b><u>same
-directory</u></b> at this prompt.<br>&nbsp;</li>
+<li>Team leaders and process mentors will be prompted to identify a directory
+where team configuration information will be stored.  Enter the path to the 
+<a href="TeamConfigDir.html">Team Configuration Directory<a>, which the team
+leader created earlier.<br>&nbsp;</li>
 
 <li>At the end of the installation, you will be given the opportunity
 to create shortcuts for starting the Process Dashboard.  Choose the
@@ -90,7 +91,16 @@ your use:
 
 These two shortcuts launch dashboard <i>datasets</i> which are
 independent of each other. It is important to be cognizant of the
-difference between these two datasets.</li>
+difference between these two datasets.<br>&nbsp;</li>
+
+<li>If you are a coach or process mentor who needs to access the dashboard for
+several different teams, just rename your Team Dashboard shortcut to something
+unique (such as "ABC Team Dashboard").  Then run the installer again, choose
+the Tools for Team Leaders option, and enter the Team Configuration Directory
+for the next team when prompted.  In the final step, the installer will create
+a shortcut called "Team Dashboard" for this second team, which you can rename
+to something unique and descriptive (such as "XYZ Team Dashboard").  You can
+repeat this process for as many teams as needed.</li>
 
 </ol>
 
@@ -157,7 +167,7 @@ href="#installSteps">section above</a>.<br>&nbsp;</li>
 <li>The Process Dashboard installer will attempt to create shortcuts that
 you can use to launch the application.  However, due to the variety of
 window managers on Unix platforms, the installer may not always be
-successful:<br>&nbsp;<ul>
+able to create shortcuts:<br>&nbsp;<ul>
 
     <li>If it cannot create shortcuts, the installer <b>will</b> create
         draft shell scripts that you may use to launch the Process
