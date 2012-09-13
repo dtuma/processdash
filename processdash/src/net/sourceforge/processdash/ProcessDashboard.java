@@ -132,6 +132,7 @@ import net.sourceforge.processdash.tool.bridge.impl.JnlpRelauncher;
 import net.sourceforge.processdash.tool.export.mgr.ExportManager;
 import net.sourceforge.processdash.tool.export.mgr.ExternalResourceManager;
 import net.sourceforge.processdash.tool.export.mgr.ImportManager;
+import net.sourceforge.processdash.tool.quicklauncher.QuickLauncher;
 import net.sourceforge.processdash.ui.AlwaysOnTopManager;
 import net.sourceforge.processdash.ui.BetaVersionSetup;
 import net.sourceforge.processdash.ui.Browser;
@@ -582,6 +583,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         SystemTrayManagement.getIcon().initialize(this);
         AlwaysOnTopManager.initialize(this);
         initializeOsHelper();
+        maybeRecordRecentDataset();
         RuntimeUtils.addPropagatedSystemProperty(UsageLogger.FILE_SETTING, null);
         RuntimeUtils.autoregisterPropagatedSystemProperties();
         if (Settings.isFollowMode())
@@ -794,6 +796,47 @@ public class ProcessDashboard extends JFrame implements WindowListener,
     }
     private static final String MAC_OS_X_HELPER_CLASS =
         "net.sourceforge.processdash.ui.macosx.DashboardMacOSXHelper";
+
+    private void maybeRecordRecentDataset() {
+        // if this dataset was opened via the quick launcher, don't record it.
+        String quickLaunchMode = System
+                .getProperty(QuickLauncher.QUICK_LAUNCH_MODE_PROP);
+        if (quickLaunchMode != null)
+            return;
+
+        // check to see if this dataset appears to be a third-party launch
+        // of a personal dataset from the PDES.  If so, don't record it.
+        String windowTitle = getTitle();
+        if (windowTitle != null
+                && windowTitle.startsWith("Process Dashboard <"))
+            return;
+
+        // retrieve the location of the working directory
+        String location = workingDirectory.getDescription();
+
+        // make our best guess about whether this is a personal/team dataset
+        int httpPort = Settings.getInt(HTTP_PORT_SETTING, DEFAULT_WEB_PORT);
+        boolean isTeam = (httpPort != DEFAULT_WEB_PORT);
+
+        try {
+            datasetRegistration = RecentDatasets.register(location, isTeam);
+            datasetRegistrationElapsedTimestamp = System.currentTimeMillis();
+        } catch (Throwable t) {}
+    }
+    private Preferences datasetRegistration;
+    private long datasetRegistrationElapsedTimestamp;
+
+    private void maybeUpdateRecentDataset() {
+        if (datasetRegistration != null) {
+            long now = System.currentTimeMillis();
+            long elapsed = now - datasetRegistrationElapsedTimestamp;
+            int elapsedMinutes = (int) (elapsed / DateUtils.MINUTES);
+            RecentDatasets.elapsed(datasetRegistration, elapsedMinutes);
+
+            datasetRegistrationElapsedTimestamp += elapsedMinutes
+                    * DateUtils.MINUTES;
+        }
+    }
 
     private int hierChangeCount = 0;
     private void registerHierarchyDataElement() {
@@ -1497,6 +1540,8 @@ public class ProcessDashboard extends JFrame implements WindowListener,
     }
 
     public List saveAllData() {
+        maybeUpdateRecentDataset();
+
         List unsavedData = new LinkedList();
         if (Settings.isReadOnly())
             return unsavedData;
