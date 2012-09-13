@@ -1,4 +1,4 @@
-// Copyright (C) 2009-2011 Tuma Solutions, LLC
+// Copyright (C) 2009-2012 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -187,9 +187,14 @@ public class EditSizePerItemTables extends TinyCGIBase {
 
                 out.println("</tr>");
             }
+            out.print("</table></li>");
         }
 
-        out.print("</table></li></ul></body></html>");
+        out.print("<li><a href='/reports/sizeEstParts.shtm'>");
+        out.print(resources.getHTML("View_Hist_Data_Option"));
+        out.println("</a></li>");
+
+        out.print("</ul></body></html>");
     }
 
 
