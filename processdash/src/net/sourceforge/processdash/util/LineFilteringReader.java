@@ -32,6 +32,7 @@ public class LineFilteringReader extends Reader {
     BufferedReader in;
     StringMapper lineFilter;
     String nextLine;
+    int usedChars;
 
     public LineFilteringReader(Reader in, StringMapper lineFilter)
             throws IOException {
@@ -52,8 +53,10 @@ public class LineFilteringReader extends Reader {
             line = lineFilter.getString(line);
             if (line == null)
                 getNextLine();
-            else
+            else {
                 nextLine = line + "\n";
+                usedChars = 0;
+            }
         }
     }
 
@@ -74,11 +77,10 @@ public class LineFilteringReader extends Reader {
         if (nextLine == null)
             return -1;
 
-        int numChars = Math.min(nextLine.length(), len);
-        nextLine.getChars(0, numChars, cbuf, off);
-        if (nextLine.length() > numChars)
-            nextLine = nextLine.substring(numChars);
-        else
+        int numChars = Math.min(nextLine.length() - usedChars, len);
+        nextLine.getChars(usedChars, usedChars + numChars, cbuf, off);
+        usedChars += numChars;
+        if (!(usedChars < nextLine.length()))
             getNextLine();
 
         return numChars;

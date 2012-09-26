@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2003 Tuma Solutions, LLC
+// Copyright (C) 2001-2012 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -30,6 +30,7 @@ public class CppFilterReader extends Reader {
     BufferedReader in;
     CppFilter cppFilter;
     String nextLine;
+    int usedChars;
 
     public CppFilterReader(BufferedReader in) throws IOException {
         this(in, null);
@@ -47,8 +48,10 @@ public class CppFilterReader extends Reader {
         String line = cppFilter.readLine();
         if (line == null) {
             nextLine = null;
-        } else
+        } else {
             nextLine = line + "\n";
+            usedChars = 0;
+        }
     }
 
     public void close() throws IOException {
@@ -61,11 +64,10 @@ public class CppFilterReader extends Reader {
         if (nextLine == null)
             return -1;
 
-        int numChars = Math.min(nextLine.length(), len);
-        nextLine.getChars(0, numChars, cbuf, off);
-        if (nextLine.length() > numChars)
-            nextLine = nextLine.substring(numChars);
-        else
+        int numChars = Math.min(nextLine.length() - usedChars, len);
+        nextLine.getChars(usedChars, usedChars + numChars, cbuf, off);
+        usedChars += numChars;
+        if (!(usedChars < nextLine.length()))
             getNextLine();
 
         return numChars;
