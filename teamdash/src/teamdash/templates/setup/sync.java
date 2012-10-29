@@ -531,8 +531,8 @@ public class sync extends TinyCGIBase {
 
         } else if (isTeam == false
                 && (synch.getTaskDeletions().isEmpty() == false ||
-                    synch.getTaskCompletions().isEmpty() == false) ||
-                    synch.getPspTasksNeedingSubsetPrompt().isEmpty() == false) {
+                    synch.getTaskCompletions().isEmpty() == false ||
+                    synch.getPspTasksNeedingSubsetPrompt().isEmpty() == false)) {
 
             printPermissionsPage(synch.getTaskDeletions(),
                     synch.getTaskCompletions(),
