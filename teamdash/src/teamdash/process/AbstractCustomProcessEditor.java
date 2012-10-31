@@ -43,7 +43,9 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
+import javax.swing.BorderFactory;
 import javax.swing.Box;
+import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -52,9 +54,12 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JProgressBar;
 import javax.swing.JTabbedPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
 import javax.swing.filechooser.FileFilter;
 
@@ -281,7 +286,7 @@ public abstract class AbstractCustomProcessEditor {
             File dir = fileChooser.getSelectedFile();
 
             File file = new File(dir, process.getJarName());
-            publishProcess(process, file);
+            new PublishWorker(process, file).doWork();
             sizeModel.clearDirty();
             phaseModel.clearDirty();
             openedFileDir = dir;
@@ -455,4 +460,74 @@ public abstract class AbstractCustomProcessEditor {
 
     protected abstract void publishProcess(CustomProcess process, File destFile)
             throws IOException;
+
+    private class PublishWorker extends Thread {
+        private CustomProcess process;
+        private File destFile;
+        private JDialog dialog;
+        private IOException thrown;
+
+        public PublishWorker(CustomProcess process, File destFile) {
+            this.process = process;
+            this.destFile = destFile;
+
+            this.dialog = new JDialog(frame, "Saving...", true);
+
+            JPanel panel = new JPanel(new BorderLayout());
+            panel.add(new JLabel("Saving Custom Metrics Framework..."),
+                    BorderLayout.CENTER);
+            JProgressBar progressBar = new JProgressBar();
+            progressBar.setIndeterminate(true);
+            panel.add(progressBar, BorderLayout.SOUTH);
+            panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+            dialog.getContentPane().add(panel);
+            dialog.pack();
+            dialog.setLocationRelativeTo(frame);
+        }
+
+        public void doWork() throws IOException {
+            // start the thread to do the work
+            start();
+
+            // display the progress dialog.  This will block until the work
+            // is finished
+            dialog.setVisible(true);
+
+            // if an error was encountered, rethrow it
+            synchronized (this) {
+                if (thrown != null)
+                    throw thrown;
+            }
+        }
+
+        @Override
+        public void run() {
+            try {
+                long start = System.currentTimeMillis();
+                publishProcess(process, destFile);
+
+                // quickly flashing dialogs are distracting.  If the work
+                // finishes in a fraction of a second, pause a little longer
+                // so the user gets a chance to see the dialog indicating that
+                // work was done.
+                long end = System.currentTimeMillis();
+                long elapsed = end - start;
+                if (elapsed < 1000)
+                    sleep(1000 - elapsed);
+            } catch (InterruptedException e) {
+            } catch (IOException e) {
+                synchronized (this) {
+                    thrown = e;
+                }
+            }
+
+            SwingUtilities.invokeLater(new Runnable() {
+                public void run() {
+                    dialog.dispose();
+                }});
+        }
+
+    }
+
 }

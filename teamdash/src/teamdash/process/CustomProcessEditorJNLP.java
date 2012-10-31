@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Tuma Solutions, LLC
+// Copyright (C) 2002-2012 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -23,7 +23,6 @@
 
 package teamdash.process;
 
-import java.awt.BorderLayout;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -32,12 +31,7 @@ import java.io.OutputStreamWriter;
 import java.net.URL;
 import java.net.URLConnection;
 
-import javax.swing.BorderFactory;
-import javax.swing.JDialog;
-import javax.swing.JLabel;
 import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JProgressBar;
 
 public class CustomProcessEditorJNLP extends AbstractCustomProcessEditor {
 
@@ -71,33 +65,6 @@ public class CustomProcessEditorJNLP extends AbstractCustomProcessEditor {
         frame.setVisible(true);
     }
 
-    protected void publishProcess(CustomProcess process, File destFile)
-            throws IOException {
-        JDialog dialog = new JDialog(frame, "Saving...", true);
-
-        JPanel panel = new JPanel(new BorderLayout());
-        panel.add(new JLabel("Saving Custom Metrics Framework..."),
-                BorderLayout.CENTER);
-        JProgressBar progressBar = new JProgressBar();
-        progressBar.setIndeterminate(true);
-        panel.add(progressBar, BorderLayout.SOUTH);
-        panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-
-        dialog.getContentPane().add(panel);
-        PublishWorker worker = new PublishWorker(process, destFile, dialog);
-        dialog.pack();
-        dialog.setLocationRelativeTo(frame);
-        worker.start();
-        dialog.show();
-
-        if (worker.error != null) {
-            if (!worker.connected)
-                JOptionPane.showMessageDialog(frame, CANNOT_CONNECT_MESSAGE,
-                        "Unable to Save Metrics Framework",
-                        JOptionPane.ERROR_MESSAGE);
-            throw worker.error;
-        }
-    }
 
     private static final String[] CANNOT_CONNECT_MESSAGE = {
         "To generate a custom metrics framework, this editor",
@@ -110,41 +77,12 @@ public class CustomProcessEditorJNLP extends AbstractCustomProcessEditor {
         "for help."
     };
 
-    private class PublishWorker extends Thread {
 
-        private CustomProcess process;
-        private File destFile;
-        private volatile boolean connected;
-        private IOException error;
-        private JDialog dialog;
+    protected void publishProcess(CustomProcess process, File destFile)
+            throws IOException {
+        boolean connected = false;
 
-        public PublishWorker(CustomProcess process, File destFile,
-                JDialog dialog) {
-            this.process = process;
-            this.destFile = destFile;
-            this.error = null;
-            this.dialog = dialog;
-            this.connected = false;
-        }
-
-
-        public void run() {
-            while (!dialog.isVisible()) try {
-                Thread.sleep(100);
-            } catch (InterruptedException e1) {}
-
-            try {
-                publishProcess(process, destFile);
-            } catch (IOException e) {
-                this.error = e;
-            }
-
-            dialog.dispose();
-        }
-
-
-        private void publishProcess(CustomProcess process, File destFile)
-                throws IOException {
+        try {
             // connect to servlet
             URLConnection con = servletURL.openConnection();
             con.setDoOutput(true);
@@ -169,6 +107,11 @@ public class CustomProcessEditorJNLP extends AbstractCustomProcessEditor {
 
             fos.flush();
             fos.close();
+        } finally {
+            if (!connected)
+                JOptionPane.showMessageDialog(frame, CANNOT_CONNECT_MESSAGE,
+                    "Unable to Save Metrics Framework",
+                    JOptionPane.ERROR_MESSAGE);
         }
     }
 
