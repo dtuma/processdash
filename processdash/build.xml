@@ -466,6 +466,8 @@ Authors:
       <manifest>
         <attribute name="Main-Class"
                    value="net.sourceforge.processdash.Main"/>
+        <attribute name="SplashScreen-Image"
+                   value="net/sourceforge/processdash/ui/splash-native.png"/>
         <attribute name="Dash-Pkg-ID" value="pspdash"/>
         <attribute name="Dash-Pkg-Version" value="${version}"/>
         <attribute name="Dash-Pkg-Name" value="Process Dashboard"/>
