@@ -1,4 +1,4 @@
-// Copyright (C) 2011 Tuma Solutions, LLC
+// Copyright (C) 2011-2012 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -81,9 +81,11 @@ public class XmlDiffReportWriter extends DiffAdapter {
         xml.attribute(null, TYPE_ATTR, AbstractLanguageFilter.getFilterName(r
                 .getLanguageFilter()));
         int[] thisFileCounts = r.getLocCounts();
-        writeLocCounts(thisFileCounts);
-        for (int i = 0; i < thisFileCounts.length; i++) {
-            this.locCounts[i] += thisFileCounts[i];
+        if (thisFileCounts != null) {    // binary files have null locCounts
+            writeLocCounts(thisFileCounts);
+            for (int i = 0; i < thisFileCounts.length; i++) {
+                this.locCounts[i] += thisFileCounts[i];
+            }
         }
         xml.endTag(null, FILE_TAG);
     }
