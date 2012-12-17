@@ -32,10 +32,10 @@
 </td>
 
 <td><input 
-    name="[!--#echo SUB_PATH_ --]Sized_Objects/NUM/Estimated Size	o"
+    name="[!--#echo SUB_PATH_ --]Sized_Objects/NUM/Estimated Size	on"
     type="text" size="7"></td>
 
-<td><input name="[!--#echo SUB_PATH_ --]Sized_Objects/NUM/Size	o"
+<td><input name="[!--#echo SUB_PATH_ --]Sized_Objects/NUM/Size	on"
     type="text" size="7"></td>
 
 </tr>
