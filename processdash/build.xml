@@ -770,6 +770,18 @@ Authors:
     <makeDashMessage src="${msgSrc}" dest="${msgDest}"/>
   </target>
 
+  <target name="pdash-util" depends="compile">
+    <jar destfile="${dist}/pdash-util.jar" duplicate="fail">
+      <fileset dir="${build}">
+        <include name="net/sourceforge/processdash/util/"/>
+        <include name="net/sourceforge/processdash/tool/bridge/"/>
+        <include name="net/sourceforge/processdash/tool/export/impl/ExternalResourceXmlConstantsv1.class"/>
+        <include name="net/sourceforge/processdash/tool/export/impl/XmlConstants.class"/>
+      </fileset>
+      <zipfileset src="${kxml.jar}"/>
+    </jar>
+  </target>
+
   <target name="securityTestJar" depends="dist">
     <property name="stpkg" value="net/sourceforge/processdash/security"/>
     <javac srcdir="${testsrc}" destdir="${testsrc}" debug="true"
