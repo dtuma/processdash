@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Tuma Solutions, LLC
+// Copyright (C) 2002-2012 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -33,6 +33,8 @@ import java.io.OutputStream;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 
 import javax.swing.JLabel;
 import javax.swing.table.TableCellRenderer;
@@ -45,6 +47,8 @@ import org.apache.poi.hssf.usermodel.HSSFRichTextString;
 import org.apache.poi.hssf.usermodel.HSSFRow;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+
+import net.sourceforge.processdash.util.HTMLUtils;
 
 import teamdash.wbs.DataJTable;
 import teamdash.wbs.DataTableModel;
@@ -66,6 +70,8 @@ public class WBSExcelWriter {
 
     private StyleCache styleCache;
 
+    private Set<String> tabNames;
+
 
     public WBSExcelWriter(DataJTable dataTable) {
         this.table = dataTable;
@@ -73,6 +79,7 @@ public class WBSExcelWriter {
         this.wbs = data.getWBSModel();
         this.xls = new HSSFWorkbook();
         this.styleCache = new StyleCache(xls);
+        this.tabNames = new HashSet();
     }
 
     public void save(File f) throws IOException {
@@ -82,7 +89,8 @@ public class WBSExcelWriter {
     }
 
     public void addData(String tabName, TableColumnModel columns) {
-        HSSFSheet sheet = xls.createSheet(tabName);
+        String safeTabName = cleanupTabName(tabName);
+        HSSFSheet sheet = xls.createSheet(safeTabName);
 
         // WORKAROUND, for POI bug
         // ------ http://issues.apache.org/bugzilla/show_bug.cgi?id=30714
@@ -94,6 +102,44 @@ public class WBSExcelWriter {
         writeDataForNodes(sheet, 1, wbs.getRoot(), columns);
         autoSizeColumns(sheet, columns);
         sheet.createFreezePane(1, 1);
+    }
+
+    private String cleanupTabName(String tabName) {
+        // Excel forbids certain characters from appearing in the names of
+        // worksheets.  If any illegal characters are present, replace them.
+        for (int i = ILLEGAL_TAB_CHARS.length();  i-- > 0; )
+            tabName = tabName.replace(ILLEGAL_TAB_CHARS.charAt(i),
+                REPLACE_TAB_CHARS.charAt(i));
+
+        // ensure the name is not too long - Excel allows 31 characters
+        tabName = trim(tabName, 30);
+
+        // ensure tab names are unique and nonempty
+        if (tabNames.contains(tabName) || tabName.length() == 0) {
+            // trim again if necessary to make space for the numeric suffix
+            tabName = trim(tabName, 25);
+
+            // try appending different numbers to the tab name until we
+            // find something unique
+            int num = 1;
+            String uniqueName = "";
+            do {
+                num++;
+                uniqueName = tabName + " (" + num + ")";
+            } while (tabNames.contains(uniqueName));
+            tabName = uniqueName;
+        }
+
+        tabNames.add(tabName);
+        return tabName;
+    }
+    private static final String ILLEGAL_TAB_CHARS = ":?*[]/\\";
+    private static final String REPLACE_TAB_CHARS = ";$+{}||";
+    private static String trim(String s, int len) {
+        s = s.trim();
+        if (s.length() > len)
+            s = s.substring(0, len).trim();
+        return s;
     }
 
     private void createHeaderRow(HSSFSheet sheet, TableColumnModel columns) {
@@ -176,6 +222,7 @@ public class WBSExcelWriter {
         if (comp instanceof JLabel) {
             JLabel label = (JLabel) comp;
             text = label.getText();
+            text = stripHtml(text);
         }
 
         Object unwrapped = WrappedValue.unwrap(value);
@@ -205,6 +252,22 @@ public class WBSExcelWriter {
 
         style.loadFrom(comp);
         styleCache.applyStyle(cell, style);
+    }
+
+    private String stripHtml(String str) {
+        if (str == null || !str.startsWith("<html"))
+            return str;
+
+        while (true) {
+            int beg = str.indexOf('<');
+            if (beg == -1)
+                break;
+            int end = str.indexOf('>', beg+1);
+            if (end == -1)
+                break;
+            str = str.substring(0, beg) + str.substring(end+1);
+        }
+        return HTMLUtils.unescapeEntities(str);
     }
 
     private void autoSizeColumns(HSSFSheet sheet, TableColumnModel columns) {
