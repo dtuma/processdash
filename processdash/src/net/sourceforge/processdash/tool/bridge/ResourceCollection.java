@@ -27,21 +27,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-public interface ResourceCollection extends ResourceCollectionInfo {
-
-    /**
-     * Return an input stream that can be used to read the contents of a given
-     * resource.
-     * 
-     * @param resourceName
-     *                the name of a resource
-     * @return an <code>InputStream</code> for reading the contents of the
-     *         named resource
-     * @throws IOException
-     *                 if the named resource does not exist, can not be read, or
-     *                 if any other IO error occurs when reading the resource
-     */
-    public InputStream getInputStream(String resourceName) throws IOException;
+public interface ResourceCollection extends ReadableResourceCollection {
 
     /**
      * Return an output stream that can be used to write data to a particular
