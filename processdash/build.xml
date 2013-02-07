@@ -770,16 +770,33 @@ Authors:
     <makeDashMessage src="${msgSrc}" dest="${msgDest}"/>
   </target>
 
-  <target name="pdash-util" depends="compile">
+  <target name="pdash-util-jar" depends="compile">
     <jar destfile="${dist}/pdash-util.jar" duplicate="fail">
       <fileset dir="${build}">
         <include name="net/sourceforge/processdash/util/"/>
         <include name="net/sourceforge/processdash/tool/bridge/"/>
+        <include name="net/sourceforge/processdash/tool/export/impl/ExternalResourceAutoLocator.class"/>
+        <include name="net/sourceforge/processdash/tool/export/impl/ExternalResourceMappingLoader.class"/>
         <include name="net/sourceforge/processdash/tool/export/impl/ExternalResourceXmlConstantsv1.class"/>
         <include name="net/sourceforge/processdash/tool/export/impl/XmlConstants.class"/>
+        <include name="net/sourceforge/processdash/process/PhaseUtil*.class"/>
       </fileset>
       <zipfileset src="${kxml.jar}"/>
     </jar>
+  </target>
+
+  <target name="pdash-util" depends="pdash-util-jar">
+    <exec executable="cmd" osfamily="windows">
+      <arg value="/c"/>
+      <arg value="mvn"/>
+      <arg value="install:install-file"/>
+      <arg value="-Dfile=${dist}/pdash-util.jar"/>
+      <arg value="-DgroupId=net.sourceforce.processdash"/>
+      <arg value="-DartifactId=pdash-util"/>
+      <arg value="-Dversion=${dashboard.version}"/>
+      <arg value="-Dpackaging=jar"/>
+      <arg value="-DgeneratePom=true"/>
+    </exec>
   </target>
 
   <target name="securityTestJar" depends="dist">
