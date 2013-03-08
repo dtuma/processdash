@@ -152,7 +152,10 @@ public class XMLUtils {
             builder = (DocumentBuilder) builderPool.get();
             result = builder.parse(inputSource);
         } finally {
-            if (builder != null) builderPool.release(builder);
+            if (builder != null) {
+                builder.reset();
+                builderPool.release(builder);
+            }
         }
         return result;
     }
