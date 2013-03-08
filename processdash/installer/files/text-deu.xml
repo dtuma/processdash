@@ -45,14 +45,12 @@ Then run this installer program again.</str>
 
 Der Verlag erteilt diese Erlaubnis unter der Bedingung dass Benutzer der folgenden Lizenzvereinbarung zustimmen, bevor Sie mit dem Herunterladen oder der Installation dieser Inhalte fortfahren {0,choice,1#this module|2#these modules}:</str>
     <str id="CondHTMLLicencePanel1.header">Sie haben sich dafür entschieden, die JavaHelp(TM) Software von Sun Microsystems zu installieren.  Um dieses optionale Modul herunterzuladen und zu installieren, müssen Sie der folgenden Lizenzvereinbarung zustimmen.</str>
-    <str id="CondHTMLLicencePanel2.header">You have chosen to install the Charting and Reporting Extensions module, written by Tuma Solutions.  To download and install this optional module, you must consent to the following license agreement.</str>
+    <str id="CondHTMLLicencePanel2.header">Sie haben sich dafür entschieden, das Erweiterungsmodul für Übersichtsgrafiken und Berichte von Tuma Solutions zu installieren. Wenn Sie dieses optionale Modul herunterladen und installieren möchten, müssen Sie der folgenden Lizenzvereinbarung zustimmen.</str>
     <str id="application.name">Process Dashboard</str>
-    <str id="extras.description">Charting and Reporting Extensions from Tuma Solutions, LLC.
+    <str id="extras.description">Erweiterungsmodul für Übersichtsgrafiken und Berichte von Tuma Solutions, LLC.
 
-This module is not required for full functionality of the Process Dashboard.  However, installing this module will provide enhanced functionality for charting, reporting, and analysis of your data.
-
-The contents of this module are copyrighted by Tuma Solutions, LLC, and are not open source.  Tuma Solutions requires that you consent to an additional license agreement to download and install this module.</str>
-    <str id="extras">Charting and Reporting Extensions</str>
+Dieses Modul ist für die volle Funktionalität von Process Dashboard nicht erforderlich. Wenn Sie dieses Modul installieren, gibt es Ihnen erweiterte Möglichkeiten bei Übersichtsgrafiken, Berichten und Datenanalyse.</str>
+    <str id="extras">Erweiterungsmodul für Übersichtsgrafiken und Berichte</str>
     <str id="javaHelp.description">Help browser von Sun Microsystems.
 
 Dieses Modul ist für die volle Funktionalität von Process Dashboard nicht erforderlich.  Wenn Sie es installieren, wird es für Sie leichter, die Hilfe-Dokumentation für Process Dashboard zu verwenden und Sie erhalten insbesondere die Möglichkeit zur Volltextsuche.
@@ -69,21 +67,19 @@ This module incorporates templates, scripts, and other materials from the docume
 
 The Software Engineering Institute requires that you consent to an additional license agreement to download, install and use this module.</str>
     <str id="pspForEng">PSP(SM) for Engineers</str>
-    <str id="pspFundAdv.description">Support for students taking the SEI&apos;s Personal Software Process(SM) courses, PSP Fundamentals &amp; PSP Advanced.
+    <str id="pspFundAdv.description">Unterstützung für Lernende, die die Kurse des SEI für den Personal Software Process(SM) besuchen, PSP Fundamentals und PSP Advanced.
 
-This module incorporates templates, scripts, and other materials from the document &quot;PSP Materials.doc&quot; copyright (c) 2006 by Carnegie Mellon University.  These materials are reproduced with the permission of the Software Engineering Institute.
-
-The Software Engineering Institute requires that you consent to an additional license agreement to download, install and use this module.</str>
+Dieses Modul enthält Vorlagen, Skripte und anderes Material vom Dokument &quot;PSP Materials.doc&quot; copyright (c) 2006 Carnegie Mellon University. Dieses Material wird hier wiedergegeben mit Erlaubnis des Software Engineering Institute.</str>
     <str id="pspFundAdv">PSP(SM) Fundamentals &amp; Advanced</str>
-    <str id="pspInstrTools.description">Tools to assist instructors of the PSP courses</str>
-    <str id="pspInstrTools">PSP(SM) Instructor Tools</str>
+    <str id="pspInstrTools.description">Werkzeuge, die Lehrende der PSP-Kurse unterstützen</str>
+    <str id="pspInstrTools">PSP(SM) Werkzeuge für Lehrende</str>
     <str id="pspProc.description">Vorlagen, Ablaufbeschreibungen und Formulare, die die Anwendung des Personal Software Process(SM) unterstützen.
 
 This module incorporates templates, scripts, and other materials from the document &quot;PSP Materials.doc&quot; copyright (c) 2006 by Carnegie Mellon University.  These materials are reproduced with the permission of the Software Engineering Institute.
 
 The Software Engineering Institute requires that you consent to an additional license agreement to download, install and use this module.</str>
     <str id="pspProc">PSP(SM) Processes</str>
-    <str id="teamTools.description">Tools enabling team leaders to create and manage team projects.</str>
-    <str id="teamTools">Tools for Team Leaders</str>
+    <str id="teamTools.description">Werkzeuge, die Team-Leader dabei unterstützen, Team-Projekte aufzusetzen und zu koordinieren.</str>
+    <str id="teamTools">Werkzeuge für Projektleiter</str>
 
 </langpack>
