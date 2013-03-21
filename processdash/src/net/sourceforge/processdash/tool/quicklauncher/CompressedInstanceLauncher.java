@@ -41,6 +41,7 @@ import net.sourceforge.processdash.tool.bridge.client.DirectoryPreferences;
 import net.sourceforge.processdash.tool.bridge.client.TeamServerSelector;
 import net.sourceforge.processdash.tool.bridge.impl.DashboardInstanceStrategy;
 import net.sourceforge.processdash.tool.export.mgr.ExternalResourceManager;
+import net.sourceforge.processdash.util.DateUtils;
 import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.XorInputStream;
 
@@ -240,23 +241,47 @@ public class CompressedInstanceLauncher extends DashboardInstance {
     private static final String SUBZIP_SEPARATOR = " -> ";
 
     public static void cleanupOldDirectories() {
-        try {
-            File tempDirectory = DirectoryPreferences
-                    .getMasterWorkingDirectory();
+        File tempDirectory = DirectoryPreferences
+                .getMasterWorkingDirectory();
+        final File[] files = tempDirectory.listFiles();
+        Thread t = new Thread("Quick Launch Cleanup Thread") {
+            public void run() {
+                cleanupOldDirectoriesImpl(files);
+            }};
+        t.setDaemon(true);
+        t.start();
+    }
 
-            File[] files = tempDirectory.listFiles();
+    private static void cleanupOldDirectoriesImpl(File[] files) {
+        try {
             if (files == null) return;
             for (int i = 0; i < files.length; i++) {
-                if (files[i].isDirectory()
-                        && files[i].getName().startsWith(TEMP_DIR_PREFIX)) {
-                    File lockFile = new File(files[i],
-                            DashboardInstanceStrategy.LOCK_FILE_NAME);
-                    if (!lockFile.exists())
-                        FileUtils.deleteDirectory(files[i], true);
-                }
+                if (isOldDirectoryToCleanup(files[i]))
+                    FileUtils.deleteDirectory(files[i], true);
             }
 
         } catch (IOException ioe) {}
+    }
+
+    private static boolean isOldDirectoryToCleanup(File dir) {
+        if (!dir.isDirectory())
+            return false;
+        if (!dir.getName().startsWith(TEMP_DIR_PREFIX))
+            return false;
+
+        File lockFile = new File(dir, DashboardInstanceStrategy.LOCK_FILE_NAME);
+        if (!lockFile.exists())
+            return true;
+
+        File logFile = new File(dir, "log.txt");
+        long logFileMod = logFile.lastModified();
+        if (logFileMod > 0) {
+            long age = System.currentTimeMillis() - logFileMod;
+            if (age > 7 * DateUtils.DAYS)
+                return true;
+        }
+
+        return false;
     }
 
     /**
