@@ -61,7 +61,7 @@ public class WeeklySchedule implements EffortCalendar {
         this.zeroDay = zeroDay;
         this.startWeek = startWeek;
         this.endWeek = NO_END;
-        setHoursPerWeek(20);
+        setHoursPerWeek(12);
         this.exceptions = new HashMap();
         this.maxExceptionWeek = Integer.MIN_VALUE;
     }
