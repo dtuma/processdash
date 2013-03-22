@@ -30,6 +30,7 @@ import java.util.List;
 import net.sourceforge.processdash.tool.bridge.client.ImportDirectory;
 import teamdash.wbs.columns.MilestoneCommitDateColumn;
 import teamdash.wbs.columns.TaskDependencyColumn;
+import teamdash.wbs.columns.TeamTimeColumn;
 
 
 public class MasterWBSUtil {
@@ -223,6 +224,7 @@ public class MasterWBSUtil {
             String nodeID = projectID + ":" + node.getUniqueID();
             node.setAttribute(PROJECT_NODE_ID, nodeID);
             node.setAttribute("Time (Top Down)", null);
+            node.setAttribute(TeamTimeColumn.NUM_PEOPLE_ATTR, null);
 
             double assignedTime = 0;
             for (Iterator i = memberInitials.iterator(); i.hasNext();) {
