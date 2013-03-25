@@ -25,6 +25,7 @@ import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
+import java.lang.management.ManagementFactory;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLDecoder;
@@ -35,6 +36,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import com.sun.management.OperatingSystemMXBean;
 
 public class RuntimeUtils {
 
@@ -162,6 +165,41 @@ public class RuntimeUtils {
         long heapMaxSize = Runtime.getRuntime().maxMemory();
         heapMaxSize = heapMaxSize >> 20;
         return "-Xmx" + heapMaxSize + "m";
+    }
+
+    /**
+     * JVMs are often started with a -Xmx argument to set the max heap size.
+     * This method will return the suggested maximum amount of memory that
+     * should be used for such an argument, based on the current operating
+     * system and JVM environment.
+     * 
+     * @since 1.15.0.4
+     */
+    public static long getSuggestedMaxJvmHeapSize() {
+        try {
+            Object bean = ManagementFactory.getOperatingSystemMXBean();
+            OperatingSystemMXBean osMxBean = (OperatingSystemMXBean) bean;
+            long systemMemoryBytes = osMxBean.getTotalPhysicalMemorySize();
+            long systemMemoryMegabytes = systemMemoryBytes >> 20;
+            long halfOfMemory = systemMemoryMegabytes / 2;
+            long result = halfOfMemory;
+
+            // Systems today may have a lot of memory - 4 or 6GB - and half
+            // of that value will still be excessive.  In addition, requesting
+            // half of 4GB would result in a process that exceeds the memory
+            // limitations of a 32-bit JVM.  Look at the type of system we are
+            // running, and choose a more conservative limit as appropriate.
+            if ("64".equals(System.getProperty("sun.arch.data.model")))
+                result = Math.min(halfOfMemory, 2000);
+            else
+                result = Math.min(halfOfMemory, 1000);
+
+            return result;
+        } catch (Throwable t) {
+            // If we are not running in a Sun JVM, the code above will fail.
+            // In that case, use a conservative threshhold.
+            return 800;
+        }
     }
 
     /** Return the file that forms the classpath for the given class.
