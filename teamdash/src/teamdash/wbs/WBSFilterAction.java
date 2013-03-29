@@ -241,7 +241,8 @@ public class WBSFilterAction extends AbstractAction {
 
         filt = milestoneFilter.createDataColumnFilter();
         if (filt != null)
-            filters.add(filt);
+            filters.add(WBSFilterFactory.createAnd(WBSFilterFactory.IS_LEAF,
+                filt));
 
         String[] notes = notesFilter.getValues();
         if (notes != null)
