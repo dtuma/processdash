@@ -183,6 +183,16 @@
   <param name="TrueMessageType">Check</param>
 </parameters>]]></snippet>
 
+<snippet instanceId="148" type="pspForEng.testExpression" version="1.0" persister="xml.v1"><![CDATA[
+<parameters>
+  <param name="Expression">[Total LOC] &gt; 0</param>
+  <param name="FalseMessage">You did not enter the total actual size for this program.</param>
+  <param name="FalseMessageType">Error</param>
+  <param name="PspLevel">PSP0.1</param>
+  <param name="TrueMessage">Total actual size has been entered.</param>
+  <param name="TrueMessageType">Check</param>
+</parameters>]]></snippet>
+
 <snippet instanceId="119" type="pdash.metricsTable" version="1.0" persister="xml.v1"><![CDATA[
 <parameters>
   <enum name="Metric">
