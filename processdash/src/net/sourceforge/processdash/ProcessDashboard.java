@@ -1,4 +1,4 @@
-// Copyright (C) 1998-2012 Tuma Solutions, LLC
+// Copyright (C) 1998-2013 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -157,7 +157,6 @@ import net.sourceforge.processdash.util.DateUtils;
 import net.sourceforge.processdash.util.FallbackObjectFactory;
 import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.FormatUtil;
-import net.sourceforge.processdash.util.HTTPUtils;
 import net.sourceforge.processdash.util.Initializable;
 import net.sourceforge.processdash.util.ProfTimer;
 import net.sourceforge.processdash.util.RuntimeUtils;
@@ -941,13 +940,8 @@ public class ProcessDashboard extends JFrame implements WindowListener,
     private String getWebCharset() {
         String charsetName = Settings.getVal("http.charset");
 
-        if (charsetName == null)
-            charsetName = HTTPUtils.DEFAULT_CHARSET;
-        else if ("auto".equals(charsetName)) {
-            if ("en".equals(Locale.getDefault().getLanguage()))
-                charsetName = HTTPUtils.DEFAULT_CHARSET;
-            else
-                charsetName = "UTF-8";
+        if (charsetName == null || "auto".equals(charsetName)) {
+            charsetName = "UTF-8";
         }
 
         return charsetName;
