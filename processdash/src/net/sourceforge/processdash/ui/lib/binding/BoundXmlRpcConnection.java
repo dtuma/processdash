@@ -1,4 +1,4 @@
-// Copyright (C) 2009-2011 Tuma Solutions, LLC
+// Copyright (C) 2009-2013 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -117,15 +117,7 @@ public class BoundXmlRpcConnection extends AbstractBoundConnection<XmlRpcClient>
             throw new ErrorDataValueException(INVALID_URL, ErrorData.SEVERE);
 
         } catch (XmlRpcNotAuthorizedException nae) {
-            if (!StringUtils.hasValue(username))
-                throw new ErrorDataValueException(NO_USERNAME,
-                        MISSING_DATA_SEVERITY);
-            else if (!StringUtils.hasValue(password))
-                throw new ErrorDataValueException(NO_USERNAME,
-                        MISSING_DATA_SEVERITY);
-            else
-                throw new ErrorDataValueException(BAD_USERNAME_PASS,
-                        ErrorData.SEVERE);
+            throw getBadCredentialsException(username, password);
 
         } catch (ErrorDataValueException edve) {
             throw edve;

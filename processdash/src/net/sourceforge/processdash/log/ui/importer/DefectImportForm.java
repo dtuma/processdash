@@ -1,4 +1,4 @@
-// Copyright (C) 2007-2010 Tuma Solutions, LLC
+// Copyright (C) 2007-2013 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -68,6 +68,9 @@ import net.sourceforge.processdash.log.ui.importer.clipboard.TabularDataColumnSe
 import net.sourceforge.processdash.log.ui.importer.codecollab.CCQueryDefects;
 import net.sourceforge.processdash.log.ui.importer.codecollab.CCQueryReviews;
 import net.sourceforge.processdash.log.ui.importer.codecollab.CCWebService;
+import net.sourceforge.processdash.log.ui.importer.reviewboard.RBConnection;
+import net.sourceforge.processdash.log.ui.importer.reviewboard.RBQueryDefects;
+import net.sourceforge.processdash.log.ui.importer.reviewboard.RBQueryReviewRequests;
 import net.sourceforge.processdash.net.http.WebServer;
 import net.sourceforge.processdash.templates.SqlDriverManager;
 import net.sourceforge.processdash.templates.TemplateLoader;
@@ -143,10 +146,7 @@ public class DefectImportForm extends BoundForm {
 
 
     private Document openSpecDocument(Element xml) throws AbortImport {
-        String userSettingName = getUserSettingFullName("specLocation");
-        String href = Settings.getVal(userSettingName);
-        if (!StringUtils.hasValue(href))
-            href = xml.getAttribute("specLocation");
+        String href = xml.getAttribute("specLocation");
 
         InputStream in = openStream(href);
         if (in == null) {
@@ -289,6 +289,9 @@ public class DefectImportForm extends BoundForm {
         addElementType("code-collaborator", CCWebService.class);
         addElementType("code-collaborator-reviews", CCQueryReviews.class);
         addElementType("code-collaborator-defects", CCQueryDefects.class);
+        addElementType("review-board", RBConnection.class);
+        addElementType("review-board-review-requests", RBQueryReviewRequests.class);
+        addElementType("review-board-defects", RBQueryDefects.class);
     }
 
 
@@ -309,7 +312,7 @@ public class DefectImportForm extends BoundForm {
 
 
     protected String getUserSettingFullName(String name) {
-        return "defectImport." + formId + "." + name;
+        return "userPref.defectImport." + formId + "." + name;
     }
 
 

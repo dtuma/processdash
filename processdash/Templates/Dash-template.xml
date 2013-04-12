@@ -3,7 +3,7 @@
 <!--
 
 Process Dashboard - Data Automation Tool for high-maturity processes
-Copyright (C) 2001-2011 Tuma Solutions, LLC
+Copyright (C) 2001-2013 Tuma Solutions, LLC
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -317,6 +317,11 @@ The author(s) may be contacted at:
   <defect-importer id="codeCollab"
      resources="Defects.ImportForm.CodeCollab"
      specLocation="dash/code-collab-import.xml"
+     class="net.sourceforge.processdash.log.ui.importer.FormImporter" />
+
+  <defect-importer id="reviewBoard"
+     resources="Defects.ImportForm.ReviewBoard"
+     specLocation="dash/review-board-import.xml"
      class="net.sourceforge.processdash.log.ui.importer.FormImporter" />
 
   <scriptSource dataName="Process_URLs"/>

@@ -1,4 +1,4 @@
-// Copyright (C) 2007-2009 Tuma Solutions, LLC
+// Copyright (C) 2007-2013 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -162,6 +162,22 @@ public abstract class AbstractBoundConnection<T> implements
             return "";
         else
             return map.unhashValue(password);
+    }
+
+
+    protected ErrorDataValueException getBadCredentialsException(
+            String username, String password) {
+        if (!StringUtils.hasValue(username))
+            return new ErrorDataValueException(NO_USERNAME,
+                    MISSING_DATA_SEVERITY);
+
+        else if (!StringUtils.hasValue(password))
+            return new ErrorDataValueException(NO_USERNAME,
+                    MISSING_DATA_SEVERITY);
+
+        else
+            return new ErrorDataValueException(BAD_USERNAME_PASS,
+                    ErrorData.SEVERE);
     }
 
 
