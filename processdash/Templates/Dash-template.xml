@@ -331,6 +331,9 @@ The author(s) may be contacted at:
   <scriptSource
      class="net.sourceforge.processdash.hier.ui.HierarchyNoteScriptSource"/>
 
+  <sizeMetricApi id="mcfSizeMetricApiHandler"
+     class="net.sourceforge.processdash.ui.web.api.McfSizeMetricApiHandler" />
+
   <messageHandler
      class="net.sourceforge.processdash.hier.HierarchyAltererMessageHandler"/>
 
