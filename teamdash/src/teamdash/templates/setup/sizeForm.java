@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Tuma Solutions, LLC
+// Copyright (C) 2002-2013 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -25,6 +25,8 @@
 package teamdash.templates.setup;
 import java.io.IOException;
 
+import net.sourceforge.processdash.data.DateData;
+import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.PropertyKey;
@@ -37,6 +39,7 @@ public class sizeForm extends TinyCGIBase {
 
     private static final String EXTRA_ROWS_PARAM = "addRows";
     private static final int NUM_EXTRA_ROWS = 5;
+    private long highlightTimestamp;
     private StringBuffer expansionText;
 
     public void writeContents() throws IOException {
@@ -47,6 +50,7 @@ public class sizeForm extends TinyCGIBase {
         PropertyKey key = hierarchy.findExistingKey(prefix);
 
         String uri = getURI();
+        highlightTimestamp = getHighlightTimestamp();
 
         out.println(HTML_HEADER);
         out.println("<h2>");
@@ -56,8 +60,17 @@ public class sizeForm extends TinyCGIBase {
 
         if (!prefix.endsWith("/")) prefix = prefix + "/";
         expansionText = new StringBuffer();
+
         writeHierarchy(uri, prefix, key, hierarchy);
-        writeHierarchyExpanders(expansionText);
+        if (highlightTimestamp > 0 && expansionText.length() == 0) {
+            // if we were asked to highlight, but no matching sections were
+            // found, clear the highlight request and draw all sections.
+            highlightTimestamp = -1;
+            writeHierarchy(uri, prefix, key, hierarchy);
+        }
+
+        if (highlightTimestamp <= 0)
+            writeHierarchyExpanders(expansionText);
         expansionText = null;
 
         out.println("</form><script src='/data.js'>" +
@@ -72,6 +85,16 @@ public class sizeForm extends TinyCGIBase {
         return script.substring(0, pos) + ".shtm";
     }
 
+    private long getHighlightTimestamp() {
+        String param = (String) parameters.get("showHighlightedRows");
+        if (param != null) {
+            try {
+                return Long.parseLong(param);
+            } catch (Exception e) {}
+        }
+        return -1;
+    }
+
     protected void writeHierarchy
         (String uri, String prefix, PropertyKey key, DashHierarchy hierarchy)
         throws IOException
@@ -79,9 +102,7 @@ public class sizeForm extends TinyCGIBase {
         // only display a section for this node if it appears to be
         // capable of tracking sized objects.
         String fullPath = key.path();
-        String dataName =
-            DataRepository.createDataName(fullPath, OBJ_LIST_NAME);
-        if (getDataRepository().getValue(dataName) != null) {
+        if (shouldShowHierarchyNode(fullPath)) {
 
             String subPath, subPath_;
             if (fullPath.length() <= prefix.length()) {
@@ -129,6 +150,28 @@ public class sizeForm extends TinyCGIBase {
                            hierarchy);
     }
 
+    private boolean shouldShowHierarchyNode(String fullPath) {
+        String dataName =
+            DataRepository.createDataName(fullPath, OBJ_LIST_NAME);
+        if (getDataRepository().getValue(dataName) == null)
+            return false;
+
+        if (highlightTimestamp > 0)
+            return hasValidHighlight(fullPath);
+        else
+            return true;
+    }
+
+    private boolean hasValidHighlight(String fullPath) {
+        String dataName = fullPath + HIGHLIGHT_FLAG_SUFFIX;
+        SimpleData pathTimestamp = getDataRepository().getSimpleValue(dataName);
+        if (pathTimestamp instanceof DateData) {
+            DateData date = (DateData) pathTimestamp;
+            return date.getValue().getTime() >= highlightTimestamp;
+        } else {
+            return false;
+        }
+    }
 
     protected void writeHierarchyExpanders(StringBuffer expansionText)
         throws IOException
@@ -165,6 +208,14 @@ public class sizeForm extends TinyCGIBase {
                     lastPopulatedRow = rowNum;
                     url.append("&n=").append(String.valueOf(rowNum));
                     addedNumber = true;
+
+                    if (highlightTimestamp > 0) {
+                        String rowPrefix = DataRepository.chopPath(dataName);
+                        if (hasValidHighlight(rowPrefix))
+                            url.append("&highlight_").append(
+                                String.valueOf(rowNum));
+                    }
+
                     continue ROW;
                 }
             }
@@ -192,15 +243,18 @@ public class sizeForm extends TinyCGIBase {
             + "<link rel=stylesheet type='text/css' href='style.css'>\n"
             + "<title>Size Inventory</title>\n"
             + "<style>\n"
-            + "table { margin-left: 1in }\n"
             + ".node { font-size: larger; font-weight: bold }\n"
             + ".header { font-weight: bold }\n"
+            + "td.spacer { width: 1in }\n"
+            + ".highlight td { background-color: #bfb }\n"
             + "@media print { .doNotPrint { display: none } }\n"
             + "</style>\n"
             + "</head><body>\n"
             + "<h1>Size Inventory</h1>\n";
 
     private static final String OBJ_LIST_NAME = "Local_Sized_Object_List//All";
+
+    private static final String HIGHLIGHT_FLAG_SUFFIX = "//Show_Highlight";
 
     private static final String [] dataElems = {
         "Sized_Objects/NUM/Description",

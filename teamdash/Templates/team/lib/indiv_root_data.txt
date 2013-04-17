@@ -32,6 +32,8 @@
 
 [Effective_Defect_Phase_List] = "<!--#foreach name=Phase list=Phase_List --><!--#if Phase_Is_Defect_Injection --><!--#echo Phase_Name --><!--#endif--><!--#endfor-->";
 
+[Size_Metric_API_Handler] = "mcfSizeMetricApiHandler";
+
 [Team_Project_Conversion_Needed] =
     iff([Team_Project_Target_PID] != [Team_Process_PID],
         [Team_Project_Target_PID], null);

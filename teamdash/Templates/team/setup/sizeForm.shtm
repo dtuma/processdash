@@ -1,9 +1,10 @@
 <p><a name="[!--#echo ANCHOR --]"><span class='node'>[!--#echo
     SUB_PATH --]</span>
 
-<table>
+<table cellpadding="2" cellspacing="0">
 
 <tr>
+<td class="spacer">&nbsp;</td>
 <td class="header">Description</td>
 <td class="header">Size Units</td>
 <td class="header">Plan</td>
@@ -12,7 +13,9 @@
 
 [!--#foreach name="NUM" list="n" --]
 
-<tr>
+<tr[!--#if highlight_NUM --] class="highlight"[!--#endif--]>
+
+<td class="spacer">&nbsp;</td>
 
 <td><input name="[!--#echo SUB_PATH_ --]Sized_Objects/NUM/Description	s" 
     type="text" size="40"></td>
