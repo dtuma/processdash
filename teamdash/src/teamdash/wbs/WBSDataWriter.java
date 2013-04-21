@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2011 Tuma Solutions, LLC
+// Copyright (C) 2002-2013 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -26,6 +26,7 @@ package teamdash.wbs;
 import java.io.File;
 import java.io.IOException;
 import java.io.Writer;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
@@ -36,6 +37,7 @@ import java.util.List;
 import java.util.Set;
 
 import net.sourceforge.processdash.util.RobustFileWriter;
+
 import teamdash.XMLUtils;
 import teamdash.team.TeamMember;
 import teamdash.team.TeamMemberList;
@@ -49,6 +51,7 @@ import teamdash.wbs.columns.TaskDependencyColumn;
 import teamdash.wbs.columns.TaskLabelColumn;
 import teamdash.wbs.columns.TeamTimeColumn;
 import teamdash.wbs.columns.UnassignedTimeColumn;
+import teamdash.wbs.columns.WbsNodeAttributeSource;
 import teamdash.wbs.columns.WorkflowScriptColumn;
 
 
@@ -95,6 +98,8 @@ public class WBSDataWriter {
     private int directSizeUnitsColumn;
     /** The column numbers of the task labels column */
     private int[] labelColumns;
+    /** The column numbers of the task attribute columns */
+    private int[] attrColumns;
     /** The column number of the task dependencies column */
     private int dependencyColumn;
     /** Maps XML tag names to objects capable of writing their attributes.
@@ -126,6 +131,7 @@ public class WBSDataWriter {
             directSizeUnitsColumn =
                 dataModel.findColumn(DirectSizeTypeColumn.COLUMN_ID);
             labelColumns = dataModel.getLabelSourceColumns();
+            attrColumns = dataModel.getAttributeSourceColumns();
             dependencyColumn =
                 dataModel.findColumn(TaskDependencyColumn.COLUMN_ID);
         }
@@ -217,9 +223,11 @@ public class WBSDataWriter {
         if (dataModel != null)
             dependencies = (TaskDependencyList) WrappedValue.unwrap(dataModel
                     .getValueAt(node, dependencyColumn));
+        List<String> nodeAttributes = getWbsNodeAttributes(node);
 
         if ((children == null || children.length == 0)
                 && (dependencies == null || dependencies.isEmpty())
+                && (nodeAttributes == null || nodeAttributes.isEmpty())
                 && (NotesColumn.getTextAt(node) == null)
                 && (depth > 0)) {
             // if this node has no children and no dependencies, just close
@@ -228,10 +236,13 @@ public class WBSDataWriter {
         } else {
             // if this node has children, print them recursively.
             out.write(">\n");
-            if (depth == 0)
+            if (depth == 0) {
+                writeWbsNodeAttributeSpecs(out);
                 writeTeamMembers(out);
+            }
             writeDependencies(out, dependencies, depth+1);
             writeNote(out, node, depth+1);
+            writeWbsNodeAttributeValues(out, nodeAttributes, depth+1);
             if (children != null)
                 for (int i = 0;   i < children.length;   i++)
                     write(out, children[i], depth+1);
@@ -301,6 +312,62 @@ public class WBSDataWriter {
     private String getWorkflowIdSaveString(WBSNode node) {
         Object result = node.getAttribute(WBSModel.WORKFLOW_SOURCE_IDS_ATTR);
         return (result == null ? null : result.toString());
+    }
+
+
+
+    private void writeWbsNodeAttributeSpecs(Writer out) throws IOException {
+        if (attrColumns != null) {
+            for (int col : attrColumns) {
+                WbsNodeAttributeSource as = (WbsNodeAttributeSource) dataModel
+                        .getColumn(col);
+                out.write("  <" + ATTRIBUTE_TAG);
+                writeAttr(out, ID_ATTR, as.getAttributeId());
+                writeAttr(out, NAME_ATTR, as.getAttributeName());
+                writeAttr(out, INHERITS_ATTR,
+                    Boolean.toString(as.isAttributeAutoInherited()));
+                out.write("/>\n");
+            }
+        }
+    }
+
+
+
+    private List<String> getWbsNodeAttributes(WBSNode node) {
+        if (attrColumns == null || attrColumns.length == 0)
+            return Collections.EMPTY_LIST;
+
+        List<String> result = new ArrayList<String>();
+        for (int col : attrColumns) {
+            WbsNodeAttributeSource as = (WbsNodeAttributeSource) dataModel
+                    .getColumn(col);
+            List<String> values = as.getAttributeValues(node);
+            if (values != null && !values.isEmpty()) {
+                for (String oneValue : values) {
+                    result.add(as.getAttributeId());
+                    result.add(oneValue);
+                }
+            }
+        }
+        return result;
+    }
+
+
+
+    private void writeWbsNodeAttributeValues(Writer out,
+            List<String> attributeValues, int depth) throws IOException {
+        if (attributeValues != null) {
+            for (int i = 0; i < attributeValues.size(); i += 2) {
+                String id = attributeValues.get(i);
+                String value = attributeValues.get(i + 1);
+                writeIndent(out, depth);
+                out.write("<" + ATTRIBUTE_VALUE_TAG);
+                writeAttr(out, ATTR_ID_ATTR, id);
+                out.write(">");
+                out.write(XMLUtils.escapeAttribute(value));
+                out.write("</" + ATTRIBUTE_VALUE_TAG + ">\n");
+            }
+        }
     }
 
 
@@ -670,6 +737,8 @@ public class WBSDataWriter {
     private static final String DOCUMENT_TAG = "document";
     private static final String PSP_TAG = "psp";
     private static final String TASK_TAG = "task";
+    private static final String ATTRIBUTE_TAG = "attrType";
+    private static final String ATTRIBUTE_VALUE_TAG = "attrValue";
     private static final String DEPENDENCY_TAG = "dependency";
     private static final String NOTE_TAG = "note";
 
@@ -689,6 +758,8 @@ public class WBSDataWriter {
     private static final String WORKFLOW_ID_ATTR = "wid";
     private static final String URL_ATTR = "url";
     private static final String NO_LABELS_VAL = "none";
+    private static final String ATTR_ID_ATTR = "atid";
+    private static final String INHERITS_ATTR = "inherits";
     private static final String DEP_SRC_ATTR = "source";
     private static final String PHASE_NAME_ATTR = "phaseName";
     private static final String SYNC_PHASE_NAME_ATTR = "syncPhaseName";

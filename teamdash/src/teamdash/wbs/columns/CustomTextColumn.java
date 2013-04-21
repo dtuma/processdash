@@ -1,4 +1,4 @@
-// Copyright (C) 2012 Tuma Solutions, LLC
+// Copyright (C) 2012-2013 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -24,6 +24,7 @@
 package teamdash.wbs.columns;
 
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.w3c.dom.Element;
@@ -32,10 +33,15 @@ import org.w3c.dom.NodeList;
 import net.sourceforge.processdash.util.XMLUtils;
 
 import teamdash.wbs.DataTableModel;
+import teamdash.wbs.WBSNode;
+import teamdash.wbs.WrappedValue;
 
-public class CustomTextColumn extends AbstractLabelColumn {
+public class CustomTextColumn extends AbstractLabelColumn implements
+        WbsNodeAttributeSource {
 
     private static final String VALUE_SUFFIX = "-CustomText";
+
+    private boolean inherits;
 
     private Set<String> allowedValues;
 
@@ -55,7 +61,7 @@ public class CustomTextColumn extends AbstractLabelColumn {
 
         int width = XMLUtils.getXMLInt(xml, "width");
         boolean multivalued = test(xml, "multivalued", false);
-        boolean inherits = test(xml, "inherit", true);
+        inherits = test(xml, "inherit", true);
         boolean autocomplete = test(xml, "autocomplete", true);
 
         allowedValues = parseAllowedValues(xml);
@@ -105,6 +111,24 @@ public class CustomTextColumn extends AbstractLabelColumn {
             return allowedValues;
         else
             return getValuesInUse();
+    }
+
+    public String getAttributeId() {
+        return columnID;
+    }
+
+    public String getAttributeName() {
+        return columnName;
+    }
+
+    public boolean isAttributeAutoInherited() {
+        return inherits;
+    }
+
+    public List<String> getAttributeValues(WBSNode node) {
+        String nodeValue = (String) WrappedValue.unwrap(getValueAt(node));
+        List<String> values = getValues(nodeValue, false);
+        return values;
     }
 
 }

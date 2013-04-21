@@ -1,4 +1,4 @@
-// Copyright (C) 2011 Tuma Solutions, LLC
+// Copyright (C) 2011-2013 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -22,6 +22,9 @@
 //     processdash-devel@lists.sourceforge.net
 
 package teamdash.wbs.columns;
+
+import java.util.Collections;
+import java.util.List;
 
 import org.w3c.dom.Element;
 
@@ -48,7 +51,7 @@ import teamdash.wbs.WBSNode;
  * @author Tuma
  */
 public class AncestorSelectionColumn extends AbstractDataColumn implements
-        CalculatedDataColumn, LabelSource {
+        CalculatedDataColumn, LabelSource, WbsNodeAttributeSource {
 
     private WBSModel wbsModel;
 
@@ -130,5 +133,27 @@ public class AncestorSelectionColumn extends AbstractDataColumn implements
             node.setAttribute(explicitAttrName, "t");
         return isChecked;
     }
+
+    public String getAttributeId() {
+        return columnID;
+    }
+
+    public String getAttributeName() {
+        return columnName;
+    }
+
+    public boolean isAttributeAutoInherited() {
+        return false;
+    }
+
+    public List<String> getAttributeValues(WBSNode node) {
+        if (getValueAt(node) == Boolean.TRUE)
+            return TRUE_ATTR_VALUE;
+        else
+            return null;
+    }
+
+    private static final List<String> TRUE_ATTR_VALUE = Collections
+            .singletonList("true");
 
 }

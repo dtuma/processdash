@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2012 Tuma Solutions, LLC
+// Copyright (C) 2002-2013 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -45,18 +45,19 @@ import teamdash.wbs.columns.ErrorNotesColumn;
 import teamdash.wbs.columns.LabelSource;
 import teamdash.wbs.columns.MilestoneColumn;
 import teamdash.wbs.columns.NotesColumn;
-import teamdash.wbs.columns.PlanTimeWatcher;
-import teamdash.wbs.columns.TaskLabelColumn;
 import teamdash.wbs.columns.NullDataColumn;
 import teamdash.wbs.columns.PhaseColumn;
+import teamdash.wbs.columns.PlanTimeWatcher;
 import teamdash.wbs.columns.SizeTypeColumn;
 import teamdash.wbs.columns.TaskDependencyColumn;
+import teamdash.wbs.columns.TaskLabelColumn;
 import teamdash.wbs.columns.TaskSizeColumn;
 import teamdash.wbs.columns.TaskSizeUnitsColumn;
 import teamdash.wbs.columns.TeamActualTimeColumn;
 import teamdash.wbs.columns.TeamMemberColumnManager;
 import teamdash.wbs.columns.TeamTimeColumn;
 import teamdash.wbs.columns.WBSNodeColumn;
+import teamdash.wbs.columns.WbsNodeAttributeSource;
 
 
 public class DataTableModel extends AbstractTableModel {
@@ -78,6 +79,8 @@ public class DataTableModel extends AbstractTableModel {
     private Set dirtyColumns;
     /** A list of the columns which are sources of label data */
     private IntList labelSources;
+    /** A list of the columns which are sources of attribute data */
+    private IntList attrSources;
     /** A timer for triggering recalculations */
     private Timer recalcJanitorTimer;
     /** Object which manages columns for team members */
@@ -100,6 +103,7 @@ public class DataTableModel extends AbstractTableModel {
         columns = new ArrayList();
         dirtyColumns = new HashSet();
         labelSources = new IntList();
+        attrSources = new IntList();
 
         recalcJanitorTimer = new Timer(1000, new RecalcJanitor());
         recalcJanitorTimer.setRepeats(false);
@@ -227,6 +231,8 @@ public class DataTableModel extends AbstractTableModel {
             ((IndexAwareDataColumn) column).setColumnIndex(newColumnIndex);
         if (column instanceof LabelSource)
             labelSources.add(newColumnIndex);
+        if (column instanceof WbsNodeAttributeSource)
+            attrSources.add(newColumnIndex);
 
         // if the dependencies are already computed, update them.
         if (dependencies != null)
@@ -254,6 +260,10 @@ public class DataTableModel extends AbstractTableModel {
 
     public int[] getLabelSourceColumns() {
         return labelSources.getAsArray();
+    }
+
+    public int[] getAttributeSourceColumns() {
+        return attrSources.getAsArray();
     }
 
     /** Add a list of data columns and remove another list of data columns.
