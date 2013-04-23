@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.text.DateFormat;
@@ -77,8 +78,13 @@ public class RBRestClient implements ErrorTokens {
     /** Retrieve the list of API URI templates from the server */
     private Map<String, String> getUriTemplates(String baseUrlStr)
             throws IOException {
+        baseUrlStr = baseUrlStr.trim();
+        if (!baseUrlStr.startsWith("http"))
+            throw new MalformedURLException("Bad URL: " + baseUrlStr);
+        if (!baseUrlStr.endsWith("/"))
+            baseUrlStr = baseUrlStr + "/";
         URL baseUrl = new URL(baseUrlStr);
-        URL apiUrl = new URL(baseUrl, "api");
+        URL apiUrl = new URL(baseUrl, "api/");
 
         JSONObject response = makeRequest(apiUrl);
         return (Map<String, String>) response.get("uri_templates");
