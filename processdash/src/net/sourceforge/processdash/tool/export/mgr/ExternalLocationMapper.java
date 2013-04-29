@@ -51,7 +51,7 @@ public class ExternalLocationMapper {
 
     Map generalizedRemappings = null;
 
-    private ExternalLocationMapper() {}
+    public ExternalLocationMapper() {}
 
     public void loadDefaultMappings() {
         String setting = System.getProperty(DEFAULT_MAP_DATA_SOURCE_PROPERTY);
