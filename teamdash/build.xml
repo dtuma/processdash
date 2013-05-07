@@ -1,7 +1,7 @@
 <!--
 
 Team Functionality Add-ons for the Process Dashboard
-Copyright (C) 2002-2012 Tuma Solutions, LLC
+Copyright (C) 2002-2013 Tuma Solutions, LLC
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -182,15 +182,15 @@ The author(s) may be contacted at:
       <fileset refid="jnlpDashClasses"/>
       <zipfileset src="${xmlpull.jar}"/>
     </jar>
-    <signjar jar="${jnlp.jar}" alias="tuma-solutions-2010"
-	storepass="${env.TDKSPW}"/>
+    <signjar jar="${jnlp.jar}" alias="${jnlpSign.alias}"
+        storepass="${jnlpSign.storepass}"/>
 
     <!-- build a signed JAR file containing framework metadata -->
     <property name="jnlp-framework.jar"
         value="FrameworkMetadata-${framework.version}.jar"/>
     <copy file="${framework.jar}" tofile="${jnlp-framework.jar}"/>
-    <signjar jar="${jnlp-framework.jar}" alias="tuma-solutions-2010"
-	storepass="${env.TDKSPW}"/>
+    <signjar jar="${jnlp-framework.jar}" alias="${jnlpSign.alias}"
+        storepass="${jnlpSign.storepass}"/>
   </target>
 
 
@@ -418,7 +418,7 @@ class dependency has been added in a dashboard class?)
 
     <antcall target="signjar">
         <param name="sign.jar" value="TeamTools.jar"/>
-	<param name="sign.alias" value="tuma-solutions-2010"/>
+        <param name="sign.alias" value="${jnlpSign.alias}"/>
     </antcall>
 
     <move file="TeamTools.jar" todir="${processdash.dist}"/>
@@ -522,17 +522,19 @@ class dependency has been added in a dashboard class?)
       <fileset dir="install" includes="${skipConsentFile}"/>
       <fileset file="${licenseFile}"/>
     </packageLaunchProfile>
+    <signjar jar="${processdash.dist}/${launchProfile.filename}"
+          alias="${jnlpSign.alias}" storepass="${jnlpSign.storepass}"/>
   </target>
 
   <target name="dist" depends="installer-cd"/>
   <target name="dist-all" depends="installer-cd"/>
   <target name="os-dist" depends="installer-cd"/>
 
-  <target name="signjar" if="env.TDKSPW">
+  <target name="signjar" if="sign.storepass">
     <exec executable="c:/java/jdk1.4.2/bin/jarsigner.exe"
           inputstring="">
         <arg value="-storepass"/>
-        <arg value="${env.TDKSPW}"/>
+        <arg value="${sign.storepass}"/>
         <arg value="${sign.jar}"/>
         <arg value="${sign.alias}"/>
     </exec>
