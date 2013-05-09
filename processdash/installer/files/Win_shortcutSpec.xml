@@ -45,7 +45,7 @@
      startMenu="no"
      startup="no"
      target="javaw"
-     commandLine="-DmaxMemory=${MAX_MEMORY}m -cp &quot;$INSTALL_PATH\pspdash.jar&quot; net.sourceforge.processdash.tool.quicklauncher.QuickLauncher"
+     commandLine="-cp &quot;$INSTALL_PATH\pspdash.jar&quot; net.sourceforge.processdash.tool.quicklauncher.QuickLauncher"
      description="Launch Process Dashboard instances for data in ZIP files or arbitrary directories"
      iconFile="$INSTALL_PATH\launcher.ico"
      iconIndex="0"
