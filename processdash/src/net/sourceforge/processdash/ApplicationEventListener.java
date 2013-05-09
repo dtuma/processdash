@@ -1,4 +1,4 @@
-// Copyright (C) 2008 Tuma Solutions, LLC
+// Copyright (C) 2008,2013 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -29,6 +29,8 @@ import java.util.EventListener;
 public interface ApplicationEventListener extends EventListener {
 
     public String APP_EVENT_SAVE_ALL_DATA = "saveAllData";
+
+    public String APP_EVENT_SHUTTING_DOWN = "shuttingDown";
 
     public void handleApplicationEvent(ActionEvent e);
 

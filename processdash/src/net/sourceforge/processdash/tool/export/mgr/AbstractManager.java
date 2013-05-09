@@ -1,4 +1,4 @@
-// Copyright (C) 2005-2009 Tuma Solutions, LLC
+// Copyright (C) 2005-2013 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -23,6 +23,8 @@
 
 package net.sourceforge.processdash.tool.export.mgr;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
@@ -60,8 +62,11 @@ public abstract class AbstractManager {
 
     private List instructionAdditionAuditLog;
 
+    private List<ActionListener> listeners;
+
     AbstractManager() {
         this.instructions = new ArrayList();
+        this.listeners = new ArrayList();
     }
 
     protected abstract String getTextSettingName();
@@ -175,6 +180,26 @@ public abstract class AbstractManager {
         }
         System.out.println("saving setting: " + value);
         InternalSettings.set(getXmlSettingName(), value);
+    }
+
+    public void addListener(ActionListener l) {
+        listeners.add(l);
+    }
+
+    public void removeListener(ActionListener l) {
+        listeners.remove(l);
+    }
+
+    void fireEvent(int id, String actionCommand) {
+        if (listeners.isEmpty())
+            return;
+
+        ActionEvent evt = new ActionEvent(this, id, actionCommand);
+        for (ActionListener l : new ArrayList<ActionListener>(listeners)) {
+            try {
+                l.actionPerformed(evt);
+            } catch (Exception e) {}
+        }
     }
 
     public int getInstructionCount() {

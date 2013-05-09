@@ -786,6 +786,20 @@ Authors:
     </jar>
   </target>
 
+  <target name="pdash-mvn" depends="jar">
+    <exec executable="cmd" osfamily="windows">
+      <arg value="/c"/>
+      <arg value="mvn"/>
+      <arg value="install:install-file"/>
+      <arg value="-Dfile=${dist}/pspdash.jar"/>
+      <arg value="-DgroupId=net.sourceforce.processdash"/>
+      <arg value="-DartifactId=pdash-full"/>
+      <arg value="-Dversion=${dashboard.version}"/>
+      <arg value="-Dpackaging=jar"/>
+      <arg value="-DgeneratePom=true"/>
+    </exec>
+  </target>
+
   <target name="pdash-util" depends="pdash-util-jar">
     <exec executable="cmd" osfamily="windows">
       <arg value="/c"/>

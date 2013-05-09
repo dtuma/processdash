@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2011 Tuma Solutions, LLC
+// Copyright (C) 2001-2013 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -509,5 +509,15 @@ public class DashController {
         return result;
     }
     private static String datasetID = null;
+
+    /** @since 1.15.2 */
+    public static void addApplicationEventListener(ApplicationEventListener l) {
+        dash.addApplicationEventListener(l);
+    }
+
+    /** @since 1.15.2 */
+    public static void removeApplicationEventListener(ApplicationEventListener l) {
+        dash.removeApplicationEventListener(l);
+    }
 
 }

@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2011 Tuma Solutions, LLC
+// Copyright (C) 2001-2013 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -23,6 +23,8 @@
 
 package net.sourceforge.processdash.tool.export;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -46,6 +48,7 @@ import net.sourceforge.processdash.security.DashboardPermission;
 import net.sourceforge.processdash.tool.bridge.client.ImportDirectory;
 import net.sourceforge.processdash.tool.export.impl.ArchiveMetricsFileImporter;
 import net.sourceforge.processdash.tool.export.impl.TextMetricsFileImporter;
+import net.sourceforge.processdash.tool.export.mgr.ImportManager;
 import net.sourceforge.processdash.util.RobustFileOutputStream;
 
 
@@ -74,6 +77,7 @@ public class DataImporter extends Thread {
     private DataRepository data;
     private String importPrefix;
     private ImportDirectory directory;
+    private ActionListener listener;
     private volatile boolean isRunning = true;
     private Map<String, Long> modTimes = new HashMap<String, Long>();
     private Map<String, String> prefixes = new HashMap<String, String>();
@@ -91,10 +95,10 @@ public class DataImporter extends Thread {
         DYNAMIC_IMPORT = d;
     }
     public static void addImport(DataRepository data, String prefix,
-            String dirInfo, ImportDirectory importDir) {
+            String dirInfo, ImportDirectory importDir, ActionListener l) {
         ADD_IMPORT_PERMISSION.checkPermission();
         String key = getKey(prefix, dirInfo);
-        DataImporter i = new DataImporter(data, prefix, importDir);
+        DataImporter i = new DataImporter(data, prefix, importDir, l);
         importers.put(key, i);
     }
     public static void removeImport(String prefix, String dirInfo) {
@@ -154,10 +158,12 @@ public class DataImporter extends Thread {
         return result;
     }
 
-    public DataImporter(DataRepository data, String prefix, ImportDirectory importDir) {
+    private DataImporter(DataRepository data, String prefix,
+            ImportDirectory importDir, ActionListener l) {
         this.data = data;
         this.importPrefix = prefix;
         this.directory = importDir;
+        this.listener = l;
 
         if (PARALLEL_INIT && DYNAMIC_IMPORT)
             initializingImporters.add(this);
@@ -393,6 +399,9 @@ public class DataImporter extends Thread {
         }
 
         prefixes.put(f.getName(), prefix);
+        if (listener != null)
+            listener.actionPerformed(new ActionEvent(this,
+                    ImportManager.FILE_IMPORTED, f.getPath()));
     }
 
     public String makePrefix(File f) throws IOException {

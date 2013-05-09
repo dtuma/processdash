@@ -1,4 +1,4 @@
-// Copyright (C) 2005-2011 Tuma Solutions, LLC
+// Copyright (C) 2005-2013 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -23,6 +23,8 @@
 
 package net.sourceforge.processdash.tool.export.mgr;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -39,6 +41,8 @@ import org.w3c.dom.Element;
 public class ImportManager extends AbstractManager {
 
     public static final String SETTING_NAME = "import.instructions";
+
+    public static final int FILE_IMPORTED = 10;
 
     private static final Logger logger = Logger.getLogger(ImportManager.class
             .getName());
@@ -138,7 +142,8 @@ public class ImportManager extends AbstractManager {
         }
     }
 
-    private class InstructionAdder implements ImportInstructionDispatcher {
+    private class InstructionAdder implements ImportInstructionDispatcher,
+            ActionListener {
 
         public Object dispatch(ImportDirectoryInstruction instr) {
             String prefix = instr.getPrefix();
@@ -154,8 +159,13 @@ public class ImportManager extends AbstractManager {
                 urlValueChanged = true;
             }
 
-            DataImporter.addImport(data, prefix, getDirInfo(instr), importDir);
+            DataImporter.addImport(data, prefix, getDirInfo(instr), importDir,
+                this);
             return null;
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            fireEvent(e.getID(), e.getActionCommand());
         }
 
     }

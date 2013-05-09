@@ -1,4 +1,4 @@
-// Copyright (C) 2005-2012 Tuma Solutions, LLC
+// Copyright (C) 2005-2013 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -61,6 +61,10 @@ public class ExportManager extends AbstractManager {
 
     public static final String EXPORT_DATANAME = DataImporter.EXPORT_DATANAME;
     public static final String EXPORT_TIMES_SETTING = "export.timesOfDay";
+
+    public static final int EXPORT_STARTING = 1;
+    public static final int EXPORT_FINISHED = 2;
+    public static final String EXPORT_ALL_PATH = "*";
 
     private static final String EXPORT_INSTRUCTIONS_SUFFIX = "/Instructions";
     private static final String EXPORT_DISABLED_SUFFIX = "/Disabled";
@@ -256,6 +260,7 @@ public class ExportManager extends AbstractManager {
 
         final ExportJanitor janitor = new ExportJanitor(data);
         janitor.startExportAllOperation();
+        fireEvent(EXPORT_STARTING, EXPORT_ALL_PATH);
 
         for (Iterator iter = tasks.iterator(); iter.hasNext();) {
             AbstractInstruction instr = (AbstractInstruction) iter.next();
@@ -280,6 +285,7 @@ public class ExportManager extends AbstractManager {
 
         System.out.println("Completed user-scheduled data export.");
         Runtime.getRuntime().gc();
+        fireEvent(EXPORT_FINISHED, EXPORT_ALL_PATH);
     }
 
     private Collection getExportInstructionsFromData() {
@@ -463,6 +469,8 @@ public class ExportManager extends AbstractManager {
         }
 
         private void exportTaskStarting() {
+            fireEvent(EXPORT_STARTING, path);
+
             ExportTask task = putTask();
             if (task == this)
                 return;
@@ -494,11 +502,15 @@ public class ExportManager extends AbstractManager {
         }
 
         private void exportTaskFinished() {
+            boolean isCurrentTask;
             synchronized (EXPORT_TASKS_IN_PROGRESS) {
                 Object current = EXPORT_TASKS_IN_PROGRESS.get(path);
-                if (current == this)
+                isCurrentTask = (current == this);
+                if (isCurrentTask)
                     EXPORT_TASKS_IN_PROGRESS.remove(path);
             }
+            if (isCurrentTask)
+                fireEvent(EXPORT_FINISHED, path);
         }
 
         private void maybeUpdateInstruction() {

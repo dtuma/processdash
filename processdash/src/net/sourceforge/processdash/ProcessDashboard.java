@@ -1451,6 +1451,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
             return false;
         }
 
+        fireApplicationEvent(ApplicationEventListener.APP_EVENT_SHUTTING_DOWN);
         if (unsavedData.isEmpty())
             logger.info("Successfully saved all data.");
         else
