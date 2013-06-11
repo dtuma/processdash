@@ -169,6 +169,15 @@ chart.3d=true
 chart.outputFormat=PNG
 chart.tooltips=overlib
 
+#
+# Default settings for database connectivity
+#
+
+userPref.tpidw.jdbc.port=9092
+userPref.tpidw.postgresql.port=5432
+userPref.tpidw.username=pdash
+
+
 logging.enabled=true
 
 autoUpdate.disabled=false
