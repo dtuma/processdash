@@ -1,4 +1,4 @@
-// Copyright (C) 2009 Tuma Solutions, LLC
+// Copyright (C) 2009-2013 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -25,6 +25,7 @@ package net.sourceforge.processdash.tool.prefs;
 
 import java.awt.BorderLayout;
 import java.io.IOException;
+import java.net.URL;
 import java.net.URLConnection;
 import java.util.Set;
 import java.util.SortedSet;
@@ -35,22 +36,23 @@ import java.util.logging.Logger;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.xml.sax.SAXException;
+
 import net.sourceforge.processdash.InternalSettings;
 import net.sourceforge.processdash.templates.TemplateLoader;
+import net.sourceforge.processdash.tool.prefs.editor.ManuallyEnteredPreferencesList;
 import net.sourceforge.processdash.tool.prefs.editor.PreferencesCheckBox;
 import net.sourceforge.processdash.tool.prefs.editor.PreferencesDatasetEncodingconverter;
 import net.sourceforge.processdash.tool.prefs.editor.PreferencesFileList;
-import net.sourceforge.processdash.tool.prefs.editor.ManuallyEnteredPreferencesList;
+import net.sourceforge.processdash.tool.prefs.editor.PreferencesPasswordField;
 import net.sourceforge.processdash.tool.prefs.editor.PreferencesRadioButtons;
 import net.sourceforge.processdash.tool.prefs.editor.PreferencesTextField;
 import net.sourceforge.processdash.ui.help.PCSH;
 import net.sourceforge.processdash.ui.lib.binding.BoundForm;
 import net.sourceforge.processdash.util.StringUtils;
 import net.sourceforge.processdash.util.XMLUtils;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.xml.sax.SAXException;
 
 /**
  * This form is used to modify the user preferences under a specific category.
@@ -67,6 +69,7 @@ public class PreferencesForm extends BoundForm {
     /** The tags for which special Preferences editors are used */
     private static final String CHECKBOX_TAG = "checkbox";
     private static final String TEXTFIELD_TAG = "textfield";
+    private static final String PASSWORD_TAG = "password";
     private static final String RADIOBUTTONS_TAG = "radio";
     private static final String FILELIST_TAG = "file-list";
     private static final String MANUAL_ENTRY_TAG = "manualEntry";
@@ -84,6 +87,7 @@ public class PreferencesForm extends BoundForm {
     public PreferencesForm(PreferencesCategory category) {
         addElementType(CHECKBOX_TAG, PreferencesCheckBox.class);
         addElementType(TEXTFIELD_TAG, PreferencesTextField.class);
+        addElementType(PASSWORD_TAG, PreferencesPasswordField.class);
         addElementType(RADIOBUTTONS_TAG, PreferencesRadioButtons.class);
         addElementType(FILELIST_TAG, PreferencesFileList.class);
         addElementType(MANUAL_ENTRY_TAG, ManuallyEnteredPreferencesList.class);
@@ -114,7 +118,19 @@ public class PreferencesForm extends BoundForm {
     private void loadSpecFileContents(String specFileLocation) {
         try {
             Document spec = getSpecDocument(specFileLocation);
-            addFormElements(spec.getDocumentElement());
+
+            // Determine which add-on has declared this spec file, and set its
+            // classloader as the context class loader for the current thread.
+            URL specUrl = TemplateLoader.resolveURL(specFileLocation);
+            ClassLoader cl = TemplateLoader.getTemplateClassLoader(specUrl);
+            ClassLoader orig = Thread.currentThread().getContextClassLoader();
+            try {
+                Thread.currentThread().setContextClassLoader(cl);
+                addFormElements(spec.getDocumentElement());
+            } finally {
+                Thread.currentThread().setContextClassLoader(orig);
+            }
+
         } catch (IllegalArgumentException e) {
             logger.log(Level.SEVERE, e.getMessage());
         }

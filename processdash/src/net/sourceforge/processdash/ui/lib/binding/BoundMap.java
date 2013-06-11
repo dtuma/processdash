@@ -1,4 +1,4 @@
-// Copyright (C) 2007-2009 Tuma Solutions, LLC
+// Copyright (C) 2007-2013 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -98,6 +98,7 @@ public class BoundMap extends ObservableMap {
         addElementType("checkbox", BoundCheckBox.class);
         addElementType("combobox", BoundComboBox.class);
         addElementType("textfield", BoundTextField.class);
+        addElementType("textarea", BoundTextArea.class);
         addElementType("password", BoundPasswordField.class);
         addElementType("label", BoundLabel.class);
         addElementType("sql-connection", BoundSqlConnection.class);
@@ -156,6 +157,19 @@ public class BoundMap extends ObservableMap {
     }
 
     public Object addFormElement(Element xml, String type) {
+
+        if ("object".equals(type)) {
+            String className = xml.getAttribute("class");
+            try {
+                addElementType(className, Class.forName(className, true, Thread
+                        .currentThread().getContextClassLoader()));
+                type = className;
+            } catch (Throwable t) {
+                logger.log(Level.WARNING,
+                    "Unable to load bound-item object class {0}", className);
+                return null;
+            }
+        }
 
         Constructor cstr = (Constructor) elementTypes.get(type);
         if (cstr == null) {
