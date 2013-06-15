@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2012 Tuma Solutions, LLC
+// Copyright (C) 2001-2013 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -182,8 +182,6 @@ public class EVTaskList extends AbstractTreeTableModel
 
         PatternList hints = new PatternList();
         hints.addRegexp("^" + MAIN_DATA_PREFIX);
-        if (includeImports)
-            hints.addRegexp("/" + EVTaskListXML.XML_DATA_NAME + "$");
         Iterator i = data.getKeys(null, hints);
         String dataName, taskListName;
         while (i.hasNext()) {
@@ -198,14 +196,16 @@ public class EVTaskList extends AbstractTreeTableModel
                 taskListName =
                     EVTaskListRollup.taskListNameFromDataElement(dataName);
 
-            // if that failed, maybe see if this defines an imported list.
-            if (taskListName == null && includeImports)
-                taskListName =
-                    EVTaskListXML.taskListNameFromDataElement(data, dataName);
-
             // if any of the tests succeeded, add the name to the list.
             if (taskListName != null)
                 result.add(cleanupName(taskListName) + "\n" + taskListName);
+        }
+
+        if (includeImports) {
+            for (String importedName : ImportedEVManager.getInstance()
+                    .getImportedTaskListNames()) {
+                result.add(cleanupName(importedName) + "\n" + importedName);
+            }
         }
 
         String[] ret = new String[result.size()];
@@ -253,8 +253,8 @@ public class EVTaskList extends AbstractTreeTableModel
 
         // open an imported XML task list
         if (EVTaskListXML.validName(taskListName) &&
-            EVTaskListXML.exists(data, taskListName))
-            return new EVTaskListXML(taskListName, data);
+            EVTaskListXML.exists(taskListName))
+            return new EVTaskListXML(taskListName);
 
         // for testing purposes, return a cached list
         if (taskListName != null && taskListName.equals(TESTING_TASK_LIST_NAME))
@@ -278,7 +278,7 @@ public class EVTaskList extends AbstractTreeTableModel
                 (taskListName, data, hierarchy, willNeedChangeNotification);
 
         if (result == null && EVTaskListXML.validName(taskListName))
-            result = new EVTaskListXML(taskListName, data);
+            result = new EVTaskListXML(taskListName);
 
         if (result == null)
             result = new EVTaskList
@@ -480,8 +480,8 @@ public class EVTaskList extends AbstractTreeTableModel
             String taskListID, boolean includeImports) {
         String result = getTaskListNameForID(data, taskListID);
         if (result == null && includeImports) {
-            String dataName = EVTaskListXML.getDataNameForID(data, taskListID);
-            result = EVTaskListXML.taskListNameFromDataElement(data, dataName);
+            result = ImportedEVManager.getInstance().getTaskListNameForID(
+                taskListID);
         }
         return result;
     }

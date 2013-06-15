@@ -1,4 +1,4 @@
-// Copyright (C) 2005-2007 Tuma Solutions, LLC
+// Copyright (C) 2005-2013 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -107,7 +107,7 @@ public class TextMetricsFileExporter implements Runnable,
 
                 tl.recalc();
                 String xml = tl.getAsXML(false);
-                name = ExportManager.exportedScheduleDataName(owner, name);
+                name = exportedScheduleDataName(owner, name);
                 out.write(name + ",");
                 out.write(StringData.escapeString(xml));
                 out.println();
@@ -150,6 +150,12 @@ public class TextMetricsFileExporter implements Runnable,
     private static Object toAbbrevString(TimeLogEntry tle) {
         return ("!" + FormatUtil.formatDateTime(tle.getStartTime()) + "!," + tle
                 .getElapsedTime());
+    }
+
+    private static String exportedScheduleDataName(String owner,
+            String scheduleName) {
+        return ExportManager.exportedScheduleDataPrefix(owner, scheduleName)
+                + TextMetricsFileImporter.XML_DATA_NAME_SUFFIX;
     }
 
 }

@@ -42,6 +42,7 @@ import java.util.logging.Logger;
 
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.repository.DataRepository;
+import net.sourceforge.processdash.ev.ImportedEVManager;
 import net.sourceforge.processdash.log.defects.ImportedDefectManager;
 import net.sourceforge.processdash.log.time.ImportedTimeLogManager;
 import net.sourceforge.processdash.security.DashboardPermission;
@@ -380,6 +381,7 @@ public class DataImporter extends Thread {
         data.closeDatafile(prefix);
         ImportedDefectManager.closeDefects(prefix);
         ImportedTimeLogManager.getInstance().closeTimeLogs(prefix);
+        ImportedEVManager.getInstance().closeTaskLists(prefix);
     }
 
 

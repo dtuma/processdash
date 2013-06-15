@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2008 Tuma Solutions, LLC
+// Copyright (C) 2002-2013 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -24,34 +24,29 @@
 
 package net.sourceforge.processdash.ev;
 
-import java.util.Hashtable;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import org.w3c.dom.Element;
 
-import net.sourceforge.processdash.data.SimpleData;
-import net.sourceforge.processdash.data.StringData;
 import net.sourceforge.processdash.data.repository.DataRepository;
-import net.sourceforge.processdash.data.repository.SimplePrefixLocalDataNameFilter;
-import net.sourceforge.processdash.util.PatternList;
-import net.sourceforge.processdash.util.StringUtils;
 
 
 public class EVTaskListXML extends EVTaskListXMLAbstract {
 
-    public static final String XML_DATA_NAME = "XML Task List";
     public static final String XMLID_FLAG = "#XMLID";
-    private static final String XMLID_ATTR = "tlid";
-    protected DataRepository data;
+    static final String XMLID_ATTR = "tlid";
 
+    private boolean reloadFromImports;
+    private Element importedXml;
+
+    /** @deprecated */
     public EVTaskListXML(String taskListName, DataRepository data) {
-        super(taskListName, null, false);
-        this.data = data;
+        this(taskListName);
+    }
 
-        if (!openXML(data, taskListName))
+    public EVTaskListXML(String taskListName) {
+        super(taskListName, null, false);
+        this.reloadFromImports = true;
+
+        if (!openXMLForImportedTaskList())
             createErrorRootNode
                 (cleanupName(taskListName),
                  resources.getString("TaskList.Missing_Error_Message"));
@@ -59,6 +54,7 @@ public class EVTaskListXML extends EVTaskListXMLAbstract {
 
     public EVTaskListXML(String displayName, Element xml) {
         super(displayName, null, false);
+        this.reloadFromImports = false;
 
         try {
             openXML(xml, displayName, null);
@@ -68,137 +64,43 @@ public class EVTaskListXML extends EVTaskListXMLAbstract {
         }
     }
 
-    private boolean openXML(DataRepository data, String taskListName) {
-        String xmlDoc = getXMLString(data, taskListName);
-        if (xmlDoc == null) return false;
-
-        return openXML(xmlDoc, cleanupName(taskListName));
-    }
-
     public void recalc() {
-        if (data != null && !openXML(data, taskListName))
+        if (reloadFromImports && !openXMLForImportedTaskList())
             createErrorRootNode
                 (cleanupName(taskListName),
                  resources.getString("TaskList.Missing_Error_Message"));
         super.recalc();
     }
 
+    private boolean openXMLForImportedTaskList() {
+        Element xmlDoc = ImportedEVManager.getInstance()
+                .getImportedTaskListXml(taskListName);
+        if (xmlDoc == importedXml) return true;
+        if (xmlDoc == null) return false;
+
+        try{
+            openXML(xmlDoc, cleanupName(taskListName), null);
+            importedXml = xmlDoc;
+            return true;
+
+        } catch (Exception e) {
+            System.err.println("Got exception: " +e);
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+
+
     public static boolean validName(String taskListName) {
         return (taskListName != null &&
                 taskListName.indexOf(MAIN_DATA_PREFIX) != -1);
     }
 
-    public static boolean exists(DataRepository data, String taskListName) {
-        String xmlDoc = getXMLString(data, taskListName);
+    public static boolean exists(String taskListName) {
+        Element xmlDoc = ImportedEVManager.getInstance()
+                .getImportedTaskListXml(taskListName);
         return xmlDoc != null;
     }
-
-    private static final Map ID_MAP = new Hashtable();
-
-    public static String taskListNameFromDataElement(DataRepository data,
-                                                     String dataName) {
-        if (dataName == null ||
-            dataName.indexOf(MAIN_DATA_PREFIX) == -1 ||
-            !dataName.endsWith("/" + XML_DATA_NAME))
-            return null;
-
-        String result = dataName.substring
-            (0, dataName.length() - XML_DATA_NAME.length() - 1);
-
-        // retrieve the ID for the task list we found.
-        String taskListID = getIDForDataName(data, dataName);
-        if (taskListID != null)
-            // if this task list has an ID, prepend it to the task list name.
-            result = taskListID + XMLID_FLAG + result;
-
-        return result;
-    }
-
-    public static String getDataNameForID(DataRepository data,
-                                          String taskListID)
-    {
-        if (taskListID == null) return null;
-
-        // check the cache to see if we have a mapping for this id
-        String result = (String) ID_MAP.get(taskListID);
-        if (result != null) {
-            // if the mapping is still valid, return it.
-            String actualID = getIDForDataName(data, result);
-            if (taskListID.equals(actualID))
-                return result;
-            else
-                ID_MAP.remove(taskListID);
-        }
-
-        // scan all the data elements in the repository.
-        Iterator i = data.getKeys(null, XML_DATA_NAME_FILTER);
-        String dataName;
-        result = null;
-        while (i.hasNext()) {
-            dataName = (String) i.next();
-
-            // only examine elements that look like an XML EV task list.
-            if (!dataName.endsWith(XML_DATA_NAME)) continue;
-
-            // if this is an XML EV task list, get its ID.
-            String id = getIDForDataName(data, dataName);
-            if (id != null && id.equals(taskListID))
-                // if we've found a match, remember the corresponding
-                // data name.  (We'll go ahead and finish the scan,
-                // since this will make future calls to this method
-                // much more efficient)
-                result = dataName;
-        }
-
-        return result;
-    }
-    private static final Object XML_DATA_NAME_FILTER =
-        new SimplePrefixLocalDataNameFilter(
-                new PatternList().addRegexp(XML_DATA_NAME + "$"));
-
-    private static String getXMLString(DataRepository data,
-                                       String taskListName)
-    {
-        // If the taskListName appears to contain an XMLID, extract that ID.
-        String taskListID = null;
-        int pos = taskListName.indexOf(XMLID_FLAG);
-        if (pos != -1) {
-            taskListID = taskListName.substring(0, pos);
-            taskListName = taskListName.substring(pos+XMLID_FLAG.length());
-        }
-
-        String dataName = DataRepository.createDataName(taskListName, XML_DATA_NAME);
-        SimpleData value = data.getSimpleValue(dataName);
-        if (!(value instanceof StringData) && taskListID != null) {
-            dataName = getDataNameForID(data, taskListID);
-            if (dataName != null)
-                value = data.getSimpleValue(dataName);
-        }
-
-        if (value instanceof StringData)
-            return value.format();
-        else
-            return null;
-    }
-
-    private static String getIDForDataName(DataRepository data,
-                                              String dataName) {
-        SimpleData value = data.getSimpleValue(dataName);
-        if (!(value instanceof StringData)) return null;
-
-        String xmlDoc = value.format();
-        if (!StringUtils.hasValue(xmlDoc)) return null;
-
-        Matcher m = XMLID_PATTERN.matcher(xmlDoc);
-        if (!m.find()) return null;
-        String taskListID = m.group(1);
-
-        // keep a cache mapping IDs to data names.
-        ID_MAP.put(taskListID, dataName);
-
-        return taskListID;
-    }
-
-    private static Pattern XMLID_PATTERN = Pattern.compile(" "+XMLID_ATTR+"\\s*=\\s*['\"]([^'\"]+)['\"]");
 
 }

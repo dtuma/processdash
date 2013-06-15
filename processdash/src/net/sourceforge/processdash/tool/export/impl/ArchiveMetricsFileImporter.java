@@ -1,4 +1,4 @@
-// Copyright (C) 2005-2009 Tuma Solutions, LLC
+// Copyright (C) 2005-2013 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -42,6 +42,7 @@ import net.sourceforge.processdash.data.StringData;
 import net.sourceforge.processdash.data.TagData;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.data.repository.InvalidDatafileFormat;
+import net.sourceforge.processdash.ev.ImportedEVManager;
 import net.sourceforge.processdash.log.defects.ImportedDefectManager;
 import net.sourceforge.processdash.log.time.ImportedTimeLogManager;
 import net.sourceforge.processdash.util.XMLUtils;
@@ -165,6 +166,7 @@ public class ArchiveMetricsFileImporter implements Runnable,
 
         ImportedDefectManager.closeDefects(prefix);
         ImportedTimeLogManager.getInstance().closeTimeLogs(prefix);
+        ImportedEVManager.getInstance().closeTaskLists(prefix);
         defns = new HashMap();
         Map<String, String> packageIDs = new HashMap<String, String>();
 

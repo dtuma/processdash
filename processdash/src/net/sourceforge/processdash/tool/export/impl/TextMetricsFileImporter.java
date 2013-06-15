@@ -1,4 +1,4 @@
-// Copyright (C) 2005-2007 Tuma Solutions, LLC
+// Copyright (C) 2005-2013 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -31,6 +31,9 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
+
+import org.w3c.dom.Element;
 
 import net.sourceforge.processdash.data.DateData;
 import net.sourceforge.processdash.data.DoubleData;
@@ -41,12 +44,16 @@ import net.sourceforge.processdash.data.StringData;
 import net.sourceforge.processdash.data.TagData;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.data.repository.InvalidDatafileFormat;
+import net.sourceforge.processdash.ev.ImportedEVManager;
 import net.sourceforge.processdash.log.defects.ImportedDefectManager;
 import net.sourceforge.processdash.log.time.ImportedTimeLogManager;
 import net.sourceforge.processdash.tool.export.mgr.ExportManager;
 import net.sourceforge.processdash.util.EscapeString;
+import net.sourceforge.processdash.util.XMLUtils;
 
 public class TextMetricsFileImporter implements Runnable {
+
+    static final String XML_DATA_NAME_SUFFIX = "/XML Task List";
 
     private File file;
 
@@ -74,6 +81,7 @@ public class TextMetricsFileImporter implements Runnable {
             BufferedReader in = new BufferedReader(new InputStreamReader(
                     inputStream, "UTF-8"));
             Map defns = new HashMap();
+            Map<String, String> taskLists = new HashMap();
 
             String line, name, value;
             int commaPos;
@@ -94,6 +102,12 @@ public class TextMetricsFileImporter implements Runnable {
                 // import/export loop.
                 if (name.indexOf(ExportManager.EXPORT_DATANAME) != -1)
                     continue;
+
+                // special handling for earned value schedules
+                if (name.endsWith(XML_DATA_NAME_SUFFIX)) {
+                    taskLists.put(name, value);
+                    continue;
+                }
 
                 // To the best of my knowledge, the DataImporter is
                 // currently only being used to import individual
@@ -119,11 +133,15 @@ public class TextMetricsFileImporter implements Runnable {
 
             ImportedDefectManager.closeDefects(prefix);
             ImportedTimeLogManager.getInstance().closeTimeLogs(prefix);
+            ImportedEVManager.getInstance().closeTaskLists(prefix);
             while (line != null && !line.startsWith("<!--"))
                 line = in.readLine();
             if (line != null) {
                 DefectImporterXMLv1 defImp = new DefectImporterXMLv1();
                 defImp.importDefectsFromStream(in, prefix);
+            }
+            for (Entry<String, String> e : taskLists.entrySet()) {
+                importEvTaskList(e.getKey(), e.getValue());
             }
 
             // Protect this data from being viewed via external http requests.
@@ -179,6 +197,20 @@ public class TextMetricsFileImporter implements Runnable {
         result = StringData.create(StringData.unescapeString(value));
         result.setEditable(false);
         return result;
+    }
+
+    private void importEvTaskList(String name, String value) {
+        int nameLen = name.length() - XML_DATA_NAME_SUFFIX.length();
+        String uniqueKey = prefix + name.substring(0, nameLen);
+
+        try {
+            String rawXml = StringData.unescapeString(value);
+            Element xml = XMLUtils.parse(rawXml).getDocumentElement();
+            ImportedEVManager.getInstance().importTaskList(uniqueKey, xml);
+        } catch (Exception e) {
+            System.err.println("Cannot parse imported XML schedule for key '"
+                    + name + "' - discarding");
+        }
     }
 
 }

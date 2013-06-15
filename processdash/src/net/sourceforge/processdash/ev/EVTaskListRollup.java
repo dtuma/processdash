@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2008 Tuma Solutions, LLC
+// Copyright (C) 2002-2013 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -115,7 +115,7 @@ public class EVTaskListRollup extends EVTaskList {
                     hierarchy, cache);
             if (taskList == null) {
                 if (EVTaskListXML.validName(taskListName))
-                    taskList = new EVTaskListXML(taskListName, data);
+                    taskList = new EVTaskListXML(taskListName);
                 else
                     continue;
             }
@@ -202,7 +202,7 @@ public class EVTaskListRollup extends EVTaskList {
         // benefit of the doubt that the task list will be created soon, and
         // add the named schedule anyway.
         if (taskList == null && EVTaskListXML.validName(path)) {
-            taskList = new EVTaskListXML(path, data);
+            taskList = new EVTaskListXML(path);
         }
         if (taskList == null) return null;
 

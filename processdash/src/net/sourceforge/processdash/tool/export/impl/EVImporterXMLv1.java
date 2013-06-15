@@ -1,4 +1,4 @@
-// Copyright (C) 2005-2006 Tuma Solutions, LLC
+// Copyright (C) 2005-2013 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -25,15 +25,15 @@ package net.sourceforge.processdash.tool.export.impl;
 
 import java.io.InputStream;
 
-import net.sourceforge.processdash.data.StringData;
-import net.sourceforge.processdash.ev.EVTaskList;
-import net.sourceforge.processdash.ev.EVTaskListData;
-import net.sourceforge.processdash.tool.export.mgr.ExportManager;
-import net.sourceforge.processdash.util.XMLUtils;
-
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
+
+import net.sourceforge.processdash.ev.EVTaskList;
+import net.sourceforge.processdash.ev.EVTaskListData;
+import net.sourceforge.processdash.ev.ImportedEVManager;
+import net.sourceforge.processdash.tool.export.mgr.ExportManager;
+import net.sourceforge.processdash.util.XMLUtils;
 
 public class EVImporterXMLv1 implements ArchiveMetricsFileImporter.Handler,
         ArchiveMetricsXmlConstants, EVXmlConstantsv1 {
@@ -58,16 +58,12 @@ public class EVImporterXMLv1 implements ArchiveMetricsFileImporter.Handler,
             owner = caller.getOwner();
 
         String scheduleName = element.getAttribute(SCHEDULE_NAME_ATTR);
-        String dataName = ExportManager.exportedScheduleDataName(
-                owner, scheduleName).substring(1);
+        String uniqueKey = caller.getPrefix()
+                + ExportManager.exportedScheduleDataPrefix(owner, scheduleName);
 
         Element xmlElement = (Element) element.getElementsByTagName(
                 EVTaskList.EV_TASK_LIST_ELEMENT_NAME).item(0);
-        String xmlStr = XMLUtils.getAsText(xmlElement);
-        StringData xmlVal = StringData.create(xmlStr);
-        xmlVal.setEditable(false);
-
-        caller.getDefns().put(dataName, xmlVal);
+        ImportedEVManager.getInstance().importTaskList(uniqueKey, xmlElement);
     }
 
     private boolean isPlainSchedule(Element element) {

@@ -46,7 +46,6 @@ import net.sourceforge.processdash.data.repository.DataNameFilter;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.data.repository.InvalidDatafileFormat;
 import net.sourceforge.processdash.ev.EVTaskList;
-import net.sourceforge.processdash.ev.EVTaskListXML;
 import net.sourceforge.processdash.tool.export.DataImporter;
 import net.sourceforge.processdash.tool.export.impl.ArchiveMetricsFileExporter;
 import net.sourceforge.processdash.tool.export.impl.ExportFileStream;
@@ -364,22 +363,12 @@ public class ExportManager extends AbstractManager {
         }
     }
 
-    /**
-     * If the named schedule were to be exported to a file, what would the data
-     * element be named?
-     */
-    public static String exportedScheduleDataName(String owner,
-            String scheduleName) {
-        return exportedScheduleDataPrefix(owner, scheduleName) + "/"
-            + EVTaskListXML.XML_DATA_NAME;
-    }
-
     public static String exportedScheduleDataPrefix(String owner, String scheduleName) {
         return EVTaskList.MAIN_DATA_PREFIX
             + exportedScheduleName(owner, scheduleName);
     }
 
-    public static String exportedScheduleName(String owner, String scheduleName) {
+    private static String exportedScheduleName(String owner, String scheduleName) {
         owner = (owner == null ? "?????" : safeName(owner));
         String ownerSuffix = "";
         if (owner.length() > 0)
