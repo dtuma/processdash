@@ -166,6 +166,8 @@ public class ImportedEVManager {
         ImportedTaskList result = importedTaskLists.get(uniqueKey);
         if (result == null)
             result = getImportedTaskListByID(taskListID);
+        if (result == null)
+            result = getImportedTaskListByUniqueDisplayName(taskListName);
 
         return result;
     }
@@ -184,6 +186,41 @@ public class ImportedEVManager {
     }
 
 
+    /**
+     * "Missing task list" errors are a common problem in team dashboards. See
+     * if we can mitigate these errors by following a simple heuristic: if the
+     * rollup is calling for a imported plain task list with a name like
+     * "Some Task List (Owner name)", and we have exactly one imported schedule
+     * with that name, return it.
+     */
+    private ImportedTaskList getImportedTaskListByUniqueDisplayName(
+            String taskListName) {
+        // Retrieve the display name, and make certain it includes the embedded
+        // name of a schedule owner.
+        String displayName = EVTaskList.cleanupName(taskListName);
+        if (displayName.lastIndexOf(')') == -1)
+            return null;
+
+        ImportedTaskList result = null;
+        synchronized (importedTaskLists) {
+            for (ImportedTaskList taskList : importedTaskLists.values()) {
+                if (displayName.equals(taskList.displayName)) {
+                    if (result == null)
+                        // if this is the first schedule we've found with this
+                        // display name, save it.
+                        result = taskList;
+                    else
+                        // if we've now seen two schedules with this name,
+                        // abort and return null.
+                        return null;
+                }
+            }
+        }
+
+        return result;
+    }
+
+
 
     private static class ImportedTaskList {
 
@@ -192,6 +229,8 @@ public class ImportedEVManager {
         private String taskListID;
 
         private String taskListName;
+
+        private String displayName;
 
         protected ImportedTaskList(String uniqueKey, Element xml) {
             this.xml = xml;
@@ -203,6 +242,7 @@ public class ImportedEVManager {
                 this.taskListName = uniqueKey;
                 this.taskListID = null;
             }
+            this.displayName = EVTaskList.cleanupName(taskListName);
         }
 
     }
