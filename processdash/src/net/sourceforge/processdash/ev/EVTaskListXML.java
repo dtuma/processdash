@@ -75,8 +75,8 @@ public class EVTaskListXML extends EVTaskListXMLAbstract {
     private boolean openXMLForImportedTaskList() {
         Element xmlDoc = ImportedEVManager.getInstance()
                 .getImportedTaskListXml(taskListName);
-        if (xmlDoc == importedXml) return true;
         if (xmlDoc == null) return false;
+        if (xmlDoc == importedXml) return true;
 
         try{
             openXML(xmlDoc, cleanupName(taskListName), null);
