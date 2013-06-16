@@ -64,6 +64,7 @@ public class EVSnapshot {
         Element root = (Element) xml.getElementsByTagName(
             EVTaskListXML.EV_TASK_LIST_ELEMENT_NAME).item(0);
         this.taskList = new EVTaskListXML(name, root);
+        ((EVCalculatorXML) taskList.calculator).setCalcForSnapshot();
         this.needsRecalc = true;
     }
 

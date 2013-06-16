@@ -42,6 +42,7 @@ public class EVCalculatorXML extends EVCalculator {
     private EVTaskList taskList;
     private EVTask taskRoot;
     private EVSchedule schedule;
+    private boolean calcForSnapshot;
 
 
     public EVCalculatorXML(EVTaskList taskList, boolean reorderCompletedTasks) {
@@ -51,6 +52,11 @@ public class EVCalculatorXML extends EVCalculator {
         this.reorderCompletedTasks = reorderCompletedTasks;
         this.costIntervalProvider = new XmlCostIntervalProvider();
         this.timeErrIntervalProvider = new XmlTimeErrIntervalProvider();
+        this.calcForSnapshot = false;
+    }
+
+    public void setCalcForSnapshot() {
+        this.calcForSnapshot = true;
     }
 
 
@@ -90,8 +96,9 @@ public class EVCalculatorXML extends EVCalculator {
         schedule.getMetrics().recalcComplete(schedule);
 
         // check for errors in the task list
-        taskRoot.checkForNodeErrors(schedule.getMetrics(), 0,
-                                    new ArrayList(), new ArrayList(), false);
+        if (calcForSnapshot == false)
+            taskRoot.checkForNodeErrors(schedule.getMetrics(), 0,
+                new ArrayList(), new ArrayList(), false);
     }
 
 
