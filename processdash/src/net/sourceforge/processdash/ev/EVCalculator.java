@@ -1,4 +1,4 @@
-//Copyright (C) 2003-2012 Tuma Solutions, LLC
+//Copyright (C) 2003-2013 Tuma Solutions, LLC
 //Process Dashboard - Data Automation Tool for high-maturity processes
 //
 //This program is free software; you can redistribute it and/or
@@ -29,6 +29,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -70,9 +71,12 @@ public abstract class EVCalculator {
     }
 
     private class EVLeafComparator implements Comparator {
-        private List origOrder;
-        private EVLeafComparator(List origList) {
-            origOrder = new LinkedList(origList);
+        private Map<Object, Integer> origOrder;
+        private EVLeafComparator(List<EVTask> origList) {
+            origOrder = new IdentityHashMap();
+            int pos = 0;
+            for (EVTask t : origList)
+                origOrder.put(t, pos++);
         }
         public int compare(Object o1, Object o2) {
             EVTask t1 = (EVTask) o1;
@@ -89,7 +93,7 @@ public abstract class EVCalculator {
 
             // finally, return items in the order they appeared in the
             // original list.
-            result = origOrder.indexOf(t1) - origOrder.indexOf(t2);
+            result = getOrigPos(t1) - getOrigPos(t2);
             return result;
         }
         private int compareDates(Date a, Date b) {
@@ -101,6 +105,10 @@ public abstract class EVCalculator {
             if (a == null) return 1;
             if (b == null) return -1;
             return a.compareTo(b);
+        }
+        private int getOrigPos(Object obj) {
+            Integer pos = origOrder.get(obj);
+            return (pos == null ? -1 : pos.intValue());
         }
         public boolean equals(Object obj) {
             return this == obj;
