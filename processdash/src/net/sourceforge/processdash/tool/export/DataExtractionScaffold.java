@@ -1,4 +1,4 @@
-// Copyright (C) 2008-2010 Tuma Solutions, LLC
+// Copyright (C) 2008-2013 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -45,6 +45,7 @@ import net.sourceforge.processdash.ev.EVTaskList;
 import net.sourceforge.processdash.ev.EVTaskListData;
 import net.sourceforge.processdash.ev.EVTaskListMerged;
 import net.sourceforge.processdash.ev.EVTaskListRollup;
+import net.sourceforge.processdash.ev.ImportedEVManager;
 import net.sourceforge.processdash.ev.TaskLabeler;
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.Prop;
@@ -167,6 +168,7 @@ public class DataExtractionScaffold implements DashboardContext {
             DataImporter.shutDown();
             data.purgeDataStructures();
             EVTaskDependencyResolver.getInstance().flushCaches();
+            ImportedEVManager.getInstance().dispose();
         }
     }
 

@@ -70,6 +70,16 @@ public class ImportedEVManager {
 
 
     /**
+     * Discard any cached information held by this class, along with all
+     * registered calculators.
+     */
+    public void dispose() {
+        importedTaskLists.clear();
+        calculators.clear();
+    }
+
+
+    /**
      * Add information for an imported task list.
      * 
      * @param uniqueKey
