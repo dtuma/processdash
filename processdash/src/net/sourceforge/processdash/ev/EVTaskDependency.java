@@ -510,7 +510,6 @@ public class EVTaskDependency implements Cloneable {
     public static final int CMP_PLAN = 1;
     public static final int CMP_REPLAN = 2;
     public static final int CMP_FORECAST = 3;
-    private static final String[] XML_DATE_ATTRS = { null, "pd", "rpd", "fd" };
 
     protected static int getDependencyComparisonDateType() {
         String setting = Settings.getVal("ev.dependencies.compareDates");
@@ -547,14 +546,20 @@ public class EVTaskDependency implements Cloneable {
 
     public static Date getDependencyComparisonDate(Element task) {
         Date needDate = null;
+        switch (getDependencyComparisonDateType()) {
+        case CMP_FORECAST:
+            needDate = XMLUtils.getXMLDate(task, "fd");
 
-        int type = getDependencyComparisonDateType();
-        String attr = XML_DATE_ATTRS[type];
-        if (attr != null) {
-            if (type > CMP_PLAN)
-                needDate = XMLUtils.getXMLDate(task, "cd");
-            if (needDate == null)
-                needDate = XMLUtils.getXMLDate(task, attr);
+        case CMP_REPLAN:
+            if (needDate == null || EVSchedule.NEVER.equals(needDate))
+                needDate = XMLUtils.getXMLDate(task, "rpd");
+
+        case CMP_PLAN:
+            if (needDate == null || EVSchedule.NEVER.equals(needDate))
+                needDate = XMLUtils.getXMLDate(task, "pd");
+
+            if (EVSchedule.NEVER.equals(needDate))
+                needDate = null;
         }
         return needDate;
     }
