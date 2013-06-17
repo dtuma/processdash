@@ -25,15 +25,18 @@ package net.sourceforge.processdash.ev;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Logger;
 
 import org.w3c.dom.Element;
 
+import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.tool.export.mgr.ExportManager;
 import net.sourceforge.processdash.util.XMLUtils;
 
@@ -45,6 +48,8 @@ public class ImportedEVManager {
 
     }
 
+    private static final Logger logger = Logger
+            .getLogger(ImportedEVManager.class.getName());
 
     private static final ImportedEVManager INSTANCE = new ImportedEVManager();
 
@@ -81,7 +86,7 @@ public class ImportedEVManager {
             ImportedTaskList taskList = new ImportedTaskList(uniqueKey, xml);
             importedTaskLists.put(uniqueKey, taskList);
         } else {
-            System.err.println("Attempt to import invalid EV XML "
+            logger.warning("Attempt to import invalid EV XML "
                     + "document; ignoring");
         }
     }
@@ -230,7 +235,7 @@ public class ImportedEVManager {
         ImportedTaskList result = importedTaskLists.get(uniqueKey);
         if (result == null)
             result = getImportedTaskListByID(taskListID);
-        if (result == null)
+        if (result == null && Settings.getBool("ev.imports.matchByName", true))
             result = getImportedTaskListByUniqueDisplayName(taskListName);
 
         return result;
@@ -238,15 +243,23 @@ public class ImportedEVManager {
 
 
     private ImportedTaskList getImportedTaskListByID(String taskListID) {
+        ImportedTaskList result = null;
         if (taskListID != null) {
             synchronized (importedTaskLists) {
                 for (ImportedTaskList taskList : importedTaskLists.values()) {
-                    if (taskListID.equals(taskList.taskListID))
-                        return taskList;
+                    if (taskListID.equals(taskList.taskListID)) {
+                        if (result != null)
+                            logger.warning("Two imported task lists share the "
+                                    + "same ID: '" + taskList.taskListName
+                                    + "' and '" + result.taskListName + "'");
+
+                        if (taskList.compareTo(result) > 0)
+                            result = taskList;
+                    }
                 }
             }
         }
-        return null;
+        return result;
     }
 
 
@@ -285,7 +298,7 @@ public class ImportedEVManager {
     }
 
 
-    private class ImportedTaskList {
+    private class ImportedTaskList implements Comparable<ImportedTaskList> {
 
         private Element xml;
 
@@ -294,6 +307,8 @@ public class ImportedEVManager {
         private String taskListName;
 
         private String displayName;
+
+        private Date effDate;
 
         private Map cachedData;
 
@@ -308,6 +323,10 @@ public class ImportedEVManager {
                 this.taskListID = null;
             }
             this.displayName = EVTaskList.cleanupName(taskListName);
+
+            Element sched = XMLUtils.getChildElements(xml).get(1);
+            this.effDate = XMLUtils.getXMLDate(sched, "eff");
+
             this.cachedData = new HashMap();
         }
 
@@ -320,6 +339,15 @@ public class ImportedEVManager {
                 cachedData.put(calculatorKey, result);
             }
             return result;
+        }
+
+        public int compareTo(ImportedTaskList that) {
+            if (that == null || that.effDate == null)
+                return +1;
+            else if (this.effDate == null)
+                return -1;
+            else
+                return this.effDate.compareTo(that.effDate);
         }
 
     }
