@@ -1,4 +1,4 @@
-// Copyright (C) 2006-2009 Tuma Solutions, LLC
+// Copyright (C) 2006-2013 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -510,6 +510,7 @@ public class EVTaskDependency implements Cloneable {
     public static final int CMP_PLAN = 1;
     public static final int CMP_REPLAN = 2;
     public static final int CMP_FORECAST = 3;
+    private static final String[] XML_DATE_ATTRS = { null, "pd", "rpd", "fd" };
 
     protected static int getDependencyComparisonDateType() {
         String setting = Settings.getVal("ev.dependencies.compareDates");
@@ -544,6 +545,20 @@ public class EVTaskDependency implements Cloneable {
         return needDate;
     }
 
+    public static Date getDependencyComparisonDate(Element task) {
+        Date needDate = null;
+
+        int type = getDependencyComparisonDateType();
+        String attr = XML_DATE_ATTRS[type];
+        if (attr != null) {
+            if (type > CMP_PLAN)
+                needDate = XMLUtils.getXMLDate(task, "cd");
+            if (needDate == null)
+                needDate = XMLUtils.getXMLDate(task, attr);
+        }
+        return needDate;
+    }
+
 
 
     private static final String TASK_ID_DATA_NAME = "EV_Task_IDs";
@@ -552,7 +567,7 @@ public class EVTaskDependency implements Cloneable {
 
     protected static final String DEPENDENCY_TAG = "dependency";
 
-    private static final String TASK_ID_ATTR = "tid";
+    protected static final String TASK_ID_ATTR = "tid";
 
     private static final String DISPLAY_NAME_ATTR = "name";
 

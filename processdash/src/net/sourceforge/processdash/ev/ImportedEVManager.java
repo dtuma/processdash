@@ -23,10 +23,12 @@
 
 package net.sourceforge.processdash.ev;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 
@@ -37,6 +39,13 @@ import net.sourceforge.processdash.util.XMLUtils;
 
 public class ImportedEVManager {
 
+    public interface CachedDataCalculator {
+
+        public Object calculateCachedData(String taskListName, Element xml);
+
+    }
+
+
     private static final ImportedEVManager INSTANCE = new ImportedEVManager();
 
     public static ImportedEVManager getInstance() {
@@ -46,8 +55,11 @@ public class ImportedEVManager {
 
     private Map<String, ImportedTaskList> importedTaskLists;
 
+    private Map<Object, CachedDataCalculator> calculators;
+
     private ImportedEVManager() {
         importedTaskLists = Collections.synchronizedMap(new HashMap());
+        calculators = Collections.synchronizedMap(new LinkedHashMap());
     }
 
 
@@ -146,6 +158,58 @@ public class ImportedEVManager {
 
 
 
+    /**
+     * Register an object to perform cached data calculations.
+     */
+    public void addCalculator(Object calculatorKey, CachedDataCalculator calc) {
+        calculators.put(calculatorKey, calc);
+    }
+
+
+    /**
+     * Find an imported task list with the given name, and retrieve the cached
+     * data object that was calculated by the calculator with the given key
+     * 
+     * @param taskListName
+     *            the name of a task list
+     * @param calculatorKey
+     *            the key that was previously used to register a
+     *            {@link CachedDataCalculator}
+     * @return the data object calculated by that calculator for this task list.
+     */
+    public <T> T getCachedData(String taskListName, Object calculatorKey) {
+        ImportedTaskList tl = getImportedTaskListByName(taskListName);
+        return (T) (tl == null ? null : tl.getCachedData(calculatorKey));
+    }
+
+
+    /**
+     * Scan all of the imported task lists, and build a map of the cached data
+     * object that was calculated for each one by the calculator with the given
+     * key
+     * 
+     * @param calculatorKey
+     *            the key that was previously used to register a
+     *            {@link CachedDataCalculator}
+     * @return a map whose keys are task list names, and whose value is the data
+     *         object calculated by that calculator for that task list.
+     */
+    public <T> Map<String, T> getCachedData(Object calculatorKey) {
+        ArrayList<ImportedTaskList> taskLists;
+        synchronized (importedTaskLists) {
+            taskLists = new ArrayList(importedTaskLists.values());
+        }
+
+        Map result = new HashMap();
+        for (ImportedTaskList tl : taskLists) {
+            String name = tl.taskListName;
+            Object data = tl.getCachedData(calculatorKey);
+            result.put(name, data);
+        }
+        return result;
+    }
+
+
     private ImportedTaskList getImportedTaskListByName(String taskListName) {
         if (taskListName == null)
             return null;
@@ -221,8 +285,7 @@ public class ImportedEVManager {
     }
 
 
-
-    private static class ImportedTaskList {
+    private class ImportedTaskList {
 
         private Element xml;
 
@@ -231,6 +294,8 @@ public class ImportedEVManager {
         private String taskListName;
 
         private String displayName;
+
+        private Map cachedData;
 
         protected ImportedTaskList(String uniqueKey, Element xml) {
             this.xml = xml;
@@ -243,6 +308,18 @@ public class ImportedEVManager {
                 this.taskListID = null;
             }
             this.displayName = EVTaskList.cleanupName(taskListName);
+            this.cachedData = new HashMap();
+        }
+
+        private synchronized Object getCachedData(Object calculatorKey) {
+            Object result = cachedData.get(calculatorKey);
+            if (result == null) {
+                CachedDataCalculator calc = calculators.get(calculatorKey);
+                if (calc != null)
+                    result = calc.calculateCachedData(taskListName, xml);
+                cachedData.put(calculatorKey, result);
+            }
+            return result;
         }
 
     }

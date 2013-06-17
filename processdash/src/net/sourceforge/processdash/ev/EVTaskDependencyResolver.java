@@ -1,4 +1,4 @@
-// Copyright (C) 2006-2010 Tuma Solutions, LLC
+// Copyright (C) 2006-2013 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -23,7 +23,10 @@
 
 package net.sourceforge.processdash.ev;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Hashtable;
@@ -39,12 +42,15 @@ import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.w3c.dom.Element;
+
 import net.sourceforge.processdash.DashboardContext;
-import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.util.LightweightSet;
 import net.sourceforge.processdash.util.ThreadThrottler;
+import net.sourceforge.processdash.util.XMLDepthFirstIterator;
+import net.sourceforge.processdash.util.XMLUtils;
 
 public class EVTaskDependencyResolver {
 
@@ -76,6 +82,8 @@ public class EVTaskDependencyResolver {
 
     private long lastRefresh;
 
+    private long lastNameRefresh;
+
     private long lastReverseRefresh;
 
     private long refreshInterval;
@@ -86,8 +94,11 @@ public class EVTaskDependencyResolver {
         this.nameCache = new Hashtable();
         this.taskCache = new Hashtable();
         this.reverseDependencyCache = new Hashtable();
-        this.lastRefresh = this.lastReverseRefresh = -1;
+        this.lastRefresh = this.lastNameRefresh = this.lastReverseRefresh = -1;
         setDynamic(true);
+
+        ImportedEVManager.getInstance().addCalculator(
+            ReverseDependencyInfo.class, new ReverseDependencyCollector());
     }
 
     public void setDynamic(boolean dynamic) {
@@ -96,7 +107,7 @@ public class EVTaskDependencyResolver {
 
     public void flushCaches() {
         flushCaches(nameCache, taskCache, listCache, reverseDependencyCache);
-        this.lastRefresh = this.lastReverseRefresh = -1;
+        this.lastRefresh = this.lastNameRefresh = this.lastReverseRefresh = -1;
     }
     private void flushCaches(Object... caches) {
         for (Object c : caches) {
@@ -155,7 +166,7 @@ public class EVTaskDependencyResolver {
     }
 
     public String getCanonicalTaskName(String taskID) {
-        maybeRefreshCache();
+        maybeRefreshNameCache();
         SortedSet infoList = (SortedSet) nameCache.get(taskID);
         if (infoList == null || infoList.isEmpty())
             return null;
@@ -170,13 +181,7 @@ public class EVTaskDependencyResolver {
         if (taskIDs == null || taskIDs.isEmpty())
             return result;
 
-        String ownerName = ProcessDashboard.getOwnerName(context.getData());
-        if (ignoreIndividual != null && ignoreIndividual.equals(ownerName)) {
-            maybeRefreshReverseDependencies();
-        } else {
-            if (lastRefresh == -1)
-                refreshCache();
-        }
+        maybeRefreshReverseDependencies();
 
         for (Iterator i = taskIDs.iterator(); i.hasNext();) {
             String id = (String) i.next();
@@ -212,20 +217,30 @@ public class EVTaskDependencyResolver {
     }
 
     private void refreshCache() {
+        Map newTaskCache = new Hashtable();
+        SortedSet newListCache = new TreeSet();
+        findTasksInTaskLists(newTaskCache, listCache, newListCache, false);
+
+        this.taskCache = newTaskCache;
+        this.listCache = newListCache;
+        this.lastRefresh = System.currentTimeMillis();
+    }
+
+    private boolean maybeRefreshNameCache() {
+        long now = System.currentTimeMillis();
+        if (now - lastNameRefresh < refreshInterval)
+            return false;
+
+        refreshNameCache();
+        return true;
+    }
+
+    private void refreshNameCache() {
         Map newNameCache = new Hashtable();
         findTasksInHierarchy(newNameCache, PropertyKey.ROOT);
 
-        Map newTaskCache = new Hashtable();
-        SortedSet newListCache = new TreeSet();
-        Map newReverseCache = new Hashtable();
-        findTasksInTaskLists(newTaskCache, listCache, newListCache,
-                newReverseCache, false);
-
         this.nameCache = newNameCache;
-        this.taskCache = newTaskCache;
-        this.listCache = newListCache;
-        this.reverseDependencyCache = newReverseCache;
-        this.lastRefresh = this.lastReverseRefresh = System.currentTimeMillis();
+        this.lastNameRefresh = System.currentTimeMillis();
     }
 
     private boolean maybeRefreshReverseDependencies() {
@@ -238,11 +253,16 @@ public class EVTaskDependencyResolver {
     }
 
     private void refreshExternalReverseDependencies() {
-        Map newTaskCache = new Hashtable();
-        SortedSet newListCache = new TreeSet();
         Map newReverseCache = new Hashtable();
-        findTasksInTaskLists(newTaskCache, listCache, newListCache,
-                newReverseCache, true);
+
+        Collection allReverseDependencyLists = ImportedEVManager.getInstance()
+                .getCachedData(ReverseDependencyInfo.class).values();
+        for (Object oneListObj : allReverseDependencyLists) {
+            List<ReverseDependencyInfo> oneList = (List) oneListObj;
+            for (ReverseDependencyInfo info : oneList) {
+                addToReverseCache(newReverseCache, info);
+            }
+        }
 
         this.reverseDependencyCache = newReverseCache;
         this.lastReverseRefresh = System.currentTimeMillis();
@@ -278,26 +298,24 @@ public class EVTaskDependencyResolver {
     }
 
     private void findTasksInTaskLists(Map newCache, SortedSet listCache,
-            SortedSet newListCache, Map newReverseCache, boolean externalOnly) {
+            SortedSet newListCache, boolean externalOnly) {
         String[] taskListNames = EVTaskList.findTaskLists(context.getData(),
                 false, true);
 
         if (listCache != null)
             for (Iterator i = listCache.iterator(); i.hasNext();) {
                 TaskListInfo info = (TaskListInfo) i.next();
-                registerListName(newCache, newListCache, info.getTaskListName(),
-                        newReverseCache);
+                registerListName(newCache, newListCache, info.getTaskListName());
             }
 
         for (int i = 0; i < taskListNames.length; i++)
             if (externalOnly == false
                     || EVTaskListXML.validName(taskListNames[i]))
-                registerListName(newCache, newListCache, taskListNames[i],
-                        newReverseCache);
+                registerListName(newCache, newListCache, taskListNames[i]);
     }
 
     private void registerListName(Map newCache, SortedSet newListCache,
-            String taskListName, Map newReverseCache) {
+            String taskListName) {
         if (containsTaskInfo(newListCache, taskListName))
             return;
 
@@ -306,15 +324,14 @@ public class EVTaskDependencyResolver {
                 .getData(), context.getHierarchy(), context.getCache(),
                 false);
         if (tl != null)
-            registerList(newCache, newListCache, newReverseCache, taskListName,
-                    tl);
+            registerList(newCache, newListCache, taskListName, tl);
     }
 
     private void registerList(Map newCache, SortedSet newListCache,
-            Map newReverseCache, String taskListName, EVTaskList tl) {
+            String taskListName, EVTaskList tl) {
         TaskListInfo info = new TaskListInfo(taskListName, tl);
         newListCache.add(info);
-        registerTasks(newCache, newReverseCache, info, (EVTask) tl.getRoot());
+        registerTasks(newCache, info, (EVTask) tl.getRoot());
         addToCache(newCache, getPseudoTaskIdForTaskList(tl.getID()),
                 info);
 
@@ -322,15 +339,13 @@ public class EVTaskDependencyResolver {
             EVTaskListRollup rollup = (EVTaskListRollup) tl;
             for (int i = rollup.getChildCount(rollup.getRoot());  i-- > 0; ) {
                 EVTaskList cl = rollup.getSubSchedule(i);
-                registerList(newCache, newListCache, newReverseCache,
-                        cl.taskListName, cl);
+                registerList(newCache, newListCache, cl.taskListName, cl);
             }
         }
     }
 
 
-    private void registerTasks(Map cache, Map reverseCache,
-            TaskListInfo info, EVTask task) {
+    private void registerTasks(Map cache, TaskListInfo info, EVTask task) {
         ThreadThrottler.tick();
         List taskIDs = task.getTaskIDs();
         if (taskIDs != null)
@@ -339,15 +354,8 @@ public class EVTaskDependencyResolver {
                 addToCache(cache, taskID, info);
             }
 
-        List taskDeps = task.getDependencies();
-        if (taskDeps != null)
-            for (Iterator i = taskDeps.iterator(); i.hasNext();) {
-                EVTaskDependency d = (EVTaskDependency) i.next();
-                addToReverseCache(reverseCache, task, d);
-            }
-
         for (int i = task.getNumChildren(); i-- > 0;)
-            registerTasks(cache, reverseCache, info, task.getChild(i));
+            registerTasks(cache, info, task.getChild(i));
     }
 
     private void addToCache(Map cache, Object taskID, TaskInfo value) {
@@ -359,19 +367,8 @@ public class EVTaskDependencyResolver {
         infoList.add(value);
     }
 
-    private void addToReverseCache(Map reverseCache, EVTask task,
-            EVTaskDependency dependsOn) {
-        String dependsOnId = dependsOn.getTaskID();
-        if (dependsOnId == null)
-            return;
-
-        List assignedIndividuals = task.getAssignedTo();
-        if (assignedIndividuals == null || assignedIndividuals.isEmpty())
-            assignedIndividuals = getAllAssignedIndividuals(null, task);
-        if (assignedIndividuals == null || assignedIndividuals.isEmpty())
-            return;
-
-        Date needDate = EVTaskDependency.getDependencyComparisonDate(task);
+    private void addToReverseCache(Map reverseCache, ReverseDependencyInfo info) {
+        String dependsOnId = info.dependsOnTaskId;
 
         SortedMap reverseWho = (SortedMap) reverseCache.get(dependsOnId);
         if (reverseWho == null) {
@@ -379,24 +376,9 @@ public class EVTaskDependencyResolver {
             reverseCache.put(dependsOnId, reverseWho);
         }
 
-        for (Iterator i = assignedIndividuals.iterator(); i.hasNext();) {
-            String personName = (String) i.next();
-            mergeReverseDependencyInfo(reverseWho, personName, needDate);
+        for (String personName : info.who) {
+            mergeReverseDependencyInfo(reverseWho, personName, info.needDate);
         }
-    }
-
-    private List getAllAssignedIndividuals(List result, EVTask task) {
-        List taskWho = task.assignedTo;
-        if (taskWho != null && !taskWho.isEmpty()) {
-            if (result == null)
-                result = new LightweightSet();
-            result.addAll(taskWho);
-        }
-
-        for (int i = task.getNumChildren();  i-- > 0; )
-            result = getAllAssignedIndividuals(result, task.getChild(i));
-
-        return result;
     }
 
     public static void mergeReverseDependencyInfo(Map dest, Map src) {
@@ -544,4 +526,91 @@ public class EVTaskDependencyResolver {
             .compile("([^/]+)(/.*)?");
     private static final int PAT_GROUP_TASK_ID = 1;
     // private static final int PAT_GROUP_EXTRAPATH = 2;
+
+
+    private static class ReverseDependencyCollector implements
+            ImportedEVManager.CachedDataCalculator {
+
+        public Object calculateCachedData(String taskListName, Element xml) {
+            ReverseDependencyCollectorWorker w = new ReverseDependencyCollectorWorker();
+            w.run(xml);
+            if (w.result.isEmpty())
+                return Collections.EMPTY_LIST;
+            else
+                return Collections.unmodifiableList(w.result);
+        }
+
+    }
+
+    private static class ReverseDependencyCollectorWorker extends
+            XMLDepthFirstIterator {
+        private List result = new ArrayList();
+
+        @Override
+        public void caseElement(Element xml, List path) {
+            if (EVTaskDependency.DEPENDENCY_TAG.equals(xml.getTagName())) {
+                ReverseDependencyInfo info = new ReverseDependencyInfo(path, xml);
+                if (info.isViable())
+                    result.add(info);
+            }
+        }
+
+        @Override
+        public String getPathAttributeName(Element n) { return "who"; }
+    }
+
+    private static class ReverseDependencyInfo {
+        private String dependsOnTaskId;
+        private Date needDate;
+        private Set<String> who;
+
+        private ReverseDependencyInfo(List whoPath, Element xml) {
+            Element parentTask = (Element) xml.getParentNode();
+
+            this.dependsOnTaskId = xml
+                    .getAttribute(EVTaskDependency.TASK_ID_ATTR);
+            this.needDate = EVTaskDependency
+                    .getDependencyComparisonDate(parentTask);
+
+            this.who = new LightweightSet();
+            getWhoFromPath(whoPath);
+            if (who.isEmpty())
+                getWhoFromChildTasks(parentTask);
+        }
+
+        private void getWhoFromPath(List whoPath) {
+            // start at the end of the list (but skip the final element, which
+            // is for the <dependency> tag itself) and look for the nearest
+            // enclosing value of the "who" attribute.
+            for (int i = whoPath.size() - 1;  i-- > 0; ) {
+                if (addAssigned((String) whoPath.get(i)))
+                    break;
+            }
+        }
+
+        private void getWhoFromChildTasks(Element task) {
+            if ("task".equals(task.getTagName())) {
+                String taskWho = task.getAttribute("who");
+                addAssigned(taskWho);
+
+                for (Element child : XMLUtils.getChildElements(task))
+                    getWhoFromChildTasks(child);
+            }
+        }
+
+        private boolean addAssigned(String whoAttr) {
+            if (XMLUtils.hasValue(whoAttr)) {
+                who.addAll(Arrays.asList(whoAttr.split(", ?")));
+                return true;
+            } else {
+                return false;
+            }
+        }
+
+        private boolean isViable() {
+            return XMLUtils.hasValue(dependsOnTaskId) && !who.isEmpty();
+        }
+
+    }
+
 }
