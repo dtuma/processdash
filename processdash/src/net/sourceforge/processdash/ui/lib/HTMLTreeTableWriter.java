@@ -1,4 +1,4 @@
-// Copyright (C) 2006-2010 Tuma Solutions, LLC
+// Copyright (C) 2006-2013 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -25,9 +25,10 @@ package net.sourceforge.processdash.ui.lib;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.JTree;
-import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 
 public class HTMLTreeTableWriter extends HTMLTableWriter {
@@ -38,7 +39,7 @@ public class HTMLTreeTableWriter extends HTMLTableWriter {
 
     int showDepth = 2;
 
-    JTree tree;
+    ExpandAllTreeTableModelAdapter tableModel;
 
     TreeNodeCellRenderer nodeRenderer;
 
@@ -71,15 +72,8 @@ public class HTMLTreeTableWriter extends HTMLTableWriter {
     }
 
     public void writeTree(Writer out, TreeTableModel t) throws IOException {
-        // create a JTree for this tree table
-        tree = new JTree(t);
-        // expand all the rows in the tree
-        int row = 0;
-        while (row < tree.getRowCount())
-            tree.expandRow(row++);
-
         // create an adapting table model
-        TreeTableModelAdapter tableModel = new TreeTableModelAdapter(t, tree);
+        tableModel = new ExpandAllTreeTableModelAdapter(t);
 
         // create the renderer for the tree column
         nodeRenderer = new TreeNodeCellRenderer(super
@@ -87,7 +81,7 @@ public class HTMLTreeTableWriter extends HTMLTableWriter {
 
         super.writeTable(out, tableModel);
 
-        tree = null;
+        tableModel = null;
         nodeRenderer = null;
     }
 
@@ -118,14 +112,13 @@ public class HTMLTreeTableWriter extends HTMLTableWriter {
     }
 
     private RowID getIdForRow(int r) {
-        TreeModel treeModel = tree.getModel();
-        TreePath path = tree.getPathForRow(r);
+        TreePath path = tableModel.getPathForRow(r);
         StringBuffer id = new StringBuffer();
         id.append(treeName);
         for (int i = 1; i < path.getPathCount(); i++) {
             Object parent = path.getPathComponent(i - 1);
             Object node = path.getPathComponent(i);
-            int pos = treeModel.getIndexOfChild(parent, node);
+            int pos = tableModel.getIndexOfChild(parent, node);
             id.append("-").append(Integer.toString(pos));
         }
         return new RowID(id.toString(), path.getPathCount() - 1);
@@ -149,10 +142,9 @@ public class HTMLTreeTableWriter extends HTMLTableWriter {
             if (column != nodeColumn)
                 return innerHtml;
 
-            TreeModel treeModel = tree.getModel();
-            TreePath path = tree.getPathForRow(row);
+            TreePath path = tableModel.getPathForRow(row);
             Object node = path.getLastPathComponent();
-            boolean isLeaf = treeModel.isLeaf(node);
+            boolean isLeaf = tableModel.isLeaf(node);
             boolean isRoot = (row == 0);
 
             int indent = path.getPathCount() - 1;
@@ -193,6 +185,61 @@ public class HTMLTreeTableWriter extends HTMLTableWriter {
 
     }
 
+
+    /**
+     * The TreeTableModelAdapter normally requires a JTree to determine which
+     * nodes are expanded and collapsed. For large trees, it can be expensive to
+     * create a dummy JTree and expand all of its rows. This class computes the
+     * full list of nodes in the expanded tree manually, eliminating the need to
+     * create a dummy JTree object.
+     */
+    private static class ExpandAllTreeTableModelAdapter extends
+            TreeTableModelAdapter {
+
+        private List<TreePath> rows;
+
+        public ExpandAllTreeTableModelAdapter(TreeTableModel treeTableModel) {
+            super(treeTableModel, new JTree());
+
+            rows = new ArrayList<TreePath>();
+            enumerateAllRows(new TreePath(treeTableModel.getRoot()));
+        }
+
+        private void enumerateAllRows(TreePath parentPath) {
+            rows.add(parentPath);
+
+            Object parent = parentPath.getLastPathComponent();
+            int numChildren = treeTableModel.getChildCount(parent);
+            for (int i = 0; i < numChildren; i++) {
+                Object child = treeTableModel.getChild(parent, i);
+                TreePath childPath = parentPath.pathByAddingChild(child);
+                enumerateAllRows(childPath);
+            }
+        }
+
+        @Override
+        public int getRowCount() {
+            return rows.size();
+        }
+
+        protected TreePath getPathForRow(int row) {
+            return rows.get(row);
+        }
+
+        @Override
+        protected Object nodeForRow(int row) {
+            return getPathForRow(row).getLastPathComponent();
+        }
+
+        protected int getIndexOfChild(Object parent, Object child) {
+            return treeTableModel.getIndexOfChild(parent, child);
+        }
+
+        protected boolean isLeaf(Object node) {
+            return treeTableModel.isLeaf(node);
+        }
+
+    }
 
 
     public static final String TREE_ICON_HEADER =
