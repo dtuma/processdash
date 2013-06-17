@@ -66,6 +66,7 @@ import net.sourceforge.processdash.data.ListData;
 import net.sourceforge.processdash.data.SaveableData;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.StringData;
+import net.sourceforge.processdash.data.repository.DataNameFilter;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.ev.ui.chart.CategoryChartData;
 import net.sourceforge.processdash.ev.ui.chart.CategoryChartSeries;
@@ -180,9 +181,7 @@ public class EVTaskList extends AbstractTreeTableModel
          */
         TreeSet result = new TreeSet();
 
-        PatternList hints = new PatternList();
-        hints.addRegexp("^" + MAIN_DATA_PREFIX);
-        Iterator i = data.getKeys(null, hints);
+        Iterator i = data.getKeys(null, DataNameFilter.EXPLICIT_ONLY);
         String dataName, taskListName;
         while (i.hasNext()) {
             dataName = (String) i.next();
@@ -313,7 +312,7 @@ public class EVTaskList extends AbstractTreeTableModel
         // Search the data repository for elements that begin with any of
         // the prefixes we just contructed.
         String dataName, prefix, ord_pref = "/"+EVTaskListData.TASK_ORDINAL_PREFIX;
-        Iterator i = data.getKeys(null, ord_pref);
+        Iterator i = data.getKeys(null, DataNameFilter.EXPLICIT_ONLY);
         ArrayList taskLists = new ArrayList();
 
     DATA_ELEMENT_SEARCH:
@@ -445,8 +444,7 @@ public class EVTaskList extends AbstractTreeTableModel
         if (!StringUtils.hasValue(taskListID))
             return null;
 
-        Object hints = new PatternList().addRegexp("/" + ID_DATA_NAME + "$");
-        Iterator i = data.getKeys(null, hints);
+        Iterator i = data.getKeys(null, DataNameFilter.EXPLICIT_ONLY);
         while (i.hasNext()) {
             String dataName = (String) i.next();
             if (!dataName.endsWith(ID_DATA_NAME))
