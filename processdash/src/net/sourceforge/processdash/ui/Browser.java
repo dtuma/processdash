@@ -84,12 +84,7 @@ public class Browser {
                        maybeFixupURLForWindows(url));
                 Runtime.getRuntime().exec(cmd);
             } else if (isMac()){
-                try {
-                    BrowserLauncher.openURL(url);
-                } catch (IOException ble) {
-                    System.err.println(ble);
-                    throw ble;
-                }
+                Runtime.getRuntime().exec(new String[] { "open", url });
             } else {
                 Runtime.getRuntime().exec(new String[] { "firefox", url });
             }
@@ -169,6 +164,7 @@ public class Browser {
      * @return true if it is, false if it's not.
      */
     private static boolean isMac() {
-        return (System.getProperty("mrj.version") != null);
+        return System.getProperty("os.name").contains("OS X");
     }
+
 }

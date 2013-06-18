@@ -1,4 +1,4 @@
-// Copyright (C) 2008 Tuma Solutions, LLC
+// Copyright (C) 2008-2013 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -36,7 +36,7 @@ import javax.swing.UIManager;
 public class MacGUIUtils {
 
     private static final boolean IS_MAC_OS_X =
-        "Mac OS X".equalsIgnoreCase(System.getProperty("os.name"));
+            System.getProperty("os.name").contains("OS X");
 
     public static boolean isMacOSX() {
         return IS_MAC_OS_X;
