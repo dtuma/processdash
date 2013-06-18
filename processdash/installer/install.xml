@@ -128,6 +128,8 @@
             <file targetdir="$INSTALL_PATH" override="true"
 	          src="../dist/pspdash.jar"/>
             <file targetdir="$INSTALL_PATH" override="true"
+	          src="../dist/tpidw.jar"/>
+            <file targetdir="$INSTALL_PATH" override="true"
 	          src="../dist/l10nTool.jar"/>
             <file targetdir="$INSTALL_PATH" override="true"
 	          src="../src/net/sourceforge/processdash/ui/dashicon.ico"/>
