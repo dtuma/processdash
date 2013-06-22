@@ -34,12 +34,24 @@ undefine([Simple Project Tag]);
 <!--#endif-->
 
 
+[Sync_Project_Root_Only] = ([Export_Max_Node_Depth] == 0);
+[Rollup_Uses_In_Place_WBS_Filter] = [Sync_Project_Root_Only];
+
+[Project_WBS_ID_Filter] = iff(
+   [Rollup_Uses_In_Place_WBS_Filter] && [Project_WBS_ID//Relative_Path_Filter],
+   [Project_ID] &/ [Project_WBS_ID//Relative_Path_Filter], [Project_ID]);
+
+
 
 /*
  * Redefine the rollup filter to include items from all subprojects.
  */
 [Rollup_Filter_Regexp] =
-    "m\n^(" & join("|", [Subproject_WBS_ID_List]) & ")(/.+)?$\n";
+    "m\n^(" & join("|", [Subproject_WBS_ID_List]) & ")" &
+    iff([Rollup_Uses_In_Place_WBS_Filter]
+            && [Project_WBS_ID//Relative_Path_Filter],
+        "/\\Q" & [Project_WBS_ID//Relative_Path_Filter] & "\\E", "") &
+    "(/.+)?$\n";
 [Rollup_Filter] = 
     "(!defined([{Filtered_Task_Labels}]) \
         || intersects([{Filtered_Task_Labels}], [EV_Task_IDs])) \

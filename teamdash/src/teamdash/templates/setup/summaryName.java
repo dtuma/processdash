@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Tuma Solutions, LLC
+// Copyright (C) 2002-2013 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -31,6 +31,7 @@ import net.sourceforge.processdash.net.http.WebServer;
 import net.sourceforge.processdash.ui.snippet.SnippetEnvironment;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.StringUtils;
+import net.sourceforge.processdash.util.VersionUtils;
 
 
 public class summaryName extends selectWBS {
@@ -38,6 +39,8 @@ public class summaryName extends selectWBS {
     private String processID = null;
 
     protected void writeContents() throws IOException {
+        getDataRepository().waitForCalculations();
+
         if (processID == null) {
             String scriptName = (String) env.get("SCRIPT_NAME");
             int slashPos = scriptName.indexOf('/', 1);
@@ -52,6 +55,8 @@ public class summaryName extends selectWBS {
         boolean isSnippet = (env.containsKey(SnippetEnvironment.SNIPPET_ID));
         boolean isIndiv = (getID(getPSPProperties(), projectRootKey).indexOf(
                 "Indiv") != -1);
+        boolean useData = selectWBSData.usesDataBasedFilter(
+            getDataRepository(), projectRoot);
 
         out.println("<html><head>");
         out.println("<link rel=stylesheet type='text/css' href='/style.css'>");
@@ -70,8 +75,10 @@ public class summaryName extends selectWBS {
         writeFilterIcon(projectRoot, currentFilter);
         if (isIndiv)
             writeHierarchyIconIndiv(projectRoot);
+        else if (useData)
+            writeHierarchyIconData(projectRoot);
         else
-            writeHierarchyIcon(prefix, projectRoot);
+            writeHierarchyIconFrame(prefix, projectRoot);
 
         out.println("</h2>");
         String cmsPageTitle = (String) env.get("cmsPageTitle");
@@ -113,6 +120,17 @@ public class summaryName extends selectWBS {
     /** Print the icon and text for navigating the hierarchy for an individual
      */
     private void writeHierarchyIconIndiv(String projectRoot) {
+        writeHierarchyIconNonFrame(projectRoot, "selectWBSIndiv");
+    }
+
+    /** Print the icon and text for navigating the hierarchy on the team side
+     * using a data based filter
+     */
+    private void writeHierarchyIconData(String projectRoot) {
+        writeHierarchyIconNonFrame(projectRoot, "selectWBSData");
+    }
+
+    private void writeHierarchyIconNonFrame(String projectRoot, String uri) {
         String pathDisplay = "/";
         SimpleData wbsData = getDataContext().getSimpleValue(
                 "Project_WBS_ID_Filter");
@@ -122,37 +140,53 @@ public class summaryName extends selectWBS {
             if (slashPos == -1)
                 pathDisplay = "/";
             else
-                pathDisplay = pathDisplay.substring(slashPos);
+                pathDisplay = pathDisplay.substring(slashPos + 1);
         }
 
         boolean exporting = parameters.containsKey("EXPORT");
         if (!exporting) {
             String href = WebServer.urlEncodePath(projectRoot) + "//"
-                    + processID + "/setup/selectWBSIndiv";
+                    + processID + "/setup/" + uri;
             writeHyperlink(href, getSnippetParams(false, false));
         }
 
         out.print("<img border=0 src='../hier.png' "
                 + "style='margin-right:2px' width='16' height='23' ");
         if (!exporting)
-            out.print("title='Navigate Hierarchy'></a>");
+            out.print("title='Drill-down in Hierarchy'></a>");
         else if ("/".equals(pathDisplay))
             out.print("title='Showing data from entire project hierarchy'>");
         else
             out.print("title='Hierarchy Drill-down is in effect'>");
 
         out.print(HTMLUtils.escapeEntities(pathDisplay));
+
+        String dashVersion = (String) env.get("Dash_Package_pspdash");
+        if (!exporting
+                && VersionUtils.compareVersions(dashVersion, "1.15.2") > 0) {
+            // this is a single rollup with a single data-driven filter. If
+            // two pages are open to the same report, a filter change in one
+            // will affect the data in the other. Add "active" data elements
+            // to the page that will trigger a refresh in that scenario.
+            // (Note that we only do this for version 1.15.3 and higher,
+            // because this can trigger an infinite reload loop in earlier
+            // versions of the dashboard.)
+            out.print("<input type='hidden' name='[Project_WBS_ID_Filter]!'>");
+            out.print("<input type='hidden' name='[Label//Filter]!'>");
+        }
     }
 
     /** Print the icon and text for navigating the hierarchy on the team side
+     * using frames and relative paths
      */
-    private void writeHierarchyIcon(String prefix, String projectRoot) {
+    private void writeHierarchyIconFrame(String prefix, String projectRoot) {
         String href = WebServer.urlEncodePath(projectRoot) + "//" + processID
                 + "/setup/selectWBSFrame.class";
         writeHyperlink(href, getSnippetParams(true, true));
 
-        out.print("<img border=0 src='../hier.png' title='Navigate Hierarchy' "+
-                  "style='margin-right:2px' width=16 height=23></a>");
+        out.print("<img border=0 src='../hier.png' "
+                + "title='Drill-down in Hierarchy' "
+                + "style='margin-right:2px' width=16 height=23></a>");
         if (prefix.equals(projectRoot))
             out.print("/");
         else

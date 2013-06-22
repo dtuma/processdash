@@ -92,9 +92,11 @@
 
 /*
  * Default configuration for export of the team project plan.
+ * This setting also controls whether distinct datafiles are
+ * created in support of hierarchy-based filtering.
  */
 
-[Export_Max_Node_Depth] = 2;
+[Export_Max_Node_Depth] = 0;
 
 /*
  * Data elements for wbs-based ordering

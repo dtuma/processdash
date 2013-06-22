@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Tuma Solutions, LLC
+// Copyright (C) 2002-2013 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -86,12 +86,7 @@ public class selectHier extends TinyCGIBase {
                              String id, int depth, String rootPath) {
         if (prune(hierarchy, key, id, depth, rootPath)) return;
 
-        out.print("<tr id='");
-        out.print(id);
-        out.print("'><td align=left nowrap>");
-        for (int i = 0;   i < depth;   i++)
-            out.print(SPACER);
-        out.print(NODE_IMG);
+        printTreeRowStart(id, depth);
 
         String relPath = (depth == 0 ? "" :
                           key.path().substring(rootPath.length()+1));
@@ -107,6 +102,15 @@ public class selectHier extends TinyCGIBase {
         for (int i = 0;   i < numChildren;   i++)
             printTree(hierarchy, hierarchy.getChildKey(key, i),
                       id + i, depth+1, rootPath);
+    }
+
+    protected void printTreeRowStart(String id, int depth) {
+        out.print("<tr id='");
+        out.print(id);
+        out.print("'><td align=left nowrap>");
+        for (int i = 0;   i < depth;   i++)
+            out.print(SPACER);
+        out.print(NODE_IMG);
     }
     private static final String NODE_IMG =
         "<img width=16 height=13 src='/Images/node.png'>";

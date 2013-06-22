@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2012 Tuma Solutions, LLC
+// Copyright (C) 2002-2013 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -47,6 +47,7 @@ import java.util.StringTokenizer;
 import java.util.TimeZone;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.logging.Logger;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -153,6 +154,9 @@ public class HierarchySynchronizer {
     private Map sizeConstrPhases;
     private List allConstrPhases;
 
+    private static Logger logger = Logger.getLogger(HierarchySynchronizer.class
+            .getName());
+
 
     /** Create a hierarchy synchronizer for a team project */
     public HierarchySynchronizer(String projectPath,
@@ -207,7 +211,6 @@ public class HierarchySynchronizer {
 
         loadProcessData();
         openWBS(wbsLocation);
-        if (isTeam()) fullCopyMode = true;
         this.fullCopyMode = fullCopyMode;
         this.workflowURLsSupported = false;
     }
@@ -723,10 +726,12 @@ public class HierarchySynchronizer {
         collectNodeOrderData(projectXML, nodeOrderData);
         getAllKnownWbsIds();
         ListData labelData = null;
-        if (isTeam())
+        if (isTeam()) {
             // for a team, get label data for all nodes in a project before
             // we prune the non-team nodes
             labelData = getLabelData(projectXML);
+            saveHierarchyFilterInfo(projectXML);
+        }
         pruneWBS(projectXML, fullCopyMode, getNonprunableIDs(),
             Collections.EMPTY_SET);
         if (!isTeam()) {
@@ -782,6 +787,21 @@ public class HierarchySynchronizer {
                 projectPath, TeamDataConstants.LAST_SYNC_TIMESTAMP);
             dataRepository.putValue(timestampDataName, new DateData());
         }
+
+        // if a team project has switched to a data-based filter for the first
+        // time, this could trigger the deletion of a large number of nodes
+        // from the hierarchy.  Detect that potential scenario and scrub the
+        // unneeded files from the team dashboard directory.
+        if (isTeam() && !whatIfMode && !fullCopyMode
+                && !syncWorker.getNodesDeleted().isEmpty()) {
+            try {
+                DashController.scrubDataDirectory();
+                logger.info("HierarchySynchronizer scrubbed team "
+                        + "dashboard directory.");
+            } catch (Throwable t) {
+                t.printStackTrace();
+            }
+        }
     }
 
     private ListData getLabelData(Element projectXML) {
@@ -822,6 +842,45 @@ public class HierarchySynchronizer {
         for (Iterator i = children.iterator(); i.hasNext();)
             collectLabelData((Element) i.next(), dest);
     }
+
+    private void saveHierarchyFilterInfo(Element projectXML) {
+        StringBuilder result = new StringBuilder();
+
+        result.append("<components>");
+        collectHierarchyFilterInfo(projectXML, result);
+        result.append("</components>");
+
+        putData(this.projectPath, TeamDataConstants.PROJECT_COMPONENT_INFO,
+            StringData.create(result.toString()));
+    }
+
+    private void collectHierarchyFilterInfo(Element xml, StringBuilder result) {
+        for (Element node : XMLUtils.getChildElements(xml)) {
+            if (COMPONENT_TYPES.contains(node.getTagName())) {
+                // add an XML tag to our document describing this component.
+                String name = node.getAttribute(NAME_ATTR);
+                String id = node.getAttribute(ID_ATTR);
+                result.append("<comp " + NAME_ATTR + "='")
+                    .append(XMLUtils.escapeAttribute(name))
+                    .append("' " + ID_ATTR + "='")
+                    .append(XMLUtils.escapeAttribute(id))
+                    .append("'>");
+                int len = result.length();
+
+                // recurse and add information for child components.
+                collectHierarchyFilterInfo(node, result);
+
+                // close our tag
+                if (len == result.length()) {
+                    result.setLength(len-1);
+                    result.append("/>");
+                } else {
+                    result.append("</comp>");
+                }
+            }
+        }
+    }
+
 
     private void collectNodeOrderData(Element node, ListData result) {
         String type = node.getTagName();
@@ -1353,6 +1412,8 @@ public class HierarchySynchronizer {
     private static final String TASK_TYPE = "task";
     private static final String DEPENDENCY_TYPE = "dependency";
     private static final String NOTE_TYPE = "note";
+    static final List COMPONENT_TYPES = Arrays.asList(new String[] {
+            PROJECT_TYPE, SOFTWARE_TYPE, DOCUMENT_TYPE });
     static final List NODE_TYPES = Arrays.asList(new String[] {
         PROJECT_TYPE, SOFTWARE_TYPE, DOCUMENT_TYPE, PSP_TYPE, TASK_TYPE });
 

@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2012 Tuma Solutions, LLC
+// Copyright (C) 2002-2013 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -275,6 +275,10 @@ public class sync extends TinyCGIBase {
             pspToDateSubset = pspSubsetSelector = null;
             promptForPspToDateSubset = false;
 
+            d = data.getSimpleValue(DataRepository.createDataName
+                (projectRoot, TeamDataConstants.SYNC_ROOT_ONLY));
+            fullCopyMode = (d == null || !d.test());
+
             if (shouldRepairTeamImport())
                 RepairImportInstruction.maybeRepairForTeam(getDataContext());
 
@@ -336,11 +340,11 @@ public class sync extends TinyCGIBase {
                 pspSubsetSelector = null;
                 promptForPspToDateSubset = false;
             }
-        }
 
-        // we no longer check to see if the user wants us to perform a full wbs
-        // sync;  this functionality is obsolete and only causes problems now.
-        fullCopyMode = false;
+            // we no longer check to see if users want us to perform a full wbs
+            // sync; this functionality is obsolete and only causes problems now.
+            fullCopyMode = false;
+        }
     }
 
 

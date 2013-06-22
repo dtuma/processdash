@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2011 Tuma Solutions, LLC
+// Copyright (C) 2002-2013 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -36,6 +36,8 @@ public interface TeamDataConstants {
         "Project_Schedule_PDT_Last_Synced_Val";
     public static final String PROJECT_SCHEDULE_SYNC_SCHEDULE =
         "Project_Schedule_Hours_Last_Synced_Val";
+    public static final String SYNC_ROOT_ONLY = "Sync_Project_Root_Only";
+    public static final String PROJECT_COMPONENT_INFO = "Project_Component_Info";
     public static final String MASTER_PROJECT_PATH = "Master_Project_Path";
 
     public static final String TEAM_PROJECT_URL = "Team_URL";
