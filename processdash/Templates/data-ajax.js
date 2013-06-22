@@ -2,7 +2,7 @@
 // <!--#echo defaultEncoding="html,javaStr" -->
 /****************************************************************************
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2000-2012 Tuma Solutions, LLC
+// Copyright (C) 2000-2013 Tuma Solutions, LLC
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -492,6 +492,12 @@ function abortMessageDispatch() {
     eval(DISPATCH_ACK_TIMEOUT_COMMAND);
 }
 
+// public (can be called elsewhere to stop the message thread)
+function stopMessageDispatch() {
+    LISTEN_AJAX_DISPATCHER = null;
+    dispatchState = DISPATCH_CONNECTION_LOST;
+}
+
 
 
 
@@ -757,6 +763,7 @@ function paintInternal(elemNum, value, readOnly, coupon) {
 function doPaintField(elemNum, value, readOnly, coupon, internal) {
     if (elemNum == -1) {
         if (value == "page-refresh") {
+            stopMessageDispatch();
             var url = window.location.href;
             if (window.location.search == "")
                 url += "?refresh=" + randNum();
