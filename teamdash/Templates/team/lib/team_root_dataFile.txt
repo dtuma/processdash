@@ -82,6 +82,19 @@ undefine([Simple Project Tag]);
 
 
 /*
+ * Compare the timestamps on imported data to our most recent export,
+ * and determine whether our export is up-to-date.
+ */
+[Max_Imported_Data_Timestamp] = maxDate(map(
+    eval("inherit(\"Import_Metadata/exported.when\")", [_]),
+    [Corresponding_Project_Nodes]));
+[Export_Is_Current] =
+    ([EXPORT_FILE/Last_Export_Timestamp] && [Max_Imported_Data_Timestamp]) &&
+    ([EXPORT_FILE/Last_Export_Timestamp] > [Max_Imported_Data_Timestamp]);
+[EXPORT_FILE/Disabled] = [Export_Is_Current];
+
+
+/*
  * Publish team settings data that can be exported to individuals
  */
 [Team_Settings] = TAG;
