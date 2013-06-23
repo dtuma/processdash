@@ -531,6 +531,7 @@ public class WBSDataWriter {
             if (version == null)
                 version = "999";
             writeAttr(out, VERSION_ATTR, version);
+            writeAttr(out, SAVE_DATE_ATTR, new Date());
         }
     }
 
@@ -772,6 +773,7 @@ public class WBSDataWriter {
     private static final String INSP_UNITS_ATTR = "inspUnits";
     private static final String INSP_SIZE_ATTR = "inspSize";
     private static final String VERSION_ATTR = "dumpFileVersion";
+    private static final String SAVE_DATE_ATTR = "dumpTimestamp";
     private static final String AUTHOR_ATTR = "author";
     private static final String TIMESTAMP_ATTR = "timestamp";
     private static final String FORMAT_ATTR = "format";

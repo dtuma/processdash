@@ -47,6 +47,8 @@ public interface TeamDataConstants {
     public static final String PROJECT_WORKFLOW_URLS_DATA_NAME =
         "Project_Workflow_URL_List";
     public static final String LAST_SYNC_TIMESTAMP = "WBS_Last_Sync_Timestamp";
+    public static final String USER_ACTIVITY_TIMESTAMP = "Data_Activity_Timestamp";
+    public static final String USER_DONE_TIMESTAMP = "Project_Is_Done";
 
     public static final String DISSEMINATION_DIRECTORY = "disseminate";
     public static final String OBSOLETE_DIR_MARKER_FILENAME =

@@ -28,6 +28,7 @@ import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.Writer;
 import java.net.URL;
+import java.net.URLConnection;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -55,6 +56,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import net.sourceforge.processdash.DashController;
+import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.DataContext;
 import net.sourceforge.processdash.data.DateData;
 import net.sourceforge.processdash.data.DoubleData;
@@ -81,6 +83,7 @@ import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.log.defects.Defect;
 import net.sourceforge.processdash.log.defects.DefectAnalyzer;
 import net.sourceforge.processdash.templates.DashPackage;
+import net.sourceforge.processdash.util.DateUtils;
 import net.sourceforge.processdash.util.StringUtils;
 import net.sourceforge.processdash.util.ThreadThrottler;
 import net.sourceforge.processdash.util.XMLUtils;
@@ -108,6 +111,7 @@ public class HierarchySynchronizer {
     private Element projectXML;
     private Map<Element, List<Element>> prunedChildren;
     private String dumpFileVersion;
+    private Date dumpFileTimestamp;
     private Date startDate;
     private int endWeek;
     private double hoursPerWeek;
@@ -334,7 +338,8 @@ public class HierarchySynchronizer {
     private void openWBS(URL wbsLocation) throws IOException {
         InputStream in = null;
         try {
-            in = new BufferedInputStream(wbsLocation.openStream());
+            URLConnection conn = wbsLocation.openConnection();
+            in = new BufferedInputStream(conn.getInputStream());
             Document doc = XMLUtils.parse(in);
             projectXML = doc.getDocumentElement();
             prunedChildren = new HashMap<Element, List<Element>>();
@@ -347,6 +352,13 @@ public class HierarchySynchronizer {
             dumpFileVersion = projectXML.getAttribute(VERSION_ATTR);
             if (!StringUtils.hasValue(dumpFileVersion))
                 dumpFileVersion = "0";
+
+            dumpFileTimestamp = XMLUtils.getXMLDate(projectXML, SAVE_DATE_ATTR);
+            if (dumpFileTimestamp == null) {
+                long dumpTime = conn.getLastModified();
+                if (dumpTime > 0)
+                    dumpFileTimestamp = new Date(dumpTime);
+            }
         } catch (Exception e) {
             throw new IOException
                 ("The dashboard could not read the file containing the work " +
@@ -770,6 +782,7 @@ public class HierarchySynchronizer {
         if (!isTeam()) {
             syncSchedule();
             saveWorkflowUrlData();
+            checkForUserInactivity();
         }
 
         sync(syncWorker, projectPath, projectXML);
@@ -1255,6 +1268,80 @@ public class HierarchySynchronizer {
     private static final boolean REGISTER_WORKFLOW_SUBTASK_IDS = false;
 
 
+    /**
+     * On the personal side, possibly update a data element indicating whether
+     * the user is still actively working on this project.
+     */
+    private void checkForUserInactivity() {
+        int userActivityAge = getUserActivityAgeRange();
+
+        if (userActivityAge == USER_ACTIVITY_RECENT) {
+            // if the user has been working on the project fairly recently, mark
+            // the project as "not done."
+            forceData(projectPath, TeamDataConstants.USER_DONE_TIMESTAMP, null);
+
+        } else if (userActivityAge == USER_ACTIVITY_OLD
+                && wbsDumpFileIsOld()) {
+            // if the user hasn't done any work on the project in a long time,
+            // and no one has edited the WBS recently, mark the project "done"
+            logger.info("User appears to be finished with work on project '"
+                    + projectPath + "'; marking the project as 'done.'");
+            forceData(projectPath, TeamDataConstants.USER_DONE_TIMESTAMP,
+                new DateData());
+        }
+    }
+
+    /** Check to see if the user has recorded project data recently */
+    private int getUserActivityAgeRange() {
+        // get the activity timestamp.  If it is not present, we don't have
+        // any idea when the user recorded project data last. Stay on the
+        // safe side and assume that they are working on the project.
+        SimpleData d = getData(projectPath,
+            TeamDataConstants.USER_ACTIVITY_TIMESTAMP);
+        if (!(d instanceof DateData))
+            return USER_ACTIVITY_MODERATE;
+
+        // get the age of the activity timestamp
+        DateData activityDate = (DateData) d;
+        long now = System.currentTimeMillis();
+        long activityAge = now - activityDate.getValue().getTime();
+
+        // if the activity timestamp is more than 30 days old, they are
+        // definitely not working on the project anymore
+        int activityCutoff = Settings.getInt("teamProject.inactivityAge", 30);
+        if (activityAge > activityCutoff * DateUtils.DAYS)
+            return USER_ACTIVITY_OLD;
+
+        // if the activity timestamp is less than 7 days old, they are
+        // definitely working on the project.
+        activityCutoff = Settings.getInt("teamProject.recentActivityAge", 7);
+        if (activityAge < activityCutoff * DateUtils.DAYS)
+            return USER_ACTIVITY_RECENT;
+
+        // their last activity was between 7 and 30 days ago.
+        return USER_ACTIVITY_MODERATE;
+    }
+    private static final int USER_ACTIVITY_OLD = 1;
+    private static final int USER_ACTIVITY_MODERATE = 2;
+    private static final int USER_ACTIVITY_RECENT = 3;
+
+    /** Return false if the WBS has been edited (by anyone) recently */
+    private boolean wbsDumpFileIsOld() {
+        // it will be uncommon for the dump file timestamp to be missing.
+        // This will only occur for teams that are using the PDES, and who
+        // have only edited the WBS with an old version of TeamTools.jar.
+        // In that scenario, we assume that the WBS has not been edited in
+        // a long time.
+        if (dumpFileTimestamp == null)
+            return true;
+
+        // check to see if the dump file timestamp is more than 7 days old.
+        long now = System.currentTimeMillis();
+        long dumpFileAge = now - dumpFileTimestamp.getTime();
+        int wbsCutoffAgeDays = Settings.getInt("wbs.inactivityAge", 7);
+        return (dumpFileAge > wbsCutoffAgeDays * DateUtils.DAYS);
+    }
+
     private static boolean eq(double a, double b) {
         return Math.abs(a - b) < 0.01;
     }
@@ -1393,6 +1480,7 @@ public class HierarchySynchronizer {
     private static final String TASK_ID_ATTR = "tid";
     private static final String WORKFLOW_ID_ATTR = "wid";
     private static final String VERSION_ATTR = "dumpFileVersion";
+    private static final String SAVE_DATE_ATTR = "dumpTimestamp";
     private static final String LABELS_ATTR = "labels";
     private static final String PHASE_NAME_ATTR = "phaseName";
     private static final String SYNC_PHASE_NAME_ATTR = "syncPhaseName";
