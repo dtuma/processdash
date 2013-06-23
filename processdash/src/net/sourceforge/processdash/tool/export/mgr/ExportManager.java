@@ -36,9 +36,12 @@ import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.w3c.dom.Element;
+
 import net.sourceforge.processdash.DashboardContext;
 import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.Settings;
+import net.sourceforge.processdash.data.DateData;
 import net.sourceforge.processdash.data.ImmutableDoubleData;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.StringData;
@@ -54,8 +57,6 @@ import net.sourceforge.processdash.ui.lib.ProgressDialog;
 import net.sourceforge.processdash.util.StringUtils;
 import net.sourceforge.processdash.util.XMLUtils;
 
-import org.w3c.dom.Element;
-
 public class ExportManager extends AbstractManager {
 
     public static final String EXPORT_DATANAME = DataImporter.EXPORT_DATANAME;
@@ -68,6 +69,7 @@ public class ExportManager extends AbstractManager {
     private static final String EXPORT_INSTRUCTIONS_SUFFIX = "/Instructions";
     private static final String EXPORT_DISABLED_SUFFIX = "/Disabled";
     private static final String EXPORT_URL_SUFFIX = "/Server_URL";
+    private static final String EXPORT_TIMESTAMP_SUFFIX = "/Last_Export_Timestamp";
     private static final String DATANAME_ATTR = "_Instruction_Data_Name";
 
     private static ExportManager INSTANCE = null;
@@ -363,6 +365,28 @@ public class ExportManager extends AbstractManager {
         }
     }
 
+    /** @since 1.15.3 */
+    private void maybeRecordExportTimestamp(AbstractInstruction instr,
+            Runnable target) {
+        // see if this export instruction originated from a data element
+        String dataName = instr.getAttribute(DATANAME_ATTR);
+        if (dataName == null)
+            return;
+
+        // check to see if this instruction completed successfully
+        if (target instanceof CompletionStatus.Capable) {
+            CompletionStatus.Capable c = (CompletionStatus.Capable) target;
+            CompletionStatus status = c.getCompletionStatus();
+            if (status == null
+                    || !CompletionStatus.SUCCESS.equals(status.getStatus()))
+                return;
+        }
+
+        // record the timestamp when data was last exported for this instr
+        String exportTimestampDataName = dataName + EXPORT_TIMESTAMP_SUFFIX;
+        data.putValue(exportTimestampDataName, new DateData());
+    }
+
     public static String exportedScheduleDataPrefix(String owner, String scheduleName) {
         return EVTaskList.MAIN_DATA_PREFIX
             + exportedScheduleName(owner, scheduleName);
@@ -498,8 +522,10 @@ public class ExportManager extends AbstractManager {
                 if (isCurrentTask)
                     EXPORT_TASKS_IN_PROGRESS.remove(path);
             }
-            if (isCurrentTask)
+            if (isCurrentTask) {
+                maybeRecordExportTimestamp(instr, target);
                 fireEvent(EXPORT_FINISHED, path);
+            }
         }
 
         private void maybeUpdateInstruction() {
