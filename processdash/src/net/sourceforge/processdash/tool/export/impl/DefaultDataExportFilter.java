@@ -1,4 +1,4 @@
-// Copyright (C) 2005-2006 Tuma Solutions, LLC
+// Copyright (C) 2005-2013 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -23,6 +23,7 @@
 
 package net.sourceforge.processdash.tool.export.impl;
 
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Level;
@@ -30,9 +31,11 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import net.sourceforge.processdash.data.DateData;
 import net.sourceforge.processdash.data.DoubleData;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.tool.export.mgr.ExportManager;
+import net.sourceforge.processdash.util.DateUtils;
 import net.sourceforge.processdash.util.IteratorFilter;
 import net.sourceforge.processdash.util.PatternList;
 
@@ -58,6 +61,8 @@ public class DefaultDataExportFilter extends IteratorFilter {
     private PatternList includePatterns = null;
 
     private PatternList excludePatterns = null;
+
+    private Date maxDate = null;
 
     public DefaultDataExportFilter(Iterator dataElements) {
         super(dataElements);
@@ -123,6 +128,10 @@ public class DefaultDataExportFilter extends IteratorFilter {
         this.excludes = excludes;
     }
 
+    public Date getMaxDate() {
+        return maxDate;
+    }
+
     public void init() {
         includePatterns = setupPatterns(includes);
         excludePatterns = setupPatterns(excludes);
@@ -131,12 +140,24 @@ public class DefaultDataExportFilter extends IteratorFilter {
 
     protected boolean includeInResults(Object o) {
         ExportedDataValue v = (ExportedDataValue) o;
+        processMaxDate(v);
         if (isExcluded(v) || isNotIncluded(v) || isExportInstruction(v)
                 || isSkippableToDateData(v) || isSkippableNodeLeaf(v)
                 || isSkippableProcessAutoData(v) || isSkippableDoubleData(v))
             return false;
         else
             return true;
+    }
+
+    private void processMaxDate(ExportedDataValue v) {
+        String name = v.getName();
+        if (name.endsWith("/Started") || name.endsWith("/Completed")) {
+            SimpleData value = v.getSimpleValue();
+            if (value instanceof DateData) {
+                Date thisDate = ((DateData) value).getValue();
+                maxDate = DateUtils.maxDate(maxDate, thisDate);
+            }
+        }
     }
 
     private boolean isExcluded(ExportedDataValue v) {

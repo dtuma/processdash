@@ -1,4 +1,4 @@
-// Copyright (C) 2007 Tuma Solutions, LLC
+// Copyright (C) 2007-2013 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -27,6 +27,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -38,10 +39,13 @@ import net.sourceforge.processdash.log.time.TimeLogEntry;
 import net.sourceforge.processdash.log.time.TimeLogEntryVOPathFilter;
 import net.sourceforge.processdash.log.time.TimeLogWriter;
 import net.sourceforge.processdash.process.ProcessUtil;
+import net.sourceforge.processdash.util.DateUtils;
 import net.sourceforge.processdash.util.IteratorFilter;
 import net.sourceforge.processdash.util.StringMapper;
 
 public class TimeLogExporterXMLv1 implements TimeLogExporter {
+
+    private Date maxDate;
 
     public void dumpTimeLogEntries(TimeLog timeLog, DataContext data,
             Collection filter, OutputStream out) throws IOException {
@@ -56,11 +60,17 @@ public class TimeLogExporterXMLv1 implements TimeLogExporter {
             entries = timeLog.filter(null, null, null);
             entries = new TimeLogFilter(entries, filter);
         }
-        entries = new TimeLogEntryVOPathFilter(entries,
+        TimeLogEntryIterator iter = new TimeLogEntryIterator(entries,
                 new PhaseAppender(data));
 
-        TimeLogWriter.write(out, entries, false);
+        TimeLogWriter.write(out, iter, false);
         out.flush();
+
+        maxDate = iter.maxDate;
+    }
+
+    public Date getMaxDate() {
+        return maxDate;
     }
 
     private class TimeLogFilter extends IteratorFilter {
@@ -105,6 +115,24 @@ public class TimeLogExporterXMLv1 implements TimeLogExporter {
 
             pathCache.put(path, result);
             return result;
+        }
+
+    }
+
+    private static class TimeLogEntryIterator extends TimeLogEntryVOPathFilter {
+
+        private Date maxDate;
+
+        public TimeLogEntryIterator(Iterator timeLogEntries,
+                StringMapper pathRemapper) {
+            super(timeLogEntries, pathRemapper);
+        }
+
+        @Override
+        public Object next() {
+            TimeLogEntry tle = (TimeLogEntry) super.next();
+            maxDate = DateUtils.maxDate(maxDate, tle.getStartTime());
+            return tle;
         }
 
     }

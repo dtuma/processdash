@@ -1,4 +1,4 @@
-// Copyright (C) 2005-2012 Tuma Solutions, LLC
+// Copyright (C) 2005-2013 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -50,6 +50,8 @@ import org.xmlpull.v1.XmlSerializer;
 import net.sourceforge.processdash.DashController;
 import net.sourceforge.processdash.DashboardContext;
 import net.sourceforge.processdash.ProcessDashboard;
+import net.sourceforge.processdash.data.DateData;
+import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.data.util.TopDownBottomUpJanitor;
 import net.sourceforge.processdash.ev.EVDependencyCalculator;
 import net.sourceforge.processdash.ev.EVTaskList;
@@ -59,6 +61,7 @@ import net.sourceforge.processdash.templates.TemplateLoader;
 import net.sourceforge.processdash.tool.export.mgr.Cancellable;
 import net.sourceforge.processdash.tool.export.mgr.CompletionStatus;
 import net.sourceforge.processdash.tool.export.mgr.ExportFileEntry;
+import net.sourceforge.processdash.util.DateUtils;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.StringUtils;
 import net.sourceforge.processdash.util.ThreadThrottler;
@@ -78,6 +81,8 @@ public class ArchiveMetricsFileExporter implements Runnable,
 
     private static final String EV_FILE_NAME = "ev.xml";
 
+    private static final String DATA_TIMESTAMP_NAME = "Data_Activity_Timestamp";
+
     private DashboardContext ctx;
 
     private ExportFileStream dest;
@@ -89,6 +94,8 @@ public class ArchiveMetricsFileExporter implements Runnable,
     private List metricsExcludes;
 
     private List additionalEntries;
+
+    private Date maxActivityDate;
 
     private CompletionStatus completionStatus = CompletionStatus.NOT_RUN_STATUS;
 
@@ -110,6 +117,11 @@ public class ArchiveMetricsFileExporter implements Runnable,
         this.metricsIncludes = metricsIncludes;
         this.metricsExcludes = metricsExcludes;
         this.additionalEntries = additionalEntries;
+        this.maxActivityDate = null;
+    }
+
+    public Date getDataActivityTimestamp() {
+        return maxActivityDate;
     }
 
     public CompletionStatus getCompletionStatus() {
@@ -146,6 +158,7 @@ public class ArchiveMetricsFileExporter implements Runnable,
             writeTaskLists(zipOut, taskListNames);
         writeDefects(zipOut);
         writeTimeLogEntries(zipOut);
+        maybeSaveMaxActivityDate();
         writeAditionalEntries(zipOut);
         writeManifest(zipOut, !taskListNames.isEmpty());
 
@@ -300,6 +313,9 @@ public class ArchiveMetricsFileExporter implements Runnable,
 
         zipOut.closeEntry();
 
+        Date maxDataElementDate = ddef.getMaxDate();
+        maxActivityDate = DateUtils.maxDate(maxActivityDate, maxDataElementDate);
+
         return taskListWatcher.getTaskListNames();
     }
 
@@ -315,10 +331,23 @@ public class ArchiveMetricsFileExporter implements Runnable,
     private void writeTimeLogEntries(ZipOutputStream zipOut) throws IOException {
         zipOut.putNextEntry(new ZipEntry(TIME_FILE_NAME));
 
-        TimeLogExporter exp = new TimeLogExporterXMLv1();
+        TimeLogExporterXMLv1 exp = new TimeLogExporterXMLv1();
         exp.dumpTimeLogEntries(ctx.getTimeLog(), ctx.getData(), filter, zipOut);
 
+        Date maxTimeLogDate = exp.getMaxDate();
+        maxActivityDate = DateUtils.maxDate(maxActivityDate, maxTimeLogDate);
+
         zipOut.closeEntry();
+    }
+
+    private void maybeSaveMaxActivityDate() {
+        if (maxActivityDate != null && filter.size() == 1) {
+            String path = (String) filter.iterator().next();
+            String dataName = DataRepository.createDataName(path,
+                DATA_TIMESTAMP_NAME);
+            DateData timestamp = new DateData(maxActivityDate, true);
+            ctx.getData().putValue(dataName, timestamp);
+        }
     }
 
     private void writeAditionalEntries(ZipOutputStream zipOut) throws IOException {
