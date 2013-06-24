@@ -734,6 +734,7 @@ public class HierarchySynchronizer {
         }
     }
     private void doSync() throws HierarchyAlterationException {
+        phaseIDs = initPhaseIDs(processID);
         ListData nodeOrderData = new ListData();
         collectNodeOrderData(projectXML, nodeOrderData);
         getAllKnownWbsIds();
@@ -757,7 +758,6 @@ public class HierarchySynchronizer {
         discrepancies = new ListData();
         discrepancies.add(new Date());
         syncActions = buildSyncActions();
-        phaseIDs = initPhaseIDs(processID);
 
         SyncWorker syncWorker;
 
@@ -872,6 +872,8 @@ public class HierarchySynchronizer {
             if (COMPONENT_TYPES.contains(node.getTagName())) {
                 // add an XML tag to our document describing this component.
                 String name = node.getAttribute(NAME_ATTR);
+                if (isPhaseName(name))
+                    name = name + "_";
                 String id = node.getAttribute(ID_ATTR);
                 result.append("<comp " + NAME_ATTR + "='")
                     .append(XMLUtils.escapeAttribute(name))
