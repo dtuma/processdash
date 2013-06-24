@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Tuma Solutions, LLC
+// Copyright (C) 2002-2013 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -474,7 +474,8 @@ public class WorkflowLibraryEditor {
         chooser.setApproveButtonMnemonic(buttonLabel.charAt(0));
         chooser.setApproveButtonToolTipText(title);
 
-        if (chooser.showOpenDialog(parent) == JFileChooser.APPROVE_OPTION)
+        int userChoice = chooser.showDialog(parent, buttonLabel);
+        if (userChoice == JFileChooser.APPROVE_OPTION)
             return chooser.getSelectedFile();
         else
             return null;
