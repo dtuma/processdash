@@ -73,6 +73,8 @@ public class ArchiveMetricsFileExporter implements Runnable,
 
     private static final String MERGED_PREFIX = "MERGED:";
 
+    private static final String INCLUDE_ZEROS = "\"Zero\" data values";
+
     private static final String DATA_FILE_NAME = "data.xml";
 
     private static final String DEFECT_FILE_NAME = "defects.xml";
@@ -302,7 +304,10 @@ public class ArchiveMetricsFileExporter implements Runnable,
             logger.fine("Using pattern-based name approach");
             taskListWatcher = new TaskListDataWatcher(baseIter);
             ddef = new DefaultDataExportFilter(taskListWatcher);
-            ddef.setIncludes(metricsIncludes);
+            List includes = new ArrayList(metricsIncludes);
+            if (includes.remove(INCLUDE_ZEROS))
+                ddef.setSkipZero(false);
+            ddef.setIncludes(includes);
             ddef.setExcludes(metricsExcludes);
             ddef.init();
         }
