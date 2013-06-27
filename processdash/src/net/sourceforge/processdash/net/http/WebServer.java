@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2012 Tuma Solutions, LLC
+// Copyright (C) 2001-2013 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -687,7 +687,36 @@ public class WebServer implements ContentSource {
             }
 
             env.put(PARENT_ENV_KEY, currentRequestEnvironment.get());
-            currentRequestEnvironment.set(env);
+            currentRequestEnvironment.set(getInheritableEnvironment(env));
+        }
+
+        private Map getInheritableEnvironment(Map env) {
+            // an "inheritable thread local" is used to pass the parent
+            // environment from one TinyWebThread the the next.  However, such
+            // inheritable values are dangerous, because they can be picked
+            // up accidentally by long-lived system-wide threads (like the
+            // Java2D Disposer thread) and inadvertently pin items in memory.
+            // This can cause memory leaks in a PDES environment. To avoid
+            // this, we only allow our inheritable environment to contain
+            // specific, primitive values.
+            Map result = new HashMap(env);
+            for (Iterator i = result.entrySet().iterator(); i.hasNext();) {
+                Map.Entry e = (Map.Entry) i.next();
+                if (!isInheritable(e))
+                    i.remove();
+            }
+            return result;
+        }
+
+        private boolean isInheritable(Map.Entry e) {
+            if (PARENT_ENV_KEY.equals(e.getKey()))
+                return true;
+
+            Object value = e.getValue();
+            if (value == null || value instanceof String)
+                return true;
+
+            return false;
         }
 
         private class InetAddrHostName {
