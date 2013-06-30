@@ -88,9 +88,9 @@ import net.sourceforge.processdash.ev.WBSTaskOrderComparator;
 import net.sourceforge.processdash.ev.ui.DependencyIndicator;
 import net.sourceforge.processdash.hier.ActiveTaskModel;
 import net.sourceforge.processdash.hier.DashHierarchy;
+import net.sourceforge.processdash.hier.DashHierarchy.Event;
 import net.sourceforge.processdash.hier.DefaultActiveTaskModel;
 import net.sourceforge.processdash.hier.PropertyKey;
-import net.sourceforge.processdash.hier.DashHierarchy.Event;
 import net.sourceforge.processdash.hier.ui.HierarchyEditor;
 import net.sourceforge.processdash.hier.ui.TaskCommenterButton;
 import net.sourceforge.processdash.i18n.LookAndFeelSettings;
@@ -120,6 +120,7 @@ import net.sourceforge.processdash.security.DashboardPermission;
 import net.sourceforge.processdash.security.DashboardSecurity;
 import net.sourceforge.processdash.templates.AutoUpdateManager;
 import net.sourceforge.processdash.templates.DataVersionChecker;
+import net.sourceforge.processdash.templates.ExtensionManager;
 import net.sourceforge.processdash.templates.TemplateLoader;
 import net.sourceforge.processdash.tool.bridge.client.BridgedWorkingDirectory;
 import net.sourceforge.processdash.tool.bridge.client.DirectoryPreferences;
@@ -129,6 +130,7 @@ import net.sourceforge.processdash.tool.bridge.client.WorkingDirectory;
 import net.sourceforge.processdash.tool.bridge.client.WorkingDirectoryFactory;
 import net.sourceforge.processdash.tool.bridge.impl.DatasetAutoMigrator;
 import net.sourceforge.processdash.tool.bridge.impl.JnlpRelauncher;
+import net.sourceforge.processdash.tool.db.DatabasePlugin;
 import net.sourceforge.processdash.tool.export.mgr.ExportManager;
 import net.sourceforge.processdash.tool.export.mgr.ExternalResourceManager;
 import net.sourceforge.processdash.tool.export.mgr.ImportManager;
@@ -208,6 +210,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
     DashboardTimeLog timeLog = null;
     DataRepository data = null;
     WebServer webServer = null;
+    DatabasePlugin databasePlugin = null;
     AutoUpdateManager aum = null;
     ConsoleWindow consoleWindow = new ConsoleWindow();
     ObjectCache objectCache;
@@ -424,6 +427,11 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         activeTaskModel = new DefaultActiveTaskModel(props);
         pt.click("Loaded dashboard hierarchy");
 
+        // create the database plugin
+        maybeCreateDatabasePlugin();
+        if (databasePlugin != null)
+            pt.click("Created the database plugin");
+
         // create the time log
         try {
             this.timeLog = new DashboardTimeLog(new File(property_directory), data, props);
@@ -588,6 +596,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         if (Settings.isFollowMode())
             new FollowModeManager(workingDirectory, props, prop_file,
                     templates, data, timeLog);
+        fireApplicationEvent(ApplicationEventListener.APP_EVENT_STARTED);
         pt.click("Finished initializing Process Dashboard object");
     }
 
@@ -844,6 +853,31 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         propItem.add(String.valueOf(hierChangeCount++));
         data.putValue(DashHierarchy.DATA_REPOSITORY_NAME, propItem);
     }
+
+    private void maybeCreateDatabasePlugin() {
+        try {
+            // create and initialize the database plugin
+            List extensions = ExtensionManager.getExecutableExtensions(
+                DatabasePlugin.EXTENSION_POINT_ID, this);
+            if (extensions != null && !extensions.isEmpty()) {
+                // there should always only be one instance of this extension
+                // point.  If multiple are present, go with the first one
+                DatabasePlugin plugin = (DatabasePlugin) extensions.get(0);
+                plugin.initialize(this);
+                this.databasePlugin = plugin;
+
+                // register the plugin as an element in the data repository
+                ListData dbItem = new ListData();
+                dbItem.add(databasePlugin);
+                data.putValue(DatabasePlugin.DATA_REPOSITORY_NAME, dbItem);
+                data.pinElement(DatabasePlugin.DATA_REPOSITORY_NAME);
+            }
+        } catch (Exception e) {
+            // problem starting database plugin
+            logger.log(Level.SEVERE, "Unable to start the database plugin", e);
+        }
+    }
+
     private Component addToMainWindow(Component component, double weight) {
         return addToMainWindow(component, weight, 0, 2);
     }
@@ -1739,5 +1773,6 @@ public class ProcessDashboard extends JFrame implements WindowListener,
     public DataRepository getData() { return data; }
     public ObjectCache getCache() { return objectCache; }
     public WebServer getWebServer() { return webServer; }
+    public DatabasePlugin getDatabasePlugin() { return databasePlugin; }
 
 }

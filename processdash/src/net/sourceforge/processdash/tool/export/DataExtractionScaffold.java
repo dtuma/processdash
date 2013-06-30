@@ -58,6 +58,7 @@ import net.sourceforge.processdash.net.cache.ObjectCache;
 import net.sourceforge.processdash.net.http.DashboardURLStreamHandlerFactory;
 import net.sourceforge.processdash.net.http.WebServer;
 import net.sourceforge.processdash.templates.TemplateLoader;
+import net.sourceforge.processdash.tool.db.DatabasePlugin;
 import net.sourceforge.processdash.tool.export.mgr.ExternalResourceManager;
 import net.sourceforge.processdash.tool.export.mgr.ImportManager;
 import net.sourceforge.processdash.util.HTTPUtils;
@@ -160,6 +161,10 @@ public class DataExtractionScaffold implements DashboardContext {
 
     public WebServer getWebServer() {
         return webServer;
+    }
+
+    public DatabasePlugin getDatabasePlugin() {
+        return null;
     }
 
     public void tearDown() {
