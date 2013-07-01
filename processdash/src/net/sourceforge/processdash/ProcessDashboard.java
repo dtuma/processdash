@@ -90,6 +90,7 @@ import net.sourceforge.processdash.hier.ActiveTaskModel;
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.DashHierarchy.Event;
 import net.sourceforge.processdash.hier.DefaultActiveTaskModel;
+import net.sourceforge.processdash.hier.Prop;
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.hier.ui.HierarchyEditor;
 import net.sourceforge.processdash.hier.ui.TaskCommenterButton;
@@ -426,6 +427,10 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         data.pinElement(DashHierarchy.DATA_REPOSITORY_NAME);
         activeTaskModel = new DefaultActiveTaskModel(props);
         pt.click("Loaded dashboard hierarchy");
+
+        // Make certain we know whether this dashboard is operating as a
+        // team dashboard or a personal dashboard.
+        configureTeamOrPersonalDatasetMode();
 
         // create the database plugin
         maybeCreateDatabasePlugin();
@@ -822,11 +827,8 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         // retrieve the location of the working directory
         String location = workingDirectory.getDescription();
 
-        // make our best guess about whether this is a personal/team dataset
-        int httpPort = Settings.getInt(HTTP_PORT_SETTING, DEFAULT_WEB_PORT);
-        boolean isTeam = (httpPort != DEFAULT_WEB_PORT);
-
         try {
+            boolean isTeam = Settings.isTeamMode();
             datasetRegistration = RecentDatasets.register(location, isTeam);
             datasetRegistrationElapsedTimestamp = System.currentTimeMillis();
         } catch (Throwable t) {}
@@ -852,6 +854,52 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         propItem.add(props);
         propItem.add(String.valueOf(hierChangeCount++));
         data.putValue(DashHierarchy.DATA_REPOSITORY_NAME, propItem);
+    }
+
+    private void configureTeamOrPersonalDatasetMode() {
+        String mode = Settings.getVal(Settings.DATASET_MODE);
+        if (mode == null) {
+            mode = inferDatasetMode();
+            InternalSettings.set(Settings.DATASET_MODE, mode);
+        }
+    }
+
+    private String inferDatasetMode() {
+        // Look through the hierarchy for existing team/personal projects
+        boolean containsTeamProject = false;
+        boolean containsPersonalProject = false;
+
+        for (Iterator i = props.values().iterator(); i.hasNext();) {
+            Prop p = (Prop) i.next();
+            String templateId = (p == null ? null : p.getID());
+            if (templateId == null)
+                ;
+
+            else if (templateId.endsWith("/TeamRoot")
+                    || templateId.endsWith("/MasterRoot"))
+                containsTeamProject = true;
+
+            else if (templateId.endsWith("/IndivRoot")
+                    || templateId.endsWith("/Indiv2Root")
+                    || templateId.startsWith("PSP"))
+                containsPersonalProject = true;
+        }
+
+        // if we found team/personal projects, infer the mode from their type
+        if (containsTeamProject && containsPersonalProject)
+            return Settings.DATASET_MODE_HYBRID;
+        else if (containsTeamProject)
+            return Settings.DATASET_MODE_TEAM;
+        else if (containsPersonalProject)
+            return Settings.DATASET_MODE_PERSONAL;
+
+        // no team projects were found.  Make our next best guess based on
+        // whether a non-default HTTP port has been configured.
+        int httpPort = Settings.getInt(HTTP_PORT_SETTING, DEFAULT_WEB_PORT);
+        if (httpPort == DEFAULT_WEB_PORT)
+            return Settings.DATASET_MODE_PERSONAL;
+        else
+            return Settings.DATASET_MODE_TEAM;
     }
 
     private void maybeCreateDatabasePlugin() {

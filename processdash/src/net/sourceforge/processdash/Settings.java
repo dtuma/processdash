@@ -1,4 +1,4 @@
-// Copyright (C) 2000-2012 Tuma Solutions, LLC
+// Copyright (C) 2000-2013 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -39,6 +39,10 @@ public class Settings {
     public static final String SYS_PROP_PREFIX = Settings.class.getName() + ".";
     public static final String PREFS_PREFIX = "userPref.";
     public static final String READ_ONLY = "READ_ONLY";
+    protected static final String DATASET_MODE = "datasetMode";
+    protected static final String DATASET_MODE_TEAM = "team";
+    protected static final String DATASET_MODE_PERSONAL = "personal";
+    protected static final String DATASET_MODE_HYBRID = "hybrid";
     protected static Properties settings = null;
     protected static Properties serializable = null, defaults = null;
     protected static Preferences userPreferences =
@@ -182,6 +186,24 @@ public class Settings {
             serializable = results;
         }
         return serializable;
+    }
+
+    /** @since 1.15.5 */
+    public static boolean isTeamMode() {
+        String setting = getVal(DATASET_MODE);
+        return DATASET_MODE_TEAM.equals(setting) || isHybridMode();
+    }
+
+    /** @since 1.15.5 */
+    public static boolean isPersonalMode() {
+        String setting = getVal(DATASET_MODE);
+        return DATASET_MODE_PERSONAL.equals(setting) || isHybridMode();
+    }
+
+    /** @since 1.15.5 */
+    public static boolean isHybridMode() {
+        String setting = getVal(DATASET_MODE);
+        return DATASET_MODE_HYBRID.equals(setting);
     }
 
     public static boolean isFollowMode() {
