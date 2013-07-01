@@ -923,6 +923,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
                 dbItem.add(databasePlugin);
                 data.putValue(DatabasePlugin.DATA_REPOSITORY_NAME, dbItem);
                 data.pinElement(DatabasePlugin.DATA_REPOSITORY_NAME);
+                data.addGlobalDefineDeclarations("#define DATABASE_PLUGIN t");
             }
         } catch (Exception e) {
             // problem starting database plugin

@@ -1,4 +1,4 @@
-// Copyright (C) 1998-2012 Tuma Solutions, LLC
+// Copyright (C) 1998-2013 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -1547,7 +1547,7 @@ public class DataRepository implements Repository, DataContext,
             datafiles, datafilePrefixMap, PathIDMap, IDPathMap,
             dataElementNameSet, defaultDefinitions, defineDeclarations,
             globalDataDefinitions, includedFileCache, mountedPhantomData,
-            PHANTOM_DATAFILES);
+            PHANTOM_DATAFILES, globalDefineDeclarations);
         dataFreezer = null;
         janitor = null;
         dataNotifier = null;
@@ -1560,6 +1560,8 @@ public class DataRepository implements Repository, DataContext,
                 ((Set) f).clear();
             } else if (f instanceof Collection) {
                 ((Collection) f).clear();
+            } else if (f instanceof StringBuffer) {
+                ((StringBuffer) f).setLength(0);
             }
         }
     }
@@ -2806,6 +2808,7 @@ public class DataRepository implements Repository, DataContext,
         String defineDecls = null;
         if (filename != null)
             defineDecls = (String) defineDeclarations.get(filename);
+        defineDecls = prependGlobalDefineDeclarations(defineDecls);
 
         try {
             CppFilterReader readIn = new CppFilterReader(in, defineDecls);
@@ -2853,6 +2856,19 @@ public class DataRepository implements Repository, DataContext,
     public void putDefineDeclarations(String datafile, String decls) {
         defineDeclarations.put(bracket(datafile), decls);
         definitionsDirty = true;
+    }
+
+    /** @since 1.15.5 */
+    public void addGlobalDefineDeclarations(String decls) {
+        globalDefineDeclarations.append(decls).append("\n");
+    }
+    private final StringBuffer globalDefineDeclarations = new StringBuffer();
+    private String prependGlobalDefineDeclarations(String decls) {
+        StringBuilder result = new StringBuilder();
+        result.append(globalDefineDeclarations);
+        if (decls != null)
+            result.append(decls).append("\n");
+        return result.toString();
     }
 
     private final Hashtable defaultDefinitions = new Hashtable();
