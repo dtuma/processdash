@@ -794,7 +794,7 @@ Authors:
       <arg value="-Dfile=${dist}/pspdash.jar"/>
       <arg value="-DgroupId=net.sourceforce.processdash"/>
       <arg value="-DartifactId=pdash-full"/>
-      <arg value="-Dversion=${dashboard.version}"/>
+      <arg value="-Dversion=SNAPSHOT"/>
       <arg value="-Dpackaging=jar"/>
       <arg value="-DgeneratePom=true"/>
     </exec>
