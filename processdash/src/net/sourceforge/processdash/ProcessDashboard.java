@@ -903,6 +903,10 @@ public class ProcessDashboard extends JFrame implements WindowListener,
     }
 
     private void maybeCreateDatabasePlugin() {
+        // only start the database plugin for team dashboard datasets
+        if (Settings.isTeamMode() == false)
+            return;
+
         try {
             // create and initialize the database plugin
             List extensions = ExtensionManager.getExecutableExtensions(
