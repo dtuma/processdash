@@ -27,6 +27,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import net.sourceforge.processdash.data.DateData;
 import net.sourceforge.processdash.data.DoubleData;
@@ -114,6 +116,11 @@ public abstract class DbAbstractFunction extends AbstractFunction {
         for (String s : suffix)
             query.append(" ").append(s);
 
+        // if we know that the query won't return any result, don't bother
+        // running it against the database.
+        if (query.indexOf(IMPOSSIBLE_CONDITION) != -1)
+            return new ArrayList();
+
         // run the query
         Object[] queryArgArray = queryArgs.toArray();
         List result = queryRunner.queryHql(query.toString(), queryArgArray);
@@ -122,12 +129,15 @@ public abstract class DbAbstractFunction extends AbstractFunction {
 
     protected void addCriteriaToHQL(String entityName, StringBuilder query,
             List queryArgs, List criteria) {
+        criteria = new ArrayList(criteria);
         while (!criteria.isEmpty()) {
             String key = asString(criteria.remove(0));
 
             if (PROJECT_CRITERIA.equals(key)) {
                 addProjectCriteriaToHQL(entityName, query, queryArgs, criteria);
-            } else {
+            } else if (WBS_CRITERIA.equals(key)) {
+                addWbsCriteriaToHQL(entityName, query, queryArgs, criteria);
+            } else if (key != null) {
                 logger.warning("Unrecognized query criteria " + key);
             }
         }
@@ -140,8 +150,8 @@ public abstract class DbAbstractFunction extends AbstractFunction {
 
         List<Integer> projectKeys = extractIntegers(criteria);
         if (projectKeys.isEmpty()) {
-            // project keys missing? Add an always-false criteria
-            query.append(" and 1 == 0");
+            // no such project? Add an always-false criteria
+            query.append(IMPOSSIBLE_CONDITION);
 
         } else if (projectKeys.size() == 1) {
             // one project key? Add a simple equality criteria
@@ -155,6 +165,33 @@ public abstract class DbAbstractFunction extends AbstractFunction {
                     .append(".planItem.project.key in (?)");
             queryArgs.add(projectKeys);
         }
+    }
+
+    private static final String WBS_CRITERIA = "##WBS Element";
+
+    private void addWbsCriteriaToHQL(String entityName, StringBuilder query,
+            List queryArgs, List criteria) {
+
+        List<Integer> wbsKeyList = extractIntegers(criteria);
+        Integer wbsKey = null;
+        if (!wbsKeyList.isEmpty())
+            wbsKey = wbsKeyList.get(0);
+        if (wbsKey == null)
+            // no WBS filter in effect? Don't add any criteria.
+            return;
+
+        if (wbsKey < 0) {
+            // No such WBS element? Add an always-false criteria
+            query.append(IMPOSSIBLE_CONDITION);
+            return;
+        }
+
+        int fromEndPos = getFromKeywordEndPos(query);
+        query.insert(fromEndPos, " WbsElementBridge wbsBridge, ");
+        query.append(" and wbsBridge.key.parent.key = ?")
+                .append(" and wbsBridge.key.child = ") //
+                .append(entityName).append(".planItem.wbsElement");
+        queryArgs.add(wbsKey);
     }
 
 
@@ -173,4 +210,17 @@ public abstract class DbAbstractFunction extends AbstractFunction {
         return result;
     }
 
+    private int getFromKeywordEndPos(StringBuilder query) {
+        Matcher m = FROM_KEYWORD_PAT.matcher(query);
+        if (m.find())
+            return m.end();
+        else
+            throw new IllegalArgumentException(
+                    "No 'from' clause found in query '" + query + "'");
+    }
+
+    private static final Pattern FROM_KEYWORD_PAT = Pattern.compile(
+        "\\bfrom\\b", Pattern.CASE_INSENSITIVE);
+
+    private static final String IMPOSSIBLE_CONDITION = " and 1 = 0 ";
 }
