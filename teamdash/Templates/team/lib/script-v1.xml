@@ -183,6 +183,7 @@
     <file in="rollup_dataFile.txt">
         <param name="PID" replace="true" value="<!--#echo Process_ID -->"/>
     </file>
+    <file in="database_rollup.txt" />
 
     <!-- core datafile that describes the data structure of the process -->
     <file in="prototype_dataFile.txt" encoding="data"

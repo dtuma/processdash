@@ -99,10 +99,12 @@ undefine([Historical Data Tag]);
 
 <!--#endfor--><!--#endfor-->
 
+[Before Development/Estimated Defects Injected] == 0;
 [Before Development/Defects Injected] =
     sumFor("Before Development/Defects Injected", [Unadorned_Rollup_List]) +
     sumFor("PID /Before Development/Defects Injected",
            [Namespaced_Rollup_List]);
+[After Development/Estimated Defects Removed] == 0;
 [After Development/Defects Removed] =
     sumFor("After Development/Defects Removed", [Unadorned_Rollup_List]) +
     sumFor("PID /After Development/Defects Removed", [Namespaced_Rollup_List]);
