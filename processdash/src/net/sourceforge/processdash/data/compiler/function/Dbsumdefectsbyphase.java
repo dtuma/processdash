@@ -42,7 +42,7 @@ public class Dbsumdefectsbyphase extends DbAbstractFunction {
      */
     @SuppressWarnings("unused")
     public Object call(List arguments, ExpressionContext context) {
-        String processId = asStringVal(arguments.get(0));
+        String processId = asStringVal(getArg(arguments, 0));
         List criteria = collapseLists(arguments, 1);
 
         try {

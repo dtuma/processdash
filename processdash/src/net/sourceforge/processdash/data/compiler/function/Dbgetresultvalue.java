@@ -28,6 +28,7 @@ import java.util.List;
 import net.sourceforge.processdash.data.DoubleData;
 import net.sourceforge.processdash.data.ImmutableDoubleData;
 import net.sourceforge.processdash.data.ResultSetData;
+import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.compiler.ExpressionContext;
 import net.sourceforge.processdash.util.NullSafeObjectUtils;
 
@@ -51,7 +52,7 @@ public class Dbgetresultvalue extends DbAbstractFunction {
      * rows and add their values together.
      */
     public Object call(List arguments, ExpressionContext context) {
-        Object arg0 = arguments.get(0);
+        SimpleData arg0 = getArg(arguments, 0);
         if (!(arg0 instanceof ResultSetData))
             return null;
 
