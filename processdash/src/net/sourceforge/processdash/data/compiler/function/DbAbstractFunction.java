@@ -137,6 +137,8 @@ public abstract class DbAbstractFunction extends AbstractFunction {
                 addProjectCriteriaToHQL(entityName, query, queryArgs, criteria);
             } else if (WBS_CRITERIA.equals(key)) {
                 addWbsCriteriaToHQL(entityName, query, queryArgs, criteria);
+            } else if (LABEL_CRITERIA.equals(key)) {
+                addLabelCriteriaToHQL(entityName, query, queryArgs, criteria);
             } else if (key != null) {
                 logger.warning("Unrecognized query criteria " + key);
             }
@@ -172,15 +174,12 @@ public abstract class DbAbstractFunction extends AbstractFunction {
     private void addWbsCriteriaToHQL(String entityName, StringBuilder query,
             List queryArgs, List criteria) {
 
-        List<Integer> wbsKeyList = extractIntegers(criteria);
-        Integer wbsKey = null;
-        if (!wbsKeyList.isEmpty())
-            wbsKey = wbsKeyList.get(0);
-        if (wbsKey == null)
+        Integer wbsKey = extractInteger(criteria);
+        if (wbsKey == null) {
             // no WBS filter in effect? Don't add any criteria.
             return;
 
-        if (wbsKey < 0) {
+        } else if (wbsKey < 0) {
             // No such WBS element? Add an always-false criteria
             query.append(IMPOSSIBLE_CONDITION);
             return;
@@ -194,6 +193,36 @@ public abstract class DbAbstractFunction extends AbstractFunction {
         queryArgs.add(wbsKey);
     }
 
+    private static final String LABEL_CRITERIA = "##Label Group";
+
+    private void addLabelCriteriaToHQL(String entityName, StringBuilder query,
+            List queryArgs, List criteria) {
+
+        Integer labelGroupKey = extractInteger(criteria);
+        if (labelGroupKey == null) {
+            // no label filter? Don't add any criteria
+            return;
+        } else if (labelGroupKey < 0) {
+            // No matching labels? Add an always-false criteria
+            query.append(IMPOSSIBLE_CONDITION);
+            return;
+        }
+
+        int fromEndPos = getFromKeywordEndPos(query);
+        query.insert(fromEndPos, " StudyGroup studyGroup, ");
+        query.append(" and studyGroup.item.group = ?")
+                .append(" and studyGroup.item.member = ") //
+                .append(entityName).append(".planItem.key");
+        queryArgs.add(labelGroupKey);
+    }
+
+    private Integer extractInteger(List criteria) {
+        List<Integer> result = extractIntegers(criteria);
+        if (result.isEmpty())
+            return null;
+        else
+            return result.get(0);
+    }
 
     private List<Integer> extractIntegers(List criteria) {
         List<Integer> result = new ArrayList();
@@ -209,6 +238,7 @@ public abstract class DbAbstractFunction extends AbstractFunction {
         }
         return result;
     }
+
 
     private int getFromKeywordEndPos(StringBuilder query) {
         Matcher m = FROM_KEYWORD_PAT.matcher(query);
