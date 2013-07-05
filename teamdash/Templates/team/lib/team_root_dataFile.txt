@@ -50,6 +50,7 @@ undefine([Simple Project Tag]);
    [Rollup_Uses_In_Place_WBS_Filter] && [Project_WBS_ID//Relative_Path_Filter],
    [Project_ID] &/ [Project_WBS_ID//Relative_Path_Filter], [Project_ID]);
 
+[Project_WBS_Subpath] = "";
 [Sync_Project_Root_Only] = ([Export_Max_Node_Depth] == 0);
 [Rollup_Uses_In_Place_WBS_Filter] = [Sync_Project_Root_Only];
 

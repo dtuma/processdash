@@ -30,3 +30,12 @@ undefine([Simple Project Tag]);
     "(!defined([{Filtered_Task_Labels}]) \
         || intersects([{Filtered_Task_Labels}], [EV_Task_IDs])) \
      && match([{Rollup_Filter_Regexp}], [Project_WBS_ID])";
+
+
+/*
+ * Possibly rewrite rollup calculations to work against the database.
+ */
+[DB_Project_ID_List] == [Subproject_WBS_ID_List];
+[DB_WBS_Relative_Path] = [Project_WBS_Subpath];
+
+<!--#include file="/team/lib/database_rollup_incl.txt" parse="t" -->

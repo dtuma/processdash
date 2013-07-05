@@ -9,19 +9,11 @@ undefine([Simple Project Tag]);
 
 [Individuals_Using_Stubless_Phases] = true;
 
-#ifdef DATABASE_PLUGIN
 
+/*
+ * Possibly rewrite rollup calculations to work against the database.
+ */
 [DB_Project_ID_List] == [Project_ID];
 [DB_WBS_Relative_Path] = [Project_WBS_ID//Relative_Path_Filter];
 
-#include <<!--#echo Process_ID -->/database_rollup.txt>
-
-undefine([Namespaced_Rollup_List], 
-<!--#foreach name=Phase list=Phase_List #-->
-    [Namespaced_Rollup_List/<!--#echo Phase_Name -->],
-<!--#endfor-->
-    [Namespaced_Rollup_List/Uncategorized],
-    [Unadorned_Rollup_List],
-    [Printable_Rollup_List]);
-
-#endif
+<!--#include file="/team/lib/database_rollup_incl.txt" parse="t" -->

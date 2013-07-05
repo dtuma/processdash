@@ -10,9 +10,8 @@
 
 [DB_WBS_Key] = dbLookupWbsElement([DB_WBS_Relative_Path]);
 
-[DB_Label_Group] = iff([Label//Filter],
-    dbLabelFilterGroup([DB_Project_Keys], [Filtered_Task_Labels]),
-    null);
+[DB_Label_Group] = iff(!defined([Filtered_Task_Labels]), null,
+    dbLabelFilterGroup([DB_Project_Keys], [Filtered_Task_Labels]));
 
 
 [DB_Filter_Criteria] = list(

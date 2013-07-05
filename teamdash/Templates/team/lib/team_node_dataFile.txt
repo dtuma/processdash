@@ -10,6 +10,7 @@ undefine([Simple Project Tag]);
 
 [Project_Path_Prefix] = [../Project_Path_Prefix];
 [Project_WBS_ID] = [../Project_WBS_ID] &/ pathTail([^]);
+[Project_WBS_Subpath] = [../Project_WBS_Subpath] &/ pathTail([^]);
 [Filtered_Task_Labels] = [../Filtered_Task_Labels];
 [Phase_Display_Filter_List] = [../Phase_Display_Filter_List];
 [Rollup_Namespaced_Phase_Metrics] = [../Rollup_Namespaced_Phase_Metrics];
@@ -26,3 +27,12 @@ undefine([Simple Project Tag]);
         || intersects([{Filtered_Task_Labels}], [EV_Task_IDs])) \
      && ([Project_WBS_ID] == [{Project_WBS_ID}] \
         || startsWith([{Project_WBS_ID}] & \"/\", [Project_WBS_ID]))";
+
+
+/*
+ * Possibly rewrite rollup calculations to work against the database.
+ */
+[DB_Project_ID_List] = inherit("Project_ID");
+[DB_WBS_Relative_Path] = [Project_WBS_Subpath];
+
+<!--#include file="/team/lib/database_rollup_incl.txt" parse="t" -->
