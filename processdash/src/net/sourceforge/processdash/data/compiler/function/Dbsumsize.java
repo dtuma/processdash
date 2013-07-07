@@ -44,8 +44,7 @@ public class Dbsumsize extends DbAbstractFunction {
         List criteria = collapseLists(arguments, 0);
 
         try {
-            List rawData = queryHql(context, BASE_QUERY, "f", criteria,
-                GROUP_BY_CLAUSE);
+            List rawData = queryHql(context, BASE_QUERY, "f", criteria);
             return new ResultSetData(rawData, COLUMN_NAMES);
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Unexpected error while calculating", e);
@@ -67,9 +66,7 @@ public class Dbsumsize extends DbAbstractFunction {
             + "sum(f.addedAndModifiedSize), " //
             + "sum(f.totalSize) " //
             + "from SizeFact f " //
-            + "where f.versionInfo.current = 1";
-
-    private static final String GROUP_BY_CLAUSE = //
-            "group by f.sizeMetric.shortName, f.measurementType.name";
+            + "where f.versionInfo.current = 1 " //
+            + "group by f.sizeMetric.shortName, f.measurementType.name";
 
 }

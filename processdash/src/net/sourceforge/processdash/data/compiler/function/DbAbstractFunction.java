@@ -27,19 +27,17 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.logging.Logger;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import net.sourceforge.processdash.data.DateData;
 import net.sourceforge.processdash.data.DoubleData;
 import net.sourceforge.processdash.data.ListData;
-import net.sourceforge.processdash.data.NumberData;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.StringData;
 import net.sourceforge.processdash.data.compiler.AbstractFunction;
 import net.sourceforge.processdash.data.compiler.ExpressionContext;
 import net.sourceforge.processdash.tool.db.DatabasePlugin;
 import net.sourceforge.processdash.tool.db.QueryRunner;
+import net.sourceforge.processdash.tool.db.QueryUtils;
 
 public abstract class DbAbstractFunction extends AbstractFunction {
 
@@ -97,13 +95,10 @@ public abstract class DbAbstractFunction extends AbstractFunction {
      * @param criteria
      *            a list of search criteria indicating the project, WBS, and
      *            label filter that we should apply to narrow this query
-     * @param suffix
-     *            any optional items that should be appended to the end of the
-     *            query (such as GROUP BY clauses)
      * @return the results of the HQL query
      */
     protected List queryHql(ExpressionContext context, String baseQuery,
-            String entityName, List criteria, String... suffix) {
+            String entityName, List criteria) {
         // get the object for executing database queries
         QueryRunner queryRunner = getDbObject(context, QueryRunner.class);
         if (queryRunner == null)
@@ -112,13 +107,11 @@ public abstract class DbAbstractFunction extends AbstractFunction {
         // build the effective query and associated argument list
         StringBuilder query = new StringBuilder(baseQuery);
         List queryArgs = new ArrayList();
-        addCriteriaToHQL(entityName, query, queryArgs, criteria);
-        for (String s : suffix)
-            query.append(" ").append(s);
+        QueryUtils.addCriteriaToHql(query, entityName, queryArgs, criteria);
 
         // if we know that the query won't return any result, don't bother
         // running it against the database.
-        if (query.indexOf(IMPOSSIBLE_CONDITION) != -1)
+        if (query.indexOf(QueryUtils.IMPOSSIBLE_CONDITION) != -1)
             return new ArrayList();
 
         // run the query
@@ -127,130 +120,4 @@ public abstract class DbAbstractFunction extends AbstractFunction {
         return result;
     }
 
-    protected void addCriteriaToHQL(String entityName, StringBuilder query,
-            List queryArgs, List criteria) {
-        criteria = new ArrayList(criteria);
-        while (!criteria.isEmpty()) {
-            String key = asString(criteria.remove(0));
-
-            if (PROJECT_CRITERIA.equals(key)) {
-                addProjectCriteriaToHQL(entityName, query, queryArgs, criteria);
-            } else if (WBS_CRITERIA.equals(key)) {
-                addWbsCriteriaToHQL(entityName, query, queryArgs, criteria);
-            } else if (LABEL_CRITERIA.equals(key)) {
-                addLabelCriteriaToHQL(entityName, query, queryArgs, criteria);
-            } else if (key != null) {
-                logger.warning("Unrecognized query criteria " + key);
-            }
-        }
-    }
-
-    private static final String PROJECT_CRITERIA = "##Project in";
-
-    private void addProjectCriteriaToHQL(String entityName,
-            StringBuilder query, List queryArgs, List criteria) {
-
-        List<Integer> projectKeys = extractIntegers(criteria);
-        if (projectKeys.isEmpty()) {
-            // no such project? Add an always-false criteria
-            query.append(IMPOSSIBLE_CONDITION);
-
-        } else if (projectKeys.size() == 1) {
-            // one project key? Add a simple equality criteria
-            query.append(" and ").append(entityName)
-                    .append(".planItem.project.key = ?");
-            queryArgs.add(projectKeys.get(0));
-
-        } else {
-            // for multiple project keys, use an "in" clause
-            query.append(" and ").append(entityName)
-                    .append(".planItem.project.key in (?)");
-            queryArgs.add(projectKeys);
-        }
-    }
-
-    private static final String WBS_CRITERIA = "##WBS Element";
-
-    private void addWbsCriteriaToHQL(String entityName, StringBuilder query,
-            List queryArgs, List criteria) {
-
-        Integer wbsKey = extractInteger(criteria);
-        if (wbsKey == null) {
-            // no WBS filter in effect? Don't add any criteria.
-            return;
-
-        } else if (wbsKey < 0) {
-            // No such WBS element? Add an always-false criteria
-            query.append(IMPOSSIBLE_CONDITION);
-            return;
-        }
-
-        int fromEndPos = getFromKeywordEndPos(query);
-        query.insert(fromEndPos, " WbsElementBridge wbsBridge, ");
-        query.append(" and wbsBridge.key.parent.key = ?")
-                .append(" and wbsBridge.key.child = ") //
-                .append(entityName).append(".planItem.wbsElement");
-        queryArgs.add(wbsKey);
-    }
-
-    private static final String LABEL_CRITERIA = "##Label Group";
-
-    private void addLabelCriteriaToHQL(String entityName, StringBuilder query,
-            List queryArgs, List criteria) {
-
-        Integer labelGroupKey = extractInteger(criteria);
-        if (labelGroupKey == null) {
-            // no label filter? Don't add any criteria
-            return;
-        } else if (labelGroupKey < 0) {
-            // No matching labels? Add an always-false criteria
-            query.append(IMPOSSIBLE_CONDITION);
-            return;
-        }
-
-        int fromEndPos = getFromKeywordEndPos(query);
-        query.insert(fromEndPos, " StudyGroup studyGroup, ");
-        query.append(" and studyGroup.item.group = ?")
-                .append(" and studyGroup.item.member = ") //
-                .append(entityName).append(".planItem.key");
-        queryArgs.add(labelGroupKey);
-    }
-
-    private Integer extractInteger(List criteria) {
-        List<Integer> result = extractIntegers(criteria);
-        if (result.isEmpty())
-            return null;
-        else
-            return result.get(0);
-    }
-
-    private List<Integer> extractIntegers(List criteria) {
-        List<Integer> result = new ArrayList();
-        while (!criteria.isEmpty()) {
-            Object next = criteria.get(0);
-            if (next instanceof NumberData) {
-                Integer value = ((NumberData) next).getInteger();
-                result.add(value);
-                criteria.remove(0);
-            } else {
-                break;
-            }
-        }
-        return result;
-    }
-
-
-    private int getFromKeywordEndPos(StringBuilder query) {
-        Matcher m = FROM_KEYWORD_PAT.matcher(query);
-        if (m.find())
-            return m.end();
-        else
-            throw new IllegalArgumentException(
-                    "No 'from' clause found in query '" + query + "'");
-    }
-
-    private static final Pattern FROM_KEYWORD_PAT = Pattern.compile(
-        "\\bfrom\\b", Pattern.CASE_INSENSITIVE);
-
-    private static final String IMPOSSIBLE_CONDITION = " and 1 = 0 ";
 }

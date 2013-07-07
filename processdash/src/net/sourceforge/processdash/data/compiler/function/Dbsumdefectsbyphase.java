@@ -46,10 +46,8 @@ public class Dbsumdefectsbyphase extends DbAbstractFunction {
         List criteria = collapseLists(arguments, 1);
 
         try {
-            List result = queryHql(context, BASE_INJ_QUERY, "f", criteria,
-                INJ_GROUP_BY_CLAUSE);
-            result.addAll(queryHql(context, BASE_REM_QUERY, "f", criteria,
-                REM_GROUP_BY_CLAUSE));
+            List result = queryHql(context, BASE_INJ_QUERY, "f", criteria);
+            result.addAll(queryHql(context, BASE_REM_QUERY, "f", criteria));
             return new ResultSetData(result, COLUMN_NAMES);
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Unexpected error while calculating", e);
@@ -64,19 +62,15 @@ public class Dbsumdefectsbyphase extends DbAbstractFunction {
             + "'Injected', " //
             + "sum(f.fixCount) " //
             + "from DefectLogFact f " //
-            + "where f.versionInfo.current = 1";
-
-    private static final String INJ_GROUP_BY_CLAUSE = //
-            "group by f.injectedPhase.shortName";
+            + "where f.versionInfo.current = 1 " //
+            + "group by f.injectedPhase.shortName";
 
     private static final String BASE_REM_QUERY = "select " //
             + "f.removedPhase.shortName, " //
             + "'Removed', " //
             + "sum(f.fixCount) " //
             + "from DefectLogFact f " //
-            + "where f.versionInfo.current = 1";
-
-    private static final String REM_GROUP_BY_CLAUSE = //
-            "group by f.removedPhase.shortName";
+            + "where f.versionInfo.current = 1 " //
+            + "group by f.removedPhase.shortName";
 
 }

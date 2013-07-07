@@ -46,8 +46,7 @@ public class Dbsumtimebyphase extends DbAbstractFunction {
         List criteria = collapseLists(arguments, 1);
 
         try {
-            List rawData = queryHql(context, BASE_QUERY, "f", criteria,
-                GROUP_BY_CLAUSE);
+            List rawData = queryHql(context, BASE_QUERY, "f", criteria);
             return new ResultSetData(rawData, COLUMN_NAMES);
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Unexpected error while calculating", e);
@@ -62,9 +61,7 @@ public class Dbsumtimebyphase extends DbAbstractFunction {
             + "sum(f.planTimeMin), " //
             + "sum(f.actualTimeMin) " //
             + "from TaskStatusFact f " //
-            + "where f.versionInfo.current = 1";
-
-    private static final String GROUP_BY_CLAUSE = //
-            "group by f.planItem.phase.shortName";
+            + "where f.versionInfo.current = 1 " //
+            + "group by f.planItem.phase.shortName";
 
 }
