@@ -123,10 +123,8 @@ public class sync extends TinyCGIBase {
     private boolean promptForPspToDateSubset;
     /** An HTML element that can be used to select a PSP subset */
     private String pspSubsetSelector;
-
-
-    private static String ENABLE_SYNC_LOGGING = Settings
-            .getVal("syncWBS.enableLogging", "forDelete");
+    /** Flag determining whether we should log detailed debugging info */
+    private String enableSyncLogging;
 
 
     public sync() {
@@ -345,6 +343,9 @@ public class sync extends TinyCGIBase {
             // sync; this functionality is obsolete and only causes problems now.
             fullCopyMode = false;
         }
+
+        // check to see if sync logging is desired
+        enableSyncLogging = Settings.getVal("syncWBS.enableLogging", null);
     }
 
 
@@ -524,7 +525,7 @@ public class sync extends TinyCGIBase {
         if (parameters.containsKey(TriggerURI.IS_TRIGGERING)
                 || parameters.containsKey(BRIEF_PARAM))
             synch.setWhatIfBrief(true);
-        else if (ENABLE_SYNC_LOGGING != null)
+        else if (enableSyncLogging != null)
             synch.enableDebugLogging();
 
         synch.sync();
@@ -850,10 +851,10 @@ public class sync extends TinyCGIBase {
     private void maybeDumpDebugLog(HierarchySynchronizer synch) {
         String prefix = null;
 
-        if ("always".equalsIgnoreCase(ENABLE_SYNC_LOGGING)) {
+        if ("always".equalsIgnoreCase(enableSyncLogging)) {
             prefix = "sync-debug-";
 
-        } else if ("forDelete".equalsIgnoreCase(ENABLE_SYNC_LOGGING)) {
+        } else if ("forDelete".equalsIgnoreCase(enableSyncLogging)) {
             int delTaskCount = synch.getTaskDeletions().size()
                     + synch.getTaskCompletions().size();
             if (delTaskCount > 5)
