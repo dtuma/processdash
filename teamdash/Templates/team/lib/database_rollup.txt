@@ -2,6 +2,9 @@
 // Data file that redefines rollup calculations to use the database
 //
 
+[Database-Driven Rollup Tag] = tag;
+
+
 /*
  * Calculate values that help us to determine the filter that is in
  * effect for this rollup
