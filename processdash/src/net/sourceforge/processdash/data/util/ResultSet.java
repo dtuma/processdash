@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2009 Tuma Solutions, LLC
+// Copyright (C) 2001-2013 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -106,7 +106,7 @@ public class ResultSet {
         return result;
     }
 
-    private String asString(Object o) {
+    private static String asString(Object o) {
         return (o == null) ? null : o.toString();
     }
 
@@ -684,7 +684,7 @@ public class ResultSet {
                                          prefix);
         int i = list.size();
         String [] result = new String[i];
-        while (i-- > 0) result[i] = (String) list.get(i);
+        while (i-- > 0) result[i] = asString(list.get(i));
         return result;
     }
 

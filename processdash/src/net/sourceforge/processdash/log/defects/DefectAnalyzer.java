@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2010 Tuma Solutions, LLC
+// Copyright (C) 2001-2013 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -28,12 +28,15 @@ import java.util.Map;
 
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.DataContext;
+import net.sourceforge.processdash.data.ListData;
 import net.sourceforge.processdash.data.TagData;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.data.util.ResultSet;
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.Prop;
 import net.sourceforge.processdash.hier.PropertyKey;
+import net.sourceforge.processdash.tool.db.DatabasePlugin;
+import net.sourceforge.processdash.tool.db.QueryUtils;
 
 
 public class DefectAnalyzer {
@@ -50,15 +53,38 @@ public class DefectAnalyzer {
 
     public static final String NO_CHILDREN_PARAM = "noChildren";
 
+    public static final String DB_MODE_PARAM = "dbMode";
+
+
     public static void run(DashHierarchy props,
                            DataRepository data,
                            String prefix,
                            Map queryParameters,
                            Task t) {
-        String [] prefixes = ResultSet.getPrefixList
-            (data, queryParameters, prefix);
-        boolean includeChildren = !queryParameters.containsKey(NO_CHILDREN_PARAM);
-        run(props, data, prefixes, includeChildren, t);
+
+        if (queryParameters.containsKey(DB_MODE_PARAM)) {
+            DatabasePlugin plugin = QueryUtils.getDatabasePlugin(data);
+            ListData criteria = getDatabaseCriteria(data, prefix,
+                queryParameters);
+            if (plugin != null && criteria != null)
+                ImportedDefectManager.run(plugin, criteria.asList(), t);
+
+        } else {
+            String [] prefixes = ResultSet.getPrefixList
+                    (data, queryParameters, prefix);
+            boolean includeChildren = !queryParameters.containsKey(NO_CHILDREN_PARAM);
+            run(props, data, prefixes, includeChildren, t);
+        }
+    }
+
+    private static ListData getDatabaseCriteria(DataRepository data,
+            String prefix, Map queryParameters) {
+        String dataName = (String) queryParameters.get("for");
+        if (dataName.startsWith("[") && dataName.endsWith("]"))
+            dataName = dataName.substring(1, dataName.length() - 1);
+        dataName = DataRepository.createDataName(prefix, dataName);
+        ListData criteria = ListData.asListData(data.getSimpleValue(dataName));
+        return criteria;
     }
 
     public static void run(DashHierarchy props, DataRepository data,
@@ -147,7 +173,10 @@ public class DefectAnalyzer {
         if (!"auto".equals(parameters.get("for")))
             return;
 
-        if (hasTag(data, "Rollup Tag")) {
+        if (hasTag(data, "Database-Driven Rollup Tag")) {
+            parameters.put("for", "[DB_Filter_Criteria]");
+            parameters.put(DB_MODE_PARAM, "t");
+        } else if (hasTag(data, "Rollup Tag")) {
             parameters.put("for", "[Rollup_List]");
             if (hasTag(data, "Historical Data Tag"))
                 parameters.put("order", "Completed");

@@ -29,6 +29,8 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import net.sourceforge.processdash.data.DataContext;
+import net.sourceforge.processdash.data.ListData;
 import net.sourceforge.processdash.data.NumberData;
 import net.sourceforge.processdash.data.SimpleData;
 
@@ -47,12 +49,24 @@ public class QueryUtils {
     private static Logger logger = Logger.getLogger(QueryUtils.class
             .getName());
 
-    public static void addCriteriaToHql(StringBuilder query, String entityName,
+    public static DatabasePlugin getDatabasePlugin(DataContext data) {
+        ListData pluginItem = (ListData) data
+                .getValue(DatabasePlugin.DATA_REPOSITORY_NAME);
+        if (pluginItem == null)
+            return null;
+        else
+            return (DatabasePlugin) pluginItem.get(0);
+    }
+
+    public static List addCriteriaToHql(StringBuilder query, String entityName,
             List queryArgs, List criteria) {
+        // create a query argument list if one was not provided.
+        if (queryArgs == null)
+            queryArgs = new ArrayList();
 
         // if there are no criteria to add, do nothing.
         if (criteria == null || criteria.isEmpty())
-            return;
+            return queryArgs;
 
         // split the query in two parts, so the first part ends with the
         // keyword "WHERE" and a space. this will make it simpler to append
@@ -79,8 +93,10 @@ public class QueryUtils {
 
         // add the final (split) portion of the query back.
         query.append(trailingQueryPart);
-
         logger.finest("Constructed query: " + query);
+
+        // return the query args list
+        return queryArgs;
     }
 
     private static List maybeSplitQueryArgs(List queryArgs,
@@ -181,17 +197,22 @@ public class QueryUtils {
         List<Integer> result = new ArrayList();
         while (!criteria.isEmpty()) {
             Object next = criteria.get(0);
+            Integer value = null;
             if (next instanceof Number) {
-                Integer value = ((Number) next).intValue();
-                result.add(value);
-                criteria.remove(0);
+                value = ((Number) next).intValue();
             } else if (next instanceof NumberData) {
-                Integer value = ((NumberData) next).getInteger();
-                result.add(value);
-                criteria.remove(0);
+                value = ((NumberData) next).getInteger();
+            } else if (next instanceof String) {
+                try {
+                    value = (int) Double.parseDouble((String) next);
+                } catch (Exception e) {
+                    break;
+                }
             } else {
                 break;
             }
+            result.add(value);
+            criteria.remove(0);
         }
         return result;
     }
