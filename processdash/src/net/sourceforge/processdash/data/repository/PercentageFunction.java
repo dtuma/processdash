@@ -23,52 +23,24 @@
 
 package net.sourceforge.processdash.data.repository;
 
-import java.util.Vector;
-
-import net.sourceforge.processdash.data.DoubleData;
 import net.sourceforge.processdash.data.MalformedValueException;
-import net.sourceforge.processdash.data.NumberData;
+import net.sourceforge.processdash.data.compiler.CompiledScript;
+import net.sourceforge.processdash.data.compiler.Compiler;
 
 
-class PercentageFunction extends DoubleData implements DataListener {
+class PercentageFunction extends CompiledFunction {
 
     public static final String PERCENTAGE_FLAG = "/%/";
 
-    String myName, numeratorName, denominatorName;
-    double numeratorValue, denominatorValue;
-    DataRepository data;
-
-
-    public PercentageFunction(String name, String params, String saveAs,
-                              DataRepository r, String prefix)
-        throws MalformedValueException
-    {
-        this(name, r);
-    }
 
     public PercentageFunction(String name, DataRepository r)
         throws MalformedValueException
     {
-        super(Double.NaN, false);
-        //System.err.println("Autocreating " + name);
-        data = r;
-
-        try {
-            parseName(name);
-        } catch (MalformedValueException mve) {
-            throw mve;
-        } catch (Exception e) {
-            throw new MalformedValueException(e.toString());
-        }
-
-        numeratorValue = denominatorValue = Double.NaN;
-        data.addActiveDataListener(numeratorName, this, name);
-        data.addActiveDataListener(denominatorName, this, name);
-
-        myName = name;
+        super(name, compileScript(name), r, "");
     }
 
-    private void parseName(String name) throws MalformedValueException {
+    private static CompiledScript compileScript(String name)
+            throws MalformedValueException {
         int flagPos = name.indexOf(PERCENTAGE_FLAG);
         if (flagPos <= 0)
             throw new MalformedValueException
@@ -77,7 +49,8 @@ class PercentageFunction extends DoubleData implements DataListener {
 
         String dataName = name.substring(flagPos + PERCENTAGE_FLAG.length());
         String childPrefix = name.substring(0, flagPos);
-        numeratorName = DataRepository.createDataName(childPrefix, dataName);
+        String numeratorName = DataRepository.createDataName(childPrefix,
+            dataName);
 
         int slashPos = childPrefix.lastIndexOf('/');
         if (slashPos == -1)
@@ -85,58 +58,12 @@ class PercentageFunction extends DoubleData implements DataListener {
                 ("PercentageFunction: '" + name + "' does not have a parent.");
 
         String parentPrefix = name.substring(0, slashPos);
-        denominatorName = DataRepository.createDataName(parentPrefix,dataName);
+        String denominatorName = DataRepository.createDataName(parentPrefix,
+            dataName);
+
+        return Compiler.divisionExpr(numeratorName, denominatorName);
     }
 
-
-    public void dataValuesChanged(Vector v) {
-        if (v == null || v.size() == 0) return;
-        for (int i = 0;  i < v.size();  i++)
-            dataValueChanged((DataEvent) v.elementAt(i));
-    }
-
-    public void dataValueChanged(DataEvent e) {
-        if (e.getName().equals(numeratorName))
-            numeratorValue = getDoubleValue(e);
-        else if (e.getName().equals(denominatorName))
-            denominatorValue = getDoubleValue(e);
-        else
-            return;
-
-        if (Double.isNaN(numeratorValue) || Double.isNaN(denominatorValue))
-            value = Double.NaN;
-        else if (Double.isInfinite(numeratorValue) ||
-                 Double.isInfinite(denominatorValue) ||
-                 denominatorValue == 0)
-            value = Double.POSITIVE_INFINITY;
-        else
-            value = numeratorValue / denominatorValue;
-
-        if (myName != null)
-            data.valueRecalculated(myName, this);
-    }
-
-    private double getDoubleValue(DataEvent e) {
-        if (e.getValue() instanceof NumberData)
-            return ((NumberData) e.getValue()).getDouble();
-        else
-            return Double.NaN;
-    }
-
-    public String saveString() { return ""; }
-
-    public void dispose() {
-        String oldNumName = numeratorName;
-        String oldDenName = denominatorName;
-
-        myName = numeratorName = denominatorName = null;
-        if (data != null) {
-            data.removeDataListener(oldNumName, this);
-            data.removeDataListener(oldDenName, this);
-            data.removeActiveDataListener(this);
-            data = null;
-        }
-    }
 
     static boolean isPercentageDataName(String name) {
         return (name != null && name.indexOf(PERCENTAGE_FLAG) > 0);

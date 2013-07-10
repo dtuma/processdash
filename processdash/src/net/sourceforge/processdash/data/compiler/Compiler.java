@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2006 Tuma Solutions, LLC
+// Copyright (C) 2001-2013 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -146,6 +146,17 @@ public class Compiler extends DepthFirstAdapter {
         result.add(LogicOperators.AND);
         result.commit();
 
+        return result;
+    }
+
+
+    public static CompiledScript divisionExpr(String numeratorVariable,
+            String denominatorVariable) {
+        CompiledScript result = new CompiledScript();
+        result.add(new PushVariable(numeratorVariable));
+        result.add(new PushVariable(denominatorVariable));
+        result.add(MathOperators.DIVIDE);
+        result.commit();
         return result;
     }
 
