@@ -34,6 +34,7 @@ import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.tool.bridge.client.ImportDirectory;
 import net.sourceforge.processdash.tool.bridge.client.ImportDirectoryFactory;
 import net.sourceforge.processdash.tool.export.DataImporter;
+import net.sourceforge.processdash.tool.export.impl.DefaultImportInstructionSpecProvider;
 import net.sourceforge.processdash.util.StringUtils;
 
 import org.w3c.dom.Element;
@@ -76,6 +77,8 @@ public class ImportManager extends AbstractManager {
 
     private boolean urlValueChanged = false;
 
+    private ImportInstructionSpecProvider specProvider;
+
     private ImportManager() {
         super();
         initialize();
@@ -106,6 +109,12 @@ public class ImportManager extends AbstractManager {
         String prefix = massagePrefix(left);
         String dir = Settings.translateFile(right);
         doAddInstruction(new ImportDirectoryInstruction(dir, prefix));
+    }
+
+    @Override
+    protected void setData(DataRepository data, boolean handleExisting) {
+        specProvider = new DefaultImportInstructionSpecProvider(data);
+        super.setData(data, handleExisting);
     }
 
     @Override
@@ -160,7 +169,7 @@ public class ImportManager extends AbstractManager {
             }
 
             DataImporter.addImport(data, prefix, getDirInfo(instr), importDir,
-                this);
+                specProvider, this);
             return null;
         }
 

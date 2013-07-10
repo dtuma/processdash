@@ -1,4 +1,4 @@
-// Copyright (C) 2005 Tuma Solutions, LLC
+// Copyright (C) 2005-2013 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -41,6 +41,7 @@ import net.sourceforge.processdash.data.TagData;
 import net.sourceforge.processdash.tool.export.mgr.ExportManager;
 import net.sourceforge.processdash.util.XmlNumberFormatter;
 
+import org.w3c.dom.Element;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
@@ -54,14 +55,27 @@ public class DataImporterXMLv1 implements ArchiveMetricsFileImporter.Handler,
 
     public void handle(ArchiveMetricsFileImporter caller, InputStream in,
             String type, String version) throws Exception {
+        Map defns = caller.getDefns();
+        if (shouldImportRootValuesOnly(caller))
+            defns.put(ROOT_VALUES_ONLY_TAG, "true");
+
         XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
         XmlPullParser parser = factory.newPullParser();
 
         parser.setInput(in, ENCODING);
         parser.nextTag();
         parser.require(XmlPullParser.START_TAG, null, DATA_ELEM);
-        importData(parser, caller.getDefns(), null);
+        importData(parser, defns, null);
         parser.require(XmlPullParser.END_TAG, null, DATA_ELEM);
+
+        defns.remove(ROOT_VALUES_ONLY_TAG);
+    }
+
+    private boolean shouldImportRootValuesOnly(ArchiveMetricsFileImporter caller) {
+        Element spec = caller.getImportSpec(FILE_TYPE_METRICS);
+        return spec != null
+                && spec.getElementsByTagName(ROOT_VALUES_ONLY_TAG).getLength() > 0;
+
     }
 
     private static void importData(XmlPullParser parser, Map defns,
@@ -98,6 +112,15 @@ public class DataImporterXMLv1 implements ArchiveMetricsFileImporter.Handler,
     private static class NodeHandler implements ElementHandler {
         public void handle(XmlPullParser parser, Map defns, String prefix)
                 throws XmlPullParserException, IOException {
+            // if we are in "root values only" mode, we have already seen at
+            // least one <tag> element, and we have just observed another
+            // <node> element, then swap out the destination defns map with
+            // a throwaway replacement.  This <node> and all of its children
+            // will store their data in this throwaway map, so it won't be
+            // retained in the real map we return to our caller.
+            if (ROOT_VALUES_DONE.equals(defns.get(ROOT_VALUES_ONLY_TAG)))
+                defns = new HashMap();
+
             String childName = parser.getAttributeValue(null, NAME_ATTR);
             importData(parser, defns, concat(prefix, childName));
         }
@@ -149,6 +172,15 @@ public class DataImporterXMLv1 implements ArchiveMetricsFileImporter.Handler,
     }
 
     private static class TagDataHandler extends AbstractDataHandler {
+        @Override
+        public void handle(XmlPullParser parser, Map defns, String prefix)
+                throws XmlPullParserException, IOException {
+            // if we are in "root values only" mode, record the fact that
+            // we just saw a <tag> data element.
+            if (defns.containsKey(ROOT_VALUES_ONLY_TAG))
+                defns.put(ROOT_VALUES_ONLY_TAG, ROOT_VALUES_DONE);
+            super.handle(parser, defns, prefix);
+        }
         SimpleData parse(String value) throws MalformedValueException {
             return TagData.getInstance();
         }
@@ -195,5 +227,9 @@ public class DataImporterXMLv1 implements ArchiveMetricsFileImporter.Handler,
     }
 
     private static NumberFormat NUMBER_FORMAT = new XmlNumberFormatter();
+
+    private static final String ROOT_VALUES_ONLY_TAG = "importRootElementsOnly";
+
+    private static final String ROOT_VALUES_DONE = "done";
 
 }

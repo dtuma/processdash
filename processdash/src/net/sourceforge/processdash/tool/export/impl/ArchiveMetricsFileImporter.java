@@ -47,6 +47,7 @@ import net.sourceforge.processdash.log.defects.ImportedDefectManager;
 import net.sourceforge.processdash.log.time.ImportedTimeLogManager;
 import net.sourceforge.processdash.util.XMLUtils;
 
+import org.w3c.dom.Element;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
@@ -67,13 +68,16 @@ public class ArchiveMetricsFileImporter implements Runnable,
 
     private String prefix;
 
+    private Element importSpec;
+
     private List fileHandlers;
 
     public ArchiveMetricsFileImporter(DataRepository data, File file,
-            String prefix) {
+            String prefix, Element importSpec) {
         this.data = data;
         this.file = file;
         this.prefix = prefix;
+        this.importSpec = importSpec;
         this.fileHandlers = initHandlers();
     }
 
@@ -140,6 +144,15 @@ public class ArchiveMetricsFileImporter implements Runnable,
 
     public String getPrefix() {
         return prefix;
+    }
+
+    public Element getImportSpec(String type) {
+        if (importSpec != null) {
+            for (Element xml : XMLUtils.getChildElements(importSpec))
+                if (xml.getTagName().equals(type))
+                    return xml;
+        }
+        return null;
     }
 
     private void readAndProcessArchive() throws IOException,

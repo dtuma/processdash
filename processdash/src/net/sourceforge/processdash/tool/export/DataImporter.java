@@ -25,8 +25,11 @@ package net.sourceforge.processdash.tool.export;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.BufferedInputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -40,6 +43,9 @@ import java.util.concurrent.Semaphore;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.w3c.dom.Element;
+import org.xml.sax.SAXException;
+
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.ev.ImportedEVManager;
@@ -49,8 +55,10 @@ import net.sourceforge.processdash.security.DashboardPermission;
 import net.sourceforge.processdash.tool.bridge.client.ImportDirectory;
 import net.sourceforge.processdash.tool.export.impl.ArchiveMetricsFileImporter;
 import net.sourceforge.processdash.tool.export.impl.TextMetricsFileImporter;
+import net.sourceforge.processdash.tool.export.mgr.ImportInstructionSpecProvider;
 import net.sourceforge.processdash.tool.export.mgr.ImportManager;
 import net.sourceforge.processdash.util.RobustFileOutputStream;
+import net.sourceforge.processdash.util.XMLUtils;
 
 
 
@@ -78,6 +86,7 @@ public class DataImporter extends Thread {
     private DataRepository data;
     private String importPrefix;
     private ImportDirectory directory;
+    private Element instructionSpec;
     private ActionListener listener;
     private volatile boolean isRunning = true;
     private Map<String, Long> modTimes = new HashMap<String, Long>();
@@ -96,10 +105,12 @@ public class DataImporter extends Thread {
         DYNAMIC_IMPORT = d;
     }
     public static void addImport(DataRepository data, String prefix,
-            String dirInfo, ImportDirectory importDir, ActionListener l) {
+            String dirInfo, ImportDirectory importDir,
+            ImportInstructionSpecProvider specProvider, ActionListener l) {
         ADD_IMPORT_PERMISSION.checkPermission();
         String key = getKey(prefix, dirInfo);
-        DataImporter i = new DataImporter(data, prefix, importDir, l);
+        DataImporter i = new DataImporter(data, prefix, importDir,
+                specProvider, l);
         importers.put(key, i);
     }
     public static void removeImport(String prefix, String dirInfo) {
@@ -160,11 +171,15 @@ public class DataImporter extends Thread {
     }
 
     private DataImporter(DataRepository data, String prefix,
-            ImportDirectory importDir, ActionListener l) {
+            ImportDirectory importDir,
+            ImportInstructionSpecProvider specProvider, ActionListener l) {
         this.data = data;
         this.importPrefix = prefix;
         this.directory = importDir;
         this.listener = l;
+
+        if (specProvider != null)
+            loadInstructionSpec(specProvider);
 
         if (PARALLEL_INIT && DYNAMIC_IMPORT)
             initializingImporters.add(this);
@@ -196,6 +211,37 @@ public class DataImporter extends Thread {
             if (isRunning)
                 checkFiles(null);
         } catch (InterruptedException e) {}
+    }
+
+    private void loadInstructionSpec(ImportInstructionSpecProvider provider) {
+        try {
+            // ask the spec provider for the instructions we should use
+            // when importing data from this directory
+            String dirID = getImportDirectoryID();
+            this.instructionSpec = provider.getImportInstructionSpec(dirID);
+        } catch (Exception e) {
+            logger.log(Level.WARNING, "Unable to read import spec", e);
+        }
+    }
+
+    private String getImportDirectoryID() throws IOException, SAXException {
+        // Look in the directory to see if it contains a settings file
+        directory.update();
+        File settings = new File(directory.getDirectory(), "settings.xml");
+        if (!settings.isFile())
+            return null;
+
+        // if so, retrieve the alphanumeric project ID for this directory
+        InputStream in = new BufferedInputStream(new FileInputStream(
+                settings));
+        Element xml = XMLUtils.parse(in).getDocumentElement();
+        String projectId = xml.getAttribute("projectID");
+
+        // return the value, if one was found.
+        if (XMLUtils.hasValue(projectId))
+            return projectId;
+        else
+            return null;
     }
 
     private synchronized void checkFiles(List<String> feedback) {
@@ -396,7 +442,8 @@ public class DataImporter extends Thread {
             TextMetricsFileImporter task = new TextMetricsFileImporter(data, f, prefix);
             task.doImport();
         } else if (filename.endsWith(EXPORT_FILE_SUFFIX)) {
-            ArchiveMetricsFileImporter task = new ArchiveMetricsFileImporter(data, f, prefix);
+            ArchiveMetricsFileImporter task = new ArchiveMetricsFileImporter(
+                    data, f, prefix, instructionSpec);
             task.doImport();
         }
 

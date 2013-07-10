@@ -1,4 +1,4 @@
-// Copyright (C) 2004-2012 Tuma Solutions, LLC
+// Copyright (C) 2004-2013 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -46,10 +46,18 @@ public class DefectImporterXMLv1 implements ArchiveMetricsFileImporter.Handler,
 
     public void handle(ArchiveMetricsFileImporter caller, InputStream in,
             String type, String version) throws Exception {
+        if (isDefectImportDisabled(caller))
+            return;
 
         InputStreamReader reader = new InputStreamReader(in, ENCODING);
         String prefix = caller.getPrefix();
         importDefectsFromStream(reader, prefix);
+    }
+
+    private boolean isDefectImportDisabled(ArchiveMetricsFileImporter caller) {
+        Element spec = caller.getImportSpec(FILE_TYPE_DEFECTS);
+        return spec != null
+                && spec.getElementsByTagName("importDisabled").getLength() > 0;
     }
 
     public void importDefectsFromStream(Reader reader, String prefix) {
