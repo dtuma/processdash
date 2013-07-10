@@ -228,7 +228,6 @@ public class ImportedDefectManager implements DefectXmlConstantsv1 {
             defects.add(new DefectToAnalyze(path, d));
         }
 
-        System.out.println("FOO!"); // FIXME
         Collections.sort(defects);
         for (DefectToAnalyze defect : defects)
             t.analyze(defect.path, defect.defect);
