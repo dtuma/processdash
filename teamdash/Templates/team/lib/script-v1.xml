@@ -75,6 +75,7 @@
     <file in="team_root_dataFile.txt" />
     <file in="team2_root_dataFile.txt" />
     <file in="team_node_dataFile.txt" />
+    <file in="importFilterSpecDB.xml" encoding="xml" />
     <file in="disseminationExportFilter.xml" encoding="xml" />
 
     <!-- data files for use by a master project -->

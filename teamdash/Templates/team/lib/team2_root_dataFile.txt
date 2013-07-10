@@ -13,7 +13,14 @@ undefine([Simple Project Tag]);
 /*
  * Possibly rewrite rollup calculations to work against the database.
  */
+#ifdef DATABASE_PLUGIN
+
 [DB_Project_ID_List] == [Project_ID];
 [DB_WBS_Relative_Path] = [Project_WBS_ID//Relative_Path_Filter];
 
+[IMPORT_FILE/Instructions] = list([Project_ID],
+    "file:/<!--#echo Process_ID -->/importFilterSpecDB.xml");
+
 <!--#include file="/team/lib/database_rollup_incl.txt" parse="t" -->
+
+#endif
