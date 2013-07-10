@@ -73,6 +73,11 @@ public class ArchiveMetricsFileImporter implements Runnable,
     private List fileHandlers;
 
     public ArchiveMetricsFileImporter(DataRepository data, File file,
+            String prefix) {
+        this(data, file, prefix, null);
+    }
+
+    public ArchiveMetricsFileImporter(DataRepository data, File file,
             String prefix, Element importSpec) {
         this.data = data;
         this.file = file;
