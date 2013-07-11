@@ -422,8 +422,17 @@ public class sync extends TinyCGIBase {
         if (d == null)
             return null;
 
-        // Test the URL we found, to see if we can find a valid server.
+        // If a filename remapper is operating and it instructs us to use a
+        // different location for this URL, respect its directions.
         String lastServerUrlStr = d.format();
+        String remapped = FilenameMapper.remap(lastServerUrlStr);
+        if (remapped != null && !remapped.equals(lastServerUrlStr)) {
+            File dir = new File(remapped);
+            if (dir.isDirectory())
+                return new File(dir, HIER_FILENAME).toURI().toURL();
+        }
+
+        // Test the URL we found, to see if we can find a valid server.
         URL serverUrl;
         try {
             serverUrl = TeamServerSelector.resolveServerURL(lastServerUrlStr);
