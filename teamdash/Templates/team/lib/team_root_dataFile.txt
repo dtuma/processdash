@@ -52,7 +52,8 @@ undefine([Simple Project Tag]);
 
 [Project_WBS_Subpath] = "";
 [Sync_Project_Root_Only] = ([Export_Max_Node_Depth] == 0);
-[Rollup_Uses_In_Place_WBS_Filter] = [Sync_Project_Root_Only];
+[Rollup_Uses_In_Place_WBS_Filter] = [Sync_Project_Root_Only]
+    && [Project_Component_Info];
 
 
 /*
