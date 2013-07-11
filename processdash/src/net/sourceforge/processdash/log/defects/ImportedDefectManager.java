@@ -34,6 +34,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.w3c.dom.Element;
+
 import net.sourceforge.processdash.data.SaveableData;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.repository.DataRepository;
@@ -46,6 +48,7 @@ import net.sourceforge.processdash.tool.db.QueryUtils;
 import net.sourceforge.processdash.tool.export.impl.DefectXmlConstantsv1;
 import net.sourceforge.processdash.util.FormatUtil;
 import net.sourceforge.processdash.util.HashTree;
+import net.sourceforge.processdash.util.XMLUtils;
 
 public class ImportedDefectManager implements DefectXmlConstantsv1 {
 
@@ -162,9 +165,15 @@ public class ImportedDefectManager implements DefectXmlConstantsv1 {
         Prop prop = props.pget(pKey);
         String path = pKey.path();
 
+        // Get the WBS ID of this node in the hierarchy.
         String wbsId = getWbsId(data, path);
         if (!result.containsKey(wbsId))
             result.put(wbsId, path);
+
+        // Check to see if this node supplies subcomponent info
+        Map componentInfo = getWbsSubcomponentInfo(data, path, wbsId);
+        if (componentInfo != null)
+            result.putAll(componentInfo);
 
         // recursively scan all the children of this node.
         for (int i = 0; i < prop.getNumChildren(); i++)
@@ -178,6 +187,37 @@ public class ImportedDefectManager implements DefectXmlConstantsv1 {
             return null;
         else
             return val.format();
+    }
+
+    private static Map getWbsSubcomponentInfo(DataRepository data, String path,
+            String wbsId) {
+        String dataName = DataRepository.createDataName(path,
+            "Project_Component_Info");
+        SimpleData val = data.getSimpleValue(dataName);
+        if (val == null)
+            return null;
+
+        Element xml;
+        try {
+            xml = XMLUtils.parse(val.format()).getDocumentElement();
+        } catch (Exception e) {
+            return null;
+        }
+
+        Map result = new HashMap();
+        getWbsComponentInfo(result, xml, path, wbsId);
+        return result;
+    }
+
+    private static void getWbsComponentInfo(Map result, Element parent,
+            String pathPrefix, String wbsIdPrefix) {
+        for (Element node : XMLUtils.getChildElements(parent)) {
+            String name = node.getAttribute("name");
+            String nodePath = pathPrefix + "/" + name;
+            String nodeWbsId = wbsIdPrefix + "/" + name;
+            result.put(nodeWbsId, nodePath);
+            getWbsComponentInfo(result, node, nodePath, nodeWbsId);
+        }
     }
 
     private static String rerootPath(DataRepository data, String defectPath,
