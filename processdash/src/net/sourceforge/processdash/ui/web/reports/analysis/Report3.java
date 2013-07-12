@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2012 Tuma Solutions, LLC
+// Copyright (C) 2001-2013 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -50,7 +50,6 @@ public class Report3 extends AnalysisPage implements DefectAnalyzer.Task {
 
 
     // variables used to hold/collect data during a run
-    private String [] projects;
     private String sizeMetric;
     private String defectLogParam;
     private List failurePhases;
@@ -131,8 +130,6 @@ public class Report3 extends AnalysisPage implements DefectAnalyzer.Task {
         TOTAL_REM = remLen-1;
 
         DefectAnalyzer.refineParams(parameters, getDataContext());
-        projects = ResultSet.getPrefixList
-            (getDataRepository(), parameters, getPrefix());
 
         defectLogParam = getDefectLogParam();
         if (defectLogParam.length() > 0)
@@ -165,6 +162,8 @@ public class Report3 extends AnalysisPage implements DefectAnalyzer.Task {
         writeTableD21ColHeaders();
 
         // write data for each project
+        String[] projects = ResultSet.getPrefixList(getDataRepository(),
+            parameters, getPrefix());
         for (int i = 0;   i < projects.length;   i++)
             writeTableD21Row(projects[i]);
 
@@ -238,10 +237,8 @@ public class Report3 extends AnalysisPage implements DefectAnalyzer.Task {
         if (parameters.containsKey("hideD22"))
             return;
 
-        boolean includeChildren = !parameters
-                .containsKey(DefectAnalyzer.NO_CHILDREN_PARAM);
         DefectAnalyzer.run(getPSPProperties(), getDataRepository(),
-                           projects, includeChildren, this);
+            getPrefix(), parameters, this);
 
         eliminateEmptyValues();
         if (count == null) return;
