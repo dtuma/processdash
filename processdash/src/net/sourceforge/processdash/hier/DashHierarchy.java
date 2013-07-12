@@ -1,4 +1,4 @@
-// Copyright (C) 1999-2009 Tuma Solutions, LLC
+// Copyright (C) 1999-2013 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -944,7 +944,7 @@ public class DashHierarchy extends Hashtable implements ItemSelectable,
         }
     }
 
-    private void listLeaves(PropertyKey key, Vector result) {
+    private void listLeaves(PropertyKey key, Vector<PropertyKey> result) {
         int numChildren = getNumChildren(key);
         if (numChildren == 0)
             result.addElement(key);
@@ -953,13 +953,13 @@ public class DashHierarchy extends Hashtable implements ItemSelectable,
                 listLeaves(getChildKey(key, index), result);
     }
 
-    public Enumeration getLeaves(PropertyKey parent) {
-        Vector leaves = new Vector();
+    public Enumeration<PropertyKey> getLeaves(PropertyKey parent) {
+        Vector<PropertyKey> leaves = new Vector();
         listLeaves(parent, leaves);
         return leaves.elements();
     }
 
-    public Enumeration getLeafNames(PropertyKey parent) {
+    public Enumeration<String> getLeafNames(PropertyKey parent) {
         Vector leaves = new Vector();
         listLeaves(parent, leaves);
 
