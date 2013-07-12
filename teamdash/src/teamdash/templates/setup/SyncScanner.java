@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Tuma Solutions, LLC
+// Copyright (C) 2002-2013 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -31,6 +31,9 @@ import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
+
 import net.sourceforge.processdash.DashboardContext;
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.SimpleData;
@@ -38,11 +41,9 @@ import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.net.http.WebServer;
+import net.sourceforge.processdash.tool.quicklauncher.CompressedInstanceLauncher;
 import net.sourceforge.processdash.ui.Browser;
 import net.sourceforge.processdash.ui.UserNotificationManager;
-
-import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
 
 /**
  * This class periodically scans the dashboard hierarchy for team projects that
@@ -81,6 +82,17 @@ public class SyncScanner implements Runnable {
     }
 
     public void run() {
+        try {
+            // do not run auto-sync operations when we are viewing the contents
+            // of a Data Backup file.
+            if (CompressedInstanceLauncher.isRunningFromCompressedData())
+                return;
+        } catch (Throwable t) {
+            // the isRunningFromCompressedData() method was introduced in
+            // version 1.12.2, and will throw a no such method error in earlier
+            // versions. Catch that error and continue.
+        }
+
         if (Settings.isReadWrite())
             lookForSyncOperations(PropertyKey.ROOT, true);
     }
