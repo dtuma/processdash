@@ -128,7 +128,7 @@ public class DataRepository implements Repository, DataContext,
     public static final String anonymousPrefix = "///Anonymous";
 
     /** a mapping of data names (Strings) to data values (DataElements) */
-    Hashtable data = new Hashtable(8000);
+    Hashtable<String, DataElement> data = new Hashtable(8000);
 //    HashTree data = new HashTree(8000);
 
     /** a backwards mapping of the above hashtable for data values that happen
@@ -1848,8 +1848,6 @@ public class DataRepository implements Repository, DataContext,
     public synchronized void closeDatafile(String prefix) {
         logger.log(Level.FINE, "Closing datafile for prefix {0}", prefix);
 
-        gc(Collections.singleton(prefix));
-
         startInconsistency();
 
         try {
@@ -1871,42 +1869,28 @@ public class DataRepository implements Repository, DataContext,
                 datafile.isRemoved = true;
                 removeDataFile(datafile);
 
-                Iterator k = getInternalKeys();
-                String name;
-                DataElement element;
-                Vector elementsToRemove = new Vector();
+                // get the list of data elements that belong to this datafile.
+                List<DataElement> elementsToRemove = getElementsForDatafile(datafile);
 
+                // make a list of definitions which are inherited by this datafile
+                // but which do not currently have a DataElement in the repository.
                 Set inheritedDataNames = new HashSet();
                 if (datafile.inheritedDefinitions != null)
                     inheritedDataNames.addAll(datafile.inheritedDefinitions.keySet());
-
-                                      // build a list of all the data elements of
-                                      // this datafile.
-                while (k.hasNext()) {
-                    name = (String) k.next();
-                    element = (DataElement)data.get(name);
-                    if (element != null && element.datafile == datafile) {
-                        elementsToRemove.addElement(name);
-                        elementsToRemove.addElement(element);
-
-                        String localName = name.substring(prefix.length() + 1);
-                        inheritedDataNames.remove(localName);
-                    }
+                for (DataElement element : elementsToRemove) {
+                    String localName = element.name.substring(prefix.length() + 1);
+                    inheritedDataNames.remove(localName);
                 }
 
                                       // call the dispose() method on all the data
                                       // elements' values.
-                for (int i = elementsToRemove.size();  i > 0; ) {
-                    element = (DataElement) elementsToRemove.elementAt(--i);
-                    name    = (String) elementsToRemove.elementAt(--i);
+                for (DataElement element : elementsToRemove) {
                     element.disposeValue();
                     element.datafile = null;
                 }
                                       // remove the data elements.
-                for (int i = elementsToRemove.size();  i > 0; ) {
-                    element = (DataElement) elementsToRemove.elementAt(--i);
-                    name    = (String) elementsToRemove.elementAt(--i);
-                    removeValue(name);
+                for (DataElement element : elementsToRemove) {
+                    removeValue(element.name);
                 }
 
                                       // fire removal events for all of the inherited
@@ -1914,7 +1898,7 @@ public class DataRepository implements Repository, DataContext,
                                       // repository.
                 for (Iterator i = inheritedDataNames.iterator(); i.hasNext();) {
                     String localName = (String) i.next();
-                    name = prefix + "/" + localName;
+                    String name = prefix + "/" + localName;
                     repositoryListenerList.dispatchRemoved(name);
                 }
             }
@@ -3388,6 +3372,17 @@ public class DataRepository implements Repository, DataContext,
     private void datafileModified(DataFile datafile) {
         if (datafile != null && ++datafile.dirtyCount > MAX_DIRTY)
             saveDatafile(datafile);
+    }
+
+    private List<DataElement> getElementsForDatafile(DataFile datafile) {
+        List result = new ArrayList();
+        synchronized (data) {
+            for (DataElement elem : data.values()) {
+                if (elem != null && elem.datafile == datafile)
+                    result.add(elem);
+            }
+        }
+        return result;
     }
 
     private Iterator getInternalKeys() {
