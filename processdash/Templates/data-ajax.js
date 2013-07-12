@@ -726,7 +726,7 @@ var changeCoupon = 0;
 function setSessionID(id) {
     sessionID = id;
     calculating();
-    self.setTimeout("listenForEvents()", 200);
+    self.setTimeout("listenForEvents()", 50);
 }
 
 function assertSessionID(id) {
