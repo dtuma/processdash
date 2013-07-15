@@ -57,11 +57,12 @@ public class Dbsumtimebyphase extends DbAbstractFunction {
     private static final String[] COLUMN_NAMES = { "Phase", "Plan", "Actual" };
 
     private static final String BASE_QUERY = "select "
-            + "f.planItem.phase.shortName, " //
+            + "phase.shortName, " //
             + "sum(f.planTimeMin), " //
             + "sum(f.actualTimeMin) " //
             + "from TaskStatusFact f " //
+            + "left outer join f.planItem.phase phase "
             + "where f.versionInfo.current = 1 " //
-            + "group by f.planItem.phase.shortName";
+            + "group by phase.shortName";
 
 }
