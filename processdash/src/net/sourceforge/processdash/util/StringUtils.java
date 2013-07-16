@@ -18,7 +18,7 @@ License along with this library; if not, see <http://www.gnu.org/licenses/>.
 To further contact the author please email jpmccar@gjt.org
 
 
-Modifications, copyright 2001-2006 Tuma Solutions, LLC; distributed under the
+Modifications, copyright 2001-2013 Tuma Solutions, LLC; distributed under the
 LGPL, as described above.
 
 */
@@ -583,6 +583,19 @@ public class StringUtils
         for (String word : text.trim().split("\\s+"))
             result.append(' ').append(word);
         return result.substring(1);
+    }
+
+    /**
+     * If a string exceeds a particular length, truncate it and append a
+     * suffix that will hopefully allow the string to retain its uniqueness.
+     * @since 1.15.5
+     */
+    public static String limitLength(String s, int len) {
+        if (s == null || s.length() <= len)
+            return s;
+
+        String suffix = "... (truncated, #" + Math.abs(s.hashCode()) + ")";
+        return s.substring(0, len - suffix.length()) + suffix;
     }
 
 }
