@@ -100,8 +100,8 @@ public class selectWBSData extends selectWBS {
 
     private void printLink(String relPath, String id, String displayName) {
         out.print("<a href='javascript:doClick(\""
-                + HTMLUtils.escapeEntities(relPath) + "\", \""
-                + HTMLUtils.escapeEntities(id) + "\");'>");
+                + escapeJavascriptArg(relPath) + "\", \""
+                + escapeJavascriptArg(id) + "\");'>");
         out.print(HTMLUtils.escapeEntities(displayName));
         out.print("</a>");
     }

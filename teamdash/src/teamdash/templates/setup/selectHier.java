@@ -119,8 +119,14 @@ public class selectHier extends TinyCGIBase {
 
 
     protected void printLink(String rootPath, String relPath) {
-        relPath = HTMLUtils.escapeEntities(relPath);
+        relPath = escapeJavascriptArg(relPath);
         out.print("<a href='javascript:doClick(\"" + relPath + "\");'>");
+    }
+
+    protected String escapeJavascriptArg(String arg) {
+        arg = HTMLUtils.escapeEntities(arg);
+        arg = StringUtils.findAndReplace(arg, "&quot;", "\\&quot;");
+        return arg;
     }
 
 
