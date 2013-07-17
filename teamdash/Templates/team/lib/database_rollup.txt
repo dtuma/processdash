@@ -11,7 +11,8 @@
  */
 [DB_Project_Keys] = dbLookupProjects([DB_Project_ID_List]);
 
-[DB_WBS_Key] = dbLookupWbsElement([DB_WBS_Relative_Path]);
+[DB_WBS_Key] = dbLookupWbsElement([DB_WBS_Relative_Path],
+    [DB_WBS_Relative_Path_ID]);
 
 [DB_Label_Group] = iff(!defined([Filtered_Task_Labels]), null,
     dbLabelFilterGroup([DB_Project_Keys], [Filtered_Task_Labels]));

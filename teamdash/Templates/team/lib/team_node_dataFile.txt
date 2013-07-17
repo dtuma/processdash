@@ -34,5 +34,6 @@ undefine([Simple Project Tag]);
  */
 [DB_Project_ID_List] = inherit("Project_ID");
 [DB_WBS_Relative_Path] = [Project_WBS_Subpath];
+[DB_WBS_Relative_Path_ID] = [Earned_Value_Merged_Path_Filter];
 
 <!--#include file="/team/lib/database_rollup_incl.txt" parse="t" -->

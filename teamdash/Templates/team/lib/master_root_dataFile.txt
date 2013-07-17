@@ -63,5 +63,6 @@ undefine([Simple Project Tag]);
  */
 [DB_Project_ID_List] == [Subproject_WBS_ID_List];
 [DB_WBS_Relative_Path] = [Project_WBS_ID//Relative_Path_Filter];
+[DB_WBS_Relative_Path_ID] = [Earned_Value//Merged_Path_Filter];
 
 <!--#include file="/team/lib/database_rollup_incl.txt" parse="t" -->

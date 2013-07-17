@@ -17,6 +17,7 @@ undefine([Simple Project Tag]);
 
 [DB_Project_ID_List] == [Project_ID];
 [DB_WBS_Relative_Path] = [Project_WBS_ID//Relative_Path_Filter];
+[DB_WBS_Relative_Path_ID] = [Earned_Value//Merged_Path_Filter];
 
 [IMPORT_FILE/Instructions] = list([Project_ID],
     "file:/<!--#echo Process_ID -->/importFilterSpecDB.xml");
