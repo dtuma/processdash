@@ -29,6 +29,7 @@ import java.util.logging.Level;
 import net.sourceforge.processdash.data.DoubleData;
 import net.sourceforge.processdash.data.compiler.ExpressionContext;
 import net.sourceforge.processdash.tool.db.QueryRunner;
+import net.sourceforge.processdash.util.StringUtils;
 
 
 /** @since 1.15.5 */
@@ -53,11 +54,18 @@ public class Dblookupwbselement extends DbAbstractFunction {
             wbsElementName = wbsElementName.substring(1);
         if (wbsElementName.length() == 0)
             return null;
+        wbsElementName = StringUtils.limitLength(wbsElementName, 255);
+
+        // retrieve the plan item ID of the item we are being asked to look up.
+        String planItemId = asString(getArg(arguments, 1));
 
         // look up this WBS element in the database.
         try {
             int key;
-            List result = queryRunner.queryHql(BASE_QUERY, wbsElementName);
+            List result = queryRunner.queryHql(NAME_QUERY, wbsElementName);
+            if ((result == null || result.isEmpty())
+                    && StringUtils.hasValue(planItemId))
+                result = queryRunner.queryHql(ID_QUERY, planItemId);
             if (result != null && !result.isEmpty()) {
                 // extract the value from the result set
                 key = (Integer) result.get(0);
@@ -72,7 +80,9 @@ public class Dblookupwbselement extends DbAbstractFunction {
         }
     }
 
-    private static final String BASE_QUERY = "select w.key "
+    private static final String NAME_QUERY = "select w.key "
             + "from WbsElement w where w.name = ?";
+    private static final String ID_QUERY = "select p.wbsElement.key "
+            + "from PlanItem p where p.identifier = ?";
 
 }
