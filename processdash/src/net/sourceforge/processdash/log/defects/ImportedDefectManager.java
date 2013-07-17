@@ -46,7 +46,6 @@ import net.sourceforge.processdash.tool.db.DatabasePlugin;
 import net.sourceforge.processdash.tool.db.QueryRunner;
 import net.sourceforge.processdash.tool.db.QueryUtils;
 import net.sourceforge.processdash.tool.export.impl.DefectXmlConstantsv1;
-import net.sourceforge.processdash.util.FormatUtil;
 import net.sourceforge.processdash.util.HashTree;
 import net.sourceforge.processdash.util.XMLUtils;
 
@@ -310,7 +309,7 @@ public class ImportedDefectManager implements DefectXmlConstantsv1 {
         d.phase_injected = asString(row[4]);
         d.phase_removed = asString(row[5]);
         d.fix_pending = (row[6] == Boolean.TRUE);
-        d.fix_time = FormatUtil.formatNumber(((Number) row[7]).doubleValue());
+        d.fix_time = asString(row[7]);
         d.fix_count = ((Number) row[8]).intValue();
         d.fix_defect = (row[9] == null ? " " : "Yes");
         d.description = asString(row[10]);
