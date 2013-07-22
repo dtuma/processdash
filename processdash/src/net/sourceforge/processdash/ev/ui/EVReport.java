@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2012 Tuma Solutions, LLC
+// Copyright (C) 2001-2013 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -30,6 +30,7 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.lang.ref.WeakReference;
 import java.net.URI;
 import java.text.DateFormat;
 import java.text.NumberFormat;
@@ -86,6 +87,7 @@ import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.net.cache.CachedURLObject;
 import net.sourceforge.processdash.net.cms.CMSSnippetEnvironment;
 import net.sourceforge.processdash.net.http.TinyCGIException;
+import net.sourceforge.processdash.net.http.TinyCGIStreaming;
 import net.sourceforge.processdash.net.http.WebServer;
 import net.sourceforge.processdash.templates.ExtensionManager;
 import net.sourceforge.processdash.ui.lib.HTMLTableWriter;
@@ -106,7 +108,7 @@ import net.sourceforge.processdash.util.StringUtils;
 
 /** CGI script for reporting earned value data in HTML.
  */
-public class EVReport extends CGIChartBase {
+public class EVReport extends CGIChartBase implements TinyCGIStreaming {
 
     public static final String CHART_PARAM = "chart";
     public static final String CHARTS_PARAM = "charts";
@@ -175,7 +177,7 @@ public class EVReport extends CGIChartBase {
     static String lastTaskListName = null;
 
     /** The earned value model for that task list */
-    static EVTaskList lastEVModel = null;
+    static WeakReference<EVTaskList> lastEVModel = null;
 
     /** The instant in time when that task list was calculated. */
     static long lastRecalcTime = 0;
@@ -262,12 +264,13 @@ public class EVReport extends CGIChartBase {
 
         long now = System.currentTimeMillis();
 
-        synchronized (getClass()) {
+        synchronized (EVReport.class) {
             if (drawingChart &&
                 (now - lastRecalcTime < MAX_DELAY) &&
                 taskListName.equals(lastTaskListName)) {
-                evModel = lastEVModel;
-                return;
+                evModel = lastEVModel.get();
+                if (evModel != null)
+                    return;
             }
         }
 
@@ -291,10 +294,10 @@ public class EVReport extends CGIChartBase {
 
         evModel.recalc();
 
-        synchronized (getClass()) {
+        synchronized (EVReport.class) {
             lastTaskListName = taskListName;
             lastRecalcTime = now;
-            lastEVModel = evModel;
+            lastEVModel = new WeakReference<EVTaskList>(evModel);
         }
     }
 
