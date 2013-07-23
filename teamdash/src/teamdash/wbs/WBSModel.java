@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2012 Tuma Solutions, LLC
+// Copyright (C) 2002-2013 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -399,47 +399,69 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
     private int maxID = 0;
 
     private WBSNode prepareNodeForInsertion(WBSNode node) {
-        tweakNodeForInsertion(node);
-        return makeNodeIDUnique(node);
+        prepareNodesForInsertion(Collections.singletonList(node));
+        return node;
     }
 
     protected void tweakNodeForInsertion(WBSNode node) {}
 
-    private synchronized WBSNode makeNodeIDUnique(WBSNode node) {
+    private synchronized List prepareNodesForInsertion(List<WBSNode> nodes) {
+        // tweak each of the incoming nodes, and gather up a Set of their IDs.
+        // if any of the IDs are duplicates, add them to a collision Set too.
+        IntList incomingIDs = new IntList();
+        IntList collidingIDs = new IntList();
+        for (WBSNode node : nodes) {
+            tweakNodeForInsertion(node);
 
-        int currentID = node.getUniqueID();
-        boolean isUnique = (currentID > 0);
-        int oneID;
+            int oneID = node.getUniqueID();
+            if (incomingIDs.contains(oneID))
+                collidingIDs.add(oneID);
+            else if (oneID > 0)
+                incomingIDs.add(oneID);
+        }
 
-        // look through the node list to see if any existing nodes have
-        // the same ID as this node.  While we're at it, find the largest
+        // look through the node list to see if any existing nodes have the
+        // same ID as an incoming node. While we're at it, find the largest
         // node ID in use. (This will generally be the ID of the root node,
         // but we won't take any chances.)
-        Iterator i = wbsNodes.iterator();
-        while (i.hasNext()) {
-            oneID = ((WBSNode) i.next()).getUniqueID();
+        for (WBSNode node : wbsNodes) {
+            int oneID = node.getUniqueID();
             maxID = Math.max(maxID, oneID);
-            if (oneID == currentID)
-                isUnique = false;
+            if (incomingIDs.contains(oneID))
+                collidingIDs.add(oneID);
         }
 
-        if (!isUnique) {
-            if (wbsNodes.isEmpty())
-                node.setUniqueID(maxID+1);
-            else {
-                node.setUniqueID(getRoot().getUniqueID());
-                getRoot().setUniqueID(maxID+1);
+        // assign unique IDs to the incoming nodes as needed
+        for (WBSNode node : nodes) {
+            int oneID = node.getUniqueID();
+            if (oneID <= 0 || collidingIDs.contains(oneID)) {
+                if (wbsNodes.isEmpty())
+                    node.setUniqueID(++maxID);
+                else {
+                    node.setUniqueID(getRoot().getUniqueID());
+                    getRoot().setUniqueID(++maxID);
+                }
+                node.discardTransientAttributes(true);
             }
-            node.discardTransientAttributes(true);
         }
 
-        return node;
-    }
-    private synchronized List prepareNodesForInsertion(List nodes) {
-        Iterator i = nodes.iterator();
-        while (i.hasNext())
-            prepareNodeForInsertion((WBSNode) i.next());
         return nodes;
+    }
+
+    /**
+     * A legacy bug allowed nodes to receive duplicate IDs in a small number of
+     * situations. This method searches through the list of WBS nodes looking
+     * for that problem, and assigns new IDs to resolve any duplicates.
+     */
+    private synchronized void ensureAllIDsAreUnique() {
+        Set<Integer> ids = new HashSet<Integer>(wbsNodes.size());
+        List<WBSNode> collisions = new ArrayList<WBSNode>();
+        for (WBSNode node : wbsNodes) {
+            if (ids.add(node.getUniqueID()) == false)
+                collisions.add(node);
+        }
+        if (!collisions.isEmpty())
+            prepareNodesForInsertion(collisions);
     }
 
     private int[] rows;
@@ -1146,6 +1168,7 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
                 WBSNode.ELEMENT_NAME.equals(((Element) n).getTagName()))
                 addImpl(new WBSNode(this, (Element) n));
         }
+        ensureAllIDsAreUnique();
         recalcRows(false);
     }
 
