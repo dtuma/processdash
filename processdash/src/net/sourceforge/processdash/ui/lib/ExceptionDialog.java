@@ -1,4 +1,4 @@
-// Copyright (C) 2009-2011 Tuma Solutions, LLC
+// Copyright (C) 2009-2013 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -33,6 +33,8 @@ import java.awt.event.FocusListener;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 import javax.swing.JOptionPane;
@@ -56,9 +58,9 @@ public class ExceptionDialog {
      *            <ul>
      *            <li>A Throwable, which will be displayed in the dialog as a
      *            text area showing the stack trace. (Note: if a copy link is
-     *            present, the contents array <b>must</b> contain exactly one
-     *            Throwable.  If no copy link is present, the contents array
-     *            can contain zero or one Throwable.)</li>
+     *            present, the contents array <b>must</b> contain at least one
+     *            Throwable. If no copy link is present, the contents array can
+     *            contain zero or more Throwables.)</li>
      * 
      *            <li>A string containing a hyperlink in &lt;a&gt;some
      *            text&lt;/a&gt; format. The embedded text will become a
@@ -66,11 +68,13 @@ public class ExceptionDialog {
      * 
      *            <li>A regular String or any other object, which will be passed
      *            along to the JOptionPane unchanged.</li>
+     * 
+     *            <li>A Collection or array of the above items</li>
      *            </ul>
      * 
      * @throws IllegalArgumentException
-     *             if the contents parameter does not contain exactly one
-     *             Throwable
+     *             if the contents parameter contained a copy link but did not
+     *             contain any Throwables
      */
     public static void show(Component parentComponent, String title,
             Object... contents) throws IllegalArgumentException {
@@ -92,15 +96,15 @@ public class ExceptionDialog {
         List items = new ArrayList();
         boolean sawThrowable = false;
         boolean sawCopyLink = false;
-        for (Object o : contents) {
+        for (Object o : flattenContents(contents)) {
             if (o instanceof Throwable) {
                 if (sawThrowable)
-                    throw new IllegalArgumentException("Only one Throwable "
-                            + "can be included in the argument list");
+                    textArea.append(DELIMITER);
+                else
+                    items.add(scrollPane);
 
-                textArea.setText(getStackTrace((Throwable) o));
+                textArea.append(getStackTrace((Throwable) o));
                 textArea.setCaretPosition(0);
-                items.add(scrollPane);
                 sawThrowable = true;
 
             } else if (isCopyLink(o)) {
@@ -120,6 +124,21 @@ public class ExceptionDialog {
 
         JOptionPane.showMessageDialog(parentComponent, items.toArray(), title,
             JOptionPane.ERROR_MESSAGE);
+    }
+
+    /** If the given array contains subarrays or collections, replace those
+     * entries with the contents of the subarray/subcollection. */
+    private static List flattenContents(Object[] contents) {
+        List result = new ArrayList();
+        for (Object o : contents) {
+            if (o instanceof Object[])
+                o = Arrays.asList((Object[]) o);
+            if (o instanceof Collection)
+                result.addAll((Collection) o);
+            else
+                result.add(o);
+        }
+        return result;
     }
 
     private static String getStackTrace(Throwable t) {
@@ -173,4 +192,7 @@ public class ExceptionDialog {
         }
 
     }
+
+    private static final String DELIMITER = "==========================================\n";
+
 }
