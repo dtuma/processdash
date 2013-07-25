@@ -669,6 +669,7 @@
     <context>PID Master Root Tag</context>
     <context>PID Master Node Tag</context>
     <uri>/PID/setup/summaryName.class</uri>
+    <pageFilter mode="view">teamdash.templates.setup.ProcessAdvisor</pageFilter>
   </snippet>
 
   <snippet id="PID.sizeSummary" version="1.0" category="forms">
@@ -679,6 +680,15 @@
     <context>PID Master Root Tag</context>
     <context>PID Master Node Tag</context>
     <uri>/PID/size_summary.shtm</uri>
+  </snippet>
+
+  <snippet id="PID.testDbProjectMissing" version="1.0" category="advice">
+    <resources>CMS.Snippet.Anonymous</resources>
+    <context>PID Team Root Tag</context>
+    <context>PID Team Node Tag</context>
+    <context>PID Master Root Tag</context>
+    <context>PID Master Node Tag</context>
+    <uri>/PID/setup/dbProjectMissing</uri>
   </snippet>
 
   <!--#if Legal_Footer_Snippet -->

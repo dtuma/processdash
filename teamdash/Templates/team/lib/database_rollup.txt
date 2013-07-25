@@ -10,6 +10,8 @@
  * effect for this rollup
  */
 [DB_Project_Keys] = dbLookupProjects([DB_Project_ID_List]);
+[DB_Project_Missing_Error_Flag] = iff(filter([_] < 0, [DB_Project_Keys]),
+    true, false);
 
 [DB_WBS_Key] = dbLookupWbsElement([DB_WBS_Relative_Path],
     [DB_WBS_Relative_Path_ID]);
