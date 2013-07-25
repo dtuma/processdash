@@ -61,8 +61,9 @@ public class Dblookupprojects extends DbAbstractFunction {
                 if (oneProjectId != null)
                     key = loc.getKeyForProject(oneProjectId, listenerName);
 
-                if (key != null)
-                    result.add(new ImmutableDoubleData(key, false, true));
+                if (key == null)
+                    key = -999;
+                result.add(new ImmutableDoubleData(key, false, true));
             }
             return result;
 

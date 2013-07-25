@@ -24,6 +24,7 @@
 package net.sourceforge.processdash.tool.db;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -117,7 +118,14 @@ public class QueryUtils {
     private static void addProjectCriteriaToHql(StringBuilder query,
             String entityName, List queryArgs, List criteria) {
 
+        // get the list of project keys to include. Discard any negative values
+        // (which are flags for an error condition and not real project keys)
         List<Integer> projectKeys = extractIntegers(criteria);
+        for (Iterator i = projectKeys.iterator(); i.hasNext();) {
+            if ((Integer) i.next() < 0)
+                i.remove();
+        }
+
         if (projectKeys.isEmpty()) {
             // no such project? Add an always-false criteria
             query.append(IMPOSSIBLE_CONDITION).append("and ");
