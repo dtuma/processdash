@@ -903,8 +903,10 @@ public class ProcessDashboard extends JFrame implements WindowListener,
     }
 
     private void maybeCreateDatabasePlugin() {
-        // only start the database plugin for team dashboard datasets
-        if (Settings.isTeamMode() == false)
+        // check a user setting to see whether the database plugin should
+        // be started. If the user doesn't have a value for the setting, only
+        // start the plugin for team dashboard datasets.
+        if (Settings.getBool("tpidw.enabled", Settings.isTeamMode()) == false)
             return;
 
         try {
