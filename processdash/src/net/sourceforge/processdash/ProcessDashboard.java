@@ -321,6 +321,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         data = new DataRepository();
         if ("true".equalsIgnoreCase(Settings.getVal("dataFreezing.disabled")))
             data.disableFreezing();
+        data.addGlobalDefineDeclarations("#define AUTO_INDIV_ROOT_TAG t");
         pt.click("Created Data Repository");
         templates = TemplateLoader.loadTemplates(data);
         pt.click("Loaded templates");

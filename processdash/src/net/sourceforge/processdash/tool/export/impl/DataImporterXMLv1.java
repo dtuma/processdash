@@ -164,6 +164,43 @@ public class DataImporterXMLv1 implements ArchiveMetricsFileImporter.Handler,
     }
 
     private static class StringDataHandler extends AbstractDataHandler {
+
+        @Override
+        public void handle(XmlPullParser parser, Map defns, String prefix)
+                throws XmlPullParserException, IOException {
+            String elemName = parser.getAttributeValue(null, NAME_ATTR);
+            if ("Indiv_Initials".equals(elemName))
+                maybeAddPseudoIndivRootTag(defns, prefix);
+
+            super.handle(parser, defns, prefix);
+        }
+
+        /**
+         * PDASH data files from very old dashboard backups (with team projects
+         * that were created before v1.9.2) do not have an "Indiv Root Tag".
+         * This tag is required by newer team process definitions, so we will
+         * manufacture it if is is missing.
+         */
+        private void maybeAddPseudoIndivRootTag(Map<String, Object> defns,
+                String prefix) {
+            String processId = null;
+            for (String dataName : defns.keySet()) {
+                if (dataName.endsWith(" Rollup Eligible")) {
+                    int slashPos = dataName.lastIndexOf('/');
+                    processId = dataName.substring(slashPos + 1,
+                        dataName.length() - 16);
+                    if (!processId.equals("PSP"))
+                        break;
+                }
+            }
+            if (processId != null) {
+                String indivTagName = prefix + "/" + processId
+                        + " Indiv Root Tag";
+                if (!defns.containsKey(indivTagName))
+                    defns.put(indivTagName, TagData.getInstance());
+            }
+        }
+
         SimpleData parse(String value) throws MalformedValueException {
             StringData result = StringData.create(value);
             result.setEditable(false);
