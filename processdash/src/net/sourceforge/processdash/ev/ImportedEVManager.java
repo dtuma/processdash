@@ -259,7 +259,7 @@ public class ImportedEVManager {
                 for (ImportedTaskList taskList : importedTaskLists.values()) {
                     if (taskListID.equals(taskList.taskListID)) {
                         if (result != null)
-                            logger.warning("Two imported task lists share the "
+                            logger.fine("Two imported task lists share the "
                                     + "same ID: '" + taskList.taskListName
                                     + "' and '" + result.taskListName + "'");
 
