@@ -72,7 +72,13 @@ undefine([Simple Project Tag]);
  */
 [Corresponding_Project_Nodes] =
     filter([Project_WBS_ID] == indirect([_] &/ "Project_WBS_ID"),
-           [/<!--#echo Process_ID -->/Indiv Root List]);
+#ifdef AUTO_INDIV_ROOT_TAG
+           [/<!--#echo Process_ID -->/Indiv Root List]
+#else
+      setUnion([/<!--#echo Process_ID -->/Project List],
+           [/<!--#echo Process_ID -->/Indiv Root List])
+#endif
+);
 
 /*
  * Scan included projects to determine whether namespaced data is in use.
