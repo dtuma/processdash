@@ -477,7 +477,7 @@ class dependency has been added in a dashboard class?)
     <ant antfile="${processdash.dir}/installer/build.xml" inheritAll="false"
          target="plain">
       <property name="qualifier" value="main"/>
-      <property name="install.flags" value="teamTools,${install-flags}"/>
+      <property name="install.flags" value="teamTools,tpidw,${install-flags}"/>
       <property name="additional.packs" value="${extraPacks}"/>
       <property name="custom-install.extra" value="${extraIni}"/>
       <property name="additional.core.files" value="${extraCoreFiles}"/>
@@ -490,7 +490,7 @@ class dependency has been added in a dashboard class?)
   <target name="installer-cd-only" depends="-installer-props">
     <ant antfile="${processdash.dir}/installer/build.xml" inheritAll="false"
          target="dist-CD">
-      <property name="install.flags" value="teamTools,${install-flags}"/>
+      <property name="install.flags" value="teamTools,tpidw,${install-flags}"/>
       <property name="additional.resources" value="${extraResources}"/>
       <property name="additional.packs" value="${extraPacks}"/>
       <property name="custom-install.extra" value="${extraIni}"/>

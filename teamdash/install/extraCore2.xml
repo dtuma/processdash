@@ -6,6 +6,3 @@
 
    <file targetdir="$INSTALL_PATH" override="true" 
          src="${pdash.dist.dir}/TeamTools.jar"/>
-
-   <file targetdir="$INSTALL_PATH" override="true" 
-         src="${pdash.dist.dir}/tpidw.jar"/>
