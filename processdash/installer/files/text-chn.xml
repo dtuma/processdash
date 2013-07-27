@@ -33,7 +33,10 @@
 
 出版商授权使用的条件是： 用户必须同意下面的许可证协议，才可以下载或安装{0,choice,1#this module|2#these modules}:</str>
     <str id="CondHTMLLicencePanel1.header">你已经选择了安装由Sun Microsystems编写的JavaHelp(TM)软件。 要下载并安装此可选模块， 你必须同意下面的许可证协议。</str>
-    <str id="CondHTMLLicencePanel2.header">You have chosen to install the Charting and Reporting Extensions module, written by Tuma Solutions.  To download and install this optional module, you must consent to the following license agreement.</str>
+    <str id="CondHTMLLicencePanel2.header">You have chosen to install the following optional {0,choice,1#module|2#modules}, written by Tuma Solutions:
+          {1}
+
+To download and install {0,choice,1#this module|2#these modules}, you must consent to the following license agreement.</str>
     <str id="application.name">过程度量板</str>
     <str id="extras.description">Charting and Reporting Extensions from Tuma Solutions, LLC.
 
@@ -73,5 +76,11 @@ The Software Engineering Institute requires that you consent to an additional li
     <str id="pspProc">PSP(SM)过程</str>
     <str id="teamTools.description">Tools enabling team leaders to create and manage team projects.</str>
     <str id="teamTools">Tools for Team Leaders</str>
+    <str id="tpidw.description">Relational Database Extensions from Tuma Solutions, LLC.
+
+This module is not required for full functionality of the Process Dashboard.  However, installing this module will significantly improve the performance and scalability of the application, and will enable external access to project data via SQL queries.
+
+The contents of this module are copyrighted by Tuma Solutions, LLC, and are not open source.  Tuma Solutions requires that you consent to an additional license agreement to download and install this module.</str>
+    <str id="tpidw">Relational Database Extensions</str>
 
 </langpack>

@@ -45,7 +45,10 @@ Then run this installer program again.</str>
 
 Der Verlag erteilt diese Erlaubnis unter der Bedingung dass Benutzer der folgenden Lizenzvereinbarung zustimmen, bevor Sie mit dem Herunterladen oder der Installation dieser Inhalte fortfahren {0,choice,1#this module|2#these modules}:</str>
     <str id="CondHTMLLicencePanel1.header">Sie haben sich dafür entschieden, die JavaHelp(TM) Software von Sun Microsystems zu installieren.  Um dieses optionale Modul herunterzuladen und zu installieren, müssen Sie der folgenden Lizenzvereinbarung zustimmen.</str>
-    <str id="CondHTMLLicencePanel2.header">Sie haben sich dafür entschieden, das Erweiterungsmodul für Übersichtsgrafiken und Berichte von Tuma Solutions zu installieren. Wenn Sie dieses optionale Modul herunterladen und installieren möchten, müssen Sie der folgenden Lizenzvereinbarung zustimmen.</str>
+    <str id="CondHTMLLicencePanel2.header">Sie haben sich dafür entschieden, folgende Inhalte zu installieren {0,choice,1#module|2#modules}:
+          {1}
+
+Der Verlag erteilt diese Erlaubnis unter der Bedingung dass Benutzer der folgenden Lizenzvereinbarung zustimmen, bevor Sie mit dem Herunterladen oder der Installation dieser Inhalte fortfahren {0,choice,1#this module|2#these modules}:</str>
     <str id="application.name">Process Dashboard</str>
     <str id="extras.description">Erweiterungsmodul für Übersichtsgrafiken und Berichte von Tuma Solutions, LLC.
 
@@ -81,5 +84,11 @@ The Software Engineering Institute requires that you consent to an additional li
     <str id="pspProc">PSP(SM) Processes</str>
     <str id="teamTools.description">Werkzeuge, die Team-Leader dabei unterstützen, Team-Projekte aufzusetzen und zu koordinieren.</str>
     <str id="teamTools">Werkzeuge für Projektleiter</str>
+    <str id="tpidw.description">Relational Database Extensions from Tuma Solutions, LLC.
+
+This module is not required for full functionality of the Process Dashboard.  However, installing this module will significantly improve the performance and scalability of the application, and will enable external access to project data via SQL queries.
+
+The contents of this module are copyrighted by Tuma Solutions, LLC, and are not open source.  Tuma Solutions requires that you consent to an additional license agreement to download and install this module.</str>
+    <str id="tpidw">Relational Database Extensions</str>
 
 </langpack>

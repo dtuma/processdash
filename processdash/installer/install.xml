@@ -262,6 +262,15 @@
         </pack>
 
 
+        <!-- Relational Database Extensions package -->
+        <pack name="tpidw" id="tpidw" required="no" includeIf="tpidw">
+            <description>Relational Database Extensions</description>
+
+            <file targetdir="$INSTALL_PATH" override="true"
+	          src="../dist/tpidw.jar"/>
+        </pack>
+
+
         <!-- JavaHelp(TM) Help Browser package -->
         <pack name="javaHelp" id="javaHelp" required="no" excludeIf="noHelp">
             <description>JavaHelp(TM) Help Browser</description>

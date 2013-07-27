@@ -54,12 +54,20 @@ This module is not required for full functionality of the Process Dashboard.  Ho
 The contents of this module are copyrighted by Tuma Solutions, LLC, and are not open source.  Tuma Solutions requires that you consent to an additional license agreement to download and install this module.</str>
 
 
+    <str id="tpidw">Relational Database Extensions</str>
+    <str id="tpidw.description">Relational Database Extensions from Tuma Solutions, LLC.
+
+This module is not required for full functionality of the Process Dashboard.  However, installing this module will significantly improve the performance and scalability of the application, and will enable external access to project data via SQL queries.
+
+The contents of this module are copyrighted by Tuma Solutions, LLC, and are not open source.  Tuma Solutions requires that you consent to an additional license agreement to download and install this module.</str>
+
+
     <str id="teamTools">Tools for Team Leaders</str>
     <str id="teamTools.description">Tools enabling team leaders to create and manage team projects.</str>
 
 
     <str id="CondHTMLLicencePanel0.header">You have chosen to install the following {0,choice,1#module|2#modules}:
-:          {1}
+&#160;          {1}
 
 The publisher has granted this permission on the condition that users consent to the following license agreement before downloading or installing {0,choice,1#this module|2#these modules}:</str>
 
@@ -67,7 +75,10 @@ The publisher has granted this permission on the condition that users consent to
     <str id="CondHTMLLicencePanel1.header">You have chosen to install the JavaHelp(TM) software, written by Sun Microsystems.  To download and install this optional module, you must consent to the following license agreement.</str>
 
 
-    <str id="CondHTMLLicencePanel2.header">You have chosen to install the Charting and Reporting Extensions module, written by Tuma Solutions.  To download and install this optional module, you must consent to the following license agreement.</str>
+    <str id="CondHTMLLicencePanel2.header">You have chosen to install the following optional {0,choice,1#module|2#modules}, written by Tuma Solutions:
+&#160;          {1}
+
+To download and install {0,choice,1#this module|2#these modules}, you must consent to the following license agreement.</str>
 
     <!-- Conditional License Panel strings -->
     <str id="LicencePanel.deselect.title" txt="Deselect Packages?"/>
