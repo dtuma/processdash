@@ -41,7 +41,7 @@ import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.net.http.WebServer;
-import net.sourceforge.processdash.tool.quicklauncher.CompressedInstanceLauncher;
+import net.sourceforge.processdash.tool.export.mgr.ExternalResourceManager;
 import net.sourceforge.processdash.ui.Browser;
 import net.sourceforge.processdash.ui.UserNotificationManager;
 
@@ -82,16 +82,14 @@ public class SyncScanner implements Runnable {
     }
 
     public void run() {
-        try {
-            // do not run auto-sync operations when we are viewing the contents
-            // of a Data Backup file.
-            if (CompressedInstanceLauncher.isRunningFromCompressedData())
-                return;
-        } catch (Throwable t) {
-            // the isRunningFromCompressedData() method was introduced in
-            // version 1.12.2, and will throw a no such method error in earlier
-            // versions. Catch that error and continue.
-        }
+        // Do not run auto-sync operations when we have been opened from the
+        // quick launcher.  This avoids expensive sync operations for data
+        // opened from a ZIP backup file, and it avoids altering data in a
+        // directory that was saved for archival purposes.
+        String quickLaunchResourceScanMode = System.getProperty(
+            ExternalResourceManager.INITIALIZATION_MODE_PROPERTY_NAME);
+        if (quickLaunchResourceScanMode != null)
+            return;
 
         if (Settings.isReadWrite())
             lookForSyncOperations(PropertyKey.ROOT, true);
