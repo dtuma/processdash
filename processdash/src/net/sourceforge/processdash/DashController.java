@@ -235,6 +235,16 @@ public class DashController {
     }
 
     /**
+     * Write dirty application data to disk
+     * @since 1.15.7
+     */
+    public static void flushDirtyData() {
+        dash.saveMetricsData();
+        dash.saveSettingsData();
+        dash.flushWorkingData();
+    }
+
+    /**
      * @see BackgroundTaskManager#suspend(long, long)
      * @since 1.14.1
      */
@@ -419,8 +429,7 @@ public class DashController {
         }
 
         // save settings and flush them to the server.
-        dash.saveSettingsData();
-        dash.flushWorkingData();
+        flushDirtyData();
     }
 
     private static int getAvailablePort() {

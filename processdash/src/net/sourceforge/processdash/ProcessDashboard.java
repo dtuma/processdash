@@ -1660,7 +1660,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         return unsavedData;
     }
 
-    private boolean saveMetricsData() {
+    boolean saveMetricsData() {
         if (data == null)
             return true;
 
