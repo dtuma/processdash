@@ -239,9 +239,11 @@ public class DashController {
      * @since 1.15.7
      */
     public static void flushDirtyData() {
-        dash.saveMetricsData();
-        dash.saveSettingsData();
-        dash.flushWorkingData();
+        if (dash != null) {
+            dash.saveMetricsData();
+            dash.saveSettingsData();
+            dash.flushWorkingData();
+        }
     }
 
     /**
