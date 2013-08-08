@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2012 Tuma Solutions, LLC
+// Copyright (C) 2001-2013 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -112,15 +112,18 @@ public class TaskScheduleChooser
 
         if (dialog != null && !keepDialogOpen) dialog.dispose();
 
+        boolean isPersonalMode = Settings.isPersonalMode();
+
         String taskName = getTemplateName
             (dash, resources.getString("New_Schedule_Window.Title"),
              resources.getString("New_Schedule_Window.Prompt"),
-             showRollupOption);
+             isPersonalMode);
+
+        if (!isPersonalMode && taskName != null)
+            taskName = ROLLUP_PREFIX + taskName;
 
         open(dash, taskName);
     }
-    private static boolean showRollupOption =
-        Settings.getBool("ev.enableRollup",false);
 
     private static final String OK = resources.getString("OK");
     private static final String CANCEL = resources.getString("Cancel");
