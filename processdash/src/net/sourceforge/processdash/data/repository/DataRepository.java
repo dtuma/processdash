@@ -3875,7 +3875,7 @@ public class DataRepository implements Repository, DataContext,
         String name;
 
 
-        if (prefix != null && prefix.length() != 0)
+        if (prefix != null && prefix.length() != 0) {
 
                                 // if they have specified a prefix, notify them
                                 // of all the data beginning with that prefix.
@@ -3883,11 +3883,12 @@ public class DataRepository implements Repository, DataContext,
                 if ((name = (String) k.next()).startsWith(prefix))
                     rl.dataAdded(name);
 
-        else                    // if they have specified no prefix, only
+        } else {                // if they have specified no prefix, only
                                 // notify them of data that is NOT anonymous.
             while (k.hasNext())
                 if (!(name = (String) k.next()).startsWith(anonymousPrefix))
                     rl.dataAdded(name);
+        }
 
         // debug("addRepositoryListener done");
     }
