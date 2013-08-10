@@ -58,6 +58,7 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
+import net.sourceforge.processdash.DashboardContext;
 import net.sourceforge.processdash.InternalSettings;
 import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.i18n.Resources;
@@ -83,6 +84,9 @@ public class PreferencesDialog extends JDialog implements ListSelectionListener,
 
     /** The tag name for preferences panes in templates.xml files. */
     private static final String PREFERENCES_PANE_TAG_NAME = "preferences-pane";
+
+    /** The dashboard context */
+    private DashboardContext dashboardContext;
 
     /** The button that is used to save changes*/
     private JButton applyButton;
@@ -114,6 +118,7 @@ public class PreferencesDialog extends JDialog implements ListSelectionListener,
     public PreferencesDialog(ProcessDashboard parent, String title) {
         super(parent, title);
         setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+        this.dashboardContext = parent;
 
         this.addWindowListener( new WindowAdapter() {
             public void windowClosing(WindowEvent e) {
@@ -338,6 +343,7 @@ public class PreferencesDialog extends JDialog implements ListSelectionListener,
             if (!builtForms.contains(selectedCategory.getCategoryID())) {
                 // The selected form has not been built yet so we create it.
                 PreferencesForm form = new PreferencesForm(selectedCategory);
+                form.put(DashboardContext.class, dashboardContext);
                 form.addPropertyChangeListener(this);
                 restartRequiredSettings.addAll(form.getRequireRestartSettings());
                 preferencesPanels.add(form.getPanel(), selectedCategory.getCategoryID());
