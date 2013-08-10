@@ -434,9 +434,8 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         configureTeamOrPersonalDatasetMode();
 
         // create the database plugin
-        maybeCreateDatabasePlugin();
-        if (databasePlugin != null)
-            pt.click("Created the database plugin");
+        if (createDatabasePlugin())
+            pt.click("Created and started the database plugin");
 
         // create the time log
         try {
@@ -903,35 +902,44 @@ public class ProcessDashboard extends JFrame implements WindowListener,
             return Settings.DATASET_MODE_TEAM;
     }
 
-    private void maybeCreateDatabasePlugin() {
-        // check a user setting to see whether the database plugin should
-        // be started. If the user doesn't have a value for the setting, only
-        // start the plugin for team dashboard datasets.
-        if (Settings.getBool("tpidw.enabled", Settings.isTeamMode()) == false)
-            return;
-
+    /**
+     * Create the database plugin and possibly start it.
+     * 
+     * @return true if the plugin was started.
+     */
+    private boolean createDatabasePlugin() {
         try {
-            // create and initialize the database plugin
+            // create the database plugin object
             List extensions = ExtensionManager.getExecutableExtensions(
                 DatabasePlugin.EXTENSION_POINT_ID, this);
-            if (extensions != null && !extensions.isEmpty()) {
-                // there should always only be one instance of this extension
-                // point.  If multiple are present, go with the first one
-                DatabasePlugin plugin = (DatabasePlugin) extensions.get(0);
-                plugin.initialize(this);
-                this.databasePlugin = plugin;
+            if (extensions == null || extensions.isEmpty())
+                return false;
 
-                // register the plugin as an element in the data repository
-                ListData dbItem = new ListData();
-                dbItem.add(databasePlugin);
-                data.putValue(DatabasePlugin.DATA_REPOSITORY_NAME, dbItem);
-                data.pinElement(DatabasePlugin.DATA_REPOSITORY_NAME);
+            // there should always only be one instance of this extension
+            // point.  If multiple are present, go with the first one
+            DatabasePlugin plugin = (DatabasePlugin) extensions.get(0);
+            this.databasePlugin = plugin;
+
+            // register the plugin as an element in the data repository
+            ListData dbItem = new ListData();
+            dbItem.add(databasePlugin);
+            data.putValue(DatabasePlugin.DATA_REPOSITORY_NAME, dbItem);
+            data.pinElement(DatabasePlugin.DATA_REPOSITORY_NAME);
+
+            // check a user setting to see whether the database plugin
+            // should be started. If the user doesn't have a value for the
+            // setting, only start the plugin for team dashboard datasets.
+            if (Settings.getBool("tpidw.enabled", Settings.isTeamMode())) {
+                plugin.initialize();
                 data.addGlobalDefineDeclarations("#define DATABASE_PLUGIN t");
+                return true;
             }
+
         } catch (Exception e) {
             // problem starting database plugin
             logger.log(Level.SEVERE, "Unable to start the database plugin", e);
         }
+        return false;
     }
 
     private Component addToMainWindow(Component component, double weight) {

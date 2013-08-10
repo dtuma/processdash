@@ -23,7 +23,6 @@
 
 package net.sourceforge.processdash.tool.db;
 
-import net.sourceforge.processdash.DashboardContext;
 
 public interface DatabasePlugin {
 
@@ -31,7 +30,7 @@ public interface DatabasePlugin {
 
     String DATA_REPOSITORY_NAME = "///Database_Plugin";
 
-    public void initialize(DashboardContext ctx);
+    public void initialize();
 
     public <T> T getObject(Class<T> clazz);
 
