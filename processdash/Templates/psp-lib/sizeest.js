@@ -457,6 +457,10 @@ var DashSET = {
     if (!dataTransfer) return;
     var text = dataTransfer.getData("URL");
     var data = DashSET.getDiffTransferData(text);
+    if (!data) {
+        text = dataTransfer.getData("Text");
+        data = DashSET.getDiffTransferData(text);
+    }
     if (!data) return;
 
     // If the user is adding a new row, check to see if an empty row is
