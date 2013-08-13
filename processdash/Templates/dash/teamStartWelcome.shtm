@@ -1,6 +1,6 @@
 <!--
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2002-2003 Tuma Solutions, LLC
+// Copyright (C) 2002-2013 Tuma Solutions, LLC
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -34,7 +34,8 @@
 Setup Wizard<br><!--#echo var=PATH_TRANSLATED --></h1></td></tr>
 </table>
 
-<form>
+<form action='teamStart.class' method='post'>
+<input type='hidden' name='page' value='testType'>
 
 <p>This wizard will help you to set up a team project.</p>
 
@@ -43,8 +44,7 @@ Setup Wizard<br><!--#echo var=PATH_TRANSLATED --></h1></td></tr>
 <table width='100%'><tr><td width='100%' align='right' nowrap>
 <input type=button name=cancel value='Cancel'
        onClick='window.close();'>&nbsp;&nbsp;
-<input type=button name=next value='Next'
-       onClick="window.location='teamStartType.shtm'">
+<input type=submit name=next value='Next'>
 </td></tr></table>
 
 </form>

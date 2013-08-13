@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2011 Tuma Solutions, LLC
+// Copyright (C) 2002-2013 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -84,8 +84,9 @@ public class TeamStartBootstrap extends TinyCGIBase {
     private static final String WELCOME_URL = "teamStartWelcome.shtm";
     // Information for the page which asks the user what type of
     // project they wish to create.
+    private static final String TEST_TYPE_PAGE = "testType";
     private static final String TYPE_PAGE = "type";
-    // private static final String TYPE_URL = "teamStartType.shtm";
+    private static final String TYPE_URL = "teamStartType.shtm";
     // Information for the page which asks the team leader which team
     // process they wish to use.
     private static final String PROCESS_PAGE = "process";
@@ -143,6 +144,7 @@ public class TeamStartBootstrap extends TinyCGIBase {
         if (page == null)                         showWelcomePage();
         else if (WELCOME_PAGE.equals(page))       showWelcomePage();
         else if (Settings.isReadOnly())           showReadOnlyPage();
+        else if (TEST_TYPE_PAGE.equals(page))     testDatasetType();
         else if (TYPE_PAGE.equals(page))          handleTypePage();
         else if (SHOW_PROCESS_PAGE.equals(page))  showTeamProcessesPage();
         else if (PROCESS_PAGE.equals(page))       handleProcessPage();
@@ -200,6 +202,22 @@ public class TeamStartBootstrap extends TinyCGIBase {
     /** Display the read-only error page */
     protected void showReadOnlyPage() {
         printRedirect(READ_ONLY_URL);
+    }
+
+    /** Test the type of this dataset and redirect accordingly */
+    private void testDatasetType() {
+        if (Settings.isHybridMode())
+            // if this is a legacy-hybrid dashboard, display the type page to
+            // ask the user whether they want to create or join a project.
+            printRedirect(TYPE_URL);
+
+        else if (Settings.isTeamMode())
+            // in a team dashboard, jump directly to the processes page.
+            showTeamProcessesPage();
+
+        else
+            // in a personal dashboard, prompt for the team project URL.
+            showTeamURLPage();
     }
 
     /** Handle values posted from the setup type page */
