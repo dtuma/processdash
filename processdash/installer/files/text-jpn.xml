@@ -53,6 +53,7 @@ Java実行環境が必要です。現在のJava実行環境のバージョンは
           {1}
 
 To download and install {0,choice,1#this module|2#these modules}, you must consent to the following license agreement.</str>
+    <str id="TargetPanel.warn">The directory already exists. The Process Dashboard installation in the given directory will be safely updated with new and changed application files. Is this what you would like to do?</str>
     <str id="application.name">Process Dashboard</str>
     <str id="extras.description">Charting and Reporting Extensions from Tuma Solutions, LLC.
 

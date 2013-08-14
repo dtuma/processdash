@@ -49,6 +49,7 @@ Der Verlag erteilt diese Erlaubnis unter der Bedingung dass Benutzer der folgend
           {1}
 
 Der Verlag erteilt diese Erlaubnis unter der Bedingung dass Benutzer der folgenden Lizenzvereinbarung zustimmen, bevor Sie mit dem Herunterladen oder der Installation dieser Inhalte fortfahren {0,choice,1#this module|2#these modules}:</str>
+    <str id="TargetPanel.warn">The directory already exists. The Process Dashboard installation in the given directory will be safely updated with new and changed application files. Is this what you would like to do?</str>
     <str id="application.name">Process Dashboard</str>
     <str id="extras.description">Erweiterungsmodul für Übersichtsgrafiken und Berichte von Tuma Solutions, LLC.
 

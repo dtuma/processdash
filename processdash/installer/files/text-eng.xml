@@ -123,5 +123,6 @@ you can proceed.</str>
 
     <str id="ShutdownDashboardPanel.error.title" txt="Process Dashboard Running"/>
 
+    <str id="TargetPanel.warn">The directory already exists. The Process Dashboard installation in the given directory will be safely updated with new and changed application files. Is this what you would like to do?</str>
 
 </langpack>
