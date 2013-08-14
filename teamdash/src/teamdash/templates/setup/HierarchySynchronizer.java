@@ -149,6 +149,9 @@ public class HierarchySynchronizer {
     /** Does the caller want to copy all nontask WBS items? */
     private boolean fullCopyMode;
 
+    /** Does the user want us to sync the sizes of inspected work products? */
+    private boolean syncInspectedSizes;
+
     private List deferredDeletions;
 
     private List deletionsPerformed;
@@ -211,6 +214,8 @@ public class HierarchySynchronizer {
             this.completionPermissions = Collections.EMPTY_LIST;
             this.deferredDeletions = new ArrayList();
             this.pspTasksNeedingSubsetPrompt = new ArrayList();
+            this.syncInspectedSizes = Settings.getBool(
+                "syncWBS.copyInspectedSizes", false);
         }
 
         loadProcessData();
@@ -2276,6 +2281,11 @@ public class HierarchySynchronizer {
         }
 
         private void maybeSaveInspSizeData(String path, Element node) {
+            // if the user doesn't want us to sync the sizes of inspected
+            // work products, abort.
+            if (!syncInspectedSizes)
+                return;
+
             // see if this node has inspection size data.
             String inspUnits = node.getAttribute("inspUnits");
             if (inspUnits == null || inspUnits.length() == 0)
