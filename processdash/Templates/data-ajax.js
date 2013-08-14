@@ -645,8 +645,8 @@ function setupSelectValues(elem) {
     numOptions = elem.options.length;
     for (optionNum = 0;   optionNum < numOptions;  optionNum++) {
         opt = elem.options[optionNum];
-        if (!opt.value)
-            opt.value = opt.text;
+        if (opt.hasAttribute ? !opt.hasAttribute("value") : !opt.value)
+            opt.value = opt.text.replace(/^\s+|\s+$/g, '');
     }
 }
 

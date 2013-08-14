@@ -2,7 +2,7 @@
 // <!--#echo defaultEncoding="html,javaStr" -->
 /****************************************************************************
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2000-2012 Tuma Solutions, LLC
+// Copyright (C) 2000-2013 Tuma Solutions, LLC
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -644,8 +644,8 @@ function setupSelectValues(elem) {
     numOptions = elem.options.length;
     for (optionNum = 0;   optionNum < numOptions;  optionNum++) {
         opt = elem.options[optionNum];
-        if (!opt.value)
-            opt.value = opt.text;
+        if (opt.hasAttribute ? !opt.hasAttribute("value") : !opt.value)
+            opt.value = opt.text.replace(/^\s+|\s+$/g, '');
     }
 }
 
