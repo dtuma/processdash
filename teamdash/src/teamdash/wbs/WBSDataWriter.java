@@ -613,7 +613,8 @@ public class WBSDataWriter {
             throws IOException
         {
             if (dataModel == null) return;
-            if (!QUALITY_PHASE_TYPES.contains(phaseType)) return;
+            if (phaseType == null) return;
+            if (!QUALITY_PHASE_TYPES.contains(phaseType.toUpperCase())) return;
 
             String units = process.getPhaseSizeMetric(phase);
             String colID = SizeAccountingColumnSet.getNCID(units);
@@ -780,6 +781,7 @@ public class WBSDataWriter {
 
     /** A list of phase types for quality phases */
     private static final List QUALITY_PHASE_TYPES = Arrays.asList(new String[] {
-            "REQINSP", "HLDRINSP", "CR", "CODEINSP", "DLDINSP", "DLDR" } );
+            "REQINSP", "HLDRINSP", "CR", "CODEINSP", "DLDINSP", "DLDR",
+            "APPRAISAL", "REVIEW", "INSP" });
 
 }
