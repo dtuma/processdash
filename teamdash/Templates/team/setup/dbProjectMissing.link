@@ -1,4 +1,4 @@
 class:net.sourceforge.processdash.ui.web.reports.snippets.MetricsAlert
 Expression==[DB_Project_Missing_Error_Flag]
 TrueMessageType==Error
-TrueMessage==The dashboard encountered an unexpected error that prevented it from successfully loading the data for this project.  As a result, the charts and reports below are displaying incomplete data.  Please contact the Process Dashboard Development Team for assistance.
+TrueMessage==The dashboard encountered an unexpected error that prevented it from successfully loading the data for this project.  As a result, the charts and reports below are displaying incomplete data.
