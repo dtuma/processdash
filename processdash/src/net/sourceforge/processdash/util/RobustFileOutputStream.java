@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2007 Tuma Solutions, LLC
+// Copyright (C) 2001-2013 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -32,6 +32,8 @@ public class RobustFileOutputStream extends OutputStream {
 
     public static final String OUT_PREFIX = "tttt";
     public static final String BACKUP_PREFIX = OUT_PREFIX + "_bak_";
+    private static final char PERIOD_REPL = ',';
+    private static final String TMP_SUFFIX = ".tmp";
 
     boolean origFileExists;
     File outFile, backupFile, destFile;
@@ -60,8 +62,9 @@ public class RobustFileOutputStream extends OutputStream {
 
         String filename = destFile.getName();
         this.destFile = destFile;
-        this.outFile = new File(parentDir, OUT_PREFIX + filename);
-        this.backupFile = new File(parentDir, BACKUP_PREFIX + filename);
+        String tmpName = filename.replace('.', PERIOD_REPL) + TMP_SUFFIX;
+        this.outFile = new File(parentDir, OUT_PREFIX + tmpName);
+        this.backupFile = new File(parentDir, BACKUP_PREFIX + tmpName);
 
         if (destFile.isDirectory())
             throw new IOException("Cannot write to file '" + destFile
@@ -189,6 +192,56 @@ public class RobustFileOutputStream extends OutputStream {
         }
 
         return false;
+    }
+
+    /**
+     * When given the name of a temporary file that was created by this class,
+     * returns the name of the original file that this class was writing when it
+     * created the given temp file.
+     * 
+     * @param tempFileName
+     *            a filename
+     * @return the name of an original file corresponding to the given temporary
+     *         file; or null if the given filename does not appear to have been
+     *         created by this class.
+     */
+    public static String getOriginalFilename(String tempFileName) {
+        String result;
+
+        // strip off any known prefix that would be added by this class
+        if (tempFileName.startsWith(BACKUP_PREFIX))
+            result = tempFileName.substring(BACKUP_PREFIX.length());
+        else if (tempFileName.startsWith(OUT_PREFIX))
+            result = tempFileName.substring(OUT_PREFIX.length());
+        else
+            return null;
+
+        // if the file ends with our temp suffix, remove that suffix and
+        // replace characters as necessary to transform the name back.
+        if (result.endsWith(TMP_SUFFIX))
+            result = result.substring(0, result.length() - TMP_SUFFIX.length())
+                    .replace(PERIOD_REPL, '.');
+
+        return result;
+    }
+
+    /**
+     * When given a temporary file that was created by this class, returns the
+     * original file that this class was writing when it created the given temp
+     * file.
+     * 
+     * @param tempFile
+     *            a file
+     * @return the original file corresponding to the given temporary file; or
+     *         null if the given file does not appear to have been created by
+     *         this class.
+     */
+    public static File getOriginalFile(File tempFile) {
+        String name = getOriginalFilename(tempFile.getName());
+        if (name == null)
+            return null;
+        else
+            return new File(tempFile.getParentFile(), name);
     }
 
 }

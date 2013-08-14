@@ -1,4 +1,4 @@
-// Copyright (C) 1998-2009 Tuma Solutions, LLC
+// Copyright (C) 1998-2013 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -25,7 +25,9 @@ package net.sourceforge.processdash;
 
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FilenameFilter;
+import java.io.IOException;
 
 import javax.swing.JOptionPane;
 
@@ -125,16 +127,20 @@ public class LostDataFiles implements FilenameFilter {
             return false;  // shouldn't happen
 
         if (origFile.exists()) {
-            backupFile.delete();
-            return true;
+            if (startsWithNullByte(origFile)) {
+                // if the original file is showing signs of corruption, delete
+                // it and keep the backup file instead.
+                origFile.delete();
+            } else {
+                // if we have an intact original file in place, we can delete
+                // the backup.
+                backupFile.delete();
+                return true;
+            }
         }
 
-        try {
-            FileUtils.renameFile(backupFile, origFile);
-            return true;
-        } catch (Exception e) {
-            return false;
-        }
+        // move the backup file back into the place of the original.
+        return safelyRename(backupFile, origFile);
     }
 
     private boolean fixTempFile(File tempFile) {
@@ -142,18 +148,50 @@ public class LostDataFiles implements FilenameFilter {
         if (origFile == null)
             return false;  // shouldn't happen
 
-        tempFile.delete();
-        return true;
+        if (startsWithNullByte(origFile)) {
+            // our original file appears to be corrupted, so it isn't worth
+            // keeping.  If the corruption occurred as a result of work by the
+            // Robust writer, that would suggest that the temporary file had
+            // been written completely; so it is likely that the temporary file
+            // contains more reliable data than the corrupted original. Replace
+            // the corrupted original with the temp file.
+            origFile.delete();
+            return safelyRename(tempFile, origFile);
+
+        } else {
+            tempFile.delete();
+            return true;
+        }
     }
 
     private File getFileWithoutPrefix(File file, String prefix) {
         if (file == null)
             return null;
         else if (file.getName().startsWith(prefix))
-            return new File(file.getParent(), file.getName().substring(
-                prefix.length()));
+            return RobustFileOutputStream.getOriginalFile(file);
         else
             return null;
+    }
+
+    private boolean startsWithNullByte(File f) {
+        FileInputStream in = null;
+        try {
+            in = new FileInputStream(f);
+            return (in.read() == 0);
+        } catch (IOException e) {
+            return false;
+        } finally {
+            FileUtils.safelyClose(in);
+        }
+    }
+
+    private boolean safelyRename(File srcFile, File destFile) {
+        try {
+            FileUtils.renameFile(srcFile, destFile);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     // printOut converts the data in lostFiles into a single printable string
