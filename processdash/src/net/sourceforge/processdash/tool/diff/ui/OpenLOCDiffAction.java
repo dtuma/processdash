@@ -1,4 +1,4 @@
-// Copyright (C) 2007-2011 Tuma Solutions, LLC
+// Copyright (C) 2007-2013 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -24,6 +24,8 @@
 package net.sourceforge.processdash.tool.diff.ui;
 
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.File;
 import java.util.List;
 
 import javax.swing.AbstractAction;
@@ -32,6 +34,7 @@ import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.tool.diff.TemplateFilterLocator;
 import net.sourceforge.processdash.tool.diff.engine.DefaultLanguageFilterSelector;
 import net.sourceforge.processdash.tool.diff.engine.LanguageFilterSelector;
+import net.sourceforge.processdash.ui.Browser;
 
 public class OpenLOCDiffAction extends AbstractAction {
 
@@ -50,7 +53,19 @@ public class OpenLOCDiffAction extends AbstractAction {
         List panels = HardcodedLOCDiffPanelLocator.getPanels();
         List filters = TemplateFilterLocator.getFilters();
         LanguageFilterSelector lfs = new DefaultLanguageFilterSelector(filters);
-        new LOCDiffDialog(panels, lfs);
+        new LOCDiffDialog(panels, lfs, SHOW_REPORT);
     }
+
+    private static final ActionListener SHOW_REPORT = new ActionListener() {
+
+        public void actionPerformed(ActionEvent e) {
+            String filename = e.getActionCommand();
+            File reportFile = new File(filename);
+            long reportId = LOCDiffReport.storeReport(reportFile);
+            String uri = "/dash/pspdiff.class?report=" + reportId;
+            Browser.launch(uri);
+        }
+
+    };
 
 }

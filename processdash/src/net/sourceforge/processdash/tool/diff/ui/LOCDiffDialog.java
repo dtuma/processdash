@@ -1,4 +1,4 @@
-// Copyright (C) 2011 Tuma Solutions, LLC
+// Copyright (C) 2011-2013 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -86,6 +86,8 @@ public class LOCDiffDialog {
 
     private LanguageFilterSelector languageFilterSelector;
 
+    private ActionListener reportFileListener;
+
     private JFrame frame;
 
     private JButton compareButton, closeButton;
@@ -101,8 +103,14 @@ public class LOCDiffDialog {
     protected static Resources resources = Resources.getDashBundle("LOCDiff");
 
     public LOCDiffDialog(List<Panel> panels, LanguageFilterSelector lfs) {
+        this(panels, lfs, null);
+    }
+
+    public LOCDiffDialog(List<Panel> panels, LanguageFilterSelector lfs,
+            ActionListener reportFileListener) {
         this.panels = panels;
         this.languageFilterSelector = lfs;
+        this.reportFileListener = reportFileListener;
 
         frame = new JFrame(resources.getString("Dialog.Generic_Window_Title"));
         DashboardIconFactory.setWindowIcon(frame);
@@ -276,9 +284,19 @@ public class LOCDiffDialog {
         @Override
         public void run() {
             try {
+                HtmlDiffReportWriter html = new HtmlDiffReportWriter();
+                if (reportFileListener != null)
+                    html.setLaunchBrowser(false);
+
                 engine.addFilesToAnalyze(fileSet);
-                engine.addDiffListener(new HtmlDiffReportWriter());
+                engine.addDiffListener(html);
                 engine.run();
+
+                if (reportFileListener != null)
+                    reportFileListener.actionPerformed(new ActionEvent(
+                            LOCDiffDialog.this, 0, html.getReportFile()
+                                    .getPath()));
+
             } catch (Exception e) {
                 ExceptionDialog.show(progressDialog,
                     resources.getString("Dialog.Error"), //

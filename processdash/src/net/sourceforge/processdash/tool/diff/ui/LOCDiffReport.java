@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2007 Tuma Solutions, LLC
+// Copyright (C) 2001-2013 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -24,16 +24,21 @@
 package net.sourceforge.processdash.tool.diff.ui;
 
 
+import java.io.File;
 import java.io.IOException;
+import java.util.Hashtable;
 import java.util.List;
+import java.util.Map;
 
 import net.sourceforge.processdash.i18n.Resources;
+import net.sourceforge.processdash.net.http.TinyCGIException;
 import net.sourceforge.processdash.net.http.TinyCGIHighVolume;
 import net.sourceforge.processdash.tool.diff.AbstractLanguageFilter;
 import net.sourceforge.processdash.tool.diff.LanguageFilter;
 import net.sourceforge.processdash.tool.diff.LOCDiff;
 import net.sourceforge.processdash.tool.diff.TemplateFilterLocator;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
+import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.HTMLUtils;
 
 
@@ -42,11 +47,24 @@ public class LOCDiffReport extends TinyCGIBase implements TinyCGIHighVolume {
 
     static Resources resources = Resources.getDashBundle("LOCDiff");
 
+    static Map<Long, File> STORED_REPORTS = new Hashtable<Long, File>();
+
+    static long storeReport(File f) {
+        long result = System.currentTimeMillis();
+        STORED_REPORTS.put(result, f);
+        return result;
+    }
+
     protected void writeContents() throws IOException {
         if (parameters.get("showOptions") != null)
             // If the query string requested the display of the
             // options page, just do it.
             printOptions();
+
+        else if (parameters.get("report") != null)
+            // If the query string requested the display of a cached
+            // report, just do it.
+            printStoredReport();
 
         else
             // otherwise, compare the files posted to this script
@@ -63,6 +81,15 @@ public class LOCDiffReport extends TinyCGIBase implements TinyCGIHighVolume {
         List filters = TemplateFilterLocator.getFilters();
         LOCDiff.printFiltersAndOptions(filters, out);
         out.println("</BODY></HTML>");
+    }
+
+    private void printStoredReport() throws IOException {
+        long reportId = Long.parseLong(getParameter("report"));
+        File reportFile = STORED_REPORTS.get(reportId);
+        if (reportFile == null)
+            throw new TinyCGIException(404, "Report Not Found");
+        else
+            FileUtils.copyFile(reportFile, outStream);
     }
 
     protected void compareFiles() throws IOException {
