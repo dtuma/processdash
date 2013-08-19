@@ -28,6 +28,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.Comparator;
 
 import javax.swing.JOptionPane;
 
@@ -92,6 +94,18 @@ public class LostDataFiles implements FilenameFilter {
         if (lostFiles == null || lostFiles.length == 0)
             return true;
 
+        // sort the files so that backups are first, followed by temp files.
+        // this allows our repair logic to prefer applying a backup-based
+        // repair, as it is more reliable than a temp-file-based repair.
+        Arrays.sort(lostFiles, new Comparator<File>() {
+            public int compare(File f1, File f2) {
+                return getFileType(f1) - getFileType(f2);
+            }
+            private int getFileType(File f) {
+                return (isBackupFile(f) ? 1 : 2);
+            }
+        });
+
         int unrepairedCount = 0;
         for (int i = 0; i < lostFiles.length; i++) {
             File file = lostFiles[i];
@@ -115,10 +129,14 @@ public class LostDataFiles implements FilenameFilter {
     }
 
     private boolean repairFile(File f) {
-        if (f.getName().startsWith(BACKUP_FILE_PREFIX))
+        if (isBackupFile(f))
             return fixBackupFile(f);
         else
             return fixTempFile(f);
+    }
+
+    private boolean isBackupFile(File f) {
+        return f.getName().startsWith(BACKUP_FILE_PREFIX);
     }
 
     private boolean fixBackupFile(File backupFile) {
