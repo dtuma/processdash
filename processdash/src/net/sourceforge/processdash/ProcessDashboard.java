@@ -68,7 +68,6 @@ import java.util.prefs.Preferences;
 import javax.swing.Action;
 import javax.swing.ButtonGroup;
 import javax.swing.JFrame;
-import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JOptionPane;
 import javax.swing.JRadioButton;
@@ -1439,8 +1438,8 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         return data;
     }
 
-    public JMenu getConfigurationMenu() {
-        return configure_button.getMainMenu();
+    public JMenuBar getConfigurationMenus() {
+        return configure_button;
     }
 
     public Action getChangeTaskAction() {

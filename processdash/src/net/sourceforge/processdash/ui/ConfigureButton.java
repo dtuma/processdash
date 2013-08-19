@@ -1,4 +1,4 @@
-// Copyright (C) 1999-2012 Tuma Solutions, LLC
+// Copyright (C) 1999-2013 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -31,7 +31,6 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.logging.Logger;
 
 import javax.swing.AbstractAction;
@@ -65,7 +64,6 @@ import net.sourceforge.processdash.ui.help.PCSH;
 
 public class ConfigureButton extends JMenuBar implements ActionListener, HierarchyEditor.Listener {
     ProcessDashboard   parent       = null;
-    JMenu menu = null;
     HierarchyEditor  prop_frame   = null;
     //TaskScheduleDialog   task_frame   = null;
     TimeLogEditor  time_frame   = null;
@@ -74,7 +72,6 @@ public class ConfigureButton extends JMenuBar implements ActionListener, Hierarc
     TaskScheduleChooser task_chooser = null;
 
 
-    static String FILE_SEP = null;
     static final String ANALYSIS_URL =
         "/To+Date/PSP/All//reports/analysis/index.htm";
     static final String PRINT_URL    = "/help/book.html";
@@ -106,60 +103,59 @@ public class ConfigureButton extends JMenuBar implements ActionListener, Hierarc
     static final String HELP_FORUM     = "Help.Online_help_forum";
     static final String HELP_CONSOLE   = "Help.View_debugging_output";
 
-                                  // menu labels & cmd text (see above)
-    static final String [][] menuItems = {
-        { HIERARCHY_FRAME,  "UsingHierarchyEditor" },
-        { TIME_LOG_FRAME,   "UsingTimeLogEditor" },
-        { DEFECT_LOG_FRAME, "UsingDefectLogEditor" },
-//    { PROBE_DIALOG,     "UsingProbeTool" },
-        { TASK_DIALOG,      "TaskAndSchedule???" },
-        { DATA_ANALYSIS,    "DataChartsAndReports" },
-//    { IMPORT_EXPORT,    "ExportingData" },
-        { TOOL_MENU,        null },
-        { HELP_MENU,        null },
-        { EXIT_PROGRAM,     null } };
-
 
     public ConfigureButton(ProcessDashboard dash) {
         super();
         parent = dash;
 
-        String    s;
-        menu = new JMenu(resources.getString("Main_Menu_Name"));
-        add (menu);
-        setMinimumSize(getPreferredSize());
+        if (Settings.isPersonalMode())
+            buildPersonalMenu();
+        else
+            buildTeamMenus();
+    }
 
-        /*
-         * I'm commenting out the following line for now.  Although eventually
-         * we will want context-sensitive help for the Configure Menu, the
-         * following line unfortunately causes F1, pressed from the main
-         * dashboard window, to bring up ConfigureMenu help.
-         */
-        //PCSH.enableHelpKey(this, "ConfigureMenu");
+    private void buildPersonalMenu() {
+        JMenu menu = new JMenu(resources.getString("Main_Menu_Name"));
+        add(menu);
+        setMinimumSize(getPreferredSize());
 
         BetaVersionSetup.addSubmenu(menu);
 
-        for (int ii = 0; ii < menuItems.length; ii++) {
-            s = menuItems[ii][0];
-            if (HELP_MENU.equals(s))
-                addHelpMenu(menu);
-            else if (TOOL_MENU.equals(s))
-                addToolMenu(menu);
-            else
-                menu.add(makeMenuItem(s));
-
-            // Can't get this to work, don't know why
-            // if (menuItems[ii][1] != null)
-            //   PCSH.enableHelp(menuItem, menuItems[ii][1]);
-        }
-
-                                    // get needed system properties
-        Properties prop = System.getProperties ();
-        FILE_SEP = prop.getProperty ("file.separator");
+        menu.add(makeMenuItem(HIERARCHY_FRAME));
+        menu.add(makeMenuItem(TIME_LOG_FRAME));
+        menu.add(makeMenuItem(DEFECT_LOG_FRAME));
+        menu.add(makeMenuItem(TASK_DIALOG));
+        menu.add(makeMenuItem(DATA_ANALYSIS));
+        menu.add(buildToolMenu(true));
+        menu.add(buildHelpMenu());
+        menu.add(makeMenuItem(EXIT_PROGRAM));
     }
 
-    public JMenu getMainMenu() {
-        return menu;
+    private void buildTeamMenus() {
+        add(buildTeamFileMenu());
+        add(buildToolMenu(false));
+        add(buildHelpMenu());
+    }
+
+    private JMenu buildTeamFileMenu() {
+        JMenu fileMenu = new JMenu(resources.getString("File"));
+
+        BetaVersionSetup.addSubmenu(fileMenu);
+
+        fileMenu.add(makeMenuItem(HIERARCHY_FRAME));
+        fileMenu.addSeparator();
+
+        fileMenu.add(makeMenuItem(TASK_DIALOG));
+        fileMenu.addSeparator();
+
+        SaveBackupAction saveBackupAction = new SaveBackupAction(parent);
+        fileMenu.add(saveBackupAction);
+        fileMenu.add(new OpenDatasetAction(parent, saveBackupAction));
+        fileMenu.addSeparator();
+
+        fileMenu.add(makeMenuItem(EXIT_PROGRAM));
+
+        return fileMenu;
     }
 
     private JMenuItem makeMenuItem(String text) {
@@ -169,25 +165,36 @@ public class ConfigureButton extends JMenuBar implements ActionListener, Hierarc
         return result;
     }
 
-    private void addToolMenu(JMenu menu) {
+    private JMenu buildToolMenu(boolean personalMode) {
         JMenu toolMenu = new JMenu(resources.getString(TOOL_MENU));
-        menu.add(toolMenu);
-
-        // workaround jre 1.3 bug...reference http://developer.java.sun.com/developer/bugParade/bugs/4280243.html
-        toolMenu.enableInputMethods(false);
 
         toolMenu.add(new OpenPreferencesDialogAction(parent));
         toolMenu.add(new OfflineModeToggleMenuItem(parent.getWorkingDirectory()));
-        toolMenu.add(makeMenuItem(PROBE_DIALOG));
+        toolMenu.addSeparator();
+
+        if (personalMode)
+            toolMenu.add(makeMenuItem(PROBE_DIALOG));
         if (Settings.isReadWrite()) {
             toolMenu.add(new ShowImportWizardAction(resources.getString(IMPORT)));
             toolMenu.add(new ShowExportWizardAction(resources.getString(EXPORT)));
         }
-        SaveBackupAction saveBackupAction = new SaveBackupAction(parent);
-        toolMenu.add(saveBackupAction);
-        toolMenu.add(new OpenDatasetAction(parent, saveBackupAction));
-        toolMenu.add(new OpenLOCDiffAction());
+        toolMenu.addSeparator();
+        int sepCount = toolMenu.getMenuComponentCount();
+
+        if (personalMode) {
+            SaveBackupAction saveBackupAction = new SaveBackupAction(parent);
+            toolMenu.add(saveBackupAction);
+            toolMenu.add(new OpenDatasetAction(parent, saveBackupAction));
+            toolMenu.addSeparator();
+            toolMenu.add(new OpenLOCDiffAction());
+        }
         addToolExtensions(toolMenu);
+
+        // if the menu ends with a separator, remove it.
+        if (sepCount == toolMenu.getMenuComponentCount())
+            toolMenu.remove(sepCount - 1);
+
+        return toolMenu;
     }
 
     private void addToolExtensions(JMenu toolMenu) {
@@ -222,13 +229,9 @@ public class ConfigureButton extends JMenuBar implements ActionListener, Hierarc
         }
     }
 
-    private void addHelpMenu(JMenu menu) {
+    private JMenu buildHelpMenu() {
         JMenu helpMenu = new JMenu(resources.getString(HELP_MENU));
         JMenuItem search;
-        menu.add(helpMenu);
-
-        // workaround jre 1.3 bug...reference http://developer.java.sun.com/developer/bugParade/bugs/4280243.html
-        helpMenu.enableInputMethods(false);
 
         helpMenu.add(makeMenuItem(HELP_FRAME));
         helpMenu.add(search = makeMenuItem(HELP_SEARCH));
@@ -242,6 +245,8 @@ public class ConfigureButton extends JMenuBar implements ActionListener, Hierarc
             helpMenu.add(makeMenuItem(HELP_CONSOLE));
         if (!PCSH.isSearchSupported())
             search.setEnabled(false);
+
+        return helpMenu;
     }
 
 

@@ -1,4 +1,4 @@
-// Copyright (C) 2007-2009 Tuma Solutions, LLC
+// Copyright (C) 2007-2013 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -30,6 +30,9 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.beans.EventHandler;
 import java.beans.PropertyChangeListener;
+
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
 
 import net.sourceforge.processdash.DashController;
 import net.sourceforge.processdash.InternalSettings;
@@ -70,14 +73,26 @@ public class MenuHandler {
 
         createSharedActions(pdash);
 
-        popupMenu.add(new DuplicatedMenu(pdash.getTitle(),
-            pdash.getConfigurationMenu()));
-        if (Settings.isReadWrite())
+        JMenuBar configMenus = pdash.getConfigurationMenus();
+        for (int i = 0; i < configMenus.getMenuCount();  i++) {
+            JMenu menu = configMenus.getMenu(i);
+            DuplicatedMenu duplicate;
+            if (i == 0)
+                duplicate = new DuplicatedMenu(pdash.getTitle(), menu);
+            else
+                duplicate = new DuplicatedMenu(menu);
+            popupMenu.add(duplicate);
+        }
+
+        boolean enableTimeLogging = Settings.isPersonalMode()
+                && Settings.isReadWrite();
+        if (enableTimeLogging)
             popupMenu.add(new ReminderMenu(reminder));
         popupMenu.add(new RemoveTrayIconAction());
         ScriptMenuReplicator.replicate(pdash, popupMenu);
         popupMenu.add(makeChangeTaskMenuItem());
-        popupMenu.add(new PlayPauseMenuItem(pdash.getTimeLoggingModel()));
+        if (enableTimeLogging)
+            popupMenu.add(new PlayPauseMenuItem(pdash.getTimeLoggingModel()));
         popupMenu.add(makeShowWindowMenuItem(pdash));
 
     }
