@@ -1,4 +1,4 @@
-// Copyright (C) 2007 Tuma Solutions, LLC
+// Copyright (C) 2007-2013 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -45,8 +45,11 @@ public class DuplicatedMenu extends Menu {
             Component item = source.getMenuComponent(i);
             if (item instanceof JMenu)
                 add(new DuplicatedMenu((JMenu) item));
-            else if (item instanceof JMenuItem)
-                add(new DuplicatedMenuItem(((JMenuItem) item)));
+            else if (item instanceof JMenuItem) {
+                JMenuItem menuItem = (JMenuItem) item;
+                if (menuItem.isVisible())
+                    add(new DuplicatedMenuItem(menuItem));
+            }
         }
     }
 
