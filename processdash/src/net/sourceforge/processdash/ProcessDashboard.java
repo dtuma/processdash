@@ -23,7 +23,9 @@
 
 package net.sourceforge.processdash;
 
+import java.awt.BorderLayout;
 import java.awt.Component;
+import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -71,7 +73,6 @@ import javax.swing.JFrame;
 import javax.swing.JMenuBar;
 import javax.swing.JOptionPane;
 import javax.swing.JRadioButton;
-import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 import javax.swing.event.EventListenerList;
 
@@ -146,6 +147,7 @@ import net.sourceforge.processdash.ui.DashboardSplashScreen;
 import net.sourceforge.processdash.ui.DashboardWelcomePane;
 import net.sourceforge.processdash.ui.PercentSpentIndicator;
 import net.sourceforge.processdash.ui.TaskNavigationSelector;
+import net.sourceforge.processdash.ui.TeamProjectBrowser;
 import net.sourceforge.processdash.ui.UserNotificationManager;
 import net.sourceforge.processdash.ui.help.PCSH;
 import net.sourceforge.processdash.ui.lib.ErrorReporter;
@@ -195,13 +197,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
     LockMessageHandler lockMessageHandler;
     ConfigureButton configure_button = null;
     PauseButton pause_button = null;
-    PercentSpentIndicator pct_spent_indicator = null;
-    ScriptButton script_button = null;
-    DefectButton defect_button = null;
     TaskNavigationSelector taskNav = null;
-    CompletionButton completion_button = null;
-    CompletedTaskTimeLoggingWatcher completedTaskTimeLoggingWatcher = null;
-    TaskCommenterButton taskCommenterButton = null;
     JMenuBar hierarchy_menubar = null;
     Initializable osHelper = null;
 
@@ -237,7 +233,6 @@ public class ProcessDashboard extends JFrame implements WindowListener,
 
     public ProcessDashboard(String location, String title) {
         super();
-        getContentPane().setLayout(new GridBagLayout());
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
         addWindowListener(this);
         ProfTimer pt = new ProfTimer(ProcessDashboard.class, "ProcessDashboard");
@@ -508,40 +503,6 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         webServer.setCache(objectCache);
         pt.click("Set web server context objects");
 
-        configure_button = new ConfigureButton(this);
-        addToMainWindow(configure_button, 0, 2, 2);
-        PCSH.enableHelpKey(this, "QuickOverview");
-        pt.click("Created configure button");
-        pause_button = new PauseButton(timeLog.getTimeLoggingModel());
-        if (Settings.isReadWrite())
-            addToMainWindow(pause_button, 0);
-        pt.click("Created play/pause button");
-        pct_spent_indicator = new PercentSpentIndicator(this, activeTaskModel);
-        addToMainWindow(pct_spent_indicator, 0);
-        pt.click("Created percent spent indicator");
-        defect_button = new DefectButton(this);
-        if (Settings.isReadWrite())
-            addToMainWindow(defect_button, 0);
-        pt.click("Created defect button");
-        script_button = new ScriptButton(this);
-        addToMainWindow(script_button, 0);
-        pt.click("Created script button");
-        hierarchy_menubar = new JMenuBar();
-        addToMainWindow(hierarchy_menubar, 1.0);
-        taskCommenterButton = new TaskCommenterButton(this, activeTaskModel);
-        addToMainWindow(taskCommenterButton, 0);
-        pt.click("Created task commenter button");
-        DependencyIndicator dependencyIndicator = new DependencyIndicator(this,
-                activeTaskModel);
-        addToMainWindow(dependencyIndicator, 0, 0, 0);
-        pt.click("Created dependency indicator");
-        completion_button = new CompletionButton(this, activeTaskModel);
-        addToMainWindow(completion_button, 0, 0,
-            Settings.getInt("mainWindow.paddingRight", 2));
-        completedTaskTimeLoggingWatcher = new CompletedTaskTimeLoggingWatcher(
-                this, activeTaskModel, timeLog.getTimeLoggingModel(), data);
-        pt.click("Created completion button");
-
         MessageDispatcher.init(this);
         ImportManager.init(data);
         InternalSettings.addPropertyChangeListener(ImportManager.SETTING_NAME,
@@ -564,12 +525,17 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         EVTaskDependencyResolver.init(this);
         WBSTaskOrderComparator.init(this);
 
-        taskNav = new TaskNavigationSelector
-            (this, hierarchy_menubar, activeTaskModel);
-        completion_button.setNavSelector(taskNav);
-        pt.click("Created task navigation selector");
-        dependencyIndicator.update();
-        pt.click("Updated dependency indicator");
+        configure_button = new ConfigureButton(this);
+        PCSH.enableHelpKey(this, "QuickOverview");
+        pt.click("Created configure button");
+        pause_button = new PauseButton(timeLog.getTimeLoggingModel());
+        pt.click("Created play/pause button");
+
+        if (Settings.isPersonalMode())
+            buildPersonalUI(pt);
+        else
+            buildTeamUI(pt);
+
         props.addHierarchyListener(new DashHierarchy.PrePostListener() {
                 public void hierarchyWillChange(Event e) {
                     if (!Settings.isFollowMode())
@@ -581,12 +547,10 @@ public class ProcessDashboard extends JFrame implements WindowListener,
                     registerHierarchyDataElement();
                     if (!e.isAdjusting() && !Settings.isFollowMode())
                         timeLog.refreshMetrics();
-                    refreshHierarchy(e.isAdjusting());
                 }});
 
         brokenData.done();
         TemplateLoader.showTemplateErrors();
-        addComponentListener(new ResizeWatcher());
         ExternalResourceManager.getInstance().cleanupBogusExtResDirectory(
                 prop_file.getParentFile());
         DashController.setDashboard(this);
@@ -941,6 +905,59 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         return false;
     }
 
+    private void buildPersonalUI(ProfTimer pt) {
+        getContentPane().setLayout(new GridBagLayout());
+
+        addToMainWindow(configure_button, 0, 2, 2);
+        if (Settings.isReadWrite())
+            addToMainWindow(pause_button, 0);
+
+        PercentSpentIndicator pct_spent_indicator = new PercentSpentIndicator(
+                this, activeTaskModel);
+        addToMainWindow(pct_spent_indicator, 0);
+        pt.click("Created percent spent indicator");
+
+        DefectButton defect_button = new DefectButton(this);
+        if (Settings.isReadWrite())
+            addToMainWindow(defect_button, 0);
+        pt.click("Created defect button");
+
+        ScriptButton script_button = new ScriptButton(this);
+        addToMainWindow(script_button, 0);
+        pt.click("Created script button");
+
+        hierarchy_menubar = new JMenuBar();
+        addToMainWindow(hierarchy_menubar, 1.0);
+
+        TaskCommenterButton taskCommenterButton = new TaskCommenterButton(this,
+                activeTaskModel);
+        addToMainWindow(taskCommenterButton, 0);
+        pt.click("Created task commenter button");
+
+        DependencyIndicator dependencyIndicator = new DependencyIndicator(this,
+                activeTaskModel);
+        addToMainWindow(dependencyIndicator, 0, 0, 0);
+        pt.click("Created dependency indicator");
+
+        CompletionButton completion_button = new CompletionButton(this,
+                activeTaskModel);
+        addToMainWindow(completion_button, 0, 0,
+            Settings.getInt("mainWindow.paddingRight", 2));
+        new CompletedTaskTimeLoggingWatcher(this, activeTaskModel,
+                timeLog.getTimeLoggingModel(), data);
+        pt.click("Created completion button");
+
+        taskNav = new TaskNavigationSelector
+                (this, hierarchy_menubar, activeTaskModel);
+        completion_button.setNavSelector(taskNav);
+        pt.click("Created task navigation selector");
+
+        dependencyIndicator.update();
+        pt.click("Updated dependency indicator");
+
+        addComponentListener(new ResizeWatcher());
+    }
+
     private Component addToMainWindow(Component component, double weight) {
         return addToMainWindow(component, weight, 0, 2);
     }
@@ -960,6 +977,17 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         GridBagLayout layout = (GridBagLayout) getContentPane().getLayout();
         layout.setConstraints(component, g);
         return getContentPane().add(component);
+    }
+
+    private void buildTeamUI(ProfTimer pt) {
+        Container pane = getContentPane();
+        pane.setLayout(new BorderLayout());
+
+        pane.add(configure_button, BorderLayout.NORTH);
+
+        TeamProjectBrowser teamProjectBrowser = new TeamProjectBrowser(this);
+        pane.add(teamProjectBrowser, BorderLayout.CENTER);
+        pt.click("Created team project browser");
     }
 
     private void setupWindowTitle(String titleFromCommandLine) {
@@ -1382,20 +1410,6 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         return true;
     }
 
-    private void refreshHierarchy(final boolean isAdjusting) {
-        if (SwingUtilities.isEventDispatchThread())
-            refreshHierarchyImpl(isAdjusting);
-        else try {
-            SwingUtilities.invokeAndWait(new Runnable() {
-                    public void run() { refreshHierarchyImpl(isAdjusting); }});
-        } catch (Exception e) { }
-    }
-    private void refreshHierarchyImpl(boolean isAdjusting) {
-        logger.finer("ProcessDashboard.refreshHierarchyImpl starting");
-        taskNav.hierarchyChanged();
-        logger.finer("ProcessDashboard.refreshHierarchyImpl finished");
-    }
-
     public ActiveTaskModel getActiveTaskModel() {
         return activeTaskModel;
     }
@@ -1443,7 +1457,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
     }
 
     public Action getChangeTaskAction() {
-        return taskNav.getChangeTaskAction();
+        return taskNav == null ? null : taskNav.getChangeTaskAction();
     }
 
     public Dimension getPreferredSize() {
@@ -1645,6 +1659,9 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         if (configure_button != null)
             configure_button.saveAndCloseHierarchyEditor();
 
+        // save the size of the team dashboard window
+        maybeSaveWindowSize();
+
         // Now, flush all in-memory data to disk, recording whether any steps
         // were unsuccessful.
 
@@ -1782,8 +1799,36 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         logger.log(Level.SEVERE, msg, t);
     }
 
+    private void initializeWindowSize() {
+        if (Settings.isPersonalMode()) {
+            this.pack();
+
+        } else {
+            int width, height;
+            try {
+                String setting = Settings.getVal(DIMENSION_SETTING);
+                String[] parts = setting.split(",");
+                width = Integer.parseInt(parts[0]);
+                height = Integer.parseInt(parts[1]);
+            } catch (Exception e) {
+                width = 550;
+                height = 300;
+            }
+            this.setSize(width, height);
+        }
+    }
+
+    private void maybeSaveWindowSize() {
+        if (!Settings.isPersonalMode()) {
+            String setting = getWidth() + "," + getHeight();
+            InternalSettings.set(DIMENSION_SETTING, setting);
+        }
+    }
+
+    private static final String DIMENSION_SETTING = "mainWindow.dimensions";
+
     public void windowSizeRequirementsChanged() {
-        if (this.isVisible())
+        if (Settings.isPersonalMode() && this.isVisible())
             this.pack();
     }
 
@@ -1826,7 +1871,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
 
         DashboardIconFactory.setWindowIcon(dash);
         dash.setVisible(true);
-        dash.windowSizeRequirementsChanged();
+        dash.initializeWindowSize();
 
         dropSplashScreen();
         dash.maybeNotifyOpened();

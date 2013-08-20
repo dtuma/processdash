@@ -7,9 +7,7 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.SwingUtilities;
 
-import net.sourceforge.processdash.log.ui.DefectButton;
 import net.sourceforge.processdash.log.ui.PauseButton;
-import net.sourceforge.processdash.process.ui.ScriptButton;
 import net.sourceforge.processdash.ui.ConfigureButton;
 
 public class SimulationHarness {
@@ -79,14 +77,6 @@ public class SimulationHarness {
 
     public PauseButton getPauseButton() {
         return dashboard.pause_button;
-    }
-
-    public DefectButton getDefectButton() {
-        return dashboard.defect_button;
-    }
-
-    public ScriptButton getScriptButton() {
-        return dashboard.script_button;
     }
 
     public JMenuBar getHierarchyMenuBar() {

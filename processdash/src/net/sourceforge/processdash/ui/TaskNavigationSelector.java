@@ -1,4 +1,4 @@
-// Copyright (C) 2006-2011 Tuma Solutions, LLC
+// Copyright (C) 2006-2013 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -31,12 +31,14 @@ import javax.swing.Action;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
+import javax.swing.SwingUtilities;
 
 import net.sourceforge.processdash.InternalSettings;
 import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.ev.ui.TaskListNavigator;
 import net.sourceforge.processdash.hier.ActiveTaskModel;
+import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.hier.ui.HierarchyMenu;
 import net.sourceforge.processdash.hier.ui.HierarchyTreeModel;
@@ -45,7 +47,7 @@ import net.sourceforge.processdash.ui.lib.ToolTipTimingCustomizer;
 import net.sourceforge.processdash.ui.lib.TreeTableModel;
 import net.sourceforge.processdash.util.FallbackObjectFactory;
 
-public class TaskNavigationSelector {
+public class TaskNavigationSelector implements DashHierarchy.Listener {
 
     public interface NavMenuUI extends PropertyChangeListener {
         public String getNavMenuDisplayName();
@@ -81,6 +83,8 @@ public class TaskNavigationSelector {
 
         buildMenu();
         createNavigator();
+
+        dash.getHierarchy().addHierarchyListener(this);
     }
 
     public boolean selectNext() {
@@ -91,8 +95,15 @@ public class TaskNavigationSelector {
         return changeTaskAction;
     }
 
-    public void hierarchyChanged() {
-        createNavigator();
+    public void hierarchyChanged(DashHierarchy.Event e) {
+        if (SwingUtilities.isEventDispatchThread()) {
+            createNavigator();
+        } else {
+            try {
+                SwingUtilities.invokeAndWait(new Runnable() {
+                    public void run() { createNavigator(); }});
+            } catch (Exception ex) {}
+        }
     }
 
 
