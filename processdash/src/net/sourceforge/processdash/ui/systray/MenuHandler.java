@@ -90,7 +90,8 @@ public class MenuHandler {
             popupMenu.add(new ReminderMenu(reminder));
         popupMenu.add(new RemoveTrayIconAction());
         ScriptMenuReplicator.replicate(pdash, popupMenu);
-        popupMenu.add(makeChangeTaskMenuItem());
+        if (changeTaskAction != null)
+            popupMenu.add(makeChangeTaskMenuItem());
         if (enableTimeLogging)
             popupMenu.add(new PlayPauseMenuItem(pdash.getTimeLoggingModel()));
         popupMenu.add(makeShowWindowMenuItem(pdash));

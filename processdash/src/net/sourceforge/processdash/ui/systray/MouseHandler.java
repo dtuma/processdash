@@ -1,4 +1,4 @@
-// Copyright (C) 2007-2008 Tuma Solutions, LLC
+// Copyright (C) 2007-2013 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -105,7 +105,8 @@ public class MouseHandler extends MouseAdapter {
 
         } else if ((e.getModifiersEx() & MouseEvent.CTRL_DOWN_MASK) != 0) {
             // Ctrl-click should open the change task dialog
-            changeTaskAction.actionPerformed(null);
+            if (changeTaskAction != null)
+                changeTaskAction.actionPerformed(null);
 
         } else if (timeLoggingModel.isLoggingAllowed()) {
             // a single left-click was detected
