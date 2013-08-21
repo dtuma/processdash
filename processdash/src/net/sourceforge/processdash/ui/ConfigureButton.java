@@ -282,7 +282,7 @@ public class ConfigureButton extends JMenuBar implements ActionListener, Hierarc
         }
     }
 
-    protected void startPropertyFrame () {
+    public void startPropertyFrame () {
         if (parent.getProperties() != null) {
             if (prop_frame != null)
                 prop_frame.show();

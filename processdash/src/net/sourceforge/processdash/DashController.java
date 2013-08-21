@@ -325,6 +325,11 @@ public class DashController {
         return result;
     }
 
+    /** @since 1.15.8 */
+    public static void showHierarchyEditor() {
+        dash.configure_button.startPropertyFrame();
+    }
+
     public static boolean isHierarchyEditorOpen() {
         return dash.configure_button.isHierarchyEditorOpen();
     }
