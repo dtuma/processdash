@@ -31,11 +31,14 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.AbstractAction;
 import javax.swing.DefaultListModel;
 import javax.swing.JList;
+import javax.swing.JMenu;
+import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTree;
@@ -49,18 +52,24 @@ import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 
 import net.sourceforge.processdash.ApplicationEventListener;
+import net.sourceforge.processdash.DashController;
 import net.sourceforge.processdash.DashboardContext;
 import net.sourceforge.processdash.InternalSettings;
 import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.Settings;
+import net.sourceforge.processdash.data.ListData;
 import net.sourceforge.processdash.hier.ActiveTaskModel;
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.DashHierarchy.Event;
+import net.sourceforge.processdash.hier.HierarchyAlterer.HierarchyAlterationException;
 import net.sourceforge.processdash.hier.Prop;
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.hier.ui.PropTreeModel;
+import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.process.ScriptEnumerator;
 import net.sourceforge.processdash.process.ScriptID;
+import net.sourceforge.processdash.ui.web.dash.TeamStartBootstrap;
+import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.StringUtils;
 
 public class TeamProjectBrowser extends JSplitPane {
@@ -81,6 +90,9 @@ public class TeamProjectBrowser extends JSplitPane {
 
     private ExternalEventHandler handler;
 
+    private static final Resources resources = Resources
+            .getDashBundle("ProcessDashboard");
+
 
     public TeamProjectBrowser(ProcessDashboard dash) {
         super(HORIZONTAL_SPLIT);
@@ -94,6 +106,7 @@ public class TeamProjectBrowser extends JSplitPane {
 
         buildTree();
         buildScriptList();
+        augmentTeamDashboardFileMenu(dash);
 
         initSplitterLocationFromSettings();
         updateTreeSelectionFromActiveTask();
@@ -213,9 +226,15 @@ public class TeamProjectBrowser extends JSplitPane {
         List<ScriptID> newScripts = null;
         if (key != null)
             newScripts = ScriptEnumerator.getScripts(ctx, key);
-        if (newScripts == null || newScripts.size() == 0)
-            // TODO: display some default when there are no scripts
-            return;
+        if (newScripts == null || newScripts.size() == 0) {
+            // if no scripts were found, add an entry to create a new project.
+            newScripts = new ArrayList<ScriptID>();
+            ScriptID newProjectScript = new ScriptID(
+                    getNewProjectCreationUri(), "",
+                    resources.getString("NewTeamProject.Title"));
+            newScripts.add(newProjectScript);
+            newScripts.add(newProjectScript);
+        }
 
         ScriptID defaultScript = newScripts.get(0);
         String dataPath = defaultScript.getDataPath();
@@ -261,6 +280,124 @@ public class TeamProjectBrowser extends JSplitPane {
         if (clearSelection)
             scriptList.clearSelection();
     }
+
+    /**
+     * Add team-project-related items to the File menu.
+     */
+    private void augmentTeamDashboardFileMenu(ProcessDashboard dash) {
+        JMenu fileMenu = dash.getConfigurationMenus().getMenu(0);
+        fileMenu.insert(new NewProjectAction(), 0);
+        fileMenu.insert(new DeleteProjectAction(), 1);
+    }
+
+    private String getNewProjectCreationUri() {
+        String uri = TeamStartBootstrap.TEAM_START_URI;
+
+        String targetParent = getNewProjectTargetParent();
+        if (StringUtils.hasValue(targetParent))
+            uri = HTMLUtils.appendQuery(uri,
+                TeamStartBootstrap.TARGET_PARENT_PARAM, targetParent);
+
+        return uri;
+    }
+
+    private String getNewProjectTargetParent() {
+        PropertyKey node = getSelectedTreeNode();
+
+        // When no tree node is selected, the root node is reported as the
+        // "effective selection." In this case, return null to indicate that
+        // we don't have a target parent.
+        if (PropertyKey.ROOT.equals(node))
+            return null;
+
+        // Find the first at or above the selection which has no template ID.
+        // that is our target parent.
+        while (node != null) {
+            String templateID = treeProps.getID(node);
+            if (StringUtils.hasValue(templateID))
+                node = node.getParent();
+            else if (PropertyKey.ROOT.equals(node))
+                return "/";
+            else
+                return node.path();
+        }
+        return null;
+    }
+
+    private void maybeDeleteSelectedProject() {
+        PropertyKey selectedNode = getSelectedTreeNode();
+        String projectPath = selectedNode.path();
+        String templateID = ctx.getHierarchy().getID(selectedNode);
+        if (okToDeleteProject(projectPath, templateID)) {
+            try {
+                DashController.getHierarchyAlterer().deleteNode(projectPath);
+            } catch (HierarchyAlterationException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private boolean okToDeleteProject(String projectPath, String templateID) {
+        // do not delete plain nodes (which act as folders full of projects)
+        if (!StringUtils.hasValue(templateID))
+            return false;
+
+        // it is harmless to delete a team project stub.
+        if (TeamStartBootstrap.TEAM_STUB_ID.equals(templateID))
+            return true;
+
+        // the user is deleting a real project. Display a dialog to confirm.
+        String title = resources.getString("DeleteTeamProject.Title");
+        Object message = getDeleteProjectWarningMessage(projectPath, templateID);
+        int userChoice = JOptionPane.showConfirmDialog(this, message, title,
+            JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+        return userChoice == JOptionPane.YES_OPTION;
+    }
+
+    private Object getDeleteProjectWarningMessage(String projectPath,
+            String templateID) {
+        List message = new ArrayList();
+
+        // add a header to the message.
+        message.add(resources.formatStrings(
+            "DeleteTeamProject.Message_Header_FMT", projectPath));
+        message.add(" ");
+
+        // if WBS planning has been done, add a warning.
+        if (hasWbsData(projectPath)) {
+            message.add(resources
+                    .getStrings("DeleteTeamProject.WBS_Data_Warning"));
+            message.add(" ");
+        }
+
+        // if team members have joined the project, add a warning.
+        if (membersHaveJoined(projectPath, templateID)) {
+            message.add(resources
+                    .getStrings("DeleteTeamProject.Members_Joined"));
+            message.add(" ");
+        }
+
+        // add a footer to the message.
+        message.add(resources.getString("DeleteTeamProject.Message_Footer"));
+        return message.toArray();
+    }
+
+    private boolean hasWbsData(String projectPath) {
+        return listLongerThan(projectPath, "Synchronized_Task_ID_WBS_Order", 2);
+    }
+
+    private boolean membersHaveJoined(String projectPath, String templateID) {
+        return (templateID.endsWith("/TeamRoot") && listLongerThan(projectPath,
+            "Corresponding_Project_Nodes", 0));
+    }
+
+    private boolean listLongerThan(String projectPath, String listName,
+            int length) {
+        String name = projectPath + "/" + listName;
+        ListData l = ListData.asListData(ctx.getData().getSimpleValue(name));
+        return l != null && l.size() > length;
+    }
+
 
     private static final String SPLITTER_SETTING = "mainWindow.splitterPos";
 
@@ -357,6 +494,54 @@ public class TeamProjectBrowser extends JSplitPane {
 
         public void actionPerformed(ActionEvent e) {
             showSelectedScript(false, null);
+        }
+
+    }
+
+    private class NewProjectAction extends AbstractAction {
+
+        public NewProjectAction() {
+            super(resources.getString("Menu.File.New_Team_Project"));
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            Browser.launch(getNewProjectCreationUri());
+        }
+
+    }
+
+    private abstract class AbstractProjectSensitiveAction extends
+            AbstractAction implements TreeSelectionListener {
+
+        public AbstractProjectSensitiveAction(String resKey) {
+            super(resources.getString(resKey));
+            tree.getSelectionModel().addTreeSelectionListener(this);
+        }
+
+        public void valueChanged(TreeSelectionEvent e) {
+            PropertyKey projectKey = getSelectedTreeNode();
+            String templateID = ctx.getHierarchy().getID(projectKey);
+            if (StringUtils.hasValue(templateID)) {
+                setEnabled(true);
+                projectSelected(projectKey);
+            } else {
+                setEnabled(false);
+                projectSelected(null);
+            }
+        }
+
+        public void projectSelected(PropertyKey projectKey) {}
+
+    }
+
+    private class DeleteProjectAction extends AbstractProjectSensitiveAction {
+
+        public DeleteProjectAction() {
+            super("Menu.File.Delete_Team_Project");
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            maybeDeleteSelectedProject();
         }
 
     }

@@ -78,6 +78,10 @@ import net.sourceforge.processdash.util.XMLUtils;
  */
 public class TeamStartBootstrap extends TinyCGIBase {
 
+    public static final String TEAM_STUB_ID = "TeamProjectStub";
+    public static final String TEAM_START_URI = "/dash/teamStart.class";
+    public static final String TARGET_PARENT_PARAM = "parent";
+
     private static final String PAGE = "page";
 
     // Information for the wizard's "welcome" page.
@@ -109,8 +113,6 @@ public class TeamStartBootstrap extends TinyCGIBase {
     // Information for the page which tells the user they are in read only mode
     private static final String READ_ONLY_URL = "teamStartReadOnly.shtm";
 
-    // the template ID of a "team project stub"
-    private static final String TEAM_STUB_ID = "TeamProjectStub";
 
 
     private static final String NODE_LOCATION = "setup//Node_Location";
@@ -214,7 +216,7 @@ public class TeamStartBootstrap extends TinyCGIBase {
 
     /** Display the welcome page */
     protected void showWelcomePage() {
-        String desiredLocation = getParameter("parent");
+        String desiredLocation = getParameter(TARGET_PARENT_PARAM);
         if (StringUtils.hasValue(desiredLocation))
             putValue(NODE_LOCATION, desiredLocation);
 
