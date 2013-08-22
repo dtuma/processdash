@@ -384,7 +384,7 @@ public class TeamStartBootstrap extends TinyCGIBase {
 
     private String tweakLocation(String nodeLocation) {
         // make the node location canonical
-        nodeLocation = makePathCanonical(nodeLocation);
+        nodeLocation = DashHierarchy.scrubPath(nodeLocation);
 
         // if the node location is missing, use the locale-specific default.
         String defaultProjectLocation = getDefaultProjectLocation();
@@ -401,24 +401,6 @@ public class TeamStartBootstrap extends TinyCGIBase {
         }
 
         return nodeLocation;
-    }
-
-    private String makePathCanonical(String path) {
-        if (path == null)
-            return null;
-        else if (path.trim().equals("/"))
-            return "/";
-
-        StringBuilder result = new StringBuilder();
-        for (String part : path.split("/")) {
-            part = part.trim();
-            if (part.length() > 0 && !part.equals(".") && !part.equals(".."))
-                result.append("/").append(part);
-        }
-        if (path.trim().startsWith("/") || result.length() == 0)
-            return result.toString();
-        else
-            return result.substring(1);
     }
 
     private String getDefaultProjectLocation() {

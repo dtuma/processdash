@@ -1160,4 +1160,47 @@ public class DashHierarchy extends Hashtable implements ItemSelectable,
     public boolean equals(Object o) { return (this == o); }
     public int hashCode() { return System.identityHashCode(this); }
 
+    /**
+     * @param name the potential name of a single hierarchy node
+     * @return true if the name is a valid name for a hierarchy node
+     * @since 1.15.8
+     */
+    public static boolean isValidNodeName(String name) {
+        return (name != null //
+                && (name = name.trim()).length() > 0 //
+                && name.indexOf('/') == -1 //
+                && !".".equals(name) //
+                && !"..".equals(name));
+    }
+
+    /**
+     * Clean up a potential hierarchy path by discarding illegal path segments
+     * and unnecessary redundant slashes, trimming leading and trailing whitespace
+     * on individual path segments, etc.
+     * 
+     * @param a
+     *            potential hierarchy path
+     * @return a version of that path which would be valid for use within the
+     *         hierarchy.  If the given hierarchy path was relative, the result
+     *         will be relative as well.
+     * @since 1.15.8
+     */
+    public static String scrubPath(String path) {
+        if (path == null)
+            return null;
+        else if (path.trim().equals("/"))
+            return "/";
+
+        StringBuilder result = new StringBuilder();
+        for (String part : path.split("/")) {
+            part = part.trim();
+            if (isValidNodeName(part))
+                result.append("/").append(part);
+        }
+        if (path.trim().startsWith("/") || result.length() == 0)
+            return result.toString();
+        else
+            return result.substring(1);
+    }
+
 }
