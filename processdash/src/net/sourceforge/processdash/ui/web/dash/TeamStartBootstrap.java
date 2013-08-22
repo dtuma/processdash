@@ -42,6 +42,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import net.sourceforge.processdash.DashController;
+import net.sourceforge.processdash.InternalSettings;
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.ImmutableStringData;
 import net.sourceforge.processdash.data.SimpleData;
@@ -129,6 +130,7 @@ public class TeamStartBootstrap extends TinyCGIBase {
     // value indicating we should help an individual join a team project
     private static final String JOIN_PAGE = "join";
     private static final String JOIN_ERROR_URL = "teamStartJoinError.shtm";
+    private static final String JOIN_TEAM_ERROR_URL = "teamStartJoinErrorTeam.shtm";
     private static final String JOIN_VERIFY_URL = "teamStartJoinVerify.shtm";
 
     private static Resources resources = Resources.getDashBundle("TeamStart");
@@ -792,8 +794,17 @@ public class TeamStartBootstrap extends TinyCGIBase {
         File templateFile = resolveTemplateLocation(templatePath,
                 templatePathUNC);
 
-        if (templateIsLoaded(templateID, packageID, packageVersion, templateFile,
-                continuationURI, requirePath)) {
+        if (!Settings.isPersonalMode()) {
+            // This is a Team Dashboard, but it just received a joining request.
+            // This probably means that we are incorrectly listening on port
+            // 2468.  Enable team settings to fix the problem for the future,
+            // then display an error page asking the user to restart.
+            DashController.enableTeamSettings();
+            InternalSettings.set("http.port", "3000");
+            printRedirect(JOIN_TEAM_ERROR_URL);
+
+        } else if (templateIsLoaded(templateID, packageID, packageVersion,
+            templateFile, continuationURI, requirePath)) {
             // the template is already present in the dashboard.  Test to
             // make certain our dashboard can understand that template.
             errorMessage = testContinuation(getPrefix(), continuationURI);
