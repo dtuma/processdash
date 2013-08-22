@@ -1,0 +1,103 @@
+<!--
+// Process Dashboard - Data Automation Tool for high-maturity processes
+// Copyright (C) 2002-2013 Tuma Solutions, LLC
+//
+// This program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License
+// as published by the Free Software Foundation; either version 3
+// of the License, or (at your option) any later version.
+//
+// Additional permissions also apply; see the README-license.txt
+// file in the project root directory for more information.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, see <http://www.gnu.org/licenses/>.
+//
+// The author(s) may be contacted at:
+//     processdash@tuma-solutions.com
+//     processdash-devel@lists.sourceforge.net
+-->
+
+<html>
+<head>
+<title>Team Project Setup Wizard</title>
+<link rel=stylesheet type='text/css' href='teamStart.css'>
+<!--#if READ_ONLY -->
+<meta http-equiv='Refresh' content='0;URL=teamStartReadOnly.shtm'>
+<!--#endif-->
+<script>
+    function save(fullPath) {
+        if (!fullPath) { fullPath = "/"; }
+        document.forms[0].elements[2].value = fullPath;
+    }
+</script>
+</head>
+<body>
+
+<img align="left" src="/Images/team.jpg" width=50 height=50>
+
+<h1>Team Project Setup Wizard</h1>
+
+<h2>Select Project Name</h2>
+
+<form action='teamStart.class' method='post'>
+<input type='hidden' name='page' value='teamSelectNode'>
+
+<p>To coordinate the work of several individuals or teams, you must create a
+team project.  What would you like to call this project?</p>
+
+<table><tr><td nowrap>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Project name:&nbsp;&nbsp;</td>
+<td><input type=text name=Node_Name
+           value="<!--#echo [setup//Node_Name] -->"
+           size=60></td></tr>
+
+<!--#if nodeNameMissing -->
+<tr><td></td><td class="error">
+You must enter a name for the project.
+</td></tr>
+<!--#elif nodeNameSlash -->
+<tr><td></td><td class="error">
+The project name cannot contain the '/' character.
+</td></tr>
+<!--#elif duplicateName -->
+<tr><td></td><td class="error">
+This dashboard already contains a project or folder with this name.  Please
+choose a new, unique name.
+</td></tr>
+<!--#endif-->
+
+</table>
+
+<p>If you like, you can use folders to group related projects together.  What
+folder name would you like to use for this project?</p>
+
+<table><tr><td nowrap>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Project folder:&nbsp;&nbsp;</td>
+<td><input type=text name=Node_Location
+           value="<!--#echo [setup//Node_Location] -->"
+           size=45>&nbsp;<input type=button name=browse value='Browse...'
+           onclick="window.open('teamStartTeamNodeBrowse', 'popup', 'width=300,height=200,scrollbars=1');"></td></tr>
+
+<!--#if invalidParent -->
+<tr><td></td><td class="error">
+Team projects cannot be nested underneath each other, so this location is
+not valid.  Please use the Browse button to choose a valid folder.
+</td></tr>
+<!--#endif-->
+
+</table>
+
+<br><br>
+
+<table width='100%'><tr><td width='100%' align='right' nowrap>
+<input type=button name=back value='Back'
+       onClick='history.back();'>&nbsp;&nbsp;
+<input type=submit name=next value='Next'>
+</td></tr></table>
+
+</form>
+</body>

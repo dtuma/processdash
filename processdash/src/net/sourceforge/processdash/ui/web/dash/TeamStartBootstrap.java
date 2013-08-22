@@ -38,6 +38,9 @@ import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
 import net.sourceforge.processdash.DashController;
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.ImmutableStringData;
@@ -57,9 +60,6 @@ import net.sourceforge.processdash.util.NetworkDriveList;
 import net.sourceforge.processdash.util.ObjectCounter;
 import net.sourceforge.processdash.util.StringUtils;
 import net.sourceforge.processdash.util.XMLUtils;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 
 
 
@@ -87,6 +87,14 @@ public class TeamStartBootstrap extends TinyCGIBase {
     private static final String TEST_TYPE_PAGE = "testType";
     private static final String TYPE_PAGE = "type";
     private static final String TYPE_URL = "teamStartType.shtm";
+    // Information for the page which asks the team leader for the desired
+    // name and location of the team project.
+    private static final String NODE_PAGE = "teamSelectNode";
+    private static final String NODE_URL = "teamStartTeamNode.shtm";
+    private static final String NODE_BROWSE_PAGE = "teamBrowseFolder";
+    // Information for the page to report an error in creating the project node
+    private static final String NODE_ERR_PAGE = "nodeError";
+    private static final String NODE_ERR_URL = "teamStartTeamNodeError.shtm";
     // Information for the page which asks the team leader which team
     // process they wish to use.
     private static final String PROCESS_PAGE = "process";
@@ -100,7 +108,12 @@ public class TeamStartBootstrap extends TinyCGIBase {
     // Information for the page which tells the user they are in read only mode
     private static final String READ_ONLY_URL = "teamStartReadOnly.shtm";
 
+    // the template ID of a "team project stub"
+    private static final String TEAM_STUB_ID = "TeamProjectStub";
 
+
+    private static final String NODE_LOCATION = "setup//Node_Location";
+    private static final String NODE_NAME = "setup//Node_Name";
     private static final String TEAM_PID = "setup//Process_ID";
     private static final String TEAM_PID_LIST = "setup//Process_ID_List";
     private static final String TEAM_PROC_NAME = "setup//Process_Name";
@@ -146,8 +159,11 @@ public class TeamStartBootstrap extends TinyCGIBase {
         else if (Settings.isReadOnly())           showReadOnlyPage();
         else if (TEST_TYPE_PAGE.equals(page))     testDatasetType();
         else if (TYPE_PAGE.equals(page))          handleTypePage();
+        else if (NODE_PAGE.equals(page))          handleTeamNodePage();
+        else if (NODE_BROWSE_PAGE.equals(page))   showBrowseFolderPage();
         else if (SHOW_PROCESS_PAGE.equals(page))  showTeamProcessesPage();
         else if (PROCESS_PAGE.equals(page))       handleProcessPage();
+        else if (NODE_ERR_PAGE.equals(page))      handleNodeErrRetryPage();
 
         else if (SHOW_URL_PAGE.equals(page))      showTeamURLPage();
         else if (TEAM_URL_PAGE.equals(page))      handleTeamURLPage();
@@ -196,6 +212,10 @@ public class TeamStartBootstrap extends TinyCGIBase {
 
     /** Display the welcome page */
     protected void showWelcomePage() {
+        String desiredLocation = getParameter("parent");
+        if (StringUtils.hasValue(desiredLocation))
+            putValue(NODE_LOCATION, desiredLocation);
+
         printRedirect(WELCOME_URL);
     }
 
@@ -212,8 +232,8 @@ public class TeamStartBootstrap extends TinyCGIBase {
             printRedirect(TYPE_URL);
 
         else if (Settings.isTeamMode())
-            // in a team dashboard, jump directly to the processes page.
-            showTeamProcessesPage();
+            // in a team dashboard, start the process to create a team project
+            maybeShowTeamNodePage();
 
         else
             // in a personal dashboard, prompt for the team project URL.
@@ -223,11 +243,235 @@ public class TeamStartBootstrap extends TinyCGIBase {
     /** Handle values posted from the setup type page */
     protected void handleTypePage() {
         if (parameters.get("createTeamProject") != null) {
-            showTeamProcessesPage();
+            maybeShowTeamNodePage();
 
         } else if (parameters.get("joinTeamProject") != null) {
             showTeamURLPage();
         }
+    }
+
+
+    /** Check to see if we need to prompt for the name of this team project */
+    protected void maybeShowTeamNodePage() {
+        if (prefixNamesTeamProjectStub())
+            showTeamProcessesPage();
+
+        maybeSetDefaultProjectPath();
+        printRedirect(NODE_URL);
+    }
+
+    private boolean prefixNamesTeamProjectStub() {
+        return pathNamesTeamProjectStub(getPrefix());
+    }
+
+    private boolean pathNamesTeamProjectStub(String path) {
+        DashHierarchy hierarchy = getPSPProperties();
+        PropertyKey key = hierarchy.findExistingKey(path);
+        String templateID = hierarchy.getID(key);
+        return TEAM_STUB_ID.equals(templateID);
+    }
+
+    private void maybeSetDefaultProjectPath() {
+        // Look for an existing, unused stub in the hierarchy.  If one is
+        // found, use its name and location and exit.  Users will still be
+        // able to overwrite these values; but this helps them to pick up
+        // where they left off if they got confused.
+        PropertyKey stub = findUnusedTeamProjectStub(getPSPProperties(),
+            PropertyKey.ROOT);
+        if (stub != null) {
+            putValue(NODE_NAME, stub.name());
+            putValue(NODE_LOCATION, stub.getParent().path());
+            return;
+        }
+
+        // if the prefix is not set, set it to the localized default location.
+        if (!StringUtils.hasValue(getValue(NODE_LOCATION))) {
+            putValue(NODE_LOCATION, getDefaultProjectLocation());
+        }
+
+        // if the prefix/name points to a project that already exists (a common
+        // pattern if the team leader is creating several projects in
+        // succession), clear the name.
+        String nodePath = getTeamNodePathOrErrToken();
+        if (!nodePath.startsWith("/")) {
+            putValue(NODE_NAME, (SimpleData) null);
+        }
+    }
+
+    private PropertyKey findUnusedTeamProjectStub(DashHierarchy hier,
+            PropertyKey node) {
+        if (TEAM_STUB_ID.equals(hier.getID(node))) {
+            return node;
+
+        } else {
+            for (int i = hier.getNumChildren(node);  i-- > 0; ) {
+                PropertyKey result = findUnusedTeamProjectStub(hier,
+                    hier.getChildKey(node, i));
+                if (result != null)
+                    return result;
+            }
+            return null;
+        }
+    }
+
+
+    /** Display a page that allows the user to browse for the node where the
+     * team project should be created. */
+    protected void showBrowseFolderPage() {
+        super.writeHeader();
+
+        out.println("<html><head>");
+        out.println("<title>Select Project Folder</title>");
+        out.println(HTMLUtils.cssLinkHtml("teamStart.css"));
+        out.println("<script>");
+        out.println("    function save(path) {");
+        out.println("        self.opener.save(path);");
+        out.println("        self.close();");
+        out.println("    }");
+        out.println("</script>");
+        out.println("</head><body>");
+        out.println("<p><b>Select Project Folder:</b></p>");
+        out.println("<form><table>");
+        printFolders(getPSPProperties(), PropertyKey.ROOT, 0);
+        out.println("</table></form></body></html>");
+    }
+
+    private void printFolders(DashHierarchy hier, PropertyKey node, int depth) {
+        // we only want to display entries for plain nodes, not projects.
+        // if this node has a template ID, prune this node from the tree.
+        String templateId = hier.getID(node);
+        if (StringUtils.hasValue(templateId))
+            return;
+
+        // calculate information about this node for display
+        int indent = depth * 18;
+        String prefix = node.path();
+        prefix = StringUtils.findAndReplace(prefix, "\\", "\\\\");
+        prefix = StringUtils.findAndReplace(prefix, "'", "\\'");
+        prefix = StringUtils.findAndReplace(prefix, "\"", "\\\"");
+        String name = (depth == 0 ? "No Folder" : node.name());
+
+        // print a row with a link for this hierarchy node.
+        out.print("<tr><td style='padding-left: " + indent + "px'>");
+        out.print("<img src='/Images/node.png'>&nbsp;");
+        out.print("<a class='plain' href='#' onclick='save(&quot;"
+                + HTMLUtils.escapeEntities(prefix) + "&quot;); return false'>");
+        out.print(HTMLUtils.escapeEntities(name));
+        out.println("</a></td></tr>");
+
+        // recurse over children
+        for (int i = 0; i < hier.getNumChildren(node); i++)
+            printFolders(hier, hier.getChildKey(node, i), depth + 1);
+    }
+
+
+    /** Handle the values posted from the team node selection page. */
+    protected void handleTeamNodePage() {
+        // retrieve and save values
+        putValue(NODE_NAME, getParameter("Node_Name"));
+        putValue(NODE_LOCATION, tweakLocation(getParameter("Node_Location")));
+
+        // validate the values. If they are acceptable, proceed.  (If the
+        // values are unacceptable, we will have already redirected to an
+        // appropriate error page.)
+        if (validateTeamNodeValues() != null)
+            showTeamProcessesPage();
+    }
+
+    private String tweakLocation(String nodeLocation) {
+        // make the node location canonical
+        nodeLocation = makePathCanonical(nodeLocation);
+
+        // if the node location is missing, use the locale-specific default.
+        String defaultProjectLocation = getDefaultProjectLocation();
+        if (!StringUtils.hasValue(nodeLocation))
+            return defaultProjectLocation;
+
+        // If the location is relative, make it absolute. Resolve the name
+        // relative to the locale-specific default folder unless it already
+        // appears to be there.
+        if (!nodeLocation.startsWith("/")) {
+            nodeLocation = "/" + nodeLocation;
+            if (!nodeLocation.startsWith(defaultProjectLocation))
+                nodeLocation = defaultProjectLocation + nodeLocation;
+        }
+
+        return nodeLocation;
+    }
+
+    private String makePathCanonical(String path) {
+        if (path == null)
+            return null;
+        else if (path.trim().equals("/"))
+            return "/";
+
+        StringBuilder result = new StringBuilder();
+        for (String part : path.split("/")) {
+            part = part.trim();
+            if (part.length() > 0 && !part.equals(".") && !part.equals(".."))
+                result.append("/").append(part);
+        }
+        if (path.trim().startsWith("/") || result.length() == 0)
+            return result.toString();
+        else
+            return result.substring(1);
+    }
+
+    private String getDefaultProjectLocation() {
+        return "/" + resources.getString("Project");
+    }
+
+    private String validateTeamNodeValues() {
+        String nodePath = getTeamNodePathOrErrToken();
+        if (nodePath.startsWith("/")) {
+            return nodePath;
+        } else {
+            printRedirect(NODE_URL + "?" + nodePath);
+            return null;
+        }
+    }
+
+    /**
+     * Look at the node name and location, and make certain they refer to a
+     * valid path. If so, the full path (which starts with a slash) will be
+     * returned. If not, an error token (which does not start with a slash) will
+     * be returned.
+     */
+    private String getTeamNodePathOrErrToken() {
+        String nodeName = getValue(NODE_NAME);
+        if (nodeName == null || nodeName.trim().length() == 0)
+            return "nodeNameMissing";
+
+        nodeName = nodeName.trim();
+        if (nodeName.indexOf('/') != -1)
+            return "nodeNameSlash";
+
+        // compute the desired effective path.
+        String nodeLocation = tweakLocation(getValue(NODE_LOCATION));
+        String nodePath = nodeLocation + "/" + nodeName;
+
+        // does a node already exist in the hierarchy with this path?
+        DashHierarchy hier = getPSPProperties();
+        PropertyKey key = hier.findExistingKey(nodePath);
+        if (key != null) {
+            // if the preexisting node is a team project stub, all is well.
+            if (TEAM_STUB_ID.equals(hier.getID(key)))
+                return nodePath;
+            else
+                return "duplicateName";
+        } else {
+            // look at the ancestors of the target path, and make certain that
+            // they are all plain nodes
+            key = hier.findClosestKey(nodePath);
+            while (key != null) {
+                if (StringUtils.hasValue(hier.getID(key)))
+                    return "invalidParent";
+                key = key.getParent();
+            }
+        }
+
+        // path seems OK
+        return nodePath;
     }
 
     /** Display the team process selection page */
@@ -283,14 +527,67 @@ public class TeamStartBootstrap extends TinyCGIBase {
         redirectToTeamSetupWizard(selectedProcess);
     }
 
+    /** Handle the click when the user asks to retry after a failed project
+     * creation */
+    private void handleNodeErrRetryPage() {
+        String selectedProcess = getValue(TEAM_PID);
+        if (!StringUtils.hasValue(selectedProcess))
+            // if the process ID has disappeared, it would indicate that the
+            // dashboard has been closed and reopened. Start the process over.
+            maybeShowTeamNodePage();
+        else
+            redirectToTeamSetupWizard(selectedProcess);
+    }
+
     /** The user is creating a team project for the given teamPID; redirect
      *  to its setup wizard.
      */
     protected void redirectToTeamSetupWizard(String teamPID) {
-        printRedirect(getPrefix() + "//" +
+        String prefix = getTeamProjectPrefix();
+        if (prefix != null)
+            printRedirect(HTMLUtils.urlEncodePath(prefix) + "//" +
                       getTeamSetupWizardURL(teamPID) + "?page=team");
     }
 
+    /**
+     * Identify the prefix that should be used for the new team project. Verify
+     * that a stub is in place at that location, or create one if necessary, and
+     * return the path. If any problem is encountered, redirect to an
+     * appropriate error page and return null.
+     */
+    private String getTeamProjectPrefix() {
+        // if we have an active prefix and it points to a team project stub,
+        // return that prefix.
+        String projectPath = getPrefix();
+        if (projectPath != null && pathNamesTeamProjectStub(projectPath))
+            return projectPath;
+
+        // check and see if the user has provided a valid name and location
+        // for the project.
+        projectPath = validateTeamNodeValues();
+        if (projectPath == null)
+            // if the name/location is bad, just return.  An error screen will
+            // have already been displayed at this point.
+            return null;
+
+        else if (pathNamesTeamProjectStub(projectPath)
+                || DashController.alterTemplateID(projectPath, null,
+                    TEAM_STUB_ID)) {
+            // if the name/location points to a stub, or if we were able to
+            // create a stub, store values and return the path.
+            String processId = getValue(TEAM_PID);
+            String processName = getValue(TEAM_PROC_NAME);
+            parameters.put("hierarchyPath", projectPath);
+            putValue(TEAM_PID, processId);
+            putValue(TEAM_PROC_NAME, processName);
+            return projectPath;
+        }
+
+        // There is a problem - most likely the hierarchy editor is open.
+        // Display an error message and exit.
+        printRedirect(NODE_ERR_URL);
+        return null;
+    }
 
     /** Get a list of all the team processes installed in the dashboard.
      * @return a Map mapping process IDs to process names
