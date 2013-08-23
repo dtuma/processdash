@@ -359,7 +359,10 @@ public class ConfigureButton extends JMenuBar implements ActionListener, Hierarc
 
     public void startDataAnalysis() { Browser.launch(ANALYSIS_URL); }
 
-    public void startHelp() { PCSH.displayHelpTopic("QuickOverview"); }
+    public void startHelp() {
+          PCSH.displayHelpTopic(Settings.isPersonalMode() ? "QuickOverview"
+                  : "TeamUseOverview");
+    }
 
     public void startHelpSearch() { PCSH.displaySearchTab(); }
 
