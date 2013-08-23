@@ -142,7 +142,6 @@ public class ConfigureButton extends JMenuBar implements ActionListener, Hierarc
 
         BetaVersionSetup.addSubmenu(fileMenu);
 
-        fileMenu.add(makeMenuItem(HIERARCHY_FRAME));
         fileMenu.addSeparator();
 
         fileMenu.add(makeMenuItem(TASK_DIALOG));

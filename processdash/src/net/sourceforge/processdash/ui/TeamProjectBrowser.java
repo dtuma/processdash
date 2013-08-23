@@ -41,6 +41,7 @@ import javax.swing.JMenu;
 import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
+import javax.swing.JTextField;
 import javax.swing.JTree;
 import javax.swing.KeyStroke;
 import javax.swing.ListSelectionModel;
@@ -61,6 +62,7 @@ import net.sourceforge.processdash.data.ListData;
 import net.sourceforge.processdash.hier.ActiveTaskModel;
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.DashHierarchy.Event;
+import net.sourceforge.processdash.hier.HierarchyAlterer;
 import net.sourceforge.processdash.hier.HierarchyAlterer.HierarchyAlterationException;
 import net.sourceforge.processdash.hier.Prop;
 import net.sourceforge.processdash.hier.PropertyKey;
@@ -68,6 +70,7 @@ import net.sourceforge.processdash.hier.ui.PropTreeModel;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.process.ScriptEnumerator;
 import net.sourceforge.processdash.process.ScriptID;
+import net.sourceforge.processdash.ui.lib.JOptionPaneTweaker;
 import net.sourceforge.processdash.ui.web.dash.TeamStartBootstrap;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.StringUtils;
@@ -91,7 +94,7 @@ public class TeamProjectBrowser extends JSplitPane {
     private ExternalEventHandler handler;
 
     private static final Resources resources = Resources
-            .getDashBundle("ProcessDashboard");
+            .getDashBundle("ProcessDashboard.TeamProject");
 
 
     public TeamProjectBrowser(ProcessDashboard dash) {
@@ -231,7 +234,7 @@ public class TeamProjectBrowser extends JSplitPane {
             newScripts = new ArrayList<ScriptID>();
             ScriptID newProjectScript = new ScriptID(
                     getNewProjectCreationUri(), "",
-                    resources.getString("NewTeamProject.Title"));
+                    resources.getString("New.Title"));
             newScripts.add(newProjectScript);
             newScripts.add(newProjectScript);
         }
@@ -281,14 +284,17 @@ public class TeamProjectBrowser extends JSplitPane {
             scriptList.clearSelection();
     }
 
+
+
     /**
      * Add team-project-related items to the File menu.
      */
     private void augmentTeamDashboardFileMenu(ProcessDashboard dash) {
         JMenu fileMenu = dash.getConfigurationMenus().getMenu(0);
         fileMenu.insert(new NewProjectAction(), 0);
-        fileMenu.insert(new DeleteProjectAction(), 1);
+        fileMenu.insert(new AlterTeamProjectMenu(), 1);
     }
+
 
     private String getNewProjectCreationUri() {
         String uri = TeamStartBootstrap.TEAM_START_URI;
@@ -324,6 +330,97 @@ public class TeamProjectBrowser extends JSplitPane {
         return null;
     }
 
+
+    private void maybeRenameSelectedProject() {
+        // determine which team project is selected. If none, abort.
+        PropertyKey projectNode = getSelectedTreeNode();
+        String projectPath = projectNode.path();
+        String templateID = ctx.getHierarchy().getID(projectNode);
+        if (!StringUtils.hasValue(templateID))
+            return;
+
+        // Create objects we will use in a dialog
+        String title = resources.getString("Rename.Title");
+        JTextField newPathField = new JTextField(projectPath);
+        Object message = resources.formatStrings("Rename.Message_Header_FMT",
+            projectPath);
+        message = new Object[] { message, " ", newPathField,
+                new JOptionPaneTweaker.GrabFocus(newPathField) };
+
+        while (true) {
+            // Show the user a dialog asking for the new path and name.
+            int userChoice = JOptionPane.showConfirmDialog(this, message,
+                title, JOptionPane.OK_CANCEL_OPTION);
+
+            // if the user didn't press the OK button, abort.
+            if (userChoice != JOptionPane.OK_OPTION)
+                return;
+
+            // get the new path in canonical form. If it was not absolute,
+            // interpret it relative to the current parent of the project.
+            String newPath = newPathField.getText().trim();
+            if (newPath.indexOf('/') == -1)
+                newPath = projectNode.getParent().path() + "/" + newPath;
+            newPath = DashHierarchy.scrubPath(newPath);
+            newPathField.setText(newPath);
+
+            // if the user didn't change the name, abort.
+            if (newPath.length() < 2 || newPath.equals(projectPath))
+                return;
+
+            // check for various error conditions.
+            if (projectAlreadyExists(newPath)) {
+                showInvalidRenameMessage("Rename.Duplicate_Name");
+
+            } else if (projectParentIsInvalid(newPath)) {
+                showInvalidRenameMessage("Rename.Invalid_Parent");
+
+            } else {
+                try {
+                    // try performing the renaming operation.
+                    HierarchyAlterer hierarchyAlterer = DashController
+                            .getHierarchyAlterer();
+                    hierarchyAlterer.renameNode(projectPath, newPath);
+
+                    // if this caused the old parent of the project to become
+                    // childless, delete that parent (and grandparent, etc)
+                    PropertyKey oldParent = projectNode.getParent();
+                    while (ctx.getHierarchy().getNumChildren(oldParent) == 0) {
+                        hierarchyAlterer.deleteNode(oldParent.path());
+                        oldParent = oldParent.getParent();
+                    }
+                } catch (HierarchyAlterationException e) {
+                    e.printStackTrace();
+                }
+                return;
+            }
+        }
+    }
+
+    private boolean projectAlreadyExists(String path) {
+        PropertyKey key = ctx.getHierarchy().findExistingKey(path);
+        return (key != null);
+    }
+
+    private boolean projectParentIsInvalid(String path) {
+        PropertyKey key = ctx.getHierarchy().findClosestKey(path);
+        while (key != null) {
+            String templateID = ctx.getHierarchy().getID(key);
+            if (StringUtils.hasValue(templateID))
+                return true;
+            key = key.getParent();
+        }
+        return false;
+    }
+
+    private void showInvalidRenameMessage(String resKey) {
+        JOptionPane.showMessageDialog(this, resources.getStrings(resKey),
+            resources.getString("Rename.Error_Title"),
+            JOptionPane.ERROR_MESSAGE);
+    }
+
+
+
     private void maybeDeleteSelectedProject() {
         PropertyKey selectedNode = getSelectedTreeNode();
         String projectPath = selectedNode.path();
@@ -347,7 +444,7 @@ public class TeamProjectBrowser extends JSplitPane {
             return true;
 
         // the user is deleting a real project. Display a dialog to confirm.
-        String title = resources.getString("DeleteTeamProject.Title");
+        String title = resources.getString("Delete.Title");
         Object message = getDeleteProjectWarningMessage(projectPath, templateID);
         int userChoice = JOptionPane.showConfirmDialog(this, message, title,
             JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
@@ -359,26 +456,24 @@ public class TeamProjectBrowser extends JSplitPane {
         List message = new ArrayList();
 
         // add a header to the message.
-        message.add(resources.formatStrings(
-            "DeleteTeamProject.Message_Header_FMT", projectPath));
+        message.add(resources.formatStrings("Delete.Message_Header_FMT",
+            projectPath));
         message.add(" ");
 
         // if WBS planning has been done, add a warning.
         if (hasWbsData(projectPath)) {
-            message.add(resources
-                    .getStrings("DeleteTeamProject.WBS_Data_Warning"));
+            message.add(resources.getStrings("Delete.WBS_Data_Warning"));
             message.add(" ");
         }
 
         // if team members have joined the project, add a warning.
         if (membersHaveJoined(projectPath, templateID)) {
-            message.add(resources
-                    .getStrings("DeleteTeamProject.Members_Joined"));
+            message.add(resources.getStrings("Delete.Members_Joined"));
             message.add(" ");
         }
 
         // add a footer to the message.
-        message.add(resources.getString("DeleteTeamProject.Message_Footer"));
+        message.add(resources.getString("Delete.Message_Footer"));
         return message.toArray();
     }
 
@@ -434,7 +529,9 @@ public class TeamProjectBrowser extends JSplitPane {
             if (path == null || path.length < 2) {
                 tree.clearSelection();
             } else {
-                tree.setSelectionPath(new TreePath(path));
+                TreePath treePath = new TreePath(path);
+                tree.setSelectionPath(treePath);
+                tree.scrollPathToVisible(treePath);
             }
             currentlyChangingTreeSelection = false;
         }
@@ -510,38 +607,106 @@ public class TeamProjectBrowser extends JSplitPane {
 
     }
 
-    private abstract class AbstractProjectSensitiveAction extends
-            AbstractAction implements TreeSelectionListener {
+    private class AlterTeamProjectMenu extends JMenu implements
+            TreeSelectionListener {
 
-        public AbstractProjectSensitiveAction(String resKey) {
-            super(resources.getString(resKey));
+        public AlterTeamProjectMenu() {
+            super(resources.getString("Menu.File.Alter_Team_Project"));
             tree.getSelectionModel().addTreeSelectionListener(this);
+
+            add(new RenameProjectAction());
+            add(new MoveProjectUpAction());
+            add(new MoveProjectDownAction());
+            add(new DeleteProjectAction());
         }
 
         public void valueChanged(TreeSelectionEvent e) {
             PropertyKey projectKey = getSelectedTreeNode();
             String templateID = ctx.getHierarchy().getID(projectKey);
-            if (StringUtils.hasValue(templateID)) {
-                setEnabled(true);
-                projectSelected(projectKey);
-            } else {
-                setEnabled(false);
-                projectSelected(null);
-            }
+            setEnabled(StringUtils.hasValue(templateID));
         }
-
-        public void projectSelected(PropertyKey projectKey) {}
 
     }
 
-    private class DeleteProjectAction extends AbstractProjectSensitiveAction {
+    private class RenameProjectAction extends AbstractAction {
+
+        public RenameProjectAction() {
+            super(resources.getString("Menu.File.Rename_Team_Project"));
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            maybeRenameSelectedProject();
+        }
+
+    }
+
+    private class DeleteProjectAction extends AbstractAction {
 
         public DeleteProjectAction() {
-            super("Menu.File.Delete_Team_Project");
+            super(resources.getString("Menu.File.Delete_Team_Project"));
         }
 
         public void actionPerformed(ActionEvent e) {
             maybeDeleteSelectedProject();
+        }
+
+    }
+
+    private class MoveProjectUpAction extends AbstractAction implements
+            TreeSelectionListener {
+
+        private int nodeOffset;
+
+        private Prop nodeParent;
+
+        private int childPosToMoveUp;
+
+        public MoveProjectUpAction() {
+            this("Move_Team_Project_Up", 0);
+        }
+
+        public MoveProjectUpAction(String resKey, int nodeOffset) {
+            super(resources.getString("Menu.File." + resKey));
+            this.nodeOffset = nodeOffset;
+            tree.getSelectionModel().addTreeSelectionListener(this);
+        }
+
+        public void valueChanged(TreeSelectionEvent e) {
+            findNodeToMoveUp();
+            setEnabled(nodeParent != null);
+        }
+
+        private void findNodeToMoveUp() {
+            nodeParent = null;
+
+            DashHierarchy hier = ctx.getHierarchy();
+            PropertyKey selectedNode = getSelectedTreeNode();
+            if (!StringUtils.hasValue(hier.getID(selectedNode)))
+                return;
+
+            Prop parent = hier.pget(selectedNode.getParent());
+            int pos = parent.getChildPos(selectedNode) + nodeOffset;
+            if (pos > 0 && pos < parent.getNumChildren()) {
+                nodeParent = parent;
+                childPosToMoveUp = pos;
+            }
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            findNodeToMoveUp();
+            if (nodeParent != null) {
+                nodeParent.moveChildUp(childPosToMoveUp);
+                valueChanged(null);
+                ctx.getHierarchy().fireHierarchyChanged();
+            }
+        }
+
+    }
+
+    private class MoveProjectDownAction extends MoveProjectUpAction {
+
+        public MoveProjectDownAction() {
+            super("Move_Team_Project_Down", 1);
         }
 
     }
