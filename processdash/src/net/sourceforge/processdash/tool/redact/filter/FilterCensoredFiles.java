@@ -1,4 +1,4 @@
-// Copyright (C) 2012 Tuma Solutions, LLC
+// Copyright (C) 2012-2013 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -41,7 +41,6 @@ public class FilterCensoredFiles implements RedactFilter {
     public void afterPropertiesSet() {
         filenamePatterns = new PatternList()
             .addLiteralEndsWith("/changehistory.xml")
-            .addLiteralEndsWith("/projdump.xml")
             .addLiteralEndsWith("/tabs.xml")
             .addLiteralEndsWith("/workflowdump.xml");
 

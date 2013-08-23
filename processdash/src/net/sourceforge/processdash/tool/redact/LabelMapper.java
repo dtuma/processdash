@@ -1,4 +1,4 @@
-// Copyright (C) 2012 Tuma Solutions, LLC
+// Copyright (C) 2012-2013 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -57,6 +57,10 @@ public class LabelMapper implements StringMapper {
             .unmodifiableSet(new HashSet(Arrays.asList("none", "Completed")));
 
     public static String hashLabelList(String labels) {
+        return hashLabelList(labels, true);
+    }
+
+    public static String hashLabelList(String labels, boolean addSpaceInDelim) {
         if (labels == null)
             return labels;
 
@@ -69,7 +73,20 @@ public class LabelMapper implements StringMapper {
             if (label.length() > 0)
                 newLabels.add(label);
         }
-        return StringUtils.join(newLabels, ", ");
+        String delim = addSpaceInDelim ? ", " : ",";
+        return StringUtils.join(newLabels, delim);
     }
+
+    public static final StringMapper LABEL_LIST_MAPPER = new StringMapper() {
+        public String getString(String str) {
+            return hashLabelList(str);
+        }
+    };
+
+    public static final StringMapper LABEL_LIST_ATTR_MAPPER = new StringMapper() {
+        public String getString(String str) {
+            return hashLabelList(str, false);
+        }
+    };
 
 }

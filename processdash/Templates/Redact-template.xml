@@ -59,6 +59,7 @@ The author(s) may be contacted at:
   <redact-line-filter class="&pkg;FilterWbsAttributes"/>
   <redact-line-filter class="&pkg;FilterWbsMilestones"/>
   <redact-line-filter class="&pkg;FilterWbsNodeNames"/>
+  <redact-line-filter class="&pkg;FilterWbsProjDump"/>
   <redact-line-filter class="&pkg;FilterWbsSettingsXml"/>
   <redact-line-filter class="&pkg;FilterWbsTeamList"/>
   <redact-line-filter class="&pkg;FilterWbsWorkflows"/>
