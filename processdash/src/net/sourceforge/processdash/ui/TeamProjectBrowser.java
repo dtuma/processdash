@@ -144,7 +144,7 @@ public class TeamProjectBrowser extends JSplitPane {
         DashHierarchy result = new DashHierarchy("");
         result.copy(ctx.getHierarchy());
         pruneForDisplay(result, PropertyKey.ROOT);
-        // TODO: if pruning produces an empty hierarchy, add something back.
+        maybeCreateDefaultHierarchy(result);
         return result;
     }
 
@@ -172,6 +172,30 @@ public class TeamProjectBrowser extends JSplitPane {
 
         return isProject == false && p.getNumChildren() == 0;
     }
+
+    private void maybeCreateDefaultHierarchy(DashHierarchy hier) {
+        if (hier.getNumChildren(PropertyKey.ROOT) == 0) {
+            PropertyKey projectNode = addHierChild(hier, PropertyKey.ROOT,
+                resources.getString("Project"));
+            PropertyKey noneFound = addHierChild(hier, projectNode,
+                resources.getString("None_Found"));
+            getOrCreateProp(hier, noneFound).setID("Nonexistent Project");
+        }
+    }
+
+    private PropertyKey addHierChild(DashHierarchy hier, PropertyKey parent,
+            String childName) {
+        PropertyKey child = new PropertyKey(parent, childName);
+        getOrCreateProp(hier, parent).addChild(child, 0);
+        return child;
+    }
+
+    private Prop getOrCreateProp(DashHierarchy hier, PropertyKey key) {
+        Prop prop = hier.pget(key);
+        hier.put(key, prop);
+        return prop;
+    }
+
 
     private void updateTreeSelectionFromActiveTask() {
         PropertyKey activeTask = taskModel.getNode();
@@ -389,6 +413,13 @@ public class TeamProjectBrowser extends JSplitPane {
                         hierarchyAlterer.deleteNode(oldParent.path());
                         oldParent = oldParent.getParent();
                     }
+
+                    // point the "active task" at the renamed project.
+                    PropertyKey newNode = ctx.getHierarchy().findExistingKey(
+                        newPath);
+                    if (newNode != null)
+                        taskModel.setNode(newNode);
+
                 } catch (HierarchyAlterationException e) {
                     e.printStackTrace();
                 }
@@ -543,8 +574,14 @@ public class TeamProjectBrowser extends JSplitPane {
         }
 
         public void hierarchyChanged(Event e) {
+            // reload the contents of our tree based on the new hierarchy.
             reloadHierarchy();
+            // tell the active task model to recalculate the current task;
+            // then make sure our tree is synced to it.
+            taskModel.setNode(PropertyKey.ROOT);
             updateTreeSelectionFromActiveTask();
+            // reload the scripts for the current task in case they changed.
+            reloadScripts(getSelectedTreeNode());
         }
 
         /** Respond to a change in the selected tree node */
@@ -612,6 +649,7 @@ public class TeamProjectBrowser extends JSplitPane {
 
         public AlterTeamProjectMenu() {
             super(resources.getString("Menu.File.Alter_Team_Project"));
+            setEnabled(false);
             tree.getSelectionModel().addTreeSelectionListener(this);
 
             add(new RenameProjectAction());
