@@ -1,4 +1,4 @@
-// Copyright (C) 1998-2012 Tuma Solutions, LLC
+// Copyright (C) 1998-2013 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -1184,6 +1184,15 @@ public class TemplateLoader {
 
     public static boolean meetsPackageRequirement(String packageID,
             String requiredVersion) {
+
+        // check pseudo-packages relating to the dataset mode. (since 1.15.8)
+        if ("teamMode".equals(packageID))
+            return Settings.isTeamMode();
+        else if ("personalMode".equals(packageID))
+            return Settings.isPersonalMode();
+        else if ("hybridMode".equals(packageID))
+            return Settings.isHybridMode();
+
         String installedVersion = getPackageVersion(packageID);
         if (installedVersion == null)
             // this package is not installed, so the requirement isn't met
