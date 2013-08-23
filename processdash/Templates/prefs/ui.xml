@@ -62,6 +62,7 @@ preferences a category.
 
     <checkbox id="scriptButton.clickOpensDefault"
               setting="userPref.scriptButton.clickOpensDefault"
+              ifPropIsSet="personalMode"
               helpId="AccessingScripts.clickOpensDefault" />
 
 </preferences-form>

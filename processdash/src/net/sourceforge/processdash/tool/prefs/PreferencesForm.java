@@ -41,6 +41,7 @@ import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
 import net.sourceforge.processdash.InternalSettings;
+import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.templates.TemplateLoader;
 import net.sourceforge.processdash.tool.prefs.editor.ManuallyEnteredPreferencesList;
 import net.sourceforge.processdash.tool.prefs.editor.PreferencesCheckBox;
@@ -95,6 +96,9 @@ public class PreferencesForm extends BoundForm {
             PreferencesDatasetEncodingconverter.class);
 
         put("os." + InternalSettings.getOSPrefix(), "true");
+        if (Settings.isPersonalMode()) put("personalMode", "true");
+        if (Settings.isTeamMode()) put("teamMode", "true");
+        if (Settings.isHybridMode()) put("hybridMode", "true");
 
         selectCategory(category);
         panel.setLayout(new BorderLayout());
