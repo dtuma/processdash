@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2011 Tuma Solutions, LLC
+// Copyright (C) 2003-2013 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -26,9 +26,9 @@ package net.sourceforge.processdash.ui;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Graphics;
+import java.awt.Image;
 import java.awt.MediaTracker;
 import java.awt.Toolkit;
-import java.awt.Image;
 import java.awt.Window;
 import java.io.File;
 import java.io.FileInputStream;
@@ -44,6 +44,7 @@ import javax.swing.JLabel;
 
 import net.sf.image4j.codec.ico.ICODecoder;
 import net.sourceforge.processdash.Settings;
+import net.sourceforge.processdash.ui.lib.PaintUtils;
 import net.sourceforge.processdash.util.FallbackObjectFactory;
 
 public class DashboardIconFactory {
@@ -132,6 +133,12 @@ public class DashboardIconFactory {
         }
     }
 
+
+    private static Icon projectIcon = null;
+    public static Icon getProjectIcon() {
+        if (projectIcon == null) projectIcon = new ProjectIcon(new Color(204, 204, 255));
+        return projectIcon;
+    }
 
     private static Icon timingIcon = null;
     public static Icon getCompactTimingIcon() {
@@ -237,8 +244,8 @@ public class DashboardIconFactory {
         if (current != null)
             return current;
 
-        // TODO: try loading icons out of the Templates/resources directory,
-        // to allow for localization of icons.
+        // future enhancement: try loading icons out of the Templates/resources
+        // directory, to allow for localization of icons.
 
         // look for the icon in the classpath
         URL iconUrl = DashboardIconFactory.class.getResource(name + ".png");
@@ -488,6 +495,42 @@ public class DashboardIconFactory {
             g.drawLine(x+2, y+9, x+7, y+9);
         }
 
+    }
+
+
+    /** Icon image representing a project.
+    *
+    * This draws a large square block.
+    */
+    private static class ProjectIcon implements Icon {
+
+        Color fillColor, highlight, shadow;
+
+        public ProjectIcon(Color fill) {
+            this.fillColor = fill;
+            this.highlight = PaintUtils.mixColors(fill, Color.white, 0.3f);
+            this.shadow    = PaintUtils.mixColors(fill, Color.black, 0.7f);
+        }
+
+        public int getIconWidth() { return 16; }
+
+        public int getIconHeight() { return 16; }
+
+        public void paintIcon(Component c, Graphics g, int x, int y) {
+            g.setColor(fillColor);
+            g.fillRect(x+3,  y+3,  10, 10);
+
+            g.setColor(shadow);
+            g.drawLine(x+13, y+3,  x+13, y+13); // right shadow
+            g.drawLine(x+3,  y+13, x+13, y+13); // bottom shadow
+
+            g.setColor(highlight);
+            g.drawLine(x+2,  y+2,  x+2,  y+13); // left highlight
+            g.drawLine(x+2,  y+2,  x+13, y+2); // top highlight
+
+            g.setColor(Color.black);
+            g.drawRect(x+1, y+1, 13, 13);
+        }
     }
 
     @SuppressWarnings("unused")

@@ -49,6 +49,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 
@@ -124,6 +125,7 @@ public class TeamProjectBrowser extends JSplitPane {
         tree.setRootVisible(false);
         tree.setShowsRootHandles(true);
         tree.setExpandsSelectedPaths(true);
+        tree.setCellRenderer(new ProjectTreeCellRenderer());
         tree.getSelectionModel().setSelectionMode(
             TreeSelectionModel.SINGLE_TREE_SELECTION);
 
@@ -535,6 +537,15 @@ public class TeamProjectBrowser extends JSplitPane {
     private void saveSplitterLocationToSettings() {
         int location = getDividerLocation();
         InternalSettings.set(SPLITTER_SETTING, Integer.toString(location));
+    }
+
+
+    private class ProjectTreeCellRenderer extends DefaultTreeCellRenderer {
+
+        public ProjectTreeCellRenderer() {
+            setLeafIcon(DashboardIconFactory.getProjectIcon());
+        }
+
     }
 
 
