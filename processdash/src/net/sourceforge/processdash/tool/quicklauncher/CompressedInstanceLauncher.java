@@ -1,4 +1,4 @@
-// Copyright (C) 2006-2012 Tuma Solutions, LLC
+// Copyright (C) 2006-2013 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -61,6 +61,8 @@ public class CompressedInstanceLauncher extends DashboardInstance {
             + AbstractWorkingDirectory.NO_PROCESS_LOCK_PROPERTY + "=true";
     private static final String DISABLE_TEAM_SERVER = "-D"
             + TeamServerSelector.DISABLE_TEAM_SERVER_PROPERTY + "=true";
+    private static final String DISABLE_DATABASE_PLUGIN = "-D"
+            + Settings.SYS_PROP_PREFIX + "tpidw.enabled=false";
     private static final String READ_WRITE_ARG = "-D"
             + Settings.SYS_PROP_PREFIX + "readOnly=false";
 
@@ -69,6 +71,8 @@ public class CompressedInstanceLauncher extends DashboardInstance {
     private String prefix;
 
     private long dataTimeStamp;
+
+    private boolean sawWbsXml, sawProjDump;
 
     public CompressedInstanceLauncher(File compressedData, String prefix) {
         this.compressedData = compressedData;
@@ -98,6 +102,8 @@ public class CompressedInstanceLauncher extends DashboardInstance {
             vmArgs.add("-D" + Settings.SYS_PROP_PREFIX
                     + EVCalculator.FIXED_EFFECTIVE_DATE_SETTING + "="
                     + dataTimeStamp);
+        if (sawWbsXml && !sawProjDump)
+            vmArgs.add(DISABLE_DATABASE_PLUGIN);
         if (processFactory.hasVmArg("-DreadOnly=true") == false)
             vmArgs.add(READ_WRITE_ARG);
 
@@ -115,6 +121,7 @@ public class CompressedInstanceLauncher extends DashboardInstance {
         tempDir.delete();
         tempDir.mkdir();
         dataTimeStamp = 0;
+        sawWbsXml = sawProjDump = false;
 
         ZipInputStream in = openZipStream(compressedData);
         uncompressData(tempDir, in, prefix);
@@ -148,6 +155,10 @@ public class CompressedInstanceLauncher extends DashboardInstance {
                 File destFile = new File(tempDir, filename);
                 if (filename.indexOf('/') != -1)
                     destFile.getParentFile().mkdirs();
+                if ("wbs.xml".equals(destFile.getName()))
+                    sawWbsXml = true;
+                else if ("projDump.xml".equals(destFile.getName()))
+                    sawProjDump = true;
                 FileUtils.copyFile(in, destFile);
                 if (e.getTime() != -1) {
                     destFile.setLastModified(e.getTime());
