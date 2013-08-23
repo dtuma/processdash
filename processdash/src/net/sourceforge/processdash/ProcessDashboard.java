@@ -825,6 +825,18 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         if (mode == null) {
             mode = inferDatasetMode();
             InternalSettings.set(Settings.DATASET_MODE, mode);
+
+            if (Settings.isHybridMode()) {
+                // If we configure hybrid mode (an unusual case), record this
+                // as a "manual" setting. This will make it easy for users to
+                // edit the value under "C > Tools > Preferences > Advanced."
+                String manualItems = Settings.getVal("manuallyEntered");
+                if (StringUtils.hasValue(manualItems))
+                    manualItems = manualItems + ";" + Settings.DATASET_MODE;
+                else
+                    manualItems = Settings.DATASET_MODE;
+                InternalSettings.set("manuallyEntered", manualItems);
+            }
         }
     }
 
