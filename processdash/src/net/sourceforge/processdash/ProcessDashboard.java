@@ -412,7 +412,8 @@ public class ProcessDashboard extends JFrame implements WindowListener,
                 DataRepository.enableUtf8Encoding();
                 DefectLog.enableXmlStorageFormat();
 
-                displayFirstTimeUserHelp();
+                if (Settings.isTeamMode() == false)
+                    displayFirstTimeUserHelp();
             } catch (Exception e) {
                 logErr("Couldn't read default state file", e);
             }
