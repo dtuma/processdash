@@ -166,9 +166,13 @@ public class ConfigureButton extends JMenuBar implements ActionListener, Hierarc
 
     private JMenu buildToolMenu(boolean personalMode) {
         JMenu toolMenu = new JMenu(resources.getString(TOOL_MENU));
+        List extensionItems = ExtensionManager.getExecutableExtensions(
+            "toolsMenuItem", parent);
+        Collections.sort(extensionItems, new ToolMenuItemComparator());
 
         toolMenu.add(new OpenPreferencesDialogAction(parent));
         toolMenu.add(new OfflineModeToggleMenuItem(parent.getWorkingDirectory()));
+        addToolExtensions(toolMenu, extensionItems, "prefs");
         toolMenu.addSeparator();
 
         if (personalMode)
@@ -177,6 +181,7 @@ public class ConfigureButton extends JMenuBar implements ActionListener, Hierarc
             toolMenu.add(new ShowImportWizardAction(resources.getString(IMPORT)));
             toolMenu.add(new ShowExportWizardAction(resources.getString(EXPORT)));
         }
+        addToolExtensions(toolMenu, extensionItems, "data");
         toolMenu.addSeparator();
         int sepCount = toolMenu.getMenuComponentCount();
 
@@ -184,10 +189,13 @@ public class ConfigureButton extends JMenuBar implements ActionListener, Hierarc
             SaveBackupAction saveBackupAction = new SaveBackupAction(parent);
             toolMenu.add(saveBackupAction);
             toolMenu.add(new OpenDatasetAction(parent, saveBackupAction));
+            addToolExtensions(toolMenu, extensionItems, "backups");
             toolMenu.addSeparator();
             toolMenu.add(new OpenLOCDiffAction());
         }
-        addToolExtensions(toolMenu);
+
+        // add uncategorized tool menu items to the bottom of the menu.
+        addToolExtensions(toolMenu, extensionItems, null);
 
         // if the menu ends with a separator, remove it.
         if (sepCount == toolMenu.getMenuComponentCount())
@@ -196,23 +204,40 @@ public class ConfigureButton extends JMenuBar implements ActionListener, Hierarc
         return toolMenu;
     }
 
-    private void addToolExtensions(JMenu toolMenu) {
-        List items = ExtensionManager.getExecutableExtensions("toolsMenuItem",
-                parent);
-        if (items.isEmpty()) return;
-
-        Collections.sort(items, new ToolMenuItemComparator());
+    private void addToolExtensions(JMenu toolMenu, List items, String category) {
         for (Iterator i = items.iterator(); i.hasNext();) {
             Object item = (Object) i.next();
-            if (item instanceof Action)
-                toolMenu.add((Action) item);
-            else if (item instanceof JMenuItem)
-                toolMenu.add((JMenuItem) item);
-            else
+            if (item instanceof Action) {
+                Action action = (Action) item;
+                if (matchesCategory(action, category)) {
+                    toolMenu.add(action);
+                    i.remove();
+                }
+
+            } else if (item instanceof JMenuItem) {
+                JMenuItem menuItem = (JMenuItem) item;
+                if (matchesCategory(menuItem.getAction(), category)) {
+                    toolMenu.add(menuItem);
+                    i.remove();
+                }
+
+            } else {
                 logger.warning("Could not add item to tools menu - "
                         + "unrecognized class " + item.getClass().getName());
+                i.remove();
+            }
         }
     }
+
+    private boolean matchesCategory(Action action, String category) {
+        if (category == null)
+            return true;
+        else if (action == null)
+            return false;
+        else
+            return category.equals(action.getValue("toolsMenuCategory"));
+    }
+
     private static class ToolMenuItemComparator implements Comparator {
         public int compare(Object o1, Object o2) {
             return getName(o1).compareToIgnoreCase(getName(o2));
