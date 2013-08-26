@@ -514,22 +514,22 @@ public class DashboardIconFactory {
 
         public int getIconWidth() { return 16; }
 
-        public int getIconHeight() { return 16; }
+        public int getIconHeight() { return 18; }
 
         public void paintIcon(Component c, Graphics g, int x, int y) {
             g.setColor(fillColor);
-            g.fillRect(x+3,  y+3,  10, 10);
+            g.fillRect(x+3,  y+4,  10, 10);
 
             g.setColor(shadow);
-            g.drawLine(x+13, y+3,  x+13, y+13); // right shadow
-            g.drawLine(x+3,  y+13, x+13, y+13); // bottom shadow
+            g.drawLine(x+13, y+4,  x+13, y+14); // right shadow
+            g.drawLine(x+3,  y+14, x+13, y+14); // bottom shadow
 
             g.setColor(highlight);
-            g.drawLine(x+2,  y+2,  x+2,  y+13); // left highlight
-            g.drawLine(x+2,  y+2,  x+13, y+2); // top highlight
+            g.drawLine(x+2,  y+3,  x+2,  y+14); // left highlight
+            g.drawLine(x+2,  y+3,  x+13, y+3); // top highlight
 
             g.setColor(Color.black);
-            g.drawRect(x+1, y+1, 13, 13);
+            g.drawRect(x+1, y+2, 13, 13);
         }
     }
 
