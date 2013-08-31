@@ -52,6 +52,8 @@
     <html ID="tasklist"
         href="control/showTaskSchedule.class?trigger&amp;PID-master"
         title="Project Task &amp; Schedule"/>
+    <html ID="evCharts" href="reports/ev.class?tl=auto&amp;charts&amp;PID-master"
+        title="    Earned Value Charts"/>
     <html ID="week" href="reports/week.class?tl=auto&amp;PID-master"
         title="    Weekly Earned Value Report"/>
 
@@ -72,8 +74,6 @@
         title="    Import All Data Now"/>
     <html ID="timelog" href="control/showTimeLog?type=rollup&amp;for=[Corresponding_Project_Nodes]&amp;mergePrefixes&amp;trigger"
         title="    View Rolled-Up Time Log"/>
-    <html ID="snapshot" href="PID/saveSnapshot.shtm"
-        title="    Save Snapshot of Project Plan"/>
     <html ID="subproj" href="PID/setup/subprojectList.shtm"
         title="    Edit List of Subprojects"/>
 
@@ -144,6 +144,8 @@
     <html ID="tasklist"
         href="control/showTaskSchedule.class?trigger&amp;PID-team"
         title="Project Task &amp; Schedule"/>
+    <html ID="evCharts" href="reports/ev.class?tl=auto&amp;charts&amp;PID-team"
+        title="    Earned Value Charts"/>
     <html ID="week" href="reports/week.class?tl=auto&amp;PID-team"
         title="    Weekly Earned Value Report"/>
 
@@ -161,8 +163,6 @@
         title="    Import All Data Now"/>
     <html ID="timelog" href="control/showTimeLog?type=rollup&amp;for=[Corresponding_Project_Nodes]&amp;mergePrefixes&amp;trigger"
         title="    View Team Time Log"/>
-    <html ID="snapshot" href="PID/saveSnapshot.shtm"
-        title="    Save Snapshot of Project Plan"/>
     <html ID="editTeam" href="PID/setup/openWBS.shtm?trigger&amp;team"
         title="    Edit Team Member List"
         inPackage="teamTools version 2.4.4"/>
@@ -280,6 +280,8 @@
     <html ID="tasklist"
         href="control/showTaskSchedule.class?trigger&amp;PID-indiv"
         title="Project Task &amp; Schedule"/>
+    <html ID="evCharts" href="reports/ev.class?tl=auto&amp;charts&amp;PID-indiv"
+        title="    Earned Value Charts"/>
     <html ID="week" href="reports/week.class?tl=auto&amp;PID-indiv"
         title="    Weekly Earned Value Report"/>
 
