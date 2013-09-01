@@ -7,6 +7,61 @@
 
 <H1>Change History</H1>
 
+
+<h2>Features new in version 2.0</h2>
+
+<ul>
+
+<li>The Process Dashboard now includes a powerful new 
+<a href="../AdvancedTopics/Database.html">Data Warehouse</a> component.  This
+component stores team project data in a relational database, making it
+possible for external analysis and reporting tools to access project data via
+SQL queries.</li>
+
+<li>The various reports, charts, and calculations in the Team Dashboard have
+been rewritten to take advantage of the Data Warehouse component.  As a
+result, Team Dashboard reports are displayed 100 to 1000 times faster than
+before.  Team Dashboard memory usage has also decreased significantly.
+Together, these improvements introduce a dramatic change in the scalability of
+the Team Dashboard for large and long-running project teams.</li>
+
+<li>For over a decade, the Team Dashboard has reused the same graphical user
+interface as the "personal" Dashboard.  With this release, the Team Dashboard
+now displays a redesigned user interface that focuses on the needs of coaches,
+team leaders, team role managers, and other users of consolidated team data.
+The new interface provides quick access to team tools and reports, improving
+productivity of existing teams, and reducing the learning curve for teams that
+are new to the Process Dashboard.</li>
+
+<li>Historically, some teams have observed extremely long startup times for
+the Team Dashboard - especially when opening the data over a VPN, WAN, or
+other slow network.  This version introduces a change to the storage strategy
+for team projects, enabling significantly faster startup times for the Team
+Dashboard.</li>
+
+<li>When the Team Dashboard and Process Dashboard shut down, a task runs to
+export data for various team projects.  Historically, as more team projects
+are added to a particular dashboard, this export step takes longer and longer.
+In this version, the export task has been streamlined significantly, allowing
+the dashboard to shut down much faster.</li>
+
+<li>Significant improvements have been made to the efficiency of the earned
+value calculation logic, enabling earned value reports to display much faster
+than before.</li>
+
+<li>The Defect Log Editor now includes an option to import defects from the
+Review Board code review tool.</li>
+
+<li>A new REST API has been provided that makes it possible for external tools
+(running on the same computer as the personal Process Dashboard) to add
+entries to the Size Inventory Form for a Team Project.</li>
+
+<li>The splash screen appears more quickly after clicking an icon to launch
+the Process Dashboard.</li>
+
+</ul>
+
+
 <h2>Features new in version 1.15</h2>
 
 <ul>

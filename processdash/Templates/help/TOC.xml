@@ -25,6 +25,7 @@
         <tocitem image="PageIcon" target="MIT" text="MIT License"/>
         <tocitem image="PageIcon" target="BSD" text="BSD License"/>
         <tocitem image="PageIcon" target="SunBerkeley" text="Sun Microsystems"/>
+        <tocitem image="PageIcon" target="DOM4J" text="DOM4J License"/>
         <tocitem image="PageIcon" target="Colt" text="Colt License"/>
         <tocitem image="PageIcon" target="Overlib" text="Overlib License"/>
         <tocitem image="PageIcon" target="LicenseExtras" text="Charting and Reporting Plug-in License"/>

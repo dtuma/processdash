@@ -30,6 +30,7 @@
   <mapID target="Apache" url="Topics/Overview/apache.html" />
   <mapID target="MIT" url="Topics/Overview/License-MIT.html" />
   <mapID target="BSD" url="Topics/Overview/bsd.html" />
+  <mapID target="DOM4J" url="Topics/Overview/License-DOM4J.html" />
   <mapID target="SunBerkeley" url="Topics/Overview/License-SunBerkeley.html" />
   <mapID target="Colt" url="Topics/Overview/License-Colt.html" />
   <mapID target="Overlib" url="Topics/Overview/License-Overlib.html" />
