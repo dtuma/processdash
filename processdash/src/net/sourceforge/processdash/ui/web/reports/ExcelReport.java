@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2012 Tuma Solutions, LLC
+// Copyright (C) 2001-2013 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -49,6 +49,7 @@ public class ExcelReport extends TinyCGIBase {
 
     protected void writeIQY() throws IOException {
         // write header
+        out.print("Content-Disposition: attachment; filename=\"excel.iqy\"\r\n");
         out.print("Content-type: text/x-ms-iqy\r\n\r\n");
 
         // write contents
