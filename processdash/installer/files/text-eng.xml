@@ -98,6 +98,11 @@ information for the Team Dashboard.
 Most teams should choose a shared network directory,
 where the files will be accessible to all members of
 the team.
+  
+If several people (for example: team leader, planning
+manager, coach) all need access to the Team Dashboard,
+they should all enter the same network directory path
+in this field.
     </str>
     <str id="TeamDataDirPanel.empty_datadir" txt="You must select a data directory."/>
 
