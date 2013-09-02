@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2012 Tuma Solutions, LLC
+// Copyright (C) 2003-2013 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -37,6 +37,7 @@ import java.util.regex.Pattern;
 
 import net.sourceforge.processdash.DashController;
 import net.sourceforge.processdash.ProcessDashboard;
+import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.templates.DashPackage;
 import net.sourceforge.processdash.templates.TemplateLoader;
@@ -104,14 +105,18 @@ public class DisplayConfig extends TinyCGIBase {
         loadConfigurationInformation();
 
         if (dataDirectory != null) {
-            printRes("<DIV>${Data_Dir_Header}");
+            out.print("<DIV>");
+            out.print(resources.getHTML(Settings.isPersonalMode()
+                    ? "Data_Dir_Header" : "Team_Config_Dir_Header"));
             out.print("<PRE class='indent'>");
             out.println(HTMLUtils.escapeEntities(dataDirectory.getPath()));
             out.println("   </PRE></DIV>");
         }
 
         if (dataURL != null) {
-            printRes("<DIV>${Data_Url_Header}");
+            out.print("<DIV>");
+            out.print(resources.getHTML(Settings.isPersonalMode()
+                    ? "Data_Url_Header" : "Team_Config_Url_Header"));
             out.print("<PRE class='indent'>");
             out.println(HTMLUtils.escapeEntities(dataURL));
             out.println("   </PRE></DIV>");
