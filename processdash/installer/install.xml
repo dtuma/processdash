@@ -72,8 +72,8 @@
         <res src="files/JHLicense-list.txt" id="CondHTMLLicencePanel1.packList"/>
         <res src="files/ExtrasLicense.html" id="CondHTMLLicencePanel2.licence"/>
         <res src="files/ExtrasLicense-list.txt" id="CondHTMLLicencePanel2.packList"/>
-        <res src="files/custom-install-internal.ini" id="custom-install.ini"
-             excludeIf="pspForEngInstr"/>
+        <res src="files/custom-install-autoPspTsp.ini" id="custom-install.ini"
+             includeIf="autoPspTsp"/>
         <res src="files/custom-install-instr.ini" id="custom-install.ini"
              includeIf="pspForEngInstr"/>
         <res src="files/text-eng.xml" id="CustomLangpack.xml"/>

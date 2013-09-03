@@ -1,5 +1,6 @@
 package com.izforge.izpack.pdash;
 
+import java.io.File;
 import java.lang.management.ManagementFactory;
 import java.util.Iterator;
 import java.util.List;
@@ -147,16 +148,46 @@ public class DashboardPreInstallAction implements PanelAction,
 
     private boolean isConfigTrue(String flag) {
         String val = ExternalConfiguration.getConfig().getProperty(flag);
-        return propMatches(val, "yes", "true");
+        return propMatches(val, "yes", "true")
+                || (testInstallSpec(val) == Boolean.TRUE);
     }
 
     private boolean isConfigFalse(String flag) {
         String val = ExternalConfiguration.getConfig().getProperty(flag);
-        return propMatches(val, "no", "false");
+        return propMatches(val, "no", "false")
+                || (testInstallSpec(val) == Boolean.FALSE);
     }
 
     private boolean propMatches(String prop, String valA, String valB) {
         return (valA.equalsIgnoreCase(prop) || valB.equalsIgnoreCase(prop));
+    }
+
+    private Boolean testInstallSpec(String spec) {
+        if (spec == null || (spec = spec.trim()).length() == 0)
+            return null;
+        else if (spec.startsWith("if-installed"))
+            return atLeastOneFileIsInstalled(spec.substring(12));
+        else if (spec.startsWith("if-not-installed"))
+            return atLeastOneFileIsInstalled(spec.substring(16)) == false;
+        else
+            return null;
+    }
+
+    private boolean atLeastOneFileIsInstalled(String spec) {
+        String instDirName = getDefaultInstallDir();
+        if (instDirName == null)
+            return false;
+
+        File instDir = new File(instDirName);
+        if (!instDir.isDirectory())
+            return false;
+
+        for (String name : spec.trim().split(" +")) {
+            File file = new File(instDir, name);
+            if (file.isFile())
+                return true;
+        }
+        return false;
     }
 
 
