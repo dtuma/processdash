@@ -342,18 +342,18 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         BetaVersionSetup.runSetup(property_directory);
         pt.click("Ran beta version setup");
 
-        // determine if Lost Data Files are present in the pspdata directory
+        // determine if corrupt Data Files are present in the pspdata directory
         // and take steps to repair them.
-        LostDataFiles lostPSPFiles = new LostDataFiles();
-        lostPSPFiles.findLostFiles(property_directory);
+        CorruptDataFiles corruptDataFiles = new CorruptDataFiles();
+        corruptDataFiles.findCorruptFiles(property_directory);
         pt.click("Checked for lost data files");
-        if (lostPSPFiles.repair(this)==false) {
+        if (corruptDataFiles.repair(this)==false) {
 
             // if the lost data files could not be repaired, exit the dashboard
             logger.severe
             ("Dashboard was terminated due to user request. " +
                     "The following bad data files were found in the "+
-                    "psp data directory:\n" + lostPSPFiles.printOut());
+                    "psp data directory:\n" + corruptDataFiles.printOut());
             System.exit(0);
         }
 
