@@ -150,7 +150,6 @@ import net.sourceforge.processdash.ui.TaskNavigationSelector;
 import net.sourceforge.processdash.ui.TeamProjectBrowser;
 import net.sourceforge.processdash.ui.UserNotificationManager;
 import net.sourceforge.processdash.ui.help.PCSH;
-import net.sourceforge.processdash.ui.lib.ErrorReporter;
 import net.sourceforge.processdash.ui.lib.ExceptionDialog;
 import net.sourceforge.processdash.ui.lib.JLinkLabel;
 import net.sourceforge.processdash.ui.lib.LargeFontsHelper;
@@ -210,7 +209,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
     AutoUpdateManager aum = null;
     ConsoleWindow consoleWindow = new ConsoleWindow();
     ObjectCache objectCache;
-    private ErrorReporter brokenData;
+    private BrokenDataFileHandler brokenData;
     Resources resources;
     EventListenerList ell;
 
@@ -344,16 +343,16 @@ public class ProcessDashboard extends JFrame implements WindowListener,
 
         // determine if corrupt Data Files are present in the pspdata directory
         // and take steps to repair them.
-        CorruptDataFiles corruptDataFiles = new CorruptDataFiles();
-        corruptDataFiles.findCorruptFiles(property_directory);
+        brokenData = new BrokenDataFileHandler();
+        brokenData.findCorruptFiles(property_directory);
         pt.click("Checked for lost data files");
-        if (corruptDataFiles.repair(this)==false) {
+        if (brokenData.repairCorruptFiles(this) == false) {
 
             // if the lost data files could not be repaired, exit the dashboard
             logger.severe
             ("Dashboard was terminated due to user request. " +
                     "The following bad data files were found in the "+
-                    "psp data directory:\n" + corruptDataFiles.printOut());
+                    "psp data directory:\n" + brokenData.getCorruptFileStr());
             System.exit(0);
         }
 
@@ -456,10 +455,6 @@ public class ProcessDashboard extends JFrame implements WindowListener,
             } catch (Exception e) {}
 
         // open all the datafiles that were specified in the properties file.
-        brokenData = new ErrorReporter
-            (resources.getString("Errors.Broken_Data_Title"),
-             resources.getStrings("Errors.Broken_Data_Header"),
-             resources.getStrings("Errors.Broken_Data_Footer"));
         data.startInconsistency();
         try {
             if (v != null) {
@@ -550,7 +545,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
                         timeLog.refreshMetrics();
                 }});
 
-        brokenData.done();
+        brokenData.showMissingDataFileWarnings();
         TemplateLoader.showTemplateErrors();
         ExternalResourceManager.getInstance().cleanupBogusExtResDirectory(
                 prop_file.getParentFile());
@@ -1361,14 +1356,14 @@ public class ProcessDashboard extends JFrame implements WindowListener,
 
 
     public List<String> getBrokenDataPaths() {
-        return brokenData.getErrors();
+        return brokenData.getMissingDataPrefixes();
     }
 
     public void openDatafile (String prefix, String dataFile) {
         try {
             data.openDatafile (prefix, property_directory + dataFile);
         } catch (FileNotFoundException fnfe) {
-            brokenData.logError(prefix);
+            brokenData.logMissingDataFileError(prefix, fnfe.getMessage());
         } catch (Exception exc) {
             logErr("when opening datafile, '" + dataFile + "' for path '"
                     + prefix + "', caught exception:", exc);

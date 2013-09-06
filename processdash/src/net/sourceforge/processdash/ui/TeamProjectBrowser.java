@@ -54,6 +54,7 @@ import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 
 import net.sourceforge.processdash.ApplicationEventListener;
+import net.sourceforge.processdash.BrokenDataFileHandler;
 import net.sourceforge.processdash.DashController;
 import net.sourceforge.processdash.DashboardContext;
 import net.sourceforge.processdash.InternalSettings;
@@ -256,13 +257,11 @@ public class TeamProjectBrowser extends JSplitPane {
         if (key != null)
             newScripts = ScriptEnumerator.getScripts(ctx, key);
         if (newScripts == null || newScripts.size() == 0) {
-            // if no scripts were found, add an entry to create a new project.
+            // if no scripts were found, create an appropriate default entry.
             newScripts = new ArrayList<ScriptID>();
-            ScriptID newProjectScript = new ScriptID(
-                    getNewProjectCreationUri(), "",
-                    resources.getString("New.Title"));
-            newScripts.add(newProjectScript);
-            newScripts.add(newProjectScript);
+            ScriptID defaultScript = createDefaultScript(key);
+            newScripts.add(defaultScript);
+            newScripts.add(defaultScript);
         }
 
         ScriptID defaultScript = newScripts.get(0);
@@ -275,6 +274,28 @@ public class TeamProjectBrowser extends JSplitPane {
             dataPath = script.getDataPath();
             if (defaultScript.scriptEquals(script))
                 scriptList.getSelectionModel().setLeadSelectionIndex(i - 1);
+        }
+    }
+
+    private ScriptID createDefaultScript(PropertyKey key) {
+        if (isBrokenTeamProject(key.path())) {
+            String templateID = ctx.getHierarchy().pget(key).getID();
+            int slashPos = templateID.indexOf('/');
+            String pid = (slashPos == -1 ? "" : templateID.substring(0, slashPos));
+            return new ScriptID(BrokenDataFileHandler.SHARE_MCF_URL, "",
+                    resources.format("Missing_MCF.Title_FMT", pid));
+        } else {
+            return new ScriptID(getNewProjectCreationUri(), "",
+                    resources.getString("New.Title"));
+        }
+    }
+
+    private boolean isBrokenTeamProject(String path) {
+        if (ctx instanceof ProcessDashboard) {
+            ProcessDashboard dash = (ProcessDashboard) ctx;
+            return dash.getBrokenDataPaths().contains(path);
+        } else {
+            return false;
         }
     }
 
