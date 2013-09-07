@@ -51,7 +51,7 @@ public class SimulationHarness {
         try {
             SwingUtilities.invokeAndWait(new Runnable() {
                 public void run() {
-                    dashboard.quit();
+                    dashboard.quit(null);
                     dashboard.dispose();
                 }});
         } catch (Exception e) {

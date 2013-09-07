@@ -153,6 +153,7 @@ import net.sourceforge.processdash.ui.help.PCSH;
 import net.sourceforge.processdash.ui.lib.ExceptionDialog;
 import net.sourceforge.processdash.ui.lib.JLinkLabel;
 import net.sourceforge.processdash.ui.lib.LargeFontsHelper;
+import net.sourceforge.processdash.ui.lib.PleaseWaitDialog;
 import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
 import net.sourceforge.processdash.ui.systray.SystemTrayManagement;
 import net.sourceforge.processdash.ui.web.psp.SizeEstimatingTemplate;
@@ -1535,10 +1536,27 @@ public class ProcessDashboard extends JFrame implements WindowListener,
     public void exitProgram() {
         new DashboardPermission("exitProgram").checkPermission();
 
+        Thread shutdownThread = new Thread("Application Shutdown Thread") {
+            public void run() {
+                synchronized (exitProgramSyncToken) {
+                    exitProgramImpl();
+                }
+            }
+        };
+        shutdownThread.start();
+    }
+    private Object exitProgramSyncToken = new Object();
+
+    private void exitProgramImpl() {
+        PleaseWaitDialog dialog = new PleaseWaitDialog(this,
+            resources.getString("Shutdown.Title"), "");
+
         String backupQualifier = getBackupQualifier(data);
         try {
-            if (quit() == false)
+            if (quit(dialog) == false) {
+                dialog.dispose();
                 return;
+            }
         } catch (Throwable t) {
             // if the shutdown sequence encounters an uncaught exception,
             // display an error message, but still exit.
@@ -1549,9 +1567,9 @@ public class ProcessDashboard extends JFrame implements WindowListener,
             if (osHelper != null) osHelper.dispose();
             SystemTrayManagement.getIcon().dispose();
             UserNotificationManager.getInstance().maybeHideNotifications();
-            setVisible(false);
 
             logger.fine("Backing up data directory");
+            dialog.setMessage(resources.getString("Shutdown.Saving_Backup"));
             fileBackupManager.maybeRun(FileBackupManager.SHUTDOWN,
                   backupQualifier);
             logger.fine("Shutdown complete");
@@ -1561,9 +1579,14 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         }
     }
 
-    boolean quit() {
+    boolean quit(PleaseWaitDialog dialog) {
+        if (dialog != null)
+            dialog.setMessage(resources.getString("Shutdown.Background_Tasks"));
         BackgroundTaskManager.getInstance().suspend(30 * DateUtils.MINUTES,
-            30 * DateUtils.SECONDS);
+              30 * DateUtils.SECONDS);
+
+        if (dialog != null)
+            dialog.setMessage(resources.getString("Shutdown.Saving_Data"));
         List unsavedData = saveAllData();
         if (unsavedData.isEmpty() == false
                 && warnUserAboutUnsavedData(unsavedData) == false) {
@@ -1585,7 +1608,9 @@ public class ProcessDashboard extends JFrame implements WindowListener,
 
         if (!Settings.getBool(DISABLE_AUTO_EXPORT_SETTING, false)) {
             logger.fine("Performing auto exports");
-            ExportManager.getInstance().exportAll(this, this);
+            if (dialog != null)
+                dialog.setMessage(resources.getString("Shutdown.Exporting_Data"));
+            ExportManager.getInstance().exportAll(null, this);
         }
         if (webServer != null) {
             logger.fine("Shutting down web server");

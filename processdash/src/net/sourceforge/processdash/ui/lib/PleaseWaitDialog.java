@@ -24,6 +24,7 @@
 package net.sourceforge.processdash.ui.lib;
 
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -38,8 +39,33 @@ import javax.swing.Timer;
 
 public class PleaseWaitDialog extends JDialog {
 
+    private JLabel messageLabel;
+
     private volatile boolean disposed;
 
+    /**
+     * Create a wait dialog that will appear right away.
+     * 
+     * @param parent the parent window for the modal dialog.
+     * @param title the title to display for the dialog window.
+     * @param message the message to display on the dialog window.
+     */
+    public PleaseWaitDialog(Frame parent, String title, String message) {
+        this(parent, title, message, 10);
+    }
+
+    /**
+     * Create a wait dialog that will appear after a certain period of time.
+     * 
+     * @param parent the parent window for the modal dialog.
+     * @param title the title to display for the dialog window.
+     * @param message the message to display on the dialog window.
+     * @param displayDelay the amount of time to wait before showing the
+     *     dialog.  If {@link #dispose()} is called before this time period
+     *     elapses, the dialog will never be displayed at all.  Thus, this
+     *     can be used to optionally display a dialog if some underlying
+     *     operation takes more than a small length of time.
+     */
     public PleaseWaitDialog(Frame parent, String title, String message,
             int displayDelay) {
         super(parent, title, true);
@@ -49,7 +75,7 @@ public class PleaseWaitDialog extends JDialog {
 
         if (message == null)
             message = "Please wait...";
-        JLabel messageLabel = new JLabel(message);
+        messageLabel = new JLabel(message);
         dialogContents.add(messageLabel, BorderLayout.NORTH);
 
         JProgressBar progressBar = new JProgressBar();
@@ -77,6 +103,25 @@ public class PleaseWaitDialog extends JDialog {
             setVisible(true);
     }
 
+    public void setMessage(final String message) {
+        Runnable r = new Runnable() {
+            public void run() {
+                if (!disposed) {
+                    messageLabel.setText(message);
+
+                    // if the dialog is too small to display the new message,
+                    // resize it so its large enough.
+                    Dimension size = getSize();
+                    Dimension prefSize = getPreferredSize();
+                    size.width = Math.max(size.width, prefSize.width);
+                    size.height = Math.max(size.height, prefSize.height);
+                    setSize(size);
+                }
+            }
+        };
+        runOnEventDispatchThread(r);
+    }
+
     @Override
     public void dispose() {
         Runnable r = new Runnable() {
@@ -85,7 +130,10 @@ public class PleaseWaitDialog extends JDialog {
                 PleaseWaitDialog.super.dispose();
             }
         };
+        runOnEventDispatchThread(r);
+    }
 
+    private void runOnEventDispatchThread(Runnable r) {
         if (SwingUtilities.isEventDispatchThread())
             r.run();
         else
