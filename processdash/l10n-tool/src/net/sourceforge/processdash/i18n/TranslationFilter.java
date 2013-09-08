@@ -66,6 +66,7 @@ public class TranslationFilter implements Comparator {
     private String removeVariables(String value) {
         while (true) {
             int beg = value.indexOf("${");
+            if (beg == -1) beg = value.indexOf('{');
             if (beg == -1) return value;
 
             int end = value.indexOf("}", beg);
