@@ -360,7 +360,7 @@ class dependency has been added in a dashboard class?)
 	<attribute name="Dash-Pkg-Version" value="${teamtools.version}"/>
 	<attribute name="Dash-Pkg-Requires-Version"
                    value="${teamtools.requires}"/>
-        <!-- attribute name="Dash-Pkg-Localizable" value="true"/ -->
+        <attribute name="Dash-Pkg-Localizable" value="true"/>
 	<attribute name="Dash-Pkg-Name" value="Advanced Team Tools"/>
 	<attribute name="Dash-Pkg-URL"
 	           value="http://processdash.sourceforge.net/cgi-bin/update"/>
