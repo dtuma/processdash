@@ -77,7 +77,7 @@ Authors:
 
   <property name="eng.version"      value="3.2"/><!-- VERSION -->
   <property name="eng.requires"     value="1.10.6+"/><!-- VERSION -->
-  <property name="l10nTool.version" value="1.1"/><!-- VERSION -->
+  <property name="l10nTool.version" value="1.2"/><!-- VERSION -->
   <property name="l10nTool.requires" value="1.10.7b+"/><!-- VERSION -->
   <property name="instr.requires"   value="1.10.6+"/><!-- VERSION -->
 
@@ -672,7 +672,8 @@ Authors:
   </target>
 
   <target name="-add-trans" depends="ant-tasks">
-    <i18n-addTranslations dir="." includes="pspdash_*.zip pspdash_*.jar"/>
+    <i18n-addTranslations dir="." includes="pspdash_*.zip pspdash_*.jar"
+         externalDirs="${external-resource-dirs}"/>
   </target>
 
   <target name="add-trans" depends="-add-trans,installer-langpacks"/>

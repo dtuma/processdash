@@ -1,4 +1,4 @@
-// Copyright (C) 2006 Tuma Solutions, LLC
+// Copyright (C) 2006-2013 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -54,6 +54,7 @@ public class AddTranslations extends MatchingTask {
     private static final String BROKEN_SUFFIX = "!broken";
     private boolean verbose = false;
     private File dir;
+    private String externalDirs;
 
     public void setDir(File d) {
         dir = d;
@@ -63,12 +64,19 @@ public class AddTranslations extends MatchingTask {
         this.verbose = verbose;
     }
 
+    public void setExternalDirs(String externalDirs) {
+        this.externalDirs = externalDirs;
+    }
+
     public void execute() throws BuildException {
+        Map<String, String> externalFiles = getExternalFileLocations();
+
         DirectoryScanner ds = getDirectoryScanner(dir);
         String[] srcFiles = ds.getIncludedFiles();
         for (int i = 0; i < srcFiles.length; i++) {
             try {
-                addTranslationsFromFile(new File(dir, srcFiles[i]));
+                addTranslationsFromFile(new File(dir, srcFiles[i]),
+                    externalFiles);
             } catch (IOException ioe) {
                 if (verbose)
                     ioe.printStackTrace(System.out);
@@ -78,7 +86,39 @@ public class AddTranslations extends MatchingTask {
         }
     }
 
-    private void addTranslationsFromFile(File file) throws IOException {
+    private Map<String, String> getExternalFileLocations() {
+        Map<String, String> result = new HashMap();
+        if (externalDirs == null)
+            return result;
+
+        for (String oneDirName : externalDirs.split(",")) {
+            oneDirName = oneDirName.trim();
+            File oneDir = calcPossiblyRelativeFile(oneDirName);
+            try {
+                oneDir = oneDir.getCanonicalFile();
+            } catch (IOException e) {
+                throw new BuildException(e);
+            }
+            oneDir = new File(oneDir, "Templates/resources");
+            if (!oneDir.isDirectory()) {
+                System.out.println("Directory '" + oneDir
+                        + "' does not exist - skipping.");
+                continue;
+            }
+            for (String oneFile : oneDir.list()) {
+                if (oneFile.endsWith(".properties")
+                        && oneFile.indexOf('_') == -1) {
+                    String baseName = oneFile.substring(0,
+                        oneFile.length() - 11);
+                    result.put(baseName, oneDir.getPath() + File.separatorChar);
+                }
+            }
+        }
+        return result;
+    }
+
+    private void addTranslationsFromFile(File file,
+            Map<String, String> externalDirs) throws IOException {
         if (verbose)
             System.out.println("Looking for translations in " + file);
 
@@ -96,10 +136,15 @@ public class AddTranslations extends MatchingTask {
                 continue;
 
             String filename = entry.getName();
+            String basename = baseName(filename);
 
             if (filename.indexOf("jrc-editor") != -1) {
                 mergePropertiesFile(zipIn,
                         "l10n-tool/src/" + terminalName(filename));
+
+            } else if (externalDirs.containsKey(basename)) {
+                mergePropertiesFile(zipIn, externalDirs.get(basename)
+                        + terminalName(filename));
 
             } else if (filename.indexOf("jfree") != -1) {
                 if (mergeJFreeProperties(jFreeRes, zipIn, filename))
@@ -126,6 +171,14 @@ public class AddTranslations extends MatchingTask {
         int underlinePos = filename.indexOf('_');
         int dotPos = filename.indexOf('.', underlinePos);
         return filename.substring(underlinePos, dotPos);
+    }
+
+    private String baseName(String entryName) {
+        String result = terminalName(entryName);
+        int pos = result.indexOf('_');
+        if (pos == -1)
+            pos = result.indexOf('.');
+        return (pos == -1 ? result : result.substring(0, pos));
     }
 
     private String terminalName(String entryName) {
@@ -226,10 +279,8 @@ public class AddTranslations extends MatchingTask {
         Properties incoming = new Properties();
         incoming.load(zipIn);
 
-        File destFile = new File(dir, filename);
-        Properties original = new Properties();
-        if (destFile.exists())
-            original.load(new FileInputStream(destFile));
+        File destFile = calcPossiblyRelativeFile(filename);
+        Properties original = loadProperties(destFile);
 
         Properties merged = new SortedProperties();
         merged.putAll(original);
@@ -247,6 +298,18 @@ public class AddTranslations extends MatchingTask {
             merged.put(key, value);
         }
 
+        File englishFile = new File(dir, getEnglishFilename(filename));
+        Properties english = loadProperties(englishFile);
+        for (Iterator i = english.entrySet().iterator(); i.hasNext();) {
+            Map.Entry e = (Map.Entry) i.next();
+            String key = (String) e.getKey();
+            String englishValue = (String) e.getValue();
+            String mergedValue = merged.getProperty(key);
+            if (englishValue.equals(mergedValue)
+                    && valueNeedsNoTranslation(englishValue))
+                merged.remove(key);
+        }
+
         if (original.equals(merged)) {
             if (verbose)
                 System.out.println("    No new properties in '" + filename + "'");
@@ -258,6 +321,66 @@ public class AddTranslations extends MatchingTask {
         FileOutputStream out = new FileOutputStream(destFile);
         merged.store(out, PROP_FILE_HEADER);
         out.close();
+    }
+
+    private File calcPossiblyRelativeFile(String path) {
+        File result = new File(path);
+        if (!result.isAbsolute())
+            result = new File(dir, path);
+        return result;
+    }
+
+    private Properties loadProperties(File f) throws IOException {
+        Properties result = new Properties();
+        if (f.isFile()) {
+            FileInputStream in = new FileInputStream(f);
+            result.load(in);
+            in.close();
+        }
+        return result;
+    }
+
+    private String getEnglishFilename(String filename) {
+        while (true) {
+            int underscorePos = filename.lastIndexOf('_');
+            if (underscorePos == -1)
+                return filename;
+
+            int dotPos = filename.indexOf('.', underscorePos);
+            if (dotPos == -1)
+                return filename;
+
+            filename = filename.substring(0, underscorePos)
+                    + filename.substring(dotPos);
+        }
+    }
+
+    private boolean valueNeedsNoTranslation(String value) {
+        value = removeVariables(value);
+        return valueContainsNoCharacters(value);
+    }
+
+    private String removeVariables(String value) {
+        while (true) {
+            int beg = value.indexOf("${");
+            if (beg == -1) beg = value.indexOf('{');
+            if (beg == -1) return value;
+
+            int end = value.indexOf("}", beg);
+            if (end == -1) return value;
+
+            value = value.substring(0, beg) + value.substring(end + 1);
+        }
+    }
+
+    private static final String ALPHA = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+    private boolean valueContainsNoCharacters(String value) {
+        for (int i = 0; i < value.length(); i++) {
+            if (ALPHA.indexOf(Character.toUpperCase(value.charAt(i))) != -1)
+                return false;
+        }
+        return true;
     }
 
     private static final String PROP_FILE_HEADER =
