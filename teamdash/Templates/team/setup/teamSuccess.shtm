@@ -21,21 +21,17 @@ TD.value { font-family: monospace }
 project has been created and set up successfully!</p>
 
 <!--#if [setup//Is_Importing_Template] -->
-<p><b>Note: Check back with your main Process Dashboard window; it may
+<p><b>Note: Check back with your main Team Dashboard window; it may
 be displaying a dialog titled &quot;Import Template&quot;.  If it is,
 you should click the dialog's OK button to ensure that all the
 dashboard instances in this team project remain in agreement on the
 process definition.</b></p>
 <!--#endif-->
 
-<p>When your team is ready to begin the project launch planning
-process, go to the 
-&quot;<b><!--#if [setup//Is_Master] -->Master<!--#else-->Team<!--#endif-->
-Project Tools and Settings</b>&quot; page for access to advanced team
-planning tools.  (You can open the 
-&quot;<b><!--#if [setup//Is_Master] -->Master<!--#else-->Team<!--#endif-->
-Project Tools and Settings</b>&quot; page by using the
-&quot;script&quot; button on the main dashboard window.)</p>
+<p>The main Team Dashboard window will now provide a list of tools and
+reports to support the high-maturity planning and tracking needs of
+this project.  For more information on the use of these tools, choose
+&quot;Help&nbsp;&#8594;&nbsp;Help Topics.&quot;</p>
 
 </form>
 </body>
