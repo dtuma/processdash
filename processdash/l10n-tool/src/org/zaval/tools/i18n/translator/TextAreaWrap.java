@@ -123,8 +123,8 @@ public class TextAreaWrap
 
     private void initControls()
     {
-        if(flavor==NATIVE) tf2 = new TextArea("", 3, 20, TextArea.SCROLLBARS_VERTICAL_ONLY);
-        else tf1 = new EmulatedTextArea( true, false, 3, 20 );
+        if(flavor==NATIVE) tf2 = new TextArea("", 9, 20, TextArea.SCROLLBARS_VERTICAL_ONLY);
+        else tf1 = new EmulatedTextArea( true, false, 9, 20 );
     }
 
     public String getText()
