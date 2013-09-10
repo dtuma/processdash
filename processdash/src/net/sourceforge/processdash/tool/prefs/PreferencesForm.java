@@ -27,6 +27,7 @@ import java.awt.BorderLayout;
 import java.io.IOException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.Locale;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -42,6 +43,7 @@ import org.xml.sax.SAXException;
 
 import net.sourceforge.processdash.InternalSettings;
 import net.sourceforge.processdash.Settings;
+import net.sourceforge.processdash.i18n.TranslationLevelPreferenceBox;
 import net.sourceforge.processdash.templates.TemplateLoader;
 import net.sourceforge.processdash.tool.prefs.editor.ManuallyEnteredPreferencesList;
 import net.sourceforge.processdash.tool.prefs.editor.PreferencesCheckBox;
@@ -74,6 +76,7 @@ public class PreferencesForm extends BoundForm {
     private static final String RADIOBUTTONS_TAG = "radio";
     private static final String FILELIST_TAG = "file-list";
     private static final String MANUAL_ENTRY_TAG = "manualEntry";
+    private static final String I18N_LEVEL_TAG = "translationLevel";
     private static final String DATASET_ENCODING_CONVERTER = "datasetEncodingConverter";
 
     /** The JPanel containing the GUI */
@@ -92,6 +95,7 @@ public class PreferencesForm extends BoundForm {
         addElementType(RADIOBUTTONS_TAG, PreferencesRadioButtons.class);
         addElementType(FILELIST_TAG, PreferencesFileList.class);
         addElementType(MANUAL_ENTRY_TAG, ManuallyEnteredPreferencesList.class);
+        addElementType(I18N_LEVEL_TAG, TranslationLevelPreferenceBox.class);
         addElementType(DATASET_ENCODING_CONVERTER,
             PreferencesDatasetEncodingconverter.class);
 
@@ -99,6 +103,9 @@ public class PreferencesForm extends BoundForm {
         if (Settings.isPersonalMode()) put("personalMode", "true");
         if (Settings.isTeamMode()) put("teamMode", "true");
         if (Settings.isHybridMode()) put("hybridMode", "true");
+        if (!"en".equals(Locale.getDefault().getLanguage())
+                || System.getProperty("user.origLanguage") != null)
+            put("i18n", "true");
 
         selectCategory(category);
         panel.setLayout(new BorderLayout());

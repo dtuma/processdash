@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2012 Tuma Solutions, LLC
+// Copyright (C) 2003-2013 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -45,6 +45,7 @@ public class Resources extends ResourceBundle implements StringMapper {
     private String bundlePrefix;
     private ResourceBundle delegate;
 
+    private static Locale TARGET_LOCALE = Locale.getDefault();
     private static Logger logger = Logger.getLogger(Resources.class.getName());
 
     private Resources(String bundleName, String bundlePrefix,
@@ -157,6 +158,10 @@ public class Resources extends ResourceBundle implements StringMapper {
             globalResources = getResourceBundle("resources.(Resources)", null);
     }
 
+    public static void setTargetLocale(Locale l) {
+        TARGET_LOCALE = l;
+    }
+
     public static Resources getGlobalBundle() {
         initGlobalResources();
         return globalResources;
@@ -235,7 +240,7 @@ public class Resources extends ResourceBundle implements StringMapper {
                 .replace(PREFIX_SEPARATOR, '.');
 
         ResourceBundle realBundle = ResourceBundle.getBundle
-            (bundleBaseName, Locale.getDefault(), getResourceLoader());
+            (bundleBaseName, TARGET_LOCALE, getResourceLoader());
         Resources result = new Resources(bundleBaseName, bundlePrefix,
                                          realBundle, parent);
 

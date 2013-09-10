@@ -69,6 +69,7 @@ import java.util.prefs.Preferences;
 
 import javax.swing.Action;
 import javax.swing.ButtonGroup;
+import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JMenuBar;
 import javax.swing.JOptionPane;
@@ -1103,11 +1104,28 @@ public class ProcessDashboard extends JFrame implements WindowListener,
                         + altTimeZone + "'");
             }
         }
+        // special handling for language support
         String altLanguage = Settings.getVal("language");
+        String langLevel = Settings.getVal("userPref.i18n.masterLevel", "high");
+        if ("disabled".equalsIgnoreCase(langLevel)) {
+            altLanguage = "en";
+        } else if ("low".equalsIgnoreCase(langLevel)) {
+            Resources.setTargetLocale(Locale.ROOT);
+            JComponent.setDefaultLocale(Locale.ROOT);
+            ResourceBundle.clearCache();
+        } else if ("medium".equalsIgnoreCase(langLevel)) {
+            System.setProperty(Settings.SYS_PROP_PREFIX
+                    + "i18n.translationMode", "off");
+        }
         if (StringUtils.hasValue(altLanguage)) {
             try {
-                Locale.setDefault(new Locale(altLanguage));
+                String origLanguage = Locale.getDefault().getLanguage();
+                Locale newLocale = new Locale(altLanguage);
                 System.setProperty("user.language", altLanguage);
+                System.setProperty("user.origLanguage", origLanguage);
+                Locale.setDefault(newLocale);
+                JComponent.setDefaultLocale(newLocale);
+                ResourceBundle.clearCache();
             } catch (Exception e) {
                 logger.warning("Could not apply user-selected language '"
                         + altLanguage + "'");

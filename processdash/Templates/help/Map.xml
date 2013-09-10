@@ -179,6 +179,8 @@
                url="Topics/AdvancedTopics/PreferencesTool.html#alwaysOnTop" />
         <mapID target="prefs.systemTray"
                url="Topics/AdvancedTopics/PreferencesTool.html#systemTray" />
+        <mapID target="prefs.i18nLevel"
+               url="Topics/AdvancedTopics/PreferencesTool.html#i18nLevel" />
         <mapID target="prefs.largeFonts"
                url="Topics/AdvancedTopics/PreferencesTool.html#largeFonts" />
         <mapID target="prefs.addOns"
