@@ -656,6 +656,8 @@ Authors:
         langpack="${installer}/files/text-chn.xml"/>
     <i18n-updateLangpack resourcesDir="${resources}" javaLang="de"
         langpack="${installer}/files/text-deu.xml"/>
+    <i18n-updateLangpack resourcesDir="${resources}" javaLang="es"
+        langpack="${installer}/files/text-spa.xml"/>
   </target>
 
 
