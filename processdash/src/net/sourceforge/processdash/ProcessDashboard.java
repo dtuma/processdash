@@ -95,6 +95,7 @@ import net.sourceforge.processdash.hier.Prop;
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.hier.ui.HierarchyEditor;
 import net.sourceforge.processdash.hier.ui.TaskCommenterButton;
+import net.sourceforge.processdash.i18n.LocaleResetSupport;
 import net.sourceforge.processdash.i18n.LookAndFeelSettings;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.i18n.Translator;
@@ -1110,9 +1111,11 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         if ("disabled".equalsIgnoreCase(langLevel)) {
             altLanguage = "en";
         } else if ("low".equalsIgnoreCase(langLevel)) {
-            Resources.setTargetLocale(Locale.ROOT);
-            JComponent.setDefaultLocale(Locale.ROOT);
-            ResourceBundle.clearCache();
+            Locale rootLocale = resetResourceBundleCache();
+            if (rootLocale != null) {
+                Resources.setTargetLocale(rootLocale);
+                JComponent.setDefaultLocale(rootLocale);
+            }
         } else if ("medium".equalsIgnoreCase(langLevel)) {
             System.setProperty(Settings.SYS_PROP_PREFIX
                     + "i18n.translationMode", "off");
@@ -1125,7 +1128,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
                 System.setProperty("user.origLanguage", origLanguage);
                 Locale.setDefault(newLocale);
                 JComponent.setDefaultLocale(newLocale);
-                ResourceBundle.clearCache();
+                resetResourceBundleCache();
             } catch (Exception e) {
                 logger.warning("Could not apply user-selected language '"
                         + altLanguage + "'");
@@ -1135,6 +1138,11 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         if (StringUtils.hasValue(defaultTeamServer))
             System.setProperty(TeamServerSelector.DEFAULT_TEAM_SERVER_PROPERTY,
                 defaultTeamServer);
+    }
+    private Locale resetResourceBundleCache() {
+        return new FallbackObjectFactory<LocaleResetSupport>(
+                LocaleResetSupport.class).add("LocaleResetSupportJava6Impl") //
+                .get().clearResourceBundleCache();
     }
 
     private void maybeEnableReadOnlyMode() {
@@ -1866,6 +1874,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
                 height = 300;
             }
             this.setSize(width, height);
+            this.validate();
         }
     }
 

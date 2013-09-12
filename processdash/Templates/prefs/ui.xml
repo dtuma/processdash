@@ -54,9 +54,10 @@ preferences a category.
                   disabledIf="systemTray.disabled" />
     </grouping>
 
-    <translationLevel id="i18nLevel" ifPropIsSet="i18n"
+    <translationLevel id="i18nLevel" requires="java version 1.6"
               setting="userPref.i18n.masterLevel"
               requiresRestart="true"
+              ifPropIsSet="i18n"
               helpId="prefs.i18nLevel" />
 
     <checkbox id="useLargeFonts"
