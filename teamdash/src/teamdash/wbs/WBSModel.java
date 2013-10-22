@@ -1195,7 +1195,9 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
         }
         void restore() {
             synchronized (WBSModel.this) {
+                Set expandedNodeIDs = getExpandedNodeIDs();
                 wbsNodes = (ArrayList) WBSNode.cloneNodeList(wbsNodeList);
+                setExpandedNodeIDs(expandedNodeIDs, false);
                 recalcRows(false);
                 fireTableDataChanged();
             }
@@ -1505,12 +1507,17 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
     }
 
     public void setExpandedNodeIDs(Set expandedNodes) {
+        setExpandedNodeIDs(expandedNodes, true);
+    }
+
+    private void setExpandedNodeIDs(Set expandedNodes, boolean notify) {
         for (int i = 1;  i < wbsNodes.size(); i++) {
             WBSNode node = (WBSNode) wbsNodes.get(i);
             String nodeID = Integer.toString(node.getUniqueID());
             node.setExpanded(expandedNodes.contains(nodeID));
         }
-        recalcRowsForExpansionEvent();
+        if (notify)
+            recalcRowsForExpansionEvent();
     }
 
     public static final String CREATED_WITH_ATTR = "createdWithVersion";
