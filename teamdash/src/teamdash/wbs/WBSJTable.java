@@ -365,6 +365,7 @@ public class WBSJTable extends JTable {
     void installTableActions() {
         InputMap inputMap = getInputMap();
         InputMap inputMap2 = getInputMap(WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+        InputMap inputMap3 = getInputMap(WHEN_IN_FOCUSED_WINDOW);
         ActionMap actionMap = getActionMap();
 
         ClipboardBridge clipboardBridge = new ClipboardBridge(this);
@@ -385,6 +386,14 @@ public class WBSJTable extends JTable {
         inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), "Delete");
         actionMap.put("Delete", new WbsNodeKeystrokeDelegatingAction(
                 DELETE_ACTION, TABLE_DELETE_ACTION));
+
+        // the expand/collapse icons have accelerators assigned for the plus
+        // and minus keys.  Register some additional accelerator keys based on
+        // other places where plus and minus appear on the keyboard.
+        inputMap3.put(KeyStroke.getKeyStroke(KeyEvent.VK_SUBTRACT, ALT), "collapseTree");
+        inputMap3.put(KeyStroke.getKeyStroke(KeyEvent.VK_ADD, ALT), "expandTree");
+        inputMap3.put(KeyStroke.getKeyStroke(KeyEvent.VK_EQUALS, ALT), "expandTree");
+        inputMap3.put(KeyStroke.getKeyStroke(KeyEvent.VK_EQUALS, ALT | SHIFT), "expandTree");
     }
 
 
@@ -455,13 +464,19 @@ public class WBSJTable extends JTable {
         if (rows == null || rows.length == 0)
             return false;
         int row = rows[0];
-        int indent = wbsModel.getNodeForRow(row).getIndentLevel();
+        WBSNode node = wbsModel.getNodeForRow(row);
+        if (node == null)
+            return false;
+        int indent = node.getIndentLevel();
         for (int i = 1;  i < rows.length;  i++) {
             int nextRow = rows[i];
             if (nextRow - row != 1)
                 return false;
             row = nextRow;
-            int subindent = wbsModel.getNodeForRow(row).getIndentLevel();
+            node = wbsModel.getNodeForRow(row);
+            if (node == null)
+                return false;
+            int subindent = node.getIndentLevel();
             if (subindent <= indent)
                 return false;
         }
@@ -705,6 +720,7 @@ public class WBSJTable extends JTable {
         public DemoteAction() {
             super("Demote", IconFactory.getDemoteIcon());
             putValue(WBS_ACTION_CATEGORY, WBS_ACTION_CATEGORY_INDENT);
+            putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, ALT));
             enablementCalculations.add(this);
         }
         public void doAction(ActionEvent e) {
@@ -731,6 +747,7 @@ public class WBSJTable extends JTable {
         public PromoteAction() {
             super("Promote", IconFactory.getPromoteIcon());
             putValue(WBS_ACTION_CATEGORY, WBS_ACTION_CATEGORY_INDENT);
+            putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, ALT));
             enablementCalculations.add(this);
         }
         public void doAction(ActionEvent e) {
@@ -1318,7 +1335,7 @@ public class WBSJTable extends JTable {
         public ExpandAction() {
             super("Expand", IconFactory.getExpandIcon());
             putValue(WBS_ACTION_CATEGORY, WBS_ACTION_CATEGORY_EXPANSION);
-            putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, ALT));
+            putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_PLUS, ALT));
             enablementCalculations.add(this);
         }
         public void actionPerformed(ActionEvent e) {
@@ -1402,7 +1419,7 @@ public class WBSJTable extends JTable {
         public CollapseAction() {
             super("Collapse", IconFactory.getCollapseIcon());
             putValue(WBS_ACTION_CATEGORY, WBS_ACTION_CATEGORY_EXPANSION);
-            putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, ALT));
+            putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_MINUS, ALT));
             enablementCalculations.add(this);
         }
         public void actionPerformed(ActionEvent e) {
