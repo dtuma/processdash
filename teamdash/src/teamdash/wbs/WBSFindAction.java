@@ -1,4 +1,4 @@
-// Copyright (C) 2012 Tuma Solutions, LLC
+// Copyright (C) 2012-2013 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -45,6 +45,7 @@ import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 
 import net.sourceforge.processdash.i18n.Resources;
+import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
 
 public class WBSFindAction extends AbstractAction {
 
@@ -55,6 +56,8 @@ public class WBSFindAction extends AbstractAction {
 
     public WBSFindAction(WBSJTable wbsTable) {
         super(resources.getString("Menu"), IconFactory.getFindIcon());
+        putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_F, //
+            MacGUIUtils.getCtrlModifier()));
         this.wbsTable = wbsTable;
     }
 

@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2012 Tuma Solutions, LLC
+// Copyright (C) 2002-2013 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -32,6 +32,8 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.Shape;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.FileInputStream;
@@ -50,7 +52,9 @@ import java.util.Map;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
+import javax.swing.ActionMap;
 import javax.swing.BorderFactory;
+import javax.swing.InputMap;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
@@ -61,7 +65,9 @@ import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
+import javax.swing.JTable;
 import javax.swing.JToolBar;
+import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.border.EtchedBorder;
 import javax.swing.event.ChangeEvent;
@@ -154,6 +160,7 @@ public class WBSTabPanel extends JLayeredPane
         makeScrollPane();
         makeTabbedPane();
         makeToolBar();
+        installKeyboardShortcuts();
 
         // manually set the initial divider location, to trigger the
         // size coordination logic.
@@ -906,6 +913,96 @@ public class WBSTabPanel extends JLayeredPane
         public Insets getBorderInsets(Component c) {
             return new Insets(2,2,1,2);
         }
+    }
+
+    /**
+     * Configure a number of keyboard shortcuts for navigating within the
+     * contents of the WBS tab panel
+     */
+    private void installKeyboardShortcuts() {
+        InputMap inputMap = dataTable.getInputMap();
+        ActionMap actionMap = dataTable.getActionMap();
+        inputMap.put(KeyStroke.getKeyStroke("HOME"), "focusTree");
+        inputMap.put(KeyStroke.getKeyStroke("shift SPACE"), "focusTree");
+        actionMap.put("focusTree", new TransferFocusToWbsNode());
+        new MoveLeftFromDataCell().install(dataTable);
+
+        inputMap = wbsTable.getInputMap();
+        actionMap = wbsTable.getActionMap();
+        inputMap.put(KeyStroke.getKeyStroke("END"), "lastDataCol");
+        actionMap.put("lastDataCol", new TransferFocusToDataTable(true));
+        inputMap.put(KeyStroke.getKeyStroke("RIGHT"), "firstDataCol");
+        actionMap.put("firstDataCol", new TransferFocusToDataTable(false));
+
+        inputMap = this.getInputMap(WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_T, //
+            MacGUIUtils.getCtrlModifier()), "focusTabs");
+        this.getActionMap().put("focusTabs", new TransferFocusToTabs());
+    }
+
+    /** Move the keyboard focus to the WBS tree on the left of the splitter */
+    private class TransferFocusToWbsNode extends AbstractAction {
+
+        public void actionPerformed(ActionEvent e) {
+            wbsTable.addColumnSelectionInterval(0, 0);
+            wbsTable.requestFocusInWindow();
+        }
+
+    }
+
+    /**
+     * Handle a "left arrow" keystroke in the data table. This will move left
+     * one cell unless we are already in column 0; then it will transfer focus
+     * to the tree.
+     */
+    private class MoveLeftFromDataCell extends AbstractAction {
+
+        private Action transferFocusToWbsNode;
+
+        private ActionListener originalMoveLeftAction;
+
+        void install(JTable t) {
+            KeyStroke leftKeyStroke = KeyStroke.getKeyStroke("LEFT");
+            originalMoveLeftAction = t.getActionForKeyStroke(leftKeyStroke);
+            transferFocusToWbsNode = t.getActionMap().get("focusTree");
+
+            t.getInputMap().put(leftKeyStroke, "moveLeftFromDataCell");
+            t.getActionMap().put("moveLeftFromDataCell", this);
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            if (dataTable.getSelectedColumn() == 0)
+                transferFocusToWbsNode.actionPerformed(e);
+            else
+                originalMoveLeftAction.actionPerformed(e);
+        }
+
+    }
+
+    /** Move keyboard focus to the first or last column of the data table */
+    private class TransferFocusToDataTable extends AbstractAction {
+        boolean lastCol;
+
+        public TransferFocusToDataTable(boolean lastCol) {
+            this.lastCol = lastCol;
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            int col = (lastCol ? dataTable.getColumnCount() - 1 : 0);
+            dataTable.getColumnModel().getSelectionModel().clearSelection();
+            dataTable.addColumnSelectionInterval(col, col);
+            dataTable.requestFocusInWindow();
+        }
+
+    }
+
+    /** Transfer focus to the tabbed pane's selector tabs */
+    private class TransferFocusToTabs extends AbstractAction {
+
+        public void actionPerformed(ActionEvent e) {
+            tabbedPane.requestFocusInWindow();
+        }
+
     }
 
     /**

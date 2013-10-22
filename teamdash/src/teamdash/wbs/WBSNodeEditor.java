@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Tuma Solutions, LLC
+// Copyright (C) 2002-2013 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -51,6 +51,7 @@ import javax.swing.Action;
 import javax.swing.ActionMap;
 import javax.swing.BorderFactory;
 import javax.swing.Icon;
+import javax.swing.InputMap;
 import javax.swing.JComponent;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
@@ -157,10 +158,25 @@ public class WBSNodeEditor extends AbstractCellEditor
      */
     public boolean isCellEditable(EventObject e) {
 
-        // When the user presses F2, we are inexplicably passed "null" for
-        // the event.  We should return true in this case.
+        // When the user presses F2 on older versions of Java, we are
+        // inexplicably passed "null" for the event. We should return true in
+        // this case.
         if (e == null)
             return isEditingEnabled();
+
+        // on newer versions of Java, F2 comes through as an ActionEvent
+        if (e instanceof ActionEvent) {
+            if (((ActionEvent) e).getID() == ActionEvent.ACTION_PERFORMED)
+                return isEditingEnabled();
+        }
+
+        // Alt-Enter and the context-menu key should open up the node type menu
+        if (e instanceof KeyEvent) {
+            KeyEvent key = (KeyEvent) e;
+            if ((key.isAltDown() && key.getKeyCode() == KeyEvent.VK_ENTER)
+                    || key.getKeyCode() == KeyEvent.VK_CONTEXT_MENU)
+                return isEditingEnabled();
+        }
 
         // if the event is an instance of our "RestartEditingEvent", then
         // there is no question that editing should restart.
@@ -484,6 +500,12 @@ public class WBSNodeEditor extends AbstractCellEditor
                  "FocusNext");
             textField.getActionMap().put("FocusNext",
                                          new FocusNextComponentAction());
+
+            // register keyboard actions to open the node type menu
+            InputMap inputMap = getInputMap(WHEN_IN_FOCUSED_WINDOW);
+            inputMap.put(KeyStroke.getKeyStroke("CONTEXT_MENU"), "openIconMenu");
+            inputMap.put(KeyStroke.getKeyStroke("alt ENTER"), "openIconMenu");
+            getActionMap().put("openIconMenu", new OpenNodeTypeMenuAction());
         }
 
         /** Update the editor based on the currently edited node. (However,
@@ -857,6 +879,12 @@ public class WBSNodeEditor extends AbstractCellEditor
         public void actionPerformed(ActionEvent e) {
             stopCellEditing();
             table.transferFocus();
+        }
+    }
+
+    private class OpenNodeTypeMenuAction extends AbstractAction {
+        public void actionPerformed(ActionEvent e) {
+            iconMenu.doClick();
         }
     }
 

@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Tuma Solutions, LLC
+// Copyright (C) 2002-2013 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -29,6 +29,7 @@ import java.awt.Dimension;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.beans.EventHandler;
@@ -41,18 +42,24 @@ import java.util.Map;
 
 import javax.swing.AbstractAction;
 import javax.swing.AbstractCellEditor;
+import javax.swing.Action;
 import javax.swing.Box;
 import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.KeyStroke;
+import javax.swing.Timer;
 import javax.swing.UIManager;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellEditor;
+
+import net.sourceforge.processdash.ui.lib.JOptionPaneTweaker;
 
 
 /** A table cell editor for editing task dependencies.
@@ -76,6 +83,9 @@ public class TaskDependencyCellEditor extends AbstractCellEditor implements
     /** The list of TaskDependencies that we are editing.  */
     private TaskDependencyList value;
 
+    /** The table containing the cell we are editing. */
+    private JTable parentTable;
+
 
     public TaskDependencyCellEditor(TaskDependencySource dependencySource,
             Map iconMap) {
@@ -98,6 +108,7 @@ public class TaskDependencyCellEditor extends AbstractCellEditor implements
             boolean isSelected, int row, int column) {
 
         this.value = null;
+        this.parentTable = table;
 
         DataTableModel dataModel = (DataTableModel) table.getModel();
         WBSModel wbsModel = dataModel.getWBSModel();
@@ -109,7 +120,7 @@ public class TaskDependencyCellEditor extends AbstractCellEditor implements
         else {
             this.path = wbsModel.getFullName(node);
             this.value = (TaskDependencyList) WrappedValue.unwrap(value);
-            loadUIData();
+            loadUIData(node);
         }
 
         this.button.setText(this.value == null ? null : this.value.toString());
@@ -135,6 +146,13 @@ public class TaskDependencyCellEditor extends AbstractCellEditor implements
         } else {
             cancelCellEditing();
         }
+
+        Timer t = new Timer(100, new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                parentTable.grabFocus();
+            }});
+        t.setRepeats(false);
+        t.start();
     }
 
     private int setupAndShowDialog() {
@@ -169,6 +187,8 @@ public class TaskDependencyCellEditor extends AbstractCellEditor implements
 
     private JScrollPane scrollPane;
 
+    private WBSJTable taskTree;
+
     private boolean closedProgrammatically;
 
     private JLabel pathLabel;
@@ -188,6 +208,8 @@ public class TaskDependencyCellEditor extends AbstractCellEditor implements
         button.setFont(UIManager.getFont("TextField.font"));
         button.setBorderPainted(false);
         button.setMargin(new Insets(0, 0, 0, 0));
+        button.addKeyListener(EventHandler.create(KeyListener.class, button,
+            "doClick"));
         button.addActionListener((ActionListener) EventHandler.create(
                 ActionListener.class, this, "buttonClicked"));
 
@@ -206,17 +228,29 @@ public class TaskDependencyCellEditor extends AbstractCellEditor implements
         components.add(scrollPane);
         components.add(Box.createRigidArea(new Dimension(5, 5)));
 
-        WBSJTable taskTree = new WBSJTable(dependencySource.getTaskTree(),
-                iconMap);
+        taskTree = new WBSJTable(dependencySource.getTaskTree(), iconMap);
         taskTree.setEditingEnabled(false);
+
         AddAction addAction = new AddAction(taskTree);
+        RemoveAction removeAction = new RemoveAction(dependencyTable);
+        SaveChangesAction saveAction = new SaveChangesAction();
+
+        // Configure key and mouse bindings for convenience
+        bindKeys(dependencyTable, new TransferFocusAction(taskTree), "TAB");
+        bindKeys(dependencyTable, removeAction, "BACK_SPACE", "DELETE", "SUBTRACT");
+        bindKeys(dependencyTable, saveAction, "ENTER");
+        bindKeys(taskTree, new TransferFocusAction(dependencyTable), "TAB");
+        bindKeys(taskTree, addAction, "SPACE", "INSERT", "ADD");
+        bindKeys(taskTree, saveAction, "ENTER");
+        taskTree.getInputMap().put(KeyStroke.getKeyStroke("LEFT"), "collapseTree");
+        taskTree.getInputMap().put(KeyStroke.getKeyStroke("RIGHT"), "expandTree");
         taskTree.addMouseListener(new WBSClickHandler(addAction));
 
         Box b = Box.createHorizontalBox();
         b.add(Box.createHorizontalGlue());
         b.add(new JButton(addAction));
         b.add(Box.createHorizontalGlue());
-        b.add(new JButton(new RemoveAction(dependencyTable)));
+        b.add(new JButton(removeAction));
         b.add(Box.createHorizontalGlue());
         components.add(b);
         components.add(Box.createRigidArea(new Dimension(5, 5)));
@@ -224,6 +258,7 @@ public class TaskDependencyCellEditor extends AbstractCellEditor implements
         JScrollPane sp = new JScrollPane(taskTree);
         sp.setPreferredSize(new Dimension(300, 200));
         components.add(sp);
+        components.add(new JOptionPaneTweaker.GrabFocus(taskTree));
 
         optionPane = new JOptionPane(components.toArray(),
                 JOptionPane.PLAIN_MESSAGE, JOptionPane.OK_CANCEL_OPTION);
@@ -232,13 +267,21 @@ public class TaskDependencyCellEditor extends AbstractCellEditor implements
         // who the parent window will be.
     }
 
-    private void loadUIData() {
+    private void bindKeys(JComponent c, Action action, String...keys) {
+        String binding = action.toString();
+        c.getActionMap().put(binding, action);
+        for (String k : keys)
+            c.getInputMap().put(KeyStroke.getKeyStroke(k), binding);
+    }
+
+    private void loadUIData(WBSNode node) {
         pathLabel.setText(path);
         dependencies.setValue(value);
         Dimension preferredSize = dependencyTable.getPreferredSize();
         preferredSize.height = Math.max(80, preferredSize.height + 55);
         scrollPane.setPreferredSize(preferredSize);
         dependencySource.updateTaskTree();
+        taskTree.selectAndShowNode(node.getUniqueID());
     }
 
     private void unloadUIData() {
@@ -316,6 +359,7 @@ public class TaskDependencyCellEditor extends AbstractCellEditor implements
                 d.update(dependencySource);
                 dependencies.addDependency(d);
             }
+            taskTree.requestFocusInWindow();
         }
 
         public void valueChanged(ListSelectionEvent e) {
@@ -349,9 +393,19 @@ public class TaskDependencyCellEditor extends AbstractCellEditor implements
 
         public void actionPerformed(ActionEvent e) {
             int[] rows = table.getSelectedRows();
+            if (rows.length == 0)
+                return;
             Arrays.sort(rows);
             for (int i = rows.length; i-- > 0;)
                 dependencies.removeRow(rows[i]);
+
+            if (dependencies.getRowCount() == 0) {
+                taskTree.requestFocusInWindow();
+            } else {
+                int selRow = Math.max(0, rows[0] - 1);
+                dependencyTable.addRowSelectionInterval(selRow, selRow);
+                dependencyTable.requestFocusInWindow();
+            }
         }
 
         public void valueChanged(ListSelectionEvent e) {
@@ -381,6 +435,29 @@ public class TaskDependencyCellEditor extends AbstractCellEditor implements
         }
     }
 
+    private class SaveChangesAction extends AbstractAction {
+
+        public void actionPerformed(ActionEvent e) {
+            closedProgrammatically = true;
+            dialog.dispose();
+        }
+
+    }
+
+    private class TransferFocusAction extends AbstractAction {
+        private JTable target;
+        public TransferFocusAction(JTable target) {
+            this.target = target;
+        }
+        public void actionPerformed(ActionEvent e) {
+            if (target.getRowCount() > 0) {
+                if (target.getSelectedRow() == -1)
+                    target.addRowSelectionInterval(0, 0);
+                target.addColumnSelectionInterval(0, 0);
+                target.requestFocusInWindow();
+            }
+        }
+    }
 
     private static final String[] ROOT_NODE_ERROR = new String[] {
             "Sorry, you cannot define task dependencies",

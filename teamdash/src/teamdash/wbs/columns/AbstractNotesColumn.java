@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2012 Tuma Solutions, LLC
+// Copyright (C) 2002-2013 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -29,6 +29,8 @@ import java.awt.Font;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.text.DateFormat;
 import java.util.Date;
 
@@ -49,6 +51,7 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 
+import net.sourceforge.processdash.ui.lib.JOptionPaneTweaker;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.StringUtils;
 
@@ -221,6 +224,8 @@ public abstract class AbstractNotesColumn extends AbstractDataColumn implements
     private class NotesCellEditor extends DefaultCellEditor implements
             ActionListener {
 
+        private JTable parentTable;
+
         private String dialogTitle;
 
         private JButton button;
@@ -254,6 +259,10 @@ public abstract class AbstractNotesColumn extends AbstractDataColumn implements
             button.setBorderPainted(false);
             button.setMargin(new Insets(0, 0, 0, 0));
             button.addActionListener(this);
+            button.addKeyListener(new KeyAdapter() {
+                public void keyReleased(KeyEvent e) {
+                    button.doClick();
+                }});
 
             editorComponent = button;
             setClickCountToStart(2);
@@ -280,6 +289,7 @@ public abstract class AbstractNotesColumn extends AbstractDataColumn implements
                 Object value, boolean isSelected, int row, int column) {
             super.getTableCellEditorComponent(table, value, isSelected, row,
                 column);
+            parentTable = table;
 
             DataTableModel dtm = (DataTableModel) table.getModel();
             WBSNode node = (WBSNode) dtm.getValueAt(row,
@@ -311,7 +321,7 @@ public abstract class AbstractNotesColumn extends AbstractDataColumn implements
                 byLine.add(l);
             }
             Object message = new Object[] { dialogHeader, nodeName, sp, byLine,
-                    new FocusTweaker() };
+                    new JOptionPaneTweaker.GrabFocus(textArea) };
             JOptionPane pane = new JOptionPane(message,
                     JOptionPane.PLAIN_MESSAGE, JOptionPane.OK_CANCEL_OPTION);
             JDialog dialog = pane.createDialog(button.getParent(), dialogTitle);
@@ -334,20 +344,13 @@ public abstract class AbstractNotesColumn extends AbstractDataColumn implements
                 stopCellEditing();
             else
                 cancelCellEditing();
-        }
 
-        private class FocusTweaker extends Component implements ActionListener {
-
-            public void addNotify() {
-                super.addNotify();
-                Timer t = new Timer(100, this);
-                t.setRepeats(false);
-                t.start();
-            }
-
-            public void actionPerformed(ActionEvent e) {
-                textArea.requestFocus();
-            }
+            Timer t = new Timer(100, new ActionListener() {
+                public void actionPerformed(ActionEvent e) {
+                    parentTable.grabFocus();
+                }});
+            t.setRepeats(false);
+            t.start();
         }
     }
 

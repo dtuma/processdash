@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2012 Tuma Solutions, LLC
+// Copyright (C) 2002-2013 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -319,6 +319,10 @@ public class WBSJTable extends JTable {
                 ENTER_ACTION));
         customActions.add(new ActionMapping(KeyEvent.VK_ENTER, SHIFT,
                 "InsertAfter", INSERT_AFTER_ACTION));
+        customActions.add(new ActionMapping("collapseTree", COLLAPSE_ACTION));
+        customActions.add(new ActionMapping("expandTree", EXPAND_ACTION));
+        customActions.add(new ActionMapping("moveTreeUp", MOVEUP_ACTION));
+        customActions.add(new ActionMapping("moveTreeDown", MOVEDOWN_ACTION));
 
         // Java 1.3 doesn't handle the "auto restart editing" actions very
         // well, so if we're in a 1.3 JRE stop here.
@@ -1314,12 +1318,16 @@ public class WBSJTable extends JTable {
         public ExpandAction() {
             super("Expand", IconFactory.getExpandIcon());
             putValue(WBS_ACTION_CATEGORY, WBS_ACTION_CATEGORY_EXPANSION);
+            putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, ALT));
             enablementCalculations.add(this);
         }
         public void actionPerformed(ActionEvent e) {
             // get a list of the currently selected rows.
             int[] rows = getSelectedRows();
             if (rows == null || rows.length == 0) return;
+
+            // stop editing the current cell.
+            stopCellEditing();
 
             // expand selected nodes
             List selectedNodes = new ArrayList();
@@ -1360,6 +1368,9 @@ public class WBSJTable extends JTable {
             int[] rows = getSelectedRows();
             if (rows == null || rows.length == 0) return;
 
+            // stop editing the current cell.
+            stopCellEditing();
+
             // expand selected nodes and all descendants
             List selectedNodes = wbsModel.getNodesForRows(rows, false);
             List nodesToExpand = new ArrayList(selectedNodes);
@@ -1391,15 +1402,29 @@ public class WBSJTable extends JTable {
         public CollapseAction() {
             super("Collapse", IconFactory.getCollapseIcon());
             putValue(WBS_ACTION_CATEGORY, WBS_ACTION_CATEGORY_EXPANSION);
+            putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, ALT));
             enablementCalculations.add(this);
         }
         public void actionPerformed(ActionEvent e) {
             // get a list of the currently selected rows.
             int[] rows = getSelectedRows();
             if (rows == null || rows.length == 0) return;
+            List<WBSNode> selectedNodes = wbsModel.getNodesForRows(rows, true);
+
+            // stop editing the current cell.
+            stopCellEditing();
+
+            // if only one row is selected, and it doesn't need collapsing,
+            // transfer the selection to the parent instead and exit.
+            if (rows.length == 1 //
+                    && (wbsModel.isLeaf(selectedNodes.get(0)) //
+                    || !selectedNodes.get(0).isExpanded())) {
+                WBSNode parentNode = wbsModel.getParent(selectedNodes.get(0));
+                selectAndShowNode(parentNode);
+                return;
+            }
 
             // collapse selected nodes
-            List selectedNodes = wbsModel.getNodesForRows(rows, true);
             Set nodeIDs = getNodeIDs(selectedNodes);
             Set expandedNodeIDs = wbsModel.getExpandedNodeIDs();
             expandedNodeIDs.removeAll(nodeIDs);
@@ -1422,6 +1447,7 @@ public class WBSJTable extends JTable {
         public MoveUpAction() {
             super("Move Up", IconFactory.getMoveUpIcon());
             putValue(WBS_ACTION_CATEGORY, WBS_ACTION_CATEGORY_STRUCTURE);
+            putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_UP, ALT));
             enablementCalculations.add(this);
         }
         public void actionPerformed(ActionEvent e) {
@@ -1460,6 +1486,7 @@ public class WBSJTable extends JTable {
         public MoveDownAction() {
             super("Move Down", IconFactory.getMoveDownIcon());
             putValue(WBS_ACTION_CATEGORY, WBS_ACTION_CATEGORY_STRUCTURE);
+            putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, ALT));
             enablementCalculations.add(this);
         }
         public void actionPerformed(ActionEvent e) {
@@ -1566,6 +1593,8 @@ public class WBSJTable extends JTable {
     private static final int SHIFT = Event.SHIFT_MASK;
     private static final int CTRL  = (MacGUIUtils.isMacOSX()
             ? InputEvent.META_DOWN_MASK : InputEvent.CTRL_DOWN_MASK);
+    private static final int ALT = (MacGUIUtils.isMacOSX()
+            ? InputEvent.META_DOWN_MASK : InputEvent.ALT_DOWN_MASK);
     public static final String WBS_ACTION_CATEGORY = ActionCategoryComparator.ACTION_CATEGORY;
     public static final String WBS_ACTION_CATEGORY_CLIPBOARD = "WBSClipboard";
     public static final String WBS_ACTION_CATEGORY_INDENT = "indent";

@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2012 Tuma Solutions, LLC
+// Copyright (C) 2002-2013 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -25,7 +25,6 @@ package teamdash.wbs;
 
 import java.awt.Component;
 import java.awt.event.ActionEvent;
-import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -37,13 +36,14 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.CellEditor;
 import javax.swing.JComponent;
+import javax.swing.KeyStroke;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.EventListenerList;
 
-import teamdash.ActionCategoryComparator;
-
 import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
+
+import teamdash.ActionCategoryComparator;
 
 
 /** Observes changes made to a {@link SnapshotSource}, and supports undo/redo
@@ -116,10 +116,8 @@ public class UndoList {
         undoAction = new UndoAction();
         redoAction = new RedoAction();
         customActions = new LinkedList();
-        customActions.add(new ActionMapping(KeyEvent.VK_Z, KEY_MODIFIER,
-                "Undo", undoAction));
-        customActions.add(new ActionMapping(KeyEvent.VK_Y, KEY_MODIFIER,
-                "Redo", redoAction));
+        customActions.add(new ActionMapping("Undo", undoAction));
+        customActions.add(new ActionMapping("Redo", redoAction));
         this.currentState = snapshotSource.getSnapshot();
         this.changeListeners = new EventListenerList();
     }
@@ -264,6 +262,8 @@ public class UndoList {
         public UndoAction() {
             super("Undo", IconFactory.getUndoIcon());
             putValue(UNDO_ACTION_CATEGORY, UNDO_ACTION_CATEGORY_UNDO_REDO);
+            putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_Z, //
+                MacGUIUtils.getCtrlModifier()));
             setEnabled(isUndoAvailable());
         }
         public void actionPerformed(ActionEvent e) {
@@ -276,6 +276,8 @@ public class UndoList {
         public RedoAction() {
             super("Redo", IconFactory.getRedoIcon());
             putValue(UNDO_ACTION_CATEGORY, UNDO_ACTION_CATEGORY_UNDO_REDO);
+            putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_Y, //
+                MacGUIUtils.getCtrlModifier()));
             setEnabled(isRedoAvailable());
         }
         public void actionPerformed(ActionEvent e) {
@@ -338,6 +340,4 @@ public class UndoList {
         if (l != null) l.stopEditors();
     }
 
-    private static final int KEY_MODIFIER = (MacGUIUtils.isMacOSX()
-            ? InputEvent.META_DOWN_MASK : InputEvent.CTRL_DOWN_MASK);
 }

@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2012 Tuma Solutions, LLC
+// Copyright (C) 2002-2013 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -29,6 +29,7 @@ import java.awt.Cursor;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowEvent;
@@ -73,6 +74,7 @@ import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JRadioButton;
 import javax.swing.JRadioButtonMenuItem;
+import javax.swing.KeyStroke;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
@@ -1814,6 +1816,8 @@ public class WBSEditor implements WindowListener, SaveListener,
         public SaveAction() {
             super("Save");
             putValue(MNEMONIC_KEY, new Integer('S'));
+            putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_S, //
+                MacGUIUtils.getCtrlModifier()));
             setEnabled(!readOnly && isDirty());
         }
         public void actionPerformed(ActionEvent e) {
@@ -1827,6 +1831,8 @@ public class WBSEditor implements WindowListener, SaveListener,
             putValue(MNEMONIC_KEY, new Integer('R'));
             putValue(SHORT_DESCRIPTION, resources
                     .getString("File_Refresh.Tooltip"));
+            putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_R, //
+                MacGUIUtils.getCtrlModifier()));
         }
         public synchronized void actionPerformed(ActionEvent e) {
             new RefreshWorker().doRefresh();

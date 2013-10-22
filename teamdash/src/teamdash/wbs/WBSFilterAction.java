@@ -1,4 +1,4 @@
-// Copyright (C) 2012 Tuma Solutions, LLC
+// Copyright (C) 2012-2013 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -59,6 +59,7 @@ import javax.swing.table.TableCellEditor;
 import org.jdesktop.swingx.autocomplete.AutoCompleteDecorator;
 
 import net.sourceforge.processdash.i18n.Resources;
+import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
 
 import teamdash.wbs.WBSFilterFactory.TaskStatus;
 import teamdash.wbs.columns.MilestoneColumn;
@@ -84,6 +85,8 @@ public class WBSFilterAction extends AbstractAction {
 
     public WBSFilterAction(WBSJTable wbsTable) {
         super(resources.getString("Menu"), IconFactory.getFilterOffIcon());
+        putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_L, //
+            MacGUIUtils.getCtrlModifier() | KeyEvent.SHIFT_MASK));
         this.wbsTable = wbsTable;
     }
 
