@@ -1,4 +1,4 @@
-// Copyright (C) 2007-2009 Tuma Solutions, LLC
+// Copyright (C) 2007-2013 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -44,16 +44,11 @@ import net.sourceforge.processdash.util.StringUtils;
 
 public class DefaultTaskLabeler implements TaskLabeler {
 
-    private static final String LABELS_DATA_NAME = "Task_Labels";
-
-    private static final String LABEL_PREFIX = "label:";
-
-    private static final String NO_LABEL = LABEL_PREFIX + "none";
-
-
-    private Map labelData;
+    private Map<String, Set> labelData;
 
     private Map resultCache;
+
+    private Set<String> hiddenLabels;
 
 
     public DefaultTaskLabeler(DashboardContext ctx) {
@@ -64,6 +59,7 @@ public class DefaultTaskLabeler implements TaskLabeler {
         labelData = new HashMap();
         resultCache = new HashMap();
         loadLabelData(hier, data, PropertyKey.ROOT);
+        buildHiddenLabelList();
     }
 
     private void loadLabelData(PropertyKeyHierarchy hier, DataContext data,
@@ -106,8 +102,24 @@ public class DefaultTaskLabeler implements TaskLabeler {
         }
     }
 
+    private void buildHiddenLabelList() {
+        hiddenLabels = new HashSet<String>();
+        List h = getLabelsForTaskIDs(Collections.singleton(LABEL_HIDDEN_MARKER));
+        if (h != null)
+            hiddenLabels.addAll(h);
+        for (String oneLabel : labelData.keySet())
+            if (oneLabel != null && oneLabel.startsWith("_"))
+                hiddenLabels.add(oneLabel);
+        hiddenLabels = Collections.unmodifiableSet(hiddenLabels);
+    }
 
-    public List getLabelsForTask(EVTask t) {
+
+    public Set<String> getHiddenLabels() {
+        return hiddenLabels;
+    }
+
+
+    public List<String> getLabelsForTask(EVTask t) {
         if (t == null)
             return Collections.EMPTY_LIST;
 
@@ -158,7 +170,7 @@ public class DefaultTaskLabeler implements TaskLabeler {
         else if (result.isEmpty())
             return Collections.EMPTY_LIST;
         else
-            return new ArrayList(result);
+            return Collections.unmodifiableList(new ArrayList(result));
     }
 
 }

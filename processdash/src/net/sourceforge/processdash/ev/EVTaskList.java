@@ -838,18 +838,22 @@ public class EVTaskList extends AbstractTreeTableModel
 
         if (labels.size() == 1) {
             String label = labels.get(0);
-            return (label.startsWith("_") ? "" : label);
+            return (shouldHide(label) ? "" : label);
         }
 
         StringBuilder result = new StringBuilder();
         for (String label : labels) {
-            if (!label.startsWith("_"))
+            if (!shouldHide(label))
                 result.append(", ").append(label);
         }
         if (result.length() > 0)
             return result.substring(2);
         else
             return "";
+    }
+
+    private boolean shouldHide(String label) {
+        return taskLabeler.getHiddenLabels().contains(label);
     }
 
     private boolean labelsAreInUse(EVTask task) {
