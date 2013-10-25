@@ -19,6 +19,9 @@ undefine([Simple Project Tag]);
 [DB_WBS_Relative_Path] = [Project_WBS_ID//Relative_Path_Filter];
 [DB_WBS_Relative_Path_ID] = [Earned_Value//Merged_Path_Filter];
 
+[Database_Auto_Labels] = dbAutoLabels("##Project in", [DB_Project_Keys]);
+[Task_Labels] = list([Synchronized_Task_Labels], [Database_Auto_Labels]);
+
 [IMPORT_FILE/Instructions] = list([Project_ID],
     "file:/<!--#echo Process_ID -->/importFilterSpecDB.xml");
 
