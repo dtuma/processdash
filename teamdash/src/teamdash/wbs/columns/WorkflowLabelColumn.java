@@ -1,4 +1,4 @@
-// Copyright (C) 2010-2013 Tuma Solutions, LLC
+// Copyright (C) 2013 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -25,41 +25,32 @@ package teamdash.wbs.columns;
 
 import javax.swing.table.TableCellRenderer;
 
-import teamdash.wbs.CustomRenderedColumn;
+import teamdash.wbs.DataTableModel;
 import teamdash.wbs.WBSNode;
 import teamdash.wbs.WorkflowModel;
 
-public class WorkflowScriptColumn extends AbstractDataColumn implements
-        CustomRenderedColumn, WorkflowOptionalColumn {
+public class WorkflowLabelColumn extends TaskLabelColumn implements
+        WorkflowOptionalColumn {
 
-    private static final String COLUMN_ID = "Workflow_URL";
+    public static final String VALUE_ATTR = "Workflow Label";
 
-    public static final String COLUMN_NAME = "Script URLs";
+    private TableCellRenderer renderer;
 
-    public static final String VALUE_ATTR = "Workflow URL";
-
-    public WorkflowScriptColumn() {
-        this.columnID = COLUMN_ID;
-        this.columnName = COLUMN_NAME;
+    public WorkflowLabelColumn(DataTableModel dataModel) {
+        super(dataModel, VALUE_ATTR);
         this.preferredWidth = 100;
-        setConflictAttributeName(VALUE_ATTR);
     }
 
-    public Object getValueAt(WBSNode node) {
-        return node.getAttribute(VALUE_ATTR);
-    }
-
+    @Override
     public boolean isCellEditable(WBSNode node) {
-        return node.getIndentLevel() > 0;
+        return node.getIndentLevel() > 0 && super.isCellEditable(node);
     }
 
-    public void setValueAt(Object value, WBSNode node) {
-        String s = (value == null ? null : value.toString().trim());
-        node.setAttribute(VALUE_ATTR, s);
-    }
-
+    @Override
     public TableCellRenderer getCellRenderer() {
-        return WorkflowTableCellRenderer.INSTANCE;
+        if (renderer == null)
+            renderer = new WorkflowTableCellRenderer(super.getCellRenderer());
+        return renderer;
     }
 
     public boolean shouldHideColumn(WorkflowModel model) {

@@ -47,6 +47,11 @@ import org.w3c.dom.NodeList;
 import net.sourceforge.processdash.util.PatternList;
 import net.sourceforge.processdash.util.StringUtils;
 
+import teamdash.wbs.columns.NotesColumn;
+import teamdash.wbs.columns.TaskLabelColumn;
+import teamdash.wbs.columns.WorkflowLabelColumn;
+import teamdash.wbs.columns.WorkflowNotesColumn;
+
 
 /** This class maintains a tree-like work breakdown structure, and
  * exposes it via a table model.
@@ -397,6 +402,18 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
     }
 
     private int maxID = 0;
+
+    public boolean containsAttr(String attrName) {
+        for (WBSNode node : wbsNodes) {
+            Object value = node.getAttribute(attrName);
+            if (value instanceof String
+                    && ((String) value).trim().length() == 0)
+                continue;
+            if (value != null)
+                return true;
+        }
+        return false;
+    }
 
     private WBSNode prepareNodeForInsertion(WBSNode node) {
         prepareNodesForInsertion(Collections.singletonList(node));
@@ -1296,6 +1313,10 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
         int destIndentation = destNode.getIndentLevel();
         int indentDelta = destIndentation - srcIndentation;
 
+        // alter the notes and labels on the destNode if necessary
+        String destLabels = appendNotesAndLabelsForWorkflowRoot(srcNode,
+            destNode);
+
         // make a list of the names of the children of destNode.
         WBSNode[] destChildren = getChildren(destNode);
         Set destChildNames = new HashSet();
@@ -1312,21 +1333,75 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
             if (destChildNames.contains(srcChild.getName())) continue;
 
             // add the child to our insertion list.
-            appendWorkflowNode(nodesToInsert, srcChild, indentDelta);
+            appendWorkflowNode(nodesToInsert, srcChild, indentDelta, destLabels);
             // add all the descendants of the child to our insertion list.
             WBSNode[] srcDescendants = workflows.getDescendants(srcChild);
             for (int j = 0;   j < srcDescendants.length;   j++)
                 appendWorkflowNode(nodesToInsert, srcDescendants[j],
-                                   indentDelta);
+                                   indentDelta, destLabels);
         }
 
         return nodesToInsert;
     }
-    private void appendWorkflowNode(List dest, WBSNode node, int indentDelta) {
+
+    private String appendNotesAndLabelsForWorkflowRoot(WBSNode srcNode,
+            WBSNode destNode) {
+        // if a workflow note is present on the srcNode, append it to the
+        // WBS note on the destNode.
+        String srcNote = (String) srcNode
+                .getAttribute(WorkflowNotesColumn.VALUE_ATTR);
+        if (srcNote != null)
+            NotesColumn.appendNote(destNode, srcNote);
+
+        // determine what labels are currently in effect on the dest nodes.
+        String destLabels = TaskLabelColumn.getEffectiveLabelsAt(destNode);
+
+        // if workflow labels are present on the srcNode, compute the effective
+        // set of labels that should be present on the destNode.
+        String srcLabels = (String) srcNode
+                .getAttribute(WorkflowLabelColumn.VALUE_ATTR);
+        if (srcLabels != null && srcLabels.trim().length() > 0)
+            destNode.setAttribute(TaskLabelColumn.VALUE_ATTR,
+                TaskLabelColumn.mergeLabels(srcLabels, destLabels));
+
+        return destLabels;
+    }
+
+    private void appendWorkflowNode(List dest, WBSNode node, int indentDelta,
+            String destLabels) {
         node = (WBSNode) node.clone();
         node.setIndentLevel(node.getIndentLevel() + indentDelta);
+
+        // if any workflow notes were set on the workflow item, transfer them
+        // to the WBS notes attribute.  If not, clear the WBS note (since it
+        // could contain garbage from an earlier copy/paste operation)
+        node.setAttribute(NotesColumn.VALUE_ATTR,
+            node.removeAttribute(WorkflowNotesColumn.VALUE_ATTR));
+
+        // determine what labels should be set on the newly appended
+        // workflow item.
+        String mergedLabels;
+        String srcLabels = (String) node
+                .removeAttribute(WorkflowLabelColumn.VALUE_ATTR);
+        if (srcLabels == null) {
+            // if the workflow labels are "null", this means to inherit from
+            // the parent node.  Set our merged labels to null as well, so
+            // we will inherit from the WBS parent.  (If the workflow node
+            // contained extraneous WBS labels, left over from copying and
+            // pasting a WBS node into the workflows window, this will clear
+            // that garbage away too.)
+            mergedLabels = null;
+        } else {
+            // if labels were set on the workflow node, calculate the merged
+            // labels that should be applied to the newly inserted WBS item.
+            mergedLabels = TaskLabelColumn.mergeLabels(srcLabels, destLabels);
+        }
+        node.setAttribute(TaskLabelColumn.VALUE_ATTR, mergedLabels);
+
+        // record the ID of the workflow elements that produced this node
         node.setAttribute(WORKFLOW_SOURCE_IDS_ATTR,
             Integer.toString(node.getUniqueID()));
+
         dest.add(node);
     }
 

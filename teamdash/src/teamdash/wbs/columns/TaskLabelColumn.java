@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2012 Tuma Solutions, LLC
+// Copyright (C) 2002-2013 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -53,16 +53,29 @@ public class TaskLabelColumn extends AbstractDataColumn implements
 
     public static final String COLUMN_ID = "Labels";
 
-    private static final String EXPLICIT_VALUE_ATTR = "Label";
-    private static final String INHERITED_VALUE_ATTR = "Inherited_Label";
+    public static final String VALUE_ATTR = "Label";
+
+    private static final String INHERITED_PREFIX = "Inherited_";
+
 
     private WBSModel wbsModel;
 
+    private String explicitValueAttr;
+
+    private String inheritedValueAttr;
+
+
     public TaskLabelColumn(DataTableModel dataModel) {
+        this(dataModel, VALUE_ATTR);
+    }
+
+    protected TaskLabelColumn(DataTableModel dataModel, String attr) {
         this.columnName = this.columnID = COLUMN_ID;
         this.preferredWidth = 200;
         this.wbsModel = dataModel.getWBSModel();
-        setConflictAttributeName(EXPLICIT_VALUE_ATTR);
+        this.explicitValueAttr = attr;
+        this.inheritedValueAttr = INHERITED_PREFIX + attr;
+        setConflictAttributeName(explicitValueAttr);
     }
 
     public boolean recalculate() {
@@ -71,8 +84,8 @@ public class TaskLabelColumn extends AbstractDataColumn implements
     }
 
     private void recalculate(WBSNode node, String inheritedValue) {
-        node.setAttribute(INHERITED_VALUE_ATTR, inheritedValue);
-        String nodeValue = (String) node.getAttribute(EXPLICIT_VALUE_ATTR);
+        node.setAttribute(inheritedValueAttr, inheritedValue);
+        String nodeValue = (String) node.getAttribute(explicitValueAttr);
         if (nodeValue != null)
             inheritedValue = nodeValue;
 
@@ -89,17 +102,26 @@ public class TaskLabelColumn extends AbstractDataColumn implements
     }
 
     public Object getValueAt(WBSNode node) {
-        String nodeValue = (String) node.getAttribute(EXPLICIT_VALUE_ATTR);
+        String nodeValue = (String) node.getAttribute(explicitValueAttr);
         if (" ".equals(nodeValue))
             return null;
         if (nodeValue != null)
             return nodeValue;
 
-        String inheritedValue = (String) node.getAttribute(INHERITED_VALUE_ATTR);
+        String inheritedValue = (String) node.getAttribute(inheritedValueAttr);
         if (inheritedValue != null)
             return new ErrorValue(inheritedValue, EFFECTIVE_LABEL_MESSAGE);
 
         return null;
+    }
+
+    public static String getEffectiveLabelsAt(WBSNode node) {
+        String value = (String) node.getAttribute(VALUE_ATTR);
+        if (value == null)
+            value = (String) node.getAttribute(INHERITED_PREFIX + VALUE_ATTR);
+        if (value != null)
+            value = value.trim();
+        return ("".equals(value) ? null : value);
     }
 
     public void setValueAt(Object aValue, WBSNode node) {
@@ -124,13 +146,13 @@ public class TaskLabelColumn extends AbstractDataColumn implements
                 val = val.substring(2);
         }
 
-        String inheritedValue = (String) node.getAttribute(INHERITED_VALUE_ATTR);
+        String inheritedValue = (String) node.getAttribute(inheritedValueAttr);
         if (val != null && val.equals(inheritedValue))
             val = null;
         else if (" ".equals(val) && inheritedValue == null)
             val = null;
 
-        node.setAttribute(EXPLICIT_VALUE_ATTR, val);
+        node.setAttribute(explicitValueAttr, val);
     }
 
     public String getLabels(WBSNode node) {
@@ -138,6 +160,19 @@ public class TaskLabelColumn extends AbstractDataColumn implements
         if (" ".equals(result))
             result = null;
         return result;
+    }
+
+    public static String mergeLabels(String a, String b) {
+        if (a == null) return b;
+        if (b == null) return a;
+        TreeSet<String> labels = new TreeSet(String.CASE_INSENSITIVE_ORDER);
+        labels.addAll(Arrays.asList(a.split(NON_LABEL_CHARS_REGEXP)));
+        labels.addAll(Arrays.asList(b.split(NON_LABEL_CHARS_REGEXP)));
+        labels.remove("");
+        if (labels.isEmpty())
+            return " ";
+        else
+            return StringUtils.join(labels, ", ");
     }
 
     public static String convertToLabel(String text) {
@@ -184,7 +219,7 @@ public class TaskLabelColumn extends AbstractDataColumn implements
         }
 
         private void collectLabels(Set labels, WBSNode node) {
-            String nodeValue = (String) node.getAttribute(EXPLICIT_VALUE_ATTR);
+            String nodeValue = (String) node.getAttribute(explicitValueAttr);
             if (nodeValue != null) {
                 labels.add(nodeValue);
                 for (String l : nodeValue.split(NON_LABEL_CHARS_REGEXP))

@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2012 Tuma Solutions, LLC
+// Copyright (C) 2002-2013 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -44,7 +44,11 @@ import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.TableColumn;
 
+import net.sourceforge.processdash.i18n.Resources;
+import net.sourceforge.processdash.ui.lib.JTableColumnVisibilityButton;
+
 import teamdash.merge.ui.MergeConflictHyperlinkHandler;
+import teamdash.wbs.columns.WorkflowOptionalColumn;
 
 /** A graphical user interface for editing common workflows.
  */
@@ -56,12 +60,18 @@ public class WorkflowEditor implements MergeConflictHyperlinkHandler {
     WorkflowModel workflowModel;
     /** The table to display the workflows in */
     WBSJTable table;
+    /** The total preferred width of visible optional columns */
+    int optColumnWidth;
     /** The frame containing this workflow editor */
     JFrame frame;
     /** A toolbar for editing the workflows */
     JToolBar toolBar;
     /** An object for tracking undo operations */
     UndoList undoList;
+
+    private static final Resources resources = Resources
+            .getDashBundle("WBSEditor.Workflows");
+
 
     public WorkflowEditor(TeamProject teamProject) {
         this.teamProject = teamProject;
@@ -70,6 +80,7 @@ public class WorkflowEditor implements MergeConflictHyperlinkHandler {
         this.workflowModel.setEditingEnabled(teamProject.isReadOnly() == false);
         table = createWorkflowJTable
             (workflowModel, teamProject.getTeamProcess());
+        JTableColumnVisibilityButton columnSelector = adjustColumnVisibility();
 
         undoList = new UndoList(workflowModel.getWBSModel());
         undoList.setForComponent(table);
@@ -79,10 +90,10 @@ public class WorkflowEditor implements MergeConflictHyperlinkHandler {
         buildToolbar();
         frame = new JFrame(teamProject.getProjectName() +
                            " - Common Team Workflows");
-        frame.getContentPane().add(new JScrollPane(table));
+        frame.getContentPane().add(columnSelector.install(new JScrollPane(table)));
         frame.getContentPane().add(toolBar, BorderLayout.NORTH);
         frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        frame.setSize(workflowModel.supportsURLs() ? 800 : 600, 400);
+        frame.setSize(600 + optColumnWidth, 400);
         frame.setVisible(true);
     }
 
@@ -130,6 +141,35 @@ public class WorkflowEditor implements MergeConflictHyperlinkHandler {
         }
 
         return table;
+    }
+
+    private JTableColumnVisibilityButton adjustColumnVisibility() {
+        // make a list of the columns that MUST be displayed
+        IntList mandatoryColumns = new IntList();
+        for (int col = 0; col < workflowModel.getColumnCount(); col++) {
+            DataColumn column = workflowModel.getColumn(col);
+            if (column instanceof WorkflowOptionalColumn == false)
+                mandatoryColumns.add(col);
+        }
+
+        // create a button that allows the user to select visible columns.
+        JTableColumnVisibilityButton button = new JTableColumnVisibilityButton(
+                table, resources, null, mandatoryColumns.getAsArray());
+
+        // look through the optional columns and hide if needed.
+        for (int col = workflowModel.getColumnCount(); col-- > 0;) {
+            DataColumn column = workflowModel.getColumn(col);
+            if (column instanceof WorkflowOptionalColumn) {
+                WorkflowOptionalColumn optCol = (WorkflowOptionalColumn) column;
+                if (optCol.shouldHideColumn(workflowModel))
+                    table.getColumnModel().removeColumn(
+                        table.getColumnModel().getColumn(col));
+                else
+                    optColumnWidth += column.getPreferredWidth();
+            }
+        }
+
+        return button;
     }
 
     private void buildToolbar() {

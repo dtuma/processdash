@@ -1,4 +1,4 @@
-// Copyright (C) 2010 Tuma Solutions, LLC
+// Copyright (C) 2010-2013 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -27,6 +27,7 @@ import java.awt.Color;
 import java.awt.Component;
 
 import javax.swing.JTable;
+import javax.swing.table.TableCellRenderer;
 
 import teamdash.wbs.DataTableCellRenderer;
 import teamdash.wbs.NumericDataValue;
@@ -36,6 +37,15 @@ public class WorkflowTableCellRenderer extends DataTableCellRenderer {
     public static WorkflowTableCellRenderer INSTANCE =
             new WorkflowTableCellRenderer();
 
+    private TableCellRenderer delegate;
+
+    public WorkflowTableCellRenderer() {}
+
+    public WorkflowTableCellRenderer(TableCellRenderer delegate) {
+        this.delegate = delegate;
+    }
+
+
     @Override
     public Component getTableCellRendererComponent(JTable table, Object value,
             boolean isSelected, boolean hasFocus, int row, int column) {
@@ -43,8 +53,13 @@ public class WorkflowTableCellRenderer extends DataTableCellRenderer {
         if (value instanceof NumericDataValue)
             value = tweakNumericValue((NumericDataValue) value, table, row);
 
-        Component result = super.getTableCellRendererComponent(table, value,
-            isSelected, hasFocus, row, column);
+        Component result;
+        if (delegate == null)
+            result = super.getTableCellRendererComponent(table, value,
+                isSelected, hasFocus, row, column);
+        else
+            result = delegate.getTableCellRendererComponent(table, value,
+                isSelected, hasFocus, row, column);
 
         if (!table.isCellEditable(row, column))
             result.setBackground(isSelected ? UNEDITABLE_SELECTED : UNEDITABLE);

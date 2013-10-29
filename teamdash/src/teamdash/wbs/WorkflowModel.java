@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Tuma Solutions, LLC
+// Copyright (C) 2002-2013 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -28,8 +28,12 @@ import net.sourceforge.processdash.util.VersionUtils;
 import net.sourceforge.processdash.util.XMLUtils;
 
 import teamdash.team.TeamMemberList;
+import teamdash.wbs.columns.NotesColumn;
+import teamdash.wbs.columns.TaskLabelColumn;
 import teamdash.wbs.columns.TeamTimeColumn;
 import teamdash.wbs.columns.WBSNodeColumn;
+import teamdash.wbs.columns.WorkflowLabelColumn;
+import teamdash.wbs.columns.WorkflowNotesColumn;
 import teamdash.wbs.columns.WorkflowNumPeopleColumn;
 import teamdash.wbs.columns.WorkflowPercentageColumn;
 import teamdash.wbs.columns.WorkflowRateColumn;
@@ -60,6 +64,8 @@ public class WorkflowModel extends DataTableModel {
         addDataColumn(new WorkflowRateColumn(this));
         addDataColumn(new WorkflowSizeUnitsColumn(this, teamProcess));
         addDataColumn(new WorkflowNumPeopleColumn(wbsModel));
+        addDataColumn(new WorkflowLabelColumn(this));
+        addDataColumn(new WorkflowNotesColumn());
 
         if (supportsURLs())
             addDataColumn(new WorkflowScriptColumn());
@@ -88,6 +94,8 @@ public class WorkflowModel extends DataTableModel {
             .addLiteralStartsWith("Workflow ")
             .addLiteralEquals(TeamTimeColumn.RATE_ATTR)
             .addLiteralEquals(WorkflowSizeUnitsColumn.ATTR_NAME)
-            .addLiteralEquals(WorkflowNumPeopleColumn.ATTR_NAME);
+            .addLiteralEquals(WorkflowNumPeopleColumn.ATTR_NAME)
+            .addLiteralEquals(TaskLabelColumn.VALUE_ATTR)
+            .addLiteralEquals(NotesColumn.VALUE_ATTR);
 
 }

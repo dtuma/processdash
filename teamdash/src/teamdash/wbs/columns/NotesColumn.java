@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2012 Tuma Solutions, LLC
+// Copyright (C) 2002-2013 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -39,7 +39,11 @@ public class NotesColumn extends AbstractNotesColumn {
     public static final String VALUE_ATTR = "Notes";
 
     public NotesColumn(String authorName) {
-        super(VALUE_ATTR, authorName);
+        this(VALUE_ATTR, authorName);
+    }
+
+    protected NotesColumn(String valueAttr, String authorName) {
+        super(valueAttr, authorName);
         this.columnID = COLUMN_ID;
         this.columnName = COLUMN_NAME;
     }
@@ -64,6 +68,19 @@ public class NotesColumn extends AbstractNotesColumn {
 
     public static String getTooltipAt(WBSNode node, boolean includeByline) {
         return getTooltipAt(node, includeByline, VALUE_ATTR);
+    }
+
+    public static void appendNote(WBSNode node, String extraNote) {
+        if (extraNote == null || (extraNote = extraNote.trim()).length() == 0)
+            return;
+
+        String currentNote = getTextAt(node);
+        String fullNote;
+        if (currentNote == null || currentNote.trim().length() == 0)
+            fullNote = extraNote;
+        else
+            fullNote = currentNote + "\n\n" + extraNote;
+        node.setAttribute(VALUE_ATTR, fullNote);
     }
 
     public static void saveSyncData(WBSNode node, String text, String author,
