@@ -310,7 +310,7 @@ public class WBSDataWriter {
 
 
     private String getWorkflowIdSaveString(WBSNode node) {
-        Object result = node.getAttribute(WBSModel.WORKFLOW_SOURCE_IDS_ATTR);
+        Object result = node.getAttribute(WorkflowModel.WORKFLOW_SOURCE_IDS_ATTR);
         return (result == null ? null : result.toString());
     }
 

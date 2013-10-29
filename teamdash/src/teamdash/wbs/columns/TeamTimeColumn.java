@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2012 Tuma Solutions, LLC
+// Copyright (C) 2002-2013 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -49,6 +49,7 @@ import teamdash.wbs.ReadOnlyValue;
 import teamdash.wbs.ItalicNumericCellRenderer;
 import teamdash.wbs.WBSModel;
 import teamdash.wbs.WBSNode;
+import teamdash.wbs.WorkflowModel;
 
 /** This column manages the calculation and interrelationship of several
  * tightly related columns dealing with team time.
@@ -237,7 +238,7 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
             return false;
 
         // Check to see if a workflow has been applied to this (parent) node.
-        if (node.getAttribute(WBSModel.WORKFLOW_SOURCE_IDS_ATTR) == null)
+        if (node.getAttribute(WorkflowModel.WORKFLOW_SOURCE_IDS_ATTR) == null)
             return false;
 
         // Next, we get a list of the leaf tasks underneath this node, and add

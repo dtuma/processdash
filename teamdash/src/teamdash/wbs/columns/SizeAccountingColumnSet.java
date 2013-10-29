@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2012 Tuma Solutions, LLC
+// Copyright (C) 2002-2013 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -30,8 +30,8 @@ import teamdash.wbs.CalculatedDataColumn;
 import teamdash.wbs.ConflictCapableDataColumn;
 import teamdash.wbs.DataTableModel;
 import teamdash.wbs.NumericDataValue;
-import teamdash.wbs.WBSModel;
 import teamdash.wbs.WBSNode;
+import teamdash.wbs.WorkflowModel;
 
 public class SizeAccountingColumnSet {
 
@@ -105,7 +105,7 @@ public class SizeAccountingColumnSet {
             //     during normal editing when the first child is created
             //     underneath a particular parent.
             //   * Only one of our children is "size" related.
-            if (node.getAttribute(WBSModel.WORKFLOW_SOURCE_IDS_ATTR) != null
+            if (node.getAttribute(WorkflowModel.WORKFLOW_SOURCE_IDS_ATTR) != null
                     && bottomUpValue == 0 && children.length > 1
                     && numToInclude == 1) {
                 WBSNode delegate = getSingleLeafForNode(node, false);

@@ -90,6 +90,8 @@ public class WorkflowModel extends DataTableModel {
 
     private static final String MIN_URL_VERSION = "3.9.0";
 
+    public static final String WORKFLOW_SOURCE_IDS_ATTR = "workflowSourceIDs";
+
     public static final PatternList WORKFLOW_ATTRS = new PatternList()
             .addLiteralStartsWith("Workflow ")
             .addLiteralEquals(TeamTimeColumn.RATE_ATTR)

@@ -1,4 +1,4 @@
-// Copyright (C) 2012 Tuma Solutions, LLC
+// Copyright (C) 2012-2013 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -59,7 +59,7 @@ public class TeamProjectNodeIDMatcher {
         // Finally, apply these remapped IDs to the affected attributes in
         // the main WBS.
         incoming.getWBS().remapFilteredNodeIDs(wbsIDMappings);
-        incoming.getWBS().remapWorkflowSourceIDs(workflowIDMappings);
+        WorkflowUtil.remapWorkflowSourceIDs(incoming.getWBS(), workflowIDMappings);
         MilestoneColumn.remapNodeIDs(incoming.getWBS(), milestoneIDMappings);
         TaskDependencyColumn.remapNodeIDs(incoming.getWBS(), incoming
                 .getProjectID(), wbsIDMappings);

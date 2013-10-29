@@ -1272,12 +1272,11 @@ public class WBSJTable extends JTable {
                     extraAttrs = Collections.singletonMap(
                         TeamTimeColumn.AUTO_ZERO_USER_ATTR_TRANSIENT,
                         optimizeForIndiv);
-                int[] insertedRows = wbsModel.insertWorkflow(rows[i],
-                        workflowName, workflows, WorkflowModel.WORKFLOW_ATTRS,
-                        extraAttrs);
-                if (insertedRows != null && insertedRows.length > 0)
-                    insertedNodes.addAll(wbsModel.getNodesForRows(insertedRows,
-                            true));
+                List<WBSNode> inserted = WorkflowUtil.insertWorkflow(wbsModel,
+                    rows[i], workflowName, workflows,
+                    WorkflowModel.WORKFLOW_ATTRS, extraAttrs);
+                if (inserted != null)
+                    insertedNodes.addAll(inserted);
             }
 
             if (!insertedNodes.isEmpty()) {
