@@ -34,7 +34,6 @@ public class WorkflowNotesColumn extends NotesColumn implements
     /** The attribute this column uses to store notes for a workflow node */
     public static final String VALUE_ATTR = "Workflow Notes";
 
-    private TableCellRenderer renderer;
 
     public WorkflowNotesColumn() {
         super(VALUE_ATTR, null);
@@ -48,9 +47,7 @@ public class WorkflowNotesColumn extends NotesColumn implements
 
     @Override
     public TableCellRenderer getCellRenderer() {
-        if (renderer == null)
-            renderer = new WorkflowTableCellRenderer(super.getCellRenderer());
-        return renderer;
+        return new WorkflowTableCellRenderer(super.getCellRenderer());
     }
 
     public boolean shouldHideColumn(WorkflowModel model) {

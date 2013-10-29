@@ -78,6 +78,8 @@ public class NotesColumn extends AbstractNotesColumn {
         String fullNote;
         if (currentNote == null || currentNote.trim().length() == 0)
             fullNote = extraNote;
+        else if (currentNote.contains(extraNote))
+            fullNote = currentNote;
         else
             fullNote = currentNote + "\n\n" + extraNote;
         node.setAttribute(VALUE_ATTR, fullNote);

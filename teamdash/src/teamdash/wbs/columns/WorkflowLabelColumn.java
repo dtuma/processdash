@@ -26,6 +26,7 @@ package teamdash.wbs.columns;
 import javax.swing.table.TableCellRenderer;
 
 import teamdash.wbs.DataTableModel;
+import teamdash.wbs.ItalicCellRenderer;
 import teamdash.wbs.WBSNode;
 import teamdash.wbs.WorkflowModel;
 
@@ -34,7 +35,6 @@ public class WorkflowLabelColumn extends TaskLabelColumn implements
 
     public static final String VALUE_ATTR = "Workflow Label";
 
-    private TableCellRenderer renderer;
 
     public WorkflowLabelColumn(DataTableModel dataModel) {
         super(dataModel, VALUE_ATTR);
@@ -48,9 +48,8 @@ public class WorkflowLabelColumn extends TaskLabelColumn implements
 
     @Override
     public TableCellRenderer getCellRenderer() {
-        if (renderer == null)
-            renderer = new WorkflowTableCellRenderer(super.getCellRenderer());
-        return renderer;
+        return new WorkflowTableCellRenderer(new ItalicCellRenderer(
+                "Inherited Value"));
     }
 
     public boolean shouldHideColumn(WorkflowModel model) {
