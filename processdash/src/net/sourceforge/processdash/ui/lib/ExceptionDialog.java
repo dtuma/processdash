@@ -56,6 +56,41 @@ public class ExceptionDialog {
      * @param contents
      *            the items to display within the JOptionPane. Each item can be
      *            <ul>
+     *            <li>A Throwable, which will be displayed in a subdialog as a
+     *            text area showing the stack trace.</li>
+     * 
+     *            <li>A string containing a hyperlink in &lt;a&gt;some
+     *            text&lt;/a&gt; format. The embedded text will become a
+     *            hyperlink to display a subdialog with information about
+     *            the Throwable.</li>
+     * 
+     *            <li>A regular String or any other object, which will be passed
+     *            along to the JOptionPane unchanged.</li>
+     * 
+     *            <li>A Collection or array of the above items</li>
+     *            </ul>
+     * 
+     * @throws IllegalArgumentException
+     *             if the contents parameter did not contain a copy link and at
+     *             least one Throwable
+     * @since 2.0.1
+     */
+    public static void showWithSubdialog(Component parentComponent, String title,
+            Object... contents) throws IllegalArgumentException {
+        show(parentComponent, title, new Object[] { USE_SUBDIALOG, contents });
+    }
+
+
+    /**
+     * Display a JOptionPane with information about a Throwable.
+     * 
+     * @param parentComponent
+     *            the owner of the JOptionPane; can be null
+     * @param title
+     *            the title to display for the JOptionPane
+     * @param contents
+     *            the items to display within the JOptionPane. Each item can be
+     *            <ul>
      *            <li>A Throwable, which will be displayed in the dialog as a
      *            text area showing the stack trace. (Note: if a copy link is
      *            present, the contents array <b>must</b> contain at least one
@@ -87,6 +122,7 @@ public class ExceptionDialog {
 
         CopyToClipboardHandler copyHandler = new CopyToClipboardHandler(textArea);
         textArea.addFocusListener(copyHandler);
+        ShowSubdialogHandler subdialogHandler = null;
 
         JScrollPane scrollPane = new JScrollPane(textArea,
                 JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
@@ -100,16 +136,20 @@ public class ExceptionDialog {
             if (o instanceof Throwable) {
                 if (sawThrowable)
                     textArea.append(DELIMITER);
-                else
+                else if (subdialogHandler == null)
                     items.add(scrollPane);
 
                 textArea.append(getStackTrace((Throwable) o));
                 textArea.setCaretPosition(0);
                 sawThrowable = true;
 
+            } else if (o == USE_SUBDIALOG) {
+                subdialogHandler = new ShowSubdialogHandler(title, scrollPane);
+
             } else if (isCopyLink(o)) {
                 JLinkLabel errorTraceLabel = new JLinkLabel((String) o);
-                errorTraceLabel.addActionListener(copyHandler);
+                errorTraceLabel.addActionListener(subdialogHandler == null //
+                        ? copyHandler : subdialogHandler);
                 items.add(errorTraceLabel);
                 sawCopyLink = true;
 
@@ -121,6 +161,9 @@ public class ExceptionDialog {
         if (sawCopyLink && !sawThrowable)
             throw new IllegalArgumentException(
                     "A Throwable must be included in the argument list");
+        if (subdialogHandler != null && sawThrowable && !sawCopyLink)
+            throw new IllegalArgumentException(
+                    "A copy link must be included in the argument list");
 
         JOptionPane.showMessageDialog(parentComponent, items.toArray(), title,
             JOptionPane.ERROR_MESSAGE);
@@ -154,6 +197,22 @@ public class ExceptionDialog {
             return ((String) o).contains("</a>");
         else
             return false;
+    }
+
+    private static class ShowSubdialogHandler implements ActionListener {
+
+        private String title;
+        private JScrollPane throwableInfo;
+
+        protected ShowSubdialogHandler(String title, JScrollPane sp) {
+            this.title = title;
+            this.throwableInfo = sp;
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            ExceptionDialog.show(null, title, throwableInfo);
+        }
+
     }
 
     private static class CopyToClipboardHandler implements ActionListener, FocusListener {
@@ -194,5 +253,7 @@ public class ExceptionDialog {
     }
 
     private static final String DELIMITER = "==========================================\n";
+
+    private static final Object USE_SUBDIALOG = new Object();
 
 }

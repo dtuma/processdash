@@ -250,7 +250,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         } catch (Exception e) {
             logErr("Unable to read settings file", e);
             displayStartupIOError("Errors.Read_File_Error.Settings_File",
-                    e.getMessage());
+                    e.getMessage(), e);
             System.exit(0);
         }
         propertiesFile = Settings.getFile("stateFile");
@@ -442,7 +442,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         } catch (IOException e1) {
             logErr("Unable to read time log", e1);
             displayStartupIOError("Errors.Read_File_Error.Time_Log",
-                    property_directory + WorkingTimeLog.TIME_LOG_FILENAME);
+                    property_directory + WorkingTimeLog.TIME_LOG_FILENAME, e1);
             System.exit(0);
         }
         pt.click("Initialized time log");
@@ -622,13 +622,14 @@ public class ProcessDashboard extends JFrame implements WindowListener,
             if (f.isDirectory()) {
                 return location;
             } else {
-                System.err.println("Directory '" + location
+                throw new IOException("Directory '" + location
                         + "' specified by link file '" + linkFileName
                         + "' does not exist");
             }
-        } catch (Exception e) {}
-        displayStartupIOError("Errors.Read_File_Error.Data_Directory",
-            location);
+        } catch (Exception e) {
+            displayStartupIOError("Errors.Read_File_Error.Data_Directory",
+                location, e);
+        }
         System.exit(1);
         // the following line is not reached, but must be present to keep
         // the compiler happy:
@@ -649,15 +650,15 @@ public class ProcessDashboard extends JFrame implements WindowListener,
             if (line != null)
                 return line;
             else
-                System.err.println("No data directory info found in file '"
+                throw new IOException("No data directory info found in file '"
                         + linkFileName + "' - aborting");
         } catch (Exception e) {
             System.err.println("Unexpected error reading dataDirLinkFile '"
                     + linkFileName + "' - aborting");
             e.printStackTrace();
+            displayStartupIOError("Errors.Read_File_Error.Data_Dir_Link_File",
+                linkFileName, e);
         }
-        displayStartupIOError("Errors.Read_File_Error.Data_Dir_Link_File",
-            linkFileName);
         System.exit(1);
         // the following line is not reached, but must be present to keep
         // the compiler happy:
@@ -692,7 +693,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
             } else {
                 resKey = "Errors.Read_File_Error.Data_Directory";
             }
-            displayStartupIOError(resKey, locationDescr);
+            displayStartupIOError(resKey, locationDescr, e);
             System.exit(1);
         }
 
@@ -1347,7 +1348,8 @@ public class ProcessDashboard extends JFrame implements WindowListener,
     }
 
 
-    private void displayStartupIOError(String resourceKey, String filename) {
+    private void displayStartupIOError(String resourceKey, String filename,
+            Throwable t) {
         if (resources == null)
             resources = Resources.getDashBundle("ProcessDashboard");
 
@@ -1359,13 +1361,12 @@ public class ProcessDashboard extends JFrame implements WindowListener,
             } catch (Exception e) {}
         }
 
-        JOptionPane.showMessageDialog
-            (hideSS(),
-             resources.formatStrings("Errors.Read_File_Error.Message_FMT",
-                                     resources.getString(resourceKey),
-                                     filename),
-             resources.getString("Errors.Read_File_Error.Title"),
-             JOptionPane.ERROR_MESSAGE);
+        ExceptionDialog.showWithSubdialog(hideSS(), //
+            resources.getString("Errors.Read_File_Error.Title"), //
+            resources.formatStrings("Errors.Read_File_Error.Message_FMT",
+                resources.getString(resourceKey), filename), " ", //
+            "<a>" + resources.getString("More_Information") + "</a>", //
+            t);
     }
 
     private static final String BULLET = "\u2022 ";
