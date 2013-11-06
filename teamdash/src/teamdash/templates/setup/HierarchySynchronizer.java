@@ -904,19 +904,17 @@ public class HierarchySynchronizer {
     }
 
     private void collectLabelData(Element node, Map<String, Set> dest) {
-        String nodeID = node.getAttribute(TASK_ID_ATTR);
         String labels = node.getAttribute(LABELS_ATTR);
-        if (XMLUtils.hasValue(nodeID) && XMLUtils.hasValue(labels)) {
+        if (XMLUtils.hasValue(labels)) {
+            String nodeID = getCanonicalTaskID(node);
             String[] labelList = labels.split(",");
-            Set idSet = new HashSet(Arrays.asList(nodeID.split("\\s*,\\s*")));
-            idSet.remove("");
             for (int i = 0; i < labelList.length; i++) {
                 String oneLabel = labelList[i];
                 if (XMLUtils.hasValue(oneLabel)) {
                     Set taskIDs = dest.get(oneLabel);
                     if (taskIDs == null)
                         dest.put(oneLabel, taskIDs = new TreeSet());
-                    taskIDs.addAll(idSet);
+                    taskIDs.add(nodeID);
                 }
             }
         }
