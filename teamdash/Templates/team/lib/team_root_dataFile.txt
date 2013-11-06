@@ -44,7 +44,8 @@ undefine([Simple Project Tag]);
  * Data elements for label and component-based filtering
  */
 
-[Task_Labels] = [Synchronized_Task_Labels];
+[Task_Labels] = list([Synchronized_Task_Labels],
+   [Synchronized_Task_Milestones]);
 [Filtered_Task_Labels] = globSearch([Label//Filter], [Task_Labels]);
 [Project_WBS_ID_Filter] = iff(
    [Rollup_Uses_In_Place_WBS_Filter] && [Project_WBS_ID//Relative_Path_Filter],

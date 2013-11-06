@@ -26,6 +26,8 @@ package teamdash.wbs;
 import java.io.File;
 import java.io.IOException;
 import java.io.Writer;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -43,8 +45,11 @@ import teamdash.team.TeamMember;
 import teamdash.team.TeamMemberList;
 import teamdash.wbs.columns.DirectSizeTypeColumn;
 import teamdash.wbs.columns.LabelSource;
+import teamdash.wbs.columns.MilestoneColorColumn;
 import teamdash.wbs.columns.MilestoneColumn;
+import teamdash.wbs.columns.MilestoneCommitDateColumn;
 import teamdash.wbs.columns.MilestoneDeferredColumn;
+import teamdash.wbs.columns.MilestoneVisibilityColumn;
 import teamdash.wbs.columns.NotesColumn;
 import teamdash.wbs.columns.SizeAccountingColumnSet;
 import teamdash.wbs.columns.TaskDependencyColumn;
@@ -207,6 +212,7 @@ public class WBSDataWriter {
         writeAttr(out, TASK_ID_ATTR, MasterWBSUtil.getNodeIDs(node, projectID));
         writeAttr(out, LABELS_ATTR, getLabelSaveString(node));
         writeAttr(out, WORKFLOW_ID_ATTR, getWorkflowIdSaveString(node));
+        writeAttr(out, MILESTONE_ID_ATTR, getMilestoneIdSaveString(node));
 
         // if we are in workflow mode, write the associated workflow URLs.
         if (dataModel == null)
@@ -239,6 +245,7 @@ public class WBSDataWriter {
             if (depth == 0) {
                 writeWbsNodeAttributeSpecs(out);
                 writeTeamMembers(out);
+                writeMilestoneMetadata(out);
             }
             writeDependencies(out, dependencies, depth+1);
             writeNote(out, node, depth+1);
@@ -316,6 +323,14 @@ public class WBSDataWriter {
 
 
 
+    private String getMilestoneIdSaveString(WBSNode node) {
+        int result = (milestonesModel == null ? -1 //
+                : MilestoneColumn.getMilestoneID(node));
+        return (result < 0 ? null : Integer.toString(result));
+    }
+
+
+
     private void writeWbsNodeAttributeSpecs(Writer out) throws IOException {
         if (attrColumns != null) {
             for (int col : attrColumns) {
@@ -383,6 +398,34 @@ public class WBSDataWriter {
                 t.getAsXML(out, true);
         }
 
+    }
+
+
+
+    private void writeMilestoneMetadata(Writer out) throws IOException {
+        if (milestonesModel == null)
+            return;
+
+        for (WBSNode m : milestonesModel.getMilestones()) {
+            out.write("  <" + MILESTONE_TAG);
+            writeAttr(out, NAME_ATTR, m.getName());
+            writeAttr(out, MILESTONE_LABEL_ATTR,
+                TaskLabelColumn.convertToLabel(m.getName()));
+            writeAttr(out, MILESTONE_ID_ATTR, m.getUniqueID());
+            writeAttr(out, MILESTONE_FULL_ID_ATTR,
+                projectID + ":" + m.getUniqueID());
+            writeAttr(out, COLOR_ATTR,
+                (String) m.getAttribute(MilestoneColorColumn.VALUE_ATTR));
+            Date commitDate = MilestoneCommitDateColumn.getCommitDate(m);
+            if (commitDate != null)
+                writeAttr(out, MILESTONE_DATE_ATTR,
+                    CALENDAR_DATE_FMT.format(commitDate));
+            if (MilestoneVisibilityColumn.isHidden(m))
+                writeAttr(out, MILESTONE_HIDDEN_ATTR, "true");
+            if (MilestoneDeferredColumn.isDeferred(m))
+                writeAttr(out, MILESTONE_DEFERRED_ATTR, "true");
+            out.write("/>\n");
+        }
     }
 
 
@@ -741,6 +784,7 @@ public class WBSDataWriter {
     private static final String TASK_TAG = "task";
     private static final String ATTRIBUTE_TAG = "attrType";
     private static final String ATTRIBUTE_VALUE_TAG = "attrValue";
+    private static final String MILESTONE_TAG = "milestone";
     private static final String DEPENDENCY_TAG = "dependency";
     private static final String NOTE_TAG = "note";
 
@@ -758,6 +802,13 @@ public class WBSDataWriter {
     private static final String TASK_ID_ATTR = "tid";
     private static final String LABELS_ATTR = "labels";
     private static final String WORKFLOW_ID_ATTR = "wid";
+    private static final String MILESTONE_ID_ATTR = "mid";
+    private static final String MILESTONE_FULL_ID_ATTR = "fullMid";
+    private static final String MILESTONE_LABEL_ATTR = "labelName";
+    private static final String MILESTONE_DATE_ATTR = "commitDate";
+    private static final String MILESTONE_HIDDEN_ATTR = "hidden";
+    private static final String MILESTONE_DEFERRED_ATTR = "deferred";
+    private static final String COLOR_ATTR = "color";
     private static final String URL_ATTR = "url";
     private static final String NO_LABELS_VAL = "none";
     private static final String ATTR_ID_ATTR = "atid";
@@ -778,6 +829,9 @@ public class WBSDataWriter {
     private static final String AUTHOR_ATTR = "author";
     private static final String TIMESTAMP_ATTR = "timestamp";
     private static final String FORMAT_ATTR = "format";
+
+    private static final DateFormat CALENDAR_DATE_FMT = new SimpleDateFormat(
+            "yyyy-MM-dd");
 
     /** A list of phase types for quality phases */
     private static final List QUALITY_PHASE_TYPES = Arrays.asList(new String[] {

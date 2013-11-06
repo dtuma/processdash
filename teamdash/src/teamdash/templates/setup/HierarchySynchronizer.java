@@ -43,6 +43,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.TimeZone;
@@ -101,6 +102,7 @@ public class HierarchySynchronizer {
     private String projectPath;
     private PropertyKey projectKey;
     private String processID;
+    private String projectID;
     private URL workflowLocation;
     private boolean workflowURLsSupported;
     private String initials, initialsPattern;
@@ -183,6 +185,8 @@ public class HierarchySynchronizer {
         this.hierarchy = hierarchy;
         this.data = this.dataRepository = data;
         this.projectKey = hierarchy.findExistingKey(projectPath);
+        this.projectID = getStringData(getData(projectPath,
+            TeamDataConstants.PROJECT_ID));
 
         if (SYNC_TEAM.equals(initials)) { // team
             this.initials = this.initialsPattern = SYNC_TEAM;
@@ -743,11 +747,13 @@ public class HierarchySynchronizer {
         ListData nodeOrderData = new ListData();
         collectNodeOrderData(projectXML, nodeOrderData);
         getAllKnownWbsIds();
-        ListData labelData = null;
+        Map<String, String> milestoneNames = syncMilestoneData(projectXML);
+        ListData labelData = new ListData();
+        ListData milestoneData = new ListData();
         if (isTeam()) {
             // for a team, get label data for all nodes in a project before
             // we prune the non-team nodes
-            labelData = getLabelData(projectXML);
+            getLabelData(projectXML, milestoneNames, labelData, milestoneData);
             saveHierarchyFilterInfo(projectXML);
         }
         pruneWBS(projectXML, fullCopyMode, getNonprunableIDs(),
@@ -755,7 +761,7 @@ public class HierarchySynchronizer {
         if (!isTeam()) {
             // for an individual, collect label data after pruning so we
             // only see labels that are relevant to our tasks.
-            labelData = getLabelData(projectXML);
+            getLabelData(projectXML, milestoneNames, labelData, milestoneData);
             getScheduleData(projectXML);
         }
 
@@ -782,6 +788,7 @@ public class HierarchySynchronizer {
         this.data = syncWorker;
 
         forceData(projectPath, LABEL_LIST_DATA_NAME, labelData);
+        forceData(projectPath, MILESTONE_LIST_DATA_NAME, milestoneData);
         forceData(projectPath, NODE_ORDER_DATA_NAME, nodeOrderData);
 
         if (!isTeam()) {
@@ -822,23 +829,81 @@ public class HierarchySynchronizer {
         }
     }
 
-    private ListData getLabelData(Element projectXML) {
-        Map labelData = new TreeMap();
-        collectLabelData(projectXML, labelData);
-        ListData labelList = new ListData();
-        labelList.add("label:");
-        for (Iterator iter = labelData.entrySet().iterator(); iter.hasNext();) {
-            Map.Entry e = (Map.Entry) iter.next();
-            String label = (String) e.getKey();
-            labelList.add("label:" + label);
-            Set taskIDs = (Set) e.getValue();
-            for (Iterator i = taskIDs.iterator(); i.hasNext();)
-                labelList.add((String) i.next());
+    private Map<String, String> syncMilestoneData(Element projectXML) {
+        Element milestonesXML;
+        StringBuilder milestonesMetadata;
+
+        if (DashPackage.compareVersions(dumpFileVersion, "4.0.1") >= 0) {
+            // if this is a new enough dump file, prepare to build a list of
+            // milestone info that we can save to the data repository.
+            milestonesMetadata = new StringBuilder();
+            milestonesMetadata.append("<milestones>");
+            milestonesXML = projectXML;
+
+        } else {
+            // if this is an older dump file, it probably means that someone on
+            // the team has not upgraded, and they saved changes to the WBS with
+            // an older version of the WBS Editor.  Check to see if we have
+            // milestone definitions cached locally.
+            String mm = getStringData(getData(projectPath,
+                TeamDataConstants.PROJECT_MILESTONES_INFO));
+            try {
+                milestonesMetadata = null;
+                milestonesXML = XMLUtils.parse(mm).getDocumentElement();
+            } catch (Exception e) {
+                // if we have no milestone definitions, neither cached nor in
+                // the dump file, abort.
+                return Collections.EMPTY_MAP;
+            }
         }
-        return labelList;
+
+        // scan the list of milestones and build the data we need.
+        Map<String, String> result = new HashMap<String, String>();
+        NodeList milestones = milestonesXML.getElementsByTagName("milestone");
+        for (int i = 0; i < milestones.getLength(); i++) {
+            Element m = (Element) milestones.item(i);
+            String milestoneId = m.getAttribute(MILESTONE_ID_ATTR);
+            String milestoneName = m.getAttribute("labelName");
+            result.put(milestoneId, milestoneName);
+
+            if (milestonesMetadata != null)
+                milestonesMetadata.append(stripXmlHeader(XMLUtils.getAsText(m)));
+        }
+
+        // possibly save milestones to the data repository
+        if (milestonesMetadata != null) {
+            milestonesMetadata.append("</milestones>");
+            putData(projectPath, TeamDataConstants.PROJECT_MILESTONES_INFO,
+                StringData.create(milestonesMetadata.toString()));
+        }
+
+        return result;
+    }
+    private String stripXmlHeader(String xml) {
+        int pos = xml.indexOf("?>");
+        return (pos == -1 ? xml : xml.substring(pos + 2));
     }
 
-    private void collectLabelData(Element node, Map dest) {
+    private void getLabelData(Element projectXML,
+            Map<String, String> milestoneNames, ListData labelList,
+            ListData milestoneList) {
+        Map<String, Set> labelData = new TreeMap();
+        collectLabelData(projectXML, labelData);
+
+        Map<String, Set> milestoneData = new HashMap();
+        boolean haveMilestoneData = DashPackage.compareVersions(
+            dumpFileVersion, "4.0.1") >= 0;
+        if (haveMilestoneData)
+            collectMilestoneData(projectXML, milestoneData);
+
+        crossReferenceLabelsAndMilestones(haveMilestoneData, milestoneNames,
+            milestoneData, labelData);
+
+        buildLabelList(labelData, labelList);
+        buildMilestoneList(milestoneNames, milestoneData, milestoneList);
+    }
+
+    private void collectLabelData(Element node, Map<String, Set> dest) {
         String nodeID = node.getAttribute(TASK_ID_ATTR);
         String labels = node.getAttribute(LABELS_ATTR);
         if (XMLUtils.hasValue(nodeID) && XMLUtils.hasValue(labels)) {
@@ -848,7 +913,7 @@ public class HierarchySynchronizer {
             for (int i = 0; i < labelList.length; i++) {
                 String oneLabel = labelList[i];
                 if (XMLUtils.hasValue(oneLabel)) {
-                    Set taskIDs = (Set) dest.get(oneLabel);
+                    Set taskIDs = dest.get(oneLabel);
                     if (taskIDs == null)
                         dest.put(oneLabel, taskIDs = new TreeSet());
                     taskIDs.addAll(idSet);
@@ -859,6 +924,89 @@ public class HierarchySynchronizer {
         List children = XMLUtils.getChildElements(node);
         for (Iterator i = children.iterator(); i.hasNext();)
             collectLabelData((Element) i.next(), dest);
+    }
+
+    private void collectMilestoneData(Element node, Map<String, Set> dest) {
+        String milestoneID = node.getAttribute(MILESTONE_ID_ATTR);
+        if (XMLUtils.hasValue(milestoneID)) {
+            String nodeID = getCanonicalTaskID(node);
+            Set taskIDs = dest.get(milestoneID);
+            if (taskIDs == null)
+                dest.put(milestoneID, taskIDs = new TreeSet());
+            taskIDs.add(nodeID);
+        }
+
+        List children = XMLUtils.getChildElements(node);
+        for (Iterator i = children.iterator(); i.hasNext();)
+            collectMilestoneData((Element) i.next(), dest);
+    }
+
+    private String getCanonicalTaskID(Element node) {
+        return projectID + ":" + node.getAttribute(ID_ATTR);
+    }
+
+    private void crossReferenceLabelsAndMilestones(
+            boolean haveMilestoneData,
+            // keys are milestone IDs, values are names
+            Map<String, String> milestoneNames,
+            // keys are milestone IDs, values are sets of task IDs
+            Map<String, Set> milestoneData,
+            // keys are labels, values are sets of task IDs
+            Map<String, Set> labelData) {
+
+        for (Entry<String, String> e : milestoneNames.entrySet()) {
+            String milestoneID = e.getKey();
+            String milestoneName = e.getValue();
+
+            if (haveMilestoneData) {
+                // if milestone data was present in the dump file, retrieve
+                // the list of tasks that were unequivocally associated with
+                // this milestone. Use this to replace the task list of the
+                // corresponding label, to correct for errors where a user
+                // might have manually typed a label with the same name as
+                // a milestone.
+                Set<String> tasksForMilestone = milestoneData.get(milestoneID);
+                labelData.put(milestoneName, tasksForMilestone);
+
+            } else {
+                // if milestone data was not present in the dump file (because
+                // it was saved by someone with an old copy of the WBS Editor),
+                // infer the milestone associations by finding tasks that have
+                // a label with the same name as the milestone.
+                Set tasksForLabel = labelData.get(milestoneName);
+                milestoneData.put(milestoneID, tasksForLabel);
+            }
+        }
+    }
+
+    private void buildLabelList(Map<String, Set> labelData, ListData labelList) {
+        labelList.add("label:");
+        for (Map.Entry<String, Set> e : labelData.entrySet()) {
+            String label = e.getKey();
+            Set taskIDs = e.getValue();
+            if (taskIDs != null) {
+                labelList.add("label:" + label);
+                for (Iterator i = taskIDs.iterator(); i.hasNext();)
+                    labelList.add((String) i.next());
+            }
+        }
+    }
+
+    private void buildMilestoneList(Map<String, String> milestoneNames,
+            Map<String, Set> milestoneData, ListData milestoneList) {
+        milestoneList.add("label:");
+        for (Map.Entry<String, Set> e : milestoneData.entrySet()) {
+            String milestoneID = e.getKey();
+            Set taskIDs = e.getValue();
+            String milestoneName = milestoneNames.get(milestoneID);
+            if (taskIDs != null && milestoneName != null) {
+                milestoneList.add("label:Milestone:" + milestoneName);
+                milestoneList.add("milestoneID:" + projectID + ":"
+                        + milestoneID);
+                for (Iterator i = taskIDs.iterator(); i.hasNext();)
+                    milestoneList.add((String) i.next());
+            }
+        }
     }
 
     private void saveHierarchyFilterInfo(Element projectXML) {
@@ -1486,6 +1634,7 @@ public class HierarchySynchronizer {
     private static final String ID_ATTR = "id";
     private static final String TASK_ID_ATTR = "tid";
     private static final String WORKFLOW_ID_ATTR = "wid";
+    private static final String MILESTONE_ID_ATTR = "mid";
     private static final String VERSION_ATTR = "dumpFileVersion";
     private static final String SAVE_DATE_ATTR = "dumpTimestamp";
     private static final String LABELS_ATTR = "labels";
@@ -1531,6 +1680,8 @@ public class HierarchySynchronizer {
         "Synchronized_Task_Labels";
     private static final String NODE_ORDER_DATA_NAME =
         "Synchronized_Task_ID_WBS_Order";
+    private static final String MILESTONE_LIST_DATA_NAME =
+        "Synchronized_Task_Milestones";
     private static final String TEAM_NOTE_KEY = HierarchyNoteManager.NOTE_KEY;
     private static final String TEAM_NOTE_LAST_SYNC_KEY =
         HierarchyNoteManager.NOTE_BASE_KEY;

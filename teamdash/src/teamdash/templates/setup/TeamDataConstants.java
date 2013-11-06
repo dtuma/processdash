@@ -37,6 +37,7 @@ public interface TeamDataConstants {
     public static final String PROJECT_SCHEDULE_SYNC_SCHEDULE =
         "Project_Schedule_Hours_Last_Synced_Val";
     public static final String SYNC_ROOT_ONLY = "Sync_Project_Root_Only";
+    public static final String PROJECT_MILESTONES_INFO = "Project_Milestones_Info";
     public static final String PROJECT_COMPONENT_INFO = "Project_Component_Info";
     public static final String MASTER_PROJECT_PATH = "Master_Project_Path";
 
