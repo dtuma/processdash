@@ -43,4 +43,6 @@ public interface TaskLabeler {
 
     String LABEL_HIDDEN_MARKER = LABEL_DATA_PREFIX + "hidden";
 
+    String MILESTONE_PREFIX = "milestoneID:";
+
 }

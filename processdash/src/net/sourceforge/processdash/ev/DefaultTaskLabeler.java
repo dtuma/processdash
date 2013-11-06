@@ -58,8 +58,9 @@ public class DefaultTaskLabeler implements TaskLabeler {
     public DefaultTaskLabeler(PropertyKeyHierarchy hier, DataContext data) {
         labelData = new HashMap();
         resultCache = new HashMap();
+        hiddenLabels = new HashSet<String>();
         loadLabelData(hier, data, PropertyKey.ROOT);
-        buildHiddenLabelList();
+        hiddenLabels = Collections.unmodifiableSet(hiddenLabels);
     }
 
     private void loadLabelData(PropertyKeyHierarchy hier, DataContext data,
@@ -78,18 +79,31 @@ public class DefaultTaskLabeler implements TaskLabeler {
             return;
 
         String currentLabel = null;
+        String currentMilestone = null;
         for (int i = 0; i < list.size(); i++) {
             String item = StringUtils.asString(list.get(i));
-            if (item == null || item.length() == 0)
+            if (item == null || item.length() == 0) {
                 continue;
 
-            else if (NO_LABEL.equals(item) || LABEL_PREFIX.equals(item))
-                currentLabel = null;
+            } else if (NO_LABEL.equals(item) || LABEL_PREFIX.equals(item)) {
+                currentLabel = currentMilestone = null;
 
-            else if (item.startsWith(LABEL_PREFIX))
+            } else if (item.startsWith(LABEL_PREFIX)) {
                 currentLabel = item.substring(LABEL_PREFIX.length());
+                currentMilestone = null;
+                if (currentLabel.startsWith("_"))
+                    hiddenLabels.add(currentLabel);
 
-            else {
+            } else if (item.startsWith(MILESTONE_PREFIX)) {
+                currentMilestone = item;
+                hiddenLabels.add(currentMilestone);
+                if (currentLabel.startsWith("Milestone:"))
+                    hiddenLabels.add(currentLabel.substring(10));
+
+            } else if (LABEL_HIDDEN_MARKER.equals(item)) {
+                hiddenLabels.add(currentLabel);
+
+            } else {
                 String taskID = item;
                 Set labelsForTask = (Set) labelData.get(taskID);
                 if (labelsForTask == null) {
@@ -98,21 +112,11 @@ public class DefaultTaskLabeler implements TaskLabeler {
                 }
                 if (currentLabel != null)
                     labelsForTask.add(currentLabel);
+                if (currentMilestone != null)
+                    labelsForTask.add(currentMilestone);
             }
         }
     }
-
-    private void buildHiddenLabelList() {
-        hiddenLabels = new HashSet<String>();
-        List h = getLabelsForTaskIDs(Collections.singleton(LABEL_HIDDEN_MARKER));
-        if (h != null)
-            hiddenLabels.addAll(h);
-        for (String oneLabel : labelData.keySet())
-            if (oneLabel != null && oneLabel.startsWith("_"))
-                hiddenLabels.add(oneLabel);
-        hiddenLabels = Collections.unmodifiableSet(hiddenLabels);
-    }
-
 
     public Set<String> getHiddenLabels() {
         return hiddenLabels;
