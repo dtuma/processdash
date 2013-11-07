@@ -1001,6 +1001,7 @@ public class HierarchySynchronizer {
                 milestoneList.add("label:Milestone:" + milestoneName);
                 milestoneList.add("milestoneID:" + projectID + ":"
                         + milestoneID);
+                milestoneList.add("label_data:hidden");
                 for (Iterator i = taskIDs.iterator(); i.hasNext();)
                     milestoneList.add((String) i.next());
             }
