@@ -132,6 +132,7 @@ import net.sourceforge.processdash.ev.DefaultTaskLabeler;
 import net.sourceforge.processdash.ev.EVDependencyCalculator;
 import net.sourceforge.processdash.ev.EVHierarchicalFilter;
 import net.sourceforge.processdash.ev.EVMetadata;
+import net.sourceforge.processdash.ev.EVMetrics;
 import net.sourceforge.processdash.ev.EVSchedule;
 import net.sourceforge.processdash.ev.EVTask;
 import net.sourceforge.processdash.ev.EVTaskFilter;
@@ -793,10 +794,12 @@ public class TaskScheduleDialog implements EVTask.Listener,
 
     protected void displayErrorDialog(Map errors) {
         if (errors == null || errors.size() == 0) return;
+        String[] footer = EVMetrics.isWarningOnly(errors) ? null : resources
+                .getStrings("Error_Dialog.Foot");
         ErrorReporter err = new ErrorReporter
             (resources.getString("Error_Dialog.Title"),
              resources.getStrings("Error_Dialog.Head"),
-             resources.getStrings("Error_Dialog.Foot"));
+             footer);
         Iterator i = errors.keySet().iterator();
         while (i.hasNext())
             err.logError((String) i.next());

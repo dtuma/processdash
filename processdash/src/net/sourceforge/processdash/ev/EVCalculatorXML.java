@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2008 Tuma Solutions, LLC
+// Copyright (C) 2003-2013 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -96,9 +96,11 @@ public class EVCalculatorXML extends EVCalculator {
         schedule.getMetrics().recalcComplete(schedule);
 
         // check for errors in the task list
-        if (calcForSnapshot == false)
+        if (calcForSnapshot == false) {
+            taskList.scanForMilestoneErrors(evLeaves);
             taskRoot.checkForNodeErrors(schedule.getMetrics(), 0,
                 new ArrayList(), new ArrayList(), false);
+        }
     }
 
 

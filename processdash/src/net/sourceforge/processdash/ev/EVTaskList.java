@@ -904,6 +904,56 @@ public class EVTaskList extends AbstractTreeTableModel
             return milestoneProvider.getMilestonesForTask(task);
     }
 
+    private String getMilestoneTaskError(EVTask t) {
+        Milestone m = getMissedMilestone(t);
+        if (m == null)
+            return null;
+        else
+            return resources.format("Task.Milestone_Date.Single_Error_Msg_FMT",
+                m.getCommitDate(), m.getName());
+    }
+
+    protected void scanForMilestoneErrors(List<EVTask> evLeaves) {
+        if (milestoneProvider == null)
+            return;
+
+        Set<Milestone> missedMilestones = new HashSet();
+        for (EVTask task : evLeaves)
+            missedMilestones.add(getMissedMilestone(task));
+        missedMilestones.remove(null);
+        for (Milestone m : missedMilestones)
+            schedule.getMetrics().addError(resources.format(
+                "Task.Milestone_Date.Multiple_Error_Msg_FMT",
+                m.getCommitDate(), m.getName()) + " ", //
+                getTaskRoot());
+    }
+
+    private Milestone getMissedMilestone(EVTask t) {
+        if (t.getDateCompleted() != null || t.isValuePruned() || !t.isLeaf())
+            return null;
+
+        Date projected = EVTaskDependency.getDependencyComparisonDate(t);
+        if (projected == null)
+            return null;
+
+        List<Milestone> milestones = getMilestonesForTask(t);
+        if (milestones == null || milestones.size() != 1)
+            return null;
+
+        Milestone m = milestones.get(0);
+        while (m != null) {
+            Date commitDate = m.getCommitDate();
+            if (commitDate != null) {
+                long delta = projected.getTime() - commitDate.getTime();
+                if (delta > EVCalculator.DAY_MILLIS)
+                    return m;
+            }
+            m = m.getNextMilestone();
+        }
+
+        return null;
+    }
+
     public Set getNodeTypeSpecs() {
         if (nodeTypeSpecs == null)
             recalcNodeTypeSpecs();
@@ -1325,6 +1375,7 @@ public class EVTaskList extends AbstractTreeTableModel
         case PLAN_TIME_COLUMN: return n.getPlanTimeError();
         case NODE_TYPE_COLUMN: return n.getNodeTypeError();
         case DATE_COMPLETE_COLUMN: return n.getDateCompleteError();
+        case MILESTONE_COLUMN: return getMilestoneTaskError(n);
         default: return null;
         }
     }

@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2010 Tuma Solutions, LLC
+// Copyright (C) 2001-2013 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -195,6 +195,15 @@ public class EVMetrics implements TableModel {
         errorQualifier = qualifier;
     }
     public String getErrorQualifier() { return errorQualifier; }
+
+    public static boolean isWarningOnly(Map errors) {
+        for (Iterator i = errors.keySet().iterator(); i.hasNext();) {
+            String s = (String) i.next();
+            if (s.endsWith(" ") == false)
+                return false;
+        }
+        return true;
+    }
 
     protected void recalcScheduleTime(EVSchedule s) {
         boolean partial = Settings.getBool("ev.usePartialDTPI", true);
