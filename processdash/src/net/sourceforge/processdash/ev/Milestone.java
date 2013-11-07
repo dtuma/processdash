@@ -1,4 +1,4 @@
-// Copyright (C) 2007-2013 Tuma Solutions, LLC
+// Copyright (C) 2013 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -23,24 +23,25 @@
 
 package net.sourceforge.processdash.ev;
 
-import java.util.List;
-import java.util.Set;
+import java.awt.Color;
+import java.util.Date;
 
-public interface TaskLabeler {
+public interface Milestone {
 
-    public List<String> getLabelsForTask(EVTask t);
+    String getName();
 
-    public Set<String> getHiddenLabels();
+    String getMilestoneID();
 
+    Date getCommitDate();
 
-    String LABELS_DATA_NAME = "Task_Labels";
+    Color getColor();
 
-    String LABEL_PREFIX = "label:";
+    boolean isHidden();
 
-    String NO_LABEL = LABEL_PREFIX + "none";
+    boolean isDeferred();
 
-    String LABEL_DATA_PREFIX = "label_data:";
+    Milestone getPreviousMilestone();
 
-    String LABEL_HIDDEN_MARKER = LABEL_DATA_PREFIX + "hidden";
+    Milestone getNextMilestone();
 
 }

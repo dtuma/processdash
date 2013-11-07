@@ -1,4 +1,4 @@
-// Copyright (C) 2007-2013 Tuma Solutions, LLC
+// Copyright (C) 2013 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -23,24 +23,28 @@
 
 package net.sourceforge.processdash.ev;
 
-import java.util.List;
-import java.util.Set;
+public interface MilestoneDataConstants {
 
-public interface TaskLabeler {
+    String MILESTONES_DATA_NAME = "Project_Milestones_Info";
 
-    public List<String> getLabelsForTask(EVTask t);
+    String MILESTONE_TAG = "milestone";
 
-    public Set<String> getHiddenLabels();
+    String MILESTONE_NAME_ATTR = "name";
 
+    String MILESTONE_LABEL_ATTR = "labelName";
 
-    String LABELS_DATA_NAME = "Task_Labels";
+    String MILESTONE_FULL_ID_ATTR = "fullMid";
 
-    String LABEL_PREFIX = "label:";
+    String MILESTONE_DATE_ATTR = "commitDate";
 
-    String NO_LABEL = LABEL_PREFIX + "none";
+    String MILESTONE_HIDDEN_ATTR = "hidden";
 
-    String LABEL_DATA_PREFIX = "label_data:";
+    String MILESTONE_DEFERRED_ATTR = "deferred";
 
-    String LABEL_HIDDEN_MARKER = LABEL_DATA_PREFIX + "hidden";
+    String MILESTONE_COLOR_ATTR = "color";
+
+    String MILESTONE_NAME_LABEL_PREFIX = "Milestone:";
+
+    String MILESTONE_ID_LABEL_PREFIX = "milestoneID:";
 
 }

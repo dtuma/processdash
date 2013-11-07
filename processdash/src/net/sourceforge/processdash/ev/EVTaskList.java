@@ -108,6 +108,7 @@ public class EVTaskList extends AbstractTreeTableModel
     protected EVCalculator calculator;
     protected EVDependencyCalculator dependencyCalculator = null;
     protected TaskLabeler taskLabeler = null;
+    protected MilestoneProvider milestoneProvider = null;
     protected Set nodeTypeSpecs = null;
     protected Properties metaData = null;
     protected boolean isBrandNewTaskList = false;
@@ -123,6 +124,7 @@ public class EVTaskList extends AbstractTreeTableModel
     protected boolean showReplanColumn = Settings.getBool(
             "ev.showReplanColumn", true);
     protected boolean showNotesColumn;
+    protected boolean showMilestoneColumn;
     protected boolean showLabelsColumn;
 
 
@@ -802,7 +804,8 @@ public class EVTaskList extends AbstractTreeTableModel
         showBaselineColumns = (calculator != null
                 && calculator.getBaselineDataSource() != null);
         showNodeTypeColumn = taskRoot.isUsingNodeTypes();
-        showLabelsColumn = labelsAreInUse(taskRoot);
+        showMilestoneColumn = showLabelsColumn = false;
+        scanForLabelsAndMilestones(taskRoot);
         nodeTypeSpecs = null;
 
         fireEvRecalculated();
@@ -823,6 +826,12 @@ public class EVTaskList extends AbstractTreeTableModel
 
     public void setTaskLabeler(TaskLabeler l) {
         this.taskLabeler = l;
+        if (l instanceof MilestoneProvider)
+            setMilestoneProvider((MilestoneProvider) l);
+    }
+
+    public void setMilestoneProvider(MilestoneProvider m) {
+        this.milestoneProvider = m;
     }
 
     public List getLabelsForTask(EVTask n) {
@@ -856,19 +865,43 @@ public class EVTaskList extends AbstractTreeTableModel
         return taskLabeler.getHiddenLabels().contains(label);
     }
 
-    private boolean labelsAreInUse(EVTask task) {
+    private boolean scanForLabelsAndMilestones(EVTask task) {
         if (taskLabeler == null)
             return false;
 
-        List labels = taskLabeler.getLabelsForTask(task);
-        if (labels != null && !labels.isEmpty())
+        List<String> labels = taskLabeler.getLabelsForTask(task);
+        if (labels != null) {
+            for (String l : labels) {
+                if (!showMilestoneColumn && l.startsWith(
+                        MilestoneDataConstants.MILESTONE_ID_LABEL_PREFIX))
+                    showMilestoneColumn = true;
+                else if (!showLabelsColumn && !shouldHide(l))
+                    showLabelsColumn = true;
+            }
+        }
+        if (showLabelsColumn && showMilestoneColumn)
             return true;
 
         for (int i = task.getNumChildren();  i-- > 0; )
-            if (labelsAreInUse(task.getChild(i)))
+            if (scanForLabelsAndMilestones(task.getChild(i)))
                 return true;
 
         return false;
+    }
+
+    public String getTaskMilestonesText(EVTask task) {
+        List l = getMilestonesForTask(task);
+        if (l == null || l.isEmpty())
+            return null;
+        else
+            return StringUtils.join(l, ", ");
+    }
+
+    public List getMilestonesForTask(EVTask task) {
+        if (milestoneProvider == null)
+            return null;
+        else
+            return milestoneProvider.getMilestonesForTask(task);
     }
 
     public Set getNodeTypeSpecs() {
@@ -1000,8 +1033,8 @@ public class EVTaskList extends AbstractTreeTableModel
     public static final String[] COLUMN_KEYS = {
         "Task", "NodeType", "PT", "PDT", "BT", "Time", "DTime", "PV", "CPT",
         "CPV", "Who", "Baseline_Date", "Plan_Date", "Replan_Date",
-        "Forecast_Date", "Date", "Labels", "Notes", "Depn", "PctC", "PctS",
-        "EV" };
+        "Forecast_Date", "Date", "Milestone", "Labels", "Notes", "Depn",
+        "PctC", "PctS", "EV" };
 
     /** Names of the columns in the TreeTableModel. */
     protected static String[] colNames =
@@ -1027,7 +1060,8 @@ public class EVTaskList extends AbstractTreeTableModel
     public static final int REPLAN_DATE_COLUMN    = PLAN_DATE_COLUMN+1;
     public static final int FORECAST_DATE_COLUMN  = REPLAN_DATE_COLUMN+1;
     public static final int DATE_COMPLETE_COLUMN  = FORECAST_DATE_COLUMN+1;
-    public static final int LABELS_COLUMN         = DATE_COMPLETE_COLUMN+1;
+    public static final int MILESTONE_COLUMN      = DATE_COMPLETE_COLUMN+1;
+    public static final int LABELS_COLUMN         = MILESTONE_COLUMN+1;
     public static final int NOTES_COLUMN          = LABELS_COLUMN+1;
     public static final int DEPENDENCIES_COLUMN   = NOTES_COLUMN+1;
     public static final int PCT_COMPLETE_COLUMN   = DEPENDENCIES_COLUMN+1;
@@ -1042,8 +1076,8 @@ public class EVTaskList extends AbstractTreeTableModel
 
     public static final int[] HIDABLE_COLUMN_LIST = { NODE_TYPE_COLUMN,
             PLAN_DTIME_COLUMN, ACT_DTIME_COLUMN, BASELINE_TIME_COLUMN,
-            BASELINE_DATE_COLUMN, REPLAN_DATE_COLUMN, LABELS_COLUMN,
-            NOTES_COLUMN };
+            BASELINE_DATE_COLUMN, REPLAN_DATE_COLUMN, MILESTONE_COLUMN,
+            LABELS_COLUMN, NOTES_COLUMN };
 
     public static final String ID_DATA_NAME = "Task List ID";
     private static final String METADATA_DATA_NAME = "Task_List_Metadata";
@@ -1069,6 +1103,7 @@ public class EVTaskList extends AbstractTreeTableModel
         Date.class,             // replanned date
         Date.class,             // forecast date
         Date.class,             // date
+        String.class,           // milestone
         String.class,           // labels
         Map.class,              // notes
         Collection.class,       // task dependencies
@@ -1099,6 +1134,7 @@ public class EVTaskList extends AbstractTreeTableModel
         COLUMN_FMT_DATE,      // replanned date
         COLUMN_FMT_DATE,      // forecast date
         COLUMN_FMT_DATE,      // date
+        COLUMN_FMT_OTHER,     // milestone
         COLUMN_FMT_OTHER,     // labels
         COLUMN_FMT_OTHER,     // notes
         COLUMN_FMT_OTHER,     // task dependencies
@@ -1133,6 +1169,11 @@ public class EVTaskList extends AbstractTreeTableModel
      */
     public boolean showDirectTimeColumns() {
         return showDirectTimeColumns;
+    }
+
+    /** Returns true if the milestone column in this schedule should be displayed */
+    public boolean showMilestoneColumn() {
+        return showMilestoneColumn;
     }
 
     /** Returns true if the label column in this schedule should be displayed */
@@ -1196,6 +1237,8 @@ public class EVTaskList extends AbstractTreeTableModel
             showColumn = showNodeTypeColumn;
         else if (column == REPLAN_DATE_COLUMN)
             showColumn = showReplanColumn;
+        else if (column == MILESTONE_COLUMN)
+            showColumn = showMilestoneColumn;
         else if (column == LABELS_COLUMN)
             showColumn = showLabelsColumn;
         else if (column == NOTES_COLUMN)
@@ -1243,6 +1286,7 @@ public class EVTaskList extends AbstractTreeTableModel
         case REPLAN_DATE_COLUMN:    return n.getReplanDate();
         case FORECAST_DATE_COLUMN:  return n.getForecastDate();
         case DATE_COMPLETE_COLUMN:  return n.getActualDate();
+        case MILESTONE_COLUMN:      return getTaskMilestonesText(n);
         case LABELS_COLUMN:         return getTaskLabelsText(n);
         case NOTES_COLUMN:          return n.getNoteData();
         case DEPENDENCIES_COLUMN:   return n.getDependencies();
