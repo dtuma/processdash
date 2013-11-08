@@ -31,7 +31,7 @@ The author(s) may be contacted at:
   <property file="build.properties"/>
 
   <property name="teamtools.version" value="4.0.1"/>
-  <property name="teamtools.requires" value="1.13.0.3+"/>
+  <property name="teamtools.requires" value="2.0.1+"/>
   <property name="framework.version" value="${teamtools.version}"/>
 
   <property name="processdash.dir" value="../processdash"/>
@@ -177,6 +177,9 @@ The author(s) may be contacted at:
       <manifest>
         <attribute name="Main-Class" 
               value="teamdash.process.CustomProcessEditor"/>
+        <attribute name="Application-Name"
+              value="Custom Metrics Framework Editor"/>
+        <attribute name="Permissions" value="all-permissions"/>
       </manifest>
       <fileset refid="jnlpClasses"/>
       <fileset refid="jnlpDashClasses"/>
