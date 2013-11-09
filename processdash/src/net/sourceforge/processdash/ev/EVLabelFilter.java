@@ -1,4 +1,4 @@
-// Copyright (C) 2006-2009 Tuma Solutions, LLC
+// Copyright (C) 2006-2013 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -36,6 +36,7 @@ import net.sourceforge.processdash.data.StringData;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.util.StringUtils;
 import net.sourceforge.processdash.util.glob.GlobEngine;
+import net.sourceforge.processdash.util.glob.TaggedDataListSource;
 
 public class EVLabelFilter implements EVTaskFilter {
 
@@ -68,7 +69,8 @@ public class EVLabelFilter implements EVTaskFilter {
 
         knownLabeledTaskIDs = new HashSet(labelData);
 
-        matchingTaskIDs = GlobEngine.search(filter, LABEL_TAG, labelData);
+        matchingTaskIDs = GlobEngine.search(filter, LABEL_TAG, labelData,
+            new DeferredLabelLookup(data));
 
         matchingTasks = new HashSet();
         collectMatchingTasks(taskList.getTaskRoot(), false);
@@ -193,4 +195,16 @@ public class EVLabelFilter implements EVTaskFilter {
         else
             return null;
     }
+
+    private static class DeferredLabelLookup implements TaggedDataListSource {
+        DataRepository data;
+        DeferredLabelLookup(DataRepository data) {
+            this.data = data;
+        }
+        public List getTaggedData(String dataName) {
+            ListData result = ListData.asListData(data.getSimpleValue(dataName));
+            return (result == null ? null : result.asList());
+        }
+    }
+
 }

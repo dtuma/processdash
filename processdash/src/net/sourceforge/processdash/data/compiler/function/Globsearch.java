@@ -1,4 +1,4 @@
-// Copyright (C) 2006-2012 Tuma Solutions, LLC
+// Copyright (C) 2006-2013 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -33,6 +33,7 @@ import net.sourceforge.processdash.data.compiler.AbstractFunction;
 import net.sourceforge.processdash.data.compiler.ExpressionContext;
 import net.sourceforge.processdash.util.StringUtils;
 import net.sourceforge.processdash.util.glob.GlobEngine;
+import net.sourceforge.processdash.util.glob.TaggedDataListSource;
 
 public class Globsearch extends AbstractFunction {
 
@@ -49,7 +50,8 @@ public class Globsearch extends AbstractFunction {
             return ListData.EMPTY_LIST;
 
         String tagPrefix = asString(taggedData.remove(0));
-        Set results = GlobEngine.search(expression, tagPrefix, taggedData);
+        Set results = GlobEngine.search(expression, tagPrefix, taggedData,
+            new DeferredDataLookup(context));
 
         if (results == null || results.isEmpty())
             return ListData.EMPTY_LIST;
@@ -76,6 +78,20 @@ public class Globsearch extends AbstractFunction {
 
         List tagList = taggedData.asList().subList(1, taggedData.size());
         return GlobEngine.getTags(tagPrefix, tagList);
+    }
+
+    private static class DeferredDataLookup implements TaggedDataListSource {
+        private ExpressionContext context;
+
+        protected DeferredDataLookup(ExpressionContext context) {
+            this.context = context;
+        }
+
+        public List getTaggedData(String dataName) {
+            ListData result = ListData.asListData(context.get(dataName));
+            return (result == null ? null : result.asList());
+        }
+
     }
 
 }

@@ -1,4 +1,4 @@
-// Copyright (C) 2006-2012 Tuma Solutions, LLC
+// Copyright (C) 2006-2013 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -65,13 +65,25 @@ public class GlobEngine {
      */
     public static Set search(String expression, String tagPrefix,
             List taggedData) {
+        return search(expression, tagPrefix, taggedData, null);
+    }
+
+    public static Set search(String expression, String tagPrefix,
+            List taggedData, TaggedDataListSource deferredDataSource) {
+
         if (expression == null || expression.trim().length() == 0)
             return Collections.EMPTY_SET;
 
-        return search(expression, extractTaggedValues(taggedData, tagPrefix));
+        return search(expression, extractTaggedValues(taggedData, tagPrefix),
+            new TaggedMapExtractor(deferredDataSource, tagPrefix));
     }
 
     public static Set search(String expression, Map taggedData) {
+        return search(expression, taggedData, null);
+    }
+
+    public static Set search(String expression, Map taggedData,
+            TaggedDataMapSource deferredDataSource) {
         if (expression == null || expression.trim().length() == 0)
             return Collections.EMPTY_SET;
 
@@ -79,7 +91,8 @@ public class GlobEngine {
         if (s == null)
             return Collections.EMPTY_SET;
 
-        GlobSearchEvaluator eval = new GlobSearchEvaluator(taggedData);
+        GlobSearchEvaluator eval = new GlobSearchEvaluator(taggedData,
+                deferredDataSource);
         eval.caseStart(s);
 
         Set matches = eval.getResult();
@@ -207,4 +220,20 @@ public class GlobEngine {
         }
         return result;
     }
+
+    private static class TaggedMapExtractor implements TaggedDataMapSource {
+        TaggedDataListSource data;
+        String tagPrefix;
+
+        protected TaggedMapExtractor(TaggedDataListSource data, String tagPrefix) {
+            this.data = data;
+            this.tagPrefix = tagPrefix;
+        }
+
+        public Map getTaggedData(String token) {
+            List list = data.getTaggedData(token);
+            return (list == null ? null : extractTaggedValues(list, tagPrefix));
+        }
+    }
+
 }

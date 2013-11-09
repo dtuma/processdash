@@ -1,4 +1,4 @@
-// Copyright (C) 2006 Tuma Solutions, LLC
+// Copyright (C) 2006-2013 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -44,20 +44,25 @@ import net.sourceforge.processdash.util.glob.node.AUnaryNotUnaryExpr;
 import net.sourceforge.processdash.util.glob.node.POrClause;
 import net.sourceforge.processdash.util.glob.node.PUnaryExpr;
 
-class GlobSearchEvaluator extends DepthFirstAdapter {
+class GlobSearchEvaluator extends DepthFirstAdapter implements
+        GlobEngineConstants {
 
     Set allValues;
     Map taggedValues;
+    TaggedDataMapSource deferredData;
 
     Set result;
 
-    public GlobSearchEvaluator(Map taggedData) {
+    public GlobSearchEvaluator(Map taggedData, TaggedDataMapSource deferredData) {
         this.taggedValues = taggedData;
+        this.deferredData = deferredData;
 
         allValues = new HashSet();
         for (Iterator i = taggedData.values().iterator(); i.hasNext();) {
             Collection c = (Collection) i.next();
-            allValues.addAll(c);
+            for (Object oneValue : c)
+                if (!isGlobEngineInstruction(oneValue))
+                    allValues.add(oneValue);
         }
 
         result = allValues;
@@ -75,11 +80,52 @@ class GlobSearchEvaluator extends DepthFirstAdapter {
             Map.Entry e = (Map.Entry) i.next();
             String tag = (String) e.getKey();
             if (glob.test(tag))
-                result.addAll((Set) e.getValue());
+                result.addAll(expandDeferredValues(tag,
+                    (Collection) e.getValue()));
         }
 
         this.result = result;
     }
+
+    private Collection expandDeferredValues(String tag, Collection values) {
+        if (deferredData == null || !values.contains(DEFERRED_DATA_MARKER))
+            return values;
+
+        Set newValues = new HashSet();
+        for (Object oneValue : values) {
+            String token = extractDeferredToken(oneValue);
+            if (token != null && token.length() > 0) {
+                Map lazyData = deferredData.getTaggedData(token);
+                if (lazyData != null) {
+                    Collection matchingData = (Collection) lazyData.get(tag);
+                    if (matchingData != null)
+                        newValues.addAll(matchingData);
+                }
+
+            } else if (!isGlobEngineInstruction(oneValue)){
+                newValues.add(oneValue);
+            }
+        }
+        return newValues;
+    }
+
+    private String extractDeferredToken(Object obj) {
+        return extractTextAfter(obj, DEFERRED_TOKEN_PREFIX);
+    }
+
+    private boolean isGlobEngineInstruction(Object obj) {
+        return extractTextAfter(obj, INSTRUCTION_PREFIX) != null;
+    }
+
+    private String extractTextAfter(Object obj, String prefix) {
+        if (obj instanceof String) {
+            String s = (String) obj;
+            if (s.startsWith(prefix))
+                return s.substring(prefix.length());
+        }
+        return null;
+    }
+
 
     public void caseAUnaryNotUnaryExpr(AUnaryNotUnaryExpr node) {
         super.caseAUnaryNotUnaryExpr(node);

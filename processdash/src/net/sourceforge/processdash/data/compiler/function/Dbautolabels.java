@@ -40,6 +40,8 @@ public class Dbautolabels extends DbAbstractFunction {
 
     private static final String COMPLETED_COMPONENTS = "Completed_Components";
 
+    static final String[] AUTO_LABEL_NAMES = { COMPLETED_TASKS,
+            COMPLETED_COMPONENTS };
 
     /**
      * Perform a procedure call.
@@ -78,7 +80,7 @@ public class Dbautolabels extends DbAbstractFunction {
 
         List<String> rawData = queryHql(context, BASE_TASK_QUERY, "f", criteria);
 
-        result.add("label:" + COMPLETED_TASKS);
+        result.add(TaskLabeler.LABEL_PREFIX + COMPLETED_TASKS);
         result.add(TaskLabeler.LABEL_HIDDEN_MARKER);
         for (String oneItem : rawData)
             result.add(oneItem);
@@ -121,7 +123,7 @@ public class Dbautolabels extends DbAbstractFunction {
         List<String> rawData = queryRunner.queryHql(query, queryArgArray);
 
         // extract the results
-        result.add("label:" + COMPLETED_COMPONENTS);
+        result.add(TaskLabeler.LABEL_PREFIX + COMPLETED_COMPONENTS);
         result.add(TaskLabeler.LABEL_HIDDEN_MARKER);
         for (String oneItem : rawData)
             result.add(oneItem);

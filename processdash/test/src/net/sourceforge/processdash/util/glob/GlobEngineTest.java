@@ -1,4 +1,4 @@
-// Copyright (C) 2006-2008 Tuma Solutions, LLC
+// Copyright (C) 2006-2013 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -74,10 +74,23 @@ public class GlobEngineTest extends TestCase {
         "label:", "orphan2",
         "label:qux", "e",
         "label:FoO", "c",
+        "label:lazy", GlobEngineConstants.DEFERRED_DATA_MARKER,
+            GlobEngineConstants.DEFERRED_TOKEN_PREFIX + "lazy", "d"
     };
     private static final List data = Arrays.asList(TAGGED_DATA);
 
+    private static boolean lazyDataQueried;
+
+    private static final TaggedDataListSource lazyData = new TaggedDataListSource() {
+        public List getTaggedData(String token) {
+            lazyDataQueried = true;
+            assertEquals("lazy", token);
+            return Arrays.asList("label:lazy", "a", "f");
+        }
+    };
+
     public void testGlobSearch() {
+        lazyDataQueried = false;
         assertSearch("foo", "a,b,c" );
         assertSearch("f*", "a,b,c" );
         assertSearch("foo bar", "a" );
@@ -90,6 +103,14 @@ public class GlobEngineTest extends TestCase {
         assertEmpty("orphan");
         assertEmpty("a*");
         assertSearch("-blah", "a,b,c,d,e");
+        assertFalse(lazyDataQueried);
+
+        assertLazySearch("lazy", "a,d,f");
+        assertLazySearch("foo | lazy", "a,b,c,d,f");
+        assertLazySearch("foo -lazy", "b,c");
+        assertLazySearch("-blah -laz*", "b,c,e");
+        lazyDataQueried = true;
+        assertLazySearch("-blah", "a,b,c,d,e");
     }
 
     private void assertEmpty(String expr) {
@@ -103,6 +124,14 @@ public class GlobEngineTest extends TestCase {
     private void assertSearch(String expr, String[] values) {
         assertList(GlobEngine.search(expr, "label:", data), values);
     }
+
+    private void assertLazySearch(String expr, String results) {
+        assertList(GlobEngine.search(expr, "label:", data, lazyData),
+            results.split(","));
+        assertTrue(lazyDataQueried);
+        lazyDataQueried = false;
+    }
+
 
     private void assertList(Set s, String[] values) {
         assertEquals(values.length, s.size());
