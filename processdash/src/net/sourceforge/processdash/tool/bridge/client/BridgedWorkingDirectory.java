@@ -140,7 +140,9 @@ public class BridgedWorkingDirectory extends AbstractWorkingDirectory {
         // Make a local backup of the initial data in the working directory.
         // This way, its former contents will be saved before we overwrite the
         // files with data from the server.
-        doBackupImpl(workingDirectory, "startup");
+        try {
+            doBackupImpl(workingDirectory, "startup");
+        } catch (IOException ioe) {}
 
         // retrieve the latest data from the server.
         doSyncDown();
