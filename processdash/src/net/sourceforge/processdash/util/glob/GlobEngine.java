@@ -104,7 +104,13 @@ public class GlobEngine {
 
     /** @since 1.14.5 */
     public static Set<String> getTags(String tagPrefix, List taggedData) {
-        return extractTaggedValues(taggedData, tagPrefix).keySet();
+        Set<String> result = new HashSet<String>();
+        for (Object value : taggedData) {
+            String valueAsTag = isTag(value, tagPrefix, false);
+            if (valueAsTag != null)
+                result.add(valueAsTag);
+        }
+        return result;
     }
 
 
@@ -116,7 +122,7 @@ public class GlobEngine {
         String currentTag = null;
         for (Iterator i = taggedData.iterator(); i.hasNext();) {
             Object value = i.next();
-            String valueAsTag = isTag(value, tagPrefix);
+            String valueAsTag = isTag(value, tagPrefix, true);
 
             if (valueAsTag != null) {
                 if (valueAsTag.length() > 0) {
@@ -138,11 +144,15 @@ public class GlobEngine {
         return taggedValues;
     }
 
-    private static String isTag(Object value, String tagPrefix) {
+    private static String isTag(Object value, String tagPrefix, boolean lowercase) {
         if (value instanceof String) {
             String str = (String) value;
-            if (str.startsWith(tagPrefix))
-                return str.substring(tagPrefix.length()).toLowerCase();
+            if (str.startsWith(tagPrefix)) {
+                String result = str.substring(tagPrefix.length());
+                if (lowercase)
+                    result = result.toLowerCase();
+                return result;
+            }
         }
 
         return null;
