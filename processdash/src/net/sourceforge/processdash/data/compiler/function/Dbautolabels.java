@@ -24,7 +24,10 @@
 package net.sourceforge.processdash.data.compiler.function;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.logging.Level;
 
 import net.sourceforge.processdash.data.ListData;
@@ -32,6 +35,7 @@ import net.sourceforge.processdash.data.compiler.ExpressionContext;
 import net.sourceforge.processdash.ev.TaskLabeler;
 import net.sourceforge.processdash.tool.db.QueryRunner;
 import net.sourceforge.processdash.tool.db.QueryUtils;
+import net.sourceforge.processdash.util.PatternList;
 import net.sourceforge.processdash.util.StringUtils;
 
 public class Dbautolabels extends DbAbstractFunction {
@@ -78,11 +82,13 @@ public class Dbautolabels extends DbAbstractFunction {
     private void calcCompletedTasks(ExpressionContext context, List criteria,
             ListData result) throws Exception {
 
-        List<String> rawData = queryHql(context, BASE_TASK_QUERY, "f", criteria);
+        List<String> completedTaskIDs = queryHql(context, BASE_TASK_QUERY, "f",
+            criteria);
+        filterPspTaskPhaseIDs(completedTaskIDs);
 
         result.add(TaskLabeler.LABEL_PREFIX + COMPLETED_TASKS);
         result.add(TaskLabeler.LABEL_HIDDEN_MARKER);
-        for (String oneItem : rawData)
+        for (String oneItem : completedTaskIDs)
             result.add(oneItem);
     }
 
@@ -92,6 +98,51 @@ public class Dbautolabels extends DbAbstractFunction {
             + "where f.versionInfo.current = 1 " //
             + "group by f.planItem.identifier " //
             + "having max(f.actualCompletionDateDim.key) < 99990000";
+
+    private void filterPspTaskPhaseIDs(List<String> completedTasks) {
+        // The database query will return individual results for each phase in
+        // a PSP task.  Those results are incompatible with the other label
+        // sources in a team project, which attach labels to the parent PSP
+        // task instead.  This method fixes that discrepancy.
+
+        // First we scan the list of task IDs looking for PSP phases. We remove
+        // the phase entries from the list, and keep track of the number of
+        // completed phases we find for each PSP task.
+        HashMap<String, Integer> pspTasks = new HashMap();
+        for (Iterator i = completedTasks.iterator(); i.hasNext();) {
+            String taskID = (String) i.next();
+            if (PSP_PHASES.matches(taskID)) {
+                i.remove();
+                int colonPos = taskID.lastIndexOf(':');
+                String pspTaskID = taskID.substring(0, colonPos);
+                Integer numCompletedPhases = pspTasks.get(pspTaskID);
+                numCompletedPhases = (numCompletedPhases == null ? 1
+                        : numCompletedPhases + 1);
+                pspTasks.put(pspTaskID, numCompletedPhases);
+            }
+        }
+
+        // Now look through the PSP tasks we found.  Any tasks that had 8
+        // completed phases will represent a completed PSP project.  Add those
+        // completed PSP projects to our completed task list.
+        for (Entry<String, Integer> e : pspTasks.entrySet()) {
+            if (NUM_PSP_PHASES.equals(e.getValue()))
+                completedTasks.add(e.getKey());
+        }
+    }
+
+    private static final PatternList PSP_PHASES = new PatternList();
+    static {
+        PSP_PHASES.addLiteralEndsWith(":Planning");
+        PSP_PHASES.addLiteralEndsWith(":Design");
+        PSP_PHASES.addLiteralEndsWith(":Design Review");
+        PSP_PHASES.addLiteralEndsWith(":Code");
+        PSP_PHASES.addLiteralEndsWith(":Code Review");
+        PSP_PHASES.addLiteralEndsWith(":Compile");
+        PSP_PHASES.addLiteralEndsWith(":Test");
+        PSP_PHASES.addLiteralEndsWith(":Postmortem");
+    }
+    private static final Integer NUM_PSP_PHASES = 8;
 
 
     /**
