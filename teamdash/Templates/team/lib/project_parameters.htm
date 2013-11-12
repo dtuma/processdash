@@ -271,6 +271,8 @@ personal dashboards.
     function teamSettingChanged(elem, value, readOnly) {
         if (Element.hasClassName(elem, "notTeamSetting"))
             return;
+        if (value == "NO CONNECTION")
+            return;
 
         Element.show("settingsExportBanner");
         document.forms[0].elements[0].value = "";
