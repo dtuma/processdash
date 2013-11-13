@@ -23,6 +23,8 @@
 
 package net.sourceforge.processdash.ev;
 
+import static net.sourceforge.processdash.ev.MilestoneDataConstants.MILESTONE_ID_LABEL_PREFIX;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -68,6 +70,7 @@ public class EVLabelFilter implements EVTaskFilter {
             throw new IllegalArgumentException("No labels found for task list");
 
         knownLabeledTaskIDs = new HashSet(labelData);
+        maybeLabelMilestoneIDs(filter, labelData);
 
         matchingTaskIDs = GlobEngine.search(filter, LABEL_TAG, labelData,
             new DeferredLabelLookup(data));
@@ -133,6 +136,23 @@ public class EVLabelFilter implements EVTaskFilter {
         }
 
         return null;
+    }
+
+
+    private void maybeLabelMilestoneIDs(String filter, List labelData) {
+        // milestones are stored with two different attributes: a label
+        // and a full milestone ID.  The DefaultTaskLabeler is smart enough
+        // to process both simultaneously, but the GlobEngine only processes
+        // the labels.  If we are being asked to filter on milestone IDs,
+        // transform those entries into labels so the GlobEngine can find them.
+        if (filter.startsWith(MILESTONE_ID_LABEL_PREFIX)) {
+            for (int i = labelData.size(); i-- > 0; ) {
+                String item = (String) labelData.get(i);
+                if (item.startsWith(MILESTONE_ID_LABEL_PREFIX)) {
+                    labelData.set(i, LABEL_TAG + item);
+                }
+            }
+        }
     }
 
 

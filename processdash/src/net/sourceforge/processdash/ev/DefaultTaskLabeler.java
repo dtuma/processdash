@@ -155,10 +155,11 @@ public class DefaultTaskLabeler implements TaskLabeler, MilestoneProvider {
 
         XmlMilestone previous = null;
         for (Element m : XMLUtils.getChildElements(xml)) {
-            XmlMilestone xm = new XmlMilestone(m, previous);
+            XmlMilestone xm = new XmlMilestone(m, milestoneData.size());
             String id = xm.getMilestoneID();
             if (XMLUtils.hasValue(id)) {
                 milestoneData.put(id, xm);
+                xm.setPrevious(previous);
                 previous = xm;
             }
         }
@@ -263,10 +264,16 @@ public class DefaultTaskLabeler implements TaskLabeler, MilestoneProvider {
 
         private Element xml;
 
+        private int ordinal;
+
         private XmlMilestone previousMilestone, nextMilestone;
 
-        protected XmlMilestone(Element xml, XmlMilestone previous) {
+        protected XmlMilestone(Element xml, int ordinal) {
             this.xml = xml;
+            this.ordinal = ordinal;
+        }
+
+        private void setPrevious(XmlMilestone previous) {
             this.previousMilestone = previous;
             if (previous != null)
                 previous.nextMilestone = this;
@@ -321,6 +328,11 @@ public class DefaultTaskLabeler implements TaskLabeler, MilestoneProvider {
         @Override
         public int hashCode() {
             return getMilestoneID().hashCode();
+        }
+
+        public int compareTo(Milestone m) {
+            XmlMilestone that = (XmlMilestone) m;
+            return this.ordinal - that.ordinal;
         }
 
         @Override

@@ -830,6 +830,12 @@ public class EVTaskList extends AbstractTreeTableModel
             setMilestoneProvider((MilestoneProvider) l);
     }
 
+    /** @since 2.0.2 */
+    public TaskLabeler getTaskLabeler() {
+        return taskLabeler;
+    }
+
+    /** @since 2.0.1 */
     public void setMilestoneProvider(MilestoneProvider m) {
         this.milestoneProvider = m;
     }

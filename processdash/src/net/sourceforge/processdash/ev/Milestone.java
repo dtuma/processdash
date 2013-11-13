@@ -26,7 +26,7 @@ package net.sourceforge.processdash.ev;
 import java.awt.Color;
 import java.util.Date;
 
-public interface Milestone {
+public interface Milestone extends Comparable<Milestone> {
 
     String getName();
 
