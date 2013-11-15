@@ -317,6 +317,10 @@ public class DefaultTaskLabeler implements TaskLabeler, MilestoneProvider {
             return "true".equals(xml.getAttribute(MILESTONE_DEFERRED_ATTR));
         }
 
+        public int getSortOrdinal() {
+            return ordinal;
+        }
+
         public Milestone getPreviousMilestone() {
             return previousMilestone;
         }

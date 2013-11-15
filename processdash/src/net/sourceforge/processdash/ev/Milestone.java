@@ -40,6 +40,8 @@ public interface Milestone extends Comparable<Milestone> {
 
     boolean isDeferred();
 
+    int getSortOrdinal();
+
     Milestone getPreviousMilestone();
 
     Milestone getNextMilestone();

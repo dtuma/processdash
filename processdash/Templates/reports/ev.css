@@ -81,3 +81,7 @@ div.singleChartSelector {
     width: 700px;
     text-align: center;
 }
+
+td.behindSchedule {
+    background-color: #ffcccc
+}

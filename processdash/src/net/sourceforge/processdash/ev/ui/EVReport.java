@@ -77,6 +77,7 @@ import net.sourceforge.processdash.ev.EVTaskList;
 import net.sourceforge.processdash.ev.EVTaskListData;
 import net.sourceforge.processdash.ev.EVTaskListMerged;
 import net.sourceforge.processdash.ev.EVTaskListRollup;
+import net.sourceforge.processdash.ev.MilestoneList;
 import net.sourceforge.processdash.ev.ui.TaskScheduleChartUtil.ChartItem;
 import net.sourceforge.processdash.ev.ui.TaskScheduleChartUtil.ChartListPurpose;
 import net.sourceforge.processdash.ev.ui.chart.AbstractEVChart;
@@ -1344,6 +1345,8 @@ public class EVReport extends CGIChartBase implements TinyCGIStreaming {
             boolean showTimingIcons, boolean exportingToExcel, boolean hideNames,
             Set nodeTypeSpecs) {
         setupRenderers(writer, EVTaskList.COLUMN_FORMATS);
+        writer.setCellRenderer(EVTaskList.MILESTONE_COLUMN,
+                new MilestoneCellRenderer());
         writer.setCellRenderer(EVTaskList.DEPENDENCIES_COLUMN,
                 new DependencyCellRenderer(exportingToExcel, hideNames));
         if (showTimingIcons)
@@ -2009,6 +2012,35 @@ public class EVReport extends CGIChartBase implements TinyCGIStreaming {
         protected String getSortKey(Object value) {
             return Integer.toString(phaseOrder.indexOf(value));
         }
+    }
+
+    static class MilestoneCellRenderer implements HTMLTableWriter.CellRenderer {
+
+        public String getInnerHtml(Object value, int row, int column) {
+            if (value == null)
+                return null;
+            else
+                return HTMLUtils.escapeEntities(value.toString());
+        }
+
+        public String getAttributes(Object value, int row, int column) {
+            if (value == null)
+                return getSortAttribute("99999");
+
+            MilestoneList l = (MilestoneList) value;
+            StringBuilder result = new StringBuilder();
+            result.append(getSortAttribute(Integer.toString(l
+                    .getMinSortOrdinal())));
+
+            if (l.isMissedMilestone()) {
+                String errMsg = l.getMissedMilestoneMessage();
+                result.append(" class=\"behindSchedule\" title=\"")
+                        .append(HTMLUtils.escapeEntities(errMsg)).append("\"");
+            }
+
+            return result.toString();
+        }
+
     }
 
     static class DependencyCellRenderer implements HTMLTableWriter.CellRenderer {

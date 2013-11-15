@@ -895,28 +895,9 @@ public class EVTaskList extends AbstractTreeTableModel
         return false;
     }
 
-    public String getTaskMilestonesText(EVTask task) {
-        List l = getMilestonesForTask(task);
-        if (l == null || l.isEmpty())
-            return null;
-        else
-            return StringUtils.join(l, ", ");
-    }
-
-    public List getMilestonesForTask(EVTask task) {
-        if (milestoneProvider == null)
-            return null;
-        else
-            return milestoneProvider.getMilestonesForTask(task);
-    }
-
     private String getMilestoneTaskError(EVTask t) {
-        Milestone m = getMissedMilestone(t);
-        if (m == null)
-            return null;
-        else
-            return resources.format("Task.Milestone_Date.Single_Error_Msg_FMT",
-                m.getCommitDate(), m.getName());
+        MilestoneList m = getMilestonesForTask(t);
+        return (m == null ? null : m.getMissedMilestoneMessage());
     }
 
     protected void scanForMilestoneErrors(List<EVTask> evLeaves) {
@@ -924,8 +905,11 @@ public class EVTaskList extends AbstractTreeTableModel
             return;
 
         Set<Milestone> missedMilestones = new HashSet();
-        for (EVTask task : evLeaves)
-            missedMilestones.add(getMissedMilestone(task));
+        for (EVTask task : evLeaves) {
+            MilestoneList milestones = getMilestonesForTask(task);
+            if (milestones != null)
+                missedMilestones.add(milestones.getMissedMilestone());
+        }
         missedMilestones.remove(null);
         for (Milestone m : missedMilestones)
             schedule.getMetrics().addError(resources.format(
@@ -934,7 +918,19 @@ public class EVTaskList extends AbstractTreeTableModel
                 getTaskRoot());
     }
 
-    private Milestone getMissedMilestone(EVTask t) {
+    public MilestoneList getMilestonesForTask(EVTask task) {
+        List<Milestone> milestones = null;
+        if (milestoneProvider != null)
+            milestones = milestoneProvider.getMilestonesForTask(task);
+
+        if (milestones == null || milestones.isEmpty())
+            return null;
+        else
+            return new MilestoneList(milestones, getMissedMilestone(task,
+                milestones));
+    }
+
+    private Milestone getMissedMilestone(EVTask t, List<Milestone> milestones) {
         if (t.getDateCompleted() != null || t.isValuePruned() || !t.isLeaf())
             return null;
 
@@ -942,7 +938,6 @@ public class EVTaskList extends AbstractTreeTableModel
         if (projected == null)
             return null;
 
-        List<Milestone> milestones = getMilestonesForTask(t);
         if (milestones == null || milestones.size() != 1)
             return null;
 
@@ -1159,7 +1154,7 @@ public class EVTaskList extends AbstractTreeTableModel
         Date.class,             // replanned date
         Date.class,             // forecast date
         Date.class,             // date
-        String.class,           // milestone
+        MilestoneList.class,    // milestone
         String.class,           // labels
         Map.class,              // notes
         Collection.class,       // task dependencies
@@ -1342,7 +1337,7 @@ public class EVTaskList extends AbstractTreeTableModel
         case REPLAN_DATE_COLUMN:    return n.getReplanDate();
         case FORECAST_DATE_COLUMN:  return n.getForecastDate();
         case DATE_COMPLETE_COLUMN:  return n.getActualDate();
-        case MILESTONE_COLUMN:      return getTaskMilestonesText(n);
+        case MILESTONE_COLUMN:      return getMilestonesForTask(n);
         case LABELS_COLUMN:         return getTaskLabelsText(n);
         case NOTES_COLUMN:          return n.getNoteData();
         case DEPENDENCIES_COLUMN:   return n.getDependencies();
