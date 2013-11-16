@@ -13,7 +13,7 @@ function toggleRows(elm) {
                                                                //  elements ?	
    
    if (expandingOne || expandingAll) {
-       if (document.all) newDisplay = "block"; //IE4+ specific code
+       if (document.all) newDisplay = ""; //IE4+ specific code
 	   else newDisplay = "table-row"; //Netscape and Mozilla
    }
  
