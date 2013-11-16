@@ -459,7 +459,7 @@ Authors:
 
 
   <target name="jar" description="Make the jarfile for distribution"
-          depends="ant-tasks,init,javahelp,compile,l10n-tool,jarsurf-list">
+          depends="ant-tasks,init,javahelp,compile,l10n-tool,jarsurf-list,jar-resource-check">
     <svnRevInfo property="svnRevision"/>
     <jar destfile="${dist}/pspdash.jar" duplicate="fail">
       <!-- specify the manifest file contents -->
@@ -524,6 +524,24 @@ Authors:
       <zipfileset src="${xmlrpc-com.jar}" includes="org/" />
     </jar>
     <maybeSignJar jar="${dist}/pspdash.jar" prefix="${pspdash-signature}"/>
+  </target>
+
+
+  <target name="jar-resource-check">
+    <fileset id="resourceCheck" dir="${src}"
+         excludesfile="${lib}/fileset-nonclass.txt">
+      <exclude name="**/Thumbs.db"/>
+      <exclude name="**/grammar.txt"/>
+      <exclude name="**/*.lex"/>
+      <exclude name="**/*.java"/>
+    </fileset>
+    <pathconvert property="resourceCheckList" refid="resourceCheck"
+         pathsep="&#10;&#9;"/>
+    <fail message="these files were missed from inclusion in the JAR:&#10;&#9;${resourceCheckList}">
+      <condition>
+        <resourcecount refid="resourceCheck" when="greater" count="0" />
+      </condition>
+    </fail>
   </target>
 
 
