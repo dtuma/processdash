@@ -122,9 +122,25 @@ you for the label filter expression you wish to use. The syntax of
 this expression is similar to familiar search engines like Google; the
 form includes an explanation of the syntax.</p>
 
-<p>When you apply the label filter, all the metrics you see in your
-customized forms, charts, and reports will be filtered to include only
-the tasks that match your filter expression. </p>
+<p>When you apply the label filter, all the metrics you see in your customized
+forms, charts, and reports will be filtered to include only the tasks that
+match your filter expression.  In addition to the labels that you enter in the
+WBS, the filter expression can also include:</p>
+
+<ul>
+
+<li>The names of milestones, to select only the tasks associated with a given
+milestone.</li>
+
+<li>The special word "Completed_Tasks" will only include data from tasks that
+have been marked complete. (Putting a "<tt>-</tt>" character in front will
+select the incomplete tasks.)</li>
+
+<li>The special word "Completed_Components" will only include data from WBS
+components which are 100% complete.</li>
+
+</ul>
+
 
 <h2><a name="backups"></a>Backing Up Project Data</h2>
 
