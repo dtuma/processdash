@@ -90,6 +90,9 @@ public class EVLabelFilter implements EVTaskFilter {
             } else {
                 for (Iterator i = ids.iterator(); i.hasNext();) {
                     String id = (String) i.next();
+                    int colonPos = id.indexOf(':');
+                    if (colonPos != -1)
+                        id = id.substring(0, colonPos) + ":root";
                     String path = EVTaskDependencyResolver.getInstance()
                             .getCanonicalTaskName(id);
                     if (addLabelData(data, path, labelPaths, labelData))
