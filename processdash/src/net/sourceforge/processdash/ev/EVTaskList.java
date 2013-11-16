@@ -901,6 +901,9 @@ public class EVTaskList extends AbstractTreeTableModel
     }
 
     protected void scanForMilestoneErrors(List<EVTask> evLeaves) {
+        if (!"errors".equalsIgnoreCase(Settings
+                .getVal("ev.showMissedMilestones")))
+            return;
         if (milestoneProvider == null)
             return;
 

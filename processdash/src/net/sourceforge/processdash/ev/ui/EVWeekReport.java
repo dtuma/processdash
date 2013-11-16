@@ -43,6 +43,7 @@ import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.ev.DefaultTaskLabeler;
 import net.sourceforge.processdash.ev.EVCalculator;
 import net.sourceforge.processdash.ev.EVDependencyCalculator;
+import net.sourceforge.processdash.ev.EVMetrics;
 import net.sourceforge.processdash.ev.EVSchedule;
 import net.sourceforge.processdash.ev.EVScheduleFiltered;
 import net.sourceforge.processdash.ev.EVScheduleRollup;
@@ -356,7 +357,8 @@ public class EVWeekReport extends TinyCGIBase {
                     out.print("\n<li>" +
                               WebServer.encodeHtmlEntities((String) i.next()));
                 out.print("\n</ul>");
-                out.print(getResource("Error_Dialog.Foot"));
+                if (!EVMetrics.isWarningOnly(errors))
+                    out.print(getResource("Error_Dialog.Foot"));
                 out.print("</b></td></tr></table>\n");
             }
         } else {
