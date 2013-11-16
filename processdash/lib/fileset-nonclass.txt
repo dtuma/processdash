@@ -1,6 +1,8 @@
 net/sourceforge/processdash/data/compiler/lexer/lexer.dat
 net/sourceforge/processdash/data/compiler/parser/parser.dat
 net/sourceforge/processdash/ev/ui/evCharts*
+net/sourceforge/processdash/ev/ui/box_checked.png
+net/sourceforge/processdash/ev/ui/box_unchecked.png
 net/sourceforge/processdash/ev/ui/chart-options-glow.png
 net/sourceforge/processdash/ev/ui/chart-options.png
 net/sourceforge/processdash/ev/ui/check.png
