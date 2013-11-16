@@ -2000,6 +2000,23 @@ public class EVTaskList extends AbstractTreeTableModel
                 changedIndexes, changedNodes);
         }
 
+        public int getIndexOfFirstTaskFinishingAfter(Date commitDate) {
+            if (commitDate == null)
+                return -1;
+
+            for (int i = 0;  i < evLeaves.size();  i++) {
+                EVTask t = (EVTask) evLeaves.get(i);
+                Date proj = EVTaskDependency.getDependencyComparisonDate(t);
+                if (proj == null)
+                    continue;
+
+                long delta = proj.getTime() - commitDate.getTime();
+                if (delta > EVCalculator.DAY_MILLIS)
+                    return i;
+            }
+
+            return evLeaves.size();
+        }
     }
 
     public TreeTableModel getMergedModel() {

@@ -24,6 +24,7 @@
 
 package net.sourceforge.processdash.ev.ui;
 
+import java.awt.BasicStroke;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
@@ -31,7 +32,11 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Frame;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Image;
+import java.awt.Insets;
+import java.awt.Point;
+import java.awt.Stroke;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.ClipboardOwner;
@@ -43,6 +48,8 @@ import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.font.TextAttribute;
@@ -75,6 +82,7 @@ import javax.swing.Box;
 import javax.swing.ButtonModel;
 import javax.swing.DefaultCellEditor;
 import javax.swing.Icon;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JCheckBoxMenuItem;
@@ -101,6 +109,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.ToolTipManager;
 import javax.swing.TransferHandler;
 import javax.swing.WindowConstants;
+import javax.swing.border.Border;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.event.TableModelEvent;
@@ -129,6 +138,7 @@ import net.sourceforge.processdash.DashboardContext;
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.ListData;
 import net.sourceforge.processdash.ev.DefaultTaskLabeler;
+import net.sourceforge.processdash.ev.EVCalculator;
 import net.sourceforge.processdash.ev.EVDependencyCalculator;
 import net.sourceforge.processdash.ev.EVHierarchicalFilter;
 import net.sourceforge.processdash.ev.EVMetadata;
@@ -140,6 +150,8 @@ import net.sourceforge.processdash.ev.EVTaskList;
 import net.sourceforge.processdash.ev.EVTaskListCached;
 import net.sourceforge.processdash.ev.EVTaskListData;
 import net.sourceforge.processdash.ev.EVTaskListRollup;
+import net.sourceforge.processdash.ev.Milestone;
+import net.sourceforge.processdash.ev.MilestoneList;
 import net.sourceforge.processdash.hier.HierarchyNote;
 import net.sourceforge.processdash.hier.HierarchyNoteManager;
 import net.sourceforge.processdash.hier.PropertyKey;
@@ -164,6 +176,7 @@ import net.sourceforge.processdash.ui.lib.JOptionPaneTweaker;
 import net.sourceforge.processdash.ui.lib.JTableColumnVisibilityAction;
 import net.sourceforge.processdash.ui.lib.JTableColumnVisibilityButton;
 import net.sourceforge.processdash.ui.lib.JTreeTable;
+import net.sourceforge.processdash.ui.lib.PaddedIcon;
 import net.sourceforge.processdash.ui.lib.PaintUtils;
 import net.sourceforge.processdash.ui.lib.TableUtils;
 import net.sourceforge.processdash.ui.lib.ToolTipTableCellRendererProxy;
@@ -199,6 +212,11 @@ public class TaskScheduleDialog implements EVTask.Listener,
     private TreeTableModel mergedModel = null;
     private TableColumnModel treeColumnModel;
     private TableColumnModel flatColumnModel = null;
+
+    private Milestone activeMilestone = null;
+    private Set<Milestone> previousMilestones = null;
+    private Date activeMilestoneDate = null;
+    private int activeMilestoneDateRow = -1;
 
     private TSAction addTaskAction, deleteTaskAction, moveUpAction,
             moveDownAction, flatViewAction, mergedViewAction, addPeriodAction,
@@ -806,6 +824,52 @@ public class TaskScheduleDialog implements EVTask.Listener,
         err.done();
     }
 
+    public void setActiveMilestone(Milestone newMilestone) {
+        if (!isFlatView())
+            newMilestone = null;
+
+        activeMilestone = newMilestone;
+        activeMilestoneDate = null;
+        activeMilestoneDateRow = -1;
+        previousMilestones = new HashSet<Milestone>();
+
+        if (newMilestone != null) {
+            // gather the set of previous milestones
+            Milestone m = newMilestone.getPreviousMilestone();
+            while (m != null) {
+                previousMilestones.add(m);
+                m = m.getPreviousMilestone();
+            }
+            // find the earliest subsequent commit date
+            m = newMilestone;
+            while (m != null) {
+                Date oneDate = m.getCommitDate();
+                activeMilestoneDate = EVCalculator.minStartDate(
+                    activeMilestoneDate, oneDate);
+                m = m.getNextMilestone();
+            }
+            // recalculate the effective row for that commit date
+            recalcActiveMilestoneDateRow();
+        }
+
+        treeTable.repaint();
+    }
+
+    private void toggleActiveMilestone(Milestone m) {
+        if (activeMilestone != null && activeMilestone.equals(m))
+            setActiveMilestone(null);
+        else
+            setActiveMilestone(m);
+    }
+
+    private void recalcActiveMilestoneDateRow() {
+        if (flatModel == null || activeMilestoneDate == null)
+            activeMilestoneDateRow = -1;
+        else
+            activeMilestoneDateRow = flatModel
+                    .getIndexOfFirstTaskFinishingAfter(activeMilestoneDate);
+    }
+
     abstract class TSAction extends AbstractAction {
 
         protected TSAction() {}
@@ -863,13 +927,15 @@ public class TaskScheduleDialog implements EVTask.Listener,
     class TaskJTreeTable extends JTreeTable implements TreeModelWillChangeListener,
                                                        TreeModelListener {
 
-        DefaultTableCellRenderer editable, readOnly, notes, dependencies;
+        DefaultTableCellRenderer editable, readOnly, milestone, notes,
+                dependencies;
         TaskDependencyCellEditor dependencyEditor;
         TreeTableModel model;
         BooleanArray cutList;
 
         public TaskJTreeTable(TreeTableModel m) {
             super(m);
+            setRowHeight(Math.max(17, getRowHeight()));
             model = m;
             cutList = new BooleanArray();
 
@@ -885,6 +951,9 @@ public class TaskScheduleDialog implements EVTask.Listener,
                                              getForeground());
 
             readOnly = new TaskTableRenderer(getSelectionBackground(),
+                                             getBackground(),
+                                             expandedColor);
+            milestone = new MilestoneCellRenderer(getSelectionBackground(),
                                              getBackground(),
                                              expandedColor);
             notes = new NoteCellRenderer(getSelectionBackground(),
@@ -915,6 +984,30 @@ public class TaskScheduleDialog implements EVTask.Listener,
             new ToolTipTimingCustomizer().install(this);
             setTransferHandler(new TransferSupport());
             setAutoscrolls(true);
+
+            if (!isRollup()) {
+                setBorder(new MilestoneBorder());
+
+                MilestoneMouseoverHandler mmh = new MilestoneMouseoverHandler();
+                addMouseListener(mmh);
+                addMouseMotionListener(mmh);
+            }
+        }
+
+        @Override
+        public String getToolTipText(MouseEvent event) {
+            if (activeMilestoneDateRow != -1) {
+                Point p = event.getPoint();
+                int markerY = (activeMilestoneDateRow + 1) * getRowHeight();
+                int delta = p.y - markerY;
+                if (Math.abs(delta) < 4) {
+                    return resources.format(
+                        "Task.Milestone_Date.Commit_Line_Tip_FMT",
+                        activeMilestoneDate, activeMilestone.getName());
+                }
+            }
+
+            return super.getToolTipText(event);
         }
 
         public TableCellRenderer getCellRenderer(int row, int column) {
@@ -923,6 +1016,8 @@ public class TaskScheduleDialog implements EVTask.Listener,
                 return dependencies;
             else if (modelCol == EVTaskList.NOTES_COLUMN)
                 return notes;
+            else if (modelCol == EVTaskList.MILESTONE_COLUMN)
+                return milestone;
 
             TableCellRenderer result = super.getCellRenderer(row, column);
             if (result instanceof JTreeTable.TreeTableCellRenderer)
@@ -1002,6 +1097,178 @@ public class TaskScheduleDialog implements EVTask.Listener,
                 return new Dimension(originalDimension.width,
                                      originalDimension.height-3);
             }
+        }
+
+        class MilestoneCellRenderer extends TaskTableRenderer {
+
+            private Icon checkedIcon, uncheckedIcon;
+            private Color activeMilestoneColor, previousMilestoneColor;
+            private String checkboxTip;
+
+            public MilestoneCellRenderer(Color sel, Color desel, Color fg) {
+                super(sel, desel, fg);
+                checkedIcon = new PaddedIcon(new ImageIcon(getClass()
+                        .getResource("box_checked.png")), 0, 1, 0, 0);
+                uncheckedIcon = new PaddedIcon(new ImageIcon(getClass()
+                        .getResource("box_unchecked.png")), 0, 1, 0, 0);
+                activeMilestoneColor = new Color(216, 184, 229);
+                previousMilestoneColor = new Color(240, 223, 247);
+            }
+
+            @Override
+            public Component getTableCellRendererComponent(JTable table,
+                    Object value, boolean isSelected, boolean hasFocus,
+                    int row, int column) {
+                Component result = super.getTableCellRendererComponent(table,
+                    value, isSelected, hasFocus, row, column);
+
+                MilestoneList mVal = (MilestoneList) value;
+                boolean isActiveMilestone = isActiveMilestone(mVal);
+
+                if (row != mouseOverMilestoneRow //
+                        || mVal == null || mVal.size() != 1) {
+                    setIcon(null);
+                    checkboxTip = null;
+                } else {
+                    setIcon(isActiveMilestone ? checkedIcon : uncheckedIcon);
+                    checkboxTip = resources.format(
+                        "Task.Milestone_Date.Checkbox_Tip_FMT", //
+                        mVal.get(0).toString());
+                }
+
+                if (isActiveMilestone) {
+                    setBackground(activeMilestoneColor);
+                    setOpaque(true);
+                } else if (isPreviousMilestone(mVal)) {
+                    setBackground(previousMilestoneColor);
+                    setOpaque(true);
+                }
+
+                setHorizontalAlignment(SwingConstants.LEFT);
+                return result;
+            }
+
+            private boolean isActiveMilestone(MilestoneList mVal) {
+                return mVal != null && mVal.contains(activeMilestone);
+            }
+
+            private boolean isPreviousMilestone(MilestoneList mVal) {
+                if (mVal != null && previousMilestones != null)
+                    for (Milestone m : mVal)
+                        if (previousMilestones.contains(m))
+                            return true;
+                return false;
+            }
+
+            @Override
+            public String getToolTipText(MouseEvent event) {
+                if (checkboxTip != null
+                        && event.getPoint().getX() < uncheckedIcon
+                                .getIconWidth())
+                    return checkboxTip;
+                else
+                    return super.getToolTipText(event);
+            }
+
+        }
+
+        int mouseOverMilestoneRow = -1;
+
+        class MilestoneMouseoverHandler implements MouseListener,
+                MouseMotionListener {
+
+            public void mouseMoved(MouseEvent e) {
+                int row = -1;
+                if (isFlatView()) {
+                    Point point = e.getPoint();
+                    int col = convertColumnIndexToModel(columnAtPoint(point));
+                    if (col == EVTaskList.MILESTONE_COLUMN)
+                        row = rowAtPoint(point);
+                }
+                setHighlightRow(row);
+            }
+
+            public void mouseExited(MouseEvent e) {
+                setHighlightRow(-1);
+            }
+
+            private void setHighlightRow(int newRow) {
+                if (newRow == mouseOverMilestoneRow)
+                    return;
+
+                int oldRow = mouseOverMilestoneRow;
+                mouseOverMilestoneRow = newRow;
+                repaintMilestoneCellForRow(oldRow);
+                repaintMilestoneCellForRow(newRow);
+            }
+
+            private void repaintMilestoneCellForRow(int row) {
+                if (row != -1)
+                    repaint(getCellRect(row,
+                        convertColumnIndexToView(EVTaskList.MILESTONE_COLUMN),
+                        true));
+            }
+
+            public void mouseClicked(MouseEvent e) {}
+            public void mousePressed(MouseEvent e) {}
+            public void mouseReleased(MouseEvent e) {}
+            public void mouseEntered(MouseEvent e) {}
+            public void mouseDragged(MouseEvent e) {}
+        }
+
+        private boolean handleMilestoneClick(int row, int col, EventObject e) {
+            if (convertColumnIndexToModel(col) == EVTaskList.MILESTONE_COLUMN
+                    && e instanceof MouseEvent
+                    && isFlatView()) {
+                double absX = ((MouseEvent) e).getPoint().getX();
+                double relX = absX - getCellRect(row, col, false).getX();
+                if (0 <= relX && relX <= 14) {
+                    MilestoneList mVal = (MilestoneList) getValueAt(row, col);
+                    if (mVal != null && mVal.size() == 1)
+                        toggleActiveMilestone(mVal.get(0));
+                }
+                return true;
+            }
+            return false;
+        }
+
+        class MilestoneBorder implements Border {
+
+            private Insets insets;
+            private Stroke stroke;
+            private Color color;
+
+            public MilestoneBorder() {
+                insets = new Insets(0, 0, 0, 0);
+                stroke = new BasicStroke(3f, BasicStroke.CAP_SQUARE,
+                        BasicStroke.JOIN_MITER, 10.0f,
+                        new float[] { 10f, 10f }, 0.0f);
+                color = new Color(155, 0, 217);
+            }
+
+            public void paintBorder(Component c, Graphics g, int x, int y,
+                    int width, int height) {
+                if (activeMilestoneDateRow != -1 && g instanceof Graphics2D) {
+                    Graphics2D g2 = (Graphics2D) g;
+                    Stroke oldStroke = g2.getStroke();
+                    g2.setStroke(stroke);
+                    g2.setColor(color);
+
+                    int yy = (activeMilestoneDateRow+1) * getRowHeight() + y-1;
+                    g2.drawLine(x, yy, x + width, yy);
+
+                    g2.setStroke(oldStroke);
+                }
+            }
+
+            public Insets getBorderInsets(Component c) {
+                return insets;
+            }
+
+            public boolean isBorderOpaque() {
+                return true;
+            }
+
         }
 
         class NoteCellRenderer extends DefaultTableCellRenderer {
@@ -1164,6 +1431,9 @@ public class TaskScheduleDialog implements EVTask.Listener,
         }
 
         public boolean editCellAt(int row, int column, EventObject e) {
+            if (handleMilestoneClick(row, column, e))
+                return false;
+
             boolean result = super.editCellAt(row, column, e);
 
             if (result == true && e instanceof MouseEvent)
@@ -1902,6 +2172,7 @@ public class TaskScheduleDialog implements EVTask.Listener,
     }
 
     public void evRecalculated(EventObject e) {
+        recalcActiveMilestoneDateRow();
 
         // We have to manually generate events for the JTreeTable,
         // since it has installed some wrapper object to convert the
@@ -2487,6 +2758,7 @@ public class TaskScheduleDialog implements EVTask.Listener,
             treeTable.setDragEnabled(false);
             treeTable.setSelectionMode(
                     ListSelectionModel.SINGLE_INTERVAL_SELECTION);
+            setActiveMilestone(null);
         } else {
             boolean isFirstTimeForFlatView = false;
             if (flatModel == null) {
