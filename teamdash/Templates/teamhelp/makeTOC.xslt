@@ -20,7 +20,7 @@
 <xsl:template match="/">
 <xsl:text disable-output-escaping="yes">&lt;!--</xsl:text>
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2003-2008 Tuma Solutions, LLC
+// Copyright (C) 2003-2013 Tuma Solutions, LLC
 // 
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -107,6 +107,7 @@ A  { color: black; text-decoration: none }
     <img align="absmiddle" src="Images/spacer.gif" height="1" 
          width="{$indentWidth}" />
 </xsl:if>
+<a href="frame.html?{$target}" target="_top">
 <img align="absmiddle" src="{$imageSrc}">
     <xsl:choose>
         <xsl:when test="$image = 'BookIcon'">
@@ -118,7 +119,7 @@ A  { color: black; text-decoration: none }
             <xsl:attribute name="height">20</xsl:attribute>
         </xsl:when>
     </xsl:choose>
-</img>
+</img></a>
 <img align="absmiddle" src="Images/spacer.gif" width="4" height="1" />
 <a href="{$targetHref}"><xsl:value-of select="@text"/></a>
 </td></tr>
