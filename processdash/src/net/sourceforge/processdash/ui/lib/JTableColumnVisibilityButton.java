@@ -79,6 +79,8 @@ public class JTableColumnVisibilityButton extends JButton {
 
     public JScrollPane install(JScrollPane sp) {
         sp.setCorner(JScrollPane.UPPER_RIGHT_CORNER, this);
+        sp.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
         return sp;
     }
+
 }
