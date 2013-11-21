@@ -46,6 +46,7 @@ import javax.swing.table.TableColumn;
 
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.ui.lib.JTableColumnVisibilityButton;
+import net.sourceforge.processdash.ui.lib.PaddedIcon;
 
 import teamdash.merge.ui.MergeConflictHyperlinkHandler;
 import teamdash.wbs.columns.WorkflowOptionalColumn;
@@ -87,7 +88,7 @@ public class WorkflowEditor implements MergeConflictHyperlinkHandler {
         workflowModel.addTableModelListener(new UndoableEventRepeater());
 
         table.setEditingEnabled(teamProject.isReadOnly() == false);
-        buildToolbar();
+        buildToolbar(columnSelector.getAction());
         frame = new JFrame(teamProject.getProjectName() +
                            " - Common Team Workflows");
         frame.getContentPane().add(columnSelector.install(new JScrollPane(table)));
@@ -172,7 +173,7 @@ public class WorkflowEditor implements MergeConflictHyperlinkHandler {
         return button;
     }
 
-    private void buildToolbar() {
+    private void buildToolbar(Action... actions) {
         toolBar = new JToolBar();
         toolBar.setFloatable(false);
         toolBar.setMargin(new Insets(0,0,0,0));
@@ -180,6 +181,7 @@ public class WorkflowEditor implements MergeConflictHyperlinkHandler {
         addToolbarButton(undoList.getUndoAction());
         addToolbarButton(undoList.getRedoAction());
         addToolbarButtons(table.getEditingActions());
+        addToolbarButtons(actions);
         toolBar.addSeparator();
         addToolbarButtons(getWorkflowActions());
     }
@@ -198,13 +200,34 @@ public class WorkflowEditor implements MergeConflictHyperlinkHandler {
         button.setFocusPainted(false);
         button.setToolTipText((String) a.getValue(Action.NAME));
         button.setText(null);
-
-        Icon icon = button.getIcon();
-        if (icon != null && !(icon instanceof ImageIcon))
-            button.setDisabledIcon(IconFactory.getModifiedIcon(icon,
-                    IconFactory.DISABLED_ICON));
+        tweakIconsForToolbarButton(button);
 
         toolBar.add(button);
+    }
+
+    private void tweakIconsForToolbarButton(JButton button) {
+        Icon icon = button.getIcon();
+        if (icon == null)
+            return;
+
+        // most of our icons are 16x16, but some are smaller.  The toolbar
+        // draws a smaller button for those icons, which looks bad.  Pad the
+        // small icons to avoid this problem.
+        int width = icon.getIconWidth();
+        int height = icon.getIconHeight();
+        if (width < 16 || height < 16) {
+            int padL = Math.max(0, (16 - width) / 2);
+            int padR = Math.max(0, 16 - width - padL);
+            int padT = Math.max(0, (16 - height) / 2);
+            int padB = Math.max(0, 16 - height - padT);
+            icon = new PaddedIcon(icon, padT, padL, padB, padR);
+            button.setIcon(icon);
+        }
+
+        // make sure we have a disabled icon set if needed
+        if (!(icon instanceof ImageIcon))
+            button.setDisabledIcon(IconFactory.getModifiedIcon(icon,
+                    IconFactory.DISABLED_ICON));
     }
 
     public void addChangeListener(ChangeListener l) {
