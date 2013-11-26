@@ -82,39 +82,9 @@ Project Setup Wizard<br><!--#echo var=PATH_TRANSLATED --></h1></td></tr>
     document.write("'>");
 </script>
 
-<!--#replace token=":" var=[file_sep] -->
-<!--#replace token="TPID" var=[Team_Process_PID] -->
+<!--#include file="join.class?formdata" -->
 
-<input type="hidden" name="Template_ID"
-<!--#if [Individuals_Using_Stubless_Phases] || teamSync.noPhaseStubs -->
-      value="TPID/Indiv2Root"
-<!--#else-->
-      value="TPID/IndivRoot"
-<!--#endif-->  >
-
-<input type="hidden" name="Package_ID" value="TPID">
-<input type="hidden" name="Package_Version"
-      value="<!--#echo Dash_Package_TPID -->">
-
-<input type="hidden" name="Template_Path"
-<!--#if [Team_Directory] -->
-      value="<!--#echo [Team_Directory] -->:Templates:TPID.zip">
-<!--#else-->
-      value="">
-<!--#endif-->
-
-<input type="hidden" name="Template_Path_UNC"
-<!--#if [Team_Directory_UNC] -->
-      value="<!--#echo [Team_Directory_UNC] -->:Templates:TPID.zip">
-<!--#else-->
-      value="">
-<!--#endif-->
-
-<input type="hidden" name="Continuation_URI"
-      value="/TPID/setup/wizard.class?page=indiv">
 <input type="hidden" name="page" value="join">
-
-<!--#endreplace--><!--#endreplace-->
 
 <table width='100%'><tr><td width='100%' align='right' nowrap>
 <input type=button name=next value='Next'

@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Tuma Solutions, LLC
+// Copyright (C) 2002-2013 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -26,25 +26,22 @@ package teamdash.templates.setup;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.InetAddress;
 import java.util.Map;
 
-import net.sourceforge.processdash.data.ImmutableStringData;
-import net.sourceforge.processdash.data.SimpleData;
-import net.sourceforge.processdash.data.repository.DataRepository;
+import org.w3c.dom.Element;
+import org.w3c.dom.NamedNodeMap;
+import org.xml.sax.SAXException;
+
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.net.http.TinyCGIException;
 import net.sourceforge.processdash.net.http.WebServer;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.HTMLUtils;
+import net.sourceforge.processdash.util.XMLUtils;
 
 
 /** This class helps an individual to join a team project.
- *
- * Normally, a team member would connect to this script from a remote
- * machine.  This script tests to see if they have the dashboard running,
- * and if so, prints a
  */
 public class join extends TinyCGIBase {
 
@@ -58,13 +55,12 @@ public class join extends TinyCGIBase {
     {
         super.service(in, out, env);
 
-        // TODO: If an individual has already joined this project,
-        // detect that and display an error message.
-
         maybeReroot();
 
         if (parameters.get("xml") != null)
             internalRedirect(JOIN_XML);
+        else if (parameters.get("formdata") != null)
+            printJoinFormData();
         else
             printRedirect(JOIN_URL);
     }
@@ -82,6 +78,39 @@ public class join extends TinyCGIBase {
         outStream.flush();
     }
 
+    /**
+     * The "join team project" page includes a form with a number of hidden
+     * data elements.  These elements contain the same information as the
+     * attributes in the joining document.  Read the XML joining document
+     * and generate an HTML fragment that communicates the same data.
+     */
+    private void printJoinFormData() throws IOException {
+        super.writeHeader();
+
+        Element joinXml;
+        try {
+            String uri = makeURI(JOIN_XML);
+            String joinInfo = getTinyWebServer().getRequestAsString(uri);
+            joinXml = XMLUtils.parse(joinInfo).getDocumentElement();
+        } catch (SAXException e) {
+            IOException ioe = new IOException();
+            ioe.initCause(e);
+            throw ioe;
+        }
+
+        NamedNodeMap attributes = joinXml.getAttributes();
+        for (int i = 0; i < attributes.getLength(); i++) {
+            String name = attributes.item(i).getNodeName();
+            String value = attributes.item(i).getNodeValue();
+            out.print("<input type=\"hidden\" name=\"");
+            out.print(HTMLUtils.escapeEntities(name));
+            out.print("\" value=\"");
+            out.print(HTMLUtils.escapeEntities(value));
+            out.print("\">\n");
+        }
+        out.flush();
+    }
+
     protected void printRedirect(String filename) {
         out.print("Location: ");
         out.print(makeURI(filename));
@@ -92,29 +121,6 @@ public class join extends TinyCGIBase {
     private String makeURI(String filename) {
         return WebServer.urlEncodePath(getPrefix()) +
             "//" + getProcessID() + "/setup/" + filename;
-    }
-
-    /** Save a value into the data repository. */
-    protected void putValue(String name, String value) {
-        putValue(name, new ImmutableStringData(value));
-    }
-
-    protected void putValue(String name, SimpleData dataValue) {
-        DataRepository data = getDataRepository();
-        String prefix = getPrefix();
-        if (prefix == null) prefix = "";
-        String dataName = DataRepository.createDataName(prefix, name);
-        data.putValue(dataName, dataValue);
-    }
-
-    /** Get a value from the data repository. */
-    protected String getValue(String name) {
-        DataRepository data = getDataRepository();
-        String prefix = getPrefix();
-        if (prefix == null) prefix = "";
-        String dataName = DataRepository.createDataName(prefix, name);
-        SimpleData d = data.getSimpleValue(dataName);
-        return (d == null ? null : d.format());
     }
 
     /** If the current prefix doesn't name the root of a team project,
@@ -150,31 +156,5 @@ public class join extends TinyCGIBase {
         int slashPos = path.indexOf('/');
         return path.substring(0, slashPos);
     }
-
-    protected String getRemoteAddress() {
-        String remoteAddress = (String) env.get("REMOTE_ADDR");
-        if (remoteAddress == null) return null;
-        if (remoteAddress.length() == 0) return null;
-        if (remoteAddress.equals("127.0.0.1")) return null;
-        try {
-            String host = InetAddress.getLocalHost().getHostAddress();
-            if (remoteAddress.equals(host)) return null;
-        } catch (IOException ioe) {}
-        return remoteAddress;
-    }
-
-    /*
-    protected boolean testForRemoteDashboard(String address) {
-        try {
-            URL url = new URL("http://"+address+":2468/Nonexistent_File");
-            URLConnection conn = url.openConnection();
-            conn.connect();
-            int status = ((HttpURLConnection) conn).getResponseCode();
-            return true;
-
-        } catch (IOException ioe) { }
-        return false;
-    }
-    */
 
 }
