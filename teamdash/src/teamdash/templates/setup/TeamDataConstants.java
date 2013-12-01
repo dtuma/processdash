@@ -55,4 +55,9 @@ public interface TeamDataConstants {
     public static final String OBSOLETE_DIR_MARKER_FILENAME =
         "00-This-Directory-is-Obsolete.txt";
 
+    public static final String DATASET_OWNER_USERNAME_SYSPROP =
+            "com.tuma_solutions.teamserver.datasetOwner.username";
+    public static final String DATASET_OWNER_FULLNAME_SYSPROP =
+            "com.tuma_solutions.teamserver.datasetOwner.fullname";
+
 }

@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2012 Tuma Solutions, LLC
+// Copyright (C) 2002-2013 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -29,6 +29,7 @@ import java.util.Map;
 
 import org.xmlpull.v1.XmlSerializer;
 
+import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.data.DoubleData;
 import net.sourceforge.processdash.data.ListData;
 import net.sourceforge.processdash.data.NumberData;
@@ -75,6 +76,13 @@ public class UserDataWriter extends TinyCGIBase {
         ser.attribute(null, PROCESS_ID_ATTR, processID);
         ser.attribute(null, VERSION_ATTR, processVersion);
         ser.attribute(null, INITIALS_ATTR, initials);
+        String userName = System
+                .getProperty(TeamDataConstants.DATASET_OWNER_USERNAME_SYSPROP);
+        if (hasValue(userName))
+            ser.attribute(null, OWNER_USERNAME_ATTR, userName);
+        String fullName = ProcessDashboard.getOwnerName(getDataContext());
+        if (hasValue(fullName))
+            ser.attribute(null, OWNER_FULLNAME_ATTR, fullName);
         ser.attribute(null, TIMESTAMP_ATTR, XMLUtils.saveDate(timestamp));
 
         if (hasValue(getData("Enable_Reverse_Sync"))) {
@@ -563,6 +571,10 @@ public class UserDataWriter extends TinyCGIBase {
     private static final String VERSION_ATTR = "dumpFileVersion";
 
     private static final String INITIALS_ATTR = "initials";
+
+    private static final String OWNER_USERNAME_ATTR = "userName";
+
+    private static final String OWNER_FULLNAME_ATTR = "fullName";
 
     private static final String TIMESTAMP_ATTR = "timestamp";
 
