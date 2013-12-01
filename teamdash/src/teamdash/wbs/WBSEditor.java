@@ -229,7 +229,10 @@ public class WBSEditor implements WindowListener, SaveListener,
 
         if (isMode(MODE_PLAIN)) {
             reverseSynchronizer = new WBSSynchronizer(teamProject, data);
+            // TODO: needs to be conditional
+            reverseSynchronizer.setCreateMissingTeamMembers(true);
             reverseSynchronizer.run();
+            reverseSynchronizer.setCreateMissingTeamMembers(false);
             showActualData = reverseSynchronizer.getFoundActualData();
             showActualSize = reverseSynchronizer.getFoundActualSizeData();
         }

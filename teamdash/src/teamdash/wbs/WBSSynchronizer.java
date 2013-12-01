@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2012 Tuma Solutions, LLC
+// Copyright (C) 2002-2013 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -45,10 +45,12 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
+import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.VersionUtils;
 
 import teamdash.XMLUtils;
 import teamdash.team.TeamMember;
+import teamdash.team.TeamMemberList;
 import teamdash.team.WeeklySchedule;
 import teamdash.wbs.columns.NotesColumn;
 import teamdash.wbs.columns.SizeActualDataColumn;
@@ -66,6 +68,8 @@ public class WBSSynchronizer {
     private DataTableModel dataModel;
 
     private Date effectiveDate;
+
+    private boolean createMissingTeamMembers = false;
 
     private boolean needsWbsEvent = false;
 
@@ -101,6 +105,14 @@ public class WBSSynchronizer {
         this.handlers = createSyncHandlers();
     }
 
+    public boolean isCreateMissingTeamMembers() {
+        return createMissingTeamMembers;
+    }
+
+    public void setCreateMissingTeamMembers(boolean createMissingTeamMembers) {
+        this.createMissingTeamMembers = createMissingTeamMembers;
+    }
+
     public void run() {
         effectiveDate = new Date(0);
         foundActualData = needsWbsEvent = false;
@@ -115,6 +127,9 @@ public class WBSSynchronizer {
             Element dump = getUserDumpData(m, exportFiles, directDumpData);
             syncTeamMember(m, dump, nodeMap);
         }
+
+        if (createMissingTeamMembers)
+            addMissingTeamMembers(exportFiles);
 
         teamProject.getWBS().getRoot().setAttribute(EFFECTIVE_DATE_ATTR,
             effectiveDate);
@@ -216,6 +231,9 @@ public class WBSSynchronizer {
         if (initials == null)
             return null; // this individual is not fully set up
 
+        // find the pdash file for the person with these initials
+        File f = exportFiles.remove(initials.toLowerCase());
+
         // check to see if the directly downloaded sync data is available, and
         // if it represents the user in question.  If so, return it.
         if (directDumpData != null) {
@@ -224,10 +242,13 @@ public class WBSSynchronizer {
                 return directDumpData;
         }
 
-        File f = exportFiles.get(initials.toLowerCase());
         if (f == null)
             return null; // this individual has not exported a pdash file
+        else
+            return getUserDumpData(f);
+    }
 
+    private Element getUserDumpData(File f) {
         FileInputStream fileInputStream = null;
         try {
             fileInputStream = new FileInputStream(f);
@@ -251,6 +272,90 @@ public class WBSSynchronizer {
         }
         return null;
     }
+
+    private void addMissingTeamMembers(Map<String, File> unclaimedExportFiles) {
+        Date timestamp = getLastTeamListReverseSyncDate();
+        TeamMemberList team = new TeamMemberList(teamProject.getTeamMemberList());
+        boolean madeChange = false;
+
+        for (File file : unclaimedExportFiles.values())
+            if (addMissingTeamMember(timestamp, team, file))
+                madeChange = true;
+
+        if (madeChange)
+            teamProject.getTeamMemberList().copyFrom(team);
+
+        teamProject.getWBS().getRoot().setAttribute(TEAM_LIST_SYNC_TIMESTAMP,//
+            Long.toString(System.currentTimeMillis()));
+    }
+
+    // get a timestamp indicating when the team member list was last synced
+    private Date getLastTeamListReverseSyncDate() {
+        Object lastSync = teamProject.getWBS().getRoot()
+                .getAttribute(TEAM_LIST_SYNC_TIMESTAMP);
+        if (lastSync instanceof String) {
+            try {
+                return new Date(Long.parseLong((String) lastSync));
+            } catch (Exception e) {}
+        }
+
+        return new Date();
+    }
+
+    private boolean addMissingTeamMember(Date syncTimestamp,
+            TeamMemberList team, File f) {
+        Element xml = getUserDumpData(f);
+        if (xml == null)
+            return false;
+
+        Date dumpTimestamp = XMLUtils.getXMLDate(xml, TIMESTAMP_ATTR);
+        if (dumpTimestamp == null || dumpTimestamp.before(syncTimestamp))
+            return false;
+
+        String initials = xml.getAttribute(INITIALS_ATTR);
+        String fullName = xml.getAttribute(OWNER_FULLNAME_ATTR);
+        if (!XMLUtils.hasValue(initials) || !XMLUtils.hasValue(fullName))
+            return false;
+
+        String username = xml.getAttribute(OWNER_USERNAME_ATTR);
+        if (containsTeamMember(team, initials, fullName, username))
+            return false;
+
+        addTeamMember(team, initials, username, fullName);
+        return true;
+    }
+
+    private boolean containsTeamMember(TeamMemberList team, String initials,
+            String fullName, String username) {
+        for (TeamMember m : team.getTeamMembers()) {
+            // same initials as an existing team member?
+            if (initials.equalsIgnoreCase(m.getInitials()))
+                return true;
+            // same name as an existing team member?
+            if (XMLUtils.hasValue(fullName)
+                    && fullName.equalsIgnoreCase(m.getName()))
+                return true;
+            // username matches the server identity of an existing team member?
+            String serverInfo = m.getServerIdentityInfo();
+            if (XMLUtils.hasValue(username) && XMLUtils.hasValue(serverInfo)
+                    && HTMLUtils.parseQuery(serverInfo).containsValue(username))
+                return true;
+        }
+
+        return false;
+    }
+
+    private void addTeamMember(TeamMemberList team, String initials,
+            String username, String fullName) {
+        team.maybeAddEmptyRow();
+        TeamMember m = team.get(team.getRowCount() - 1);
+        m.setName(fullName);
+        m.setInitials(initials);
+        if (XMLUtils.hasValue(username))
+            m.setServerIdentityInfo("searchType=username&search=" + username
+                    + "&username=" + username);
+    }
+
 
     /**
      * Synchronize the WBS with reverse sync data for a given team member.
@@ -735,6 +840,12 @@ public class WBSSynchronizer {
     private static final String INITIALS_ATTR = "initials";
 
     private static final String TIMESTAMP_ATTR = "timestamp";
+
+    private static final String OWNER_USERNAME_ATTR = "userName";
+
+    private static final String OWNER_FULLNAME_ATTR = "fullName";
+
+    private static final String TEAM_LIST_SYNC_TIMESTAMP = "Team List Reverse Sync Timestamp";
 
     private static final String PLAN_TIME_CHANGE_TAG = "planTimeChange";
 
