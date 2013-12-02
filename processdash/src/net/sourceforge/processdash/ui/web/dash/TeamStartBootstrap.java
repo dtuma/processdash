@@ -45,6 +45,7 @@ import net.sourceforge.processdash.DashController;
 import net.sourceforge.processdash.InternalSettings;
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.ImmutableStringData;
+import net.sourceforge.processdash.data.ListData;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.hier.DashHierarchy;
@@ -128,6 +129,8 @@ public class TeamStartBootstrap extends TinyCGIBase {
     private static final String TEMPLATE_UNC = "setup//Template_Path_UNC";
     private static final String CONTINUATION_URI = "setup//Continuation_URI";
     private static final String RELAX_PATH_REQ = "setup//Relax_Path_Reqt";
+    private static final String PROJECT_ID = "Project_ID";
+    private static final String ALL_JOINING_DATA = "setup//Joining_Data";
 
     // value indicating we should help an individual join a team project
     private static final String JOIN_PAGE = "join";
@@ -734,6 +737,7 @@ public class TeamStartBootstrap extends TinyCGIBase {
         putValue(TEMPLATE_UNC, e.getAttribute("Template_Path_UNC"));
         putValue(CONTINUATION_URI, e.getAttribute("Continuation_URI"));
         putValue(RELAX_PATH_REQ, e.getAttribute("Relax_Path_Reqt"));
+        saveAllJoiningData(XMLUtils.getAttributesAsMap(e));
 
         return null;
     }
@@ -749,7 +753,17 @@ public class TeamStartBootstrap extends TinyCGIBase {
         putValue(TEMPLATE_UNC, getParameter("Template_Path_UNC"));
         putValue(CONTINUATION_URI, getParameter("Continuation_URI"));
         putValue(RELAX_PATH_REQ, getParameter("Relax_Path_Reqt"));
+        saveAllJoiningData(parameters);
         joinProject();
+    }
+
+    private void saveAllJoiningData(Map values) {
+        ListData l = null;
+        if (values.containsKey(PROJECT_ID)) {
+            l = new ListData();
+            l.add(values);
+        }
+        putValue(ALL_JOINING_DATA, l);
     }
 
 
