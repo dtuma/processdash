@@ -1,0 +1,111 @@
+<html><!--#do-not-translate-->
+<head>
+<title>Team Project Setup Wizard</title>
+<link rel=stylesheet type='text/css' href='/dash/teamStart.css'>
+<style>
+   div.err { color:#700; font-weight:bold }
+</style>
+<script>
+    function save(root, relPath, fullPath) {
+        if (!fullPath) { fullPath = "/"; }
+        document.forms[0].elements[2].value = fullPath;
+    }
+</script>
+</head>
+<body>
+
+<table><tr><td><img align="left" src="/Images/team.jpg" width=50 
+height=50></td><td><h2>Team Project Setup Wizard</h2></td></tr></table>
+
+<p>Please review the following information, and enter the values you
+would like to use to set up this team project:</p>
+
+<form action='wizard.class' method='post'>
+<input type='hidden' name='page' value='indivEnterData'>
+
+
+
+<!--#if not [TeamProjectStub Tag] -->
+
+<table><tr><td><b>Project name:</b></td>
+<td><input type="text" name="Node_Name"
+           value="<!--#echo [setup//Node_Name] -->"
+           size="60">
+    <!--#if nodeNameMissing -->
+        <div class="err">You must enter a name for the project.</div>
+    <!--#elif nodeNameSlash -->
+        <div class="err">The project name cannot contain the '/' character.</div>
+    <!--#elif nodeNameDuplicateProject -->
+        <div class="err">There is already a project in your hierarchy with the
+        name and parent you selected.  Please choose a different project
+        name.</div>
+    <!--#endif-->
+</td></tr></table>
+
+
+<table><tr><td><b>Project parent:</b></td>
+<td><input type="text" name="Node_Location"
+           value="<!--#echo [setup//Node_Location] -->"
+           size="45">&nbsp;<input type="button" name="browse" value="Browse..."
+           onclick="window.open('selectTopNode.class?call=save&prompt=Select+Parent', 'popup', 'width=300,height=200,scrollbars=1');">
+    <!--#if nodeLocationMissing -->
+        <div class="err">You must choose a location in the hierarchy where the
+        project should be created.</div>
+    <!--#elif nodeLocationNotFound -->
+        <div class="err">The parent node you selected doesn't currently exist
+        in your dashboard hierarchy.</div>
+    <!--#elif nodeLocationBadParent -->
+        <div class="err">The dashboard cannot create the project at the
+        location you selected in your dashboard hierarchy.  Please select a
+        different location.</div>
+    <!--#endif-->
+</td></tr></table>
+
+<!--#endif not TeamProjectStub -->
+
+<table><tr><td><b>Your Initials:</b></td>
+<td><input type="text" name="Initials"
+           value="<!--#echo [setup//Indiv_Initials] -->"
+           size="10">
+    <!--#if initialsMissing -->
+        <div class="err">You must enter your initials.</div>
+    <!--#elif initialsNonAlpha -->
+        <div class="err">Please use only the letters 'a' through 'z' when
+	entering your initials.</div>
+    <!--#endif-->
+</td></tr></table>
+
+<table><tr><td><b>Your Name:</b></td>
+<td><input type=text name="Full_Name" size=50
+           value="<!--#echo [/Owner] -->"
+           size=10>
+    <!--#if fullNameMissing -->
+        <div class="err">You must enter your name.</div>
+    <!--#endif-->
+</td></tr></table>
+
+<table><tr><td><b>Schedule Name:</b></td>
+<td><input type=text name=Schedule_Name
+           value="<!--#echo var='[setup//Indiv_Schedule]' -->"
+           size=60>
+    <!--#if scheduleNameMissing -->
+        <div class="err">You must enter a name for the team schedule.</div>
+    <!--#elif scheduleNameInvalid -->
+        <div class="err">Schedule names cannot contain the '/' character.
+        Please enter a new, valid name for the schedule.</div>
+    <!--#elif scheduleNameDuplicate -->
+        <div class="err">There is already a schedule with the name you
+        entered.  Schedule names must be unique; please enter a new, unique
+        name for the schedule.</div>
+    <!--#endif-->
+</td></tr></table>
+
+
+
+<div style="text-align: right">
+<input type=submit name=next value='Finish'>
+</div>
+
+</form>
+</body>
+</html>

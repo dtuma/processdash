@@ -9,7 +9,9 @@
 <body>
 
 <table><tr><td><img align="left" src="/Images/team.jpg" width=50 
-height=50></td><td><h1>Duplicate Team Project</h1></td></tr></table>
+height=50></td><td><h1>Team Project Setup Wizard</h1></td></tr></table>
+
+<h2>Duplicate Team Project</h2>
 
 <!--#if teamRootPresent -->
 
@@ -17,7 +19,7 @@ height=50></td><td><h1>Duplicate Team Project</h1></td></tr></table>
 personal dashboard for each team member, and a separate dashboard to
 perform team rollups.  However, it appears that you are attempting to
 place the data for an individual inside the same dashboard as the team
-rollup.  This mode of operation is discouraged.</p>
+rollup.  This mode of operation is unsupported.</p>
 
 <p>If you are currently running the Team Dashboard and a personal
 dashboard on the same computer, there is a slight chance that this
@@ -39,9 +41,13 @@ project a second time.  This is usually an accident.</p>
 
 <ul>
 
-<li>If you are an individual team member, you can close this window.
-    You are already joined to the team project, so no additional steps
-    are necessary.</li>
+<li>If you are an individual team member, you can close this window.  You are
+    already joined to the team project, so no additional steps are necessary.
+    If you entered the wrong initials the first time you joined (and you are
+    trying to correct that mistake), you can edit your initials on the 
+    <a href="<!--#echo var='personalRoot' encoding='url' -->//<!--#echo
+    [setup//Package_ID] -->/indiv_project_parameters.shtm">Project Parameters
+    and Settings</a> page.</li>
 
 <li>If you are a team leader, and you are attempting to create
     personal plans for several individuals, you should close all of
@@ -54,7 +60,7 @@ project a second time.  This is usually an accident.</p>
     intentionally desire to join the team project several times from a
     single personal dashboard (for example, to simulate several
     hypothetical team members).  If this applies to you,
-    <a href="wizard.class?page=indiv&ignoreDups">click here</a>.</li>
+    <a href="wizard.class?page=indivStart&ignoreDups">click here</a>.</li>
 
 </ul>
 

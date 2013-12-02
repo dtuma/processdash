@@ -2,11 +2,6 @@
 <head>
 <title>Team Project Setup Wizard</title>
 <link rel=stylesheet type='text/css' href='/dash/teamStart.css'>
-<style>
-TD.label { font-weight: bold;   vertical-align: top;
-           text-align: left;    padding-right: .5cm }
-TD.value { font-family: monospace }
-</style>
 </head>
 <body>
 
@@ -30,3 +25,4 @@ the team schedule manually.</td></tr></table>
 
 </form>
 </body>
+</html>

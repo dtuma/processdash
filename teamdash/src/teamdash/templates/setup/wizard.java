@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Tuma Solutions, LLC
+// Copyright (C) 2002-2013 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -32,21 +32,25 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.Vector;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 
 import net.sourceforge.processdash.BackgroundTaskManager;
 import net.sourceforge.processdash.DashController;
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.ImmutableDoubleData;
 import net.sourceforge.processdash.data.ImmutableStringData;
+import net.sourceforge.processdash.data.ListData;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.StringData;
 import net.sourceforge.processdash.data.repository.DataRepository;
@@ -56,6 +60,7 @@ import net.sourceforge.processdash.ev.EVTaskListRollup;
 import net.sourceforge.processdash.ev.EVTaskListXML;
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.PropertyKey;
+import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.net.http.WebServer;
 import net.sourceforge.processdash.process.ScriptID;
 import net.sourceforge.processdash.templates.TemplateLoader;
@@ -132,30 +137,20 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
 
     // value indicating we should add an individual to a team project
     private static final String IND_PAGE = "indiv";
-    // Information for the page which asks the user to select a
-    // location in their hierarchy to create the project.
-    private static final String IND_NODE_PAGE = "indivSelectNode";
-    private static final String IND_NODE_URL = "indivSelectNode.shtm";
-    // Information for the page which asks an individual to enter
-    // their initials
-    private static final String IND_INITIALS_PAGE = "indivInitials";
-    private static final String IND_INITIALS_URL = "indivInitials.shtm";
-    // Information for the page which asks an individual to select a
-    // name for their project schedule.
-    private static final String IND_SCHEDULE_PAGE = "indivSchedule";
-    private static final String IND_SCHEDULE_URL = "indivSchedule.shtm";
+    private static final String IND_START_PAGE = "indivStart";
+    private static final String IND_START_URL = "indivJoin.shtm";
+    // Values for the page which asks the user for joining information
+    private static final String IND_DATA_PAGE = "indivEnterData";
+    private static final String IND_DATA_URL = "indivEnterData.shtm";
     // URL for the page which asks the user to close the hierarchy
     // editor, when joining a team project.
     private static final String IND_CLOSE_HIERARCHY_URL =
         "indivCloseHierarchy.shtm";
-    // Information for the page which asks an individual to confirm
-    // their choices.
-    private static final String IND_CONFIRM_PAGE = "indivConfirm";
-    private static final String IND_SHOW_CONFIRM_PAGE = "indivShowConfirm";
-    private static final String IND_CONFIRM_URL = "indivConfirm.shtm";
     // information for the page indicating that the user wishes to override
     // the location of the team directory
     private static final String IND_OVERRIDE_PAGE = "indivDirOverride";
+    // id of the page requesting to retry the joining process
+    private static final String IND_JOIN_PAGE = "indivTryJoin";
     // URL of the page that is displayed when the wizard successfully
     // joins the individual to the team project
     private static final String IND_SUCCESS_URL = "indivSuccess.shtm";
@@ -185,9 +180,15 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
     private static final String DATA_DIR_URL = "setup//Data_Directory_URL";
     private static final String IND_DIR_OVERRIDE = "setup//Indiv_Team_Dir_Override";
     private static final String IGNORE_DUPS = "setup//Ignore_Duplicate_Projects";
+    private static final String JOINING_DATA_MAP = "setup//Joining_Data";
+    private static final String[] JOIN_SESSION_VARIABLES = { NODE_NAME,
+            NODE_LOCATION, IND_SCHEDULE, DATA_DIR, DATA_DIR_URL, IND_DIR_OVERRIDE };
 
     // the template ID of a "team project stub"
     private static final String TEAM_STUB_ID = "TeamProjectStub";
+
+    private static final Resources resources = Resources
+            .getDashBundle("ProcessDashboard");
 
     private static final Logger logger =
         Logger.getLogger(wizard.class.getName());
@@ -197,19 +198,30 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
     public void service(InputStream in, OutputStream out, Map env)
         throws IOException
     {
+        try {
+            serviceImpl(in, out, env);
+        } catch (WizardError we) {
+            printRedirect(we.uri);
+        }
+
+        // finish and clean up
+        this.out.flush();
+        networkDriveList = null;
+    }
+
+    private void serviceImpl(InputStream in, OutputStream out, Map env)
+            throws IOException {
+
         super.service(in, out, env);
         if ("POST".equalsIgnoreCase((String) env.get("REQUEST_METHOD")))
             parseFormData();
 
         String page = getParameter(PAGE);
-        if (IND_PAGE.equals(page))                 handleIndivPage();
-        else if (IND_NODE_PAGE.equals(page))       handleIndivNodePage();
-        else if (IND_INITIALS_PAGE.equals(page))   handleIndivInitialsPage();
-        else if (IND_SCHEDULE_PAGE.equals(page))   handleIndivSchedulePage();
-        else if (IND_SHOW_CONFIRM_PAGE.equals(page))
-                                                   showIndivConfirmPage();
-        else if (IND_CONFIRM_PAGE.equals(page))    handleIndivConfirmPage();
+        if (IND_PAGE.equals(page))                 startIndivJoinFromBootstrap();
+        else if (IND_START_PAGE.equals(page))      startIndivJoin();
         else if (IND_OVERRIDE_PAGE.equals(page))   handleIndivDirOverridePage();
+        else if (IND_DATA_PAGE.equals(page))       handleIndivDataPage();
+        else if (IND_JOIN_PAGE.equals(page))       handleIndivJoinPage();
 
         else if (JOIN_TEAM_SCHED_PAGE.equals(page))
                                                    handleJoinTeamSchedPage();
@@ -224,11 +236,6 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
                                                    handleTeamCloseHierPage();
         else if (TEAM_CONFIRM_PAGE.equals(page))   handleTeamConfirmPage();
         else                                       showWelcomePage();
-
-        this.out.flush();
-
-        // clear out the networkDriveList in case we created it.
-        networkDriveList = null;
     }
 
     /** Send an HTTP redirect command to the browser, sending it to the
@@ -946,36 +953,74 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
     }
 
 
+
     /** Begin the process of helping an individual join a team process. */
-    protected void handleIndivPage() {
-        String teamURL = getValue(TEAM_URL);
-        Document d = downloadTeamProjectInformation(teamURL);
-        if (d != null) {
-            Element xml = d.getDocumentElement();
-            if (checkForDuplicateProject(xml))
-                return;
-            else
-                saveDefaultJoiningValues(xml);
-        }
+    private void startIndivJoinFromBootstrap() {
+        // clear any session variables that were saved during a previous
+        // joining operation
+        for (String var : JOIN_SESSION_VARIABLES)
+            putValue(var, (SimpleData) null);
 
-        // if there is a current prefix, and it names a team planning
-        // stub, then this is the location where the user wants to
-        // create the team project.
-        if (prefixNamesTeamProjectStub())
-            showIndivInitialsPage();
-
-        else
-            // if the current prefix is null, or if it doesn't name a
-            // team stub, then we must determine where the user wants
-            // to create the team project.
-            showIndivNodePage();
+        // direct the user to a page that will frame the rest of the wizard
+        // joining operation
+        printRedirect(IND_START_URL);
     }
 
-    private boolean checkForDuplicateProject(Element xml) {
-        // extract the project ID from the xml joining information.
-        String projectID = xml.getAttribute(PROJECT_ID);
+    private void startIndivJoin() {
+        // get information needed by the joining process
+        Map<String, String> joinInfo = getTeamProjectJoinInformation();
+
+        // make sure the user hasn't joined this project before.
+        checkForDuplicateProject(joinInfo);
+
+        // ensure we can locate the team data directory
+        resolveTeamDataDirectory();
+
+        // set default values for the user
+        saveDefaultJoiningValues(joinInfo);
+
+        // show a page asking the user to enter the data
+        printRedirect(IND_DATA_URL);
+    }
+
+    private Map<String, String> getTeamProjectJoinInformation() {
+        // Get the URL of the team project we are joining
+        String teamURL = getValue(TEAM_URL);
+        if (teamURL == null)
+            throw new WizardError(TEAM_URL_URL);
+
+        // see if we already have a map of data relating to this join operation
+        SimpleData sd = getSimpleValue(JOINING_DATA_MAP);
+        if (sd instanceof ListData) {
+            try {
+                Map result = (Map) ((ListData) sd).get(0);
+                String mapUrl = (String) result.get(TEAM_PROJECT_URL);
+                if (mapUrl == null)
+                    result.put(TEAM_PROJECT_URL, mapUrl = teamURL);
+                if (mapUrl.equals(teamURL))
+                    return result;
+            } catch (Exception e) {};
+        }
+
+        // download an XML document containing joining information
+        Document xml = downloadTeamProjectInformation(teamURL);
+        if (xml == null)
+            throw new WizardError(IND_CONNECT_ERR_URL);
+
+        // cache this information in the data repository
+        Map result = XMLUtils.getAttributesAsMap(xml.getDocumentElement());
+        result.put(TEAM_PROJECT_URL, teamURL);
+        ListData l = new ListData();
+        l.add(result);
+        putValue(JOINING_DATA_MAP, l);
+        return result;
+    }
+
+    private void checkForDuplicateProject(Map<String, String> joinInfo) {
+        // extract the project ID from the joining information.
+        String projectID = joinInfo.get(PROJECT_ID);
         if (!StringUtils.hasValue(projectID))
-            return false;
+            return;
 
         // Look for projects in the current hierarchy that have that ID.
         Map<String, String> matchingProjects = new HashMap();
@@ -988,8 +1033,7 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
             if (e.getValue().endsWith("/TeamRoot")) {
                 // if a team project root was found, abort immediately.
                 // we don't support that mode of operation anymore.
-                printRedirect(IND_DUPL_PROJ_URL + "?teamRootPresent");
-                return true;
+                throw new WizardError(IND_DUPL_PROJ_URL).param("teamRootPresent");
             } else {
                 // if a personal root was found, make a record of its path.
                 personalRoot = e.getKey();
@@ -998,21 +1042,19 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
 
         // if the user wants us to ignore duplicate personal projects, oblige.
         if (parameters.containsKey("ignoreDups")) {
-            putValue(IGNORE_DUPS, "t");
-            return false;
-        } else if (getValue(IGNORE_DUPS) != null) {
-            return false;
+            putValue(IGNORE_DUPS, projectID);
+            return;
+        } else if (projectID.equals(getValue(IGNORE_DUPS))) {
+            return;
         }
 
         // otherwise, if a personal root is present, show a warning page.
         if (personalRoot != null) {
-            printRedirect(HTMLUtils.appendQuery(IND_DUPL_PROJ_URL,
-                "personalRoot", personalRoot));
-            return true;
+            throw new WizardError(IND_DUPL_PROJ_URL)
+                    .param("personalRoot", personalRoot);
         }
 
         // everything seems fine. No duplicates found.
-        return false;
     }
     private void scanForMatchingProjects(DashHierarchy hier, PropertyKey node,
             String projectID, Map<String, String> matches) {
@@ -1028,11 +1070,34 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
         }
     }
 
-    /** Download information about the team project, and use it to set up
+    /** Look at information about the team project, and use it to set up
      * default values for some of the data we expect the individual to
      * provide. */
-    private void saveDefaultJoiningValues(Element xml) {
-        String projectName = xml.getAttribute("Project_Full_Name");
+    private void saveDefaultJoiningValues(Map<String, String> joinInfo) {
+        if (!prefixNamesTeamProjectStub()) {
+            saveDefaultProjectName(joinInfo);
+            saveDefaultNodeLocation();
+        }
+        saveDefaultScheduleName(joinInfo);
+        saveDefaultUserName(joinInfo);
+    }
+
+    private void saveDefaultProjectName(Map<String, String> joinInfo) {
+        // retrieve the project name from the joining info
+        String projectName = joinInfo.get("Project_Full_Name");
+
+        // if the joining info didn't contain a name, try to infer one from
+        // the team project URL
+        if (!StringUtils.hasValue(projectName)) {
+            String teamURL = getValue(TEAM_URL);
+            int end = teamURL.lastIndexOf("//");
+            if (end == -1)
+                end = teamURL.lastIndexOf("/+/");
+            if (end != -1)
+                projectName = HTMLUtils.urlDecode(teamURL.substring(0, end));
+        }
+
+        // use this information to set the default project name
         if (StringUtils.hasValue(projectName)) {
             int slashPos = projectName.lastIndexOf('/');
             if (slashPos != -1)
@@ -1041,215 +1106,178 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
                     && getValue(NODE_NAME) == null)
                 putValue(NODE_NAME, projectName);
         }
+    }
 
-        String scheduleName = xml.getAttribute("Schedule_Name");
+    private void saveDefaultNodeLocation() {
+        if (getValue(NODE_LOCATION) != null)
+            return;
+
+        // use the common/default node location for projects. Try the localized
+        // name first, then fall back to English
+        String projBranch = findExistingHierarchyNode(
+            resources.getString("Project"), "Project");
+        putValue(NODE_LOCATION, projBranch);
+    }
+
+    private String findExistingHierarchyNode(String... names) {
+        for (String name : names) {
+            String path = "/" + name;
+            if (getPSPProperties().findExistingKey(path) != null)
+                return path;
+        }
+        return null;
+    }
+
+    private void saveDefaultScheduleName(Map<String, String> joinInfo) {
+        String scheduleName = joinInfo.get("Schedule_Name");
         if (StringUtils.hasValue(scheduleName)) {
             if (getValue(IND_SCHEDULE) == null)
                 putValue(IND_SCHEDULE, scheduleName);
         }
-
-        maybeSavePersonalValue(IND_INITIALS, null, xml
-                .getAttribute("Suggested_Team_Member_Initials"));
-        maybeSavePersonalValue(IND_FULLNAME, "Enter your name", xml
-                .getAttribute("Suggested_Team_Member_Name"));
     }
+
+    private void saveDefaultUserName(Map<String, String> joinInfo) {
+        String ownerInitials = null;
+        maybeSavePersonalValue(IND_INITIALS, Collections.EMPTY_SET,
+            joinInfo.get("Suggested_Team_Member_Initials"), ownerInitials);
+        maybeSavePersonalValue(IND_FULLNAME, getPlaceholderFullNames(),
+            joinInfo.get("Suggested_Team_Member_Name"),
+            System.getProperty(DATASET_OWNER_FULLNAME_SYSPROP));
+    }
+
     private void maybeSavePersonalValue(String dataName,
-            String overwritableValue, String value) {
-        if (!StringUtils.hasValue(value))
-            return;
-        if (value.startsWith("[") && value.endsWith("]"))
-            return;
-        String currVal = getValue(dataName);
-        if (currVal == null || currVal.equals(overwritableValue))
-            putValue(dataName, value);
-    }
-
-    /** Redirect back to the bootstrap script to get the URL of the
-     * team project. */
-    protected void showTeamURLPage() {
-        printRedirect(TEAM_URL_URL);
-    }
-
-    /** Return true if the URL prefix of this page names an existing
-     * team project stub in the hierarchy.
-    protected boolean prefixNamesTeamProjectStub() {
-        String templateID = null;
-        String prefix = getPrefix();
-        if (prefix != null) {
-            DashHierarchy props = getPSPProperties();
-            templateID = props.getID(props.findExistingKey(prefix));
+            Set overwritableValues, String... values) {
+        String value = getFirstValidPersonalValue(values);
+        if (value != null) {
+            String currVal = getValue(dataName);
+            if (currVal == null || currVal.length() == 0
+                    || overwritableValues.contains(currVal))
+                putValue(dataName, value);
         }
-        return (templateID != null && templateID.equals(TEAM_STUB_ID));
     }
+    private String getFirstValidPersonalValue(String... values) {
+        for (String value : values)
+            if (StringUtils.hasValue(value)
+                    && !(value.startsWith("[") && value.endsWith("]")))
+                return value;
+        return null;
+    }
+
+    /**
+     * Handle values posted from the indiv join data entry page
      */
-
-    /** Display a page allowing the user to select a place in their
-     * hierarchy to create this project. */
-    protected void showIndivNodePage() {
-        maybeSetDefaultNodeName();
-        maybeSetDefaultNodeLocation();
-        printRedirect(IND_NODE_URL);
-    }
-    protected void showIndivNodePage(String errMsg) {
-        printRedirect(IND_NODE_URL + "?errMsg=" + HTMLUtils.urlEncode(errMsg));
+    private void handleIndivDataPage() {
+        saveIndivDataValues();
+        performProjectJoin();
     }
 
-    /** Possibly store a default name for the project node */
-    protected void maybeSetDefaultNodeName() {
-        if (getValue(NODE_NAME) != null) return;
-
-        String teamURL = getValue(TEAM_URL);
-        if (teamURL == null) return;
-
-        teamURL = HTMLUtils.urlDecode(teamURL);
-        int end = teamURL.lastIndexOf("//");
-        if (end == -1) return;
-
-        int beg = teamURL.lastIndexOf('/', end-1);
-        if (beg == -1) return;
-
-        String defaultName = teamURL.substring(beg+1, end);
-        putValue(NODE_NAME, defaultName);
+    private void saveIndivDataValues() {
+        putValue(NODE_NAME, trimParameter("Node_Name"));
+        putValue(NODE_LOCATION, trimParameter("Node_Location"));
+        putValue(IND_INITIALS, trimParameter("Initials"));
+        putValue(IND_FULLNAME, trimParameter("Full_Name"));
+        putValue(IND_SCHEDULE, trimParameter("Schedule_Name"));
     }
 
-    protected void maybeSetDefaultNodeLocation() {
-        if (getValue(NODE_LOCATION) != null) return;
+    private void ensureIndivValues() {
+        WizardError err = new WizardError(IND_DATA_URL);
 
-        // set up a common, default node location
-        if (getPSPProperties().findExistingKey("/Project") != null)
-            putValue(NODE_LOCATION, "/Project");
+        if (!prefixNamesTeamProjectStub()) {
+            err.param(getNodeNameError());
+            err.param(getNodeLocationError());
+        }
+        err.param(getPersonInitialsError());
+        err.param(getPersonNameError());
+        err.param(getScheduleNameErr());
+
+        if (!IND_DATA_URL.equals(err.uri))
+            throw err;
     }
 
-    /** Handle values posted from the node selection page */
-    protected void handleIndivNodePage() {
-        String nodeName = getParameter("Node_Name");
-        String nodeLocation = getParameter("Node_Location");
-        putValue(NODE_NAME, nodeName);
-        putValue(NODE_LOCATION, nodeLocation);
+    private String getNodeNameError() {
+        String nodeName = getValue(NODE_NAME);
+        String nodeLocation = getValue(NODE_LOCATION);
 
-        if (nodeName == null || nodeName.trim().length() == 0) {
-            showIndivNodePage("You must enter a name for the project.");
-            return;
-        }
-        nodeName = nodeName.trim();
-        if (nodeName.indexOf('/') != -1) {
-            showIndivNodePage
-                ("The project name cannot contain the '/' character.");
-            return;
-        }
-        if (!nodeName.equals(new String(nodeName.getBytes()))) {
-            showIndivNodePage
-                ("Sorry, the dashboard currently does not support the "+
-                 "use of extended unicode characters in project names.");
-            return;
+        if (nodeName == null)
+            return "nodeNameMissing";
+        else if (nodeName.indexOf('/') != -1)
+            return "nodeNameSlash";
+
+        if (nodeLocation != null) {
+            // check for unique name.
+            String fullName = null;
+            if (nodeLocation.endsWith("/"))
+                fullName = nodeLocation + nodeName;
+            else
+                fullName = nodeLocation + "/" + nodeName;
+
+            if (findExistingHierarchyNode(fullName) != null)
+                return "nodeNameDuplicateProject";
         }
 
-        if (nodeLocation == null || nodeLocation.trim().length() == 0) {
-            showIndivNodePage
-                ("You must choose a location in the hierarchy where the "+
-                 "project should be created.");
-            return;
-        }
-        nodeLocation = nodeLocation.trim();
+        return null;
+    }
+
+    private String getNodeLocationError() {
+        String nodeLocation = getValue(NODE_LOCATION);
+
+        if (nodeLocation == null)
+            return "nodeLocationMissing";
+
         DashHierarchy hierarchy = getPSPProperties();
         PropertyKey key = hierarchy.findExistingKey(nodeLocation);
-        if (key == null) {
-            showIndivNodePage
-                ("The parent node you selected doesn't currently exist in "+
-                 "your dashboard hierarchy.");
-            return;
-        }
+        if (key == null)
+            return "nodeLocationNotFound";
+
         while (key != null) {
             String templateID = hierarchy.getID(key);
-            if (templateID != null && templateID.length() > 0) {
-                showIndivNodePage
-                    ("The dashboard cannot create the project at the "+
-                     "location you selected in your dashboard hierarchy. "+
-                     "Please select a different location.");
-                return;
-            }
+            if (templateID != null && templateID.length() > 0)
+                return "nodeLocationBadParent";
             key = key.getParent();
         }
-        // check for unique name.
-        String fullName = null;
-        if (nodeLocation.endsWith("/"))
-            fullName = nodeLocation + nodeName;
-        else
-            fullName = nodeLocation + "/" + nodeName;
 
-        key = hierarchy.findExistingKey(fullName);
-        if (key != null) {
-            showIndivNodePage
-                ("There is already a project in your hierarchy with the "+
-                 "name and parent you selected. Please change either the "+
-                 "project name or the project parent.");
-            return;
-        }
-
-        showIndivInitialsPage();
+        return null;
     }
 
-    /** Display the page for an individual to enter their initials */
-    protected void showIndivInitialsPage() {
-        printRedirect(IND_INITIALS_URL);
-    }
+    private String getPersonInitialsError() {
+        String initials = getValue(IND_INITIALS);
 
-    /** Handle values posted from the individual initials page */
-    protected void handleIndivInitialsPage() {
-        String error = "";
-
-        String initials = getParameter("initials");
-        if (initials == null || initials.trim().length() == 0) {
-            error += "&missing";
+        if (initials == null) {
+            return "initialsMissing";
         } else {
-            initials = initials.trim();
             for (int i = initials.length();   i-- > 0; ) {
                 char c = initials.charAt(i);
                 if (c >= 'A' && c <= 'Z') continue;
                 if (c >= 'a' && c <= 'z') continue;
-                error += "&non_alpha";
-                break;
+                return "initialsNonAlpha";
             }
         }
 
-        String fullname = getParameter("fullname");
-        if (fullname == null || fullname.trim().length() == 0 ||
-            fullname.equals("Enter your name")) {
-            error += "&name_missing";
-        }
-
-        if (error.length() > 0) {
-            printRedirect(IND_INITIALS_URL + "?err" + error);
-            return;
-        }
-
-        putValue(IND_INITIALS, initials);
-        fullname = fullname.trim();
-        putValue(IND_FULLNAME, fullname);
-
-        showIndivSchedulePage();
+        return null;
     }
 
-    /** Display the page for an individual to select a schedule name */
-    protected void showIndivSchedulePage() {
-        printRedirect(IND_SCHEDULE_URL);
+    private String getPersonNameError() {
+        String fullname = getValue(IND_FULLNAME);
+
+        if (fullname == null || getPlaceholderFullNames().contains(fullname))
+            return "fullNameMissing";
+
+        return null;
     }
 
-    /** Handle values posted from the individual schedule name page */
-    protected void handleIndivSchedulePage() {
-        String scheduleName = getParameter("scheduleName");
-        if (scheduleName == null || scheduleName.trim().length() == 0) {
-            printRedirect(IND_SCHEDULE_URL + "?missing");
-            return;
-        }
+    private Set<String> getPlaceholderFullNames() {
+        return new HashSet<String>(Arrays.asList("Enter your name",
+            resources.getString("Enter_your_name")));
+    }
 
-        scheduleName = scheduleName.trim();
-        putValue(IND_SCHEDULE, scheduleName);
+    private String getScheduleNameErr() {
+        String scheduleName = getValue(IND_SCHEDULE);
 
-        if (!EVTaskListData.validName(scheduleName)) {
-            printRedirect(IND_SCHEDULE_URL + "?invalid");
-            return;
-        }
+        if (scheduleName == null)
+            return "scheduleNameMissing";
+
+        if (!EVTaskListData.validName(scheduleName))
+            return "scheduleNameInvalid";
 
         DataRepository data = getDataRepository();
         if (EVTaskListData.exists(data, scheduleName) ||
@@ -1262,45 +1290,21 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
             EVTaskList tl = EVTaskList.openExisting(scheduleName, data,
                 getPSPProperties(), getObjectCache(), false);
             if (tl != null && !tl.getTaskRoot().isLeaf()) {
-                printRedirect(IND_SCHEDULE_URL + "?duplicate");
-                return;
+                return "scheduleNameDuplicate";
             }
         }
 
-        showIndivConfirmPage();
+        return null;
     }
 
-    /** Ensure that all the required individual data has been entered.
-     *  If any data is missing, redirect to that page and return
-     *  false.  Otherwise return true
-     */
-    protected boolean ensureIndivValues() {
-        if (!teamURLIsValid(getValue(TEAM_URL)))
-            showTeamURLPage();
-
-        else if (prefixNamesTeamProjectStub() == false &&
-                 (getValue(NODE_NAME) == null ||
-                  getValue(NODE_LOCATION) == null))
-            showIndivNodePage();
-
-        else if (getValue(IND_INITIALS) == null)
-            showIndivInitialsPage();
-
-        else if (getValue(IND_SCHEDULE) == null)
-            showIndivSchedulePage();
-
-        else if (DashController.isHierarchyEditorOpen())
-            printRedirect(IND_CLOSE_HIERARCHY_URL);
-
-        else
-            return true;
-
-        return false;
+    private String trimParameter(String name) {
+        String result = getParameter(name);
+        if (result != null)
+            result = result.trim();
+        return (StringUtils.hasValue(result) ? result : null);
     }
 
-    private boolean teamURLIsValid(String teamURL) {
-        return buildTeamURLReference(teamURL, "index.htm") != null;
-    }
+
     private URL buildTeamURLReference(String teamURL, String ref) {
         return buildTeamURLReference(teamURL, ref, ref);
     }
@@ -1354,25 +1358,28 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
         // save the value into the session, then attempt to retry the
         // joining process.
         putValue(IND_DIR_OVERRIDE, indivDirOverride);
-        handleIndivConfirmPage();
+        startIndivJoin();
     }
     private static final Pattern DATA_SUBDIR_PATTERN = Pattern.compile(
         "(/|\\\\)data((/|\\\\)[a-z0-9]{8,9})$", Pattern.CASE_INSENSITIVE);
 
-    /** Display the page for an individual to confirm their choices */
-    protected void showIndivConfirmPage() {
-        if (ensureIndivValues())
-            printRedirect(IND_CONFIRM_URL);
+
+    private void handleIndivJoinPage() {
+        performProjectJoin();
     }
 
-    /** Once the individual has confirmed their settings, perform the join
-     *  process.
+    /**
+     * Perform the join process.
      */
-    protected void handleIndivConfirmPage() {
+    private void performProjectJoin() {
         // make sure all the required data is present - otherwise abort.
-        if (!ensureIndivValues()) return;
+        Map<String, String> joinInfo = getTeamProjectJoinInformation();
+        resolveTeamDataDirectory();
+        ensureIndivValues();
 
-        String teamURL = getValue(TEAM_URL);
+        if (DashController.isHierarchyEditorOpen())
+            throw new WizardError(IND_CLOSE_HIERARCHY_URL);
+
         String localProjectName = null;
         if (prefixNamesTeamProjectStub())
             localProjectName = getPrefix();
@@ -1386,58 +1393,25 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
         String indivInitials = getValue(IND_INITIALS);
         String scheduleName = getValue(IND_SCHEDULE);
 
-        // Download team project information from the team dashboard.
-        Document d = downloadTeamProjectInformation(teamURL);
-        if (d == null) {
-            printRedirect(IND_CONNECT_ERR_URL); return;
-        }
-        teamURL = buildTeamURLReference(teamURL, "teamIndex.shtm",
-            "teamIndex.do").toString();
-        Element e = d.getDocumentElement();
-
-        String projectID = e.getAttribute(PROJECT_ID);
-        String teamDirectory = e.getAttribute(TEAM_DIRECTORY);
-        String teamDirectoryUNC = e.getAttribute(TEAM_DIRECTORY_UNC);
-        String teamDataDirectoryURL = e.getAttribute(TEAM_DATA_DIRECTORY_URL);
-        String indivTemplateID = e.getAttribute("Template_ID");
-        boolean teamDashSupportsScheduleMessages = "true".equals(e
-                .getAttribute("Schedule_Messages_Supported"));
+        String teamURL = joinInfo.get(TEAM_PROJECT_URL);
+        String projectID = joinInfo.get(PROJECT_ID);
+        String teamDirectory = joinInfo.get(TEAM_DIRECTORY);
+        String teamDirectoryUNC = joinInfo.get(TEAM_DIRECTORY_UNC);
+        String teamDataDirectoryURL = joinInfo.get(TEAM_DATA_DIRECTORY_URL);
+        String indivTemplateID = joinInfo.get("Template_ID");
+        boolean teamDashSupportsScheduleMessages = "true".equals(joinInfo
+                .get("Schedule_Messages_Supported"));
 
         if (!XMLUtils.hasValue(projectID) ||
             (!XMLUtils.hasValue(teamDirectory)
                     && !XMLUtils.hasValue(teamDataDirectoryURL)) ||
             !XMLUtils.hasValue(indivTemplateID)) {
-            printRedirect(IND_CONNECT_ERR_URL); return;
+            throw new WizardError(IND_CONNECT_ERR_URL);
         }
 
-        // Check on the existence of the team data directory, and
-        // resolve it to something that works for the current
-        // user. This involves file IO which could fail for various
-        // reasons, so we attempt to get it out of the way first.
-        String dataSubdir = "data"+File.separator+ projectID;
-        String indivDirOverride = getValue(IND_DIR_OVERRIDE);
-        teamDirectory = resolveTeamDirectory(indivDirOverride, teamDirectory,
-            teamDirectoryUNC, dataSubdir, teamDataDirectoryURL);
-        if (teamDirectory == null)
-            // the error page will already have been displayed by now,
-            // so just abort on failure.
-            return;
-        else if (teamDirectory.equals(indivDirOverride)
-                || teamDirectory.length() == 0)
-            // if the user overrode the team directory or if no team directory
-            // was provided, we should ignore any unreachable UNC path that
-            // was provided along with the original team dir.
-            teamDirectoryUNC = null;
-
-        if (teamDirectory.endsWith(File.separator))
+        if (teamDirectory != null && teamDirectory.endsWith(File.separator))
             // remove any trailing file separator if present.
             teamDirectory = teamDirectory.substring(0, teamDirectory.length()-1);
-
-        // Check to see if the "team project" is in the same dashboard
-        // instance as the "individual project."
-        String remoteTimeStamp =e.getAttribute(WebServer.TIMESTAMP_HEADER);
-        String localTimeStamp = getTinyWebServer().getTimestamp();
-        boolean isLocal = localTimeStamp.equals(remoteTimeStamp);
 
         // perform lots of other setup tasks.  Unlike the operation
         // above, these tasks should succeed 99.999% of the time.
@@ -1445,16 +1419,10 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
         createIndivProject(indivTemplateID);
         String scheduleID = createIndivSchedule(scheduleName);
         saveIndivDataValues(projectID, teamURL, indivInitials, scheduleName,
-            scheduleID, teamDirectory, teamDirectoryUNC, teamDataDirectoryURL,
-            isLocal);
-        boolean joinSucceeded = true;
-        if (isLocal)
-            joinSucceeded = joinLocalTeamSchedule(teamURL, scheduleName);
-        else {
-            joinSucceeded = teamDashSupportsScheduleMessages || joinTeamSchedule
-                (teamURL, scheduleName, scheduleID);
-            importDisseminatedTeamData();
-        }
+            scheduleID, teamDirectory, teamDirectoryUNC, teamDataDirectoryURL);
+        boolean joinSucceeded = teamDashSupportsScheduleMessages
+                || joinTeamSchedule(teamURL, scheduleName, scheduleID);
+        importDisseminatedTeamData();
 
         showIndivSuccessPage(joinSucceeded);
     }
@@ -1487,23 +1455,38 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
     /** Check to ensure that the team and data directories exist, and
      * resolve the team directory to something that will work for the
      * current user, if possible.  */
-    protected String resolveTeamDirectory(String indivOverrideDirectory,
-                                          String teamDirectory,
-                                          String teamDirectoryUNC,
-                                          String dataSubdir,
-                                          String teamDataDirectoryURL) {
+    protected URL resolveTeamDataDirectory() {
+        try {
+            return resolveTeamDataDirectoryImpl();
+        } catch (IOException e) {
+            throw new WizardError(IND_DATADIR_ERR_URL).causedBy(e);
+        }
+    }
+
+    private URL resolveTeamDataDirectoryImpl() throws IOException {
+        Map<String, String> joinInfo = getTeamProjectJoinInformation();
+        String teamDirectory = joinInfo.get(TEAM_DIRECTORY);
+        String teamDirectoryUNC = joinInfo.get(TEAM_DIRECTORY_UNC);
+        String teamDataDirectoryURL = joinInfo.get(TEAM_DATA_DIRECTORY_URL);
+        String indivOverrideDirectory = getValue(IND_DIR_OVERRIDE);
+        String dataSubdir = "data/" + joinInfo.get(PROJECT_ID);
+
         File f = null;
 
         if (StringUtils.hasValue(indivOverrideDirectory)) {
             // If the user has specified a manual directory override, try that
             // directory only.
             f = new File(indivOverrideDirectory, dataSubdir);
-            if (f.isDirectory()) return indivOverrideDirectory;
+            if (f.isDirectory()) {
+                joinInfo.put(TEAM_DIRECTORY, indivOverrideDirectory);
+                joinInfo.put(TEAM_DIRECTORY_UNC, "");
+                return f.toURI().toURL();
+            }
 
         } else if (StringUtils.hasValue(teamDirectory)) {
             // Otherwise, try the directory specified by the team project.
             f = new File(teamDirectory, dataSubdir);
-            if (f.isDirectory()) return teamDirectory;
+            if (f.isDirectory()) return f.toURI().toURL();
 
             // Try to find the data directory using the UNC path.
             if (StringUtils.hasValue(teamDirectoryUNC)) {
@@ -1512,32 +1495,24 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
                     networkDriveList.fromUNCName(teamDirectoryUNC);
                 if (altTeamDirectory != null) {
                     File f2 = new File(altTeamDirectory, dataSubdir);
-                    if (f2.isDirectory()) return altTeamDirectory;
+                    if (f2.isDirectory()) {
+                        joinInfo.put(TEAM_DIRECTORY, altTeamDirectory);
+                        return f2.toURI().toURL();
+                    }
                 }
             }
         }
 
         // if a URL has been provided, try it to see if it is valid.
         if (TeamServerSelector.testServerURL(teamDataDirectoryURL) != null) {
-            if (StringUtils.hasValue(teamDirectory))
-                // if we have a good URL and a bad team directory, go ahead
-                // and return the bad team directory from this method.  This
-                // will allow the bad team directory to be stored with the
-                // project settings, in case it ever becomes useful in the
-                // future.  (An example might be an individual joining over
-                // a VPN, with HTTP access but temporarily with no filesystem
-                // access.)
-                return teamDirectory;
-            else
-                // return a non-null value to indicate that we can successfully
-                // communicate with the team directory.
-                return "";
+            joinInfo.put(TEAM_DIRECTORY, "");
+            joinInfo.put(TEAM_DIRECTORY_UNC, "");
+            return new URL(teamDataDirectoryURL);
         }
 
         putValue(DATA_DIR, f == null ? null : f.getPath());
         putValue(DATA_DIR_URL, teamDataDirectoryURL);
-        printRedirect(IND_DATADIR_ERR_URL);
-        return null;
+        throw new WizardError(IND_DATADIR_ERR_URL);
     }
 
     protected void setPrefix(String newPrefix) {
@@ -1558,7 +1533,7 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
     protected void saveIndivDataValues(String projectID, String teamURL,
             String indivInitials, String scheduleName, String scheduleID,
             String teamDirectory, String teamDirectoryUNC,
-            String teamDataDirectoryURL, boolean isLocal) {
+            String teamDataDirectoryURL) {
         putValue(PROJECT_ID, projectID);
         putValue(TEAM_PROJECT_URL, teamURL);
         putValue(INDIV_INITIALS, indivInitials);
@@ -1567,8 +1542,6 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
         putValue(TEAM_DIRECTORY, teamDirectory);
         putValue(TEAM_DIRECTORY_UNC, teamDirectoryUNC);
         putValue(TEAM_DATA_DIRECTORY_URL, teamDataDirectoryURL);
-        if (isLocal)
-            putValue("EXPORT_FILE", ImmutableStringData.EMPTY_STRING);
     }
 
     protected String createIndivSchedule(String scheduleName) {
@@ -1622,28 +1595,6 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
         return false;
     }
 
-    protected boolean joinLocalTeamSchedule(String teamURL,
-                                            String indivScheduleName) {
-
-        // find the first slash after the "http://" prefix.
-        int slashPos = teamURL.indexOf('/', 7);
-        // find the "//" that ends the prefix.
-        int sslashPos = teamURL.indexOf("//", slashPos);
-        // extract the prefix of the team project from the URL.
-        String teamProjectPrefix =
-            HTMLUtils.urlDecode(teamURL.substring(slashPos, sslashPos));
-
-        String dataName = DataRepository.createDataName
-            (teamProjectPrefix, PROJECT_SCHEDULE_NAME);
-        SimpleData schedNameData =
-            getDataRepository().getSimpleValue(dataName);
-        if (schedNameData == null) return false;
-        String teamScheduleName = schedNameData.format();
-
-        // add the individual's schedule to the team schedule.
-        return addScheduleToRollup(teamScheduleName, indivScheduleName);
-    }
-
     protected void importDisseminatedTeamData() {
         RepairImportInstruction.maybeRepairForIndividual(getDataContext());
     }
@@ -1675,6 +1626,31 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
                 // (for example, because the WBS hasn't been edited yet).
                 exportProjectData();
             }});
+    }
+
+    private class WizardError extends RuntimeException {
+        private String uri;
+
+        protected WizardError(String uri) {
+            this.uri = uri;
+        }
+
+        protected WizardError param(String param) {
+            if (param != null)
+                this.uri = HTMLUtils.appendQuery(uri, param);
+            return this;
+        }
+
+        protected WizardError param(String param, String value) {
+            this.uri = HTMLUtils.appendQuery(uri, param, value);
+            return this;
+        }
+
+        protected WizardError causedBy(Throwable t) {
+            initCause(t);
+            return this;
+        }
+
     }
 
 }

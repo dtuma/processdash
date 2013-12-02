@@ -13,17 +13,8 @@ function showManualDir() {
 </head>
 <body>
 
-<img align="left" src="/Images/team.jpg" width=50 height=50>
-
-<!--#if [setup//Node_Name] -->
- <!--#if [setup//Node_Location] eq '/' -->
- <h1>/<!--#echo [setup//Node_Name] --></h1>
- <!--#else -->
- <h1><!--#echo [setup//Node_Location] -->/<!--#echo [setup//Node_Name] --></h1>
- <!--#endif-->
-<!--#else-->
- <h1><!--#echo var=PATH_TRANSLATED --></h1>
-<!--#endif-->
+<table><tr><td><img align="left" src="/Images/team.jpg" width=50 
+height=50></td><td><h1>Team Project Setup Wizard</h1></td></tr></table>
 
 <h2>Unable to Locate Team Data Directory</h2>
 
@@ -84,3 +75,4 @@ button and the dashboard will try again.</p>
 
 </form>
 </body>
+</html>
