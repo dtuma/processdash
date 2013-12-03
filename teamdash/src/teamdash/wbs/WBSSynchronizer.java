@@ -291,6 +291,7 @@ public class WBSSynchronizer {
 
     // get a timestamp indicating when the team member list was last synced
     private Date getLastTeamListReverseSyncDate() {
+        // if we've recorded a sync date, return it.
         Object lastSync = teamProject.getWBS().getRoot()
                 .getAttribute(TEAM_LIST_SYNC_TIMESTAMP);
         if (lastSync instanceof String) {
@@ -299,6 +300,16 @@ public class WBSSynchronizer {
             } catch (Exception e) {}
         }
 
+        // if this project has a completely empty team member list (typical for
+        // a brand new project), use the zero date. This will add people to
+        // the list who joined before the WBS was opened the first time.
+        if (teamProject.getTeamMemberList().getRowCount() == 0)
+            return new Date(0);
+
+        // Otherwise, return the current date. This allows legacy projects
+        // to draw a new line in the sand after the point in time when team
+        // member reverse sync was enabled. Potentially obsolete PDASH files
+        // written before that point in time will not be reverse synced.
         return new Date();
     }
 
