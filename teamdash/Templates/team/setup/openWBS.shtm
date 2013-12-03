@@ -42,5 +42,6 @@
     <!--#parameter name="directory" var="[Team_Data_Directory]" -->
     <!--#parameter name="indivInitials" var="[Indiv_Initials]" -->
     <!--#parameter name="reverseSyncNewMembers" var="reverseSyncNewMembers" -->
+    <!--#parameter name="globalInitialsPolicy" var="[/Team_Project_Policy/Initials_Policy]" -->
 
 <!--#endif-->

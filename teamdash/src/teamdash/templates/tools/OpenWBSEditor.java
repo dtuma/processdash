@@ -249,6 +249,8 @@ public class OpenWBSEditor extends TinyCGIBase {
         result.put("teamdash.wbs.processSpecURL", getProcessURL());
         result.put(teamdash.wbs.columns.CustomColumnManager.SYS_PROP_NAME,
             getCustomColumnSpecURLs());
+        result.put("teamdash.wbs.globalInitialsPolicy",
+            getGlobalInitialsPolicy());
 
         return result;
     }
@@ -288,6 +290,16 @@ public class OpenWBSEditor extends TinyCGIBase {
             return result.substring(1);
         else
             return null;
+    }
+
+    private String getGlobalInitialsPolicy() {
+        Object param = parameters.get("globalInitialsPolicy");
+        if (param instanceof String) {
+            String result = (String) param;
+            if (StringUtils.hasValue(result))
+                return result;
+        }
+        return null;
     }
 
     private static Hashtable editors = new Hashtable();

@@ -188,6 +188,7 @@ public class WBSEditor implements WindowListener, SaveListener,
     private static final String PROMPT_READ_ONLY_SETTING = "promptForReadOnly";
     private static final String MEMBERS_CANNOT_EDIT_SETTING = "readOnlyForIndividuals";
     private static final String ALLOW_SIMULTANEOUS_EDIT_SETTING = "allowSimultaneousEditing";
+    private static final String INITIALS_POLICY_SETTING = "initialsPolicy";
 
     public WBSEditor(WorkingDirectory workingDirectory,
             TeamProject teamProject, String owner, String initials)
@@ -660,8 +661,22 @@ public class WBSEditor implements WindowListener, SaveListener,
         allowSimulEdit.setSelected(simulEditSetting);
         allowSimulEdit.setEnabled(!indivMode);
 
+        JCheckBox initialsPolicy = null;
+        String globalInitialsPolicy = System
+                .getProperty("teamdash.wbs.globalInitialsPolicy");
+        boolean initialsPolicySetting = false;
+        if ("username".equals(globalInitialsPolicy)) {
+            initialsPolicy = new JCheckBox(
+                    "Identify team members by username, not initials");
+            String localInitialsPolicy = teamProject
+                    .getUserSetting(INITIALS_POLICY_SETTING);
+            initialsPolicySetting = "username".equals(localInitialsPolicy);
+            initialsPolicy.setSelected(initialsPolicySetting);
+            initialsPolicy.setEnabled(!indivMode);
+        }
+
         Object[] message = new Object[] { readOnlyPrompt, membersCanEdit,
-                allowSimulEdit };
+                allowSimulEdit, initialsPolicy };
         int userChoice = JOptionPane.showConfirmDialog(frame, message,
             "Edit Preferences", JOptionPane.OK_CANCEL_OPTION,
             JOptionPane.PLAIN_MESSAGE);
@@ -693,11 +708,21 @@ public class WBSEditor implements WindowListener, SaveListener,
             restartRequired = true;
         }
 
+        if (initialsPolicy != null) {
+            boolean newInitialsPolicySetting = initialsPolicy.isSelected();
+            if (initialsPolicySetting != newInitialsPolicySetting) {
+                teamProject.putUserSetting(INITIALS_POLICY_SETTING,
+                    newInitialsPolicySetting ? "username" : "initials");
+                madeChange = true;
+                restartRequired = true;
+            }
+        }
+
         if (madeChange) {
             try {
                 workingDirectory.flushData();
             } catch (Exception ex) {
-                ex.printStackTrace();
+                setDirty(true);
             }
         }
 
