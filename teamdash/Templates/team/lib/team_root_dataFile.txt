@@ -35,6 +35,7 @@ undefine([Simple Project Tag]);
        "MERGED:" & indirect([Master_Project_Path] &/ "Project_Schedule_Name"));
 
 [Individuals_Using_Stubless_Phases] = false;
+[Reverse_Sync_New_Members] = [/Team_Project_Policy/Reverse_Sync_New_Members];
 
 <!--#if Disable_Team_Import_Repairs -->
 [Disable_Team_Import_Repairs] = tag;

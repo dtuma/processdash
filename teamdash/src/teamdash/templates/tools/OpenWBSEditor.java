@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2012 Tuma Solutions, LLC
+// Copyright (C) 2002-2013 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -239,6 +239,9 @@ public class OpenWBSEditor extends TinyCGIBase {
             result.put(TeamServerSelector.DEFAULT_TEAM_SERVER_PROPERTY,
                     baseUrl);
         }
+
+        if ("true".equals(getParameter("reverseSyncNewMembers")))
+            result.put("teamdash.wbs.reverseSyncNewMembers", "true");
 
         result.put("teamdash.wbs.syncURL", getSyncURL());
         result.put("teamdash.wbs.reverseSyncURL", getReverseSyncURL());

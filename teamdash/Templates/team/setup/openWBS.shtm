@@ -29,6 +29,10 @@
     <!--#include file="getProcessMetadataURL" #-->
 <!--#endset-->
 
+<!--#set var="reverseSyncNewMembers" inline="true" #-->
+    <!--#if [Reverse_Sync_New_Members] -->true<!--#else-->false<!--#endif#-->
+<!--#endset-->
+
 <!--#include file="/team/tools/OpenWBSEditor.class" -->
     <!--#parameter name="QUERY_STRING" -->
     <!--#parameter name="syncURL" encoding="relUri" value="sync.class?run&bg" -->
@@ -37,5 +41,6 @@
     <!--#parameter name="directoryURL" var="[Team_Data_Directory_URL]" -->
     <!--#parameter name="directory" var="[Team_Data_Directory]" -->
     <!--#parameter name="indivInitials" var="[Indiv_Initials]" -->
+    <!--#parameter name="reverseSyncNewMembers" var="reverseSyncNewMembers" -->
 
 <!--#endif-->
