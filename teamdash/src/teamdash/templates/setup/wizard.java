@@ -37,6 +37,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 import java.util.Vector;
 import java.util.logging.Logger;
@@ -67,12 +68,15 @@ import net.sourceforge.processdash.templates.TemplateLoader;
 import net.sourceforge.processdash.tool.bridge.ResourceCollectionType;
 import net.sourceforge.processdash.tool.bridge.client.ResourceBridgeClient;
 import net.sourceforge.processdash.tool.bridge.client.TeamServerSelector;
+import net.sourceforge.processdash.tool.bridge.client.WorkingDirectory;
+import net.sourceforge.processdash.tool.bridge.client.WorkingDirectoryFactory;
 import net.sourceforge.processdash.tool.export.DataImporter;
 import net.sourceforge.processdash.tool.export.mgr.ExportManager;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.NetworkDriveList;
+import net.sourceforge.processdash.util.RobustFileOutputStream;
 import net.sourceforge.processdash.util.StringUtils;
 import net.sourceforge.processdash.util.XMLUtils;
 
@@ -588,6 +592,7 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
         saveTeamDataValues(teamDirectory, teamDataDirUrl, projectID,
             teamSchedule, scheduleID);
         saveTeamSettings (teamDirectory, teamDataDir, projectID);
+        maybeWriteWbsUserSettingsFile(teamDataDirUrl, teamDataDir);
         tryToCopyProcessJarfile (processJarFile, teamDirectory);
         exportProjectData();
 
@@ -687,6 +692,47 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
         }
     }
 
+    private void maybeWriteWbsUserSettingsFile(String... locations) {
+        Properties wbsUserSettings = getWbsUserSettings();
+        if (!wbsUserSettings.isEmpty())
+            writeFilesToWbsDir(wbsUserSettings, locations);
+    }
+
+    private Properties getWbsUserSettings() {
+        Properties result = new Properties();
+        String initialsPolicy = getValue("/Team_Project_Policy/Initials_Policy");
+        if (StringUtils.hasValue(initialsPolicy))
+            result.put("initialsPolicy", initialsPolicy);
+        return result;
+    }
+
+    private void writeFilesToWbsDir(Properties userSettings,
+            String... wbsDirLocations) {
+        WorkingDirectory dir = null;
+        try {
+            dir = WorkingDirectoryFactory.getInstance().get(
+                WorkingDirectoryFactory.PURPOSE_WBS, wbsDirLocations);
+            dir.acquireProcessLock("", null);
+            dir.prepare();
+            dir.acquireWriteLock(null, "Team Project Setup Wizard");
+
+            if (!userSettings.isEmpty()) {
+                File f = new File(dir.getDirectory(), "user-settings.ini");
+                RobustFileOutputStream out = new RobustFileOutputStream(f);
+                userSettings.store(out, null);
+                out.close();
+            }
+
+            dir.flushData();
+
+        } catch (Exception e) {
+            System.out.println("Unable to write files to project WBS dir");
+            e.printStackTrace();
+        } finally {
+            if (dir != null)
+                dir.releaseLocks();
+        }
+    }
 
     protected boolean tryToCopyProcessJarfile(String jarFilename,
                                               String teamDirectory) {
