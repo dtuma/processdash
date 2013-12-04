@@ -184,6 +184,10 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
     private static final String DATA_DIR_URL = "setup//Data_Directory_URL";
     private static final String IND_DIR_OVERRIDE = "setup//Indiv_Team_Dir_Override";
     private static final String IGNORE_DUPS = "setup//Ignore_Duplicate_Projects";
+    private static final String INITIALS_POLICY = "initialsPolicy";
+    private static final String INITIALS_POLICY_USERNAME = "username";
+    private static final String INITIALS_LABEL = "setup//Initials_Label";
+    private static final String INITIALS_LABEL_LC = "setup//initials_label";
     private static final String JOINING_DATA_MAP = "setup//Joining_Data";
     private static final String[] JOIN_SESSION_VARIABLES = { NODE_NAME,
             NODE_LOCATION, IND_SCHEDULE, DATA_DIR, DATA_DIR_URL, IND_DIR_OVERRIDE };
@@ -1020,7 +1024,10 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
         checkForDuplicateProject(joinInfo);
 
         // ensure we can locate the team data directory
-        resolveTeamDataDirectory();
+        URL teamDirUrl = resolveTeamDataDirectory();
+
+        // retrieve additional information about the project
+        retrieveInfoFromTeamProjectDir(joinInfo, teamDirUrl);
 
         // set default values for the user
         saveDefaultJoiningValues(joinInfo);
@@ -1116,6 +1123,31 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
         }
     }
 
+    private void retrieveInfoFromTeamProjectDir(Map<String, String> joinInfo,
+            URL teamDirUrl) {
+        Properties userSettings = retrieveWbsUserSettings(teamDirUrl);
+
+        // check to see if the team has a special policy for initials
+        String initialsPolicy = (String) userSettings.get(INITIALS_POLICY);
+        joinInfo.put(INITIALS_POLICY, initialsPolicy);
+        String initialsLabel = "Initials";
+        if (INITIALS_POLICY_USERNAME.equals(initialsPolicy))
+            initialsLabel = "Username";
+        putValue(INITIALS_LABEL, initialsLabel);
+        putValue(INITIALS_LABEL_LC, initialsLabel.toLowerCase());
+    }
+
+    private Properties retrieveWbsUserSettings(URL teamDirUrl) {
+        Properties result = new Properties();
+        try {
+            URL userSettingsUrl = new URL(teamDirUrl, "user-settings.ini");
+            InputStream in = userSettingsUrl.openStream();
+            result.load(in);
+            in.close();
+        } catch (Exception e) {}
+        return result;
+    }
+
     /** Look at information about the team project, and use it to set up
      * default values for some of the data we expect the individual to
      * provide. */
@@ -1184,6 +1216,10 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
 
     private void saveDefaultUserName(Map<String, String> joinInfo) {
         String ownerInitials = null;
+        if (INITIALS_POLICY_USERNAME.equals(joinInfo.get(INITIALS_POLICY)))
+            ownerInitials = System.getProperty(
+                TeamDataConstants.DATASET_OWNER_USERNAME_SYSPROP);
+
         maybeSavePersonalValue(IND_INITIALS, Collections.EMPTY_SET,
             joinInfo.get("Suggested_Team_Member_Initials"), ownerInitials);
         maybeSavePersonalValue(IND_FULLNAME, getPlaceholderFullNames(),
@@ -1553,7 +1589,7 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
         if (TeamServerSelector.testServerURL(teamDataDirectoryURL) != null) {
             joinInfo.put(TEAM_DIRECTORY, "");
             joinInfo.put(TEAM_DIRECTORY_UNC, "");
-            return new URL(teamDataDirectoryURL);
+            return new URL(teamDataDirectoryURL + "/");
         }
 
         putValue(DATA_DIR, f == null ? null : f.getPath());

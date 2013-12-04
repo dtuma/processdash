@@ -63,15 +63,16 @@ would like to use to set up this team project:</p>
 
 <!--#endif not TeamProjectStub -->
 
-<table><tr><td><b>Your Initials:</b></td>
+<table><tr><td><b>Your <!--#echo [setup//Initials_Label] -->:</b></td>
 <td><input type="text" name="Initials"
            value="<!--#echo [setup//Indiv_Initials] -->"
            size="10">
     <!--#if initialsMissing -->
-        <div class="err">You must enter your initials.</div>
+        <div class="err">You must enter your
+        <!--#echo [setup//initials_label] -->.</div>
     <!--#elif initialsNonAlpha -->
         <div class="err">Please use only the letters 'a' through 'z' when
-	entering your initials.</div>
+	entering your <!--#echo [setup//initials_label] -->.</div>
     <!--#endif-->
 </td></tr></table>
 
