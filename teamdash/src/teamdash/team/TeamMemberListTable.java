@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2012 Tuma Solutions, LLC
+// Copyright (C) 2002-2013 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -1083,7 +1083,7 @@ public class TeamMemberListTable extends JTable {
     private static final int SCROLL_BUTTON_PADDING = 3;
 
     /** Preferred widths for the initial, fixed columns */
-    private static final int[] COL_WIDTHS = { 150, 55, 55, 65 };
+    private static final int[] COL_WIDTHS = { 150, 70, 55, 65 };
 
     /** The width of each Weekly data column */
     private static final int WEEK_COL_WIDTH = 50;

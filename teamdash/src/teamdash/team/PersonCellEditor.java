@@ -1,4 +1,4 @@
-// Copyright (C) 2010 Tuma Solutions, LLC
+// Copyright (C) 2010-2013 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -32,6 +32,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.beans.EventHandler;
 import java.util.EventObject;
+import java.util.Map;
 
 import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
@@ -49,6 +50,10 @@ import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 
 import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
+import net.sourceforge.processdash.util.HTMLUtils;
+import net.sourceforge.processdash.util.StringUtils;
+
+import teamdash.team.TeamMemberList.InitialsPolicy;
 
 public class PersonCellEditor extends DefaultCellEditor {
 
@@ -202,12 +207,30 @@ public class PersonCellEditor extends DefaultCellEditor {
         String nameAfter = m.getName();
         String serverStringAfter = m.getServerIdentityInfo();
         if (!EQ(nameBefore, nameAfter)
-                || !EQ(serverStringBefore, serverStringAfter))
+                || !EQ(serverStringBefore, serverStringAfter)) {
+            maybeAutoSetInitials(m);
             teamList.setDirty(true);
+        }
 
         // fire the appropriate events
         teamList.fireTableCellUpdated(row, col);
         teamList.maybeAddEmptyRow();
+    }
+
+    private void maybeAutoSetInitials(TeamMember m) {
+        if (teamList.getInitialsPolicy() != InitialsPolicy.Username)
+            return;
+
+        String serverInfoStr = m.getServerIdentityInfo();
+        if (!StringUtils.hasValue(serverInfoStr))
+            return;
+
+        Map serverInfo = HTMLUtils.parseQuery(serverInfoStr);
+        String username = (String) serverInfo.get("username");
+        if (StringUtils.hasValue(username)) {
+            m.setInitials(username);
+            teamList.fireTableCellUpdated(row, TeamMemberList.INITIALS_COLUMN);
+        }
     }
 
 }

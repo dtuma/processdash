@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2012 Tuma Solutions, LLC
+// Copyright (C) 2002-2013 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -62,6 +62,9 @@ public class TeamMemberList extends AbstractTableModel implements EffortCalendar
         public void initialsChanged(String oldInitials, String newInitials);
     }
 
+    public enum InitialsPolicy {
+        Initials, Username
+    }
 
     /** The list of team members */
     private ArrayList<TeamMember> teamMembers = new ArrayList();
@@ -75,6 +78,9 @@ public class TeamMemberList extends AbstractTableModel implements EffortCalendar
 
     /** If set, only the team member with these initials can be edited */
     private String onlyEditableFor = null;
+
+    /** The policy this team uses for assigning initials */
+    private InitialsPolicy initialsPolicy = InitialsPolicy.Initials;
 
     /** What day of the week would the user like the schedule to start?
      * This should be a value recognized by the java.util.Calendar class
@@ -174,6 +180,26 @@ public class TeamMemberList extends AbstractTableModel implements EffortCalendar
 
     public void setOnlyEditableFor(String onlyEditableFor) {
         this.onlyEditableFor = onlyEditableFor;
+    }
+
+    public InitialsPolicy getInitialsPolicy() {
+        return initialsPolicy;
+    }
+
+    public void setInitialsPolicy(InitialsPolicy initialsPolicy) {
+        this.initialsPolicy = initialsPolicy;
+    }
+
+    public void setInitialsPolicyName(String policyName) {
+        setInitialsPolicy(parseInitialsPolicy(policyName));
+    }
+
+    private InitialsPolicy parseInitialsPolicy(String policyName) {
+        if (policyName != null)
+            for (InitialsPolicy p : InitialsPolicy.values())
+                if (policyName.toLowerCase().startsWith(p.name().toLowerCase()))
+                    return p;
+        return InitialsPolicy.Initials;
     }
 
     public int getStartOnDayOfWeek() {
@@ -411,6 +437,9 @@ public class TeamMemberList extends AbstractTableModel implements EffortCalendar
     }
 
     public String getColumnName(int col) {
+        if (col == INITIALS_COLUMN)
+            return initialsPolicy.toString();
+
         if (col < columnNames.length)
             return columnNames[col];
 

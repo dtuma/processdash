@@ -615,8 +615,10 @@ public class WBSEditor implements WindowListener, SaveListener,
 
     private void maybeCreateTeamListEditor() {
         if (teamListEditor == null) {
-            teamListEditor = new TeamMemberListEditor
-                (teamProject.getProjectName(), teamProject.getTeamMemberList());
+            teamListEditor = new TeamMemberListEditor(
+                    teamProject.getProjectName(),
+                    teamProject.getTeamMemberList(),
+                    teamProject.getUserSetting(INITIALS_POLICY_SETTING));
             teamListEditor.addSaveListener(this);
             if (mergeConflictDialog != null)
                 mergeConflictDialog.setHyperlinkHandler(ModelType.TeamList,

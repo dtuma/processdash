@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2012 Tuma Solutions, LLC
+// Copyright (C) 2002-2013 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -67,8 +67,10 @@ public class TeamMemberListEditor implements WindowListener,
     private JButton saveButton;
 
 
-    public TeamMemberListEditor(String projectName, TeamMemberList teamList) {
+    public TeamMemberListEditor(String projectName, TeamMemberList teamList,
+            String initialsPolicy) {
         teamMemberList = new TeamMemberList(orig = teamList);
+        teamMemberList.setInitialsPolicyName(initialsPolicy);
         teamMemberList.addTableModelListener(this);
         teamMemberList.maybeAddEmptyRow();
         table = new TeamMemberListTable(teamMemberList);
@@ -81,7 +83,7 @@ public class TeamMemberListEditor implements WindowListener,
         frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 
         frame.addWindowListener(this);
-        frame.setSize(670, 200);
+        frame.setSize(700, 200);
     }
 
     public void show() {
