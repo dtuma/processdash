@@ -26,24 +26,56 @@
       border: 1px solid #8e8e8e;
       padding: 3px;
    }
+   div.helpWrapper {
+      height: 0px;
+      position: relative;
+   }
+   div.helpPointer {
+      background-image: url("joinPointer.gif");
+      height: 15px;
+      position: absolute;
+      right: -20px;
+      top: 4px;
+      width: 16px;
+   }
+   div.helpContent {
+      background-color: #ffffcc;
+      border: 1px solid black;
+      padding: 8px;
+      position: absolute;
+      right: -337px;
+      width: 300px;
+   }
 </style>
 <script type="text/javascript">
-    function save(root, relPath, fullPath) {
-        if (!fullPath) { fullPath = "/"; }
-        document.getElementById("Node_Location").value = fullPath;
-    }
+
+   function save(root, relPath, fullPath) {
+      if (!fullPath) { fullPath = "/"; }
+      document.getElementById("Node_Location").value = fullPath;
+   }
+
+   function fieldFocus(elem) {
+      elem.className = "edit";
+      elem.removeAttribute("title");
+      var helpDivs = document.getElementsByClassName("helpWrapper");
+      for (var i = 0; i < helpDivs.length;  i++) {
+         helpDivs[i].style.display = "none";
+      }
+      document.getElementById(elem.name + "_Help").style.display = "";
+   }
+
 </script>
 </head>
 <body>
 
-<table><tr><td><img align="left" src="/Images/team.jpg" width=50 
-height=50></td><td><h1>Team Project Setup Wizard</h1></td></tr></table>
+<table><tr><td><img src="/Images/team.jpg" width="50" height="50"></td>
+<td><h1 style="margin:0px">Team Project Setup Wizard</h1></td></tr></table>
 
 <h2>Join Team Project</h2>
 
 <p style="width: 550px">Please review the following information.  Enter any
 missing values, and edit other values if desired.  After providing the values
-you would like to use, click Finish to join this team project.</p>
+you would like to use, click the button to join this team project.</p>
 
 <form action='wizard.class' method='post'>
 <input type='hidden' name='page' value='indivEnterData'>
@@ -61,11 +93,34 @@ you would like to use, click Finish to join this team project.</p>
 <td style="width: 136px"><input type="text" name="Initials"
            value="<!--#echo [setup//Indiv_Initials] -->"
            class="<!--#echo [setup//Indiv_Initials//Class] -->"
-           style="width: 126px"></td>
-<td><input type="text" name="Full_Name" size="50"
+           <!--#if [setup//Indiv_Initials//Class] eq 'flat' -->
+           title="You can accept the current value for this field."
+           <!--#endif-->
+           onfocus="fieldFocus(this);" style="width: 126px"></td>
+<td><div class="helpWrapper" id="Initials_Help" style="display:none">
+<div class="helpContent" style="bottom:-157px">
+   On a team project, each individual is uniquely identified by their
+   <!--#echo [setup//initials_label] --> in the WBS Team Member List.  You
+   should enter the same <!--#echo [setup//initials_label] --> in this field,
+   so the dashboard can properly identify the tasks that belong in your
+   personal plan.  If you aren't certain what value to enter, ask your team
+   leader.<br/><br/>
+
+   <i>(Note: if you enter the wrong value here by mistake, you can correct it
+   later by opening the Project Parameters and Settings page for this project
+   in your personal dashboard.)</i>
+</div><div class="helpPointer">&nbsp;</div></div>
+<div class="helpWrapper" id="Full_Name_Help" style="display:none">
+<div class="helpContent" style="top:-8px">
+   Please enter your name here.
+</div><div class="helpPointer">&nbsp;</div></div>
+<input type="text" name="Full_Name"
            value="<!--#echo [/Owner] -->"
            class="<!--#echo [/Owner//Class] -->"
-           style="width: 300px"></td>
+           <!--#if [/Owner//Class] eq 'flat' -->
+           title="You can accept the current value for this field."
+           <!--#endif-->
+           onfocus="fieldFocus(this);" style="width: 300px"></td>
 </tr>
 
 <tr>
@@ -93,10 +148,27 @@ you would like to use, click Finish to join this team project.</p>
 
 <tr>
 <td class="label">Project name:</td>
-<td colspan="2"><input type="text" name="Node_Name"
+<td colspan="2">
+<div class="helpWrapper" id="Node_Name_Help" style="display:none">
+<div class="helpContent" style="bottom:-110px">
+   Over time, you may participate in many different team projects.  The
+   Process Dashboard will keep all of these projects in your personal database
+   to support your future planning and process improvement
+   activities.<br/><br/>
+
+   Since your personal database may eventually contain many projects, it will
+   be necessary to choose unique, descriptive names so you can tell them
+   apart.  Usually, you can just choose the same project name that was
+   assigned in the Team Dashboard.  But if that would lead to a naming
+   conflict in your personal database, you can enter a different name here.
+</div><div class="helpPointer">&nbsp;</div></div>
+<input type="text" name="Node_Name"
            value="<!--#echo [setup//Node_Name] -->"
            class="<!--#echo [setup//Node_Name//Class] -->"
-           style="width: 440px"></td>
+           <!--#if [setup//Node_Name//Class] eq 'flat' -->
+           title="You can accept the current value for this field."
+           <!--#endif-->
+           onfocus="fieldFocus(this);" style="width: 440px"></td>
 </tr>
 
 <!--#if nodeNameMissing || nodeNameSlash || nodeNameDuplicateProject -->
@@ -122,10 +194,27 @@ you would like to use, click Finish to join this team project.</p>
 
 <tr>
 <td class="label">Project folder:</td>
-<td colspan="2"><input type="text" name="Node_Location"
-           id="Node_Location"
+<td colspan="2">
+<div class="helpWrapper" id="Node_Location_Help" style="display:none">
+<div class="helpContent" style="bottom:-82px">
+   Over time, you may participate in many different team projects.  If the
+   number of projects becomes large, you can organize them into different
+   folders.<br/><br/>
+
+   Folders are created by clicking the "C" menu, choosing "Hierarchy," and
+   selecting "Edit &rarr; Add Node."  If you have created folders in this way,
+   you can select a folder here to keep your projects organized.  
+   <!--#if [setup//Node_Location//Class] eq 'flat' -->If you don't have a
+   large number of projects, you can generally keep the suggested default
+   folder.<!--#endif-->
+</div><div class="helpPointer">&nbsp;</div></div>
+<input type="text" name="Node_Location" id="Node_Location"
            value="<!--#echo [setup//Node_Location] -->"
            class="<!--#echo [setup//Node_Location//Class] -->"
+           <!--#if [setup//Node_Location//Class] eq 'flat' -->
+           title="You can accept the current value for this field."
+           <!--#endif-->
+           onfocus="fieldFocus(this);"
            style="width: 351px; margin-right: 10px"
    ><input type="button" name="browse" value="Browse..."
            style="width: 80px"
@@ -160,10 +249,25 @@ you would like to use, click Finish to join this team project.</p>
 
 <tr>
 <td class="label">Schedule Name:</td>
-<td colspan="2"><input type=text name=Schedule_Name
+<td colspan="2">
+<div class="helpWrapper" id="Schedule_Name_Help" style="display:none">
+<div class="helpContent" style="bottom:-54px">
+   As you perform work on this project, it will be important to plan and track
+   your progress so you can let others know when the work is expected to
+   finish.  The dashboard will create a schedule for this purpose.<br/><br/>
+
+   In this field, you can enter a name that you would like to use for this
+   schedule.  Most people have one schedule per project, so the give their
+   schedule the exact same name as their project.  If you prefer to use a
+   different name for your schedule, you can enter it here.
+</div><div class="helpPointer">&nbsp;</div></div>
+<input type="text" name="Schedule_Name"
            value="<!--#echo var='[setup//Indiv_Schedule]' -->"
            class="<!--#echo [setup//Indiv_Schedule//Class] -->"
-           style="width: 440px"></td>
+           <!--#if [setup//Indiv_Schedule//Class] eq 'flat' -->
+           title="You can accept the current value for this field."
+           <!--#endif-->
+           onfocus="fieldFocus(this);" style="width: 440px"></td>
 </tr>
 
 <!--#if scheduleNameMissing || scheduleNameInvalid || scheduleNameDuplicate -->
@@ -190,7 +294,7 @@ you would like to use, click Finish to join this team project.</p>
 
 <tr>
 <td colspan="3" style="text-align: right; padding-top: 16px">
-<input type=submit name=next value='Finish'>
+<input type=submit name=next value='Join Project'>
 </td>
 </tr>
 

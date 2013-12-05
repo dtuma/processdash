@@ -92,7 +92,7 @@ The author(s) may be contacted at:
     </pathconvert>
     <pathconvert property=".filelist" pathsep="," dirsep="/">
       <path>
-        <fileset dir="Templates/team/setup" includes="*.shtm,*.link,*.css" excludes="*sizeForm*"/>
+        <fileset dir="Templates/team/setup" includes="*.shtm,*.link,*.css,*.gif" excludes="*sizeForm*"/>
       </path>
     </pathconvert>
     <property name="filelist" value="Templates/team/setup/filelist.txt"/>
@@ -150,6 +150,7 @@ The author(s) may be contacted at:
         <include name="Templates/team/setup/*.link" />
         <include name="Templates/team/setup/*.shtm" />
         <include name="Templates/team/setup/*.css" />
+        <include name="Templates/team/setup/*.gif" />
         <include name="Templates/team/setup/filelist.txt" />
       </fileset>
       <fileset dir="${processdash.dir}" includes="Templates/style.css"/>
