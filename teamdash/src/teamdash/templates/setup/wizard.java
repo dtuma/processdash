@@ -188,6 +188,7 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
     private static final String INITIALS_POLICY_USERNAME = "username";
     private static final String INITIALS_LABEL = "setup//Initials_Label";
     private static final String INITIALS_LABEL_LC = "setup//initials_label";
+    private static final String CSS_CLASS_SUFFIX = "//Class";
     private static final String JOINING_DATA_MAP = "setup//Joining_Data";
     private static final String[] JOIN_SESSION_VARIABLES = { NODE_NAME,
             NODE_LOCATION, IND_SCHEDULE, DATA_DIR, DATA_DIR_URL, IND_DIR_OVERRIDE };
@@ -1031,6 +1032,7 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
 
         // set default values for the user
         saveDefaultJoiningValues(joinInfo);
+        checkValidityOfIndivDataValues(false);
 
         // show a page asking the user to enter the data
         printRedirect(IND_DATA_URL);
@@ -1208,6 +1210,8 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
 
     private void saveDefaultScheduleName(Map<String, String> joinInfo) {
         String scheduleName = joinInfo.get("Schedule_Name");
+        if (!StringUtils.hasValue(scheduleName))
+            scheduleName = getValue(NODE_NAME);
         if (StringUtils.hasValue(scheduleName)) {
             if (getValue(IND_SCHEDULE) == null)
                 putValue(IND_SCHEDULE, scheduleName);
@@ -1261,19 +1265,29 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
         putValue(IND_SCHEDULE, trimParameter("Schedule_Name"));
     }
 
-    private void ensureIndivValues() {
+    private void checkValidityOfIndivDataValues(boolean abortOnError) {
         WizardError err = new WizardError(IND_DATA_URL);
 
         if (!prefixNamesTeamProjectStub()) {
-            err.param(getNodeNameError());
-            err.param(getNodeLocationError());
+            checkIndivValue(err, NODE_NAME, getNodeNameError());
+            checkIndivValue(err, NODE_LOCATION, getNodeLocationError());
         }
-        err.param(getPersonInitialsError());
-        err.param(getPersonNameError());
-        err.param(getScheduleNameErr());
+        checkIndivValue(err, IND_INITIALS, getPersonInitialsError());
+        checkIndivValue(err, IND_FULLNAME, getPersonNameError());
+        checkIndivValue(err, IND_SCHEDULE, getScheduleNameErr());
 
-        if (!IND_DATA_URL.equals(err.uri))
+        if (abortOnError && !IND_DATA_URL.equals(err.uri))
             throw err;
+    }
+
+    private void checkIndivValue(WizardError we, String dataName, String error) {
+        // store a CSS class for this input field based on whether we have
+        // a non-null error token
+        String cssClassName = (StringUtils.hasValue(error) ? "edit" : "flat");
+        putValue(dataName + CSS_CLASS_SUFFIX, cssClassName);
+
+        // also record the error token in the WizardError object.
+        we.param(error);
     }
 
     private String getNodeNameError() {
@@ -1293,7 +1307,7 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
             else
                 fullName = nodeLocation + "/" + nodeName;
 
-            if (findExistingHierarchyNode(fullName) != null)
+            if (getPSPProperties().findExistingKey(fullName) != null)
                 return "nodeNameDuplicateProject";
         }
 
@@ -1457,7 +1471,7 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
         // make sure all the required data is present - otherwise abort.
         Map<String, String> joinInfo = getTeamProjectJoinInformation();
         resolveTeamDataDirectory();
-        ensureIndivValues();
+        checkValidityOfIndivDataValues(true);
 
         if (DashController.isHierarchyEditorOpen())
             throw new WizardError(IND_CLOSE_HIERARCHY_URL);

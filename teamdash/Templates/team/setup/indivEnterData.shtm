@@ -2,110 +2,199 @@
 <head>
 <title>Team Project Setup Wizard</title>
 <link rel=stylesheet type='text/css' href='/dash/teamStart.css'>
-<style>
-   div.err { color:#700; font-weight:bold }
+<style type="text/css">
+   td.label {
+      font-weight: bold;
+      text-align: right;
+      vertical-align: baseline;
+   }
+   ul.err {
+      background-color: #ffcccc;
+      border: 1px solid #DD7777;
+      color: #a30000;
+      font-weight: bold;
+      padding: 10px 40px;
+      width: 358px;
+   }
+   input.edit {
+      background-color: white;
+      border: 1px solid #8e8e8e;
+      padding: 3px;
+   }
+   input.flat {
+      background-color: silver;
+      border: 1px solid #8e8e8e;
+      padding: 3px;
+   }
 </style>
-<script>
+<script type="text/javascript">
     function save(root, relPath, fullPath) {
         if (!fullPath) { fullPath = "/"; }
-        document.forms[0].elements[2].value = fullPath;
+        document.getElementById("Node_Location").value = fullPath;
     }
 </script>
 </head>
 <body>
 
 <table><tr><td><img align="left" src="/Images/team.jpg" width=50 
-height=50></td><td><h2>Team Project Setup Wizard</h2></td></tr></table>
+height=50></td><td><h1>Team Project Setup Wizard</h1></td></tr></table>
 
-<p>Please review the following information, and enter the values you
-would like to use to set up this team project:</p>
+<h2>Join Team Project</h2>
+
+<p style="width: 550px">Please review the following information.  Enter any
+missing values, and edit other values if desired.  After providing the values
+you would like to use, click Finish to join this team project.</p>
 
 <form action='wizard.class' method='post'>
 <input type='hidden' name='page' value='indivEnterData'>
 
+<table>
+
+<tr>
+<td></td>
+<td style="width: 136px"><b>Your <!--#echo [setup//Initials_Label] --></b></td>
+<td><b>Your Full Name</b></td>
+</tr>
+
+<tr>
+<td class="label">Your Info:</td>
+<td style="width: 136px"><input type="text" name="Initials"
+           value="<!--#echo [setup//Indiv_Initials] -->"
+           class="<!--#echo [setup//Indiv_Initials//Class] -->"
+           style="width: 126px"></td>
+<td><input type="text" name="Full_Name" size="50"
+           value="<!--#echo [/Owner] -->"
+           class="<!--#echo [/Owner//Class] -->"
+           style="width: 300px"></td>
+</tr>
+
+<tr>
+<td></td>
+<td colspan="2" style="padding-bottom: 16px">
+<!--#if initialsMissing || initialsNonAlpha || fullNameMissing -->
+  <ul class="err">
+    <!--#if initialsMissing -->
+        <li>You must enter your <!--#echo [setup//initials_label] -->.</li>
+    <!--#elif initialsNonAlpha -->
+        <li>Please use only the letters 'a' through 'z' when
+	entering your <!--#echo [setup//initials_label] -->.</li>
+    <!--#endif-->
+
+    <!--#if fullNameMissing -->
+        <li>You must enter your name.</li>
+    <!--#endif-->
+  </ul>
+<!--#endif initials* -->
+</td>
+</tr>
 
 
 <!--#if not [TeamProjectStub Tag] -->
 
-<table><tr><td><b>Project name:</b></td>
-<td><input type="text" name="Node_Name"
+<tr>
+<td class="label">Project name:</td>
+<td colspan="2"><input type="text" name="Node_Name"
            value="<!--#echo [setup//Node_Name] -->"
-           size="60">
+           class="<!--#echo [setup//Node_Name//Class] -->"
+           style="width: 440px"></td>
+</tr>
+
+<!--#if nodeNameMissing || nodeNameSlash || nodeNameDuplicateProject -->
+
+<tr>
+<td></td>
+<td colspan="2" style="padding-bottom: 16px">
+<ul class="err">
     <!--#if nodeNameMissing -->
-        <div class="err">You must enter a name for the project.</div>
+        <li>You must enter a name for the project.</li>
     <!--#elif nodeNameSlash -->
-        <div class="err">The project name cannot contain the '/' character.</div>
+        <li>The project name cannot contain the '/' character.</li>
     <!--#elif nodeNameDuplicateProject -->
-        <div class="err">There is already a project in your hierarchy with the
-        name and parent you selected.  Please choose a different project
-        name.</div>
+        <li>There is already a project in your hierarchy with the name and
+        folder you selected.  Please choose a different project name.</li>
     <!--#endif-->
-</td></tr></table>
+</ul>
+</td>
+</tr>
+
+<!--#endif nodeName* -->
 
 
-<table><tr><td><b>Project parent:</b></td>
-<td><input type="text" name="Node_Location"
+<tr>
+<td class="label">Project folder:</td>
+<td colspan="2"><input type="text" name="Node_Location"
+           id="Node_Location"
            value="<!--#echo [setup//Node_Location] -->"
-           size="45">&nbsp;<input type="button" name="browse" value="Browse..."
-           onclick="window.open('selectTopNode.class?call=save&prompt=Select+Parent', 'popup', 'width=300,height=200,scrollbars=1');">
+           class="<!--#echo [setup//Node_Location//Class] -->"
+           style="width: 351px; margin-right: 10px"
+   ><input type="button" name="browse" value="Browse..."
+           style="width: 80px"
+           onclick="window.open('selectTopNode.class?call=save&amp;prompt=Select+Folder', 'popup', 'width=300,height=200,scrollbars=1');"></td>
+</tr>
+
+<!--#if nodeLocationMissing || nodeLocationNotFound || nodeLocationBadParent -->
+
+<tr>
+<td></td>
+<td colspan="2" style="padding-bottom: 16px">
+<ul class="err">
     <!--#if nodeLocationMissing -->
-        <div class="err">You must choose a location in the hierarchy where the
-        project should be created.</div>
+        <li>You must choose a folder in your dashboard work hierarchy where
+        the project should be created.</li>
     <!--#elif nodeLocationNotFound -->
-        <div class="err">The parent node you selected doesn't currently exist
-        in your dashboard hierarchy.</div>
+        <li>The folder you selected doesn't currently exist in your dashboard
+        hierarchy.</li>
     <!--#elif nodeLocationBadParent -->
-        <div class="err">The dashboard cannot create the project at the
-        location you selected in your dashboard hierarchy.  Please select a
-        different location.</div>
+        <li>The dashboard cannot create the project at the location you
+        selected in your dashboard hierarchy.  Please select a different
+        folder.</li>
     <!--#endif-->
-</td></tr></table>
+</ul>
+</td>
+</tr>
+
+<!--#endif nodeLocation* -->
 
 <!--#endif not TeamProjectStub -->
 
-<table><tr><td><b>Your <!--#echo [setup//Initials_Label] -->:</b></td>
-<td><input type="text" name="Initials"
-           value="<!--#echo [setup//Indiv_Initials] -->"
-           size="10">
-    <!--#if initialsMissing -->
-        <div class="err">You must enter your
-        <!--#echo [setup//initials_label] -->.</div>
-    <!--#elif initialsNonAlpha -->
-        <div class="err">Please use only the letters 'a' through 'z' when
-	entering your <!--#echo [setup//initials_label] -->.</div>
-    <!--#endif-->
-</td></tr></table>
 
-<table><tr><td><b>Your Name:</b></td>
-<td><input type=text name="Full_Name" size=50
-           value="<!--#echo [/Owner] -->"
-           size=10>
-    <!--#if fullNameMissing -->
-        <div class="err">You must enter your name.</div>
-    <!--#endif-->
-</td></tr></table>
-
-<table><tr><td><b>Schedule Name:</b></td>
-<td><input type=text name=Schedule_Name
+<tr>
+<td class="label">Schedule Name:</td>
+<td colspan="2"><input type=text name=Schedule_Name
            value="<!--#echo var='[setup//Indiv_Schedule]' -->"
-           size=60>
+           class="<!--#echo [setup//Indiv_Schedule//Class] -->"
+           style="width: 440px"></td>
+</tr>
+
+<!--#if scheduleNameMissing || scheduleNameInvalid || scheduleNameDuplicate -->
+
+<tr>
+<td></td>
+<td colspan="2" style="padding-bottom: 16px">
+<ul class="err">
     <!--#if scheduleNameMissing -->
-        <div class="err">You must enter a name for the team schedule.</div>
+        <li>You must enter a name to use for your personal schedule.</li>
     <!--#elif scheduleNameInvalid -->
-        <div class="err">Schedule names cannot contain the '/' character.
-        Please enter a new, valid name for the schedule.</div>
+        <li>Schedule names cannot contain the '/' character.  Please enter a
+        new, valid name for your personal schedule.</li>
     <!--#elif scheduleNameDuplicate -->
-        <div class="err">There is already a schedule with the name you
-        entered.  Schedule names must be unique; please enter a new, unique
-        name for the schedule.</div>
+        <li>There is already a schedule with the name you entered.  Schedule
+        names must be unique; please enter a new, unique name for your
+	personal schedule.</li>
     <!--#endif-->
-</td></tr></table>
+</ul>
+</td>
+</tr>
 
+<!--#endif scheduleName* -->
 
-
-<div style="text-align: right">
+<tr>
+<td colspan="3" style="text-align: right; padding-top: 16px">
 <input type=submit name=next value='Finish'>
-</div>
+</td>
+</tr>
+
+</table>
 
 </form>
 </body>
