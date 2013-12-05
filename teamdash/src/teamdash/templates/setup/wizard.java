@@ -1519,6 +1519,7 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
         boolean joinSucceeded = teamDashSupportsScheduleMessages
                 || joinTeamSchedule(teamURL, scheduleName, scheduleID);
         importDisseminatedTeamData();
+        DashController.setPath(localProjectName);
 
         showIndivSuccessPage(joinSucceeded);
     }
