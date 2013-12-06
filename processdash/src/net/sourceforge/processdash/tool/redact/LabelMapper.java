@@ -89,4 +89,14 @@ public class LabelMapper implements StringMapper {
         }
     };
 
+    public static String convertToLabel(String text) {
+        if (text == null || text.length() == 0)
+            return null;
+
+        String[] tokens = text.split(NON_LABEL_CHARS_REGEXP);
+        return StringUtils.join(Arrays.asList(tokens), "_");
+    }
+
+    private static final String NON_LABEL_CHARS_REGEXP = "[,\u0000- |()]+";
+
 }

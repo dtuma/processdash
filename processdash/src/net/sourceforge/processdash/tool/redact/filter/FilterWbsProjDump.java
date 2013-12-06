@@ -31,6 +31,7 @@ import net.sourceforge.processdash.tool.redact.PersonMapper;
 import net.sourceforge.processdash.tool.redact.RedactFilterIDs;
 import net.sourceforge.processdash.tool.redact.EnabledFor;
 import net.sourceforge.processdash.tool.redact.HierarchyNameMapper;
+import net.sourceforge.processdash.tool.redact.RedactFilterUtils;
 import net.sourceforge.processdash.tool.redact.TeamProjectInfo;
 import net.sourceforge.processdash.util.StringMapper;
 
@@ -86,6 +87,9 @@ public class FilterWbsProjDump extends AbstractLineBasedFilter {
         else if (startsWith(trimmed, "<teamMember"))
             return filterTeamMemberTag(line);
 
+        else if (startsWith(trimmed, "<milestone"))
+            return filterMilestoneTag(line);
+
         else if (startsWith(trimmed, "<attrType", "<attrValue"))
             return filterAttributeTag(line);
 
@@ -129,6 +133,14 @@ public class FilterWbsProjDump extends AbstractLineBasedFilter {
             line = discardXmlAttr(line, "serverIdentityData");
         }
 
+        return line;
+    }
+
+    private String filterMilestoneTag(String line) {
+        String name = RedactFilterUtils.getXmlAttr(line, "labelName");
+        String scrambled = LabelMapper.hashLabel(name);
+        line = RedactFilterUtils.replaceXmlAttr(line, "name", scrambled);
+        line = RedactFilterUtils.replaceXmlAttr(line, "labelName", scrambled);
         return line;
     }
 

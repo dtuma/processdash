@@ -37,8 +37,12 @@ public class FilterWbsMilestones extends AbstractLineBasedFilter {
     }
 
     public String getString(String line) {
-        if (getIndentLevel(line) > 0)
-            line = replaceXmlAttr(line, "name", labelMapper);
+        if (getIndentLevel(line) > 0) {
+            String name = getXmlAttr(line, "name");
+            name = LabelMapper.convertToLabel(name);
+            name = labelMapper.getString(name);
+            line = replaceXmlAttr(line, "name", name);
+        }
 
         return line;
     }
