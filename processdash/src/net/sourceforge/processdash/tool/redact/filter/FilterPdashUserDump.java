@@ -65,8 +65,11 @@ public class FilterPdashUserDump extends AbstractLineBasedFilter {
         if (hashPeople && !stripNotes && line.contains("<noteChange "))
             return replaceXmlAttr(line, "author", PersonMapper.HASH_PERSON_NAME);
 
-        if (hashPeople && line.startsWith("<userData "))
+        if (hashPeople && line.startsWith("<userData ")) {
+            line = discardXmlAttr(line, "userName");
+            line = discardXmlAttr(line, "fullName");
             return replaceXmlAttr(line, "initials", PersonMapper.HASH_INITIALS);
+        }
 
         return line;
     }
