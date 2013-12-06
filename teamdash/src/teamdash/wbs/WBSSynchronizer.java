@@ -282,8 +282,10 @@ public class WBSSynchronizer {
             if (addMissingTeamMember(timestamp, team, file))
                 madeChange = true;
 
-        if (madeChange)
+        if (madeChange) {
+            team.assignMissingUniqueIDs();
             teamProject.getTeamMemberList().copyFrom(team);
+        }
 
         teamProject.getWBS().getRoot().setAttribute(TEAM_LIST_SYNC_TIMESTAMP,//
             Long.toString(System.currentTimeMillis()));
