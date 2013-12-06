@@ -1,4 +1,4 @@
-// Copyright (C) 2012 Tuma Solutions, LLC
+// Copyright (C) 2012-2013 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -30,7 +30,7 @@ import net.sourceforge.processdash.tool.redact.LabelMapper;
 @EnabledFor(RedactFilterIDs.LABELS)
 public class FilterWbsLabelAttrs extends AbstractWbsAttrFilter {
 
-    @EnabledFor("^Label$")
+    @EnabledFor("^(Workflow )?Label$")
     public String scrambleLabels(String labels) {
         String result = LabelMapper.hashLabelList(labels);
         if (result == null || result.length() == 0)
