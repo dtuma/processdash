@@ -13,8 +13,8 @@ function showManualDir() {
 </head>
 <body>
 
-<table><tr><td><img align="left" src="/Images/team.jpg" width=50 
-height=50></td><td><h1>Team Project Setup Wizard</h1></td></tr></table>
+<table><tr><td><img src="/Images/team.jpg" width="50" height="50"></td>
+<td><h1 style="margin:0px">Team Project Setup Wizard</h1></td></tr></table>
 
 <h2>Unable to Locate Team Data Directory</h2>
 

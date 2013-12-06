@@ -5,11 +5,11 @@
 </head>
 <body>
 
-<img align="left" src="/Images/team.jpg">
+<table><tr><td><img src="/Images/team.jpg" width="50" height="50"></td>
+<td><h1 style="margin:0px"><!--#echo var=PATH_TRANSLATED --></h1></td>
+</tr></table>
 
-<h1><!--#echo var=PATH_TRANSLATED --></h1>
-
-<h2>Success</h2>
+<h2>Joining Complete</h2>
 
 You have successfully joined this team project.  If you return to the main
 Process Dashboard toolbar and click on the script button, you will find a
