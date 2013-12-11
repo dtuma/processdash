@@ -1,4 +1,4 @@
-// Copyright (C) 2005-2009 Tuma Solutions, LLC
+// Copyright (C) 2005-2013 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -23,7 +23,6 @@
 
 package net.sourceforge.processdash.log.time;
 
-import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.Transferable;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -345,7 +344,22 @@ public class TimeLogTableModel extends AbstractTableModel implements
             return origComment + "\n" + newComment;  // merge comments
     }
 
+    public void moveTimeLogEntries(List<TimeLogEntry> entries, String targetPath) {
+        // move the time log entries into the target path.
+        for (TimeLogEntry tle : entries) {
+            ChangeFlaggedTimeLogEntry diff = new TimeLogEntryVO(tle.getID(),
+                    targetPath, null, 0, 0, null, ChangeFlagged.MODIFIED);
+            timeLog.addModification(diff);
+        }
+
+        // if we just moved external entries into the currently selected
+        // filter path, refresh our list of entries so the user can see them.
+        if (targetPath.equals(filterPath))
+            refreshFilteredEntries();
+    }
+
     public Transferable getTransferrable(int[] rows) {
+        List<TimeLogEntry> entries = new ArrayList<TimeLogEntry>();
         StringBuffer result = new StringBuffer();
         result.append(resources.getString("Report.Project")).append('\t');
         result.append(resources.getString("Report.Phase")).append('\t');
@@ -356,6 +370,7 @@ public class TimeLogTableModel extends AbstractTableModel implements
 
         for (int i = 0; i < rows.length; i++) {
             TimeLogEntry tle = (TimeLogEntry) filteredEntries.get(rows[i]);
+            entries.add(tle);
 
             String path = tle.getPath();
             String phase = "";
@@ -376,7 +391,7 @@ public class TimeLogTableModel extends AbstractTableModel implements
                         .replace('\n', ' '));
             result.append("\n");
         }
-        return new StringSelection(result.toString());
+        return new TimeLogSelection(entries, result.toString());
     }
 
     public void timeLogChanged(TimeLogEvent e) {

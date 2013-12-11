@@ -1,4 +1,4 @@
-// Copyright (C) 1999-2011 Tuma Solutions, LLC
+// Copyright (C) 1999-2013 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -81,6 +81,8 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 
+import com.toedter.calendar.JDateChooser;
+
 import net.sourceforge.processdash.ApplicationEventListener;
 import net.sourceforge.processdash.InternalSettings;
 import net.sourceforge.processdash.Settings;
@@ -107,9 +109,8 @@ import net.sourceforge.processdash.ui.lib.JDateTimeChooserCellEditor;
 import net.sourceforge.processdash.ui.lib.TableUtils;
 import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
 import net.sourceforge.processdash.util.EnumerIterator;
+import net.sourceforge.processdash.util.FallbackObjectFactory;
 import net.sourceforge.processdash.util.FormatUtil;
-
-import com.toedter.calendar.JDateChooser;
 
 public class TimeLogEditor extends Object implements TreeSelectionListener,
         DashHierarchy.Listener, TableModelListener, TimeLogListener,
@@ -729,6 +730,14 @@ public class TimeLogEditor extends Object implements TreeSelectionListener,
         return null;
     }
 
+    protected String getPathIfLoggingAllowed(TreePath path) {
+        if (path == null)
+            return null;
+
+        PropertyKey key = treeModel.getPropKey(useProps, path.getPath());
+        return (timeLoggingAllowed(key) ? key.path() : null);
+    }
+
     /**
      * The next method implement the TreeSelectionListener interface to deal
      * with changes to the tree selection.
@@ -808,6 +817,12 @@ public class TimeLogEditor extends Object implements TreeSelectionListener,
         splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
                 constructTreePanel(), constructEditPanel());
         splitPane.setDividerLocation(dividerLocation);
+
+        // Setup drag-and-drop support on Java 6 and above
+        new FallbackObjectFactory<TimeLogEditorDragDropSetup>(
+                TimeLogEditorDragDropSetup.class)
+                .add("TimeLogEditorDragDropSetupJava6") //
+                .get(true).setupEditorForDragDrop(this);
 
         Container panel = frame.getContentPane();
         panel.setLayout(new BorderLayout());
