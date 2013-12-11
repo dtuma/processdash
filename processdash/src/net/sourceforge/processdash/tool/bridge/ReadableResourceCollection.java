@@ -48,4 +48,12 @@ public interface ReadableResourceCollection extends ResourceCollectionInfo {
      */
     public InputStream getInputStream(String resourceName) throws IOException;
 
+    /**
+     * Get a description of this resource collection
+     * 
+     * @return a human-readable description of this resource collection
+     * @since 2.0.4
+     */
+    public String getDescription();
+
 }

@@ -92,6 +92,10 @@ public class FileResourceCollection implements ResourceCollection,
         return directory;
     }
 
+    public String getDescription() {
+        return directory.getPath();
+    }
+
 
     public List<String> listResourceNames() {
         return FileUtils.listRecursively(directory, strategy.getFilenameFilter());
