@@ -157,22 +157,27 @@ class PrefixHierarchy {
             int prefixLen) {
         if (children == null) return;
 
-        for (Iterator i = children.entrySet().iterator(); i.hasNext();) {
-            Map.Entry e = (Map.Entry) i.next();
-            String prefix = (String) e.getKey();
-            if (fullName.startsWith(prefix, prefixLen)) {
-                PrefixHierarchy child = (PrefixHierarchy) e.getValue();
-                child.dispatch(added, fullName, prefixLen + prefix.length());
-                break;
+        PrefixHierarchy child = null;
+        String prefix = null;
+        synchronized (children) {
+            for (Iterator i = children.entrySet().iterator(); i.hasNext();) {
+                Map.Entry e = (Map.Entry) i.next();
+                prefix = (String) e.getKey();
+                if (fullName.startsWith(prefix, prefixLen)) {
+                    child = (PrefixHierarchy) e.getValue();
+                    break;
+                }
             }
         }
+        if (child != null)
+            child.dispatch(added, fullName, prefixLen + prefix.length());
     }
 
 
 
     // Add this listener to our list.
     //
-    private void addListener(RepositoryListener l) {
+    private synchronized void addListener(RepositoryListener l) {
         if (listeners == null) listeners = new Vector();
         listeners.addElement(l);
     }
@@ -193,12 +198,20 @@ class PrefixHierarchy {
 
                                     // create the "children" member if it
                                     // doesn't already exist.
-        if (children == null) children = new Hashtable(3);
+        synchronized (this) {
+            if (children == null) children = new Hashtable(3);
+        }
 
-                                    // if "prefix" already appears as the prefix
-                                    // for one of our children (a common case),
-                                    // simply add the listener to the child's
-                                    // list.
+        synchronized (children) {
+            addListenerImpl(l, prefix);
+        }
+    }
+
+    private void addListenerImpl(RepositoryListener l, String prefix) {
+                                  // if "prefix" already appears as the prefix
+                                  // for one of our children (a common case),
+                                  // simply add the listener to the child's
+                                  // list.
         PrefixHierarchy child = (PrefixHierarchy) children.get(prefix);
         if (child != null) {
             child.addListener(l);
