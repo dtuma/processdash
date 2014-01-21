@@ -56,8 +56,8 @@ public class IncrementalDirectoryBackup extends DirectoryBackup {
 
     private static final String LOG_FILE_NAME = "log.txt";
     private static final String HIST_LOG_FILE_NAME = "histLog.txt";
-    private static final String OLD_BACKUP_TEMP_FILENAME = "temp_old.zip";
-    private static final String NEW_BACKUP_TEMP_FILENAME = "temp_new.zip";
+    private static final String OLD_BACKUP_TEMP_FILENAME = "temp_old_zip.tmp";
+    private static final String NEW_BACKUP_TEMP_FILENAME = "temp_new_zip.tmp";
 
 
     /** The maximum amount of data to retain in the historical log */
@@ -254,7 +254,15 @@ public class IncrementalDirectoryBackup extends DirectoryBackup {
 
         // finalize the new backup, and give it its final name.
         newBackupOut.close();
-        FileUtils.renameFile(newBackupTempFile, destFile);
+        try {
+            FileUtils.renameFile(newBackupTempFile, destFile);
+        } catch (IOException ioe) {
+            // On rare occasions, this rename operation fails. (Perhaps a
+            // virus scanner is examining the ZIP?) In that case, try copying
+            // the new backup to the final location.
+            FileUtils.copyFile(newBackupTempFile, destFile);
+            newBackupTempFile.delete();
+        }
     }
 
 
