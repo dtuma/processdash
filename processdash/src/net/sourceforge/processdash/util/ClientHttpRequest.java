@@ -42,7 +42,7 @@ public class ClientHttpRequest {
 
     protected void write(String s) throws IOException {
         connect();
-        _os.write(s.getBytes());
+        _os.write(s.getBytes("US-ASCII"));
     }
 
     protected void newline() throws IOException {
@@ -184,8 +184,9 @@ public class ClientHttpRequest {
     }
 
     private static void pipe(InputStream in, OutputStream out) throws IOException {
-        byte[] buf = new byte[500000];
+        byte[] buf = new byte[1024];
         int nread;
+        @SuppressWarnings("unused")
         int total = 0;
 
         synchronized (in) {

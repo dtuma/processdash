@@ -1,4 +1,4 @@
-// Copyright (C) 2008-2010 Tuma Solutions, LLC
+// Copyright (C) 2008-2014 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -162,8 +162,12 @@ public class ExportFileStream {
             copyToServer(checksum);
             return true;
         } catch (Exception e) {
-            if (directFile == null)
-                throw new IOException("Could not contact server " + serverUrl);
+            if (directFile == null) {
+                IOException ioe = new IOException("Could not contact server "
+                        + serverUrl);
+                ioe.initCause(e);
+                throw ioe;
+            }
 
             String exceptionType = e.getClass().getName();
             if (e.getMessage() != null)
@@ -181,7 +185,8 @@ public class ExportFileStream {
         Long serverSum = ResourceBridgeClient.uploadSingleFile(serverUrl, name,
             in);
         if (serverSum == null || serverSum != checksum)
-            throw new IOException("checksum mismatch after uploading file");
+            throw new IOException("checksum mismatch after uploading file ("
+                    + serverSum + " != " + checksum + ")");
 
         target = serverUrl;
     }
