@@ -1,4 +1,4 @@
-// Copyright (C) 2007-2012 Tuma Solutions, LLC
+// Copyright (C) 2007-2014 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -22,6 +22,7 @@ package net.sourceforge.processdash.util;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
@@ -36,6 +37,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import com.sun.management.OperatingSystemMXBean;
 
@@ -200,6 +202,111 @@ public class RuntimeUtils {
             // In that case, use a conservative threshhold.
             return 800;
         }
+    }
+
+    /**
+     * JVMs can be started with an -Xmx argument to set the max heap size.
+     * Unfortunately, it can be difficult to set this argument properly: if you
+     * choose a heap size that is too high, the java process will exit
+     * immediately. This method runs a Java subprocess using a tentative value
+     * for the heap size. If the subprocess fails immediately, it reduces the
+     * heap size and tries again. If several attempts fail, the process will be
+     * run without any -Xmx argument at all.
+     * 
+     * @param args
+     *            the command-line arguments to pass to the Java application.
+     *            Special notes:
+     *            <ul>
+     *            <li>These arguments should <b>not</b> begin with the java
+     *            executable path, and should <b>not</b> include an -Xmx
+     *            parameter.</li>
+     *            <li>The given program is expected to run for at least 1.5
+     *            seconds, or to return with an exit code of 0. If the program
+     *            returns quickly with a nonzero exit code, this method will
+     *            assume that the JRE aborted and will run the program again
+     *            with a lower heap setting.</li>
+     *            <li>This method will <b>not</b> automatically add the values
+     *            from the {@link #getPropagatedJvmArgs()} method; that is the
+     *            caller's responsibility.</li>
+     *            </ul>
+     * @param envp
+     *            array of strings, each element of which has environment
+     *            variable settings in the format <i>name</i>=<i>value</i>, or
+     *            <tt>null</tt> if the subprocess should inherit the environment
+     *            of the current process.
+     * @param dir
+     *            the working directory of the subprocess, or <tt>null</tt> if
+     *            the subprocess should inherit the working directory of the
+     *            current process.
+     * @param heapSize
+     *            an optional single value specifying the initial number of
+     *            megabytes to attempt using for the heap size. If this value is
+     *            not provided or is zero, the value from
+     *            {@link #getSuggestedMaxJvmHeapSize()} will be used as the
+     *            starting size. If this value is of type AtomicInteger, its
+     *            value will be set() to the actual heap size that was
+     *            eventually used. (The number -1 will be returned here if the
+     *            method gave up and ran the program without a heap size
+     *            argument.)
+     * @return the Process that was launched
+     * 
+     * @since 2.0.4
+     */
+    public static Process execWithAdaptiveHeapSize(String[] args,
+            String[] envp, File dir, Number... heapSize) throws IOException {
+        String[] cmdLine = new String[args.length + 2];
+        System.arraycopy(args, 0, cmdLine, 2, args.length);
+        cmdLine[0] = getJreExecutable();
+
+        int heapSizeUsed = 0;
+        if (heapSize != null && heapSize.length > 0 && heapSize[0] != null)
+            heapSizeUsed = heapSize[0].intValue();
+        if (heapSizeUsed <= 0)
+            heapSizeUsed = (int) getSuggestedMaxJvmHeapSize();
+
+        // try launching the app with the suggested heap size. If that fails,
+        // try successively lower heap sizes until one works.
+        for (int retries = 10; retries-- > 0;) {
+            cmdLine[1] = "-Xmx" + heapSizeUsed + "m";
+            Process result = Runtime.getRuntime().exec(cmdLine, envp, dir);
+            if (isRunningSuccessfully(result, 1500)) {
+                maybeStoreNumber(heapSize, heapSizeUsed);
+                return result;
+            } else {
+                heapSizeUsed = heapSizeUsed * 3 / 4;
+            }
+        }
+
+        // If the process still failed, launch without any heap argument.
+        maybeStoreNumber(heapSize, -1);
+        cmdLine[1] = "-D" + RuntimeUtils.class.getName() + ".noHeapArgUsed=t";
+        return Runtime.getRuntime().exec(cmdLine, envp, dir);
+    }
+
+    private static boolean isRunningSuccessfully(Process p, int maxWaitTime) {
+        int numTimeSlices = 20;
+        for (int i = numTimeSlices; i-- > 0;) {
+            try {
+                // pause for a moment before checking the exit status
+                Thread.sleep(maxWaitTime / numTimeSlices);
+                // check for the exit status. If the call returns successfully
+                // without throwing an exception, the process has terminated.
+                int exitValue = p.exitValue();
+                return (exitValue == 0);
+            } catch (InterruptedException ie) {
+            } catch (IllegalThreadStateException e) {
+                // If the process is still running, the "exitValue" method will
+                // throw this exception.
+            }
+        }
+        // we've checked multiple times (waiting up to maxWaitTime) for the
+        // process to terminate. But it still seems to be running.
+        return true;
+    }
+
+    private static void maybeStoreNumber(Number[] n, int value) {
+        if (n != null && n.length > 0 && n[0] instanceof AtomicInteger)
+            ((AtomicInteger) n[0]).set(value);
     }
 
     /** Return the file that forms the classpath for the given class.
