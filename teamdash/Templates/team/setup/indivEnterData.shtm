@@ -183,7 +183,7 @@ you would like to use, click the button to join this team project.</p>
         <li>The project name cannot contain the '/' character.</li>
     <!--#elif nodeNameDuplicateProject -->
         <li>There is already a project in your hierarchy with the name and
-        folder you selected.  Please choose a different project name.</li>
+        group you selected.  Please choose a different project name.</li>
     <!--#endif-->
 </ul>
 </td>
@@ -193,20 +193,20 @@ you would like to use, click the button to join this team project.</p>
 
 
 <tr>
-<td class="label">Project folder:</td>
+<td class="label">Project group:</td>
 <td colspan="2">
 <div class="helpWrapper" id="Node_Location_Help" style="display:none">
 <div class="helpContent" style="bottom:-82px">
    Over time, you may participate in many different team projects.  If the
    number of projects becomes large, you can organize them into different
-   folders.<br/><br/>
+   groups in your work hierarchy.<br/><br/>
 
-   Folders are created by clicking the "C" menu, choosing "Hierarchy," and
-   selecting "Edit &rarr; Add Node."  If you have created folders in this way,
-   you can select a folder here to keep your projects organized.  
+   Project groups are created by clicking the "C" menu, choosing "Hierarchy,"
+   and selecting "Edit&nbsp;&rarr;&nbsp;Add Node."  If you have created groups
+   in this way, you can select one here to keep your projects organized.
    <!--#if [setup//Node_Location//Class] eq 'flat' -->If you don't have a
    large number of projects, you can generally keep the suggested default
-   folder.<!--#endif-->
+   group.<!--#endif-->
 </div><div class="helpPointer">&nbsp;</div></div>
 <input type="text" name="Node_Location" id="Node_Location"
            value="<!--#echo [setup//Node_Location] -->"
@@ -218,7 +218,7 @@ you would like to use, click the button to join this team project.</p>
            style="width: 351px; margin-right: 10px"
    ><input type="button" name="browse" value="Browse..."
            style="width: 80px"
-           onclick="window.open('selectTopNode.class?call=save&amp;prompt=Select+Folder', 'popup', 'width=300,height=200,scrollbars=1');"></td>
+           onclick="window.open('selectTopNode.class?call=save&amp;prompt=Select+Project+Group', 'popup', 'width=300,height=200,scrollbars=1');"></td>
 </tr>
 
 <!--#if nodeLocationMissing || nodeLocationNotFound || nodeLocationBadParent -->
@@ -228,15 +228,15 @@ you would like to use, click the button to join this team project.</p>
 <td colspan="2" style="padding-bottom: 16px">
 <ul class="err">
     <!--#if nodeLocationMissing -->
-        <li>You must choose a folder in your dashboard work hierarchy where
+        <li>You must choose a location in your dashboard work hierarchy where
         the project should be created.</li>
     <!--#elif nodeLocationNotFound -->
-        <li>The folder you selected doesn't currently exist in your dashboard
+        <li>The group you selected doesn't currently exist in your dashboard
         hierarchy.</li>
     <!--#elif nodeLocationBadParent -->
         <li>The dashboard cannot create the project at the location you
         selected in your dashboard hierarchy.  Please select a different
-        folder.</li>
+        group.</li>
     <!--#endif-->
 </ul>
 </td>
