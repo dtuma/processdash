@@ -1,10 +1,10 @@
 package com.izforge.izpack.pdash;
 
 import java.io.File;
-import java.lang.management.ManagementFactory;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.prefs.Preferences;
 
 import com.izforge.izpack.Pack;
@@ -15,7 +15,8 @@ import com.izforge.izpack.installer.ScriptParser;
 import com.izforge.izpack.util.AbstractUIHandler;
 import com.izforge.izpack.util.os.RegistryDefaultHandler;
 import com.izforge.izpack.util.os.RegistryHandler;
-import com.sun.management.OperatingSystemMXBean;
+
+import net.sourceforge.processdash.util.RuntimeUtils;
 
 public class DashboardPreInstallAction implements PanelAction,
         DashboardInstallConstants {
@@ -53,42 +54,30 @@ public class DashboardPreInstallAction implements PanelAction,
         } catch (Exception exc) {
             maxMem = 800; // default value
         }
-        maxMem = limitToHalfOfSystemMemory(maxMem);
-        installdata.setVariable(MAX_MEMORY, Integer.toString(maxMem));
-    }
 
-    /**
-     * If we specify an Xmx memory ceiling that is larger than the amount of
-     * space available to the OS, the JVM will display an error dialog and
-     * fail to launch. Perform a check to see how much space is available and
-     * limit our application to half of available memory.
-     */
-    private int limitToHalfOfSystemMemory(int maxMem) {
+        // Quickly test to ensure we can launch a JVM with the given heap size
+        AtomicInteger heapSize = new AtomicInteger(maxMem);
         try {
-            Object bean = ManagementFactory.getOperatingSystemMXBean();
-            OperatingSystemMXBean osMxBean = (OperatingSystemMXBean) bean;
-            long systemMemoryBytes = osMxBean.getTotalPhysicalMemorySize();
-            long systemMemoryMegabytes = systemMemoryBytes >> 20;
-            long halfOfMemory = systemMemoryMegabytes / 2;
-            if (maxMem > halfOfMemory)
-                maxMem = (int) halfOfMemory;
-
-            // Systems today may have a lot of memory - 4 or 6GB - and half
-            // of that value will still be excessive.  In addition, requesting
-            // half of 4GB would result in a process that exceeds the memory
-            // limitations of a 32-bit JVM.  Look at the type of system we are
-            // running, and choose a more conservative limit as appropriate.
-            if ("64".equals(System.getProperty("sun.arch.data.model")))
-                maxMem = Math.min(maxMem, 2000);
-            else
-                maxMem = Math.min(maxMem, 1400);
-
-            return maxMem;
+            String[] cmd = new String[] { "-cp",
+                    RuntimeUtils.getClasspathFile(getClass()).getPath(),
+                    getClass().getName() };
+            RuntimeUtils.execWithAdaptiveHeapSize(cmd, null, null, heapSize);
         } catch (Throwable t) {
-            // If we are not running in a Sun JVM, the code above will fail.
-            // In that case, use a conservative threshhold.
-            return Math.min(maxMem, 500);
+            System.err.println("Unexpected problem when testing heap size:");
+            t.printStackTrace();
+            heapSize.set(-1);
         }
+
+        // if the heap test fails for any reason, pick a fallback value.
+        if (heapSize.intValue() > 0) {
+            System.out.println("Using validated heap size of " + heapSize + "m");
+        } else {
+            heapSize.set(800);
+            System.out.println("Could not validate heap size; using 800m");
+        }
+
+        // store the memory setting for later use.
+        installdata.setVariable(MAX_MEMORY, heapSize.toString());
     }
 
     private void setMacApplicationDir() {
@@ -215,6 +204,10 @@ public class DashboardPreInstallAction implements PanelAction,
     private void setShortcutPrefs() {
         // create shortcuts on the desktop by default
         installdata.setVariable("DesktopShortcutCheckboxEnabled", "true");
+    }
+
+    public static void main(String[] args) {
+        System.out.println(DashboardPreInstallAction.class.getName() + " OK");
     }
 
 }
