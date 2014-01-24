@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2013 Tuma Solutions, LLC
+// Copyright (C) 2002-2014 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -25,7 +25,6 @@ package teamdash.templates.tools;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.management.ManagementFactory;
 import java.net.URL;
 import java.net.URLConnection;
 import java.text.DateFormat;
@@ -40,8 +39,6 @@ import java.util.Locale;
 import java.util.Map;
 
 import org.w3c.dom.Element;
-
-import com.sun.management.OperatingSystemMXBean;
 
 import net.sourceforge.processdash.DashController;
 import net.sourceforge.processdash.Settings;
@@ -310,7 +307,8 @@ public class OpenWBSEditor extends TinyCGIBase {
             return false;
 
         try {
-            Process p = Runtime.getRuntime().exec(cmdLine);
+            Process p = RuntimeUtils.execWithAdaptiveHeapSize(cmdLine, null,
+                null, getUserChosenHeapMemoryValue(cmdLine));
             new OutputConsumer(p).start();
             return true;
         } catch (Exception e) {
@@ -326,10 +324,9 @@ public class OpenWBSEditor extends TinyCGIBase {
             return null;
 
         List cmd = new ArrayList();
-        cmd.add(jreExecutable);
 
         String extraArgs = Settings.getVal("wbs.jvmArgs", "");
-        extraArgs = maybeAddJvmMemoryArg(extraArgs);
+        extraArgs = maybeDisableJvmMemoryArg(extraArgs);
         cmd.addAll(Arrays.asList(extraArgs.trim().split("\\s+")));
 
         // propagate security-related system properties
@@ -359,45 +356,22 @@ public class OpenWBSEditor extends TinyCGIBase {
         return (String[]) cmd.toArray(new String[cmd.size()]);
     }
 
-    private String maybeAddJvmMemoryArg(String extraArgs) {
-        if (!extraArgs.contains("-Xmx")) {
-            long mem = getDefaultMaxMemory();
-            extraArgs = extraArgs + " -Xmx" + mem + "m";
-        }
-        return extraArgs;
+    private static final String DISABLED_MEM_PREFIX = "-DdisabledXmx";
+
+    private String maybeDisableJvmMemoryArg(String extraArgs) {
+        return StringUtils.findAndReplace(extraArgs, "-Xmx", DISABLED_MEM_PREFIX);
     }
 
-    /**
-     * If we specify an Xmx memory ceiling that is larger than the amount of
-     * space available to the OS, the JVM will display an error dialog and
-     * fail to launch. Perform a check to see how much space is available and
-     * limit the WBS Editor process to half of available memory.
-     */
-    private long getDefaultMaxMemory() {
-        try {
-            Object bean = ManagementFactory.getOperatingSystemMXBean();
-            OperatingSystemMXBean osMxBean = (OperatingSystemMXBean) bean;
-            long systemMemoryBytes = osMxBean.getTotalPhysicalMemorySize();
-            long systemMemoryMegabytes = systemMemoryBytes >> 20;
-            long halfOfMemory = systemMemoryMegabytes / 2;
-            long result = halfOfMemory;
-
-            // Systems today may have a lot of memory - 4 or 6GB - and half
-            // of that value will still be excessive.  In addition, requesting
-            // half of 4GB would result in a process that exceeds the memory
-            // limitations of a 32-bit JVM.  Look at the type of system we are
-            // running, and choose a more conservative limit as appropriate.
-            if ("64".equals(System.getProperty("sun.arch.data.model")))
-                result = Math.min(halfOfMemory, 2000);
-            else
-                result = Math.min(halfOfMemory, 1000);
-
-            return result;
-        } catch (Throwable t) {
-            // If we are not running in a Sun JVM, the code above will fail.
-            // In that case, use a conservative threshhold.
-            return 800;
+    private int getUserChosenHeapMemoryValue(String[] cmdLine) {
+        for (String arg : cmdLine) {
+            if (arg.startsWith(DISABLED_MEM_PREFIX))
+                try {
+                    String num = arg.substring(DISABLED_MEM_PREFIX.length(),
+                        arg.length() - 1);
+                    return Integer.parseInt(num);
+                } catch (NumberFormatException nfe) {}
         }
+        return 0;
     }
 
     private static class OutputConsumer extends Thread {
