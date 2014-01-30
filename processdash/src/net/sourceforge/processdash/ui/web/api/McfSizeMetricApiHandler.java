@@ -286,6 +286,7 @@ public class McfSizeMetricApiHandler implements SizeMetricApiHandler {
             throws IOException {
         Writer out = new OutputStreamWriter(request.outputStream, "UTF-8");
         out.write("Content-Type: application/json\r\n\r\n{ \"stat\":\"ok\" }");
+        out.flush();
     }
 
 
