@@ -1,4 +1,4 @@
-// Copyright (C) 2006-2012 Tuma Solutions, LLC
+// Copyright (C) 2006-2014 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -89,7 +89,6 @@ class DashboardProcessFactoryForking extends DashboardProcessFactory {
     private Process launchProcess(String classpath, String mainClassName,
             File cwd, List extraVmArgs, List extraArgs) throws Exception {
         List cmd = new ArrayList();
-        cmd.add(jreExecutable);
         cmd.add("-cp");
         cmd.add(classpath);
         cmd.addAll(Arrays.asList(RuntimeUtils.getPropagatedJvmArgs()));
@@ -102,7 +101,9 @@ class DashboardProcessFactoryForking extends DashboardProcessFactory {
             cmd.addAll(extraArgs);
 
         String[] cmdLine = (String[]) cmd.toArray(new String[cmd.size()]);
-        Process result = Runtime.getRuntime().exec(cmdLine, null, cwd);
+        Integer maxMem = Integer.getInteger("maxMemory");
+        Process result = RuntimeUtils.execWithAdaptiveHeapSize(cmdLine, null,
+            cwd, maxMem);
         return result;
     }
 

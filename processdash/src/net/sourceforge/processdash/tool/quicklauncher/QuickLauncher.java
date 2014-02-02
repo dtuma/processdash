@@ -1,4 +1,4 @@
-// Copyright (C) 2006-2013 Tuma Solutions, LLC
+// Copyright (C) 2006-2014 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -59,7 +59,6 @@ import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
 import net.sourceforge.processdash.util.ConcurrencyLock;
 import net.sourceforge.processdash.util.FallbackObjectFactory;
 import net.sourceforge.processdash.util.Initializable;
-import net.sourceforge.processdash.util.RuntimeUtils;
 
 
 public class QuickLauncher {
@@ -115,11 +114,6 @@ public class QuickLauncher {
             // consider adding them to the SimpleInternalLauncher as well
 
             processFactory.addVmArg("-D" + QUICK_LAUNCH_MODE_PROP + "=true");
-
-            String maxMem = System.getProperty("maxMemory");
-            if (maxMem == null)
-                maxMem = RuntimeUtils.getSuggestedMaxJvmHeapSize() + "m";
-            processFactory.addVmArg("-Xmx" + maxMem);
 
             instanceList = new InstanceList();
             processFactory.addVmArg("-D"

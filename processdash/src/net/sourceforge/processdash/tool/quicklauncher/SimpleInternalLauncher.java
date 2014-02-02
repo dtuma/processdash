@@ -1,4 +1,4 @@
-// Copyright (C) 2011-2012 Tuma Solutions, LLC
+// Copyright (C) 2011-2014 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -27,7 +27,6 @@ import java.awt.Component;
 import java.io.File;
 
 import net.sourceforge.processdash.Settings;
-import net.sourceforge.processdash.util.RuntimeUtils;
 
 public class SimpleInternalLauncher {
 
@@ -70,12 +69,6 @@ public class SimpleInternalLauncher {
             String userLang = System.getProperty("user.language");
             if (userLang != null)
                 processFactory.addVmArg("-Duser.language=" + userLang);
-
-            int maxMem = Settings.getInt("maxMemory", -1);
-            if (maxMem > 0)
-                processFactory.addVmArg("-Xmx" + maxMem + "M");
-            else
-                processFactory.addVmArg(RuntimeUtils.getJvmHeapArg());
         }
 
         return processFactory;
