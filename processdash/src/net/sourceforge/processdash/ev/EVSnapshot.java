@@ -1,4 +1,4 @@
-// Copyright (C) 2008 Tuma Solutions, LLC
+// Copyright (C) 2008-2014 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -29,9 +29,10 @@ import java.util.Date;
 import net.sourceforge.processdash.util.XMLUtils;
 
 import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
-public class EVSnapshot {
+public class EVSnapshot implements Comparable<EVSnapshot> {
 
     private String id;
 
@@ -61,11 +62,15 @@ public class EVSnapshot {
         this.id = snapshotId;
         this.name = xml.getAttribute(NAME_ATTR);
         this.date = XMLUtils.getXMLDate(xml, DATE_ATTR);
-        Element root = (Element) xml.getElementsByTagName(
-            EVTaskListXML.EV_TASK_LIST_ELEMENT_NAME).item(0);
-        this.taskList = new EVTaskListXML(name, root);
-        ((EVCalculatorXML) taskList.calculator).setCalcForSnapshot();
-        this.needsRecalc = true;
+
+        NodeList taskListTags = xml.getElementsByTagName(
+            EVTaskListXML.EV_TASK_LIST_ELEMENT_NAME);
+        if (taskListTags.getLength() > 0) {
+            Element root = (Element) taskListTags.item(0);
+            this.taskList = new EVTaskListXML(name, root);
+            ((EVCalculatorXML) taskList.calculator).setCalcForSnapshot();
+            this.needsRecalc = true;
+        }
     }
 
     public String getId() {
@@ -100,10 +105,40 @@ public class EVSnapshot {
         return xml.toString();
     }
 
+    public int compareTo(EVSnapshot that) {
+        return that.date.compareTo(this.date);
+    }
+
+    public String toString() {
+        return getName();
+    }
+
     private static final String SNAPSHOT_TAG = "evSnapshot";
     private static final String NAME_ATTR = "name";
     private static final String DATE_ATTR = "when";
 
 
+    /**
+     * Simple class which can extract the name and date for an EV snapshot
+     * without performing any other calculations
+     */
+    public static class Metadata extends EVSnapshot {
+
+        public Metadata(String snapshotId, String xml) throws SAXException,
+                IOException {
+            super(snapshotId, extractMetadataTag(xml));
+        }
+
+        private static String extractMetadataTag(String xml) {
+            try {
+                int pos = xml.indexOf(SNAPSHOT_TAG);
+                pos = xml.indexOf('>', pos);
+                return xml.substring(0, pos) + "/>";
+            } catch (Exception e) {
+                throw new IllegalArgumentException("Invalid snapshot XML", e);
+            }
+        }
+
+    }
 
 }

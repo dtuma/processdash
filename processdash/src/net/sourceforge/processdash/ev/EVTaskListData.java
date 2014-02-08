@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2010 Tuma Solutions, LLC
+// Copyright (C) 2001-2014 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -353,6 +353,11 @@ public class EVTaskListData extends EVTaskList
     @Override
     public EVSnapshot getSnapshotById(String snapshotId) {
         return getSnapshotFromData(data, snapshotId);
+    }
+
+    @Override
+    public List<EVSnapshot.Metadata> getSnapshots() {
+        return super.getSnapshots(data);
     }
 
     public void dispose() {

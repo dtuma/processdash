@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2013 Tuma Solutions, LLC
+// Copyright (C) 2001-2014 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -144,6 +144,7 @@ import net.sourceforge.processdash.ev.EVHierarchicalFilter;
 import net.sourceforge.processdash.ev.EVMetadata;
 import net.sourceforge.processdash.ev.EVMetrics;
 import net.sourceforge.processdash.ev.EVSchedule;
+import net.sourceforge.processdash.ev.EVSnapshot;
 import net.sourceforge.processdash.ev.EVTask;
 import net.sourceforge.processdash.ev.EVTaskFilter;
 import net.sourceforge.processdash.ev.EVTaskList;
@@ -725,6 +726,11 @@ public class TaskScheduleDialog implements EVTask.Listener,
                 public void actionPerformed(ActionEvent e) {
                     saveBaseline(); }};
             toolsMenu.add(saveBaselineAction);
+
+            TSAction changeBaseline = new TSAction("Buttons.Select_Baseline") {
+                public void actionPerformed(ActionEvent e) {
+                    changeBaseline(); }};
+            toolsMenu.add(changeBaseline);
 
             if (!isCollaborationBlocked()) {
                 collaborateAction = new TSAction("Buttons.Collaborate") {
@@ -3031,12 +3037,15 @@ public class TaskScheduleDialog implements EVTask.Listener,
     }
 
     public void saveBaseline() {
-        String oldId = model.getMetadata(EVMetadata.Baseline.SNAPSHOT_ID);
-        String promptKey = (oldId == null ? "Prompt" : "Replace_Prompt");
+        String snapshotName = resources.format(
+            "Save_Baseline.Snapshot_Name_FMT", new Date());
+        JTextField snapshotNameField = new JTextField(snapshotName);
+        Object message = new Object[] {
+                resources.getString("Save_Baseline.Save_Dialog.Prompt"),
+                snapshotNameField };
 
         if (JOptionPane.OK_OPTION != JOptionPane.showConfirmDialog(frame,
-            resources.getString("Save_Baseline.Confirm_Dialog." + promptKey),
-            resources.getString("Save_Baseline.Confirm_Dialog.Title"),
+            message, resources.getString("Save_Baseline.Save_Dialog.Title"),
             JOptionPane.OK_CANCEL_OPTION)) {
             return;
         }
@@ -3049,13 +3058,64 @@ public class TaskScheduleDialog implements EVTask.Listener,
                 return;
         }
 
-        String snapshotName = resources.format(
-            "Save_Baseline.Snapshot_Name_FMT", new Date());
+        String userSelectedName = snapshotNameField.getText().trim();
+        if (userSelectedName.length() > 0)
+            snapshotName = userSelectedName;
         String snapshotId = model.saveSnapshot(null, snapshotName);
         model.setMetadata(EVMetadata.Baseline.SNAPSHOT_ID, snapshotId);
         model.save();
         setDirty(false);
 
+        recalcAll();
+    }
+
+    public void changeBaseline() {
+        // get a list of the snapshots registered for this task list.  If no
+        // snapshots exist, print a message and abort.
+        List<EVSnapshot.Metadata> snapshots = model.getSnapshots();
+        if (snapshots.isEmpty()) {
+            JOptionPane.showMessageDialog(frame,
+                resources.getString("Save_Baseline.No_Baselines.Prompt"),
+                resources.getString("Save_Baseline.No_Baselines.Title"),
+                JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        // Create a list to display the existing snapshots, and highlight
+        // the currently active snapshot.
+        JList list = new JList(snapshots.toArray());
+        String oldId = model.getMetadata(EVMetadata.Baseline.SNAPSHOT_ID);
+        if (oldId != null) {
+            for (int i = 0;  i < snapshots.size(); i++) {
+                if (oldId.equals(snapshots.get(i).getId())) {
+                    list.setSelectedIndex(i);
+                    break;
+                }
+            }
+        }
+
+        // display a dialog asking the user to select a new baseline
+        Object message = new Object[] {
+                resources.getString("Save_Baseline.Select_Dialog.Prompt"), //
+                new JScrollPane(list) };
+        new JOptionPaneClickHandler().install(list);
+        if (JOptionPane.OK_OPTION != JOptionPane.showConfirmDialog(frame,
+            message, resources.getString("Save_Baseline.Select_Dialog.Title"),
+            JOptionPane.OK_CANCEL_OPTION))
+            return;
+
+        // determine which baseline the user selected to be active
+        int selectedBaseline = list.getSelectedIndex();
+        if (selectedBaseline == -1)
+            return;
+        EVSnapshot.Metadata selectedSnapshot = snapshots.get(selectedBaseline);
+        if (selectedSnapshot.getId().equals(oldId))
+            return;
+
+        // make the selected baseline active for this schedule
+        String selectedSnapshotId = selectedSnapshot.getId();
+        model.setMetadata(EVMetadata.Baseline.SNAPSHOT_ID, selectedSnapshotId);
+        setDirty(true);
         recalcAll();
     }
 

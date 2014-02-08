@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2013 Tuma Solutions, LLC
+// Copyright (C) 2001-2014 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -1566,6 +1566,35 @@ public class EVTaskList extends AbstractTreeTableModel
                 i.remove();
             }
         }
+    }
+
+    public List<EVSnapshot.Metadata> getSnapshots() {
+        return null;
+    }
+
+    /**
+     * Retrieve a list of the snapshots that have been saved for this
+     * task list.
+     */
+    protected List<EVSnapshot.Metadata> getSnapshots(DataRepository data) {
+        String globalPrefix = MAIN_DATA_PREFIX + taskListName + "/";
+        String snapshotPrefix = globalPrefix + SNAPSHOT_DATA_PREFIX + "/";
+        int snapshotPrefixLen = snapshotPrefix.length();
+        Iterator i = data.getKeys(null, DataNameFilter.EXPLICIT_ONLY);
+        List<EVSnapshot.Metadata> result = new ArrayList();
+        while (i.hasNext()) {
+            String dataName = (String) i.next();
+            if (dataName.startsWith(snapshotPrefix)) {
+                try {
+                    String snapshotId = dataName.substring(snapshotPrefixLen);
+                    EVSnapshot.Metadata m = new EVSnapshot.Metadata(snapshotId,
+                            data.getSimpleValue(dataName).format());
+                    result.add(m);
+                } catch (Exception e) {}
+            }
+        }
+        Collections.sort(result);
+        return result;
     }
 
 
