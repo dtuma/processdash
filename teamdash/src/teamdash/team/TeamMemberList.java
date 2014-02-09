@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2013 Tuma Solutions, LLC
+// Copyright (C) 2002-2014 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -244,6 +244,27 @@ public class TeamMemberList extends AbstractTableModel implements EffortCalendar
 
     public boolean isDirty() {
         return isDirty;
+    }
+
+    /**
+     * Move all team member start dates to the week containing the given date
+     */
+    public void moveAllStartDates(Date date) {
+        if (date == null)
+            return;
+
+        // find the week that contains the given date.
+        int week = WeeklySchedule.dateToWeekValue(zeroDay, date);
+        Date roundedDate = WeeklySchedule.weekValueToDate(zeroDay, week);
+        if (roundedDate.after(date))
+            week--;
+
+        // reset all team member start dates to the given week.
+        for (TeamMember m : teamMembers)
+            m.getSchedule().setStartWeek(week);
+
+        // scroll the view to align to the new start week.
+        setWeekOffset(week - FIRST_WEEK_COLUMN - 1);
     }
 
     /** Add an empty team member to the bottom of the list if the last member

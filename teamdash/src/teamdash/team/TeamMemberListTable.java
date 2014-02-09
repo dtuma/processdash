@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2013 Tuma Solutions, LLC
+// Copyright (C) 2002-2014 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -81,6 +81,9 @@ import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 import javax.swing.text.JTextComponent;
 
+import com.toedter.calendar.JDateChooser;
+
+import net.sourceforge.processdash.ui.lib.BoxUtils;
 import net.sourceforge.processdash.util.StringUtils;
 
 
@@ -509,8 +512,15 @@ public class TeamMemberListTable extends JTable {
         if (readOnly) {
             JOptionPane.showMessageDialog(this, contents,
                 "Team Schedule Settings", JOptionPane.PLAIN_MESSAGE);
+            return;
+        }
 
-        } else if (JOptionPane.OK_OPTION == JOptionPane.showConfirmDialog(this,
+        JDateChooser newStartDate = new JDateChooser((Date) null);
+        contents = new Object[] { contents, BoxUtils.vbox(5),
+                "Move all start dates to the week of:",
+                BoxUtils.hbox(25, newStartDate) };
+
+        if (JOptionPane.OK_OPTION == JOptionPane.showConfirmDialog(this,
             contents, "Customize Team Schedule", JOptionPane.OK_CANCEL_OPTION,
             JOptionPane.PLAIN_MESSAGE)) {
             Object selectedDay = weekSelector.getSelectedItem();
@@ -518,6 +528,8 @@ public class TeamMemberListTable extends JTable {
                 if (selectedDay.equals(dayNames[i]))
                     tml.setStartOnDayOfWeek(i);
             }
+            if (newStartDate.getDate() != null)
+                tml.moveAllStartDates(newStartDate.getDate());
             updateCustomizationHyperlinkText();
             getTableHeader().repaint();
         }
