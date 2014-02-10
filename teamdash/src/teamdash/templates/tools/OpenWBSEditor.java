@@ -326,8 +326,9 @@ public class OpenWBSEditor extends TinyCGIBase {
         List cmd = new ArrayList();
 
         String extraArgs = Settings.getVal("wbs.jvmArgs", "");
-        extraArgs = maybeDisableJvmMemoryArg(extraArgs);
-        cmd.addAll(Arrays.asList(extraArgs.trim().split("\\s+")));
+        extraArgs = maybeDisableJvmMemoryArg(extraArgs).trim();
+        if (extraArgs.length() > 0)
+            cmd.addAll(Arrays.asList(extraArgs.split("\\s+")));
 
         // propagate security-related system properties
         cmd.addAll(Arrays.asList(RuntimeUtils.getPropagatedJvmArgs()));
