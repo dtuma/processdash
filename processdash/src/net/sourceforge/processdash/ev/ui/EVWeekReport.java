@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2013 Tuma Solutions, LLC
+// Copyright (C) 2002-2014 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -47,16 +47,23 @@ import net.sourceforge.processdash.ev.EVMetrics;
 import net.sourceforge.processdash.ev.EVSchedule;
 import net.sourceforge.processdash.ev.EVScheduleFiltered;
 import net.sourceforge.processdash.ev.EVScheduleRollup;
+import net.sourceforge.processdash.ev.EVTask;
 import net.sourceforge.processdash.ev.EVTaskDependency;
 import net.sourceforge.processdash.ev.EVTaskFilter;
 import net.sourceforge.processdash.ev.EVTaskList;
 import net.sourceforge.processdash.ev.EVTaskListData;
 import net.sourceforge.processdash.ev.EVTaskListRollup;
 import net.sourceforge.processdash.i18n.Resources;
+import net.sourceforge.processdash.log.time.TimeLogEntry;
 import net.sourceforge.processdash.net.http.TinyCGIException;
 import net.sourceforge.processdash.net.http.WebServer;
+import net.sourceforge.processdash.tool.db.DatabasePlugin;
+import net.sourceforge.processdash.tool.db.DatabasePluginUtils;
+import net.sourceforge.processdash.tool.db.ProjectLocator;
+import net.sourceforge.processdash.tool.db.QueryRunner;
 import net.sourceforge.processdash.ui.lib.HTMLTableWriter;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
+import net.sourceforge.processdash.util.EnumerIterator;
 import net.sourceforge.processdash.util.FastDateFormat;
 import net.sourceforge.processdash.util.FormatUtil;
 import net.sourceforge.processdash.util.HTMLUtils;
@@ -245,6 +252,13 @@ public class EVWeekReport extends TinyCGIBase {
         if (evModel instanceof EVTaskListData && purpose == PLAIN_REPORT)
             allIndividuals.add(ignoreIndividual = getOwner());
 
+        // retrieve information about the actual time that was logged to tasks
+        // during the effective time period
+        double[] actualTimeThisWeek = getActualTimeSpent(tasks, lastWeek,
+            effDate);
+        double completedTasksTimeThisWeek = 0;
+        double inProgressTasksTimeThisWeek = 0;
+
         // keep track of the two total plan/actual time to date for
         // completed tasks.
         double completedTasksTotalPlanTime = 0;
@@ -261,8 +275,17 @@ public class EVWeekReport extends TinyCGIBase {
                         (tasks.getValueAt(i, -EVTaskList.ACT_DTIME_COLUMN));
 
                     if (!completed.before(lastWeek) &&
-                        completed.before(nextWeek))
+                        completed.before(nextWeek)) {
                         completedLastWeek[i] = oneCompletedLastWeek = true;
+                        completedTasksTimeThisWeek += actualTimeThisWeek[i];
+
+                    } else if (actualTimeThisWeek[i] > 0) {
+                        // if the task was marked complete in the past, but
+                        // someone logged time against it this week, display
+                        // it in the "in progress" table.
+                        inProgressThisWeek[i] = oneInProgressThisWeek = true;
+                        inProgressTasksTimeThisWeek += actualTimeThisWeek[i];
+                    }
 
             } else {
                 Date due =
@@ -276,6 +299,7 @@ public class EVWeekReport extends TinyCGIBase {
                 if (taskStarted != null && taskStarted.before(effDate)
                      && (completed == null || completed.after(effDate))) {
                     inProgressThisWeek[i] = oneInProgressThisWeek = true;
+                    inProgressTasksTimeThisWeek += actualTimeThisWeek[i];
                 }
 
                 // Check to see if the task is due next week
@@ -314,6 +338,8 @@ public class EVWeekReport extends TinyCGIBase {
         }
 
         double cpi = completedTasksTotalPlanTime/completedTasksTotalActualTime;
+        boolean showTimeThisWeek = (completedTasksTimeThisWeek > 0
+                || inProgressTasksTimeThisWeek > 0);
 
         /*
          * Okay, we have all the data we need.  Lets generate the HTML.
@@ -498,8 +524,8 @@ public class EVWeekReport extends TinyCGIBase {
             if (!oneCompletedLastWeek)
                 interpOut("<p><i>${None}</i>\n");
             else {
-                printCompletedTaskTableHeader(showAssignedTo, showMilestones,
-                    showLabels);
+                printCompletedTaskTableHeader(showTimeThisWeek, showAssignedTo,
+                    showMilestones, showLabels);
 
                 double totalPlannedTime = 0;
                 double totalActualTime = 0;
@@ -522,6 +548,7 @@ public class EVWeekReport extends TinyCGIBase {
                     totalPlannedValue += taskPlannedValue;
 
                     printCompletedLine(tableWriter, tasks, i,
+                        showTimeThisWeek ? actualTimeThisWeek : null,
                         showAssignedTo, showMilestones, showLabels);
                 }
 
@@ -530,6 +557,10 @@ public class EVWeekReport extends TinyCGIBase {
                 out.print(formatTime(totalPlannedTime) + "</td>");
                 out.print("<td class='timeFmt'>");
                 out.print(formatTime(totalActualTime) + "</td>");
+                if (showTimeThisWeek) {
+                    out.print("<td class='timeFmt'>");
+                    out.print(formatTime(completedTasksTimeThisWeek) + "</td>");
+                }
 
                 if (totalPlannedTime > 0) {
                     double totalPctSpent = totalActualTime/totalPlannedTime;
@@ -566,8 +597,8 @@ public class EVWeekReport extends TinyCGIBase {
             if (!oneInProgressThisWeek)
                 interpOut("<p><i>${None}</i>\n");
             else {
-                printUncompletedTaskTableHeader(showAssignedTo, showMilestones,
-                    showLabels, true);
+                printUncompletedTaskTableHeader(showTimeThisWeek,
+                    showAssignedTo, showMilestones, showLabels, true);
 
                 double totalPlannedTime = 0;
                 double totalActualTime = 0;
@@ -597,8 +628,10 @@ public class EVWeekReport extends TinyCGIBase {
                     totalUnearnedValue += taskUnearnedValue;
 
                     printInProgressLine(tableWriter, tasks, progress[i], i,
-                        taskPlannedTimeRemaining, showAssignedTo,
-                        showMilestones, showLabels, taskUnearnedValue);
+                        taskPlannedTimeRemaining,
+                        showTimeThisWeek ? actualTimeThisWeek : null,
+                        showAssignedTo, showMilestones, showLabels,
+                        taskUnearnedValue);
                 }
 
                 interpOut("<tr class='sortbottom'><td><b>${Tasks_In_Progress.Total}"
@@ -606,6 +639,10 @@ public class EVWeekReport extends TinyCGIBase {
                 out.print(formatTime(totalPlannedTime) + "</td>");
                 out.print("<td class='timeFmt'>");
                 out.print(formatTime(totalActualTime) + "</td>");
+                if (showTimeThisWeek) {
+                    out.print("<td class='timeFmt'>");
+                    out.print(formatTime(inProgressTasksTimeThisWeek) + "</td>");
+                }
                 out.print("<td>" + EVSchedule.formatPercent(totalPlannedValue)
                         + "</td>");
                 if (totalPlannedTime > 0) {
@@ -644,8 +681,8 @@ public class EVWeekReport extends TinyCGIBase {
             if (!oneDueNextWeek)
                 interpOut("<p><i>${None}</i>\n");
             else {
-                printUncompletedTaskTableHeader(showAssignedTo, showMilestones,
-                    showLabels, false);
+                printUncompletedTaskTableHeader(false, showAssignedTo,
+                    showMilestones, showLabels, false);
 
                 double timeRemaining = 0;
                 for (int i = 0;   i < taskListLen;   i++)
@@ -719,8 +756,163 @@ public class EVWeekReport extends TinyCGIBase {
         }
     }
 
-    private void printUncompletedTaskTableHeader(boolean showAssignedTo,
-            boolean showMilestones, boolean showLabels,
+    private double[] getActualTimeSpent(TableModel tasks,
+            Date fromDate, Date toDate) {
+        Map<String, Map<String, Double>> actualTime = new HashMap();
+        if (Settings.isPersonalMode())
+            getActualTimeSpentIndiv(actualTime, fromDate, toDate);
+        if (Settings.isTeamMode())
+            getActualTimeSpentTeam(actualTime, tasks, fromDate, toDate);
+
+        double[] result = new double[tasks.getRowCount()];
+        for (int i = 0; i < result.length; i++)
+            result[i] = getActualTimeForTask(tasks, i, actualTime);
+
+        return result;
+    }
+
+    private void getActualTimeSpentIndiv(Map<String, Map<String, Double>> result,
+            Date fromDate, Date toDate) {
+        // scan the time log and gather up the actual time spent per task
+        Map<String, Double> actualTimes = new HashMap();
+        try {
+            EnumerIterator timeLogEntries = getDashboardContext().getTimeLog()
+                    .filter(null, fromDate, toDate);
+            while (timeLogEntries.hasNext()) {
+                TimeLogEntry tle = (TimeLogEntry) timeLogEntries.next();
+                String path = tle.getPath();
+                double time = tle.getElapsedTime();
+                sumActualTime(actualTimes, path, time);
+            }
+        } catch (IOException e) {
+        }
+        result.put(getOwner(), actualTimes);
+    }
+
+    private void getActualTimeSpentTeam(Map<String, Map<String, Double>> result,
+            TableModel tasks, Date fromDate, Date toDate) {
+        DatabasePlugin db = getDashboardContext().getDatabasePlugin();
+        if (db == null)
+            return;
+
+        ProjectLocator loc = db.getObject(ProjectLocator.class);
+        QueryRunner query = db.getObject(QueryRunner.class);
+        if (loc == null || query == null)
+            return;
+
+        int fromDateKey = DatabasePluginUtils.getKeyForDate(fromDate, 10000);
+        int toDateKey = DatabasePluginUtils.getKeyForDate(toDate, -10000);
+        Set<Integer> projectKeys = getProjectKeys(tasks, loc);
+        if (projectKeys.isEmpty())
+            return;
+
+        List data;
+        try {
+            data = query.queryHql(TIME_LOG_QUERY, projectKeys, fromDateKey,
+                toDateKey);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return;
+        }
+
+        for (Object[] row : (List<Object[]>) data) {
+            String dbPlanItemId = (String) row[0];
+            String person = (String) row[1];
+            double time = ((Number) row[2]).doubleValue();
+            if (dbPlanItemId != null && person != null && time > 0) {
+                Map<String, Double> personTime = result.get(person);
+                if (personTime == null) {
+                    personTime = new HashMap();
+                    result.put(person, personTime);
+                }
+
+                String taskId = DatabasePluginUtils
+                        .getTaskIdFromPlanItemId(dbPlanItemId);
+                sumActualTime(personTime, taskId, time);
+            }
+        }
+    }
+
+    private void sumActualTime(Map m, String key, double time) {
+        if (time > 0) {
+            Double oldTime = (Double) m.get(key);
+            Double newSum = time + (oldTime == null ? 0 : oldTime);
+            m.put(key, newSum);
+        }
+    }
+
+    private Set<Integer> getProjectKeys(TableModel tasks, ProjectLocator loc) {
+        // scan the tasks in the plan and make a list of the IDs for the
+        // team projects they come from
+        Set<String> projectIDs = new HashSet();
+        for (int i = tasks.getRowCount(); i-- > 0;) {
+            EVTask task = (EVTask) tasks.getValueAt(i,
+                EVTaskList.EVTASK_NODE_COLUMN);
+            List<String> taskIds = task.getInheritedTaskIDs();
+            if (!taskIds.isEmpty()) {
+                // only use the first task ID.  Subsequent IDs will be for
+                // master projects, which have no database representation.
+                String taskId = taskIds.get(0);
+                int colonPos = taskId.indexOf(':');
+                if (colonPos != -1)
+                    projectIDs.add(taskId.substring(0, colonPos));
+            }
+        }
+
+        // now look up the keys for those projects in the database. The call
+        // to look up a project key will block if the project data hasn't
+        // been loaded yet, so this step will ensure that data has been loaded
+        // for all the projects in question before we proceed
+        Set<Integer> result = new HashSet();
+        for (String projectID : projectIDs) {
+            Integer key = loc.getKeyForProject(projectID, null);
+            if (key != null)
+                result.add(key);
+        }
+        return result;
+    }
+
+    private static final String TIME_LOG_QUERY = "select "
+            + "f.planItem.identifier, " //
+            + "f.dataBlock.person.name, " //
+            + "sum(f.deltaMin) " //
+            + "from TimeLogFact f " //
+            + "where f.versionInfo.current = 1 "
+            + "and f.planItem.project.key in (?) "
+            + "and f.startDateDim.key between ? and ? "
+            + "group by f.planItem.identifier, f.dataBlock.person.name";
+
+    private double getActualTimeForTask(TableModel tasks, int i,
+            Map<String, Map<String, Double>> actualTime) {
+        Object assignedTo = tasks.getValueAt(i, EVTaskList.ASSIGNED_TO_COLUMN);
+        Map<String, Double> timeForPerson = actualTime.get(assignedTo);
+        if (timeForPerson == null)
+            return 0;
+
+        try {
+            if (Settings.isPersonalMode()) {
+                Object taskPath = tasks.getValueAt(i,
+                    EVTaskList.TASK_FULLNAME_COLUMN);
+                Double timeFromPath = timeForPerson.remove(taskPath);
+                if (timeFromPath != null)
+                    return timeFromPath;
+            }
+
+            EVTask task = (EVTask) tasks.getValueAt(i,
+                EVTaskList.EVTASK_NODE_COLUMN);
+            String taskId = task.getFullTaskID();
+            Double timeFromId = timeForPerson.remove(taskId);
+            return (timeFromId == null ? 0 : timeFromId);
+
+        } finally {
+            if (timeForPerson.isEmpty())
+                actualTime.remove(assignedTo);
+        }
+    }
+
+
+    private void printUncompletedTaskTableHeader(boolean showTimeThisWeek,
+            boolean showAssignedTo, boolean showMilestones, boolean showLabels,
             boolean inProgressThisWeek) {
         String HTMLTableId = (inProgressThisWeek) ? "$$$_progress" : "$$$_due";
 
@@ -730,6 +922,8 @@ public class EVWeekReport extends TinyCGIBase {
                   "<td class=header>${Columns.Planned_Time}</td>"+
                   "<td class=header>${Columns.Actual_Time}</td>");
 
+        if (inProgressThisWeek && showTimeThisWeek)
+            interpOut("<td class=header>${Columns.Actual_Time_Week}</td>");
         if (inProgressThisWeek)
             interpOut("<td class=header>${Columns.Planned_Value}</td>");
 
@@ -754,14 +948,16 @@ public class EVWeekReport extends TinyCGIBase {
         interpOut("</tr>\n");
     }
 
-    private void printCompletedTaskTableHeader(boolean showAssignedTo,
-            boolean showMilestones, boolean showLabels) {
+    private void printCompletedTaskTableHeader(boolean showTimeThisWeek,
+            boolean showAssignedTo, boolean showMilestones, boolean showLabels) {
         interpOut("<table border=1 name='compTask' class='sortable' " +
                         "id='$$$_comp'><tr>" +
                   "<td></td>"+
                   "<td class=header>${Columns.Planned_Time}</td>"+
-                  "<td class=header>${Columns.Actual_Time}</td>"+
-                  "<td class=header>${Columns.Percent_Spent}</td>");
+                  "<td class=header>${Columns.Actual_Time}</td>");
+        if (showTimeThisWeek)
+            interpOut("<td class=header>${Columns.Actual_Time_Week}</td>");
+        interpOut("<td class=header>${Columns.Percent_Spent}</td>");
         if (showAssignedTo)
             interpOut("<td class=header>${Columns.Assigned_To}</td>");
         interpOut("<td class=header>${Columns.Planned_Date}</td>");
@@ -1016,12 +1212,14 @@ public class EVWeekReport extends TinyCGIBase {
     }
 
     protected void printCompletedLine(HTMLTableWriter tableWriter,
-            TableModel tasks, int i, boolean showAssignedTo,
-            boolean showMilestones, boolean showLabels) throws IOException {
+            TableModel tasks, int i, double[] actualTimeThisWeek,
+            boolean showAssignedTo, boolean showMilestones, boolean showLabels)
+            throws IOException {
         out.print("<tr>");
         tableWriter.writeCell(out, tasks, i, EVTaskList.TASK_COLUMN);
         tableWriter.writeCell(out, tasks, i, EVTaskList.PLAN_TIME_COLUMN);
         tableWriter.writeCell(out, tasks, i, EVTaskList.ACT_TIME_COLUMN);
+        writeActualTimeThisWeek(actualTimeThisWeek, i);
         tableWriter.writeCell(out, tasks, i, EVTaskList.PCT_SPENT_COLUMN);
         if (showAssignedTo)
             tableWriter.writeCell(out, tasks, i, EVTaskList.ASSIGNED_TO_COLUMN);
@@ -1036,12 +1234,12 @@ public class EVWeekReport extends TinyCGIBase {
 
     protected void printInProgressLine(HTMLTableWriter tableWriter,
             TableModel tasks, byte progress, int i,
-            double plannedTimeRemaining, boolean showAssignedTo,
-            boolean showMilestones, boolean showLabels, double unearnedValue)
-            throws IOException {
+            double plannedTimeRemaining, double[] actualTimeThisWeek,
+            boolean showAssignedTo, boolean showMilestones, boolean showLabels,
+            double unearnedValue) throws IOException {
         printUncompletedTaskLine(tableWriter, tasks, progress, i, 0,
-            plannedTimeRemaining, showAssignedTo, showMilestones, showLabels,
-            true, unearnedValue);
+            plannedTimeRemaining, actualTimeThisWeek, showAssignedTo, showMilestones,
+            showLabels, true, unearnedValue);
     }
 
     protected void printDueLine(HTMLTableWriter tableWriter, TableModel tasks,
@@ -1049,14 +1247,14 @@ public class EVWeekReport extends TinyCGIBase {
             boolean showAssignedTo, boolean showMilestones, boolean showLabels)
             throws IOException {
         printUncompletedTaskLine(tableWriter, tasks, progress, i, cpi,
-            forecastTimeRemaining, showAssignedTo, showMilestones, showLabels,
-            false, 0);
+            forecastTimeRemaining, null, showAssignedTo, showMilestones,
+            showLabels, false, 0);
     }
 
     protected void printUncompletedTaskLine(HTMLTableWriter tableWriter,
             TableModel tasks, byte progress, int i, double cpi,
-            double timeRemaining, boolean showAssignedTo,
-            boolean showMilestones, boolean showLabels,
+            double timeRemaining, double[] actualTimeThisWeek,
+            boolean showAssignedTo, boolean showMilestones, boolean showLabels,
             boolean inProgressThisWeek, double unearnedValue)
             throws IOException {
         out.print("<tr>");
@@ -1065,6 +1263,7 @@ public class EVWeekReport extends TinyCGIBase {
         tableWriter.writeCell(out, tasks, i, EVTaskList.ACT_TIME_COLUMN);
 
         if (inProgressThisWeek) {
+            writeActualTimeThisWeek(actualTimeThisWeek, i);
             tableWriter.writeCell(out, tasks, i, EVTaskList.PLAN_VALUE_COLUMN);
         }
 
@@ -1109,6 +1308,15 @@ public class EVWeekReport extends TinyCGIBase {
         }
 
         out.println("</td></tr>");
+    }
+
+    private void writeActualTimeThisWeek(double[] actualTimeThisWeek, int i)
+            throws IOException {
+        if (actualTimeThisWeek != null) {
+            double t = actualTimeThisWeek[i];
+            HTMLTableWriter.writeCell(out, EVReport.TIME_CELL_RENDERER,
+                t > 0 ? formatTime(t) : null, 0, 0);
+        }
     }
 
     private double computeUnearnedValue(TableModel tasks, int i) {
@@ -1308,6 +1516,7 @@ public class EVWeekReport extends TinyCGIBase {
         "td.modelErrors { text-align: left; background-color: #ff5050 }\n" +
         "td.behindSchedule { background-color: #ffcccc }\n" +
         "td.aheadOfSchedule { background-color: #ddffdd }\n" +
+        "table.sortable { empty-cells: show }\n" +
         "span.nav { font-size: medium;  font-style: italic; " +
                            " font-weight: normal }\n" +
         "div.subsection { margin-left: 1cm }\n" +
