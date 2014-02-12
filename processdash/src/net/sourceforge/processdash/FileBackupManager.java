@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Tuma Solutions, LLC
+// Copyright (C) 2002-2014 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -81,6 +81,8 @@ public class FileBackupManager {
 
         DashboardBackupFactory.setMaxHistLogSize(Settings.getInt(
             "logging.maxHistLogSize", 500000));
+        DashboardBackupFactory.setCompressionLevel(Settings.getInt(
+            "backup.compressionLevel", 1));
         DashboardBackupFactory.setKeepBackupsNumDays(Settings.getInt(
             "backup.keepBackupsNumDays", 42));
     }
@@ -161,6 +163,7 @@ public class FileBackupManager {
         result.deleteOnExit();
         ZipOutputStream zipOut = new ZipOutputStream(new BufferedOutputStream(
                 new FileOutputStream(result)));
+        zipOut.setLevel(9);
 
         ExternalResourceManager extMgr = ExternalResourceManager.getInstance();
 

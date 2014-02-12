@@ -1,4 +1,4 @@
-// Copyright (C) 2008-2012 Tuma Solutions, LLC
+// Copyright (C) 2008-2014 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -33,6 +33,7 @@ import java.util.Set;
 public class DashboardBackupFactory {
 
     private static int keepBackupsNumDays = 42;
+    private static int compressionLevel = 1;
     private static int maxHistLogSize = 500000;
 
     public static int getKeepBackupsNumDays() {
@@ -41,6 +42,14 @@ public class DashboardBackupFactory {
 
     public static void setKeepBackupsNumDays(int keepBackupsNumDays) {
         DashboardBackupFactory.keepBackupsNumDays = keepBackupsNumDays;
+    }
+
+    public static int getCompressionLevel() {
+        return compressionLevel;
+    }
+
+    public static void setCompressionLevel(int compressionLevel) {
+        DashboardBackupFactory.compressionLevel = compressionLevel;
     }
 
     public static int getMaxHistLogSize() {
@@ -66,6 +75,7 @@ public class DashboardBackupFactory {
         result.setFileFilter(DASH_FILE_FILTER);
         result.setMaxHistLogSize(maxHistLogSize);
         result.setAutoCleanupNumDays(keepBackupsNumDays);
+        result.setCompressionLevel(compressionLevel);
         return result;
     }
 

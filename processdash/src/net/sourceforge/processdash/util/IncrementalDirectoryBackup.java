@@ -1,4 +1,4 @@
-// Copyright (C) 2000-2008 Tuma Solutions, LLC
+// Copyright (C) 2000-2014 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -59,12 +59,23 @@ public class IncrementalDirectoryBackup extends DirectoryBackup {
     private static final String NEW_BACKUP_TEMP_FILENAME = "temp_new_zip.tmp";
 
 
+    /** The compression level to use, 1-9 */
+    private int compressionLevel = 1;
+
     /** The maximum amount of data to retain in the historical log */
     private int maxHistLogSize = 500000;
 
     /** A set of filename groupings that should always be backed up together */
     private String[][] atomicFileGroupings;
 
+
+    public int getCompressionLevel() {
+        return compressionLevel;
+    }
+
+    public void setCompressionLevel(int c) {
+        this.compressionLevel = Math.max(1, Math.min(9, c));
+    }
 
     public int getMaxHistLogSize() {
         return maxHistLogSize;
@@ -146,7 +157,7 @@ public class IncrementalDirectoryBackup extends DirectoryBackup {
         ZipOutputStream newBackupOut = new ZipOutputStream(
                 new BufferedOutputStream(
                         new FileOutputStream(newBackupTempFile)));
-        newBackupOut.setLevel(9);
+        newBackupOut.setLevel(compressionLevel);
 
         boolean wroteHistLog = false;
 
@@ -157,7 +168,7 @@ public class IncrementalDirectoryBackup extends DirectoryBackup {
             ZipOutputStream oldBackupOut = new ZipOutputStream(
                     new BufferedOutputStream(new FileOutputStream(
                             oldBackupTempFile)));
-            oldBackupOut.setLevel(9);
+            oldBackupOut.setLevel(compressionLevel);
             oldBackupIsEmpty = true;
             atomicFilesInOldBackup = new ArrayList();
 
