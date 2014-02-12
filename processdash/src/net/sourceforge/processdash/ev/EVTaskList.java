@@ -982,7 +982,8 @@ public class EVTaskList extends AbstractTreeTableModel
         return ((EVTask) root).findByFullName(fullName);
     }
 
-    public String saveSnapshot(String snapshotId, String snapshotName) {
+    public String saveSnapshot(String snapshotId, String snapshotName,
+            String snapshotComment) {
         return null;
     }
 
@@ -1525,14 +1526,14 @@ public class EVTaskList extends AbstractTreeTableModel
      * @return the ID that was assigned to the snapshot
      */
     protected String saveSnapshotToData(DataRepository data, String snapshotId,
-            String snapshotName) {
+            String snapshotName, String snapshotComment) {
         if (snapshotId == null) {
             snapshotId = Long.toString(System.currentTimeMillis(),
                 Character.MAX_RADIX);
         }
 
-        EVSnapshot snap = new EVSnapshot(snapshotId, snapshotName, new Date(),
-                this);
+        EVSnapshot snap = new EVSnapshot(snapshotId, snapshotName,
+                snapshotComment, new Date(), this);
         String xml = snap.getAsXML();
         String dataName = SNAPSHOT_DATA_PREFIX + "/" + snapshotId;
         persistDataValue(taskListName, data, dataName, StringData.create(xml));
@@ -1587,8 +1588,8 @@ public class EVTaskList extends AbstractTreeTableModel
             if (dataName.startsWith(snapshotPrefix)) {
                 try {
                     String snapshotId = dataName.substring(snapshotPrefixLen);
-                    EVSnapshot.Metadata m = new EVSnapshot.Metadata(snapshotId,
-                            data.getSimpleValue(dataName).format());
+                    EVSnapshot.Metadata m = new EVSnapshot.Metadata(dataName,
+                            snapshotId, data.getSimpleValue(dataName).format());
                     result.add(m);
                 } catch (Exception e) {}
             }

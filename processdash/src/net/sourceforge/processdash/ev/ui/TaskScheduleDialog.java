@@ -727,10 +727,10 @@ public class TaskScheduleDialog implements EVTask.Listener,
                     saveBaseline(); }};
             toolsMenu.add(saveBaselineAction);
 
-            TSAction changeBaseline = new TSAction("Buttons.Select_Baseline") {
+            TSAction manageBaselines = new TSAction("Buttons.Manage_Baselines") {
                 public void actionPerformed(ActionEvent e) {
-                    changeBaseline(); }};
-            toolsMenu.add(changeBaseline);
+                    manageBaselines(); }};
+            toolsMenu.add(manageBaselines);
 
             if (!isCollaborationBlocked()) {
                 collaborateAction = new TSAction("Buttons.Collaborate") {
@@ -3039,16 +3039,11 @@ public class TaskScheduleDialog implements EVTask.Listener,
     public void saveBaseline() {
         String snapshotName = resources.format(
             "Save_Baseline.Snapshot_Name_FMT", new Date());
-        JTextField snapshotNameField = new JTextField(snapshotName);
-        Object message = new Object[] {
-                resources.getString("Save_Baseline.Save_Dialog.Prompt"),
-                snapshotNameField };
-
-        if (JOptionPane.OK_OPTION != JOptionPane.showConfirmDialog(frame,
-            message, resources.getString("Save_Baseline.Save_Dialog.Title"),
-            JOptionPane.OK_CANCEL_OPTION)) {
+        String[] userValues = TaskScheduleSnapshotManager.showSnapEditDialog(
+            frame, resources.getString("Save_Baseline.Save_Dialog.Title"),
+            snapshotName, null);
+        if (userValues == null)
             return;
-        }
 
         if (isDirty) {
             if (JOptionPane.OK_OPTION != JOptionPane.showConfirmDialog(frame,
@@ -3058,10 +3053,11 @@ public class TaskScheduleDialog implements EVTask.Listener,
                 return;
         }
 
-        String userSelectedName = snapshotNameField.getText().trim();
+        String userSelectedName = userValues[0];
         if (userSelectedName.length() > 0)
             snapshotName = userSelectedName;
-        String snapshotId = model.saveSnapshot(null, snapshotName);
+        String comment = userValues[1];
+        String snapshotId = model.saveSnapshot(null, snapshotName, comment);
         model.setMetadata(EVMetadata.Baseline.SNAPSHOT_ID, snapshotId);
         model.save();
         setDirty(false);
@@ -3069,54 +3065,28 @@ public class TaskScheduleDialog implements EVTask.Listener,
         recalcAll();
     }
 
-    public void changeBaseline() {
+    public void manageBaselines() {
         // get a list of the snapshots registered for this task list.  If no
         // snapshots exist, print a message and abort.
         List<EVSnapshot.Metadata> snapshots = model.getSnapshots();
         if (snapshots.isEmpty()) {
             JOptionPane.showMessageDialog(frame,
-                resources.getString("Save_Baseline.No_Baselines.Prompt"),
-                resources.getString("Save_Baseline.No_Baselines.Title"),
+                resources.getString("Manage_Baselines.No_Baselines.Prompt"),
+                resources.getString("Manage_Baselines.No_Baselines.Title"),
                 JOptionPane.WARNING_MESSAGE);
             return;
         }
 
-        // Create a list to display the existing snapshots, and highlight
-        // the currently active snapshot.
-        JList list = new JList(snapshots.toArray());
-        String oldId = model.getMetadata(EVMetadata.Baseline.SNAPSHOT_ID);
-        if (oldId != null) {
-            for (int i = 0;  i < snapshots.size(); i++) {
-                if (oldId.equals(snapshots.get(i).getId())) {
-                    list.setSelectedIndex(i);
-                    break;
-                }
-            }
+        String activeSnapshotId = model.getMetadata(EVMetadata.Baseline.SNAPSHOT_ID);
+        TaskScheduleSnapshotManager manager = new TaskScheduleSnapshotManager(
+                dash.getData(), model, snapshots, activeSnapshotId);
+        JOptionPane.showMessageDialog(this.frame, manager,
+            resources.getString("Manage_Baselines.Window_Title"),
+            JOptionPane.PLAIN_MESSAGE);
+        if (manager.isDirty()) {
+            setDirty(true);
+            recalcAll();
         }
-
-        // display a dialog asking the user to select a new baseline
-        Object message = new Object[] {
-                resources.getString("Save_Baseline.Select_Dialog.Prompt"), //
-                new JScrollPane(list) };
-        new JOptionPaneClickHandler().install(list);
-        if (JOptionPane.OK_OPTION != JOptionPane.showConfirmDialog(frame,
-            message, resources.getString("Save_Baseline.Select_Dialog.Title"),
-            JOptionPane.OK_CANCEL_OPTION))
-            return;
-
-        // determine which baseline the user selected to be active
-        int selectedBaseline = list.getSelectedIndex();
-        if (selectedBaseline == -1)
-            return;
-        EVSnapshot.Metadata selectedSnapshot = snapshots.get(selectedBaseline);
-        if (selectedSnapshot.getId().equals(oldId))
-            return;
-
-        // make the selected baseline active for this schedule
-        String selectedSnapshotId = selectedSnapshot.getId();
-        model.setMetadata(EVMetadata.Baseline.SNAPSHOT_ID, selectedSnapshotId);
-        setDirty(true);
-        recalcAll();
     }
 
     public void showCollaborationWizard() {

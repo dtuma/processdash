@@ -346,8 +346,10 @@ public class EVTaskListData extends EVTaskList
     }
 
     @Override
-    public String saveSnapshot(String snapshotId, String snapshotName) {
-        return saveSnapshotToData(data, snapshotId, snapshotName);
+    public String saveSnapshot(String snapshotId, String snapshotName,
+            String snapshotComment) {
+        return saveSnapshotToData(data, snapshotId, snapshotName,
+            snapshotComment);
     }
 
     @Override
