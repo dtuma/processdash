@@ -26,7 +26,6 @@ package net.sourceforge.processdash.util;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -167,6 +166,8 @@ public class IncrementalDirectoryBackup extends DirectoryBackup {
             while ((oldEntry = oldBackupIn.getNextEntry()) != null) {
                 String filename = oldEntry.getName();
                 ThreadThrottler.tick();
+                BufferedInputStream bufOldBackupIn = new BufferedInputStream(
+                        oldBackupIn);
 
                 if (HIST_LOG_FILE_NAME.equals(filename)) {
                     long histLogModTime = oldEntry.getTime();
@@ -177,10 +178,10 @@ public class IncrementalDirectoryBackup extends DirectoryBackup {
 
                     if (currentLogModTime <= histLogModTime)
                         // at startup, just copy the file to the new backup.
-                        copyZipEntry(oldBackupIn, newBackupOut, oldEntry, null);
+                        copyZipEntry(bufOldBackupIn, newBackupOut, oldEntry);
                     else
                         // other times, append the old file and the new log.
-                        writeHistLogFile(oldBackupIn, newBackupOut, dataDir);
+                        writeHistLogFile(bufOldBackupIn, newBackupOut, dataDir);
                     wroteHistLog = true;
                     continue;
                 }
@@ -196,13 +197,13 @@ public class IncrementalDirectoryBackup extends DirectoryBackup {
                     // this file is in the old backup zipfile AND in the backup
                     // directory.  Compare the two versions and back up the
                     // file appropriately.
-                    backupFile(oldEntry, oldBackupIn, oldBackupOut,
+                    backupFile(oldEntry, bufOldBackupIn, oldBackupOut,
                                newBackupOut, file, filename);
                 } else {
                     // this file is in the old backup, but is no longer present
                     // in the backup directory.  Copy it over to the new version
                     // of the old backup
-                    copyZipEntry(oldBackupIn, oldBackupOut, oldEntry, null);
+                    copyZipEntry(bufOldBackupIn, oldBackupOut, oldEntry);
                     wroteEntryToOldBackup(filename);
                 }
             }
@@ -288,40 +289,71 @@ public class IncrementalDirectoryBackup extends DirectoryBackup {
     }
 
 
-    private void copyZipEntry(InputStream oldBackupIn,
-                                     ZipOutputStream oldBackupOut,
-                                     ZipEntry e,
-                                     byte[] prepend)
-        throws IOException
-    {
+    private void copyZipEntry(BufferedInputStream oldBackupIn,
+            ZipOutputStream oldBackupOut, ZipEntry e) throws IOException {
+        copyZipEntry(oldBackupIn, oldBackupOut, e, null, 0, -1);
+    }
+
+    private void copyZipEntry(BufferedInputStream oldBackupIn,
+            ZipOutputStream oldBackupOut, ZipEntry e, File prependFromFile,
+            int prependFromFileLen, int prependExtraChar) throws IOException {
+
+        // start a new ZIP entry in the old backup
         ZipEntry eOut = new ZipEntry(e.getName());
         eOut.setTime(e.getTime());
         oldBackupOut.putNextEntry(eOut);
+        BufferedOutputStream bufOut = new BufferedOutputStream(oldBackupOut);
 
-        if (prepend != null)
-            oldBackupOut.write(prepend);
-
-        int bytesRead;
-        while ((bytesRead = oldBackupIn.read(copyBuf)) != -1) {
-            oldBackupOut.write(copyBuf, 0, bytesRead);
+        // if we have data to prepend, write that data
+        if (prependFromFile != null) {
+            if (prependFromFileLen > 0) {
+                InputStream prependIn = new BufferedInputStream(
+                        new FileInputStream(prependFromFile));
+                try {
+                    while (prependFromFileLen-- > 0)
+                        bufOut.write(prependIn.read());
+                } finally {
+                    prependIn.close();
+                }
+            }
+            if (prependExtraChar != -1)
+                bufOut.write(prependExtraChar);
         }
+
+        // copy the remaining data from the old backup input stream
+        int b;
+        while ((b = oldBackupIn.read()) != -1)
+            bufOut.write(b);
+
+        // flush all data and finish the ZIP entry
+        bufOut.flush();
         oldBackupOut.closeEntry();
     }
-    private byte[] copyBuf = new byte[1024];
 
 
-    private void backupFile(ZipEntry oldEntry, ZipInputStream oldBackupIn,
+    private void backupFile(ZipEntry oldEntry, BufferedInputStream oldBackupIn,
             ZipOutputStream oldBackupOut, ZipOutputStream newBackupOut,
             File file, String filename) throws IOException
     {
-        ByteArrayOutputStream bytesSeen = null;
-        InputStream oldIn = null;
+        BufferedInputStream oldIn = null;
 
         // if the old backup file contains an entry for this file,
         if (oldEntry != null && oldBackupIn != null && oldBackupOut != null) {
-            // do the prep to start comparing it with the new file.
-            bytesSeen = new ByteArrayOutputStream();
-            oldIn = oldBackupIn;
+            // compare the file sizes to see if they might be the same.
+            long oldFileSize = oldEntry.getSize();
+            if (oldFileSize != -1 && oldFileSize != file.length()) {
+                // if the old entry in the ZIP is a different size than the
+                // physical file, then we know they must be different. Just
+                // copy the old entry to the old backup and don't bother
+                // comparing it to the physical file.
+                copyZipEntry(oldIn, oldBackupOut, oldEntry);
+                wroteEntryToOldBackup(filename);
+            } else {
+                // if the files are the same size, or if we don't know the size
+                // of the old ZIP entry, we will need to compare the two files
+                // to ensure they are byte-for-byte identical.
+                oldIn = oldBackupIn;
+            }
         }
 
         // create an entry in the new backup archive for this file
@@ -331,8 +363,9 @@ public class IncrementalDirectoryBackup extends DirectoryBackup {
         newBackupOut.putNextEntry(e);
 
         InputStream fileIn = new BufferedInputStream(new FileInputStream(file));
-        OutputStream fileOut = newBackupOut;
+        OutputStream fileOut = new BufferedOutputStream(newBackupOut);
         int c, d;
+        int matchLength = 0;
         try {
             while ((c = fileIn.read()) != -1) {
                 fileOut.write(c);
@@ -342,19 +375,18 @@ public class IncrementalDirectoryBackup extends DirectoryBackup {
                 if (oldIn != null) {
                     // read the next byte from the old backup.
                     d = oldIn.read();
-                    if (d != -1)
-                        bytesSeen.write(d);
                     // if we've found a mismatch between the current file and its
                     // old backup,
                     if (c != d) {
                         // then eagerly copy the rest of the old backup.
-                        copyZipEntry(oldIn, oldBackupOut, oldEntry,
-                                     bytesSeen.toByteArray());
+                        copyZipEntry(oldIn, oldBackupOut, oldEntry, file,
+                            matchLength, d);
                         oldIn = null;
-                        bytesSeen = null;
                         oldBackupIn = null;
                         oldBackupOut = null;
                         wroteEntryToOldBackup(filename);
+                    } else {
+                        matchLength++;
                     }
                 }
                 ThreadThrottler.tick();
@@ -369,9 +401,7 @@ public class IncrementalDirectoryBackup extends DirectoryBackup {
             if (d != -1) {
                 // if the old backup is longer than the current file, write it
                 // to the backup save archive.
-                bytesSeen.write(d);
-                copyZipEntry(oldIn, oldBackupOut, oldEntry, bytesSeen.
-                             toByteArray());
+                copyZipEntry(oldIn, oldBackupOut, oldEntry, file, matchLength, d);
                 wroteEntryToOldBackup(filename);
             }
         }
@@ -398,7 +428,7 @@ public class IncrementalDirectoryBackup extends DirectoryBackup {
     }
 
 
-    private void writeHistLogFile(ZipInputStream oldBackupIn,
+    private void writeHistLogFile(InputStream oldBackupIn,
             ZipOutputStream newBackupOut, File dataDir)
             throws IOException {
         File currentLog = new File(dataDir, LOG_FILE_NAME);
