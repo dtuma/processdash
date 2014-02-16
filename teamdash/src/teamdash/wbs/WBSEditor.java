@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2013 Tuma Solutions, LLC
+// Copyright (C) 2002-2014 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -418,7 +418,7 @@ public class WBSEditor implements WindowListener, SaveListener,
         if (teamProject.getBoolUserSetting(PROMPT_READ_ONLY_SETTING) == false)
             return false;
 
-        if (workingDirectory instanceof CompressedWorkingDirectory)
+        if (isZipWorkingDirectory())
             return false;
 
         JRadioButton readWriteOption = new JRadioButton(resources
@@ -454,7 +454,7 @@ public class WBSEditor implements WindowListener, SaveListener,
             return;
 
         // simultaneous editing does not make sense for a ZIP file.
-        if (workingDirectory instanceof CompressedWorkingDirectory)
+        if (isZipWorkingDirectory())
             return;
 
         try {
@@ -522,6 +522,14 @@ public class WBSEditor implements WindowListener, SaveListener,
     }
     private boolean isMode(int m) {
         return ((mode & m) == m);
+    }
+
+    private boolean isNotZipWorkingDirectory() {
+        return !isZipWorkingDirectory();
+    }
+
+    private boolean isZipWorkingDirectory() {
+        return workingDirectory instanceof CompressedWorkingDirectory;
     }
 
     private TaskDependencySource getTaskDependencySource() {
@@ -817,7 +825,7 @@ public class WBSEditor implements WindowListener, SaveListener,
             if (i == 1) result.addSeparator();
         }
 
-        if (!readOnly) {
+        if (!readOnly && isNotZipWorkingDirectory()) {
             result.addSeparator();
             result.add(new EditPreferencesAction());
         }
@@ -1754,7 +1762,7 @@ public class WBSEditor implements WindowListener, SaveListener,
     private void initializeChangeHistory() {
         changeHistory = new ChangeHistory(changeHistoryFile);
 
-        if (!(workingDirectory instanceof CompressedWorkingDirectory)) {
+        if (isNotZipWorkingDirectory()) {
             // If some team members open the WBS with an older version of the
             // WBS Editor, change history entries will not be generated when
             // they save. On startup, check for this condition and assign a new

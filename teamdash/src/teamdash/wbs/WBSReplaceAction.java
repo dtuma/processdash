@@ -1,4 +1,4 @@
-// Copyright (C) 2012 Tuma Solutions, LLC
+// Copyright (C) 2012-2014 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -37,6 +37,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Properties;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -378,6 +379,8 @@ public class WBSReplaceAction extends AbstractAction {
             final TeamProject replacementProject = new TeamProject(
                     replacementDir, "replacement");
 
+            tweakIncomingSettings(replacementProject.getUserSettings());
+
             try {
                 // tell the WBS Editor to perform the replacement.
                 wbsEditor.replaceDataFrom(replacementProject);
@@ -405,6 +408,16 @@ public class WBSReplaceAction extends AbstractAction {
                         + replacementFile);
 
             return null;
+        }
+
+        /**
+         * We generally do not want to alter the "user settings" during a
+         * replace data operation. This method discards the incoming settings
+         * and replaces them with the current settings from the team project.
+         */
+        private void tweakIncomingSettings(Properties incomingSettings) {
+            incomingSettings.clear();
+            incomingSettings.putAll(wbsEditor.teamProject.getUserSettings());
         }
 
         @Override
