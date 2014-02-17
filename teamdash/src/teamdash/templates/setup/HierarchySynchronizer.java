@@ -114,6 +114,7 @@ public class HierarchySynchronizer {
     private Map<Element, List<Element>> prunedChildren;
     private String dumpFileVersion;
     private Date dumpFileTimestamp;
+    private boolean projectClosed;
     private Date startDate;
     private int endWeek;
     private double hoursPerWeek;
@@ -368,6 +369,10 @@ public class HierarchySynchronizer {
                 if (dumpTime > 0)
                     dumpFileTimestamp = new Date(dumpTime);
             }
+
+            String projClosedAttr = projectXML.getAttribute("projectClosed");
+            projectClosed = XMLUtils.hasValue(projClosedAttr);
+
         } catch (Exception e) {
             throw new IOException
                 ("The dashboard could not read the file containing the work " +
@@ -435,7 +440,7 @@ public class HierarchySynchronizer {
 
         // if the task so far is prunable, check to see if the current
         // individual is assigned to it.
-        String time = e.getAttribute(TIME_ATTR);
+        String time = (projectClosed ? null : e.getAttribute(TIME_ATTR));
         if (time != null && time.toLowerCase().indexOf(initialsPattern) != -1)
             prunable = DONT_PRUNE;
 
