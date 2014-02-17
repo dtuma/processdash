@@ -189,6 +189,7 @@ public class WBSEditor implements WindowListener, SaveListener,
     private static final String MEMBERS_CANNOT_EDIT_SETTING = "readOnlyForIndividuals";
     private static final String ALLOW_SIMULTANEOUS_EDIT_SETTING = "allowSimultaneousEditing";
     private static final String INITIALS_POLICY_SETTING = "initialsPolicy";
+    public static final String PROJECT_CLOSED_SETTING = "projectClosed";
 
     public WBSEditor(WorkingDirectory workingDirectory,
             TeamProject teamProject, String owner, String initials)
@@ -244,10 +245,11 @@ public class WBSEditor implements WindowListener, SaveListener,
 
         dataWriter = new WBSDataWriter(model, data,
                 teamProject.getTeamProcess(), teamProject.getProjectID(),
-                teamProject.getTeamMemberList(), teamProject.getMilestones());
+                teamProject.getTeamMemberList(), teamProject.getMilestones(),
+                teamProject.getUserSettings());
         workflowWriter = new WBSDataWriter(teamProject.getWorkflows(), null,
                 teamProject.getTeamProcess(), teamProject.getProjectID(), null,
-                null);
+                null, null);
         if (!readOnly && workingDirectory != null) {
             try {
                 workingDirectory.doBackup("startup");
@@ -501,6 +503,23 @@ public class WBSEditor implements WindowListener, SaveListener,
         return otherOwner;
     }
 
+    public void showApplicableStartupMessages() {
+        maybeShowProjectClosedMessage();
+    }
+
+    private void maybeShowProjectClosedMessage() {
+        if (teamProject.getBoolUserSetting(PROJECT_CLOSED_SETTING) != true)
+            return;
+
+        if (workingDirectory instanceof CompressedWorkingDirectory)
+            return;
+
+        JOptionPane.showMessageDialog(frame,
+            resources.getStrings("Project_Closed.Message"),
+            resources.getString("Project_Closed.Title"),
+            JOptionPane.WARNING_MESSAGE);
+    }
+
 
     private void setMode(TeamProject teamProject) {
         if (teamProject instanceof TeamProjectBottomUp)
@@ -685,8 +704,20 @@ public class WBSEditor implements WindowListener, SaveListener,
             initialsPolicy.setEnabled(!indivMode);
         }
 
+        JCheckBox projectClosed = null;
+        String projectClosedSettingStr = teamProject
+                .getUserSetting(PROJECT_CLOSED_SETTING);
+        boolean projectClosedSetting = false;
+        if (projectClosedSettingStr != null) {
+            projectClosed = new JCheckBox(
+                    "This project/iteration is closed for ongoing work");
+            projectClosedSetting = "true".equals(projectClosedSettingStr);
+            projectClosed.setSelected(projectClosedSetting);
+            projectClosed.setEnabled(!indivMode);
+        }
+
         Object[] message = new Object[] { readOnlyPrompt, membersCanEdit,
-                allowSimulEdit, initialsPolicy };
+                allowSimulEdit, initialsPolicy, projectClosed };
         int userChoice = JOptionPane.showConfirmDialog(frame, message,
             "Edit Preferences", JOptionPane.OK_CANCEL_OPTION,
             JOptionPane.PLAIN_MESSAGE);
@@ -725,6 +756,15 @@ public class WBSEditor implements WindowListener, SaveListener,
                     newInitialsPolicySetting ? "username" : "initials");
                 madeChange = true;
                 restartRequired = true;
+            }
+        }
+
+        if (projectClosed != null) {
+            boolean newProjectClosedSetting = projectClosed.isSelected();
+            if (projectClosedSetting != newProjectClosedSetting) {
+                teamProject.putUserSetting(PROJECT_CLOSED_SETTING,
+                    newProjectClosedSetting);
+                madeChange = true;
             }
         }
 
@@ -1555,10 +1595,12 @@ public class WBSEditor implements WindowListener, SaveListener,
             w.setExitOnClose(exitOnClose);
             w.setSyncURL(syncURL);
             w.setIndivMode(indivMode);
-            if (showTeamList)
+            if (showTeamList) {
                 w.showTeamListEditorWithSaveButton();
-            else
+            } else {
                 w.show();
+                w.showApplicableStartupMessages();
+            }
 
             if (dispatch != null)
                 dispatch.setEditor(w);
@@ -1851,15 +1893,22 @@ public class WBSEditor implements WindowListener, SaveListener,
             * 60 /*seconds*/ * 1000 /*millis*/;
 
     private class SaveAction extends AbstractAction {
+        private boolean firstSave;
         public SaveAction() {
             super("Save");
             putValue(MNEMONIC_KEY, new Integer('S'));
             putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_S, //
                 MacGUIUtils.getCtrlModifier()));
             setEnabled(!readOnly && isDirty());
+            firstSave = true;
         }
         public void actionPerformed(ActionEvent e) {
             save();
+
+            if (firstSave) {
+                maybeShowProjectClosedMessage();
+                firstSave = false;
+            }
         }
     }
 

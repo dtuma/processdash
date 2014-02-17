@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2013 Tuma Solutions, LLC
+// Copyright (C) 2002-2014 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -23,6 +23,8 @@
 
 package teamdash.wbs;
 
+import static teamdash.wbs.WBSEditor.PROJECT_CLOSED_SETTING;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.Writer;
@@ -36,6 +38,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Properties;
 import java.util.Set;
 
 import net.sourceforge.processdash.util.RobustFileWriter;
@@ -85,6 +88,8 @@ public class WBSDataWriter {
     private TeamMemberList teamList;
     /** The list of project milestones */
     private MilestonesWBSModel milestonesModel;
+    /** The team project user settings */
+    private Properties userSettings;
     /** The list of milestone IDs which are deferred */
     private Set deferredMilestoneIDs;
     /** The list of column numbers for each team member time column */
@@ -121,13 +126,15 @@ public class WBSDataWriter {
     public WBSDataWriter(WBSModel wbsModel, DataTableModel dataModel,
                          TeamProcess process, String projectID,
                          TeamMemberList teamList,
-                         MilestonesWBSModel milestonesModel) {
+                         MilestonesWBSModel milestonesModel,
+                         Properties userSettings) {
         this.wbsModel = wbsModel;
         this.dataModel = dataModel;
         this.process = process;
         this.projectID = projectID;
         this.teamList = teamList;
         this.milestonesModel = milestonesModel;
+        this.userSettings = userSettings;
 
         if (dataModel != null) {
             for (int i = 0;   i < SIZE_COLUMN_IDS.length;   i++)
@@ -575,6 +582,15 @@ public class WBSDataWriter {
                 version = "999";
             writeAttr(out, VERSION_ATTR, version);
             writeAttr(out, SAVE_DATE_ATTR, new Date());
+            if ("true".equals(getUserSetting(PROJECT_CLOSED_SETTING)))
+                writeAttr(out, PROJECT_CLOSED_SETTING, "true");
+        }
+
+        private String getUserSetting(String name) {
+            if (userSettings == null)
+                return null;
+            else
+                return (String) userSettings.get(name);
         }
     }
 
