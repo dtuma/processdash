@@ -765,6 +765,7 @@ public class WBSEditor implements WindowListener, SaveListener,
                 teamProject.putUserSetting(PROJECT_CLOSED_SETTING,
                     newProjectClosedSetting);
                 madeChange = true;
+                setDirty(true);
             }
         }
 
