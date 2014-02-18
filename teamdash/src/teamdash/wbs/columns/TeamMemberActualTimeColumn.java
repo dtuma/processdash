@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2012 Tuma Solutions, LLC
+// Copyright (C) 2002-2014 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -64,7 +64,11 @@ public class TeamMemberActualTimeColumn extends AbstractPrecomputedColumn
     }
 
     static final String getResultDataAttrName(TeamMember m) {
-        return m.getInitials() + RESULT_ATTR_SUFFIX;
+        return getResultDataAttrName(m.getInitials());
+    }
+
+    static final String getResultDataAttrName(String initials) {
+        return initials + RESULT_ATTR_SUFFIX;
     }
 
 }

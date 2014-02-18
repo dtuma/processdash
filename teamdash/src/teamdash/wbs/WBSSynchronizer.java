@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2013 Tuma Solutions, LLC
+// Copyright (C) 2002-2014 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -67,6 +67,8 @@ public class WBSSynchronizer {
 
     private DataTableModel dataModel;
 
+    private Element explicitDumpData;
+
     private Date effectiveDate;
 
     private boolean createMissingTeamMembers = false;
@@ -100,8 +102,14 @@ public class WBSSynchronizer {
 
 
     public WBSSynchronizer(TeamProject teamProject, DataTableModel dataModel) {
+        this(teamProject, dataModel, null);
+    }
+
+    public WBSSynchronizer(TeamProject teamProject, DataTableModel dataModel,
+            Element explicitDumpData) {
         this.teamProject = teamProject;
         this.dataModel = dataModel;
+        this.explicitDumpData = explicitDumpData;
         this.handlers = createSyncHandlers();
     }
 
@@ -230,6 +238,18 @@ public class WBSSynchronizer {
         String initials = m.getInitials();
         if (initials == null)
             return null; // this individual is not fully set up
+
+        // if explicit dump data is in effect, use that data only
+        if (explicitDumpData != null) {
+            NodeList nl = explicitDumpData.getElementsByTagName(USER_DATA_TAG);
+            for (int i = 0; i < nl.getLength(); i++) {
+                Element indivDump = (Element) nl.item(i);
+                String indivInitials = indivDump.getAttribute(INITIALS_ATTR);
+                if (initials.equalsIgnoreCase(indivInitials))
+                    return indivDump;
+            }
+            return null;
+        }
 
         // find the pdash file for the person with these initials
         File f = exportFiles.remove(initials.toLowerCase());
@@ -847,6 +867,8 @@ public class WBSSynchronizer {
     private static final String USER_DUMP_ENTRY_NAME = "userDump.xml";
 
     private static final String EXPORT_FILENAME_ENDING = "-data.pdash";
+
+    private static final String USER_DATA_TAG = "userData";
 
     private static final String DUMP_VERSION_ATTR = "dumpFileVersion";
 

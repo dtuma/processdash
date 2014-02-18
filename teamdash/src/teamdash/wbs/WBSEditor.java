@@ -164,6 +164,7 @@ public class WBSEditor implements WindowListener, SaveListener,
     boolean showActualSize = false;
     boolean readOnly = false;
     boolean simultaneousEditing = false;
+    boolean holdingStartupLock = false;
     boolean indivMode = false;
     boolean exitOnClose = false;
     String syncURL = null;
@@ -190,6 +191,7 @@ public class WBSEditor implements WindowListener, SaveListener,
     private static final String ALLOW_SIMULTANEOUS_EDIT_SETTING = "allowSimultaneousEditing";
     private static final String INITIALS_POLICY_SETTING = "initialsPolicy";
     public static final String PROJECT_CLOSED_SETTING = "projectClosed";
+    public static final String RELAUNCH_PROJECT_SETTING = "relaunchProject";
 
     public WBSEditor(WorkingDirectory workingDirectory,
             TeamProject teamProject, String owner, String initials)
@@ -221,13 +223,8 @@ public class WBSEditor implements WindowListener, SaveListener,
             (model, teamProject.getTeamMemberList(),
              teamProject.getTeamProcess(), teamProject.getMilestones(),
              taskDependencySource, owner);
-        if (mergeConflictDialog != null)
-            mergeConflictDialog.setDataModel(ModelType.Wbs, data);
 
         milestonesModel = new MilestonesDataModel(teamProject.getMilestones());
-        if (mergeConflictDialog != null)
-            mergeConflictDialog.setDataModel(ModelType.Milestones,
-                milestonesModel);
 
         if (isMode(MODE_PLAIN)) {
             reverseSynchronizer = new WBSSynchronizer(teamProject, data);
@@ -259,6 +256,11 @@ public class WBSEditor implements WindowListener, SaveListener,
 
         initializeChangeHistory();
 
+        runStartupAutomaticMods(teamProject, data);
+        maybePerformStartupSave();
+        if (holdingStartupLock)
+            workingDirectory.releaseWriteLock();
+
         /*
          * Build the items in the user interface
          */
@@ -277,8 +279,12 @@ public class WBSEditor implements WindowListener, SaveListener,
                 taskDependencySource);
         tabPanel.setReadOnly(readOnly);
         teamProject.getTeamMemberList().addInitialsListener(tabPanel);
-        if (mergeConflictDialog != null)
+        if (mergeConflictDialog != null) {
+            mergeConflictDialog.setDataModel(ModelType.Wbs, data);
             mergeConflictDialog.setHyperlinkHandler(ModelType.Wbs, tabPanel);
+            mergeConflictDialog.setDataModel(ModelType.Milestones,
+                milestonesModel);
+        }
 
         String[] sizeMetrics = teamProject.getTeamProcess().getSizeMetrics();
         String[] sizeTabColIDs = new String[sizeMetrics.length+2];
@@ -412,8 +418,12 @@ public class WBSEditor implements WindowListener, SaveListener,
                 throw e;
         }
 
-        if (simultaneousEditing)
-            workingDirectory.releaseWriteLock();
+        if (simultaneousEditing) {
+            if (needsStartupLock())
+                holdingStartupLock = true;
+            else
+                workingDirectory.releaseWriteLock();
+        }
     }
 
     private boolean maybePromptForReadOnly() {
@@ -501,6 +511,35 @@ public class WBSEditor implements WindowListener, SaveListener,
             otherOwner = resources
                     .getString("Errors.Concurrent_Use.Anonymous_User");
         return otherOwner;
+    }
+
+    private boolean needsStartupLock() {
+        if (teamProject.getBoolUserSetting(RELAUNCH_PROJECT_SETTING))
+            return true;
+
+        return false;
+    }
+
+    private void runStartupAutomaticMods(TeamProject teamProject,
+            DataTableModel data) {
+        if (readOnly)
+            return;
+
+        if (teamProject.getBoolUserSetting(RELAUNCH_PROJECT_SETTING)) {
+            setDirty(true);
+            new RelaunchWorker(teamProject, data).run();
+        }
+    }
+
+    private void maybePerformStartupSave() {
+        if (isDirty()) {
+            try {
+                if (saveData())
+                    setDirty(false);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     public void showApplicableStartupMessages() {
@@ -949,7 +988,7 @@ public class WBSEditor implements WindowListener, SaveListener,
     }
 
     synchronized boolean mergeExternalChanges() throws IOException {
-        if (mergeCoordinator == null)
+        if (mergeCoordinator == null || holdingStartupLock)
             return false;
 
         TeamProjectMerger merger = mergeCoordinator.doMerge();
@@ -1269,7 +1308,7 @@ public class WBSEditor implements WindowListener, SaveListener,
         mergeExternalChanges();
 
         // ensure that we have a lock for editing the data.
-        if (simultaneousEditing) {
+        if (simultaneousEditing && !holdingStartupLock) {
             acquireSimultaneousEditWriteLock();
         } else {
             workingDirectory.assertWriteLock();
@@ -1288,7 +1327,8 @@ public class WBSEditor implements WindowListener, SaveListener,
             workflowWriter.write(workflowDumpFile);
 
             // write out custom tabs file, if the tabs have changed
-            tabPanel.saveCustomTabsIfChanged(customTabsFile);
+            if (tabPanel != null)
+                tabPanel.saveCustomTabsIfChanged(customTabsFile);
 
             // write out the change history file
             changeHistory.addEntry(owner);
@@ -1308,8 +1348,10 @@ public class WBSEditor implements WindowListener, SaveListener,
             return true;
 
         } finally {
-            if (simultaneousEditing)
+            if (simultaneousEditing) {
                 workingDirectory.releaseWriteLock();
+                holdingStartupLock = false;
+            }
         }
     }
 

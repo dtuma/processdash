@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2013 Tuma Solutions, LLC
+// Copyright (C) 2002-2014 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -44,9 +44,9 @@ import teamdash.wbs.DataTableModel;
 import teamdash.wbs.ErrorValue;
 import teamdash.wbs.HtmlRenderedValue;
 import teamdash.wbs.IntList;
+import teamdash.wbs.ItalicNumericCellRenderer;
 import teamdash.wbs.NumericDataValue;
 import teamdash.wbs.ReadOnlyValue;
-import teamdash.wbs.ItalicNumericCellRenderer;
 import teamdash.wbs.WBSModel;
 import teamdash.wbs.WBSNode;
 import teamdash.wbs.WorkflowModel;
@@ -272,6 +272,14 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
             leaf.setNumericAttribute(topDownAttrName, leafTime);
         }
         return true;
+    }
+
+    public void replanInProgressTime() {
+        for (WBSNode node : wbsModel.getDescendants(wbsModel.getRoot())) {
+            LeafNodeData leafData = getLeafNodeData(node);
+            if (leafData != null)
+                leafData.replanInProgressTime();
+        }
     }
 
 
@@ -649,6 +657,11 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
             }
             figureTeamTime();
         }
+
+        public void replanInProgressTime() {
+            for (int i = individualTimes.length;   i-- > 0; )
+                individualTimes[i].replanInProgressTime();
+        }
     }
 
 
@@ -708,6 +721,27 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
             this.zeroButAssigned = (time == 0 && times.containsKey(ilc));
             node.setAttribute(zeroAttrName, zeroButAssigned ? "t" : null);
             dataModel.setValueAt(new Double(time), node, column);
+        }
+        public void replanInProgressTime() {
+            if (isAssigned() == false) {
+                // this person is not assigned to this task
+            } else if (completed) {
+                // if this person has completed this task, unassign it.
+                setTime(0);
+            } else {
+                // subtract the actual time from the plan to calculate planned
+                // time remaining. If the remaining time is positive, set it.
+                // Otherwise (if they are overspent), set the plan as "assigned
+                // with zero."
+                String actualTimeAttr = TeamMemberActualTimeColumn
+                        .getResultDataAttrName(initials);
+                double actual = safe(node.getNumericAttribute(actualTimeAttr));
+                if (actual > 0) {
+                    double plannedTimeRemaining = Math.max(0, time - actual);
+                    setTime(Collections.singletonMap(initials.toLowerCase(),
+                        plannedTimeRemaining));
+                }
+            }
         }
     }
 
