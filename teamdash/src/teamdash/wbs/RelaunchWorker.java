@@ -30,6 +30,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
 import org.w3c.dom.Element;
@@ -68,6 +69,7 @@ public class RelaunchWorker {
     private void runImpl() throws Exception {
         File historicalDumpFile = loadHistoricalTeamMemberData();
         updateProjectName();
+        moveScheduleStartDates();
         deleteCompletedItems();
         adjustInProgressItems();
         discardHistoricalDataAttributes();
@@ -104,6 +106,14 @@ public class RelaunchWorker {
             "projectName");
         if (XMLUtils.hasValue(projectName))
             teamProject.setProjectName(projectName);
+    }
+
+
+    /**
+     * Move the start dates for all team members
+     */
+    private void moveScheduleStartDates() {
+        teamProject.getTeamMemberList().moveAllStartDates(new Date());
     }
 
 
