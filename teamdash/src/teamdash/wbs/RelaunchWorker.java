@@ -67,6 +67,7 @@ public class RelaunchWorker {
 
     private void runImpl() throws Exception {
         File historicalDumpFile = loadHistoricalTeamMemberData();
+        updateProjectName();
         deleteCompletedItems();
         adjustInProgressItems();
         discardHistoricalDataAttributes();
@@ -92,6 +93,17 @@ public class RelaunchWorker {
                 dumpData);
         sync.run();
         return historicalDumpFile;
+    }
+
+
+    /**
+     * Change the name of the WBS root node to match the new project name.
+     */
+    private void updateProjectName() {
+        String projectName = teamProject.getProjectSettings().getAttribute(
+            "projectName");
+        if (XMLUtils.hasValue(projectName))
+            teamProject.setProjectName(projectName);
     }
 
 
@@ -146,8 +158,8 @@ public class RelaunchWorker {
      * Delete files from disk that triggered the project relaunch operation.
      */
     private void cleanUp(File historicalDumpFile) {
-        teamProject.getUserSettings().remove(
-            WBSEditor.RELAUNCH_PROJECT_SETTING);
+        teamProject.getUserSettings()
+                .remove(WBSEditor.RELAUNCH_PROJECT_SETTING);
         historicalDumpFile.delete();
     }
 

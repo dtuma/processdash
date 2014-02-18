@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2012 Tuma Solutions, LLC
+// Copyright (C) 2002-2014 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -160,6 +160,12 @@ public class TeamProject implements WBSFilenameConstants {
     /** Return the name of the project */
     public String getProjectName() {
         return projectName;
+    }
+
+    protected void setProjectName(String projectName) {
+        this.projectName = projectName;
+        if (wbs != null)
+            wbs.getRoot().setName(projectName);
     }
 
     /** Return the ID of the project */
