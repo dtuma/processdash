@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2013 Tuma Solutions, LLC
+// Copyright (C) 2002-2014 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -483,13 +483,15 @@ public class WBSJTable extends JTable {
         return true;
     }
 
-    private void setSourceIDs(List nodeList) {
-        if (taskIDSource != null) {
-            for (Iterator i = nodeList.iterator(); i.hasNext();) {
-                WBSNode node = (WBSNode) i.next();
+    private void setSourceIDsForCopyOperation(List nodeList) {
+        for (Iterator i = nodeList.iterator(); i.hasNext();) {
+            WBSNode node = (WBSNode) i.next();
+            if (taskIDSource != null)
                 node.setAttribute(MasterWBSUtil.SOURCE_NODE_ID,
                         taskIDSource.getNodeID(node));
-            }
+            node.setAttribute(MasterWBSUtil.MASTER_PARENT_ID, null);
+            node.setAttribute(MasterWBSUtil.MASTER_NODE_ID, null);
+            node.setAttribute(RelaunchWorker.RELAUNCH_SOURCE_ID, null);
         }
     }
 
@@ -865,7 +867,7 @@ public class WBSJTable extends JTable {
             // make a list of the copied nodes
             List copyList = WBSNode.cloneNodeList
                 (wbsModel.getNodesForRows(rows, true));
-            setSourceIDs(copyList);
+            setSourceIDsForCopyOperation(copyList);
             WBSClipSelection.putNodeListOnClipboard(copyList, null);
 
             WBSJTable.this.recalculateEnablement();
