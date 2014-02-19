@@ -191,7 +191,6 @@ public class WBSEditor implements WindowListener, SaveListener,
     private static final String ALLOW_SIMULTANEOUS_EDIT_SETTING = "allowSimultaneousEditing";
     private static final String INITIALS_POLICY_SETTING = "initialsPolicy";
     public static final String PROJECT_CLOSED_SETTING = "projectClosed";
-    public static final String RELAUNCH_PROJECT_SETTING = "relaunchProject";
 
     public WBSEditor(WorkingDirectory workingDirectory,
             TeamProject teamProject, String owner, String initials)
@@ -514,7 +513,7 @@ public class WBSEditor implements WindowListener, SaveListener,
     }
 
     private boolean needsStartupLock() {
-        if (teamProject.getBoolUserSetting(RELAUNCH_PROJECT_SETTING))
+        if (teamProject.getBoolUserSetting(RelaunchWorker.RELAUNCH_PROJECT_SETTING))
             return true;
 
         return false;
@@ -525,7 +524,7 @@ public class WBSEditor implements WindowListener, SaveListener,
         if (readOnly)
             return;
 
-        if (teamProject.getBoolUserSetting(RELAUNCH_PROJECT_SETTING)) {
+        if (teamProject.getBoolUserSetting(RelaunchWorker.RELAUNCH_PROJECT_SETTING)) {
             setDirty(true);
             new RelaunchWorker(teamProject, data).run();
         }

@@ -43,6 +43,11 @@ import teamdash.wbs.columns.TeamTimeColumn;
 
 public class RelaunchWorker {
 
+    public static final String RELAUNCH_PROJECT_SETTING = "relaunchProject";
+
+    public static final String RELAUNCH_SOURCE_ID = "relaunchSourceID";
+
+
     private TeamProject teamProject;
 
     private DataTableModel dataModel;
@@ -72,6 +77,7 @@ public class RelaunchWorker {
         moveScheduleStartDates();
         deleteCompletedItems();
         adjustInProgressItems();
+        writeRelaunchSourceIDs();
         discardHistoricalDataAttributes();
         cleanUp(historicalDumpFile);
     }
@@ -150,6 +156,32 @@ public class RelaunchWorker {
 
 
     /**
+     * The data structures in this project are partial copies of data from an
+     * earlier project. Record attributes that help us to keep track of where
+     * the nodes came from.
+     */
+    private void writeRelaunchSourceIDs() {
+        String projectSourceID = teamProject.getUserSetting(RELAUNCH_SOURCE_ID);
+        if (!XMLUtils.hasValue(projectSourceID))
+            return;
+
+        writeRelaunchSourceIDs(projectSourceID, teamProject.getWBS());
+        writeRelaunchSourceIDs(projectSourceID, teamProject.getWorkflows());
+        writeRelaunchSourceIDs(projectSourceID, teamProject.getMilestones());
+    }
+
+    private void writeRelaunchSourceIDs(String projectSourceID, WBSModel model) {
+        for (WBSNode node : model.getDescendants(model.getRoot())) {
+            String existingID = (String) node.getAttribute(RELAUNCH_SOURCE_ID);
+            if (!XMLUtils.hasValue(existingID)) {
+                String sourceID = projectSourceID + ":" + node.getUniqueID();
+                node.setAttribute(RELAUNCH_SOURCE_ID, sourceID);
+            }
+        }
+    }
+
+
+    /**
      * Our operations required us to load historical data from a past project.
      * Discard that data from in-memory data structures.
      */
@@ -168,8 +200,7 @@ public class RelaunchWorker {
      * Delete files from disk that triggered the project relaunch operation.
      */
     private void cleanUp(File historicalDumpFile) {
-        teamProject.getUserSettings()
-                .remove(WBSEditor.RELAUNCH_PROJECT_SETTING);
+        teamProject.getUserSettings().remove(RELAUNCH_PROJECT_SETTING);
         historicalDumpFile.delete();
     }
 
