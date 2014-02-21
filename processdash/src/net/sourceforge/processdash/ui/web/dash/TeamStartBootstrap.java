@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2013 Tuma Solutions, LLC
+// Copyright (C) 2002-2014 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -131,6 +131,7 @@ public class TeamStartBootstrap extends TinyCGIBase {
     private static final String RELAX_PATH_REQ = "setup//Relax_Path_Reqt";
     private static final String PROJECT_ID = "Project_ID";
     private static final String ALL_JOINING_DATA = "setup//Joining_Data";
+    private static final String IN_PROGRESS_URI = "setup//In_Progress_URI";
 
     // value indicating we should help an individual join a team project
     private static final String JOIN_PAGE = "join";
@@ -223,7 +224,11 @@ public class TeamStartBootstrap extends TinyCGIBase {
         if (StringUtils.hasValue(desiredLocation))
             putValue(NODE_LOCATION, desiredLocation);
 
-        printRedirect(WELCOME_URL);
+        String inProgressUri = getValue(IN_PROGRESS_URI);
+        if (StringUtils.hasValue(inProgressUri))
+            printRedirect(inProgressUri);
+        else
+            printRedirect(WELCOME_URL);
     }
 
     /** Display the read-only error page */
