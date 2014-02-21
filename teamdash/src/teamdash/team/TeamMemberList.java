@@ -261,7 +261,7 @@ public class TeamMemberList extends AbstractTableModel implements EffortCalendar
 
         // reset all team member start dates to the given week.
         for (TeamMember m : teamMembers)
-            m.getSchedule().setStartWeek(week);
+            m.getSchedule().setWeekData(week - 1, WeekData.WEEK_START);
 
         // scroll the view to align to the new start week.
         setWeekOffset(week - FIRST_WEEK_COLUMN - 1);

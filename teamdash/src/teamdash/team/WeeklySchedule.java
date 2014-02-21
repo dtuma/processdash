@@ -231,13 +231,15 @@ public class WeeklySchedule implements EffortCalendar {
 
     public void setWeekData(int week, Object value) {
         int type = getTypeOfWeek(value);
-        if (type == WeekData.TYPE_START)
+        if (type == WeekData.TYPE_START) {
             startWeek = week + 1;
+            endWeek = Math.max(startWeek, endWeek);
 
-        else if (type == WeekData.TYPE_END)
+        } else if (type == WeekData.TYPE_END) {
             endWeek = week;
+            startWeek = Math.min(startWeek, endWeek);
 
-        else if (value == null || "".equals(value)) {
+        } else if (value == null || "".equals(value)) {
             if (exceptions.containsKey(week))
                 removeException(week);
             else
