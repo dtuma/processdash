@@ -27,6 +27,7 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Font;
+import java.awt.HeadlessException;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
@@ -46,6 +47,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -278,7 +280,9 @@ public class WBSEditor implements WindowListener, SaveListener,
                 taskDependencySource);
         tabPanel.setReadOnly(readOnly);
         teamProject.getTeamMemberList().addInitialsListener(tabPanel);
-        if (mergeConflictDialog != null) {
+
+        if (simultaneousEditing) {
+            mergeConflictDialog = new MergeConflictDialog(teamProject);
             mergeConflictDialog.setDataModel(ModelType.Wbs, data);
             mergeConflictDialog.setHyperlinkHandler(ModelType.Wbs, tabPanel);
             mergeConflictDialog.setDataModel(ModelType.Milestones,
@@ -429,6 +433,9 @@ public class WBSEditor implements WindowListener, SaveListener,
         if (teamProject.getBoolUserSetting(PROMPT_READ_ONLY_SETTING) == false)
             return false;
 
+        if (isDumpAndExitMode())
+            return false;
+
         if (isZipWorkingDirectory())
             return false;
 
@@ -464,6 +471,10 @@ public class WBSEditor implements WindowListener, SaveListener,
         if (!teamProject.getBoolUserSetting(ALLOW_SIMULTANEOUS_EDIT_SETTING, true))
             return;
 
+        // no need for simultaneous editing in dump-and-exit mode.
+        if (isDumpAndExitMode())
+            return;
+
         // simultaneous editing does not make sense for a ZIP file.
         if (isZipWorkingDirectory())
             return;
@@ -476,7 +487,6 @@ public class WBSEditor implements WindowListener, SaveListener,
             else
                 mergeDebugger = new TeamProjectMergeDebuggerSimple();
             mergeCoordinator.setMergeListener(mergeDebugger);
-            mergeConflictDialog = new MergeConflictDialog(teamProject);
             simultaneousEditing = true;
         } catch (IOException e) {
             e.printStackTrace();
@@ -490,8 +500,9 @@ public class WBSEditor implements WindowListener, SaveListener,
 
     private boolean showOpenReadOnlyMessage(String resKey, String formatArg) {
         String title = resources.getString("Errors.Open_Read_Only.Title");
-        Object[] message = new Object[] {
-                resources.formatStrings(resKey, formatArg), " ",
+        Object[] message = resources.formatStrings(resKey, formatArg);
+        maybeDumpStartupError(title, message);
+        message = new Object[] { message, " ",
                 resources.getString("Errors.Open_Read_Only.Prompt") };
         int userResponse = JOptionPane.showConfirmDialog(null, message, title,
                 JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
@@ -513,6 +524,9 @@ public class WBSEditor implements WindowListener, SaveListener,
     }
 
     private boolean needsStartupLock() {
+        if (isDumpAndExitMode())
+            return true;
+
         if (teamProject.getBoolUserSetting(RelaunchWorker.RELAUNCH_PROJECT_SETTING))
             return true;
 
@@ -531,12 +545,26 @@ public class WBSEditor implements WindowListener, SaveListener,
     }
 
     private void maybePerformStartupSave() {
-        if (isDirty()) {
+        if (isDirty() || isDumpAndExitMode()) {
+            boolean dataSaved = false;
             try {
-                if (saveData())
+                if (saveData()) {
+                    dataSaved = true;
                     setDirty(false);
+                }
             } catch (Exception e) {
                 e.printStackTrace();
+            }
+
+            if (isDumpAndExitMode()) {
+                workingDirectory.releaseLocks();
+                if (dataSaved) {
+                    System.out.println("Saved updated WBS data at " + new Date());
+                    System.exit(0);
+                } else {
+                    maybeDumpStartupError("Cannot Save Data", new Object[] { //
+                        "This process was unable to save WBS data." });
+                }
             }
         }
     }
@@ -1580,8 +1608,11 @@ public class WBSEditor implements WindowListener, SaveListener,
         String message = (showTeamList
                 ? "Opening Team Member List..."
                 : "Opening Work Breakdown Structure...");
-        JFrame waitFrame = createWaitFrame(message);
-        waitFrame.setVisible(true);
+        JFrame waitFrame = null;
+        if (!isDumpAndExitMode()) {
+            waitFrame = createWaitFrame(message);
+            waitFrame.setVisible(true);
+        }
 
         LockMessageDispatcher dispatch;
         WorkingDirectory workingDirectory;
@@ -1668,6 +1699,9 @@ public class WBSEditor implements WindowListener, SaveListener,
             workingDirectory.acquireProcessLock(intent, handler);
         } catch (SentLockMessageException s) {
             // another WBS Editor is running, and it handled the request for us.
+            maybeDumpStartupError("Process Conflict", new Object[] { //
+                "Another process on this computer has already locked",
+                "the WBS Editor for this team project." });
             return null;
         } catch (LockFailureException e) {
             e.printStackTrace();
@@ -1699,22 +1733,8 @@ public class WBSEditor implements WindowListener, SaveListener,
     }
 
     private static void showLockFailureError() {
-        String[] message = new String[] {
-                "The Work Breakdown Structure Editor encountered an",
-                "unexpected error during startup: another process",
-                "on this computer seems to be locking the WBS data",
-                "for this project.  To prevent data corruption, this",
-                "program must exit.",
-                " ",
-                "Try launching the WBS Editor again.  If you still",
-                "receive this message, it restarting your computer may",
-                "be necessary."
-        };
-        JOptionPane.showMessageDialog(null, message, "Data Locking Error",
-            JOptionPane.ERROR_MESSAGE);
+        showCannotOpenError("Lock", null);
     }
-
-
     private static void showCannotOpenError(WorkingDirectory workingDirectory) {
         showCannotOpenError(workingDirResKey(workingDirectory),
             workingDirectory.getDescription());
@@ -1726,8 +1746,17 @@ public class WBSEditor implements WindowListener, SaveListener,
         String title = resources.getString("Errors.Cannot_Open.Title");
         String[] message = resources.formatStrings("Errors.Cannot_Open."
                 + resKey + "_FMT", description);
+        maybeDumpStartupError(title, message);
         JOptionPane.showMessageDialog(null, message, title,
             JOptionPane.ERROR_MESSAGE);
+    }
+    private static void maybeDumpStartupError(String title, Object[] message) {
+        if (isDumpAndExitMode()) {
+            System.err.println(title);
+            for (Object line : message)
+                System.err.println(line);
+            System.exit(1);
+        }
     }
 
     String workingDirResKey() {
@@ -1775,6 +1804,8 @@ public class WBSEditor implements WindowListener, SaveListener,
 
     private static String getOwnerName() {
         String result = preferences.get("ownerName", null);
+        if (result == null && isDumpAndExitMode())
+            result = "(Batch Process)";
         if (result == null) {
             result = JOptionPane.showInputDialog(null, INPUT_NAME_MESSAGE,
                     "Enter Your Name", JOptionPane.PLAIN_MESSAGE);
@@ -1827,6 +1858,10 @@ public class WBSEditor implements WindowListener, SaveListener,
         preferences.putBoolean(OPTIMIZE_FOR_INDIV_KEY, value);
     }
 
+    private static boolean isDumpAndExitMode() {
+        return Boolean.getBoolean("teamdash.wbs.dumpAndExit");
+    }
+
     private void setDirty(boolean isDirty) {
         this.dirty = isDirty;
 
@@ -1869,6 +1904,9 @@ public class WBSEditor implements WindowListener, SaveListener,
 
 
     public static void main(String args[]) {
+        if (isDumpAndExitMode())
+            System.setProperty("java.awt.headless", "true");
+
         ExternalLocationMapper.getInstance().loadDefaultMappings();
         RuntimeUtils.autoregisterPropagatedSystemProperties();
         for (String prop : PROPS_TO_PROPAGATE)
@@ -1883,8 +1921,13 @@ public class WBSEditor implements WindowListener, SaveListener,
         boolean readOnly = Boolean.getBoolean("teamdash.wbs.readOnly");
         String syncURL = System.getProperty("teamdash.wbs.syncURL");
         String owner = System.getProperty("teamdash.wbs.owner");
-        createAndShowEditor(locations, bottomUp, indivMode, indivInitials,
-            showTeam, syncURL, true, readOnly, owner);
+        try {
+            createAndShowEditor(locations, bottomUp, indivMode, indivInitials,
+                showTeam, syncURL, true, readOnly, owner);
+        } catch (HeadlessException he) {
+            he.printStackTrace();
+            System.exit(1);
+        }
 
         new Timer(DAY_MILLIS, new UsageLogAction()).start();
         maybeNotifyOpened();

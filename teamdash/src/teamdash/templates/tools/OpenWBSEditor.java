@@ -248,6 +248,8 @@ public class OpenWBSEditor extends TinyCGIBase {
             getCustomColumnSpecURLs());
         result.put("teamdash.wbs.globalInitialsPolicy",
             getGlobalInitialsPolicy());
+        if (parameters.containsKey("dumpAndExit"))
+            result.put("teamdash.wbs.dumpAndExit", "true");
 
         return result;
     }
