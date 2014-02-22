@@ -1,0 +1,96 @@
+<html>
+<head>
+<title>Team Project Relaunch Wizard</title>
+<link rel="stylesheet" type="text/css" href="/dash/teamStart.css">
+<style type="text/css">
+   td.label {
+      font-weight: bold;
+      padding-left: 1cm;
+      padding-right: 1em;
+   }
+</style>
+<script type="text/javascript">
+   function save(root, relPath, fullPath) {
+      if (!fullPath) { fullPath = "/"; }
+      document.getElementById("Node_Location").value = fullPath;
+   }
+</script>
+</head>
+<body>
+
+<img align="left" src="/Images/team.jpg" width="50" height="50">
+
+<h1>Team Project Relaunch Wizard</h1>
+
+<h2>Select Project/Iteration Name</h2>
+
+
+<form action='wizard.class' method='post'>
+<input type='hidden' name='page' value='relaunchNode'>
+
+<p>The relaunch wizard will create a new element in this team dashboard to
+hold the plan for the new project/iteration.  What would you like to call
+this new iteration?</p>
+
+<table><tr><td class="label">Iteration name:</td>
+<td><input type="text" name="Node_Name"
+           value="<!--#echo [setup//Node_Name] -->"
+           size="60"></td></tr>
+
+<!--#if nodeNameMissing -->
+<tr><td></td><td class="error">
+You must enter a name for the project iteration.
+</td></tr>
+<!--#elif nodeNameSlash -->
+<tr><td></td><td class="error">
+The project iteration name cannot contain the '/' character.
+</td></tr>
+<!--#elif nodeNameDuplicateProject -->
+<tr><td></td><td class="error">
+This dashboard already contains a project or group with this name.  Please
+choose a new, unique name.
+</td></tr>
+<!--#endif-->
+
+</table>
+
+<p>For clarity, you may wish to organize projects and iterations in
+hierarchical groups.  To which group should this project/iteration
+belong?</p>
+
+<table><tr><td class="label">Project group:</td>
+<td><input type="text" name="Node_Location" id="Node_Location"
+           value="<!--#echo [setup//Node_Location] -->"
+           size="45">&nbsp;<input type="button" name="browse" value="Browse..."
+           onclick="window.open('selectTopNode.class?call=save&amp;prompt=Select+Project+Group', 'popup', 'width=300,height=200,scrollbars=1');"></td></tr>
+
+<!--#if nodeLocationMissing -->
+<tr><td></td><td class="error">
+You must choose a location in your team dashboard project hierarchy where this
+iteration should be created.
+</td></tr>
+<!--#elif nodeLocationNotFound -->
+<tr><td></td><td class="error">
+The group you selected doesn't currently exist in your team dashboard
+hierarchy.  Please use the Browse button to select a valid group.
+</td></tr>
+<!--#elif nodeLocationBadParent -->
+<tr><td></td><td class="error">
+Team projects cannot be nested underneath each other, so this location is
+not valid.  Please use the Browse button to choose a valid group.
+</td></tr>
+<!--#endif-->
+
+</table>
+
+<br><br>
+
+<div style="text-align:right">
+<input type="button" name="cancel" value="Cancel"
+       onClick="window.close();">&nbsp;&nbsp;
+<input type="submit" name="next" value="Next">
+</div>
+
+</form>
+</body>
+</html>

@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2013 Tuma Solutions, LLC
+// Copyright (C) 2002-2014 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -23,6 +23,8 @@
 
 
 package teamdash.templates.setup;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -32,10 +34,13 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
@@ -43,6 +48,8 @@ import java.util.Vector;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 import org.w3c.dom.Document;
 
@@ -78,7 +85,10 @@ import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.NetworkDriveList;
 import net.sourceforge.processdash.util.RobustFileOutputStream;
 import net.sourceforge.processdash.util.StringUtils;
+import net.sourceforge.processdash.util.VersionUtils;
 import net.sourceforge.processdash.util.XMLUtils;
+import net.sourceforge.processdash.util.lock.AlreadyLockedException;
+import net.sourceforge.processdash.util.lock.LockFailureException;
 
 /** This wizard sets up a team project.
  *
@@ -139,6 +149,20 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
     // creates and sets up a team project
     private static final String TEAM_SUCCESS_URL = "teamSuccess.shtm";
 
+    // information for the team project relaunch welcome page
+    private static final String RELAUNCH_WELCOME_PAGE = "relaunch";
+    private static final String RELAUNCH_WELCOME_URL = "relaunchWelcome.shtm";
+    private static final String RELAUNCH_START_PAGE = "relaunchStart";
+    // information for the team project relaunch node name page
+    private static final String RELAUNCH_NODE_PAGE = "relaunchNode";
+    private static final String RELAUNCH_NODE_URL = "relaunchNode.shtm";
+    private static final String RELAUNCH_NODE_SELECTED_PAGE = "relaunchNodeSelected";
+    // URL of a page that chastises the user for attempting to run the
+    // relaunch wizard on an invalid path
+    private static final String RELAUNCH_INVALID_URL = "relaunchInvalid.shtm";
+    // URL of a page asking the user to close the WBS Editor
+    private static final String RELAUNCH_CANNOT_COPY_URL = "relaunchCannotCopy.shtm";
+
     // value indicating we should add an individual to a team project
     private static final String IND_PAGE = "indiv";
     private static final String IND_START_PAGE = "indivStart";
@@ -171,6 +195,10 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
 
     // Names of session variables used to store user selections.
     private static final String TEAM_MASTER_FLAG = "setup//Is_Master";
+    private static final String RELAUNCH_FLAG = "setup//Is_Relaunch";
+    private static final String RELAUNCH_SOURCE_ID = "setup//Relaunch_Source_ID";
+    private static final String RELAUNCH_SOURCE_PATH = "setup//Relaunch_Source_Path";
+    private static final String RELAUNCH_SOURCE_DATA = "setup//Relaunch_Source_Data";
     private static final String TEAM_TEMPLATE_FLAG = "setup//Is_Importing_Template";
     private static final String SUGG_TEAM_DIR = "setup//Suggested_Team_Dir";
     private static final String TEAM_DIR = "setup//Team_Dir";
@@ -190,6 +218,7 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
     private static final String INITIALS_LABEL_LC = "setup//initials_label";
     private static final String CSS_CLASS_SUFFIX = "//Class";
     private static final String JOINING_DATA_MAP = "setup//Joining_Data";
+    private static final String IN_PROGRESS_URI = "setup//In_Progress_URI";
     private static final String[] JOIN_SESSION_VARIABLES = { NODE_NAME,
             NODE_LOCATION, IND_SCHEDULE, DATA_DIR, DATA_DIR_URL, IND_DIR_OVERRIDE };
 
@@ -235,14 +264,18 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
         else if (JOIN_TEAM_SCHED_PAGE.equals(page))
                                                    handleJoinTeamSchedPage();
 
+        else if (RELAUNCH_WELCOME_PAGE.equals(page)) showRelaunchWelcomePage();
+        else if (RELAUNCH_START_PAGE.equals(page)) handleRelaunchWelcomePage();
+        else if (RELAUNCH_NODE_PAGE.equals(page))  handleRelaunchNodePage();
+        else if (RELAUNCH_NODE_SELECTED_PAGE.equals(page)) handleRelaunchNodeSelected();
+
+        else if (TEAM_CLOSE_HIERARCHY_PAGE.equals(page)) handleTeamCloseHierPage();
         else if (!prefixNamesTeamProjectStub())    showInvalidPage();
         else if (page == null)                     showWelcomePage();
         else if (TEAM_START_PAGE.equals(page))     showTeamMasterChoicePage();
         else if (TEAM_MASTER_PAGE.equals(page))    handleTeamMasterChoicePage();
         else if (TEAM_DIR_PAGE.equals(page))       handleTeamDirPage();
         else if (TEAM_SCHEDULE_PAGE.equals(page))  handleTeamSchedulePage();
-        else if (TEAM_CLOSE_HIERARCHY_PAGE.equals(page))
-                                                   handleTeamCloseHierPage();
         else if (TEAM_CONFIRM_PAGE.equals(page))   handleTeamConfirmPage();
         else                                       showWelcomePage();
     }
@@ -274,7 +307,7 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
         return (d == null ? null : d.format());
     }
 
-    /** Get a value from the data repository as a String. */
+    /** Get a value from the data repository and test it for trueness. */
     protected boolean testValue(String name) {
         SimpleData d = getSimpleValue(name);
         return (d == null ? false : d.test());
@@ -292,10 +325,17 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
 
     /** Returns true if the current prefix names a "TeamProjectStub" node */
     protected boolean prefixNamesTeamProjectStub() {
+        return pathNamesTeamProjectStub(getPrefix());
+    }
+
+    private boolean pathNamesTeamProjectStub(String path) {
+        return TEAM_STUB_ID.equals(getTemplateID(path));
+    }
+
+    private String getTemplateID(String path) {
         DashHierarchy hierarchy = getPSPProperties();
-        PropertyKey key = hierarchy.findExistingKey(getPrefix());
-        String templateID = hierarchy.getID(key);
-        return TEAM_STUB_ID.equals(templateID);
+        PropertyKey key = hierarchy.findExistingKey(path);
+        return hierarchy.getID(key);
     }
 
     /** Display the invalid page */
@@ -537,7 +577,10 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
 
     /** respond to the Next button on the team close hierarchy page */
     protected void handleTeamCloseHierPage() {
-        showTeamConfirmPage();
+        if (testValue(RELAUNCH_FLAG) && !prefixNamesTeamProjectStub())
+            showRelaunchNodePage();
+        else
+            showTeamConfirmPage();
     }
 
     /** Display the team confirmation page */
@@ -568,38 +611,42 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
 
         // create the required team directories / collections. This involves
         // file or network IO which could fail for various reasons, so we
-        // attempt to get it out of the way first.
+        // attempt to get it out of the way first. Failures in the methods
+        // below will throw exceptions that halt logic and redirect to an
+        // error page.
 
         if (TeamServerSelector.isUrlFormat(teamDirectory)) {
             projectID = createServerCollection(teamDirectory);
-            if (projectID == null)
-                return;   // error page already displayed by now; just abort
             teamDataDirUrl = teamDirectory + "/" + projectID;
             teamDirectory = teamDataDir = null;
 
         } else {
             projectID = generateID();
             teamDataDir = createTeamDirs(teamDirectory, projectID);
-            if (teamDataDir == null)
-                return;   // error page already displayed by now; just abort
         }
 
-        if (!writeTeamSettingsFile(teamPID, teamDataDir, teamDataDirUrl,
-                teamSchedule, projectID, processJarFile))
-            // the error page will already have been displayed by now,
-            // so just abort on failure.
-            return;
+        // if we are relaunching a project, mark the original WBS as closed.
+        File relaunchSourceDir = maybeCloseRelaunchedProjectWbs();
+        String relaunchSourcePath = getValue(RELAUNCH_SOURCE_PATH);
+        String relaunchSourceID = getValue(RELAUNCH_SOURCE_ID);
+
+        // attempt to write applicable files to the new WBS directory.
+        writeTeamSettingsFile(teamPID, teamDataDir, teamDataDirUrl,
+            teamSchedule, projectID, processJarFile);
+        writeFilesToNewWbsDir(relaunchSourceDir, relaunchSourceID,
+            teamDataDirUrl, teamDataDir);
 
         // perform lots of other setup tasks.  Unlike the operation
         // above, these tasks should succeed 99.999% of the time.
         alterTeamTemplateID(teamPID);
         String scheduleID = createTeamSchedule (teamSchedule);
         saveTeamDataValues(teamDirectory, teamDataDirUrl, projectID,
-            teamSchedule, scheduleID);
+            teamSchedule, scheduleID, relaunchSourceID, relaunchSourcePath);
         saveTeamSettings (teamDirectory, teamDataDir, projectID);
-        maybeWriteWbsUserSettingsFile(teamDataDirUrl, teamDataDir);
         tryToCopyProcessJarfile (processJarFile, teamDirectory);
         exportProjectData();
+        if (StringUtils.hasValue(relaunchSourceID))
+            startAsyncCleanupOfRelaunchedWbs();
 
         // print a success message!
         printRedirect(TEAM_SUCCESS_URL);
@@ -612,8 +659,7 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
                 ResourceCollectionType.TeamProjectData);
             return collectionId;
         } catch (Exception e) {
-            printRedirect(TEAM_SERVER_URL + "?cannotContact");
-            return null;
+            throw new WizardError(TEAM_SERVER_URL).param("cannotContact");
         }
     }
 
@@ -623,39 +669,31 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
 
     protected String createTeamDirs(String teamDirectory, String projectID) {
         File teamDir = new File(teamDirectory);
-        if (!createTeamDirectory(teamDir)) return null;
+        createTeamDirectory(teamDir);
 
         File templateDir = new File(teamDir, "Templates");
-        if (!createTeamDirectory(templateDir)) return null;
+        createTeamDirectory(templateDir);
 
         File dataDir = new File(teamDir, "data");
-        if (!createTeamDirectory(dataDir)) return null;
+        createTeamDirectory(dataDir);
 
         File projDataDir = new File(dataDir, projectID);
-        if (!createTeamDirectory(projDataDir)) return null;
+        createTeamDirectory(projDataDir);
 
         File disseminationDir = new File(projDataDir, DISSEMINATION_DIRECTORY);
-        if (!createTeamDirectory(disseminationDir)) return null;
+        createTeamDirectory(disseminationDir);
 
         return projDataDir.getPath();
     }
 
-    private boolean createTeamDirectory(File directory) {
-        if (directory.isDirectory()) return true;
-        if (directory.mkdirs()) return true;
-        String errMsg = "The team project setup wizard was unable to "+
-            "create the directory '" + directory + "'. Please ensure that ";
-        if (isWindows())
-            errMsg = errMsg + "the network drive is mapped and that ";
-        errMsg = errMsg + "you have adequate file permissions to create " +
-            "this directory, then click &quot;Next.&quot;  Otherwise, " +
-            "enter a different team directory below.";
-        errMsg = HTMLUtils.urlEncode(errMsg);
-        printRedirect(TEAM_DIR_URL + "?errMsg=" + errMsg);
-        return false;
+    private void createTeamDirectory(File directory) {
+        if (!directory.isDirectory() && !directory.mkdirs())
+            throw new WizardError(TEAM_DIR_URL) //
+                    .param("errCantCreateDir", directory.getPath()) //
+                    .param(isWindows() ? "isWindows" : null);
     }
 
-    private boolean writeTeamSettingsFile(String teamPID,
+    private void writeTeamSettingsFile(String teamPID,
                                           String teamDataDir,
                                           String teamDataDirUrl,
                                           String teamSchedule,
@@ -682,62 +720,191 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
             }
 
             tsf.write();
-            return true;
 
         } catch (IOException ioe) {
-            String errMsg = "The team project setup wizard was unable to "+
-                "write the team project settings file '"+
-                tsf.getSettingsFileDescription()+
-                "'. Please ensure that you have adequate file permissions " +
-                "to create this file, then click &quot;Next.&quot; " +
-                "Otherwise, enter a different team directory below.";
-            errMsg = HTMLUtils.urlEncode(errMsg);
-            printRedirect(TEAM_DIR_URL + "?errMsg=" + errMsg);
-            return false;
+            System.out.println("Could not write team settings file:");
+            ioe.printStackTrace();
+            throw new WizardError(TEAM_DIR_URL).param("errSettingsFile",
+                tsf.getSettingsFileDescription());
         }
     }
 
-    private void maybeWriteWbsUserSettingsFile(String... locations) {
-        Properties wbsUserSettings = getWbsUserSettings();
-        if (!wbsUserSettings.isEmpty())
-            writeFilesToWbsDir(wbsUserSettings, locations);
+    private File maybeCloseRelaunchedProjectWbs() {
+        // if we are relaunching a project, get the locations where that
+        // project stores its data
+        ListData relaunchSourceLocations = ListData
+                .asListData(getSimpleValue(RELAUNCH_SOURCE_DATA));
+        if (relaunchSourceLocations == null || !relaunchSourceLocations.test())
+            return null;
+
+        // update settings on the relaunched project WBS to mark it as closed
+        CloseRelaunchedProjectWbs crpw = new CloseRelaunchedProjectWbs();
+        List l = relaunchSourceLocations.asList();
+        try {
+            writeFilesToWbsDir(Collections.singleton(crpw),
+                (String[]) l.toArray(new String[l.size()]));
+        } catch (Exception e) {
+            // This error could theoretically occur for a number of reasons;
+            // but since we've already validated network connectivity and
+            // file writability a few steps earlier, this error is most
+            // likely an indication that the WBS Editor is currently open.
+            // Display a page advising the user to close the WBS Editor.
+            System.out.println("Unable to close WBS of relaunched project:");
+            e.printStackTrace();
+            throw new WizardError(RELAUNCH_CANNOT_COPY_URL);
+        }
+
+        // return the local directory where the WBS data is cached
+        return crpw.dir;
     }
 
-    private Properties getWbsUserSettings() {
+    private class CloseRelaunchedProjectWbs implements WriteFileTask {
+        private File dir;
+        public void write(File dir) throws IOException {
+            closeOldProjectWbs(dir);
+            this.dir = dir;
+        }
+    }
+
+    /** write files to the WBS directory for the newly created project */
+    private void writeFilesToNewWbsDir(File relaunchSourceDir,
+            String relaunchSourceID, String... locations) {
+        List<WriteFileTask> files = new ArrayList();
+
+        // write the userSettings.ini file
+        Properties wbsUserSettings = getWbsUserSettings(relaunchSourceID);
+        if (!wbsUserSettings.isEmpty())
+            files.add(new UserSettingsWriter(wbsUserSettings));
+
+        // if this is a relaunched project, copy other files needed to relaunch
+        if (relaunchSourceDir != null)
+            files.add(new CopyRelaunchFiles(relaunchSourceDir));
+
+        // perform the write operations
+        try {
+            writeFilesToWbsDir(files, locations);
+        } catch (Exception e) {
+            // This error is quite unexpected. By the time we reach this point,
+            // other code has successfully connected to and written data into
+            // the new WBS dir. We display the "cannot copy" page, which will
+            // (a) give them a chance to retry the operation, and (b) show a
+            // link they can click to view the stack trace we print below.
+            System.out.println("Unable to write files to project WBS dir");
+            e.printStackTrace();
+            if (relaunchSourceDir != null)
+                throw new WizardError(RELAUNCH_CANNOT_COPY_URL);
+
+            // if we are not in relaunch mode, just log the error and keep
+            // going. we were only unable to write the settings file, and the
+            // team can manually alter those settings later.
+        }
+    }
+
+    private Properties getWbsUserSettings(String relaunchSourceID) {
         Properties result = new Properties();
+
+        // record the global initials policy, if one is registered
         String initialsPolicy = getValue("/Team_Project_Policy/Initials_Policy");
         if (StringUtils.hasValue(initialsPolicy))
             result.put("initialsPolicy", initialsPolicy);
+
+        // if this is a relaunched project, record applicable settings
+        if (StringUtils.hasValue(relaunchSourceID)) {
+            result.put("relaunchProject", "true");
+            result.put("relaunchSourceID", relaunchSourceID);
+        }
+
         return result;
     }
 
-    private void writeFilesToWbsDir(Properties userSettings,
-            String... wbsDirLocations) {
+    private class UserSettingsWriter implements WriteFileTask {
+        private Properties userSettings;
+        protected UserSettingsWriter(Properties userSettings) {
+            this.userSettings = userSettings;
+        }
+        public void write(File newWbsDir) throws IOException {
+            File f = new File(newWbsDir, "user-settings.ini");
+            RobustFileOutputStream out = new RobustFileOutputStream(f);
+            userSettings.store(out, null);
+            out.close();
+        }
+    }
+
+    private class CopyRelaunchFiles implements WriteFileTask {
+        private File sourceDir;
+        public CopyRelaunchFiles(File sourceDir) {
+            this.sourceDir = sourceDir;
+        }
+        public void write(File destDir) throws IOException {
+            copyRelaunchFiles(sourceDir, destDir);
+        }
+    }
+
+
+    private interface WriteFileTask {
+        public void write(File dir) throws IOException;
+    }
+
+    private void writeFilesToWbsDir(Collection<? extends WriteFileTask> files,
+            String... wbsDirLocations) throws LockFailureException, IOException {
+        if (files.isEmpty())
+            return;
         WorkingDirectory dir = null;
         try {
+            // obtain a working directory object for this WBS directory
             dir = WorkingDirectoryFactory.getInstance().get(
                 WorkingDirectoryFactory.PURPOSE_WBS, wbsDirLocations);
             dir.acquireProcessLock("", null);
             dir.prepare();
-            dir.acquireWriteLock(null, "Team Project Setup Wizard");
+            acquireWriteLock(dir);
 
-            if (!userSettings.isEmpty()) {
-                File f = new File(dir.getDirectory(), "user-settings.ini");
-                RobustFileOutputStream out = new RobustFileOutputStream(f);
-                userSettings.store(out, null);
-                out.close();
-            }
+            for (WriteFileTask task : files)
+                task.write(dir.getDirectory());
 
             dir.flushData();
 
-        } catch (Exception e) {
-            System.out.println("Unable to write files to project WBS dir");
-            e.printStackTrace();
         } finally {
             if (dir != null)
                 dir.releaseLocks();
         }
     }
+
+    private void acquireWriteLock(WorkingDirectory dir)
+            throws LockFailureException {
+        // try several times to acquire a write lock. This should succeed
+        // immediately in a new project directory, but could require a
+        // retry in the directory for an existing project if someone is saving
+        // changes to the WBS at this exact moment.
+        AlreadyLockedException locked = null;
+        for (int retryCount = 0; retryCount < 5; retryCount++) {
+            try {
+                dir.acquireWriteLock(null, "Team Project Setup Wizard");
+                return;
+            } catch (AlreadyLockedException e) {
+                locked = e;
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException i) {}
+            }
+        }
+        throw locked;
+    }
+
+
+    private void startAsyncCleanupOfRelaunchedWbs() {
+        try {
+            // start a headless WBS Editor process in the background to
+            // perform the cleanup operations on the new WBS
+            String wbsUri = resolveRelativeURI("openWBS.shtm?dumpAndExit");
+            getRequest(wbsUri, false);
+        } catch (Exception e) {
+            // if this fails, continue; the cleanup will be performed the
+            // first time the WBS Editor is opened for this project.
+            System.out.println("Couldn't run background WBS cleanup task");
+            e.printStackTrace();
+        }
+    }
+
 
     protected boolean tryToCopyProcessJarfile(String jarFilename,
                                               String teamDirectory) {
@@ -778,7 +945,8 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
 
     protected void saveTeamDataValues(String teamDirectory,
             String teamDataDirUrl, String projectID, String teamScheduleName,
-            String teamScheduleID) {
+            String teamScheduleID, String relaunchSourceID,
+            String relaunchSourcePath) {
         putValue(TEAM_DIRECTORY, teamDirectory);
         String uncName = calcUNCName(teamDirectory);
         putValue(TEAM_DIRECTORY_UNC, uncName);
@@ -787,6 +955,11 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
         putValue(PROJECT_ID, projectID);
         putValue(PROJECT_SCHEDULE_NAME, teamScheduleName);
         putValue(PROJECT_SCHEDULE_ID, teamScheduleID);
+        putValue(RELAUNCH_SOURCE_PROJECT_ID, relaunchSourceID);
+
+        if (StringUtils.hasValue(relaunchSourcePath))
+            putRelaunchValue(RELAUNCHED_PROJECT_FLAG, relaunchSourcePath,
+                ImmutableDoubleData.TRUE);
 
         putValue("_Password_", ImmutableDoubleData.TRUE);
     }
@@ -833,6 +1006,9 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
             putValue(TEAM_TEMPLATE_FLAG, "t");
             new TemplateDirAdder(teamDirectory);
         }
+
+        // make this project the actively selected task
+        DashController.setPath(getPrefix());
     }
 
     private final class TemplateDirAdder extends Thread {
@@ -1001,6 +1177,277 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
         rollup.save();
         logger.fine("saved changed task list");
         return true;
+    }
+
+
+
+    /** Begin the process of relaunching a team project */
+    private void showRelaunchWelcomePage() {
+        printRedirect(RELAUNCH_WELCOME_URL);
+    }
+
+    private void handleRelaunchWelcomePage() {
+        // look at the current path. It it doesn't name a team project, abort.
+        String projectPath = getPrefix();
+        String templateID = getTemplateID(projectPath);
+        if (templateID == null || !templateID.endsWith("/TeamRoot"))
+            throw new WizardError(RELAUNCH_INVALID_URL).param("notTeamRoot");
+
+        // if this team project has been relaunched in the past, abort.
+        if (testValue(RELAUNCHED_PROJECT_FLAG))
+            throw new WizardError(RELAUNCH_INVALID_URL).param("isRelaunched");
+
+        // if the user does not have a high enough version of team tools, abort
+        String toolsVersion = TemplateLoader.getPackageVersion("teamTools");
+        if (toolsVersion == null
+                || VersionUtils.compareVersions(toolsVersion, "4.1") < 0)
+            throw new WizardError(RELAUNCH_INVALID_URL).param("badTeamTools");
+
+        // break apart the name and infer parent/project name
+        int slashPos = projectPath.lastIndexOf('/');
+        String projectParent = (slashPos < 2 ? "/" : projectPath.substring(0,
+            slashPos));
+        String oldProjectName = projectPath.substring(slashPos + 1);
+        String newProjectName = getDefaultRelaunchedProjectName(oldProjectName);
+        putValue(NODE_NAME, newProjectName);
+        putValue(NODE_LOCATION, projectParent);
+        putValue(RELAUNCH_FLAG, "true");
+
+        showRelaunchNodePage();
+    }
+
+    private static String getDefaultRelaunchedProjectName(String oldName) {
+        // look for an iteration string in the old name. If present, increment
+        // the iteration number.
+        for (Pattern p : ITER_PATTERNS) {
+            Matcher m = p.matcher(oldName);
+            if (m.find()) {
+                int oldIterNum = Integer.parseInt(m.group(1));
+                int newIterNum = oldIterNum + 1;
+                return oldName.substring(0, m.start(1)) + newIterNum
+                        + oldName.substring(m.end(1));
+            }
+        }
+
+        // if no iteration number was found, use a standard pattern to produce
+        // iteration 2 of the project
+        return oldName + " Iter 2";
+    }
+
+    private static final Pattern[] ITER_PATTERNS = {
+            Pattern.compile("\\bIter\\s*(\\d+)", Pattern.CASE_INSENSITIVE),
+            Pattern.compile("\\bI(\\d+)\\W*$", Pattern.CASE_INSENSITIVE),
+            Pattern.compile("\\b(\\d+)\\W*$", Pattern.CASE_INSENSITIVE),
+    };
+
+    // display the page asking for project name and location
+    private void showRelaunchNodePage() {
+        printRedirect(RELAUNCH_NODE_URL);
+    }
+
+    private void handleRelaunchNodePage() {
+        putValue(NODE_NAME, trimParameter("Node_Name"));
+        putValue(NODE_LOCATION, trimParameter("Node_Location"));
+
+        String projectPath = getTargetNodePath();
+        ensureTeamProjectStub(projectPath);
+        copyRelaunchValues(projectPath);
+
+        // now display the next page in the relaunch sequence
+        String redirectUri = WebServer.urlEncodePath(projectPath) + "//"
+                + getValue("Team_Process_PID") + "/setup/wizard.class?page="
+                + RELAUNCH_NODE_SELECTED_PAGE;
+        putRelaunchValue(IN_PROGRESS_URI, projectPath, redirectUri);
+        printRedirect(redirectUri);
+    }
+
+    private String getTargetNodePath() {
+        WizardError err = new WizardError(RELAUNCH_NODE_URL);
+        err.param(getNodeNameError());
+        err.param(getNodeLocationError());
+        if (!RELAUNCH_NODE_URL.equals(err.uri))
+            throw err;
+
+        String nodeName = getValue(NODE_NAME);
+        String nodeLocation = getValue(NODE_LOCATION);
+        String projectPath;
+        if (nodeLocation.endsWith("/"))
+            projectPath = nodeLocation + nodeName;
+        else
+            projectPath = nodeLocation + "/" + nodeName;
+        return projectPath;
+    }
+
+    private void ensureTeamProjectStub(String path) {
+        if (pathNamesTeamProjectStub(path))
+            return;
+        else if (DashController.alterTemplateID(path, null, TEAM_STUB_ID))
+            return;
+        else
+            throw new WizardError(TEAM_CLOSE_HIERARCHY_URL);
+    }
+
+    private void copyRelaunchValues(String path) {
+        // record the fact that we are relaunching a team project
+        putRelaunchValue(RELAUNCH_FLAG, path, "true");
+        putRelaunchValue(TEAM_MASTER_FLAG, path, ImmutableDoubleData.FALSE);
+        // record the template ID of the process we will use
+        putRelaunchValue(TEAM_PID, path, getTemplateID(getPrefix()));
+        putRelaunchValue(TEAM_PROC_NAME, path, "Inherited Process");
+        // record the default location for team data
+        copyRelaunchValue(TEAM_DIR, path, TeamDataConstants.TEAM_DIRECTORY);
+        // record the ID and location of the project we are relaunching
+        copyRelaunchValue(RELAUNCH_SOURCE_ID, path, TeamDataConstants.PROJECT_ID);
+        putRelaunchValue(RELAUNCH_SOURCE_PATH, path, getPrefix());
+        // gather the locations of relaunched source data and record those
+        ListData sourceData = new ListData();
+        sourceData.add(getValue(TeamDataConstants.TEAM_DATA_DIRECTORY_URL));
+        sourceData.add(getValue(TeamDataConstants.TEAM_DATA_DIRECTORY));
+        putRelaunchValue(RELAUNCH_SOURCE_DATA, path, sourceData);
+    }
+
+    private void copyRelaunchValue(String destName, String destPath,
+            String srcName) {
+        putRelaunchValue(destName, destPath, getValue(srcName));
+    }
+
+    private void putRelaunchValue(String destName, String destPath, Object value) {
+        String dataName = DataRepository.createDataName(destPath, destName);
+        if (value instanceof SimpleData) {
+            putValue(dataName, (SimpleData) value);
+        } else {
+            putValue(dataName, (String) value);
+        }
+    }
+
+    private void handleRelaunchNodeSelected() {
+        maybeShowTeamDirPage();
+    }
+
+    private void closeOldProjectWbs(File oldProjectWbsDir) throws IOException {
+        // read the current settings from the user settings file
+        File f = new File(oldProjectWbsDir, "user-settings.ini");
+        Properties p = new Properties();
+        if (f.isFile()) {
+            InputStream in = new FileInputStream(f);
+            p.load(in);
+            in.close();
+        }
+
+        // add a "project closed" setting, and resave
+        p.put("projectClosed", "true");
+        RobustFileOutputStream out = new RobustFileOutputStream(f);
+        p.store(out, null);
+        out.close();
+
+        // add the "projectClosed" attr to the root project tag of projDump.xml
+        f = new File(oldProjectWbsDir, "projDump.xml");
+        if (f.isFile()) {
+            InputStream in = new BufferedInputStream(new FileInputStream(f));
+            out = new RobustFileOutputStream(f);
+            // copy bytes up through the opening of the initial "project" tag
+            copyBytesThrough(in, out, "<project", -1);
+            // copy bytes until we see a projectClosed attribute, or encounter
+            // the ">" char. If the latter, write the projectClosed attribute.
+            if (copyBytesThrough(in, out, "projectClosed=", '>') == false)
+                out.write(" projectClosed='true'>".getBytes("utf-8"));
+            // copy the rest of the file verbatim
+            FileUtils.copyFile(in, out);
+            in.close();
+            out.close();
+        }
+    }
+
+    private void copyRelaunchFiles(File srcDir, File destDir)
+            throws IOException {
+        copyRelaunchFiles(srcDir, destDir, "wbs.xml", "team.xml", "team2.xml",
+            "workflow.xml", "milestones.xml", "tabs.xml");
+        writeMergedUserDump(srcDir, destDir);
+    }
+
+    private void copyRelaunchFiles(File srcDir, File destDir, String... names)
+            throws IOException {
+        for (String name : names) {
+            File srcFile = new File(srcDir, name);
+            File destFile = new File(destDir, name);
+            if (srcFile.isFile())
+                FileUtils.copyFile(srcFile, destFile);
+        }
+    }
+
+    private void writeMergedUserDump(File srcDir, File destDir)
+            throws IOException {
+        File destFile = new File(destDir, "relaunchDump.xml");
+        OutputStream out = new BufferedOutputStream(new RobustFileOutputStream(
+                destFile));
+        out.write(MERGED_DUMP_HEADER.getBytes("utf-8"));
+
+        for (File f : srcDir.listFiles()) {
+            if (f.getName().toLowerCase().endsWith("-data.pdash"))
+                copyUserDumpDataFromPdash(f, out);
+        }
+
+        out.write(MERGED_DUMP_FOOTER.getBytes("utf-8"));
+        out.close();
+    }
+
+    private void copyUserDumpDataFromPdash(File f, OutputStream out) {
+        try {
+            // open the userDump.xml file from the PDASH
+            ZipFile zip = new ZipFile(f);
+            ZipEntry entry = zip.getEntry("userDump.xml");
+            if (entry == null)
+                return;
+            InputStream in = zip.getInputStream(entry);
+
+            // skip past the XML prolog, then copy the remainder to the output
+            copyBytesThrough(in, null, "?>", -1);
+            FileUtils.copyFile(in, out);
+            in.close();
+
+        } catch (IOException ioe) {
+            // if a single PDASH file is corrupt and unreadable as a ZIP file,
+            // skip it and process others
+            System.out.println("Could not read userDump from " + f);
+            ioe.printStackTrace();
+        }
+    }
+
+    private static final String MERGED_DUMP_HEADER = //
+            "<?xml version='1.0' encoding='UTF-8' standalone='yes' ?>\r\n"
+            + "<relaunchData>\r\n";
+
+    private static final String MERGED_DUMP_FOOTER = "\r\n</relaunchData>";
+
+    private boolean copyBytesThrough(InputStream in, OutputStream out,
+            String utf8Pat, int stopByte) throws IOException {
+        return copyBytesThrough(in, out, utf8Pat.getBytes("utf-8"), stopByte);
+    }
+
+    private boolean copyBytesThrough(InputStream in, OutputStream out,
+            byte[] pat, int stopByte) throws IOException {
+        for (int i = 1; i < pat.length; i++) {
+            if (pat[i] == pat[0])
+                throw new IllegalArgumentException(
+                        "repeating patterns not supported");
+            else if (pat[i] == stopByte)
+                throw new IllegalArgumentException("pattern contains stop byte");
+        }
+
+        int b, numBytesMatched = 0;
+        while ((b = in.read()) != -1) {
+            if (b == stopByte)
+                return false;
+            if (out != null)
+                out.write(b);
+            if (b != pat[numBytesMatched])
+                numBytesMatched = 0;
+            if (b == pat[numBytesMatched])
+                numBytesMatched++;
+            if (numBytesMatched == pat.length)
+                return true;
+        }
+        return false;
     }
 
 
@@ -1307,7 +1754,8 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
             else
                 fullName = nodeLocation + "/" + nodeName;
 
-            if (getPSPProperties().findExistingKey(fullName) != null)
+            if (getPSPProperties().findExistingKey(fullName) != null
+                    && !pathNamesTeamProjectStub(fullName))
                 return "nodeNameDuplicateProject";
         }
 

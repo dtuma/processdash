@@ -1,6 +1,6 @@
 <html><!--#do-not-translate-->
 <head>
-<title><!--#if [setup//Is_Master] -->Master<!--#else-->Team<!--#endif--> Project Setup Wizard</title>
+<title><!--#if [setup//Is_Master] -->Master<!--#else-->Team<!--#endif--> Project <!--#if [setup//Is_Relaunch] -->Relaunch<!--#else-->Setup<!--#endif--> Wizard</title>
 <link rel=stylesheet type='text/css' href='/dash/teamStart.css'>
 </head>
 <body>
@@ -11,10 +11,22 @@
 
 <h2>Select Team Directory</h2>
 
-<!--#if errMsg -->
+<!--#if errCantCreateDir -->
+<div class="error">
+The team project setup wizard was unable to create the directory
+'<tt><!--#echo var=errCantCreateDir --></tt>'.  Please ensure that
+<!--#if isWindows -->the network drive is mapped and that<!--#endif--> 
+you have adequate file permissions to create this directory, then click
+&quot;Next.&quot; Otherwise, enter a different team directory below.
+</div>
 
-<table width='100%'><tr><td width='100%' class=error>
-<!--#echo var="errMsg" --></td></tr></table>
+<!--#elif errSettingsFile -->
+<div class="error">
+The team project setup wizard was unable to write the team project settings
+file '<tt><!--#echo var=errSettingsFile --></tt>'.  Please ensure that you
+have adequate file permissions to create this file, then click
+&quot;Next.&quot; Otherwise, enter a different team directory below.
+</div>
 
 <!--#endif-->
 

@@ -1,12 +1,7 @@
 <html><!--#do-not-translate-->
 <head>
-<title><!--#if [setup//Is_Master] -->Master<!--#else-->Team<!--#endif--> Project Setup Wizard</title>
+<title><!--#if [setup//Is_Master] -->Master<!--#else-->Team<!--#endif--> Project <!--#if [setup//Is_Relaunch] -->Relaunch<!--#else-->Setup<!--#endif--> Wizard</title>
 <link rel=stylesheet type='text/css' href='/dash/teamStart.css'>
-<style>
-TD.label { font-weight: bold;   vertical-align: top;
-           text-align: left;    padding-right: .5cm }
-TD.value { font-family: monospace }
-</style>
 </head>
 <body>
 

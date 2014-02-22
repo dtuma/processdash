@@ -1,6 +1,6 @@
 <html><!--#do-not-translate-->
 <head>
-<title><!--#if [setup//Is_Master] -->Master<!--#else-->Team<!--#endif--> Project Setup Wizard</title>
+<title><!--#if [setup//Is_Master] -->Master<!--#else-->Team<!--#endif--> Project <!--#if [setup//Is_Relaunch] -->Relaunch<!--#else-->Setup<!--#endif--> Wizard</title>
 <link rel=stylesheet type='text/css' href='/dash/teamStart.css'>
 </head>
 <body>

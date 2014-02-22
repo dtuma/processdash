@@ -109,6 +109,14 @@
 </tr>
 
 <!--#if not master -->
+
+[!--#if [Project_Was_Relaunched] || [Project_Was_Relaunched] eq '0' --]
+<tr>
+<td COLSPAN=2>This project has been closed and relaunched in the past:
+<input type=checkbox name="Project_Was_Relaunched"></td>
+</tr>
+[!--#endif--]
+
 <tr>
 <td COLSPAN=2>Do not notify individuals when a "Sync to WBS" is needed
 <input type=checkbox name="Disable_Indiv_Auto_Sync"></td>
@@ -124,6 +132,7 @@
 [!--#include file="/dash/dtsSelect?None_Text=None" --]
 &nbsp;&nbsp;&nbsp;<i><a href="/dash/dtsEdit.class">More...</a></i></td>
 </tr>
+
 <!--#endif-->
 
 <!--#endif-->

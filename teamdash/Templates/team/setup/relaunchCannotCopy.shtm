@@ -1,0 +1,42 @@
+<html>
+<head>
+<title>Team Project Relaunch Wizard</title>
+<link rel="stylesheet" type="text/css" href="/dash/teamStart.css">
+</head>
+<body>
+
+<img align="left" src="/Images/team.jpg" width="50" height="50">
+
+<h1>Team Project Relaunch Wizard</h1>
+
+<h2>Unable to Copy Files</h2>
+
+<form action='wizard.class' method='post'>
+<input type='hidden' name='page' value='teamConfirm'>
+
+<p>The relaunch wizard needs to copy project data from the old project plan
+to the new project plan.  Unfortunately, it was unable to perform this
+task.</p>
+
+<ul>
+
+<li>Please ensure that you are connected to the network.</li>
+
+<li>If you are currently editing the Work Breakdown Structure for the
+&quot;<!--#echo [setup//Relaunch_Source_Path] -->&quot; project, you must
+close the Work Breakdown Structure Editor before proceeding.</li>
+
+</ul>
+
+<p>After you have corrected these problems, click &quot;Next&quot; to try
+the operation again.  If the problem persists,
+<a href="/control/showConsole.class">click here</a> for additional
+information about the error that was encountered.</p>
+
+<div style="text-align:right">
+<input type="submit" name="next" value="Next">
+</div>
+
+</form>
+</body>
+</html>
