@@ -20,6 +20,8 @@
 <div><img align="left" src="/Images/team.jpg"><h1>Team Project
 Relaunch Wizard<br><!--#echo var=PATH_TRANSLATED --></h1></div>
 
+<div style="clear:both"></div>
+
 <form action='wizard.class' method='post'>
 <input type='hidden' name='page' value='relaunchStart'>
 

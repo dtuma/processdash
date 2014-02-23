@@ -15,6 +15,12 @@
 <!--#if [setup//Is_Master] -->master<!--#else-->team<!--#endif-->
 project has been created and set up successfully!</p>
 
+<!--#if [setup//Relaunch_Source_Path] -->
+<p>Workflow definitions, team member schedules, milestones, and incomplete
+tasks have been copied from the "<!--#echo [setup//Relaunch_Source_Path] -->"
+project, which has now been closed.</p>
+<!--#endif-->
+
 <!--#if [setup//Is_Importing_Template] -->
 <p><b>Note: Check back with your main Team Dashboard window; it may
 be displaying a dialog titled &quot;Import Template&quot;.  If it is,

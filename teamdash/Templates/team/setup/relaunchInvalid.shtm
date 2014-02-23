@@ -5,7 +5,7 @@
 </head>
 <body>
 
-<img align="left" src="/Images/team.jpg">
+<img align="left" src="/Images/team.jpg" width="50" height="50">
 
 <h1><!--#echo var=PATH_TRANSLATED --></h1>
 

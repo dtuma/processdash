@@ -7,16 +7,16 @@
 
 <img align="left" src="/Images/team.jpg" width="50" height="50">
 
-<h1>Team Project Relaunch Wizard</h1>
+<h1><!--#echo var=PATH_TRANSLATED --></h1>
 
 <h2>Unable to Copy Files</h2>
 
 <form action='wizard.class' method='post'>
 <input type='hidden' name='page' value='teamConfirm'>
 
-<p>The relaunch wizard needs to copy project data from the old project plan
-to the new project plan.  Unfortunately, it was unable to perform this
-task.</p>
+<p class="error">The relaunch wizard needs to copy project data from the old
+project plan to the new project plan.  Unfortunately, it was unable to perform
+this task.</p>
 
 <ul>
 
