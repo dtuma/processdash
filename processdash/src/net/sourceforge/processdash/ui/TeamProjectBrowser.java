@@ -1,4 +1,4 @@
-// Copyright (C) 2013 Tuma Solutions, LLC
+// Copyright (C) 2013-2014 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -72,10 +72,12 @@ import net.sourceforge.processdash.hier.ui.PropTreeModel;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.process.ScriptEnumerator;
 import net.sourceforge.processdash.process.ScriptID;
+import net.sourceforge.processdash.templates.TemplateLoader;
 import net.sourceforge.processdash.ui.lib.JOptionPaneTweaker;
 import net.sourceforge.processdash.ui.web.dash.TeamStartBootstrap;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.StringUtils;
+import net.sourceforge.processdash.util.VersionUtils;
 
 public class TeamProjectBrowser extends JSplitPane {
 
@@ -679,6 +681,8 @@ public class TeamProjectBrowser extends JSplitPane {
     private class AlterTeamProjectMenu extends JMenu implements
             TreeSelectionListener {
 
+        private RelaunchProjectAction relaunchAction;
+
         public AlterTeamProjectMenu() {
             super(resources.getString("Menu.File.Alter_Team_Project"));
             setEnabled(false);
@@ -687,6 +691,9 @@ public class TeamProjectBrowser extends JSplitPane {
             add(new RenameProjectAction());
             add(new MoveProjectUpAction());
             add(new MoveProjectDownAction());
+            relaunchAction = new RelaunchProjectAction();
+            if (relaunchAction.isSupported())
+                add(relaunchAction);
             add(new DeleteProjectAction());
         }
 
@@ -694,6 +701,7 @@ public class TeamProjectBrowser extends JSplitPane {
             PropertyKey projectKey = getSelectedTreeNode();
             String templateID = ctx.getHierarchy().getID(projectKey);
             setEnabled(StringUtils.hasValue(templateID));
+            relaunchAction.checkEnabledForProcess(templateID);
         }
 
     }
@@ -777,6 +785,49 @@ public class TeamProjectBrowser extends JSplitPane {
 
         public MoveProjectDownAction() {
             super("Move_Team_Project_Down", 1);
+        }
+
+    }
+
+    private class RelaunchProjectAction extends AbstractAction {
+
+        public RelaunchProjectAction() {
+            super(resources.getString("Menu.File.Relaunch_Team_Project"));
+        }
+
+        public boolean isSupported() {
+            return isRelaunchSupported("teamTools");
+        }
+
+        public void checkEnabledForProcess(String templateID) {
+            setEnabled(templateID != null && templateID.endsWith("/TeamRoot"));
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            PropertyKey projectKey = getSelectedTreeNode();
+            String templateID = ctx.getHierarchy().getID(projectKey);
+            checkEnabledForProcess(templateID);
+            if (!isEnabled())
+                return;
+
+            StringBuilder uri = new StringBuilder();
+            uri.append(HTMLUtils.urlEncodePath(projectKey.path()));
+
+            int slashPos = templateID.indexOf('/');
+            String processID = templateID.substring(0, slashPos);
+            if (isRelaunchSupported(processID))
+                uri.append("//").append(HTMLUtils.urlEncode(processID))
+                        .append("/setup/wizard.class?page=relaunch");
+            else
+                uri.append("//dash/relaunchUpgradeMCF.shtm");
+
+            Browser.launch(uri.toString());
+        }
+
+        private boolean isRelaunchSupported(String packageID) {
+            String version = TemplateLoader.getPackageVersion(packageID);
+            return (version != null && VersionUtils.compareVersions(version,
+                "4.1") >= 0);
         }
 
     }
