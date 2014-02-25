@@ -224,7 +224,7 @@ public class TaskScheduleDialog implements EVTask.Listener,
             insertPeriodAction, deletePeriodAction, chartAction, reportAction,
             closeAction, saveAction, errorAction, filteredChartAction,
             saveBaselineAction, collaborateAction, filteredReportAction,
-            weekReportAction, scheduleOptionsAction;
+            weekReportAction, scheduleOptionsAction, expandAllAction;
     private List<TSAction> altReportActions;
 
     protected boolean disableTaskPruning;
@@ -511,6 +511,10 @@ public class TaskScheduleDialog implements EVTask.Listener,
             result.add(Box.createHorizontalGlue());
         }
 
+        expandAllAction = new TSAction("Buttons.Expand_All") {
+            public void actionPerformed(ActionEvent e) {
+                expandAllForSelectedItems(); }};
+
         treeTable.getSelectionModel().addListSelectionListener
             (new ListSelectionListener() {
                     public void valueChanged(ListSelectionEvent e) {
@@ -692,6 +696,7 @@ public class TaskScheduleDialog implements EVTask.Listener,
 
         // create the View menu
         JMenu viewMenu = makeMenu("View");
+        viewMenu.add(expandAllAction);
         viewMenu.add(chartAction);
         viewMenu.add(filteredChartAction);
         viewMenu.add(reportAction);
@@ -2697,6 +2702,7 @@ public class TaskScheduleDialog implements EVTask.Listener,
         deleteTaskAction .setText(resources.getString("Buttons.Remove_Task"));
         moveUpAction     .setEnabled(enableUp);
         moveDownAction   .setEnabled(enableDown);
+        expandAllAction  .setEnabled(false);
         filteredChartAction.setEnabled(false);
         filteredReportAction.setEnabled(false);
     }
@@ -2706,6 +2712,7 @@ public class TaskScheduleDialog implements EVTask.Listener,
         deleteTaskAction .setEnabled(false);
         moveUpAction     .setEnabled(false);
         moveDownAction   .setEnabled(false);
+        expandAllAction  .setEnabled(true);
 
         int firstRowNum = treeTable.getSelectionModel().getMinSelectionIndex();
         int lastRowNum = treeTable.getSelectionModel().getMaxSelectionIndex();
@@ -2744,6 +2751,7 @@ public class TaskScheduleDialog implements EVTask.Listener,
                  : resources.getString("Buttons.Remove_Task"));
         moveUpAction     .setEnabled(enableUp);
         moveDownAction   .setEnabled(enableDown);
+        expandAllAction  .setEnabled(true);
 
         int firstRowNum = treeTable.getSelectionModel().getMinSelectionIndex();
         int lastRowNum = treeTable.getSelectionModel().getMaxSelectionIndex();
@@ -2782,6 +2790,54 @@ public class TaskScheduleDialog implements EVTask.Listener,
         setSelectedTasks(selectedTasks);
 
         enableTaskButtons();
+    }
+
+    protected void expandAllForSelectedItems() {
+        List<EVTask> selectedTasks = getSelectedTasksOrRoot();
+        for (EVTask task : selectedTasks)
+            expandAllForTask(task);
+        selectNodesAndDescendants(selectedTasks);
+    }
+
+    private void expandAllForTask(EVTask task) {
+        for (EVTask child : task.getChildren())
+            expandAllForTask(child);
+        TreePath path = new TreePath(task.getPath());
+        treeTable.getTree().expandPath(path);
+    }
+
+
+    private void selectNodesAndDescendants(List<EVTask> selectedTasks) {
+        int[] newSelection = new int[] { Integer.MAX_VALUE, -1 };
+        for (EVTask task : selectedTasks)
+            getRowRangeForTaskAndDescendants(task, newSelection);
+        if (newSelection[1] > -1) {
+            treeTable.clearSelection();
+            treeTable.getSelectionModel().addSelectionInterval(newSelection[0],
+                newSelection[1]);
+        }
+    }
+
+    private void getRowRangeForTaskAndDescendants(EVTask task, int[] range) {
+        TreePath path = new TreePath(task.getPath());
+        int row = treeTable.getTree().getRowForPath(path);
+        if (row != -1) {
+            range[0] = Math.min(range[0], row);
+            range[1] = Math.max(range[1], row);
+
+            List<EVTask> children = task.getChildren();
+            if (!children.isEmpty())
+                getRowRangeForTaskAndDescendants(
+                    children.get(children.size() - 1), range);
+        }
+    }
+
+    private List<EVTask> getSelectedTasksOrRoot() {
+        List<EVTask> selectedTasks = getSelectedTasks();
+        if (selectedTasks.isEmpty())
+            selectedTasks = Collections.singletonList( //
+                    (EVTask) treeTable.getTree().getModel().getRoot());
+        return selectedTasks;
     }
 
     private List<EVTask> getSelectedTasks() {
