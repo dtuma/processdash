@@ -49,6 +49,14 @@ has already been performed.</li>
 
 </ul>
 
+<p>The Relaunch Wizard looks at the 
+<a href="teamMetricsStatus?for=Corresponding_Project_Nodes">actual data
+exported by team members</a> to determine which tasks are complete, and
+which tasks should be moved to the new iteration plan.  Accordingly, it is
+helpful if team members have exported their most up-to-date, accurate data
+for the "<!--#echo var=PATH_TRANSLATED -->" project before you run the
+Relaunch Wizard.</p>
+
 <table class="warning"><tr>
 <td><img src="warning.gif"></td>
 <td>If your project relaunch meeting will not be occurring for several more
