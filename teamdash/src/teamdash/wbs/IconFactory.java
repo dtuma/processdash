@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2012 Tuma Solutions, LLC
+// Copyright (C) 2002-2014 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -59,8 +59,16 @@ public class IconFactory {
         return new ProjectIcon(DEFAULT_COLOR);
     }
 
+    public static Icon getCommonWorkflowsIcon() {
+        return new CommonWorkflowsIcon(DEFAULT_COLOR);
+    }
+
     public static Icon getWorkflowIcon() {
         return new WorkflowIcon(DEFAULT_COLOR);
+    }
+
+    public static Icon getWorkflowTaskIcon(Color fill) {
+        return new WorkflowTaskIcon(fill);
     }
 
     public static Object getComponentIcon() {
@@ -245,8 +253,8 @@ public class IconFactory {
 
     public static Icon getImportIcon() {
         if (IMPORT_ICON == null) {
-            IMPORT_ICON = new ConcatenatedIcon(new Icon[] { getWorkflowIcon(),
-                    getLeftArrowIcon(), getOpenIcon() });
+            IMPORT_ICON = new ConcatenatedIcon(getCommonWorkflowsIcon(),
+                    getLeftArrowIcon(), getOpenIcon());
         }
         return IMPORT_ICON;
     }
@@ -254,8 +262,8 @@ public class IconFactory {
 
     public static Icon getExportIcon() {
         if (EXPORT_ICON == null) {
-            EXPORT_ICON = new ConcatenatedIcon(new Icon[] { getWorkflowIcon(),
-                    getRightArrowIcon(), getOpenIcon() });
+            EXPORT_ICON = new ConcatenatedIcon(getCommonWorkflowsIcon(),
+                    getRightArrowIcon(), getOpenIcon());
         }
         return EXPORT_ICON;
     }
@@ -404,15 +412,16 @@ public class IconFactory {
 
 
 
-    /** Icon image representing a common workflow.
-     *
+    /**
+     * Icon image for the common team workflows root.
+     * 
      * This draws four small boxes.
      */
-    private static class WorkflowIcon extends PolygonIcon {
+    private static class CommonWorkflowsIcon extends PolygonIcon {
 
         Color highlight, shadow;
 
-        public WorkflowIcon(Color fill) {
+        public CommonWorkflowsIcon(Color fill) {
             this.xPoints = new int[] { 1, 1, 7, 7 };
             this.yPoints = new int[] { 1, 7, 7, 1 };
             this.fillColor = fill;
@@ -445,6 +454,58 @@ public class IconFactory {
             g.setColor(highlight);
             drawHighlight(g, 0, 1, 0);
             drawHighlight(g, 3, 0, 1);
+        }
+
+    }
+
+
+    /** Icon image representing a defined workflow. */
+    private static class WorkflowIcon extends PolygonIcon {
+
+        Color highlight, shadow;
+
+        public WorkflowIcon(Color fill) {
+            this.fillColor = fill;
+            this.highlight = mixColors(fill, Color.white, 0.3f);
+            this.shadow    = mixColors(fill, Color.black, 0.7f);
+            this.xPoints = new int[] { 0, 15, 15,  0 };
+            this.yPoints = new int[] { 3,  3, 12, 12 };
+        }
+
+        @Override
+        protected void doHighlights(Component c, Graphics g) {
+            g.setColor(shadow);
+            drawHighlight(g, 1, -1,  0);
+
+            g.setColor(highlight);
+            drawHighlight(g, 0,  0, 1);
+            drawHighlight(g, 1, -3, 0);
+            drawHighlight(g, 3,  4, 0);
+
+            g.setColor(shadow);
+            drawHighlight(g, 1, -4,  0);
+            drawHighlight(g, 3,  3,  0);
+            drawHighlight(g, 2,  0, -1);
+
+            g.setColor(highlight);
+            drawHighlight(g, 3, 1, 0);
+        }
+
+    }
+
+    /** Icon image representing a task in a defined workflow */
+    private static class WorkflowTaskIcon extends WorkflowIcon {
+
+        public WorkflowTaskIcon(Color fill) {
+            super(fill);
+        }
+
+        @Override
+        protected void drawHighlight(Graphics g, int segment, int xDelta,
+                int yDelta) {
+            // skip the display of the interior highlights
+            if (Math.abs(xDelta) < 2)
+                super.drawHighlight(g, segment, xDelta, yDelta);
         }
 
     }
@@ -747,7 +808,7 @@ public class IconFactory {
         private Icon[] icons;
         int width, height;
 
-        public ConcatenatedIcon(Icon[] icons) {
+        public ConcatenatedIcon(Icon... icons) {
             this.icons = icons;
             this.width = this.height = 0;
             for (int i = 0; i < icons.length; i++) {

@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2013 Tuma Solutions, LLC
+// Copyright (C) 2002-2014 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -27,6 +27,8 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -47,6 +49,7 @@ import javax.swing.table.TableColumn;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.ui.lib.JTableColumnVisibilityButton;
 import net.sourceforge.processdash.ui.lib.PaddedIcon;
+import net.sourceforge.processdash.util.StringUtils;
 
 import teamdash.merge.ui.MergeConflictHyperlinkHandler;
 import teamdash.wbs.columns.WorkflowOptionalColumn;
@@ -124,9 +127,9 @@ public class WorkflowEditor implements MergeConflictHyperlinkHandler {
 
     public static WBSJTable createWorkflowJTable(WorkflowModel workflowModel, TeamProcess process) {
         // create the WBSJTable, then set its model to the workflow data model.
-        WBSJTable table = new WBSJTable
-            (workflowModel.getWBSModel(), process.getIconMap(),
-             process.getNodeTypeMenu());
+        WBSJTable table = new WBSJTable(workflowModel.getWBSModel(),
+                getWorkflowIcons(process.getIconMap()),
+                process.getNodeTypeMenu());
         table.setModel(workflowModel);
         // don't allow reordering, since the text displayed in several of the
         // columns is meant to be read from left to right.
@@ -142,6 +145,26 @@ public class WorkflowEditor implements MergeConflictHyperlinkHandler {
         }
 
         return table;
+    }
+
+    private static Map getWorkflowIcons(Map<String, Icon> processIconMap) {
+        // make a copy of the icon map.
+        Map result = new HashMap(processIconMap);
+        // change the "project" icon to a special value for common workflows
+        result.put(TeamProcess.PROJECT_TYPE,
+            IconFactory.getCommonWorkflowsIcon());
+        // replace each of the "task" icons with the correponsponding
+        // "workflow task" icon.
+        for (Map.Entry<String, Icon> e : processIconMap.entrySet()) {
+            String key = e.getKey();
+            if (key != null && key.endsWith(TeamProcess.WORKFLOW_TASK_SUFFIX)) {
+                String taskType = StringUtils.findAndReplace(key,
+                    TeamProcess.WORKFLOW_TASK_SUFFIX, TeamProcess.TASK_SUFFIX);
+                Icon icon = e.getValue();
+                result.put(taskType, icon);
+            }
+        }
+        return result;
     }
 
     private JTableColumnVisibilityButton adjustColumnVisibility() {

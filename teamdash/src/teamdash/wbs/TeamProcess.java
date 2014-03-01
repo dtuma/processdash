@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2011 Tuma Solutions, LLC
+// Copyright (C) 2002-2014 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -314,7 +314,10 @@ public class TeamProcess {
         for (int phaseNum = 0; phaseNum < numPhases; phaseNum++) {
             String phase = (String) phases.get(phaseNum);
             Color phaseColor = getPhaseColor(phaseNum, numPhases);
-            iconMap.put(phase + " Task", IconFactory.getTaskIcon(phaseColor));
+            iconMap.put(phase + TASK_SUFFIX,
+                IconFactory.getTaskIcon(phaseColor));
+            iconMap.put(phase + WORKFLOW_TASK_SUFFIX,
+                IconFactory.getWorkflowTaskIcon(phaseColor));
 
             // keep track of a likely color to use for each size metric icon.
             String sizeMetricName = getPhaseSizeMetric(phase);
@@ -432,12 +435,15 @@ public class TeamProcess {
     }
 
 
-    private static final String PROJECT_TYPE = "Project";
+    static final String PROJECT_TYPE = "Project";
     static final String COMPONENT_TYPE = "Component";
     static final String SOFTWARE_COMPONENT_TYPE = "Software Component";
     static final String WORKFLOW_TYPE = "Workflow";
     static final String PSP_TASK_TYPE = "PSP Task";
     static final String CODE_TASK_TYPE = "Code Task";
+    static final String TASK_SUFFIX = " Task";
+    static final String WORKFLOW_TASK_SUFFIX = " Workflow Task";
+
     private static final String DLD_DOCUMENT_TYPE = "Detailed Design Document";
 
     private static final String INSPECTED_PREFIX = "Inspected ";
