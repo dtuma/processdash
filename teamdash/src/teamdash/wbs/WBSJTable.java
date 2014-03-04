@@ -24,6 +24,8 @@
 
 package teamdash.wbs;
 
+import static teamdash.wbs.WorkflowModel.WORKFLOW_SOURCE_IDS_ATTR;
+
 import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Event;
@@ -106,15 +108,15 @@ public class WBSJTable extends JTable {
 
     /** Create a JTable to display a WBS. Construct a default icon menu. */
     public WBSJTable(WBSModel model, Map iconMap) {
-        this(model, iconMap, null, null);
+        this(model, iconMap, null, null, null);
     }
     /** Create a JTable to display a WBS */
     public WBSJTable(WBSModel model, Map iconMap, JMenu iconMenu) {
-        this(model, iconMap, iconMenu, null);
+        this(model, iconMap, iconMenu, null, null);
     }
     /** Create a JTable to display a WBS */
     public WBSJTable(WBSModel model, Map iconMap, JMenu iconMenu,
-            TaskIDSource idSource) {
+            WorkflowWBSModel workflows, TaskIDSource idSource) {
         super(model);
         wbsModel = model;
         taskIDSource = idSource;
@@ -125,12 +127,12 @@ public class WBSJTable extends JTable {
             setRowHeight(getRowHeight() + 3);
         buildCustomActionMaps();
 
-        renderer = new WBSNodeRenderer(model, iconMap);
+        renderer = new WBSNodeRenderer(model, iconMap, workflows);
         setDefaultRenderer(WBSNode.class, renderer);
         setBackground(Color.white);
         setSelectionBackground(new Color(0xb8cfe5));
 
-        editor = new WBSNodeEditor(this, model, iconMap, iconMenu);
+        editor = new WBSNodeEditor(this, model, iconMap, iconMenu, workflows);
         setDefaultEditor(WBSNode.class, editor);
         // work around Sun Java bug 4709394
         putClientProperty("terminateEditOnFocusLost", Boolean.TRUE);
@@ -1031,18 +1033,21 @@ public class WBSJTable extends JTable {
             if (rowToCopy == 0) rowToCopy = 1;
 
             String type = TeamProcess.SOFTWARE_COMPONENT_TYPE;
+            Object workflowType = null;
             int indentLevel = 1;
             boolean expanded = false;
 
             WBSNode nodeToCopy = wbsModel.getNodeForRow(rowToCopy);
             if (nodeToCopy != null) {
                 type = nodeToCopy.getType();
+                workflowType = nodeToCopy.getAttribute(WORKFLOW_SOURCE_IDS_ATTR);
                 indentLevel = nodeToCopy.getIndentLevel();
                 expanded = nodeToCopy.isExpanded();
             }
             if (cutList != null && cutList.contains(nodeToCopy)) cancelCut();
             WBSNode newNode = new WBSNode(wbsModel, "", type, indentLevel,
                     expanded);
+            newNode.setAttribute(WORKFLOW_SOURCE_IDS_ATTR, workflowType);
 
             newNode.setAttribute(AUTO_ZERO_ATTR_1, optimizeForIndiv);
 

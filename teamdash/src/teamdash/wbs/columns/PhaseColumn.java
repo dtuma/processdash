@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Tuma Solutions, LLC
+// Copyright (C) 2002-2014 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -40,22 +40,33 @@ import teamdash.wbs.DataTableModel;
 import teamdash.wbs.TeamProcess;
 import teamdash.wbs.WBSModel;
 import teamdash.wbs.WBSNode;
+import teamdash.wbs.WorkflowModel;
+import teamdash.wbs.WorkflowUtil;
+import teamdash.wbs.WorkflowWBSModel;
 
 public class PhaseColumn extends AbstractDataColumn
     implements CalculatedDataColumn, CustomEditedColumn
 {
     private WBSModel wbsModel;
+    private WorkflowWBSModel workflows;
     private Set allowedTypes;
     private TableCellEditor cellEditor;
 
-    public PhaseColumn(DataTableModel dataModel, TeamProcess teamProcess) {
+    public PhaseColumn(DataTableModel dataModel, TeamProcess teamProcess,
+            WorkflowWBSModel workflows) {
         this.wbsModel = dataModel.getWBSModel();
+        this.workflows = workflows;
         this.columnID = this.columnName = "Phase";
         this.preferredWidth = 100;
         buildEditor(teamProcess);
     }
 
     public Object getValueAt(WBSNode node) {
+        String workflowType = WorkflowUtil.getWorkflowStepName(node, workflows,
+            false);
+        if (workflowType != null)
+            return workflowType;
+
         String type = node.getType();
         if (allowedTypes.contains(type))
             return type;
@@ -94,6 +105,7 @@ public class PhaseColumn extends AbstractDataColumn
 
         // save the new type of the node.
         node.setType(type);
+        node.setAttribute(WorkflowModel.WORKFLOW_SOURCE_IDS_ATTR, null);
         EVENT_CONSOLIDATOR.needEvent(wbsModel.getRowForNode(node));
     }
 

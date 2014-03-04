@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2013 Tuma Solutions, LLC
+// Copyright (C) 2002-2014 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -23,6 +23,8 @@
 
 
 package teamdash.wbs;
+
+import static teamdash.wbs.WorkflowModel.WORKFLOW_SOURCE_IDS_ATTR;
 
 import java.awt.Color;
 import java.awt.Component;
@@ -79,6 +81,8 @@ public class WBSNodeEditor extends AbstractCellEditor
     private WBSJTable table;
     /** The wbs model for the given table */
     private WBSModel wbsModel;
+    /** The workflow model for resolving workflow icons */
+    private WorkflowWBSModel workflows;
     /** A map translating node types to appropriate icons */
     private Map iconMap;
 
@@ -98,10 +102,11 @@ public class WBSNodeEditor extends AbstractCellEditor
     private boolean disableEditing = false;
 
     /** Create a new WBSNodeEditor */
-    public WBSNodeEditor(WBSJTable table, WBSModel wbsModel,
-                         Map iconMap, JMenu iconMenu) {
+    public WBSNodeEditor(WBSJTable table, WBSModel wbsModel, Map iconMap,
+            JMenu iconMenu, WorkflowWBSModel workflows) {
         this.table = table;
         this.wbsModel = wbsModel;
+        this.workflows = workflows;
         this.iconMap = iconMap;
 
         if (iconMenu == null)
@@ -517,7 +522,7 @@ public class WBSNodeEditor extends AbstractCellEditor
             isExpanded       = editingNode.isExpanded();
             isLeaf           = wbsModel.isLeaf(editingNode);
             Object iconObj   = WBSNodeRenderer.getIconForNode
-                (table, iconMap, editingNode, wbsModel);
+                (table, iconMap, editingNode, wbsModel, workflows);
             nodeTypeEditable = wbsModel.isNodeTypeEditable(editingNode)
                 && !editingNode.isReadOnly();
             textField.setEnabled(!editingNode.isReadOnly());
@@ -525,7 +530,10 @@ public class WBSNodeEditor extends AbstractCellEditor
                 iconToolTip = ((ErrorValue) iconObj).error;
                 nodeIcon = (Icon) ((ErrorValue) iconObj).value;
             } else {
-                iconToolTip = wbsModel.filterNodeType(editingNode);
+                iconToolTip = WorkflowUtil.getWorkflowStepName(editingNode,
+                    workflows, true);
+                if (iconToolTip == null)
+                    iconToolTip = wbsModel.filterNodeType(editingNode);
                 nodeIcon = (Icon) iconObj;
             }
             iconListener.setToolTipText(iconToolTip);
@@ -858,6 +866,7 @@ public class WBSNodeEditor extends AbstractCellEditor
 
             // save the new type of the node.
             editingNode.setType(type);
+            editingNode.setAttribute(WORKFLOW_SOURCE_IDS_ATTR, null);
 
             // we must update not just the icon, but also the icons
             // below it in the table (since they may now be invalid

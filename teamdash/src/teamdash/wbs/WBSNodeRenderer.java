@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2012 Tuma Solutions, LLC
+// Copyright (C) 2002-2014 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -49,6 +49,8 @@ public class WBSNodeRenderer extends DefaultTableCellRenderer {
     private WBSModel wbsModel;
     /** A Map translating node types to their designated icons */
     private Map iconMap;
+    /** A workflow model for resolving workflow type icons */
+    private WorkflowWBSModel workflows;
     /** The error message to display as a tooltip for the node's icon */
     private String iconToolTip;
     /** The error message to display as a tooltip for the node name */
@@ -62,9 +64,11 @@ public class WBSNodeRenderer extends DefaultTableCellRenderer {
 
 
     /** Create a renderer for the given wbs model and icon map. */
-    public WBSNodeRenderer(WBSModel wbsModel, Map iconMap) {
+    public WBSNodeRenderer(WBSModel wbsModel, Map iconMap,
+            WorkflowWBSModel workflows) {
         this.wbsModel = wbsModel;
         this.iconMap = iconMap;
+        this.workflows = workflows;
         setIconTextGap(4);
     }
 
@@ -99,12 +103,16 @@ public class WBSNodeRenderer extends DefaultTableCellRenderer {
         expansionIcon.indentationLevel = node.getIndentLevel();
         expansionIcon.isExpanded = node.isExpanded();
         expansionIcon.isLeaf = wbsModel.isLeaf(node);
-        Object iconObj = getIconForNode(table, iconMap, node, wbsModel);
+        Object iconObj = getIconForNode(table, iconMap, node, wbsModel,
+            workflows);
         if (iconObj instanceof ErrorValue) {
             iconToolTip = ((ErrorValue) iconObj).error;
             expansionIcon.realIcon = (Icon) ((ErrorValue) iconObj).value;
         } else {
-            iconToolTip = wbsModel.filterNodeType(node);
+            iconToolTip = WorkflowUtil.getWorkflowStepName(node, workflows,
+                true);
+            if (iconToolTip == null)
+                iconToolTip = wbsModel.filterNodeType(node);
             expansionIcon.realIcon = (Icon) iconObj;
         }
         // install the expansion icon
@@ -136,9 +144,11 @@ public class WBSNodeRenderer extends DefaultTableCellRenderer {
 
     /** Convenience method - allows sharing of logic with WBSNodeEditor */
     public static Object getIconForNode(JTable table, Map iconMap,
-                                        WBSNode node, WBSModel model)
+            WBSNode node, WBSModel model, WorkflowWBSModel workflows)
     {
-        String nodeType = model.filterNodeType(node);
+        String nodeType = WorkflowUtil.getWorkflowTaskType(node, workflows);
+        if (nodeType == null)
+            nodeType = model.filterNodeType(node);
         Icon icon = (Icon) iconMap.get(nodeType);
         if (icon == null) icon = (Icon) iconMap.get(null);
 

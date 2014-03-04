@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2013 Tuma Solutions, LLC
+// Copyright (C) 2002-2014 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -93,6 +93,7 @@ public class DataTableModel extends AbstractTableModel {
 
     public DataTableModel(WBSModel wbsModel, TeamMemberList teamList,
                           TeamProcess teamProcess,
+                          WorkflowWBSModel workflows,
                           MilestonesWBSModel milestones,
                           TaskDependencySource dependencySource,
                           String currentUser)
@@ -109,8 +110,8 @@ public class DataTableModel extends AbstractTableModel {
         recalcJanitorTimer.setRepeats(false);
         recalcJanitorTimer.setInitialDelay(3000);
 
-        buildDataColumns(teamList, teamProcess, milestones, dependencySource,
-            currentUser);
+        buildDataColumns(teamList, teamProcess, workflows, milestones,
+            dependencySource, currentUser);
         initializeColumnDependencies();
     }
 
@@ -338,17 +339,15 @@ public class DataTableModel extends AbstractTableModel {
     }
 
 
-    /** Create a set of data columns for this data model.
-     * @param currentUser */
+    /** Create a set of data columns for this data model. */
     protected void buildDataColumns(TeamMemberList teamList,
-                                    TeamProcess teamProcess,
-                                    MilestonesWBSModel milestones,
-                                    TaskDependencySource dependencySource,
-                                    String currentUser)
+            TeamProcess teamProcess, WorkflowWBSModel workflows,
+            MilestonesWBSModel milestones,
+            TaskDependencySource dependencySource, String currentUser)
     {
         addDataColumn(new WBSNodeColumn(wbsModel));
         SizeTypeColumn.createSizeColumns(this, teamProcess);
-        addDataColumn(new PhaseColumn(this, teamProcess));
+        addDataColumn(new PhaseColumn(this, teamProcess, workflows));
         memberColumnManager = new TeamMemberColumnManager(this, teamList);
         addDataColumn(new TaskSizeColumn(this, teamProcess));
         addDataColumn(new TaskSizeUnitsColumn(this, teamProcess));

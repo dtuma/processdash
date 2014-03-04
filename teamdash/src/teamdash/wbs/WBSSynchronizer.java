@@ -550,6 +550,7 @@ public class WBSSynchronizer {
             if (!newUserType.equals(lastUserType)) {
                 node.setType(newUserType);
                 node.setAttribute(SYNC_NODE_TYPE_ATTR, newUserType);
+                node.setAttribute(WorkflowModel.WORKFLOW_SOURCE_IDS_ATTR, null);
                 needsWbsEvent = true;
             }
         }

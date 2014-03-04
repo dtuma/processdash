@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2013 Tuma Solutions, LLC
+// Copyright (C) 2002-2014 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -140,14 +140,15 @@ public class WBSTabPanel extends JLayeredPane
 
     /** Create a WBSTabPanel */
     public WBSTabPanel(WBSModel wbs, DataTableModel data,
-            TeamProcess teamProcess, TaskIDSource idSource) {
+            TeamProcess teamProcess, WorkflowWBSModel workflows,
+            TaskIDSource idSource) {
         this(wbs, data, teamProcess.getIconMap(),
-             teamProcess.getNodeTypeMenu(), idSource);
+             teamProcess.getNodeTypeMenu(), workflows, idSource);
     }
 
     /** Create a WBSTabPanel */
     public WBSTabPanel(WBSModel wbs, DataTableModel data, Map iconMap,
-            JMenu iconMenu, TaskIDSource idSource) {
+            JMenu iconMenu, WorkflowWBSModel workflows, TaskIDSource idSource) {
         setLayout(layout = new GridBagLayout());
 
         undoList = new UndoList(wbs);
@@ -155,7 +156,7 @@ public class WBSTabPanel extends JLayeredPane
         undoList.setMemorySensitive(true);
 
         // build the components to display in this panel
-        makeTables(wbs, data, iconMap, iconMenu, idSource);
+        makeTables(wbs, data, iconMap, iconMenu, workflows, idSource);
         makeSplitter();
         makeScrollPane();
         makeTabbedPane();
@@ -629,9 +630,9 @@ public class WBSTabPanel extends JLayeredPane
 
     /** Create the JTables and perform necessary setup */
     private void makeTables(WBSModel wbs, DataTableModel data, Map iconMap,
-            JMenu iconMenu, TaskIDSource idSource) {
+            JMenu iconMenu, WorkflowWBSModel workflows, TaskIDSource idSource) {
         // create the WBS table to display the hierarchy
-        wbsTable = new WBSJTable(wbs, iconMap, iconMenu, idSource);
+        wbsTable = new WBSJTable(wbs, iconMap, iconMenu, workflows, idSource);
         wbsTable.checkForActualDataOnDelete = true;
         // create the table to display hierarchy data
         dataTable = new DataJTable(data);

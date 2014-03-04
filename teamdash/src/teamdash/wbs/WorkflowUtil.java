@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2013 Tuma Solutions, LLC
+// Copyright (C) 2002-2014 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -276,6 +276,38 @@ public class WorkflowUtil {
             }
         }
     }
+
+    public static String getWorkflowTaskType(WBSNode node,
+            WorkflowWBSModel workflows) {
+        if (node == null || workflows == null)
+            return null;
+        WBSNode workflowNode = getWorkflowSourceNode(node, workflows);
+        return workflows.getWorkflowTaskType(workflowNode);
+    }
+
+    public static String getWorkflowStepName(WBSNode node,
+            WorkflowWBSModel workflows, boolean longName) {
+        if (node == null || workflows == null)
+            return null;
+        WBSNode workflowNode = getWorkflowSourceNode(node, workflows);
+        return workflows.getStepFullName(workflowNode, longName);
+    }
+
+    private static WBSNode getWorkflowSourceNode(WBSNode node,
+            WorkflowWBSModel workflows) {
+        Integer workflowSourceId;
+        try {
+            String attr = (String) node.getAttribute(WORKFLOW_SOURCE_IDS_ATTR);
+            if (attr == null)
+                return null;
+            workflowSourceId = Integer.parseInt(attr);
+        } catch (Exception e) {
+            return null;
+        }
+
+        return workflows.getWorkflowNodeMap().get(workflowSourceId);
+    }
+
 
     private static final String WORKFLOW_SOURCE_IDS_ATTR = //
             WorkflowModel.WORKFLOW_SOURCE_IDS_ATTR;

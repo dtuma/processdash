@@ -222,8 +222,8 @@ public class WBSEditor implements WindowListener, SaveListener,
         TaskDependencySource taskDependencySource = getTaskDependencySource();
         DataTableModel data = new DataTableModel
             (model, teamProject.getTeamMemberList(),
-             teamProject.getTeamProcess(), teamProject.getMilestones(),
-             taskDependencySource, owner);
+             teamProject.getTeamProcess(), teamProject.getWorkflows(),
+             teamProject.getMilestones(), taskDependencySource, owner);
 
         milestonesModel = new MilestonesDataModel(teamProject.getMilestones());
 
@@ -277,7 +277,7 @@ public class WBSEditor implements WindowListener, SaveListener,
         }
 
         tabPanel = new WBSTabPanel(model, data, teamProject.getTeamProcess(),
-                taskDependencySource);
+                teamProject.getWorkflows(), taskDependencySource);
         tabPanel.setReadOnly(readOnly);
         teamProject.getTeamMemberList().addInitialsListener(tabPanel);
 

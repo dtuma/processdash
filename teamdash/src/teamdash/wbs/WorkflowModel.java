@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2013 Tuma Solutions, LLC
+// Copyright (C) 2002-2014 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -47,7 +47,7 @@ public class WorkflowModel extends DataTableModel {
 
 
     public WorkflowModel(WBSModel workflows, TeamProcess teamProcess) {
-        super(workflows, null, teamProcess, null, null, null);
+        super(workflows, null, teamProcess, null, null, null, null);
     }
 
     /** override and create only the columns we're interested in.
@@ -55,6 +55,7 @@ public class WorkflowModel extends DataTableModel {
     @Override
     protected void buildDataColumns(TeamMemberList teamList,
                                     TeamProcess teamProcess,
+                                    WorkflowWBSModel workflows,
                                     MilestonesWBSModel milestones,
                                     TaskDependencySource dependencySource,
                                     String currentUser)

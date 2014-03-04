@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Tuma Solutions, LLC
+// Copyright (C) 2002-2014 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -26,16 +26,23 @@ package teamdash.wbs;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+
+import javax.swing.event.TableModelEvent;
 
 import org.w3c.dom.Element;
 
 /** Tweak the behavior of a WBSModel for use in editing common workflows.
  */
 public class WorkflowWBSModel extends WBSModel {
+
+    private Map<Integer, WBSNode> workflowNodeMap = null;
+    private Map<String, String> workflowTypeMap = new HashMap();
 
     public WorkflowWBSModel()            { super();     }
     public WorkflowWBSModel(String name) { super(name); }
@@ -140,6 +147,83 @@ public class WorkflowWBSModel extends WBSModel {
 
         return result;
     }
+
+    public Map<Integer, WBSNode> getWorkflowNodeMap() {
+        if (workflowNodeMap == null)
+            workflowNodeMap = getNodeMap();
+        return workflowNodeMap;
+    }
+
+    @Override
+    public void fireTableChanged(TableModelEvent e) {
+        workflowNodeMap = null;
+        super.fireTableChanged(e);
+    }
+
+
+    /**
+     * If the given node represents a task in a workflow, return a node type
+     * ending in "Workflow Task" that can be used for icon lookups.  If the
+     * node is not a workflow task, returns null.
+     */
+    public String getWorkflowTaskType(WBSNode workflowNode) {
+        // if this is a root node or a workflow parent, it isn't a task.
+        if (workflowNode == null || workflowNode.getIndentLevel() < 2)
+            return null;
+
+        String plainNodeType = filterNodeType(workflowNode);
+        String result = workflowTypeMap.get(plainNodeType);
+        if (result == null) {
+            result = calcWorkflowType(plainNodeType);
+            workflowTypeMap.put(plainNodeType, result);
+        }
+        return (result.length() == 0 ? null : result);
+    }
+
+    private String calcWorkflowType(String nodeType) {
+        if (nodeType != null //
+                && !TeamProcess.PSP_TASK_TYPE.equals(nodeType)
+                && nodeType.endsWith(TeamProcess.TASK_SUFFIX))
+            return nodeType.substring(0, nodeType.length()
+                    - TeamProcess.TASK_SUFFIX.length())
+                    + TeamProcess.WORKFLOW_TASK_SUFFIX;
+        else
+            return "";
+    }
+
+
+    /**
+     * Get a descriptive name for a step within a workflow.
+     * 
+     * @param workflowNode
+     *            a step within a workflow inside this model.
+     * @param longName
+     *            true if the result should include the name of the parent
+     *            workflow; false if it should only include the name of the step
+     */
+    public String getStepFullName(WBSNode workflowNode, boolean longName) {
+        if (workflowNode == null || workflowNode.getIndentLevel() < 2)
+            return null;
+
+        if (workflowNode.getIndentLevel() == 2 && !longName)
+            return workflowNode.getName();
+
+        StringBuilder result = new StringBuilder();
+        result.append(workflowNode.getName());
+        while (true) {
+            workflowNode = getParent(workflowNode);
+            if (workflowNode == null) {
+                return null;
+            } else if (workflowNode.getIndentLevel() < 2) {
+                if (longName)
+                    result.insert(0, ": ").insert(0, workflowNode.getName());
+                return result.toString();
+            } else {
+                result.insert(0, "/").insert(0, workflowNode.getName());
+            }
+        }
+    }
+
 
     private static class UniqueLinkedList extends LinkedList {
         public boolean add(Object o) {
