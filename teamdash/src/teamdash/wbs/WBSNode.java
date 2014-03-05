@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2012 Tuma Solutions, LLC
+// Copyright (C) 2002-2014 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -132,6 +132,11 @@ public class WBSNode implements Cloneable {
     /** Set the type of this node
      * @param newType the new type for this node.  */
     public void setType(String newType) { this.type = newType; }
+
+    /** Test to see if another node is of the same type */
+    public boolean typeMatches(WBSNode that) {
+        return that != null && this.type.equals(that.type);
+    }
 
 
     /** Get the indentation level of this node.

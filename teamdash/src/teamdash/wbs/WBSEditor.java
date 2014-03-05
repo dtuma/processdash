@@ -219,6 +219,9 @@ public class WBSEditor implements WindowListener, SaveListener,
 
         WBSModel model = teamProject.getWBS();
 
+        WorkflowUtil.maybeUpdateWorkflowTypeData(model,
+            teamProject.getWorkflows());
+
         TaskDependencySource taskDependencySource = getTaskDependencySource();
         DataTableModel data = new DataTableModel
             (model, teamProject.getTeamMemberList(),
@@ -243,11 +246,11 @@ public class WBSEditor implements WindowListener, SaveListener,
 
         dataWriter = new WBSDataWriter(model, data,
                 teamProject.getTeamProcess(), teamProject.getProjectID(),
-                teamProject.getTeamMemberList(), teamProject.getMilestones(),
-                teamProject.getUserSettings());
+                teamProject.getTeamMemberList(), teamProject.getWorkflows(),
+                teamProject.getMilestones(), teamProject.getUserSettings());
         workflowWriter = new WBSDataWriter(teamProject.getWorkflows(), null,
                 teamProject.getTeamProcess(), teamProject.getProjectID(), null,
-                null, null);
+                null, null, null);
         if (!readOnly && workingDirectory != null) {
             try {
                 workingDirectory.doBackup("startup");

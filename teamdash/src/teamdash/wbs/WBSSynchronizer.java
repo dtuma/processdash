@@ -546,8 +546,13 @@ public class WBSSynchronizer {
             newUserType = newUserType + " Task";
 
             Object lastUserType = node.getAttribute(SYNC_NODE_TYPE_ATTR);
+            String plainType = node.getType();
+            String workflowType = WorkflowUtil.getTypeViaWorkflow(node,
+                teamProject.getWorkflows(), false);
 
-            if (!newUserType.equals(lastUserType)) {
+            if (!newUserType.equals(lastUserType)
+                    && !newUserType.equals(plainType)
+                    && !newUserType.equals(workflowType)) {
                 node.setType(newUserType);
                 node.setAttribute(SYNC_NODE_TYPE_ATTR, newUserType);
                 node.setAttribute(WorkflowModel.WORKFLOW_SOURCE_IDS_ATTR, null);

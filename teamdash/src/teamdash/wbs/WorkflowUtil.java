@@ -92,8 +92,7 @@ public class WorkflowUtil {
         // possibly clear extraneous attributes that are undesirable to keep.
         if (attrsToKeep != null) {
             for (WBSNode node : nodesToInsert)
-                node.discardAttributesExcept(attrsToKeep,
-                    WORKFLOW_SOURCE_IDS_ATTR);
+                node.discardAttributesExcept(attrsToKeep, WFLOW_SRC_IDS);
         }
 
         // insert the nodes after the last descendant of the dest node.
@@ -125,7 +124,7 @@ public class WorkflowUtil {
     }
 
     private static void addWorkflowSourceID(WBSNode node, int sourceID) {
-        String oldIDs = (String) node.getAttribute(WORKFLOW_SOURCE_IDS_ATTR);
+        String oldIDs = (String) node.getAttribute(WFLOW_SRC_IDS);
         String newIDs = Integer.toString(sourceID);
         if (oldIDs != null && oldIDs.length() > 0) {
             List<String> oldIdList = Arrays.asList(oldIDs.split(","));
@@ -134,7 +133,7 @@ public class WorkflowUtil {
             else
                 newIDs = oldIDs + "," + newIDs;
         }
-        node.setAttribute(WORKFLOW_SOURCE_IDS_ATTR, newIDs);
+        node.setAttribute(WFLOW_SRC_IDS, newIDs);
     }
 
     private static ArrayList calcInsertWorkflow(WBSNode srcNode,
@@ -232,8 +231,7 @@ public class WorkflowUtil {
         node.setAttribute(TaskLabelColumn.VALUE_ATTR, mergedLabels);
 
         // record the ID of the workflow elements that produced this node
-        node.setAttribute(WORKFLOW_SOURCE_IDS_ATTR,
-            Integer.toString(node.getUniqueID()));
+        node.setAttribute(WFLOW_SRC_IDS, Integer.toString(node.getUniqueID()));
 
         dest.add(node);
     }
@@ -257,7 +255,7 @@ public class WorkflowUtil {
             return;
 
         for (WBSNode node : wbsModel.getWbsNodes()) {
-            String ids = (String) node.getAttribute(WORKFLOW_SOURCE_IDS_ATTR);
+            String ids = (String) node.getAttribute(WFLOW_SRC_IDS);
             if (ids != null && ids.length() > 0) {
                 boolean madeChange = false;
                 String[] list = ids.split(",");
@@ -271,10 +269,78 @@ public class WorkflowUtil {
                 }
                 if (madeChange) {
                     String newVal = StringUtils.join(Arrays.asList(list), ",");
-                    node.setAttribute(WORKFLOW_SOURCE_IDS_ATTR, newVal);
+                    node.setAttribute(WFLOW_SRC_IDS, newVal);
                 }
             }
         }
+    }
+
+
+    /**
+     * Update WBS workflow data if it needs any attention or cleanup.
+     */
+    public static void maybeUpdateWorkflowTypeData(WBSModel wbs,
+            WorkflowWBSModel workflows) {
+        WBSNode root = wbs.getRoot();
+        if (root.getAttribute(WORKFLOW_IDS_SCRUBBED_FLAG) == null) {
+            // perform a one-time cleanup of workflow source IDs
+            scrubWorkflowSourceIDs(wbs, workflows, root, null);
+            root.setAttribute(WORKFLOW_IDS_SCRUBBED_FLAG, "true");
+        }
+    }
+
+    private static void scrubWorkflowSourceIDs(WBSModel wbs,
+            WorkflowWBSModel workflows, WBSNode parent,
+            WBSNode parentWorkflowNode) {
+
+        // Look at each of the child nodes of the given parent.
+        for (WBSNode child : wbs.getChildren(parent)) {
+            // See if this child node came from the instantiation of a workflow
+            WBSNode childWorkflowNode = getWorkflowSourceNode(child, workflows);
+
+            if (childWorkflowNode != null) {
+
+                if (childWorkflowNode.getIndentLevel() < 2) {
+                    // if the "workflow equivalent" of this node is a workflow
+                    // parent root rather than a workflow step, ignore it.
+                    childWorkflowNode = null;
+
+                } else if (!child.typeMatches(childWorkflowNode)) {
+                    // if the MCF type of this node doesn't match the MCF
+                    // type of the workflow source node, break the association.
+                    Object wfSrcID = child.getAttribute(WFLOW_SRC_IDS);
+                    child.setAttribute(WFLOW_SRC_IDS + "-broken", wfSrcID);
+                    child.setAttribute(WFLOW_SRC_IDS, null);
+                    childWorkflowNode = null;
+                }
+
+            } else if (child.typeMatches(parentWorkflowNode)
+                    && child.getAttribute(WFLOW_SRC_IDS) == null) {
+                // if this node is a child of a workflow step, and its MCF type
+                // matches the MCF type of the step, inherit the workflow type
+                // from that parent.
+                child.setAttribute(WFLOW_SRC_IDS,
+                    Integer.toString(parentWorkflowNode.getUniqueID()));
+                childWorkflowNode = parentWorkflowNode;
+            }
+
+            // recurse over descendants of this child.
+            scrubWorkflowSourceIDs(wbs, workflows, child, childWorkflowNode);
+        }
+    }
+
+
+    public static String getTypeViaWorkflow(WBSNode node,
+            WorkflowWBSModel workflows, boolean fallback) {
+        String result = null;
+        if (workflows != null) {
+            WBSNode workflowNode = getWorkflowSourceNode(node, workflows);
+            if (workflowNode != null && workflowNode.getIndentLevel() > 1)
+                result = workflows.filterNodeType(workflowNode);
+        }
+        if (result == null && fallback)
+            result = node.getType();
+        return result;
     }
 
     public static String getWorkflowTaskType(WBSNode node,
@@ -297,9 +363,19 @@ public class WorkflowUtil {
             WorkflowWBSModel workflows) {
         Integer workflowSourceId;
         try {
-            String attr = (String) node.getAttribute(WORKFLOW_SOURCE_IDS_ATTR);
+            // See if this node has a workflow source attribute.
+            String attr = (String) node.getAttribute(WFLOW_SRC_IDS);
             if (attr == null)
                 return null;
+
+            // if this node has a list of workflow source IDs, the first one
+            // is the only one we care about. (Subsequent IDs would indicate
+            // nested workflows that had been applied to the node.)
+            int commaPos = attr.indexOf(',');
+            if (commaPos != -1)
+                attr = attr.substring(0, commaPos);
+
+            // parse the workflow source ID as an integer.
             workflowSourceId = Integer.parseInt(attr);
         } catch (Exception e) {
             return null;
@@ -309,7 +385,10 @@ public class WorkflowUtil {
     }
 
 
-    private static final String WORKFLOW_SOURCE_IDS_ATTR = //
+    private static final String WFLOW_SRC_IDS = //
             WorkflowModel.WORKFLOW_SOURCE_IDS_ATTR;
+
+    private static final String WORKFLOW_IDS_SCRUBBED_FLAG = //
+            "workflowIDsScrubbed";
 
 }

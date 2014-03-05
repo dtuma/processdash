@@ -86,6 +86,8 @@ public class WBSDataWriter {
     private String projectID;
     /** The team member list for the project */
     private TeamMemberList teamList;
+    /** The list of project workflows */
+    private WorkflowWBSModel workflows;
     /** The list of project milestones */
     private MilestonesWBSModel milestonesModel;
     /** The team project user settings */
@@ -126,6 +128,7 @@ public class WBSDataWriter {
     public WBSDataWriter(WBSModel wbsModel, DataTableModel dataModel,
                          TeamProcess process, String projectID,
                          TeamMemberList teamList,
+                         WorkflowWBSModel workflows,
                          MilestonesWBSModel milestonesModel,
                          Properties userSettings) {
         this.wbsModel = wbsModel;
@@ -133,6 +136,7 @@ public class WBSDataWriter {
         this.process = process;
         this.projectID = projectID;
         this.teamList = teamList;
+        this.workflows = workflows;
         this.milestonesModel = milestonesModel;
         this.userSettings = userSettings;
 
@@ -582,6 +586,7 @@ public class WBSDataWriter {
                 version = "999";
             writeAttr(out, VERSION_ATTR, version);
             writeAttr(out, SAVE_DATE_ATTR, new Date());
+            writeAttr(out, "workflowPhaseMatch", "relaxed");
             if ("true".equals(getUserSetting(PROJECT_CLOSED_SETTING)))
                 writeAttr(out, PROJECT_CLOSED_SETTING, "true");
         }
@@ -633,7 +638,8 @@ public class WBSDataWriter {
      */
     private class TaskAttributeWriter extends SizeAttributeWriter {
         public void writeAttributes(Writer out, WBSNode node) throws IOException {
-            String nodeType = node.getType();
+            String nodeType = WorkflowUtil.getTypeViaWorkflow(node, workflows,
+                true);
             if (!nodeType.endsWith(" Task"))
                 // should I throw some sort of error?
                 return;
