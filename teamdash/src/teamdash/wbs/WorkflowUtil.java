@@ -380,7 +380,29 @@ public class WorkflowUtil {
             return null;
         }
 
-        return workflows.getWorkflowNodeMap().get(workflowSourceId);
+        // find the workflow node with the given ID.
+        WBSNode result = workflows.getWorkflowNodeMap().get(workflowSourceId);
+
+        // compare the types of the original node and the workflow node to
+        // see if they are quasi-compatible.
+        if (nodeTypesAreCompatible(node, result))
+            return result;
+        else
+            return null;
+    }
+
+    private static boolean nodeTypesAreCompatible(WBSNode a, WBSNode b) {
+        if (a == null || b == null)
+            return false;
+        String typeA = a.getType();
+        String typeB = b.getType();
+        if (typeA.equals(typeB))
+            return true;
+        else if (typeA.endsWith(TeamProcess.TASK_SUFFIX)
+                && typeB.endsWith(TeamProcess.TASK_SUFFIX))
+            return true;
+        else
+            return false;
     }
 
     public static String getPrimaryWorkflowSrcID(WBSNode node) {

@@ -479,7 +479,7 @@ public class WBSDataWriter {
     /** Determine which XML tag should be used to represent the given node.
      */
     private String getTagNameForNode(WBSNode node) {
-        String type = wbsModel.filterNodeType(node);
+        String type = WorkflowUtil.getTypeViaWorkflow(node, workflows, true);
         if ("Project".equals(type))
             return PROJECT_TAG;
         if (TeamProcess.WORKFLOW_TYPE.equals(type))
@@ -586,7 +586,7 @@ public class WBSDataWriter {
                 version = "999";
             writeAttr(out, VERSION_ATTR, version);
             writeAttr(out, SAVE_DATE_ATTR, new Date());
-            writeAttr(out, "workflowPhaseMatch", "relaxed");
+            // writeAttr(out, "workflowPhaseMatch", "relaxed");
             if ("true".equals(getUserSetting(PROJECT_CLOSED_SETTING)))
                 writeAttr(out, PROJECT_CLOSED_SETTING, "true");
         }
