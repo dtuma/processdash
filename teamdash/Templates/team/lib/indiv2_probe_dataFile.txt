@@ -1,0 +1,24 @@
+// <!--#echo var="-*- mode:html -*-" defaultEncoding="data" -->
+//  This is the datafile for a PROBE task in a personal plan.
+//
+
+
+#include <<!--#echo Process_ID -->/indiv2_empty_dataFile.txt>
+#include <generic/sizeestData.txt>
+
+[<!--#echo Process_ID --> /Effective_Phase] == "Planning";
+[Node_Type] == "Planning";
+
+
+// Display forms/tools for PROBE support
+
+[Process_URLs] = iff([/pspProc/Installed], ",generic/sizeest.class,",
+    ",reports/probe/probe.class,");
+
+
+// Arrange for size values to be exported to the PDASH file
+
+[Sized_Objects/0/Description] == "PROBE-Entered Size";
+[Sized_Objects/0/Estimated Size] = [Estimated Added & Modified Size] + 0;
+[Sized_Objects/0/Size] = [Added & Modified Size] + 0;
+[Sized_Objects/0/Sized_Object_Units] = [Size Units];

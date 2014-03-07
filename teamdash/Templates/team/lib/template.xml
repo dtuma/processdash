@@ -349,6 +349,26 @@
 
 
 
+<!--======================================================================
+    The template for a PROBE task on the individual side.
+ =======================================================================-->
+
+  <template
+      name="PID-Indiv2:!*!:PROBE Task"
+      ID="PID/Indiv2PROBE"
+      defineRollup="no"
+      defectLog="true"
+      dataFile="PID/indiv2_probe_dataFile.txt"
+      autoData="none"
+      href="none"
+      constraints="D{<!--#echo parentable_indiv2_nodes -->"
+      >
+
+  </template>
+
+
+
+
 
 
 

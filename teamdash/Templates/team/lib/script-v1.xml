@@ -6,7 +6,7 @@
 
 <generation-script name="script-v2"
       id="Team" version="4.1.0"
-      requiresDashboard="1.11+"
+      requiresDashboard="1.14+"
       startingJar="/team/lib/TeamProcessCGI.jar"
       inDirectory="/team/lib"
       outDirectory="/Templates/<!--#echo Process_ID -->">
@@ -94,6 +94,7 @@
     <file in="indiv2_empty_dataFile.txt" >
         <param name="PID" replace="true" value="<!--#echo Process_ID -->"/>
     </file>
+    <file in="indiv2_probe_dataFile.txt" />
     <file in="metricsExportFilter.xml" out="metricsExportFilterOld.xml">
         <param name="oldStyle" value="true"/>
         <param name="PID" replace="true" value="<!--#echo Process_ID -->"/>
