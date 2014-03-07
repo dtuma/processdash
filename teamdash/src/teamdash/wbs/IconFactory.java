@@ -30,6 +30,7 @@ import java.awt.GradientPaint;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
+import java.awt.RenderingHints;
 import java.awt.Toolkit;
 import java.awt.image.BufferedImage;
 import java.awt.image.FilteredImageSource;
@@ -93,6 +94,10 @@ public class IconFactory {
 
     public static Icon getPSPTaskIcon(Color fill) {
         return new PSPTaskIcon(fill);
+    }
+
+    public static Icon getProbeTaskIcon() {
+        return new ProbeTaskIcon();
     }
 
     public static Icon getMilestoneIcon() {
@@ -364,6 +369,11 @@ public class IconFactory {
                 image = new BufferedImage(getIconWidth(), getIconHeight(),
                                           BufferedImage.TYPE_INT_ARGB);
                 Graphics imageG = image.getGraphics();
+                if (imageG instanceof Graphics2D) {
+                    Graphics2D g2 = (Graphics2D) imageG;
+                    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+                        RenderingHints.VALUE_ANTIALIAS_ON);
+                }
                 doPaint(c,imageG);
                 imageG.dispose();
             }
@@ -746,6 +756,37 @@ public class IconFactory {
         }
     }
 
+
+
+    /**
+     * Icon image representing a PROBE task.
+     */
+    private static class ProbeTaskIcon extends BufferedIcon {
+
+        protected void doPaint(Component c, Graphics g) {
+            int pad = 2, size = 11;
+            g.setColor(Color.white);
+            g.fillRect(pad, pad, size, size);
+
+            g.setColor(Color.blue);
+            g.drawLine(pad, pad + size - 2, pad + size, pad);
+
+            g.setColor(Color.green.darker());
+            g.fillRect(pad + 4, pad + 2, 2, 2);
+            g.fillRect(pad + 4, pad + 8, 2, 2);
+            g.fillRect(pad + 9, pad + 4, 2, 2);
+
+            g.setColor(Color.black);
+            g.drawRect(pad, pad, size, size);
+        }
+
+    }
+
+
+
+    /**
+     * Icon image representing a milestone.
+     */
     private static class MilestoneIcon extends PolygonIcon {
 
         Color highlight, shadow;

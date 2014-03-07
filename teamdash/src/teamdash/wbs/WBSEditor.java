@@ -631,7 +631,8 @@ public class WBSEditor implements WindowListener, SaveListener,
         Set taskTypes = new HashSet();
         for (Object phase : teamProject.getTeamProcess().getPhases())
             taskTypes.add(phase + " Task");
-        taskTypes.add("PSP Task");
+        taskTypes.add(TeamProcess.PSP_TASK_TYPE);
+        taskTypes.add(TeamProcess.PROBE_TASK_TYPE);
 
         model.getValidator().setValidTaskTypes(taskTypes);
         model.fireTableCellUpdated(0, 0);

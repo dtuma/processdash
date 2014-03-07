@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2012 Tuma Solutions, LLC
+// Copyright (C) 2002-2014 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -54,9 +54,13 @@ public class WBSModelValidator implements TableModelListener {
     /** The wbs model to validate */
     protected WBSModel wbsModel;
 
+    /** True if we are validating a workflow WBS */
+    protected boolean workflowMode;
+
     /** Create a validator for the given WBSModel. */
     public WBSModelValidator(WBSModel wbsModel) {
         this.wbsModel = wbsModel;
+        this.workflowMode = (wbsModel instanceof WorkflowWBSModel);
         wbsModel.addTableModelListener(this);
     }
 
@@ -74,16 +78,18 @@ public class WBSModelValidator implements TableModelListener {
     }
 
     public void recalc() {
-        recalc(wbsModel.getRoot());
+        recalc(wbsModel.getRoot(), new HashSet());
     }
 
-    protected void recalc(WBSNode node) {
+    protected void recalc(WBSNode node, Set probeIDs) {
 
         // check for illegal parent/child node type relationships
         String type = wbsModel.filterNodeType(node);
         WBSNode parent = wbsModel.getParent(node);
         String typeError = null;
-        if (parent != null) {
+        if (isDuplicateProbeTask(node, probeIDs)) {
+            typeError = "A workflow can only contain one PROBE task.";
+        } else if (parent != null) {
             String parentType = wbsModel.filterNodeType(parent);
             typeError = checkParentType(type, parentType);
         }
@@ -109,7 +115,7 @@ public class WBSModelValidator implements TableModelListener {
 
                 child.setAttribute(NODE_NAME_ERROR_ATTR_NAME, null);
 
-                recalc(child);
+                recalc(child, probeIDs);
 
                 if (childNames.contains(childName) &&
                     child.getAttribute(NODE_NAME_ERROR_ATTR_NAME) == null)
@@ -117,6 +123,8 @@ public class WBSModelValidator implements TableModelListener {
                                       "Duplicate name.");
 
                 childNames.add(childName);
+
+                maybeResetProbeIDs(node, probeIDs);
             }
         }
     }
@@ -163,15 +171,15 @@ public class WBSModelValidator implements TableModelListener {
             // of the same type, or a software component.
 
             if (!isLOCComponent(parentType) && !type.equals(parentType))
-                return "This " + type.toLowerCase() + " must be a child either"
+                return "This " + lowerCase(type) + " must be a child either"
                         + " of a component, a software component, or "
-                        + " another " + type.toLowerCase() + ".";
+                        + " another " + lowerCase(type) + ".";
 
         }
 
-        if (isPSPTask(parentType)) {
-            // PSP Tasks cannot have children.
-            return "PSP tasks cannot have subtasks.";
+        if (isPSPTask(parentType) || isProbeTask(parentType)) {
+            // PSP and PROBE Tasks cannot have children.
+            return lowerCase(parentType) + "s cannot have subtasks.";
         }
 
         if (WBSNode.UNKNOWN_TYPE.equals(type)) {
@@ -192,9 +200,26 @@ public class WBSModelValidator implements TableModelListener {
     /** Check to ensure that the name of this node is valid. */
     protected String checkNodeName(String name, String type) {
         if (name == null || name.trim().length() == 0)
-            return "Every " + type.toLowerCase() + " must have a name.";
+            return "Every " + lowerCase(type) + " must have a name.";
 
         return null;
+    }
+
+    /** Check to see if this is a duplicate PROBE task for a workflow */
+    protected boolean isDuplicateProbeTask(WBSNode node, Set probeIDs) {
+        if (!isProbeTask(node.getType()))
+            return false;
+
+        String workflowID = workflowMode ? "probe" //
+                : WorkflowUtil.getPrimaryWorkflowSrcID(node);
+        return !probeIDs.add(workflowID);
+    }
+
+    /** Clear out the set of PROBE IDs if appropriate */
+    private void maybeResetProbeIDs(WBSNode parentNode, Set probeIDs) {
+        if (workflowMode ? parentNode.getIndentLevel() == 0 //
+                : WorkflowUtil.getPrimaryWorkflowSrcID(parentNode) == null)
+            probeIDs.clear();
     }
 
     /** Convenience method to check for components of non-LOC size types */
@@ -210,6 +235,11 @@ public class WBSModelValidator implements TableModelListener {
     /** Convenience method to check for PSP tasks */
     protected boolean isPSPTask(String type) {
         return TeamProcess.isPSPTask(type);
+    }
+
+    /** Convenience method to check for PSP tasks */
+    protected boolean isProbeTask(String type) {
+        return TeamProcess.isProbeTask(type);
     }
 
     /** Convenience method to check for Code tasks */
@@ -230,6 +260,8 @@ public class WBSModelValidator implements TableModelListener {
     protected String lowerCase(String type) {
         if (isPSPTask(type))
             return "PSP task";
+        else if (isProbeTask(type))
+            return "PROBE task";
         else
             return type.toLowerCase();
     }

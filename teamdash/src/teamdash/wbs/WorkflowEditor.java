@@ -37,6 +37,8 @@ import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JMenu;
+import javax.swing.JMenuItem;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
@@ -129,7 +131,7 @@ public class WorkflowEditor implements MergeConflictHyperlinkHandler {
         // create the WBSJTable, then set its model to the workflow data model.
         WBSJTable table = new WBSJTable(workflowModel.getWBSModel(),
                 getWorkflowIcons(process.getIconMap()),
-                process.getNodeTypeMenu());
+                tweakIconMenu(process.getNodeTypeMenu()));
         table.setModel(workflowModel);
         // don't allow reordering, since the text displayed in several of the
         // columns is meant to be read from left to right.
@@ -165,6 +167,22 @@ public class WorkflowEditor implements MergeConflictHyperlinkHandler {
             }
         }
         return result;
+    }
+
+    private static JMenu tweakIconMenu(JMenu iconMenu) {
+        // create a new menu item for the PROBE task type.
+        JMenuItem probeItem = new JMenuItem("Personal PROBE Task");
+        probeItem.setActionCommand(TeamProcess.PROBE_TASK_TYPE);
+
+        // insert the PROBE item after the PSP task item. The PSP item is first
+        // in the list unless a "More..." submenu precedes it.
+        JMenu taskMenu = (JMenu) iconMenu.getMenuComponent(0);
+        if (taskMenu.getMenuComponent(0) instanceof JMenu)
+            taskMenu.add(probeItem, 2);
+        else
+            taskMenu.add(probeItem, 1);
+
+        return iconMenu;
     }
 
     private JTableColumnVisibilityButton adjustColumnVisibility() {

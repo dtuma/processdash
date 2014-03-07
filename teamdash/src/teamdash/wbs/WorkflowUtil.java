@@ -31,6 +31,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import net.sourceforge.processdash.util.PatternList;
 import net.sourceforge.processdash.util.StringUtils;
@@ -156,6 +157,7 @@ public class WorkflowUtil {
             destChildNames.add(destChildren[i].getName());
 
         // iterate over each child of srcNode.
+        AtomicBoolean sawProbe = new AtomicBoolean();
         WBSNode[] srcChildren = workflows.getChildren(srcNode);
         for (int i = 0;   i < srcChildren.length;   i++) {
             WBSNode srcChild = srcChildren[i];
@@ -165,12 +167,13 @@ public class WorkflowUtil {
             if (destChildNames.contains(srcChild.getName())) continue;
 
             // add the child to our insertion list.
-            appendWorkflowNode(nodesToInsert, srcChild, indentDelta, destLabels);
+            appendWorkflowNode(nodesToInsert, srcChild, indentDelta,
+                destLabels, sawProbe);
             // add all the descendants of the child to our insertion list.
             WBSNode[] srcDescendants = workflows.getDescendants(srcChild);
             for (int j = 0;   j < srcDescendants.length;   j++)
                 appendWorkflowNode(nodesToInsert, srcDescendants[j],
-                                   indentDelta, destLabels);
+                    indentDelta, destLabels, sawProbe);
         }
 
         return nodesToInsert;
@@ -200,7 +203,10 @@ public class WorkflowUtil {
     }
 
     private static void appendWorkflowNode(List dest, WBSNode node,
-            int indentDelta, String destLabels) {
+            int indentDelta, String destLabels, AtomicBoolean sawProbe) {
+        if (TeamProcess.isProbeTask(node.getType()) && sawProbe.getAndSet(true))
+            return;
+
         node = (WBSNode) node.clone();
         node.setIndentLevel(node.getIndentLevel() + indentDelta);
 
@@ -339,7 +345,7 @@ public class WorkflowUtil {
                 result = workflows.filterNodeType(workflowNode);
         }
         if (result == null && fallback)
-            result = node.getType();
+            result = node.getWbsModel().filterNodeType(node);
         return result;
     }
 
@@ -364,16 +370,9 @@ public class WorkflowUtil {
         Integer workflowSourceId;
         try {
             // See if this node has a workflow source attribute.
-            String attr = (String) node.getAttribute(WFLOW_SRC_IDS);
+            String attr = getPrimaryWorkflowSrcID(node);
             if (attr == null)
                 return null;
-
-            // if this node has a list of workflow source IDs, the first one
-            // is the only one we care about. (Subsequent IDs would indicate
-            // nested workflows that had been applied to the node.)
-            int commaPos = attr.indexOf(',');
-            if (commaPos != -1)
-                attr = attr.substring(0, commaPos);
 
             // parse the workflow source ID as an integer.
             workflowSourceId = Integer.parseInt(attr);
@@ -382,6 +381,22 @@ public class WorkflowUtil {
         }
 
         return workflows.getWorkflowNodeMap().get(workflowSourceId);
+    }
+
+    public static String getPrimaryWorkflowSrcID(WBSNode node) {
+        // See if this node has a workflow source attribute.
+        String workflowSourceIDs = (String) node.getAttribute(WFLOW_SRC_IDS);
+        if (workflowSourceIDs == null)
+            return null;
+
+        // if this node has a list of workflow source IDs, the first one
+        // is the primary ID. (Subsequent IDs would indicate nested workflows
+        // that had been applied to the node.)
+        int commaPos = workflowSourceIDs.indexOf(',');
+        if (commaPos == -1)
+            return workflowSourceIDs;
+        else
+            return workflowSourceIDs.substring(0, commaPos);
     }
 
 

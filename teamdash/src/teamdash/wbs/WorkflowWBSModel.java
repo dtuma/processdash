@@ -181,9 +181,14 @@ public class WorkflowWBSModel extends WBSModel {
     }
 
     private String calcWorkflowType(String nodeType) {
-        if (nodeType != null //
-                && !TeamProcess.PSP_TASK_TYPE.equals(nodeType)
-                && nodeType.endsWith(TeamProcess.TASK_SUFFIX))
+        if (nodeType == null)
+            return "";
+
+        else if (TeamProcess.isPSPTask(nodeType)
+                || TeamProcess.isProbeTask(nodeType))
+            return nodeType;
+
+        else if (nodeType.endsWith(TeamProcess.TASK_SUFFIX))
             return nodeType.substring(0, nodeType.length()
                     - TeamProcess.TASK_SUFFIX.length())
                     + TeamProcess.WORKFLOW_TASK_SUFFIX;

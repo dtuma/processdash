@@ -277,6 +277,7 @@ public class TeamProcess {
                 sizeMetric = sizeMetric.substring(INSPECTED_PREFIX.length());
             phaseSizeMetrics.put(phaseName, sizeMetric);
         }
+        phaseTypes.put("PROBE", "PLAN");
         // make these items immutable.
         phases = Collections.unmodifiableList(phases);
         phaseTypes = Collections.unmodifiableMap(phaseTypes);
@@ -305,6 +306,7 @@ public class TeamProcess {
         iconMap.put(SOFTWARE_COMPONENT_TYPE, IconFactory.getSoftwareComponentIcon());
         iconMap.put(WORKFLOW_TYPE, IconFactory.getWorkflowIcon());
         iconMap.put(PSP_TASK_TYPE, IconFactory.getPSPTaskIcon(c));
+        iconMap.put(PROBE_TASK_TYPE, IconFactory.getProbeTaskIcon());
         iconMap.put(null, IconFactory.getTaskIcon(c));
 
         Map defaultSizeIconColors = new HashMap();
@@ -439,6 +441,7 @@ public class TeamProcess {
     static final String COMPONENT_TYPE = "Component";
     static final String SOFTWARE_COMPONENT_TYPE = "Software Component";
     static final String WORKFLOW_TYPE = "Workflow";
+    static final String PROBE_TASK_TYPE = "PROBE Task";
     static final String PSP_TASK_TYPE = "PSP Task";
     static final String CODE_TASK_TYPE = "Code Task";
     static final String TASK_SUFFIX = " Task";
@@ -466,6 +469,10 @@ public class TeamProcess {
                 || WORKFLOW_TYPE.equalsIgnoreCase(type)
                 || PSP_TASK_TYPE.equalsIgnoreCase(type)
                 || CODE_TASK_TYPE.equalsIgnoreCase(type);
+    }
+
+    public static boolean isProbeTask(String type) {
+        return PROBE_TASK_TYPE.equalsIgnoreCase(type);
     }
 
     public static boolean isPSPTask(String type) {
