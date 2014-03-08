@@ -109,6 +109,7 @@
     <file in="summary_redirect.htm" out="summary.shtm" encoding="html">
         <param name="PID" replace="true" value="<!--#echo var=Process_ID -->"/>
     </file>
+    <file in="sizeest.class.link"/>
     <!--#if not VVIS -->
     <file in="quality_summary.htm" encoding="html"
           out="quality_summary.shtm"/>

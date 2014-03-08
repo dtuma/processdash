@@ -4,15 +4,20 @@
 
 
 #include <<!--#echo Process_ID -->/indiv2_empty_dataFile.txt>
-#include <generic/sizeestData.txt>
+#include <generic/sizeestData.txt> exclude (
+    [Generic Size Estimating Template Tag],
+    "Estimated Time/.*"
+)
 
+[<!--#echo Process_ID --> Size Estimating Template Tag] = tag;
 [<!--#echo Process_ID --> /Effective_Phase] == "Planning";
 [Node_Type] == "Planning";
 
 
 // Display forms/tools for PROBE support
 
-[Process_URLs] = iff([/pspProc/Installed], ",generic/sizeest.class,",
+[Process_URLs] = iff([/pspProc/Installed],
+    ",<!--#echo Process_ID -->/sizeest.class,",
     ",reports/probe/probe.class,");
 
 
@@ -25,3 +30,24 @@
 
 [Effective_Size_Units] = iff([Size Units] == "LOC",
     "New & Changed LOC", [Size Units]);
+
+
+// Create new formulas for PROBE-estimated total time
+
+[Estimated Max Time] = [Estimated Total Time/UPI];
+[Estimated Min Time] = [Estimated Total Time/LPI];
+
+[Estimated Total Time/Beta0] = 0;
+[Estimated Total Time/Beta1] = 0;
+[Estimated Total Time/Range] = 0;
+[Estimated Total Time/UPI] = 0;
+[Estimated Total Time/LPI] = 0;
+[Estimated Total Time/Interval Percent] = 0;
+[Estimated Total Time/Probe Method] = "D  ";
+[Estimated Total Time/R Squared] = 0;
+
+[PROBE_Time_Output_Mismatch] = 
+    !startsWith("D", [Estimated Total Time/Probe Method])
+    && [PROBE_Last_Run_Value/Estimated Total Time] > 0
+    && abs([PROBE_Last_Run_Value/Estimated Total Time]
+             - [Estimated Total Time]) > 0.5;
