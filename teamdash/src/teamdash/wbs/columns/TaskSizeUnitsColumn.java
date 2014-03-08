@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2012 Tuma Solutions, LLC
+// Copyright (C) 2002-2014 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -91,7 +91,7 @@ implements CalculatedDataColumn, CustomEditedColumn {
         return TeamTimeColumn.isLeafTask(wbsModel, node);
     }
 
-    protected boolean valueIsEmpty(Object aValue) {
+    protected static boolean valueIsEmpty(Object aValue) {
         if (aValue == null) return true;
         if (aValue instanceof String &&
             ((String) aValue).trim().length() == 0) return true;
@@ -99,19 +99,13 @@ implements CalculatedDataColumn, CustomEditedColumn {
     }
 
     protected String getDefaultValue(WBSNode node) {
-        // what units would this node use, by default? (ask the team process)
-        return teamProcess.getPhaseSizeMetric(node.getType());
+        return getDefaultValue(node, teamProcess);
     }
 
     public Object getValueAt(WBSNode node) {
         if (isCellEditable(node)) {
-            // for editable cells (i.e. leaf tasks), use either:
-            // (1) the user-edited value of this node, or
-            // (2) the default value, if there is no user-edited value.
-            String result = (String) node.getAttribute(ATTR_NAME);
-            if (valueIsEmpty(result))
-                result = getDefaultValue(node);
-            return result;
+            // for editable cells (i.e. leaf tasks), use the simple logic
+            return getSizeUnitsForTask(node, teamProcess);
 
         } else if (mainSizeUnitsColumn != -1) {
             // for non-leaf tasks, defer to the wisdom of the main
@@ -144,6 +138,24 @@ implements CalculatedDataColumn, CustomEditedColumn {
     public TableCellEditor getCellEditor() {
         JComboBox sizeUnits = new JComboBox(sizeMetrics);
         return new AutocompletingDataTableCellEditor(sizeUnits);
+    }
+
+    public static String getSizeUnitsForTask(WBSNode node,
+            TeamProcess teamProcess) {
+        if (node == null)
+            return null;
+        // for editable cells (i.e. leaf tasks), use either:
+        // (1) the user-edited value of this node, or
+        // (2) the default value, if there is no user-edited value.
+        String result = (String) node.getAttribute(ATTR_NAME);
+        if (valueIsEmpty(result))
+            result = getDefaultValue(node, teamProcess);
+        return result;
+    }
+
+    private static String getDefaultValue(WBSNode node, TeamProcess process) {
+        // what units would this node use, by default? (ask the team process)
+        return process.getPhaseSizeMetric(node.getType());
     }
 
     /** This is the attribute we will use to store our data on WBS nodes */

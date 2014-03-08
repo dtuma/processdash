@@ -662,6 +662,8 @@ public class WBSDataWriter {
             writeAttr(out, SYNC_TIME_ATTR, getTeamMemberSyncTimes(node));
             if (TeamProcess.isCodeTask(nodeType))
                 maybeWriteSizeAttrs(out, node);
+            else if (TeamProcess.isProbeTask(nodeType))
+                writeProbeSizeUnits(out, node);
             else
                 maybeWriteQualitySize(out, phaseName, phaseType, node);
         }
@@ -671,6 +673,13 @@ public class WBSDataWriter {
                 return phaseName.substring(0, phaseName.length()-5);
             else
                 return phaseName;
+        }
+
+        private void writeProbeSizeUnits(Writer out, WBSNode node)
+                throws IOException {
+            String sizeUnits = WorkflowUtil.getWorkflowSizeUnits(node,
+                workflows, process);
+            writeAttr(out, UNITS_ATTR, sizeUnits);
         }
 
         private void maybeWriteQualitySize(Writer out, String phase,

@@ -38,6 +38,7 @@ import net.sourceforge.processdash.util.StringUtils;
 
 import teamdash.wbs.columns.NotesColumn;
 import teamdash.wbs.columns.TaskLabelColumn;
+import teamdash.wbs.columns.TaskSizeUnitsColumn;
 import teamdash.wbs.columns.WorkflowLabelColumn;
 import teamdash.wbs.columns.WorkflowNotesColumn;
 
@@ -363,6 +364,15 @@ public class WorkflowUtil {
             return null;
         WBSNode workflowNode = getWorkflowSourceNode(node, workflows);
         return workflows.getStepFullName(workflowNode, longName);
+    }
+
+    public static String getWorkflowSizeUnits(WBSNode node,
+            WorkflowWBSModel workflows, TeamProcess teamProcess) {
+        if (node == null || workflows == null)
+            return null;
+        WBSNode workflowNode = getWorkflowSourceNode(node, workflows);
+        return TaskSizeUnitsColumn.getSizeUnitsForTask(workflowNode,
+            teamProcess);
     }
 
     private static WBSNode getWorkflowSourceNode(WBSNode node,

@@ -56,7 +56,10 @@ public class WorkflowSizeUnitsColumn extends TaskSizeUnitsColumn implements
     public void setValueAt(Object aValue, WBSNode node) {
         super.setValueAt(aValue, node);
 
-        if (valueIsEmpty(aValue)) {
+        if (isProbeTask(node)) {
+            // no special rate handling is required for PROBE tasks
+
+        } else if (valueIsEmpty(aValue)) {
             // if the user just tried to delete the size units, we should
             // oblige by setting the rate to zero.  That will cause the
             // value in the units column to disappear.
@@ -79,6 +82,17 @@ public class WorkflowSizeUnitsColumn extends TaskSizeUnitsColumn implements
         }
     }
 
+    private static boolean isProbeTask(JTable table, int row) {
+        DataTableModel dataModel = (DataTableModel) table.getModel();
+        WBSNode node = dataModel.getWBSModel().getNodeForRow(row);
+        return isProbeTask(node);
+    }
+
+    private static boolean isProbeTask(WBSNode node) {
+        return node != null && node.getIndentLevel() > 1
+                && TeamProcess.isProbeTask(node.getType());
+    }
+
     public TableCellRenderer getCellRenderer() {
         return new CellRenderer();
     }
@@ -93,6 +107,8 @@ public class WorkflowSizeUnitsColumn extends TaskSizeUnitsColumn implements
             if (value != null) {
                 if (isRatePresent(table, row))
                     value = String.valueOf(value) + " per Hour";
+                else if (isProbeTask(table, row))
+                    value = String.valueOf(value);
                 else
                     value = null;
             }
