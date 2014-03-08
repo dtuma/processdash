@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2013 Tuma Solutions, LLC
+// Copyright (C) 2002-2014 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -124,6 +124,7 @@ public class HierarchySynchronizer {
 
     private String readOnlyNodeID;
     private String taskNodeID;
+    private String probeNodeID;
 
     /** list of nodes which this object has user permission to delete.
      * null impllies permission to delete anything; the empty list implies
@@ -193,11 +194,13 @@ public class HierarchySynchronizer {
             this.initials = this.initialsPattern = SYNC_TEAM;
             this.readOnlyNodeID = processID + "/TeamNode";
             this.taskNodeID = null;
+            this.probeNodeID = null;
             this.deletionPermissions = null;
         } else if (SYNC_MASTER.equals(initials)) { // master
             this.initials = this.initialsPattern = SYNC_MASTER;
             this.readOnlyNodeID = processID + "/MasterNode";
             this.taskNodeID = null;
+            this.probeNodeID = null;
             this.deletionPermissions = null;
         } else { // individual
             this.initials = initials;
@@ -207,10 +210,12 @@ public class HierarchySynchronizer {
             if (rootTemplate.endsWith("/Indiv2Root")) {
                 this.readOnlyNodeID = processID + "/Indiv2ReadOnlyNode";
                 this.taskNodeID = processID + "/Indiv2Task";
+                this.probeNodeID = processID + "/Indiv2PROBE";
                 this.oldStyleSync = false;
             } else {
                 this.readOnlyNodeID = processID + "/IndivReadOnlyNode";
                 this.taskNodeID = processID + "/IndivEmptyNode";
+                this.probeNodeID = null;
                 this.oldStyleSync = true;
             }
             this.pspToDateSubset = defaultPspSubset;
@@ -990,7 +995,7 @@ public class HierarchySynchronizer {
             if (taskIDs != null) {
                 labelList.add("label:" + label);
                 for (Iterator i = taskIDs.iterator(); i.hasNext();)
-                    labelList.add((String) i.next());
+                    labelList.add(i.next());
             }
         }
     }
@@ -1008,7 +1013,7 @@ public class HierarchySynchronizer {
                         + milestoneID);
                 milestoneList.add("label_data:hidden");
                 for (Iterator i = taskIDs.iterator(); i.hasNext();)
-                    milestoneList.add((String) i.next());
+                    milestoneList.add(i.next());
             }
         }
     }
@@ -1912,6 +1917,7 @@ public class HierarchySynchronizer {
 
     private class SyncProjectNode extends SyncNode {
 
+        @Override
         public boolean syncNode(SyncWorker worker, String pathPrefix,
                 Element node) throws HierarchyAlterationException {
 
@@ -1926,6 +1932,7 @@ public class HierarchySynchronizer {
             return super.syncNode(worker, pathPrefix, node);
         }
 
+        @Override
         public String getName(Element node) { return null; }
     }
 
@@ -1945,6 +1952,7 @@ public class HierarchySynchronizer {
                 this.compatibleTemplateIDs.add(compatibleTemplateID);
         }
 
+        @Override
         public boolean syncNode(SyncWorker worker, String pathPrefix, Element node)
             throws HierarchyAlterationException {
             String path = getPath(pathPrefix, node);
@@ -2097,6 +2105,7 @@ public class HierarchySynchronizer {
             return XMLUtils.hasValue(node.getAttribute(PRUNED_ATTR));
         }
 
+        @Override
         public String getName(Element node) {
             String result = super.getName(node);
             if (isPhaseName(result)) {
@@ -2375,13 +2384,19 @@ public class HierarchySynchronizer {
 
     private class SyncTaskNode extends SyncSimpleNode {
         private String phaseDataName;
+        private SyncProbeTaskNode syncProbeTaskNode;
         public SyncTaskNode() {
             super(taskNodeID, (oldStyleSync ? " Task" : ""), readOnlyNodeID);
             phaseDataName = getEffectivePhaseDataName(processID);
+            syncProbeTaskNode = new SyncProbeTaskNode();
         }
+        @Override
         public boolean syncNode(SyncWorker worker, String pathPrefix, Element node)
             throws HierarchyAlterationException
         {
+            if (syncProbeTaskNode.syncNode(worker, pathPrefix, node))
+                return true;
+
             if (super.syncNode(worker, pathPrefix, node) == false)
                 return false;
 
@@ -2431,6 +2446,7 @@ public class HierarchySynchronizer {
                         getWbsIdForPath(path), finalPhase));
         }
 
+        @Override
         protected boolean undoMarkTaskComplete(SyncWorker worker, String path) {
             return worker.markLeafIncomplete(path);
         }
@@ -2489,6 +2505,7 @@ public class HierarchySynchronizer {
                 putData(path, EST_TIME_DATA_NAME, null);
         }
 
+        @Override
         protected boolean okToChangeTimeEstimate(String path) {
             // in the new style framework, we only want to record estimates on
             // leaf tasks. If this code is executing, the WBS thinks that
@@ -2514,11 +2531,13 @@ public class HierarchySynchronizer {
 
     }
 
+
     private class SyncOldTaskNode extends SyncTaskNode {
         SyncOldTaskNode() {
             phaseIDs = initPhaseIDs(processID);
         }
 
+        @Override
         protected boolean syncTaskPhase(SyncWorker worker, Element node,
                 String path, String phaseName)
                 throws HierarchyAlterationException {
@@ -2549,10 +2568,12 @@ public class HierarchySynchronizer {
             }
         }
 
+        @Override
         protected void syncTaskEffectivePhase(SyncWorker worker, Element node,
                 String path, String effPhase)
                 throws HierarchyAlterationException {}
 
+        @Override
         protected void filterOutKnownChildren(Element node,
                 List childrenToDelete) {
             String phaseName = node.getAttribute(PHASE_NAME_ATTR);
@@ -2560,6 +2581,7 @@ public class HierarchySynchronizer {
             super.filterOutKnownChildren(node, childrenToDelete);
         }
 
+        @Override
         protected boolean okToChangeTimeEstimate(String path) {
             return true;
         }
@@ -2567,12 +2589,68 @@ public class HierarchySynchronizer {
     }
 
 
+    private class SyncProbeTaskNode extends SyncSimpleNode {
+        public SyncProbeTaskNode() {
+            super(probeNodeID, "", null);
+        }
+
+        @Override
+        public boolean syncNode(SyncWorker worker, String pathPrefix,
+                Element node) throws HierarchyAlterationException {
+            String phaseName = node.getAttribute(PHASE_NAME_ATTR);
+            if (probeNodeID == null || !"PROBE".equals(phaseName))
+                return false;
+
+            super.syncNode(worker, pathPrefix, node);
+            return true;
+        }
+
+        @Override
+        public void syncData(SyncWorker worker, String path, Element node) {
+            super.syncData(worker, path, node);
+            if (!isPrunedNode(node)) {
+                maybeSaveTimeValue(worker, path, node);
+            }
+        }
+
+        @Override
+        protected boolean undoMarkTaskComplete(SyncWorker worker, String path) {
+            return worker.markLeafIncomplete(path);
+        }
+
+        @Override
+        protected boolean okToChangeTimeEstimate(String path) {
+            return true;
+        }
+
+        @Override
+        protected void maybeSaveNodeSize(String path, Element node) {
+            // for PROBE tasks, don't sync size numbers, but DO sync units
+            String units = node.getAttribute("sizeUnits");
+            if (units == null || units.length() == 0)
+                return;
+
+            // save the unit of size measurement to the project.
+            StringData value = StringData.create(units);
+            value.setEditable(false);
+            putData(path, PROBE_SIZE_UNITS_DATA_NAME, value);
+        }
+
+        @Override
+        public void syncChildren(SyncWorker worker, String pathPrefix,
+                Element node) throws HierarchyAlterationException {
+            // PROBE tasks cannot have children. Ignore any that are present.
+        }
+
+    }
+
 
 
     private static final String EST_SIZE_DATA_NAME =
         "Sized_Objects/0/Estimated Size";
     private static final String SIZE_UNITS_DATA_NAME =
         "Sized_Objects/0/Sized_Object_Units";
+    private static final String PROBE_SIZE_UNITS_DATA_NAME = "Size Units";
 
 
 
@@ -2585,6 +2663,7 @@ public class HierarchySynchronizer {
             compatibleTemplateIDs.add("PSP2");
         }
 
+        @Override
         public void syncData(SyncWorker worker, String path, Element node) {
             super.syncData(worker, path, node);
             if (!isPrunedNode(node)) {
@@ -2605,10 +2684,12 @@ public class HierarchySynchronizer {
             }
         }
 
+        @Override
         protected boolean okToChangeTimeEstimate(String path) {
             return (getData(path, "Planning/Completed") == null);
         }
 
+        @Override
         protected boolean undoMarkTaskComplete(SyncWorker worker, String path) {
             return worker.markPSPTaskIncomplete(path);
         }
@@ -2635,6 +2716,7 @@ public class HierarchySynchronizer {
                           (locSizeDataNeedsRatio[i] ? ratio : 1.0));
         }
 
+        @Override
         protected void filterOutKnownChildren(Element node, List childrenToDelete) {
             for (int i = 0; i < PSP_PHASES.length; i++)
                 childrenToDelete.remove(PSP_PHASES[i]);
@@ -2743,7 +2825,7 @@ public class HierarchySynchronizer {
         int len = children.getLength();
         Node child;
         for (int i = 0;   i < len;   i++) {
-            child = (Node) children.item(i);
+            child = children.item(i);
             if (child instanceof Element)
                 sumUpConstructionPhases((Element) child, phaseList);
         }

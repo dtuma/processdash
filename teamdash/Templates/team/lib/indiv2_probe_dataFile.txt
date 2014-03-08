@@ -19,6 +19,9 @@
 // Arrange for size values to be exported to the PDASH file
 
 [Sized_Objects/0/Description] == "PROBE-Entered Size";
-[Sized_Objects/0/Estimated Size] = [Estimated Added & Modified Size] + 0;
-[Sized_Objects/0/Size] = [Added & Modified Size] + 0;
-[Sized_Objects/0/Sized_Object_Units] = [Size Units];
+[Sized_Objects/0/Estimated Size] = nvl([Estimated Added & Modified Size] + 0, 0);
+[Sized_Objects/0/Size] = nvl([Added & Modified Size] + 0, 0);
+[Sized_Objects/0/Sized_Object_Units] = [Effective_Size_Units];
+
+[Effective_Size_Units] = iff([Size Units] == "LOC",
+    "New & Changed LOC", [Size Units]);
