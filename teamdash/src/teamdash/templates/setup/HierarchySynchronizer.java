@@ -1355,8 +1355,14 @@ public class HierarchySynchronizer {
         // save changes to the WBS (omitting URL data from both dump files).
         if (workflowXml != null) {
             workflowURLsSupported = true;
+            // workflow ID data is scrubbed starting in version 4.2.0, and is
+            // the best source of reliable mapping information. In earlier
+            // versions, we map URLs based on workflow step names instead.
+            boolean preferWorkflowIDs = DashPackage.compareVersions(
+                dumpFileVersion, "4.2.0") >= 0;
             ListData result = new ListData();
-            collectWorkflowUrls(result, workflowXml, null, null);
+            collectWorkflowUrls(result, workflowXml, null, null,
+                preferWorkflowIDs);
             String dataName = processID + " /"
                     + TeamDataConstants.PROJECT_WORKFLOW_URLS_DATA_NAME;
             forceData(projectPath, dataName, result);
@@ -1385,13 +1391,13 @@ public class HierarchySynchronizer {
     }
 
     private void collectWorkflowUrls(ListData result, Element xml, String path,
-            String taskId) {
+            String taskId, boolean preferWorkflowIDs) {
         String urlList = xml.getAttribute(URL_ATTR);
         if (StringUtils.hasValue(urlList)) {
-            if (StringUtils.hasValue(path))
-                result.add(path + "///" + urlList);
-            if (REGISTER_WORKFLOW_SUBTASK_IDS && StringUtils.hasValue(taskId))
+            if (preferWorkflowIDs && StringUtils.hasValue(taskId))
                 result.add(taskId + "///" + urlList);
+            else if (StringUtils.hasValue(path))
+                result.add(path + "///" + urlList);
         }
 
         for (Element child : XMLUtils.getChildElements(xml)) {
@@ -1399,37 +1405,17 @@ public class HierarchySynchronizer {
             String childID = child.getAttribute(ID_ATTR);
             if (WORKFLOW_TYPE.equals(childType)) {
                 if (StringUtils.hasValue(childID))
-                    collectWorkflowUrls(result, child, childID, null);
+                    collectWorkflowUrls(result, child, childID, null,
+                        preferWorkflowIDs);
             } else if (NODE_TYPES.contains(childType) && path != null) {
                 String childName = child.getAttribute(NAME_ATTR);
                 if (StringUtils.hasValue(childName))
                     collectWorkflowUrls(result, child, path + "/" + childName,
-                        childID);
+                        childID, preferWorkflowIDs);
             }
         }
     }
 
-    /**
-     * When URLs are assigned to the individual tasks within a workflow, we
-     * typically match concrete project tasks to prototypical workflow tasks by
-     * name. If this variable is true, they will be matched by workflow source
-     * ID as well.<ul>
-     * 
-     * <li>This can be beneficial if a workflow has been instantiated several
-     * times, and then someone tweaks the name of a phase in the Common Team
-     * Workflows window. All of the concrete instantiations of the workflow will
-     * still pull up the script.</li>
-     * 
-     * <li>However, it can be confusing if people instantiate a workflow, then
-     * repurpose the nodes inside. For example, someone decides that they don't
-     * really want to use the "Postmortem" node in this instantiation of the
-     * workflow; so they change it to a second Code task. Now the new Code task
-     * would pull up the Postmortem script, which would seem like a bug.</li>
-     * 
-     * </ul>Considering the tradeoffs, the risk of confusion outweighs the
-     * potential benefit, so this variable is currently set to <tt>false</tt>.
-     */
-    private static final boolean REGISTER_WORKFLOW_SUBTASK_IDS = false;
 
 
     /**
