@@ -1041,6 +1041,10 @@ public class WBSJTable extends JTable {
             if (nodeToCopy != null) {
                 type = nodeToCopy.getType();
                 workflowType = nodeToCopy.getAttribute(WORKFLOW_SOURCE_IDS_ATTR);
+                if (TeamProcess.isProbeTask(type)) {
+                    type = "Planning Task";
+                    workflowType = null;
+                }
                 indentLevel = nodeToCopy.getIndentLevel();
                 expanded = nodeToCopy.isExpanded();
             }
