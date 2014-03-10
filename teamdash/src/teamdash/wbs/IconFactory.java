@@ -768,7 +768,7 @@ public class IconFactory {
             g.setColor(Color.white);
             g.fillRect(pad, pad, size, size);
 
-            g.setColor(Color.blue);
+            g.setColor(Color.decode("#6b24b3"));
             g.drawLine(pad, pad + size - 2, pad + size, pad);
 
             g.setColor(Color.green.darker());
