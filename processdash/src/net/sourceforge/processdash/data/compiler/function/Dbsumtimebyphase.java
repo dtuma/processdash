@@ -1,4 +1,4 @@
-// Copyright (C) 2013 Tuma Solutions, LLC
+// Copyright (C) 2013-2014 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -33,6 +33,8 @@ import net.sourceforge.processdash.data.compiler.ExpressionContext;
 /** @since 1.15.5 */
 public class Dbsumtimebyphase extends DbAbstractFunction {
 
+    private boolean usePhaseMappings = isDatabaseVersion("1.3");
+
     /**
      * Perform a procedure call.
      * 
@@ -40,13 +42,20 @@ public class Dbsumtimebyphase extends DbAbstractFunction {
      * 
      * Expected arguments: (Process_ID, Criteria)
      */
-    @SuppressWarnings("unused")
     public Object call(List arguments, ExpressionContext context) {
         String processId = asStringVal(getArg(arguments, 0));
         List criteria = collapseLists(arguments, 1);
 
         try {
-            List rawData = queryHql(context, BASE_QUERY, "f", criteria);
+            List rawData;
+            if (usePhaseMappings) {
+                rawData = queryHql(context, PHASE_MAP_BASE_QUERY, "f",
+                    criteria, processId);
+                rawData.addAll(queryHql(context, PHASE_MAP_UNCAT_QUERY, "f",
+                    criteria));
+            } else {
+                rawData = queryHql(context, BASE_QUERY, "f", criteria);
+            }
             return new ResultSetData(rawData, COLUMN_NAMES);
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Unexpected error while calculating", e);
@@ -57,12 +66,30 @@ public class Dbsumtimebyphase extends DbAbstractFunction {
     private static final String[] COLUMN_NAMES = { "Phase", "Plan", "Actual" };
 
     private static final String BASE_QUERY = "select "
-            + "phase.shortName, " //
+            + "coalesce(phase.shortName, 'No Phase '), " //
             + "sum(f.planTimeMin), " //
             + "sum(f.actualTimeMin) " //
             + "from TaskStatusFact f " //
             + "left outer join f.planItem.phase phase "
             + "where f.versionInfo.current = 1 " //
             + "group by phase.shortName";
+
+    private static final String PHASE_MAP_BASE_QUERY = "select "
+            + "phase.shortName, " //
+            + "sum(f.planTimeMin), " //
+            + "sum(f.actualTimeMin) " //
+            + "from TaskStatusFact f " //
+            + "left outer join f.planItem.phase.mapsToPhase phase "
+            + "where f.versionInfo.current = 1 "
+            + "and phase.process.identifier = ? " //
+            + "group by phase.shortName";
+
+    private static final String PHASE_MAP_UNCAT_QUERY = "select "
+            + "'No Phase ', " //
+            + "coalesce(sum(f.planTimeMin), 0), " //
+            + "coalesce(sum(f.actualTimeMin), 0) " //
+            + "from TaskStatusFact f " //
+            + "where f.versionInfo.current = 1 "
+            + "and f.planItem.phase is null";
 
 }

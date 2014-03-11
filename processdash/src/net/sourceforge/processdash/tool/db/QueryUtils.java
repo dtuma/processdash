@@ -1,4 +1,4 @@
-// Copyright (C) 2013 Tuma Solutions, LLC
+// Copyright (C) 2013-2014 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -75,18 +75,18 @@ public class QueryUtils {
         int wherePos = getWhereKeywordEndPos(query);
         String trailingQueryPart = query.substring(wherePos);
         query.setLength(wherePos);
-        queryArgs = maybeSplitQueryArgs(queryArgs, trailingQueryPart);
+        List splitArgs = maybeSplitQueryArgs(queryArgs, trailingQueryPart);
 
         criteria = new ArrayList(criteria);
         while (!criteria.isEmpty()) {
             String key = asString(criteria.remove(0));
 
             if (PROJECT_CRITERIA.equals(key)) {
-                addProjectCriteriaToHql(query, entityName, queryArgs, criteria);
+                addProjectCriteriaToHql(query, entityName, splitArgs, criteria);
             } else if (WBS_CRITERIA.equals(key)) {
-                addWbsCriteriaToHql(query, entityName, queryArgs, criteria);
+                addWbsCriteriaToHql(query, entityName, splitArgs, criteria);
             } else if (LABEL_CRITERIA.equals(key)) {
-                addLabelCriteriaToHql(query, entityName, queryArgs, criteria);
+                addLabelCriteriaToHql(query, entityName, splitArgs, criteria);
             } else if (key != null) {
                 logger.warning("Unrecognized query criteria " + key);
             }

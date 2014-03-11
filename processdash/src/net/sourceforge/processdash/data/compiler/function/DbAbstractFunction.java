@@ -1,4 +1,4 @@
-// Copyright (C) 2013 Tuma Solutions, LLC
+// Copyright (C) 2013-2014 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -24,6 +24,7 @@
 package net.sourceforge.processdash.data.compiler.function;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.logging.Logger;
@@ -35,6 +36,8 @@ import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.StringData;
 import net.sourceforge.processdash.data.compiler.AbstractFunction;
 import net.sourceforge.processdash.data.compiler.ExpressionContext;
+import net.sourceforge.processdash.templates.DashPackage;
+import net.sourceforge.processdash.templates.TemplateLoader;
 import net.sourceforge.processdash.tool.db.DatabasePlugin;
 import net.sourceforge.processdash.tool.db.QueryRunner;
 import net.sourceforge.processdash.tool.db.QueryUtils;
@@ -43,6 +46,15 @@ public abstract class DbAbstractFunction extends AbstractFunction {
 
     protected static Logger logger = Logger.getLogger(DbAbstractFunction.class
             .getName());
+
+    /**
+     * Return true if the database plugin is at the given version or higher.
+     */
+    protected boolean isDatabaseVersion(String version) {
+        String dbVersion = TemplateLoader.getPackageVersion("tpidw-embedded");
+        return dbVersion != null
+                && DashPackage.compareVersions(dbVersion, version) >= 0;
+    }
 
     /**
      * Return an object from the database plugin's registry.
@@ -86,19 +98,21 @@ public abstract class DbAbstractFunction extends AbstractFunction {
      * @param context
      *            the ExpressionContext this function is operating within.
      * @param baseQuery
-     *            the initial part of the HQL query, which should not contain
-     *            any parameterized values. It should also include at least one
-     *            "WHERE" clause.
+     *            the initial part of the HQL query. It should include at least
+     *            one "WHERE" clause.
      * @param entityName
      *            the alias that the baseQuery uses to refer to the object being
      *            queried
      * @param criteria
      *            a list of search criteria indicating the project, WBS, and
      *            label filter that we should apply to narrow this query
+     * @param baseQueryArgs
+     *            if the baseQuery contains parameterized values, use these
+     *            arguments as the values for those parameters.
      * @return the results of the HQL query
      */
     protected List queryHql(ExpressionContext context, String baseQuery,
-            String entityName, List criteria) {
+            String entityName, List criteria, Object... baseQueryArgs) {
         // get the object for executing database queries
         QueryRunner queryRunner = getDbObject(context, QueryRunner.class);
         if (queryRunner == null)
@@ -106,7 +120,7 @@ public abstract class DbAbstractFunction extends AbstractFunction {
 
         // build the effective query and associated argument list
         StringBuilder query = new StringBuilder(baseQuery);
-        List queryArgs = new ArrayList();
+        List queryArgs = new ArrayList(Arrays.asList(baseQueryArgs));
         QueryUtils.addCriteriaToHql(query, entityName, queryArgs, criteria);
 
         // if we know that the query won't return any result, don't bother
