@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2009 Tuma Solutions, LLC
+// Copyright (C) 2002-2014 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -46,6 +46,8 @@ public class ProbeData {
         "PROBE_INPUT_SIZE_METRIC_NAME";
     public static final String PROBE_TARGET_METRIC =
         "PROBE_TARGET_SIZE_METRIC_NAME";
+    public static final String PROBE_TARGET_TIME_METRIC =
+        "PROBE_TARGET_TIME_METRIC_NAME";
     public static final String PROBE_LAST_RUN_PREFIX =
         "PROBE_Last_Run_Value/";
 
@@ -77,6 +79,7 @@ public class ProbeData {
     private boolean reportMode;
     private double productivity, prodStddev;
 
+    private String timeDataName = null;
     private String[] dataNames = null;
     private String[] reportNames = null;
 
@@ -253,6 +256,11 @@ public class ProbeData {
 
     private String[] getDataNames() {
         if (dataNames == null) {
+            timeDataName = processUtil
+                    .getProcessString(PROBE_TARGET_TIME_METRIC);
+            if (!StringUtils.hasValue(timeDataName))
+                timeDataName = "Time";
+
             String[] result = new String[LAST_COL];
             result[EST_OBJ_LOC - 1] =
                 processUtil.getProcessString(PROBE_INPUT_METRIC);
@@ -260,8 +268,8 @@ public class ProbeData {
                 processUtil.getProcessString(PROBE_TARGET_METRIC);
             result[EST_NC_LOC - 1] = "Estimated " + targetMetric;
             result[ACT_NC_LOC - 1] = targetMetric;
-            result[EST_TIME - 1] = "[Estimated Time] / 60";
-            result[ACT_TIME - 1] = "[Time] / 60";
+            result[EST_TIME - 1] = "[Estimated " + timeDataName + "] / 60";
+            result[ACT_TIME - 1] = "[" + timeDataName + "] / 60";
 
             // dummy - generate an empty column for exclusion data.
             result[EXCLUDE - 1] = "null///null";
@@ -273,16 +281,18 @@ public class ProbeData {
                 PROBE_LAST_RUN_PREFIX + dataNames[EST_OBJ_LOC - 1];
             result[EST_NC_LOC - 1] =
                 PROBE_LAST_RUN_PREFIX + dataNames[EST_NC_LOC - 1];
-            result[EST_TIME - 1] =
-                "[" + PROBE_LAST_RUN_PREFIX + "Estimated Time] / 60";
+            result[EST_TIME - 1] = "[" + PROBE_LAST_RUN_PREFIX
+                    + "Estimated " + timeDataName + "] / 60";
             reportNames = result;
         }
         return dataNames;
     }
+
     public String getDataName(int col, boolean fix) {
-        if (fix && col == EST_TIME) return "Estimated Time";
-        if (fix && col == ACT_TIME) return "Time";
-        else return getDataNames()[col - 1];
+        String[] names = getDataNames();
+        if (fix && col == EST_TIME) return "Estimated " + timeDataName;
+        if (fix && col == ACT_TIME) return timeDataName;
+        return names[col - 1];
     }
 
     private void fixupResultSetColumnHeaders() {
