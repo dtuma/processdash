@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2009 Tuma Solutions, LLC
+// Copyright (C) 2002-2014 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -25,6 +25,7 @@ package net.sourceforge.processdash.tool.probe.wizard;
 
 
 import net.sourceforge.processdash.data.DoubleData;
+import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.i18n.Translator;
 import net.sourceforge.processdash.process.ProcessUtil;
 import net.sourceforge.processdash.util.FormatUtil;
@@ -35,9 +36,14 @@ public class InputPage extends WizardPage {
     private static final String INPUT_VAL = "inputValue";
 
     public void writeHTMLContents() {
-        boolean planningComplete = (getValue("Planning/node") == null ||
-                                    getValue("Planning/Completed") != null);
-        boolean projectComplete = (getValue("Completed") != null);
+        boolean planningComplete, projectComplete;
+        if (testValue("Planning/node")) {
+            planningComplete = testValue("Planning/Completed");
+            projectComplete = testValue("Completed");
+        } else {
+            planningComplete = testValue("Completed");
+            projectComplete = false;
+        }
 
         if (planningComplete || projectComplete)
             writeError(planningComplete, projectComplete);
@@ -48,6 +54,11 @@ public class InputPage extends WizardPage {
                 setNextPage(null);
             }
         }
+    }
+
+    private boolean testValue(String dataname) {
+        SimpleData sd = getValue(dataname);
+        return sd != null && sd.test();
     }
 
     public boolean parseFormData() {
