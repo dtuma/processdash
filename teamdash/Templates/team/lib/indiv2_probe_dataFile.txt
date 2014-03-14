@@ -9,6 +9,7 @@
     "Estimated Time/.*"
 )
 
+[PROBE Task] = tag;
 [<!--#echo Process_ID --> Size Estimating Template Tag] = tag;
 [<!--#echo Process_ID --> /Effective_Phase] == "Planning";
 [Node_Type] == "Planning";
@@ -21,7 +22,8 @@
     ",reports/probe/probe.class,");
 
 
-// Arrange for size values to be exported to the PDASH file
+// Arrange for size values to appear on the Size Inventory, and to
+// be summed by non-database logic
 
 [Sized_Objects/0/Description] == "PROBE-Entered Size";
 [Sized_Objects/0/Estimated Size] = nvl([Estimated Added & Modified Size] + 0, 0);

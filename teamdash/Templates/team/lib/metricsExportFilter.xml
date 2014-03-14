@@ -21,6 +21,7 @@
     <include>/Indiv_Initials$</include>
     <include>/WBS_Last_Sync_Timestamp$</include>
     <include>/PSP Rollup Eligible$</include>
+    <include>/PROBE Task$</include>
     <include>/Started$</include>
     <include>/Completed$</include>
     <include>/Exporting_Namespaced_Phase_Metrics$</include>
@@ -61,9 +62,15 @@
         <include>/(Estimated )?<!--#echo value="Metric" -->$</include>
     <!--#endfor-->
 
-    <!--#foreach name=TypeOf values=",Base,Deleted,Modified,Added,Reused,New & Changed,Total,New Reused,Object," -->
+    <!--#foreach name=TypeOf values=",Base,Deleted,Modified,Added,Reused,Total,New Reused," -->
         <include>/(Estimated )?<!--#echo value="TypeOf" --> LOC$</include>
+        <include>{PROBE Task}/(Estimated )?<!--#echo value="TypeOf" --> Size$</include>
     <!--#endfor-->
+        <include>/(Estimated )?New &amp; Changed LOC$</include>
+        <include>/(Estimated )?Object LOC$</include>
+        <include>{PROBE Task}/(Estimated )?Added &amp; Modified Size$</include>
+        <include>{PROBE Task}/(Estimated )?Proxy Size$</include>
+        <include>{PROBE Task}/Size Units$</include>
 
   </metricsFilter>
 </exportMetricsFile>
