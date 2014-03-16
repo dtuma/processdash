@@ -25,7 +25,9 @@ package net.sourceforge.processdash.tool.db;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -51,13 +53,49 @@ public class QueryUtils {
             .getName());
 
     public static DatabasePlugin getDatabasePlugin(DataContext data) {
+        return getDatabasePlugin(data, false);
+    }
+
+    public static DatabasePlugin getDatabasePlugin(DataContext data,
+            boolean waitForAllProjects) {
         ListData pluginItem = (ListData) data
                 .getValue(DatabasePlugin.DATA_REPOSITORY_NAME);
         if (pluginItem == null)
             return null;
-        else
-            return (DatabasePlugin) pluginItem.get(0);
+
+        DatabasePlugin databasePlugin = (DatabasePlugin) pluginItem.get(0);
+        if (waitForAllProjects)
+            databasePlugin.getObject(ProjectLocator.class).getKeyForProject(
+                "wait-for-all-projects", null);
+        return databasePlugin;
     }
+
+    public static <T> List<T> pluckColumn(List data, int column) {
+        List result = new ArrayList(data.size());
+        for (Iterator i = data.iterator(); i.hasNext();) {
+            Object[] row = (Object[]) i.next();
+            result.add(row[column]);
+        }
+        return result;
+    }
+
+    public static <K, V> Map<K, V> mapColumns(List data, int keyCol,
+            int valueCol) {
+        Map result = new LinkedHashMap();
+        for (Iterator i = data.iterator(); i.hasNext();) {
+            Object[] row = (Object[]) i.next();
+            result.put(row[keyCol], row[valueCol]);
+        }
+        return result;
+    }
+
+    public static <T> T singleValue(List l) {
+        if (l == null || l.isEmpty())
+            return null;
+        else
+            return (T) l.get(0);
+    }
+
 
     public static List addCriteriaToHql(StringBuilder query, String entityName,
             List queryArgs, List criteria) {

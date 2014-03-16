@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2009 Tuma Solutions, LLC
+// Copyright (C) 2002-2014 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -29,6 +29,7 @@ import net.sourceforge.processdash.data.DateData;
 import net.sourceforge.processdash.data.ListData;
 import net.sourceforge.processdash.data.util.ResultSet;
 import net.sourceforge.processdash.i18n.Translator;
+import net.sourceforge.processdash.util.StringUtils;
 
 
 public class HistDataPage extends WizardPage {
@@ -75,6 +76,7 @@ public class HistDataPage extends WizardPage {
     public boolean writeReportSection() {
         writeSectionTitle(resources.getString("HistData.Short_Title"));
         ProbeData histData = new ProbeData(data, prefix, null);
+        histData.setReportMode(true);
         Date cutoffDate = DateData.valueOf(getValue("Planning/Completed"));
         if (cutoffDate == null)
             cutoffDate = DateData.valueOf(getValue("Completed"));
@@ -103,6 +105,7 @@ public class HistDataPage extends WizardPage {
             out.print("</p>");
         }
 
+        String timeFootnote = getTimeFootnote(histData);
         out.print("<table border style='margin-left:1cm'><tr><th>");
         out.print(resources.getHTML("Project_Task"));
         for (int c = 1;  c <= ProbeData.EXCLUDE;   c++) {
@@ -117,6 +120,8 @@ public class HistDataPage extends WizardPage {
             }
             // TODO: possibly rotate the text 90 degrees
             out.print(esc(displayName));
+            if (c == ProbeData.EST_TIME || c == ProbeData.ACT_TIME)
+                out.print(timeFootnote);
         }
         out.println("</th></tr>");
 
@@ -129,11 +134,19 @@ public class HistDataPage extends WizardPage {
                 out.print(resultSet.format(r, c));
             }
             out.println("<td align=center>");
-            printField(TASK_FIELD+r, resultSet.getRowName(r));
-            out.println("<input type=checkbox name='"+EXCLUDE_FIELD+r+"'");
-            if (resultSet.getData(r, ProbeData.EXCLUDE) != null)
-                out.print(" checked");
-            out.println("></td></tr>");
+            if (histData.isReportMode()) {
+                if (resultSet.getData(r, ProbeData.EXCLUDE) != null)
+                    out.print("<b style='font-family: sans-serif'>X</b>");
+                else
+                    out.print("&nbsp;");
+            } else {
+                printField(TASK_FIELD+r, histData.getRowId(r));
+                out.println("<input type=checkbox name='"+EXCLUDE_FIELD+r+"'");
+                if (resultSet.getData(r, ProbeData.EXCLUDE) != null)
+                    out.print(" checked");
+                out.print(">");
+            }
+            out.println("</td></tr>");
         }
         out.print("</table>\n");
 
@@ -145,5 +158,14 @@ public class HistDataPage extends WizardPage {
         }
     }
 
+    private String getTimeFootnote(ProbeData histData) {
+        String workflowName = histData.getDatabaseWorkflowName();
+        if (!StringUtils.hasValue(workflowName))
+            return "";
+
+        String tooltip = resources.format(
+            "HistData.Columns.Workflow_Hours_Tooltip_FMT", workflowName);
+        return "<span title='" + esc(tooltip) + "' class='doNotPrint'>*</span>";
+    }
 
 }

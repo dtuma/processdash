@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2013 Tuma Solutions, LLC
+// Copyright (C) 2001-2014 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -103,6 +103,18 @@ public class ResultSet {
             translateColHeaders = !translateColHeaders;
         }
 
+        return result;
+    }
+
+    public ResultSet pluckColumns(int...columns) {
+        int row = this.numRows();
+        ResultSet result = new ResultSet(row, columns.length);
+        for (;  row >= 0;  row--) {
+            result.setRowName(row, this.getRowName(row));
+            for (int i = columns.length;  i-- > 0; ) {
+                result.data[row][i+1] = this.data[row][columns[i]];
+            }
+        }
         return result;
     }
 
@@ -605,6 +617,10 @@ public class ResultSet {
     private static final String FAKE_DATA_NAME =
         DataRepository.anonymousPrefix + "/Data Enumerator";
 
+    private static String getUseParam(Map queryParameters) {
+        // useParam is stored in the "useData" parameter
+        return (String) queryParameters.get("useData");
+    }
     private static String getForParam(Map queryParameters) {
         // forParam is stored in the "for" parameter
         return (String) queryParameters.get("for");
@@ -631,6 +647,10 @@ public class ResultSet {
      * the query */
     public static ResultSet get(DataRepository data, Map queryParameters,
                                 String prefix, Comparator nodeComparator) {
+
+        String useParam = getUseParam(queryParameters);
+        if (useParam != null)
+            return getResultSetFromRepository(data, prefix, useParam);
 
         String forParam      = getForParam(queryParameters);
         String orderBy       = getOrderBy(queryParameters);
@@ -670,6 +690,17 @@ public class ResultSet {
 
         return result;
     }
+
+    private static ResultSet getResultSetFromRepository(DataRepository data,
+            String prefix, String useParam) {
+        String dataName = DataRepository.createDataName(prefix, useParam);
+        ListData l = ListData.asListData(data.getSimpleValue(dataName));
+        if (l != null && l.size() == 1)
+            return (ResultSet) l.get(0);
+        else
+            return null;
+    }
+
 
     /** Return the list of prefixes that would have been used to generate
      *  a result set.

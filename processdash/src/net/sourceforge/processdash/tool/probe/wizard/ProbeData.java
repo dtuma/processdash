@@ -31,6 +31,7 @@ import java.util.Vector;
 import net.sourceforge.processdash.data.DateData;
 import net.sourceforge.processdash.data.ListData;
 import net.sourceforge.processdash.data.NumberData;
+import net.sourceforge.processdash.data.SaveableData;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.StringData;
 import net.sourceforge.processdash.data.TagData;
@@ -59,7 +60,8 @@ public class ProbeData {
     public static final int ACT_TIME        = 5;
     public static final int EXCLUDE         = 6;
     public static final int COMPLETED_DATE  = 7;
-    private static final int LAST_COL = COMPLETED_DATE;
+    public static final int IDENTIFIER      = 8;
+    static final int NUM_COLUMNS = IDENTIFIER;
     /*
      *
     public static final int INPUT_SIZE_EST  = 1;
@@ -97,8 +99,12 @@ public class ProbeData {
         String[] conditions = shouldOnlyIncludeCompletedProjects(data, prefix)
                 ? CONDITIONS : null;
 
-        this.resultSet = ResultSet.get(data, FOR_PARAM, conditions, ORDER_BY,
-                                       getDataNames(), subsetPrefix);
+        this.resultSet = new ProbeDatabaseUtil(data, prefix) //
+                .loadData(getDataNames(), null);
+        if (resultSet == null)
+            resultSet = ResultSet.get(data, FOR_PARAM, conditions, ORDER_BY,
+                getDataNames(), subsetPrefix);
+
         fixupResultSetColumnHeaders();
         markExclusions(data, prefix, clearOutlierMarks);
     }
@@ -110,21 +116,27 @@ public class ProbeData {
     public static ProbeData getEffectiveData(DataRepository data, String prefix) {
         String forListDataName = DataRepository.createDataName(prefix,
             PROBE_LIST_NAME);
-        if (data.getValue(forListDataName) == null)
-            return new ProbeData(data, prefix, null);
+        SaveableData probeList = data.getValue(forListDataName);
+        if (probeList == null)
+            return new ProbeData(data, prefix, (String) null);
         else
-            return new ProbeData(data, prefix);
+            return new ProbeData(data, prefix, ListData.asListData(probeList));
     }
 
-    private ProbeData(DataRepository data, String prefix) {
+    private ProbeData(DataRepository data, String prefix, ListData probeList) {
         this.data = data;
         this.prefix = prefix;
         this.processUtil = new ProcessUtil(data, prefix);
         //subsetPrefix = getSubsetPrefix(data, prefix, params);
         String[] conditions = shouldOnlyIncludeCompletedProjects(data, prefix)
                 ? CONDITIONS : null;
-        this.resultSet = ResultSet.get(data, FOR_PROBE_LIST, conditions, ORDER_BY,
-                                       getDataNames(), prefix);
+
+        this.resultSet = new ProbeDatabaseUtil(data, prefix) //
+                .loadData(getDataNames(), probeList);
+        if (resultSet == null)
+            resultSet = ResultSet.get(data, FOR_PROBE_LIST, conditions,
+                ORDER_BY, getDataNames(), prefix);
+
         this.reportMode = false;
         fixupResultSetColumnHeaders();
         markExclusions(null, null, true);
@@ -146,6 +158,24 @@ public class ProbeData {
                 dataPoints.add(dataPoint);
         }
         return dataPoints;
+    }
+
+    public String getRowId(int row) {
+        String result = resultSet.format(row, IDENTIFIER);
+        if (!StringUtils.hasValue(result))
+            result = resultSet.getRowName(row);
+        return result;
+    }
+
+    public boolean isDatabaseMode() {
+        return resultSet instanceof ProbeDatabaseResultSet;
+    }
+
+    public String getDatabaseWorkflowName() {
+        if (isDatabaseMode())
+            return ((ProbeDatabaseResultSet) resultSet).getWorkflowName();
+        else
+            return null;
     }
 
     public boolean isReportMode() {
@@ -246,7 +276,7 @@ public class ProbeData {
 
         } else {
             for (int row = resultSet.numRows();   row > 0;   row--) {
-                prefix = resultSet.getRowName(row);
+                prefix = getRowId(row);
                 resultSet.setData
                     (row, EXCLUDE,
                      l.contains(prefix) ? null : TagData.getInstance());
@@ -261,7 +291,7 @@ public class ProbeData {
             if (!StringUtils.hasValue(timeDataName))
                 timeDataName = "Time";
 
-            String[] result = new String[LAST_COL];
+            String[] result = new String[NUM_COLUMNS];
             result[EST_OBJ_LOC - 1] =
                 processUtil.getProcessString(PROBE_INPUT_METRIC);
             String targetMetric =
@@ -274,9 +304,10 @@ public class ProbeData {
             // dummy - generate an empty column for exclusion data.
             result[EXCLUDE - 1] = "null///null";
             result[COMPLETED_DATE - 1] = "Completed";
+            result[IDENTIFIER - 1] = "null///null";
             dataNames = result;
 
-            result = new String[LAST_COL];
+            result = new String[NUM_COLUMNS];
             result[EST_OBJ_LOC - 1] =
                 PROBE_LAST_RUN_PREFIX + dataNames[EST_OBJ_LOC - 1];
             result[EST_NC_LOC - 1] =
@@ -394,6 +425,15 @@ public class ProbeData {
             return false;
         else
             return true;
+    }
+
+    public String storeChartData(ResultSet chartData, ProbeMethod method) {
+        String dataName = "PROBE_Chart_Data///" + method.getMethodLetter()
+                + "_" + method.methodPurpose.getKey();
+        ListData l = new ListData();
+        l.add(chartData);
+        data.putValue(DataRepository.createDataName(prefix, dataName), l);
+        return dataName;
     }
 
     private static boolean badDouble(double d) {

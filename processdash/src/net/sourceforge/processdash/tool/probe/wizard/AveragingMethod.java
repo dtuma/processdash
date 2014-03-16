@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2011 Tuma Solutions, LLC
+// Copyright (C) 2002-2014 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -26,6 +26,7 @@ package net.sourceforge.processdash.tool.probe.wizard;
 import java.util.Iterator;
 import java.util.Vector;
 
+import net.sourceforge.processdash.data.DoubleData;
 import net.sourceforge.processdash.data.util.ResultSet;
 import net.sourceforge.processdash.util.HTMLUtils;
 
@@ -100,24 +101,35 @@ public class AveragingMethod extends ProbeMethod {
     @Override
     protected String buildXYChartParams() {
         if (getRating() > CANNOT_CALCULATE) {
+            ResultSet chartData = getChartData();
+            String chartDataName = histData.storeChartData(chartData, this);
+
             StringBuffer url = new StringBuffer();
-            url.append("for=%5b"+ProbeData.PROBE_LIST_NAME+"%5d");
+            addParam(url, "useData", chartDataName);
             addParam(url, "title", getMethodName());
-            addChartParam(url, 1, xColumn);
-            addChartParam(url, 2, methodPurpose.getYColumn());
             addTrendParam(url);
 
-            return url.toString();
+            return url.substring(1);
         } else
             return null;
     }
-    private void addChartParam(StringBuffer url, int dNum, int col) {
-        String elemExpr = histData.getDataName(col, false);
-        addParam(url, "d"+dNum, elemExpr);
-        String header = histData.getResultSet().getColName(col);
-        addParam(url, "h"+dNum, header);
-        String elemName = histData.getDataName(col, true);
-        addParam(url, "where", "[" + elemName + "] > 0");
+
+    protected ResultSet getChartData() {
+        // make a copy of the data that only includes the columns of interest
+        ResultSet chartData = histData.getResultSet().pluckColumns(xColumn,
+            methodPurpose.getYColumn());
+        // discard any rows that have zeros in the X or Y value
+        for (int row = chartData.numRows(); row > 0; row--) {
+            if (!goodChartData(chartData.getData(row, 1))
+                    || !goodChartData(chartData.getData(row, 2)))
+                chartData.removeRow(row);
+        }
+        return chartData;
+    }
+
+    private boolean goodChartData(Object data) {
+        return data instanceof DoubleData //
+                && ((DoubleData) data).getDouble() > 0;
     }
 
 
