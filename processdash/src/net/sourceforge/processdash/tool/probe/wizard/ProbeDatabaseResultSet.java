@@ -23,14 +23,19 @@
 
 package net.sourceforge.processdash.tool.probe.wizard;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import net.sourceforge.processdash.data.util.ResultSet;
 
 public class ProbeDatabaseResultSet extends ResultSet {
 
     private String workflowName;
 
+    private Map<String, Number> timeInPhase;
+
     public ProbeDatabaseResultSet(int numRows, String[] columnHeaders,
-            String workflowName) {
+            String workflowName, Map timeInPhase) {
         super(numRows, ProbeData.NUM_COLUMNS);
 
         setColName(0, Wizard.resources.getString("Project_Task"));
@@ -38,10 +43,17 @@ public class ProbeDatabaseResultSet extends ResultSet {
             setColName(i + 1, columnHeaders[i]);
 
         this.workflowName = workflowName;
+        this.timeInPhase = timeInPhase;
     }
 
     public String getWorkflowName() {
         return workflowName;
+    }
+
+    public Map<String, Number> getTimeInPhase() {
+        if (timeInPhase == null)
+            timeInPhase = new HashMap();
+        return timeInPhase;
     }
 
 }

@@ -1,4 +1,4 @@
-// Copyright (C) 1998-2013 Tuma Solutions, LLC
+// Copyright (C) 1998-2014 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -2243,11 +2243,16 @@ public class DataRepository implements Repository, DataContext,
         return getInheritableValue(new StringBuffer(prefix), name);
     }
 
-    public SaveableData getInheritableValue(StringBuffer prefix_, String name)
-    {
+    public SaveableData getInheritableValue(StringBuffer prefix_, String name) {
+        return getInheritableValue(this, prefix_, name);
+    }
+
+    /** @since 2.0.9 */
+    public static SaveableData getInheritableValue(DataContext ctx,
+            StringBuffer prefix_, String name) {
         String prefix = prefix_.toString();
         String dataName = prefix + "/" + name;
-        SaveableData result = getValue(dataName);
+        SaveableData result = ctx.getValue(dataName);
         int pos;
         while (result == null && prefix.length() > 0) {
             pos = prefix.lastIndexOf('/');
@@ -2256,7 +2261,7 @@ public class DataRepository implements Repository, DataContext,
             else
                 prefix = prefix.substring(0, pos);
             dataName = prefix + "/" + name;
-            result = getValue(dataName);
+            result = ctx.getValue(dataName);
         }
         if (result != null) prefix_.setLength(prefix.length());
         return result;

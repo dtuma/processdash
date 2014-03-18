@@ -23,11 +23,16 @@
 
 package net.sourceforge.processdash.tool.probe.wizard;
 
+import static net.sourceforge.processdash.tool.db.WorkflowEnactmentTaskEnumerator.MATCH_ALL_SUFFIX;
+
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import net.sourceforge.processdash.data.DateData;
@@ -42,16 +47,13 @@ import net.sourceforge.processdash.tool.db.DatabasePlugin;
 import net.sourceforge.processdash.tool.db.DatabasePluginUtils;
 import net.sourceforge.processdash.tool.db.QueryRunner;
 import net.sourceforge.processdash.tool.db.QueryUtils;
+import net.sourceforge.processdash.tool.db.WorkflowEnactmentTaskEnumerator;
 
 public class ProbeDatabaseUtil {
-
-    private static final String USES_DATABASE_TAG = "PROBE_USE_DATABASE_FOR_HIST_DATA";
 
     private DataRepository data;
 
     private String prefix;
-
-    private String[] columnHeaders;
 
     private Set onlyInclude;
 
@@ -69,7 +71,6 @@ public class ProbeDatabaseUtil {
         if (isEnabled() == false)
             return null;
 
-        this.columnHeaders = columnHeaders;
         if (onlyInclude != null)
             this.onlyInclude = new HashSet(onlyInclude.asList());
 
@@ -79,10 +80,11 @@ public class ProbeDatabaseUtil {
             workflowName = getWorkflowName();
             List enactmentList = getEnactments(workflowName);
             if (!enactmentList.isEmpty())
-                return buildResultSet(workflowName, enactmentList);
+                return buildResultSet(columnHeaders, workflowName,
+                    enactmentList);
         } catch (QueryError qe) {
         }
-        return createResultSet(workflowName, 0);
+        return new ProbeDatabaseResultSet(0, columnHeaders, workflowName, null);
     }
 
     private void getQueryRunner() {
@@ -91,8 +93,8 @@ public class ProbeDatabaseUtil {
     }
 
     private String getWorkflowName() {
-        String projectID = require(getValue("Project_ID", true));
-        String workflowID = require(getValue("Workflow_Source_ID", false));
+        String projectID = require(getString(PROJECT_ID, true));
+        String workflowID = require(getString(WORKFLOW_SOURCE_ID, false));
         String workflowPhaseID = DatabasePluginUtils
                 .getWorkflowPhaseIdentifier(projectID, workflowID);
 
@@ -113,8 +115,8 @@ public class ProbeDatabaseUtil {
         return result;
     }
 
-    private ProbeDatabaseResultSet buildResultSet(String workflowName,
-            List enactmentList) {
+    private ProbeDatabaseResultSet buildResultSet(String[] columnHeaders,
+            String workflowName, List enactmentList) {
         // retrieve time and completion date info for each enactment.
         List<Integer> enactmentKeys = QueryUtils.pluckColumn(enactmentList, 0);
         List taskStatus = query.queryHql(TASK_STATUS_QUERY, enactmentKeys);
@@ -122,11 +124,18 @@ public class ProbeDatabaseUtil {
         // the task status query will only return results for enactments
         // that were 100% complete. We only need data for those enactments.
         enactmentKeys = QueryUtils.pluckColumn(taskStatus, 0);
+        int numRows = enactmentKeys.size();
+
+        // retrieve the time-in-phase data for this workflow
+        Map timeInPhase = null;
+        if (numRows > 0)
+            timeInPhase = QueryUtils.mapColumns(
+                query.queryHql(TIME_IN_PHASE_QUERY, enactmentKeys), 0, 1);
 
         // Create an empty result set to hold the data.
-        ProbeDatabaseResultSet result = createResultSet(workflowName,
-            enactmentKeys.size());
-        if (enactmentKeys.isEmpty())
+        ProbeDatabaseResultSet result = new ProbeDatabaseResultSet(numRows,
+                columnHeaders, workflowName, timeInPhase);
+        if (numRows == 0)
             return result;
 
         // build maps to look up data more conveniently
@@ -136,7 +145,7 @@ public class ProbeDatabaseUtil {
                 .getDashPathsForPlanItems(query, rootKeys.values());
 
         // iterate over task status info and store it into the result set.
-        for (int i = taskStatus.size(); i-- > 0;) {
+        for (int i = numRows; i-- > 0;) {
             Object[] taskStatusRow = (Object[]) taskStatus.get(i);
             Integer enactmentKey = (Integer) taskStatusRow[0];
             int row = i + 1;
@@ -158,7 +167,7 @@ public class ProbeDatabaseUtil {
         }
 
         // retrieve size data and store it into the result set
-        String sizeUnits = require(getValue("Size Units", false));
+        String sizeUnits = require(getString("Size Units", false));
         List sizeData = query.queryHql(SIZE_QUERY, enactmentKeys, sizeUnits);
         for (int i = sizeData.size(); i-- > 0;) {
             Object[] sizeRow = (Object[]) sizeData.get(i);
@@ -176,12 +185,6 @@ public class ProbeDatabaseUtil {
         return result;
     }
 
-    /** Create a result set for the data, with a given number of rows */
-    private ProbeDatabaseResultSet createResultSet(String workflowName,
-            int numRows) {
-        return new ProbeDatabaseResultSet(numRows, columnHeaders, workflowName);
-    }
-
     private int getSizeTargetColumn(String measurementType) {
         if ("Estimated Proxy".equals(measurementType))
             return ProbeData.EST_OBJ_LOC;
@@ -194,8 +197,175 @@ public class ProbeDatabaseUtil {
     }
 
 
+    /**
+     * Use historical time-in-phase data to spread a time estimate across the
+     * tasks in the current process enactment
+     * 
+     * @param histData
+     *            historical data
+     * @param estimate
+     *            the new total time estimate
+     */
+    public void spreadEstimatedTime(ProbeData histData, double estimate) {
+        // get a list of the tasks in the current process enactment
+        WorkflowEnactmentTaskEnumerator tasks =
+                new WorkflowEnactmentTaskEnumerator(data, prefix);
+        Map<String, String> currentTasks = tasks.getEnactmentTasks();
+
+        // if we were able to enumerate the tasks successfully, spread the new
+        // time estimate across those tasks using historical time-in-phase data.
+        if (currentTasks != null && !currentTasks.isEmpty()) {
+            Map timeInPhase = ((ProbeDatabaseResultSet) histData.getResultSet())
+                    .getTimeInPhase();
+            spreadTimeUsingWeights(currentTasks, timeInPhase, estimate);
+        }
+    }
+
+    private void spreadTimeUsingWeights(Map<String, String> targetTasks,
+            Map<String, Number> weights, double newTotal) {
+
+        // if any of the tasks are complete, don't change their estimates.
+        // instead, reduce the newTotal by the planned time of those completed
+        // tasks.
+        for (Iterator i = targetTasks.keySet().iterator(); i.hasNext();) {
+            String oneTask = (String) i.next();
+            if (!canChangeEstimate(oneTask)) {
+                newTotal -= getEstimate(oneTask);
+                i.remove();
+            }
+        }
+        if (targetTasks.isEmpty())
+            return;
+        newTotal = Math.max(0, newTotal);
+
+        // find the set of workflow phases that are represented by the tasks
+        // in this process enactment. Add up the total historical time spent
+        // in those phases.
+        double totalWeight = 0;
+        HashSet phasesPresent = new HashSet(targetTasks.values());
+        mergeWeightsOfMatchAllPhases(phasesPresent, weights);
+        for (Object phaseName : phasesPresent)
+            totalWeight += doubleValue(weights.get(phaseName));
+
+        // if we have no historical data, just scale the current estimates
+        // proportionately so they add up to the new total.
+        if (totalWeight == 0) {
+            spreadTimeBasedOnCurrentEstimates(targetTasks.keySet(), newTotal);
+            return;
+        }
+
+        // otherwise, iterate over each of the represented workflow phases
+        for (Object onePhase : phasesPresent) {
+            // identify the percentage of the total estimate that should
+            // be associated with this phase.
+            double phaseWeight = doubleValue(weights.get(onePhase));
+            double phaseTotal = newTotal * phaseWeight / totalWeight;
+
+            // find a list of tasks that map to this workflow phase
+            List matchingTasks = new ArrayList();
+            for (Entry<String, String> e : targetTasks.entrySet()) {
+                if (onePhase.equals(e.getValue()))
+                    matchingTasks.add(e.getKey());
+            }
+
+            // spread this phase's time allocation over the matching task(s)
+            spreadTimeBasedOnCurrentEstimates(matchingTasks, phaseTotal);
+        }
+    }
+
+    /** @return true if we can change the estimate for a given task */
+    private boolean canChangeEstimate(String path) {
+        if (getValue(path, "Completed", false) != null)
+            // don't change the estimates of tasks that are marked complete.
+            return false;
+
+        else if (getValue(path, "PSP Project", false) != null
+                && getValue(path, "Planning/Completed", false) != null)
+            // don't change the estimates of PSP tasks whose Planning phase
+            // has been marked complete (because associated values are frozen)
+            return false;
+
+        // Check the estimate in question to see if it is read-only
+        SimpleData sd = getValue(path, ESTIMATED_TIME, false);
+        return (sd == null || sd.isEditable());
+    }
+
+    /**
+     * Some tasks (such as PSP tasks) are estimated at a parent level, then time
+     * is distributed across subtasks. The workflow task enumerator will list
+     * those tasks with a type like "PSP/** ". The time-in-phase data, however,
+     * will include separate entries for each subitem (for example,
+     * "PSP/Planning", "PSP/Design", etc.
+     * 
+     * This method looks for "match all" phases that are present in the list of
+     * workflow tasks, and sums up the weights of all the items that match.
+     */
+    private void mergeWeightsOfMatchAllPhases(Set<String> phasesPresent,
+            Map<String, Number> weights) {
+        for (String onePhase : phasesPresent) {
+            if (onePhase.endsWith(MATCH_ALL_SUFFIX)) {
+                String matchPrefix = onePhase.substring(0, onePhase.length()
+                        - MATCH_ALL_SUFFIX.length()) + "/";
+                double matchedWeight = 0;
+                for (Entry<String, Number> e : weights.entrySet()) {
+                    if (e.getKey().startsWith(matchPrefix))
+                        matchedWeight += doubleValue(e.getValue());
+                }
+                weights.put(onePhase, matchedWeight);
+            }
+        }
+    }
+
+    /**
+     * At certain times we need to spread time across a list of tasks, and we
+     * don't have a set of historical data telling us how to do so.
+     * 
+     * When that happens, we first try to use the current planned times and use
+     * those as "pseudo-weights." This scales all times proportionately, in a
+     * manner similar to what the WBS Editor would do when we edit a top-down
+     * value.
+     * 
+     * When the tasks in question do not have any planned times, we fall back
+     * and spread the time across the tasks equally.
+     */
+    private void spreadTimeBasedOnCurrentEstimates(
+            Collection<String> targetTasks, double newTotal) {
+
+        // if we only have one task to change, or if we're setting the
+        // estimates to zero, no spreading needs to occur. Just set the times.
+        if (targetTasks.size() == 1 || newTotal == 0) {
+            for (String oneTask : targetTasks)
+                setEstimate(oneTask, newTotal);
+            return;
+        }
+
+        // add up the current time estimates for the tasks in question.
+        double oldTotal = 0;
+        for (String oneTask : targetTasks)
+            oldTotal += getEstimate(oneTask);
+
+        if (oldTotal == 0) {
+            // if the current tasks have no time estimates, distribute the
+            // time equally across the various tasks.
+            double equalPart = newTotal / targetTasks.size();
+            for (String oneTask : targetTasks)
+                setEstimate(oneTask, equalPart);
+
+        } else {
+            // otherwise, scale the current estimates proportionately so
+            // they add up to the new total.
+            double ratio = newTotal / oldTotal;
+            for (String oneTask : targetTasks) {
+                double oldEstimate = getEstimate(oneTask);
+                double newEstimate = ratio * oldEstimate;
+                setEstimate(oneTask, newEstimate);
+            }
+        }
+    }
+
+
     private boolean isEnabled() {
-        return getValue(USES_DATABASE_TAG, false) != null;
+        return getString(USES_DATABASE_TAG, false) != null;
     }
 
     private StringData str(String s) {
@@ -218,16 +388,41 @@ public class ProbeDatabaseUtil {
         }
     }
 
-    private String getValue(String dataName, boolean inherit) {
+    private double doubleValue(Object o) {
+        return (o instanceof Number ? ((Number) o).doubleValue() : 0);
+    }
+
+    private double getEstimate(String prefix) {
+        return getNum(prefix, ESTIMATED_TIME);
+    }
+
+    private void setEstimate(String prefix, double value) {
+        data.userPutValue(
+            DataRepository.createDataName(prefix, ESTIMATED_TIME),
+            new DoubleData(value, true));
+    }
+
+    private double getNum(String prefix, String dataName) {
+        SimpleData sd = getValue(prefix, dataName, false);
+        return (sd instanceof DoubleData ? ((DoubleData) sd).getDouble() : 0);
+    }
+
+    private String getString(String dataName, boolean inherit) {
+        return getString(prefix, dataName, inherit);
+    }
+
+    private String getString(String prefix, String dataName, boolean inherit) {
+        SimpleData sd = getValue(prefix, dataName, inherit);
+        return (sd == null ? null : sd.format());
+    }
+
+    private SimpleData getValue(String prefix, String dataName, boolean inherit) {
         SaveableData d;
         if (inherit)
             d = data.getInheritableValue(prefix, dataName);
         else
             d = data.getValue(DataRepository.createDataName(prefix, dataName));
-        if (d == null)
-            return null;
-        SimpleData sd = d.getSimpleValue();
-        return (sd == null ? null : sd.format());
+        return (d == null ? null : d.getSimpleValue());
     }
 
     private <T> T require(T value) {
@@ -242,7 +437,6 @@ public class ProbeDatabaseUtil {
      */
     private static final String WORKFLOW_NAME_QUERY = //
     "select p.process.name from Phase p where p.identifier = ?";
-
 
     /**
      * Query to find all the times when this user has performed a PROBE task
@@ -269,8 +463,7 @@ public class ProbeDatabaseUtil {
     private static final String TASK_STATUS_QUERY = //
     "select pe.key, sum(task.planTimeMin), sum(task.actualTimeMin), "
             + "max(task.actualCompletionDate) "
-            + "from ProcessEnactment pe, ProcessEnactment pi, "
-            + "TaskStatusFact task " //
+            + "from ProcessEnactment pe, ProcessEnactment pi, TaskStatusFact task "
             + "where pe.key in (?) " //
             + "and pe.rootItem.key = pi.rootItem.key "
             + "and pe.process.key = pi.process.key "
@@ -279,6 +472,22 @@ public class ProbeDatabaseUtil {
             + "group by pe.key "
             + "having max(task.actualCompletionDateDim.key) < 99990000 "
             + "order by max(task.actualCompletionDate)";
+
+    /**
+     * Query to retrieve the amount of time historically spent in each phase of
+     * the active workflow
+     */
+    private static final String TIME_IN_PHASE_QUERY = //
+    "select mapsTo.shortName, sum(task.actualTimeMin) "
+            + "from ProcessEnactment pe, ProcessEnactment pi, TaskStatusFact task "
+            + "join pi.includesItem.phase.mapsToPhase mapsTo "
+            + "where pe.key in (?) " //
+            + "and pe.rootItem.key = pi.rootItem.key "
+            + "and pe.process.key = pi.process.key "
+            + "and pe.process.key = mapsTo.process.key "
+            + "and pi.includesItem.key = task.planItem.key "
+            + "and task.versionInfo.current = 1 " //
+            + "group by mapsTo.shortName";
 
     /**
      * Query to find the size data for a set of process enactments.
@@ -296,6 +505,16 @@ public class ProbeDatabaseUtil {
             + "and size.sizeMetric.shortName = ? "
             + "and size.versionInfo.current = 1 "
             + "group by pe.key, size.measurementType.name";
+
+
+    private static final String USES_DATABASE_TAG = "PROBE_USE_DATABASE_FOR_HIST_DATA";
+
+    private static final String PROJECT_ID = "Project_ID";
+
+    private static final String WORKFLOW_SOURCE_ID = "Workflow_Source_ID";
+
+    private static final String ESTIMATED_TIME = "Estimated Time";
+
 
     private class QueryError extends RuntimeException {
     }

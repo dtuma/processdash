@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2009 Tuma Solutions, LLC
+// Copyright (C) 2002-2014 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -22,6 +22,9 @@
 //     processdash-devel@lists.sourceforge.net
 
 package net.sourceforge.processdash.tool.probe.wizard;
+
+import net.sourceforge.processdash.data.DoubleData;
+import net.sourceforge.processdash.data.SimpleData;
 
 
 public class TimePage extends MethodsPage {
@@ -50,6 +53,13 @@ public class TimePage extends MethodsPage {
     @Override
     protected boolean isInverseBeta1() {
         return true;
+    }
+
+    @Override
+    protected void estimateWasSaved(SimpleData estimate) {
+        if (histData.isDatabaseMode() && estimate instanceof DoubleData)
+            new ProbeDatabaseUtil(data, prefix).spreadEstimatedTime(histData,
+                ((DoubleData) estimate).getDouble());
     }
 
 }

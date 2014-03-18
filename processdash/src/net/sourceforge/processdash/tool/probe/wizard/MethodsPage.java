@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2011 Tuma Solutions, LLC
+// Copyright (C) 2002-2014 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -102,6 +102,7 @@ public class MethodsPage extends WizardPage {
         if (!ImmutableDoubleData.READ_ONLY_ZERO.lessThan(estimate))
             return false;
         putValue(targetDataElement, estimate);
+        estimateWasSaved(estimate);
 
         // Save beta0 and beta1
         putValue(getDataName("Beta0"), getNum(qual, ProbeMethod.FLD_BETA0));
@@ -148,6 +149,8 @@ public class MethodsPage extends WizardPage {
         } catch (NumberFormatException nfe) { }
         return result;
     }
+
+    protected void estimateWasSaved(SimpleData estimate) {}
 
 
     public boolean writeReportSection() {
