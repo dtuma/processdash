@@ -1,4 +1,4 @@
-// Copyright (C) 2005-2007 Tuma Solutions, LLC
+// Copyright (C) 2005-2014 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -126,8 +126,6 @@ public class TimingMetricsRecorder implements TimeLogListener, DataConsistencyOb
         if (timings == null)
             return false;
 
-        // FIXME: is this the best approach?  This will not find and zero
-        // hierarchy paths that have no time log entries.
         for (Iterator i = timings.entrySet().iterator(); i.hasNext();) {
             Map.Entry e = (Map.Entry) i.next();
             String pathName = (String) e.getKey();
@@ -135,11 +133,18 @@ public class TimingMetricsRecorder implements TimeLogListener, DataConsistencyOb
 
             String timeElementName = DataRepository.createDataName(
                     pathName, "Time");
+            String orphanElementName = DataRepository.createDataName(
+                pathName, "Orphaned Time");
             SaveableData currentVal = data.getValue(timeElementName);
+            SaveableData orphanedVal = data.getValue(orphanElementName);
 
             if (pathValue == null) {
                 // this is a parent node where time logging is not allowed,
                 // and no time log entries were found there
+
+                if (orphanedVal != null)
+                    // if a previous orphan value exists, clear it.
+                    data.putValue(orphanElementName, null);
 
                 if (currentVal == null)
                     // the data repository agrees with us.  All is well.
@@ -155,21 +160,29 @@ public class TimingMetricsRecorder implements TimeLogListener, DataConsistencyOb
 
             } else if (approver.isTimeLoggingAllowed(pathName) == false) {
                 // the time log has entries for this path, but the time isn't
-                // supposed to be logged there.  Make no changes.
-                continue;
+                // supposed to be logged there.  Record it as orphaned time.
+                allPathsTouched.add(pathName);
+                storeNumberIfChanged(orphanElementName, orphanedVal, pathValue);
+
             } else {
                 allPathsTouched.add(pathName);
-
-                long pathTime = (pathValue)[0];
-                if (currentVal instanceof NumberData
-                        && ((NumberData) currentVal).getDouble() == pathTime)
-                    continue;
-
-                data.putValue(timeElementName, new DoubleData(pathTime, false));
+                storeNumberIfChanged(timeElementName, currentVal, pathValue);
+                if (orphanedVal != null)
+                    data.putValue(orphanElementName, null);
             }
         }
 
         return true;
+    }
+
+    private void storeNumberIfChanged(String dataName,
+            SaveableData currentVal, long[] pathValue) {
+        long pathTime = (pathValue)[0];
+        if (currentVal instanceof NumberData
+                && ((NumberData) currentVal).getDouble() == pathTime)
+            return;
+
+        data.putValue(dataName, new DoubleData(pathTime, false));
     }
 
     protected Map getTimings(String path) {
@@ -251,11 +264,9 @@ public class TimingMetricsRecorder implements TimeLogListener, DataConsistencyOb
     }
 
     private static class OrphanedEntry {
-        public String orphanedPath;
         public String retargetedPath;
         public long time;
         public OrphanedEntry(String orphanedPath, String retargetedPath, long time) {
-            this.orphanedPath = orphanedPath;
             this.retargetedPath = retargetedPath;
             this.time = time;
         }
