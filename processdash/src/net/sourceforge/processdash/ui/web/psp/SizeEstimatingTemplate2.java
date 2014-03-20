@@ -209,6 +209,14 @@ public class SizeEstimatingTemplate2 extends SizeEstimatingTemplate {
     private static final String READONLY_FLAG = "]r";
     private static final String EDITABLE_FLAG = "]";
 
+    private String insertLiteralProjectPath(String html) {
+        html = StringUtils.findAndReplace(html, PROJECT_PATH_TOKEN,
+            HTMLUtils.escapeEntities(getPrefix()));
+        return html;
+    }
+
+    private static final String PROJECT_PATH_TOKEN = "<!-- PROJECT_PATH -->";
+
     private String insertSizeTypeData(String html) {
         html = StringUtils.findAndReplace(html, SIZE_INIT_TOKEN,
             this.sizeTypeInit);
@@ -266,6 +274,7 @@ public class SizeEstimatingTemplate2 extends SizeEstimatingTemplate {
             String html = s.html;
             html = replaceNum(html, uniqueNumber);
             html = markReadOnlyFields(html);
+            html = insertLiteralProjectPath(html);
             html = insertSizeTypeData(html);
             html = flagInputMismatch(html);
             out.print(html);
