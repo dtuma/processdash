@@ -23,10 +23,13 @@
 
 package net.sourceforge.processdash.tool.db;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import net.sourceforge.processdash.data.DataContext;
@@ -37,9 +40,14 @@ import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.util.StringUtils;
 
-public class WorkflowEnactmentTaskEnumerator {
+/**
+ * @since 2.0.9
+ */
+public class WorkflowEnactmentHelper {
 
-    public static final String MATCH_ALL_SUFFIX = "/** ";
+    public enum TaskNodeType { Root, Parent, Leaf, PSP, PspPhase };
+
+    public enum TaskMapType { PhaseID, PhaseName, PhaseType };
 
     private DataContext data;
 
@@ -55,7 +63,9 @@ public class WorkflowEnactmentTaskEnumerator {
 
     private String workflowProcessName;
 
-    private Map<String, String> workflowPhases;
+    private Map<String, String> workflowPhaseNames;
+
+    private Map<String, String> workflowPhaseTypes;
 
     private Set<String> enactmentWbsIDs;
 
@@ -67,44 +77,61 @@ public class WorkflowEnactmentTaskEnumerator {
 
     private Map<String, String> enactmentTasks;
 
-    public WorkflowEnactmentTaskEnumerator(DataContext data, String onePath) {
+    private Map<String, TaskNodeType> nodeTypes;
+
+    public WorkflowEnactmentHelper(DataContext data, String onePath) {
         this.data = data;
         this.onePath = onePath;
-        lookupData();
     }
 
     public String getWorkflowProcessName() {
+        if (workflowProcessName == null)
+            tryLoadWorkflowInfo();
         return workflowProcessName;
     }
 
-    public Map<String, String> getWorkflowPhases() {
-        return workflowPhases;
+    public Map<String, String> getWorkflowPhaseNames() {
+        if (workflowPhaseNames == null)
+            tryLoadWorkflowInfo();
+        return workflowPhaseNames;
+    }
+
+    public Map<String, String> getWorkflowPhaseTypes() {
+        if (workflowPhaseTypes == null)
+            tryLoadWorkflowInfo();
+        return workflowPhaseTypes;
+    }
+
+    public TaskNodeType getNodeType(String taskPath) {
+        if (nodeTypes == null)
+            return null;
+        else
+            return nodeTypes.get(taskPath);
     }
 
     public String getRootItemPath() {
+        if (rootItemPath == null)
+            tryFindCurrentEnactmentRoot();
         return rootItemPath;
     }
 
     public String getRootItemWbsID() {
+        if (rootItemWbsID == null)
+            tryFindCurrentEnactmentRoot();
         return rootItemWbsID;
     }
 
-    public Map<String, String> getEnactmentTasks() {
-        return enactmentTasks;
-    }
+    public Map<String, String> getEnactmentTasks(TaskMapType mapValueType,
+            TaskNodeType... typesToInclude) {
+        if (enactmentTasks == null)
+            tryEnumerateTasks();
 
-    private void lookupData() {
-        try {
-            lookupObjects();
-            loadWorkflowInfo();
-            findCurrentEnactmentRoot();
-            if (rootItemKey != null) {
-                enactmentTasks = new HashMap();
-                enumerateCurrentTasks(rootItemKey, null);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        if (mapValueType == TaskMapType.PhaseName)
+            return buildValueMap(typesToInclude, workflowPhaseNames);
+        else if (mapValueType == TaskMapType.PhaseType)
+            return buildValueMap(typesToInclude, workflowPhaseTypes);
+        else
+            return buildValueMap(typesToInclude, null);
     }
 
     private void lookupObjects() {
@@ -121,7 +148,18 @@ public class WorkflowEnactmentTaskEnumerator {
         db.getObject(ProjectLocator.class).getKeyForProject(projectID, null);
     }
 
+
+    private void tryLoadWorkflowInfo() {
+        try {
+            loadWorkflowInfo();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     private void loadWorkflowInfo() {
+        if (query == null)
+            lookupObjects();
         // identify the workflow process that generated this task
         String workflowID = getPrimaryWorkflowID(onePath);
         String fullWorkflowID = DatabasePluginUtils.getWorkflowPhaseIdentifier(
@@ -133,7 +171,8 @@ public class WorkflowEnactmentTaskEnumerator {
 
         // retrieve the phases in this workflow.
         rawData = query.queryHql(WORKFLOW_PHASE_QUERY, workflowProcessKey);
-        workflowPhases = QueryUtils.mapColumns(rawData, 0, 1);
+        workflowPhaseNames = QueryUtils.mapColumns(rawData, 0, 1);
+        workflowPhaseTypes = QueryUtils.mapColumns(rawData, 0, 2);
     }
 
     private static final String WORKFLOW_PROCESS_QUERY = //
@@ -141,11 +180,24 @@ public class WorkflowEnactmentTaskEnumerator {
             + "from Phase phase where phase.identifier = ?";
 
     private static final String WORKFLOW_PHASE_QUERY = //
-    "select phase.identifier, phase.shortName "
-            + "from Phase phase where phase.process.key = ?";
+    "select phase.identifier, phase.shortName, phase.typeName "
+            + "from Phase phase where phase.process.key = ? "
+            + "order by phase.ordinal";
 
+
+    private void tryFindCurrentEnactmentRoot() {
+        try {
+            findCurrentEnactmentRoot();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
     private void findCurrentEnactmentRoot() {
+        // ensure the workflow info has been loaded
+        if (workflowProcessKey == null)
+            loadWorkflowInfo();
+
         // find the WBS IDs of all of the tasks in this enactment
         String wbsID = getString(onePath, WBS_ID);
         String projectWbsID = projectID + ":" + wbsID;
@@ -176,51 +228,96 @@ public class WorkflowEnactmentTaskEnumerator {
             + "and pe.rootItem.key = pi.rootItem.key "
             + "and pe.process.key = pi.process.key";
 
-    private void enumerateCurrentTasks(PropertyKey parentNode, String parentType) {
-        int numChildren = hier.getNumChildren(parentNode);
-        if (numChildren == 0) {
-            if (parentType != null)
-                enactmentTasks.put(parentNode.path(), parentType);
 
-        } else {
-            for (int i = numChildren; i-- > 0;) {
-                PropertyKey child = hier.getChildKey(parentNode, i);
-                String childType = getWorkflowType(child.path(), parentType);
-
-                if (childType != null && childType.endsWith(MATCH_ALL_SUFFIX))
-                    enactmentTasks.put(child.path(), childType);
-                else
-                    enumerateCurrentTasks(child, childType);
+    private void tryEnumerateTasks() {
+        try {
+            if (enactmentWbsIDs == null)
+                findCurrentEnactmentRoot();
+            if (rootItemKey != null) {
+                enactmentTasks = new LinkedHashMap<String, String>();
+                nodeTypes = new HashMap();
+                enumerateTasks(rootItemKey, null);
+                nodeTypes.put(rootItemPath, TaskNodeType.Root);
             }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
-    private String getWorkflowType(String nodePath, String parentType) {
+    private boolean enumerateTasks(PropertyKey node, String inheritedID) {
+        String nodePath = node.path();
+        boolean nodeIsPSP = isPspTask(nodePath);
+        String nodeID = getWorkflowPhaseID(nodePath, inheritedID, nodeIsPSP);
+        enactmentTasks.put(nodePath, nodeID);
+        boolean isWorkflowPart = (nodeID != null);
+
+        int numChildren = hier.getNumChildren(node);
+        if (numChildren == 0) {
+            nodeTypes.put(nodePath, TaskNodeType.Leaf);
+
+        } else if (nodeIsPSP) {
+            if (nodeID != null) {
+                nodeTypes.put(nodePath, TaskNodeType.PSP);
+                for (int i = 0; i < numChildren; i++) {
+                    PropertyKey phase = hier.getChildKey(node, i);
+                    String phasePath = phase.path();
+                    nodeTypes.put(phasePath, TaskNodeType.PspPhase);
+
+                    String phaseID;
+                    if (nodeID.equals(inheritedID))
+                        phaseID = nodeID;
+                    else
+                        phaseID = nodeID + "/" + phase.name();
+                    enactmentTasks.put(phasePath, phaseID);
+                }
+            }
+
+        } else {
+            nodeTypes.put(nodePath, TaskNodeType.Parent);
+            for (int i = 0; i < numChildren; i++) {
+                PropertyKey child = hier.getChildKey(node, i);
+                if (enumerateTasks(child, nodeID))
+                    isWorkflowPart = true;
+            }
+        }
+
+        if (!isWorkflowPart) {
+            enactmentTasks.remove(nodePath);
+            nodeTypes.remove(nodePath);
+        }
+
+        return isWorkflowPart;
+    }
+
+    private String getWorkflowPhaseID(String nodePath, String parentID,
+            boolean nodeIsPSP) {
         // get the workflow source ID of the given node
         String workflowID = getPrimaryWorkflowID(nodePath);
         if (!StringUtils.hasValue(workflowID))
-            return parentType;
+            return parentID;
 
         // translate this into a database-specific phase ID
         String phaseID = DatabasePluginUtils.getWorkflowPhaseIdentifier(
             projectID, workflowID);
 
         // if this node is a PSP task, it requires special handling
-        if (isPspTask(nodePath)) {
+        if (nodeIsPSP) {
             String planningPhaseID = phaseID + PLANNING;
-            String planningPhaseName = workflowPhases.get(planningPhaseID);
+            String planningPhaseName = workflowPhaseNames.get(planningPhaseID);
             if (planningPhaseName != null) {
-                String baseName = planningPhaseName.substring(0,
+                String pspName = planningPhaseName.substring(0,
                     planningPhaseName.length() - PLANNING.length());
-                return baseName + MATCH_ALL_SUFFIX;
+                workflowPhaseNames.put(phaseID, pspName);
+                workflowPhaseTypes.put(phaseID, "PSP");
+                return phaseID;
             } else {
-                return parentType;
+                return parentID;
             }
 
         } else {
-            // look up the name of the phase with that ID
-            String phaseName = workflowPhases.get(phaseID);
-            return (phaseName == null ? parentType : phaseName);
+            // see if we have a phase with that ID
+            return (workflowPhaseNames.containsKey(phaseID) ? phaseID
+                    : parentID);
         }
     }
 
@@ -236,6 +333,31 @@ public class WorkflowEnactmentTaskEnumerator {
             return workflowID;
         else
             return workflowID.substring(0, commaPos);
+    }
+
+    private Map buildValueMap(TaskNodeType[] types, Map values) {
+        if (enactmentTasks == null)
+            return null;
+
+        boolean typeFlags[] = new boolean[TaskNodeType.values().length];
+        if (types.length == 0) {
+            Arrays.fill(typeFlags, true);
+        } else {
+            for (TaskNodeType t : types)
+                typeFlags[t.ordinal()] = true;
+        }
+
+        Map result = new LinkedHashMap();
+        for (Entry<String, String> e : enactmentTasks.entrySet()) {
+            String nodePath = e.getKey();
+            TaskNodeType nodeType = getNodeType(nodePath);
+            if (nodeType != null && typeFlags[nodeType.ordinal()]) {
+                String nodeID = e.getValue();
+                Object value = values == null ? nodeID : values.get(nodeID);
+                result.put(nodePath, value);
+            }
+        }
+        return result;
     }
 
     private boolean isPspTask(String path) {

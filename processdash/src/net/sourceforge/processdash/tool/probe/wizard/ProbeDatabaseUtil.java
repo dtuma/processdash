@@ -23,8 +23,6 @@
 
 package net.sourceforge.processdash.tool.probe.wizard;
 
-import static net.sourceforge.processdash.tool.db.WorkflowEnactmentTaskEnumerator.MATCH_ALL_SUFFIX;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -43,11 +41,14 @@ import net.sourceforge.processdash.data.SaveableData;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.StringData;
 import net.sourceforge.processdash.data.repository.DataRepository;
+import net.sourceforge.processdash.hier.Filter;
 import net.sourceforge.processdash.tool.db.DatabasePlugin;
 import net.sourceforge.processdash.tool.db.DatabasePluginUtils;
 import net.sourceforge.processdash.tool.db.QueryRunner;
 import net.sourceforge.processdash.tool.db.QueryUtils;
-import net.sourceforge.processdash.tool.db.WorkflowEnactmentTaskEnumerator;
+import net.sourceforge.processdash.tool.db.WorkflowEnactmentHelper;
+import net.sourceforge.processdash.tool.db.WorkflowEnactmentHelper.TaskMapType;
+import net.sourceforge.processdash.tool.db.WorkflowEnactmentHelper.TaskNodeType;
 
 public class ProbeDatabaseUtil {
 
@@ -208,21 +209,32 @@ public class ProbeDatabaseUtil {
      */
     public void spreadEstimatedTime(ProbeData histData, double estimate) {
         // get a list of the tasks in the current process enactment
-        WorkflowEnactmentTaskEnumerator tasks =
-                new WorkflowEnactmentTaskEnumerator(data, prefix);
-        Map<String, String> currentTasks = tasks.getEnactmentTasks();
+        WorkflowEnactmentHelper tasks = new WorkflowEnactmentHelper(data,
+                prefix);
+        Map<String, String> targetTasks = tasks.getEnactmentTasks(
+            TaskMapType.PhaseName, TaskNodeType.Leaf);
+        if (targetTasks == null)
+            // null indicates that the database queries failed. Abort.
+            return;
+
+        Map<String, String> pspTasks = tasks.getEnactmentTasks(
+            TaskMapType.PhaseName, TaskNodeType.PSP);
+        targetTasks.putAll(pspTasks);
+        Set<String> workflowPspSteps = new HashSet(pspTasks.values());
 
         // if we were able to enumerate the tasks successfully, spread the new
         // time estimate across those tasks using historical time-in-phase data.
-        if (currentTasks != null && !currentTasks.isEmpty()) {
+        if (!targetTasks.isEmpty()) {
             Map timeInPhase = ((ProbeDatabaseResultSet) histData.getResultSet())
                     .getTimeInPhase();
-            spreadTimeUsingWeights(currentTasks, timeInPhase, estimate);
+            spreadTimeUsingWeights(targetTasks, workflowPspSteps, timeInPhase,
+                estimate);
         }
     }
 
     private void spreadTimeUsingWeights(Map<String, String> targetTasks,
-            Map<String, Number> weights, double newTotal) {
+            Set<String> workflowPspSteps, Map<String, Number> weights,
+            double newTotal) {
 
         // if any of the tasks are complete, don't change their estimates.
         // instead, reduce the newTotal by the planned time of those completed
@@ -243,7 +255,7 @@ public class ProbeDatabaseUtil {
         // in those phases.
         double totalWeight = 0;
         HashSet phasesPresent = new HashSet(targetTasks.values());
-        mergeWeightsOfMatchAllPhases(phasesPresent, weights);
+        mergeWeightsOfPspPhases(workflowPspSteps, weights);
         for (Object phaseName : phasesPresent)
             totalWeight += doubleValue(weights.get(phaseName));
 
@@ -293,26 +305,22 @@ public class ProbeDatabaseUtil {
     /**
      * Some tasks (such as PSP tasks) are estimated at a parent level, then time
      * is distributed across subtasks. The workflow task enumerator will list
-     * those tasks with a type like "PSP/** ". The time-in-phase data, however,
+     * those tasks with a phase like "PSP". The time-in-phase data, however,
      * will include separate entries for each subitem (for example,
      * "PSP/Planning", "PSP/Design", etc.
      * 
-     * This method looks for "match all" phases that are present in the list of
-     * workflow tasks, and sums up the weights of all the items that match.
+     * This method sums up the phase data for each PSP task, and creates a new
+     * entry to store the weight of the PSP task.
      */
-    private void mergeWeightsOfMatchAllPhases(Set<String> phasesPresent,
+    private void mergeWeightsOfPspPhases(Set<String> workflowPspSteps,
             Map<String, Number> weights) {
-        for (String onePhase : phasesPresent) {
-            if (onePhase.endsWith(MATCH_ALL_SUFFIX)) {
-                String matchPrefix = onePhase.substring(0, onePhase.length()
-                        - MATCH_ALL_SUFFIX.length()) + "/";
-                double matchedWeight = 0;
-                for (Entry<String, Number> e : weights.entrySet()) {
-                    if (e.getKey().startsWith(matchPrefix))
-                        matchedWeight += doubleValue(e.getValue());
-                }
-                weights.put(onePhase, matchedWeight);
+        for (String onePspStep : workflowPspSteps) {
+            double matchedWeight = 0;
+            for (Entry<String, Number> e : weights.entrySet()) {
+                if (Filter.pathMatches(e.getKey(), onePspStep))
+                    matchedWeight += doubleValue(e.getValue());
             }
+            weights.put(onePspStep, matchedWeight);
         }
     }
 
