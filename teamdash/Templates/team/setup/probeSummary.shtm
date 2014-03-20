@@ -1,0 +1,205 @@
+<html>
+<head>
+<title><!--#echo [Workflow_Name] --> - Project Plan Summary</title>
+<link href="/style.css" rel="stylesheet" type="text/css"></link>
+<style>
+   .plan { padding-left: 10px }
+   .acct { padding-left: 1em }
+</style>
+</head>
+<body>
+
+<h1 style='margin-top:0px'><!--#echo [Workflow_Root_Path] --></h1>
+
+<h2><!--#echo [Workflow_Name] --> - Project Plan Summary</h2>
+
+<form>
+<input type="hidden" name="[///Hierarchy]!"/>
+
+
+<h2>Project Settings</h2>
+
+<table>
+<tr>
+<td>Project Owner</td>
+<td colspan="10"><input type="text" size="50" name="[/Owner]s"/></td>
+</tr>
+
+<tr>
+<td>Start Date</td>
+<td colspan="4"><input type="text" size="25" name="[Workflow Started]d"/></td>
+<td></td><td></td><td></td><td></td><td></td><td></td>
+</tr>
+
+<tr>
+<td>Completion Date</td>
+<td colspan="4"><input type="text" size="25" name="[Workflow Completed]du"/></td>
+<td colspan="6">&nbsp;Completed:
+     <input type="checkbox" name="[Workflow Completed]du"/></td>
+</tr>
+
+<tr>
+<td>Size Units</td>
+<td colspan="10"><input type="text" size="15" name="[Size Units]rs"/></td>
+</tr>
+
+</table>
+
+
+<h2>Overall Metrics</h2>
+
+<table><tr><th align="left">Summary</th>
+<th class="plan">Plan</th>
+<th>Actual</th>
+</tr>
+
+<tr><td>Size/Hour</td>
+<td class="plan"><input type="text" size="7" name="Estimated Productivity"/></td>
+<td><input type="text" size="7" name="Productivity"/></td>
+</tr>
+
+<tr><td>Total Time</td>
+<td class="plan"><input type="text" size="7" name="Estimated Workflow Time"/></td>
+<td><input type="text" size="7" name="Workflow Time"/></td>
+</tr>
+
+</tr>
+<tr><td>Time Estimating Error</td>
+<td class="plan"></td>
+<td><input type="text" size="7" name="[Time Estimating Error]%"/></td>
+</tr>
+
+</tr>
+<tr><td>CPI (Cost-Performance Index)</td>
+<td class="plan"></td>
+<td><input type="text" size="7" name="CPI"/></td>
+</tr>
+
+<tr><td>% Reuse</td>
+<td class="plan"><input type="text" size="7" name="Estimated % Reused"/></td>
+<td><input type="text" size="7" name="% Reused"/></td>
+</tr>
+
+<tr><td>% New Reusable</td>
+<td class="plan"><input type="text" size="7" name="Estimated % New Reused"/></td>
+<td><input type="text" size="7" name="% New Reused"/></td>
+</tr>
+
+<tr><td>% Appraisal COQ</td>
+<td class="plan"><input type="text" size="7" name="Estimated % Appraisal COQ"/></td>
+<td><input type="text" size="7" name="% Appraisal COQ"/></td>
+</tr>
+
+<tr><td>% Failure COQ</td>
+<td class="plan"><input type="text" size="7" name="Estimated % Failure COQ"/></td>
+<td><input type="text" size="7" name="% Failure COQ"/></td>
+</tr>
+
+<tr><td>COQ A/F Ratio</td>
+<td class="plan"><input type="text" size="7" name="Estimated AFR"/></td>
+<td><input type="text" size="7" name="AFR"/></td>
+</tr>
+
+</table>
+
+<h2>Program Size</h2>
+
+<table><tr><th></th>
+<th class="plan">Plan</th>
+<th>Actual</th>
+</tr>
+
+<tr><td>Base (B)</td>
+<td class="plan"><input type="text" size="7" name="Estimated Base Size"/></td>
+<td><input type="text" size="7" name="Base Size"/></td>
+</tr>
+
+<tr><td class="acct">Deleted (D)</td>
+<td class="plan"><input type="text" size="7" name="Estimated Deleted Size"/></td>
+<td><input type="text" size="7" name="Deleted Size"/></td>
+</tr>
+
+<tr><td class="acct">Modified (M)</td>
+<td class="plan"><input type="text" size="7" name="Estimated Modified Size"/></td>
+<td><input type="text" size="7" name="Modified Size"/></td>
+</tr>
+
+<tr><td class="acct">Added (A)</td>
+<td class="plan"><input type="text" size="7" name="Estimated Added Size"/></td>
+<td><input type="text" size="7" name="Added Size"/></td>
+</tr>
+
+<tr><td class="acct">Reused (R)</td>
+<td class="plan"><input type="text" size="7" name="Estimated Reused Size"/></td>
+<td><input type="text" size="7" name="Reused Size"/></td>
+</tr>
+
+<tr><td>Added and Modified (A+M)</td>
+<td class="plan"><input type="text" size="7" name="Estimated Added &amp; Modified Size"/></td>
+<td><input type="text" size="7" name="Added &amp; Modified Size"/></td>
+</tr>
+
+<tr><td>Total Size (T)</td>
+<td class="plan"><input type="text" size="7" name="Estimated Total Size"/></td>
+<td><input type="text" size="7" name="Total Size"/></td>
+</tr>
+
+<tr><td>Total New Reusable</td>
+<td class="plan"><input type="text" size="7" name="Estimated New Reused Size"/></td>
+<td><input type="text" size="7" name="New Reused Size"/></td>
+</tr>
+
+<tr><td>Estimated Proxy Size (E)</td>
+<td class="plan"><input type="text" size="7" name="Estimated Proxy Size"/></td>
+<td><input type="text" size="7" name="Proxy Size"/></td>
+</tr>
+
+<tr><td>Upper Prediction Interval (70%)</td>
+<td class="plan"><input type="text" size="7" name="Estimated Added &amp; Modified Size/UPI"/></td>
+<td></td>
+</tr>
+
+<tr><td>Lower Prediction Interval (70%)</td>
+<td class="plan"><input type="text" size="7" name="Estimated Added &amp; Modified Size/LPI"/></td>
+<td></td>
+</tr>
+
+</table>
+
+
+<h2>Time In Phase</h2>
+
+<table><tr><th></th>
+<th class="plan">Plan</th>
+<th>Actual</th>
+</tr>
+
+<!--#foreach name=Phase list=phases -->
+
+<tr><td><!--#echo Phase_Rel_Path --></td>
+<!--#if Phase_Orphan #-->
+    <td></td>
+    <td><input type="text" size="7"
+        name="[<!--#echo Phase_Abs_Path -->/Orphaned Time]tro"/></td>
+<!--#else #-->
+    <td class="plan"><input type="text" size="7" name="[<!--#echo Phase_Abs_Path
+             -->/Estimated Time]t"/></td>
+    <td><input type="text" size="7" name="[<!--#echo Phase_Abs_Path
+             -->/Time]tro"/></td>
+<!--#endif-->
+</tr>
+<!--#endfor-->
+
+<tr><td>Total</td>
+<td class="plan"><input type="text" size="7" name="[Estimated Workflow Time]"/></td>
+<td><input type="text" size="7" name="[Workflow Time]"/></td>
+</tr>
+
+</table>
+
+</form>
+
+<hr>
+<script src='/data.js' type='text/javascript'> </script>
+</body>
+</html>

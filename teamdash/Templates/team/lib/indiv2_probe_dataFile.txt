@@ -15,11 +15,9 @@
 [Node_Type] == "Planning";
 
 
-// Display forms/tools for PROBE support
+// Display forms/tools for PROBE and process support
 
-[Process_URLs] = iff([/pspProc/Installed],
-    ",<!--#echo Process_ID -->/sizeest.class,",
-    ",reports/probe/probe.class,");
+[Process_URLs] == ",<!--#echo Process_ID -->/sizeest.class,<!--#echo Process_ID -->/setup/probeSummary,";
 
 
 // Provide configuration values for the PROBE Wizard
@@ -27,6 +25,7 @@
 [SIZE_METRIC_LABEL] = [Size Units];
 [PROBE_USE_DATABASE_FOR_HIST_DATA] = tag;
 [PROBE_TARGET_TIME_METRIC_NAME] == "Total Time";
+[PROBE_NO_EDIT_INPUT] == iff([/pspProc/Installed], true, false);
 
 
 // Arrange for size values to appear on the Size Inventory, and to
@@ -60,3 +59,44 @@
     && [PROBE_Last_Run_Value/Estimated Total Time] > 0
     && abs([PROBE_Last_Run_Value/Estimated Total Time]
              - [Estimated Total Time]) > 0.5;
+
+
+// Calculate equations of interest for the Project Plan Summary
+
+[Estimated Workflow Time] = sumFor("Estimated Time", [Workflow_Task_Paths]);
+[Workflow Time] = sumFor("Time", [Workflow_Task_Paths])
+        + sumFor("Orphaned Time", [Workflow_Orphaned_Time_Paths]);
+[CPI] = [Estimated Workflow Time] / [Workflow Time];
+[Time Estimating Error] = ([Workflow Time] - [Estimated Workflow Time])
+        / [Estimated Workflow Time];
+
+[Workflow Started] = indirect([Workflow_Root_Path] &/ "Started");
+[Workflow Completed] = maxDate("Completed", [Workflow_Task_Paths]);
+
+[Estimated Productivity] = [Estimated Size] * 60 / [Estimated Workflow Time];
+[Productivity] = [Size] * 60 / [Workflow Time];
+
+[Estimated % Reused] = [Estimated Reused Size] / [Estimated Total Size];
+[Estimated % New Reused] =
+        [Estimated New Reused Size] / [Estimated Added & Modified Size];
+
+[% Reused]     = [Reused Size]     / [Total Size];
+[% New Reused] = [New Reused Size] / [Added & Modified Size];
+
+[Estimated % Appraisal COQ] = sumFor("Estimated Time",
+    [Workflow_Task_Paths/Appraisal]) / [Estimated Workflow Time];
+[% Appraisal COQ] = (sumFor("Time", [Workflow_Task_Paths/Appraisal])
+        + sumFor("Orphaned Time", [Workflow_Task_Paths/Appraisal]))
+        / [Workflow Time];
+
+[Estimated % Failure COQ] = sumFor("Estimated Time",
+    [Workflow_Task_Paths/Failure]) / [Estimated Workflow Time];
+[% Failure COQ] = (sumFor("Time", [Workflow_Task_Paths/Failure])
+        + sumFor("Orphaned Time", [Workflow_Task_Paths/Failure]))
+        / [Workflow Time];
+
+[Estimated % COQ]= [Estimated % Appraisal COQ] + [Estimated % Failure COQ];
+[% COQ] = [% Appraisal COQ] + [% Failure COQ];
+
+[Estimated AFR] = [Estimated % Appraisal COQ] / [Estimated % Failure COQ];
+[AFR] = [% Appraisal COQ] / [% Failure COQ];
