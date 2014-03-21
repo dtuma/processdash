@@ -105,6 +105,7 @@ public class HierarchySynchronizer {
     private String projectID;
     private URL workflowLocation;
     private boolean workflowURLsSupported;
+    private Map<String, String> workflowIdMap;
     private String initials, initialsPattern;
     private String ownerName;
     private boolean oldStyleSync;
@@ -1366,6 +1367,7 @@ public class HierarchySynchronizer {
             String dataName = processID + " /"
                     + TeamDataConstants.PROJECT_WORKFLOW_URLS_DATA_NAME;
             forceData(projectPath, dataName, result);
+            collectWorkflowIDs(workflowXml);
         }
     }
 
@@ -1413,6 +1415,25 @@ public class HierarchySynchronizer {
                     collectWorkflowUrls(result, child, path + "/" + childName,
                         childID, preferWorkflowIDs);
             }
+        }
+    }
+
+    private void collectWorkflowIDs(Element workflowXml) {
+        workflowIdMap = new HashMap<String, String>();
+        for (Element workflow : XMLUtils.getChildElements(workflowXml)) {
+            String workflowName = workflow.getAttribute(NAME_ATTR);
+            if (XMLUtils.hasValue(workflowName))
+                collectWorkflowIDs(workflowName, workflow);
+        }
+        workflowIdMap.remove("");
+        workflowIdMap.remove(null);
+    }
+
+    private void collectWorkflowIDs(String workflowName, Element workflow) {
+        for (Element task : XMLUtils.getChildElements(workflow)) {
+            String taskID = task.getAttribute(ID_ATTR);
+            workflowIdMap.put(taskID, workflowName);
+            collectWorkflowIDs(workflowName, task);
         }
     }
 
@@ -2596,7 +2617,48 @@ public class HierarchySynchronizer {
             super.syncData(worker, path, node);
             if (!isPrunedNode(node)) {
                 maybeSaveTimeValue(worker, path, node);
+                saveWorkflowMetadata(worker, path, node);
             }
+        }
+
+        private void saveWorkflowMetadata(SyncWorker worker, String path,
+                Element node) {
+            if (workflowIdMap == null)
+                return;
+
+            String workflowID = getPrimaryWorkflowID(node);
+            String workflowName = workflowIdMap.get(workflowID);
+            if (!XMLUtils.hasValue(workflowName))
+                return;
+
+            forceData(path, "Workflow_Name", StringData.create(workflowName));
+
+            String searchPath = path;
+            while (true) {
+                searchPath = DataRepository.chopPath(searchPath);
+                node = (Element) node.getParentNode();
+                if (searchPath == null || node == null)
+                    break;
+
+                workflowID = getPrimaryWorkflowID(node);
+                String parentWfName = workflowIdMap.get(workflowID);
+                if (!workflowName.equals(parentWfName)) {
+                    forceData(path, "Workflow_Root_Path",
+                        StringData.create(searchPath));
+                    break;
+                }
+            }
+        }
+
+        private String getPrimaryWorkflowID(Element node) {
+            String result = node.getAttribute(WORKFLOW_ID_ATTR);
+            if (!StringUtils.hasValue(result))
+                return null;
+            int commaPos = result.indexOf(',');
+            if (commaPos == -1)
+                return result;
+            else
+                return result.substring(0, commaPos);
         }
 
         @Override
