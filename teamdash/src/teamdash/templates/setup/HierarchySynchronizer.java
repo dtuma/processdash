@@ -2683,6 +2683,19 @@ public class HierarchySynchronizer {
             if (units == null || units.length() == 0)
                 return;
 
+            // if these size units have already been stored, there is nothing
+            // we need to do..
+            String currentUnits = getStringData(getData(path,
+                PROBE_SIZE_UNITS_DATA_NAME));
+            if (units.equals(currentUnits))
+                return;
+
+            // if the user has already entered planned or actual size for
+            // this project, don't alter the size units.
+            for (String metric : PROBE_SIZE_DATA_ELEMENT_NAMES)
+                if (testData(getData(path, metric)))
+                    return;
+
             // save the unit of size measurement to the project.
             StringData value = StringData.create(units);
             value.setEditable(false);
@@ -2704,6 +2717,8 @@ public class HierarchySynchronizer {
     private static final String SIZE_UNITS_DATA_NAME =
         "Sized_Objects/0/Sized_Object_Units";
     private static final String PROBE_SIZE_UNITS_DATA_NAME = "Size Units";
+    private static final String[] PROBE_SIZE_DATA_ELEMENT_NAMES = {
+            "Estimated Proxy Size", "Estimated Size", "Size", "Total Size" };
 
 
 
