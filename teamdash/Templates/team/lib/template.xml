@@ -730,6 +730,8 @@
 
   <scriptSource class="teamdash.templates.setup.WorkflowScriptSource"
           dataName="PID /Project_Workflow_URL_List"/>
+  <scriptSource class="teamdash.templates.setup.WorkflowProbeScriptSource"
+          processID="PID" requires="personalMode"/>
 
   <!--#if Custom_Wbs_Column_Spec -->
   <customWbsColumns specFile="/PID/wbsColumnSpec.xml"/>

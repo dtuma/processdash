@@ -15,11 +15,6 @@
 [Node_Type] == "Planning";
 
 
-// Display forms/tools for PROBE and process support
-
-[Process_URLs] == ",<!--#echo Process_ID -->/sizeest.class,<!--#echo Process_ID -->/setup/probeSummary,";
-
-
 // Provide configuration values for the PROBE Wizard
 
 [SIZE_METRIC_LABEL] = [Size Units];
