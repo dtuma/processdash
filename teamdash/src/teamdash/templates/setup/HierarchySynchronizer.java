@@ -57,6 +57,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import net.sourceforge.processdash.DashController;
+import net.sourceforge.processdash.InternalSettings;
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.DataContext;
 import net.sourceforge.processdash.data.DateData;
@@ -2609,6 +2610,10 @@ public class HierarchySynchronizer {
                 return false;
 
             super.syncNode(worker, pathPrefix, node);
+
+            if (!Settings.getBool("tpidw.enabled", false))
+                InternalSettings.set("tpidw.enabled", "true");
+
             return true;
         }
 
