@@ -221,6 +221,7 @@ public class WBSDataWriter {
         writeAttr(out, NAME_ATTR, node.getName());
         writeAttr(out, ID_ATTR, node.getUniqueID());
         writeAttr(out, TASK_ID_ATTR, MasterWBSUtil.getNodeIDs(node, projectID));
+        writeAttr(out, RELAUNCH_SOURCE_ID_ATTR, getRelaunchSourceID(node));
         writeAttr(out, LABELS_ATTR, getLabelSaveString(node));
         writeAttr(out, WORKFLOW_ID_ATTR, getWorkflowIdSaveString(node));
         writeAttr(out, MILESTONE_ID_ATTR, getMilestoneIdSaveString(node));
@@ -289,6 +290,12 @@ public class WBSDataWriter {
         int milestoneID = MilestoneColumn.getMilestoneID(node);
         return milestoneID != -1
                 && deferredMilestoneIDs.contains(milestoneID);
+    }
+
+
+
+    private String getRelaunchSourceID(WBSNode node) {
+        return (String) node.getAttribute("relaunchSourceID");
     }
 
 
@@ -831,6 +838,7 @@ public class WBSDataWriter {
     private static final String NAME_ATTR = "name";
     private static final String ID_ATTR = "id";
     private static final String TASK_ID_ATTR = "tid";
+    private static final String RELAUNCH_SOURCE_ID_ATTR = "rsid";
     private static final String LABELS_ATTR = "labels";
     private static final String WORKFLOW_ID_ATTR = "wid";
     private static final String MILESTONE_ID_ATTR = "mid";
