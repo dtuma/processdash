@@ -127,8 +127,7 @@ public class WorkflowProbeScriptSource implements ScriptSource {
 
     private boolean checkVersionNumbers() {
         for (String[] reqt : REQUIRED_VERSIONS) {
-            String version = TemplateLoader.getPackageVersion(reqt[0]);
-            if (DashPackage.compareVersions(version, reqt[1]) < 0)
+            if (!hasPackage(reqt[0], reqt[1]))
                 return false;
         }
         return true;
@@ -138,6 +137,16 @@ public class WorkflowProbeScriptSource implements ScriptSource {
             { "pspdash", "2.0.9" }, //
             { "tpidw-embedded", "1.3.1" } };
 
+    private boolean isPspAddOnInstalled() {
+        return hasPackage("pspProc", "2.4");
+    }
+
+    private boolean hasPackage(String packageID, String minVersion) {
+        String version = TemplateLoader.getPackageVersion(packageID);
+        return (version != null && DashPackage.compareVersions(version,
+            minVersion) >= 0);
+    }
+
     private void addScripts(List<ScriptID> result, String path) {
         String rootPath = getString(path, "Workflow_Root_Path");
         String workflowName = getString(path, "Workflow_Name");
@@ -146,8 +155,9 @@ public class WorkflowProbeScriptSource implements ScriptSource {
 
         result.add(new ScriptID(getUrl(path, "/setup/probeSummary"), //
                 rootPath, workflowName + " - Project Plan Summary"));
-        result.add(new ScriptID(getUrl(path, "/sizeest.class"), //
-            rootPath, workflowName + " - Size Estimating Template"));
+        if (isPspAddOnInstalled())
+            result.add(new ScriptID(getUrl(path, "/sizeest.class"), //
+                rootPath, workflowName + " - Size Estimating Template"));
     }
 
     private String getUrl(String path, String href) {
