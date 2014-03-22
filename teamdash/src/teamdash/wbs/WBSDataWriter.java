@@ -218,7 +218,7 @@ public class WBSDataWriter {
 
         // write the XML tag and the standard element attributes.
         out.write("<" + tagName);
-        writeAttr(out, NAME_ATTR, node.getName());
+        writeAttr(out, NAME_ATTR, getWbsNodeName(node));
         writeAttr(out, ID_ATTR, node.getUniqueID());
         writeAttr(out, TASK_ID_ATTR, MasterWBSUtil.getNodeIDs(node, projectID));
         writeAttr(out, RELAUNCH_SOURCE_ID_ATTR, getRelaunchSourceID(node));
@@ -290,6 +290,18 @@ public class WBSDataWriter {
         int milestoneID = MilestoneColumn.getMilestoneID(node);
         return milestoneID != -1
                 && deferredMilestoneIDs.contains(milestoneID);
+    }
+
+
+
+    private String getWbsNodeName(WBSNode node) {
+        String name = node.getName();
+        if (".".equals(name))
+            return ",";
+        else if ("..".equals(name))
+            return ",,";
+        else
+            return name;
     }
 
 

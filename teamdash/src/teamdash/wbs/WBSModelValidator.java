@@ -202,6 +202,9 @@ public class WBSModelValidator implements TableModelListener {
         if (name == null || name.trim().length() == 0)
             return "Every " + lowerCase(type) + " must have a name.";
 
+        if (".".equals(name) || "..".equals(name))
+            return "\"" + name + "\" is not a legal name.";
+
         return null;
     }
 
