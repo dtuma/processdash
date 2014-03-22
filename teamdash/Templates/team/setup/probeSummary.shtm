@@ -39,6 +39,11 @@
 </tr>
 
 <tr>
+<td>Keywords</td>
+<td colspan="10"><input type="text" size="15" name="[Workflow Keywords]s"/></td>
+</tr>
+
+<tr>
 <td>Size Units</td>
 <td colspan="10"><input type="text" size="15" name="[Size Units]rs"/></td>
 </tr>

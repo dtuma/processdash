@@ -67,6 +67,7 @@
 
 [Workflow Started] = indirect([Workflow_Root_Path] &/ "Started");
 [Workflow Completed] = maxDate("Completed", [Workflow_Task_Paths]);
+[Workflow Keywords] = indirect([Workflow_Root_Path] &/ "Project/Keywords");
 
 [Estimated Productivity] = [Estimated Size] * 60 / [Estimated Workflow Time];
 [Productivity] = [Size] * 60 / [Workflow Time];
