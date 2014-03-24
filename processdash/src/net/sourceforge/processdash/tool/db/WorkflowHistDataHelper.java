@@ -23,6 +23,7 @@
 
 package net.sourceforge.processdash.tool.db;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -69,6 +70,14 @@ public class WorkflowHistDataHelper {
         this.workflowName = workflowName;
     }
 
+    public String getContextProjectID() {
+        return contextProjectID;
+    }
+
+    public String getWorkflowName() {
+        return workflowName;
+    }
+
     public boolean isOnlyCompleted() {
         return onlyCompleted;
     }
@@ -85,9 +94,33 @@ public class WorkflowHistDataHelper {
     }
 
     private List query(String hql, Object... args) {
+        for (Object oneArg : args) {
+            if (oneArg instanceof Collection) {
+                // when empty collections are bound to an argument in an HQL
+                // query, Hibernate throws an exception. Since all of our
+                // collection arguments are "in" clauses, an empty collection
+                // arg means that the result will be empty too. Handle this
+                // case specially to avoid receiving the exception.
+                if (((Collection) oneArg).isEmpty())
+                    return Collections.EMPTY_LIST;
+            }
+        }
         initQueryRunner();
         return query.queryHql(hql, args);
     }
+
+    public List<String> getWorkflowNamesForProject() {
+        String workflowProcessIDPattern = DatabasePluginUtils
+                .getWorkflowPhaseIdentifier(contextProjectID, "%");
+        List result = query(WORKFLOW_LIST_QUERY, workflowProcessIDPattern);
+        if (result.size() > 1)
+            Collections.sort(result);
+        return result;
+    }
+
+    private static final String WORKFLOW_LIST_QUERY = //
+    "select p.name from Process p where p.identifier like ?";
+
 
     private List getEnactments() {
         if (enactments == null) {
@@ -263,7 +296,7 @@ public class WorkflowHistDataHelper {
             + "and pe.process.key = mapsTo.process.key "
             + "and pi.includesItem.key = task.planItem.key "
             + "and task.versionInfo.current = 1 " //
-            + "group by mapsTo.shortName " //
+            + "group by mapsTo.shortName, mapsTo.typeName " //
             + "order by mapsTo.shortName";
 
 

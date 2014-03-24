@@ -24,6 +24,7 @@
 package net.sourceforge.processdash.ui.web.dash;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -38,8 +39,11 @@ import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.DataPair;
 import net.sourceforge.processdash.util.FormatUtil;
 import net.sourceforge.processdash.util.HTMLUtils;
+import net.sourceforge.processdash.util.StringUtils;
 
 public class WorkflowToDateReport extends TinyCGIBase {
+
+    private static final String SELF_URI = "workflowToDate";
 
     private static final Resources resources = Resources
             .getDashBundle("Analysis");
@@ -49,10 +53,63 @@ public class WorkflowToDateReport extends TinyCGIBase {
         String projectID = getProjectID();
         String workflowName = getParameter("workflowName");
         WorkflowHistDataHelper hist = new WorkflowHistDataHelper(
-                getDataContext(), projectID, workflowName);
+            getDataContext(), projectID, workflowName);
+        if (projectID != null && StringUtils.hasValue(workflowName))
+            writeReportForWorkflow(hist);
+        else
+            writeWorkflowSelectionScreen(hist);
+    }
+
+    private void writeWorkflowSelectionScreen(WorkflowHistDataHelper hist) {
+        String title = esc(res("Workflow.Analysis.Title"));
+
+        out.print("<html><head>\n<title>");
+        out.print(title);
+        out.print("</title>\n");
+        out.print(cssLinkHTML());
+        out.print("</head>\n");
+        out.print("<body><h1>");
+        out.print(title);
+        out.print("</h1>\n");
+
+        if (hist.getContextProjectID() != null)
+            writeWorkflowSelections(hist);
+
+        out.print("</body></html>\n");
+    }
+
+    private void writeWorkflowSelections(WorkflowHistDataHelper hist) {
+        // get the list of workflows in this team project.
+        List<String> workflowNames = hist.getWorkflowNamesForProject();
+        if (workflowNames.isEmpty()) {
+            out.write("<p>");
+            out.write(esc(res("Workflow.Analysis.No_Workflows_Message")));
+            out.write("</p>\n");
+            return;
+        }
+
+        // display a prompt inviting the user to choose a workflow
+        out.write("<p>");
+        out.write(esc(res("Workflow.Analysis.Choose_Workflow_Prompt")));
+        out.write("</p><ul>");
+
+        // display hyperlinks for each of the workflows
+        for (String oneName : workflowNames) {
+            out.write("<li><a href=\"");
+            out.write(HTMLUtils.appendQuery(SELF_URI, "workflowName", oneName));
+            out.write("\">");
+            out.write(esc(oneName));
+            out.write("</a></li>\n");
+        }
+
+        out.write("</ul>\n");
+    }
+
+    private void writeReportForWorkflow(WorkflowHistDataHelper hist)
+            throws IOException {
 
         String title = resources.format("Workflow.To_Date.Title_FMT",
-            workflowName);
+            hist.getWorkflowName());
 
         out.print("<html><head><title>");
         out.print(esc(title));
@@ -160,9 +217,8 @@ public class WorkflowToDateReport extends TinyCGIBase {
     private void printTable(String titleRes, String subtitleRes,
             Map<String, DataPair> data, Format fmt, boolean showActualPercent) {
 
-        out.print("<h2>" + resources.getHTML(titleRes) + "</h2>\n");
-        out.print("<table>\n");
-        printTableHeader(subtitleRes, showActualPercent);
+        if (data.isEmpty())
+            return;
 
         double percentOf = 0;
         if (showActualPercent) {
@@ -170,6 +226,11 @@ public class WorkflowToDateReport extends TinyCGIBase {
             if (d != null)
                 percentOf = d.actual;
         }
+        showActualPercent = percentOf > 0;
+
+        out.print("<h2>" + esc(res(titleRes)) + "</h2>\n");
+        out.print("<table>\n");
+        printTableHeader(subtitleRes, showActualPercent);
 
         for (Entry<String, DataPair> e : data.entrySet()) {
             printTableRow(e.getKey(), e.getValue(), fmt, false, percentOf);
