@@ -72,8 +72,15 @@ public class WorkflowToDateReport extends TinyCGIBase {
         out.print(title);
         out.print("</h1>\n");
 
-        if (hist.getContextProjectID() != null)
+        if (parameters.containsKey("wait")) {
+            out.print("<p>");
+            out.print(esc(res("Workflow.Analysis.Wait_Message")));
+            out.print("</p>\n");
+            out.print(HTMLUtils.redirectScriptHtml(SELF_URI, 0));
+
+        } else if (hist.getContextProjectID() != null) {
             writeWorkflowSelections(hist);
+        }
 
         out.print("</body></html>\n");
     }
