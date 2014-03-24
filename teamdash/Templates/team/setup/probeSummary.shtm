@@ -3,6 +3,12 @@
 <title><!--#echo [Workflow_Name] --> - Project Plan Summary</title>
 <link href="/style.css" rel="stylesheet" type="text/css"></link>
 <style>
+   h2 a { 
+      font-size: smaller;
+      font-style: italic;
+      font-weight: normal;
+      padding-left: 1em;
+   }
    .plan { padding-left: 10px }
    .acct { padding-left: 1em }
 </style>
@@ -11,13 +17,18 @@
 
 <h1 style='margin-top:0px'><!--#echo [Workflow_Root_Path] --></h1>
 
-<h2><!--#echo [Workflow_Name] --> - Project Plan Summary</h2>
+<h2><!--#echo [Workflow_Name] --> - Project Plan Summary
+<!--#if !EXPORT -->
+<a class="doNotPrint" href="../../reports/workflowToDate?workflowName=<!--#echo
+     var=[Workflow_Name] encoding=url -->">(Show To Date Metrics)</a>
+<!--#endif-->
+</h2>
 
 <form>
 <input type="hidden" name="[///Hierarchy]!"/>
 
 
-<h2>Project Settings</h2>
+<h2>Project/Task Settings</h2>
 
 <table>
 <tr>
@@ -100,6 +111,11 @@
 <td><input type="text" size="7" name="% Failure COQ"/></td>
 </tr>
 
+<tr><td>% Total COQ</td>
+<td class="plan"><input type="text" size="7" name="Estimated % COQ"/></td>
+<td><input type="text" size="7" name="% COQ"/></td>
+</tr>
+
 <tr><td>COQ A/F Ratio</td>
 <td class="plan"><input type="text" size="7" name="Estimated AFR"/></td>
 <td><input type="text" size="7" name="AFR"/></td>
@@ -107,7 +123,7 @@
 
 </table>
 
-<h2>Program Size</h2>
+<h2>Size</h2>
 
 <table><tr><th></th>
 <th class="plan">Plan</th>
