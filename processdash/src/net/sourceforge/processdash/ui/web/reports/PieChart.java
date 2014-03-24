@@ -25,17 +25,19 @@ package net.sourceforge.processdash.ui.web.reports;
 
 
 import java.awt.Color;
-
-import net.sourceforge.processdash.process.ProcessUtil;
-import net.sourceforge.processdash.ui.lib.chart.PhaseChartColorer;
-import net.sourceforge.processdash.ui.web.CGIChartBase;
+import java.awt.Paint;
 
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
+import org.jfree.chart.plot.DefaultDrawingSupplier;
 import org.jfree.chart.plot.PiePlot;
 import org.jfree.data.category.CategoryDataset;
 import org.jfree.data.general.DatasetUtilities;
 import org.jfree.data.general.PieDataset;
+
+import net.sourceforge.processdash.process.ProcessUtil;
+import net.sourceforge.processdash.ui.lib.chart.PhaseChartColorer;
+import net.sourceforge.processdash.ui.web.CGIChartBase;
 
 
 
@@ -75,8 +77,12 @@ public class PieChart extends CGIChartBase {
         else
             plot.setCircular(false);
 
-        if ("byPhase".equals(parameters.get("colorScheme")))
+        Object colorScheme = parameters.get("colorScheme");
+        if ("byPhase".equals(colorScheme))
             maybeConfigurePhaseColors(plot, pieData);
+        else if ("consistent".equals(colorScheme))
+            // since 2.0.9
+            configureConsistentColors(plot, pieData);
 
         String interiorGap = (String) parameters.get("interiorGap");
         if (interiorGap != null) try {
@@ -104,4 +110,14 @@ public class PieChart extends CGIChartBase {
             }
         }.run();
     }
+
+    private void configureConsistentColors(final PiePlot plot,
+            PieDataset pieData) {
+        DefaultDrawingSupplier s = new DefaultDrawingSupplier();
+        for (Object key : pieData.getKeys()) {
+            Paint paint = s.getNextPaint();
+            plot.setSectionPaint((Comparable) key, paint);
+        }
+    }
+
 }
