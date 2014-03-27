@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2012 Tuma Solutions, LLC
+// Copyright (C) 2001-2014 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -390,13 +390,18 @@ public class EVSchedule implements TableModel {
         }
 
         public void setPlanDirectTime(Object value) {
+            setPlanDirectTime(value, false);
+        }
+
+        public void setPlanDirectTime(Object value, boolean forceException) {
             if (value instanceof String) {
                 if (END_TOKEN.equalsIgnoreCase((String)value))
                     setAsScheduleEnd();
                 else {
                     // parse the value to obtain a number of minutes
                     long time = FormatUtil.parseTime((String) value);
-                    if (!inScheduleEnd() && (time == 0 || datesLocked))
+                    if (!inScheduleEnd()
+                            && (time == 0 || datesLocked || forceException))
                         prepForException();
                     setPlanDirectTime(time);
                 }

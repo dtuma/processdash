@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2008 Tuma Solutions, LLC
+// Copyright (C) 2002-2014 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -29,6 +29,7 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.Vector;
 
+import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.ev.ui.chart.ChartEventAdapter;
 
 import org.jfree.data.xy.XYDataset;
@@ -371,7 +372,9 @@ public class EVScheduleRollup extends EVSchedule {
 
     @Override
     public boolean isCellEditable(int rowIndex, int columnIndex) {
-        return false;
+        return Settings.isReadWrite() //
+                && (columnIndex == PLAN_TIME_COLUMN //
+                || columnIndex == PLAN_DTIME_COLUMN);
     }
     @Override
     public void setValueAt(Object aValue, int rowIndex, int columnIndex) { }

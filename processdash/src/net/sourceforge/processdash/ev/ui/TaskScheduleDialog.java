@@ -233,7 +233,7 @@ public class TaskScheduleDialog implements EVTask.Listener,
 
     protected TaskScheduleOptions optionsDialog = null;
 
-    protected Resources resources = Resources.getDashBundle("EV");
+    protected static final Resources resources = Resources.getDashBundle("EV");
 
     private static Preferences preferences = Preferences.userNodeForPackage(TaskScheduleDialog.class);
     private static final String EXPANDED_NODES_KEY_SUFFIX = "_EXPANDEDNODES";
@@ -444,6 +444,14 @@ public class TaskScheduleDialog implements EVTask.Listener,
         closeAction.setText(isDirty ? resources.getString("Cancel")
                                     : resources.getString("Close"));
         MacGUIUtils.setDirty(frame, isDirty);
+    }
+
+    private Set<EVTaskList> dirtySubschedules;
+    void recordDirtySubschedule(EVTaskList tl) {
+        if (dirtySubschedules == null)
+            dirtySubschedules = new HashSet();
+        dirtySubschedules.add(tl);
+        setDirty(true);
     }
 
     protected Component buildTaskButtons(boolean isRollup) {
@@ -1933,6 +1941,15 @@ public class TaskScheduleDialog implements EVTask.Listener,
             } else {
                 showHideColumn(notes, null, 0);
             }
+            if (isRollup()) {
+                ScheduleBalancingDialog d = new ScheduleBalancingDialog(
+                        TaskScheduleDialog.this,
+                        (EVTaskListRollup) TaskScheduleDialog.this.model);
+                getColumnModel().getColumn(EVSchedule.PLAN_TIME_COLUMN)
+                        .setCellEditor(d);
+                getColumnModel().getColumn(EVSchedule.PLAN_DTIME_COLUMN)
+                        .setCellEditor(d);
+            }
         }
 
         public TableCellRenderer getCellRenderer(int row, int column) {
@@ -3082,6 +3099,11 @@ public class TaskScheduleDialog implements EVTask.Listener,
     }
 
     protected void save() {
+        if (dirtySubschedules != null) {
+            for (EVTaskList subschedule : dirtySubschedules)
+                subschedule.save();
+            dirtySubschedules = null;
+        }
         model.save();
         setDirty(false);
         displayErrorDialog(getErrors());

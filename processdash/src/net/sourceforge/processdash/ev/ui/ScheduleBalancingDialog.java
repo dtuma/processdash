@@ -26,6 +26,7 @@ package net.sourceforge.processdash.ev.ui;
 import java.awt.Component;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
@@ -34,6 +35,11 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import javax.swing.AbstractAction;
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.JButton;
+import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -49,6 +55,7 @@ import net.sourceforge.processdash.ev.EVSchedule.Period;
 import net.sourceforge.processdash.ev.EVTaskList;
 import net.sourceforge.processdash.ev.EVTaskListData;
 import net.sourceforge.processdash.ev.EVTaskListRollup;
+import net.sourceforge.processdash.ui.lib.BoxUtils;
 import net.sourceforge.processdash.ui.lib.DecimalField;
 import net.sourceforge.processdash.ui.lib.JDialogCellEditor;
 import net.sourceforge.processdash.util.FormatUtil;
@@ -56,11 +63,11 @@ import net.sourceforge.processdash.util.TimeNumberFormat;
 
 public class ScheduleBalancingDialog extends JDialogCellEditor {
 
+    private TaskScheduleDialog parent;
+
     private EVTaskListRollup rollupTaskList;
 
     private Date targetDate;
-
-    private Component parentComponent;
 
     private List<ScheduleTableRow> scheduleRows;
 
@@ -71,7 +78,9 @@ public class ScheduleBalancingDialog extends JDialogCellEditor {
     private double originalTotalTime;
 
 
-    public ScheduleBalancingDialog(EVTaskListRollup taskList) {
+    public ScheduleBalancingDialog(TaskScheduleDialog parent,
+            EVTaskListRollup taskList) {
+        this.parent = parent;
         this.rollupTaskList = taskList;
         super.button.setHorizontalAlignment(SwingConstants.RIGHT);
         setClickCountToStart(2);
@@ -86,7 +95,6 @@ public class ScheduleBalancingDialog extends JDialogCellEditor {
             boolean isSelected, int row, int column) {
         this.targetDate = rollupTaskList.getSchedule().get(row + 1)
                 .getEndDate(true);
-        this.parentComponent = table.getTopLevelAncestor();
 
         return super.getTableCellEditorComponent(table, value, isSelected, row,
             column);
@@ -141,11 +149,38 @@ public class ScheduleBalancingDialog extends JDialogCellEditor {
         }
         totalRow.addToPanel(panel, numScheduleRows);
 
-        String dialogTitle = TaskScheduleDialog.resources.getString( //
-                rowsAreEditable ? "Balance.Editable_Title"
-                        : "Balance.Read_Only_Title");
-        JOptionPane.showMessageDialog(parentComponent, panel, dialogTitle,
-            JOptionPane.PLAIN_MESSAGE);
+        if (rowsAreEditable == false) {
+            String title = TaskScheduleDialog.resources
+                    .getString("Balance.Read_Only_Title");
+            JOptionPane.showMessageDialog(parent.frame, panel, title,
+                JOptionPane.PLAIN_MESSAGE);
+
+        } else {
+            String title = TaskScheduleDialog.resources
+                    .getString("Balance.Editable_Title");
+            JDialog dialog = new JDialog(parent.frame, title, true);
+            addButtons(dialog, panel, numScheduleRows + 1);
+            panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+            dialog.getContentPane().add(panel);
+            dialog.pack();
+            dialog.setLocationRelativeTo(parent.frame);
+            dialog.setResizable(true);
+            dialog.setVisible(true);
+        }
+    }
+
+    private void addButtons(JDialog dialog, JPanel panel, int gridY) {
+        Box buttonBox = BoxUtils.hbox( //
+            new JButton(new OKAction(dialog)), 5, //
+            new JButton(new RevertTimesAction()), 5, //
+            new JButton(new CancelAction(dialog)));
+
+        GridBagConstraints c = new GridBagConstraints();
+        c.gridy = gridY;
+        c.gridwidth = 3;
+        c.anchor = GridBagConstraints.CENTER;
+        c.insets = new Insets(10, 10, 0, 10);
+        panel.add(buttonBox, c);
     }
 
     private void sumUpTotalTime() {
@@ -191,6 +226,23 @@ public class ScheduleBalancingDialog extends JDialogCellEditor {
     }
 
 
+    private void saveChanges() {
+        boolean madeChange = false;
+        for (ScheduleTableRow oneRow : scheduleRows)
+            if (oneRow.saveChanges())
+                madeChange = true;
+        if (madeChange)
+            parent.recalcAll();
+    }
+
+
+    private void revertTimes() {
+        for (ScheduleTableRow oneRow : scheduleRows)
+            oneRow.revertTime();
+        sumUpTotalTime();
+    }
+
+
     private enum TimeChangeSource {
         TextField, Slider, Other
     }
@@ -217,6 +269,7 @@ public class ScheduleBalancingDialog extends JDialogCellEditor {
         void createEditingControls() {
             // create the text field for directly editing time
             timeField = new DecimalField(0, 4, new TimeNumberFormat());
+            timeField.setMinimumSize(timeField.getPreferredSize());
             timeField.addFocusListener(this);
             timeField.addActionListener(this);
 
@@ -373,6 +426,21 @@ public class ScheduleBalancingDialog extends JDialogCellEditor {
                 redistributeTime(this);
         }
 
+        boolean saveChanges() {
+            if (Math.abs(time - targetPeriod.getPlanDirectTime()) < 0.1) {
+                return false;
+            } else {
+                targetPeriod.setPlanDirectTime(FormatUtil.formatTime(time),
+                    true);
+                parent.recordDirtySubschedule(targetTaskList);
+                return true;
+            }
+        }
+
+        void revertTime() {
+            setTime(targetPeriod.getPlanDirectTime(), TimeChangeSource.Other);
+        }
+
     }
 
     private class TotalTableRow extends TableRow {
@@ -412,6 +480,47 @@ public class ScheduleBalancingDialog extends JDialogCellEditor {
             super.setTime(newTime, src);
             if (src != TimeChangeSource.Other)
                 redistributeTime(null);
+        }
+
+    }
+
+    private class OKAction extends AbstractAction {
+        private JDialog dialog;
+
+        public OKAction(JDialog dialog) {
+            super(TaskScheduleDialog.resources.getString("OK"));
+            this.dialog = dialog;
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            saveChanges();
+            dialog.dispose();
+        }
+
+    }
+
+    private class CancelAction extends AbstractAction {
+        private JDialog dialog;
+
+        public CancelAction(JDialog dialog) {
+            super(TaskScheduleDialog.resources.getString("Cancel"));
+            this.dialog = dialog;
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            dialog.dispose();
+        }
+
+    }
+
+    private class RevertTimesAction extends AbstractAction {
+
+        public RevertTimesAction() {
+            super(TaskScheduleDialog.resources.getString("Revert"));
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            revertTimes();
         }
 
     }
