@@ -24,9 +24,13 @@
 package net.sourceforge.processdash.ev.ui;
 
 import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.awt.Paint;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
@@ -38,6 +42,7 @@ import java.util.List;
 import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
+import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
@@ -50,6 +55,17 @@ import javax.swing.SwingConstants;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import org.jfree.chart.ChartPanel;
+import org.jfree.chart.JFreeChart;
+import org.jfree.chart.axis.DateAxis;
+import org.jfree.chart.axis.NumberAxis;
+import org.jfree.chart.labels.XYToolTipGenerator;
+import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.chart.plot.XYPlot;
+import org.jfree.chart.renderer.xy.XYBarRenderer;
+import org.jfree.data.xy.AbstractIntervalXYDataset;
+import org.jfree.data.xy.XYDataset;
+
 import net.sourceforge.processdash.ev.EVSchedule;
 import net.sourceforge.processdash.ev.EVSchedule.Period;
 import net.sourceforge.processdash.ev.EVTaskList;
@@ -58,6 +74,8 @@ import net.sourceforge.processdash.ev.EVTaskListRollup;
 import net.sourceforge.processdash.ui.lib.BoxUtils;
 import net.sourceforge.processdash.ui.lib.DecimalField;
 import net.sourceforge.processdash.ui.lib.JDialogCellEditor;
+import net.sourceforge.processdash.util.ComparableValue;
+import net.sourceforge.processdash.util.DateUtils;
 import net.sourceforge.processdash.util.FormatUtil;
 import net.sourceforge.processdash.util.TimeNumberFormat;
 
@@ -76,6 +94,8 @@ public class ScheduleBalancingDialog extends JDialogCellEditor {
     private TotalTableRow totalRow;
 
     private double originalTotalTime;
+
+    private ChartData chartData;
 
 
     public ScheduleBalancingDialog(TaskScheduleDialog parent,
@@ -146,6 +166,7 @@ public class ScheduleBalancingDialog extends JDialogCellEditor {
         } else {
             for (int i = 0; i < numScheduleRows; i++)
                 scheduleRows.get(i).addToPanel(panel, i);
+            addChartToPanel(panel, numScheduleRows + 1);
         }
         totalRow.addToPanel(panel, numScheduleRows);
 
@@ -159,13 +180,71 @@ public class ScheduleBalancingDialog extends JDialogCellEditor {
             String title = TaskScheduleDialog.resources
                     .getString("Balance.Editable_Title");
             JDialog dialog = new JDialog(parent.frame, title, true);
-            addButtons(dialog, panel, numScheduleRows + 1);
+            addButtons(dialog, panel, numScheduleRows + 2);
             panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
             dialog.getContentPane().add(panel);
             dialog.pack();
             dialog.setLocationRelativeTo(parent.frame);
             dialog.setResizable(true);
             dialog.setVisible(true);
+        }
+    }
+
+    private void addChartToPanel(JPanel panel, int gridY) {
+        // create a dataset for displaying schedule data
+        chartData = new ChartData();
+        updateChart();
+
+        // customize a renderer for displaying schedules
+        XYBarRenderer renderer = new XYBarRenderer();
+        renderer.setUseYInterval(true);
+        renderer.setBaseToolTipGenerator(chartData);
+        renderer.setDrawBarOutline(true);
+
+        // use an inverted, unadorned numeric Y-axis
+        NumberAxis yAxis = new NumberAxis();
+        yAxis.setInverted(true);
+        yAxis.setTickLabelsVisible(false);
+        yAxis.setTickMarksVisible(false);
+        yAxis.setUpperMargin(0);
+
+        // use a Date-based X-axis
+        DateAxis xAxis = new DateAxis();
+
+        // create an XY plot to display the data
+        XYPlot plot = new XYPlot(chartData, xAxis, yAxis, renderer);
+        plot.setOrientation(PlotOrientation.VERTICAL);
+        plot.setRangeGridlinesVisible(false);
+        plot.setNoDataMessage(TaskScheduleDialog.resources
+                .getString("Chart.No_Data_Message"));
+
+        // create a chart and a chart panel
+        JFreeChart chart = new JFreeChart(plot);
+        chart.removeLegend();
+        ChartPanel chartPanel = new ChartPanel(chart);
+        chartPanel.setInitialDelay(50);
+        chartPanel.setDismissDelay(60000);
+        chartPanel.setMinimumDrawHeight(40);
+        chartPanel.setMinimumDrawWidth(40);
+        chartPanel.setMaximumDrawHeight(3000);
+        chartPanel.setMaximumDrawWidth(3000);
+        chartPanel.setPreferredSize(new Dimension(300, gridY * 25));
+
+        // add the chart to the dialog content pane
+        GridBagConstraints c = new GridBagConstraints();
+        c.gridy = gridY;
+        c.gridwidth = 3;
+        c.weightx = 2;
+        c.weighty = 1;
+        c.fill = GridBagConstraints.BOTH;
+        c.insets = new Insets(10, 0, 0, 0);
+        panel.add(chartPanel, c);
+
+        // retrieve the colors used for each chart bar, and register those
+        // colors with the schedule rows so they can act as a legend
+        for (int i = scheduleRows.size(); i-- > 0;) {
+            ScheduleTableRow oneRow = scheduleRows.get(i);
+            oneRow.addColoredIcon(renderer.lookupSeriesPaint(i));
         }
     }
 
@@ -190,6 +269,7 @@ public class ScheduleBalancingDialog extends JDialogCellEditor {
         totalRow.setTime(newTotal, TimeChangeSource.Other);
         for (ScheduleTableRow oneRow : scheduleRows)
             oneRow.updateSliderPos();
+        updateChart();
     }
 
     private void redistributeTime(ScheduleTableRow forRow) {
@@ -223,6 +303,20 @@ public class ScheduleBalancingDialog extends JDialogCellEditor {
                 }
             }
         }
+
+        updateChart();
+    }
+
+    private void updateChart() {
+        if (chartData != null) {
+            double cumTime = 0;
+            for (int i = 0; i < scheduleRows.size(); i++) {
+                ScheduleTableRow oneRow = scheduleRows.get(i);
+                cumTime += oneRow.time / oneRow.duration;
+                oneRow.cumTime = cumTime;
+            }
+            chartData.fireDatasetChanged();
+        }
     }
 
 
@@ -252,13 +346,19 @@ public class ScheduleBalancingDialog extends JDialogCellEditor {
 
         String rowLabel;
 
+        JLabel rowJLabel;
+
         double time;
+
+        double cumTime;
 
         JTextField timeField;
 
         JLabel timeLabel = new JLabel();
 
         JSlider timeSlider;
+
+        ComparableValue rowKey;
 
         boolean programmaticallyChangingSlider;
 
@@ -278,12 +378,19 @@ public class ScheduleBalancingDialog extends JDialogCellEditor {
             timeSlider.addChangeListener(this);
         }
 
+        public void addColoredIcon(Paint paint) {
+            rowJLabel.setIcon(new ColoredIcon(paint));
+        }
+
         void addToPanel(JPanel panel, int row) {
+            rowKey = new ComparableValue(rowLabel, row);
+
+            rowJLabel = new JLabel(rowLabel + "  ");
             GridBagConstraints c = new GridBagConstraints();
             c.gridx = 0;
             c.gridy = row;
             c.anchor = GridBagConstraints.WEST;
-            panel.add(new JLabel(rowLabel + "  "), c);
+            panel.add(rowJLabel, c);
 
             c.gridx = 1;
             c.anchor = GridBagConstraints.EAST;
@@ -364,6 +471,8 @@ public class ScheduleBalancingDialog extends JDialogCellEditor {
 
         private Period targetPeriod;
 
+        private double duration;
+
         public ScheduleTableRow(EVTaskList tl) {
             this.targetTaskList = tl;
             this.rowLabel = tl.getDisplayName();
@@ -378,6 +487,8 @@ public class ScheduleBalancingDialog extends JDialogCellEditor {
             if (p != null && p.getBeginDate() != EVSchedule.A_LONG_TIME_AGO
                     && p.getEndDate(false).after(targetDate)) {
                 this.targetPeriod = p;
+                this.duration = (p.getEndDate().getTime() - p.getBeginDate()
+                        .getTime()) / (double) DateUtils.DAYS;
                 if (isEditable) {
                     rowsAreEditable = true;
                     createEditingControls();
@@ -455,6 +566,8 @@ public class ScheduleBalancingDialog extends JDialogCellEditor {
                 createEditingControls();
             setTime(time, TimeChangeSource.Other);
             super.addToPanel(panel, row);
+            if (chartData != null)
+                addColoredIcon(null);
         }
 
         @Override
@@ -483,6 +596,101 @@ public class ScheduleBalancingDialog extends JDialogCellEditor {
         }
 
     }
+
+    private class ColoredIcon implements Icon {
+
+        private Paint paint;
+
+        protected ColoredIcon(Paint paint) {
+            this.paint = paint;
+        }
+
+        public void paintIcon(Component c, Graphics g, int x, int y) {
+            if (paint != null) {
+                ((Graphics2D) g).setPaint(paint);
+                g.fillRect(x + 2, y + 2, 8, 8);
+            }
+        }
+
+        public int getIconWidth() {
+            return 12;
+        }
+
+        public int getIconHeight() {
+            return 12;
+        }
+
+    }
+
+    private class ChartData extends AbstractIntervalXYDataset implements
+            XYToolTipGenerator {
+
+        public int getSeriesCount() {
+            if (totalRow.time == 0)
+                return 0;
+            else
+                return scheduleRows.size();
+        }
+
+        private ScheduleTableRow get(int series) {
+            return scheduleRows.get(series);
+        }
+
+        public Comparable getSeriesKey(int series) {
+            return get(series).rowKey;
+        }
+
+        public int indexOf(Comparable seriesKey) {
+            return ((ComparableValue) seriesKey).getOrdinal();
+        }
+
+        public int getItemCount(int series) {
+            return 1;
+        }
+
+        public Number getStartX(int series, int item) {
+            return get(series).targetPeriod.getBeginDate().getTime();
+        }
+
+        public Number getEndX(int series, int item) {
+            return get(series).targetPeriod.getEndDate().getTime();
+        }
+
+        public Number getStartY(int series, int item) {
+            if (series == 0)
+                return 0;
+            else
+                return getEndY(series - 1, item);
+        }
+
+        public Number getEndY(int series, int item) {
+            return get(series).cumTime;
+        }
+
+        public Number getX(int series, int item) {
+            return getStartX(series, item);
+        }
+
+        public Number getY(int series, int item) {
+            return getStartY(series, item);
+        }
+
+        @Override
+        protected void fireDatasetChanged() {
+            super.fireDatasetChanged();
+        }
+
+        public String generateToolTip(XYDataset dataset, int series, int item) {
+            ScheduleTableRow row = get(series);
+            return TaskScheduleDialog.resources.format(
+                "Balance.Chart_Tooltip_FMT", row.rowLabel,
+                FormatUtil.formatTime(row.time),
+                row.targetPeriod.getBeginDate(), //
+                row.targetPeriod.getEndDate());
+        }
+
+    }
+
 
     private class OKAction extends AbstractAction {
         private JDialog dialog;
