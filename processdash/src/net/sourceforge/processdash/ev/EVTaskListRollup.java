@@ -25,6 +25,7 @@
 package net.sourceforge.processdash.ev;
 
 import java.util.Collections;
+import java.util.EventObject;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -36,6 +37,7 @@ import javax.swing.tree.TreePath;
 
 import org.jfree.data.xy.XYDataset;
 
+import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.ListData;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.StringData;
@@ -54,6 +56,7 @@ public class EVTaskListRollup extends EVTaskList {
 
     protected DataRepository data;
     protected Vector evTaskLists;
+    private RecalcListener recalcRepeater;
 
     /** Create a rollup task list.
      *
@@ -68,7 +71,18 @@ public class EVTaskListRollup extends EVTaskList {
         this.data = data;
 
         evTaskLists = new Vector();
-        addTaskListsFromData(data, hierarchy, cache, taskListName);
+        boolean monitorChildChanges = willNeedChangeNotification
+                && Settings.isPersonalMode();
+        if (monitorChildChanges) {
+            recalcRepeater = new RecalcListener() {
+                public void evRecalculated(EventObject e) {
+                    if (!isCalculating)
+                        recalcTimer.restart();
+                }};
+        }
+
+        addTaskListsFromData(data, hierarchy, cache, taskListName,
+            monitorChildChanges);
         schedule = new EVScheduleRollup(evTaskLists);
         loadID(taskListName, data, TASK_LISTS_DATA_NAME);
         loadMetadata(taskListName, data);
@@ -97,7 +111,8 @@ public class EVTaskListRollup extends EVTaskList {
     private void addTaskListsFromData(DataRepository data,
                                       DashHierarchy hierarchy,
                                       ObjectCache cache,
-                                      String taskListName) {
+                                      String taskListName,
+                                      boolean willNeedChangeNotification) {
         String globalPrefix = MAIN_DATA_PREFIX + taskListName;
         String dataName =
             DataRepository.createDataName(globalPrefix, TASK_LISTS_DATA_NAME);
@@ -112,7 +127,7 @@ public class EVTaskListRollup extends EVTaskList {
         for (int i = 0;   i < list.size();   i++) {
             taskListName = (String) list.get(i);
             EVTaskList taskList = openTaskListToAdd(taskListName, data,
-                    hierarchy, cache);
+                    hierarchy, cache, willNeedChangeNotification);
             if (taskList == null) {
                 if (EVTaskListXML.validName(taskListName))
                     taskList = new EVTaskListXML(taskListName);
@@ -195,7 +210,8 @@ public class EVTaskListRollup extends EVTaskList {
                                    ObjectCache cache,
                                    boolean willNeedChangeNotification) {
 
-        EVTaskList taskList = openTaskListToAdd(path, data, hierarchy, cache);
+        EVTaskList taskList = openTaskListToAdd(path, data, hierarchy, cache,
+            willNeedChangeNotification);
         // when adding an XML task list that doesn't appear to exist yet
         // (most likely due to the timing of import/export operations when
         // an individual is joining a team project), give the caller the
@@ -228,7 +244,8 @@ public class EVTaskListRollup extends EVTaskList {
     }
 
     private EVTaskList openTaskListToAdd(String taskListToAdd,
-            DataRepository data, DashHierarchy hierarchy, ObjectCache cache) {
+            DataRepository data, DashHierarchy hierarchy, ObjectCache cache,
+            boolean changeNotify) {
         String myName = this.taskListName;
         Set names = (Set) TASK_LIST_NAMES_CURRENTLY_OPENING.get();
         try {
@@ -236,9 +253,13 @@ public class EVTaskListRollup extends EVTaskList {
             if (names.contains(taskListToAdd))
                 return new EVTaskList(taskListToAdd, taskListToAdd,
                         resources.getString("Task.Circular_Task.Error"));
-            else
-                return EVTaskList.openExisting
-                    (taskListToAdd, data, hierarchy, cache, false);
+            else {
+                EVTaskList result = EVTaskList.openExisting
+                    (taskListToAdd, data, hierarchy, cache, changeNotify);
+                if (changeNotify && result != null && recalcRepeater != null)
+                    result.addRecalcListener(recalcRepeater);
+                return result;
+            }
         } finally {
             names.remove(myName);
         }

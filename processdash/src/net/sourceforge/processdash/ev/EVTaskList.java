@@ -106,6 +106,7 @@ public class EVTaskList extends AbstractTreeTableModel
     protected String taskListID = null;
     protected EVSchedule schedule;
     protected EVCalculator calculator;
+    protected boolean isCalculating;
     protected EVDependencyCalculator dependencyCalculator = null;
     protected TaskLabeler taskLabeler = null;
     protected MilestoneProvider milestoneProvider = null;
@@ -796,6 +797,7 @@ public class EVTaskList extends AbstractTreeTableModel
 
 
     public void recalc() {
+        isCalculating = true;
         if (calculator != null)
             calculator.recalculate();
         if (dependencyCalculator != null)
@@ -812,6 +814,7 @@ public class EVTaskList extends AbstractTreeTableModel
         showMilestoneColumn = showLabelsColumn = false;
         scanForLabelsAndMilestones(taskRoot);
         nodeTypeSpecs = null;
+        isCalculating = false;
 
         fireEvRecalculated();
     }
