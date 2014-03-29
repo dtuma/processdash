@@ -72,8 +72,8 @@ public class EVTaskListRollup extends EVTaskList {
         schedule = new EVScheduleRollup(evTaskLists);
         loadID(taskListName, data, TASK_LISTS_DATA_NAME);
         loadMetadata(taskListName, data);
-        calculator = new EVCalculatorRollup
-            ((EVTask) root, evTaskLists, (EVScheduleRollup)schedule, metaData);
+        calculator = new EVCalculatorRollup(this, (EVTask) root, evTaskLists,
+                (EVScheduleRollup) schedule, metaData);
         setBaselineDataSource(getBaselineSnapshot());
         ((EVTask) root).flag = TASK_LIST_FLAG;
     }
@@ -90,8 +90,8 @@ public class EVTaskListRollup extends EVTaskList {
             ((EVTask) root).add(taskListRoot);
         }
         schedule = new EVScheduleRollup(evTaskLists);
-        calculator = new EVCalculatorRollup
-            ((EVTask) root, evTaskLists, (EVScheduleRollup)schedule, null);
+        calculator = new EVCalculatorRollup(this, (EVTask) root, evTaskLists,
+                (EVScheduleRollup) schedule, null);
     }
 
     private void addTaskListsFromData(DataRepository data,

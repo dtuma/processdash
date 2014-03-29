@@ -249,7 +249,7 @@ public class EVTaskListData extends EVTaskList
         if (someoneCares()) {
             EVTask r = (EVTask) root;
 
-            fireTreeStructureWillChange(this, r.getPath(), null, null);
+            fireTreeStructureWillChange();
 
             // delete all the previous children.
             int n = r.getNumChildren();

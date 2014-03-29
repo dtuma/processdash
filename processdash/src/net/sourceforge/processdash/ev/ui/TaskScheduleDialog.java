@@ -354,8 +354,7 @@ public class TaskScheduleDialog implements EVTask.Listener,
         boolean isRollup = isRollup();
         if (isRollup)
             frame.setTitle(resources.getString("Window_Rollup_Title"));
-        else
-            readExpandedNodesPref(model.getID());
+        maybeReadExpandedNodesPref(model.getID());
 
         JScrollPane sp;
         sp = new JScrollPane(treeTable,
@@ -1586,8 +1585,8 @@ public class TaskScheduleDialog implements EVTask.Listener,
         public void treeStructureChanged(TreeModelEvent e) {
             SwingUtilities.invokeLater(new Runnable() {
                 public void run() {
-                    if (shouldUseExpandedNodesPref() && model instanceof EVTaskList)
-                        readExpandedNodesPref(((EVTaskList)model).getID());
+                    if (model instanceof EVTaskList)
+                        maybeReadExpandedNodesPref(((EVTaskList)model).getID());
                 }
             });
         }
@@ -3467,6 +3466,11 @@ public class TaskScheduleDialog implements EVTask.Listener,
         }
     }
 
+    private void maybeReadExpandedNodesPref(String taskListId) {
+        if (shouldUseExpandedNodesPref())
+            readExpandedNodesPref(taskListId);
+    }
+
     private void readExpandedNodesPref(String taskListId) {
         Set nodesToExpand = getExpandedNodesPref(taskListId);
         expandNodes(nodesToExpand, (EVTask) treeTable.getTree().getModel().getRoot());
@@ -3485,7 +3489,11 @@ public class TaskScheduleDialog implements EVTask.Listener,
     }
 
     private boolean shouldUseExpandedNodesPref() {
-        return (!isRollup() && !isFlatView()) ||
-                 (isRollup() && isMergedView());
+        if (isRollup()) {
+            return isMergedView() || Settings.isPersonalMode();
+        } else {
+            return !isFlatView();
+        }
     }
+
 }

@@ -774,6 +774,11 @@ public class EVTaskList extends AbstractTreeTableModel
             recalc();
     }
 
+    protected void fireTreeStructureWillChange() {
+        EVTask r = (EVTask) root;
+        fireTreeStructureWillChange(this, r.getPath(), null, null);
+    }
+
     private void maybeDispose() {
         if (recalcListeners == null) return;
         if (recalcListeners.isEmpty()) {
