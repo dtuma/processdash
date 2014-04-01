@@ -139,7 +139,13 @@ public class ResourceBridgeClient implements ResourceBridgeConstants {
         }
         pt.click("checked hashes - mismatch");
 
-        // make a complete comparison of local-vs-remote changes.
+        // as an optimization, download any files from the server that were
+        // created/modified after our most recently changed file.
+        long mostRecentLocalModTime = getMostRecentLocalModTime();
+        downloadFiles(makeGetRequest(DOWNLOAD_ACTION,
+            ResourceFilterFactory.LAST_MOD_PARAM, mostRecentLocalModTime));
+
+        // now make a complete comparison of local-vs-remote changes.
         ResourceCollectionDiff diff = getDiff();
         applySyncFilter(diff, filter);
         pt.click("Computed local-vs-remote diff");
@@ -153,12 +159,12 @@ public class ResourceBridgeClient implements ResourceBridgeConstants {
             localCollection.deleteResource(resourceName);
         }
 
-        // copy down files that are only present in the remote collection
-        List includes = new ArrayList();
-        addMultiple(includes, INCLUDE_PARAM, diff.getOnlyInB());
-        addMultiple(includes, INCLUDE_PARAM, diff.getDiffering());
-        if (!includes.isEmpty())
-            downloadFiles(makeGetRequest(DOWNLOAD_ACTION, includes));
+        // copy down files that are only present in the remote collection, as
+        // well as any files that have changed
+        List filesToDownload = new ArrayList();
+        filesToDownload.addAll(diff.getOnlyInB());
+        filesToDownload.addAll(diff.getDiffering());
+        downloadFilesNamed(filesToDownload);
 
         pt.click("Copied down changes");
         return true;
@@ -513,6 +519,16 @@ public class ResourceBridgeClient implements ResourceBridgeConstants {
         return (localHash == remoteHash);
     }
 
+    private long getMostRecentLocalModTime() {
+        // find the most recent file modification time of all local files
+        long result = 0;
+        for (String name : localCollection.listResourceNames()) {
+            long oneModTime = localCollection.getLastModified(name);
+            result = Math.max(result, oneModTime);
+        }
+        return result;
+    }
+
     private ResourceCollectionDiff getDiff() throws IOException {
         // start by initiating the HTTP connection to the server
         URLConnection conn = makeGetRequest(LIST_ACTION);
@@ -542,6 +558,23 @@ public class ResourceBridgeClient implements ResourceBridgeConstants {
             long remoteTime = diff.getB().getLastModified(resourceName);
             if (!filter.shouldSync(resourceName, localTime, remoteTime))
                 i.remove();
+        }
+    }
+
+    private void downloadFilesNamed(List filesToDownload) throws IOException {
+        while (!filesToDownload.isEmpty()) {
+            // Some web servers will reject an HTTP request if it includes too
+            // many HTTP parameters. If we need to download more than 450
+            // files, break the download request up into batches.
+            List oneBatch;
+            if (filesToDownload.size() < 450)
+                oneBatch = filesToDownload;
+            else
+                oneBatch = filesToDownload.subList(0, 450);
+            List params = new ArrayList();
+            addMultiple(params, INCLUDE_PARAM, oneBatch);
+            downloadFiles(makeGetRequest(DOWNLOAD_ACTION, params));
+            oneBatch.clear();
         }
     }
 
