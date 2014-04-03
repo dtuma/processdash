@@ -83,6 +83,13 @@ The author(s) may be contacted at:
      class="net.sourceforge.processdash.util.ThreadMonitor$PrintDeadlockTask"
      settingPrefix="deadlockMonitor"/>
 
+  <background-task runAtStartup="true" whenDefault="-1"
+     class="net.sourceforge.processdash.tool.export.mgr.AutoExportTrigger"
+     forTag="PROBE Task" settingPrefix="probeAutoExport"
+     disabledWith="export.disableAutoExport">
+        <onDataChange>Workflow Completed</onDataChange>
+  </background-task>
+
 
   <!-- definitions for snippets that are provided by the dashboard -->
 

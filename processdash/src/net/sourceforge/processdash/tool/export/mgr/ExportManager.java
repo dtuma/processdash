@@ -1,4 +1,4 @@
-// Copyright (C) 2005-2013 Tuma Solutions, LLC
+// Copyright (C) 2005-2014 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -415,6 +415,12 @@ public class ExportManager extends AbstractManager {
         }
     }
 
+    /** @since 2.0.9 */
+    public boolean hasEnabledExportTask(String path) {
+        AbstractInstruction instr = getExportInstructionFromData(path + "/"
+                + EXPORT_DATANAME);
+        return (instr != null && instr.isEnabled());
+    }
 
 
     public static class BGTask implements Runnable {
