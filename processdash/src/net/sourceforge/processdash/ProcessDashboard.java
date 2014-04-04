@@ -1,4 +1,4 @@
-// Copyright (C) 1998-2013 Tuma Solutions, LLC
+// Copyright (C) 1998-2014 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -107,7 +107,7 @@ import net.sourceforge.processdash.log.time.ImportedTimeLogManager;
 import net.sourceforge.processdash.log.time.TimeLog;
 import net.sourceforge.processdash.log.time.TimeLoggingModel;
 import net.sourceforge.processdash.log.time.WorkingTimeLog;
-import net.sourceforge.processdash.log.ui.CompletedTaskTimeLoggingWatcher;
+import net.sourceforge.processdash.log.ui.TaskTimeLoggingErrorWatcher;
 import net.sourceforge.processdash.log.ui.DefectButton;
 import net.sourceforge.processdash.log.ui.PauseButton;
 import net.sourceforge.processdash.msg.MessageDispatcher;
@@ -955,7 +955,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
                 activeTaskModel);
         addToMainWindow(completion_button, 0, 0,
             Settings.getInt("mainWindow.paddingRight", 2));
-        new CompletedTaskTimeLoggingWatcher(this, activeTaskModel,
+        new TaskTimeLoggingErrorWatcher(this, activeTaskModel,
                 timeLog.getTimeLoggingModel(), data);
         pt.click("Created completion button");
 

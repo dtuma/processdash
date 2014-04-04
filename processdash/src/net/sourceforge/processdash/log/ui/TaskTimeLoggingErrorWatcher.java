@@ -1,4 +1,4 @@
-// Copyright (C) 2009 Tuma Solutions, LLC
+// Copyright (C) 2009-2014 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -45,8 +45,9 @@ import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.hier.ActiveTaskModel;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.log.time.TimeLoggingModel;
+import net.sourceforge.processdash.util.DateUtils;
 
-public class CompletedTaskTimeLoggingWatcher implements ActionListener,
+public class TaskTimeLoggingErrorWatcher implements ActionListener,
         PropertyChangeListener {
 
     private Component parent;
@@ -59,12 +60,14 @@ public class CompletedTaskTimeLoggingWatcher implements ActionListener,
 
     private Set<String> pathsToIgnore;
 
+    private long playButtonStartTime;
+
     private Timer timer;
 
     private static final Resources resources = Resources
             .getDashBundle("ProcessDashboard.TimeLoggingWarning");
 
-    public CompletedTaskTimeLoggingWatcher(Component parent,
+    public TaskTimeLoggingErrorWatcher(Component parent,
             ActiveTaskModel activeTaskModel, TimeLoggingModel timeLoggingModel,
             DataRepository data) {
         this.parent = parent;
@@ -73,8 +76,8 @@ public class CompletedTaskTimeLoggingWatcher implements ActionListener,
         this.data = data;
         this.pathsToIgnore = new HashSet<String>();
 
-        this.timer = new Timer(20000, this);
-        this.timer.setRepeats(false);
+        this.timer = new Timer((int) DateUtils.HOUR, this);
+        this.timer.setInitialDelay(20 * (int) DateUtils.SECONDS);
 
         timeLoggingModel.addPropertyChangeListener(this);
     }
@@ -83,16 +86,24 @@ public class CompletedTaskTimeLoggingWatcher implements ActionListener,
         String propName = evt.getPropertyName();
         if (TimeLoggingModel.PAUSED_PROPERTY.equals(propName)) {
             Boolean isPaused = (Boolean) evt.getNewValue();
-            if (isPaused)
+            if (isPaused) {
+                playButtonStartTime = -1;
                 timer.stop();
-            else
-                timer.start();
+            } else {
+                timer.restart();
+                playButtonStartTime = System.currentTimeMillis();
+            }
         }
     }
 
     public void actionPerformed(ActionEvent e) {
+        checkForCompletedTask();
+        checkForRunawayTimer();
+    }
+
+    private void checkForCompletedTask() {
         // is this completion checker disabled? If so, do nothing.
-        if (isDisabled())
+        if (isCompletionCheckingDisabled())
             return;
 
         // if we don't have an active path, do nothing.
@@ -112,20 +123,49 @@ public class CompletedTaskTimeLoggingWatcher implements ActionListener,
             // to this path, display a message.
             String completedPath = effectivePath.toString();
             if (pathsToIgnore.contains(completedPath) == false)
-                showTimeLoggingAlert(completedPath, dd.getValue());
+                showCompletedTaskTimeLoggingAlert(completedPath, dd.getValue());
         }
     }
 
-    private void showTimeLoggingAlert(String path, Date date) {
-        DashController.raiseWindow();
-        Toolkit.getDefaultToolkit().beep();
-
-        String title = resources.getString("Title");
+    private void showCompletedTaskTimeLoggingAlert(String path, Date date) {
         String messageText = resources.format("Message_FMT", path, date);
         JCheckBox disableCheckbox = new JCheckBox(resources
                 .getString("Disable"));
         disableCheckbox.setFocusPainted(false);
         Object[] message = { messageText.split("\n"), " ", disableCheckbox };
+
+        boolean continueLoggingTime = showTimeLoggingAlert(message);
+        if (continueLoggingTime)
+            pathsToIgnore.add(path);
+
+        if (disableCheckbox.isSelected())
+            setCompletionCheckingDisabled(true);
+    }
+
+    private void checkForRunawayTimer() {
+        if (playButtonStartTime < 0)
+            return;
+
+        long elapsed = System.currentTimeMillis() - playButtonStartTime;
+        long elapsedHours = elapsed / DateUtils.HOURS;
+        int cutoffHours = Settings.getInt(RUNAWAY_SETTING_NAME, 5);
+        if (elapsedHours < cutoffHours || cutoffHours < 1)
+            return;
+
+        String path = activeTaskModel.getPath();
+        String[] message = resources.formatStrings("Runaway_Message_FMT", path);
+        boolean continueLoggingTime = showTimeLoggingAlert(message);
+        if (continueLoggingTime == false)
+            JOptionPane.showMessageDialog(parent,
+                resources.getString("Runaway_Cleanup_Advice"),
+                resources.getString("Title"), JOptionPane.PLAIN_MESSAGE);
+    }
+
+    private boolean showTimeLoggingAlert(Object message) {
+        DashController.raiseWindow();
+        Toolkit.getDefaultToolkit().beep();
+
+        String title = resources.getString("Title");
 
         String yesOption = resources.getString("Yes");
         String noOption = resources.getString("No");
@@ -136,21 +176,22 @@ public class CompletedTaskTimeLoggingWatcher implements ActionListener,
             options, yesOption);
         if (userChoice == 1) {
             timeLoggingModel.stopTiming();
+            return false;
         } else {
-            pathsToIgnore.add(path);
+            return true;
         }
-        if (disableCheckbox.isSelected())
-            setDisabled(true);
     }
 
-    private boolean isDisabled() {
+    private boolean isCompletionCheckingDisabled() {
         return Settings.getBool(SETTING_NAME, true) == false;
     }
 
-    private void setDisabled(boolean d) {
+    private void setCompletionCheckingDisabled(boolean d) {
         InternalSettings.set(SETTING_NAME, d ? "false" : "true");
     }
 
     private static final String SETTING_NAME = "timer.warnOnCompletedTasks";
+
+    private static final String RUNAWAY_SETTING_NAME = "timer.runawayTimeCutoff";
 
 }
