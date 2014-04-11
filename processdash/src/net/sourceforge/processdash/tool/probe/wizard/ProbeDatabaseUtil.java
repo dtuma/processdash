@@ -499,17 +499,15 @@ public class ProbeDatabaseUtil {
 
     /**
      * Query to find the size data for a set of process enactments.
-     * 
-     * The process enactment keys passed in refer to the PROBE tasks. We can
-     * query data from these tasks only, since PROBE-related size data will be
-     * attached to these plan items.
      */
     private static final String SIZE_QUERY = //
     "select pe.key, size.measurementType.name, " //
             + "sum(size.addedAndModifiedSize) "
-            + "from ProcessEnactment pe, SizeFact size "
+            + "from ProcessEnactment pe, ProcessEnactment pi, SizeFact size "
             + "where pe.key in (?) "
-            + "and pe.includesItem.key = size.planItem.key "
+            + "and pe.rootItem.key = pi.rootItem.key "
+            + "and pe.process.key = pi.process.key "
+            + "and pi.includesItem.key = size.planItem.key "
             + "and size.sizeMetric.shortName = ? "
             + "and size.versionInfo.current = 1 "
             + "group by pe.key, size.measurementType.name";
