@@ -106,7 +106,7 @@ public class HistDataPage extends WizardPage {
         }
 
         String timeFootnote = getTimeFootnote(histData);
-        out.print("<table border style='margin-left:1cm'><tr><th>");
+        out.print("<table id='histData' border style='margin-left:1cm'><tr><th>");
         out.print(resources.getHTML("Project_Task"));
         for (int c = 1;  c <= ProbeData.EXCLUDE;   c++) {
             out.print("</th><th>");
@@ -118,10 +118,11 @@ public class HistDataPage extends WizardPage {
             } catch (Exception e) {
                 displayName = Translator.translate(colName);
             }
-            // TODO: possibly rotate the text 90 degrees
             out.print(esc(displayName));
             if (c == ProbeData.EST_TIME || c == ProbeData.ACT_TIME)
                 out.print(timeFootnote);
+            else if (c == ProbeData.EXCLUDE && !histData.isReportMode())
+                out.print(EXCLUDE_ALL_CHECKBOX);
         }
         out.println("</th></tr>");
 
@@ -167,5 +168,20 @@ public class HistDataPage extends WizardPage {
             "HistData.Columns.Workflow_Hours_Tooltip_FMT", workflowName);
         return "<span title='" + esc(tooltip) + "' class='doNotPrint'>*</span>";
     }
+
+    private static final String EXCLUDE_ALL_CHECKBOX = "<br><input "
+            + "type='checkbox' name='excludeAll' id='excludeAll' "
+            + "onclick='toggleAll(this); return true;' />\n"
+            + "<script type='text/javascript'>\n"
+            + "function toggleAll(checkbox) {\n"
+            + "   var checked = checkbox.checked;\n"
+            + "   var table = document.getElementById('histData');\n"
+            + "   var fields = table.getElementsByTagName('input');\n"
+            + "   for (var i = 0; i < fields.length; i++) {\n"
+            + "      if (fields[i].type == 'checkbox')\n"
+            + "         fields[i].checked = checked;\n"
+            + "    }\n"
+            + "}\n"
+            + "</script>";
 
 }
