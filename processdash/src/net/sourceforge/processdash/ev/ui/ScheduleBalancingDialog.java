@@ -23,8 +23,10 @@
 
 package net.sourceforge.processdash.ev.ui;
 
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GridBagConstraints;
@@ -35,14 +37,18 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Hashtable;
 import java.util.List;
 
 import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.Icon;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
@@ -52,6 +58,7 @@ import javax.swing.JSlider;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
+import javax.swing.border.Border;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
@@ -166,6 +173,7 @@ public class ScheduleBalancingDialog extends JDialogCellEditor {
         } else {
             for (int i = 0; i < numScheduleRows; i++)
                 scheduleRows.get(i).addToPanel(panel, i);
+            scheduleRows.get(numScheduleRows - 1).showPercentageTickMarks();
             addChartToPanel(panel, numScheduleRows + 1);
         }
         totalRow.addToPanel(panel, numScheduleRows);
@@ -233,7 +241,7 @@ public class ScheduleBalancingDialog extends JDialogCellEditor {
         // add the chart to the dialog content pane
         GridBagConstraints c = new GridBagConstraints();
         c.gridy = gridY;
-        c.gridwidth = 3;
+        c.gridwidth = 4;
         c.weightx = 2;
         c.weighty = 1;
         c.fill = GridBagConstraints.BOTH;
@@ -256,7 +264,7 @@ public class ScheduleBalancingDialog extends JDialogCellEditor {
 
         GridBagConstraints c = new GridBagConstraints();
         c.gridy = gridY;
-        c.gridwidth = 3;
+        c.gridwidth = 4;
         c.anchor = GridBagConstraints.CENTER;
         c.insets = new Insets(10, 10, 0, 10);
         panel.add(buttonBox, c);
@@ -272,22 +280,35 @@ public class ScheduleBalancingDialog extends JDialogCellEditor {
         updateChart();
     }
 
-    private void redistributeTime(ScheduleTableRow forRow) {
+    private void redistributeTime(ScheduleTableRow forRow, boolean clearLocks) {
         double timeToDistribute = totalRow.time;
-        if (forRow != null)
-            timeToDistribute -= forRow.time;
-        timeToDistribute = Math.max(0, timeToDistribute);
-
         double totalWeight = 0;
         int numMatchingRows = 0;
         for (ScheduleTableRow oneRow : scheduleRows) {
+            if (clearLocks && oneRow != forRow)
+                oneRow.setLocked(false);
             if (oneRow.isRedistTarget(forRow)) {
                 totalWeight += oneRow.time;
                 numMatchingRows++;
+            } else {
+                timeToDistribute -= oneRow.time;
             }
         }
+        timeToDistribute = Math.max(0, timeToDistribute);
 
-        if (totalWeight == 0) {
+        if (numMatchingRows == 0) {
+            // if all of the rows are locked, don't redistribute time. Just
+            // calculate a new sum based on the time that has been assigned to
+            // the given row.
+            sumUpTotalTime();
+
+        } else if (timeToDistribute == 0 && totalWeight == 0) {
+            // if we have no (or negative) time to distribute, and the editable
+            // rows already have zero time (so they can't be reduced any
+            // further), just calculate a new total time sum.
+            sumUpTotalTime();
+
+        } else if (totalWeight == 0) {
             double newTime = timeToDistribute / numMatchingRows;
             for (ScheduleTableRow oneRow : scheduleRows) {
                 if (oneRow.isRedistTarget(forRow))
@@ -356,6 +377,8 @@ public class ScheduleBalancingDialog extends JDialogCellEditor {
 
         JLabel timeLabel = new JLabel();
 
+        JLabel lockedLabel;
+
         JSlider timeSlider;
 
         ComparableValue rowKey;
@@ -370,8 +393,12 @@ public class ScheduleBalancingDialog extends JDialogCellEditor {
             // create the text field for directly editing time
             timeField = new DecimalField(0, 4, new TimeNumberFormat());
             timeField.setMinimumSize(timeField.getPreferredSize());
+            timeField.setHorizontalAlignment(JTextField.RIGHT);
             timeField.addFocusListener(this);
             timeField.addActionListener(this);
+
+            // create a label to indicate whether this row has been modified
+            lockedLabel = new JLabel(UNLOCKED_ICON);
 
             // create a slider for visually adjusting time
             timeSlider = new JSlider(0, SLIDER_MAX);
@@ -389,14 +416,18 @@ public class ScheduleBalancingDialog extends JDialogCellEditor {
             GridBagConstraints c = new GridBagConstraints();
             c.gridx = 0;
             c.gridy = row;
-            c.anchor = GridBagConstraints.WEST;
+            c.anchor = GridBagConstraints.NORTHWEST;
             panel.add(rowJLabel, c);
 
             c.gridx = 1;
-            c.anchor = GridBagConstraints.EAST;
+            c.anchor = GridBagConstraints.NORTHEAST;
             panel.add(timeField != null ? timeField : timeLabel, c);
 
             c.gridx = 2;
+            if (lockedLabel != null)
+                panel.add(lockedLabel, c);
+
+            c.gridx = 3;
             c.weightx = 1;
             c.fill = GridBagConstraints.HORIZONTAL;
             if (timeSlider != null)
@@ -442,6 +473,10 @@ public class ScheduleBalancingDialog extends JDialogCellEditor {
             }
         }
 
+        double roundTime(double time) {
+            return 5 * Math.round(time / 5);
+        }
+
         abstract int getSliderPosForTime(double time);
 
         abstract double getTimeForSliderPos(double sliderPos);
@@ -465,17 +500,20 @@ public class ScheduleBalancingDialog extends JDialogCellEditor {
 
     }
 
-    private class ScheduleTableRow extends TableRow {
+    private class ScheduleTableRow extends TableRow implements MouseListener {
 
         private EVTaskList targetTaskList;
 
         private Period targetPeriod;
+
+        private boolean locked;
 
         private double duration;
 
         public ScheduleTableRow(EVTaskList tl) {
             this.targetTaskList = tl;
             this.rowLabel = tl.getDisplayName();
+            this.locked = false;
 
             boolean isEditable = tl instanceof EVTaskListData;
             if (isEditable)
@@ -492,9 +530,47 @@ public class ScheduleBalancingDialog extends JDialogCellEditor {
                 if (isEditable) {
                     rowsAreEditable = true;
                     createEditingControls();
+                    lockedLabel.addMouseListener(this);
                 }
                 setTime(p.getPlanDirectTime(), TimeChangeSource.Other);
             }
+        }
+
+        public void showPercentageTickMarks() {
+            if (timeSlider == null)
+                return;
+
+            // Create a series of labels to indicate 0, 25, 50, 75, and 100%
+            Hashtable labels = new Hashtable();
+            JLabel emptyLabel = new JLabel();
+            Font font = emptyLabel.getFont();
+            font = font.deriveFont(Font.PLAIN, 0.8f * font.getSize2D());
+            Border border = BorderFactory.createEmptyBorder(0, 0, 10, 0);
+            for (int i = 0; i <= 100; i += 25) {
+                String txt = i + (i == 100 ? "%   " : (i == 75 ? "%  " : "%"));
+                JLabel label = new JLabel(txt, TICK_MARK, SwingConstants.CENTER);
+                label.setHorizontalTextPosition(SwingConstants.CENTER);
+                label.setVerticalTextPosition(SwingConstants.BOTTOM);
+                label.setIconTextGap(0);
+                label.setFont(font);
+                label.setBorder(border);
+
+                double percent = i / 100.0;
+                int pos = getSliderPosForPercent(percent);
+                int key = Math.min(Math.max(pos, 1), SLIDER_MAX - 1);
+                labels.put(key, label);
+            }
+
+            // the code above moves the 0% and 100% labels inward by a miniscule
+            // amount. Now we attach a zero-width label to the slider positions
+            // representing "true" 0% and 100%. This tricks the SliderUI so it
+            // doesn't adjust the track margins inward to account for the
+            // labels, so this slider has the same width as the other unlabeled
+            // sliders.
+            labels.put(0, emptyLabel);
+            labels.put(SLIDER_MAX, emptyLabel);
+            timeSlider.setLabelTable(labels);
+            timeSlider.setPaintLabels(true);
         }
 
         boolean isDisplayable() {
@@ -502,26 +578,52 @@ public class ScheduleBalancingDialog extends JDialogCellEditor {
         }
 
         boolean isRedistTarget(ScheduleTableRow fromRow) {
-            return isEditable() && this != fromRow;
+            return isEditable() && this != fromRow && !locked;
         }
+
+        public void setLocked(boolean locked) {
+            this.locked = locked;
+            if (lockedLabel != null) {
+                lockedLabel.setIcon(locked ? LOCKED_ICON : UNLOCKED_ICON);
+                lockedLabel.setToolTipText(locked == false ? null
+                        : TaskScheduleDialog.resources
+                                .getString("Balance.Modified_Tooltip"));
+            }
+        }
+
+        public void mouseClicked(MouseEvent e) {
+            // when the user clicks on the "locked" label, toggle the flag
+            setLocked(!locked);
+        }
+        public void mousePressed(MouseEvent e) {}
+        public void mouseReleased(MouseEvent e) {}
+        public void mouseEntered(MouseEvent e) {}
+        public void mouseExited(MouseEvent e) {}
 
         @Override
         int getSliderPosForTime(double time) {
             if (totalRow.time == 0)
                 return 0;
 
+            double percent = time / totalRow.time;
+            return getSliderPosForPercent(percent);
+        }
+
+        private int getSliderPosForPercent(double percent) {
             // use an exponential function that positions the average time
             // at the 50% mark on the slider
-            double percent = time / totalRow.time;
             double fraction = Math.exp(Math.log(percent) / exponent());
             return (int) (fraction * SLIDER_MAX);
         }
 
         @Override
         double getTimeForSliderPos(double sliderPos) {
+            if (sliderPos == SLIDER_MAX)
+                return totalRow.time;
+
             double fraction = sliderPos / SLIDER_MAX;
             double percent = Math.pow(fraction, exponent());
-            return totalRow.time * percent;
+            return roundTime(totalRow.time * percent);
         }
 
         private double exponent() {
@@ -531,10 +633,12 @@ public class ScheduleBalancingDialog extends JDialogCellEditor {
         @Override
         void setTime(double newTime, TimeChangeSource src) {
             super.setTime(newTime, src);
+            if (src != TimeChangeSource.Other)
+                setLocked(true);
             if (src == TimeChangeSource.TextField)
                 sumUpTotalTime();
             else if (src == TimeChangeSource.Slider)
-                redistributeTime(this);
+                redistributeTime(this, false);
         }
 
         boolean saveChanges() {
@@ -549,6 +653,7 @@ public class ScheduleBalancingDialog extends JDialogCellEditor {
         }
 
         void revertTime() {
+            setLocked(false);
             setTime(targetPeriod.getPlanDirectTime(), TimeChangeSource.Other);
         }
 
@@ -585,19 +690,19 @@ public class ScheduleBalancingDialog extends JDialogCellEditor {
         double getTimeForSliderPos(double sliderPos) {
             double x = (sliderPos * 20) / (SLIDER_MAX * 21);
             double ratio = -1 + 1 / (1 - x);
-            return originalTotalTime * ratio;
+            return roundTime(originalTotalTime * ratio);
         }
 
         @Override
         void setTime(double newTime, TimeChangeSource src) {
             super.setTime(newTime, src);
             if (src != TimeChangeSource.Other)
-                redistributeTime(null);
+                redistributeTime(null, true);
         }
 
     }
 
-    private class ColoredIcon implements Icon {
+    private static class ColoredIcon implements Icon {
 
         private Paint paint;
 
@@ -621,6 +726,29 @@ public class ScheduleBalancingDialog extends JDialogCellEditor {
         }
 
     }
+
+    private static final Icon UNLOCKED_ICON = new ColoredIcon(null);
+
+    private static final Icon LOCKED_ICON = new ImageIcon(
+            ScheduleBalancingDialog.class.getResource("modified.png"));
+
+    private static class TickMarkIcon implements Icon {
+
+        public void paintIcon(Component c, Graphics g, int x, int y) {
+            g.setColor(Color.black);
+            g.drawLine(x, y, x, y + 4);
+        }
+
+        public int getIconWidth() {
+            return 1;
+        }
+
+        public int getIconHeight() {
+            return 4;
+        }
+    }
+
+    private static final Icon TICK_MARK = new TickMarkIcon();
 
     private class ChartData extends AbstractIntervalXYDataset implements
             XYToolTipGenerator {
