@@ -7,6 +7,7 @@ net/sourceforge/processdash/ev/ui/chart-options-glow.png
 net/sourceforge/processdash/ev/ui/chart-options.png
 net/sourceforge/processdash/ev/ui/check.png
 net/sourceforge/processdash/ev/ui/group.png
+net/sourceforge/processdash/ev/ui/modified.png
 net/sourceforge/processdash/ev/ui/stop.png
 net/sourceforge/processdash/ev/ui/warning.png
 net/sourceforge/processdash/ev/ui/warningRed.png
