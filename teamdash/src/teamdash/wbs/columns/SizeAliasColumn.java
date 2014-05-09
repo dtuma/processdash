@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Tuma Solutions, LLC
+// Copyright (C) 2002-2014 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -72,7 +72,7 @@ implements CalculatedDataColumn {
     }
 
     protected String getSizeUnit(WBSNode node) {
-        return (String) sizeTypes.get(node.getType());
+        return SizeTypeColumn.getWorkProductSizeMetric(node, sizeTypes);
     }
 
     protected int getSizeColumn(WBSNode node) {

@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2013 Tuma Solutions, LLC
+// Copyright (C) 2002-2014 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -23,6 +23,8 @@
 
 package teamdash.wbs.columns;
 
+import java.util.List;
+
 import net.sourceforge.processdash.util.PatternList;
 
 import teamdash.merge.ui.MergeConflictNotification;
@@ -30,44 +32,49 @@ import teamdash.wbs.CalculatedDataColumn;
 import teamdash.wbs.ConflictCapableDataColumn;
 import teamdash.wbs.DataTableModel;
 import teamdash.wbs.NumericDataValue;
+import teamdash.wbs.TeamProcess;
 import teamdash.wbs.WBSNode;
 import teamdash.wbs.WorkflowModel;
 
 public class SizeAccountingColumnSet {
 
     public static void create(DataTableModel model, String id, Pruner p,
-                              String editableType)
+                              String editableType, String editableSizeMetric)
     {
-        createColumn(model, getBaseID(id), p, editableType);     // create "Base" column
-        createColumn(model, getDeletedID(id), p, editableType);  // create "Deleted" column
-        createColumn(model, getModifiedID(id), p, editableType); // create "Modified" column
-        createColumn(model, getReusedID(id), p, editableType);   // create "Reused" column
+        createColumn(model, getBaseID(id), p, editableType, editableSizeMetric);     // create "Base" column
+        createColumn(model, getDeletedID(id), p, editableType, editableSizeMetric);  // create "Deleted" column
+        createColumn(model, getModifiedID(id), p, editableType, editableSizeMetric); // create "Modified" column
+        createColumn(model, getReusedID(id), p, editableType, editableSizeMetric);   // create "Reused" column
 
         // create "Added" column
         CalculatedDataColumn c = new AddedSizeColumn(model, getAddedID(id), p);
-        if (editableType != null) c = new NodeTypeColumnFilter(c, editableType);
+        if (editableType != null)
+            c = new NodeTypeColumnFilter(c, editableType, editableSizeMetric);
         model.addDataColumn(c);
 
         // create "New & Changed" column
         c = new NewChangedSizeColumn(model, id);
-        if (editableType != null) c = new NodeTypeColumnFilter(c, editableType);
+        if (editableType != null)
+            c = new NodeTypeColumnFilter(c, editableType, editableSizeMetric);
         model.addDataColumn(c);
 
         // create "Total" column
         c = new TotalSizeColumn(model, id);
-        if (editableType != null) c = new NodeTypeColumnFilter(c, editableType);
+        if (editableType != null)
+            c = new NodeTypeColumnFilter(c, editableType, editableSizeMetric);
         model.addDataColumn(c);
     }
 
     private static void createColumn(DataTableModel m, String name, Pruner p,
-                                     String editableType) {
+                                     String editableType, String editableSizeMetric) {
         TopDownBottomUpColumn column =
             new TopDownBottomUpColumn(m, name, name, p);
         column.setHideInheritedValues(true);
         if (editableType == null)
             m.addDataColumn(column);
         else
-            m.addDataColumn(new NodeTypeColumnFilter(column, editableType));
+            m.addDataColumn(new NodeTypeColumnFilter(column, editableType,
+                    editableSizeMetric));
         column.setConflictAttributeName(column.topDownAttrName);
     }
 
@@ -104,10 +111,8 @@ public class SizeAccountingColumnSet {
             //   * we have more than one child.  This filters out the scenario
             //     during normal editing when the first child is created
             //     underneath a particular parent.
-            //   * Only one of our children is "size" related.
             if (node.getAttribute(WorkflowModel.WORKFLOW_SOURCE_IDS_ATTR) != null
-                    && bottomUpValue == 0 && children.length > 1
-                    && numToInclude == 1) {
+                    && bottomUpValue == 0 && children.length > 1) {
                 WBSNode delegate = getSingleLeafForNode(node, false);
                 if (delegate != null) {
                     userChangingValue(delegate, topDownValue);
@@ -116,6 +121,23 @@ public class SizeAccountingColumnSet {
                 }
             }
             return false;
+        }
+
+        @Override
+        protected WBSNode selectSingleLeafForNode(List<WBSNode> multipleLeaves) {
+            // if multiple size leaves were found for a node, but only one of
+            // them is a PROBE task, prefer that PROBE task as the target for
+            // the resolution of a top-down-bottom-up mismatch.
+            WBSNode probeTask = null;
+            for (WBSNode node : multipleLeaves) {
+                if (TeamProcess.isProbeTask(node.getType())) {
+                    if (probeTask == null)
+                        probeTask = node;
+                    else
+                        return null;
+                }
+            }
+            return probeTask;
         }
     }
 
@@ -264,11 +286,13 @@ public class SizeAccountingColumnSet {
 
         CalculatedDataColumn column;
         String editableType;
+        String editableProbeSizeMetric;
 
         public NodeTypeColumnFilter(CalculatedDataColumn c,
-                                    String editableType) {
+                String editableType, String editableProbeSizeMetric) {
             this.column = c;
             this.editableType = editableType;
+            this.editableProbeSizeMetric = editableProbeSizeMetric;
         }
 
         public boolean recalculate() {
@@ -297,8 +321,16 @@ public class SizeAccountingColumnSet {
         }
 
         protected boolean isFiltered(WBSNode node) {
-            return !editableType.equals(node.getType());
+            if (editableProbeSizeMetric != null
+                    && TeamProcess.isProbeTask(node.getType())) {
+                String probeSizeMetric = TaskSizeUnitsColumn
+                        .getSizeUnitsForProbeTask(node);
+                return !editableProbeSizeMetric.equals(probeSizeMetric);
+            } else {
+                return !editableType.equals(node.getType());
+            }
         }
+
         public boolean isCellEditable(WBSNode node) {
             // if our delegate says the column isn't editable, they're right.
             if (!column.isCellEditable(node)) return false;

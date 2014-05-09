@@ -130,6 +130,15 @@ implements CalculatedDataColumn, CustomEditedColumn {
             node.setAttribute(ATTR_NAME, null);
         else
             node.setAttribute(ATTR_NAME, String.valueOf(aValue));
+
+        // a change in the size units of a PROBE task is analagous to changing
+        // that node's work product type. As such, we fire a tree model event
+        // to indicate that a "structural" change has just taken place. This
+        // will allow proper recalculation of affected data columns.
+        if (TeamProcess.isProbeTask(node.getType())) {
+            int row = Math.max(0, node.getWbsModel().getRowForNode(node));
+            node.getWbsModel().fireTableRowsUpdated(row, row);
+        }
     }
 
     public boolean recalculate() { return true; }
@@ -138,6 +147,15 @@ implements CalculatedDataColumn, CustomEditedColumn {
     public TableCellEditor getCellEditor() {
         JComboBox sizeUnits = new JComboBox(sizeMetrics);
         return new AutocompletingDataTableCellEditor(sizeUnits);
+    }
+
+    public static String getSizeUnitsForProbeTask(WBSNode probeTaskNode) {
+        if (probeTaskNode == null)
+            return null;
+        String result = (String) probeTaskNode.getAttribute(ATTR_NAME);
+        if (valueIsEmpty(result))
+            result = "LOC";
+        return result;
     }
 
     public static String getSizeUnitsForTask(WBSNode node,

@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Tuma Solutions, LLC
+// Copyright (C) 2002-2014 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -40,8 +40,7 @@ public class WorkProductSizePruner implements Pruner {
     }
 
     public boolean shouldPrune(WBSNode node) {
-        String nodeType = node.getType();
-        Object size = teamProcess.getWorkProductSizeMap().get(nodeType);
+        Object size = SizeTypeColumn.getWorkProductSizeMetric(node, teamProcess);
         return size == null || !sizesToKeep.contains(size);
     }
 

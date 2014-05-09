@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2012 Tuma Solutions, LLC
+// Copyright (C) 2002-2014 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -85,12 +85,13 @@ public class SizeTypeColumn extends AbstractDataColumn implements
     }
 
     public boolean isCellEditable(WBSNode node) {
-        return sizeMetrics.get(node.getType()) == null;
+        return sizeMetrics.get(node.getType()) == null
+                && !TeamProcess.isProbeTask(node.getType());
     }
 
 
     public Object getValueAt(WBSNode node) {
-        Object result = sizeMetrics.get(node.getType());
+        Object result = getWorkProductSizeMetric(node, sizeMetrics);
         if (result == null)
             result = node.getAttribute(ATTR_NAME);
         else {
@@ -140,6 +141,23 @@ public class SizeTypeColumn extends AbstractDataColumn implements
 
 
 
+    public static String getWorkProductSizeMetric(WBSNode node,
+            TeamProcess process) {
+        return getWorkProductSizeMetric(node, process.getWorkProductSizeMap());
+    }
+
+    public static String getWorkProductSizeMetric(WBSNode node,
+            Map workProductSizeMap) {
+        String nodeType = node.getType();
+        if (TeamProcess.isProbeTask(nodeType)) {
+            return TaskSizeUnitsColumn.getSizeUnitsForProbeTask(node);
+        } else {
+            return (String) workProductSizeMap.get(nodeType);
+        }
+    }
+
+
+
     /** Create all of the required columns for size metrics, and add them
      * to the given data model.
      */
@@ -157,7 +175,7 @@ public class SizeTypeColumn extends AbstractDataColumn implements
         // create LOC accounting columns.
         SizeAccountingColumnSet.create(dataModel, "LOC",
                 new WorkProductSizePruner(teamProcess, Collections
-                        .singleton("LOC")), null);
+                        .singleton("LOC")), null, null);
 
         // create size accounting columns for various non-LOC size metrics.
         Iterator i = sizeMetrics.entrySet().iterator();
@@ -177,7 +195,8 @@ public class SizeTypeColumn extends AbstractDataColumn implements
 
             Pruner pruner = new WorkProductSizePruner(teamProcess, Arrays
                     .asList(new Object[] { "LOC", metric }));
-            SizeAccountingColumnSet.create(dataModel, metric, pruner, objType);
+            SizeAccountingColumnSet.create(dataModel, metric, pruner, objType,
+                metric);
         }
 
         // create aliasing columns

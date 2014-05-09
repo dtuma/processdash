@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Tuma Solutions, LLC
+// Copyright (C) 2002-2014 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -65,7 +65,7 @@ implements CalculatedDataColumn {
             (NumericDataValue) dataModel.getValueAt(node, newChangedColumn);
         if (value != null && value.isEditable)
             return value;
-        if (sizeMetricsMap.get(node.getType()) != null)
+        if (SizeTypeColumn.getWorkProductSizeMetric(node, sizeMetricsMap) != null)
             return value;
 
         double number = node.getNumericAttribute(ATTR_NAME);

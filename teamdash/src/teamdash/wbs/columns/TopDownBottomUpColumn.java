@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2012 Tuma Solutions, LLC
+// Copyright (C) 2002-2014 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -25,6 +25,7 @@
 package teamdash.wbs.columns;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import teamdash.wbs.CalculatedDataColumn;
 import teamdash.wbs.DataTableModel;
@@ -321,8 +322,13 @@ public class TopDownBottomUpColumn extends AbstractNumericColumn
         if (leaves.size() == 1)
             return (WBSNode) leaves.get(0);
         else
-            return null;
+            return selectSingleLeafForNode(leaves);
     }
+
+    protected WBSNode selectSingleLeafForNode(List<WBSNode> multipleLeaves) {
+        return null;
+    }
+
     protected void getLeavesForNode(WBSNode node, boolean withValue, ArrayList result) {
         WBSNode[] children = wbsModel.getReorderableChildren(node);
         int numToInclude = filterChildren(children);
