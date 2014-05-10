@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Tuma Solutions, LLC
+// Copyright (C) 2002-2014 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -26,11 +26,16 @@ package teamdash.wbs.columns;
 import java.util.Map;
 
 import teamdash.wbs.DataTableModel;
+import teamdash.wbs.TeamProcess;
 import teamdash.wbs.WBSNode;
 
-/** This class echoes the value of the SizeTypeColumn, but only if a top-down
- * size estimate has been entered for a particular node. If no top-down
- * estimate has been entered, it returns null.
+/**
+ * This class echoes the value of the SizeTypeColumn, but only if:
+ * <ul>
+ * <li>a top-down size estimate has been entered for a particular node, or</li>
+ * <li>the node is a PROBE task.</li>
+ * </ul>
+ * If those conditions are not met, it returns null.
  */
 public class DirectSizeTypeColumn extends SizeTypeColumn {
 
@@ -51,7 +56,8 @@ public class DirectSizeTypeColumn extends SizeTypeColumn {
             (SizeAccountingColumnSet.getModifiedID(units));
 
         if (node.getAttribute(addedAttr) != null ||
-            node.getAttribute(modifiedAttr) != null)
+            node.getAttribute(modifiedAttr) != null ||
+            TeamProcess.isProbeTask(node.getType()))
             return units;
         else
             return null;

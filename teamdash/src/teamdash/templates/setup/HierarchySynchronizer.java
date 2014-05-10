@@ -2678,16 +2678,9 @@ public class HierarchySynchronizer {
 
         @Override
         protected void maybeSaveNodeSize(String path, Element node) {
-            // for PROBE tasks, don't sync size numbers, but DO sync units
+            // retrieve the unit of size measure for this PROBE task
             String units = node.getAttribute("sizeUnits");
             if (units == null || units.length() == 0)
-                return;
-
-            // if these size units have already been stored, there is nothing
-            // we need to do..
-            String currentUnits = getStringData(getData(path,
-                PROBE_SIZE_UNITS_DATA_NAME));
-            if (units.equals(currentUnits))
                 return;
 
             // if the user has already entered planned or actual size for
@@ -2696,10 +2689,23 @@ public class HierarchySynchronizer {
                 if (testData(getData(path, metric)))
                     return;
 
-            // save the unit of size measurement to the project.
-            StringData value = StringData.create(units);
-            value.setEditable(false);
-            putData(path, PROBE_SIZE_UNITS_DATA_NAME, value);
+            // save the unit of size measurement to the project
+            String currentUnits = getStringData(getData(path,
+                PROBE_SIZE_UNITS_DATA_NAME));
+            if (!units.equals(currentUnits)) {
+                StringData value = StringData.create(units);
+                value.setEditable(false);
+                putData(path, PROBE_SIZE_UNITS_DATA_NAME, value);
+            }
+
+            // find out what percentage of this task the user will perform.
+            double ratio = getTimeRatio(node, units);
+
+            // save the size data to the project.
+            for (int i = 0; i < sizeAttrNames.length; i++)
+                putNumber(path, PROBE_SIZE_ACCT_DATA_NAMES[i],
+                    node.getAttribute(sizeAttrNames[i]),
+                    (locSizeDataNeedsRatio[i] ? ratio : 1.0));
         }
 
         @Override
@@ -2719,6 +2725,13 @@ public class HierarchySynchronizer {
     private static final String PROBE_SIZE_UNITS_DATA_NAME = "Size Units";
     private static final String[] PROBE_SIZE_DATA_ELEMENT_NAMES = {
             "Estimated Proxy Size", "Estimated Size", "Size", "Total Size" };
+    private static final String[] PROBE_SIZE_ACCT_DATA_NAMES = new String[] {
+        "Estimated Base Size",
+        "Estimated Deleted Size",
+        "Estimated Modified Size",
+        "New Objects/0/Size",
+        "Reused Objects/0/Size",
+        "Estimated Added & Modified Size" };
 
 
 
