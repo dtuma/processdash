@@ -195,7 +195,16 @@ public class ProbeData {
         }
 
         String elem = dataNames[col-1];
-        return evaluateDataValue(elem);
+        double result = evaluateDataValue(elem);
+
+        // the "estimated time" element in a database-driven project is
+        // initially empty. Detect this scenario and sum up the estimated time
+        // for all the tasks in the project.
+        if (Double.isNaN(result) && col == EST_TIME && isDatabaseMode())
+            result = new ProbeDatabaseUtil(data, prefix)
+                    .getCurrentEstimatedWorkflowTime() / 60;
+
+        return result;
     }
 
     private double getLastRunValue(int col) {

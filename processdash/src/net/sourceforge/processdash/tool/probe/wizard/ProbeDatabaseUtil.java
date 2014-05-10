@@ -199,6 +199,30 @@ public class ProbeDatabaseUtil {
 
 
     /**
+     * Retrieve the total estimated time (in minutes) for the tasks in the
+     * current process enactment
+     */
+    public double getCurrentEstimatedWorkflowTime() {
+        // get a list of the tasks in the current process enactment
+        WorkflowEnactmentHelper tasks = new WorkflowEnactmentHelper(data,
+                prefix);
+        Map<String, String> targetTasks = tasks.getEnactmentTasks(
+            TaskMapType.PhaseName, TaskNodeType.Leaf);
+        if (targetTasks == null)
+            // null indicates that the database queries failed. Abort.
+            return Double.NaN;
+
+        // sum up the estimated time of the tasks in this enactment
+        double result = 0;
+        for (Iterator i = targetTasks.keySet().iterator(); i.hasNext();) {
+            String oneTask = (String) i.next();
+            result += getEstimate(oneTask);
+        }
+        return result;
+    }
+
+
+    /**
      * Use historical time-in-phase data to spread a time estimate across the
      * tasks in the current process enactment
      * 
