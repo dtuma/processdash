@@ -24,6 +24,7 @@
 package net.sourceforge.processdash.security;
 
 import java.net.URL;
+import java.security.Policy;
 import java.util.logging.Logger;
 
 import net.sourceforge.processdash.util.RuntimeUtils;
@@ -73,6 +74,7 @@ public class DashboardSecurity {
             logger.fine(SECURE_CODEBASE_URL + "=" + baseURLStr);
             System.setProperty(JAVA_SECURITY_POLICY, policyURLStr);
             logger.fine(JAVA_SECURITY_POLICY + "=" + policyURLStr);
+            Policy.getPolicy().refresh();
 
             System.setSecurityManager(new DashboardSecurityManager());
             DashboardPermission.enableChecking();

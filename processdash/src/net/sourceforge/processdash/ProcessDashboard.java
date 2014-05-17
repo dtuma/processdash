@@ -51,6 +51,8 @@ import java.io.Writer;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.net.URL;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.text.MessageFormat;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -1893,9 +1895,14 @@ public class ProcessDashboard extends JFrame implements WindowListener,
             this.pack();
     }
 
-    public static void main(String args[]) {
+    public static void main(final String args[]) {
         try {
-            mainImpl(args);
+            AccessController.doPrivileged(new PrivilegedAction() {
+                  public Object run() {
+                      mainImpl(args);
+                      return null;
+                  }
+            });
         } catch (Throwable t) {
             logger.log(Level.SEVERE, "Unexpected exception during startup", t);
             displayStartupUnexpectedError(t);
