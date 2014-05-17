@@ -36,6 +36,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -1908,6 +1909,7 @@ public class WBSEditor implements WindowListener, SaveListener,
 
 
     public static void main(String args[]) {
+        args = maybeParseJnlpArgs(args);
         if (isDumpAndExitMode())
             System.setProperty("java.awt.headless", "true");
 
@@ -1935,6 +1937,26 @@ public class WBSEditor implements WindowListener, SaveListener,
 
         new Timer(DAY_MILLIS, new UsageLogAction()).start();
         maybeNotifyOpened();
+    }
+
+    private static String[] maybeParseJnlpArgs(String[] args) {
+        if (args.length != 3 || !"--jnlp".equals(args[0]))
+            return args;
+
+        String props = StringUtils.findAndReplace(args[1], "////", "\n");
+        Properties sysProps = new Properties();
+        try {
+            sysProps.load(new ByteArrayInputStream(props.getBytes("ISO-8859-1")));
+        } catch (Exception e) {
+        }
+        for (Iterator i = sysProps.entrySet().iterator(); i.hasNext();) {
+            Map.Entry e = (Map.Entry) i.next();
+            String property = (String) e.getKey();
+            String value = (String) e.getValue();
+            System.setProperty(property, value);
+        }
+
+        return args[2].split("////");
     }
 
     private static final String[] PROPS_TO_PROPAGATE = {

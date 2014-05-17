@@ -371,6 +371,9 @@ class dependency has been added in a dashboard class?)
 	<attribute name="Dash-Pkg-URL"
 	           value="http://processdash.sourceforge.net/cgi-bin/update"/>
 	<attribute name="Implementation-Version" value="${teamtools.version}"/>
+        <attribute name="Application-Name"
+                   value="Work Breakdown Structure Editor"/>
+        <attribute name="Permissions" value="all-permissions"/>
       </manifest>
 
       <!-- include the compiled files -->
@@ -422,10 +425,8 @@ class dependency has been added in a dashboard class?)
       <zipfileset dir="lib" includes="l10n-ignore.txt" prefix="meta-inf"/>
     </jar>
 
-    <antcall target="signjar">
-        <param name="sign.jar" value="TeamTools.jar"/>
-        <param name="sign.alias" value="${jnlpSign.alias}"/>
-    </antcall>
+    <signjar jar="TeamTools.jar" alias="${jnlpSign.alias}"
+        storepass="${jnlpSign.storepass}"/>
 
     <move file="TeamTools.jar" todir="${processdash.dist}"/>
   </target>

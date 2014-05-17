@@ -22,6 +22,7 @@
 //     processdash-devel@lists.sourceforge.net
 
 package teamdash.templates.tools;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -37,6 +38,7 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Properties;
 
 import org.w3c.dom.Element;
 
@@ -47,6 +49,7 @@ import net.sourceforge.processdash.templates.ExtensionManager;
 import net.sourceforge.processdash.templates.TemplateLoader;
 import net.sourceforge.processdash.tool.bridge.client.TeamServerSelector;
 import net.sourceforge.processdash.tool.export.mgr.ExternalResourceManager;
+import net.sourceforge.processdash.ui.Browser;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.RuntimeUtils;
@@ -80,9 +83,6 @@ public class OpenWBSEditor extends TinyCGIBase {
         boolean useJNLP = Settings.getBool("wbsEditor.useJNLP", false);
         if (parameters.containsKey("useJNLP"))
             useJNLP = true;
-        else if (parameters.containsKey("isTriggering")
-                || parameters.containsKey("trigger"))
-            useJNLP = false;
         try {
             DashController.checkIP(env.get("REMOTE_ADDR"));
         } catch (IOException ioe) {
@@ -102,7 +102,7 @@ public class OpenWBSEditor extends TinyCGIBase {
         }
 
         if (useJNLP)
-            writeJnlpFile(url, directory);
+            openViaJnlp(url, directory);
         else
             openInProcess(url, directory);
     }
@@ -414,7 +414,47 @@ public class OpenWBSEditor extends TinyCGIBase {
         }
     }
 
-    private void writeJnlpFile(String url, String directory) {
+    private void openViaJnlp(String url, String directory) throws IOException {
+        if (parameters.containsKey("isTriggering")
+                || parameters.containsKey("trigger"))
+            openInWebStart(url, directory);
+        else
+            writeJnlpFile(url, directory);
+    }
+
+    private void openInWebStart(String url, String directory)
+            throws IOException {
+        // make certain the caller is local
+        DashController.checkIP(env.get("REMOTE_ADDR"));
+
+        // build a command line for launching web start
+        String[] cmdLine = new String[] { getJavaWebStartExecutable(),
+                "-Xnosplash", getJnlpUrl() };
+        Runtime.getRuntime().exec(cmdLine);
+
+        // if we successfully opened the WBS, write the null document.
+        writeHtmlHeader();
+        DashController.printNullDocument(out);
+    }
+
+    private String getJavaWebStartExecutable() {
+        // get the path to the Java Web Start executable.
+        String javaApp = RuntimeUtils.getJreExecutable();
+        int javaEndPos = javaApp.lastIndexOf("java") + 4;
+        return javaApp.substring(0, javaEndPos) + "ws"
+                + javaApp.substring(javaEndPos);
+    }
+
+    private String getJnlpUrl() {
+        // construct a URL for the JNLP file that will open this WBS
+        String query = (String) env.get("QUERY_STRING");
+        query = StringUtils.findAndReplace(query, "isTriggering", "isTr");
+        query = StringUtils.findAndReplace(query, "trigger", "tr");
+        String jnlpUri = "/team/tools/OpenWBSEditor.class?useJNLP&" + query;
+        return Browser.mapURL(jnlpUri);
+    }
+
+    private void writeJnlpFile(String url, String directory) throws IOException {
         out.print("Content-type: application/x-java-jnlp-file\r\n\r\n");
 
         out.print("<?xml version='1.0' encoding='utf-8'?>\n");
@@ -438,31 +478,29 @@ public class OpenWBSEditor extends TinyCGIBase {
         out.print("<jar href='");
         out.print(jarPath);
         out.print("'/>\n");
-
-        Map<String, String> props = getLaunchProperties(url);
-        for (Map.Entry<String, String> e : props.entrySet()) {
-            if (e.getValue() != null) {
-                out.print("<property name='");
-                out.print(e.getKey());
-                out.print("' value='");
-                out.print(XMLUtils.escapeAttribute(e.getValue()));
-                out.print("'/>\n");
-            }
-        }
-
         out.print("</resources>\n");
 
+        Properties props = new Properties();
+        props.putAll(getLaunchProperties(url));
+        ByteArrayOutputStream propsOut = new ByteArrayOutputStream();
+        props.store(propsOut, null);
+        String propsStr = new String(propsOut.toByteArray(), "ISO-8859-1");
+        propsStr = propsStr.replaceAll("[\r\n]+", "////");
+
         out.print("<application-desc>\n");
-        if (url != null) {
-            out.print("<argument>");
+        out.print("<argument>--jnlp</argument>\n");
+        out.print("<argument>");
+        out.print(XMLUtils.escapeAttribute(propsStr));
+        out.print("</argument>\n");
+
+        out.print("<argument>");
+        if (url != null)
             out.print(XMLUtils.escapeAttribute(url));
-            out.print("</argument>\n");
-        }
-        if (directory != null) {
-            out.print("<argument>");
+        if (url != null && directory != null)
+            out.print("////");
+        if (directory != null)
             out.print(XMLUtils.escapeAttribute(directory));
-            out.print("</argument>\n");
-        }
+        out.print("</argument>\n");
         out.print("</application-desc>\n");
 
         out.print("</jnlp>\n");
