@@ -1,4 +1,4 @@
-// Copyright (C) 2004-2007 Tuma Solutions, LLC
+// Copyright (C) 2004-2014 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -45,7 +45,7 @@ public class DashboardSecurity {
 
     private static final Logger logger = Logger.getLogger(DashboardSecurity.class.getName());
 
-    public static void setupSecurityManager() {
+    public static void setupSecurityManager() throws SecurityException {
         SETUP_SECURITY_MANAGER_PERMISSION.checkPermission();
 
         if (Boolean.getBoolean(DISABLE_SECURITY_MANAGER_PROPERTY)) {
@@ -54,10 +54,8 @@ public class DashboardSecurity {
         }
 
         URL policyURL = DashboardSecurity.class.getResource("security.policy");
-        if (policyURL == null) {
-            logger.severe("No security policy found - security manager not installed.");
-            return;
-        }
+        if (policyURL == null)
+            throw new SecurityException("Security policy file not found");
         String policyURLStr = policyURL.toString();
 
         String baseURLStr = policyURLStr;
@@ -86,9 +84,10 @@ public class DashboardSecurity {
             RuntimeUtils.addPropagatedSystemProperty(JAVA_SECURITY_POLICY,
                 policyURLStr);
             RuntimeUtils.setJvmArgsPermission(RUNTIME_JVM_ARGS_PERMISSION);
+        } catch (SecurityException e) {
+            throw e;
         } catch (Exception e) {
-            logger.severe("Caught exception - security manager not installed.");
-            e.printStackTrace();
+            throw new SecurityException(e);
         }
     }
 
