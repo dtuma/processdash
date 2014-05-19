@@ -481,7 +481,10 @@ public class OpenWBSEditor extends TinyCGIBase {
         out.print("</resources>\n");
 
         Properties props = new Properties();
-        props.putAll(getLaunchProperties(url));
+        for (Map.Entry e : getLaunchProperties(url).entrySet()) {
+            if (e.getValue() != null)
+                props.put(e.getKey(), e.getValue());
+        }
         ByteArrayOutputStream propsOut = new ByteArrayOutputStream();
         props.store(propsOut, null);
         String propsStr = new String(propsOut.toByteArray(), "ISO-8859-1");
