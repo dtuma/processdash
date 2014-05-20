@@ -122,6 +122,8 @@ Authors:
   <property name="jcalendar.jar"  value="${lib}/jcalendar-1.3.2.jar"/>
   <property name="datatips.jar"   value="${lib}/datatips.jar"/>
   <property name="colt.jar"       value="${lib}/colt.jar"/>
+  <property name="jna.jar"        value="${lib}/jna-3.3.0.jar"/>
+  <property name="keyring.jar"    value="${lib}/keyring-lib.jar"/>
   <property name="apple-eawt.jar" value="${lib}/com-apple-eawt.jar"/>
   <property name="ws-commons.jar" value="${lib}/ws-commons-util-1.0.2.jar"/>
   <property name="xmlrpc-cli.jar" value="${lib}/xmlrpc-client-3.1.1.jar"/>
@@ -150,6 +152,8 @@ Authors:
     <pathelement location="${image4j.jar}"/>
     <pathelement location="${jcalendar.jar}"/>
     <pathelement location="${datatips.jar}"/>
+    <pathelement location="${jna.jar}"/>
+    <pathelement location="${keyring.jar}"/>
     <pathelement location="${apple-eawt.jar}"/>
     <pathelement location="${ws-commons.jar}"/>
     <pathelement location="${xmlrpc-cli.jar}"/>
@@ -514,6 +518,8 @@ Authors:
       <zipfileset src="${json.jar}"/>
       <zipfileset src="${image4j.jar}"/>
       <zipfileset src="${jcalendar.jar}"/>
+      <zipfileset src="${jna.jar}"/>
+      <zipfileset src="${keyring.jar}"/>
       <zipfileset src="${lib}/jfreechart_ja.zip"/>
       <zipfileset src="${lib}/jfreechart_zh.zip"/>
       <zipfileset src="${colt.jar}" includesfile="${lib}/fileset-colt.txt"/>

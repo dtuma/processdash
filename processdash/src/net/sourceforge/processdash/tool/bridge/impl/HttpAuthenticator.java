@@ -24,15 +24,20 @@
 package net.sourceforge.processdash.tool.bridge.impl;
 
 import java.awt.Dimension;
+import java.awt.Font;
 import java.net.Authenticator;
 import java.net.PasswordAuthentication;
+import java.util.prefs.Preferences;
 
+import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
+
+import org.netbeans.api.keyring.Keyring;
 
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.ui.lib.BoxUtils;
@@ -43,13 +48,15 @@ import net.sourceforge.processdash.util.StringUtils;
 public class HttpAuthenticator extends Authenticator {
 
     private enum State {
-        Initial, // KeyChain,
+        Initial, Keyring, //
         UserEntry1, UserEntry2, UserEntry3, //
         Failed, Cancelled
     };
 
 
-    private State state = State.Initial;
+    private State state;
+
+    private float rememberMeDays;
 
     private String lastUrl;
 
@@ -58,11 +65,41 @@ public class HttpAuthenticator extends Authenticator {
     private String lastUsername;
 
 
-    private static final String ENABLED_SETTING_NAME = //
-            "net.sourceforge.processdash.HttpAuthenticator.enabled";
+    private static final String SETTING_PREFIX = //
+            "net.sourceforge.processdash.HttpAuthenticator.";
+
+    private static final String ENABLED_SETTING_NAME = SETTING_PREFIX
+            + "enabled";
+
+    private static final String REMEMBER_ME_SETTING_NAME = SETTING_PREFIX
+            + "rememberMeDays";
+
+    private static Preferences PREFS = Preferences.userRoot().node(
+            "net/sourceforge/processdash/userPrefs/authenticator");
+
+    private static final String LAST_USERNAME = "lastUsername";
+
+    private static final String REMEMBER_ME_UNTIL = "rememberUntil";
+
+    private static final long DAY_MILLIS = 24L * 60 * 60 * 1000;
 
     private static final Resources resources = Resources
             .getDashBundle("Authentication.Password");
+
+
+    private HttpAuthenticator() {
+        this.state = State.Initial;
+
+        if (Keyring.isPersistent()) {
+            try {
+                this.rememberMeDays = Float.parseFloat(System
+                        .getProperty(REMEMBER_ME_SETTING_NAME));
+            } catch (Exception e) {
+                this.rememberMeDays = 14;
+            }
+        }
+    }
+
 
     @Override
     protected PasswordAuthentication getPasswordAuthentication() {
@@ -78,7 +115,16 @@ public class HttpAuthenticator extends Authenticator {
         if (state == State.Failed || state == State.Cancelled)
             return null;
 
-        // prompt the user for credentials
+        // possibly supply credentials that were stored in the keyring
+        if (state == State.Keyring) {
+            char[] password = getPasswordFromKeyring(lastUsername);
+            if (password != null)
+                return new PasswordAuthentication(lastUsername, password);
+            else
+                state = State.UserEntry1;
+        }
+
+        // create user interface components to prompt for username and password
         JTextField username = new JTextField(2);
         JPasswordField password = new JPasswordField(2);
         JComponent focus = username;
@@ -95,12 +141,26 @@ public class HttpAuthenticator extends Authenticator {
         usernameLabel.setPreferredSize(d);
         passwordLabel.setPreferredSize(d);
 
+        // if "remember me" support is enabled, create a checkbox
+        JCheckBox rememberMe = null;
+        if (rememberMeDays > 0) {
+            rememberMe = new JCheckBox(
+                    resources.getString("Remember_Me.Prompt"));
+            rememberMe.setToolTipText(resources.format(
+                "Remember_Me.Tooltip_FMT", rememberMeDays));
+            Font f = rememberMe.getFont();
+            f = f.deriveFont(f.getSize2D() * 0.8f);
+            rememberMe.setFont(f);
+        }
+
+        // prompt the user for credentials
         String title = resources.getString("Title");
         Object[] message = new Object[] {
                 resources.formatStrings("Prompt_FMT", getRequestingPrompt()),
                 BoxUtils.vbox(5),
                 BoxUtils.hbox(15, usernameLabel, 5, username),
                 BoxUtils.hbox(15, passwordLabel, 5, password),
+                BoxUtils.hbox(BoxUtils.GLUE, rememberMe),
                 new JOptionPaneTweaker.GrabFocus(focus) };
 
         int userChoice = JOptionPane.showConfirmDialog(null, message, title,
@@ -110,9 +170,12 @@ public class HttpAuthenticator extends Authenticator {
         lastUrl = getEffectiveURL();
         lastTimestamp = System.currentTimeMillis();
         lastUsername = username.getText().trim();
+        PREFS.put(prefsKey(LAST_USERNAME), lastUsername);
 
         if (userChoice == JOptionPane.OK_OPTION) {
             // if the user entered credentials, return them.
+            if (rememberMe != null && rememberMe.isSelected())
+                savePasswordToKeyring(lastUsername, password.getPassword());
             return new PasswordAuthentication(lastUsername,
                     password.getPassword());
         } else {
@@ -125,8 +188,9 @@ public class HttpAuthenticator extends Authenticator {
     private void determineCurrentState() {
         if (isRetry() == false) {
             // if this operation is not a retry, reset to initial state.
-            lastUrl = lastUsername = null;
+            lastUrl = null;
             lastTimestamp = -1;
+            lastUsername = PREFS.get(prefsKey(LAST_USERNAME), null);
             state = State.Initial;
         }
 
@@ -141,6 +205,61 @@ public class HttpAuthenticator extends Authenticator {
 
         long retryDelay = System.currentTimeMillis() - lastTimestamp;
         return retryDelay < 15 * DateUtils.SECONDS;
+    }
+
+    private char[] getPasswordFromKeyring(String username) {
+        // no username? abort
+        if (!StringUtils.hasValue(username))
+            return null;
+
+        // get the timestamp when we should forget credentials
+        String expirationTimeKey = prefsKey(REMEMBER_ME_UNTIL);
+        long expirationTime = PREFS.getLong(expirationTimeKey, -1);
+        if (expirationTime == -1) {
+            // if the timestamp is not present, no credentials are available
+            return null;
+
+        } else if (expirationTime < System.currentTimeMillis()) {
+            // if the timestamp has expired, delete the stored credentials
+            PREFS.remove(expirationTimeKey);
+            Keyring.delete(ringKey(username));
+            return null;
+
+        } else {
+            // if the timestamp is still valid, retrieve the stored password
+            return Keyring.read(ringKey(username));
+        }
+    }
+
+    private void savePasswordToKeyring(String username, char[] password) {
+        // record an expiration time when we should forget these credentials
+        long expirationTime = System.currentTimeMillis()
+                + (long) (rememberMeDays * DAY_MILLIS);
+        PREFS.putLong(prefsKey(REMEMBER_ME_UNTIL), expirationTime);
+
+        // store the password into the keyring.
+        Keyring.save(ringKey(username), password, null);
+    }
+
+    private String prefsKey(String suffix) {
+        String result = getBaseURL();
+        result = result.replace(':', ';');
+        result = result.replace('/', ',');
+        if (suffix != null)
+            result = result + suffix;
+        return result;
+    }
+
+    private String ringKey(String username) {
+        return username + "@" + getBaseURL();
+    }
+
+    private String getBaseURL() {
+        String result = getEffectiveURL();
+        int bridgePos = result.indexOf("DataBridge");
+        if (bridgePos != -1)
+            result = result.substring(0, bridgePos);
+        return result;
     }
 
     private String getEffectiveURL() {
