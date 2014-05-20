@@ -134,6 +134,7 @@ import net.sourceforge.processdash.tool.bridge.client.TeamServerSelector;
 import net.sourceforge.processdash.tool.bridge.client.WorkingDirectory;
 import net.sourceforge.processdash.tool.bridge.client.WorkingDirectoryFactory;
 import net.sourceforge.processdash.tool.bridge.impl.DatasetAutoMigrator;
+import net.sourceforge.processdash.tool.bridge.impl.HttpAuthenticator;
 import net.sourceforge.processdash.tool.bridge.impl.JnlpRelauncher;
 import net.sourceforge.processdash.tool.db.DatabasePlugin;
 import net.sourceforge.processdash.tool.export.mgr.ExportManager;
@@ -165,6 +166,7 @@ import net.sourceforge.processdash.util.DateUtils;
 import net.sourceforge.processdash.util.FallbackObjectFactory;
 import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.FormatUtil;
+import net.sourceforge.processdash.util.HttpException;
 import net.sourceforge.processdash.util.Initializable;
 import net.sourceforge.processdash.util.ProfTimer;
 import net.sourceforge.processdash.util.RuntimeUtils;
@@ -688,6 +690,12 @@ public class ProcessDashboard extends JFrame implements WindowListener,
 
         try {
             workingDirectory.prepare();
+        } catch (HttpException.Unauthorized e) {
+            displayStartupPermissionError("Unauthorized");
+            System.exit(1);
+        } catch (HttpException.Forbidden e) {
+            displayStartupPermissionError("Forbidden");
+            System.exit(1);
         } catch (IOException e) {
             String resKey;
             if (workingDirectory instanceof BridgedWorkingDirectory) {
@@ -1350,6 +1358,15 @@ public class ProcessDashboard extends JFrame implements WindowListener,
     }
 
 
+    private void displayStartupPermissionError(String resourceKey) {
+        Resources res = Resources.getDashBundle("Authentication.Errors");
+        String title = res.getString(resourceKey + ".Title");
+        Object message = res.getStrings(resourceKey + ".Message");
+        JOptionPane.showMessageDialog(hideSS(), message, title,
+            JOptionPane.ERROR_MESSAGE);
+    }
+
+
     private void displayStartupIOError(String resourceKey, String filename,
             Throwable t) {
         if (resources == null)
@@ -1913,6 +1930,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         DashboardSecurity.setupSecurityManager();
 
         LargeFontsHelper.maybeInitialize();
+        HttpAuthenticator.maybeInitialize();
 
         ss = new DashboardSplashScreen();
         ss.displayFor(3000);      // show for at least 3 seconds.

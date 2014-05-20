@@ -59,6 +59,7 @@ import net.sourceforge.processdash.tool.bridge.report.XmlCollectionListing;
 import net.sourceforge.processdash.util.ClientHttpRequest;
 import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.HTMLUtils;
+import net.sourceforge.processdash.util.HttpException;
 import net.sourceforge.processdash.util.HTTPUtils;
 import net.sourceforge.processdash.util.ProfTimer;
 import net.sourceforge.processdash.util.StringUtils;
@@ -514,6 +515,7 @@ public class ResourceBridgeClient implements ResourceBridgeConstants {
         long localHash = ListingHashcodeCalculator.getListingHashcode(
             localCollection, ResourceFilterFactory.DEFAULT_FILTER);
         // finally, retrieve the value from the server and compare the two.
+        HttpException.checkValid(conn);
         String hashResult = HTTPUtils.getResponseAsString(conn);
         long remoteHash = Long.valueOf(hashResult);
         return (localHash == remoteHash);
