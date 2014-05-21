@@ -485,6 +485,14 @@ public class OpenWBSEditor extends TinyCGIBase {
             if (e.getValue() != null)
                 props.put(e.getKey(), e.getValue());
         }
+        for (String arg : RuntimeUtils.getPropagatedJvmArgs()) {
+            if (arg.startsWith("-D")) {
+                int eqPos = arg.indexOf('=');
+                String key = arg.substring(2, eqPos);
+                String value = arg.substring(eqPos + 1);
+                props.put(key, value);
+            }
+        }
         ByteArrayOutputStream propsOut = new ByteArrayOutputStream();
         props.store(propsOut, null);
         String propsStr = new String(propsOut.toByteArray(), "ISO-8859-1");
