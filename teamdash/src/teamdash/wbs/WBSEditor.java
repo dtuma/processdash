@@ -94,6 +94,7 @@ import net.sourceforge.processdash.tool.bridge.client.CompressedWorkingDirectory
 import net.sourceforge.processdash.tool.bridge.client.TeamServerSelector;
 import net.sourceforge.processdash.tool.bridge.client.WorkingDirectory;
 import net.sourceforge.processdash.tool.bridge.client.WorkingDirectoryFactory;
+import net.sourceforge.processdash.tool.bridge.impl.HttpAuthenticator;
 import net.sourceforge.processdash.tool.export.mgr.ExternalLocationMapper;
 import net.sourceforge.processdash.ui.lib.ExceptionDialog;
 import net.sourceforge.processdash.ui.lib.GuiPrefs;
@@ -102,6 +103,7 @@ import net.sourceforge.processdash.ui.lib.LargeFontsHelper;
 import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
 import net.sourceforge.processdash.util.DashboardBackupFactory;
 import net.sourceforge.processdash.util.FileUtils;
+import net.sourceforge.processdash.util.HttpException;
 import net.sourceforge.processdash.util.PreferencesUtils;
 import net.sourceforge.processdash.util.RuntimeUtils;
 import net.sourceforge.processdash.util.StringUtils;
@@ -1723,6 +1725,12 @@ public class WBSEditor implements WindowListener, SaveListener,
             } else {
                 workingDirIsGood = dir.isDirectory();
             }
+        } catch (HttpException.Unauthorized e) {
+            displayStartupPermissionError("Unauthorized");
+            return null;
+        } catch (HttpException.Forbidden e) {
+            displayStartupPermissionError("Forbidden");
+            return null;
         } catch (IOException e) {
             // do nothing.  An exception means that "workingDirIsGood" will
             // remain false, so we will display an error message below.
@@ -1762,6 +1770,16 @@ public class WBSEditor implements WindowListener, SaveListener,
                 System.err.println(line);
             System.exit(1);
         }
+    }
+    private static void displayStartupPermissionError(String resourceKey) {
+        Resources res = Resources.getDashBundle("Authentication.Errors");
+        String title = res.getString(resourceKey + ".Title");
+        Object message = res.getStrings(resourceKey + ".Message");
+        if (isDumpAndExitMode())
+            System.err.println(title);
+        else
+            JOptionPane.showMessageDialog(null, message, title,
+                JOptionPane.ERROR_MESSAGE);
     }
 
     String workingDirResKey() {
@@ -1913,6 +1931,7 @@ public class WBSEditor implements WindowListener, SaveListener,
         if (isDumpAndExitMode())
             System.setProperty("java.awt.headless", "true");
 
+        HttpAuthenticator.maybeInitialize();
         ExternalLocationMapper.getInstance().loadDefaultMappings();
         RuntimeUtils.autoregisterPropagatedSystemProperties();
         for (String prop : PROPS_TO_PROPAGATE)
