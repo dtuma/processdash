@@ -111,6 +111,11 @@ public class TeamStartBootstrap extends TinyCGIBase {
     private static final String TEAM_URL_PAGE = "teamURL";
     private static final String SHOW_URL_PAGE = "showURL";
     private static final String TEAM_URL_URL = "teamStartTeamURL.shtm";
+    // Information for the pages when an individual has been invited to join
+    private static final String INVITE_PAGE = "invite";
+    private static final String INVITE_URL = "teamStartInvite.shtm";
+    private static final String INVITE_REPLY_PAGE = "inviteReply";
+    private static final String DECLINED_URL = "teamStartDeclined.shtm";
     // Information for the page which tells the user they are in read only mode
     private static final String READ_ONLY_URL = "teamStartReadOnly.shtm";
 
@@ -118,6 +123,7 @@ public class TeamStartBootstrap extends TinyCGIBase {
 
     private static final String NODE_LOCATION = "setup//Node_Location";
     private static final String NODE_NAME = "setup//Node_Name";
+    private static final String PROJECT_FULL_NAME = "setup//Project_Full_Name";
     private static final String TEAM_PID = "setup//Process_ID";
     private static final String TEAM_PID_LIST = "setup//Process_ID_List";
     private static final String TEAM_PROC_NAME = "setup//Process_Name";
@@ -175,6 +181,8 @@ public class TeamStartBootstrap extends TinyCGIBase {
 
         else if (SHOW_URL_PAGE.equals(page))      showTeamURLPage();
         else if (TEAM_URL_PAGE.equals(page))      handleTeamURLPage();
+        else if (INVITE_PAGE.equals(page))        showInvitePage();
+        else if (INVITE_REPLY_PAGE.equals(page))  handleInviteReply();
         else if (JOIN_PAGE.equals(page))          handleJoinPage();
 
         this.out.flush();
@@ -735,6 +743,12 @@ public class TeamStartBootstrap extends TinyCGIBase {
         // Extract the relevant information from the XML document we
         // downloaded.
         Element e = doc.getDocumentElement();
+        saveXmlJoiningData(e);
+
+        return null;
+    }
+
+    private void saveXmlJoiningData(Element e) {
         putValue(TEMPLATE_ID, e.getAttribute("Template_ID"));
         putValue(PACKAGE_ID, e.getAttribute("Package_ID"));
         putValue(PACKAGE_VERSION, e.getAttribute("Package_Version"));
@@ -743,8 +757,44 @@ public class TeamStartBootstrap extends TinyCGIBase {
         putValue(CONTINUATION_URI, e.getAttribute("Continuation_URI"));
         putValue(RELAX_PATH_REQ, e.getAttribute("Relax_Path_Reqt"));
         saveAllJoiningData(XMLUtils.getAttributesAsMap(e));
+    }
 
-        return null;
+
+    /** Display a page when an individual has been invited to join */
+    private void showInvitePage() throws IOException {
+        // Ensure that this is a personal dashboard before we begin the
+        // joining process
+        if (!Settings.isPersonalMode()) {
+            putValue("Join_XML", (SimpleData) null);
+            printRedirect(JOIN_TEAM_ERROR_URL);
+            return;
+        }
+
+        Element joinXml;
+        try {
+            String joinXmlStr = getValue("Join_XML");
+            joinXml = XMLUtils.parse(joinXmlStr).getDocumentElement();
+        } catch (Exception e) {
+            putValue("Join_XML", (SimpleData) null);
+            e.printStackTrace();
+            IOException ioe = new IOException();
+            ioe.initCause(e);
+            throw ioe;
+        }
+
+        putValue(TEAM_URL, joinXml.getAttribute("Team_URL"));
+        putValue(PROJECT_FULL_NAME, joinXml.getAttribute("Project_Full_Name"));
+        saveXmlJoiningData(joinXml);
+        printRedirect(INVITE_URL);
+    }
+
+    private void handleInviteReply() {
+        if (parameters.containsKey("join")) {
+            joinProject();
+        } else {
+            putValue("Join_XML", (SimpleData) null);
+            printRedirect(DECLINED_URL);
+        }
     }
 
 

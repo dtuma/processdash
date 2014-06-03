@@ -83,6 +83,10 @@ The author(s) may be contacted at:
      class="net.sourceforge.processdash.util.ThreadMonitor$PrintDeadlockTask"
      settingPrefix="deadlockMonitor"/>
 
+  <background-task ordinal="502" runAtStartup="true" whenDefault="8,12,16,20"
+     class="net.sourceforge.processdash.ui.web.dash.TeamStartNotifier"
+     settingPrefix="teamJoinNotifier" requires="personalMode"/>
+
   <background-task runAtStartup="true" whenDefault="-1"
      class="net.sourceforge.processdash.tool.export.mgr.AutoExportTrigger"
      forTag="PROBE Task" settingPrefix="probeAutoExport"
@@ -346,6 +350,9 @@ The author(s) may be contacted at:
 
   <messageHandler
      class="net.sourceforge.processdash.ev.TaskListAltererMessageHandler"/>
+
+  <messageHandler requires="personalMode"
+     class="net.sourceforge.processdash.ui.web.dash.TeamStartMessageHandler"/>
 
   <messageHandler
      class="net.sourceforge.processdash.ui.web.api.ApiMessageRepeater"/>
