@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2013 Tuma Solutions, LLC
+// Copyright (C) 2003-2014 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -73,7 +73,9 @@ public class DashboardIconFactory {
 
         // if the user has not overridden the application icon, or the file
         // cannot be read, use the default icons shipped with the dashboard.
-        return DashboardIconFactory.class.getResourceAsStream("dashicon.ico");
+        String iconFile = Settings.isPersonalMode() ? "dashicon.ico"
+                : "teamicon.ico";
+        return DashboardIconFactory.class.getResourceAsStream(iconFile);
     }
 
 

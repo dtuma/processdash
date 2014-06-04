@@ -42,6 +42,7 @@ net/sourceforge/processdash/ui/commentError.png
 net/sourceforge/processdash/ui/commentNone.png
 net/sourceforge/processdash/ui/hourglass.png
 net/sourceforge/processdash/ui/dashicon.ico
+net/sourceforge/processdash/ui/teamicon.ico
 net/sourceforge/processdash/ui/launcher.ico
 net/sourceforge/processdash/ui/pausedCompact.png
 net/sourceforge/processdash/ui/pauseBlack.png
