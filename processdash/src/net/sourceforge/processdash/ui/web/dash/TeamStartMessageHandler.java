@@ -23,9 +23,13 @@
 
 package net.sourceforge.processdash.ui.web.dash;
 
+import java.io.InputStream;
+import java.net.URL;
+
 import org.w3c.dom.Element;
 
 import net.sourceforge.processdash.DashboardContext;
+import net.sourceforge.processdash.msg.MessageDispatcher;
 import net.sourceforge.processdash.msg.MessageEvent;
 import net.sourceforge.processdash.msg.MessageHandler;
 import net.sourceforge.processdash.util.XMLUtils;
@@ -49,6 +53,25 @@ public class TeamStartMessageHandler implements MessageHandler {
     public void handle(MessageEvent message) {
         Element messageXml = message.getMessageXml();
         for (Element joinXml : XMLUtils.getChildElements(messageXml)) {
+
+            // see if this message refers to a joining document that is
+            // located elsewhere. If so, try downloading it.
+            String externalUrl = joinXml.getAttribute("Join_XML_URL");
+            if (XMLUtils.hasValue(externalUrl)) {
+                try {
+                    InputStream in = new URL(externalUrl).openStream();
+                    joinXml = XMLUtils.parse(in).getDocumentElement();
+                } catch (Exception e) {
+                    // If we encounter any problems downloading the document,
+                    // mark this message as "not handled" so we can potentially
+                    // retry the operation in the future.
+                    MessageDispatcher.getInstance().setMessageHandled(message,
+                        false);
+                    continue;
+                }
+            }
+
+            // register the joining invitation with the notifier.
             TeamStartNotifier.addJoinInvitation(ctx, joinXml);
         }
     }
