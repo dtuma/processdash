@@ -46,8 +46,8 @@ Setup Wizard<br>Join Project Invitation</h1></td></tr>
 Otherwise, click &quot;Accept&quot; to continue.</p>
 
 <div>
-<input type="submit" name="decline" value="Decline Invitation">&nbsp;&nbsp;
-<input type="submit" name="join" value="Accept Invitation">
+<input style="margin-left:3cm" type="submit" name="decline" value="Decline Invitation">
+<input style="margin-left:1cm" type="submit" name="join" value="Accept Invitation">
 </div>
 
 </form>

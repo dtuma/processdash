@@ -40,6 +40,10 @@ public class TeamStartMessageHandler implements MessageHandler {
 
     private static final String[] MESSAGE_TYPES = { MESSAGE_TYPE };
 
+    private static final String JOIN_XML_URL = "Join_XML_URL";
+
+    private static final String TEAM_URL = "Team_URL";
+
     private DashboardContext ctx;
 
     public void setDashboardContext(DashboardContext ctx) {
@@ -56,11 +60,13 @@ public class TeamStartMessageHandler implements MessageHandler {
 
             // see if this message refers to a joining document that is
             // located elsewhere. If so, try downloading it.
-            String externalUrl = joinXml.getAttribute("Join_XML_URL");
+            String externalUrl = joinXml.getAttribute(JOIN_XML_URL);
             if (XMLUtils.hasValue(externalUrl)) {
                 try {
                     InputStream in = new URL(externalUrl).openStream();
                     joinXml = XMLUtils.parse(in).getDocumentElement();
+                    if (!XMLUtils.hasValue(joinXml.getAttribute(TEAM_URL)))
+                        joinXml.setAttribute(TEAM_URL, externalUrl);
                 } catch (Exception e) {
                     // If we encounter any problems downloading the document,
                     // mark this message as "not handled" so we can potentially
