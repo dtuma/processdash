@@ -52,7 +52,10 @@ public abstract class AbstractNumericColumn extends AbstractDataColumn {
 
 
     protected boolean equal(double a, double b) {
-        return equal(a, b, fuzzFactor);
+        if (a == 0 || b == 0)
+            return a == b;
+        else
+            return equal(a, b, fuzzFactor);
     }
 
     protected boolean equal(double a, double b, double fuzzFactor) {
