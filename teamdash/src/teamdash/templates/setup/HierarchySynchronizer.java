@@ -2698,6 +2698,14 @@ public class HierarchySynchronizer {
                 putData(path, PROBE_SIZE_UNITS_DATA_NAME, value);
             }
 
+            // if this PROBE task has all zeros for size data, abort
+            boolean foundData = false;
+            for (String attr : sizeAttrNames)
+                if (XMLUtils.getXMLNum(node, attr) > 0)
+                    foundData = true;
+            if (foundData == false)
+                return;
+
             // find out what percentage of this task the user will perform.
             double ratio = getTimeRatio(node, units);
 
@@ -2726,12 +2734,12 @@ public class HierarchySynchronizer {
     private static final String[] PROBE_SIZE_DATA_ELEMENT_NAMES = {
             "Estimated Proxy Size", "Estimated Size", "Size", "Total Size" };
     private static final String[] PROBE_SIZE_ACCT_DATA_NAMES = new String[] {
-        "Estimated Base Size",
-        "Estimated Deleted Size",
-        "Estimated Modified Size",
+        "Base_Parts/0/Base",
+        "Base_Parts/0/Deleted",
+        "Base_Parts/0/Modified",
         "New Objects/0/Size",
         "Reused Objects/0/Size",
-        "Estimated Added & Modified Size" };
+        "Estimated Size" };
 
 
 
