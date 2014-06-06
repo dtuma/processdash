@@ -54,6 +54,10 @@ public class HttpAuthenticator extends Authenticator {
     };
 
 
+    private Preferences prefs;
+
+    private Resources resources;
+
     private State state;
 
     private float rememberMeDays;
@@ -74,20 +78,17 @@ public class HttpAuthenticator extends Authenticator {
     private static final String REMEMBER_ME_SETTING_NAME = SETTING_PREFIX
             + "rememberMeDays";
 
-    private static Preferences PREFS = Preferences.userRoot().node(
-            "net/sourceforge/processdash/userPrefs/authenticator");
-
     private static final String LAST_USERNAME = "lastUsername";
 
     private static final String REMEMBER_ME_UNTIL = "rememberUntil";
 
     private static final long DAY_MILLIS = 24L * 60 * 60 * 1000;
 
-    private static final Resources resources = Resources
-            .getDashBundle("Authentication.Password");
-
 
     private HttpAuthenticator() {
+        this.prefs = Preferences.userRoot().node(
+                "net/sourceforge/processdash/userPrefs/authenticator");
+        this.resources = Resources.getDashBundle("Authentication.Password");
         this.state = State.Initial;
 
         if (Keyring.isPersistent()) {
@@ -170,7 +171,7 @@ public class HttpAuthenticator extends Authenticator {
         lastUrl = getEffectiveURL();
         lastTimestamp = System.currentTimeMillis();
         lastUsername = username.getText().trim();
-        PREFS.put(prefsKey(LAST_USERNAME), lastUsername);
+        prefs.put(prefsKey(LAST_USERNAME), lastUsername);
 
         if (userChoice == JOptionPane.OK_OPTION) {
             // if the user entered credentials, return them.
@@ -190,7 +191,7 @@ public class HttpAuthenticator extends Authenticator {
             // if this operation is not a retry, reset to initial state.
             lastUrl = null;
             lastTimestamp = -1;
-            lastUsername = PREFS.get(prefsKey(LAST_USERNAME), null);
+            lastUsername = prefs.get(prefsKey(LAST_USERNAME), null);
             state = State.Initial;
         }
 
@@ -214,14 +215,14 @@ public class HttpAuthenticator extends Authenticator {
 
         // get the timestamp when we should forget credentials
         String expirationTimeKey = prefsKey(REMEMBER_ME_UNTIL);
-        long expirationTime = PREFS.getLong(expirationTimeKey, -1);
+        long expirationTime = prefs.getLong(expirationTimeKey, -1);
         if (expirationTime == -1) {
             // if the timestamp is not present, no credentials are available
             return null;
 
         } else if (expirationTime < System.currentTimeMillis()) {
             // if the timestamp has expired, delete the stored credentials
-            PREFS.remove(expirationTimeKey);
+            prefs.remove(expirationTimeKey);
             Keyring.delete(ringKey(username));
             return null;
 
@@ -235,7 +236,7 @@ public class HttpAuthenticator extends Authenticator {
         // record an expiration time when we should forget these credentials
         long expirationTime = System.currentTimeMillis()
                 + (long) (rememberMeDays * DAY_MILLIS);
-        PREFS.putLong(prefsKey(REMEMBER_ME_UNTIL), expirationTime);
+        prefs.putLong(prefsKey(REMEMBER_ME_UNTIL), expirationTime);
 
         // store the password into the keyring.
         Keyring.save(ringKey(username), password, null);
