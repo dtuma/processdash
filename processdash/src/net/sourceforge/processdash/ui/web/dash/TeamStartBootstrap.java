@@ -273,11 +273,12 @@ public class TeamStartBootstrap extends TinyCGIBase {
 
     /** Check to see if we need to prompt for the name of this team project */
     protected void maybeShowTeamNodePage() {
-        if (prefixNamesTeamProjectStub())
+        if (prefixNamesTeamProjectStub()) {
             showTeamProcessesPage();
-
-        maybeSetDefaultProjectPath();
-        printRedirect(NODE_URL);
+        } else {
+            maybeSetDefaultProjectPath();
+            printRedirect(NODE_URL);
+        }
     }
 
     private boolean prefixNamesTeamProjectStub() {
