@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2013 Tuma Solutions, LLC
+// Copyright (C) 2001-2014 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -88,7 +88,6 @@ import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.net.cache.CachedURLObject;
 import net.sourceforge.processdash.net.cms.CMSSnippetEnvironment;
 import net.sourceforge.processdash.net.http.TinyCGIException;
-import net.sourceforge.processdash.net.http.TinyCGIStreaming;
 import net.sourceforge.processdash.net.http.WebServer;
 import net.sourceforge.processdash.templates.ExtensionManager;
 import net.sourceforge.processdash.ui.lib.HTMLTableWriter;
@@ -109,7 +108,7 @@ import net.sourceforge.processdash.util.StringUtils;
 
 /** CGI script for reporting earned value data in HTML.
  */
-public class EVReport extends CGIChartBase implements TinyCGIStreaming {
+public class EVReport extends CGIChartBase {
 
     public static final String CHART_PARAM = "chart";
     public static final String CHARTS_PARAM = "charts";
