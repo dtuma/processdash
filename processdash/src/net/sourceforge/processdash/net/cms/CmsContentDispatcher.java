@@ -1,4 +1,4 @@
-// Copyright (C) 2006-2009 Tuma Solutions, LLC
+// Copyright (C) 2006-2014 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -36,7 +36,6 @@ import java.util.regex.Pattern;
 
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.net.http.TinyCGIException;
-import net.sourceforge.processdash.net.http.WebServer;
 import net.sourceforge.processdash.ui.snippet.SnippetDefinition;
 import net.sourceforge.processdash.ui.snippet.SnippetDefinitionManager;
 import net.sourceforge.processdash.ui.snippet.SnippetPageFilter;
@@ -48,6 +47,8 @@ import net.sourceforge.processdash.util.HTMLUtils;
  * appropriate handlers.
  */
 public class CmsContentDispatcher extends TinyCGIBase {
+
+    public static final String CMS_URI_PREFIX = "cms/";
 
     private static final Logger logger = Logger
             .getLogger(CmsContentDispatcher.class.getName());
@@ -68,7 +69,7 @@ public class CmsContentDispatcher extends TinyCGIBase {
         // strip the "/cms/" prefix from the beginning, then hardcode an
         // assumption on an XML file.
         String filename = (String) env.get("SCRIPT_NAME");
-        filename = filename.substring(WebServer.CMS_URI_PREFIX.length() + 1)
+        filename = filename.substring(CMS_URI_PREFIX.length() + 1)
                 + ".xml";
 
         if (act(filename))
