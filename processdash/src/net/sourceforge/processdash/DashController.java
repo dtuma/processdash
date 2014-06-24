@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2013 Tuma Solutions, LLC
+// Copyright (C) 2001-2014 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.ServerSocket;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -64,8 +65,7 @@ public class DashController {
 
     static ProcessDashboard dash = null;
     private static File dataDirectory_ = null;
-    private static String loopbackAddress = "127.0.0.1";
-    private static String localAddress = "127.0.0.1";
+    private static Set localAddresses = Collections.singleton("127.0.0.1");
     private static DashboardPermission PERMISSION =
         new DashboardPermission("dashController");
     private static final Logger logger = Logger.getLogger(DashController.class
@@ -74,11 +74,22 @@ public class DashController {
     public static void setDashboard(ProcessDashboard dashboard) {
         PERMISSION.checkPermission();
         dash = dashboard;
+        Set addrs = new HashSet();
         try {
-            localAddress = InetAddress.getLocalHost().getHostAddress();
-            loopbackAddress = InetAddress.getByName("localhost")
-                    .getHostAddress();
+            addrs.add("127.0.0.1");
+            addrs.add("::1");
+            addLocalAddresses(addrs, "localhost");
+            addLocalAddresses(addrs, InetAddress.getLocalHost().getHostName());
         } catch (IOException ioe) {}
+        localAddresses = Collections.unmodifiableSet(addrs);
+    }
+    private static void addLocalAddresses(Set dest, String host) {
+        try {
+            dest.add(host);
+            for (InetAddress addr : InetAddress.getAllByName(host))
+                dest.add(addr.getHostAddress());
+        } catch (Exception e) {
+        }
     }
 
     public static void setDataDirectory(File directory) {
@@ -96,18 +107,11 @@ public class DashController {
     public static void checkIP(Object remoteAddress) throws IOException {
         PERMISSION.checkPermission();
 
-        if ("127.0.0.1".equals(remoteAddress)) return;
-        if (loopbackAddress.equals(remoteAddress)) return;
-        if (localAddress.equals(remoteAddress)) return;
-
-        InetAddress addr = null;
         if (remoteAddress instanceof InetAddress)
-            addr = (InetAddress) remoteAddress;
-        else if (remoteAddress != null) try {
-            addr = InetAddress.getByName(remoteAddress.toString());
-        } catch (Exception e) {}
+            remoteAddress = ((InetAddress) remoteAddress).getHostAddress();
 
-        if (addr != null && addr.isLoopbackAddress()) return;
+        if (localAddresses.contains(remoteAddress))
+            return;
 
         throw new IOException("Connection not accepted from: " + remoteAddress);
     }
