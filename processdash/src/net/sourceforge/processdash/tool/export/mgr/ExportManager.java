@@ -348,8 +348,7 @@ public class ExportManager extends AbstractManager {
         if (instrVal.startsWith("file:")) {
             try {
                 String uri = instrVal.substring(5);
-                byte[] xmlData = dashboard.getWebServer().getRawRequest(uri);
-                xml = new String(xmlData, "UTF-8");
+                xml = dashboard.getWebServer().getRequestAsString(uri);
             } catch (Exception e) {
                 logger.log(Level.WARNING,
                         "Couldn't open XML instructions file", e);
