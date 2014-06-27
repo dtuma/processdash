@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Tuma Solutions, LLC
+// Copyright (C) 2002-2014 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -95,8 +95,10 @@ public class NumericDataValue {
     public static String format(double value) {
         if (Double.isNaN(value) || Double.isInfinite(value))
             return "";
-        else
+        else if (value > 1)
             return FORMATTER.format(value);
+        else
+            return FORMATTER2.format(value);
     }
 
 
@@ -119,8 +121,11 @@ public class NumericDataValue {
 
     protected static final NumberFormat FORMATTER =
         NumberFormat.getNumberInstance();
+    protected static final NumberFormat FORMATTER2 =
+            NumberFormat.getNumberInstance();
     static {
         FORMATTER.setMaximumFractionDigits(1);
+        FORMATTER2.setMaximumFractionDigits(2);
     }
 
 }
