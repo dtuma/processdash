@@ -1,4 +1,4 @@
-// Copyright (C) 2004-2008 Tuma Solutions, LLC
+// Copyright (C) 2004-2014 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -109,6 +109,17 @@ public class HTTPUtils {
         String charset = getCharset(contentType);
         byte[] rawData = FileUtils.slurpContents(conn.getInputStream(), true);
         return new String(rawData, charset);
+    }
+
+
+    /** Calculate the user credential that would work for an http
+     * Authorization field.
+     */
+    public static String calcCredential(String user, String password) {
+        String credential = user + ":" + password;
+        credential = Base64.encodeBytes(credential.getBytes(),
+                Base64.DONT_BREAK_LINES);
+        return "Basic " + credential;
     }
 
 

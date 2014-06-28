@@ -1,4 +1,4 @@
-// Copyright (C) 2013 Tuma Solutions, LLC
+// Copyright (C) 2013-2014 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -43,9 +43,9 @@ import java.util.regex.Pattern;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
-import net.sourceforge.processdash.net.http.WebServer;
 import net.sourceforge.processdash.ui.lib.binding.ErrorTokens;
 import net.sourceforge.processdash.util.HTMLUtils;
+import net.sourceforge.processdash.util.HTTPUtils;
 import net.sourceforge.processdash.util.JSONUtils;
 import net.sourceforge.processdash.util.StringUtils;
 
@@ -99,7 +99,7 @@ public class RBRestClient implements ErrorTokens {
     public boolean authenticate(String username, String password) {
         try {
             URL sessionUrl = getUrl("session");
-            String credential = WebServer.calcCredential(username, password);
+            String credential = HTTPUtils.calcCredential(username, password);
             JSONObject response = makeRequest(sessionUrl, "Authorization",
                 credential);
 

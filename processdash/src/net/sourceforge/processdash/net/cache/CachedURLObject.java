@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2003 Tuma Solutions, LLC
+// Copyright (C) 2002-2014 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -36,8 +36,8 @@ import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 
 import net.sourceforge.processdash.i18n.Resources;
-import net.sourceforge.processdash.net.http.WebServer;
 import net.sourceforge.processdash.util.FileUtils;
+import net.sourceforge.processdash.util.HTTPUtils;
 import net.sourceforge.processdash.util.Ping;
 import net.sourceforge.processdash.util.XMLUtils;
 
@@ -68,7 +68,7 @@ public class CachedURLObject extends CachedObject {
 
         this.url = u;
         if (username != null && password != null)
-            credential = WebServer.calcCredential(username, password);
+            credential = HTTPUtils.calcCredential(username, password);
         else
             credential = null;
 
