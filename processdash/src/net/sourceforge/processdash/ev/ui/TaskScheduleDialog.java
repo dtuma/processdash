@@ -160,7 +160,6 @@ import net.sourceforge.processdash.hier.ui.HierarchyNoteEditorDialog;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.net.cache.CachedObject;
 import net.sourceforge.processdash.net.cache.CachedURLObject;
-import net.sourceforge.processdash.net.http.WebServer;
 import net.sourceforge.processdash.templates.ExtensionManager;
 import net.sourceforge.processdash.ui.Browser;
 import net.sourceforge.processdash.ui.DashboardIconFactory;
@@ -775,8 +774,8 @@ public class TaskScheduleDialog implements EVTask.Listener,
 
 
     private boolean isCollaborationBlocked() {
-        String setting = Settings.getVal(WebServer.HTTP_ALLOWREMOTE_SETTING);
-        return "blocked".equalsIgnoreCase(setting);
+        // collaboration feature is no longer supported in 2.0.14 and up
+        return true;
     }
 
 
