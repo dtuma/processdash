@@ -97,8 +97,10 @@ public class NumericDataValue {
             return "";
         else if (value > 1)
             return FORMATTER.format(value);
-        else
+        else if (value > 0.1)
             return FORMATTER2.format(value);
+        else
+            return FORMATTER3.format(value);
     }
 
 
@@ -122,10 +124,13 @@ public class NumericDataValue {
     protected static final NumberFormat FORMATTER =
         NumberFormat.getNumberInstance();
     protected static final NumberFormat FORMATTER2 =
-            NumberFormat.getNumberInstance();
+        NumberFormat.getNumberInstance();
+    protected static final NumberFormat FORMATTER3 =
+        NumberFormat.getNumberInstance();
     static {
         FORMATTER.setMaximumFractionDigits(1);
         FORMATTER2.setMaximumFractionDigits(2);
+        FORMATTER3.setMaximumFractionDigits(3);
     }
 
 }
