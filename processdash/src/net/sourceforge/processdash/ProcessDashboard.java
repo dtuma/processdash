@@ -520,7 +520,6 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         } catch (Exception e) {
             e.printStackTrace();
         }
-        LegacySupport.configureRemoteListeningCapability(data);
         RepairDefectCounts.maybeRun(this, property_directory);
         timeLog.refreshMetrics();
         pt.click("Refreshed time log metrics");
