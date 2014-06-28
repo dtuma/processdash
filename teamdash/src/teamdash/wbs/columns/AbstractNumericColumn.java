@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Tuma Solutions, LLC
+// Copyright (C) 2002-2014 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -47,9 +47,31 @@ public abstract class AbstractNumericColumn extends AbstractDataColumn {
     protected void setValueForNode(double value, WBSNode node) { }
 
     public void setValueAt(Object aValue, WBSNode node) {
-        setValueForNode(NumericDataValue.parse(aValue), node);
+        if (isNoOpEdit(aValue, node))
+            // if the user started an editing session but ultimately made no
+            // changes, do nothing
+            ;
+        else
+            setValueForNode(NumericDataValue.parse(aValue), node);
     }
 
+    protected boolean isNoOpEdit(Object newValue, WBSNode node) {
+        if (newValue instanceof String) {
+            // When a user enters a new value into a table cell, the setValueAt
+            // method is called with a String containing the value they typed.
+            // If that string is identical to the string we get when we format
+            // the current cell value, then no changes have been made. This
+            // pattern would occur if a user double-clicked on a cell, then
+            // pressed enter without making any changes.
+            String oldStr = String.valueOf(getValueAt(node));
+            return newValue.equals(oldStr);
+        } else {
+            // if setValueAt is called with anything other than a string, the
+            // method call came from within other code rather than from a
+            // user's editing session.
+            return false;
+        }
+    }
 
     protected boolean equal(double a, double b) {
         if (a == 0 || b == 0)

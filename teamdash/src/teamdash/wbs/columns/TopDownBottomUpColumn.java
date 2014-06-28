@@ -110,6 +110,7 @@ public class TopDownBottomUpColumn extends AbstractNumericColumn
 
 
 
+    @Override
     public void setValueAt(Object aValue, WBSNode node) {
         System.out.println("setValueAt("+aValue+")");
         if (node == null) return;
@@ -117,6 +118,11 @@ public class TopDownBottomUpColumn extends AbstractNumericColumn
         if ("".equals(aValue)) {
             userChangingValue(node, Double.NaN);
             node.setAttribute(topDownAttrName, null);
+
+        } else if (isNoOpEdit(aValue, node)) {
+            // if this was an editing session and no change was made, return.
+            return;
+
         } else {
 
             // parse the value we were given to obtain a double.
@@ -125,8 +131,6 @@ public class TopDownBottomUpColumn extends AbstractNumericColumn
 
             // look up the old value of this node.
             double oldValue = NumericDataValue.parse(getValueAt(node));
-            if (equal(oldValue, newValue, 0.00001))
-                return;             // if no change was made, return.
 
             // if this node has children, try multiplying all their values
             // by an appropriate ratio to keep the top-down and bottom-up
@@ -185,7 +189,7 @@ public class TopDownBottomUpColumn extends AbstractNumericColumn
             if (equal(topDownValue, bottomUpValue))
                 node.setAttribute(topDownAttrName, null);
 
-            if (equal(bottomUpValue, 0))
+            if (bottomUpValue == 0)
                 result = (Double.isNaN(topDownValue) ? 0 : topDownValue);
             else
                 result = bottomUpValue;
@@ -305,10 +309,10 @@ public class TopDownBottomUpColumn extends AbstractNumericColumn
         double ratio = newValue / oldValue;
         if (!Double.isNaN(ratio) &&
             !Double.isInfinite(ratio) &&
-            !equal(ratio, 0)) {
+            ratio != 0) {
             multiplyValue(node, ratio);
         } else {
-            WBSNode delegate = getSingleLeafForNode(node, !equal(oldValue, 0));
+            WBSNode delegate = getSingleLeafForNode(node, oldValue != 0);
             if (delegate != null) {
                 userChangingValue(delegate, newValue);
                 delegate.setNumericAttribute(topDownAttrName, newValue);
@@ -335,7 +339,7 @@ public class TopDownBottomUpColumn extends AbstractNumericColumn
 
         if (numToInclude == 0) {  // this is a leaf.
             double val = node.getNumericAttribute(topDownAttrName);
-            if (withValue == false || val > fuzzFactor)
+            if (withValue == false || val > 0)
                 result.add(node);
 
         } else for (int i = 0;   i < numToInclude;   i++)

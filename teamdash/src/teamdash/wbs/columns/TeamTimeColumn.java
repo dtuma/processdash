@@ -137,7 +137,7 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
         LeafNodeData leafData = getLeafNodeData(node);
         if (leafData != null) { // a leaf task
             needsAssigning = !leafData.isConnected();
-            needsEstimating = equal(result.value, 0);
+            needsEstimating = (result.value == 0);
         } else if (wbsModel.isLeaf(node)) { // a leaf node which isn't a task
             if (safe(result.value) != 0) {
                 result.errorMessage =
@@ -148,7 +148,7 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
 
         } else { // not a leaf task
             needsAssigning = !equal(result.value, sumIndivTimes(node));
-            needsEstimating = equal(result.value, 0);
+            needsEstimating = (result.value == 0);
         }
 
         if (needsEstimating) {
@@ -600,7 +600,7 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
          * per person.  */
         public void userSetTimePerPerson(double value) {
             // if nothing has changed, avoid the pain of recalculating.
-            if (equal(value, timePerPerson)) return;
+            if (value == timePerPerson) return;
 
             double oldTimePerPerson = timePerPerson;
             timePerPerson = value;
@@ -717,7 +717,17 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
         }
         public void setTime(Map times) {
             String ilc = initials.toLowerCase();
-            this.time = safe(parse(times.get(ilc)));
+            Object timeVal = times.get(ilc);
+            if (timeVal instanceof String) {
+                // if the user was editing the value in the "Assigned To"
+                // column, but they did not alter the textual representation
+                // of the time for this individual, make no changes.
+                String oldTimeVal = NumericDataValue.format(this.time);
+                if (timeVal.equals(oldTimeVal))
+                    return;
+            }
+
+            this.time = safe(parse(timeVal));
             this.zeroButAssigned = (time == 0 && times.containsKey(ilc));
             node.setAttribute(zeroAttrName, zeroButAssigned ? "t" : null);
             dataModel.setValueAt(new Double(time), node, column);
@@ -808,7 +818,7 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
                 return new NumericDataValue(nodeData.rate);
         }
         protected void setValueAtLeaf(double value, LeafNodeData nodeData) {
-            if (!equal(value, nodeData.rate))
+            if (value != nodeData.rate)
                 nodeData.userSetRate(value);
         }
         public TableCellRenderer getCellRenderer() {
@@ -913,6 +923,7 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
             else
                 return result.toString().substring(2);
         }
+
         public void setValueAt(Object aValue, WBSNode node) {
             LeafNodeData leafData = getLeafNodeData(node);
             if (leafData == null) return;
@@ -932,11 +943,14 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
                             multiplier = defaultTime / timeVal;
                     } else {
                         foundData = true;
+                        Object timeToStore;
                         if (value == null)
-                            timeVal = defaultTime;
+                            timeToStore = defaultTime;
+                        else if (multiplier == 1)
+                            timeToStore = value;
                         else
-                            timeVal *= multiplier;
-                        times.put(initials.toLowerCase(), new Double(timeVal));
+                            timeToStore = timeVal * multiplier;
+                        times.put(initials.toLowerCase(), timeToStore);
                     }
                 }
             }
