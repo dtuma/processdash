@@ -1,4 +1,4 @@
-// Copyright (C) 2005 Tuma Solutions, LLC
+// Copyright (C) 2005-2014 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -23,18 +23,12 @@
 
 package net.sourceforge.processdash.process;
 
-import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Map;
 
-import net.sourceforge.processdash.InternalSettings;
-import net.sourceforge.processdash.Settings;
-import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.Prop;
-import net.sourceforge.processdash.hier.PropertyKey;
-import net.sourceforge.processdash.net.http.WebServer;
 
 
 public class LegacySupport {
@@ -50,12 +44,10 @@ public class LegacySupport {
         brokenIDs.put("pspForMSE/3B/script.htm", "PSP1-MSE-3B");
         brokenIDs.put("pspForMSE/4B/script.htm", "PSP1.0.1-MSE-4B");
 
-        PropertyKey key;
         Prop        value;
         String      s;
         for (Iterator i = hierarchy.entrySet().iterator(); i.hasNext();) {
             Map.Entry e = (Map.Entry) i.next();
-            key = (PropertyKey)e.getKey();
             value = (Prop)e.getValue();
             if (! Prop.hasValue(value.getID())) continue;
             if (! Prop.hasValue(s = value.getScriptFile ())) continue;
@@ -64,18 +56,4 @@ public class LegacySupport {
         }
     }
 
-    public static void configureRemoteListeningCapability(DataRepository data) {
-        if (Settings.getBool(HTTP_CONFIGURATION_FLAG_SETTING, false))
-            return;
-
-        String remoteSetting =
-            Settings.getVal(WebServer.HTTP_ALLOWREMOTE_SETTING);
-        if ("never".equals(remoteSetting) &&
-            WebServer.arePasswordsPresent(data))
-            InternalSettings.set(WebServer.HTTP_ALLOWREMOTE_SETTING, "false");
-
-        InternalSettings.set(HTTP_CONFIGURATION_FLAG_SETTING, "true");
-    }
-    private static final String HTTP_CONFIGURATION_FLAG_SETTING =
-        "internal.ranListenerAutoConfig";
 }

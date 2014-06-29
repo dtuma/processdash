@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2007 Tuma Solutions, LLC
+// Copyright (C) 2002-2014 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -226,8 +226,6 @@ public class TaskScheduleCollaborationWizard {
         public JLabel image;
         public JTextArea explanation;
 
-        ImageIcon publishImage, shareImage, rollupImage;
-
 
 
         public JPanel BuildbuttonBox() {
@@ -374,7 +372,7 @@ public class TaskScheduleCollaborationWizard {
             oConst.insets.bottom =10;
             oLayout.setConstraints(buttonBox, oConst);
 
-            image = new JLabel(publishImage);
+            image = new JLabel(images[PUBLISH]);
             Dimension d = new Dimension(230, 170);
             image.setMinimumSize(d);
             image.setPreferredSize(d);
@@ -411,9 +409,9 @@ public class TaskScheduleCollaborationWizard {
 
 
         public WelcomeScreen() {
-            publishImage = images[PUBLISH] = getTemplateImage("ev-publish.png");
-            shareImage = images[SHARE] = getTemplateImage("ev-share.png");
-            rollupImage = images[ROLLUP] = getTemplateImage("ev-rollup.png");
+            images[PUBLISH] = getTemplateImage("ev-publish.png");
+            images[SHARE] = getTemplateImage("ev-share.png");
+            images[ROLLUP] = getTemplateImage("ev-rollup.png");
             images[CANCEL] = null;
 
             BuildFrame();
@@ -489,8 +487,6 @@ public class TaskScheduleCollaborationWizard {
         public JEditorPane resultsMessage;
 
         public JButton backButton, nextButton, cancelButton;
-
-        public JLabel filler;
 
         public int action;
 
@@ -643,12 +639,13 @@ public class TaskScheduleCollaborationWizard {
                 recallVal = Base64.encodeBytes(recallVal.getBytes());
             data.putValue(dataName, StringData.create(recallVal));
 
+            /* DISABLED
             // actually set the password in the TinyWebServer
             String username = (action == PUBLISH ? "guest" : "EV");
             if (NO_PASSWORD.equals(password))
                 username = password = null;
             WebServer.setPassword(data, getPrefix(action),
-                                      username, password);
+                                      username, password); */
         }
 
         public JPanel BuildbuttonBox() {
@@ -1035,7 +1032,6 @@ public class TaskScheduleCollaborationWizard {
         public JLabel taskListName;
         public JEditorPane resultsMessage;
         public JButton backButton, finishButton, cancelButton;
-        public JLabel filler;
         public int action;
         public String password;
 
