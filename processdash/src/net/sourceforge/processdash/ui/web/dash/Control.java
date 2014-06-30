@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2011 Tuma Solutions, LLC
+// Copyright (C) 2001-2014 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -67,7 +67,6 @@ public class Control extends TinyCGIBase {
         setPath();
         startTiming();
         stopTiming();
-        clearCGICache();
         showHelp();
         saveDataFiles();
         scrubDataDir();
@@ -125,19 +124,6 @@ public class Control extends TinyCGIBase {
 
     private void stopTiming() {
         if (isTask("stopTiming")) DashController.stopTiming();
-    }
-
-    private void clearCGICache() {
-        if (isTask("clearCGI")) {
-            getTinyWebServer().clearClassLoaderCaches();
-
-            out.println("<HTML><HEAD><TITLE>Classes cleared</TITLE></HEAD>");
-            out.println("<BODY><H1>Classes cleared</H1>");
-            out.println("The classloader cache was cleared at " + new Date());
-            out.println("</BODY></HTML>");
-
-            printNullDocument = false;
-        }
     }
 
     private void showHelp() {

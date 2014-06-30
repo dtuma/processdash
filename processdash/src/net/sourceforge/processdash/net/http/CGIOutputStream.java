@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2010 Tuma Solutions, LLC
+// Copyright (C) 2003-2014 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -24,27 +24,34 @@
 package net.sourceforge.processdash.net.http;
 
 
+import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.StringReader;
 
+import javax.servlet.http.HttpServletResponse;
+
+import net.sourceforge.processdash.util.FileUtils;
 import net.sourceforge.processdash.util.TempFileFactory;
 
 
+/**
+ * This class acts as an OutputStream for a TinyCGI script. As the script writes
+ * data to this stream in CGI format, this object interprets the headers and
+ * content and repeats the information to a standard HttpServletResponse object.
+ */
 public class CGIOutputStream extends OutputStream {
 
     public static final int NORMAL = 0;
     public static final int STREAMING = 1;
     public static final int LARGE = 2;
 
-    private HTTPHeaderWriter headerWriter;
+    private HttpServletResponse resp;
     private OutputStream out;
-    private String charset;
     private boolean isStreaming;
     private boolean isLarge;
     private boolean inHeader;
@@ -55,20 +62,19 @@ public class CGIOutputStream extends OutputStream {
     private OutputStream contentBuffer;
     private File largeOutputFile;
 
-    /** Create a new CGI output stream.
+    /**
+     * Create a new CGI output stream.
      * 
-     * @param headerWriter an object which is capable of sending headers
-     *    to the client
-     * @param out the output stream to which the content body should be written
-     * @param charset the character set that was used to write the HTTP header
-     * @param mode one of {@link #NORMAL}, {@link #STREAMING}, or {@link #LARGE}.
+     * @param resp
+     *            an HttpServletResponse object for sending results back to the
+     *            client
+     * @param mode
+     *            one of {@link #NORMAL}, {@link #STREAMING}, or {@link #LARGE}.
      */
-
-    public CGIOutputStream(HTTPHeaderWriter headerWriter, OutputStream out,
-                           String charset, int mode) {
-        this.headerWriter = headerWriter;
-        this.out = out;
-        this.charset = charset;
+    public CGIOutputStream(HttpServletResponse resp, int mode)
+            throws IOException {
+        this.resp = resp;
+        this.out = resp.getOutputStream();
         this.isStreaming = (mode == STREAMING);
         this.isLarge = (mode == LARGE);
         this.inHeader = true;
@@ -83,18 +89,14 @@ public class CGIOutputStream extends OutputStream {
     }
 
     public void cleanup() {
-        if (contentBuffer != null) try {
-            contentBuffer.close();
-        } catch (Exception e) {}
+        FileUtils.safelyClose(contentBuffer);
 
         if (largeOutputFile != null)
             largeOutputFile.delete();
     }
 
     public void finish() throws IOException {
-        if (contentBuffer != null) try {
-            contentBuffer.close();
-        } catch (Exception e) {}
+        FileUtils.safelyClose(contentBuffer);
 
         if (!isStreaming) {
             sendHeader();
@@ -106,30 +108,30 @@ public class CGIOutputStream extends OutputStream {
 
     private void sendContent() throws IOException {
         if (contentBuffer instanceof ByteArrayOutputStream) {
-            ((ByteArrayOutputStream) contentBuffer).writeTo(out);
+            ByteArrayOutputStream buf = (ByteArrayOutputStream) contentBuffer;
+            if (buf.size() > 0)
+                buf.writeTo(out);
             contentBuffer = null;
 
         } else if (largeOutputFile != null){
-            FileInputStream content = new FileInputStream(largeOutputFile);
-            byte[] buf = new byte[2048];
-            int bytesRead;
-            while ((bytesRead = content.read(buf)) != -1)
-                out.write(buf, 0, bytesRead);
-            content.close();
+            if (largeOutputFile.length() > 0)
+                FileUtils.copyFile(largeOutputFile, out);
             largeOutputFile.delete();
             largeOutputFile = null;
         }
     }
 
-    private long getContentLength() {
+    private int getContentLength() {
         if (contentBuffer instanceof ByteArrayOutputStream)
             return ((ByteArrayOutputStream) contentBuffer).size();
         if (largeOutputFile != null)
-            return largeOutputFile.length();
+            return (int) largeOutputFile.length();
         return -1;
     }
 
     public void flush() throws IOException {
+        if (contentBuffer != null)
+            contentBuffer.flush();
         if (isStreaming)
             out.flush();
     }
@@ -148,7 +150,8 @@ public class CGIOutputStream extends OutputStream {
             sendHeader();
         else if (isLarge) {
             largeOutputFile = TempFileFactory.get().createTempFile("cgi", null);
-            contentBuffer = new FileOutputStream(largeOutputFile);
+            contentBuffer = new BufferedOutputStream(new FileOutputStream(
+                    largeOutputFile));
         } else
             contentBuffer = new ByteArrayOutputStream();
     }
@@ -176,39 +179,48 @@ public class CGIOutputStream extends OutputStream {
 
     private void sendHeader() throws IOException {
         // Parse the headers generated by the cgi program.
-        String contentType = null, statusString = "OK", line, header;
-        StringBuffer otherHeaders = new StringBuffer();
-        StringBuffer text = new StringBuffer();
-        int status = 200;
-        BufferedReader headerLines = new BufferedReader
-            (new StringReader(headerBuffer.toString(charset)));
+        StringBuffer value = new StringBuffer();
+        int status = -1;
+        String statusString = null;
+        String location = null;
+        BufferedReader headerLines = new BufferedReader(new StringReader(
+                headerBuffer.toString(WebServer.HEADER_CHARSET)));
 
+        String line;
         while ((line = headerLines.readLine()) != null) {
-            if (line.length() == 0) continue;
+            if (line.length() == 0)
+                continue;
 
-            header = parseHeader(line, text);
+            String header = parseHeader(line, value);
 
-            if (header.toUpperCase().equals("STATUS")) {
+            if (header.equalsIgnoreCase("Status")) {
                 // header value is of the form nnn xxxxxxx (a 3-digit
-                // status code, followed by an error string.
-                statusString = text.toString();
+                // status code, followed by an error string).
+                statusString = value.toString();
                 status = Integer.parseInt(statusString.substring(0, 3));
                 statusString = statusString.substring(4);
-            }
-            else if (header.toUpperCase().equals("CONTENT-TYPE"))
-                contentType = text.toString();
-            else {
-                if (header.toUpperCase().equals("LOCATION"))
-                    status = 302;
-                otherHeaders.append(header).append(": ")
-                    .append(text.toString()).append("\r\n");
+
+            } else if (header.equalsIgnoreCase("Content-Type")) {
+                resp.setContentType(value.toString());
+
+            } else if (header.equalsIgnoreCase("Location")) {
+                location = value.toString();
+
+            } else {
+                resp.addHeader(header, value.toString());
             }
         }
 
-        // Success!! Send results back to the client.
-        headerWriter.sendHeaders(status, statusString, contentType,
-                                 getContentLength(),  -1,
-                                 otherHeaders.toString());
+        // based on the headers read, send a response back
+        if (location != null) {
+            resp.sendRedirect(location);
+        } else if (status > 0) {
+            resp.sendError(status, statusString);
+        } else {
+            int len = getContentLength();
+            if (len >= 0)
+                resp.setContentLength(len);
+        }
     }
 
 

@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2012 Tuma Solutions, LLC
+// Copyright (C) 2001-2014 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -572,7 +572,6 @@ public class TinyCGIBase implements TinyCGI {
      * @since 1.14.3.1
      */
     protected String getRequestURLBase() {
-        Map env = getBaseEnvironment();
         WebServer ws = getTinyWebServer();
 
         // get the host that was used to make this request from the http headers
@@ -592,16 +591,7 @@ public class TinyCGIBase implements TinyCGI {
         // return the appropriate value
         return "http://" + host + ":" + port;
     }
-    protected Map getBaseEnvironment() {
-        Map result = env;
-        while (true) {
-            Map parent = (Map) result.get(WebServer.PARENT_ENV_KEY);
-            if (parent == null)
-                return result;
-            else
-                result = parent;
-        }
-    }
+
     /** get the effective prefix, set via the URL */
     protected String getPrefix() {
         String result = (String) parameters.get("hierarchyPath");

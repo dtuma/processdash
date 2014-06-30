@@ -18,12 +18,13 @@
 	<classpathentry kind="lib" path="lib/com-apple-eawt.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/jcommon-1.0.12.jar" sourcepath="misc/zips/jcommon-1.0.12.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/jfreechart-1.0.9.jar" sourcepath="misc/zips/jfreechart-1.0.9.zip"/>
-	<classpathentry kind="lib" path="lib/ws-commons-util-1.0.2.jar"/>
-	<classpathentry kind="lib" path="lib/xmlrpc-client-3.1.1.jar" sourcepath="lib/xmlrpc-client-3.1.1-sources.jar"/>
-	<classpathentry kind="lib" path="lib/xmlrpc-common-3.1.1.jar" sourcepath="lib/xmlrpc-common-3.1.1-sources.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/ws-commons-util-1.0.2.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/xmlrpc-client-3.1.1.jar" sourcepath="lib/xmlrpc-client-3.1.1-sources.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/xmlrpc-common-3.1.1.jar" sourcepath="lib/xmlrpc-common-3.1.1-sources.jar"/>
 	<classpathentry kind="lib" path="installer/IzPack/lib/installer.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/3"/>
-	<classpathentry kind="lib" path="lib/jna-3.3.0.jar"/>
-	<classpathentry kind="lib" path="lib/keyring-lib.jar" sourcepath="lib/keyring-src.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/jna-3.3.0.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/keyring-lib.jar" sourcepath="lib/keyring-src.jar"/>
+	<classpathentry kind="lib" path="lib/jetty-8.1.15.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

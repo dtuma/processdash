@@ -3,7 +3,7 @@
 <!-- ===================================================================
 
 Process Dashboard - Data Automation Tool for high-maturity processes
-Copyright (C) 2001-2013 Tuma Solutions, LLC
+Copyright (C) 2001-2014 Tuma Solutions, LLC
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -128,6 +128,7 @@ Authors:
   <property name="ws-commons.jar" value="${lib}/ws-commons-util-1.0.2.jar"/>
   <property name="xmlrpc-cli.jar" value="${lib}/xmlrpc-client-3.1.1.jar"/>
   <property name="xmlrpc-com.jar" value="${lib}/xmlrpc-common-3.1.1.jar"/>
+  <property name="jetty.jar"      value="${lib}/jetty-8.1.15.jar"/>
   <property name="l10n-tool.jar"  value="l10n-tool/dist/jrc-editor.jar"/>
 
   <property name="codeCollab.testUrl" value="http://demo.smartbear.com/" />
@@ -158,6 +159,7 @@ Authors:
     <pathelement location="${ws-commons.jar}"/>
     <pathelement location="${xmlrpc-cli.jar}"/>
     <pathelement location="${xmlrpc-com.jar}"/>
+    <pathelement location="${jetty.jar}"/>
   </path>
 
 
@@ -528,6 +530,7 @@ Authors:
       <zipfileset src="${ws-commons.jar}" includes="org/" />
       <zipfileset src="${xmlrpc-cli.jar}" includes="org/" />
       <zipfileset src="${xmlrpc-com.jar}" includes="org/" />
+      <zipfileset src="${jetty.jar}" excludes="about.html META-INF/maven/**"/>
     </jar>
     <maybeSignJar jar="${dist}/pspdash.jar" prefix="${pspdash-signature}"/>
   </target>
@@ -760,6 +763,10 @@ Authors:
   <target name="verify15"
       depends="init,parser,globParser,translator,lexers"
       description="Verify that the main dashboard classes rely only upon APIs found in Java 1.5.">
+
+    <fail message="Process Dashboard 2.0.13 and above will not run on Java 1.5"/>
+
+    <!-- remaining code left for future reference -->
     <property name="15.bootclasspath" value="${java.home.15}/jre/lib/rt.jar"/>
     <available property="have15home" file="${15.bootclasspath}"/>
     <fail unless="have15home" message="To test for compatibility with Java 1.5, you must edit build.properties and specify a value for the java.home.15 property."/>
