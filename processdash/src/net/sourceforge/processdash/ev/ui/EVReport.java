@@ -797,7 +797,7 @@ public class EVReport extends CGIChartBase {
         isSnippet = (env.containsKey(SnippetEnvironment.SNIPPET_ID));
         String namespace = (isSnippet ? "$$$_" : "");
         String taskListDisplayName = EVTaskList.cleanupName(taskListName);
-        String taskListHTML = WebServer.encodeHtmlEntities(taskListDisplayName);
+        String taskListHTML = HTMLUtils.escapeEntities(taskListDisplayName);
         String title = resources.format("Report.Title_FMT", taskListHTML);
 
         EVTaskFilter taskFilter = settings.getEffectiveFilter(evModel);
@@ -848,7 +848,7 @@ public class EVReport extends CGIChartBase {
             Iterator i = errors.keySet().iterator();
             while (i.hasNext())
                 out.print("\n<li>" +
-                          WebServer.encodeHtmlEntities((String) i.next()));
+                        HTMLUtils.escapeEntities((String) i.next()));
             out.print("\n</ul>");
             if (!EVMetrics.isWarningOnly(errors))
                 out.print(getResource("Error_Dialog.Foot"));
@@ -1461,7 +1461,7 @@ public class EVReport extends CGIChartBase {
 
     protected void writeChartsPage() {
         String taskListDisplayName = EVTaskList.cleanupName(taskListName);
-        String taskListHTML = WebServer.encodeHtmlEntities(taskListDisplayName);
+        String taskListHTML = HTMLUtils.escapeEntities(taskListDisplayName);
         String title = resources.format("Report.Charts_Title_FMT", taskListHTML);
 
         EVTaskFilter taskFilter = settings.getEffectiveFilter(evModel);
@@ -2096,7 +2096,7 @@ public class EVReport extends CGIChartBase {
         if (text == null)
             return "";
         else
-            return WebServer.encodeHtmlEntities(text);
+            return HTMLUtils.escapeEntities(text);
     }
 
     final static String getResource(String key) {

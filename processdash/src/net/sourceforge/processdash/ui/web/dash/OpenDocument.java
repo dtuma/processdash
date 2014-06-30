@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2011 Tuma Solutions, LLC
+// Copyright (C) 2001-2014 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -64,7 +64,6 @@ import net.sourceforge.processdash.data.StringData;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.data.util.InterpolatingFilter;
 import net.sourceforge.processdash.i18n.Resources;
-import net.sourceforge.processdash.net.http.WebServer;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.StringUtils;
@@ -830,14 +829,14 @@ public final class OpenDocument extends TinyCGIBase {
             if (!XMLUtils.hasValue(displayName)) displayName = varName;
             if (displayName.startsWith("/"))
                 displayName = displayName.substring(1);
-            out.print(WebServer.encodeHtmlEntities(displayName));
+            out.print(HTMLUtils.escapeEntities(displayName));
             out.print("&nbsp;</td><td valign='top'>" +
                       "<input size=\"40\" type=\"text\" name=\"");
-            out.print(WebServer.encodeHtmlEntities(varName));
+            out.print(HTMLUtils.escapeEntities(varName));
             String value = pathVar.getValue();
             if (value != null) {
                 out.print("\" value=\"");
-                out.print(WebServer.encodeHtmlEntities(value));
+                out.print(HTMLUtils.escapeEntities(value));
             }
             out.print("\">");
             String comment = pathVar.getCommentText();
@@ -859,7 +858,7 @@ public final class OpenDocument extends TinyCGIBase {
         out.print(pageCount);
         out.print("'>\n" +
                   "<input type='hidden' name='" + FILE_PARAM + "' value='");
-        out.print(WebServer.encodeHtmlEntities(filename));
+        out.print(HTMLUtils.escapeEntities(filename));
         out.print("'>\n"+
                   "<input type='submit' name='OK' value='OK'>\n" +
                   "</form></body></html>\n");

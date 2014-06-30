@@ -56,7 +56,6 @@ import net.sourceforge.processdash.ev.EVTaskListRollup;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.log.time.TimeLogEntry;
 import net.sourceforge.processdash.net.http.TinyCGIException;
-import net.sourceforge.processdash.net.http.WebServer;
 import net.sourceforge.processdash.tool.db.DatabasePlugin;
 import net.sourceforge.processdash.tool.db.DatabasePluginUtils;
 import net.sourceforge.processdash.tool.db.ProjectLocator;
@@ -381,7 +380,7 @@ public class EVWeekReport extends TinyCGIBase {
                 Iterator i = errors.keySet().iterator();
                 while (i.hasNext())
                     out.print("\n<li>" +
-                              WebServer.encodeHtmlEntities((String) i.next()));
+                            HTMLUtils.escapeEntities((String) i.next()));
                 out.print("\n</ul>");
                 if (!EVMetrics.isWarningOnly(errors))
                     out.print(getResource("Error_Dialog.Foot"));
