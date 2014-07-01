@@ -1,4 +1,4 @@
-// Copyright (C) 2004-2010 Tuma Solutions, LLC
+// Copyright (C) 2004-2014 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -254,7 +254,7 @@ public class HTMLArchiver {
                             safeURL = writeExcelPart(uri, html, contentType);
                             extra = " target='_blank'";
                         } else if (subURI.equalsIgnoreCase("about:blank")
-                                || subURI.equalsIgnoreCase("nohref")) {
+                                || subURI.endsWith("nohref")) {
                             // no need to alter about:blank references
                             continue;
                         } else {
