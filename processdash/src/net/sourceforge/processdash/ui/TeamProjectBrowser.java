@@ -816,7 +816,7 @@ public class TeamProjectBrowser extends JSplitPane {
             int slashPos = templateID.indexOf('/');
             String processID = templateID.substring(0, slashPos);
             if (isRelaunchSupported(processID))
-                uri.append("//").append(HTMLUtils.urlEncode(processID))
+                uri.append("//").append(processID)
                         .append("/setup/wizard.class?page=relaunch");
             else
                 uri.append("//dash/relaunchUpgradeMCF.shtm");
