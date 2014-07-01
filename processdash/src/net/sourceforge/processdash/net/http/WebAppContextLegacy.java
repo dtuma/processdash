@@ -25,6 +25,8 @@ package net.sourceforge.processdash.net.http;
 
 import java.net.URL;
 
+import org.eclipse.jetty.http.PathMap;
+
 import net.sourceforge.processdash.templates.TemplateLoader;
 
 
@@ -54,6 +56,16 @@ class WebAppContextLegacy extends WebAppContextDashboard {
 
         // do not explode the contents of a dashboard add-on
         setExtractWAR(false);
+    }
+
+    @Override
+    protected void startContext() throws Exception {
+        try {
+            PathMap.setPathSpecSeparators("!");
+            super.startContext();
+        } finally {
+            PathMap.setPathSpecSeparators(":,");
+        }
     }
 
 }

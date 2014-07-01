@@ -40,6 +40,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpServletResponseWrapper;
 
+import org.eclipse.jetty.http.PathMap;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletHolder;
@@ -112,7 +113,12 @@ class WebAppContextDashboard extends WebAppContext {
         ServletMapping map = new ServletMapping();
         map.setServletName(holder.getName());
         map.setPathSpecs(linkFiles.toArray(new String[linkFiles.size()]));
-        getServletHandler().addServletMapping(map);
+        try {
+            PathMap.setPathSpecSeparators("!");
+            getServletHandler().addServletMapping(map);
+        } finally {
+            PathMap.setPathSpecSeparators(":,");
+        }
     }
 
 
