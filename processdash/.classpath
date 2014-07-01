@@ -25,6 +25,6 @@
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/3"/>
 	<classpathentry exported="true" kind="lib" path="lib/jna-3.3.0.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/keyring-lib.jar" sourcepath="lib/keyring-src.jar"/>
-	<classpathentry kind="lib" path="lib/jetty-8.1.15.jar"/>
+	<classpathentry kind="lib" path="lib/jetty-8.1.15.jar" sourcepath="misc/zips/jetty-8.1.15-src.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
