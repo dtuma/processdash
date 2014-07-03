@@ -344,6 +344,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         // initialize the content roots for the http server.
         webServer.setRoots(TemplateLoader.getTemplateURLs());
         WebServer.setOutputCharset(getWebCharset());
+        pt.click("Set web server roots");
 
         BetaVersionSetup.runSetup(property_directory);
         pt.click("Ran beta version setup");
