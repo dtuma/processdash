@@ -443,12 +443,16 @@ public class WebServer implements ContentSource {
         // Check to see if we already have a web application for this URL
         for (Object handler : webApps.getHandlers()) {
             WebAppContextDashboard webApp = (WebAppContextDashboard) handler;
-            if (webAppBase.equals(webApp.getResourceBase()))
+            if (webAppBase.equals(webApp.templateUrl))
                 return webApp;
         }
 
         // Create a new web application
-        WebAppContextLegacy result = new WebAppContextLegacy(u);
+        WebAppContextDashboard result;
+        if (webAppBase.endsWith(WebAppContextDashboard.WEB_INF_URL_SUFFIX))
+            result = new WebAppContextDashboard(u);
+        else
+            result = new WebAppContextLegacy(u);
         result.setServer(server);
         try {
             result.start();

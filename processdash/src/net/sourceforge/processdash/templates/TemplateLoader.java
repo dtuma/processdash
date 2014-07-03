@@ -1,4 +1,4 @@
-// Copyright (C) 1998-2013 Tuma Solutions, LLC
+// Copyright (C) 1998-2014 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -88,6 +88,7 @@ public class TemplateLoader {
     private static final String XML_TEMPLATE_SUFFIX = "-template.xml";
     private static final String DATAFILE_SUFFIX = ".globaldata";
     private static final String TEMPLATE_DIR = "Templates/";
+    private static final String WEB_INF_DIR = "WEB-INF/";
 
     public static final DashboardPermission LOAD_TEMPLATES_PERMISSION =
         new DashboardPermission("templateLoader.loadTemplates");
@@ -573,6 +574,9 @@ public class TemplateLoader {
                 processTimestamp(dirContents[i]);
                 if (!isDashboardJarfile(dirContents[i]))
                     v.add(jarfileTemplateURL(name));
+            } else if (lname.endsWith(".war")) {
+                processTimestamp(dirContents[i]);
+                v.add(warfileWebInfURL(name));
             }
         } catch (MalformedURLException mue) {}
     }
@@ -583,6 +587,11 @@ public class TemplateLoader {
     {
         return new URL("jar:" + jarfileURL + "!/" + TEMPLATE_DIR);
     }
+    private static URL warfileWebInfURL(String warfileURL)
+            throws MalformedURLException {
+        return new URL("jar:" + warfileURL + "!/" + WEB_INF_DIR);
+    }
+
     /** Figure out what directory contains the pspdash.jar file. */
     private static String getBaseDir() {
 //        String className = TemplateLoader.class.getName();
@@ -917,6 +926,32 @@ public class TemplateLoader {
     }
 
     private static Map TEMPLATE_CLASSLOADERS = new Hashtable();
+
+
+
+    /**
+     * Return the servlet context path that should be used for an add-on whose
+     * file and/or contents are specified by the given URL.
+     * 
+     * @param url
+     *            the URL of an add-on file, or of a resource within an add-on
+     * @return the context path that should be used for serving resources
+     *         packaged within the given add-on.
+     */
+    public static String getAddOnContextPath(String url) {
+        Matcher m = WAR_FILE_PAT.matcher(url);
+        if (m.find()) {
+            String result = m.group(1);
+            if (!"/ROOT".equalsIgnoreCase(result))
+                return result;
+        }
+
+        return "/";
+    }
+
+    private static final Pattern WAR_FILE_PAT = Pattern.compile(
+        "(/[^/]+).war(!/.*)?$", Pattern.CASE_INSENSITIVE);
+
 
 
     /** Looks through the various loaded templates, and determines which

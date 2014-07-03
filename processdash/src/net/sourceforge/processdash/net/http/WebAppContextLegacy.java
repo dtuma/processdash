@@ -41,15 +41,16 @@ class WebAppContextLegacy extends WebAppContextDashboard {
      *            the URL to the "Templates/" subdirectory
      */
     WebAppContextLegacy(URL legacyTemplateUrl) {
-        String urlStr = legacyTemplateUrl.toString();
+        super(legacyTemplateUrl.toString());
 
         // lookup the template classloader for this add-on
-        if (urlStr.startsWith("jar:"))
+        if (templateUrl.startsWith("jar:"))
             setClassLoader(TemplateLoader
                     .getTemplateClassLoader(legacyTemplateUrl));
 
         // initialize the web application context
-        init(urlStr, true, true);
+        setResourceBase(templateUrl);
+        initializeLegacyContentTypes();
 
         // dashboard add-ons are mounted at the root context
         setContextPath("/");

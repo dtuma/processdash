@@ -51,30 +51,23 @@ import org.eclipse.jetty.util.resource.Resource;
 import org.eclipse.jetty.webapp.WebAppContext;
 import org.jfree.util.Log;
 
+import net.sourceforge.processdash.templates.TemplateLoader;
 import net.sourceforge.processdash.util.FileUtils;
 
 
 class WebAppContextDashboard extends WebAppContext {
+
+    static final String WEB_INF_URL_SUFFIX = "!/WEB-INF/";
 
     static final String DEFAULT_SERVLET = "org.eclipse.jetty.servlet.Default";
 
     static final Logger logger = Logger.getLogger(WebAppContextDashboard.class
             .getName());
 
-    WebAppContextDashboard() {}
+    String templateUrl;
 
-    WebAppContextDashboard(String baseUrl) {
-        init(baseUrl, false, false);
-        setInitParameter(DEFAULT_SERVLET + ".welcomeServlets", "true");
-
-        // TODO: set context path, etc
-        throw new UnsupportedOperationException("Not yet implemented.");
-    }
-
-    void init(String baseUrl, boolean supportPreprocessedText,
-            boolean supportLinkFiles) {
-        // set the base URL for loading web content
-        setResourceBase(baseUrl);
+    WebAppContextDashboard(String templateUrl) {
+        this.templateUrl = templateUrl;
 
         // do not allow browsing of anonymous directories
         setInitParameter(DEFAULT_SERVLET + ".dirAllowed", "false");
@@ -82,12 +75,31 @@ class WebAppContextDashboard extends WebAppContext {
         // install a filter which can inject hierarchy prefixes back into URIs
         FilterHolder filt = new FilterHolder(new DashboardUriPrefixFilter());
         addFilter(filt, "/*", EnumSet.allOf(DispatcherType.class));
+    }
 
-        // optionally install support for standard servlet types
-        if (supportPreprocessedText)
-            initializeTextPreprocessorSupport();
-        if (supportLinkFiles)
-            initializeTinyCgiSupport();
+    WebAppContextDashboard(URL webInfUrl) {
+        this(webInfUrl.toString());
+
+        // set the URL of the WAR file
+        setWar(calcWarFileUrl());
+
+        // servlets should be allowed to act as welcome files
+        setInitParameter(DEFAULT_SERVLET + ".welcomeServlets", "true");
+
+        // set an appropriate context path for this web application.
+        setContextPath(TemplateLoader.getAddOnContextPath(templateUrl));
+    }
+
+    private String calcWarFileUrl() {
+        int pos = templateUrl.indexOf(WEB_INF_URL_SUFFIX);
+        if (pos == -1)
+            throw new IllegalArgumentException();
+        return templateUrl.substring(4, pos);
+    }
+
+    void initializeLegacyContentTypes() {
+        initializeTextPreprocessorSupport();
+        initializeTinyCgiSupport();
     }
 
     private void initializeTextPreprocessorSupport() {
