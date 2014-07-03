@@ -115,7 +115,7 @@ public class TinyCGIHandlerServlet extends HttpServlet {
 
             String className = linkTarget.substring(CGI_LINK_PREFIX.length())
                     .trim();
-            ClassLoader cl = getServletContext().getClassLoader();
+            ClassLoader cl = Thread.currentThread().getContextClassLoader();
             Class clazz = Class.forName(className, true, cl);
             return (TinyCGI) clazz.newInstance();
 
