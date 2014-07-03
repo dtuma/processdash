@@ -26,6 +26,9 @@ package net.sourceforge.processdash.net.http;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.security.AccessController;
+import java.security.PrivilegedActionException;
+import java.security.PrivilegedExceptionAction;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
@@ -212,6 +215,62 @@ class WebAppContextDashboard extends WebAppContext {
             }
         }
     }
+
+
+    @Override
+    public void doScope(String target, Request baseRequest,
+            HttpServletRequest request, HttpServletResponse response)
+            throws IOException, ServletException {
+        new DoScopeAction(target, baseRequest, request, response).execute();
+    }
+
+
+    /**
+     * Perform doScope in a privileged block.
+     */
+    private class DoScopeAction implements PrivilegedExceptionAction<Object> {
+
+        private String target;
+
+        private Request baseRequest;
+
+        private HttpServletRequest request;
+
+        private HttpServletResponse response;
+
+        protected DoScopeAction(String target, Request baseRequest,
+                HttpServletRequest request, HttpServletResponse response) {
+            this.target = target;
+            this.baseRequest = baseRequest;
+            this.request = request;
+            this.response = response;
+        }
+
+        public Object run() throws Exception {
+            WebAppContextDashboard.super.doScope(target, baseRequest, request,
+                response);
+            return null;
+        }
+
+        public void execute() throws IOException, ServletException {
+            try {
+                AccessController.doPrivileged(this);
+            } catch (PrivilegedActionException pae) {
+                maybeThrow(pae.getCause(), IOException.class);
+                maybeThrow(pae.getCause(), ServletException.class);
+                maybeThrow(pae.getCause(), RuntimeException.class);
+                throw new ServletException(pae.getCause());
+            }
+        }
+
+        private <T extends Throwable> void maybeThrow(Throwable t,
+                Class<T> clazz) throws T {
+            if (t != null && clazz.isInstance(t))
+                throw (T) t;
+        }
+
+    }
+
 
     @Override
     public void doHandle(String target, Request baseRequest,
