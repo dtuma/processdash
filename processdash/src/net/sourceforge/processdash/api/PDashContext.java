@@ -46,4 +46,9 @@ public interface PDashContext {
      */
     String getUriPrefix();
 
+    /**
+     * @return an object for querying dashboard data values.
+     */
+    PDashData getData();
+
 }

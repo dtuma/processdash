@@ -23,18 +23,31 @@
 
 package net.sourceforge.processdash.net.http;
 
+import java.util.Map;
+
 import org.eclipse.jetty.server.Request;
 
+import net.sourceforge.processdash.DashboardContext;
 import net.sourceforge.processdash.api.PDashContext;
+import net.sourceforge.processdash.api.PDashData;
+import net.sourceforge.processdash.data.repository.PDashDataImpl;
 import net.sourceforge.processdash.util.HTMLUtils;
 
 public class PdashContextImpl implements PDashContext {
+
+    private DashboardContext dashCtx;
 
     private String uriPrefix;
 
     private String projectPath;
 
+    private PDashData _data;
+
     protected PdashContextImpl(Request baseRequest, String uriPrefix) {
+        this.dashCtx = (DashboardContext) ((Map) baseRequest.getConnection()
+                .getServer().getAttribute(WebServer.DEFAULT_ENV_KEY))
+                .get(TinyCGI.DASHBOARD_CONTEXT);
+
         this.uriPrefix = uriPrefix;
 
         if (uriPrefix.length() == 0)
@@ -50,6 +63,12 @@ public class PdashContextImpl implements PDashContext {
 
     public String getUriPrefix() {
         return uriPrefix;
+    }
+
+    public PDashData getData() {
+        if (_data == null && dashCtx != null)
+            _data = new PDashDataImpl(dashCtx.getData(), projectPath);
+        return _data;
     }
 
 }
