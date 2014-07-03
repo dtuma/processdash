@@ -24,7 +24,6 @@
 package net.sourceforge.processdash.net.http;
 
 import java.io.IOException;
-import java.util.Map;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -35,6 +34,8 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 
 import org.eclipse.jetty.server.Request;
+
+import net.sourceforge.processdash.api.PDashContext;
 
 /**
  * Dashboard URLs contain an initial project prefix which is atypical for web
@@ -64,8 +65,8 @@ public class DashboardUriPrefixFilter implements Filter {
             String origRequestURI = req.getRequestURI();
             String origContextPath = req.getContextPath();
 
-            String fullRequestURI = prefix + "/" + origRequestURI;
-            String fullContextPath = prefix + "/" + origContextPath;
+            String fullRequestURI = prefix + origRequestURI;
+            String fullContextPath = prefix + origContextPath;
             try {
                 req.setRequestURI(fullRequestURI);
                 req.setContextPath(fullContextPath);
@@ -81,12 +82,12 @@ public class DashboardUriPrefixFilter implements Filter {
         if (!(request instanceof HttpServletRequest))
             return null;
 
-        Map dash = (Map) request.getAttribute(PDashServletConstants.PDASH_ATTR);
+        PDashContext dash = PDashServletUtils.getContext(request);
         if (dash == null)
             return null;
 
-        String prefix = (String) dash.get(PDashServletConstants.URI_PREFIX);
-        if (prefix == null || prefix.length() < 2)
+        String prefix = dash.getUriPrefix();
+        if (prefix == null || prefix.length() < 3)
             return null;
 
         HttpServletRequest hreq = (HttpServletRequest) request;

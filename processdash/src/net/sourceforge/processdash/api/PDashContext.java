@@ -11,7 +11,7 @@
 //
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
@@ -21,14 +21,29 @@
 //     processdash@tuma-solutions.com
 //     processdash-devel@lists.sourceforge.net
 
-package net.sourceforge.processdash.net.http;
+package net.sourceforge.processdash.api;
 
-public interface PDashServletConstants {
+public interface PDashContext {
 
-    String PDASH_ATTR = "pdash";
+    /**
+     * Servlets and JSPs can find this context object stored as an attribute of
+     * the HttpServletRequest with this name
+     */
+    String REQUEST_ATTR = "pdash";
 
-    String URI_PREFIX = "uriPrefix";
+    /**
+     * @return the hierarchy path of the effective project, in the traditional
+     *         format that would be displayed to end users. If no project is in
+     *         effect, returns the empty string.
+     */
+    String getProjectPath();
 
-    String PROJECT_PATH = "projectPath";
+    /**
+     * @return the hierarchy path of the effective project, expressed as a
+     *         prefix that could be used when constructing URIs to resources in
+     *         other WAR files. If no project is in effect, returns the empty
+     *         string.
+     */
+    String getUriPrefix();
 
 }

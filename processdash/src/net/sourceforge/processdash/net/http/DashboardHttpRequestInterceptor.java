@@ -26,8 +26,6 @@ package net.sourceforge.processdash.net.http;
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -37,7 +35,7 @@ import org.eclipse.jetty.http.HttpURI;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.handler.HandlerWrapper;
 
-import net.sourceforge.processdash.util.HTMLUtils;
+import net.sourceforge.processdash.api.PDashContext;
 import net.sourceforge.processdash.util.StringUtils;
 
 /**
@@ -66,10 +64,6 @@ public class DashboardHttpRequestInterceptor extends HandlerWrapper {
         // add the dashboard startup timestamp header to the response.
         response.addHeader(WebServer.TIMESTAMP_HEADER, startupTimestamp);
 
-        // add the "pdash" object to the request.
-        Map pdashObject = new HashMap();
-        baseRequest.setAttribute(PDashServletConstants.PDASH_ATTR, pdashObject);
-
         // make the URI canonical
         HttpURI uri = baseRequest.getUri();
         String origUri = uri.toString();
@@ -84,11 +78,9 @@ public class DashboardHttpRequestInterceptor extends HandlerWrapper {
 
         // Separate out the hierarchy prefix if the URI contains one
         String[] pathSplit = splitPath(path, "//", "/+/");
+        String prefix = "";
         if (pathSplit != null) {
-            String prefix = pathSplit[0];
-            pdashObject.put(PDashServletConstants.URI_PREFIX, prefix);
-            pdashObject.put(PDashServletConstants.PROJECT_PATH,
-                HTMLUtils.urlDecode(prefix));
+            prefix = pathSplit[0];
             path = pathSplit[1];
         }
 
@@ -107,6 +99,10 @@ public class DashboardHttpRequestInterceptor extends HandlerWrapper {
                 uri.parse(newUri);
             }
         }
+
+        // add the "pdash" object to the request.
+        baseRequest.setAttribute(PDashContext.REQUEST_ATTR,
+            new PdashContextImpl(baseRequest, prefix));
 
         // pass the request on to the rest of the processing chain
         super.handle(path, baseRequest, request, response);
@@ -167,14 +163,15 @@ public class DashboardHttpRequestInterceptor extends HandlerWrapper {
     /**
      * Check to see if a path contains one of a list of delimiters. If so, split
      * the path on the delimiter and return the two parts. Each delimiter is
-     * expected to end with a slash, and the second String returned from this
-     * method will begin with that slash.
+     * expected to begin and end with a slash; the first String returned from
+     * this method will end with a slash, and the second String returned from
+     * this method will begin with that slash.
      */
     private String[] splitPath(String path, String... delimeters) {
         for (String delim : delimeters) {
             int pos = path.indexOf(delim);
             if (pos != -1) {
-                String prefix = path.substring(0, pos);
+                String prefix = path.substring(0, pos + 1);
                 String suffix = path.substring(pos + delim.length() - 1);
                 return new String[] { prefix, suffix };
             }

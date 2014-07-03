@@ -27,11 +27,22 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.servlet.ServletRequest;
 import javax.servlet.http.HttpServletRequest;
 
 import org.eclipse.jetty.server.Request;
 
+import net.sourceforge.processdash.api.PDashContext;
+
 public class PDashServletUtils {
+
+    /**
+     * Retrieve the {@link PDashContext} object associated with this request
+     */
+    public static PDashContext getContext(ServletRequest req) {
+        return (PDashContext) req.getAttribute(PDashContext.REQUEST_ATTR);
+    }
+
 
     /**
      * Using the data in an HttpServletRequest, build the standard environment
@@ -64,18 +75,15 @@ public class PDashServletUtils {
         env.put("SCRIPT_PATH", req.getRequestURI());
 
         // store information about the hierarchy prefix used on the request
-        Map dash = (Map) req.getAttribute(PDashServletConstants.PDASH_ATTR);
-        String pathInfo = (String) dash.get(PDashServletConstants.URI_PREFIX);
-        if (pathInfo != null && pathInfo.startsWith("/")) {
-            env.put("PATH_INFO", pathInfo);
-            env.put("PATH_TRANSLATED",
-                dash.get(PDashServletConstants.PROJECT_PATH));
-            env.put("REQUEST_URI", pathInfo + "/" + baseRequest.getUri());
+        PDashContext dash = getContext(req);
+        String uriPrefix = dash.getUriPrefix();
+        if (uriPrefix != null && uriPrefix.endsWith("/")) {
+            env.put("PATH_INFO", uriPrefix.substring(0, uriPrefix.length() - 1));
         } else {
             env.put("PATH_INFO", "");
-            env.put("PATH_TRANSLATED", "");
-            env.put("REQUEST_URI", baseRequest.getUri().toString());
         }
+        env.put("PATH_TRANSLATED", dash.getProjectPath());
+        env.put("REQUEST_URI", uriPrefix + baseRequest.getUri());
 
         // store the query string, if one was present
         String queryString = req.getQueryString();
