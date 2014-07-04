@@ -24,6 +24,8 @@
 
 package net.sourceforge.processdash.templates;
 
+import static org.eclipse.jetty.util.StringUtil.startsWithIgnoreCase;
+
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -56,6 +58,11 @@ import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
+
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.hier.DashHierarchy;
@@ -75,20 +82,17 @@ import net.sourceforge.processdash.util.PatternList;
 import net.sourceforge.processdash.util.ProfTimer;
 import net.sourceforge.processdash.util.XMLUtils;
 
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
-import org.xml.sax.SAXException;
-
 
 
 public class TemplateLoader {
 
     private static final String TEMPLATE_SUFFIX = ".template";
     private static final String XML_TEMPLATE_SUFFIX = "-template.xml";
+    private static final String XML_TEMPLATE_FILE = "processdash.xml";
     private static final String DATAFILE_SUFFIX = ".globaldata";
     private static final String TEMPLATE_DIR = "Templates/";
     private static final String WEB_INF_DIR = "WEB-INF/";
+    private static final String WEB_INF_XML_FILE = WEB_INF_DIR + XML_TEMPLATE_FILE;
 
     public static final DashboardPermission LOAD_TEMPLATES_PERMISSION =
         new DashboardPermission("templateLoader.loadTemplates");
@@ -275,11 +279,16 @@ public class TemplateLoader {
             String filename;
             while ((file = jarFile.getNextEntry()) != null) {
                 filename = file.getName().toLowerCase();
-                if (!filename.startsWith(TEMPLATE_DIR.toLowerCase()) ||
-                    filename.lastIndexOf('/') != 9)
+                if (startsWithIgnoreCase(filename, TEMPLATE_DIR)) {
+                    if (filename.lastIndexOf('/') != 9) continue;
+                } else if (startsWithIgnoreCase(filename, WEB_INF_DIR)) {
+                    if (!filename.equalsIgnoreCase(WEB_INF_XML_FILE)) continue;
+                } else {
                     continue;
+                }
 
-                if (filename.endsWith(XML_TEMPLATE_SUFFIX)) {
+                if (filename.endsWith(XML_TEMPLATE_SUFFIX)
+                        || filename.endsWith(XML_TEMPLATE_FILE)) {
                     debug("loading template: " + filename);
                     String n = file.getName() + " (in " + jarURL + ")";
                     loadXMLProcessTemplate(templates, data, n, jarFileUrl,
@@ -353,6 +362,19 @@ public class TemplateLoader {
                         ("unable to load global process data from " + f +
                          ": " + e);
                 }
+            }
+        }
+        File webInfXml = new File(directoryName, WEB_INF_XML_FILE);
+        if (webInfXml.isFile()) {
+            try {
+                debug("loading template: " + webInfXml);
+                loadXMLProcessTemplate
+                    (templates, data, webInfXml.getPath(), null,
+                     new FileInputStream(webInfXml), true);
+                processTimestamp(webInfXml);
+                foundTemplates = true;
+            } catch (IOException ioe) {
+                debug("unable to load process template: " + webInfXml);
             }
         }
         return foundTemplates;
