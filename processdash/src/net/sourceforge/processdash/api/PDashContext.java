@@ -51,4 +51,9 @@ public interface PDashContext {
      */
     PDashData getData();
 
+    /**
+     * @return an object for performing HQL queries against the warehouse.
+     */
+    PDashQuery getQuery();
+
 }

@@ -30,7 +30,9 @@ import org.eclipse.jetty.server.Request;
 import net.sourceforge.processdash.DashboardContext;
 import net.sourceforge.processdash.api.PDashContext;
 import net.sourceforge.processdash.api.PDashData;
+import net.sourceforge.processdash.api.PDashQuery;
 import net.sourceforge.processdash.data.repository.PDashDataImpl;
+import net.sourceforge.processdash.tool.db.PDashQueryImpl;
 import net.sourceforge.processdash.util.HTMLUtils;
 
 public class PdashContextImpl implements PDashContext {
@@ -42,6 +44,8 @@ public class PdashContextImpl implements PDashContext {
     private String projectPath;
 
     private PDashData _data;
+
+    private PDashQuery _query;
 
     protected PdashContextImpl(Request baseRequest, String uriPrefix) {
         this.dashCtx = (DashboardContext) ((Map) baseRequest.getConnection()
@@ -69,6 +73,12 @@ public class PdashContextImpl implements PDashContext {
         if (_data == null && dashCtx != null)
             _data = new PDashDataImpl(dashCtx.getData(), projectPath);
         return _data;
+    }
+
+    public PDashQuery getQuery() {
+        if (_query == null && dashCtx != null)
+            _query = new PDashQueryImpl(dashCtx, projectPath);
+        return _query;
     }
 
 }

@@ -46,6 +46,8 @@ public class QueryUtils {
 
     public static final String LABEL_CRITERIA = "##Label Group";
 
+    public static final String IS_CURRENT_CRITERIA = "##Is Current";
+
     public static final String IMPOSSIBLE_CONDITION = " 1 = 0 ";
 
 
@@ -65,9 +67,13 @@ public class QueryUtils {
 
         DatabasePlugin databasePlugin = (DatabasePlugin) pluginItem.get(0);
         if (waitForAllProjects)
-            databasePlugin.getObject(ProjectLocator.class).getKeyForProject(
-                "wait-for-all-projects", null);
+            waitForAllProjects(databasePlugin);
         return databasePlugin;
+    }
+
+    public static void waitForAllProjects(DatabasePlugin databasePlugin) {
+        databasePlugin.getObject(ProjectLocator.class).getKeyForProject(
+            "wait-for-all-projects", null);
     }
 
     public static <T> List<T> pluckColumn(List data, int column) {
@@ -97,6 +103,32 @@ public class QueryUtils {
     }
 
 
+    public static List addCriteriaToHqlIfEntityPresent(StringBuilder query,
+            String entityName, List queryArgs, List criteria) {
+
+        // if this query does not contain the named entity, do nothing.
+        int pos = getFromKeywordEndPos(query);
+        pos = query.indexOf(entityName, pos);
+        if (pos < 1 || !Character.isWhitespace(query.charAt(pos - 1)))
+            return queryArgs;
+
+        // find the "as" clause that follows the entity name.
+        Matcher m = AS_CLAUSE_PAT.matcher(query).region(
+            pos + entityName.length(), query.length());
+        if (!m.lookingAt())
+            throw new IllegalArgumentException(
+                    "HQL autofiltering logic requires the '" + entityName
+                            + "' entity to be followed by an 'as' clause.");
+        String alias = m.group(1);
+
+        // now add the criteria
+        return addCriteriaToHql(query, alias, queryArgs, criteria);
+    }
+
+    private static final Pattern AS_CLAUSE_PAT = Pattern.compile(
+        "\\s+as\\s+(\\w+)", Pattern.CASE_INSENSITIVE);
+
+
     public static List addCriteriaToHql(StringBuilder query, String entityName,
             List queryArgs, List criteria) {
         // create a query argument list if one was not provided.
@@ -110,7 +142,7 @@ public class QueryUtils {
         // split the query in two parts, so the first part ends with the
         // keyword "WHERE" and a space. this will make it simpler to append
         // new WHERE clauses.
-        int wherePos = getWhereKeywordEndPos(query);
+        int wherePos = getOrInsertWhereKeywordEndPos(query);
         String trailingQueryPart = query.substring(wherePos);
         query.setLength(wherePos);
         List splitArgs = maybeSplitQueryArgs(queryArgs, trailingQueryPart);
@@ -125,6 +157,8 @@ public class QueryUtils {
                 addWbsCriteriaToHql(query, entityName, splitArgs, criteria);
             } else if (LABEL_CRITERIA.equals(key)) {
                 addLabelCriteriaToHql(query, entityName, splitArgs, criteria);
+            } else if (IS_CURRENT_CRITERIA.equals(key)) {
+                addIsCurrentCriteriaToHql(query, entityName);
             } else if (key != null) {
                 logger.warning("Unrecognized query criteria " + key);
             }
@@ -132,6 +166,12 @@ public class QueryUtils {
 
         // add the final (split) portion of the query back.
         query.append(trailingQueryPart);
+
+        // remove a superfluous "always true" clause if present
+        int pos = query.indexOf(ALWAYS_TRUE_CLAUSE);
+        if (pos != -1)
+            query.delete(pos, pos + ALWAYS_TRUE_CLAUSE.length());
+
         logger.finest("Constructed query: " + query);
 
         // return the query args list
@@ -224,6 +264,11 @@ public class QueryUtils {
         queryArgs.add(labelGroupKey);
     }
 
+    private static void addIsCurrentCriteriaToHql(StringBuilder query,
+            String entityName) {
+        query.append(entityName).append(".versionInfo.current = 1 and ");
+    }
+
     private static String asString(Object o) {
         if (o instanceof String) return (String) o;
         if (o instanceof SimpleData) return ((SimpleData)o).format();
@@ -262,6 +307,31 @@ public class QueryUtils {
         }
         return result;
     }
+
+    private static int getOrInsertWhereKeywordEndPos(StringBuilder query) {
+        try {
+            // if the query already contains a WHERE clause, return its end pos
+            return getWhereKeywordEndPos(query);
+        } catch (IllegalArgumentException iae) {
+        }
+
+        Matcher m = WHERE_INSERT_PAT.matcher(query);
+        if (m.find()) {
+            // if the query includes a GROUP BY, ORDER BY, or HAVING clause,
+            // insert a new WHERE clause immediately before.
+            int insertPos = m.start();
+            query.insert(insertPos, "where 1 = 1 ");
+            return insertPos + 6;
+        } else {
+            // otherwise, append a WHERE clause to the end of the query
+            query.append(" where 1 = 1");
+            return query.length() - 5;
+        }
+    }
+    private static final String ALWAYS_TRUE_CLAUSE = " and 1 = 1";
+
+    private static final Pattern WHERE_INSERT_PAT = Pattern.compile(
+        "\\b((group|order)\\s+by|having)\\s", Pattern.CASE_INSENSITIVE);
 
     private static int getFromKeywordEndPos(StringBuilder query) {
         return getKeywordEndPos(query, FROM_KEYWORD_PAT, "FROM");
