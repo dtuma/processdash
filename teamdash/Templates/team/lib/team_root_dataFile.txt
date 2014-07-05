@@ -9,6 +9,8 @@
 undefine([Simple Project Tag]);
 [<!--#echo Process_ID -->/TeamRoot Tag] = tag;
 [<!--#echo Process_ID --> Team Root Tag] = tag;
+[<!--#echo Process_ID --> Team Project Root] = tag;
+[Team Project Root] = tag;
 [EV Project Tag] = tag;
 [Show_Percent_Spent_Indicator] = 0;
 [Show_Task_Dependency_Indicator] = 0;

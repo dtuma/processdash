@@ -6,6 +6,8 @@
 #include <<!--#echo Process_ID -->/root_data.txt>
 
 [<!--#echo Process_ID --> Indiv Root Tag] = tag;
+[<!--#echo Process_ID --> Team Project Indiv Root] = tag;
+[Team Project Indiv Root] = tag;
 
 [Indiv_Initials] = "tttt";
 [Indiv_Export_Filename] = [Indiv_Initials] & "-data.pdash";

@@ -8,6 +8,8 @@
 #include <<!--#echo Process_ID -->/root_data.txt>
 undefine([Simple Project Tag]);
 [<!--#echo Process_ID --> Master Root Tag] = tag;
+[<!--#echo Process_ID --> Master Project Root] = tag;
+[Master Project Root] = tag;
 [EV Project Tag] = tag;
 [Show_Percent_Spent_Indicator] = 0;
 [Show_Task_Dependency_Indicator] = 0;
