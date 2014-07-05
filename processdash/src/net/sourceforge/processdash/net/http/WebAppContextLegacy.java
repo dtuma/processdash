@@ -53,7 +53,7 @@ class WebAppContextLegacy extends WebAppContextDashboard {
         initializeLegacyContentTypes();
 
         // dashboard add-ons are mounted at the root context
-        setContextPath("/");
+        setContextPath("");
 
         // do not explode the contents of a dashboard add-on
         setExtractWAR(false);

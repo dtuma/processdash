@@ -968,7 +968,7 @@ public class TemplateLoader {
                 return result;
         }
 
-        return "/";
+        return "";
     }
 
     private static final Pattern WAR_FILE_PAT = Pattern.compile(
