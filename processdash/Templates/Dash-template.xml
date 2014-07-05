@@ -340,6 +340,9 @@ The author(s) may be contacted at:
   <scriptSource dataName="User URLs"/>
 
   <scriptSource
+     class="net.sourceforge.processdash.templates.ui.WebAppScriptSource"/>
+
+  <scriptSource
      class="net.sourceforge.processdash.hier.ui.HierarchyNoteScriptSource"/>
 
   <sizeMetricApi id="mcfSizeMetricApiHandler"
