@@ -1,4 +1,4 @@
-// Copyright (C) 2006-2007 Tuma Solutions, LLC
+// Copyright (C) 2006-2014 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -91,7 +91,7 @@ public class ExtensionManager {
      * @return a list of all Elements with that tag name found in
      *     the <tt>*-template.xml</tt> files loaded by the dashboard.
      */
-    public static List getXmlConfigurationElements(String tagName) {
+    public static List<Element> getXmlConfigurationElements(String tagName) {
         List result = new ArrayList();
         for (Iterator i = extensionXmlDocs.keySet().iterator(); i.hasNext();) {
             Document doc = (Document) i.next();
@@ -101,6 +101,74 @@ public class ExtensionManager {
                 result.add(configElements.item(j));
         }
         return result;
+    }
+
+
+    /**
+     * Determines which add-on a configuration element came from, and returns
+     * the context path for content served by that add-on.
+     */
+    public static String getAddOnContextPath(Element configElement) {
+        Document configDoc = configElement.getOwnerDocument();
+        ExtensionData metaData = (ExtensionData) extensionXmlDocs
+                .get(configDoc);
+        if (metaData == null)
+            throw new IllegalArgumentException("configElement does not belong "
+                    + "to any registered template.xml configuration document");
+
+        if (metaData.baseUrl == null)
+            return "";
+        else
+            return TemplateLoader.getAddOnContextPath(metaData.baseUrl
+                    .toString());
+    }
+
+    /**
+     * Retrieve a URI specified in a configuration element.
+     * 
+     * @param configXml
+     *            an element that is part of an XML fragment returned from the
+     *            {@link #getXmlConfigurationElements(String)} method, whose
+     *            text contents specify a URI to an add-on resource
+     * @return the text contents of the element, prepended by the context path
+     *         of the add-on that contributed this configuration element
+     */
+    public static String getConfigUri(Element configXml) {
+        return getConfigUri(configXml, null);
+    }
+
+    /**
+     * Retrieve a URI specified in a configuration element attribute.
+     * 
+     * @param configXml
+     *            an element that is part of an XML fragment returned from the
+     *            {@link #getXmlConfigurationElements(String)} method
+     * @param uriAttrName
+     *            the name of an attribute on the XML element that specifies a
+     *            URI to an add-on resource
+     * @return the value of the attribute, prepended by the context path of the
+     *         add-on that contributed this configuration element
+     */
+    public static String getConfigUri(Element configXml, String uriAttrName) {
+        String value;
+        if (uriAttrName != null)
+            value = configXml.getAttribute(uriAttrName);
+        else
+            value = XMLUtils.getTextContents(configXml);
+
+        if (value == null || (value = value.trim()).length() == 0)
+            return null;
+        else if (value.startsWith("http"))
+            return value;
+
+        if (!value.startsWith("/"))
+            value = "/" + value;
+
+        String context = getAddOnContextPath(configXml);
+        if (context.length() > 1)
+            value = context + value;
+
+        return value;
     }
 
 
