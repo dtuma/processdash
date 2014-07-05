@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2009 Tuma Solutions, LLC
+// Copyright (C) 2003-2014 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -111,6 +111,7 @@ public class DashPackage {
             JarInputStream jarFile = new JarInputStream
                 (jarFileURL.openStream());
             Manifest manifest = jarFile.getManifest();
+            jarFile.close();
             init(jarURL, manifest);
 
         } catch (InvalidDashPackage i) {
