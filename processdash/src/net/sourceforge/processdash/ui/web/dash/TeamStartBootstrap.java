@@ -342,7 +342,7 @@ public class TeamStartBootstrap extends TinyCGIBase {
         super.writeHeader();
 
         out.println("<html><head>");
-        out.println("<title>Select Project Folder</title>");
+        out.println("<title>Select Project Group</title>");
         out.println(HTMLUtils.cssLinkHtml("teamStart.css"));
         out.println("<script>");
         out.println("    function save(path) {");
@@ -351,7 +351,7 @@ public class TeamStartBootstrap extends TinyCGIBase {
         out.println("    }");
         out.println("</script>");
         out.println("</head><body>");
-        out.println("<p><b>Select Project Folder:</b></p>");
+        out.println("<p><b>Select Project Group:</b></p>");
         out.println("<form><table>");
         printFolders(getPSPProperties(), PropertyKey.ROOT, 0);
         out.println("</table></form></body></html>");
@@ -370,7 +370,7 @@ public class TeamStartBootstrap extends TinyCGIBase {
         prefix = StringUtils.findAndReplace(prefix, "\\", "\\\\");
         prefix = StringUtils.findAndReplace(prefix, "'", "\\'");
         prefix = StringUtils.findAndReplace(prefix, "\"", "\\\"");
-        String name = (depth == 0 ? "No Folder" : node.name());
+        String name = (depth == 0 ? "No Group" : node.name());
 
         // print a row with a link for this hierarchy node.
         out.print("<tr><td style='padding-left: " + indent + "px'>");
