@@ -1,4 +1,4 @@
-// Copyright (C) 2006-2013 Tuma Solutions, LLC
+// Copyright (C) 2006-2014 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -525,20 +525,27 @@ public class EVTaskDependency implements Cloneable {
     }
 
     public static Date getDependencyComparisonDate(EVTask task) {
+        return getDependencyComparisonDate(task, true);
+    }
+
+    public static Date getDependencyComparisonDate(EVTask task,
+            boolean rejectNever) {
         Date needDate = null;
         switch (getDependencyComparisonDateType()) {
         case CMP_FORECAST:
             needDate = task.getForecastDate();
 
         case CMP_REPLAN:
-            if (needDate == null || EVSchedule.NEVER.equals(needDate))
+            if (needDate == null
+                    || (rejectNever && EVSchedule.NEVER.equals(needDate)))
                 needDate = task.getReplanDate();
 
         case CMP_PLAN:
-            if (needDate == null || EVSchedule.NEVER.equals(needDate))
+            if (needDate == null
+                    || (rejectNever && EVSchedule.NEVER.equals(needDate)))
                 needDate = task.getPlanDate();
 
-            if (EVSchedule.NEVER.equals(needDate))
+            if (rejectNever && EVSchedule.NEVER.equals(needDate))
                 needDate = null;
         }
         return needDate;

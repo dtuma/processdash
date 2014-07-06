@@ -945,7 +945,7 @@ public class EVTaskList extends AbstractTreeTableModel
         if (t.getDateCompleted() != null || t.isValuePruned() || !t.isLeaf())
             return null;
 
-        Date projected = EVTaskDependency.getDependencyComparisonDate(t);
+        Date projected = EVTaskDependency.getDependencyComparisonDate(t, false);
         if (projected == null)
             return null;
 
