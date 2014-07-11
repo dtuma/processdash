@@ -137,6 +137,9 @@ public class PDashQueryImpl extends MockMap<String, Object> implements
             .singletonList(QueryUtils.IS_CURRENT_CRITERIA);
 
     private List getProjectSpecificCriteria() {
+        if (prefix == null || prefix.length() < 2)
+            return null;
+
         List result = new ArrayList();
         result.add(QueryUtils.PROJECT_CRITERIA);
 
