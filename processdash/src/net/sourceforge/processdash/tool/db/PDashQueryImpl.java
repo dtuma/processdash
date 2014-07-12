@@ -159,7 +159,7 @@ public class PDashQueryImpl extends MockMap<String, Object> implements
             "ProcessEnactment", args, projectCriteria);
         if (alias != null)
             StringUtils.findAndReplace(query, alias + ".planItem", //
-                alias + ".includesItem");
+                alias + ".rootItem");
     }
 
     private List getProjectSpecificCriteria() {
