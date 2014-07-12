@@ -826,7 +826,7 @@ Authors:
       <arg value="mvn"/>
       <arg value="install:install-file"/>
       <arg value="-Dfile=${dist}/pspdash.jar"/>
-      <arg value="-DgroupId=net.sourceforce.processdash"/>
+      <arg value="-DgroupId=net.sourceforge.processdash"/>
       <arg value="-DartifactId=pdash-full"/>
       <arg value="-Dversion=SNAPSHOT"/>
       <arg value="-Dpackaging=jar"/>
@@ -840,7 +840,7 @@ Authors:
       <arg value="mvn"/>
       <arg value="install:install-file"/>
       <arg value="-Dfile=${dist}/pdash-util.jar"/>
-      <arg value="-DgroupId=net.sourceforce.processdash"/>
+      <arg value="-DgroupId=net.sourceforge.processdash"/>
       <arg value="-DartifactId=pdash-util"/>
       <arg value="-Dversion=${dashboard.version}"/>
       <arg value="-Dpackaging=jar"/>
@@ -862,11 +862,36 @@ Authors:
       <arg value="mvn"/>
       <arg value="install:install-file"/>
       <arg value="-Dfile=${dist}/pdash-ui-lib.jar"/>
-      <arg value="-DgroupId=net.sourceforce.processdash"/>
+      <arg value="-DgroupId=net.sourceforge.processdash"/>
       <arg value="-DartifactId=pdash-ui-lib"/>
       <arg value="-Dversion=${dashboard.version}"/>
       <arg value="-Dpackaging=jar"/>
       <arg value="-DgeneratePom=true"/>
+    </exec>
+  </target>
+
+  <target name="pdash-servlet-api" depends="compile">
+    <jar destfile="${dist}/pdash-servlet-api.jar" basedir="${build}"
+         includes="net/sourceforge/processdash/api/"/>
+    <jar destfile="${dist}/pdash-servlet-api-src.jar" basedir="${src}"
+         includes="net/sourceforge/processdash/api/"/>
+    <javadoc sourcepath="${src}" destdir="${dist}/servlet-api-javadoc"
+         packagenames="net.sourceforge.processdash.api" />
+    <jar destfile="${dist}/pdash-servlet-api-doc.jar"
+         basedir="${dist}/servlet-api-javadoc"/>
+    <exec executable="cmd" osfamily="windows">
+      <arg value="/c"/>
+      <arg value="mvn"/>
+      <arg value="install:install-file"/>
+      <arg value="-Dfile=${dist}/pdash-servlet-api.jar"/>
+      <arg value="-Dsources=${dist}/pdash-servlet-api-src.jar"/>
+      <arg value="-Djavadoc=${dist}/pdash-servlet-api-doc.jar"/>
+      <arg value="-DgroupId=net.sourceforge.processdash"/>
+      <arg value="-DartifactId=pdash-servlet-api"/>
+      <arg value="-Dversion=${dashboard.version}"/>
+      <arg value="-Dpackaging=jar"/>
+      <arg value="-DgeneratePom=true"/>
+      <arg value="-DcreateChecksum=true"/>
     </exec>
   </target>
 
