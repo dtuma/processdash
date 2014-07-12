@@ -25,6 +25,10 @@ package net.sourceforge.processdash.net.http;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import java.net.URL;
 import java.security.AccessController;
 import java.security.PrivilegedActionException;
@@ -277,9 +281,21 @@ class WebAppContextDashboard extends WebAppContext {
             HttpServletRequest request, HttpServletResponse response)
             throws IOException, ServletException {
 
-        IgnoreResponseErrors wrap = new IgnoreResponseErrors(response);
-        super.doHandle(target, baseRequest, request, wrap);
-        if (wrap.ignored)
+        IgnoreResponseErrors ignoreErr = new IgnoreResponseErrors(response);
+        HttpServletRequest wrappedRequest = (HttpServletRequest) Proxy
+                .newProxyInstance(
+                    WebAppContextDashboard.class.getClassLoader(),
+                    new Class[] { HttpServletRequest.class },
+                    new PrivilegedInvoker(request));
+        HttpServletResponse wrappedResponse = (HttpServletResponse) Proxy
+                .newProxyInstance(
+                    WebAppContextDashboard.class.getClassLoader(),
+                    new Class[] { HttpServletResponse.class },
+                    new PrivilegedInvoker(ignoreErr));
+
+        super.doHandle(target, baseRequest, wrappedRequest, wrappedResponse);
+
+        if (ignoreErr.ignored)
             baseRequest.setHandled(false);
     }
 
@@ -324,5 +340,43 @@ class WebAppContextDashboard extends WebAppContext {
             HttpServletResponse.SC_NOT_FOUND,
             // user requested a directory listing, which is forbidden
             HttpServletResponse.SC_FORBIDDEN, };
+
+
+
+    private class PrivilegedInvoker implements InvocationHandler {
+
+        private Object target;
+
+        private PrivilegedInvoker(Object target) {
+            if (target instanceof HttpServletRequest
+                    || target instanceof HttpServletResponse)
+                this.target = target;
+            else
+                throw new IllegalArgumentException();
+        }
+
+        public Object invoke(Object proxy, final Method method,
+                final Object[] args) throws Throwable {
+            PrivilegedExceptionAction a = new PrivilegedExceptionAction() {
+                public Object run() throws Exception {
+                    try {
+                        return method.invoke(target, args);
+                    } catch (InvocationTargetException ite) {
+                        if (ite.getCause() instanceof Exception)
+                            throw (Exception) ite.getCause();
+                        else
+                            throw ite;
+                    }
+                }
+            };
+
+            try {
+                return AccessController.doPrivileged(a);
+            } catch (PrivilegedActionException pae) {
+                throw pae.getCause();
+            }
+        }
+
+    }
 
 }
