@@ -18,7 +18,7 @@ License along with this library; if not, see <http://www.gnu.org/licenses/>.
 To further contact the author please email jpmccar@gjt.org
 
 
-Modifications, copyright 2001-2013 Tuma Solutions, LLC; distributed under the
+Modifications, copyright 2001-2014 Tuma Solutions, LLC; distributed under the
 LGPL, as described above.
 
 */
@@ -133,6 +133,28 @@ public class StringUtils
             text.replace(replaceStart, replaceStart+findLength, replace);
             pos = replaceStart + replaceLength;
             replaceStart = indexOf(text, find, pos);
+        }
+    }
+
+    /** @since 2.0.14.1 */
+    public static final void findAndReplace(StringBuilder text,
+                                            String find,
+                                            String replace) {
+
+        if ((text == null) ||
+            (find == null) ||
+            (replace == null))
+        {
+            throw new NullPointerException(
+                "findAndReplace doesn't work on nulls.");
+        }
+
+        int findLength = find.length(), replaceLength = replace.length();
+        int pos = 0, replaceStart = text.indexOf(find);
+        while (replaceStart != -1) {
+            text.replace(replaceStart, replaceStart+findLength, replace);
+            pos = replaceStart + replaceLength;
+            replaceStart = text.indexOf(find, pos);
         }
     }
 

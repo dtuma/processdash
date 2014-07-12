@@ -103,14 +103,18 @@ public class QueryUtils {
     }
 
 
-    public static List addCriteriaToHqlIfEntityPresent(StringBuilder query,
+    public static String addCriteriaToHqlIfEntityPresent(StringBuilder query,
             String entityName, List queryArgs, List criteria) {
+
+        // if there are no criteria to add, do nothing.
+        if (criteria == null || criteria.isEmpty())
+            return null;
 
         // if this query does not contain the named entity, do nothing.
         int pos = getFromKeywordEndPos(query);
         pos = query.indexOf(entityName, pos);
         if (pos < 1 || !Character.isWhitespace(query.charAt(pos - 1)))
-            return queryArgs;
+            return null;
 
         // find the "as" clause that follows the entity name.
         Matcher m = AS_CLAUSE_PAT.matcher(query).region(
@@ -122,7 +126,8 @@ public class QueryUtils {
         String alias = m.group(1);
 
         // now add the criteria
-        return addCriteriaToHql(query, alias, queryArgs, criteria);
+        addCriteriaToHql(query, alias, queryArgs, criteria);
+        return alias;
     }
 
     private static final Pattern AS_CLAUSE_PAT = Pattern.compile(

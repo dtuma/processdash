@@ -35,6 +35,7 @@ import net.sourceforge.processdash.data.ListData;
 import net.sourceforge.processdash.tool.db.DatabaseMetadata.PlanItemEntityNames;
 import net.sourceforge.processdash.tool.db.DatabaseMetadata.VersionedEntityNames;
 import net.sourceforge.processdash.util.MockMap;
+import net.sourceforge.processdash.util.StringUtils;
 
 public class PDashQueryImpl extends MockMap<String, Object> implements
         PDashQuery {
@@ -105,8 +106,7 @@ public class PDashQueryImpl extends MockMap<String, Object> implements
                 IS_CURRENT_CRITERIA);
 
             // Add criteria to limit the query to data from the current project
-            addCriteriaForEntities(query, queryArgs, getPlanItemEntityNames(),
-                getProjectSpecificCriteria());
+            addProjectSpecificCriteria(query, queryArgs);
         }
     }
 
@@ -136,10 +136,33 @@ public class PDashQueryImpl extends MockMap<String, Object> implements
     private static final List IS_CURRENT_CRITERIA = Collections
             .singletonList(QueryUtils.IS_CURRENT_CRITERIA);
 
-    private List getProjectSpecificCriteria() {
+    private void addProjectSpecificCriteria(StringBuilder query, List args) {
+        // if no prefix is in effect, do not limit the query to any project
         if (prefix == null || prefix.length() < 2)
-            return null;
+            return;
 
+        // get the criteria we should use for the project
+        List projectCriteria = getProjectSpecificCriteria();
+
+        // add these critiera to the standard plan item entities
+        addCriteriaForEntities(query, args, getPlanItemEntityNames(),
+            projectCriteria);
+
+        // special handling when the query references PlanItem directly
+        String alias = QueryUtils.addCriteriaToHqlIfEntityPresent(query,
+            "PlanItem", args, projectCriteria);
+        if (alias != null)
+            StringUtils.findAndReplace(query, alias + ".planItem", alias);
+
+        // special handling when the query references ProcessEnactment
+        alias = QueryUtils.addCriteriaToHqlIfEntityPresent(query,
+            "ProcessEnactment", args, projectCriteria);
+        if (alias != null)
+            StringUtils.findAndReplace(query, alias + ".planItem", //
+                alias + ".includesItem");
+    }
+
+    private List getProjectSpecificCriteria() {
         List result = new ArrayList();
         result.add(QueryUtils.PROJECT_CRITERIA);
 
