@@ -23,6 +23,7 @@
 
 package net.sourceforge.processdash.data.repository;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
@@ -70,7 +71,16 @@ public class PDashDataImpl extends MockMap<String, Object> implements PDashData 
     public List<String> getList(String dataName) {
         SimpleData sd = getSimpleValue(dataName);
         ListData ld = ListData.asListData(sd);
-        return (ld == null ? null : ld.asList());
+        if (ld == null)
+            return null;
+
+        List result = new ArrayList(ld.asList());
+        for (int i = result.size(); i-- > 0;) {
+            Object item = result.get(i);
+            if (item instanceof SimpleData)
+                result.set(i, convert((SimpleData) item));
+        }
+        return result;
     }
 
     public Date getDate(String dataName) {
@@ -113,6 +123,10 @@ public class PDashDataImpl extends MockMap<String, Object> implements PDashData 
 
         // Look up a data value, and cast it to a plain Java type
         SimpleData sd = getSimpleValue(key);
+        return convert(sd);
+    }
+
+    private Object convert(SimpleData sd) {
         if (sd instanceof NumberData) {
             return ((NumberData) sd).getDouble();
         } else if (sd instanceof DateData) {
