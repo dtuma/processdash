@@ -47,6 +47,7 @@ import java.util.zip.ZipEntry;
 import javax.servlet.DispatcherType;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletRequestWrapper;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpServletResponseWrapper;
 
@@ -285,26 +286,25 @@ class WebAppContextDashboard extends WebAppContext {
             HttpServletRequest request, HttpServletResponse response)
             throws IOException, ServletException {
 
-        IgnoreResponseErrors ignoreErr = new IgnoreResponseErrors(response);
-        HttpServletRequest wrappedRequest = (HttpServletRequest) Proxy
-                .newProxyInstance(
+        HttpServletRequest wrappedRequest = new HttpServletRequestWrapper(
+                (HttpServletRequest) Proxy.newProxyInstance(
                     WebAppContextDashboard.class.getClassLoader(),
                     new Class[] { HttpServletRequest.class },
-                    new PrivilegedInvoker(request));
-        HttpServletResponse wrappedResponse = (HttpServletResponse) Proxy
-                .newProxyInstance(
+                    new PrivilegedInvoker(request)));
+        IgnoreResponseErrors ignoreErr = new IgnoreResponseErrors(
+                (HttpServletResponse) Proxy.newProxyInstance(
                     WebAppContextDashboard.class.getClassLoader(),
                     new Class[] { HttpServletResponse.class },
-                    new PrivilegedInvoker(ignoreErr));
+                    new PrivilegedInvoker(response)));
 
-        super.doHandle(target, baseRequest, wrappedRequest, wrappedResponse);
+        super.doHandle(target, baseRequest, wrappedRequest, ignoreErr);
 
         if (ignoreErr.ignored)
             baseRequest.setHandled(false);
     }
 
 
-    private class IgnoreResponseErrors extends HttpServletResponseWrapper {
+    public class IgnoreResponseErrors extends HttpServletResponseWrapper {
 
         private boolean ignored = false;
 
