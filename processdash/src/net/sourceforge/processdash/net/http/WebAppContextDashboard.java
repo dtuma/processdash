@@ -25,10 +25,12 @@ package net.sourceforge.processdash.net.http;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.AccessController;
 import java.security.PrivilegedActionException;
@@ -37,6 +39,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Set;
 import java.util.jar.JarInputStream;
 import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
@@ -74,6 +77,7 @@ class WebAppContextDashboard extends WebAppContext {
     String templateUrl;
 
     WebAppContextDashboard(String templateUrl) {
+        this._scontext = new Context();
         this.templateUrl = templateUrl;
 
         // do not allow browsing of anonymous directories
@@ -374,6 +378,60 @@ class WebAppContextDashboard extends WebAppContext {
                 return AccessController.doPrivileged(a);
             } catch (PrivilegedActionException pae) {
                 throw pae.getCause();
+            }
+        }
+
+    }
+
+    /**
+     * Perform some context operations in privileged blocks, to avoid security
+     * exceptions when an unprivileged servlet invokes a method call.
+     */
+    public class Context extends WebAppContext.Context {
+
+        @Override
+        public URL getResource(final String path) throws MalformedURLException {
+            try {
+                return AccessController
+                        .doPrivileged(new PrivilegedExceptionAction<URL>() {
+                            public URL run() throws Exception {
+                                return Context.super.getResource(path);
+                            }
+                        });
+            } catch (PrivilegedActionException pae) {
+                Throwable e = pae.getCause();
+                if (e instanceof MalformedURLException)
+                    throw (MalformedURLException) e;
+                else
+                    throw new RuntimeException(e);
+            }
+        }
+
+        @Override
+        public InputStream getResourceAsStream(final String path) {
+            try {
+                return AccessController
+                        .doPrivileged(new PrivilegedExceptionAction<InputStream>() {
+                            public InputStream run() throws Exception {
+                                return Context.super.getResourceAsStream(path);
+                            }
+                        });
+            } catch (PrivilegedActionException pae) {
+                throw new RuntimeException(pae.getCause());
+            }
+        }
+
+        @Override
+        public Set getResourcePaths(final String path) {
+            try {
+                return AccessController
+                        .doPrivileged(new PrivilegedExceptionAction<Set>() {
+                            public Set run() throws Exception {
+                                return Context.super.getResourcePaths(path);
+                            }
+                        });
+            } catch (PrivilegedActionException pae) {
+                throw new RuntimeException(pae.getCause());
             }
         }
 
