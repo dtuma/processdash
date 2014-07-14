@@ -28,11 +28,24 @@ import java.util.List;
 import java.util.Map;
 
 
+/**
+ * An object providing access to precalculated, derived process metrics.
+ * <p>
+ * The Process Dashboard contains an embedded calculation engine that computes
+ * derived metrics (such as time in phase, yield, defect density, etc). This
+ * object provides access to the data values produced by that computation
+ * engine.
+ * <p>
+ * This object can be retrieved from a {@link PDashContext}, and will return
+ * data for the project named by that context. If the context does not name a
+ * real project in the current dashboard, this object is unlikely to return any
+ * meaningful values.
+ */
 public interface PDashData extends Map<String, Object> {
 
     /**
      * Retrieve the value of a data element.
-     * 
+     * <p>
      * This method (inherited from {@link Map}) is provided for convenience from
      * JSP EL expressions. It will retrieve data elements and return them as
      * Double, String, Date, or Boolean values. This allows the construction of
@@ -66,7 +79,7 @@ public interface PDashData extends Map<String, Object> {
     Double getNumber(String dataName);
 
     /**
-     * Retrieve a data value as text.
+     * Retrieve a data value preformatted as text.
      * 
      * @param dataName
      *            the name of a data element
@@ -96,11 +109,12 @@ public interface PDashData extends Map<String, Object> {
      *         element with this value is present, or if the given data element
      *         is neither a List nor a String, returns null.
      */
-    List<String> getList(String dataName);
+    List getList(String dataName);
 
     /**
-     * Retrieve a data value and test it for "trueness." The following data
-     * values are considered to be "true:"
+     * Retrieve a data value and test it for "trueness."
+     * <p>
+     * The following data values are considered to be "true:"
      * <ul>
      * <li>Numbers which are not zero, NaN, or Infinity</li>
      * <li>Strings with length greater than zero</li>
@@ -117,6 +131,13 @@ public interface PDashData extends Map<String, Object> {
 
     /**
      * Return a data context which is a child of the current context.
+     * <p>
+     * The resulting "subcontext" can be used to retrieve data values from this
+     * context whose names begin with the specified <tt>childName</tt> and a
+     * slash. For example, the following expressions are equivalent:
+     * 
+     * <pre>        data.get(&quot;Code/Time&quot;) == data.getChild(&quot;Code&quot;).get(&quot;Time&quot;)
+     * </pre>
      * 
      * @param childName
      *            the name of the child context

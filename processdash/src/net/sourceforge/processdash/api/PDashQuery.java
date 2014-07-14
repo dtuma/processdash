@@ -26,31 +26,57 @@ package net.sourceforge.processdash.api;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * An object providing the ability to perform object-oriented queries against
+ * team project data.
+ * <p>
+ * The Team Dashboard contains an embedded data warehouse which is populated by
+ * team project data. This object makes it possible to perform object-oriented
+ * queries against the data in the embedded warehouse. Queries should be written
+ * using Hibernate Query Language (HQL).
+ * <p>
+ * This object can be retrieved from a {@link PDashContext}, and will (by
+ * default) automatically filter all queries so they return current data from
+ * the project specified by that context. If the context does not name any
+ * project, this object will (by default) return data for all of the projects in
+ * the Team Dashboard.
+ */
 public interface PDashQuery extends Map<String, Object> {
 
     /**
-     * Queries performed through the PDashQuery object can benefit from
-     * automatic filtering. The elements in this enum act as options to control
-     * the type of automatic filtering that is applied.
+     * Options specifying the type of automatic filtering that should be applied
+     * to queries.
      */
     public enum FilterMode {
 
-        /** Do not perform any filtering of query results */
+        /** Do not perform any filtering of query results. */
         NONE,
 
-        /** Filter query results so that only current data is returned */
+        /**
+         * Filter query results so that only current data is returned.
+         * <p>
+         * When new data is loaded into the warehouse, rows for historical data
+         * are retained and stamped with an effective end date. New rows are
+         * loaded and marked with a "current" flag.
+         * <p>
+         * This filter mode indicates that queries should automatically select
+         * the most up-to-date, current data, and that rows representing
+         * obsolete historical data should be discarded.
+         */
         CURRENT,
 
         /**
-         * Filter query results to return only current data from the active
-         * project
+         * Filter query results to return only {@linkplain #CURRENT current
+         * data} from the {@linkplain PDashContext#getProjectPath() effective
+         * project}
          */
         PROJECT,
 
         /**
-         * Filter query results to return only current data from the active
-         * project, which matches any component/label filters that have been
-         * applied by the user.
+         * Filter query results to return only {@linkplain #CURRENT current
+         * data} from the {@linkplain PDashContext#getProjectPath() effective
+         * project}. In addition, the query should respect any component or
+         * label filters that have been applied by the user.
          */
         ALL
     }
@@ -58,7 +84,7 @@ public interface PDashQuery extends Map<String, Object> {
 
     /**
      * Perform a query and return the results.
-     * 
+     * <p>
      * This method can automatically enhance the HQL query to apply common
      * filters to the data. To accomplish this, all entities in the query must
      * be given aliases using an "AS" clause. To disable or customize
@@ -77,7 +103,7 @@ public interface PDashQuery extends Map<String, Object> {
 
     /**
      * Perform a simple query and return the result.
-     * 
+     * <p>
      * This method (inherited from {@link Map}) is provided for convenience from
      * JSP EL expressions. This allows the construction of succinct EL
      * expressions such as:
@@ -105,12 +131,14 @@ public interface PDashQuery extends Map<String, Object> {
 
     /**
      * Return the full HQL that was executed as a result of the previous query.
-     * 
+     * <p>
      * Queries performed through this object benefit from autofiltering by
-     * default. This autofiltering works by augmenting the query passed in. If a
-     * query is not returning the results you expect, you may wish to view the
-     * augmented HQL expression. This property allows that expression to be
-     * retrieved.
+     * default. The autofiltering logic works by augmenting the HQL query before
+     * passing it to Hibernate. After a query has been performed, the augmented
+     * HQL query string can be retrieved via this method.
+     * <p>
+     * If a particular query is not returning the results you expect, this
+     * method may be helpful in troubleshooting.
      * 
      * @return the full HQL that was executed as a result of the previous query.
      */
