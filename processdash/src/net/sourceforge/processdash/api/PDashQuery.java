@@ -28,22 +28,48 @@ import java.util.Map;
 
 public interface PDashQuery extends Map<String, Object> {
 
-    Object NO_AUTOFILTER = new Object();
+    /**
+     * Queries performed through the PDashQuery object can benefit from
+     * automatic filtering. The elements in this enum act as options to control
+     * the type of automatic filtering that is applied.
+     */
+    public enum FilterMode {
+
+        /** Do not perform any filtering of query results */
+        NONE,
+
+        /** Filter query results so that only current data is returned */
+        CURRENT,
+
+        /**
+         * Filter query results to return only current data from the active
+         * project
+         */
+        PROJECT,
+
+        /**
+         * Filter query results to return only current data from the active
+         * project, which matches any component/label filters that have been
+         * applied by the user.
+         */
+        ALL
+    }
+
 
     /**
      * Perform a query and return the results.
      * 
-     * By default, this method will automatically enhance the HQL query so it
-     * only returns current data from the effective project. To accomplish this,
-     * all entities in the query must be given aliases using an "AS" clause. To
-     * disable autofiltering, pass the {@link #NO_AUTOFILTER} object as an extra
-     * argument to the query.
+     * This method can automatically enhance the HQL query to apply common
+     * filters to the data. To accomplish this, all entities in the query must
+     * be given aliases using an "AS" clause. To disable or customize
+     * autofiltering, pass a {@link FilterMode} object as an extra argument to
+     * the query.
      * 
      * @param query
      *            an HQL query to execute
      * @param args
      *            a list of arguments that will be matched against <tt>?</tt>
-     *            placeholders in the query
+     *            placeholders in the query, plus an optional FilterMode
      * @return the results of executing the HQL query
      */
     List query(String query, Object... args);

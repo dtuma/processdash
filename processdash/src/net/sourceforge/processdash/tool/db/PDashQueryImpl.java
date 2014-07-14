@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 
 import net.sourceforge.processdash.DashboardContext;
@@ -44,13 +45,17 @@ public class PDashQueryImpl extends MockMap<String, Object> implements
 
     private String prefix;
 
+    private boolean useFilters;
+
     private DatabasePlugin databasePlugin;
 
     private String lastQuery;
 
-    public PDashQueryImpl(DashboardContext ctx, String prefix) {
+    public PDashQueryImpl(DashboardContext ctx, String prefix,
+            boolean useFilters) {
         this.ctx = ctx;
         this.prefix = prefix;
+        this.useFilters = useFilters;
         this.databasePlugin = QueryUtils.getDatabasePlugin(ctx.getData());
     }
 
@@ -80,7 +85,8 @@ public class PDashQueryImpl extends MockMap<String, Object> implements
         // prepare the query for execution
         StringBuilder query = new StringBuilder(baseQuery);
         List queryArgs = new ArrayList(Arrays.asList(baseArgs));
-        maybeAddAutofilteredCriteria(query, queryArgs);
+        FilterMode filterMode = getFilterMode(queryArgs);
+        maybeAddAutofilteredCriteria(query, queryArgs, filterMode);
 
         // execute the query and return the results
         lastQuery = query.toString();
@@ -89,25 +95,44 @@ public class PDashQueryImpl extends MockMap<String, Object> implements
         return results;
     }
 
-    private void maybeAddAutofilteredCriteria(StringBuilder query,
-            List queryArgs) {
-        // check and see if the user wants autofiltering disabled.
-        boolean autofilteringDisabled = queryArgs.remove(NO_AUTOFILTER);
+    private FilterMode getFilterMode(List queryArgs) {
+        // if the query args include an explicit filter mode, use it
+        for (Iterator i = queryArgs.iterator(); i.hasNext();) {
+            Object arg = i.next();
+            if (arg instanceof FilterMode) {
+                i.remove();
+                return (FilterMode) arg;
+            }
+        }
 
-        if (autofilteringDisabled) {
-            // if no autofiltering is being performed, wait for all project
-            // data to be loaded.
+        // otherwise, adaptively choose an appropriate default filter mode
+        if (useFilters)
+            return FilterMode.ALL;
+        else if (prefix != null && prefix.length() > 1)
+            return FilterMode.PROJECT;
+        else
+            return FilterMode.CURRENT;
+    }
+
+    private void maybeAddAutofilteredCriteria(StringBuilder query,
+            List queryArgs, FilterMode filterMode) {
+
+        // if the user does not want project-specific filtering, wait for
+        // all project data to be loaded
+        if (filterMode.compareTo(FilterMode.PROJECT) < 0)
             QueryUtils.waitForAllProjects(databasePlugin);
 
-        } else {
-            // Find any versioned entities in the query, and add "is current"
-            // conditions to the WHERE clause
+        // if desired, find any versioned entities in the query, and add
+        // "is current" conditions to the WHERE clause
+        if (filterMode.compareTo(FilterMode.CURRENT) >= 0)
             addCriteriaForEntities(query, queryArgs, getVersionedEntityNames(),
                 IS_CURRENT_CRITERIA);
 
-            // Add criteria to limit the query to data from the current project
-            addProjectSpecificCriteria(query, queryArgs);
-        }
+        // If desired, add criteria to limit the query to data from the
+        // current project and active label filter
+        if (filterMode.compareTo(FilterMode.PROJECT) >= 0)
+            addProjectSpecificCriteria(query, queryArgs,
+                getProjectSpecificCriteria(filterMode));
     }
 
     private void addCriteriaForEntities(StringBuilder query, List args,
@@ -136,15 +161,9 @@ public class PDashQueryImpl extends MockMap<String, Object> implements
     private static final List IS_CURRENT_CRITERIA = Collections
             .singletonList(QueryUtils.IS_CURRENT_CRITERIA);
 
-    private void addProjectSpecificCriteria(StringBuilder query, List args) {
-        // if no prefix is in effect, do not limit the query to any project
-        if (prefix == null || prefix.length() < 2)
-            return;
-
-        // get the criteria we should use for the project
-        List projectCriteria = getProjectSpecificCriteria();
-
-        // add these critiera to the standard plan item entities
+    private void addProjectSpecificCriteria(StringBuilder query, List args,
+            List projectCriteria) {
+        // add the project critiera to the standard plan item entities
         addCriteriaForEntities(query, args, getPlanItemEntityNames(),
             projectCriteria);
 
@@ -162,12 +181,22 @@ public class PDashQueryImpl extends MockMap<String, Object> implements
                 alias + ".rootItem");
     }
 
-    private List getProjectSpecificCriteria() {
+    private List getProjectSpecificCriteria(FilterMode filterMode) {
+        // If the caller has requested comprehensive filtering, use the
+        // complete filter criteria for the current project.
+        if (filterMode == FilterMode.ALL) {
+            ListData filter = ListData.asListData(ctx.getData()
+                    .getInheritableValue(prefix, "DB_Filter_Criteria"));
+            if (filter != null)
+                return filter.asList();
+        }
+
+        // otherwise, construct a filter limiting to the current project.
         List result = new ArrayList();
         result.add(QueryUtils.PROJECT_CRITERIA);
 
         ListData filter = ListData.asListData(ctx.getData()
-                .getInheritableValue(this.prefix, "DB_Project_Keys"));
+                .getInheritableValue(prefix, "DB_Project_Keys"));
         if (filter != null)
             result.addAll(filter.asList());
 

@@ -43,6 +43,8 @@ public class PdashContextImpl implements PDashContext {
 
     private String projectPath;
 
+    private boolean useFilters;
+
     private PDashData _data;
 
     private PDashQuery _query;
@@ -54,11 +56,14 @@ public class PdashContextImpl implements PDashContext {
 
         this.uriPrefix = uriPrefix;
 
-        if (uriPrefix.length() == 0)
+        if (uriPrefix.length() < 2) {
             this.projectPath = "";
-        else
+            this.useFilters = false;
+        } else {
             this.projectPath = HTMLUtils.urlDecode(uriPrefix.substring(0,
                 uriPrefix.length() - 1));
+            this.useFilters = PDashServletUtils.isSnippetRequest(baseRequest);
+        }
     }
 
     public String getProjectPath() {
@@ -77,7 +82,7 @@ public class PdashContextImpl implements PDashContext {
 
     public PDashQuery getQuery() {
         if (_query == null && dashCtx != null)
-            _query = new PDashQueryImpl(dashCtx, projectPath);
+            _query = new PDashQueryImpl(dashCtx, projectPath, useFilters);
         return _query;
     }
 

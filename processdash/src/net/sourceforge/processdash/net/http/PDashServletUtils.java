@@ -33,6 +33,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.eclipse.jetty.server.Request;
 
 import net.sourceforge.processdash.api.PDashContext;
+import net.sourceforge.processdash.ui.snippet.SnippetEnvironment;
 
 public class PDashServletUtils {
 
@@ -41,6 +42,16 @@ public class PDashServletUtils {
      */
     public static PDashContext getContext(ServletRequest req) {
         return (PDashContext) req.getAttribute(PDashContext.REQUEST_ATTR);
+    }
+
+
+    /**
+     * @return true if this request is the retrieval of a snippet for inclusion
+     *         in a CMS page.
+     */
+    public static boolean isSnippetRequest(ServletRequest req) {
+        Map env = (Map) req.getAttribute(LocalConnector.EXTRA_ENVIRONMENT_KEY);
+        return (env != null && env.get(SnippetEnvironment.SNIPPET_ID) != null);
     }
 
 
