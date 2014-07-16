@@ -38,6 +38,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 
 import org.netbeans.api.keyring.Keyring;
 
@@ -162,20 +163,32 @@ public class HttpAuthenticator extends Authenticator {
         }
 
         // prompt the user for credentials
-        String title = this.title;
-        if (title == null || title.length() == 0)
-            title = resources.getString("Title");
-        Object[] message = new Object[] {
+        final String title = (StringUtils.hasValue(this.title) ? this.title
+                : resources.getString("Title"));
+        final Object[] message = new Object[] {
                 resources.formatStrings("Prompt_FMT", getRequestingPrompt()),
                 BoxUtils.vbox(5),
                 BoxUtils.hbox(15, usernameLabel, 5, username),
                 BoxUtils.hbox(15, passwordLabel, 5, password),
                 BoxUtils.hbox(BoxUtils.GLUE, rememberMe),
                 new JOptionPaneTweaker.GrabFocus(focus) };
+        final int[] userChoice = new int[1];
 
-        int userChoice = JOptionPane.showConfirmDialog(parentComponent,
-            message, title, JOptionPane.OK_CANCEL_OPTION,
-            JOptionPane.PLAIN_MESSAGE);
+        try {
+            Runnable r = new Runnable() {
+                public void run() {
+                    userChoice[0] = JOptionPane.showConfirmDialog(
+                        parentComponent, message, title,
+                        JOptionPane.OK_CANCEL_OPTION,
+                        JOptionPane.PLAIN_MESSAGE);
+                }
+            };
+            if (SwingUtilities.isEventDispatchThread())
+                r.run();
+            else
+                SwingUtilities.invokeAndWait(r);
+        } catch (Exception e) {
+        }
 
         // record metadata about this password request
         lastUrl = getEffectiveURL();
@@ -183,7 +196,7 @@ public class HttpAuthenticator extends Authenticator {
         lastUsername = username.getText().trim();
         prefs.put(prefsKey(LAST_USERNAME), lastUsername);
 
-        if (userChoice == JOptionPane.OK_OPTION) {
+        if (userChoice[0] == JOptionPane.OK_OPTION) {
             // if the user entered credentials, return them.
             if (rememberMe != null && rememberMe.isSelected())
                 savePasswordToKeyring(lastUsername, password.getPassword());
