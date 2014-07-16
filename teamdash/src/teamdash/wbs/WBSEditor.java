@@ -1611,6 +1611,8 @@ public class WBSEditor implements WindowListener, SaveListener,
             boolean forceReadOnly, String owner) {
 
         LargeFontsHelper.maybeInitialize();
+        HttpAuthenticator.maybeInitialize(locations.length == 0 ? null
+                : locations[0], "WBS Editor");
 
         String message = (showTeamList
                 ? "Opening Team Member List..."
@@ -1681,6 +1683,7 @@ public class WBSEditor implements WindowListener, SaveListener,
                 w.show();
                 w.showApplicableStartupMessages();
             }
+            HttpAuthenticator.setParentComponent(w.tabPanel);
 
             if (dispatch != null)
                 dispatch.setEditor(w);
@@ -1931,7 +1934,6 @@ public class WBSEditor implements WindowListener, SaveListener,
         if (isDumpAndExitMode())
             System.setProperty("java.awt.headless", "true");
 
-        HttpAuthenticator.maybeInitialize();
         ExternalLocationMapper.getInstance().loadDefaultMappings();
         RuntimeUtils.autoregisterPropagatedSystemProperties();
         for (String prop : PROPS_TO_PROPAGATE)
