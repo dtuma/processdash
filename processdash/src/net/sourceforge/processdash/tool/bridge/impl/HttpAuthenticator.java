@@ -23,8 +23,10 @@
 
 package net.sourceforge.processdash.tool.bridge.impl;
 
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.Frame;
 import java.net.Authenticator;
 import java.net.PasswordAuthentication;
 import java.util.prefs.Preferences;
@@ -58,6 +60,10 @@ public class HttpAuthenticator extends Authenticator {
 
     private Resources resources;
 
+    private String title;
+
+    private Component parentComponent;
+
     private State state;
 
     private float rememberMeDays;
@@ -85,10 +91,11 @@ public class HttpAuthenticator extends Authenticator {
     private static final long DAY_MILLIS = 24L * 60 * 60 * 1000;
 
 
-    private HttpAuthenticator() {
+    private HttpAuthenticator(String title) {
         this.prefs = Preferences.userRoot().node(
                 "net/sourceforge/processdash/userPrefs/authenticator");
         this.resources = Resources.getDashBundle("Authentication.Password");
+        this.title = title;
         this.state = State.Initial;
 
         if (Keyring.isPersistent()) {
@@ -155,7 +162,9 @@ public class HttpAuthenticator extends Authenticator {
         }
 
         // prompt the user for credentials
-        String title = resources.getString("Title");
+        String title = this.title;
+        if (title == null || title.length() == 0)
+            title = resources.getString("Title");
         Object[] message = new Object[] {
                 resources.formatStrings("Prompt_FMT", getRequestingPrompt()),
                 BoxUtils.vbox(5),
@@ -164,8 +173,9 @@ public class HttpAuthenticator extends Authenticator {
                 BoxUtils.hbox(BoxUtils.GLUE, rememberMe),
                 new JOptionPaneTweaker.GrabFocus(focus) };
 
-        int userChoice = JOptionPane.showConfirmDialog(null, message, title,
-            JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+        int userChoice = JOptionPane.showConfirmDialog(parentComponent,
+            message, title, JOptionPane.OK_CANCEL_OPTION,
+            JOptionPane.PLAIN_MESSAGE);
 
         // record metadata about this password request
         lastUrl = getEffectiveURL();
@@ -276,9 +286,22 @@ public class HttpAuthenticator extends Authenticator {
     }
 
 
-    public static void maybeInitialize() {
-        if (Boolean.getBoolean(ENABLED_SETTING_NAME))
-            Authenticator.setDefault(new HttpAuthenticator());
+    public static void maybeInitialize(String location, String title) {
+        String setting = System.getProperty(ENABLED_SETTING_NAME);
+        if (setting == null && location != null && location.startsWith("http"))
+            setting = "true";
+        if ("true".equals(setting))
+            Authenticator.setDefault(INSTANCE = new HttpAuthenticator(title));
     }
+
+    public static void setParentComponent(Component c) {
+        if (INSTANCE != null) {
+            INSTANCE.parentComponent = c;
+            if (c instanceof Frame)
+                INSTANCE.title = ((Frame) c).getTitle();
+        }
+    }
+
+    private static HttpAuthenticator INSTANCE = null;
 
 }

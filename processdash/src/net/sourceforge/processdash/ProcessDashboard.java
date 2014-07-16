@@ -1930,7 +1930,6 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         DashboardSecurity.setupSecurityManager();
 
         LargeFontsHelper.maybeInitialize();
-        HttpAuthenticator.maybeInitialize();
 
         ss = new DashboardSplashScreen();
         ss.displayFor(3000);      // show for at least 3 seconds.
@@ -1951,9 +1950,11 @@ public class ProcessDashboard extends JFrame implements WindowListener,
                 title = args[i];
         }
 
+        HttpAuthenticator.maybeInitialize(location, title);
         MacGUIUtils.tweakLookAndFeel();
 
         ProcessDashboard dash = new ProcessDashboard(location, title);
+        HttpAuthenticator.setParentComponent(dash);
 
         DashboardIconFactory.setWindowIcon(dash);
         dash.setVisible(true);
