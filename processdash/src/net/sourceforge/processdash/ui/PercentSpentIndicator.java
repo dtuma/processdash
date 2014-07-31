@@ -43,15 +43,19 @@ import java.util.Vector;
 
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
+import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.JToolTip;
+import javax.swing.SwingUtilities;
 import javax.swing.ToolTipManager;
 import javax.swing.UIManager;
 
 import net.sourceforge.processdash.DashboardContext;
+import net.sourceforge.processdash.InternalSettings;
+import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.DoubleData;
 import net.sourceforge.processdash.data.NumberData;
@@ -67,6 +71,7 @@ import net.sourceforge.processdash.ev.EVSchedule;
 import net.sourceforge.processdash.ev.EVTaskList;
 import net.sourceforge.processdash.hier.ActiveTaskModel;
 import net.sourceforge.processdash.i18n.Resources;
+import net.sourceforge.processdash.log.time.TimeLoggingModel;
 import net.sourceforge.processdash.ui.lib.JOptionPaneTweaker;
 import net.sourceforge.processdash.ui.lib.LevelIndicator;
 import net.sourceforge.processdash.ui.lib.SwingWorker;
@@ -76,9 +81,11 @@ import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.ThreadThrottler;
 
 public class PercentSpentIndicator extends JPanel implements DataListener,
-        PropertyChangeListener {
+        PropertyChangeListener, Runnable {
 
     private DashboardContext dashCtx;
+
+    private TimeLoggingModel timingModel;
 
     private ActiveTaskModel activeTaskModel;
 
@@ -118,13 +125,16 @@ public class PercentSpentIndicator extends JPanel implements DataListener,
 
 
     public PercentSpentIndicator(DashboardContext dashCtx,
-            ActiveTaskModel activeTaskModel) {
+            TimeLoggingModel timingModel) {
         this.dashCtx = dashCtx;
-        this.activeTaskModel = activeTaskModel;
+        this.timingModel = timingModel;
+        this.activeTaskModel = timingModel.getActiveTaskModel();
 
         buildUI();
 
-        activeTaskModel.addPropertyChangeListener(this);
+        timingModel.addPropertyChangeListener(this);
+        for (String s : ACTIVE_SETTINGS)
+            InternalSettings.addPropertyChangeListener(s, this);
         setTaskPath(activeTaskModel.getPath());
     }
 
@@ -190,6 +200,8 @@ public class PercentSpentIndicator extends JPanel implements DataListener,
 
     private void recalc() {
         double pctSpent = actTime / estTime;
+        String estTimeStr = FormatUtil.formatTime(estTime, true);
+        String actTimeStr = FormatUtil.formatTime(actTime, true);
         StringBuffer tip = new StringBuffer();
 
         append(tip, "<html><body><b>${Estimated_Time_Label}</b> ");
@@ -204,7 +216,7 @@ public class PercentSpentIndicator extends JPanel implements DataListener,
                 levelIndicator.setBarColors(OVERSPENT[0], OVERSPENT[1]);
             }
             layout.show(this, LEVEL_INDICATOR_KEY);
-            tip.append(FormatUtil.formatTime(estTime, true));
+            tip.append(estTimeStr);
         } else {
             layout.show(this, MISSING_ESTIMATE_KEY);
             append(tip, "<i>${None}</i>");
@@ -213,7 +225,7 @@ public class PercentSpentIndicator extends JPanel implements DataListener,
             append(tip, " <i>${Click_To_Edit}</i>");
 
         append(tip, "<br><b>${Actual_Time_Label}</b> ");
-        tip.append(FormatUtil.formatTime(actTime, true));
+        tip.append(actTimeStr);
 
         if (estTime > 0)
             append(tip, "<br><b>${Percent_Spent_Label}</b> ").append(
@@ -226,6 +238,28 @@ public class PercentSpentIndicator extends JPanel implements DataListener,
 
         tip.append("</body></html>");
         setToolTipText(tip.toString());
+
+        // possibly update the title bar of the window, if user settings have
+        // requested that.
+        if (dashCtx instanceof JFrame) {
+            JFrame f = (JFrame) dashCtx;
+            String windowTitle = f.getTitle();
+            int pos = windowTitle.indexOf(SPACER);
+            if (pos != -1)
+                windowTitle = windowTitle.substring(0, pos);
+            if (Settings.getBool(SHOW_TIME_IN_TITLE, false)) {
+                String resKey = (estTime > 0 ? "Window_Title.Time_Metrics_FMT"
+                        : "Window_Title.Time_Metrics_Short_FMT");
+                windowTitle += SPACER + resources.format(resKey,
+                    actTimeStr, estTimeStr, pctSpent);
+            }
+            if (Settings.getBool(SHOW_PLAY_IN_TITLE, false)
+                    && timingModel.isPaused() == false) {
+                windowTitle += SPACER + resources.getString( //
+                    "Window_Title.Timing_Indicator");
+            }
+            f.setTitle(windowTitle);
+        }
     }
 
     private StringBuffer append(StringBuffer buf, String interpText) {
@@ -236,6 +270,11 @@ public class PercentSpentIndicator extends JPanel implements DataListener,
 
     public void propertyChange(PropertyChangeEvent evt) {
         setTaskPath(activeTaskModel.getPath());
+        SwingUtilities.invokeLater(this);
+    }
+
+    public void run() {
+        recalc();
     }
 
 
@@ -470,6 +509,18 @@ public class PercentSpentIndicator extends JPanel implements DataListener,
 
     }
 
+
+    private static final String SPACER = "   ";
+
+    private static final String SHOW_TIME_IN_TITLE =
+            "userPref.window.title.includeTime";
+
+    private static final String SHOW_PLAY_IN_TITLE =
+            "userPref.window.title.includePlay";
+
+    private static final String[] ACTIVE_SETTINGS = {
+            ProcessDashboard.WINDOW_TITLE_SETTING, SHOW_TIME_IN_TITLE,
+            SHOW_PLAY_IN_TITLE };
 
     private static final String ENABLED_DATA_NAME =
         "Show_Percent_Spent_Indicator";

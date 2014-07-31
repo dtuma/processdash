@@ -105,6 +105,7 @@ public class BoundMap extends ObservableMap {
         addElementType("sql-query", BoundSqlQuery.class);
         addElementType("xml-rpc-connection", BoundXmlRpcConnection.class);
         addElementType("grouping", BoundGrouping.class);
+        addElementType("row", BoundRow.class);
         addElementType("radio", BoundRadioButtons.class);
     }
 

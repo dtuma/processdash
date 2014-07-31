@@ -37,6 +37,16 @@ preferences a category.
                    setting="window.title"
                    helpId="prefs.windowTitle" />
 
+        <row id="window.title.include">
+
+            <checkbox id="window.title.include.time"
+                      setting="userPref.window.title.includeTime" />
+
+            <checkbox id="window.title.include.play"
+                      setting="userPref.window.title.includePlay" />
+
+        </row>
+
         <checkbox id="window.alwaysOnTop"
                   setting="window.alwaysOnTop"
                   helpId="prefs.alwaysOnTop"

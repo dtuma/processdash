@@ -935,7 +935,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
             addToMainWindow(pause_button, 0);
 
         PercentSpentIndicator pct_spent_indicator = new PercentSpentIndicator(
-                this, activeTaskModel);
+                this, getTimeLoggingModel());
         addToMainWindow(pct_spent_indicator, 0);
         pt.click("Created percent spent indicator");
 
