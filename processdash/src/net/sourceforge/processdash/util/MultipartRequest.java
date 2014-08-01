@@ -135,11 +135,8 @@ public class MultipartRequest
 
     /** Prevent a denial of service by defining this, will never read
     more data. If Content-Length is specified to be more than this,
-    will throw an exception.
-
-    This limits the maximum number of bytes to the value of an int,
-    which is 2 Gigabytes.  */
-    public static final int MAX_READ_BYTES = 2 * (1024 * 1024); // 2MB!
+    will throw an exception. */
+    public static final int MAX_READ_BYTES = 6 * (1024 * 1024); // 6MB
 
     /** Defines the number of bytes to read per readLine call. 128K */
     public static final int READ_LINE_BLOCK = 1024 * 128;
