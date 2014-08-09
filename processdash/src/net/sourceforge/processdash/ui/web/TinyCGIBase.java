@@ -157,10 +157,12 @@ public class TinyCGIBase implements TinyCGI {
 
     /* Read name=value pairs from POSTed form data. */
     protected void parseFormData() throws IOException {
-        int length;
+        int length = -1;
         try {
             length = Integer.parseInt((String) env.get("CONTENT_LENGTH"));
-        } catch (Exception e) { return; }
+        } catch (Exception e) {}
+        if (length <= 0)
+            return;
 
         byte [] messageBody = new byte[length];
         FileUtils.readAndFillArray(inStream, messageBody);
