@@ -58,6 +58,10 @@ public class WorkflowHistDataHelper {
 
     private boolean onlyCompleted = true;
 
+    private Integer workflowKey;
+
+    private Set<Integer> includedWorkflowKeys;
+
     private List enactments;
 
     private Map<String, String> phaseTypes;
@@ -124,12 +128,13 @@ public class WorkflowHistDataHelper {
 
     private List getEnactments() {
         if (enactments == null) {
+            Set<Integer> workflowKeys = getIncludedWorkflowKeys();
             if (Settings.isTeamMode())
-                enactments = query(TEAM_ENACTMENT_QUERY, workflowName);
+                enactments = query(TEAM_ENACTMENT_QUERY, workflowKeys);
             else
-                enactments = query(PERSONAL_ENACTMENT_QUERY, workflowName);
+                enactments = query(PERSONAL_ENACTMENT_QUERY, workflowKeys);
+            filterEnactments();
         }
-        filterEnactments();
         return enactments;
     }
 
@@ -148,7 +153,7 @@ public class WorkflowHistDataHelper {
     "select distinct pe.key, pe.rootItem.identifier "
             + "from ProcessEnactment pe "
             + "where pe.rootItem.key = pe.includesItem.key "
-            + "and pe.process.name = ?";
+            + "and pe.process.key in (?)";
 
     /**
      * Query to find all the times when this individual user has performed a
@@ -162,7 +167,7 @@ public class WorkflowHistDataHelper {
             + "where pe.includesItem.key = task.planItem.key "
             + "and task.versionInfo.current = 1 "
             + "and probePhase.identifier = '*PROBE*/PROBE' "
-            + "and pe.process.name = ?";
+            + "and pe.process.key in (?)";
 
     private static final int ENACTMENT_KEY = 0;
 
@@ -210,7 +215,7 @@ public class WorkflowHistDataHelper {
             return;
 
         Set completedEnactmentKeys = new HashSet(query(
-            ENACTMENT_COMPLETION_QUERY, getEnactmentKeys()));
+            ENACTMENT_COMPLETION_QUERY, getEnactmentKeys(), getWorkflowKey()));
 
         for (Iterator i = enactments.iterator(); i.hasNext();) {
             Object[] enactment = (Object[]) i.next();
@@ -226,27 +231,58 @@ public class WorkflowHistDataHelper {
     private static final String ENACTMENT_COMPLETION_QUERY = //
     "select pe.key " //
             + "from ProcessEnactment pe, ProcessEnactment pi, TaskStatusFact task "
+            + "join pi.includesItem.phase.mapsToPhase mapsTo "
             + "where pe.key in (?) " //
             + "and pe.rootItem.key = pi.rootItem.key "
             + "and pe.process.key = pi.process.key "
+            + "and mapsTo.process.key = ? "
             + "and pi.includesItem.key = task.planItem.key "
             + "and task.versionInfo.current = 1 " //
             + "group by pe.key "
             + "having max(task.actualCompletionDateDim.key) < 99990000";
 
-    private List<String> getWorkflowSteps() {
+
+    private Integer getWorkflowKey() {
+        if (workflowKey == null)
+            initWorkflowData();
+        return workflowKey;
+    }
+
+    private Set<Integer> getIncludedWorkflowKeys() {
+        if (includedWorkflowKeys == null)
+            initWorkflowData();
+        return includedWorkflowKeys;
+    }
+
+    private void initWorkflowData() {
+        // find the key for the current workflow
         String workflowProcessIDPattern = DatabasePluginUtils
                 .getWorkflowPhaseIdentifier(contextProjectID, "%");
-        Integer processKey = QueryUtils.singleValue(query(WORKFLOW_KEY_QUERY,
+        workflowKey = QueryUtils.singleValue(query(WORKFLOW_KEY_QUERY,
             workflowName, workflowProcessIDPattern));
-        if (processKey == null)
-            return Collections.EMPTY_LIST;
-        else
-            return query(WORKFLOW_PHASE_QUERY, processKey);
+
+        if (workflowKey == null) {
+            workflowKey = -1;
+            includedWorkflowKeys = Collections.EMPTY_SET;
+        } else {
+            // find all the workflows that map to the given workflow
+            includedWorkflowKeys = new HashSet<Integer>(query.queryHql(
+                WORKFLOW_MAPPING_QUERY, workflowKey));
+        }
     }
 
     private static final String WORKFLOW_KEY_QUERY = //
     "select p.key from Process p where p.name = ? and p.identifier like ?";
+
+    private static final String WORKFLOW_MAPPING_QUERY = //
+    "select distinct p.process.key from Phase p " //
+            + "join p.mapsToPhase mapsTo " //
+            + "where mapsTo.process.key = ?";
+
+
+    private List<String> getWorkflowSteps() {
+        return query(WORKFLOW_PHASE_QUERY, getWorkflowKey());
+    }
 
     private static final String WORKFLOW_PHASE_QUERY = //
     "select phase.shortName from Phase phase " //
@@ -261,7 +297,8 @@ public class WorkflowHistDataHelper {
             result.put(step, new DataPair());
         DataPair total = new DataPair();
 
-        List<Object[]> rawData = query(TIME_IN_PHASE_QUERY, getEnactmentKeys());
+        List<Object[]> rawData = query(TIME_IN_PHASE_QUERY, getEnactmentKeys(),
+            getWorkflowKey());
         for (Object[] row : rawData) {
             String stepName = (String) row[0];
             DataPair dataPair = result.get(stepName);
@@ -293,7 +330,7 @@ public class WorkflowHistDataHelper {
             + "where pe.key in (?) " //
             + "and pe.rootItem.key = pi.rootItem.key "
             + "and pe.process.key = pi.process.key "
-            + "and pe.process.key = mapsTo.process.key "
+            + "and mapsTo.process.key = ? "
             + "and pi.includesItem.key = task.planItem.key "
             + "and task.versionInfo.current = 1 " //
             + "group by mapsTo.shortName, mapsTo.typeName " //
