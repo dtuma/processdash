@@ -70,7 +70,7 @@ public class DashboardHttpRequestInterceptor extends HandlerWrapper {
         String origPath = uri.getPath();
 
         String path = canonicalizePath(origPath);
-        if (path == null || !path.startsWith("/") || path.contains("..")) {
+        if (path == null || !path.startsWith("/") || path.contains("/../")) {
             baseRequest.setHandled(true);
             response.sendError(SC_BAD_REQUEST, "Bad filename.");
             return;
