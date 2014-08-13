@@ -184,8 +184,7 @@ public class WorkflowWBSModel extends WBSModel {
         if (nodeType == null)
             return "";
 
-        else if (TeamProcess.isPSPTask(nodeType)
-                || TeamProcess.isProbeTask(nodeType))
+        else if (TeamProcess.isProbeTask(nodeType))
             return nodeType;
 
         else if (nodeType.endsWith(TeamProcess.TASK_SUFFIX))

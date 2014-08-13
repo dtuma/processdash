@@ -306,6 +306,7 @@ public class TeamProcess {
         iconMap.put(SOFTWARE_COMPONENT_TYPE, IconFactory.getSoftwareComponentIcon());
         iconMap.put(WORKFLOW_TYPE, IconFactory.getWorkflowIcon());
         iconMap.put(PSP_TASK_TYPE, IconFactory.getPSPTaskIcon(c));
+        iconMap.put(PSP_WORKFLOW_TASK_TYPE, IconFactory.getPSPTaskIcon(Color.white));
         iconMap.put(PROBE_TASK_TYPE, IconFactory.getProbeTaskIcon());
         iconMap.put(null, IconFactory.getTaskIcon(c));
 
@@ -443,6 +444,7 @@ public class TeamProcess {
     static final String WORKFLOW_TYPE = "Workflow";
     static final String PROBE_TASK_TYPE = "PROBE Task";
     static final String PSP_TASK_TYPE = "PSP Task";
+    static final String PSP_WORKFLOW_TASK_TYPE = "PSP Workflow Task";
     static final String CODE_TASK_TYPE = "Code Task";
     static final String TASK_SUFFIX = " Task";
     static final String WORKFLOW_TASK_SUFFIX = " Workflow Task";
