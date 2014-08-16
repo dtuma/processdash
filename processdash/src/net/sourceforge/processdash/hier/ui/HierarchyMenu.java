@@ -1,4 +1,4 @@
-// Copyright (C) 1999-2011 Tuma Solutions, LLC
+// Copyright (C) 1999-2014 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -103,8 +103,7 @@ public class HierarchyMenu implements ActionListener, PropertyChangeListener,
 
             addMenuItemsForChildren(props);
 
-            syncSelectedChildToHierarchy(isFirstMenu
-                    && TaskNavigationSelector.preserveActiveTaskOnNavChange());
+            syncSelectedChildToHierarchy(false);
 
             if (statusCalc != null) {
                 statusCalc.addActionListener(this);
@@ -137,11 +136,14 @@ public class HierarchyMenu implements ActionListener, PropertyChangeListener,
         }
     }
 
-    public String getNavMenuDisplayName() {
-        if (self == PropertyKey.ROOT)
-            return null;
-        else
-            return TaskNavigationSelector.prettifyPath(self);
+    public void hierarchyChanged() {
+        menu.removeAll();
+        addMenuItemsForChildren(parent.getHierarchy());
+        syncSelectedChildToHierarchy(false);
+    }
+
+    public void activeTaskChanged() {
+        propertyChange(null);
     }
 
     public boolean selectNext() {
@@ -382,9 +384,6 @@ public class HierarchyMenu implements ActionListener, PropertyChangeListener,
      */
     private static void maybeSelectChildWithinParent(DashboardContext context,
             String path) {
-        if (TaskNavigationSelector.preserveActiveTaskOnNavChange())
-            return;
-
         DashHierarchy hier = context.getHierarchy();
         PropertyKey childKey = hier.findExistingKey(path);
         if (childKey == null)

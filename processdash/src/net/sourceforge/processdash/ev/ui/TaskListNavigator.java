@@ -1,4 +1,4 @@
-// Copyright (C) 2006-2011 Tuma Solutions, LLC
+// Copyright (C) 2006-2014 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -27,10 +27,11 @@ package net.sourceforge.processdash.ev.ui;
 import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.beans.PropertyChangeEvent;
+import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -42,8 +43,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.swing.AbstractButton;
-import javax.swing.Icon;
-import javax.swing.ImageIcon;
+import javax.swing.Box;
+import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
@@ -81,6 +82,7 @@ import net.sourceforge.processdash.ui.lib.JOptionPaneClickHandler;
 import net.sourceforge.processdash.ui.lib.JOptionPaneTweaker;
 import net.sourceforge.processdash.ui.lib.NarrowJMenu;
 import net.sourceforge.processdash.ui.lib.SwingWorker;
+import net.sourceforge.processdash.ui.lib.ToolTipTimingCustomizer;
 import net.sourceforge.processdash.ui.lib.TreeTableModel;
 import net.sourceforge.processdash.util.StringUtils;
 
@@ -98,13 +100,27 @@ public class TaskListNavigator implements TaskNavigationSelector.NavMenuUI,
 
     private String taskListPath;
 
+    private String tooltipPrefix;
+
     private boolean autoSelectFirstTask;
 
     private Set listeningToData;
 
+    private JMenu overflowMenu;
+
+    private ChooseTaskList truncatedPrefixMenu;
+
+    Font plainFont, boldFont;
+
     private JMenu menu;
 
     private JMenu completedTasksMenu;
+
+    private TaskJMenuItem selectedItem;
+
+    private List<TaskJMenuItem> allItems;
+
+    private int numTodoItems;
 
     private EVTaskList taskList;
 
@@ -117,7 +133,7 @@ public class TaskListNavigator implements TaskNavigationSelector.NavMenuUI,
 
 
     public TaskListNavigator(DashboardContext context, JMenuBar menuBar,
-            ActiveTaskModel activeTaskModel)
+            ActionListener chooseTaskListAction, ActiveTaskModel activeTaskModel)
             throws IllegalArgumentException {
         this.menuBar = menuBar;
         this.context = context;
@@ -127,12 +143,16 @@ public class TaskListNavigator implements TaskNavigationSelector.NavMenuUI,
         this.taskListPath = Settings.getVal(TASK_LIST_PATH_SETTING);
         if (!StringUtils.hasValue(this.taskListPath))
             this.taskListPath = null;
-        this.autoSelectFirstTask = !TaskNavigationSelector
-                .preserveActiveTaskOnNavChange();
+        else
+            this.tooltipPrefix = TaskNavigationSelector.prettifyPath( //
+                    taskListPath.substring(1));
+
+        this.autoSelectFirstTask = true;
 
         this.listeningToData = new HashSet();
+        this.allItems = new ArrayList<TaskJMenuItem>();
 
-        createMenus();
+        createMenus(chooseTaskListAction);
         syncTaskToModel();
 
         new TaskListOpener().start();
@@ -189,34 +209,49 @@ public class TaskListNavigator implements TaskNavigationSelector.NavMenuUI,
     }
 
 
+    public void hierarchyChanged() {
+        reloadTaskList();
+    }
+
+    public void activeTaskChanged() {
+        syncTaskToModel();
+    }
+
     private void reloadTaskList() {
         new TaskListOpener().start();
     }
 
-    public String getNavMenuDisplayName() {
-        String result = EVTaskList.cleanupName(taskListName);
-        if (taskListPath != null)
-            result = result + " - "
-                    + TaskNavigationSelector.prettifyPath(taskListPath);
-        return result;
-    }
-
     public void delete() {
-        if (menuBar != null)
-            menuBar.remove(menu);
         installTaskList(null);
+        ToolTipTimingCustomizer.INSTANCE.uninstall(menu);
     }
 
     public TreeTableModel getTaskSelectionChoices() { return quickTasks; }
     public String getPathForTreeNode(Object node) { return node.toString(); }
     public Object getTreeNodeForPath(String path) { return path; }
 
-    private void createMenus() {
+    private void createMenus(ActionListener chooseAction) {
+        overflowMenu = menuBar.getMenu(0);
+        String taskListMenuText = resources.format(
+            "/ProcessDashboard:NavSelector.Task_List.Tooltip_FMT",
+            EVTaskList.cleanupName(taskListName));
+        overflowMenu.add(new ChooseTaskList(taskListMenuText, chooseAction), 0);
+        truncatedPrefixMenu = new ChooseTaskList(null, chooseAction);
+        overflowMenu.add(truncatedPrefixMenu, 0);
+
+        boldFont = overflowMenu.getFont();
+        plainFont = boldFont.deriveFont(Font.PLAIN);
         completedTasksMenu = new JMenu(resources
                 .getString("Navigator.Completed_Items"));
+        completedTasksMenu.setFont(plainFont);
 
-        menu = new NarrowJMenu();
+        menu = new TaskListItemMenu();
+        menu.setIconTextGap(1);
+        ToolTipTimingCustomizer.INSTANCE.install(menu);
         menuBar.add(menu);
+        menuBar.add(Box.createHorizontalStrut(4));
+        menuBar.validate();
+        menuBar.repaint();
         installMessage(resources.getString("Navigator.Loading_Message"));
     }
 
@@ -247,33 +282,17 @@ public class TaskListNavigator implements TaskNavigationSelector.NavMenuUI,
     }
 
     private void maybeSelectFirstTask() {
-        String currentTask = activeTaskModel.getPath();
-        JMenuItem firstItem = null;
-        for (int i = 0; i < menu.getMenuComponentCount(); i++) {
-            if (menu.getMenuComponent(i) instanceof TaskJMenuItem) {
-                TaskJMenuItem item = (TaskJMenuItem) menu.getMenuComponent(i);
-                if (item.getPath().equals(currentTask))
-                    // if we find the active task in our list, abort.
-                    return;
-                if (firstItem == null)
-                    firstItem = item;
-            }
-        }
-        // The currently active task doesn't appear in this task list.  Select
-        // the first uncompleted task in our list as the new active task.
-        if (firstItem != null)
-            firstItem.doClick();
+        if (findTask(activeTaskModel.getPath()) == null)
+            selectNext();
     }
 
     public boolean selectNext() {
         String currentTask = menu.getActionCommand();
-        for (int i = 0; i < menu.getMenuComponentCount(); i++) {
-            if (menu.getMenuComponent(i) instanceof TaskJMenuItem) {
-                TaskJMenuItem item = (TaskJMenuItem) menu.getMenuComponent(i);
-                if (!item.getPath().equals(currentTask)) {
-                    item.doClick();
-                    return true;
-                }
+        for (int i = 0; i < numTodoItems; i++) {
+            TaskJMenuItem item = allItems.get(i);
+            if (!item.getPath().equals(currentTask)) {
+                item.doClick();
+                return true;
             }
         }
         return false;
@@ -311,9 +330,12 @@ public class TaskListNavigator implements TaskNavigationSelector.NavMenuUI,
                 completedTasks);
 
             int maxItemsPerMenu = Settings.getInt("hierarchyMenu.maxItems", 20);
+            String currentPath = activeTaskModel.getPath();
+            numTodoItems = todoTasks.size();
 
             menu.removeAll();
-            addMenuItems(menu, todoTasks, maxItemsPerMenu);
+            allItems.clear();
+            addMenuItems(menu, todoTasks, maxItemsPerMenu, currentPath);
 
             if (!completedTasks.isEmpty()) {
                 // this makes the most recently completed tasks the easiest to
@@ -321,7 +343,7 @@ public class TaskListNavigator implements TaskNavigationSelector.NavMenuUI,
                 Collections.reverse(completedTasks);
                 completedTasksMenu.removeAll();
                 addMenuItems(completedTasksMenu, completedTasks,
-                        maxItemsPerMenu);
+                        maxItemsPerMenu, currentPath);
                 if (menu.getItemCount() > 0
                         && menu.getItem(0) instanceof TaskJMenuItem)
                     menu.insertSeparator(0);
@@ -342,6 +364,7 @@ public class TaskListNavigator implements TaskNavigationSelector.NavMenuUI,
                 JMenuItem openTaskAndSchedule = new JMenuItem();
                 openTaskAndSchedule.setText(
                     resources.getString("Navigator.Open_Task_And_Schedule"));
+                openTaskAndSchedule.setFont(plainFont);
 
                 openTaskAndSchedule.addActionListener(new ActionListener() {
                     public void actionPerformed(ActionEvent e) {
@@ -362,17 +385,35 @@ public class TaskListNavigator implements TaskNavigationSelector.NavMenuUI,
 
     }
 
-    private void addMenuItems(JMenu menu, List paths, int maxItemsPerMenu) {
+    private void addMenuItems(JMenu menu, List paths, int maxItemsPerMenu,
+            String currentPath) {
         for (Iterator i = paths.iterator(); i.hasNext();) {
             String path = (String) i.next();
             if (menu.getItemCount() + 1 >= maxItemsPerMenu) {
                 JMenu moreMenu = new JMenu(Resources.getGlobalBundle()
                         .getDlgString("More"));
+                moreMenu.setFont(plainFont);
                 menu.insert(moreMenu, 0);
                 menu.insertSeparator(1);
                 menu = moreMenu;
             }
-            menu.add(new TaskJMenuItem(path));
+            TaskJMenuItem item = new TaskJMenuItem(path, currentPath);
+            menu.add(item);
+            allItems.add(item);
+        }
+    }
+
+    private class ChooseTaskList extends JMenuItem {
+
+        protected ChooseTaskList(String text, ActionListener a) {
+            setText(text);
+            addActionListener(a);
+        }
+
+        @Override
+        public void setText(String text) {
+            super.setText(text);
+            setVisible(text != null && text.length() > 0);
         }
     }
 
@@ -380,11 +421,17 @@ public class TaskListNavigator implements TaskNavigationSelector.NavMenuUI,
 
         private String path;
 
-        public TaskJMenuItem(String text) {
+        public TaskJMenuItem(String path, String current) {
             super("");
-            this.path = text;
-            setDisplayTextForPath(this, text);
-            setActionCommand(text);
+            this.path = path;
+            if (path.equals(current)) {
+                setFont(boldFont);
+                selectedItem = this;
+            } else {
+                setFont(plainFont);
+            }
+            setDisplayTextForPath(this, path);
+            setActionCommand(path);
             addActionListener(TaskListNavigator.this);
         }
 
@@ -406,12 +453,10 @@ public class TaskListNavigator implements TaskNavigationSelector.NavMenuUI,
                 path = path.substring(slashPos + 1);
             }
         }
+        if (path.startsWith("/"))
+            path = path.substring(1);
         target.setText(TaskNavigationSelector.prettifyPath(path));
         target.setToolTipText(tooltip);
-    }
-
-    public void propertyChange(PropertyChangeEvent evt) {
-        syncTaskToModel();
     }
 
     private void syncTaskToModel() {
@@ -426,8 +471,21 @@ public class TaskListNavigator implements TaskNavigationSelector.NavMenuUI,
                 else
                     window.pack();
             }
-
         }
+
+        if (selectedItem != null)
+            selectedItem.setFont(plainFont);
+        selectedItem = findTask(currentPath);
+        if (selectedItem != null)
+            selectedItem.setFont(boldFont);
+    }
+
+    private TaskJMenuItem findTask(String path) {
+        for (TaskJMenuItem item : allItems) {
+            if (item.getPath().equals(path))
+                return item;
+        }
+        return null;
     }
 
     public void dataValueChanged(DataEvent e) throws RemoteException {
@@ -460,9 +518,6 @@ public class TaskListNavigator implements TaskNavigationSelector.NavMenuUI,
         else if (e.getActionCommand() != null)
             activeTaskModel.setPath(e.getActionCommand());
     }
-
-    public static final Icon TASK_LIST_ICON = new ImageIcon(
-            TaskListNavigator.class.getResource("listicon.png"));
 
     public static boolean chooseTaskListNavigator(Component parent,
             DashboardContext context, Resources resources) {
@@ -513,7 +568,74 @@ public class TaskListNavigator implements TaskNavigationSelector.NavMenuUI,
         return false;
     }
 
+
     private static class NoTaskListsFoundException extends Exception {}
+
+
+    private class TaskListItemMenu extends NarrowJMenu {
+
+        private int truncatedPathWidth;
+
+        @Override
+        protected String getTextToLayout(String menuText) {
+            truncatedPathWidth = 0;
+            String[] parts = menuText.split(" / ");
+            StringBuilder result = new StringBuilder();
+            for (int i = parts.length; i-- > 0;)
+                result.append(" / ").append(parts[i]);
+            return result.substring(3);
+        }
+
+        @Override
+        protected String getTextToDisplay(String menuText, String fitLayoutText) {
+            if (fitLayoutText.endsWith(" /...")) {
+                int len = fitLayoutText.length();
+                fitLayoutText = fitLayoutText.substring(0, len - 4) + "...";
+            }
+
+            int pos = fitLayoutText.lastIndexOf(" / ");
+            if (pos == -1) {
+                truncatedPathWidth = getWidth();
+                setToolTipText(menuText);
+                return fitLayoutText;
+            }
+
+            String truncPart = fitLayoutText.substring(pos + 3);
+            truncatedPathWidth = new JLabel(truncPart).getPreferredSize().width;
+            String finalPart = menuText.substring(menuText.length() - pos);
+            String initialPart = menuText.substring(0, menuText.length() - pos
+                    - 3);
+            setToolTipText(initialPart);
+            return truncPart + " / " + finalPart;
+        }
+
+        public void setToolTipText(String text) {
+            String toolTip = text;
+            if (text != null && tooltipPrefix != null)
+                toolTip = tooltipPrefix + " / " + text;
+            super.setToolTipText(toolTip);
+
+            int pos = -1;
+            if (text != null)
+                pos = text.lastIndexOf(" / ");
+            String overflowTip = (pos == -1 ? null : text.substring(0, pos));
+            if (overflowTip == null)
+                overflowTip = tooltipPrefix;
+            else if (tooltipPrefix != null)
+                overflowTip = tooltipPrefix + " / " + overflowTip;
+            overflowMenu.setToolTipText(overflowTip);
+            truncatedPrefixMenu.setText(overflowTip);
+        }
+
+        @Override
+        public String getToolTipText(MouseEvent event) {
+            if (event.getX() < truncatedPathWidth)
+                return super.getToolTipText(event);
+            else
+                return null;
+        }
+    }
+
 
     private static class TaskListTreeModel extends DefaultTreeModel implements
             TreeWillExpandListener {

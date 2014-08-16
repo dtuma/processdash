@@ -190,8 +190,12 @@ public class DashboardIconFactory {
 
     public static Icon getCheckIcon() {
         Icon result = loadNamedIcon("check", null);
-        if (result == null) result = new CheckIcon();
+        if (result == null) result = new CheckIcon(true);
         return result;
+    }
+
+    public static Icon getLightCheckIcon() {
+        return new CheckIcon(false);
     }
 
     public static Icon getDefectIcon() {
@@ -216,6 +220,10 @@ public class DashboardIconFactory {
         Icon result = loadNamedIcon("script-dis", null);
         if (result == null) result = new DisabledScriptIcon();
         return result;
+    }
+
+    public static Icon getTaskOverflowIcon() {
+        return new TaskOverflowIcon();
     }
 
     private static Icon commentIcon = null;
@@ -336,12 +344,19 @@ public class DashboardIconFactory {
 
     private static class CheckIcon implements Icon {
 
+        private boolean bold;
+
+        protected CheckIcon(boolean bold) {
+            this.bold = bold;
+        }
+
         public void paintIcon(Component c, Graphics g, int x, int y) {
             g.setColor(Color.black);
             g.drawLine(x,   y+2, x,   y+6);
-            g.drawLine(x+1, y+2, x+1, y+6);
-            g.drawLine(x+2, y+4, x+6, y);
-            g.drawLine(x+2, y+5, x+6, y+1);
+            if (bold)
+                g.drawLine(x+1, y+2, x+1, y+6);
+            g.drawLine(x+1, y+5, x+6, y);
+            g.drawLine(x+1, y+6, x+6, y+1);
         }
 
         public int getIconHeight() {
@@ -495,6 +510,26 @@ public class DashboardIconFactory {
             g.drawLine(x+2, y+4, x+7, y+4);
             g.drawLine(x+2, y+7, x+7, y+7);
             g.drawLine(x+2, y+9, x+7, y+9);
+        }
+
+    }
+
+
+    private static class TaskOverflowIcon implements Icon {
+
+        public int getIconHeight() { return 5; }
+
+        public int getIconWidth() { return 8; }
+
+        public void paintIcon(Component c, Graphics g, int x, int y) {
+            g.setColor(Color.black);
+            for (int i = 0; i < 6; i++) {
+                int left = x + i;
+                g.drawLine(left, y+2, left+2, y);
+                g.drawLine(left, y+2, left+2, y+4);
+                if (i == 1)
+                    i += 2;
+            }
         }
 
     }

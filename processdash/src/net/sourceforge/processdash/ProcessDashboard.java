@@ -32,8 +32,6 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.beans.EventHandler;
@@ -76,7 +74,6 @@ import javax.swing.JFrame;
 import javax.swing.JMenuBar;
 import javax.swing.JOptionPane;
 import javax.swing.JRadioButton;
-import javax.swing.Timer;
 import javax.swing.event.EventListenerList;
 
 import net.sourceforge.processdash.data.DataContext;
@@ -109,9 +106,9 @@ import net.sourceforge.processdash.log.time.ImportedTimeLogManager;
 import net.sourceforge.processdash.log.time.TimeLog;
 import net.sourceforge.processdash.log.time.TimeLoggingModel;
 import net.sourceforge.processdash.log.time.WorkingTimeLog;
-import net.sourceforge.processdash.log.ui.TaskTimeLoggingErrorWatcher;
 import net.sourceforge.processdash.log.ui.DefectButton;
 import net.sourceforge.processdash.log.ui.PauseButton;
+import net.sourceforge.processdash.log.ui.TaskTimeLoggingErrorWatcher;
 import net.sourceforge.processdash.msg.MessageDispatcher;
 import net.sourceforge.processdash.net.cache.FileObjectCache;
 import net.sourceforge.processdash.net.cache.ObjectCache;
@@ -976,8 +973,6 @@ public class ProcessDashboard extends JFrame implements WindowListener,
 
         dependencyIndicator.update();
         pt.click("Updated dependency indicator");
-
-        addComponentListener(new ResizeWatcher());
     }
 
     private Component addToMainWindow(Component component, double weight) {
@@ -1515,52 +1510,6 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         return taskNav == null ? null : taskNav.getChangeTaskAction();
     }
 
-    public Dimension getPreferredSize() {
-        Dimension minSize = super.getMinimumSize();
-        Dimension result = super.getPreferredSize();
-        int maxWidth = Settings.getInt("window.maxWidth", -1);
-        if (maxWidth != -1)
-            result.width = Math.max(
-                    Math.min(result.width, maxWidth),
-                    minSize.width);
-        return result;
-    }
-
-    private class ResizeWatcher extends ComponentAdapter implements ActionListener {
-        Timer t;
-        public ResizeWatcher() {
-            t = new Timer(1000, this);
-            t.setRepeats(false);
-        }
-
-        public void componentResized(ComponentEvent e) {
-            t.restart();
-        }
-
-        public void actionPerformed(ActionEvent e) {
-            if (Settings.getBool("window.resizeWatcher.disabled", false))
-                return;
-
-            Dimension minSize = getMinimumSize();
-            Dimension preferredSize = getPreferredSize();
-            Dimension currentSize = getSize();
-
-            if (currentSize.height != preferredSize.height
-                    || currentSize.width < minSize.width) {
-                currentSize.height = preferredSize.height;
-                currentSize.width = Math.max(currentSize.width, minSize.width);
-                setSize(currentSize);
-
-            } else if (currentSize.width != preferredSize.width) {
-                // this is (generally) an indication that the user has resized
-                // the window manually.  Remember their decision and don't
-                // grow past this width in the future.
-                InternalSettings.set("window.maxWidth",
-                        Integer.toString(currentSize.width));
-            }
-        }
-    }
-
     public void showAboutDialog() {
         configure_button.startAboutDialog();
     }
@@ -1902,14 +1851,23 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         if (!Settings.isPersonalMode()) {
             String setting = getWidth() + "," + getHeight();
             InternalSettings.set(DIMENSION_SETTING, setting);
+        } else if (taskNav != null) {
+            taskNav.storePrefs();
         }
     }
 
     private static final String DIMENSION_SETTING = "mainWindow.dimensions";
 
     public void windowSizeRequirementsChanged() {
-        if (Settings.isPersonalMode() && this.isVisible())
+        if (Settings.isPersonalMode() && this.isVisible()) {
+            // the task selector prefers to maintain its current width
+            hierarchy_menubar.setPreferredSize(null);
+            Dimension d = hierarchy_menubar.getPreferredSize();
+            d.width = hierarchy_menubar.getWidth();
+            hierarchy_menubar.setPreferredSize(d);
+
             this.pack();
+        }
     }
 
     public static void main(final String args[]) {

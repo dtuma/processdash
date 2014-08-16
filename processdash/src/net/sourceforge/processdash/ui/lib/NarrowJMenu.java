@@ -1,4 +1,4 @@
-// Copyright (C) 2006 Tuma Solutions, LLC
+// Copyright (C) 2006-2014 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -26,9 +26,12 @@ package net.sourceforge.processdash.ui.lib;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Insets;
+import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.event.MouseEvent;
 
 import javax.swing.JMenu;
+import javax.swing.JToolTip;
 import javax.swing.SwingUtilities;
 
 /**
@@ -37,59 +40,106 @@ import javax.swing.SwingUtilities;
  */
 public class NarrowJMenu extends JMenu {
 
-        private Rectangle viewRect, textRect, iconRect;
+    public static final int MIN_WIDTH = 30;
 
-        private String altTextForPainting = null;
+    private Rectangle viewRect, textRect, iconRect;
 
+    private boolean narrowingEnabled = true;
 
-        public NarrowJMenu() {
-                this("");
+    private String altTextForPainting = null;
+
+    public NarrowJMenu() {
+        this("");
+    }
+
+    public NarrowJMenu(String s) {
+        setText(s);
+        viewRect = new Rectangle();
+        textRect = new Rectangle();
+        iconRect = new Rectangle();
+    }
+
+    public boolean isNarrowingEnabled() {
+        return narrowingEnabled;
+    }
+
+    public void setNarrowingEnabled(boolean narrowingEnabled) {
+        this.narrowingEnabled = narrowingEnabled;
+    }
+
+    @Override
+    public Dimension getMinimumSize() {
+        Dimension result = super.getPreferredSize();
+        if (narrowingEnabled)
+            result.width = MIN_WIDTH;
+        return result;
+    }
+
+    @Override
+    public Point getToolTipLocation(MouseEvent event) {
+        return TOOLTIP_LOCATION;
+    }
+
+    @Override
+    public String getText() {
+        if (altTextForPainting == null)
+            return super.getText();
+        else
+            return altTextForPainting;
+    }
+
+    @Override
+    public void paint(Graphics g) {
+        String menuText = super.getText();
+        if (isNarrowingNeeded(menuText) == false) {
+            setToolTipText(null);
+            super.paint(g);
+            return;
         }
 
-        public NarrowJMenu(String s) {
-                super(s);
-                viewRect = new Rectangle();
-                textRect = new Rectangle();
-                iconRect = new Rectangle();
+        getBounds(viewRect);
+        Insets insets = getInsets();
+        viewRect.width -= insets.left + insets.top + 2 * getIconTextGap();
+
+        String layoutText = getTextToLayout(menuText);
+        String fitLayoutText = SwingUtilities.layoutCompoundLabel(
+            getFontMetrics(getFont()), layoutText, null,
+            getVerticalAlignment(), getHorizontalAlignment(),
+            getVerticalTextPosition(), getHorizontalTextPosition(), viewRect,
+            iconRect, textRect, 0);
+
+        if (fitLayoutText.equals(layoutText)) {
+            setToolTipText(null);
+            super.paint(g);
+        } else {
+            altTextForPainting = getTextToDisplay(menuText, fitLayoutText);
+            super.paint(g);
+            altTextForPainting = null;
         }
+    }
 
-        public Dimension getMinimumSize() {
-                Dimension result = super.getPreferredSize();
-                result.width = 30;
-                return result;
-        }
+    private boolean isNarrowingNeeded(String text) {
+        return isNarrowingEnabled() //
+                && text != null && text.length() > 3 //
+                && getPreferredSize().width > getWidth();
+    }
 
-        public String getText() {
-                if (altTextForPainting == null)
-                        return super.getText();
-                else
-                        return altTextForPainting;
-        }
+    protected String getTextToLayout(String menuText) {
+        return menuText;
+    }
 
-        public void paint(Graphics g) {
-                getBounds(viewRect);
-                removeInsets(viewRect, getInsets());
-                removeInsets(viewRect, getMargin());
+    protected String getTextToDisplay(String menuText, String fitLayoutText) {
+        setToolTipText(menuText);
+        return fitLayoutText;
+    }
 
-                String menuText = super.getText();
-                String textToDisplay = SwingUtilities.layoutCompoundLabel(
-                                getFontMetrics(getFont()), menuText, null,
-                                getVerticalAlignment(), getHorizontalAlignment(),
-                                getVerticalTextPosition(), getHorizontalTextPosition(),
-                                viewRect, iconRect, textRect, 0);
-                setToolTipText(menuText.equals(textToDisplay) ? null : menuText);
+    public static final Point TOOLTIP_LOCATION = getTooltipOffset();
 
-                altTextForPainting = textToDisplay;
-                super.paint(g);
-                altTextForPainting = null;
-        }
+    private static Point getTooltipOffset() {
+        JToolTip tip = new JToolTip();
+        tip.setTipText("X");
+        int delta = tip.getPreferredSize().height + 2;
+        return new Point(0, -delta);
+    }
 
-        private void removeInsets(Rectangle r, Insets i) {
-                if (i != null) {
-                        r.x += i.left;
-                        r.y += i.top;
-                        r.width -= (i.right + i.left);
-                        r.height -= (i.bottom + i.top);
-                }
-        }
 }

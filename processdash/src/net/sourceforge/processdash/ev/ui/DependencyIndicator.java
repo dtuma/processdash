@@ -1,4 +1,4 @@
-// Copyright (C) 2006-2007 Tuma Solutions, LLC
+// Copyright (C) 2006-2014 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -23,7 +23,6 @@
 
 package net.sourceforge.processdash.ev.ui;
 
-import java.awt.Window;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.Iterator;
@@ -49,7 +48,7 @@ import net.sourceforge.processdash.util.ThreadThrottler;
 public class DependencyIndicator extends JLabel implements
         PropertyChangeListener {
 
-    Window window;
+    ProcessDashboard dash;
 
     DashboardContext context;
 
@@ -58,7 +57,7 @@ public class DependencyIndicator extends JLabel implements
     private Worker currentWorker = null;
 
     public DependencyIndicator(ProcessDashboard dash, ActiveTaskModel taskModel) {
-        this.window = dash;
+        this.dash = dash;
         this.context = dash;
         this.taskModel = taskModel;
 
@@ -94,6 +93,14 @@ public class DependencyIndicator extends JLabel implements
 
         SimpleData enabled = enabledVal.getSimpleValue();
         return (enabled != null && enabled.test());
+    }
+
+    @Override
+    public void setVisible(boolean visible) {
+        if (visible != isVisible()) {
+            super.setVisible(visible);
+            dash.windowSizeRequirementsChanged();
+        }
     }
 
 
@@ -183,11 +190,6 @@ public class DependencyIndicator extends JLabel implements
             case TaskDependencyAnalyzer.HAS_MISORDERED_REVERSE:
                 a.syncLabel(DependencyIndicator.this);
                 setVisible(true);
-
-                if (window instanceof ProcessDashboard)
-                    ((ProcessDashboard)window).windowSizeRequirementsChanged();
-                else
-                    window.pack();
 
                 break;
             }

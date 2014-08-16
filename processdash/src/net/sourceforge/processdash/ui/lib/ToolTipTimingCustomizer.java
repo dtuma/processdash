@@ -1,4 +1,4 @@
-// Copyright (C) 2006 Tuma Solutions, LLC
+// Copyright (C) 2006-2014 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -69,5 +69,7 @@ public class ToolTipTimingCustomizer extends MouseAdapter {
 
     private static final int NORMAL_INITIAL_DELAY = ToolTipManager
             .sharedInstance().getInitialDelay();
+
+    public static final ToolTipTimingCustomizer INSTANCE = new ToolTipTimingCustomizer();
 
 }

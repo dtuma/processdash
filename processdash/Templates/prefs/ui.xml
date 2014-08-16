@@ -81,4 +81,8 @@ preferences a category.
               ifPropIsSet="personalMode"
               helpId="AccessingScripts.clickOpensDefault" />
 
+    <checkbox id="useStrikethrough"
+              setting="userPref.taskSelector.useStrikethrough"
+              ifPropIsSet="personalMode" />
+
 </preferences-form>
