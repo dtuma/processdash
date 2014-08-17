@@ -23,23 +23,19 @@
 
 package net.sourceforge.processdash.ui.lib;
 
-import java.awt.Dimension;
 import java.awt.Font;
-import java.awt.Graphics;
-import java.awt.Insets;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.MouseEvent;
 
-import javax.swing.JMenu;
-import javax.swing.JToolTip;
+import javax.swing.JMenuItem;
 import javax.swing.SwingUtilities;
 
 /**
- * Class that behaves just like a JMenu, but can truncate its label and display
- * "..." (like a JLabel does) if it is given too little space.
+ * Class that behaves just like a JMenuItem, but can voluntarily truncate its
+ * label and display "..." (like a JLabel does) to take up less space.
  */
-public class NarrowJMenu extends JMenu {
+public class NarrowJMenuItem extends JMenuItem {
 
     public static final int MIN_WIDTH = 30;
 
@@ -49,15 +45,15 @@ public class NarrowJMenu extends JMenu {
 
     private int lastWidth = -1;
 
+    private int preferredWidth = 600;
+
     private String altTextForPainting = null;
 
-    private boolean isPainting = false;
-
-    public NarrowJMenu() {
+    public NarrowJMenuItem() {
         this("");
     }
 
-    public NarrowJMenu(String s) {
+    public NarrowJMenuItem(String s) {
         viewRect = new Rectangle();
         textRect = new Rectangle();
         iconRect = new Rectangle();
@@ -72,35 +68,30 @@ public class NarrowJMenu extends JMenu {
         this.narrowingEnabled = narrowingEnabled;
     }
 
-    @Override
-    public Dimension getMinimumSize() {
-        Dimension result = super.getPreferredSize();
-        if (narrowingEnabled)
-            result.width = MIN_WIDTH;
-        return result;
+    public int getPreferredWidth() {
+        return preferredWidth;
+    }
+
+    public void setPreferredWidth(int preferredWidth) {
+        this.preferredWidth = preferredWidth;
+        recalcTextTruncation();
     }
 
     @Override
     public Point getToolTipLocation(MouseEvent event) {
-        return TOOLTIP_LOCATION;
+        return new Point(-40, getHeight() + 2);
     }
 
     @Override
     public String getText() {
-        if (isPainting && altTextForPainting != null)
+        if (altTextForPainting != null)
             return altTextForPainting;
         else
             return super.getText();
     }
 
-    @Override
-    public void paint(Graphics g) {
-        try {
-            isPainting = true;
-            super.paint(g);
-        } finally {
-            isPainting = false;
-        }
+    public String getFullText() {
+        return super.getText();
     }
 
     @Override
@@ -126,15 +117,14 @@ public class NarrowJMenu extends JMenu {
 
     protected void recalcTextTruncation() {
         String menuText = super.getText();
+        altTextForPainting = null;
         if (isNarrowingNeeded(menuText) == false) {
-            altTextForPainting = null;
             setToolTipText(null);
             return;
         }
 
         getBounds(viewRect);
-        Insets insets = getInsets();
-        viewRect.width -= insets.left + insets.top + 2 * getIconTextGap();
+        viewRect.width = preferredWidth;
 
         String layoutText = getTextToLayout(menuText);
         String fitLayoutText = SwingUtilities.layoutCompoundLabel(
@@ -154,7 +144,7 @@ public class NarrowJMenu extends JMenu {
     private boolean isNarrowingNeeded(String text) {
         return isNarrowingEnabled() //
                 && text != null && text.length() > 3 //
-                && getPreferredSize().width > getWidth();
+                && super.getPreferredSize().width > getPreferredWidth();
     }
 
     protected String getTextToLayout(String menuText) {
@@ -164,15 +154,6 @@ public class NarrowJMenu extends JMenu {
     protected String getTextToDisplay(String menuText, String fitLayoutText) {
         setToolTipText(menuText);
         return fitLayoutText;
-    }
-
-    public static final Point TOOLTIP_LOCATION = getTooltipOffset();
-
-    private static Point getTooltipOffset() {
-        JToolTip tip = new JToolTip();
-        tip.setTipText("X");
-        int delta = tip.getPreferredSize().height + 2;
-        return new Point(-40, -delta);
     }
 
 }

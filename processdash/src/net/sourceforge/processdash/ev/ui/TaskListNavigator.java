@@ -81,6 +81,7 @@ import net.sourceforge.processdash.ui.lib.AbstractTreeTableModel;
 import net.sourceforge.processdash.ui.lib.JOptionPaneClickHandler;
 import net.sourceforge.processdash.ui.lib.JOptionPaneTweaker;
 import net.sourceforge.processdash.ui.lib.NarrowJMenu;
+import net.sourceforge.processdash.ui.lib.NarrowJMenuItem;
 import net.sourceforge.processdash.ui.lib.SwingWorker;
 import net.sourceforge.processdash.ui.lib.ToolTipTimingCustomizer;
 import net.sourceforge.processdash.ui.lib.TreeTableModel;
@@ -112,7 +113,7 @@ public class TaskListNavigator implements TaskNavigationSelector.NavMenuUI,
 
     Font plainFont, boldFont;
 
-    private JMenu menu;
+    private TaskListTopMenu menu;
 
     private JMenu completedTasksMenu;
 
@@ -245,7 +246,7 @@ public class TaskListNavigator implements TaskNavigationSelector.NavMenuUI,
                 .getString("Navigator.Completed_Items"));
         completedTasksMenu.setFont(plainFont);
 
-        menu = new TaskListItemMenu();
+        menu = new TaskListTopMenu();
         menu.setIconTextGap(1);
         ToolTipTimingCustomizer.INSTANCE.install(menu);
         menuBar.add(menu);
@@ -417,12 +418,11 @@ public class TaskListNavigator implements TaskNavigationSelector.NavMenuUI,
         }
     }
 
-    private class TaskJMenuItem extends JMenuItem {
+    private class TaskJMenuItem extends NarrowJMenuItem {
 
         private String path;
 
         public TaskJMenuItem(String path, String current) {
-            super("");
             this.path = path;
             if (path.equals(current)) {
                 setFont(boldFont);
@@ -437,6 +437,29 @@ public class TaskListNavigator implements TaskNavigationSelector.NavMenuUI,
 
         public String getPath() {
             return path;
+        }
+
+        @Override
+        protected String getTextToLayout(String menuText) {
+            return reversePathSegments(menuText);
+        }
+
+        @Override
+        protected String getTextToDisplay(String menuText, String fitLayoutText) {
+            String[] parts = getFitPathSplit(menuText, fitLayoutText);
+            setToolTipText(parts[0]);
+            return parts[2];
+        }
+
+        public void setToolTipText(String text) {
+            String toolTip = text;
+            if (toolTip == null)
+                toolTip = tooltipPrefix;
+            else if (tooltipPrefix != null)
+                toolTip = tooltipPrefix + " / " + text;
+            if (toolTip != null)
+                toolTip = toolTip + " / ...";
+            super.setToolTipText(toolTip);
         }
     }
 
@@ -566,44 +589,51 @@ public class TaskListNavigator implements TaskNavigationSelector.NavMenuUI,
     }
 
 
+    private static String reversePathSegments(String fullPath) {
+        String[] parts = fullPath.split(" / ");
+        StringBuilder result = new StringBuilder();
+        for (int i = parts.length; i-- > 0;)
+            result.append(" / ").append(parts[i]);
+        return result.substring(3);
+    }
+
+    private static String[] getFitPathSplit(String fullPath, String fitText) {
+        int len = fitText.length();
+        if (fitText.endsWith(" /..."))
+            fitText = fitText.substring(0, len - 4) + "...";
+        else if (fitText.endsWith(" / ..."))
+            fitText = fitText.substring(0, len - 5) + "...";
+
+        int pos = fitText.lastIndexOf(" / ");
+        if (pos == -1)
+            return new String[] { fullPath, fitText, fitText };
+
+        String truncPart = fitText.substring(pos + 3);
+        String finalPart = fullPath.substring(fullPath.length() - pos);
+        String initialPart = fullPath.substring(0, fullPath.length() - pos - 3);
+        return new String[] { initialPart, truncPart, //
+                truncPart + " / " + finalPart };
+    }
+
     private static class NoTaskListsFoundException extends Exception {}
 
 
-    private class TaskListItemMenu extends NarrowJMenu {
+    private class TaskListTopMenu extends NarrowJMenu {
 
         private int truncatedPathWidth;
 
         @Override
         protected String getTextToLayout(String menuText) {
             truncatedPathWidth = 0;
-            String[] parts = menuText.split(" / ");
-            StringBuilder result = new StringBuilder();
-            for (int i = parts.length; i-- > 0;)
-                result.append(" / ").append(parts[i]);
-            return result.substring(3);
+            return reversePathSegments(menuText);
         }
 
         @Override
         protected String getTextToDisplay(String menuText, String fitLayoutText) {
-            if (fitLayoutText.endsWith(" /...")) {
-                int len = fitLayoutText.length();
-                fitLayoutText = fitLayoutText.substring(0, len - 4) + "...";
-            }
-
-            int pos = fitLayoutText.lastIndexOf(" / ");
-            if (pos == -1) {
-                truncatedPathWidth = getWidth();
-                setToolTipText(menuText);
-                return fitLayoutText;
-            }
-
-            String truncPart = fitLayoutText.substring(pos + 3);
-            truncatedPathWidth = new JLabel(truncPart).getPreferredSize().width;
-            String finalPart = menuText.substring(menuText.length() - pos);
-            String initialPart = menuText.substring(0, menuText.length() - pos
-                    - 3);
-            setToolTipText(initialPart);
-            return truncPart + " / " + finalPart;
+            String[] parts = getFitPathSplit(menuText, fitLayoutText);
+            setToolTipText(parts[0]);
+            truncatedPathWidth = new JLabel(parts[1]).getPreferredSize().width + 3;
+            return parts[2];
         }
 
         public void setToolTipText(String text) {
