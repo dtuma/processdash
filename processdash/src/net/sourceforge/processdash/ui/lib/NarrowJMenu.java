@@ -24,6 +24,7 @@
 package net.sourceforge.processdash.ui.lib;
 
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Insets;
 import java.awt.Point;
@@ -46,7 +47,11 @@ public class NarrowJMenu extends JMenu {
 
     private boolean narrowingEnabled = true;
 
+    private int lastWidth = -1;
+
     private String altTextForPainting = null;
+
+    private boolean isPainting = false;
 
     public NarrowJMenu() {
         this("");
@@ -82,18 +87,48 @@ public class NarrowJMenu extends JMenu {
 
     @Override
     public String getText() {
-        if (altTextForPainting == null)
-            return super.getText();
-        else
+        if (isPainting && altTextForPainting != null)
             return altTextForPainting;
+        else
+            return super.getText();
     }
 
     @Override
     public void paint(Graphics g) {
+        try {
+            isPainting = true;
+            super.paint(g);
+        } finally {
+            isPainting = false;
+        }
+    }
+
+    @Override
+    public void setFont(Font font) {
+        super.setFont(font);
+        recalcTextTruncation();
+    }
+
+    @Override
+    public void setText(String text) {
+        super.setText(text);
+        recalcTextTruncation();
+    }
+
+    @Override
+    public void setBounds(int x, int y, int width, int height) {
+        super.setBounds(x, y, width, height);
+        if (width != lastWidth) {
+            recalcTextTruncation();
+            lastWidth = width;
+        }
+    }
+
+    protected void recalcTextTruncation() {
         String menuText = super.getText();
         if (isNarrowingNeeded(menuText) == false) {
+            altTextForPainting = null;
             setToolTipText(null);
-            super.paint(g);
             return;
         }
 
@@ -109,12 +144,10 @@ public class NarrowJMenu extends JMenu {
             iconRect, textRect, 0);
 
         if (fitLayoutText.equals(layoutText)) {
+            altTextForPainting = null;
             setToolTipText(null);
-            super.paint(g);
         } else {
             altTextForPainting = getTextToDisplay(menuText, fitLayoutText);
-            super.paint(g);
-            altTextForPainting = null;
         }
     }
 

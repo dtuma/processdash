@@ -352,6 +352,7 @@ public class HierarchyNavigator implements TaskNavigationSelector.NavMenuUI,
             if (nextMenu != null)
                 nextMenu.dispose();
             nextMenu = new HierMenu(item.node);
+            recalcTextTruncation();
             return true;
         }
 

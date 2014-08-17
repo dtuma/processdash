@@ -441,9 +441,7 @@ public class TaskListNavigator implements TaskNavigationSelector.NavMenuUI,
     }
 
     private void setDisplayTextForPath(AbstractButton target, String path) {
-        String tooltip = null;
         if (taskListPath != null && Filter.pathMatches(path, taskListPath)) {
-            tooltip = TaskNavigationSelector.prettifyPath(path);
             if (path.length() > taskListPath.length())
                 path = path.substring(taskListPath.length()+1);
             else {
@@ -456,7 +454,6 @@ public class TaskListNavigator implements TaskNavigationSelector.NavMenuUI,
         if (path.startsWith("/"))
             path = path.substring(1);
         target.setText(TaskNavigationSelector.prettifyPath(path));
-        target.setToolTipText(tooltip);
     }
 
     private void syncTaskToModel() {
