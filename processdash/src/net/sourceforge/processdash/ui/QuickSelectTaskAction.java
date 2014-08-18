@@ -24,12 +24,17 @@
 package net.sourceforge.processdash.ui;
 
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.font.TextAttribute;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import javax.swing.AbstractAction;
 import javax.swing.JDialog;
@@ -38,14 +43,18 @@ import javax.swing.JTable;
 import javax.swing.JTree;
 import javax.swing.KeyStroke;
 import javax.swing.tree.DefaultTreeCellRenderer;
+import javax.swing.tree.TreePath;
 
 import net.sourceforge.processdash.DashboardContext;
+import net.sourceforge.processdash.InternalSettings;
+import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.hier.ActiveTaskModel;
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.hier.ui.HierarchicalCompletionStatusCalculator;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.ui.TaskNavigationSelector.QuickSelectTaskProvider;
 import net.sourceforge.processdash.ui.lib.JFilterableTreeComponent;
+import net.sourceforge.processdash.ui.lib.JFilterableTreeTable;
 import net.sourceforge.processdash.ui.lib.JOptionPaneActionHandler;
 import net.sourceforge.processdash.ui.lib.JOptionPaneTweaker;
 import net.sourceforge.processdash.ui.lib.TreeTableModel;
@@ -59,6 +68,9 @@ public class QuickSelectTaskAction extends AbstractAction {
     ActiveTaskModel activeTaskModel;
     Component parentComponent;
 
+    private static final String SETTING_PREFIX = "navigator.quickSelect.";
+    private static final String COLLAPSED_PATHS = ".collapsedPaths";
+    private static final String COMPONENT_SIZE = ".size";
 
     private static final Resources resources = Resources
             .getDashBundle("ProcessDashboard.NavSelector");
@@ -100,6 +112,7 @@ public class QuickSelectTaskAction extends AbstractAction {
                 tasks, resources.getString("Choose_Task.Find"), false);
         final Object nodeToSelect = taskProvider
                 .getTreeNodeForPath(activeTaskModel.getPath());
+        loadPrefs(selector);
         selector.setMatchEntirePath(true);
         TaskCompletionRenderer rend = null;
         if (parentComponent instanceof DashboardContext)
@@ -119,6 +132,7 @@ public class QuickSelectTaskAction extends AbstractAction {
         int userChoice = JOptionPane.showConfirmDialog(parentComponent, message,
             resources.getString("Choose_Task.Title"),
             JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+        savePrefs(selector);
         if (rend != null)
             rend.dispose();
         if (userChoice != JOptionPane.OK_OPTION)
@@ -131,6 +145,74 @@ public class QuickSelectTaskAction extends AbstractAction {
         String newPath = taskProvider.getPathForTreeNode(newTask);
         if (StringUtils.hasValue(newPath))
             activeTaskModel.setPath(newPath);
+    }
+
+    private void loadPrefs(final JFilterableTreeComponent selector) {
+        loadSize(selector);
+        loadCollapsedPaths(selector);
+    }
+
+    private void savePrefs(final JFilterableTreeComponent selector) {
+        saveSize(selector);
+        saveCollapsedPaths(selector);
+    }
+
+    private void loadSize(JFilterableTreeComponent selector) {
+        String setting = Settings.getVal(getSettingName(COMPONENT_SIZE));
+        if (StringUtils.hasValue(setting)) {
+            try {
+                String[] parts = setting.split(",");
+                Dimension d = new Dimension(Integer.parseInt(parts[0]),
+                        Integer.parseInt(parts[1]));
+                selector.setPreferredSize(d);
+            } catch (Exception e) {
+            }
+        }
+    }
+
+    private void saveSize(JFilterableTreeComponent selector) {
+        Dimension d = selector.getSize();
+        String setting = d.width + "," + d.height;
+        InternalSettings.set(getSettingName(COMPONENT_SIZE), setting);
+    }
+
+    private void loadCollapsedPaths(JFilterableTreeComponent selector) {
+        String setting = Settings.getVal(getSettingName(COLLAPSED_PATHS));
+        if (StringUtils.hasValue(setting)) {
+            // make a list of the tree nodes that should be collapsed
+            Set collapsedNodes = new HashSet();
+            for (String path : setting.split("\t"))
+                collapsedNodes.add(taskProvider.getTreeNodeForPath(path));
+
+            // collapse those nodes in the tree
+            JFilterableTreeTable treeTable = selector.getTreeTable();
+            for (int row = 0; row < treeTable.getRowCount(); row++) {
+                TreePath path = treeTable.getPathForRow(row);
+                Object node = path.getLastPathComponent();
+                if (collapsedNodes.contains(node))
+                    treeTable.getTree().collapsePath(path);
+            }
+        }
+    }
+
+    private void saveCollapsedPaths(JFilterableTreeComponent selector) {
+        JFilterableTreeTable treeTable = selector.getTreeTable();
+        List<String> collapsedPaths = new ArrayList();
+        for (int row = treeTable.getRowCount(); row-- > 0;) {
+            TreePath path = treeTable.getPathForRow(row);
+            Object node = path.getLastPathComponent();
+            if (treeTable.getTree().getModel().isLeaf(node) == false
+                    && treeTable.getTree().isExpanded(path) == false) {
+                collapsedPaths.add(taskProvider.getPathForTreeNode(node));
+            }
+        }
+        String setting = (collapsedPaths.isEmpty() ? null : StringUtils.join(
+            collapsedPaths, "\t"));
+        InternalSettings.set(getSettingName(COLLAPSED_PATHS), setting);
+    }
+
+    private String getSettingName(String suffix) {
+        return SETTING_PREFIX + taskProvider.getType() + suffix;
     }
 
     private class TaskCompletionRenderer extends DefaultTreeCellRenderer {
