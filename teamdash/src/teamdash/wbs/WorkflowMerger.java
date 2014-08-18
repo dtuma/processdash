@@ -23,8 +23,14 @@
 
 package teamdash.wbs;
 
+import net.sourceforge.processdash.util.PatternList;
+
+import teamdash.merge.DependentAttributeMerger;
+import teamdash.merge.MergeWarning.Severity;
 import teamdash.merge.ui.MergeConflictNotification.ModelType;
+import teamdash.wbs.columns.AbstractNotesColumn;
 import teamdash.wbs.columns.TeamTimeColumn;
+import teamdash.wbs.columns.WorkflowNotesColumn;
 
 public class WorkflowMerger extends AbstractWBSModelMerger<WorkflowWBSModel> {
 
@@ -39,8 +45,15 @@ public class WorkflowMerger extends AbstractWBSModelMerger<WorkflowWBSModel> {
 
         // register handlers for attributes as needed.
         ignoreAttributeConflicts(TeamTimeColumn.RATE_ATTR);
+        addNoteAttrHandler(WorkflowNotesColumn.VALUE_ATTR);
 
         run();
+    }
+
+    private void addNoteAttrHandler(String attrName) {
+        contentMerger.addHandler(new PatternList().addLiteralEquals(attrName),
+            new DependentAttributeMerger(Severity.CONFLICT).setDependentAttrs(
+                attrName, AbstractNotesColumn.getMetadataAttrs(attrName)));
     }
 
     @Override

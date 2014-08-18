@@ -99,6 +99,7 @@ public class WorkflowModel extends DataTableModel {
             .addLiteralEquals(WorkflowSizeUnitsColumn.ATTR_NAME)
             .addLiteralEquals(WorkflowNumPeopleColumn.ATTR_NAME)
             .addLiteralEquals(TaskLabelColumn.VALUE_ATTR)
-            .addLiteralEquals(NotesColumn.VALUE_ATTR);
+            .addLiteralEquals(NotesColumn.VALUE_ATTR)
+            .addLiteralStartsWith(NotesColumn.VALUE_ATTR + " ");
 
 }

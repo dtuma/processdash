@@ -83,6 +83,8 @@ public class NotesColumn extends AbstractNotesColumn {
         else
             fullNote = currentNote + "\n\n" + extraNote;
         node.setAttribute(VALUE_ATTR, fullNote);
+        node.setAttribute(VALUE_ATTR + TIMESTAMP_SUFFIX,
+            System.currentTimeMillis());
     }
 
     public static void saveSyncData(WBSNode node, String text, String author,

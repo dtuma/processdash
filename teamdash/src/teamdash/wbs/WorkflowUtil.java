@@ -36,6 +36,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import net.sourceforge.processdash.util.PatternList;
 import net.sourceforge.processdash.util.StringUtils;
 
+import teamdash.wbs.columns.AbstractNotesColumn;
 import teamdash.wbs.columns.NotesColumn;
 import teamdash.wbs.columns.TaskLabelColumn;
 import teamdash.wbs.columns.TaskSizeUnitsColumn;
@@ -216,6 +217,12 @@ public class WorkflowUtil {
         // could contain garbage from an earlier copy/paste operation)
         node.setAttribute(NotesColumn.VALUE_ATTR,
             node.removeAttribute(WorkflowNotesColumn.VALUE_ATTR));
+        for (String attr : AbstractNotesColumn
+                .getMetadataAttrs(WorkflowNotesColumn.VALUE_ATTR)) {
+            String destAttr = StringUtils.findAndReplace(attr,
+                WorkflowNotesColumn.VALUE_ATTR, NotesColumn.VALUE_ATTR);
+            node.setAttribute(destAttr, node.removeAttribute(attr));
+        }
 
         // determine what labels should be set on the newly appended
         // workflow item.
