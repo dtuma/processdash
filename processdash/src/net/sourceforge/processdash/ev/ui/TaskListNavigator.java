@@ -227,6 +227,7 @@ public class TaskListNavigator implements TaskNavigationSelector.NavMenuUI,
         ToolTipTimingCustomizer.INSTANCE.uninstall(menu);
     }
 
+    public String getType() { return "taskList"; }
     public TreeTableModel getTaskSelectionChoices() { return quickTasks; }
     public String getPathForTreeNode(Object node) { return node.toString(); }
     public Object getTreeNodeForPath(String path) { return path; }
@@ -784,6 +785,10 @@ public class TaskListNavigator implements TaskNavigationSelector.NavMenuUI,
 
         public String getColumnName(int column) {
             return resources.getString("Task");
+        }
+
+        public boolean isCellEditable(Object node, int column) {
+            return false;
         }
 
         public Object getValueAt(Object node, int column) {

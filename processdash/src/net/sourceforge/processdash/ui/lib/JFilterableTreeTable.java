@@ -47,8 +47,6 @@ public class JFilterableTreeTable extends JTreeTable {
         super(treeTableModel);
         // expand all the rows in the tree so they can be filtered
         expandAllRows();
-        // disable the cell editor for the JTree, so nodes cannot be collapsed
-        setDefaultEditor(TreeTableModel.class, null);
         // don't display lines on the tree; they display incorrectly when
         // a filter is in effect.
         getTree().putClientProperty("JTree.lineStyle", "None");
@@ -99,6 +97,13 @@ public class JFilterableTreeTable extends JTreeTable {
             getTree().expandRow(i);
     }
 
+    protected void expandAllRowsUnder(TreePath path) {
+        for (int row = 0;  row < getRowCount();  row++) {
+            TreePath rowPath = getPathForRow(row);
+            if (path.isDescendant(rowPath))
+                getTree().expandPath(rowPath);
+        }
+    }
 
 
     private class TreeTableSorter extends TableRowSorter {

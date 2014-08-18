@@ -67,6 +67,7 @@ public class TaskNavigationSelector implements DashHierarchy.Listener,
     }
 
     public interface QuickSelectTaskProvider {
+        public String getType();
         public TreeTableModel getTaskSelectionChoices();
         public Object getTreeNodeForPath(String path);
         public String getPathForTreeNode(Object node);
@@ -252,6 +253,10 @@ public class TaskNavigationSelector implements DashHierarchy.Listener,
             super(dash.getHierarchy(), resources.getString("Task"));
         }
 
+        public String getType() {
+            return HIERARCHY_TYPE;
+        }
+
         public String getPathForTreeNode(Object node) {
             return key(node).path();
         }
@@ -263,6 +268,10 @@ public class TaskNavigationSelector implements DashHierarchy.Listener,
         public Object getTreeNodeForPath(String path) {
             PropertyKey key = dash.getHierarchy().findExistingKey(path);
             return getNodeForKey(key);
+        }
+
+        public boolean isCellEditable(Object node, int column) {
+            return true;
         }
 
     }

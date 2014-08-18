@@ -42,6 +42,8 @@ import javax.swing.KeyStroke;
 import javax.swing.ListSelectionModel;
 import javax.swing.event.DocumentListener;
 import javax.swing.event.EventListenerList;
+import javax.swing.event.TreeExpansionEvent;
+import javax.swing.event.TreeExpansionListener;
 import javax.swing.tree.TreePath;
 
 
@@ -98,6 +100,7 @@ public class JFilterableTreeComponent extends JPanel {
         treeTable.setRootVisible(rootVisible);
         treeTable.getSelectionModel().setSelectionMode(
             ListSelectionModel.SINGLE_SELECTION);
+        treeTable.getTree().addTreeExpansionListener(new ExpansionHandler());
         treeTable.addMouseListener(new MouseAdapter() {
             public void mouseClicked(MouseEvent e) {
                 if (e.getClickCount() == 1) {
@@ -256,9 +259,6 @@ public class JFilterableTreeComponent extends JPanel {
     private void handleClick() {
         if (isAcceptable()) {
             fireNodeAccepted();
-        } else {
-            int selectedRow = treeTable.getSelectedRow();
-            selectFirstLeafAfter(selectedRow);
         }
     }
 
@@ -374,5 +374,23 @@ public class JFilterableTreeComponent extends JPanel {
         public void actionPerformed(ActionEvent evt) {
             selectFirstLeafAfter(treeTable.getSelectedRow());
         }
+    }
+
+    private class ExpansionHandler implements TreeExpansionListener {
+
+        private boolean performingExpandAll;
+
+        public void treeExpanded(TreeExpansionEvent event) {
+            if (performingExpandAll == false && event.getPath() != null) {
+                try {
+                    performingExpandAll = true;
+                    treeTable.expandAllRowsUnder(event.getPath());
+                } finally {
+                    performingExpandAll = false;
+                }
+            }
+        }
+
+        public void treeCollapsed(TreeExpansionEvent event) {}
     }
 }
