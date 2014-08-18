@@ -24,17 +24,25 @@
 package net.sourceforge.processdash.ui;
 
 import java.awt.Component;
+import java.awt.Font;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
+import java.awt.font.TextAttribute;
+import java.util.Collections;
 
 import javax.swing.AbstractAction;
 import javax.swing.JDialog;
 import javax.swing.JOptionPane;
 import javax.swing.JTable;
+import javax.swing.JTree;
 import javax.swing.KeyStroke;
+import javax.swing.tree.DefaultTreeCellRenderer;
 
+import net.sourceforge.processdash.DashboardContext;
 import net.sourceforge.processdash.hier.ActiveTaskModel;
+import net.sourceforge.processdash.hier.PropertyKey;
+import net.sourceforge.processdash.hier.ui.HierarchicalCompletionStatusCalculator;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.ui.TaskNavigationSelector.QuickSelectTaskProvider;
 import net.sourceforge.processdash.ui.lib.JFilterableTreeComponent;
@@ -93,6 +101,10 @@ public class QuickSelectTaskAction extends AbstractAction {
         final Object nodeToSelect = taskProvider
                 .getTreeNodeForPath(activeTaskModel.getPath());
         selector.setMatchEntirePath(true);
+        TaskCompletionRenderer rend = null;
+        if (parentComponent instanceof DashboardContext)
+            rend = new TaskCompletionRenderer(selector,
+                    (DashboardContext) parentComponent);
         new JOptionPaneActionHandler().install(selector);
         Object[] message = new Object[] {
                 resources.getString("Choose_Task.Prompt"), selector,
@@ -107,6 +119,8 @@ public class QuickSelectTaskAction extends AbstractAction {
         int userChoice = JOptionPane.showConfirmDialog(parentComponent, message,
             resources.getString("Choose_Task.Title"),
             JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+        if (rend != null)
+            rend.dispose();
         if (userChoice != JOptionPane.OK_OPTION)
             return;
 
@@ -117,6 +131,38 @@ public class QuickSelectTaskAction extends AbstractAction {
         String newPath = taskProvider.getPathForTreeNode(newTask);
         if (StringUtils.hasValue(newPath))
             activeTaskModel.setPath(newPath);
+    }
+
+    private class TaskCompletionRenderer extends DefaultTreeCellRenderer {
+
+        HierarchicalCompletionStatusCalculator calc;
+
+        Font plainFont, completedFont;
+
+        TaskCompletionRenderer(JFilterableTreeComponent selector,
+                DashboardContext ctx) {
+            this.calc = new HierarchicalCompletionStatusCalculator(
+                    ctx.getData(), ctx.getHierarchy(), PropertyKey.ROOT);
+            this.plainFont = selector.getTreeTable().getTree().getFont();
+            this.completedFont = plainFont.deriveFont(Collections.singletonMap(
+                TextAttribute.STRIKETHROUGH, TextAttribute.STRIKETHROUGH_ON));
+
+            selector.getTreeTable().getTree().setCellRenderer(this);
+        }
+
+        private void dispose() {
+            calc.dispose();
+        }
+
+        @Override
+        public Component getTreeCellRendererComponent(JTree tree, Object value,
+                boolean sel, boolean expanded, boolean leaf, int row,
+                boolean hasFocus) {
+            String path = taskProvider.getPathForTreeNode(value);
+            setFont(calc.isCompleted(path) ? completedFont : plainFont);
+            return super.getTreeCellRendererComponent(tree, value, sel,
+                expanded, leaf, row, hasFocus);
+        }
     }
 
 }
