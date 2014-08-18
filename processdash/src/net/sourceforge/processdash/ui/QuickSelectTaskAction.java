@@ -101,7 +101,7 @@ public class QuickSelectTaskAction extends AbstractAction {
                 new JOptionPaneTweaker(50) {
                     public void doTweak(JDialog dialog) {
                         if (nodeToSelect != null)
-                            selector.setSelectedNode(nodeToSelect);
+                            selector.setAnchorSelectedNode(nodeToSelect);
                     }}
         };
         int userChoice = JOptionPane.showConfirmDialog(parentComponent, message,

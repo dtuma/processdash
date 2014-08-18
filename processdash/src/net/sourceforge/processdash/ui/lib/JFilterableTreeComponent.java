@@ -54,6 +54,8 @@ public class JFilterableTreeComponent extends JPanel {
 
     boolean matchEntirePath;
 
+    TreePath anchorPath;
+
     protected EventListenerList listenerList = new EventListenerList();
 
     private final SelectNodeAction selectNodeAction = new SelectNodeAction();
@@ -128,15 +130,56 @@ public class JFilterableTreeComponent extends JPanel {
         selectFirstLeafAfter(-1);
     }
 
-    public void setSelectedNode(Object nodeToSelect) {
+    public void setAnchorSelectedNode(Object nodeToSelect) {
+        anchorPath = setSelectedNode(nodeToSelect);
+    }
+
+    public TreePath setSelectedNode(Object nodeToSelect) {
         for (int i = 0;  i < treeTable.getRowCount();  i++) {
             TreePath path = treeTable.getPathForRow(i);
             Object node = path.getLastPathComponent();
             if (node.equals(nodeToSelect)) {
                 selectAndShowRow(i);
-                return;
+                return path;
             }
         }
+        return null;
+    }
+
+    public void selectLeafNearestAnchor() {
+        int bestRow = -1;
+
+        if (anchorPath != null) {
+            int bestMatchLen = -1;
+            for (int i = 0; i < treeTable.getRowCount(); i++) {
+                TreePath path = treeTable.getPathForRow(i);
+                Object node = path.getLastPathComponent();
+                if (treeTable.getTree().getModel().isLeaf(node)) {
+                    int matchLen = getMatchLen(path, anchorPath);
+                    if (matchLen > bestMatchLen) {
+                        bestMatchLen = matchLen;
+                        bestRow = i;
+                    }
+                }
+            }
+        }
+        if (bestRow == -1)
+            selectFirstLeaf();
+        else
+            selectAndShowRow(bestRow);
+    }
+
+    private int getMatchLen(TreePath a, TreePath b) {
+        int pos = 0;
+        while (pos < a.getPathCount() && pos < b.getPathCount()) {
+            Object aPart = a.getPathComponent(pos);
+            Object bPart = b.getPathComponent(pos);
+            if (!aPart.equals(bPart))
+                return pos;
+            else
+                pos++;
+        }
+        return pos;
     }
 
     public boolean isMatchEntirePath() {
@@ -161,7 +204,7 @@ public class JFilterableTreeComponent extends JPanel {
             else
                 treeTable.setFilter(new NodeNamePatternMatcher(text,
                     matchEntirePath));
-            selectFirstLeaf();
+            selectLeafNearestAnchor();
         } catch (Exception e1) {
             e1.printStackTrace();
         }
