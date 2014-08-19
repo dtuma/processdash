@@ -1,7 +1,8 @@
 #include <psp2.1/dataFile.txt>
 = Data for /Project/My Project/Release 1/Component A
 Base_Additions_List=="
-Estimated Time=2100.0
+Base_Parts_List=="0
+Estimated Time=?NaN
 New_Objects_List=="0
 Reused_Objects_List=="0
 Team_Note="<note author='My Name' timestamp='@1284313173013' format='text'>Note for Component A</note>

@@ -1,16 +1,11 @@
 #include <psp2.1/dataFile.txt>
 = Data for /Project/Legacy/Product 1/SCR 42
-Base Additions/0/Actual LOC=18.0
-Base Additions/0/Description="Add call to new interface
-Base Additions/0/LOC=10.9
-Base Additions/0/Methods=1.0
-Base Additions/0/Relative Size="Small
-Base Additions/0/Type="Logic
-Base_Additions_List=="0
+Base_Additions_List=="
 Base_Parts/0/Actual Base=345.0
 Base_Parts/0/Actual Deleted=5.0
 Base_Parts/0/Actual Modified=4.0
 Base_Parts/0/Base=345.0
+Base_Parts_List=="0
 Code Review/Completed=@1157826047468
 Code Review/Defects Removed==8.0
 Code Review/Time==120.0
