@@ -1819,6 +1819,12 @@ public class HierarchySynchronizer {
             HierarchyNote lastSyncNote = (currentNotes == null ? null
                     : currentNotes.get(TEAM_NOTE_LAST_SYNC_KEY));
 
+            // if the timestamp is missing from the WBS note (possible due to a
+            // historical bug), backfill with the timestamp from the last sync.
+            if (wbsNote != null && wbsNote.getTimestamp() == null
+                    && lastSyncNote != null)
+                wbsNote.setTimestamp(lastSyncNote.getTimestamp());
+
             // if the value from the WBS has changed since last sync,
             if (!eq(lastSyncNote, wbsNote)) {
 
