@@ -1,4 +1,4 @@
-// Copyright (C) 2012 Tuma Solutions, LLC
+// Copyright (C) 2012-2014 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -171,17 +171,20 @@ public class WBSModelMergeConflictNotificationFactory {
 
         WBSNode baseNode = mcn.getAttribute(MergeConflictNotification.BASE_NODE);
         String baseValue = (String) amw.getBaseValue();
-        Object baseDisp = column.getConflictDisplayValue(baseValue, baseNode);
+        Object baseDisp = (baseNode == null ? baseValue //
+                : column.getConflictDisplayValue(baseValue, baseNode));
         if (baseDisp == null) baseDisp = nullDisplay;
 
         WBSNode mainNode = mcn.getAttribute(MergeConflictNotification.MAIN_NODE);
         String mainValue = (String) amw.getMainValue();
-        Object mainDisp = column.getConflictDisplayValue(mainValue, mainNode);
+        Object mainDisp = (mainNode == null ? mainValue : //
+                column.getConflictDisplayValue(mainValue, mainNode));
         if (mainDisp == null) mainDisp = nullDisplay;
 
         WBSNode incNode = mcn.getAttribute(MergeConflictNotification.INCOMING_NODE);
         String incValue = (String) amw.getIncomingValue();
-        Object incDisp = column.getConflictDisplayValue(incValue, incNode);
+        Object incDisp = (incNode == null ? incValue : //
+                column.getConflictDisplayValue(incValue, incNode));
         if (incDisp == null) incDisp = nullDisplay;
 
         mcn.putValueAttributes(baseDisp, mainDisp, incDisp);

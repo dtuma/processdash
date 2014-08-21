@@ -1,4 +1,4 @@
-// Copyright (C) 2012 Tuma Solutions, LLC
+// Copyright (C) 2012-2014 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -25,6 +25,8 @@ package teamdash.wbs;
 
 import java.io.File;
 
+import teamdash.merge.ui.DataModelSource;
+import teamdash.merge.ui.MergeConflictNotification.ModelType;
 import teamdash.wbs.TeamProjectMergeCoordinator.QuickTeamProject;
 
 public class TeamProjectMergeTester {
@@ -49,9 +51,33 @@ public class TeamProjectMergeTester {
             TeamProjectMerger merger = new TeamProjectMerger(base, main,
                     incoming);
             merger.run();
+
+            TeamProject merged = merger.getMerged();
+            merger.getConflicts(new DMS(merged, main.getTeamProcess()));
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
+    private static class DMS implements DataModelSource {
+        DataTableModel wbs, workflows, milestones;
+
+        private DMS(TeamProject p, TeamProcess process) {
+            wbs = new DataTableModel(p.getWBS(), p.getTeamMemberList(),
+                    process, p.getWorkflows(), p.getMilestones(),
+                    new TaskDependencySourceSimple(p), "Owner");
+            workflows = new WorkflowModel(p.getWorkflows(), process);
+            milestones = new MilestonesDataModel(p.getMilestones());
+        }
+
+        public DataTableModel getDataModel(ModelType type) {
+            switch (type) {
+            case Wbs: return wbs;
+            case Workflows: return workflows;
+            case Milestones: return milestones;
+            }
+            return null;
+        }
+
+    }
 }
