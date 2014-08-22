@@ -105,8 +105,8 @@ public class WorkflowWBSModel extends WBSModel {
 
     public void mergeWorkflow(WorkflowWBSModel source, String workflowName, boolean notify) {
         Set nameSet = Collections.singleton(workflowName);
-        List currentWorkflowContents = getNodesForWorkflows(nameSet);
-        List newWorkflowContents = source.getNodesForWorkflows(nameSet);
+        List<WBSNode> currentWorkflowContents = getNodesForWorkflows(nameSet);
+        List<WBSNode> newWorkflowContents = source.getNodesForWorkflows(nameSet);
 
         if (newWorkflowContents == null || newWorkflowContents.isEmpty())
             return;
@@ -114,13 +114,33 @@ public class WorkflowWBSModel extends WBSModel {
 
         int insertBeforeRow = Integer.MAX_VALUE;
         if (currentWorkflowContents != null && !currentWorkflowContents.isEmpty()) {
-            WBSNode currentTopNode = (WBSNode) currentWorkflowContents.get(0);
+            WBSNode currentTopNode = currentWorkflowContents.get(0);
             insertBeforeRow = getRowForNode(currentTopNode);
+
+            // make a map of current node IDs for each workflow step
+            Map<String, Integer> idMap = new HashMap();
+            for (int i = currentWorkflowContents.size(); i-- > 1;) {
+                WBSNode step = currentWorkflowContents.get(i);
+                idMap.put(getStepFullName(step, false), step.getUniqueID());
+            }
+
+            // delete the current workflow nodes from the model
             deleteNodes(currentWorkflowContents, false);
 
-            int currentWorkflowId = currentTopNode.getUniqueID();
-            WBSNode newTopNode = (WBSNode) newWorkflowContents.get(0);
-            newTopNode.setUniqueID(currentWorkflowId);
+            // arrange for the top-level node to retain the same unique ID as
+            // the node it is replacing in the current workflow model.
+            WBSNode newTopNode = newWorkflowContents.get(0);
+            newTopNode.setUniqueID(currentTopNode.getUniqueID());
+
+            // arrange for the incoming workflow steps to have the same unique
+            // IDs as the similarly named steps they are replacing in the
+            // current workflow model.
+            for (int i = newWorkflowContents.size(); i-- > 1;) {
+                WBSNode step = newWorkflowContents.get(i);
+                String stepName = source.getStepFullName(step, false);
+                Integer stepID = idMap.get(stepName);
+                step.setUniqueID(stepID == null ? -1 : stepID);
+            }
         }
 
         insertNodes(newWorkflowContents, insertBeforeRow, notify);
