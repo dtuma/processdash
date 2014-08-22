@@ -57,7 +57,9 @@ public class DefectLogProblemReport extends PspForEngDefectBase {
 
         ProcessUtil procUtil = new ProcessUtil(getDataContext());
         phaseList = procUtil.getProcessListPlain("Phase_List");
+        phaseList.add(AFTER_DEVELOPMENT);
         failurePhaseList = procUtil.getProcessListPlain("Failure_Phase_List");
+        failurePhaseList.add(AFTER_DEVELOPMENT);
 
         runDefectAnalysis();
 
@@ -149,5 +151,7 @@ public class DefectLogProblemReport extends PspForEngDefectBase {
         int slashPos = fullPhase.lastIndexOf('/');
         return fullPhase.substring(slashPos + 1);
     }
+
+    private static final String AFTER_DEVELOPMENT = "After Development";
 
 }
