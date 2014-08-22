@@ -30,8 +30,6 @@ import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.font.TextAttribute;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -45,10 +43,8 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.SwingConstants;
-import javax.swing.SwingUtilities;
 import javax.swing.border.Border;
 
-import net.sourceforge.processdash.InternalSettings;
 import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.SimpleData;
@@ -63,7 +59,7 @@ import net.sourceforge.processdash.ui.lib.NarrowJMenu;
 import net.sourceforge.processdash.ui.lib.ToolTipTimingCustomizer;
 
 public class HierarchyNavigator implements TaskNavigationSelector.NavMenuUI,
-        ActionListener, PropertyChangeListener {
+        ActionListener {
 
     private ProcessDashboard dash;
 
@@ -113,13 +109,12 @@ public class HierarchyNavigator implements TaskNavigationSelector.NavMenuUI,
         this.fonts = createFonts();
         this.pathSepBorder = BorderFactory.createEmptyBorder(0, 1, 0, 2);
         this.pathSepWidth = getPathSep().getPreferredSize().width;
-        this.useStrikethrough = Settings.getBool(STRIKETHROUGH_SETTING, false);
+        this.useStrikethrough = Settings.getBool(STRIKETHROUGH_SETTING, true);
 
         rebuildMenus();
 
         statusCalc.addActionListener(this);
         menuBar.addComponentListener(resizeHandler);
-        InternalSettings.addPropertyChangeListener(STRIKETHROUGH_SETTING, this);
     }
 
     public void hierarchyChanged() {
@@ -132,17 +127,6 @@ public class HierarchyNavigator implements TaskNavigationSelector.NavMenuUI,
     public void activeTaskChanged() {
         if (hierMenus.get(0).updateToMatchActiveTask())
             relayoutMenus();
-    }
-
-    public void propertyChange(PropertyChangeEvent evt) {
-        SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                useStrikethrough = Settings.getBool(STRIKETHROUGH_SETTING,
-                    false);
-                if (!hierMenus.isEmpty())
-                    hierMenus.get(0).updateCompletionCheckmarks();
-            }
-        });
     }
 
     public void actionPerformed(ActionEvent e) {
@@ -158,8 +142,6 @@ public class HierarchyNavigator implements TaskNavigationSelector.NavMenuUI,
         menuBar.removeComponentListener(resizeHandler);
         statusCalc.removeActionListener(this);
         statusCalc.dispose();
-        InternalSettings.removePropertyChangeListener(STRIKETHROUGH_SETTING,
-            this);
         hierMenus.get(0).dispose();
         hierMenus.clear();
     }
