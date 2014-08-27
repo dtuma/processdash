@@ -47,9 +47,9 @@ import net.sourceforge.processdash.log.time.TimeLoggingModel;
 public class TooltipHandler {
 
 
-    private TrayIcon trayIcon;
+    private ProcessDashboard pdash;
 
-    private String mainTitle;
+    private TrayIcon trayIcon;
 
     private TimeLoggingModel timeLoggingModel;
 
@@ -68,11 +68,8 @@ public class TooltipHandler {
 
 
     public TooltipHandler(ProcessDashboard pdash, TrayIcon icon) {
+        this.pdash = pdash;
         this.trayIcon = icon;
-
-        // get the title which is being displayed for the main Process
-        // Dashboard window
-        this.mainTitle = pdash.getTitle();
 
         // get the time logging model
         this.timeLoggingModel = pdash.getTimeLoggingModel();
@@ -86,6 +83,7 @@ public class TooltipHandler {
         // register for change notification
         PropertyChangeListener pcl = EventHandler.create(
             PropertyChangeListener.class, this, "update");
+        pdash.addPropertyChangeListener("title", pcl);
         timeLoggingModel.addPropertyChangeListener(pcl);
         activeTaskModel.addPropertyChangeListener(pcl);
 
@@ -93,6 +91,7 @@ public class TooltipHandler {
     }
 
     public void update() {
+        String mainTitle = pdash.getTitle();
         String path = activeTaskModel.getPath();
         if (path == null)
             path = ""; // could possibly occur during startup/shutdown sequences
