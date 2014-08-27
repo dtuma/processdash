@@ -603,7 +603,8 @@ public class TemplateLoader {
         } catch (MalformedURLException mue) {}
     }
     private static final PatternList NONTEMPLATE_FILENAMES = new PatternList(
-            new String[] { "/pdash-install-", "/pdash-.*-cd", "/pdash-src-" } );
+            new String[] { "/pdash-install-", "-launch-profile-",
+                    "/pdash-.*-cd", "/pdash-src-" });
     private static URL jarfileTemplateURL(String jarfileURL)
         throws MalformedURLException
     {
