@@ -1694,7 +1694,7 @@ public class EVReport extends CGIChartBase {
                     // The generation of the chart was successful.  Write out
                     // the chart, surrounded by a DIV to control layout.
                     out.write("<div class='evChartItem' style='width:" + width
-                            + "px; height:" + (height + 40) + "px'>");
+                            + "px; height:" + height + "px'>");
                     out.write(buf.toString());
                     out.write("</div>");
                 } else {
