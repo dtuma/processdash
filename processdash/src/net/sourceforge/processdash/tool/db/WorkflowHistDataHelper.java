@@ -90,6 +90,14 @@ public class WorkflowHistDataHelper {
         this.onlyCompleted = onlyCompleted;
     }
 
+    public String getOnlyForProject() {
+        return onlyForProject;
+    }
+
+    public void setOnlyForProject(String onlyForProject) {
+        this.onlyForProject = onlyForProject;
+    }
+
     private void initQueryRunner() {
         if (query == null) {
             plugin = QueryUtils.getDatabasePlugin(data, true);

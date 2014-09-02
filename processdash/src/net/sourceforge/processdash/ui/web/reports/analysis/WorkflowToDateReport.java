@@ -21,7 +21,7 @@
 //     processdash@tuma-solutions.com
 //     processdash-devel@lists.sourceforge.net
 
-package net.sourceforge.processdash.ui.web.dash;
+package net.sourceforge.processdash.ui.web.reports.analysis;
 
 import java.io.IOException;
 import java.util.List;
@@ -115,8 +115,8 @@ public class WorkflowToDateReport extends TinyCGIBase {
     private void writeReportForWorkflow(WorkflowHistDataHelper hist)
             throws IOException {
 
-        String title = resources.format("Workflow.To_Date.Title_FMT",
-            hist.getWorkflowName());
+        String title = resources.getString("Workflow.Analysis.Title") + " - "
+                + hist.getWorkflowName();
 
         out.print("<html><head><title>");
         out.print(esc(title));
@@ -127,12 +127,31 @@ public class WorkflowToDateReport extends TinyCGIBase {
         out.print(" .rowLabel { padding-right: 10px }\n");
         out.print(" th.plan, th.act { width: 70px; }\n");
         out.print(" td.plan, td.act { padding-right: 4px; border: 1px solid gray; text-align: right }\n");
+        out.print(" #filter.collapsed .filterItem { display: none }\n");
+        out.print(" #filter.expanded .filterLink { display: none }\n");
         out.print("</style>\n");
+        out.print("<script>\n");
+        out.print("    function showFilter() {\n");
+        out.print("      document.getElementById('filter').className = 'expanded';\n");
+        out.print("    }\n");
+        out.print("</script>\n");
         out.print("</head>\n");
 
         out.print("<body><h1>");
         out.print(esc(title));
         out.print("</h1>\n");
+
+        out.print("<h2>");
+        if ("this".equals(parameters.get("project"))) {
+            hist.setOnlyForProject(hist.getContextProjectID());
+            out.print(esc(resources.format("Workflow.To_Date.One_Project_FMT",
+                getPrefix())));
+        } else {
+            out.print(resources.getHTML("Workflow.To_Date.All_Projects"));
+        }
+        out.print("</h2>\n");
+
+        writeFilterDiv(hist);
 
         Map<String, DataPair> sizes = hist.getAddedAndModifiedSizes();
         Map<String, DataPair> timeInPhase = hist.getTimeInPhase();
@@ -164,6 +183,24 @@ public class WorkflowToDateReport extends TinyCGIBase {
 
         SimpleData sd = projectIDVal.getSimpleValue();
         return (sd == null ? null : sd.format());
+    }
+
+    protected void writeFilterDiv(WorkflowHistDataHelper hist) {
+        out.print("<div id='filter' class='doNotPrint collapsed'>\n");
+        String filterLabel = resources.getHTML("Workflow.To_Date.Filter.Label");
+        out.print("<a href='#' onclick='showFilter(); return false;' "
+                + "class='filterLink'>" + filterLabel + "...</a>");
+        out.print("<span class='filterItem'>" + filterLabel + ":</span>");
+        out.print("<ul class='filterItem'>\n");
+        String selfUri = HTMLUtils.appendQuery(SELF_URI, "workflowName",
+            hist.getWorkflowName());
+        out.print("<li><a href='" + selfUri + "'>"
+                + resources.getHTML("Workflow.To_Date.Filter.All_Projects")
+                + "</a></li>");
+        out.print("<li><a href='" + selfUri + "&project=this'>"
+                + resources.getHTML("Workflow.To_Date.Filter.This_Project")
+                + "</a></li>");
+        out.print("</ul></div>\n");
     }
 
     private void writeOverallMetrics(Map<String, DataPair> sizes,
