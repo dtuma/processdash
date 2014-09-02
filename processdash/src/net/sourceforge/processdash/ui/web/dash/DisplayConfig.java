@@ -123,7 +123,9 @@ public class DisplayConfig extends TinyCGIBase {
         }
 
         if (installationDirectory != null) {
-            printRes("<DIV>${Install_Dir_Header}");
+            out.print("<DIV>");
+            out.print(resources.getHTML(Settings.isPersonalMode()
+                    ? "Install_Dir_Header" : "Team_Install_Dir_Header"));
             out.print("<PRE class='indent'>");
             out.println(HTMLUtils.escapeEntities(installationDirectory.getPath()));
             out.println("   </PRE></DIV>");
