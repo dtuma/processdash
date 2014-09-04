@@ -1,4 +1,4 @@
-// Copyright (C) 2007-2012 Tuma Solutions, LLC
+// Copyright (C) 2007-2014 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -53,6 +53,7 @@ import net.sourceforge.processdash.InternalSettings;
 import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.DataContext;
+import net.sourceforge.processdash.ev.EVCalculator;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.tool.quicklauncher.CompressedInstanceLauncher;
 import net.sourceforge.processdash.tool.redact.RedactFilterer;
@@ -362,7 +363,8 @@ public class SaveBackupAction extends AbstractAction {
             owner = FileUtils.makeSafe(owner) + "-";
 
         SimpleDateFormat fmt = new SimpleDateFormat("yyyy-MM-dd");
-        return "pdash-" + owner + fmt.format(new Date());
+        Date date = EVCalculator.getFixedEffectiveDate();
+        return "pdash-" + owner + fmt.format(date != null ? date : new Date());
     }
 
     private String removeFilenameSuffix(String filename) {
