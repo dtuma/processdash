@@ -37,7 +37,7 @@ preferences a category.
                    setting="window.title"
                    helpId="prefs.windowTitle" />
 
-        <row id="window.title.include">
+        <row id="window.title.include" ifPropIsSet="personalMode">
 
             <checkbox id="window.title.include.time"
                       setting="userPref.window.title.includeTime" />
