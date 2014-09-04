@@ -1192,8 +1192,11 @@ public class ProcessDashboard extends JFrame implements WindowListener,
             group.add(readOnlyOption);
             group.add(readWriteOption);
             String title = res.getString("ReadOnly.Recommended.Title");
+            String resKey = setting.endsWith("Personal")
+                    ? "ReadOnly.Recommended.Personal_Message"
+                    : "ReadOnly.Recommended.Message";
             Object[] message = new Object[] {
-                    res.getString("ReadOnly.Recommended.Message").split("\n"),
+                    res.getString(resKey).split("\n"),
                     readOnlyOption, readWriteOption };
             JOptionPane.showMessageDialog(hideSS(), message, title,
                     JOptionPane.QUESTION_MESSAGE);
