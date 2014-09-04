@@ -22,6 +22,8 @@
 //     processdash-devel@lists.sourceforge.net
 
 package teamdash.templates.tools;
+import static net.sourceforge.processdash.tool.bridge.client.TeamServerSelector.DATA_EFFECTIVE_DATE_PROPERTY;
+
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
@@ -334,6 +336,11 @@ public class OpenWBSEditor extends TinyCGIBase {
 
         // propagate security-related system properties
         cmd.addAll(Arrays.asList(RuntimeUtils.getPropagatedJvmArgs()));
+
+        // pass along the historical effective date if it is set
+        String dataEffDate = System.getProperty(DATA_EFFECTIVE_DATE_PROPERTY);
+        if (dataEffDate != null)
+            cmd.add("-D" + DATA_EFFECTIVE_DATE_PROPERTY + "=" + dataEffDate);
 
         // set a reasonable application menu name on Mac OS X
         if ("Mac OS X".equalsIgnoreCase(System.getProperty("os.name")))

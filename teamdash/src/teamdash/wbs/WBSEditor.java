@@ -388,9 +388,11 @@ public class WBSEditor implements WindowListener, SaveListener,
             windowTitle = workingDirectory.getDescription();
         else
             windowTitle = teamProject.getProjectName();
-        windowTitle = windowTitle
-                + " - Work Breakdown Structure"
-                + (teamProject.isReadOnly() ? " (Read-Only)" : "");
+        windowTitle = windowTitle + " - Work Breakdown Structure";
+        if (TeamServerSelector.isHistoricalModeEnabled())
+            windowTitle += " @ " + TeamServerSelector.getHistoricalDateStr();
+        else if (teamProject.isReadOnly())
+            windowTitle += " (Read-Only)";
 
         frame = new JFrame(windowTitle);
         frame.setJMenuBar(buildMenuBar(tabPanel, teamProject.getWorkflows(),
@@ -1945,7 +1947,8 @@ public class WBSEditor implements WindowListener, SaveListener,
         boolean indivMode = Boolean.getBoolean("teamdash.wbs.indiv");
         String indivInitials = System.getProperty("teamdash.wbs.indivInitials");
         boolean showTeam = Boolean.getBoolean("teamdash.wbs.showTeamMemberList");
-        boolean readOnly = Boolean.getBoolean("teamdash.wbs.readOnly");
+        boolean readOnly = Boolean.getBoolean("teamdash.wbs.readOnly")
+                || TeamServerSelector.isHistoricalModeEnabled();
         String syncURL = System.getProperty("teamdash.wbs.syncURL");
         String owner = System.getProperty("teamdash.wbs.owner");
         try {
