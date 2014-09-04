@@ -339,9 +339,11 @@ public class TeamProjectBrowser extends JSplitPane {
      * Add team-project-related items to the File menu.
      */
     private void augmentTeamDashboardFileMenu(ProcessDashboard dash) {
-        JMenu fileMenu = dash.getConfigurationMenus().getMenu(0);
-        fileMenu.insert(new NewProjectAction(), 0);
-        fileMenu.insert(new AlterTeamProjectMenu(), 1);
+        if (Settings.isReadWrite()) {
+            JMenu fileMenu = dash.getConfigurationMenus().getMenu(0);
+            fileMenu.insert(new NewProjectAction(), 0);
+            fileMenu.insert(new AlterTeamProjectMenu(), 1);
+        }
     }
 
 
