@@ -83,6 +83,7 @@ import net.sourceforge.processdash.data.ListData;
 import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.data.repository.InvalidDatafileFormat;
+import net.sourceforge.processdash.ev.EVCalculator;
 import net.sourceforge.processdash.ev.EVTaskDependencyResolver;
 import net.sourceforge.processdash.ev.WBSTaskOrderComparator;
 import net.sourceforge.processdash.ev.ui.DependencyIndicator;
@@ -282,6 +283,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
 
 
         // configure the writability of the data and lock if applicable
+        maybeSetupHistoricalMode();
         maybeEnableReadOnlyMode();
         pt.click("Checked read only mode");
         if (!Settings.isReadOnly()) {
@@ -1036,8 +1038,10 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         if (!StringUtils.hasValue(title)) {
             title = Settings.getVal(WINDOW_TITLE_SETTING);
 
-            // possibly apply the read-only modifier
-            if (Settings.isReadOnly())
+            // possibly apply the historical or read-only modifier
+            if (TeamServerSelector.isHistoricalModeEnabled())
+                title += " @ " + TeamServerSelector.getHistoricalDateStr();
+            else if (Settings.isReadOnly())
                 title = resources.format("ReadOnly.Title_FMT", title);
         }
 
@@ -1149,6 +1153,16 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         return new FallbackObjectFactory<LocaleResetSupport>(
                 LocaleResetSupport.class).add("LocaleResetSupportJava6Impl") //
                 .get().clearResourceBundleCache();
+    }
+
+    private void maybeSetupHistoricalMode() {
+        if (TeamServerSelector.isHistoricalModeEnabled()) {
+            // if we are viewing historical PDES data, turn on the
+            // read only flag and register the effective date.
+            InternalSettings.setReadOnly(true);
+            InternalSettings.set(EVCalculator.FIXED_EFFECTIVE_DATE_SETTING, //
+                System.getProperty(TeamServerSelector.DATA_EFFECTIVE_DATE_PROPERTY));
+        }
     }
 
     private void maybeEnableReadOnlyMode() {

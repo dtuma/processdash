@@ -24,6 +24,9 @@
 package net.sourceforge.processdash.tool.bridge.client;
 
 import java.io.File;
+import java.io.IOException;
+
+import net.sourceforge.processdash.util.TempFileFactory;
 
 public class DirectoryPreferences {
 
@@ -84,7 +87,7 @@ public class DirectoryPreferences {
         if ((hardcodedResult != null && hardcodedResult.length() > 0))
             result = new File(hardcodedResult);
         else
-            result = new File(getApplicationDirectory(), "working");
+            result = new File(getDataDirectoryParent(), "working");
 
         result.mkdirs();
         return result;
@@ -99,9 +102,28 @@ public class DirectoryPreferences {
         if ((hardcodedResult != null && hardcodedResult.length() > 0))
             result = new File(hardcodedResult);
         else
-            result = new File(getApplicationDirectory(), "import");
+            result = new File(getDataDirectoryParent(), "import");
 
         result.mkdirs();
         return result;
     }
+
+
+    private static File getDataDirectoryParent() {
+        if (TeamServerSelector.isHistoricalModeEnabled()) {
+            synchronized (DirectoryPreferences.class) {
+                try {
+                    if (HISTORICAL_DATA_DIR == null)
+                        HISTORICAL_DATA_DIR = TempFileFactory.get()
+                                .createTempDirectory("pdes-historical-data",
+                                    ".tmp", true, true);
+                    return HISTORICAL_DATA_DIR;
+                } catch (IOException ioe) {}
+            }
+        }
+        return getApplicationDirectory();
+    }
+
+    private static File HISTORICAL_DATA_DIR = null;
+
 }

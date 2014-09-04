@@ -163,6 +163,12 @@ public interface ResourceBridgeConstants {
     String USER_ID_PARAM = "effUserId";
 
     /**
+     * when performing read operations, this optional request parameter
+     * indicates the effective date of the data to retrieve.
+     */
+    String EFFECTIVE_DATE_PARAM = "effDate";
+
+    /**
      * value of action parameter requesting that a new collection be created
      */
     String NEW_COLLECTION_ACTION = "newCollection";

@@ -82,6 +82,8 @@ public class ResourceBridgeClient implements ResourceBridgeConstants {
 
     String userId;
 
+    String effectiveDate;
+
     String sourceIdentifier;
 
     String extraLockData;
@@ -100,6 +102,8 @@ public class ResourceBridgeClient implements ResourceBridgeConstants {
         this.remoteUrl = remoteUrl;
         this.syncDownOnlyFiles = syncDownOnlyFiles;
         this.userId = getUserId();
+        this.effectiveDate = System
+                .getProperty(TeamServerSelector.DATA_EFFECTIVE_DATE_PROPERTY);
         this.offlineLockStatus = OfflineLockStatus.NotLocked;
     }
 
@@ -646,6 +650,7 @@ public class ResourceBridgeClient implements ResourceBridgeConstants {
             Object... parameters) throws IOException {
         StringBuffer request = new StringBuffer(remoteUrl);
         HTMLUtils.appendQuery(request, VERSION_PARAM, CLIENT_VERSION);
+        HTMLUtils.appendQuery(request, EFFECTIVE_DATE_PARAM, effectiveDate);
         HTMLUtils.appendQuery(request, ACTION_PARAM, action);
         for (int i = 0; i < parameters.length; i += 2) {
             HTMLUtils.appendQuery(request, String.valueOf(parameters[i]),
@@ -718,6 +723,10 @@ public class ResourceBridgeClient implements ResourceBridgeConstants {
             HttpResponseAnalyzer responseAnalyzer, String action,
             Object... params) throws IOException,
             LockFailureException {
+
+        if (TeamServerSelector.isHistoricalModeEnabled())
+            throw new IOException("Changes are not allowed in historical mode");
+
         if (userId == null)
             userId = getUserId();
         if (userId != null && userId.length() > 15)

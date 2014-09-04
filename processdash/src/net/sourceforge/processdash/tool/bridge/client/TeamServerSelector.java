@@ -30,6 +30,8 @@ import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLEncoder;
+import java.text.DateFormat;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -44,6 +46,9 @@ public class TeamServerSelector {
 
     public static final String DISABLE_TEAM_SERVER_PROPERTY =
         TeamServerSelector.class.getName() + ".disabled";
+
+    public static final String DATA_EFFECTIVE_DATE_PROPERTY =
+        TeamServerSelector.class.getName() + ".effectiveDate";
 
     public static final String DEFAULT_TEAM_SERVER_PROPERTY =
         TeamServerSelector.class.getName() + ".defaultURL";
@@ -62,6 +67,35 @@ public class TeamServerSelector {
      */
     public static boolean isTeamServerUseDisabled() {
         return Boolean.getBoolean(DISABLE_TEAM_SERVER_PROPERTY);
+    }
+
+    /**
+     * Test whether the current process is operating in "historical mode,"
+     * displaying data from some point in the past.
+     */
+    public static boolean isHistoricalModeEnabled() {
+        return System.getProperty(DATA_EFFECTIVE_DATE_PROPERTY) != null;
+    }
+
+    /**
+     * Return a human-readable string describing the effective date of the
+     * historical data being displayed by the current process, or null if this
+     * process is not in historical mode.
+     */
+    public static String getHistoricalDateStr() {
+        String ts = System.getProperty(DATA_EFFECTIVE_DATE_PROPERTY);
+        if (ts == null)
+            return null;
+
+        DateFormat fmt;
+        Calendar c = Calendar.getInstance();
+        c.setTimeInMillis(Long.parseLong(ts));
+        if (c.get(Calendar.HOUR_OF_DAY) > 22)
+            fmt = DateFormat.getDateInstance(DateFormat.MEDIUM);
+        else
+            fmt = DateFormat.getDateTimeInstance(DateFormat.MEDIUM,
+                DateFormat.SHORT);
+        return fmt.format(c.getTime());
     }
 
     /**
