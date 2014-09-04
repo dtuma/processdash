@@ -41,6 +41,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
+import net.sourceforge.processdash.ev.EVCalculator;
 import net.sourceforge.processdash.tool.bridge.client.WorkingDirectory;
 import net.sourceforge.processdash.tool.export.mgr.ExternalResourceManager;
 import net.sourceforge.processdash.ui.ConsoleWindow;
@@ -85,6 +86,9 @@ public class FileBackupManager {
             "backup.compressionLevel", 1));
         DashboardBackupFactory.setKeepBackupsNumDays(Settings.getInt(
             "backup.keepBackupsNumDays", 42));
+        Date effectiveDate = EVCalculator.getFixedEffectiveDate();
+        if (effectiveDate != null)
+            DashboardBackupFactory.setHistLogTimestamp(effectiveDate.getTime());
     }
 
     public void maybeRun(int when, String who) {

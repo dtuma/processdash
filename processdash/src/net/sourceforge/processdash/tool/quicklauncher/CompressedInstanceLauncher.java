@@ -70,7 +70,7 @@ public class CompressedInstanceLauncher extends DashboardInstance {
 
     private String prefix;
 
-    private long dataTimeStamp;
+    private long dataTimeStamp, maxTimeStamp;
 
     private boolean sawWbsXml, sawProjDump;
 
@@ -120,12 +120,15 @@ public class CompressedInstanceLauncher extends DashboardInstance {
                 DirectoryPreferences.getMasterWorkingDirectory());
         tempDir.delete();
         tempDir.mkdir();
-        dataTimeStamp = 0;
+        dataTimeStamp = maxTimeStamp = 0;
         sawWbsXml = sawProjDump = false;
 
         ZipInputStream in = openZipStream(compressedData);
         uncompressData(tempDir, in, prefix);
         in.close();
+
+        if (dataTimeStamp <= 0)
+            dataTimeStamp = maxTimeStamp;
 
         return tempDir;
     }
@@ -162,7 +165,10 @@ public class CompressedInstanceLauncher extends DashboardInstance {
                 FileUtils.copyFile(in, destFile);
                 if (e.getTime() != -1) {
                     destFile.setLastModified(e.getTime());
-                    dataTimeStamp = Math.max(dataTimeStamp, e.getTime());
+                    if (filename.equals("histLog.txt"))
+                        dataTimeStamp = e.getTime();
+                    else
+                        maxTimeStamp = Math.max(maxTimeStamp, e.getTime());
                 }
             }
         }

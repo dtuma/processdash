@@ -68,6 +68,9 @@ public class IncrementalDirectoryBackup extends DirectoryBackup {
     /** A set of filename groupings that should always be backed up together */
     private String[][] atomicFileGroupings;
 
+    /** A forced timestamp to use for the historical log file */
+    private long histLogTimestamp;
+
 
     public int getCompressionLevel() {
         return compressionLevel;
@@ -91,6 +94,14 @@ public class IncrementalDirectoryBackup extends DirectoryBackup {
 
     public void setAtomicFileGroupings(String[][] atomicFileGroupings) {
         this.atomicFileGroupings = atomicFileGroupings;
+    }
+
+    public long getHistLogTimestamp() {
+        return histLogTimestamp;
+    }
+
+    public void setHistLogTimestamp(long timestamp) {
+        this.histLogTimestamp = timestamp;
     }
 
 
@@ -443,14 +454,10 @@ public class IncrementalDirectoryBackup extends DirectoryBackup {
             ZipOutputStream newBackupOut, File dataDir)
             throws IOException {
         File currentLog = new File(dataDir, LOG_FILE_NAME);
-        if (oldBackupIn == null && !currentLog.exists())
-            // if we have neither a historical log, nor a current log, there
-            // is nothing to do.
-            return;
 
         // start an entry in the zip file for the historical log.
         ZipEntry e = new ZipEntry(HIST_LOG_FILE_NAME);
-        e.setTime(System.currentTimeMillis());
+        e.setTime(histLogTimestamp > 0 ? histLogTimestamp : System.currentTimeMillis());
         newBackupOut.putNextEntry(e);
 
         // read in the log data we have to work with.

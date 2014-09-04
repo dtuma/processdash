@@ -35,6 +35,7 @@ public class DashboardBackupFactory {
     private static int keepBackupsNumDays = 42;
     private static int compressionLevel = 1;
     private static int maxHistLogSize = 500000;
+    private static long histLogTimestamp = -1;
 
     public static int getKeepBackupsNumDays() {
         return keepBackupsNumDays;
@@ -60,6 +61,14 @@ public class DashboardBackupFactory {
         DashboardBackupFactory.maxHistLogSize = maxHistLogSize;
     }
 
+    public static long getHistLogTimestamp() {
+        return histLogTimestamp;
+    }
+
+    public static void setHistLogTimestamp(long histLogTimestamp) {
+        DashboardBackupFactory.histLogTimestamp = histLogTimestamp;
+    }
+
     /**
      * Create a backup object which performs backups of a dashboard instance
      * directory
@@ -76,6 +85,7 @@ public class DashboardBackupFactory {
         result.setMaxHistLogSize(maxHistLogSize);
         result.setAutoCleanupNumDays(keepBackupsNumDays);
         result.setCompressionLevel(compressionLevel);
+        result.setHistLogTimestamp(histLogTimestamp);
         return result;
     }
 
