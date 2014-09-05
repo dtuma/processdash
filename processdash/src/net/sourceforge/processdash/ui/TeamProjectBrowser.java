@@ -24,8 +24,11 @@
 package net.sourceforge.processdash.ui;
 
 import java.awt.Cursor;
+import java.awt.Graphics;
 import java.awt.Rectangle;
+import java.awt.Shape;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -44,8 +47,10 @@ import javax.swing.JSplitPane;
 import javax.swing.JTextField;
 import javax.swing.JTree;
 import javax.swing.KeyStroke;
+import javax.swing.ListModel;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
+import javax.swing.Timer;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -93,7 +98,7 @@ public class TeamProjectBrowser extends JSplitPane {
 
     private DefaultListModel scripts;
 
-    private JList scriptList;
+    private ScriptList scriptList;
 
     private ExternalEventHandler handler;
 
@@ -234,7 +239,7 @@ public class TeamProjectBrowser extends JSplitPane {
 
     private void buildScriptList() {
         scripts = new DefaultListModel();
-        scriptList = new JList(scripts);
+        scriptList = new ScriptList(scripts);
 
         scriptList.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         scriptList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -277,6 +282,9 @@ public class TeamProjectBrowser extends JSplitPane {
             if (defaultScript.scriptEquals(script))
                 scriptList.getSelectionModel().setLeadSelectionIndex(i - 1);
         }
+
+        if (Settings.getBool("userPref.teamScripts.useWipe", true))
+            scriptList.showScriptsWithWipe();
     }
 
     private ScriptID createDefaultScript(PropertyKey key) {
@@ -637,12 +645,63 @@ public class TeamProjectBrowser extends JSplitPane {
     }
 
 
+    /** component to display the list of scripts */
+    private class ScriptList extends JList implements ActionListener {
+
+        private Timer wipeTimer;
+
+        private int wipeWidth;
+
+        private Rectangle rect;
+
+        protected ScriptList(ListModel dataModel) {
+            super(dataModel);
+            wipeTimer = new Timer(10, this);
+            wipeWidth = Integer.MAX_VALUE;
+            rect = new Rectangle();
+        }
+
+        public void showScriptsWithWipe() {
+            wipeWidth = 0;
+            repaint();
+            wipeTimer.restart();
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            getBounds(rect);
+            wipeWidth = (int) (wipeWidth * 1.2 + 5);
+            if (wipeWidth > rect.width) {
+                wipeWidth = Integer.MAX_VALUE;
+                wipeTimer.stop();
+            }
+            repaint();
+        }
+
+        @Override
+        public void paint(Graphics g) {
+            getBounds(rect);
+            if (wipeWidth > rect.width) {
+                super.paint(g);
+            } else {
+                g.setColor(getBackground());
+                g.fillRect(rect.x, rect.y, rect.width, rect.height);
+
+                Shape originalClip = g.getClip();
+                rect.width = wipeWidth;
+                g.setClip(rect);
+                super.paint(g);
+                g.setClip(originalClip);
+            }
+        }
+    }
+
+
     /** Listener to handle mouse clicks on the script list */
     private class ListClickHandler extends MouseAdapter implements Runnable {
 
         private MouseEvent mouseEvent;
 
-        public void mouseClicked(MouseEvent e) {
+        public void mouseReleased(MouseEvent e) {
             // First, allow the current mouse event to be delivered to ALL
             // listeners. (This will ensure that the selection gets updated
             // appropriately.) AFTER that has occurred, run a task to display
