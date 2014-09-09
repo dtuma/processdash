@@ -103,8 +103,6 @@ public class TaskListNavigator implements TaskNavigationSelector.NavMenuUI,
 
     private String tooltipPrefix;
 
-    private boolean autoSelectFirstTask;
-
     private Set listeningToData;
 
     private JMenu overflowMenu;
@@ -147,8 +145,6 @@ public class TaskListNavigator implements TaskNavigationSelector.NavMenuUI,
         else
             this.tooltipPrefix = TaskNavigationSelector.prettifyPath( //
                     taskListPath.substring(1));
-
-        this.autoSelectFirstTask = true;
 
         this.listeningToData = new HashSet();
         this.allItems = new ArrayList<TaskJMenuItem>();
@@ -277,10 +273,8 @@ public class TaskListNavigator implements TaskNavigationSelector.NavMenuUI,
         this.taskList = newTaskList;
         reloadMenus();
 
-        if (newTaskList != null && autoSelectFirstTask) {
-            autoSelectFirstTask = false;
+        if (newTaskList != null)
             maybeSelectFirstTask();
-        }
     }
 
     private void maybeSelectFirstTask() {
