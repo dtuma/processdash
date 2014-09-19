@@ -37,8 +37,8 @@ this outline, see the <a href="EditingTheWBS.html">Editing the Work
 Breakdown Structure</a> help topic.) In this hierarchical outline,
 each item that is a direct child of the Common Workflows node
 represents a single <i>process</i> or <i>workflow</i>.  These items
-are displayed with an icon depicting a structured bundle (<img
-border=0 width=15 height=15 src="../Images/icon-process.png">).  You
+are displayed with an etched rectangular icon (<img
+border=0 width=18 height=12 src="../Images/icon-process.png">).  You
 can designate a given node as a process or workflow by un-indenting it
 as far to the left as possible.</p>
 
@@ -50,34 +50,12 @@ icon to display a menu. When defining a high-maturity process, make
 certain to select the most appropriate process phase for each task you
 create.</p>
 
-<p>When defining the various tasks in a workflow, you have the option
-of choosing a "PSP Task."  This is recommended as a best practice.
-PSP Tasks items will be translated into PSP2.1 projects in an
-individual's personal plan.  This enables the individual to draw upon
-their personal historical data (using tools such as PROBE) to refine
-their plan.  This provides a bridge between <b>team</b> historical
-data (which your team should use to assign percentages to the various
-tasks in the workflow), and <b>personal</b> historical data (which
-will be used to distribute time across the various phases of the PSP
-Task within their personal plan).</p>
-
-<p>Since a PSP Task represents all of the tasks in the PSP2.1 process,
-you do not need to explicitly add the PSP2.1 phases (Design, Design
-Review, Code, Code Review, Compile, Test) in places where you have
-added a PSP Task.  However, you <u>do</u> need to add tasks for Design
-Inspection and Code Inspection.  These tasks should immediately follow
-the PSP Task in your workflow.  When you follow this pattern, the
-inspection tasks will automatically be inserted into the correct order
-between the phases of the PSP Task in the individual's "Flat View"
-task list.</p>
-
-
 <p>You are not limited in the number of processes/workflows you can
 create. Each process/workflow, however, should be given a unique
 name.</p>
 
-<p>The five columns on the right are completely optional, but entering
-data can save you a great deal of time later.</p>
+<p>The columns on the right are completely optional, but entering data can
+save you a great deal of time later.</p>
 
 <ul>
 
@@ -154,10 +132,33 @@ allocated to the "Integration Test" task.  Three people are assigned,
 and the time will be spread across them equally, so each one will
 spend 1.6 hours.</p></li>
 
-<li>The Script URLs column allows you to attach process scripts and
-other aids to the elements in a workflow. (<b>But please note:</b> the
-Script URLs column will <u>only</u> appear if you created this Team
-Project using Process Dashboard version 1.12 or higher.)
+</ul>
+
+<p>The columns described above are used by most teams, so they are
+always visible.  However, a number of optional columns are also
+available.  To enable these optional columns, click the button that
+appears in the top-right corner of the table just above the vertical
+scroll bar, and select from the following choices:</p>
+
+<ul>
+
+<li>The Labels column can contain any number of words, separated by
+spaces or commas.  These values will automatically be entered into the
+<a href="CreateBalancedPlan.html#taskLabels">Task Labels</a> column of the
+WBS when the workflow is applied.  This provides a convenient shortcut
+when you always wish to apply a certain label to a given workflow or
+workflow step.</li>
+
+
+<li style='margin-top:9pt'>The Notes column can contain any free-form text,
+which will be entered into the 
+<a href="CreateBalancedPlan.html#taskNotes">Notes</a> column of the WBS when
+the workflow is applied.  This provides a convenient shortcut when you always
+wish to attach a certain note to a given workflow or workflow step.</li>
+
+
+<li style='margin-top:9pt'>The Script URLs column allows you to attach
+process scripts and other aids to the elements in a workflow.
 
 <p>For example, you may have a web page on an organizational process
 library or a team wiki that publishes instructions for a given
@@ -177,12 +178,76 @@ desired text immediately after a particular URL (for example,
 </ul>
 
 
-<p>There is not a Save button on the Common Team Workflows
-Editor. Instead, workflow definitions are automatically saved when you
-save the main work breakdown structure. To save, switch back to the
-main Work Breakdown Structure Editor window and select Save from the
-File menu.</p>
+<p>There is not a Save button on the Common Team Workflows Editor.
+Instead, workflow definitions are automatically saved when you save
+the main work breakdown structure. To save, switch back to the main
+Work Breakdown Structure Editor window and select Save from the File
+menu.</p>
 
+
+<h2>High-Maturity Personal Planning</h2>
+
+<p>As you define the steps in a workflow, two special task types are provided
+in support of high-maturity personal planning.  These types are "<b>PSP
+Task</b>" and "<b>Personal PROBE Task</b>."</p>
+
+<ul>
+
+<li>If your team is developing software, the "<b>PSP Task</b>" is an excellent
+choice.  When you create a PSP task in the WBS, the task will be translated
+into a PSP2.1 project in the individual's personal plan.  This gives them
+access to the wealth of tools, reports, and analyses that have been developed
+for the PSP process.
+
+<p>Since a PSP Task represents all of the steps in the PSP2.1 process, you do
+not need to explicitly add the PSP2.1 phases (Design, Design Review, Code,
+Code Review, Compile, Test) in places where you have added a PSP Task.
+However, you <u>do</u> need to add tasks for Design Inspection and Code
+Inspection.  These tasks should immediately follow the PSP Task in your
+workflow.  When you follow this pattern, the inspection tasks will
+automatically be inserted into the correct order between the phases of the PSP
+Task in the individual's "Flat View" task list.</p></li>
+
+<li>Alternatively, you can add a "<b>Personal PROBE Task</b>" to your workflow
+definition.  The PROBE item creates a single task in an individual's personal
+plan, with the same high-maturity planning tools as a traditional PSP
+"Planning" phase.  This means that the assigned individual will be able to use
+the <a href="../../help/Topics/Planning/UsingSizeEstimatingTemplate.html">Size
+Estimating Template</a> and the
+<a href="../../help/Topics/Planning/UsingProbeWizard.html">PROBE Wizard</a> to
+refine their personal plan for this component.
+
+<p>Unlike the "PSP Task," the "Personal PROBE Task" does not force the use of
+LOC as a size measure, and it does not dictate the list of process phases that
+are performed after planning.  Instead, you select the appropriate size
+measure as you create the PROBE task, and you can add any list of process
+phases you like to the enclosing workflow definition.  Accordingly, the PROBE
+item is an excellent choice for non-software work, and for software
+development workflows that diverge from PSP2.1.</p></li>
+
+</ul>
+
+<p>In either case, the responsible individual will be able to draw upon their
+personal historical data to refine their plan.  This provides a bridge between
+<b>team</b> historical data and <b>personal</b> historical data:</p>
+
+<ul>
+
+<li>High-level, aggregate team data is typically used during the launch to
+estimate the approximate effort that each component will require.</li>
+
+<li>Later, when the individual is ready to begin work on a specific component,
+they will create a more detailed conceptual design and use the PROBE
+techniques to produce a refined estimate.</li>
+
+</ul>
+
+<p>This two-phased approach is an example of the "rolling wave" planning
+technique, which is considered a best-practice with the project management
+commmunity.</p>
+
+
+<h2>Reusing Workflows via Libraries</h2>
 
 <p>Two buttons on the toolbar provide the ability to import (<img
 border=0 width=61 height=28 src="../Images/workflow-import-button.png">) and

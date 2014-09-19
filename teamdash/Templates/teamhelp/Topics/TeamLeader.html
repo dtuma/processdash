@@ -142,6 +142,40 @@ components which are 100% complete.</li>
 </ul>
 
 
+<h2><a name="workflows"></a>Analyzing Workflow Data</h2>
+
+<p>To analyze data from the various workflows in your project, select the
+"Workflow Process Analysis" item from the list on the right side of the Team
+Dashboard window.  When the list of project workflows is displayed in your web
+browser, click the name of a particular workflow to see aggregate metrics.</p>
+
+<p>The report will roll up data from all the WBS components that used this
+workflow and that are 100% complete.  By default it will roll up all component
+data from all of the projects in the Team Dashboard, but you can click the
+Filter link at the top to customize this behavior.</p>
+
+<p>The resulting report displays a number of metrics, such as:</p>
+
+<ul>
+
+<li>End-to-end team productivity, which you can use to update the "Rate" you
+use in the Common Team Workflows window.</li>
+
+<li>The average percentage of time spent in each workflow step, which you can
+use to update the "%" column in the Common Team Workflows window.</li>
+
+<li>Information on the average estimating error, which your team can use to
+make better estimates in the future.</li>
+
+<li>Information on cost of quality, which you can use to improve the
+process.</li>
+
+</ul>
+
+<p>These metrics are extremely useful for ongoing quality monitoring, and for
+end-of-cycle postmortem analysis.</p>
+
+
 <h2><a name="backups"></a>Backing Up Project Data</h2>
 
 <p>Over the course of the project, you should periodically save a backup of
@@ -303,6 +337,74 @@ open.</p>
 <p>For more information on the creation and use of data backups, see
 the <a href="../../help/Topics/AdvancedTopics/BackupData.html">data
 backup</a> help topic.</p>
+
+
+<h2><a name="relaunch"></a>Preparing for Project Relaunch</h2>
+
+<p>Most projects use an iterative development approach.  In the Team Dashboard,
+the recommended best practice is to create a new Team Project to represent each
+successive project iteration.  To assist with this task, a special "Relaunch
+Wizard" is provided.</p>
+
+<p>The team leader or planning manager should generally run the Relaunch Wizard
+just before the team's project relaunch meeting.  To do this, open the Team
+Dashboard, select the just-finished project from the list on the left, and choose
+"File&nbsp;&#8594;&nbsp;Alter&nbsp;Project&nbsp;&#8594;&nbsp;Relaunch."  The
+Team Project Relaunch Wizard will open in your web browser.</p>
+
+<p>Read each page of the relaunch wizard carefully and provide the information
+requested.  The relaunch wizard will:</p>
+
+<ul>
+
+<li>Mark the old project as <b><u>closed</u></b>, indicating that no additional
+work will be performed there.</li>
+
+<li>Create a new Team Project to hold the plan for the new iteration.</li>
+
+<li>Copy the workflows, milestones, and team member schedules from the old plan
+to the new plan.</li>
+
+<li>Copy incomplete components and tasks from the old plan to the new plan.</li>
+
+<li>Adjust the planned times of in-progress tasks to account for work that has
+already been performed.  (For example, if a task in the old plan was estimated
+to take 10 hours, and 4 hours were logged against the task in the old
+iteration, the new iteration will show a planned time of 6 remaining
+hours.)</li>
+
+<li>Send invitations to all existing team members, inviting them to join the
+new project iteration.  They will see the invitation when they open their
+personal dashboard.  Individuals who will not be continuing into the new
+project iteration will be free to decline this invitation.</li>
+
+</ul>
+
+<p>After the relaunch wizard finishes, each team member should:</p>
+
+<ol>
+
+<li>Open their personal dashboard</li>
+
+<li>Accept or decline the invitation to join the new project iteration.</li>
+
+<li>Perform a "sync to WBS" operation for the old project iteration.  This will
+clean up their old plan so its earned value schedule is 100% complete.</li>
+
+</ol>
+
+<p>These actions will happen automatically for most team members.  But if a
+particular individual left the project at some time in the past, you may need
+to contact them and ask them to take these steps so the tasks in the their old
+plan are properly closed.</p>
+
+<p>Most teams will also like to view view end-to-end project data that spans
+all of the iterations of the project.  A Master Project meets this need.  If
+you are just beginning your second iteration, you should 
+<a href="MakeMasterProject.html">create a Master Project</a> and
+<a href="AddToMaster.html">add both project iterations</a> to this master.
+If you have already been using a master project, just add the new project
+iteration to the existing master project.</p>
 
 
 </body>
