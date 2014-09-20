@@ -41,8 +41,10 @@ import javax.swing.JMenuItem;
 
 import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.Settings;
+import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.ev.ui.TaskScheduleChooser;
 import net.sourceforge.processdash.hier.DashHierarchy;
+import net.sourceforge.processdash.hier.DashHierarchy.Event;
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.hier.ui.HierarchyEditor;
 import net.sourceforge.processdash.i18n.Resources;
@@ -87,7 +89,7 @@ public class ConfigureButton extends JMenuBar implements ActionListener, Hierarc
     static final String DEFECT_LOG_FRAME = "Defect_Log";
     static final String PROBE_DIALOG     = "PROBE";
     static final String TASK_DIALOG      = "Task_&_Schedule";
-    static final String DATA_ANALYSIS    = "Data_Analysis";
+    static final String DATA_ANALYSIS    = "PSP_Data_Analysis";
     static final String TOOL_MENU        = "Tools";
     static final String IMPORT           = "Import";
     static final String EXPORT           = "Export";
@@ -125,7 +127,7 @@ public class ConfigureButton extends JMenuBar implements ActionListener, Hierarc
         menu.add(makeMenuItem(TIME_LOG_FRAME));
         menu.add(makeMenuItem(DEFECT_LOG_FRAME));
         menu.add(makeMenuItem(TASK_DIALOG));
-        menu.add(makeMenuItem(DATA_ANALYSIS));
+        menu.add(new DataAnalysisWatcher(makeMenuItem(DATA_ANALYSIS)).menuItem);
         menu.add(buildToolMenu(true));
         menu.add(buildHelpMenu());
         menu.add(makeMenuItem(EXIT_PROGRAM));
@@ -436,6 +438,24 @@ public class ConfigureButton extends JMenuBar implements ActionListener, Hierarc
             showConsole ();
         } else if (cmd.equals(EXIT_PROGRAM)) {
             exitProgram ();
+        }
+    }
+
+    private class DataAnalysisWatcher implements DashHierarchy.Listener {
+        private JMenuItem menuItem;
+        protected DataAnalysisWatcher(JMenuItem pspDataAnalysisMenuItem) {
+            this.menuItem = pspDataAnalysisMenuItem;
+            updatePSPDataAnalysisVisibility();
+            if (!menuItem.isVisible())
+                parent.getHierarchy().addHierarchyListener(this);
+        }
+        public void hierarchyChanged(Event e) {
+            updatePSPDataAnalysisVisibility();
+        }
+        public void updatePSPDataAnalysisVisibility() {
+            SimpleData sd = parent.getData().getSimpleValue("/PSP/Project List");
+            boolean hasPspTasks = (sd != null && sd.test());
+            menuItem.setVisible(hasPspTasks);
         }
     }
 
