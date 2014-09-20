@@ -1,23 +1,21 @@
 <HTML>
 <head>
-<TITLE>The play/pause button</TITLE>
+<TITLE>The Play/Pause Button</TITLE>
 <link rel=stylesheet type="text/css" href="../../style.css">
 </head>
 <BODY>
 
-<H1>Using the play/pause button</H1>
+<H1>Using the Play/Pause Button</H1>
 
 <P>The play/pause button gives access to the timer that is built into the 
 dashboard.</P>
 
 <p class="figure"><img src="../../Images/PointToPlayPauseButton.png"></p>
 
-<P>The dashboard timer makes it easy to measure the amount of time spent in 
-the various phases of your development process.  When you start the timer, it
-will automatically make appropriate entries in your <a 
-href="UsingTimeLogEditor.html">time log</a> for the project/task which you
-have made active with the <a href="HierarchyMenus.html">hierarchy
-menus</a>.</P>
+<P>The dashboard timer makes it easy to measure the amount of time spent on
+various tasks.  When you start the timer, it will automatically make
+appropriate entries in your <a href="UsingTimeLogEditor.html">time log</a> for
+the <a href="HierarchyMenus.html">currently active</a> project/task.</P>
 
 <p>When the timer is stopped, the paused icon will have a soft blue glow:</p>
 
@@ -27,30 +25,30 @@ menus</a>.</P>
 
 <p><img src="../../Images/DashboardRunning.png"></p>
 
-<p>It is <b>not</b> necessary to stop the timer before using the hierarchy
-menus to change the active project/task/phase.  You can leave the timer in
-"play" mode as you move from one phase to another, and it will properly
-finalize one entry in the time log, and open another.</p>
+<p>It is <b>not</b> necessary to stop the timer before changing the active
+task.  You can leave the timer in "play" mode as you move from one task to
+another, and it will properly finalize one entry in the time log, and open
+another.</p>
 
-<a name="timelogdelay"></a><p>When the timer is running and you first navigate
-to an activity, you will notice that the dashboard will not create an entry in
-the time log until you have spent a full minute there; this is by design.
-Navigating from one task to another may require multiple interactions with the
-hierarchy menus, which necessarily implies that the "active" project/task will
-momentarily pass through several intermediate states before finally arriving at
-the desired task.  You would <u>not</u> want the dashboard to create extraneous
-entries in the time log for all those intermediate tasks; therefore, the
-dashboard waits and creates the time log entry only after you have logged 60
-seconds worth of elapsed time to an activity.</p>
+<a name="timelogdelay"></a><p>When you start the timer on a new task, you will
+notice that the dashboard will not create an entry in the time log until you
+have spent a full minute there; this is by design.  Navigating from one task
+to another may require multiple interactions with the active task selector,
+which necessarily implies that the "active" project/task will momentarily pass
+through several intermediate states before finally arriving at the desired
+task.  You would <u>not</u> want the dashboard to create extraneous entries in
+the time log for all those intermediate tasks; therefore, the dashboard waits
+and creates the time log entry only after you have logged 60 seconds worth of
+elapsed time to an activity.</p>
 
-<a name="sound"></a><P>When you start the timer, it will make a short 
-"clicking" sound to let you know it is timing you.  You can leave the timer 
-running as you move from phase to phase and project to project, and it will 
-play the "timing sound" as you navigate to each new project/phase.  Once 
-again, the sound is there to remind you that the dashboard is timing you; the 
-sound will <b>not</b> play if the timer is not running.  Therefore, as you 
-move from one project/phase to another, if you expect to hear the sound and 
-do not (or vice versa), check the state of the timer.</p>
+<a name="sound"></a><P>When you start the timer, it will make a short
+"clicking" sound to let you know it is timing you.  You can leave the timer
+running as you move from task to task and project to project, and it will play
+the "timing sound" as you navigate to each new project/task.  Once again, the
+sound is there to remind you that the dashboard is timing you; the sound will
+<b>not</b> play if the timer is not running.  Therefore, as you move from one
+project/task to another, if you expect to hear the sound and do not (or vice
+versa), check the state of the timer.</p>
 
 <p>When you first begin using the dashboard, it may be difficult to
 remember to start and stop the dashboard timer.  A timing reminder
@@ -59,18 +57,19 @@ href="SystemTray.html#timingReminder">system tray icon</a> help topic
 for more information.</p>
 
 <a name="pullDown"></a><h2>The play/pause button pull-down control</h2>
+
 <P>The play/pause button contains a pull-down control that can be used to
-quickly jump to a point on the project tree where you have recently recorded
-time.  This provides another way of navigating to a project or project phase
-in which you were recently working.</p>
+quickly jump to a project/task where you have recently recorded time.  This
+provides another way of navigating to a task where you were recently
+working.</p>
 
 <p class="figure"><img src="../../Images/PointToPlayPausePullDownShowMenu.png"></p>
 
 <P>In this example, the individual had recently been working through the
 phases in a PSP2.1 project, when they were interrupted by an incoming email
-message.  After finishing with the email message, they could select one of
-the entries in this pull-down list.  The dashboard would navigate to the
-selected task and begin logging time there.</p>
+message.  After finishing with the email message, they could select one of the
+entries in this pull-down list.  The dashboard would activate the selected
+task and begin logging time there.</p>
 
 <p>As this example illustrates, the items in the pull-down are not limited
 to the phases of the current project. Therefore, the pull-down control is

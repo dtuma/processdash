@@ -37,14 +37,6 @@
  </indexitem>
  <indexitem text="dateFormat" target="ConfigurationFile.dateFormat"/>
  <indexitem text="earned value" target="UsingTaskSchedule">
-   <indexitem text="collaboration" target="TaskScheduleCollaboration">
-     <indexitem text="creating rollup" target="TaskScheduleCollaboration.createRollup"/>
-     <indexitem text="limitations and constraints" target="TaskScheduleCollaboration.limitations"/>
-     <indexitem text="publishing" target="TaskScheduleCollaboration.publishFinish"/>
-     <indexitem text="publishing password" target="TaskScheduleCollaboration.publishPassword"/>
-     <indexitem text="sharing" target="TaskScheduleCollaboration.shareFinish"/>
-     <indexitem text="sharing password" target="TaskScheduleCollaboration.sharePassword"/>
-   </indexitem>
    <indexitem text="level of effort tasks" target="TaskScheduleSteps.loe"/>
    <indexitem text="prediction ranges" target="TaskScheduleRanges"/>
  </indexitem>

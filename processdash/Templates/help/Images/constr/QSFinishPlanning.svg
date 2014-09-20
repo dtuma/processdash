@@ -10,7 +10,7 @@
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    width="517"
-   height="88"
+   height="98"
    id="svg5776"
    sodipodi:version="0.32"
    inkscape:version="0.44"
@@ -37,7 +37,7 @@
      inkscape:cy="67.158093"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
-     height="88px"
+     height="98px"
      width="517px"
      inkscape:window-width="1045"
      inkscape:window-height="688"
@@ -57,12 +57,13 @@
   <g
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
-     id="layer1">
+     id="layer1"
+     transform="translate(0,13)">
     <image
-       y="0"
+       y="-13"
        x="0"
        id="image5824"
-       height="54"
+       height="67"
        sodipodi:absref="c:\Tuma\projects\processdash\Templates\help\Images\constr\QSFinishPlanning.png"
        xlink:href="QSFinishPlanning.png"
        width="517" />
@@ -78,8 +79,8 @@
          x="216.27309"
          y="81.197044">Click the Completion checkbox to finish</tspan></text>
     <path
-       style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="M 497.38622,46.211351 L 474.36932,69.228256"
+       style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="M 495.29264,40.30494 L 467.4629,67.134667"
        id="path5833" />
   </g>
 </svg>

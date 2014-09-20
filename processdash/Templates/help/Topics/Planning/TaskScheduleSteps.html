@@ -1,12 +1,12 @@
 <HTML>
 <head>
-<TITLE>Using the Task &amp; Schedule Tool</TITLE>
+<TITLE>Creating a Schedule Step by Step</TITLE>
 <link rel=stylesheet type="text/css" href="../../style.css">
 </head>
 
 <BODY>
 
-<h1>Creating a schedule step by step</h1>
+<h1>Creating a Schedule Step by Step</h1>
 
 <p>The Task &amp; Schedule tool tries to make entering all the data necessary 
 for project planning and tracking as painless as possible.  It fills in many 
@@ -48,27 +48,23 @@ from the dashboard itself must be done from the
 
 <h3 NO_NUMBER>Editing the task list</h3>
 
-<p>Once you have added tasks to the task list, you can use the Remove
-Task button to remove them.  If you remove a <U>top-level</U> task, it
-will be removed from the task list entirely.  (Top-level tasks are the
-tasks that you explicitly added using the Add Task button; in the task
-list, they appear as immediate children of the root of the tree.)  If
-you remove a <u>child</u> of a top-level task, it will be
-&quot;pruned&quot; out of the task list hierarchy, along with all of
-its children.  You can highlight any pruned task (including children
-of a pruned task) and click the Restore Task button to add it back to
-the task list.</p>
+<p>Once you have added tasks to the task list, you can use the Remove Task
+button to remove them.  If you remove a <U>top-level</U> task, it will be
+removed from the task list entirely.  (Top-level tasks are the tasks that you
+explicitly added using the Add Task button; in the task list, they appear as
+immediate children of the root of the tree.)  If you remove a <u>child</u> of
+a top-level task, it will be not be deleted from your work hierarchy; instead,
+it will just be excluded from the calculations for this EV schedule.  This
+option is appropriate if you plan to work on an item in the future, but not
+during the current project iteration.  If you have excluded a task in this
+way, you can restore it by highlighting the pruned task and clicking the
+Restore Task button.</p>
 
-<p><A NAME="flatView"></A>The planned completion dates displayed in
-the task list are based upon the order you plan to complete the tasks.
-It is unlikely that you plan to complete the tasks in the order they
-appear in the hierarchy.  Therefore, there are two ways to indicate
-the planned order of tasks.  First, you can change the relative order
-of top-level tasks by highlighting them and using the Move Task
-Up/Down buttons.  For more fine-grained control, check the Flat View
-checkbox.  This will replace the hierarchical view of the task list
-with a flat view of the &quot;leaf&quot; tasks that have not yet been
-completed.</p>
+<p><A NAME="flatView"></A>The planned completion dates displayed in the task
+list are based upon the order you plan to complete the tasks.  To define the
+correct chronological order, check the Flat View checkbox.  This will replace
+the hierarchical view of the task list with a flat, chronological view of the
+"leaf" tasks that have not yet been completed.</p>
 
 <p class="figure"><img src="../../Images/TaskScheduleFlatView.png"></p>
 

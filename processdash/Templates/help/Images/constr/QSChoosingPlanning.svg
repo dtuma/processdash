@@ -9,8 +9,8 @@
    xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="517"
-   height="90"
+   width="518"
+   height="95"
    id="svg5636"
    sodipodi:version="0.32"
    inkscape:version="0.44"
@@ -37,7 +37,7 @@
      inkscape:cy="146.75592"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
-     height="90px"
+     height="95px"
      width="517px"
      inkscape:window-width="952"
      inkscape:window-height="805"
@@ -57,15 +57,16 @@
   <g
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
-     id="layer1">
+     id="layer1"
+     transform="translate(0,9)">
     <image
-       y="3"
+       y="-9"
        x="0"
        id="image5684"
-       height="54"
+       height="66"
        sodipodi:absref="c:\Tuma\projects\processdash\Templates\help\Images\constr\QSChoosingPlanning.png"
        xlink:href="QSChoosingPlanning.png"
-       width="517" />
+       width="518" />
     <text
        xml:space="preserve"
        style="font-size:14px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
@@ -99,7 +100,7 @@
          sodipodi:role="line"
          id="tspan5697"
          x="271.45645"
-         y="82.536362">Hierarchy menus</tspan></text>
+         y="82.536362">Active Task Selector</tspan></text>
     <path
        style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:1.0377233px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
        d="M 191.27368,50.084104 C 196.10363,57.821655 200.1638,63.616017 207.9894,63.616017 C 229.95026,63.616017 274.99071,63.568885 321.4619,63.519706 C 323.70616,63.517332 329.05839,69.220149 329.41342,68.927007 C 331.4785,67.221891 334.95157,63.505434 337.60915,63.502631 C 382.96322,63.454805 427.29711,63.409992 450.53967,63.409992 C 458.68761,63.409992 459.46708,57.176098 463.84534,50.162151"
@@ -107,11 +108,11 @@
        sodipodi:nodetypes="csscssc" />
     <path
        style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="M 54.964889,47.16775 L 40.916908,71.499568"
+       d="M 58.964889,47.16775 L 44.916908,71.499568"
        id="path5713" />
     <path
        style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="M 137.82575,47.781534 L 151.67917,71.776361"
+       d="M 143.82575,47.781534 L 157.67917,71.776361"
        id="path5715" />
   </g>
 </svg>

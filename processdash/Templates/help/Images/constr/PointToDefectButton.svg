@@ -10,7 +10,7 @@
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    width="555"
-   height="90"
+   height="95"
    id="svg5776"
    sodipodi:version="0.32"
    inkscape:version="0.44"
@@ -37,7 +37,7 @@
      inkscape:cy="67.158093"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
-     height="90px"
+     height="95px"
      width="555px"
      inkscape:window-width="1045"
      inkscape:window-height="688"
@@ -57,12 +57,13 @@
   <g
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
-     id="layer1">
+     id="layer1"
+     transform="translate(0,10)">
     <image
-       y="2"
+       y="-11"
        x="0"
        id="image15501"
-       height="54"
+       height="67"
        sodipodi:absref="c:\Tuma\projects\processdash\Templates\help\Images\constr\ShowHierarchyMenus.png"
        xlink:href="ShowHierarchyMenus.png"
        width="555" />
@@ -79,7 +80,7 @@
          y="83.810814">Defect button</tspan></text>
     <path
        style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="M 108.52276,47.035111 L 133.07412,71.586476"
+       d="M 116.52276,45.035111 L 141.07412,69.586476"
        id="path19281" />
   </g>
 </svg>

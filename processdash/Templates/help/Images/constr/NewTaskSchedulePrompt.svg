@@ -9,13 +9,13 @@
    xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="336"
-   height="185"
+   width="352"
+   height="191"
    id="svg10912"
    sodipodi:version="0.32"
    inkscape:version="0.44"
    version="1.0"
-   sodipodi:docbase="c:\Tuma\projects\processdash\Templates\help\Images\constr"
+   sodipodi:docbase="C:\Tuma\projects\processdash\Templates\help\Images\constr"
    sodipodi:docname="NewTaskSchedulePrompt.svg">
   <defs
      id="defs10914" />
@@ -29,15 +29,15 @@
      objecttolerance="10"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="1.0669355"
+     inkscape:zoom="1"
      inkscape:cx="245.71429"
      inkscape:cy="68.905827"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
-     width="336px"
-     height="185px"
-     inkscape:window-width="853"
-     inkscape:window-height="573"
+     width="352px"
+     height="191px"
+     inkscape:window-width="870"
+     inkscape:window-height="575"
      inkscape:window-x="463"
      inkscape:window-y="278" />
   <metadata
@@ -54,44 +54,45 @@
   <g
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
-     id="layer1">
+     id="layer1"
+     transform="translate(-2,10)">
     <image
-       y="3"
-       x="2"
+       y="-8"
+       x="4"
        id="image10960"
-       height="143"
-       width="332"
+       height="156"
+       width="351"
        sodipodi:absref="c:\Tuma\projects\processdash\Templates\help\Images\constr\NewTaskSchedulePrompt.png"
        xlink:href="NewTaskSchedulePrompt.png" />
     <text
        xml:space="preserve"
        style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
-       x="171.17082"
-       y="146.96536"
+       x="173.17082"
+       y="148.96536"
        id="text10963"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
          id="tspan10965"
-         x="171.17082"
-         y="146.96536">Choose schedule name</tspan></text>
+         x="173.17082"
+         y="148.96536">Choose schedule name</tspan></text>
     <text
        xml:space="preserve"
        style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
-       x="40.891155"
-       y="176.02054"
+       x="42.891155"
+       y="178.02054"
        id="text10967"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
          id="tspan10969"
-         x="40.891155"
-         y="176.02054">Choose schedule type</tspan></text>
+         x="42.891155"
+         y="178.02054">Choose schedule type</tspan></text>
     <path
        style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:2;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       d="M 147.73923,64.486143 L 180.54347,132.9064"
+       d="M 159.73923,66.486143 L 192.54347,134.9064"
        id="path10971" />
     <path
        style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:2;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       d="M 83.068027,143.2163 L 71.820862,163.8361"
+       d="M 85.068027,145.2163 L 73.820862,165.8361"
        id="path10973" />
   </g>
 </svg>

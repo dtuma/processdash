@@ -32,21 +32,31 @@ formulas that can be found in project management textbooks. For more
 details, see the help topic on <a href="TaskScheduleDates.html">earned
 value date calculations</a>.</p>
 
-<p>But the dashboard also contains a powerful new feature: it can
-calculate prediction ranges for these forecast values.  <b>This is an
-innovation developed by the Process Dashboard team.</b> Since these
-calculations are new and innovative, the formulas and algorithms are
-not widely known.  Discriminating users such as yourself will want to
-understand how these values are calculated before trusting/accepting
-them, so the algorithms are described below.</p>
+<p>In addition, the dashboard also contains a powerful, advanced feature: it
+can calculate prediction ranges for these forecast values.</p>
 
-<p>One important point is definitely worth noting.  In the book,
-<i>A&nbsp;Discipline for Software Engineering</i>, Watts Humphrey
-describes methods for calculating prediction intervals that attempt to
-be 100% &quot;statistically valid.&quot; Unfortunately, the methods
-described by Watts tend to break down when applied to the data that
-appears in an earned value schedule, so different statistical
-approaches must be applied instead.</p>
+<p>The forecast ranges in the Process Dashboard are prediction intervals that
+approximate 70% probability.  But it would be a mistake to interpret these
+ranges as a 70% prediction of the date your project will finish.  A better
+interpretation is:</p>
+
+<p style="margin-left: 1cm; font-style:italic">Your plan was not perfect; some
+of the estimates were incorrect.  If the list of remaining tasks is complete,
+and future tasks show the same <b>average</b> estimation error, the project
+could possibly complete on XXXX.  <b>However</b>, that average calculation is
+just a rough approximation, because many completed tasks were higher and lower
+than the average.  If you had worked on tasks in a slightly different order,
+it is possible that a different average would have occurred, resulting in a
+very different forecast.  After analyzing the variation in your estimating
+errors, it seems that the forecast line could have just as easily (with 70%
+probability) fallen between YYYY and ZZZZ.  If this range is wide, you should
+take the current forecast with a grain of salt.</p>
+
+<p>Forecast ranges <b>are an innovation developed by the Process Dashboard
+team.</b> Since these calculations are new and innovative, the formulas and
+algorithms are not widely known.  Discriminating users such as yourself will
+want to understand how these values are calculated before trusting/accepting
+them, so the algorithms are described below.</p>
 
 <p>Some of the algorithms used by the dashboard to calculate earned
 value ranges require a non-statistical approximation to be made as

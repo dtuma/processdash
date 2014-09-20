@@ -9,8 +9,8 @@
    xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="578"
-   height="163"
+   width="586"
+   height="175"
    id="svg20349"
    sodipodi:version="0.32"
    inkscape:version="0.44"
@@ -35,10 +35,10 @@
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      inkscape:window-width="940"
-     inkscape:window-height="664"
-     inkscape:window-x="45"
-     inkscape:window-y="134"
-     width="578px"
+     inkscape:window-height="751"
+     inkscape:window-x="701"
+     inkscape:window-y="79"
+     width="586px"
      height="163px" />
   <metadata
      id="metadata20354">
@@ -55,15 +55,15 @@
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
      id="layer1"
-     transform="translate(-2,-2)">
+     transform="translate(-2,10)">
     <image
-       y="2"
+       y="-10"
        x="2"
        id="image20364"
-       height="163"
+       height="175"
        sodipodi:absref="c:\Tuma\projects\processdash\Templates\help\Images\constr\ChooseEditDataRollupFilter.png"
        xlink:href="ChooseEditDataRollupFilter.png"
-       width="578" />
+       width="586" />
     <text
        xml:space="preserve"
        style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"

@@ -7,53 +7,55 @@
 
 <h1><!--SEP--><a href="../Overview/Separation.html"><img border="0" class="sepnotice" src="../../Images/PSPDisclaimer.png"></a> <!--/SEP--><a name="head"></a>Step 7: Postmortem</h1>
 
-<P>The PSP provides Postmortem scripts for all of the PSP levels.  To get to 
-the postmortem for the current program, we can click the link at the bottom 
-of the development script.  Also, clicking the script button on the dashboard 
-while in the postmortem phase will bring up the postmortem script, or using 
-the pull-down control on the scripts button will display an option for the postmortem script as well.</p>
+<P>The PSP provides Postmortem scripts for all of the PSP levels.  To get to
+the postmortem for the current program, we can click the link at the bottom of
+the development script.  Alternatively, click the script button on the
+dashboard and choose the option for the postmortem script.</p>
 
-<P>After making sure that the entry criteria are met, the next step that must
-be done is to enter the actual size data for the program.  You may find the
+<P>After making sure that the postmortem entry criteria are met, the next step
+is to enter the actual size data for the program.  You may find the
 dashboard's <a href="../PostmortemAnalysis/LOCCounter.html">LOC counter</a>
 useful for measuring added, deleted, and modified lines of code.  Enter the
-actual values for base, deleted, modified, total, base additions, new and
-reused LOC on the Size Estimating Template form, which can be reached by
+actual values for base, deleted, modified, total, base additions, new, reused,
+and total LOC on the Size Estimating Template form, which can be reached by
 clicking the appropriate link from the postmortem script.</p>
 
 <p class="ifpsp" align="center"><img src="../../Images/QSEnterActualLOC.png"></p>
 
-<p>After you enter actual size information for the various rows on the Size
-Estimating Template, you will also need to open "Size" section of the Project
-Plan Summary form.  Review the numbers in the Actual column (correcting any if
-necessary), and enter the Total Actual Size in the appropriate field.</p>
+<p>Some people do not care to enter detailed actual size data on the Size
+Estimating Template.  Those numbers shown above can safely be skipped as long
+as you faithfully enter summarized actual size data on the Project Plan
+Summary:</p>
 
 <p class="ifpsp" align="center"><img src="../../Images/QSEnterActualLOCPPS.png"></p>
 
-<P>Once the actual size information (including measures of reuse) has been 
-entered, we can mark the postmortem 
-phase complete. Once all the phases in the process have been marked 
-complete, the dashboard will mark the project itself complete as well.  We 
-can double check that it has been marked by looking at the Project Completion 
-checkbox on the Project Plan Summary.</p>
-
-<p align="center"><img src="../../Images/QSCheckProjectComplete.png"></p>
-
-<p>If the Project Complete checkbox had not been automatically checked, it 
-would indicate that we had already overridden this automatic behavior.  You 
-can learn more about the relationship between marking the phases complete and 
-marking the entire project complete by reading the <a 
-href="../Execution/CompletionButton.html">Using the completion checkbox</a> 
-help topic.</p>
-
-<p class="ifpsp">Throughout your project, you can view project metrics in the
-Project Plan Summary form.</p>
+<p>During postmortem, you should also review the numbers on the other pages of
+the Project Plan Summary form.  If any numbers seem suspect, make appropriate
+corrections in the <a href="../Execution/UsingTimeLogEditor.html">time</a> and
+<a href="../Execution/UsingDefectLogEditor.html">defect</a> log editors.</p>
 
 <P class="ifpsp" align="center"><img src="../../Images/QSProjectPlanSummary.png"></p>
 
-<P>The Process Dashboard also offers several other aids for analyzing 
-postmortem data.  Choosing Data Analysis from the "C" menu will open the web 
-browser to a set of pages that contain many useful graphs of process data.</P>
+<P>Once the actual size information has been entered and other metrics have
+been reviewed for correctness, we can mark the postmortem phase complete.  If
+you have faithfully marked all of the PSP phases complete, the dashboard will
+mark the project itself complete as well.  We can double check that it has
+been marked by looking at the Project Completion checkbox on the Project Plan
+Summary.</p>
+
+<p align="center"><img src="../../Images/QSCheckProjectComplete.png"></p>
+
+<p>If you marked all of the phases complete, but the Project Complete checkbox
+still is not checked, this would indicate that you had already overridden this
+automatic behavior.  You can learn more about the relationship between marking
+the phases complete and marking the entire project complete by reading the <a
+href="../Execution/CompletionButton.html">Using the completion checkbox</a>
+help topic.</p>
+
+<P>The Process Dashboard also offers several other aids for analyzing
+postmortem data.  Choosing PSP Data Analysis from the "C" menu will open the
+web browser to a set of pages that contain many useful graphs of process
+data.</P>
 
 <p align="center"><img src="../../Images/DataAnalysisScreen.png"></p>
 

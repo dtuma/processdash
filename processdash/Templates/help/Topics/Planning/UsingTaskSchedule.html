@@ -12,7 +12,7 @@
 completing tasks, and track progress against that schedule using earned 
 value. You can open the task and schedule tool by selecting the 
 &quot;Task &amp; Schedule&quot; option on the
-<a href="../Execution/ConfigureMenu.html">configure menu</a>.</P>
+<a href="../Execution/ConfigureMenu.html">configuration menu</a>.</P>
 
 <p>For more guidance in creating an earned value schedule, see the
 <a href="TaskScheduleSteps.html">Creating a schedule step by step</a>
@@ -35,13 +35,22 @@ schedule. The dashboard will ask you to enter a name for the new schedule.
 This allows you to track different schedules from within the dashboard;
 each schedule must have a unique name.</p>
 
-<p class="figure"><img src="../../Images/NewTaskSchedulePrompt.png"></p>
+<p id="evRollup" class="figure"><img src="../../Images/NewTaskSchedulePrompt.png"></p>
 
-<p>In addition to choosing a schedule name, you can indicate whether you
-want to create a regular schedule (for tracking your own work), or an EV
-Roll-up (for combining data from several schedules into a single report).
-Most of the time, you will just want to create a regular schedule, so
-you can just keep the default selection for this item and click OK.</p>
+<p>In addition to choosing a schedule name, you can indicate whether you want
+to create a regular schedule or an EV roll-up.</p>
+
+<ul>
+
+<li>A regular schedule is used to plan work and track progress against a
+calendar.  This is the most commonly used option.</li>
+
+<li>A roll-up schedule calculates a roll-up of data from two or more other
+schedules.  If you are splitting your time between a number of different team
+projects (each with its own schedule), you can create a rollup to view and
+track your consolidated personal progress.</li>
+
+</ul>
 
 <p>When a new schedule is first created, an empty Task &amp; Schedule
 window will appear prompting you for the first task you want to add to the
@@ -51,11 +60,13 @@ schedule.</p>
 
 <p>All the tasks that are to be tracked within the schedule must come from 
 the project hierarchy defined using the 
-<a href="UsingHierarchyEditor.html">Hierarchy Editor</a>.  You can track 
-progress against PSP projects, projects you have made using custom process 
-scripts or add-on process sets, or even against just a hierarchy of task 
-names that are not associated with a particular process in the dashboard.  
-The Task &amp; Schedule tool is completely process independent.</p>
+<a href="UsingHierarchyEditor.html">Hierarchy Editor</a> or the 
+<a href="../../../teamhelp/Topics/EditingTheWBS.html">Work Breakdown Structure
+Editor</a>.  You can track progress against PSP projects, projects you have
+made using custom process scripts or add-on process sets, or even against just
+a hierarchy of task names that are not associated with a particular process in
+the dashboard.  The Task &amp; Schedule tool is completely process
+independent.</p>
 
 <P>The Task &amp; Schedule window combines a project task list and a
 simple project schedule into one window.  The top portion of the
@@ -137,6 +148,15 @@ automatically when you mark the task complete via the <a
 href="../Execution/CompletionButton.html">Completion
 Button</a>. Alternately, you can edit completion dates here (for example,
 if you need to back-date the completion of an item).</p>
+
+<p><b>Milestone:</b> If milestones have been defined by a team project, this
+column will appear to display the milestone each task is associated with.  If
+a particular task is not projected to finish in time to meet the milestone
+commitment date, the value in this column will turn red and a tooltip will
+provide additional information.</p>
+
+<p><b>Labels:</b> If labels have been defined in a team project, this column
+will appear to show the labels associated with each task.</p>
 
 <p><b>Notes:</b> This column displays a note icon for any task that has
 an <a href="../Execution/NoteIndicator.html">associated note</a>. You can
@@ -331,12 +351,15 @@ example, if you add a task to your task list, then add its parent as well.
 If you do this, the dashboard will dutifully create a schedule as if you were 
 performing the task twice.</P>
 
-<P><B>Conflicts between different schedules:</B> The dashboard lets you 
-create multiple, independent schedules. It does not, however, offer any 
-support for time management when multiple schedules are running concurrently. 
-Nothing prevents you from creating twelve different concurrent schedules, and 
-promising to spend 40 hours per week on each.  Also, nothing prevents you 
-from adding one task to multiple different schedules.</P>
+<P><B>Conflicts between different schedules:</B> The dashboard lets you create
+multiple, independent schedules. It does not, however, prevent you from
+overextending yourself when multiple schedules are running concurrently.
+Nothing prevents you from creating twelve different concurrent schedules, and
+promising to spend 40 hours per week on each.  If you are splitting your time
+across a number of different projects, take the time to 
+<a href="#evRollup">create an EV rollup</a> of your active projects.  In that
+EV rollup, you can click on a cell in the PT column to manage your weekly time
+commitments across the various projects.</p>
 
 <P><B>Time estimates that don't add up:</B> The Planned Time (PT) column 
 should always add up in a hierarchical manner; that is, the planned time for 

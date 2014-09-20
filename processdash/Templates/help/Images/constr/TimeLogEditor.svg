@@ -9,13 +9,13 @@
    xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="861"
+   width="890"
    height="445"
    id="svg18308"
    sodipodi:version="0.32"
    inkscape:version="0.44"
    version="1.0"
-   sodipodi:docbase="c:\Tuma\projects\processdash\Templates\help\Images\constr"
+   sodipodi:docbase="C:\Tuma\projects\processdash\Templates\help\Images\constr"
    sodipodi:docname="TimeLogEditor.svg">
   <defs
      id="defs18310" />
@@ -29,15 +29,15 @@
      objecttolerance="10"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="0.8463093"
+     inkscape:zoom="1"
      inkscape:cx="434.28574"
      inkscape:cy="230.76577"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      height="445px"
-     width="861px"
-     inkscape:window-width="953"
-     inkscape:window-height="647"
+     width="890px"
+     inkscape:window-width="1091"
+     inkscape:window-height="755"
      inkscape:window-x="390"
      inkscape:window-y="208" />
   <metadata
@@ -56,17 +56,17 @@
      inkscape:groupmode="layer"
      id="layer1">
     <image
-       y="3.7907562"
+       y="4"
        x="2"
        id="image18323"
        height="400"
-       width="857"
+       width="886"
        sodipodi:absref="c:\Tuma\projects\processdash\Templates\help\Images\constr\TimeLogEditor.png"
        xlink:href="TimeLogEditor.png"
        style="font-size:18px" />
     <path
-       style="fill:none;fill-rule:evenodd;stroke:white;stroke-width:4;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;stroke-miterlimit:4;stroke-dasharray:none"
-       d="M 372.20435,419.00478 L 433.64761,46.800427"
+       style="fill:none;fill-rule:evenodd;stroke:white;stroke-width:3.99999976;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="M 372.20435,419.20133 L 433.64761,50.79532"
        id="path19227" />
     <text
        xml:space="preserve"
@@ -81,15 +81,16 @@
          y="439.55829">Hierarchical project view</tspan></text>
     <text
        xml:space="preserve"
-       style="font-size:18px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
-       x="343.84592"
-       y="439.55829"
+       style="font-size:17.90792084px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
+       x="342.08698"
+       y="441.80521"
        id="text18330"
-       sodipodi:linespacing="125%"><tspan
+       sodipodi:linespacing="125%"
+       transform="scale(1.005142,0.994884)"><tspan
          sodipodi:role="line"
          id="tspan18332"
-         x="343.84592"
-         y="439.55829">Date filter</tspan></text>
+         x="342.08698"
+         y="441.80521">Date filter</tspan></text>
     <text
        xml:space="preserve"
        style="font-size:18px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
@@ -102,16 +103,16 @@
          x="703.05267"
          y="439.55829">Time entries</tspan></text>
     <path
-       style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:2;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;stroke-miterlimit:4;stroke-dasharray:none"
-       d="M 27.176825,421.36798 L 76.804072,285.48385"
+       style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:2;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="M 27.176825,421.368 L 76.804072,290.48387"
        id="path19223" />
     <path
-       style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:2;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;stroke-miterlimit:4;stroke-dasharray:none"
-       d="M 749.1351,420.18638 L 721.95828,292.57346"
+       style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:1.99999976;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="M 749.1351,420.18629 L 721.95828,296.57339"
        id="path19231" />
     <path
        id="path19233"
-       d="M 372.20435,419.00478 L 433.64761,46.800427"
-       style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:2;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;stroke-miterlimit:4;stroke-dasharray:none" />
+       d="M 372.20435,419.20133 L 433.64761,50.79532"
+       style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:1.99999988;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
   </g>
 </svg>

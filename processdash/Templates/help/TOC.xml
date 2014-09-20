@@ -52,7 +52,6 @@
         </tocitem>
         <tocitem image="PageIcon" target="TaskScheduleDependencies" text="Tracking task dependencies"/>
         <tocitem image="PageIcon" target="TaskScheduleRanges" text="Prediction Ranges in the Task &amp; Schedule Tool"/>
-        <tocitem image="PageIcon" target="TaskScheduleCollaboration" text="Task &amp; Schedule Collaboration"/>
       </tocitem>
       <tocitem image="PageIcon" target="DataFreezing" text="Data Freezing"/>
     </tocitem>
@@ -87,6 +86,7 @@
          <tocitem image="PageIcon" target="ConfigurationFile" text="Advanced configuration settings"/>
       </tocitem>
       <tocitem image="PageIcon" target="DatabaseOverview" text="Database Support"/>
+      <tocitem image="PageIcon" target="CustomJSPs" text="Custom JSP Reports"/>
       <tocitem image="PageIcon" target="MultipleToDateData" text="Using multiple sets of To Date data"/>
       <tocitem image="PageIcon" target="DashboardFindsFiles" text="Making changes to the process scripts"/>
       <tocitem image="PageIcon" target="CustomLOCCounter" text="Defining a custom LOC counter"/>

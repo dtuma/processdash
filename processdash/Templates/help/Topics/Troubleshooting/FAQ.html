@@ -116,7 +116,7 @@ Environment on my computer. How can I tell the dashboard which one to use?</b>
     Properties</li>
   <li>The &quot;Target&quot; field will contain &quot;C:\Program Files\Process
     Dashboard\pspdash.jar&quot;. Change it to read (all on one line):<br><br>
-      <code><FONT SIZE="-2">&quot;C:\Program&nbsp;Files\JavaSoft\JRE\1.3.1\bin\java&quot; -jar &quot;C:\Program&nbsp;Files\Process&nbsp;Dashboard\pspdash.jar&quot;</font></code><br><br>
+      <code><FONT SIZE="-2">&quot;C:\Program&nbsp;Files\JavaSoft\JRE\1.7\bin\java&quot; -jar &quot;C:\Program&nbsp;Files\Process&nbsp;Dashboard\pspdash.jar&quot;</font></code><br><br>
     (Of course, you may need to modify the path to the &quot;java&quot; program
     if it is slightly different on your computer.)
      </li>
@@ -531,28 +531,19 @@ dashboard is NOT susceptible to any existing worms or viruses, and the
 default dashboard settings make it impossible for other computers to
 connect to your dashboard.</P>
 
-<P>The longer answer: the web server in the dashboard is custom code,
-written from scratch specifically for the dashboard. Because it shares
-no common code with any other web server, viruses and worms which have
-been written to attack other web servers (such as Microsoft's IIS web
-server) will not affect it in any way.</P>
+<P>The longer answer: the web handling logic in the dashboard is based on
+Jetty, a widely-used and thoroughly reviewed open-source web server.  The
+broad user base and continual review process help to make Jetty very secure.
 
-<P>We cannot guarantee that the dashboard web-server code is
-defect-free, and impervious to attacks by hackers. But those hackers
-would have to write a virus or worm to specifically target the
-dashboard. The dashboard currently has less than 10000 users
-worldwide, so I would imagine it to be a fairly unlikely target.</P>
-
-<P>Fortunately, because the dashboard is written in Java rather than
-C/C++, it is not susceptible to many common hacking techniques like
-buffer overruns (a common worm infection strategy). This means that
-even if a hacker was interested in writing an attack targeted at the
-dashboard, the worst thing they could probably do is to crash your
-running dashboard program.</P>
+<P>Fortunately, because the dashboard is written in Java rather than C/C++, it
+is not susceptible to many common hacking techniques like buffer overruns (a
+common worm infection strategy). This means that even if a hacker was
+interested in writing an attack targeted at the dashboard, the worst thing
+they could probably do is to crash your running dashboard program.</P>
 
 <P>If this information doesn't allay your concerns, you can use the
 "http.allowRemote" setting to ensure that it is impossible for other 
-computers to connect to the dashboard (this is the default). See the 
+computers to connect to the dashboard (this is the default).  See the 
 <a href="../AdvancedTopics/ConfigurationFile.html#http.allowRemote">advanced
 settings</a> help topic for more information.</P>
 

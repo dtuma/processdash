@@ -1,17 +1,17 @@
-<HTML>
+<html>
 <head>
-<TITLE>Using the Size Estimating Template</TITLE>
+<title>Using the Size Estimating Template</title>
 <link rel=stylesheet type="text/css" href="../../style.css">
 </head>
-<BODY>
+<body>
 
-<H1><!--SEP--><a href="../Overview/Separation.html"><img border="0" class="sepnotice" src="../../Images/PSPDisclaimer.png"></a> <!--/SEP-->Using the Size Estimating Template</H1>
+<h1><!--SEP--><a href="../Overview/Separation.html"><img border="0" class="sepnotice" src="../../Images/PSPDisclaimer.png"></a> <!--/SEP-->Using the Size Estimating Template</h1>
 
-<P>The Size Estimating Template is used to help make estimates of how big a 
-new software project will be or how long it will take to create the project 
-(size and time estimation).  It is patterned after the Size Estimating 
-Template from Watts Humphrey's book <i>A&nbsp;Self-Improvement Process
-for Software Engineers</i>.</p>
+<p>The Size Estimating Template is used to help make estimates of how big a
+new project will be or how long it will take to create the project (size and
+time estimation).  It is patterned after the Size Estimating Template from
+Watts Humphrey's book <i>A&nbsp;Self-Improvement Process for Software
+Engineers</i>.</p>
 
 <p class="ifpsp" align="center"><img src="../../Images/SizeEstimatingTemplate.png"></p>
 
@@ -21,28 +21,25 @@ form.  If you are using the old version of the PSP scripts, you will see the
 old form layout.  The paragraphs below describe the new version of the
 form.)</p>
 
-<P>Right near the top of the form is a link to bring up the Size Estimating
+<p>Right near the top of the form is a link to bring up the Size Estimating
 Template instructions form.  The dashboard will bring up the instructions in
 a separate web browser so that the two can be placed side by side on your
 screen.</p>
 
-<P>Also, there are several links on the form that will add rows to the form.  
+<p>Also, there are several links on the form that will add rows to the form.  
 If you need more room than the form provides, just click on the appropriate 
 link and it will expand for you.</p>
 
-<P>The header section contains entries for the name of the project and your 
-name.  Both of these fields should be automatically filled in by the 
-dashboard (if your name does not appear, go ahead and enter it -- it will 
-show up on the other forms as well).</p>
+<p>The header section contains a field for your name.  If the field is empty,
+go ahead and enter your name; it will show up on the other forms as well.</p>
 
-<p>The Size Estimating Template can theoretically be used to estimate any
-type of work, so the official version of this form includes a header field
-describing the unit of size measurement used for the numbers on the form.
-However, the PSP process definitions are currently focused on support for
-software development, so this value will be hardcoded to "LOC" for PSP
-tasks.  If you are using the Size Estimating Template in conjunction with
-a <a href="../Overview/ProcessScripts.html#generic">generic project</a>,
-you should enter the appropriate size metric in this field.</p>
+<p>The Size Estimating Template can be used to estimate many different types
+of work.  If you are using a PSP task, the dashboard will assume that you are
+producing software source code, and will automatically enter "LOC" in the
+"Size Measure" field.  If you are using a defined team workflow, the size
+measure from that process will be entered into this field instead.  If you are
+using a <a href="../Overview/ProcessScripts.html#generic">generic project</a>,
+you must enter the appropriate size metric in this field.</p>
 
 <h2><a name="baseLOC"></a>Base Parts</h2>
 
@@ -51,47 +48,54 @@ preexisting components that may need modifications during the course of
 your project.  If you have several of these components, you can use a
 separate line for each.</p>
 
-<p>The form has blanks for both Estimated and Actual sets of data.  When
-using this form for planning purposes, the Estimated columns should get
-filled in.  After the project is finished and you are in the postmortem
-phase, you should enter data in the Actual columns.</p>
+<p>The form has blanks for both Estimated and Actual sets of data.  During the
+planning phase of the project, you should enter data in the Estimated columns.
+After the project is finished and you are in the postmortem phase, you can
+enter data in the Actual columns.</p>
 
-<P>The form asks for the base size and the size of deleted, added, and
+<p>The form asks for the base size and the size of deleted, added, and
 modified elements.  In the BASE column, enter the size of the preexisting
-component. For example if you are creating a modification to an already
-existing program, the LOC from the existing program count as base LOC.</p>
+component. (For example if you are creating a modification to an already
+existing computer program, the LOC from the existing program count as base
+LOC.)</p>
 
 <p>In the next three columns, you estimate the size of deleted, modified, and
-added elements.  For example, you would enter the number of existing LOC you
-think you might delete, the number of existing LOC you think you might
-modify, and some number of new LOC you think you might add.  A histogram
-appears to show you how these numbers relate to the size of the preexisting,
-base program.  You can drag sliders to estimate an approximate
+added elements.  (Continuing the software example, you would enter the number
+of existing LOC you think you might delete, the number of existing LOC you
+think you might modify, and some number of new LOC you think you might add.)
+A histogram appears to show you how these numbers relate to the size of the
+preexisting, base component.  You can drag sliders to estimate an approximate
 percentage.</p>
 
 <h2><a name="baseAdditions"></a>Parts Additions</h2>
 
-<P>Parts Additions is the section where you will record the bulk of new
-development in most of your projects.  This section allows you to estimate
-the new components you believe you will create during the course of this
-project.  These could be new objects, new files, new functions, new
-subroutines, new methods, etc. - whatever makes the most sense for your
-estimating needs.</p>
+<p>Parts Additions is the section where you will record the bulk of new
+development in most of your projects.  This section allows you to estimate the
+new components you believe you will create during the course of this project.
+You can choose the level of granularity that makes the most sense for your
+estimating needs.  For software development, these could be new objects, new
+files, new functions, new subroutines, new methods, etc.  For document
+creation, these could be new documents, new document sections, new paragraphs,
+etc.  Each object should be something you can visualize during the planning
+process, and whose size can be estimated using the Size Metric displayed in
+the field at the top of the form.</p>
 
 <p>Blanks are provided to enter the description of each added part, the type
-of part that is being added, the number of items that are going to be added
-of this type, the relative size of these items, and the numeric
-estimate/measure of the size of each added part.</p>
+of part that is being added, the number of items that are going to be added of
+this type, the relative size of these items, and the numeric estimate/measure
+of the size of each added part.</p>
 
-<P>When you are estimating in LOC (for example, for a PSP task), the type
-field will include a default set of categories: namely Calculation,
-Data, I/O, Logic, Setup or Text.  However, you can define your own categories
-by clicking on the hyperlink at the top of the column.  New PSP users should
-usually stick to the preset types; as you gain experience, you may use your
-PSP training to define your own proxy categories.  Select the category that
-best fits the type of each added part.</p>
+<p>The type of each part is selected from a table of standard object
+categories.  When you first begin using this form, you may not have such a
+table.  If you or your team members create one or more tables, you can enter
+them by clicking on the hyperlink at the top of the column.  (If you are
+estimating software development in LOC, you will have the benefit of a default
+set of categories: namely Calculation, Data, I/O, Logic, Setup or Text.  New
+PSP users should usually stick to the preset types; as you gain experience,
+you may use your PSP training to define your own proxy categories.)  Select
+the category that best fits the type of each added part.</p>
 
-<P>The number of items can be useful when you are estimating a high-level
+<p>The number of items can be useful when you are estimating a high-level
 object.  For example, if you are estimating the size of an object or class in
 an object-oriented language, you could use this field to record the number of
 methods that will be present in an object you plan to create.  If you are
@@ -99,18 +103,19 @@ using some custom proxy type category, this field could capture the count of
 proxy elements you plan to produce.  If these scenarios don't apply, you can
 leave this field blank or enter the number "1".</p>
 
-<P>The relative size pull down allows you to choose from subjective size
+<p>The relative size pull down allows you to choose from subjective size
 categories such as Very Small, Small, Medium, Large, and Very Large.  To
 produce the most accurate estimates, you should aim for a level of planning
 granularity that allows most of your planned parts to be of Medium size, with
-a balance of smaller and larger parts.</P>
+a balance of smaller and larger parts.</p>
 
-<p>After you enter values in the previous three columns, the data in the
+<p>After you enter values in the previous three columns, the data from the
 proxy category table will be used to produce an estimated size.  If the
-generated number seems too big or too small, choose a different relative
-size.</p>
+generated number seems too big or too small, choose a different relative size.
+If you did not have a table of object categories to use, you should make your
+best estimate of the size and enter it into this field.</p>
 
-<p>As you enter new parts, consider whether each new part is sufficiently
+<p>If you are writing software, consider whether each new part is sufficiently
 general purpose that it can be checked into a reuse library.  Generally this
 means more than just code that can probably be reused in the general sense.
 It usually has to do with proper packaging of the code as well: Are proper
@@ -120,25 +125,25 @@ column.</p>
 
 <h2><a name="reusedObjects"></a>Reused Parts</h2>
 
-<P>Reused parts are objects that are brought into the program from a reuse
-library and used verbatim.  New PSP users can sometimes be confused by the
-line between a reused part and a base part.  The main rule is that you must
-not count the same component as both base and reused - otherwise the size
-accounting formulas will not work out correctly.  In addition, the form will
-not let you enter added/deleted/modified size for reused parts, so you should
-only put items in the reused parts section if they can be reused with no
-changes.</p>
+<p>Reused parts are typically only used during software development; they are
+objects that are brought into the program from a reuse library and used
+verbatim.  New PSP users can sometimes be confused by the difference between a
+reused part and a base part.  The main rule is that you must not count the
+same component as both base and reused - otherwise the size accounting
+formulas will not work out correctly.  In addition, the form will not let you
+enter added/deleted/modified size for reused parts, so you should only put
+items in the reused parts section if they can be reused with no changes.</p>
 
 <h2><a name="time"></a>Performing the size/time estimation</h2>
 
-<P>Once you have thought through all the changes that are going to be made to
+<p>Once you have thought through all the changes that are going to be made to
 the software, you are ready to calculate a prediction of size and or time.
 The form will add up numbers from the sections above to produce an Estimated
 Proxy Size, which the PROBE method will use as your base estimate.</p>
 
 <p class="ifpsp" align="center"><img src="../../Images/ProbeWizardLink.png"></p>
 
-<P>The Size Estimation Template offers a link that will allow you to choose 
+<p>The Size Estimation Template offers a link that will allow you to choose 
 the PROBE Wizard to help you make your estimates.  If you use the PROBE 
 Wizard, it will read your Estimated Proxy Size off the size estimating 
 template automatically, and will save your chosen estimates back to the size 
@@ -146,7 +151,7 @@ estimating template automatically. For more information about using the PROBE
 Wizard, see the <a href="UsingProbeWizard.html">Using the PROBE Wizard</a> 
 help topic.</p>
 
-<P>On the other hand, if you use the PROBE tool, you will need to type the 
+<p>On the other hand, if you use the PROBE tool, you will need to type the 
 Estimated Proxy Size into the Estimate field on the tool. Once you have 
 investigated the relationships among your process data, you should manually 
 copy your final estimates back to the size estimating template, along with 
@@ -159,18 +164,19 @@ see the <a href="UsingProbeTool.html">Using the PROBE tool</a> help topic.</p>
 
 <h2><a name="postmortem"></a>Entering Actual data during Postmortem</h2>
 
-<P>Once you reach the Postmortem phase and you have the Actual size data, 
+<p>Once you reach the Postmortem phase and you have the Actual size data, 
 you should return to this form to enter the actuals for the various measures 
 on the form (base, deleted, modified, and added size, counts for the 
 various objects, etc.).</p> 
 
 <p class="ifpsp" align="center"><img src="../../Images/QSEnterActualLOC.png"></p>
 
-<P>That's all the data that has to be entered on this form.  The dashboard
-calculates as much of the data for you as possible.  The numbers entered and
-calculated on this form will automatically appear on the Project Plan Summary
-form.</p>
+<p>Some people do not care to enter detailed actual size data on the Size
+Estimating Template.  Those numbers shown above can safely be skipped as long
+as you faithfully enter summarized actual size data on the Project Plan
+Summary:</p>
 
+<p class="ifpsp" align="center"><img src="../../Images/QSEnterActualLOCPPS.png"></p>
 
-</BODY>
-</HTML>
+</body>
+</html>

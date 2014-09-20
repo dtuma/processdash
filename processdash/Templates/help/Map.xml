@@ -148,13 +148,6 @@
   <mapID target="EV.cumDirectTimeChart" url="Topics/Planning/EV-cumDirectTimeChart.html" />
   <mapID target="EV.cumCombinedChart" url="Topics/Planning/EV-cumCombinedChart.html" />
   <mapID target="TaskScheduleDependencies" url="Topics/Planning/TaskScheduleDependencies.html" />
-  <mapID target="TaskScheduleCollaboration" url="Topics/Planning/TaskScheduleCollaboration.html" />
-  <mapID target="TaskScheduleCollaboration.publishPassword" url="Topics/Planning/TaskScheduleCollaboration.html#publishPassword" />
-  <mapID target="TaskScheduleCollaboration.publishFinish" url="Topics/Planning/TaskScheduleCollaboration.html#publishFinish" />
-  <mapID target="TaskScheduleCollaboration.sharePassword" url="Topics/Planning/TaskScheduleCollaboration.html#sharePassword" />
-  <mapID target="TaskScheduleCollaboration.shareFinish" url="Topics/Planning/TaskScheduleCollaboration.html#shareFinish" />
-  <mapID target="TaskScheduleCollaboration.createRollup" url="Topics/Planning/TaskScheduleCollaboration.html#createRollup" />
-  <mapID target="TaskScheduleCollaboration.limitations" url="Topics/Planning/TaskScheduleCollaboration.html#limitations" />
   <mapID target="UsingTaskSchedule.progress" url="Topics/Planning/TaskScheduleSteps.html#progress" />
   <mapID target="TaskScheduleRanges" url="Topics/Planning/TaskScheduleRanges.html" />
   <mapID target="TaskScheduleRanges.cost" url="Topics/Planning/TaskScheduleRanges.html#cost" />
@@ -169,6 +162,7 @@
   <mapID target="TeamUseEV" url="Topics/AdvancedTopics/TeamUseEV.html" />
   <mapID target="TeamUsePSPEV" url="Topics/AdvancedTopics/TeamUsePSPEV.html" />
   <mapID target="TeamUseCustomProcess" url="Topics/AdvancedTopics/TeamUseCustomProcess.html" />
+  <mapID target="CustomJSPs" url="Topics/AdvancedTopics/CustomJSPs.html" />
 
   <!-- entries for the preferences tool and various preference settings -->
 

@@ -10,7 +10,7 @@
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    width="515"
-   height="90"
+   height="94"
    id="svg5776"
    sodipodi:version="0.32"
    inkscape:version="0.44"
@@ -37,7 +37,7 @@
      inkscape:cy="67.158093"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
-     height="90px"
+     height="94px"
      width="515px"
      inkscape:window-width="1045"
      inkscape:window-height="688"
@@ -57,12 +57,13 @@
   <g
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
-     id="layer1">
+     id="layer1"
+     transform="translate(0,10)">
     <image
-       y="2"
+       y="-10"
        x="0"
        id="image5969"
-       height="54"
+       height="66"
        sodipodi:absref="c:\Tuma\projects\processdash\Templates\help\Images\constr\QSCompiling.png"
        xlink:href="QSCompiling.png"
        width="515" />

@@ -9,8 +9,8 @@
    xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="394"
-   height="162"
+   width="391"
+   height="166.60054"
    id="svg17395"
    sodipodi:version="0.32"
    inkscape:version="0.44"
@@ -34,15 +34,15 @@
      inkscape:pageshadow="2"
      inkscape:zoom="1"
      inkscape:cx="145.24503"
-     inkscape:cy="65.5"
+     inkscape:cy="68.541751"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      height="162px"
      width="394px"
-     inkscape:window-width="853"
-     inkscape:window-height="599"
+     inkscape:window-width="870"
+     inkscape:window-height="677"
      inkscape:window-x="513"
-     inkscape:window-y="327" />
+     inkscape:window-y="249" />
   <metadata
      id="metadata17400">
     <rdf:RDF>
@@ -57,15 +57,16 @@
   <g
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
-     id="layer1">
+     id="layer1"
+     transform="translate(-2,7)">
     <image
-       y="2"
+       y="-6.3994598"
        x="2"
        id="image17410"
-       height="134"
+       height="143"
        sodipodi:absref="c:\Tuma\projects\processdash\Templates\help\Images\constr\PointToPlayPausePullDownShowMenu.png"
        xlink:href="PointToPlayPausePullDownShowMenu.png"
-       width="386" />
+       width="391" />
     <text
        xml:space="preserve"
        style="font-size:15px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
@@ -79,11 +80,11 @@
          y="156.4438">Play/Pause button pull-down tab</tspan></text>
     <path
        id="path18304"
-       d="M 75.142857,42.838373 L 32.965986,142.83837"
+       d="M 79.142857,42.838373 L 36.965986,142.83837"
        style="fill:none;fill-rule:evenodd;stroke:white;stroke-width:4;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
     <path
        style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:2;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       d="M 75.142857,42.838373 L 32.965986,142.83837"
+       d="M 79.142857,42.838373 L 36.965986,142.83837"
        id="path17417" />
   </g>
 </svg>

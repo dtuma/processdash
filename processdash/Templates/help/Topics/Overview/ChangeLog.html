@@ -8,6 +8,213 @@
 <H1>Change History</H1>
 
 
+<h2>Features new in version 2.1</h2>
+
+<ul>
+
+
+<li>The Process Dashboard's internal web server has been enhanced to support
+Java servlets and JSPs.  This makes it possible to
+<a href="../AdvancedTopics/CustomJSPs.html">develop custom reports</a> using
+standard Java technologies, and run them against the project data in the Team
+Dashboard.</li>
+
+<li>Significant new features have been added for Common Team Workflows:
+
+    <ul>
+
+    <li>In the WBS Editor, different icons are now used to visually
+	distinguish tasks that were created by the application of a workflow.
+	This makes it possible to track the process origin of a particular
+	task in the plan.</li>
+
+    <li>In the Team Dashboard, a new "Workflow Process Analysis" report is
+        provided on the script menu.  This report shows the time spent in each
+        step of the workflow, along with high-level metrics such as cost of
+        quality and historical productivity rates.</li>
+
+    <li>When defining a workflow, teams can now add a special "Personal PROBE
+        Planning" element.  This element enables the assigned individual to
+        use the Size Estimating Template and PROBE Wizard to generate size and
+        time estimates for their work.  It also provides a personal Project
+        Plan Summary for the component, as well as a "To Date" report showing
+        aggregate metrics for other components that the individual has
+        produced using this workflow.</li>
+
+    <li>The Common Team Workflows window will now allow teams to prepopulate
+        workflows with labels and notes.  To do this, teams can click a button
+        in the top-right corner of the workflows table to select the optional
+        workflow columns they wish to edit.</li>
+
+    <li>The embedded database in the Team Dashboard now includes information
+        about the workflows that were used to generate various tasks in a
+        project plan.</li>
+
+    </ul></li>
+
+<li>A new Relaunch Wizard is provided to help teams prepare for team project
+relaunch meetings.  This Relaunch Wizard:
+
+    <ul>
+
+    <li>Creates a new Team Project to hold the plan for the new iteration, and
+        invites team members to join this new project iteration.</li>
+
+    <li>Copies the workflows, milestones, and team member schedules from the
+        old plan to the new plan.</li>
+
+    <li>Copies incomplete components and tasks from the old plan to the new
+        plan, and adjusts the planned times of in-progress tasks to account
+        for work that has already been performed.</li>
+
+    <li>Marks the old project as closed, indicating that no additional work
+        will be performed there.  The next Sync WBS operation will help team
+        members to close the remaining tasks on the old project.</li>
+
+    </ul></li>
+
+<li>Milestones receive significantly improved support within earned value
+schedules:
+
+    <ul>
+
+    <li>A new Milestones chart is available for earned value schedules in both
+        the team and personal dashboard.  This chart displays a horizontal bar
+        for each milestone, comparing projected progress to the milestone
+        commit dates.  When the plan is not projected to satisfy a given
+        milestone date, you can click on the corresponding bar and view a
+        Gantt chart to determine which tasks are responsible for the
+        slip.</li>
+
+    <li>The Task &amp; Schedule window, EV report, and weekly report display a
+        new Milestone column (rather than folding milestone data into the
+        Labels column).</li>
+
+    <li>When a task is projected to miss a milestone commit date, the new
+        Milestone column will visually flag an error and provide a tooltip
+        with more information.</li>
+
+    <li>In Flat View, an individual can check a box to highlight all of the
+        tasks associated with a particular milestone.  When they do this, a
+        dashed line is drawn over the list of tasks to illustrate the commit
+        date when tasks must be completed.  These features help the individual
+        as they rearrange tasks to meet the deadline.</li>
+
+    </ul></li>
+
+<li>The enhanced charts are now available for all teams to use free of
+charge.</li>
+
+
+<!-- ** MEDIUM ********************************************************** -->
+
+<li>The Weekly EV Report has always displayed the total actual time logged
+against each completed and in-progress task.  Now, it also displays the amount
+of time that was logged to each task during the week in question.  This makes
+it possible to distinguish between active and idle tasks.</li>
+
+<li>When filtering a report in the Team Dashboard, two new tokens are
+automatically available.  "Completed_Tasks" filters the report to display the
+tasks that have been marked complete, and "Completed_Components" filters the
+report to show data from team project components that are 100% complete.</li>
+
+<li>The active task selector has been redesigned to make better use of
+available space, and to better support complex projects with deep work
+breakdown structures.  The main window now displays as much of the active task
+name as possible, and the portions that do not fit are displayed in an
+overflow menu.</li>
+
+<li>It is now possible to move time log entries to a different task by
+dragging and dropping rows in the time log editor.</li>
+
+<li>The Task &amp; Schedule dialog now provides new options for working with
+multiple baselines:
+
+    <ul>
+
+    <li>You can now save multiple baselines for an EV schedule, providing a
+        name and optional comment for each one.</li>
+
+    <li>You can view the list of baselines that have been saved for a
+        schedule, edit their details, and delete them if necessary.</li>
+
+    <li>You can review the saved baselines for a schedule and select the one
+        that should be "active" for the purposes of charts, reports, and
+        calculations.</li>
+
+    </ul></li>
+
+<li>When individuals join a team project, they will experience a new
+streamlined joining process:
+
+    <ul>
+
+    <li>Instead of being presented with page after page of questions, they
+        will see a single form that collects all the necessary
+        information.</li>
+
+    <li>The new form provides reasonable default values whenever possible.
+        Fields that need attention are visually highlighted so they stand out
+        from the fields that already have a workable default value.</li>
+
+    <li>As they click on various fields, context-sensitive help is displayed
+        to explain the data that is needed.</li>
+
+    </ul></li>
+
+<!-- ** MINOR ********************************************************** -->
+
+<li>New performance tunings were added to improve the startup and shutdown
+time of large team and personal dashboards.</li>
+
+<li>The "Find Task" functionality (available in the personal dashboard by
+typing Ctrl-F) has been improved for better usability.  Completed tasks are
+indicated with a strikethrough, and past projects can be collapsed so they do
+not participate in the search operation.</li>
+
+<li>A new option in the Team Member List makes it easy to move the start date
+of the entire team at once.  This option is provided in the "Team Schedule
+Settings" window that appears when you click the date customization
+hyperlink.</li>
+
+<li>The WBS Editor has traditionally displayed values with only one digit of
+precision after the decimal point.  When numbers in a plan were smaller than
+0.1, unusual rounding errors would sometimes occur.  These problems have been
+corrected.</li>
+
+<li>Additional keyboard shortcuts are now available for many actions in the
+WBS Editor.</li>
+
+<li>A new user preference enables the main window's title bar to display
+timing information for the currently active task.</li>
+
+<li>When an individual is participating in more than one team project
+simultaneously, they can create an EV Rollup in their personal dashboard to
+display a consolidated plan for their work.  Now, the Task &amp; Schedule
+window for that EV Rollup provides special support for balancing available
+task hours across the various projects.  Clicking on the PT (planned time)
+column for a schedule row opens an interactive dialog for visually
+reallocating time and managing the total amount of time that has been
+committed across all of the projects.</li>
+
+<li>If an individual leaves the timer running for several hours, the
+dashboard will now display a warning message asking if they did this
+intentionally.  This can help individuals catch their mistake if they forget
+to stop the timer (for example, if they leave it running overnight).</li>
+
+<li>The Task &amp; Schedule dialog now has an "Expand All" option on the View
+menu.</li>
+
+<li>Fixes were provided for bugs
+<a href="http://sourceforge.net/p/processdash/bugs/237">#237</a>,
+<a href="http://sourceforge.net/p/processdash/bugs/238">#238</a>,
+<a href="http://sourceforge.net/p/processdash/bugs/240">#240</a>, and
+<a href="http://sourceforge.net/p/processdash/bugs/241">#241</a>.</li>
+
+
+</ul>
+
+
 <h2>Features new in version 2.0</h2>
 
 <ul>

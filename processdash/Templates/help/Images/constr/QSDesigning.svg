@@ -10,7 +10,7 @@
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    width="507"
-   height="90"
+   height="97"
    id="svg5776"
    sodipodi:version="0.32"
    inkscape:version="0.44"
@@ -37,7 +37,7 @@
      inkscape:cy="67.158093"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
-     height="90px"
+     height="97px"
      width="507px"
      inkscape:window-width="1045"
      inkscape:window-height="688"
@@ -57,12 +57,13 @@
   <g
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
-     id="layer1">
+     id="layer1"
+     transform="translate(0,10)">
     <image
-       y="2"
+       y="-10"
        x="0"
        id="image5875"
-       height="54"
+       height="66"
        sodipodi:absref="c:\Tuma\projects\processdash\Templates\help\Images\constr\QSDesigning.png"
        xlink:href="QSDesigning.png"
        width="507" />
@@ -78,8 +79,8 @@
          x="353.57477"
          y="83.197029">Click to complete</tspan></text>
     <path
-       style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="M 489.22107,48.211337 L 466.20417,71.228242"
+       style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="M 485.07534,42.357068 L 455.3499,72.082511"
        id="path5833" />
     <text
        xml:space="preserve"
@@ -94,7 +95,7 @@
          y="81.197029">Timer is running</tspan></text>
     <path
        style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="M 57.578674,45.648895 L 80.595579,68.6658"
+       d="M 63.578674,45.648895 L 86.595579,68.6658"
        id="path5882" />
   </g>
 </svg>
