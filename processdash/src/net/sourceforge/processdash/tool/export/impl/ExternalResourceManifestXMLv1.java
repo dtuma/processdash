@@ -60,11 +60,12 @@ public class ExternalResourceManifestXMLv1 implements
         return mappingEntries.isEmpty();
     }
 
-    public void addMapping(String origPath, String origUrl, String newPath) {
+    public synchronized void addMapping(String origPath, String origUrl,
+            String newPath) {
         mappingEntries.add(new MappingEntry(origPath, origUrl, newPath));
     }
 
-    public void addMetricsCollectionFramework(String frameworkID,
+    public synchronized void addMetricsCollectionFramework(String frameworkID,
             String version, String newPath) {
         mcfEntries.add(new MCFEntry(frameworkID, version, newPath));
     }
