@@ -297,7 +297,7 @@ public class HierarchyNavigator implements TaskNavigationSelector.NavMenuUI,
             for (int i = 0; i < numChildren; i++) {
                 PropertyKey key = hier.getChildKey(node, i);
                 HierMenuItem menuItem = new HierMenuItem(this, key);
-                if (i == selectedChild)
+                if (i == selectedChild || selectedItem == null)
                     selectedItem = menuItem;
                 allItems.add(menuItem);
 
@@ -357,6 +357,9 @@ public class HierarchyNavigator implements TaskNavigationSelector.NavMenuUI,
             if (needsMenuItemUpdate()) {
                 String origText = getText();
                 removeAll();
+                if (nextMenu != null)
+                    nextMenu.dispose();
+                nextMenu = null;
                 addMenuItemsForChildren();
                 if (!origText.equals(getText()))
                     needsResize = true;
