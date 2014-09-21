@@ -1561,7 +1561,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
 
     private void exitProgramImpl() {
         PleaseWaitDialog dialog = new PleaseWaitDialog(this,
-            resources.getString("Shutdown.Title"), "");
+            resources.getString("Shutdown.Title"), "", 0);
 
         String backupQualifier = getBackupQualifier(data);
         try {

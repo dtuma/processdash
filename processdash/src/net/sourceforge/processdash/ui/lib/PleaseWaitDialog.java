@@ -1,4 +1,4 @@
-// Copyright (C) 2013 Tuma Solutions, LLC
+// Copyright (C) 2013-2014 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -89,13 +89,28 @@ public class PleaseWaitDialog extends JDialog {
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
 
         this.disposed = false;
-        Timer t = new Timer(displayDelay, new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                maybeShow();
-            }
-        });
-        t.setRepeats(false);
-        t.start();
+        if (displayDelay > 0 || SwingUtilities.isEventDispatchThread()) {
+            // if the dialog should be displayed at some point in the future,
+            // set a timer to display it
+            Timer t = new Timer(displayDelay, new ActionListener() {
+                public void actionPerformed(ActionEvent e) {
+                    maybeShow();
+                }
+            });
+            t.setRepeats(false);
+            t.start();
+        } else {
+            // if the caller wants the dialog to be displayed immediately,
+            // run events on the Swing dispatch thread to show it.
+            SwingUtilities.invokeLater(new Runnable() {
+                public void run() {
+                    setVisible(true);
+                }});
+            try {
+                SwingUtilities.invokeAndWait(new Runnable() {
+                    public void run() {}});
+            } catch (Exception e) {}
+        }
     }
 
     private void maybeShow() {
