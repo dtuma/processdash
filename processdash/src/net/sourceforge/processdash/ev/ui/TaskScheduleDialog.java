@@ -2714,7 +2714,7 @@ public class TaskScheduleDialog implements EVTask.Listener,
 
         //addTaskButton    .setEnabled(false);
         deleteTaskAction .setEnabled(enableDelete);
-        deleteTaskAction .setText(resources.getString("Buttons.Remove_Task"));
+        deleteTaskAction .setText(resources.getString("Buttons.Exclude_Task"));
         moveUpAction     .setEnabled(enableUp);
         moveDownAction   .setEnabled(enableDown);
         expandAllAction  .setEnabled(false);
@@ -2759,11 +2759,16 @@ public class TaskScheduleDialog implements EVTask.Listener,
 
         addTaskAction    .setEnabled(true);
         deleteTaskAction .setEnabled(enableDelete);
-        if (!isRollup())
-            deleteTaskAction.setText
-                (isPruned
-                 ? resources.getString("Buttons.Restore_Task")
-                 : resources.getString("Buttons.Remove_Task"));
+        if (!isRollup()) {
+            String resKey;
+            if (isPruned)
+                resKey = "Buttons.Restore_Task";
+            else if (pos == -1 && enableDelete)
+                resKey = "Buttons.Exclude_Task";
+            else
+                resKey = "Buttons.Remove_Task";
+            deleteTaskAction.setText(resources.getString(resKey));
+        }
         moveUpAction     .setEnabled(enableUp);
         moveDownAction   .setEnabled(enableDown);
         expandAllAction  .setEnabled(true);
