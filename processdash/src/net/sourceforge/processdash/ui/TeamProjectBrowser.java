@@ -572,6 +572,20 @@ public class TeamProjectBrowser extends JSplitPane {
         InternalSettings.set(SPLITTER_SETTING, Integer.toString(location));
     }
 
+    private static final String ACTIVE_TASK_SETTING = "userPref.dataset.activeTask";
+
+    private void initActiveTaskFromPreferences() {
+        String activeTask = Settings.getVal(ACTIVE_TASK_SETTING);
+        PropertyKey key = ctx.getHierarchy().findExistingKey(activeTask);
+        if (key != null && ctx.getHierarchy().getNumChildren(key) == 0)
+            taskModel.setNode(key);
+    }
+
+    private void saveActiveTaskPreference() {
+        String activeTask = taskModel.getPath();
+        InternalSettings.set(ACTIVE_TASK_SETTING, activeTask);
+    }
+
 
     private class ProjectTreeCellRenderer extends DefaultTreeCellRenderer {
 
@@ -638,8 +652,12 @@ public class TeamProjectBrowser extends JSplitPane {
 
         /** Respond to a "Save All" request from the dashboard */
         public void handleApplicationEvent(ActionEvent e) {
-            if (APP_EVENT_SAVE_ALL_DATA.equals(e.getActionCommand()))
+            if (APP_EVENT_STARTED.equals(e.getActionCommand())) {
+                initActiveTaskFromPreferences();
+            } else if (APP_EVENT_SAVE_ALL_DATA.equals(e.getActionCommand())) {
                 saveSplitterLocationToSettings();
+                saveActiveTaskPreference();
+            }
         }
 
     }
