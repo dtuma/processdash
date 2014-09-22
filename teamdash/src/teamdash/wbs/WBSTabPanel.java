@@ -934,6 +934,7 @@ public class WBSTabPanel extends JLayeredPane
         actionMap.put("lastDataCol", new TransferFocusToDataTable(true));
         inputMap.put(KeyStroke.getKeyStroke("RIGHT"), "firstDataCol");
         actionMap.put("firstDataCol", new TransferFocusToDataTable(false));
+        inputMap.put(KeyStroke.getKeyStroke("LEFT"), "startEditing");
 
         inputMap = this.getInputMap(WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
         inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_T, //

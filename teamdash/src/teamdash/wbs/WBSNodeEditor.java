@@ -483,6 +483,7 @@ public class WBSNodeEditor extends AbstractCellEditor
             if (System.getProperty("java.version").compareTo("1.4") > 0)
                 textField.addMouseMotionListener(new VerticalDragHandler());
             new ConditionalPasteAction(textField);
+            new ConditionalRightAction(textField);
             this.add(textField);
 
             // create the menu bar containing the icon menu.
@@ -738,20 +739,14 @@ public class WBSNodeEditor extends AbstractCellEditor
                         }
 
                     } else if (caretPixel != -1) {
-                        // we are editing a different WBS node. try to position
-                        // the caret the same distance from the left edge of
-                        // the table as before.
-                        doLayout();
-                        int x = caretPixel - textField.getX();
-                        Point p = new Point(x, textField.getHeight()/2);
-                        int pos = textField.viewToModel(p);
-                        textField.setCaretPosition(pos);
+                        // we are editing a different WBS node. position the
+                        // caret at the end of the text.
+                        textField.setCaretPosition(textField.getText().length());
                     }
                 }
                 // grab the focus (must be deferred to avoid race conditions)
                 SwingUtilities.invokeLater(this);
             }
-            //public void run() { textField.grabFocus(); }
             public void run() { textField.requestFocus(); }
         }
 
@@ -812,6 +807,46 @@ public class WBSNodeEditor extends AbstractCellEditor
                 realPasteAction.setEnabled(b);
             }
         }
+
+        private class ConditionalRightAction extends AbstractAction implements
+                Runnable {
+
+            private Action moveCaretRightAction;
+
+            private Action moveToDataTableAction;
+
+            private ConditionalRightAction(JTextField textField) {
+                ActionMap map = textField.getActionMap();
+                moveCaretRightAction = map.get(DefaultEditorKit.forwardAction);
+                map.put(DefaultEditorKit.forwardAction, this);
+            }
+
+            public Object getValue(String key) {
+                return moveCaretRightAction.getValue(key);
+            }
+
+            public void putValue(String key, Object value) {
+                moveCaretRightAction.putValue(key, value);
+                super.putValue(key, value);
+            }
+
+            public void actionPerformed(ActionEvent e) {
+                if (textField.getCaretPosition() < textField.getText().length()) {
+                    moveCaretRightAction.actionPerformed(e);
+                } else {
+                    table.stopCellEditing();
+                    SwingUtilities.invokeLater(this);
+                }
+            }
+
+            public void run() {
+                if (moveToDataTableAction == null)
+                    moveToDataTableAction = table.getActionMap().get(
+                        "firstDataCol");
+                moveToDataTableAction.actionPerformed(null);
+            }
+        }
+
     }
 
 
