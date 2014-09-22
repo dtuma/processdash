@@ -1,4 +1,4 @@
-// Copyright (C) 2000-2013 Tuma Solutions, LLC
+// Copyright (C) 2000-2014 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -38,6 +38,7 @@ public class Settings {
 
     public static final String SYS_PROP_PREFIX = Settings.class.getName() + ".";
     public static final String PREFS_PREFIX = "userPref.";
+    public static final String DATASET_PREFIX = "dataset.";
     public static final String READ_ONLY = "READ_ONLY";
     protected static final String DATASET_MODE = "datasetMode";
     protected static final String DATASET_MODE_TEAM = "team";
@@ -163,9 +164,19 @@ public class Settings {
     }
 
     protected static String getPrefImpl(String name) {
+        Preferences prefs = userPreferences;
         if (name.startsWith(PREFS_PREFIX))
             name = name.substring(PREFS_PREFIX.length());
-        return userPreferences.get(name, null);
+        if (name.startsWith(DATASET_PREFIX)) {
+            name = name.substring(DATASET_PREFIX.length());
+            prefs = getDatasetPrefsNode();
+        }
+        return prefs.get(name, null);
+    }
+
+    protected static Preferences getDatasetPrefsNode() {
+          return userPreferences.node("dataset").node(
+              DashController.getDatasetID());
     }
 
     protected static boolean isPrefName(String name) {

@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2012 Tuma Solutions, LLC
+// Copyright (C) 2001-2014 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -43,6 +43,7 @@ import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.prefs.Preferences;
 
 import net.sourceforge.processdash.util.FileProperties;
 import net.sourceforge.processdash.util.RobustFileWriter;
@@ -279,12 +280,17 @@ public class InternalSettings extends Settings {
     }
 
     private static boolean setPrefImpl(String name, String value) {
+        Preferences prefs = userPreferences;
         if (name.startsWith(PREFS_PREFIX))
             name = name.substring(PREFS_PREFIX.length());
+        if (name.startsWith(DATASET_PREFIX)) {
+            name = name.substring(DATASET_PREFIX.length());
+            prefs = getDatasetPrefsNode();
+        }
         if (value == null)
-            userPreferences.remove(name);
+            prefs.remove(name);
         else
-            userPreferences.put(name, value);
+            prefs.put(name, value);
 
         if (fsettings.containsKey(name)) {
             // if this is a legacy preference that was recorded in the
