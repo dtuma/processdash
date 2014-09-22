@@ -25,7 +25,9 @@
 package net.sourceforge.processdash.ui.lib;
 
 import java.util.*;
+
 import javax.swing.*;
+import javax.swing.event.HyperlinkListener;
 
 import net.sourceforge.processdash.util.*;
 
@@ -47,6 +49,7 @@ public class ErrorReporter {
     String title;
     Object preMessage, postMessage;
     Vector<String> errors;
+    HyperlinkListener hyperlinkListener;
 
     /** Create a new ErrorReporter.
      *
@@ -63,6 +66,14 @@ public class ErrorReporter {
         this.preMessage = (preMessage == null ? "" : preMessage);
         this.postMessage = (postMessage == null ? "" : postMessage);
         this.errors = new Vector();
+    }
+
+    public HyperlinkListener getHyperlinkListener() {
+        return hyperlinkListener;
+    }
+
+    public void setHyperlinkListener(HyperlinkListener hyperlinkListener) {
+        this.hyperlinkListener = hyperlinkListener;
     }
 
     /** Add an error to this error reporter.
@@ -88,14 +99,31 @@ public class ErrorReporter {
         errorList.append("<html><body><table border=0>\n");
         Iterator i = errors.iterator();
         while (i.hasNext()) {
+            String message = (String) i.next();
+            String link = null;
+            String linkText = null;
+            int pos = message.lastIndexOf("\n#");
+            if (pos != -1) {
+                int space = message.indexOf(' ', pos + 2);
+                link = message.substring(pos + 2, space);
+                linkText = message.substring(space + 1).trim();
+                message = message.substring(0, pos);
+            }
             errorList.append("<tr><td valign=top><b>-</b></td><td>");
-            errorList.append(HTMLUtils.escapeEntities((String) i.next()));
+            errorList.append(HTMLUtils.escapeEntities(message));
+            if (link != null) {
+                errorList.append(" <i>(<a href='").append(link).append("'>")
+                        .append(HTMLUtils.escapeEntities(linkText))
+                        .append("</a>)</i>");
+            }
             errorList.append("</td></tr>\n");
         }
         errorList.append("</table></body></html>");
         JEditorPane jep = new JEditorPane("text/html", errorList.toString());
         jep.setEditable(false);
         jep.setCaretPosition(0);
+        if (hyperlinkListener != null)
+            jep.addHyperlinkListener(hyperlinkListener);
         JScrollPane scrollPane = new JScrollPane(jep);
         scrollPane.setPreferredSize(new java.awt.Dimension(200, 200));
 

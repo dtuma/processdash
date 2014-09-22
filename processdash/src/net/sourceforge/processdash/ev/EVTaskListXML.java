@@ -49,7 +49,9 @@ public class EVTaskListXML extends EVTaskListXMLAbstract {
         if (!openXMLForImportedTaskList())
             createErrorRootNode
                 (cleanupName(taskListName),
-                 resources.getString("TaskList.Missing_Error_Message"));
+                 resources.getString("TaskList.Missing_Error_Message")
+                     + "\n#teamhelp/TeamAddSchedule "
+                     + resources.getDlgString("Help"));
     }
 
     public EVTaskListXML(String displayName, Element xml) {
@@ -68,7 +70,9 @@ public class EVTaskListXML extends EVTaskListXMLAbstract {
         if (reloadFromImports && !openXMLForImportedTaskList())
             createErrorRootNode
                 (cleanupName(taskListName),
-                 resources.getString("TaskList.Missing_Error_Message"));
+                 resources.getString("TaskList.Missing_Error_Message")
+                     + "\n#teamhelp/TeamAddSchedule "
+                     + resources.getDlgString("Help"));
         super.recalc();
     }
 

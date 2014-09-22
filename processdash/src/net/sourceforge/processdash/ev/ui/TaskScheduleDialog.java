@@ -110,6 +110,8 @@ import javax.swing.ToolTipManager;
 import javax.swing.TransferHandler;
 import javax.swing.WindowConstants;
 import javax.swing.border.Border;
+import javax.swing.event.HyperlinkEvent;
+import javax.swing.event.HyperlinkListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.event.TableModelEvent;
@@ -836,8 +838,22 @@ public class TaskScheduleDialog implements EVTask.Listener,
              resources.getStrings("Error_Dialog.Head"),
              footer);
         Iterator i = errors.keySet().iterator();
-        while (i.hasNext())
-            err.logError((String) i.next());
+        while (i.hasNext()) {
+            err.logError(StringUtils.findAndReplace((String) i.next(), //
+                "\n#", "\n#http://ignored/"));
+        }
+        err.setHyperlinkListener(new HyperlinkListener() {
+            public void hyperlinkUpdate(HyperlinkEvent e) {
+                if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
+                    String url = e.getURL().getFile();
+                    int pos = url.lastIndexOf('/');
+                    String helpSet = url.substring(0, pos);
+                    String topic = url.substring(pos + 1);
+                    String helpUri = helpSet + "/frame.html?" + topic;
+                    Browser.launch(helpUri);
+                }
+            }
+        });
         err.done();
     }
 

@@ -838,22 +838,7 @@ public class EVReport extends CGIChartBase {
 
         EVMetrics m = s.getMetrics();
 
-        Map errors = m.getErrors();
-        if (errors != null && errors.size() > 0) {
-            out.print("<table border><tr><td bgcolor='#ff5050'><h2>");
-            out.print(getResource("Report.Errors_Heading"));
-            out.print("</h2><b>");
-            out.print(getResource("Error_Dialog.Head"));
-            out.print("<ul>");
-            Iterator i = errors.keySet().iterator();
-            while (i.hasNext())
-                out.print("\n<li>" +
-                        HTMLUtils.escapeEntities((String) i.next()));
-            out.print("\n</ul>");
-            if (!EVMetrics.isWarningOnly(errors))
-                out.print(getResource("Error_Dialog.Foot"));
-            out.print("</b></td></tr></table>\n");
-        }
+        printScheduleErrors(out, m.getErrors());
 
         boolean hidePlan = settings.getBool(CUSTOMIZE_HIDE_PLAN_LINE);
         boolean hideForecast = settings.getBool(CUSTOMIZE_HIDE_FORECAST_LINE);
@@ -895,6 +880,46 @@ public class EVReport extends CGIChartBase {
         out.print("</p>");
         out.print("</body></html>");
     }
+
+    protected static void printScheduleErrors(PrintWriter out, Map errors) {
+        if (errors != null && errors.size() > 0) {
+            out.print("<table border><tr>");
+            out.print("<td style='text-align: left; background-color: #ff5050'><h2>");
+            out.print(getResource("Report.Errors_Heading"));
+            out.print("</h2><b>");
+            out.print(getResource("Error_Dialog.Head"));
+            out.print("<ul>");
+            Iterator i = errors.keySet().iterator();
+            while (i.hasNext()) {
+                String message = (String) i.next();
+                String helpSet = null;
+                String helpTopic = null;
+                String helpText = null;
+                Matcher m = ERROR_HELP_PATTERN.matcher(message);
+                if (m.matches()) {
+                    message = m.group(1);
+                    helpSet = m.group(2);
+                    helpTopic = m.group(3);
+                    helpText = m.group(4).trim();
+                }
+                out.print("\n<li>" + HTMLUtils.escapeEntities(message));
+                if (helpTopic != null) {
+                    out.print(" <i>(<a target='_blank' href='/" + helpSet
+                            + "/frame.html?" + helpTopic + "'>");
+                    out.print(HTMLUtils.escapeEntities(helpText));
+                    out.print("</a>)</i>");
+                }
+                out.print("</li>");
+            }
+            out.print("\n</ul>");
+            if (!EVMetrics.isWarningOnly(errors))
+                out.print(getResource("Error_Dialog.Foot"));
+            out.print("</b></td></tr></table>\n");
+        }
+    }
+
+    private static final Pattern ERROR_HELP_PATTERN = Pattern
+            .compile("(.+)\\n#(\\S+)/(\\S+) (.+)");
 
 
     protected static void writeExportFooter(PrintWriter out) {

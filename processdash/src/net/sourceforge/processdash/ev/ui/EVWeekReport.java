@@ -43,7 +43,6 @@ import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.ev.DefaultTaskLabeler;
 import net.sourceforge.processdash.ev.EVCalculator;
 import net.sourceforge.processdash.ev.EVDependencyCalculator;
-import net.sourceforge.processdash.ev.EVMetrics;
 import net.sourceforge.processdash.ev.EVSchedule;
 import net.sourceforge.processdash.ev.EVScheduleFiltered;
 import net.sourceforge.processdash.ev.EVScheduleRollup;
@@ -370,22 +369,8 @@ public class EVWeekReport extends TinyCGIBase {
 
             EVReport.printFilterInfo(out, taskFilter, isExportingToExcel());
 
-            Map errors = filteredSchedule.getMetrics().getErrors();
-            if (errors != null && errors.size() > 0) {
-                out.print("<table border><tr><td class='modelErrors'><h2>");
-                out.print(getResource("Report.Errors_Heading"));
-                out.print("</h2><b>");
-                out.print(getResource("Error_Dialog.Head"));
-                out.print("<ul>");
-                Iterator i = errors.keySet().iterator();
-                while (i.hasNext())
-                    out.print("\n<li>" +
-                            HTMLUtils.escapeEntities((String) i.next()));
-                out.print("\n</ul>");
-                if (!EVMetrics.isWarningOnly(errors))
-                    out.print(getResource("Error_Dialog.Foot"));
-                out.print("</b></td></tr></table>\n");
-            }
+            EVReport.printScheduleErrors(out, filteredSchedule.getMetrics().getErrors());
+
         } else {
             out.print("<div class='");
             out.print(purpose == LEAF_REPORT ? "collapsed" : "expanded");
@@ -1512,7 +1497,6 @@ public class EVWeekReport extends TinyCGIBase {
                            " text-align: left; padding-left: 1ex }\n" +
         "td.header { text-align:center; font-weight:bold; "+
                            " vertical-align:bottom }\n" +
-        "td.modelErrors { text-align: left; background-color: #ff5050 }\n" +
         "td.behindSchedule { background-color: #ffcccc }\n" +
         "td.aheadOfSchedule { background-color: #ddffdd }\n" +
         "table.sortable { empty-cells: show }\n" +
