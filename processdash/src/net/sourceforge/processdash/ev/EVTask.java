@@ -1564,7 +1564,8 @@ public class EVTask implements Cloneable, DataListener {
             return;
 
         if (depth > 0) {
-            setTaskError(null);
+            if (!"errorRoot".equals(flag))
+                setTaskError(null);
 
             if (containsNode(rootChildList, this) ||
                 containsNode(otherNodeList, this)) {

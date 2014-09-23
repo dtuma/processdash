@@ -166,6 +166,7 @@ public class EVTaskList extends AbstractTreeTableModel
         root = new EVTask(displayName);
         schedule = new EVSchedule(0.0);
         ((EVTask) root).setTaskError(errorMessage);
+        ((EVTask) root).flag = "errorRoot";
         schedule.getMetrics().addError(errorMessage, (EVTask) root);
     }
 
@@ -1381,6 +1382,16 @@ public class EVTaskList extends AbstractTreeTableModel
 
     /** If the given cell has an error, return it.  Otherwise return null */
     public String getErrorStringAt(Object node, int column) {
+        String result = getErrorStringAtImpl(node, column);
+        if (result != null) {
+            int pos = result.indexOf("\n#");
+            if (pos != -1)
+                result = result.substring(0, pos);
+        }
+        return result;
+    }
+
+    private String getErrorStringAtImpl(Object node, int column) {
         if (node == null) return null;
         EVTask n = (EVTask) node;
         switch (column) {
