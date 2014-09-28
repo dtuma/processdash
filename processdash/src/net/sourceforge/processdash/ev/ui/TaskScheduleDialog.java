@@ -187,6 +187,7 @@ import net.sourceforge.processdash.ui.lib.TreeModelWillChangeListener;
 import net.sourceforge.processdash.ui.lib.TreeTableModel;
 import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
 import net.sourceforge.processdash.util.BooleanArray;
+import net.sourceforge.processdash.util.Disposable;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.PreferencesUtils;
 import net.sourceforge.processdash.util.StringUtils;
@@ -3113,6 +3114,8 @@ public class TaskScheduleDialog implements EVTask.Listener,
         model = null;
         if (flatModel != null)
             HierarchyNoteManager.removeHierarchyNoteListener(flatModel);
+        if (mergedModel instanceof Disposable)
+            ((Disposable) mergedModel).dispose();
         treeTable.dispose();
         treeTable = null;
         scheduleTable = null;

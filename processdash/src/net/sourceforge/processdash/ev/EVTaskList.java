@@ -84,6 +84,7 @@ import net.sourceforge.processdash.net.cache.ObjectCache;
 import net.sourceforge.processdash.ui.lib.AbstractTreeTableModel;
 import net.sourceforge.processdash.ui.lib.TreeTableModel;
 import net.sourceforge.processdash.util.DateAdjuster;
+import net.sourceforge.processdash.util.Disposable;
 import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.PatternList;
 import net.sourceforge.processdash.util.StringUtils;
@@ -2090,20 +2091,19 @@ public class EVTaskList extends AbstractTreeTableModel
             boolean preserveLeaves, EVTaskFilter filter) {
         EVTaskListMerger merger = new EVTaskListMerger(EVTaskList.this, simple,
                 preserveLeaves, filter);
-        MergedTreeModel result = new MergedTreeModel(merger);
-        addRecalcListener(result);
-        return result;
+        return new MergedTreeModel(merger);
     }
 
 
     public class MergedTreeModel extends AbstractTreeTableModel implements
-            RecalcListener {
+            RecalcListener, Disposable {
 
         private EVTaskListMerger merger;
 
         public MergedTreeModel(EVTaskListMerger merger) {
             super(merger.getMergedTaskRoot());
             this.merger = merger;
+            addRecalcListener(this);
         }
 
         public Object getChild(Object parent, int index) {
@@ -2149,6 +2149,10 @@ public class EVTaskList extends AbstractTreeTableModel
             merger.recalculate();
             fireTreeStructureChanged(this, new Object[] { root }, new int[0],
                     null);
+        }
+
+        public void dispose() {
+            removeRecalcListener(this);
         }
 
     }
