@@ -1,4 +1,4 @@
-// Copyright (C) 2007-2013 Tuma Solutions, LLC
+// Copyright (C) 2007-2014 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -42,20 +42,30 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.Vector;
 
 import org.w3c.dom.Element;
 
 import net.sourceforge.processdash.DashboardContext;
-import net.sourceforge.processdash.data.DataContext;
 import net.sourceforge.processdash.data.ListData;
 import net.sourceforge.processdash.data.SimpleData;
+import net.sourceforge.processdash.data.repository.DataEvent;
+import net.sourceforge.processdash.data.repository.DataListener;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.hier.PropertyKeyHierarchy;
 import net.sourceforge.processdash.util.StringUtils;
 import net.sourceforge.processdash.util.XMLUtils;
 
-public class DefaultTaskLabeler implements TaskLabeler, MilestoneProvider {
+public class DefaultTaskLabeler implements TaskLabeler, MilestoneProvider, DataListener {
+
+    private PropertyKeyHierarchy hier;
+
+    private DataRepository data;
+
+    private Listener listener;
+
+    private Set<String> listeningToData;
 
     private Map<String, Set> labelData;
 
@@ -69,35 +79,62 @@ public class DefaultTaskLabeler implements TaskLabeler, MilestoneProvider {
 
 
     public DefaultTaskLabeler(DashboardContext ctx) {
-        this(ctx.getHierarchy(), ctx.getData());
+        this(ctx.getHierarchy(), ctx.getData(), null);
     }
 
-    public DefaultTaskLabeler(PropertyKeyHierarchy hier, DataContext data) {
+    public DefaultTaskLabeler(PropertyKeyHierarchy hier, DataRepository data,
+            Listener listener) {
+        this.hier = hier;
+        this.data = data;
+        this.listener = listener;
+        this.listeningToData = new HashSet();
+    }
+
+    public void dataValueChanged(DataEvent e) {
+        listener.taskLabelsChanged();
+    }
+
+    public void dataValuesChanged(Vector v) {
+        listener.taskLabelsChanged();
+    }
+
+    private void maybeListenForDataChanges(String dataName) {
+        if (listener != null && listeningToData.add(dataName))
+            data.addDataListener(dataName, this, false);
+    }
+
+    public void dispose() {
+        for (String dataName : listeningToData)
+            data.removeDataListener(dataName, this);
+    }
+
+    public void recalculate() {
         labelData = new HashMap();
         milestoneData = new LinkedHashMap();
         resultCache = new HashMap();
         milestoneResultCache = new HashMap();
         hiddenLabels = new HashSet<String>();
-        loadData(hier, data, PropertyKey.ROOT);
+        loadData(PropertyKey.ROOT);
         hiddenLabels = Collections.unmodifiableSet(hiddenLabels);
     }
 
-    private void loadData(PropertyKeyHierarchy hier, DataContext data,
-            PropertyKey node) {
+    private void loadData(PropertyKey node) {
         if (node != null) {
-            loadLabelData(data, node.path());
-            loadMilestoneData(data, node.path());
+            loadLabelData(node.path());
+            loadMilestoneData(node.path());
             int numChildren = hier.getNumChildren(node);
             for (int i = 0; i < numChildren; i++)
-                loadData(hier, data, hier.getChildKey(node, i));
+                loadData(hier.getChildKey(node, i));
         }
     }
 
-    private void loadLabelData(DataContext data, String path) {
+    private void loadLabelData(String path) {
         String dataName = DataRepository.createDataName(path, LABELS_DATA_NAME);
         ListData list = ListData.asListData(data.getSimpleValue(dataName));
         if (list == null || list.size() == 0)
             return;
+
+        maybeListenForDataChanges(dataName);
 
         String currentLabel = null;
         String currentMilestone = null;
@@ -139,7 +176,7 @@ public class DefaultTaskLabeler implements TaskLabeler, MilestoneProvider {
         }
     }
 
-    private void loadMilestoneData(DataContext data, String path) {
+    private void loadMilestoneData(String path) {
         String dataName = DataRepository.createDataName(path,
             MILESTONES_DATA_NAME);
         SimpleData val = data.getSimpleValue(dataName);
@@ -152,6 +189,8 @@ public class DefaultTaskLabeler implements TaskLabeler, MilestoneProvider {
         } catch (Exception e) {
             return;
         }
+
+        maybeListenForDataChanges(dataName);
 
         XmlMilestone previous = null;
         for (Element m : XMLUtils.getChildElements(xml)) {

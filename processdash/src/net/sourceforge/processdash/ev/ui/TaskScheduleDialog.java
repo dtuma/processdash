@@ -276,7 +276,8 @@ public class TaskScheduleDialog implements EVTask.Listener,
         EVDependencyCalculator depCalc = new EVDependencyCalculator(
                 dash.getData(), dash.getHierarchy(), dash.getCache());
         model.setDependencyCalculator(depCalc);
-        model.setTaskLabeler(new DefaultTaskLabeler(dash));
+        model.setTaskLabeler(new DefaultTaskLabeler(dash.getHierarchy(), //
+                dash.getData(), model));
 
         model.recalc();
         model.setNodeListener(this);

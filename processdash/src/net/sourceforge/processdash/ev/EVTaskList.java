@@ -93,7 +93,7 @@ import net.sourceforge.processdash.util.XMLUtils;
 
 
 public class EVTaskList extends AbstractTreeTableModel
-    implements EVTask.Listener, ActionListener
+    implements EVTask.Listener, TaskLabeler.Listener, ActionListener
 {
 
     public static final String EV_TASK_LIST_ELEMENT_NAME = "EVModel";
@@ -736,6 +736,10 @@ public class EVTaskList extends AbstractTreeTableModel
         if (recalcTimer != null && needsRecalc) recalcTimer.restart();
     }
 
+    public void taskLabelsChanged() {
+        if (recalcTimer != null) recalcTimer.restart();
+    }
+
 
     /** Defines the interface for an object that listens for recalculations
      *  that occur in an EVTaskList.
@@ -784,11 +788,14 @@ public class EVTaskList extends AbstractTreeTableModel
     private void maybeDispose() {
         if (recalcListeners == null) return;
         if (recalcListeners.isEmpty()) {
+            dispose();
         }
     }
     public void dispose() {
         //System.out.println("disposing!");
         ((EVTask) root).destroy();
+        if (taskLabeler != null)
+            taskLabeler.dispose();
     }
 
     public void finalize() throws Throwable {
@@ -803,6 +810,8 @@ public class EVTaskList extends AbstractTreeTableModel
             calculator.recalculate();
         if (dependencyCalculator != null)
             dependencyCalculator.recalculate(this);
+        if (taskLabeler != null)
+            taskLabeler.recalculate();
         totalPlanValue = schedule.getMetrics().totalPlan();
         EVTask taskRoot = (EVTask) root;
         totalActualTime = taskRoot.actualCurrentTime;
