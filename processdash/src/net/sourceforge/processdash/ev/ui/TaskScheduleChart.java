@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2011 Tuma Solutions, LLC
+// Copyright (C) 2001-2014 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -139,12 +139,12 @@ public class TaskScheduleChart extends JFrame
                 confirmClose();
             }});
         this.taskList = tl;
+        taskList.addRecalcListener(this);
         this.filter = filter;
-        if (filter == null)
+        if (filter == null) {
             schedule = taskList.getSchedule();
-        else {
+        } else {
             schedule = new EVScheduleFiltered(tl, filter);
-            taskList.addRecalcListener(this);
         }
         this.ctx = ctx;
         if (ctx instanceof ApplicationEventSource)
