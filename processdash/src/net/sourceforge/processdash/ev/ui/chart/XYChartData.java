@@ -1,4 +1,4 @@
-// Copyright (C) 2008 Tuma Solutions, LLC
+// Copyright (C) 2008-2014 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -32,11 +32,13 @@ import org.jfree.data.general.DatasetChangeListener;
 import org.jfree.data.general.DatasetUtilities;
 import org.jfree.data.xy.AbstractXYDataset;
 
+import net.sourceforge.processdash.util.Disposable;
+
 /**
  * Base class for implementing XYDataSource functionality.
  */
 public abstract class XYChartData extends AbstractXYDataset
-            implements RecalculableChartData, RangeInfo {
+            implements RecalculableChartData, RangeInfo, Disposable {
 
     /** Used to handle event-driven chart recalculation */
     private ChartDataEventRecalcHelper chartDataRecalcHelper;
@@ -118,6 +120,10 @@ public abstract class XYChartData extends AbstractXYDataset
     @Override
     public void removeChangeListener(DatasetChangeListener l) {
         chartDataRecalcHelper.removeChangeListener(l);
+    }
+
+    public void dispose() {
+        chartDataRecalcHelper.dispose();
     }
 
 }

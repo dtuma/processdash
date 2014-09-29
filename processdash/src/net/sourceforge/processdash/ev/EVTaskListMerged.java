@@ -1,4 +1,4 @@
-// Copyright (C) 2006-2009 Tuma Solutions, LLC
+// Copyright (C) 2006-2014 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -29,6 +29,10 @@ public class EVTaskListMerged extends EVTaskList {
 
     private EVTaskListMerger merger;
 
+    private EVTaskList origTaskList;
+
+    private Recalculator mergeRecalcTrigger;
+
     public EVTaskListMerged(EVTaskList tl, boolean simplify,
             boolean preserveLeaves, EVTaskFilter filter) {
         super(tl.taskListName, tl.getDisplayName(), false);
@@ -37,7 +41,12 @@ public class EVTaskListMerged extends EVTaskList {
         this.schedule = tl.schedule;
         this.taskListID = tl.taskListID;
         this.calculator = tl.calculator;
-        tl.addRecalcListener(new Recalculator());
+        this.origTaskList = tl;
+        tl.addRecalcListener(mergeRecalcTrigger = new Recalculator());
+    }
+
+    public void unregisterListeners() {
+        origTaskList.removeRecalcListener(mergeRecalcTrigger);
     }
 
     private class Recalculator implements RecalcListener {

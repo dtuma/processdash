@@ -1,4 +1,4 @@
-// Copyright (C) 2008 Tuma Solutions, LLC
+// Copyright (C) 2008-2014 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -28,11 +28,13 @@ import java.util.List;
 import org.jfree.data.category.DefaultCategoryDataset;
 import org.jfree.data.general.DatasetChangeListener;
 
+import net.sourceforge.processdash.util.Disposable;
+
 /**
  * Base class to use for charts that use a CategoryDataset
  */
 public class CategoryChartData extends DefaultCategoryDataset
-        implements RecalculableChartData {
+        implements RecalculableChartData, Disposable {
 
     /** Used to handle the event-based recalculation */
     private ChartDataEventRecalcHelper chartData;
@@ -81,6 +83,10 @@ public class CategoryChartData extends DefaultCategoryDataset
     @Override
     public void removeChangeListener(DatasetChangeListener listener) {
         chartData.removeChangeListener(listener);
+    }
+
+    public void dispose() {
+        chartData.dispose();
     }
 
 }

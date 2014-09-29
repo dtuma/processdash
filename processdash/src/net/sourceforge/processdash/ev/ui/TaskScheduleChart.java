@@ -611,6 +611,7 @@ public class TaskScheduleChart extends JFrame
             if (c instanceof Disposable)
                 ((Disposable) c).dispose();
         }
+        widgetList.dispose();
         taskList.removeRecalcListener(this);
         if (ctx instanceof ApplicationEventSource)
             ((ApplicationEventSource) ctx).removeApplicationEventListener(this);
@@ -628,6 +629,11 @@ public class TaskScheduleChart extends JFrame
         }
     }
 
+    private void maybeDispose(Object obj) {
+        if (obj instanceof Disposable)
+            ((Disposable) obj).dispose();
+    }
+
     private class WidgetListModel extends DefaultListModel {
         public WidgetListModel(List items) {
             for (Object item : items)
@@ -638,12 +644,16 @@ public class TaskScheduleChart extends JFrame
             if (pos != -1)
                 fireContentsChanged(this, pos, pos);
         }
+        public void dispose() {
+            for (Object item : toArray())
+                maybeDispose(item);
+        }
     }
 
     private enum ChartItemState { START, INITIALIZING, READY };
 
     private class SnippetChartItem implements Comparable<SnippetChartItem>,
-            ChangeListener {
+            ChangeListener, Disposable {
 
         private SnippetDefinition snip;
 
@@ -915,6 +925,10 @@ public class TaskScheduleChart extends JFrame
 
             // remove this chart from the list.
             widgetList.removeElement(this);
+        }
+
+        public void dispose() {
+            maybeDispose(widget);
         }
 
     }

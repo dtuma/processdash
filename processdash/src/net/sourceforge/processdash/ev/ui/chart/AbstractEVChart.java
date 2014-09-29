@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2012 Tuma Solutions, LLC
+// Copyright (C) 2003-2014 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -56,6 +56,7 @@ import net.sourceforge.processdash.net.http.TinyCGI;
 import net.sourceforge.processdash.ui.snippet.SnippetWidget;
 import net.sourceforge.processdash.ui.web.CGIChartBase;
 import net.sourceforge.processdash.ui.web.TinyCGIBase;
+import net.sourceforge.processdash.util.Disposable;
 
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
@@ -68,11 +69,12 @@ import org.w3c.dom.NodeList;
 
 
 public abstract class AbstractEVChart<D extends Dataset, P extends Plot>
-        implements SnippetWidget, HtmlEvChart, HelpAwareEvChart {
+        implements SnippetWidget, HtmlEvChart, HelpAwareEvChart, Disposable {
     private static Resources resources = Resources.getDashBundle("EV.Chart");
 
     protected String helpId;
     protected String helpUri;
+    protected Disposable disposableDataset;
 
     protected abstract D createDataset(Map env, Map params);
 
@@ -125,7 +127,14 @@ public abstract class AbstractEVChart<D extends Dataset, P extends Plot>
 
     public Component getWidgetComponent(Map environment, Map parameters) {
         D dataset = createDataset(environment, parameters);
+        if (dataset instanceof Disposable)
+            disposableDataset = (Disposable) dataset;
         return buildChart(dataset, environment, parameters);
+    }
+
+    public void dispose() {
+        if (disposableDataset != null)
+            disposableDataset.dispose();
     }
 
     public void writeChartAsHtml(Writer out, Map environment, Map parameters)
