@@ -67,7 +67,8 @@ public class GenerateProcess {
             GenerateProcess instance = new GenerateProcess(destDir, settings,
                     settingsFile.toURL());
             instance.run();
-            System.exit(0);
+            if (args.length < 3)
+                System.exit(0);
         } catch (Exception e) {
             e.printStackTrace();
         }
