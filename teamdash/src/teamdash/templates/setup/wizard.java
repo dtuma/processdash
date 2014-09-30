@@ -1670,12 +1670,38 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
         if (INITIALS_POLICY_USERNAME.equals(joinInfo.get(INITIALS_POLICY)))
             ownerInitials = System.getProperty(
                 TeamDataConstants.DATASET_OWNER_USERNAME_SYSPROP);
+        String previousInitials = getInitialsFromPreviousProject(joinInfo);
 
         maybeSavePersonalValue(IND_INITIALS, Collections.EMPTY_SET,
-            joinInfo.get("Suggested_Team_Member_Initials"), ownerInitials);
+            joinInfo.get("Suggested_Team_Member_Initials"), ownerInitials,
+            previousInitials);
         maybeSavePersonalValue(IND_FULLNAME, getPlaceholderFullNames(),
             joinInfo.get("Suggested_Team_Member_Name"),
             System.getProperty(DATASET_OWNER_FULLNAME_SYSPROP));
+    }
+
+    private String getInitialsFromPreviousProject(Map<String, String> joinInfo) {
+        // See if this project was relaunched from a previous project.
+        String previousProjectID = joinInfo.get("Relaunch_Source_Project_ID");
+        if (!StringUtils.hasValue(previousProjectID))
+            return null;
+
+        // See if this individual has a project in their hierarchy from joining
+        // that previous project
+        Map<String, String> matchingProjects = new HashMap();
+        scanForMatchingProjects(getPSPProperties(), PropertyKey.ROOT,
+            previousProjectID, matchingProjects);
+        for (String path : matchingProjects.keySet()) {
+            // if we find a matching project, read and return the initials
+            String dataName = DataRepository.createDataName(path,
+                TeamDataConstants.INDIV_INITIALS);
+            SimpleData sd = getDataContext().getSimpleValue(dataName);
+            if (sd != null && sd.test())
+                return sd.format();
+        }
+
+        // no previous projects found.
+        return null;
     }
 
     private void maybeSavePersonalValue(String dataName,

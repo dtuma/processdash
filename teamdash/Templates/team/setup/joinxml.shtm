@@ -43,6 +43,10 @@
     Schedule_Messages_Supported="false"
 <!--#endif-->
 
+<!--#if [Relaunch_Source_Project_ID] -->
+    Relaunch_Source_Project_ID="<!--#echo var=[Relaunch_Source_Project_ID] -->"
+<!--#endif-->
+
     Project_ID="<!--#echo var=[Project_ID] encoding=xml -->"
     Continuation_URI="/TPID/setup/wizard.class?page=indiv"
 
