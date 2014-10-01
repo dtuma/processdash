@@ -71,6 +71,7 @@ public class Control extends TinyCGIBase {
         saveDataFiles();
         scrubDataDir();
         repairDefectCounts();
+        reloadWARs();
 
         if (printNullDocument)
             DashController.printNullDocument(out);
@@ -158,6 +159,29 @@ public class Control extends TinyCGIBase {
             out.println("<BODY><H1>Defect Counts Repaired</H1>");
             out.println("The defect counts were repaired at " + new Date());
             out.println("</BODY></HTML>");
+
+            printNullDocument = false;
+        }
+    }
+
+    private void reloadWARs() {
+        if (isTask("reloadWARs")) {
+            boolean reloaded = getTinyWebServer().reloadWars();
+
+            String title, message;
+            if (reloaded) {
+                title = "WAR Files Reloaded";
+                message = "WAR files were reloaded at " + new Date();
+            } else {
+                title = "Reload Not Needed";
+                message = "No out-of-date WAR files were found, so "
+                        + "no reload was performed.";
+            }
+
+            out.println("<html><head><title>" + title + "</title></head>");
+            out.println("<body><h1>" + title + "</h1>");
+            out.println(message);
+            out.println("</body></html>");
 
             printNullDocument = false;
         }

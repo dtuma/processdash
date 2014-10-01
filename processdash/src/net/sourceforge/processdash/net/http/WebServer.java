@@ -443,7 +443,7 @@ public class WebServer implements ContentSource {
         // Check to see if we already have a web application for this URL
         for (Object handler : webApps.getHandlers()) {
             WebAppContextDashboard webApp = (WebAppContextDashboard) handler;
-            if (webAppBase.equals(webApp.templateUrl))
+            if (webAppBase.equals(webApp.templateUrl) && !webApp.isOutOfDate())
                 return webApp;
         }
 
@@ -463,6 +463,27 @@ public class WebServer implements ContentSource {
         return result;
     }
 
+    public boolean reloadWars() {
+        SET_ROOTS_PERMISSION.checkPermission();
+
+        // find WAR files that are out of date
+        boolean needsReload = false;
+        for (Object handler : webApps.getHandlers()) {
+            WebAppContextDashboard webApp = (WebAppContextDashboard) handler;
+            if (webApp.checkNeedsReload())
+                needsReload = true;
+        }
+
+        // if any out of date WARs were found, reset the template roots
+        if (needsReload) {
+            logger.info("Starting reload of changed WAR files");
+            setRoots(TemplateLoader.getTemplateURLs());
+            logger.info("Finished reload of changed WAR files");
+        }
+
+        // let the caller know whether a reload was performed
+        return needsReload;
+    }
 
 
     /** Stop the web server. */

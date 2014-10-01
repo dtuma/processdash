@@ -77,9 +77,15 @@ class WebAppContextDashboard extends WebAppContext {
 
     String templateUrl;
 
+    long timestamp;
+
+    boolean outOfDate;
+
     WebAppContextDashboard(String templateUrl) {
         this._scontext = new Context();
         this.templateUrl = templateUrl;
+        this.timestamp = -1;
+        this.outOfDate = false;
 
         // do not allow browsing of anonymous directories
         setInitParameter(DEFAULT_SERVLET + ".dirAllowed", "false");
@@ -94,6 +100,7 @@ class WebAppContextDashboard extends WebAppContext {
 
         // set the URL of the WAR file
         setWar(calcWarFileUrl());
+        timestamp = getAppSourceTimestamp();
 
         // servlets should be allowed to act as welcome files
         setInitParameter(DEFAULT_SERVLET + ".welcomeServlets", "true");
@@ -107,6 +114,24 @@ class WebAppContextDashboard extends WebAppContext {
         if (pos == -1)
             throw new IllegalArgumentException();
         return templateUrl.substring(4, pos);
+    }
+
+    protected long getAppSourceTimestamp() {
+        try {
+            return Resource.newResource(getWar()).lastModified();
+        } catch (Exception e) {
+            return -1;
+        }
+    }
+
+    public boolean checkNeedsReload() {
+        if (timestamp > 0 && getAppSourceTimestamp() > timestamp)
+            outOfDate = true;
+        return outOfDate;
+    }
+
+    public boolean isOutOfDate() {
+        return outOfDate;
     }
 
     void initializeLegacyContentTypes() {
