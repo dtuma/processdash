@@ -645,6 +645,8 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
         saveTeamSettings (teamDirectory, teamDataDir, projectID);
         tryToCopyProcessJarfile (processJarFile, teamDirectory);
         exportProjectData();
+        if (StringUtils.hasValue(relaunchSourcePath))
+            startAsyncExport(relaunchSourcePath);
         if (StringUtils.hasValue(relaunchSourceID))
             startAsyncCleanupOfRelaunchedWbs();
 
@@ -2140,6 +2142,14 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
 
     protected void exportProjectData() {
         DashController.exportData(getPrefix());
+    }
+
+    private void startAsyncExport(final String forProject) {
+        new Thread() {
+            public void run() {
+                DashController.exportData(forProject);
+            };
+        }.start();
     }
 
     protected boolean joinTeamSchedule(String teamURL, String scheduleName,

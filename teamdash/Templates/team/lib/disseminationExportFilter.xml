@@ -10,5 +10,7 @@
 
   <addEntry name="joinInfo.xml" type="joinInfo" version="1"
               href="<!--#echo Process_ID -->/setup/joinxml.shtm" />
+  <addEntry name="joinInvite.xml" type="messages" version="1"
+              href="<!--#echo Process_ID -->/setup/join.class?invitation" />
 
 </exportMetricsFile>

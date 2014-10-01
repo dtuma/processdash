@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2013 Tuma Solutions, LLC
+// Copyright (C) 2002-2014 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -32,6 +32,8 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.xml.sax.SAXException;
 
+import net.sourceforge.processdash.data.SimpleData;
+import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.net.http.TinyCGIException;
@@ -53,6 +55,7 @@ public class join extends TinyCGIBase {
     public void service(InputStream in, OutputStream out, Map env)
         throws IOException
     {
+        charset = "UTF-8";
         super.service(in, out, env);
 
         maybeReroot();
@@ -61,6 +64,8 @@ public class join extends TinyCGIBase {
             internalRedirect(JOIN_XML);
         else if (parameters.get("formdata") != null)
             printJoinFormData();
+        else if (parameters.get("invitation") != null)
+            printJoinInvitations();
         else
             printRedirect(JOIN_URL);
     }
@@ -111,6 +116,92 @@ public class join extends TinyCGIBase {
         out.flush();
     }
 
+    /**
+     * When a project is relaunched, this method prints an XML file containing a
+     * message inviting the individual to join the new project. The file is in
+     * 'pdash message' format, ready to be embedded in a PDASH file.
+     */
+    private void printJoinInvitations() throws IOException {
+        super.writeHeader();
+
+        out.write("<?xml version='1.0' encoding='UTF-8' standalone='yes' ?>\n");
+        out.write("<messages>\n");
+
+        // if this project was relaunched, print an invitation to join the
+        // new project. Otherwise print no message, leaving this file empty.
+        maybeWriteRelaunchInvitation();
+
+        out.write("</messages>\n");
+        out.flush();
+    }
+
+    private void maybeWriteRelaunchInvitation() throws IOException {
+        // only print invitations if this project was relaunched.
+        if (getData(TeamDataConstants.RELAUNCHED_PROJECT_FLAG) == null)
+            return;
+
+        // do not print rejoin invitations if this project is hosted by a
+        // team server. (The team server will send those invitations.)
+        if (getData(TeamDataConstants.TEAM_DATA_DIRECTORY_URL) != null)
+            return;
+
+        // find the new project that this project was relaunched to.
+        String projectID = getData(TeamDataConstants.PROJECT_ID);
+        String newProjectPath = findProjectWithRelaunchSourceID(projectID,
+            getPSPProperties(), PropertyKey.ROOT);
+        if (newProjectPath == null)
+            return;
+
+        // get the ID of the new relaunched project.
+        String newProjectID = getData(newProjectPath,
+            TeamDataConstants.PROJECT_ID);
+
+        // retrieve the joining document for the new relaunched project
+        String uri = makeURI(newProjectPath, JOIN_XML);
+        String joinInfo = getTinyWebServer().getRequestAsString(uri);
+        int pos = joinInfo.indexOf("?>");
+        if (pos != -1)
+            joinInfo = joinInfo.substring(pos + 2); // strip XML prolog
+
+        // write out a message with a join invitation.
+        out.write("\n<message type='pdash.joinTeamProject' msgId='"
+                + newProjectID + "'>\n");
+        out.write(joinInfo);
+        out.write("</message>\n\n");
+    }
+
+    private String findProjectWithRelaunchSourceID(String relaunchSourceID,
+            DashHierarchy hier, PropertyKey node) {
+        // is this node a team project with the given relaunch source ID? If
+        // so, return its path.
+        String nodeRelaunchSourceID = getData(node.path(),
+            TeamDataConstants.RELAUNCH_SOURCE_PROJECT_ID);
+        if (relaunchSourceID.equals(nodeRelaunchSourceID))
+            return node.path();
+
+        // recurse over children, looking for the given project.
+        for (int i = hier.getNumChildren(node); i-- > 0;) {
+            PropertyKey child = hier.getChildKey(node, i);
+            String childResult = findProjectWithRelaunchSourceID(
+                relaunchSourceID, hier, child);
+            if (childResult != null)
+                return childResult;
+        }
+
+        // no project was found with this relaunch source ID.
+        return null;
+    }
+
+    private String getData(String dataName) {
+        return getData(getPrefix(), dataName);
+    }
+
+    private String getData(String prefix, String name) {
+        String dataName = DataRepository.createDataName(prefix, name);
+        SimpleData sd = getDataRepository().getSimpleValue(dataName);
+        return ((sd != null && sd.test()) ? sd.format() : null);
+    }
+
     protected void printRedirect(String filename) {
         out.print("Location: ");
         out.print(makeURI(filename));
@@ -119,7 +210,11 @@ public class join extends TinyCGIBase {
     }
 
     private String makeURI(String filename) {
-        return WebServer.urlEncodePath(getPrefix()) +
+        return makeURI(getPrefix(), filename);
+    }
+
+    private String makeURI(String prefix, String filename) {
+        return WebServer.urlEncodePath(prefix) +
             "//" + getProcessID() + "/setup/" + filename;
     }
 
