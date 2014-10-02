@@ -122,7 +122,7 @@ public interface PDashQuery extends Map<String, Object> {
      *               and d.removedPhase.shortName = ?']['Design']['Code']
      * </pre>
      * 
-     * @param key
+     * @param query
      *            an HQL query to execute
      * @return the results of executing the HQL query
      */
