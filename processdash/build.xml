@@ -820,6 +820,9 @@ Authors:
     </jar>
   </target>
 
+  <target name="pdash-mvn-all"
+      depends="pdash-mvn, pdash-util, pdash-ui-lib, pdash-servlet-api" />
+
   <target name="pdash-mvn" depends="jar">
     <exec executable="cmd" osfamily="windows">
       <arg value="/c"/>
