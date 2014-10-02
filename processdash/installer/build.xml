@@ -289,7 +289,7 @@ Authors:
     </target>
 
     <target name="-package-CD" depends="init">
-	<echo file="cd-config.ini">1.5
+	<echo file="cd-config.ini">1.6
 ${jreInstExe}
 pdash-install-${qualifier}-${dashboard-version}.jar
 </echo>
