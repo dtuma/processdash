@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2013 Tuma Solutions, LLC
+// Copyright (C) 2003-2014 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -131,7 +131,7 @@ public class DisplayConfig extends TinyCGIBase {
             out.println("   </PRE></DIV>");
         }
 
-        if (appTemplateDirectory != null && !brief) {
+        if (appTemplateDirectory != null) {
             printRes("<DIV>${App_Template_Dir_Header}");
             out.print("<PRE class='indent'>");
             out.println(HTMLUtils.escapeEntities(appTemplateDirectory.getPath()));
