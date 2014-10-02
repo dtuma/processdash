@@ -21,12 +21,10 @@ and "script.htm" is the name of an HTML script within that process.</p>
 
 <p>Take the following steps:</p>
 <ol>
- <li>Choose &quot;Help <img src="../../../Images/rarrow.png"> About&quot;
-   from the "C" menu, and click the "Configuration" tab.  Just above the
-   list of add-ons, a paragraph will tell you where the Process Dashboard
-   is installed. Find that directory on your computer.  It should contain a
-   small number of files, including one called "pspdash.jar".</li>
- <li>Underneath this directory, create a subdirectory called "Templates".</li>
+ <li>Choose &quot;Help <img src="../../../Images/rarrow.png"> About&quot; from
+   the "C" menu, and click the "Configuration" tab.  One of the paragraphs
+   will state that "add-ons will also be read from the following directory."
+   Find that directory on your computer; it will end with "Templates".</li>
  <li>Create a subdirectory within "Templates" with the name that appears
    in the "procID" space in the example above.</li>
  <li>Save the current version of the HTML file to the subdirectory you
@@ -62,16 +60,24 @@ following order:</p>
  <li>Look first in the directories specified by the
  <a href="../PreferencesTool.html#addOns">add-on search path</a>.</li>
 
- <li>Next, look in any JAR files contained in that directory.</li>
+ <li>Next, look in any WAR/JAR/ZIP files contained in that directory.</li>
 
- <li>Next, look in any JAR files contained in the parent of that 
+ <li>Next, look in any WAR/JAR/ZIP files contained in the parent of that 
    directory.</li> 
+
+ <li>Next, look in the user-specific application templates directory.  (To
+   locate this directory, choose "Help &rarr; About Process Dashboard &rarr;
+   Configuration." Look for the heading that reads, "Dashboard add-ons will
+   also be read from the following directory.")</li>
+
+ <li>Next, look in any WAR/JAR/ZIP files contained in the application
+   templates directory.</li>
 
  <li>If there is a Templates directory underneath the directory where
    the Process Dashboard is installed, look there: first for the file,
-   then for JARs containing the file.</li>
+   then for WAR/JAR/ZIPs containing the file.</li>
 
- <li>Next, look within the JAR and ZIP files that are present in the
+ <li>Next, look within the WAR, JAR and ZIP files that are present in the
    Process Dashboard installation directory.</li>
 
  <li>Finally, look inside the Process Dashboard application file.
@@ -112,6 +118,7 @@ to changes you have made to a process script, you can do the following:</p>
  <li>Put custom versions of files underneath this team templates directory.  
    For example, you could put:
   <ul>
+   <li>WAR files containing custom reports</li>
    <li>HTML files overriding files that are built into the dashboard</li>
    <li>LanguageFilters defining custom LOC counters</li>
    <li><a href="DefiningProcesses.html#XmlDef">template.xml</a> files 

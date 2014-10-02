@@ -129,6 +129,7 @@
   <mapID target="CustomLOCCounter" url="Topics/AdvancedTopics/CustomLOCCounter.html"/>
   <mapID target="DefiningOwnProcesses" url="Topics/AdvancedTopics/ProcessDefinition/DefiningProcesses.html"/>
   <mapID target="DashboardFindsFiles" url="Topics/AdvancedTopics/ProcessDefinition/HowDashboardFindsFiles.html"/>
+  <mapID target="DashboardFindsFiles.search" url="Topics/AdvancedTopics/ProcessDefinition/HowDashboardFindsFiles.html#FindFiles"/>
   <mapID target="DashboardFindsFiles.sharing" url="Topics/AdvancedTopics/ProcessDefinition/HowDashboardFindsFiles.html#sharing"/>
   <mapID target="MultipleToDateData" url="Topics/AdvancedTopics/MultipleToDateData.html"/>
   <mapID target="MultipleToDateData.filter" url="Topics/AdvancedTopics/MultipleToDateData.html#filter"/>
