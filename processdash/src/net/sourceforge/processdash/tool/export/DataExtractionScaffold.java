@@ -330,8 +330,10 @@ public class DataExtractionScaffold implements DashboardContext {
             tl.recalc();
             tl = new EVTaskListMerged(tl, false, true, null);
 
-            if (taskLabeler == null)
+            if (taskLabeler == null) {
                 taskLabeler = new DefaultTaskLabeler(this);
+                taskLabeler.recalculate();
+            }
             tl.setTaskLabeler(taskLabeler);
 
             result.add(tl);
