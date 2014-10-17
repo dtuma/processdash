@@ -23,6 +23,7 @@
 
 package net.sourceforge.processdash.tool.db;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -203,9 +204,9 @@ public class WorkflowHistDataHelper {
         if (projectID == null)
             return true;
         else if (onlyForProject != null)
-            return onlyForProject.equals(projectID);
+            return !onlyForProject.equals(projectID);
         else if (onlyForProjectsThrough != null)
-            return projectID.compareTo(onlyForProjectsThrough) <= 0;
+            return projectID.compareTo(onlyForProjectsThrough) > 0;
         else
             return false;
     }
@@ -249,6 +250,50 @@ public class WorkflowHistDataHelper {
             + "group by pe.key "
             + "having max(task.actualCompletionDateDim.key) < 99990000";
 
+    /**
+     * Print a list of the plan items whose data has contributed to this
+     * historical data set.
+     */
+    public void debugPrintEnactments() {
+        System.out.println("Process enactment steps for " + workflowName + ":");
+        List<Object[]> enactmentSteps = query.queryHql(ENACTMENT_DEBUG_QUERY,
+            getEnactmentKeys(), getWorkflowKey());
+        while (!enactmentSteps.isEmpty()) {
+            Object[] oneRow = enactmentSteps.get(0);
+            Integer rootKey = (Integer) oneRow[0];
+            Object rootPlanItem = oneRow[1];
+            String rootPath = rootPlanItem.toString();
+            int rootPathLen = rootPath.length();
+
+            List<String> includedPaths = new ArrayList<String>();
+            for (Iterator i = enactmentSteps.iterator(); i.hasNext();) {
+                Object[] includedRow = (Object[]) i.next();
+                Integer includedRootKey = (Integer) includedRow[0];
+                if (!includedRootKey.equals(rootKey))
+                    continue;
+
+                String includedPath = includedRow[2].toString();
+                if (includedPath.startsWith(rootPath))
+                    includedPath = includedPath.substring(rootPathLen + 1);
+                includedPaths.add(includedPath);
+                i.remove();
+            }
+
+            System.out.println(rootPath + " " + includedPaths);
+        }
+        System.out.println("-------------------------------------");
+    }
+
+    private static final String ENACTMENT_DEBUG_QUERY = //
+    "select pe.rootItem.key, pe.rootItem, pi.includesItem "
+            + "from ProcessEnactment pe, ProcessEnactment pi "
+            + "join pi.includesItem.phase.mapsToPhase mapsTo "
+            + "where pe.key in (?) " //
+            + "and pe.rootItem.key = pi.rootItem.key "
+            + "and pe.process.key = pi.process.key "
+            + "and pi.includesItem.key <> pi.rootItem.key "
+            + "and mapsTo.process.key = ? " //
+            + "order by pe.rootItem.key";
 
     private Integer getWorkflowKey() {
         if (workflowKey == null)

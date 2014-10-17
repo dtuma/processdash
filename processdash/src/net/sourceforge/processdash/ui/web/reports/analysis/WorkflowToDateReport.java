@@ -169,6 +169,9 @@ public class WorkflowToDateReport extends TinyCGIBase {
         }
 
         out.print("</body></html>\n");
+
+        if (parameters.containsKey("debug"))
+            hist.debugPrintEnactments();
     }
 
     private String getProjectID() {
