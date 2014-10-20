@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Tuma Solutions, LLC
+// Copyright (C) 2002-2014 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -30,9 +30,11 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -46,6 +48,8 @@ import teamdash.wbs.columns.TeamTimeColumn;
  * Microsoft Project) and converts it to a list of WBSNode objects.
  */
 public class CsvNodeDataImporter {
+
+    public static final String CSV_EXTRA_FIELDS_KEY = "csvAttributeMap";
 
 
     public class ParseException extends Exception {
@@ -130,7 +134,7 @@ public class CsvNodeDataImporter {
 
     private List parseData() throws IOException {
         List result = new ArrayList();
-        WBSNode node = new WBSNode(null, "Imported Items", TYPE, 1, true);
+        WBSNode node = new WBSNode(null, "Imported Items", "Component", 1, true);
         result.add(node);
 
         String line;
@@ -151,6 +155,7 @@ public class CsvNodeDataImporter {
         parsePredecessorInfo(result, fields);
         parseDurationInfo(result, fields);
         parseResourcesInfo(result, fields);
+        storeExtraFields(result, fields);
         return result;
     }
 
@@ -205,6 +210,24 @@ public class CsvNodeDataImporter {
         if (columnPos[INITIALS] != -1) {
             node.setAttribute(INITIALS_TEMP, fields[columnPos[INITIALS]]);
         }
+    }
+
+    private void storeExtraFields(WBSNode result, String[] fields) {
+        Map extraFields = new LinkedHashMap();
+        for (int i = 0; i < fields.length; i++) {
+            String fieldName = fieldNamesInFile[i];
+            String fieldValue = fields[i];
+            extraFields.put(fieldName, fieldValue);
+        }
+        for (int i = 0; i < columnPos.length; i++) {
+            int pos = columnPos[i];
+            if (pos != -1) {
+                String usedFieldName = fieldNamesInFile[pos];
+                extraFields.remove(usedFieldName);
+            }
+        }
+        if (!extraFields.isEmpty())
+            result.setAttribute(CSV_EXTRA_FIELDS_KEY, extraFields);
     }
 
     private void tweakNodes(List nodes) {

@@ -30,6 +30,8 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import javax.swing.Timer;
@@ -446,6 +448,20 @@ public class DataTableModel extends AbstractTableModel {
             beginChange();
             columnChanged(column, columnIndex);
             column.setValueAt(aValue, node);
+        } finally {
+            endChange();
+        }
+    }
+
+    public void setValuesAt(WBSNode node, Map<String, Object> values) {
+        try {
+            beginChange();
+            for (Entry<String, Object> e : values.entrySet()) {
+                String columnName = e.getKey();
+                int columnIndex = findColumn(columnName);
+                if (columnIndex >= 0)
+                    setValueAt(e.getValue(), node, columnIndex);
+            }
         } finally {
             endChange();
         }

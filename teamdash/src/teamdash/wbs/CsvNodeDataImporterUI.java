@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Tuma Solutions, LLC
+// Copyright (C) 2002-2014 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -26,6 +26,7 @@ package teamdash.wbs;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
@@ -39,7 +40,7 @@ import teamdash.wbs.CsvNodeDataImporter.ParseException;
  */
 public class CsvNodeDataImporterUI {
 
-    public void run(WBSJTable table, TeamMemberList team) {
+    public void run(WBSJTable table, DataTableModel data, TeamMemberList team) {
         File f = selectFile(table);
         if (f == null)
             return;
@@ -62,9 +63,22 @@ public class CsvNodeDataImporterUI {
         if (newRows == null || newRows.length == 0)
             return;
 
+        storeExtraNodeAttributes(model, data, newRows);
+
         table.selectRows(newRows);
         table.scrollRectToVisible(table.getCellRect(newRows[0], 0, true));
         UndoList.madeChange(table, "Import from CSV File");
+    }
+
+    private void storeExtraNodeAttributes(WBSModel model, DataTableModel data,
+            int[] newRows) {
+        for (int row : newRows) {
+            WBSNode node = model.getNodeForRow(row);
+            Map<String, Object> values = (Map<String, Object>) node
+                    .removeAttribute(CsvNodeDataImporter.CSV_EXTRA_FIELDS_KEY);
+            if (values != null && !values.isEmpty())
+                data.setValuesAt(node, values);
+        }
     }
 
     private File selectFile(JComponent parent) {
