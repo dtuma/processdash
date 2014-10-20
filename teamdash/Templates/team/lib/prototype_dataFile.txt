@@ -19,6 +19,10 @@ undefine([Use_Rollup]);
  * typically inspect what was produced.
  */
 
+[/PID/Prefer Actual Size for Inspection Estimates] = 0;
+[Prefer Actual Size for Inspection Estimates] =
+    [/PID/Prefer Actual Size for Inspection Estimates];
+
 <!--#foreach name=Metric list=Size_Metric_Data_Names -->
 [Estimated Metric] = ?0;
 [Metric] = ?0;
@@ -27,7 +31,9 @@ undefine([Use_Rollup]);
 [Estimated Aggregate Metric] = [Estimated Metric];
 [Aggregate Metric] = [Metric];
 
-[Estimated Inspected Metric] = iff([Metric], [Metric], [Estimated Metric]) + 0;
+[Estimated Inspected Metric] = iff(
+    [Prefer Actual Size for Inspection Estimates] && [Metric],
+    [Metric], [Estimated Metric]) + 0;
 [Inspected Metric] = [Metric] + 0;
 <!--#endfor-->
 
