@@ -59,6 +59,7 @@ public class CsvNodeDataImporterUI {
             return;
 
         WBSModel model = (WBSModel) table.getModel();
+        newNodes = WBSNode.cloneNodeList(newNodes, model);
         int[] newRows = model.insertNodes(newNodes, model.getRowCount());
         if (newRows == null || newRows.length == 0)
             return;
