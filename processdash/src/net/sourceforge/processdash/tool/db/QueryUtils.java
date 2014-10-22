@@ -24,6 +24,7 @@
 package net.sourceforge.processdash.tool.db;
 
 import java.util.ArrayList;
+import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -112,13 +113,12 @@ public class QueryUtils {
 
         // if this query does not contain the named entity, do nothing.
         int pos = getFromKeywordEndPos(query);
-        pos = query.indexOf(entityName, pos);
-        if (pos < 1 || !Character.isWhitespace(query.charAt(pos - 1)))
+        pos = getIdentifierEndPos(query, entityName, pos);
+        if (pos < 1)
             return null;
 
         // find the "as" clause that follows the entity name.
-        Matcher m = AS_CLAUSE_PAT.matcher(query).region(
-            pos + entityName.length(), query.length());
+        Matcher m = AS_CLAUSE_PAT.matcher(query).region(pos, query.length());
         if (!m.lookingAt())
             throw new IllegalArgumentException(
                     "HQL autofiltering logic requires the '" + entityName
@@ -361,5 +361,26 @@ public class QueryUtils {
             throw new IllegalArgumentException("No '" + keyword
                     + "' clause found in query '" + query + "'");
     }
+
+    private static int getIdentifierEndPos(StringBuilder query,
+            String identifier, int fromPos) {
+        Matcher m = getIdentifierPattern(identifier).matcher(query);
+        if (m.find(fromPos))
+            return m.end();
+        else
+            return -1;
+    }
+
+    private static Pattern getIdentifierPattern(String identifier) {
+        Pattern result = IDENTIFIER_PATTERNS.get(identifier);
+        if (result == null) {
+            // search for identifiers in a case-sensitive manner
+            result = Pattern.compile("\\b\\Q" + identifier + "\\E\\b");
+            IDENTIFIER_PATTERNS.put(identifier, result);
+        }
+        return result;
+    }
+
+    private static final Map<String, Pattern> IDENTIFIER_PATTERNS = new Hashtable();
 
 }
