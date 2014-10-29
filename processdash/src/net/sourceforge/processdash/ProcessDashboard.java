@@ -135,6 +135,7 @@ import net.sourceforge.processdash.tool.bridge.impl.DatasetAutoMigrator;
 import net.sourceforge.processdash.tool.bridge.impl.HttpAuthenticator;
 import net.sourceforge.processdash.tool.bridge.impl.JnlpRelauncher;
 import net.sourceforge.processdash.tool.db.DatabasePlugin;
+import net.sourceforge.processdash.tool.export.DataImporter;
 import net.sourceforge.processdash.tool.export.mgr.ExportManager;
 import net.sourceforge.processdash.tool.export.mgr.ExternalResourceManager;
 import net.sourceforge.processdash.tool.export.mgr.ImportManager;
@@ -1938,6 +1939,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         dropSplashScreen();
         dash.maybeNotifyOpened();
         dash.aum.maybePerformCheck(dash);
+        DataImporter.refreshCachedFiles();
     }
     public DashHierarchy getHierarchy() { return props; }
     public DataRepository getData() { return data; }

@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2013 Tuma Solutions, LLC
+// Copyright (C) 2001-2014 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -52,6 +52,7 @@ import net.sourceforge.processdash.ev.ImportedEVManager;
 import net.sourceforge.processdash.log.defects.ImportedDefectManager;
 import net.sourceforge.processdash.log.time.ImportedTimeLogManager;
 import net.sourceforge.processdash.security.DashboardPermission;
+import net.sourceforge.processdash.tool.bridge.client.DynamicImportDirectory;
 import net.sourceforge.processdash.tool.bridge.client.ImportDirectory;
 import net.sourceforge.processdash.tool.export.impl.ArchiveMetricsFileImporter;
 import net.sourceforge.processdash.tool.export.impl.TextMetricsFileImporter;
@@ -70,7 +71,7 @@ public class DataImporter extends Thread {
     public static final String EXPORT_DATANAME = "EXPORT_FILE";
 
     private static final long TIME_DELAY = 10 * 60 * 1000; // 10 minutes
-    private static Hashtable importers = new Hashtable();
+    private static Hashtable<String, DataImporter> importers = new Hashtable();
     private static List initializingImporters = Collections
             .synchronizedList(new ArrayList());
     private static boolean DYNAMIC_IMPORT = true;
@@ -169,6 +170,10 @@ public class DataImporter extends Thread {
         }
         return result;
     }
+    public static void refreshCachedFiles() {
+        for (DataImporter importer : importers.values())
+            importer.refreshIfCached();
+    }
 
     private DataImporter(DataRepository data, String prefix,
             ImportDirectory importDir,
@@ -189,6 +194,12 @@ public class DataImporter extends Thread {
         this.setDaemon(true);
         if (DYNAMIC_IMPORT)
             this.start();
+    }
+
+    public void refreshIfCached() {
+        if (directory instanceof DynamicImportDirectory
+                && ((DynamicImportDirectory) directory).needsCacheUpdate())
+            checkFiles(null);
     }
 
     public void quit() {
