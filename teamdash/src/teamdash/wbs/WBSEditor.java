@@ -1613,8 +1613,7 @@ public class WBSEditor implements WindowListener, SaveListener,
             boolean forceReadOnly, String owner) {
 
         LargeFontsHelper.maybeInitialize();
-        HttpAuthenticator.maybeInitialize(locations.length == 0 ? null
-                : locations[0], "WBS Editor");
+        HttpAuthenticator.maybeInitialize("WBS Editor");
 
         String message = (showTeamList
                 ? "Opening Team Member List..."
