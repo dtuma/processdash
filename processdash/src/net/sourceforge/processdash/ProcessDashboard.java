@@ -1925,7 +1925,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
                 title = args[i];
         }
 
-        HttpAuthenticator.maybeInitialize(location, title);
+        HttpAuthenticator.maybeInitialize(title);
         MacGUIUtils.tweakLookAndFeel();
 
         ProcessDashboard dash = new ProcessDashboard(location, title);

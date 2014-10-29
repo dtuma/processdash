@@ -117,6 +117,10 @@ public class HttpAuthenticator extends Authenticator {
         if (getRequestorType() != RequestorType.SERVER)
             return null;
 
+        // only handle Data Bridge requests (no support for non-PDES servers)
+        if (getRequestingURL().toString().indexOf("/DataBridge/") == -1)
+            return null;
+
         // find out what state we are presently in.
         determineCurrentState();
 
@@ -299,16 +303,14 @@ public class HttpAuthenticator extends Authenticator {
     }
 
 
-    public static void maybeInitialize(String location, String title) {
+    public static void maybeInitialize(String title) {
         String setting = System.getProperty(ENABLED_SETTING_NAME);
-        if (setting == null && location != null && location.startsWith("http"))
-            setting = "true";
-        if ("true".equals(setting))
+        if (!"false".equals(setting))
             Authenticator.setDefault(INSTANCE = new HttpAuthenticator(title));
     }
 
     public static void setParentComponent(Component c) {
-        if (INSTANCE != null) {
+        if (INSTANCE != null && INSTANCE.parentComponent == null) {
             INSTANCE.parentComponent = c;
             if (c instanceof Frame)
                 INSTANCE.title = ((Frame) c).getTitle();
