@@ -1665,6 +1665,13 @@ public class EVSchedule implements TableModel {
         return (p != null && p.automatic);
     }
 
+    public boolean rowIsEffective(int row) {
+        return row + 1 == effectivePeriod;
+    }
+    public int getRowForEffectivePeriod() {
+        return effectivePeriod - 1;
+    }
+
     EventListenerList listenerList = new EventListenerList();
     public void addTableModelListener(TableModelListener l) {
         listenerList.add(TableModelListener.class, l);

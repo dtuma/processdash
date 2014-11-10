@@ -410,6 +410,13 @@ public class TaskScheduleDialog implements EVTask.Listener,
             if (isFlatView()) toggleFlatView();
         }
 
+        int currentWeek = model.getSchedule().getRowForEffectivePeriod();
+        if (currentWeek >= 0 && currentWeek < scheduleTable.getRowCount()) {
+            scheduleTable.addRowSelectionInterval(currentWeek, currentWeek);
+            scheduleTable.scrollRectToVisible(scheduleTable.getCellRect(
+                currentWeek, 0, true));
+        }
+
         frame.setVisible(true);
 
         // if the task list is empty, open the add task dialog immediately.
@@ -1934,6 +1941,7 @@ public class TaskScheduleDialog implements EVTask.Listener,
 
     class ScheduleJTable extends JTable {
         DefaultTableCellRenderer editable, readOnly;
+        Font bold, plain;
         EVSchedule model;
 
         public ScheduleJTable(EVSchedule model) {
@@ -1947,6 +1955,9 @@ public class TaskScheduleDialog implements EVTask.Listener,
             readOnly = new ScheduleTableRenderer(getSelectionBackground(),
                                                  getBackground(),
                                                  Color.gray);
+
+            bold = editable.getFont().deriveFont(Font.BOLD);
+            plain = editable.getFont().deriveFont(Font.PLAIN);
 
             TableColumn notes = getColumnModel().getColumn(
                 EVSchedule.NOTES_COLUMN);
@@ -1989,6 +2000,15 @@ public class TaskScheduleDialog implements EVTask.Listener,
             }
             protected boolean useAltForeground(int row) {
                 return model.rowIsAutomatic(row);
+            }
+            @Override
+            public Component getTableCellRendererComponent(JTable table,
+                    Object value, boolean isSelected, boolean hasFocus,
+                    int row, int column) {
+                Component result = super.getTableCellRendererComponent(table,
+                    value, isSelected, hasFocus, row, column);
+                result.setFont(model.rowIsEffective(row) ? bold : plain);
+                return result;
             }
         }
 
