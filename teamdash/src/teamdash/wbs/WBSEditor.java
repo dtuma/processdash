@@ -1017,6 +1017,7 @@ public class WBSEditor implements WindowListener, SaveListener,
             result.add(new BottomUpShowPlanMenuItem(g));
         }
         if (isMode(MODE_PLAIN)) {
+            result.add(new BottomUpShowBalancedTeamBar());
             result.add(new BottomUpShowHoursPerWeekMenuItem());
             result.add(new BottomUpIncludeUnassignedMenuItem());
         }
@@ -2592,6 +2593,21 @@ public class WBSEditor implements WindowListener, SaveListener,
             setBorder(BorderFactory.createCompoundBorder(getBorder(),
                 new EmptyBorder(0, 15, 0, 0)));
             buttonGroup.add(this);
+        }
+    }
+
+    private class BottomUpShowBalancedTeamBar extends CheckBoxMenuItem
+            implements ChangeListener {
+        public BottomUpShowBalancedTeamBar() {
+            super("Show Balanced Team Bar");
+            setBorder(BorderFactory.createCompoundBorder(getBorder(),
+                new EmptyBorder(0, 15, 0, 0)));
+            setSelected(true);
+            addChangeListener(this);
+            load("teamTimePanel.showTeamBar");
+        }
+        public void stateChanged(ChangeEvent e) {
+            teamTimePanel.setShowBalancedBar(isSelected());
         }
     }
 
