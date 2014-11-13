@@ -368,6 +368,7 @@ public class WBSEditor implements WindowListener, SaveListener,
         }
         tabPanel.wbsTable.setEnterInsertsLine(getInsertOnEnterPref(teamProject
                 .getProjectID()));
+        guiPrefs.load(tabPanel.tabbedPane);
 
         tabPanel.addChangeListener(this.dirtyListener);
 
@@ -1614,7 +1615,9 @@ public class WBSEditor implements WindowListener, SaveListener,
             boolean forceReadOnly, String owner) {
 
         LargeFontsHelper.maybeInitialize();
-        HttpAuthenticator.maybeInitialize("WBS Editor");
+        try {
+            HttpAuthenticator.maybeInitialize("WBS Editor");
+        } catch (Exception e) {}
 
         String message = (showTeamList
                 ? "Opening Team Member List..."
