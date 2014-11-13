@@ -1,4 +1,4 @@
-// Copyright (C) 2012 Tuma Solutions, LLC
+// Copyright (C) 2012-2014 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -35,6 +35,7 @@ import java.util.prefs.Preferences;
 import javax.swing.ButtonModel;
 import javax.swing.JCheckBox;
 import javax.swing.JSplitPane;
+import javax.swing.JTabbedPane;
 import javax.swing.JTable;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
@@ -299,6 +300,45 @@ public class GuiPrefs {
     }
 
 
+    /**
+     * Register a {@link JTabbedPane} so its selected tab will be saved when the
+     * {@link #saveAll()} method is called, and restore any selected tab that
+     * was saved for this tabbed pane in the past.
+     * 
+     * @param tabbedPaneId
+     *            a unique ID for this tabbed pane; if a {@link GuiPrefs} object
+     *            is managing state for several tabbed panes, each one should
+     *            have a different id.
+     * @param tabbedPane
+     *            the tabbed pane to register
+     * @return true if any user customizations were loaded, false if none were
+     *         found
+     * @since 2.1.2
+     */
+    public boolean load(String tabbedPaneId, JTabbedPane tabbedPane) {
+        return load(new RegisteredTabbedPane(tabbedPaneId, tabbedPane));
+    }
+
+    /**
+     * Register a {@link JTabbedPane} so its selected tab will be saved when the
+     * {@link #saveAll()} method is called, and restore any selected tab that
+     * was saved for this tabbed pane in the past.
+     * 
+     * This variant can be used if a particular {@link GuiPrefs} object is only
+     * managing state for one tabbed pane. The tabbed pane will be registered
+     * with the generic id "tabbedpane".
+     * 
+     * @param tabbedPane
+     *            the tabbed pane to register
+     * @return true if any user customizations were loaded, false if none were
+     *         found
+     * @since 2.1.2
+     */
+    public boolean load(JTabbedPane tabbedPane) {
+        return load("tabbedpane", tabbedPane);
+    }
+
+
     private boolean load(RegisteredItem item) {
         try {
             return item.load();
@@ -329,6 +369,14 @@ public class GuiPrefs {
 
         void putInt(String attr, int val) {
             prefs.putInt(attr, val);
+        }
+
+        String getString(String attr) {
+            return prefs.get(attr, null);
+        }
+
+        void putString(String attr, String val) {
+            prefs.put(attr, val);
         }
     }
 
@@ -527,4 +575,49 @@ public class GuiPrefs {
         }
 
     }
+
+    private class RegisteredTabbedPane extends RegisteredItem {
+        JTabbedPane tabbedPane;
+        String orig;
+
+        public RegisteredTabbedPane(String id, JTabbedPane tabbedPane) {
+            super(id);
+            this.tabbedPane = tabbedPane;
+            this.orig = getSelectedTabTitle();
+        }
+
+        @Override
+        boolean load() {
+            return setSelectedTabTitle(getString("title"));
+        }
+
+        @Override
+        void reset() {
+            setSelectedTabTitle(orig);
+        }
+
+        @Override
+        void save() {
+            putString("title", getSelectedTabTitle());
+        }
+
+        protected String getSelectedTabTitle() {
+            int tabPos = tabbedPane.getSelectedIndex();
+            return tabPos == -1 ? null : tabbedPane.getTitleAt(tabPos);
+        }
+
+        private boolean setSelectedTabTitle(String title) {
+            int tabPos = -1;
+            if (title != null)
+                tabPos = tabbedPane.indexOfTab(title);
+            if (tabPos != -1) {
+                tabbedPane.setSelectedIndex(tabPos);
+                return true;
+            } else {
+                return false;
+            }
+        }
+
+    }
+
 }
