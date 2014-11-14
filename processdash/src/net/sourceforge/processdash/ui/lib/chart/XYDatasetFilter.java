@@ -160,7 +160,12 @@ public class XYDatasetFilter extends AbstractXYDataset implements DomainInfo,
     }
 
     public Range getDomainBounds(boolean includeInterval) {
-        return DatasetUtilities.findDomainBounds(source);
+        if (source instanceof DomainInfo) {
+            DomainInfo di = (DomainInfo) source;
+            return di.getDomainBounds(includeInterval);
+        } else {
+            return DatasetUtilities.iterateDomainBounds(this);
+        }
     }
 
     public double getDomainLowerBound(boolean includeInterval) {
