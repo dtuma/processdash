@@ -113,8 +113,8 @@ Authors:
   <property name="ie.dir" value="${build}/IE"/>
   <property name="ie.cab" value="${build}/Templates/${applet.file}.cab"/>
 
-  <property name="jfreechart.jar" value="${lib}/jfreechart-1.0.9.jar"/>
-  <property name="jcommon.jar"    value="${lib}/jcommon-1.0.12.jar"/>
+  <property name="jfreechart.jar" value="${lib}/jfreechart-1.0.19.jar"/>
+  <property name="jcommon.jar"    value="${lib}/jcommon-1.0.23.jar"/>
   <property name="kxml.jar"       value="${lib}/kxml-2.2.1-mod.jar"/>
   <property name="json.jar"       value="${lib}/json_simple.jar"/>
   <property name="image4j.jar"    value="${lib}/image4j.jar"/>
@@ -522,7 +522,6 @@ Authors:
       <zipfileset src="${jcalendar.jar}"/>
       <zipfileset src="${jna.jar}"/>
       <zipfileset src="${keyring.jar}"/>
-      <zipfileset src="${lib}/jfreechart_ja.zip"/>
       <zipfileset src="${lib}/jfreechart_zh.zip"/>
       <zipfileset src="${colt.jar}" includesfile="${lib}/fileset-colt.txt"/>
       <zipfileset src="${l10n-tool.jar}" includes="**/jrc-editor*.properties"/>

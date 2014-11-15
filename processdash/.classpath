@@ -16,8 +16,8 @@
 	<classpathentry exported="true" kind="lib" path="lib/datatips.jar" sourcepath="lib/datatips.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/colt.jar" sourcepath="lib/colt.jar"/>
 	<classpathentry kind="lib" path="lib/com-apple-eawt.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/jcommon-1.0.12.jar" sourcepath="misc/zips/jcommon-1.0.12.zip"/>
-	<classpathentry exported="true" kind="lib" path="lib/jfreechart-1.0.9.jar" sourcepath="misc/zips/jfreechart-1.0.9.zip"/>
+	<classpathentry exported="true" kind="lib" path="lib/jcommon-1.0.23.jar" sourcepath="misc/zips/jcommon-1.0.23.zip"/>
+	<classpathentry exported="true" kind="lib" path="lib/jfreechart-1.0.19.jar" sourcepath="misc/zips/jfreechart-1.0.19.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/ws-commons-util-1.0.2.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/xmlrpc-client-3.1.1.jar" sourcepath="lib/xmlrpc-client-3.1.1-sources.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/xmlrpc-common-3.1.1.jar" sourcepath="lib/xmlrpc-common-3.1.1-sources.jar"/>

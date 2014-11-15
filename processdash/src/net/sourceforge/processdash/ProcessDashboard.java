@@ -161,6 +161,7 @@ import net.sourceforge.processdash.ui.lib.PleaseWaitDialog;
 import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
 import net.sourceforge.processdash.ui.systray.SystemTrayManagement;
 import net.sourceforge.processdash.ui.web.psp.SizeEstimatingTemplate;
+import net.sourceforge.processdash.ui.web.reports.DashboardChartDefaults;
 import net.sourceforge.processdash.util.DateUtils;
 import net.sourceforge.processdash.util.FallbackObjectFactory;
 import net.sourceforge.processdash.util.FileUtils;
@@ -560,6 +561,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         BackgroundTaskManager.initialize(this);
         SystemTrayManagement.getIcon().initialize(this);
         AlwaysOnTopManager.initialize(this);
+        DashboardChartDefaults.initialize();
         initializeOsHelper();
         maybeRecordRecentDataset();
         RuntimeUtils.addPropagatedSystemProperty(UsageLogger.FILE_SETTING, null);

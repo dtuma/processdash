@@ -243,6 +243,9 @@ public class TimeLogPhaseWaterfallChart extends CGIChartBase {
         xyplot.setDrawingSupplier(DRAWING_SUPPLIER_FACTORY
                 .newDrawingSupplier());
 
+        result.setAntiAlias(false);
+        result.setTextAntiAlias(true);
+
         parameters.put("title", resources.getString("Title"));
 
         return result;
@@ -326,7 +329,7 @@ public class TimeLogPhaseWaterfallChart extends CGIChartBase {
 
         private int collapseWidth;
 
-        private long leftEnd, rightEnd, totalGaps;
+        private long leftEnd, rightEnd;
 
         private List<Span> gaps;
 
@@ -335,7 +338,7 @@ public class TimeLogPhaseWaterfallChart extends CGIChartBase {
                 this.collapseWidth = Integer.MAX_VALUE;
             else
                 this.collapseWidth = collapseWidth;
-            this.leftEnd = this.rightEnd = this.totalGaps = 0;
+            this.leftEnd = this.rightEnd = 0;
             this.gaps = new ArrayList<Span>();
         }
 
@@ -349,7 +352,6 @@ public class TimeLogPhaseWaterfallChart extends CGIChartBase {
             long thisGap = start - rightEnd;
             if (thisGap > collapseWidth) {
                 gaps.add(new Span(rightEnd, start));
-                totalGaps += thisGap;
             }
 
             rightEnd = Math.max(rightEnd, end);
