@@ -977,6 +977,7 @@ public class WBSEditor implements WindowListener, SaveListener,
             result.addSeparator();
             result.add(new ShowCommitDatesMenuItem());
             result.add(new ShowMilestoneMarksMenuItem());
+            result.add(new ShowMilestoneColorsMenuItem());
             new BalanceMilestoneMenuBuilder(result, milestones);
         }
         return result;
@@ -2317,6 +2318,20 @@ public class WBSEditor implements WindowListener, SaveListener,
 
         public void stateChanged(ChangeEvent e) {
             teamTimePanel.setShowMilestoneMarks(getState());
+        }
+    }
+
+    private class ShowMilestoneColorsMenuItem extends CheckBoxMenuItem
+            implements ChangeListener {
+        public ShowMilestoneColorsMenuItem() {
+            super("Use Milestone Colors for Team Member Bars");
+            setSelected(false);
+            addChangeListener(this);
+            load("teamTimePanel.colorByMilestone");
+        }
+
+        public void stateChanged(ChangeEvent e) {
+            teamTimePanel.setColorByMilestone(isSelected());
         }
     }
 

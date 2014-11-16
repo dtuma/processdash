@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2012 Tuma Solutions, LLC
+// Copyright (C) 2002-2014 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -25,16 +25,20 @@ package teamdash.wbs;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.GradientPaint;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.awt.Paint;
 import java.awt.Rectangle;
 import java.awt.Stroke;
+import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -51,6 +55,7 @@ import java.util.Map.Entry;
 
 import javax.swing.BorderFactory;
 import javax.swing.Icon;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
@@ -58,6 +63,7 @@ import javax.swing.Timer;
 import javax.swing.ToolTipManager;
 import javax.swing.UIManager;
 import javax.swing.border.BevelBorder;
+import javax.swing.border.Border;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 
@@ -125,6 +131,12 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
     private boolean showCommitDates;
     /** Should we show milestone markers on individual bars? */
     private boolean showMilestoneMarks;
+    /** Should the bars be colored by milestone, rather than person? */
+    private boolean colorByMilestone;
+    /** An object to manage the highlighted milestone */
+    private MilestoneHighlighter milestoneHighlighter;
+    /** An object to manage highlighting of team member bars */
+    private MemberBarHighlighter memberBarHighlighter;
     /** if not -1, the ID of a milestone to balance work through */
     private int balanceThroughMilestone;
     /** The name of the milestone we're balancing through, or null if we're
@@ -158,6 +170,7 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
         this.includeUnassigned = true;
         this.showCommitDates = true;
         this.showMilestoneMarks = true;
+        this.colorByMilestone = false;
         this.balanceThroughMilestone = -1;
         this.unassignedTimeColumn = dataModel
                 .findColumn(UnassignedTimeColumn.COLUMN_ID);
@@ -165,6 +178,8 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
         this.recalcTimer = new Timer(100, EventHandler.create(
             ActionListener.class, this, "recalc"));
         this.recalcTimer.setRepeats(false);
+        this.milestoneHighlighter = new MilestoneHighlighter();
+        this.memberBarHighlighter = new MemberBarHighlighter();
 
         this.hoursPerWeekFormat = NumberFormat.getInstance();
         this.hoursPerWeekFormat.setGroupingUsed(false);
@@ -262,6 +277,21 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
     public void setShowMilestoneMarks(boolean showMilestoneMarks) {
         if (this.showMilestoneMarks != showMilestoneMarks) {
             this.showMilestoneMarks = showMilestoneMarks;
+            if (!showMilestoneMarks && !colorByMilestone)
+                milestoneHighlighter.clear();
+            recalc();
+        }
+    }
+
+    public boolean isColorByMilestone() {
+        return colorByMilestone;
+    }
+
+    public void setColorByMilestone(boolean colorByMilestone) {
+        if (this.colorByMilestone != colorByMilestone) {
+            this.colorByMilestone = colorByMilestone;
+            if (!showMilestoneMarks && !colorByMilestone)
+                milestoneHighlighter.clear();
             recalc();
         }
     }
@@ -323,19 +353,21 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
         GridBagConstraints nc = new GridBagConstraints();
         nc.gridx = 0;
         nc.anchor = GridBagConstraints.WEST;
-        nc.insets.left = nc.insets.right = 5;
+        nc.fill = GridBagConstraints.BOTH;
+        nc.insets.left = COLORED_BAR_SIDE_INSET; nc.insets.right = 0;
         nc.insets.top = nc.insets.bottom = 0;
         // create a constraints object for hours per week
         GridBagConstraints hc = new GridBagConstraints();
         hc.gridx = 1;
         hc.anchor = GridBagConstraints.CENTER;
+        hc.fill = GridBagConstraints.BOTH;
         hc.insets.left = hc.insets.right = 0;
         hc.insets.top = hc.insets.bottom = 0;
         // create a constraints object for the horizontal bars.
         GridBagConstraints bc = new GridBagConstraints();
         bc.gridx = 2;
         bc.fill = GridBagConstraints.BOTH;
-        bc.insets.left = bc.insets.right = COLORED_BAR_SIDE_INSET;
+        bc.insets.left = 0; bc.insets.right = COLORED_BAR_SIDE_INSET;
         bc.insets.top = bc.insets.bottom = 0;
         bc.weightx = bc.weighty = 1;
         int row = 1;
@@ -406,11 +438,15 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
         // properly indicate the calculated team duration.
         if (showBalancedBar
                 && maxScheduleLength > 0
+                && balancedLength > 0
                 && balancedLength <= maxScheduleLength
                 && teamMemberBars.size() > 0) {
-            Rectangle r = ((TeamMemberBar) teamMemberBars.get(0)).getBounds();
-            balancedBarPos = (int) (r.width * balancedLength / maxScheduleLength);
-            int pos = r.x + balancedBarPos;
+            TeamMemberBar bar = teamMemberBars.get(0);
+            Rectangle r = bar.getBounds();
+            Insets i = bar.getInsets();
+            int width = r.width - i.left - i.right;
+            balancedBarPos = (int) (width * balancedLength / maxScheduleLength);
+            int pos = r.x + i.left + balancedBarPos;
             int yOff = r.y * 2 / 3;
             balancedBar.setBounds(pos-BBHW, yOff, BALANCED_BAR_WIDTH,
                 getHeight() - yOff);
@@ -568,6 +604,18 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
         return (showRemainingWork ? "Replan Date" : "Plan Date");
     }
 
+    private static boolean colorIsDark(Color c) {
+        return getGrayScale(c) < 128;
+    }
+
+    private static int getGrayScale(Color c) {
+        int rgb = c.getRGB();
+        int gray = (int) (0.30 * ((rgb >> 16) & 0xff) +
+                0.59 * ((rgb >> 8) & 0xff) +
+                0.11 * (rgb & 0xff));
+        return gray;
+    }
+
 
 
 
@@ -593,6 +641,7 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
                     loadCommitDates();
                 }});
             loadCommitDates();
+            addMouseListener(memberBarHighlighter);
         }
 
         public void changeBounds(int x, int y, int width, int height) {
@@ -604,8 +653,8 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
                 TeamMemberBar bar = (TeamMemberBar) teamMemberBars.get(0);
                 Insets i = bar.getInsets();
                 if (i != null) {
-                    w = w - i.left - i.right;
-                    l = l + i.left;
+                    w = w - i.left - i.right + COLORED_BAR_SIDE_INSET;
+                    l = i.left;
                 }
             }
 
@@ -680,7 +729,9 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
                 g.drawPolygon(xPoints, yPoints, xPoints.length);
 
                 if (g2 != null)
-                    g2.setStroke(COMMIT_DATE_LINE_STYLE);
+                    g2.setStroke(milestoneHighlighter.isHighlighted(cd)
+                            ? milestoneHighlighter.commitDateHighlightStroke
+                            : COMMIT_DATE_LINE_STYLE);
                 g.drawLine(cd.xPos, GUTTER_HEIGHT-1, cd.xPos, getHeight());
             }
 
@@ -696,7 +747,7 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
             int xPos = event.getX();
 
             int closestDistance = 2 + ARROW_WIDTH/2;
-            String tooltip = null;
+            CommitDate closestDate = null;
             for (CommitDate cd : commitDates) {
                 if (cd.xPos < 0 || cd.tooltip == null)
                     continue;
@@ -704,20 +755,29 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
                 int distance = Math.abs(xPos - cd.xPos);
                 if (distance < closestDistance) {
                     closestDistance = distance;
-                    tooltip = cd.tooltip;
+                    closestDate = cd;
                 }
             }
 
-            return tooltip;
+            if (closestDate == null) {
+                return null;
+            } else {
+                milestoneHighlighter.set(closestDate);
+                return closestDate.tooltip;
+            }
         }
 
-        private class CommitDate {
+        private class CommitDate implements MilestoneHighlightable {
+
+            private int milestoneID;
             private String name;
             private Date date;
             private Color color;
             private String tooltip;
             private int xPos;
+
             private CommitDate(WBSNode milestone) {
+                this.milestoneID = milestone.getUniqueID();
                 this.name = milestone.getName();
                 this.date = MilestoneCommitDateColumn.getCommitDate(milestone);
                 if (this.date != null)
@@ -727,13 +787,24 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
                     this.tooltip = name + " - Commit Date: "
                             + dateFormat.format(date);
             }
+
+            public int getMilestoneID() {
+                return milestoneID;
+            }
+
+            public Color getMilestoneColor() {
+                return color;
+            }
+
             public boolean isEmpty() {
                 return name == null || name.trim().length() == 0
                         || date == null;
             }
+
             private void recalcXPos(int width, int leftPad) {
                 this.xPos = calcXPos(width, leftPad);
             }
+
             private int calcXPos(int width, int leftPad) {
                 if (date == null || name == null || name.trim().length() == 0)
                     return -1;
@@ -746,10 +817,132 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
         }
 
     }
+
     private static final Stroke COMMIT_DATE_LINE_STYLE = new BasicStroke(1,
             BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 1,
             new float[] { 3, 3 }, 0);
 
+
+    private interface MilestoneHighlightable {
+        public int getMilestoneID();
+        public Color getMilestoneColor();
+    }
+
+    private class MilestoneHighlighter extends Timer implements ActionListener {
+
+        private int milestoneID;
+        private Color color;
+        private Color bgColor;
+        private int i;
+        private Paint milestoneHighlightPaint;
+        private Stroke commitDateHighlightStroke;
+        private boolean armedForClick;
+        private boolean clickLocked;
+
+        public MilestoneHighlighter() {
+            super(50, null);
+            commitDateHighlightStroke = COMMIT_DATE_LINE_STYLE;
+            addActionListener(this);
+        }
+
+        public void clear() {
+            armedForClick = clickLocked = false;
+            set(null);
+        }
+
+        public void setArmedForClick(boolean armed) {
+            armedForClick = armed;
+        }
+
+        public void set(MilestoneHighlightable h) {
+            if (clickLocked && !armedForClick)
+                return;
+
+            if (h == null || (!showMilestoneMarks && !colorByMilestone)) {
+                if (this.milestoneID != -1) {
+                    this.milestoneID = -1;
+                    stop();
+                    repaint();
+                }
+                clickLocked = armedForClick = false;
+
+            } else {
+                if (isHighlighted(h)) {
+                    // if the user re-clicks the click-locked milestone, clear it.
+                    if (clickLocked && armedForClick)
+                        set(null);
+                } else {
+                    // when highlighting a new milestone, calc new colors
+                    this.milestoneID = h.getMilestoneID();
+                    this.color = h.getMilestoneColor();
+                    int gray = getGrayScale(color);
+                    switch (gray >> 6) {
+                    case 1: case 3: gray -= 64; break;
+                    case 2: gray += 64; break;
+                    case 0: default: gray = 128; break;
+                    }
+                    bgColor = new Color(gray, gray, gray);
+                    start();
+                }
+                clickLocked = armedForClick;
+                armedForClick = false;
+            }
+        }
+
+        public boolean isHighlighted(MilestoneHighlightable h) {
+            return h.getMilestoneID() == milestoneID;
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            i = (i + 1) % 40;
+            milestoneHighlightPaint = new GradientPaint(i, 0, color, 10 + i,
+                    10, bgColor, true);
+            commitDateHighlightStroke = new BasicStroke(3, BasicStroke.CAP_BUTT,
+                    BasicStroke.JOIN_BEVEL, 1, new float[] { 5, 5 }, i);
+            repaint();
+        }
+
+    }
+
+
+    private class MemberBarHighlighter extends MouseAdapter {
+
+        @Override
+        public void mouseClicked(MouseEvent e) {
+            Component c = e.getComponent();
+            if (c instanceof JComponent) {
+                milestoneHighlighter.setArmedForClick(true);
+                ((JComponent) c).getToolTipText(e);
+                milestoneHighlighter.setArmedForClick(false);
+            }
+        }
+
+        @Override
+        public void mouseEntered(MouseEvent e) {
+            setBarHighlighted(e, true);
+        }
+
+        @Override
+        public void mouseExited(MouseEvent e) {
+            setBarHighlighted(e, false);
+        }
+
+        private void setBarHighlighted(MouseEvent e, boolean highlighted) {
+            if (e.getComponent() instanceof JComponent) {
+                TeamMemberBar bar = (TeamMemberBar) ((JComponent) e
+                        .getComponent()).getClientProperty(TeamMemberBar.class);
+                if (bar != null) {
+                    bar.setHighlighted(highlighted);
+                    repaint();
+                }
+            }
+        }
+
+        private void listen(JComponent comp, TeamMemberBar bar) {
+            comp.putClientProperty(TeamMemberBar.class, bar);
+            comp.addMouseListener(this);
+        }
+    }
 
 
     /** This class performs the calculations and the display of a
@@ -765,6 +958,9 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
 
         /** True if our colored bar has a dark color */
         private boolean barIsDark;
+
+        /** True if the final milestone segment is a dark color */
+        private boolean lastMilestoneIsDark;
 
         /** True if we should paint the label with a light color */
         private boolean labelIsLight;
@@ -798,8 +994,11 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
         /** The pixel position of the start of the bar */
         private int startPos;
 
+        /** A label displaying the team member name */
+        JLabel nameLabel;
+
         /** A label displaying hours per week */
-        private JLabel hoursPerWeekLabel;
+        JLabel hoursPerWeekLabel;
 
         private List<MilestoneMark> milestoneMarks;
 
@@ -814,26 +1013,29 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
             effectivePastHours = teamMember.getSchedule().getEffortForDate(
                 indivEffectiveDate);
 
-            setBorder(BorderFactory.createBevelBorder(BevelBorder.LOWERED));
+            setBorder(COLORED_BAR_BORDER);
             // use the color associated with the given team member.
             setForeground(teamMember.getColor());
+            barIsDark = colorIsDark(teamMember.getColor());
 
-            int rgb = teamMember.getColor().getRGB();
-            int gray = (int) (0.30 * ((rgb >> 16) & 0xff) +
-                    0.59 * ((rgb >> 8) & 0xff) +
-                    0.11 * (rgb & 0xff));
-            barIsDark = (gray < 128);
+            nameLabel = new JLabel(teamMember.getName());
+            nameLabel.setOpaque(true);
+            nameLabel.setBorder(NAME_LABEL_BORDER);
+            if (showBalancedBar)
+                nameLabel.setIcon(SPACER_ICON);
+            memberBarHighlighter.listen(nameLabel, this);
 
             hoursPerWeekLabel = new JLabel(hoursPerWeekFormat.format(teamMember
                     .getHoursPerWeek()));
+            hoursPerWeekLabel.setOpaque(true);
             hoursPerWeekLabel.setToolTipText("Hours per Week (Nominal)");
+            memberBarHighlighter.listen(hoursPerWeekLabel, this);
+
+            memberBarHighlighter.listen(this, this);
         }
 
         public JLabel getNameLabel() {
-            JLabel result = new JLabel(teamMember.getName());
-            if (showBalancedBar)
-                result.setIcon(SPACER_ICON);
-            return result;
+            return nameLabel;
         }
 
         public JLabel getHoursPerWeekLabel() {
@@ -941,16 +1143,20 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
 
         @Override
         public String getToolTipText(MouseEvent event) {
-            if (Math.abs(event.getX() - startPos) < 5)
+            int x = event.getX();
+            if (Math.abs(x - startPos) < 5)
                 return startTooltip;
 
-            if (showMilestoneMarks) {
+            if (x > startPos && (showMilestoneMarks || colorByMilestone)) {
                 for (MilestoneMark mark : milestoneMarks) {
-                    if (event.getX() < mark.rightEdge)
+                    if (x < mark.rightEdge) {
+                        milestoneHighlighter.set(mark);
                         return mark.tooltip;
+                    }
                 }
             }
 
+            milestoneHighlighter.set(null);
             return super.getToolTipText(event);
         }
 
@@ -1014,6 +1220,17 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
             return dataModel.findColumn(columnID);
         }
 
+        private boolean barIsDark() {
+            return (colorByMilestone ? lastMilestoneIsDark : barIsDark);
+        }
+
+        private void setHighlighted(boolean highlight) {
+            Color bgColor = (highlight ? BAR_HIGHLIGHT_COLOR : null);
+            this.setBackground(bgColor);
+            nameLabel.setBackground(bgColor);
+            hoursPerWeekLabel.setBackground(bgColor);
+        }
+
         /** Alter the horizontal position of this bar.
          *
          * It should depict the percentage obtained by dividing this team
@@ -1035,7 +1252,8 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
 
             if (finishTime > 0 && maxScheduleLength > 0) {
                 // now paint the bar.
-                double leftPos = Math.max(lagTime, 0) / maxScheduleLength;
+                long leftTime = Math.max(lagTime, 0);
+                double leftPos = leftTime / maxScheduleLength;
                 double rightPos = finishTime / maxScheduleLength;
 
                 Rectangle bounds = getBounds();
@@ -1045,10 +1263,10 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
                 int barLeft = (int) (totalWidth * leftPos) + insets.left;
                 int barRight = (int) (totalWidth * rightPos) + insets.left;
                 int barWidth = barRight - barLeft;
-                g.setColor(getForeground());
+                g.setColor(colorByMilestone ? Color.darkGray : getForeground());
                 g.fillRect(barLeft, insets.top, barWidth, barHeight);
 
-                if (endTime > 0 && finishTime > endTime) {
+                if (endTime > 0 && finishTime > endTime && !colorByMilestone) {
                     double endPos = endTime / maxScheduleLength;
                     int overageLeft = (int) (totalWidth * endPos) + insets.left;
                     int overageWidth = barRight - overageLeft;
@@ -1058,10 +1276,19 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
 
                 // paint milestone marks from right to left, so earlier marks
                 // cover later overlapping marks.
-                if (showMilestoneMarks) {
+                if (showMilestoneMarks || colorByMilestone) {
+                    lastMilestoneIsDark = true;
                     for (int i = milestoneMarks.size(); i-- > 0;) {
-                        milestoneMarks.get(i).paint(g, insets.left, totalWidth,
-                            bounds.height);
+                        MilestoneMark mark = milestoneMarks.get(i);
+
+                        long markLeftTime = Math.max(0, (i == 0 ? leftTime //
+                                : milestoneMarks.get(i - 1).markTime));
+
+                        mark.paint(g, insets.left, insets.top, markLeftTime,
+                            totalWidth, barHeight, bounds.height);
+
+                        if (mark.isTerminalMilestone())
+                            lastMilestoneIsDark = mark.milestoneColorIsDark;
                     }
                 }
 
@@ -1097,20 +1324,20 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
 
         private int calcLabelPos(int barLeft, int barRight, int barWidth,
                 int labelWidth, int totalWidth) {
-            // first preference: right aligned inside the colored bar
-            if (labelWidth + 2 * PAD < barWidth) {
-                int labelPos = barRight - labelWidth - PAD;
+            // first preference: left aligned to the right of the colored bar
+            if (barRight + 2 + 2 * PAD + labelWidth < totalWidth) {
+                int labelPos = barRight + PAD + 2;
                 if (!collidesWithBalancedBar(labelPos, labelWidth)) {
-                    labelIsLight = barIsDark;
+                    labelIsLight = false;
                     return labelPos;
                 }
             }
 
-            // second preference: left aligned to the right of the colored bar
-            if (barRight + 2 * PAD + labelWidth < totalWidth) {
-                int labelPos = barRight + PAD;
+            // second preference: right aligned inside the colored bar
+            if (labelWidth + 2 * PAD < barWidth) {
+                int labelPos = barRight - labelWidth - PAD;
                 if (!collidesWithBalancedBar(labelPos, labelWidth)) {
-                    labelIsLight = false;
+                    labelIsLight = barIsDark();
                     return labelPos;
                 }
             }
@@ -1119,7 +1346,7 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
             if (barLeft + 2 * PAD + labelWidth + BBHW < balancedBarPos) {
                 int labelPos = balancedBarPos - BBHW - PAD - labelWidth;
                 if (labelPos + labelWidth + PAD < barRight) {
-                    labelIsLight = barIsDark;
+                    labelIsLight = barIsDark();
                     return labelPos;
                 }
             }
@@ -1144,7 +1371,7 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
 
             // abort: draw at the left of the team member bar.
             if (barLeft < labelWidth / 2)
-                labelIsLight = barIsDark;
+                labelIsLight = barIsDark();
             else
                 labelIsLight = false;
             return PAD;
@@ -1158,11 +1385,14 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
             return (leftEdge < balancedBarPos && balancedBarPos < rightEdge);
         }
 
-        private class MilestoneMark {
+        private class MilestoneMark implements MilestoneHighlightable {
+
+            int milestoneID;
             double effort;
             double cumEffort;
             long markTime;
             Color color;
+            boolean milestoneColorIsDark;
             String tooltip;
             int xPos, rightEdge, leftEdge;
 
@@ -1172,7 +1402,7 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
                 if (milestone == null || milestoneEffort == null)
                     return;
 
-                int milestoneID = milestone.getUniqueID();
+                milestoneID = milestone.getUniqueID();
                 Double effortVal = milestoneEffort.get(milestoneID);
                 if (effortVal == null) {
                     effort = 0;
@@ -1189,21 +1419,46 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
                 markTime = when.getTime() - leftTimeBoundary;
 
                 color = MilestoneColorColumn.getColor(milestone);
+                milestoneColorIsDark = colorIsDark(color);
                 tooltip = teamMember.getName() + " - " + milestone.getName()
                         + " - Optimal " + getDateQualifier() + ": "
                         + dateFormat.format(when);
             }
 
-            public void paint(Graphics g, int leftInset, int totalWidth,
-                    int height) {
+            public int getMilestoneID() {
+                return milestoneID;
+            }
+
+            public Color getMilestoneColor() {
+                return color;
+            }
+
+            public boolean isTerminalMilestone() {
+                return Math.abs(markTime - finishTime) < 60000;
+            }
+
+            public void paint(Graphics g, int leftInset, int topInset,
+                    long leftTime, int totalWidth, int barHeight, int height) {
                 if (markTime < 0)
-                    return;
-                if (hideTerminalMilestoneMark
-                        && Math.abs(markTime - finishTime) < 60000)
                     return;
 
                 double markPos = markTime / maxScheduleLength;
-                xPos = (int) (totalWidth * markPos) + leftInset;
+                rightEdge = xPos = (int) (totalWidth * markPos) + leftInset;
+
+                boolean isHighlighted = milestoneHighlighter.isHighlighted(this);
+                if (colorByMilestone || isHighlighted) {
+                    ((Graphics2D) g).setPaint(isHighlighted //
+                            ? milestoneHighlighter.milestoneHighlightPaint
+                            : this.color);
+                    double leftPos = leftTime / maxScheduleLength;
+                    int leftX = (int) (totalWidth * leftPos) + leftInset;
+                    g.fillRect(leftX, topInset, xPos - leftX, barHeight);
+                }
+
+                if ((hideTerminalMilestoneMark && isTerminalMilestone())
+                        || showMilestoneMarks == false)
+                    return;
+
                 int hh = (height + 1) / 2;
                 for (int i = 0;  i < hh;  i++) {
                     int d = (i + 1) / 2;
@@ -1234,17 +1489,12 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
             effectivePastHours = 0;
             hideTerminalMilestoneMark = true;
 
-            getHoursPerWeekLabel().setText("");
-        }
-
-        @Override
-        public JLabel getNameLabel() {
-            JLabel result = super.getNameLabel();
-            result.setIcon(showTeamMemberBars ? IconFactory.getMinusIcon()
+            nameLabel.setIcon(showTeamMemberBars ? IconFactory.getMinusIcon()
                     : IconFactory.getPlusIcon());
-            result.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-            result.addMouseListener(toggleMembers);
-            return result;
+            nameLabel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+            nameLabel.addMouseListener(toggleMembers);
+
+            hoursPerWeekLabel.setText("");
         }
 
         @Override
@@ -1313,9 +1563,16 @@ public class TeamTimePanel extends JPanel implements TableModelListener {
     private DateFormat dateFormat = DateFormat.getDateInstance();
 
     private static final int COLORED_BAR_SIDE_INSET = 5;
-    private static final int BALANCED_BAR_WIDTH = 8;
+    private static final int BALANCED_BAR_WIDTH = 7;
     private static final int BBHW = BALANCED_BAR_WIDTH / 2;
     private static final int PAD = 6;
     private static final Date A_LONG_TIME_AGO = new Date(0);
+
+    private static final Border NAME_LABEL_BORDER = BorderFactory
+            .createEmptyBorder(0, 0, 0, COLORED_BAR_SIDE_INSET);
+    private static final Border COLORED_BAR_BORDER = BorderFactory.createCompoundBorder(
+        BorderFactory.createEmptyBorder(0, COLORED_BAR_SIDE_INSET, 0, 0),
+        BorderFactory.createBevelBorder(BevelBorder.LOWERED));
+    private static final Color BAR_HIGHLIGHT_COLOR = new Color(160, 160, 160);
 
 }
