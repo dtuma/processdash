@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2008 Tuma Solutions, LLC
+// Copyright (C) 2001-2014 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -24,18 +24,19 @@
 package net.sourceforge.processdash.ui.web.reports;
 
 
-import net.sourceforge.processdash.data.DateData;
-import net.sourceforge.processdash.i18n.Translator;
-import net.sourceforge.processdash.ui.web.CGIChartBase;
-
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.Axis;
+import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.labels.XYToolTipGenerator;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.StandardXYItemRenderer;
 import org.jfree.data.xy.XYDataset;
+
+import net.sourceforge.processdash.data.DateData;
+import net.sourceforge.processdash.i18n.Translator;
+import net.sourceforge.processdash.ui.web.CGIChartBase;
 
 
 
@@ -57,6 +58,8 @@ public class XYChart extends CGIChartBase {
             yLabel = Translator.translate(yLabel);
         }
 
+        Object autoZero = parameters.get("autoZero");
+
         if ((data.numRows() > 0 && data.numCols() > 0 &&
              data.getData(1,1) instanceof DateData) ||
             parameters.get("xDate") != null)
@@ -76,10 +79,20 @@ public class XYChart extends CGIChartBase {
             if ("none".equalsIgnoreCase(trendLine))
                 ;
             else if ("average".equalsIgnoreCase(trendLine))
-                addTrendLine(chart, XYDataSourceTrendLine.getAverageLine(src));
+                addTrendLine(chart, XYDataSourceTrendLine.getAverageLine(src,
+                    0, autoZero != null && !autoZero.equals("y")));
             else
-                addTrendLine(chart,
-                             XYDataSourceTrendLine.getRegressionLine(src));
+                addTrendLine(chart, XYDataSourceTrendLine.getRegressionLine(
+                    src, 0, autoZero != null && !autoZero.equals("y")));
+        }
+
+        if (autoZero != null) {
+            if (!"x".equals(autoZero))
+                ((NumberAxis) chart.getXYPlot().getRangeAxis())
+                        .setAutoRangeIncludesZero(true);
+            if (!"y".equals(autoZero))
+                ((NumberAxis) chart.getXYPlot().getDomainAxis())
+                        .setAutoRangeIncludesZero(true);
         }
 
         if (data.numCols() == 2)

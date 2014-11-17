@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2008 Tuma Solutions, LLC
+// Copyright (C) 2002-2014 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -41,9 +41,9 @@ import org.jfree.data.xy.XYDataset;
  */
 public class XYDataSourceTrendLine extends AbstractXYDataset {
 
-    /** Used to specify if the trend line should start for 0 or from the first
-        data point. */
-    public static final boolean USE_ZERO_AS_MIN_X = true;
+    /** Used to specify if the trend line should start from the X/Y axis, or
+     * from the X-value of the first data point. */
+    public static final boolean START_LINE_AT_ZERO = true;
 
     private static final Double ZERO = new Double(0);
 
@@ -138,19 +138,19 @@ public class XYDataSourceTrendLine extends AbstractXYDataset {
 
         /** Used to indicate if the regression line should start for 0 or from the first
             data point. */
-        public boolean useZeroAsMinX;
+        public boolean startFromZero;
 
-        public RegressionLine(XYDataset src, int seriesNum, boolean useZeroAsMinX) {
+        public RegressionLine(XYDataset src, int seriesNum, boolean startFromZero) {
             super(src, DEFAULT_NAME);
             super.addChangeListener(this);
             this.seriesNum = seriesNum;
-            this.useZeroAsMinX = useZeroAsMinX;
+            this.startFromZero = startFromZero;
             calculateLine();
         }
 
         private void calculateLine() {
             Vector data = new Vector();
-            double minX = useZeroAsMinX ? 0 : Double.NaN;
+            double minX = Double.NaN;
             double maxX = Double.NaN;
             int i = 0;
             if (source.getSeriesCount() > seriesNum)
@@ -164,7 +164,7 @@ public class XYDataSourceTrendLine extends AbstractXYDataset {
                     continue;
                 else {
                     data.add(pair);
-                    if (!(minX < pair[0]) && !useZeroAsMinX) minX = pair[0];
+                    if (!(minX < pair[0])) minX = pair[0];
                     if (!(maxX > pair[0])) maxX = pair[0];
                 }
             } catch (NullPointerException e) {}
@@ -176,6 +176,8 @@ public class XYDataSourceTrendLine extends AbstractXYDataset {
 
         protected void resetLine(LinearRegression regress,
                                  double minX, double maxX) {
+            if (startFromZero)
+                minX = (regress.beta0 < 0 ? regress.getXIntercept() : 0);
             setLineSlope(regress.beta0, regress.beta1, minX, maxX);
         }
 
@@ -193,18 +195,20 @@ public class XYDataSourceTrendLine extends AbstractXYDataset {
     }
     public static XYDataset getRegressionLine(XYDataset src,
                                               int seriesNum,
-                                              boolean useZeroAsMinX) {
-        return new RegressionLine(src, seriesNum, useZeroAsMinX);
+                                              boolean startFromZero) {
+        return new RegressionLine(src, seriesNum, startFromZero);
     }
 
     private static class AverageLine extends RegressionLine {
-        public AverageLine(XYDataset src, int num, boolean useZeroAsMinX) {
-            super(src, num, useZeroAsMinX);
+        public AverageLine(XYDataset src, int num, boolean startFromZero) {
+            super(src, num, startFromZero);
         }
 
         @Override
         protected void resetLine(LinearRegression regress,
                                  double minX, double maxX) {
+            if (startFromZero)
+                minX = 0;
             setLineSlope(0, regress.y_avg / regress.x_avg, minX, maxX);
         }
     }
@@ -213,16 +217,16 @@ public class XYDataSourceTrendLine extends AbstractXYDataset {
     public static XYDataset getAverageLine(XYDataset src) {
         return getAverageLine(src, 0);
     }
-    public static XYDataset getAverageLine(XYDataset src, boolean useZeroAsMinX) {
-        return getAverageLine(src, 0, useZeroAsMinX);
+    public static XYDataset getAverageLine(XYDataset src, boolean startFromZero) {
+        return getAverageLine(src, 0, startFromZero);
     }
     public static XYDataset getAverageLine(XYDataset src, int seriesNum) {
         return getAverageLine(src, seriesNum, false);
     }
     public static XYDataset getAverageLine(XYDataset src,
                                            int seriesNum,
-                                           boolean useZeroAsMinX) {
-        return new AverageLine(src, seriesNum, useZeroAsMinX);
+                                           boolean startFromZero) {
+        return new AverageLine(src, seriesNum, startFromZero);
     }
 
     @Override
