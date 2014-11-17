@@ -179,13 +179,15 @@ undefine([Use_Rollup]);
  * Calculate estimated defect removal counts from estimated phase yields
  */
 <!--#foreach name=Phase list=Phase_List #-->
-[<!--#echo Phase_Name -->/Estimated Defects Removed] =
+[<!--#echo Phase_Name -->/Estimated Defects Removed] = iff(
+    [<!--#echo Phase_Name -->/Estimated Time],
     [<!--#echo Phase_Name -->/Estimated % Ph<!--#echo null -->ase Yield] *
     ( [<!--#echo Phase_Name -->/Estimated Defects_Injected_So_Far]
       <!--#if Phase_Prev_Sibling #-->
       <!--#foreach name=Prev list=Phase_Prev_Sibling #-->
         - [<!--#echo Prev_Name -->/Estimated Defects_Removed_So_Far]
-      <!--#endfor--><!--#endif--> );
+      <!--#endfor--><!--#endif--> ),
+    0);
 <!--#endfor-->
 
 
