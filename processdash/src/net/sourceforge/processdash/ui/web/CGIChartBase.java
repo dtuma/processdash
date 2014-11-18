@@ -37,13 +37,6 @@ import java.util.Map;
 
 import javax.imageio.ImageIO;
 
-import net.sourceforge.processdash.Settings;
-import net.sourceforge.processdash.data.util.ResultSet;
-import net.sourceforge.processdash.i18n.Resources;
-import net.sourceforge.processdash.i18n.Translator;
-import net.sourceforge.processdash.util.HTMLUtils;
-import net.sourceforge.processdash.util.StringUtils;
-
 import org.jfree.chart.ChartRenderingInfo;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.Axis;
@@ -54,7 +47,6 @@ import org.jfree.chart.entity.ChartEntity;
 import org.jfree.chart.entity.EntityCollection;
 import org.jfree.chart.entity.StandardEntityCollection;
 import org.jfree.chart.imagemap.ImageMapUtilities;
-import org.jfree.chart.imagemap.OverLIBToolTipTagFragmentGenerator;
 import org.jfree.chart.imagemap.StandardToolTipTagFragmentGenerator;
 import org.jfree.chart.imagemap.StandardURLTagFragmentGenerator;
 import org.jfree.chart.imagemap.ToolTipTagFragmentGenerator;
@@ -63,6 +55,13 @@ import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.title.LegendTitle;
 import org.jfree.chart.title.TextTitle;
 import org.jfree.ui.RectangleInsets;
+
+import net.sourceforge.processdash.Settings;
+import net.sourceforge.processdash.data.util.ResultSet;
+import net.sourceforge.processdash.i18n.Resources;
+import net.sourceforge.processdash.i18n.Translator;
+import net.sourceforge.processdash.util.HTMLUtils;
+import net.sourceforge.processdash.util.StringUtils;
 
 
 
@@ -308,8 +307,8 @@ public abstract class CGIChartBase extends net.sourceforge.processdash.ui.web.Ti
             return null;
     }
 
-    private static class CustomOverlibFragmentGenerator extends
-            OverLIBToolTipTagFragmentGenerator {
+    private static class CustomOverlibFragmentGenerator implements
+            ToolTipTagFragmentGenerator {
 
         private String defaultTooltip;
 
@@ -317,15 +316,25 @@ public abstract class CGIChartBase extends net.sourceforge.processdash.ui.web.Ti
             this.defaultTooltip = tooltip;
         }
 
-        @Override
         public String generateToolTipFragment(String toolTipText) {
+            if (toolTipText.startsWith("<html>"))
+                toolTipText = toolTipText.substring(6);
+            if (toolTipText.endsWith("</html>"))
+                toolTipText = toolTipText.substring(0, toolTipText.length() - 7);
+            if (toolTipText.startsWith("<body>"))
+                toolTipText = toolTipText.substring(6);
+            if (toolTipText.endsWith("</body>"))
+                toolTipText = toolTipText.substring(0, toolTipText.length() - 7);
+
             if (defaultTooltip != null && defaultTooltip.equals(toolTipText)) {
                 return " onMouseOver=\"return overlib('"
-                + ImageMapUtilities.htmlEscape(toolTipText)
-                + "', DELAY, 1000, FOLLOWMOUSE, FGCOLOR, '#FFFFCC');\""
-                + " onMouseOut=\"return nd();\"";
+                        + ImageMapUtilities.htmlEscape(toolTipText)
+                        + "', DELAY, 1000, FOLLOWMOUSE, FGCOLOR, '#FFFFCC');\""
+                        + " onMouseOut=\"return nd();\"";
             } else {
-                return super.generateToolTipFragment(toolTipText);
+                return " onMouseOver=\"return overlib('"
+                        + ImageMapUtilities.htmlEscape(toolTipText)
+                        + "');\" onMouseOut=\"return nd();\"";
             }
         }
 
