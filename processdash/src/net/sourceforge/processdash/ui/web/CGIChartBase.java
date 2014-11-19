@@ -317,6 +317,11 @@ public abstract class CGIChartBase extends net.sourceforge.processdash.ui.web.Ti
         }
 
         public String generateToolTipFragment(String toolTipText) {
+            // In the dashboard, many tool tip generators are dual purpose
+            // (generating tooltips both for rich client and HTML views). To
+            // produce styled tips in the rich client, generators must wrap the
+            // tool tip text in an <html> tag. If we see this pattern when
+            // producing an HTML report, strip the <html> and <body> tags.
             if (toolTipText.startsWith("<html>"))
                 toolTipText = toolTipText.substring(6);
             if (toolTipText.endsWith("</html>"))
@@ -326,16 +331,15 @@ public abstract class CGIChartBase extends net.sourceforge.processdash.ui.web.Ti
             if (toolTipText.endsWith("</body>"))
                 toolTipText = toolTipText.substring(0, toolTipText.length() - 7);
 
-            if (defaultTooltip != null && defaultTooltip.equals(toolTipText)) {
-                return " onMouseOver=\"return overlib('"
-                        + ImageMapUtilities.htmlEscape(toolTipText)
-                        + "', DELAY, 1000, FOLLOWMOUSE, FGCOLOR, '#FFFFCC');\""
-                        + " onMouseOut=\"return nd();\"";
-            } else {
-                return " onMouseOver=\"return overlib('"
-                        + ImageMapUtilities.htmlEscape(toolTipText)
-                        + "');\" onMouseOut=\"return nd();\"";
-            }
+            // generate HTML attributes to display the tip via overLib.
+            StringBuilder result = new StringBuilder();
+            result.append(" onMouseOver=\"return overlib('");
+            result.append(ImageMapUtilities.htmlEscape(ImageMapUtilities
+                    .javascriptEscape(toolTipText)));
+            if (toolTipText.equals(defaultTooltip))
+                result.append("', DELAY, 1000, FOLLOWMOUSE, FGCOLOR, '#FFFFCC");
+            result.append("');\" onMouseOut=\"return nd();\"");
+            return result.toString();
         }
 
     }
