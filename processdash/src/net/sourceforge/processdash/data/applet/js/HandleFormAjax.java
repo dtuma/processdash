@@ -1,4 +1,4 @@
-// Copyright (C) 2011 Tuma Solutions, LLC
+// Copyright (C) 2011-2014 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -91,7 +91,9 @@ public class HandleFormAjax extends HandleFormAbstract {
             return;
 
         // if no commands were waiting in the queue, wait for one to arrive.
-        FormDataEvent e = session.getNextEvent(coupon, EventWaitDelay.LONG);
+        EventWaitDelay delay = parameters.containsKey("poll")
+                ? EventWaitDelay.AUTO : EventWaitDelay.LONG;
+        FormDataEvent e = session.getNextEvent(coupon, delay);
         if (e == null) {
             // if no print command arrived, print a no-op.
             writeNoOp();

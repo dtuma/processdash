@@ -2,7 +2,7 @@
 // <!--#echo defaultEncoding="html,javaStr" -->
 /****************************************************************************
 // Process Dashboard - Data Automation Tool for high-maturity processes
-// Copyright (C) 2000-2013 Tuma Solutions, LLC
+// Copyright (C) 2000-2014 Tuma Solutions, LLC
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -342,6 +342,7 @@ var dispatchState = DISPATCH_IDLE;
 
 
 var DISPATCH_ACK_TIMEOUT = 5000;
+var DISPATCH_POLL_TIMEOUT = 25000;
 var DISPATCH_ACK_TIMEOUT_COMMAND = "alert('need to call initDispatch')";
 
 var LISTEN_MESSAGE_FUNC = "alert('need to call initDispatch')";
@@ -352,13 +353,48 @@ var messageQueue = new Array();
 var nextMessageID = randNum();
 var ackTimeoutID = -1;
 var failedMsgCount = 0;
+var isPageVisible = true;
+var pollTimeoutID = -1;
 
 // public - should be called by other javascript on page load.
 function initDispatch(listenFunc, connLostFunc) {
     LISTEN_MESSAGE_FUNC = listenFunc;
     DISPATCH_ACK_TIMEOUT_COMMAND = connLostFunc;
+    registerVisibilityListener();
 }
 
+// private - should only be called by initialization code
+var pageHiddenAttr = "hidden";
+function registerVisibilityListener() {
+    var eventName = null;
+    if ((pageHiddenAttr = "hidden") in document) {
+        eventName = "visibilitychange";
+    } else if ((pageHiddenAttr = "mozHidden") in document) {
+        eventName = "mozvisibilitychange";
+    } else if ((pageHiddenAttr = "webkitHidden") in document) {
+        eventName = "webkitvisibilitychange";
+    } else if ((pageHiddenAttr = "msHidden") in document) {
+        eventName = "msvisibilitychange";
+    }
+
+    if (eventName)
+      document.addEventListener(eventName, pageVisibilityChanged);
+}
+
+// private - should only be called by event handlers
+function pageVisibilityChanged() {
+    var hidden = document[pageHiddenAttr];
+    if (hidden) {
+        isPageVisible = false;
+
+    } else if (!isPageVisible) {
+        isPageVisible = true;
+        if (pollTimeoutID != -1) {
+            self.clearTimeout(pollTimeoutID);
+            pollTimeout();
+        }
+    }
+}
 
 // public - this method can be called freely by other javascript.
 function addMessage(msg) {
@@ -442,7 +478,9 @@ function ackTimeout() {
 function listenForEvents() {
     var msgID = nextMessageID++;
     var messageURL = "http://" + self.location.host
-        + eval(LISTEN_MESSAGE_FUNC) + getMsgIDSuffix(msgID);
+        + eval(LISTEN_MESSAGE_FUNC)
+        + (isPageVisible ? "" : "&poll")
+        + getMsgIDSuffix(msgID);
     LISTEN_AJAX_DISPATCHER = new Ajax.Request(messageURL,
         { onComplete: listenComplete,
 	  onException: listenException });
@@ -463,7 +501,13 @@ function listenComplete(transport, json) {
         // if we received a response from the dashboard, start another listening request to
         // pick up on future events.
         failedMsgCount = 0;
-        listenForEvents();
+        if (isPageVisible) {
+            listenForEvents();
+        } else {
+            if (pollTimeoutID != -1)
+                self.clearTimeout(pollTimeoutID);
+            pollTimeoutID = self.setTimeout("pollTimeout()", DISPATCH_POLL_TIMEOUT);
+        }
 
     } else {
         // on firefox, if the server cannot be reached, the AJAX request
@@ -479,6 +523,11 @@ function listenComplete(transport, json) {
 	    self.setTimeout("abortMessageDispatch()", 1000);
 	}
     }
+}
+
+function pollTimeout() {
+    pollTimeoutID = -1;
+    listenForEvents();
 }
 
 function listenException(ajax, exception) {

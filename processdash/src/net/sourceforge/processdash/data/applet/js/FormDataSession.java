@@ -142,6 +142,7 @@ public class FormDataSession implements FormDataListener {
                         : EVENT_DELAY;
                 formDataEvents.wait(waitTime);
             } catch (InterruptedException ie) {}
+            touch();
 
             // if the queue was emptied while we were waiting, return null.
             if (formDataEvents.isEmpty())
