@@ -425,13 +425,14 @@ public class WebServer implements ContentSource {
     }
 
 
-    public void setRoots(URL [] roots) {
+    public synchronized void setRoots(URL [] roots) {
         SET_ROOTS_PERMISSION.checkPermission();
 
         // find or build web apps for each of the given URLs
         List<WebAppContextDashboard> newWebApps = new ArrayList();
         for (URL u : roots)
-            newWebApps.add(getWebAppForUrl(u));
+            if (!u.toString().toLowerCase().contains("/tpidw.jar!/"))
+                newWebApps.add(getWebAppForUrl(u));
         webApps.setHandlers(newWebApps.toArray(new Handler[newWebApps.size()]));
 
         writePackagesToDefaultEnv();
