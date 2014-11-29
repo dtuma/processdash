@@ -1,4 +1,4 @@
-// Copyright (C) 2006-2013 Tuma Solutions, LLC
+// Copyright (C) 2006-2014 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -573,11 +573,19 @@ public class EVTaskDependencyResolver {
                     .getDependencyComparisonDate(parentTask);
 
             this.who = new LightweightSet();
-            getWhoFromPath(whoPath);
+            getWhoFromChildTasks(parentTask);
             if (who.isEmpty())
-                getWhoFromChildTasks(parentTask);
+                getWhoFromPath(whoPath);
         }
 
+        /**
+         * When plain task lists are exported by individuals, and when rollup
+         * lists are exported in non-merged mode, the "who" attribute is stored
+         * on an XML tag near the top of the document tree. All XML tags
+         * underneath that element are understood to inherit the given "who"
+         * value. This method searches up the tree for such a "who" attribute
+         * and adds the resulting individual to the "who" list in this object.
+         */
         private void getWhoFromPath(List whoPath) {
             // start at the end of the list (but skip the final element, which
             // is for the <dependency> tag itself) and look for the nearest
@@ -588,6 +596,13 @@ public class EVTaskDependencyResolver {
             }
         }
 
+        /**
+         * When rollup task lists are exported in merged mode, "who" attributes
+         * are stored on leaf tasks. This method scans a portion of the tree to
+         * find all of the "who" attributes that are on or underneath a given
+         * XML node, and adds the resulting people to the "who" list in this
+         * object.
+         */
         private void getWhoFromChildTasks(Element task) {
             if ("task".equals(task.getTagName())) {
                 String taskWho = task.getAttribute("who");
