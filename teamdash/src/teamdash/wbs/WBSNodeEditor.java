@@ -843,7 +843,11 @@ public class WBSNodeEditor extends AbstractCellEditor
                 if (moveToDataTableAction == null)
                     moveToDataTableAction = table.getActionMap().get(
                         "firstDataCol");
-                moveToDataTableAction.actionPerformed(null);
+                if (moveToDataTableAction == null)
+                    moveToDataTableAction = table.getActionMap().get(
+                        "selectNextColumn");
+                moveToDataTableAction.actionPerformed(new ActionEvent(table,
+                        ActionEvent.ACTION_PERFORMED, "selectNextColumn"));
             }
         }
 
