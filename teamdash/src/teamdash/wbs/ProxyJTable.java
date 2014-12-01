@@ -23,11 +23,17 @@
 
 package teamdash.wbs;
 
+import java.awt.Component;
 import java.util.HashMap;
 
 import javax.swing.AbstractAction;
+import javax.swing.DefaultCellEditor;
 import javax.swing.JMenu;
-import javax.swing.table.TableColumn;
+import javax.swing.JTable;
+import javax.swing.JTextField;
+import javax.swing.table.TableCellEditor;
+
+import teamdash.wbs.columns.ProxySizeColumn;
 
 public class ProxyJTable extends WBSJTable {
 
@@ -51,12 +57,23 @@ public class ProxyJTable extends WBSJTable {
     }
 
     private void customizeColumns() {
+        // install the default editor for table data.
+        setDefaultEditor(Object.class, new ProxyCellEditor());
 
-        TableColumn col;
+        // customize the behavior and appearance of the columns.
+        DataTableModel.installColumnCustomizations(this);
+    }
 
-        // customize the display of the "Name" column.
-        col = getColumn("Name");
-        col.setPreferredWidth(300);
+    @Override
+    public TableCellEditor getCellEditor(int row, int column) {
+        DataColumn dc = ((ProxyDataModel) getModel()).getColumn(column);
+        if (dc instanceof ProxySizeColumn) {
+            ProxySizeColumn psc = (ProxySizeColumn) dc;
+            TableCellEditor result = psc.getCellEditorForRow(row);
+            if (result != null)
+                return result;
+        }
+        return super.getCellEditor(row, column);
     }
 
     private void tweakBehaviors() {
@@ -106,6 +123,26 @@ public class ProxyJTable extends WBSJTable {
             if (((ProxyWBSModel) wbsModel).containsProxyRow(rows)
                     && wbsModel.getNodeForRow(rows[0]).getIndentLevel() > 1)
                 ((AbstractAction) DELETE_ACTION).setEnabled(false);
+        }
+
+    }
+
+    private static class ProxyCellEditor extends DefaultCellEditor {
+
+        public ProxyCellEditor() {
+            super(new JTextField());
+        }
+
+        @Override
+        public Component getTableCellEditorComponent(JTable table,
+                Object value, boolean isSelected, int row, int column) {
+            Component result = super.getTableCellEditorComponent(table,
+                ErrorValue.unwrap(value), isSelected, row, column);
+
+            if (result instanceof JTextField)
+                ((JTextField) result).selectAll();
+
+            return result;
         }
 
     }

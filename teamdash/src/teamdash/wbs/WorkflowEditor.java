@@ -46,7 +46,6 @@ import javax.swing.JToolBar;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
-import javax.swing.table.TableColumn;
 
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.ui.lib.JTableColumnVisibilityButton;
@@ -140,11 +139,7 @@ public class WorkflowEditor implements MergeConflictHyperlinkHandler {
         table.setDefaultEditor(Object.class, new WorkflowCellEditor());
 
         // customize the behavior and appearance of the columns.
-        for (int i = 0;  i < table.getColumnCount();  i++) {
-            TableColumn tc = table.getColumnModel().getColumn(i);
-            DataColumn dc = workflowModel.getColumn(tc.getModelIndex());
-            DataTableColumn.init(tc, dc);
-        }
+        DataTableModel.installColumnCustomizations(table);
 
         return table;
     }

@@ -34,11 +34,13 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import javax.swing.JTable;
 import javax.swing.Timer;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.AbstractTableModel;
+import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 
 import teamdash.team.TeamMemberList;
@@ -646,6 +648,21 @@ public class DataTableModel extends AbstractTableModel {
 
         // remove this column from the "dirty" list.
         dirtyColumns.remove(column);
+    }
+
+
+    /**
+     * Customize the behavior and appearance of the columns in a table which is
+     * using a DataTableModel, based upon the preferences described by the
+     * DataColumn objects in that model.
+     */
+    public static void installColumnCustomizations(JTable table) {
+        DataTableModel dataModel = (DataTableModel) table.getModel();
+        for (int i = 0; i < table.getColumnCount(); i++) {
+            TableColumn tc = table.getColumnModel().getColumn(i);
+            DataColumn dc = dataModel.getColumn(tc.getModelIndex());
+            DataTableColumn.init(tc, dc);
+        }
     }
 
 }

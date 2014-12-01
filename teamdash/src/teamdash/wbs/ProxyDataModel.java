@@ -24,12 +24,13 @@
 package teamdash.wbs;
 
 import teamdash.team.TeamMemberList;
+import teamdash.wbs.columns.ProxySizeColumn;
 import teamdash.wbs.columns.WBSNodeColumn;
 
 public class ProxyDataModel extends DataTableModel {
 
-    public ProxyDataModel(ProxyWBSModel proxies) {
-        super(proxies, null, null, null, proxies, null, null, null);
+    public ProxyDataModel(ProxyWBSModel proxies, TeamProcess process) {
+        super(proxies, null, process, null, proxies, null, null, null);
     }
 
     /**
@@ -41,6 +42,7 @@ public class ProxyDataModel extends DataTableModel {
             ProxyWBSModel proxies, MilestonesWBSModel milestones,
             TaskDependencySource dependencySource, String currentUser) {
         addDataColumn(new WBSNodeColumn(proxies));
+        addDataColumn(new ProxySizeColumn(proxies, teamProcess));
     }
 
     @Override

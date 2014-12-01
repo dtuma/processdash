@@ -24,6 +24,7 @@
 package teamdash.wbs;
 
 import teamdash.merge.ui.MergeConflictNotification.ModelType;
+import teamdash.wbs.columns.ProxySizeColumn;
 
 public class ProxyMerger extends AbstractWBSModelMerger<ProxyWBSModel> {
 
@@ -35,7 +36,9 @@ public class ProxyMerger extends AbstractWBSModelMerger<ProxyWBSModel> {
             ProxyWBSModel incoming) {
         super(base, main, incoming);
 
-        // TODO: register handlers for attributes as needed.
+        // register handlers for attributes as needed.
+        ignoreAttributeConflicts(
+            ProxySizeColumn.FORCED_ATTR_NAME);
 
         run();
     }

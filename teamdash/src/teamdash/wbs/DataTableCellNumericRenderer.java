@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Tuma Solutions, LLC
+// Copyright (C) 2002-2014 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -41,7 +41,7 @@ import javax.swing.table.DefaultTableCellRenderer;
  * display erroneous values in a special color with a descriptive
  * tooltip.
  */
-class DataTableCellNumericRenderer extends DefaultTableCellRenderer {
+public class DataTableCellNumericRenderer extends DefaultTableCellRenderer {
 
     public DataTableCellNumericRenderer() {
         //this.setFont()
