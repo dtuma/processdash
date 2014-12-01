@@ -39,6 +39,7 @@ import teamdash.wbs.CalculatedDataColumn;
 import teamdash.wbs.CustomRenderedColumn;
 import teamdash.wbs.DataTableCellNumericRenderer;
 import teamdash.wbs.NumericDataValue;
+import teamdash.wbs.ProxyDataModel;
 import teamdash.wbs.ProxyWBSModel;
 import teamdash.wbs.TeamProcess;
 import teamdash.wbs.WBSNode;
@@ -67,6 +68,8 @@ public class ProxySizeColumn extends AbstractNumericColumn implements
 
 
 
+    private ProxyDataModel dataModel;
+
     private ProxyWBSModel proxyModel;
 
     private Set sizeMetrics;
@@ -74,8 +77,9 @@ public class ProxySizeColumn extends AbstractNumericColumn implements
     private TableCellEditor sizeMetricsEditor;
 
 
-    public ProxySizeColumn(ProxyWBSModel proxies, TeamProcess process) {
-        this.proxyModel = proxies;
+    public ProxySizeColumn(ProxyDataModel dataModel, TeamProcess process) {
+        this.dataModel = dataModel;
+        this.proxyModel = dataModel.getWBSModel();
         this.columnName = resources.getString("Proxy_Size.Name");
         this.columnID = COLUMN_ID;
         this.sizeMetrics = new HashSet(Arrays.asList(process.getSizeMetrics()));
@@ -173,13 +177,16 @@ public class ProxySizeColumn extends AbstractNumericColumn implements
      *            category row, or the node for one of the buckets within the
      *            category.
      */
-    public static void ensureSizeMetric(WBSNode node) {
+    public void ensureSizeMetric(WBSNode node) {
         if (node == null)
             return;
         if (ProxyWBSModel.isBucket(node))
             node = node.getWbsModel().getParent(node);
-        if (node.getAttribute(METRIC_ATTR_NAME) == null)
+        if (node.getAttribute(METRIC_ATTR_NAME) == null
+                && node.getAttribute(FORCED_ATTR_NAME) == null) {
             node.setAttribute(FORCED_ATTR_NAME, "t");
+            dataModel.columnChanged(this);
+        }
     }
 
     public void storeDependentColumn(String ID, int columnNumber) {}
