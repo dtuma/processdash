@@ -167,6 +167,7 @@ public class RelaunchWorker {
 
         writeRelaunchSourceIDs(projectSourceID, teamProject.getWBS());
         writeRelaunchSourceIDs(projectSourceID, teamProject.getWorkflows());
+        writeRelaunchSourceIDs(projectSourceID, teamProject.getProxies());
         writeRelaunchSourceIDs(projectSourceID, teamProject.getMilestones());
     }
 

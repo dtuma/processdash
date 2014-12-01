@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2014 Tuma Solutions, LLC
+// Copyright (C) 2014 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -23,34 +23,31 @@
 
 package teamdash.wbs;
 
-public interface WBSFilenameConstants {
+import teamdash.merge.ui.MergeConflictNotification.ModelType;
 
-    String TEAM_LIST_FILENAME = "team.xml";
+public class ProxyMerger extends AbstractWBSModelMerger<ProxyWBSModel> {
 
-    String TEAM_LIST_FILENAME2 = "team2.xml";
+    public ProxyMerger(TeamProject base, TeamProject main, TeamProject incoming) {
+        this(base.getProxies(), main.getProxies(), incoming.getProxies());
+    }
 
-    String WBS_FILENAME = "wbs.xml";
+    public ProxyMerger(ProxyWBSModel base, ProxyWBSModel main,
+            ProxyWBSModel incoming) {
+        super(base, main, incoming);
 
-    String FLOW_FILENAME = "workflow.xml";
+        // TODO: register handlers for attributes as needed.
 
-    String PROXY_FILENAME = "proxies.xml";
+        run();
+    }
 
-    String MILESTONES_FILENAME = "milestones.xml";
+    @Override
+    protected ProxyWBSModel createWbsModel() {
+        return new ProxyWBSModel();
+    }
 
-    String PROCESS_FILENAME = "process.xml";
-
-    String SETTINGS_FILENAME = "settings.xml";
-
-    String USER_SETTINGS_FILENAME = "user-settings.ini";
-
-    String CUSTOM_TABS_FILE = "tabs.xml";
-
-    String CHANGE_HISTORY_FILE = "changeHistory.xml";
-
-    String DATA_DUMP_FILE = "projDump.xml";
-
-    String WORKFLOW_DUMP_FILE = "workflowDump.xml";
-
-    String HISTORY_SUBDIR = "history";
+    @Override
+    protected ModelType getModelType() {
+        return ModelType.Proxies;
+    }
 
 }

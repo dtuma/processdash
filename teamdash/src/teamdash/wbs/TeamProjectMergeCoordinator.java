@@ -1,4 +1,4 @@
-// Copyright (C) 2012 Tuma Solutions, LLC
+// Copyright (C) 2012-2014 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -221,6 +221,7 @@ public class TeamProjectMergeCoordinator {
         TeamProject.USER_SETTINGS_FILENAME, //
         TeamProject.TEAM_LIST_FILENAME, //
         TeamProject.FLOW_FILENAME, //
+        TeamProject.PROXY_FILENAME, //
         TeamProject.MILESTONES_FILENAME, //
         TeamProject.WBS_FILENAME);
 

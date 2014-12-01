@@ -47,6 +47,10 @@ public class TeamProjectNodeIDMatcher {
         Map<Integer, Integer> workflowIDMappings = matchWBS(
             base.getWorkflows(), main.getWorkflows(), incoming.getWorkflows());
 
+        // Next, remap node IDs in the proxies model
+        Map<Integer, Integer> proxyIDMappings = matchWBS(base.getProxies(),
+            main.getProxies(), incoming.getProxies());
+
         // Next, remap node IDs in the milestones model
         Map<Integer, Integer> milestoneIDMappings = matchWBS(
             base.getMilestones(), main.getMilestones(),

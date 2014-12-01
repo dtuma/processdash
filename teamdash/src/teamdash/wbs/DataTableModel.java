@@ -96,6 +96,7 @@ public class DataTableModel extends AbstractTableModel {
     public DataTableModel(WBSModel wbsModel, TeamMemberList teamList,
                           TeamProcess teamProcess,
                           WorkflowWBSModel workflows,
+                          ProxyWBSModel proxies,
                           MilestonesWBSModel milestones,
                           TaskDependencySource dependencySource,
                           String currentUser)
@@ -112,7 +113,7 @@ public class DataTableModel extends AbstractTableModel {
         recalcJanitorTimer.setRepeats(false);
         recalcJanitorTimer.setInitialDelay(3000);
 
-        buildDataColumns(teamList, teamProcess, workflows, milestones,
+        buildDataColumns(teamList, teamProcess, workflows, proxies, milestones,
             dependencySource, currentUser);
         initializeColumnDependencies();
     }
@@ -344,7 +345,7 @@ public class DataTableModel extends AbstractTableModel {
     /** Create a set of data columns for this data model. */
     protected void buildDataColumns(TeamMemberList teamList,
             TeamProcess teamProcess, WorkflowWBSModel workflows,
-            MilestonesWBSModel milestones,
+            ProxyWBSModel proxies, MilestonesWBSModel milestones,
             TaskDependencySource dependencySource, String currentUser)
     {
         addDataColumn(new WBSNodeColumn(wbsModel));

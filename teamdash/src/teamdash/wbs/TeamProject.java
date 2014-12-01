@@ -26,16 +26,12 @@ package teamdash.wbs;
 import java.io.BufferedInputStream;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Properties;
-import java.util.Set;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -61,6 +57,7 @@ public class TeamProject implements WBSFilenameConstants {
     private TeamProcess teamProcess;
     private WBSModel wbs;
     private WorkflowWBSModel workflows;
+    private ProxyWBSModel proxies;
     private MilestonesWBSModel milestones;
     private long fileModTime;
     private String masterProjectID;
@@ -80,7 +77,7 @@ public class TeamProject implements WBSFilenameConstants {
     }
 
     TeamProject(File directory, String projectName, TeamMemberList teamList,
-            WBSModel wbs, WorkflowWBSModel workflows,
+            WBSModel wbs, WorkflowWBSModel workflows, ProxyWBSModel proxies,
             MilestonesWBSModel milestones, Map<String, String> userSettings) {
         this.projectName = projectName;
         this.directory = directory;
@@ -88,6 +85,7 @@ public class TeamProject implements WBSFilenameConstants {
         this.teamList = teamList;
         this.wbs = wbs;
         this.workflows = workflows;
+        this.proxies = proxies;
         this.milestones = milestones;
         this.userSettings = new Properties();
         this.userSettings.putAll(userSettings);
@@ -106,6 +104,7 @@ public class TeamProject implements WBSFilenameConstants {
         openTeamList();
         openTeamProcess();
         openWorkflows();
+        openProxies();
         openMilestones();
         openWBS();
     }
@@ -153,6 +152,7 @@ public class TeamProject implements WBSFilenameConstants {
         result = saveTeamList(directory) && result;
         result = saveWBS(directory) && result;
         result = saveWorkflows(directory) && result;
+        result = saveProxies(directory) && result;
         result = saveMilestones(directory) && result;
         return result;
     }
@@ -193,6 +193,12 @@ public class TeamProject implements WBSFilenameConstants {
         return workflows;
     }
 
+    /** Get the size estimating proxies for this project */
+    public ProxyWBSModel getProxies() {
+        return proxies;
+    }
+
+    /** Get the milestones for this project */
     public MilestonesWBSModel getMilestones() {
         return milestones;
     }
@@ -321,6 +327,22 @@ public class TeamProject implements WBSFilenameConstants {
             e.printStackTrace();
             return false;
         }
+    }
+
+    /** Save a WBSModel. Return false on error. */
+    private boolean saveXML(WBSModel model, String filename) {
+        try {
+            File f = new File(directory, filename);
+            RobustFileWriter out = new RobustFileWriter(f, "UTF-8");
+            BufferedWriter buf = new BufferedWriter(out);
+            model.getAsXML(buf);
+            buf.flush();
+            out.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+        return true;
     }
 
     /** Make a note of whether a file is editable */
@@ -569,18 +591,7 @@ public class TeamProject implements WBSFilenameConstants {
 
     /** Save the work breakdown structure */
     private boolean saveWBS(File directory) {
-        try {
-            File f = new File(directory, WBS_FILENAME);
-            RobustFileWriter out = new RobustFileWriter(f, "UTF-8");
-            BufferedWriter buf = new BufferedWriter(out);
-            wbs.getAsXML(buf);
-            buf.flush();
-            out.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        }
-        return true;
+        return saveXML(wbs, WBS_FILENAME);
     }
 
 
@@ -603,18 +614,30 @@ public class TeamProject implements WBSFilenameConstants {
 
     /** Save the common workflows */
     private boolean saveWorkflows(File directory) {
+        return saveXML(workflows, FLOW_FILENAME);
+    }
+
+
+
+    /** Open the file containing the size estimation proxies */
+    private void openProxies() {
         try {
-            File f = new File(directory, FLOW_FILENAME);
-            RobustFileWriter out = new RobustFileWriter(f, "UTF-8");
-            BufferedWriter buf = new BufferedWriter(out);
-            workflows.getAsXML(buf);
-            buf.flush();
-            out.close();
+            Element xml = openXML(checkEditable(new File(directory,
+                    PROXY_FILENAME)));
+            if (xml != null) proxies = new ProxyWBSModel(xml);
         } catch (Exception e) {
-            e.printStackTrace();
-            return false;
         }
-        return true;
+        if (proxies == null) {
+            System.out.println("No "+PROXY_FILENAME+
+                               " file found; creating default proxies");
+            proxies = new ProxyWBSModel();
+            setCreatedWithVersionAttribute(proxies);
+        }
+    }
+
+    /** Save the size estimation proxies */
+    private boolean saveProxies(File directory) {
+        return saveXML(proxies, PROXY_FILENAME);
     }
 
 
@@ -637,18 +660,7 @@ public class TeamProject implements WBSFilenameConstants {
 
     /** Save the project milestones */
     private boolean saveMilestones(File directory) {
-        try {
-            File f = new File(directory, MILESTONES_FILENAME);
-            RobustFileWriter out = new RobustFileWriter(f, "UTF-8");
-            BufferedWriter buf = new BufferedWriter(out);
-            milestones.getAsXML(buf);
-            buf.flush();
-            out.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        }
-        return true;
+        return saveXML(milestones, MILESTONES_FILENAME);
     }
 
     public long getFileModificationTime() {
@@ -662,29 +674,6 @@ public class TeamProject implements WBSFilenameConstants {
             model.getRoot().setAttribute(WBSModel.CREATED_WITH_ATTR, version);
         } catch (Exception e) {}
     }
-
-    private static class TeamProjectFileFilter implements FileFilter {
-
-        private Set includedNames;
-
-        TeamProjectFileFilter() {
-            Set m = new HashSet();
-            m.add(TEAM_LIST_FILENAME.toLowerCase());
-            m.add(TEAM_LIST_FILENAME2.toLowerCase());
-            m.add(WBS_FILENAME.toLowerCase());
-            m.add(FLOW_FILENAME.toLowerCase());
-            m.add(MILESTONES_FILENAME.toLowerCase());
-            this.includedNames = Collections.unmodifiableSet(m);
-        }
-
-        public boolean accept(File f) {
-            return includedNames.contains(f.getName().toLowerCase());
-        }
-
-    }
-
-    /** A filter that accepts files used for storing team project data */
-    public static final FileFilter FILE_FILTER = new TeamProjectFileFilter();
 
 
     /*
@@ -711,6 +700,7 @@ public class TeamProject implements WBSFilenameConstants {
         TEAM_LIST_FILENAME,
         WBS_FILENAME,
         FLOW_FILENAME,
+        PROXY_FILENAME,
         MILESTONES_FILENAME,
         PROCESS_FILENAME,
         SETTINGS_FILENAME

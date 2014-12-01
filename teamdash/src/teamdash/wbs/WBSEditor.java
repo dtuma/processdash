@@ -147,6 +147,7 @@ public class WBSEditor implements WindowListener, SaveListener,
 
     WorkingDirectory workingDirectory;
     TeamProject teamProject;
+    ProxyDataModel proxyModel;
     MilestonesDataModel milestonesModel;
     JFrame frame;
     WBSTabPanel tabPanel;
@@ -179,6 +180,7 @@ public class WBSEditor implements WindowListener, SaveListener,
 
     private TeamMemberListEditor teamListEditor = null;
     private WorkflowEditor workflowEditor = null;
+    private ProxyEditor proxyEditor = null;
     private MilestonesEditor milestonesEditor = null;
 
     private static final int MODE_PLAIN = 1;
@@ -229,8 +231,10 @@ public class WBSEditor implements WindowListener, SaveListener,
         DataTableModel data = new DataTableModel
             (model, teamProject.getTeamMemberList(),
              teamProject.getTeamProcess(), teamProject.getWorkflows(),
-             teamProject.getMilestones(), taskDependencySource, owner);
+             teamProject.getProxies(), teamProject.getMilestones(),
+             taskDependencySource, owner);
 
+        proxyModel = new ProxyDataModel(teamProject.getProxies());
         milestonesModel = new MilestonesDataModel(teamProject.getMilestones());
 
         if (isMode(MODE_PLAIN)) {
@@ -291,6 +295,7 @@ public class WBSEditor implements WindowListener, SaveListener,
             mergeConflictDialog = new MergeConflictDialog(teamProject);
             mergeConflictDialog.setDataModel(ModelType.Wbs, data);
             mergeConflictDialog.setHyperlinkHandler(ModelType.Wbs, tabPanel);
+            mergeConflictDialog.setDataModel(ModelType.Proxies, proxyModel);
             mergeConflictDialog.setDataModel(ModelType.Milestones,
                 milestonesModel);
         }
@@ -874,6 +879,19 @@ public class WBSEditor implements WindowListener, SaveListener,
         }
     }
 
+    private void showProxyEditor() {
+        if (proxyEditor != null)
+            proxyEditor.show();
+        else {
+            proxyEditor = new ProxyEditor(teamProject, proxyModel);
+            proxyEditor.addChangeListener(this.dirtyListener);
+            if (mergeConflictDialog != null)
+                mergeConflictDialog.setHyperlinkHandler(ModelType.Proxies,
+                    proxyEditor);
+        }
+        proxyEditor.show();
+    }
+
     private void showMilestonesEditor() {
         if (milestonesEditor != null)
             milestonesEditor.show();
@@ -964,6 +982,7 @@ public class WBSEditor implements WindowListener, SaveListener,
         JMenu result = new JMenu("Workflow");
         result.setMnemonic('W');
         result.add(new WorkflowEditorAction());
+        result.add(new ProxyEditorAction());
         // result.add(new DefineWorkflowAction());
         result.addSeparator();
         new WorkflowMenuBuilder(result, workflows, insertWorkflowAction);
@@ -1074,6 +1093,7 @@ public class WBSEditor implements WindowListener, SaveListener,
 
         replaceTeamMemberList(srcProject);
         replaceWorkflows(srcProject);
+        replaceProxies(srcProject);
         replaceMilestones(srcProject);
         replaceWBS(srcProject);
         replaceTabs(srcDir);
@@ -1103,6 +1123,17 @@ public class WBSEditor implements WindowListener, SaveListener,
         replaceWBSModel(teamProject.getWorkflows(), src.getWorkflows(), table);
         if (workflowEditor != null)
             workflowEditor.undoList.clear();
+    }
+
+    private void replaceProxies(TeamProject src) {
+        WBSJTable table = null;
+        if (proxyEditor != null) {
+            proxyEditor.stopEditing();
+            table = proxyEditor.table;
+        }
+        replaceWBSModel(teamProject.getProxies(), src.getProxies(), table);
+        if (proxyEditor != null)
+            proxyEditor.undoList.clear();
     }
 
     private void replaceMilestones(TeamProject src) {
@@ -1222,6 +1253,7 @@ public class WBSEditor implements WindowListener, SaveListener,
         tabPanel.stopCellEditing();
         if (teamListEditor != null) teamListEditor.stopEditing();
         if (workflowEditor != null) workflowEditor.stopEditing();
+        if (proxyEditor != null) proxyEditor.stopEditing();
         if (milestonesEditor != null) milestonesEditor.stopEditing();
     }
 
@@ -1594,6 +1626,7 @@ public class WBSEditor implements WindowListener, SaveListener,
         else {
             if (teamListEditor != null) teamListEditor.hide();
             if (workflowEditor != null) workflowEditor.hide();
+            if (proxyEditor != null) proxyEditor.hide();
             if (milestonesEditor != null) milestonesEditor.hide();
             frame.dispose();
             disposed = true;
@@ -2278,6 +2311,18 @@ public class WBSEditor implements WindowListener, SaveListener,
 
         public void tableChanged(TableModelEvent e) {
             rebuildMenu();
+        }
+    }
+
+
+    private class ProxyEditorAction extends AbstractAction {
+        public ProxyEditorAction() {
+            super("Edit Estimation Tables");
+            putValue(MNEMONIC_KEY, new Integer('T'));
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            showProxyEditor();
         }
     }
 

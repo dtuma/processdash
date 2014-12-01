@@ -119,6 +119,7 @@ public class WBSJTable extends JTable {
             WorkflowWBSModel workflows, TaskIDSource idSource) {
         super(model);
         wbsModel = model;
+        this.iconMap = iconMap;
         taskIDSource = idSource;
 
         if (getRowHeight() < 1)
@@ -410,6 +411,9 @@ public class WBSJTable extends JTable {
         }
     }
     private List enablementCalculations = new LinkedList();
+    protected void addEnablementCalculation(EnablementCalculation e) {
+        enablementCalculations.add(e);
+    }
 
 
     /** Return true if the list of rows contains at least one row. */
@@ -553,7 +557,7 @@ public class WBSJTable extends JTable {
         }
     }
 
-    private interface EnablementCalculation {
+    protected interface EnablementCalculation {
         public void recalculateEnablement(int[] selectedRows);
     }
 
@@ -822,6 +826,7 @@ public class WBSJTable extends JTable {
 
             // get a list of the currently selected rows.
             int[] rows = getSelectedRows();
+            rows = wbsModel.getAtomicRowList(rows);
             if (rows == null || rows.length == 0) return;
 
             // cancel the previous cut operation, if there was one.
@@ -861,6 +866,7 @@ public class WBSJTable extends JTable {
         public void actionPerformed(ActionEvent e) {
             // get a list of the currently selected rows.
             int[] rows = getSelectedRows();
+            rows = wbsModel.getAtomicRowList(rows);
             if (rows == null || rows.length == 0) return;
 
             // cancel the previous cut operation, if there was one.
@@ -940,6 +946,7 @@ public class WBSJTable extends JTable {
             // operation, insert the new nodes after the originally copied
             // ones.  This behavior is easier for a user to follow.
             int pos = wbsModel.getRowForNode(beforeNode);
+            pos = wbsModel.getPasteBeforePos(pos, nodesToInsert);
             Set copiedIDs = getNodeIDs(nodesToInsert);
             while (rowContainsCopiedNode(pos, copiedIDs))
                 pos++;
@@ -1102,7 +1109,8 @@ public class WBSJTable extends JTable {
         }
         public void doAction(ActionEvent e) {
             int currentRow = getSelectedRow();
-            insertRowBefore(currentRow+1, currentRow);
+            int targetRow = wbsModel.getInsertAfterPos(currentRow);
+            insertRowBefore(targetRow, currentRow);
         }
         protected void performAlternateAction(ActionEvent e) {
             if (alternateAction != null)
@@ -1170,6 +1178,7 @@ public class WBSJTable extends JTable {
 
             // get a list of the currently selected rows.
             int[] rows = getSelectedRows();
+            rows = wbsModel.getAtomicRowList(rows);
             if (rows == null || rows.length == 0) return;
 
             // verify that the user wants to cut the nodes.

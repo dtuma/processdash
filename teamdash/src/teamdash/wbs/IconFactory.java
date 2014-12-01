@@ -72,11 +72,11 @@ public class IconFactory {
         return new WorkflowTaskIcon(fill);
     }
 
-    public static Object getComponentIcon() {
+    public static Icon getComponentIcon() {
         return new ComponentIcon(DEFAULT_COLOR);
     }
 
-    public static Object getComponentIcon(Color fill) {
+    public static Icon getComponentIcon(Color fill) {
         return new ComponentIcon(fill);
     }
 
@@ -98,6 +98,26 @@ public class IconFactory {
 
     public static Icon getProbeTaskIcon() {
         return new ProbeTaskIcon();
+    }
+
+    public static Icon getProxyListIcon() {
+        return new CommonWorkflowsIcon(DEFAULT_COLOR);
+    }
+
+    public static Icon getProxyTableIcon() {
+        return loadIconResource("proxy-table.png");
+    }
+
+    public static Icon getProxyBucketIcon(int height) {
+        return new ProxyBucketIcon(height, new Color(230, 173, 124));
+    }
+
+    public static Icon getCopyProxyIcon() {
+        return loadIconResource("proxy-copy.png");
+    }
+
+    public static Icon getPasteProxyIcon() {
+        return loadIconResource("proxy-paste.png");
     }
 
     public static Icon getMilestoneIcon() {
@@ -516,6 +536,34 @@ public class IconFactory {
             // skip the display of the interior highlights
             if (Math.abs(xDelta) < 2)
                 super.drawHighlight(g, segment, xDelta, yDelta);
+        }
+
+    }
+
+
+
+    /** Icon image representing a relative size bucket for proxy estimation.
+     * 
+     * This draws a vertical ruler with tick marks.
+     */
+    private static class ProxyBucketIcon extends BufferedIcon {
+
+        private Color bgColor;
+
+        public ProxyBucketIcon(int height, Color bgColor) {
+            this.height = height;
+            this.bgColor = bgColor;
+        }
+
+        protected void doPaint(Component c, Graphics g) {
+            g.setColor(bgColor);
+            g.fillRect(0, 0, width, height);
+            g.setColor(Color.black);
+            g.drawLine(0, 0, 0, height - 1);
+            g.drawLine(width - 1, 0, width - 1, height - 1);
+            g.drawLine(0, height / 2, width / 2, height / 2);
+            g.drawLine(0, height / 4, width / 4, height / 4);
+            g.drawLine(0, height * 3 / 4, width / 4, height * 3 / 4);
         }
 
     }

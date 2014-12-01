@@ -487,6 +487,8 @@ public class TeamProcess {
 
     public static boolean isOtherSizeType(String type) {
         return (!isLOCNode(type) && !type.endsWith(" Task")
+                && !type.equals(ProxyWBSModel.PROXY_TYPE)
+                && !type.equals(ProxyWBSModel.BUCKET_TYPE)
                 && !type.endsWith("Milestone"));
     }
 }

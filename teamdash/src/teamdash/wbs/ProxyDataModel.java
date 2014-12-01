@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2014 Tuma Solutions, LLC
+// Copyright (C) 2014 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -24,34 +24,23 @@
 package teamdash.wbs;
 
 import teamdash.team.TeamMemberList;
-import teamdash.wbs.columns.MilestoneColorColumn;
-import teamdash.wbs.columns.MilestoneCommitDateColumn;
-import teamdash.wbs.columns.MilestoneDeferredColumn;
-import teamdash.wbs.columns.MilestoneVisibilityColumn;
 import teamdash.wbs.columns.WBSNodeColumn;
 
-public class MilestonesDataModel extends DataTableModel {
+public class ProxyDataModel extends DataTableModel {
 
-    public MilestonesDataModel(MilestonesWBSModel milestones) {
-        super(milestones, null, null, null, null, milestones, null, null);
+    public ProxyDataModel(ProxyWBSModel proxies) {
+        super(proxies, null, null, null, proxies, null, null, null);
     }
 
-    /** override and create only the columns we're interested in.
+    /**
+     * override and create only the columns we're interested in.
      */
     @Override
     protected void buildDataColumns(TeamMemberList teamList,
-                                    TeamProcess teamProcess,
-                                    WorkflowWBSModel workflows,
-                                    ProxyWBSModel proxies,
-                                    MilestonesWBSModel milestones,
-                                    TaskDependencySource dependencySource,
-                                    String currentUser)
-    {
-        addDataColumn(new WBSNodeColumn(milestones));
-        addDataColumn(new MilestoneCommitDateColumn());
-        addDataColumn(new MilestoneColorColumn(milestones));
-        addDataColumn(new MilestoneVisibilityColumn());
-        addDataColumn(new MilestoneDeferredColumn());
+            TeamProcess teamProcess, WorkflowWBSModel workflows,
+            ProxyWBSModel proxies, MilestonesWBSModel milestones,
+            TaskDependencySource dependencySource, String currentUser) {
+        addDataColumn(new WBSNodeColumn(proxies));
     }
 
     @Override
@@ -61,8 +50,8 @@ public class MilestonesDataModel extends DataTableModel {
     }
 
     @Override
-    public MilestonesWBSModel getWBSModel() {
-        return (MilestonesWBSModel) super.getWBSModel();
+    public ProxyWBSModel getWBSModel() {
+        return (ProxyWBSModel) super.getWBSModel();
     }
 
 }

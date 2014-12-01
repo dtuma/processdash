@@ -1,4 +1,4 @@
-// Copyright (C) 2012 Tuma Solutions, LLC
+// Copyright (C) 2012-2014 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -74,13 +74,14 @@ public class TeamProjectMerger {
         // merge the various data structures in the team project.
         TeamMemberList team = mergeTeams();
         WorkflowWBSModel workflows = mergeWorkflows();
+        ProxyWBSModel proxies = mergeProxies();
         MilestonesWBSModel milestones = mergeMilestones();
         WBSModel wbs = mergeWBS();
         Map userSettings = mergeUserSettings();
 
         // create a TeamProject object to hold the merged data.
         File dir = new File("no such directory " + System.currentTimeMillis());
-        merged = new TeamProject(dir, "Unused", team, wbs, workflows,
+        merged = new TeamProject(dir, "Unused", team, wbs, workflows, proxies,
                 milestones, userSettings);
     }
 
@@ -119,8 +120,18 @@ public class TeamProjectMerger {
         return workflowMerger.getMerged();
     }
 
+    private ProxyWBSModel mergeProxies() {
+        // calculate the merged proxies
+        ProxyMerger proxyMerger = new ProxyMerger(base, main, incoming);
+
+        // record any conflicts that occurred during the merge
+        conflicts.addAll(proxyMerger.getConflictNotifications());
+
+        return proxyMerger.getMerged();
+    }
+
     private MilestonesWBSModel mergeMilestones() {
-        // calculate the merged workflows
+        // calculate the merged milestones
         MilestonesMerger milestonesMerger = new MilestonesMerger(base, main,
                 incoming);
 
@@ -131,7 +142,7 @@ public class TeamProjectMerger {
     }
 
     private WBSModel mergeWBS() {
-        // calculate the merged workflows
+        // calculate the merged WBS
         WBSMerger wbsMerger = new WBSMerger(base, main, incoming);
 
         // record any conflicts that occurred during the merge

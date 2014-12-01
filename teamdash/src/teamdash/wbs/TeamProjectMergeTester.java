@@ -60,13 +60,15 @@ public class TeamProjectMergeTester {
     }
 
     private static class DMS implements DataModelSource {
-        DataTableModel wbs, workflows, milestones;
+        DataTableModel wbs, workflows, proxies, milestones;
 
         private DMS(TeamProject p, TeamProcess process) {
             wbs = new DataTableModel(p.getWBS(), p.getTeamMemberList(),
-                    process, p.getWorkflows(), p.getMilestones(),
-                    new TaskDependencySourceSimple(p), "Owner");
+                    process, p.getWorkflows(), p.getProxies(),
+                    p.getMilestones(), new TaskDependencySourceSimple(p),
+                    "Owner");
             workflows = new WorkflowModel(p.getWorkflows(), process);
+            proxies = new ProxyDataModel(p.getProxies());
             milestones = new MilestonesDataModel(p.getMilestones());
         }
 
@@ -74,6 +76,7 @@ public class TeamProjectMergeTester {
             switch (type) {
             case Wbs: return wbs;
             case Workflows: return workflows;
+            case Proxies: return proxies;
             case Milestones: return milestones;
             }
             return null;

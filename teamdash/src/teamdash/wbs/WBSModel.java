@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2013 Tuma Solutions, LLC
+// Copyright (C) 2002-2014 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -853,6 +853,18 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
             if (pos != -1) result.add(pos);
         }
         return result.getAsArray();
+    }
+
+    public int getInsertAfterPos(int row) {
+        return row + 1;
+    }
+
+    public int getPasteBeforePos(int targetRow, List<WBSNode> nodesToInsert) {
+        return targetRow;
+    }
+
+    public int[] getAtomicRowList(int[] rows) {
+        return rows;
     }
 
 
