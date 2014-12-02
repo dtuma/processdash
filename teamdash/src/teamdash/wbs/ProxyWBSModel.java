@@ -206,4 +206,14 @@ public class ProxyWBSModel extends WBSModel {
         return node != null && node.getIndentLevel() == 2;
     }
 
+    public static String getProxyItemName(WBSNode node) {
+        if (isBucket(node)) {
+            WBSNode proxy = node.getWbsModel().getParent(node);
+            if (proxy != null)
+                return proxy.getName() + " / " + node.getName();
+        }
+
+        return node.getName();
+    }
+
 }

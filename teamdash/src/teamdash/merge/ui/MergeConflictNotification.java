@@ -38,6 +38,7 @@ import net.sourceforge.processdash.util.StringUtils;
 import teamdash.merge.AttributeMergeWarning;
 import teamdash.merge.MergeWarning;
 import teamdash.team.TeamMember;
+import teamdash.wbs.ProxyWBSModel;
 import teamdash.wbs.TeamProject;
 import teamdash.wbs.WBSNode;
 
@@ -60,6 +61,10 @@ public class MergeConflictNotification {
             public Object getAssociatedModel(TeamProject teamProject) {
                 return teamProject.getProxies();
             }
+            @Override
+            public String getNodeName(Object node) {
+                return ProxyWBSModel.getProxyItemName((WBSNode) node);
+            }
         },
 
         Milestones {
@@ -72,9 +77,17 @@ public class MergeConflictNotification {
             public Object getAssociatedModel(TeamProject teamProject) {
                 return teamProject.getTeamMemberList();
             }
+            @Override
+            public String getNodeName(Object node) {
+                return ((TeamMember) node).getName();
+            }
         };
 
         public abstract Object getAssociatedModel(TeamProject teamProject);
+
+        public String getNodeName(Object node) {
+            return ((WBSNode) node).getName();
+        }
     };
 
     private ModelType model;
@@ -243,7 +256,7 @@ public class MergeConflictNotification {
             WBSNode wbsNode = (WBSNode) value;
             int wbsNodeId = (wbsNode.getIndentLevel() == 0 ? -1000
                     : wbsNode.getUniqueID());
-            return getNodeHyperlink(wbsNode.getName(), wbsNodeId);
+            return getNodeHyperlink(model.getNodeName(wbsNode), wbsNodeId);
         } else if (value instanceof TeamMember) {
             TeamMember teamMember = (TeamMember) value;
             return getNodeHyperlink(teamMember.getName(), teamMember.getId());
