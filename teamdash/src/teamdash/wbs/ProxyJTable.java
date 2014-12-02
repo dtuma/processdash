@@ -23,6 +23,7 @@
 
 package teamdash.wbs;
 
+import java.awt.Color;
 import java.awt.Component;
 import java.util.HashMap;
 
@@ -32,6 +33,7 @@ import javax.swing.JMenu;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.table.TableCellEditor;
+import javax.swing.table.TableCellRenderer;
 
 import teamdash.wbs.columns.ProxySizeColumn;
 
@@ -64,6 +66,35 @@ public class ProxyJTable extends WBSJTable {
         DataTableModel.installColumnCustomizations(this);
     }
 
+    private void tweakBehaviors() {
+        getTableHeader().setReorderingAllowed(false);
+        // do not allow indentation; users should not be able to turn a
+        // proxy into a bucket, or vice-versa
+        setIndentationDisabled(true);
+        // add a new enablement calculator. This is added to the end of the
+        // list, so it will run after the others are done and have the
+        // opportunity to override earlier decisions.
+        addEnablementCalculation(new EnablementRecalcTweaker());
+    }
+
+
+    @Override
+    public TableCellRenderer getCellRenderer(int row, int column) {
+        TableCellRenderer result = super.getCellRenderer(row, column);
+        if (column > 0 && result instanceof Component)
+            ((Component) result).setBackground(null);
+        return result;
+    }
+
+    @Override
+    public Component prepareRenderer(TableCellRenderer renderer, int row,
+            int column) {
+        Component result = super.prepareRenderer(renderer, row, column);
+        if (column > 0 && !isCellEditable(row, column))
+            result.setBackground(UNEDITABLE);
+        return result;
+    }
+
     @Override
     public TableCellEditor getCellEditor(int row, int column) {
         DataColumn dc = ((ProxyDataModel) getModel()).getColumn(column);
@@ -74,17 +105,6 @@ public class ProxyJTable extends WBSJTable {
                 return result;
         }
         return super.getCellEditor(row, column);
-    }
-
-    private void tweakBehaviors() {
-        getTableHeader().setReorderingAllowed(false);
-        // do not allow indentation; users should not be able to turn a
-        // proxy into a bucket, or vice-versa
-        setIndentationDisabled(true);
-        // add a new enablement calculator. This is added to the end of the
-        // list, so it will run after the others are done and have the
-        // opportunity to override earlier decisions.
-        addEnablementCalculation(new EnablementRecalcTweaker());
     }
 
 
@@ -146,5 +166,7 @@ public class ProxyJTable extends WBSJTable {
         }
 
     }
+
+    private static final Color UNEDITABLE = new Color(220, 220, 220);
 
 }

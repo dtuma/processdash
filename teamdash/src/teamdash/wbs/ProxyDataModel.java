@@ -26,6 +26,7 @@ package teamdash.wbs;
 import teamdash.team.TeamMemberList;
 import teamdash.wbs.columns.ProxyRateColumn;
 import teamdash.wbs.columns.ProxySizeColumn;
+import teamdash.wbs.columns.ProxyTimeColumn;
 import teamdash.wbs.columns.WBSNodeColumn;
 
 public class ProxyDataModel extends DataTableModel {
@@ -44,9 +45,12 @@ public class ProxyDataModel extends DataTableModel {
             TaskDependencySource dependencySource, String currentUser) {
         addDataColumn(new WBSNodeColumn(proxies));
         ProxySizeColumn size = new ProxySizeColumn(this, teamProcess);
-        ProxyRateColumn rate = new ProxyRateColumn(proxies, size);
+        ProxyRateColumn rate = new ProxyRateColumn(this, size);
+        ProxyTimeColumn time = new ProxyTimeColumn(this, size, rate);
+        rate.setTimeColumn(time);
         addDataColumn(size);
         addDataColumn(rate);
+        addDataColumn(time);
     }
 
     @Override

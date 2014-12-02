@@ -33,6 +33,7 @@ import teamdash.wbs.CalculatedDataColumn;
 import teamdash.wbs.CustomRenderedColumn;
 import teamdash.wbs.ItalicNumericCellRenderer;
 import teamdash.wbs.NumericDataValue;
+import teamdash.wbs.ProxyDataModel;
 import teamdash.wbs.ProxyWBSModel;
 import teamdash.wbs.WBSNode;
 
@@ -48,17 +49,26 @@ public class ProxyRateColumn extends AbstractNumericColumn implements
     private static final String COLUMN_ID = ATTR_NAME;
 
 
+    private ProxyDataModel dataModel;
+
     private ProxyWBSModel proxyModel;
 
     private ProxySizeColumn sizeColumn;
 
-    public ProxyRateColumn(ProxyWBSModel proxyModel, ProxySizeColumn size) {
-        this.proxyModel = proxyModel;
+    private ProxyTimeColumn timeColumn;
+
+    public ProxyRateColumn(ProxyDataModel dataModel, ProxySizeColumn size) {
+        this.dataModel = dataModel;
+        this.proxyModel = dataModel.getWBSModel();
         this.sizeColumn = size;
         this.columnName = resources.getString("Proxy_Rate.Name");
         this.columnID = COLUMN_ID;
         this.dependentColumns = new String[] { ProxySizeColumn.COLUMN_ID };
         setConflictAttributeName(ATTR_NAME);
+    }
+
+    public void setTimeColumn(ProxyTimeColumn timeColumn) {
+        this.timeColumn = timeColumn;
     }
 
     @Override
@@ -102,26 +112,54 @@ public class ProxyRateColumn extends AbstractNumericColumn implements
             node.removeAttribute(ATTR_NAME);
 
         } else if (value > 0) {
-            // if a real rate was provided, store it, end make certain this
-            // proxy table has size metrics enabled.
+            // if a real rate was provided, store it.
             node.setNumericAttribute(ATTR_NAME, value);
+            // if a time was manually entered for this row, clear it so the
+            // time can be recalculated based on the new rate.
+            timeColumn.setValueAt(null, node);
+            // make certain this proxy table has size metrics enabled.
             sizeColumn.ensureSizeMetric(node);
         }
+
+        // changes to this column mean we should recalculate the time column.
+        dataModel.columnChanged(timeColumn);
     }
 
     public void storeDependentColumn(String ID, int columnNumber) {}
 
     public boolean recalculate() {
+        return true;
+    }
+
+    void recalcInheritedRates() {
+        // scan the list of proxy tables.
         WBSNode[] proxies = proxyModel.getChildren(proxyModel.getRoot());
         for (WBSNode proxy : proxies) {
+            // determine whether this table has a size and a default rate.
             boolean hasSize = ProxySizeColumn.hasSizeMetric(proxy);
             double rate = hasSize ? proxy.getNumericAttribute(ATTR_NAME)
                     : Double.NaN;
+
+            // Now scan the relative size buckets in this proxy table.
             WBSNode[] buckets = proxyModel.getChildren(proxy);
-            for (WBSNode bucket : buckets)
+            for (WBSNode bucket : buckets) {
+                // set the inherited rate for this bucket.
                 bucket.setNumericAttribute(INHERITED_ATTR_NAME, rate);
+                // if the explicit rate is equal to the inherited rate, remove
+                // the explicit entry.
+                double explicit = bucket.getNumericAttribute(ATTR_NAME);
+                if (equal(rate, explicit))
+                    bucket.removeAttribute(ATTR_NAME);
+                // clear the "calculated" rate for now (it will be set later
+                // in the recalculation process).
+                bucket.removeAttribute(CALC_ATTR_NAME);
+            }
         }
-        return true;
+    }
+
+    void storeCalculatedRate(WBSNode bucket, double rate) {
+        bucket.removeAttribute(ATTR_NAME);
+        bucket.setNumericAttribute(CALC_ATTR_NAME, rate);
     }
 
 
@@ -139,6 +177,7 @@ public class ProxyRateColumn extends AbstractNumericColumn implements
         public Component getTableCellRendererComponent(JTable table,
                 Object value, boolean isSelected, boolean hasFocus, int row,
                 int column) {
+
             Component result = super.getTableCellRendererComponent(table,
                 value, isSelected, hasFocus, row, column);
 

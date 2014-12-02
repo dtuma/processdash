@@ -142,7 +142,7 @@ public class ProxySizeColumn extends AbstractNumericColumn implements
         if (numValue > 0) {
             bucket.setNumericAttribute(ATTR_NAME, numValue);
             ensureSizeMetric(bucket);
-        } else {
+        } else if (numValue == 0) {
             bucket.setAttribute(ATTR_NAME, null);
         }
     }
