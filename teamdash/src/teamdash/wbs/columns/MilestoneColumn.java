@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2012 Tuma Solutions, LLC
+// Copyright (C) 2002-2014 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -77,7 +77,7 @@ public class MilestoneColumn extends AbstractDataColumn implements
 
     private void recalculate(WBSNode node, Integer inheritedValue) {
         node.setAttribute(INHERITED_VALUE_ATTR, inheritedValue);
-        Integer nodeValue = getIntegerAttr(node, EXPLICIT_VALUE_ATTR);
+        Integer nodeValue = node.getIntegerAttribute(EXPLICIT_VALUE_ATTR);
         if (nodeValue != null)
             inheritedValue = nodeValue;
 
@@ -94,11 +94,11 @@ public class MilestoneColumn extends AbstractDataColumn implements
     }
 
     public Object getValueAt(WBSNode node) {
-        Integer nodeValue = getIntegerAttr(node, EXPLICIT_VALUE_ATTR);
+        Integer nodeValue = node.getIntegerAttribute(EXPLICIT_VALUE_ATTR);
         if (nodeValue != null)
             return milestoneModel.getNameForMilestone(nodeValue);
 
-        Integer inheritedValue = getIntegerAttr(node, INHERITED_VALUE_ATTR);
+        Integer inheritedValue = node.getIntegerAttribute(INHERITED_VALUE_ATTR);
         if (inheritedValue != null)
             return new ErrorValue(
                     milestoneModel.getNameForMilestone(inheritedValue),
@@ -108,31 +108,13 @@ public class MilestoneColumn extends AbstractDataColumn implements
     }
 
     public static int getMilestoneID(WBSNode node) {
-        Integer nodeValue = getIntegerAttr(node, EXPLICIT_VALUE_ATTR);
+        Integer nodeValue = node.getIntegerAttribute(EXPLICIT_VALUE_ATTR);
         if (nodeValue != null)
             return nodeValue.intValue();
-        Integer inheritedValue = getIntegerAttr(node, INHERITED_VALUE_ATTR);
+        Integer inheritedValue = node.getIntegerAttribute(INHERITED_VALUE_ATTR);
         if (inheritedValue != null)
             return inheritedValue.intValue();
         return -1;
-    }
-
-    private static Integer getIntegerAttr(WBSNode node, String attrName) {
-        Object attrValue = node.getAttribute(attrName);
-        if (attrValue instanceof Integer)
-            return (Integer) attrValue;
-
-        if (attrValue instanceof String) {
-            Integer i = null;
-            try {
-                i = Integer.valueOf((String) attrValue);
-            } catch (Exception e) {
-            }
-            node.setAttribute(attrName, i);
-            return i;
-        }
-
-        return null;
     }
 
     public void setValueAt(Object aValue, WBSNode node) {
@@ -151,7 +133,7 @@ public class MilestoneColumn extends AbstractDataColumn implements
                 return;
         }
 
-        Integer inheritedValue = getIntegerAttr(node, INHERITED_VALUE_ATTR);
+        Integer inheritedValue = node.getIntegerAttribute(INHERITED_VALUE_ATTR);
         if (id != null && id.equals(inheritedValue))
             id = null;
 
@@ -209,7 +191,7 @@ public class MilestoneColumn extends AbstractDataColumn implements
     }
 
     private static void remapNodeIDs(WBSNode node, Map<Integer, Integer> idMap) {
-        Integer nodeValue = getIntegerAttr(node, EXPLICIT_VALUE_ATTR);
+        Integer nodeValue = node.getIntegerAttribute(EXPLICIT_VALUE_ATTR);
         if (nodeValue != null) {
             Integer newValue = idMap.get(nodeValue);
             if (newValue != null)

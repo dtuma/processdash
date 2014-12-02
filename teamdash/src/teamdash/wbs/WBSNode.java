@@ -214,6 +214,26 @@ public class WBSNode implements Cloneable {
     }
 
 
+    /** Return an attribute that is known to be an integer */
+    public Integer getIntegerAttribute(String attrName) {
+        Object attrValue = getAttribute(attrName);
+        if (attrValue instanceof Integer)
+            return (Integer) attrValue;
+
+        if (attrValue instanceof String) {
+            Integer i = null;
+            try {
+                i = Integer.valueOf((String) attrValue);
+            } catch (Exception e) {
+            }
+            setAttribute(attrName, i);
+            return i;
+        }
+
+        return null;
+    }
+
+
 
     // Methods for conversion to/from XML
 
