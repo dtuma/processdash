@@ -103,7 +103,8 @@ public class ProxySizeColumn extends AbstractNumericColumn implements
         } else if (ProxyWBSModel.isBucket(node)) {
             if (!hasSizeMetric(node))
                 return null;
-            return new NumericDataValue(node.getNumericAttribute(ATTR_NAME));
+            double value = node.getNumericAttribute(ATTR_NAME);
+            return (value > 0 ? new NumericDataValue(value) : null);
 
         } else {
             return null;
