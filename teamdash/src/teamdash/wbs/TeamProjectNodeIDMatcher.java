@@ -1,4 +1,4 @@
-// Copyright (C) 2012-2013 Tuma Solutions, LLC
+// Copyright (C) 2012-2014 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -26,6 +26,7 @@ package teamdash.wbs;
 import java.util.Map;
 
 import teamdash.wbs.columns.MilestoneColumn;
+import teamdash.wbs.columns.ProxyEstTypeColumn;
 import teamdash.wbs.columns.TaskDependencyColumn;
 
 public class TeamProjectNodeIDMatcher {
@@ -64,6 +65,7 @@ public class TeamProjectNodeIDMatcher {
         // the main WBS.
         incoming.getWBS().remapFilteredNodeIDs(wbsIDMappings);
         WorkflowUtil.remapWorkflowSourceIDs(incoming.getWBS(), workflowIDMappings);
+        ProxyEstTypeColumn.remapNodeIDs(incoming.getWBS(), proxyIDMappings);
         MilestoneColumn.remapNodeIDs(incoming.getWBS(), milestoneIDMappings);
         TaskDependencyColumn.remapNodeIDs(incoming.getWBS(), incoming
                 .getProjectID(), wbsIDMappings);

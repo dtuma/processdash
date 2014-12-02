@@ -24,7 +24,12 @@
 package teamdash.wbs;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+
+import javax.swing.event.TableModelEvent;
 
 import org.w3c.dom.Element;
 
@@ -35,6 +40,10 @@ public class ProxyWBSModel extends WBSModel {
     public static final String PROXY_TYPE = "Estimation Table";
 
     public static final String BUCKET_TYPE = "Relative Size";
+
+
+    private Map<Integer, String> nameMap = null;
+    private Map<String, Integer> idMap = null;
 
     public ProxyWBSModel() {
         this(PROXY_LIST_TYPE);
@@ -197,6 +206,48 @@ public class ProxyWBSModel extends WBSModel {
                     return true;
         return false;
     }
+
+    public String getNameForProxy(Integer id) {
+        return getProxyNameMap().get(id);
+    }
+
+    public Map<Integer, String> getProxyNameMap() {
+        if (nameMap == null)
+            rebuildMaps();
+        return nameMap;
+    }
+
+    public Integer getIdForProxy(String name) {
+        return getProxyIdMap().get(name);
+    }
+
+    public Map<String, Integer> getProxyIdMap() {
+        if (idMap == null)
+            rebuildMaps();
+        return idMap;
+    }
+
+    @Override
+    public void fireTableChanged(TableModelEvent e) {
+        nameMap = null;
+        idMap = null;
+        super.fireTableChanged(e);
+    }
+
+    private void rebuildMaps() {
+        Map<Integer, String> newNameMap = new HashMap<Integer, String>();
+        Map<String, Integer> newIdMap = new LinkedHashMap<String, Integer>();
+        for (WBSNode proxy : getChildren(getRoot())) {
+            String name = proxy.getName();
+            Integer id = proxy.getUniqueID();
+            newNameMap.put(id, name);
+            if (!newIdMap.containsKey(name))
+                newIdMap.put(name, id);
+        }
+        this.nameMap = newNameMap;
+        this.idMap = newIdMap;
+    }
+
 
     public static boolean isProxy(WBSNode node) {
         return node != null && node.getIndentLevel() == 1;

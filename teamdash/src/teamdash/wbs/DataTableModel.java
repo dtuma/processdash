@@ -52,6 +52,7 @@ import teamdash.wbs.columns.NotesColumn;
 import teamdash.wbs.columns.NullDataColumn;
 import teamdash.wbs.columns.PhaseColumn;
 import teamdash.wbs.columns.PlanTimeWatcher;
+import teamdash.wbs.columns.ProxyEstTypeColumn;
 import teamdash.wbs.columns.SizeTypeColumn;
 import teamdash.wbs.columns.TaskDependencyColumn;
 import teamdash.wbs.columns.TaskLabelColumn;
@@ -360,6 +361,7 @@ public class DataTableModel extends AbstractTableModel {
         addDataColumn(new TeamActualTimeColumn(this, teamList));
         addDataColumn(new TaskLabelColumn(this));
         addDataColumn(new MilestoneColumn(this, milestones));
+        addDataColumn(new ProxyEstTypeColumn(this, proxies));
         addDataColumn(new TaskDependencyColumn(this, dependencySource,
                 teamProcess.getIconMap()));
         addDataColumn(new NotesColumn(currentUser));
