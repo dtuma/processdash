@@ -68,6 +68,10 @@ public class ProxyTimeColumn extends AbstractNumericColumn implements
 
     @Override
     public Object getValueAt(WBSNode node) {
+        return getTimeValueAt(node);
+    }
+
+    public static NumericDataValue getTimeValueAt(WBSNode node) {
         if (!ProxyWBSModel.isBucket(node))
             return null;
 

@@ -439,7 +439,7 @@ public class TeamProcess {
 
 
     static final String PROJECT_TYPE = "Project";
-    static final String COMPONENT_TYPE = "Component";
+    public static final String COMPONENT_TYPE = "Component";
     static final String SOFTWARE_COMPONENT_TYPE = "Software Component";
     static final String WORKFLOW_TYPE = "Workflow";
     static final String PROBE_TASK_TYPE = "PROBE Task";

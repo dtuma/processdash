@@ -132,6 +132,7 @@ import teamdash.wbs.columns.PercentSpentColumn;
 import teamdash.wbs.columns.PlanTimeWatcher;
 import teamdash.wbs.columns.PlanTimeWatcher.PlanTimeDiscrepancyEvent;
 import teamdash.wbs.columns.PlanTimeWatcher.PlanTimeDiscrepancyListener;
+import teamdash.wbs.columns.ProxyEstBucketColumn;
 import teamdash.wbs.columns.ProxyEstTypeColumn;
 import teamdash.wbs.columns.SizeAccountingColumnSet;
 import teamdash.wbs.columns.SizeActualDataColumn;
@@ -349,16 +350,17 @@ public class WBSEditor implements WindowListener, SaveListener,
                         (showActualData ? PercentCompleteColumn.COLUMN_ID : null),
                         (showActualData ? PercentSpentColumn.COLUMN_ID : null),
                         (showActualData ? TeamActualTimeColumn.COLUMN_ID : null) },
-                new String[] { "Phase/Type", "Task Size", "Units", "Rate",
+                new String[] { null, "Task Size", "Units", "Rate",
                         "Hrs/Indiv", "# People", "Time", "Assigned To",
                         "Completed", "%C", "%S", "Actual Time" });
 
         tabPanel.addTab("Task Details",
                 new String[] { "Milestone", "Labels",
                                ProxyEstTypeColumn.COLUMN_ID,
+                               ProxyEstBucketColumn.COLUMN_ID,
                                WBSTabPanel.CUSTOM_COLUMNS_ID,
                                "Dependencies", "Notes", ErrorNotesColumn.COLUMN_ID },
-                new String[] { "Milestone", "Task Labels", null,
+                new String[] { "Milestone", "Task Labels", null, null,
                                "", "Task Dependencies", "Notes", null });
 
         if (showActualData)

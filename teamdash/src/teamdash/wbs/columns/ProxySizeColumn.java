@@ -101,14 +101,18 @@ public class ProxySizeColumn extends AbstractNumericColumn implements
             return new SizeMetricValue(value);
 
         } else if (ProxyWBSModel.isBucket(node)) {
-            if (!hasSizeMetric(node))
-                return null;
-            double value = node.getNumericAttribute(ATTR_NAME);
-            return (value > 0 ? new NumericDataValue(value) : null);
+            return getSizeValueAt(node);
 
         } else {
             return null;
         }
+    }
+
+    public static NumericDataValue getSizeValueAt(WBSNode bucket) {
+        if (!hasSizeMetric(bucket) || !ProxyWBSModel.isBucket(bucket))
+            return null;
+        double value = bucket.getNumericAttribute(ATTR_NAME);
+        return (value > 0 ? new NumericDataValue(value) : null);
     }
 
     public void setValueAt(Object aValue, WBSNode node) {
@@ -165,6 +169,24 @@ public class ProxySizeColumn extends AbstractNumericColumn implements
             node = node.getWbsModel().getParent(node);
         return node.getAttribute(METRIC_ATTR_NAME) != null
                 || node.getAttribute(FORCED_ATTR_NAME) != null;
+    }
+
+    /**
+     * Retrieve the size metric units that are set on a given proxy category.
+     * 
+     * @param node
+     *            a node in the proxy model. This can either be the node for a
+     *            category row, or the node for one of the buckets within the
+     *            category.
+     * @return the size units set on this proxy category, or null if no size
+     *         metric has been set.
+     */
+    public static String getSizeMetric(WBSNode node) {
+        if (node == null)
+            return null;
+        if (ProxyWBSModel.isBucket(node))
+            node = node.getWbsModel().getParent(node);
+        return (String) node.getAttribute(METRIC_ATTR_NAME);
     }
 
     /**

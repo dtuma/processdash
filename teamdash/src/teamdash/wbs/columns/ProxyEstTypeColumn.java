@@ -64,11 +64,15 @@ public class ProxyEstTypeColumn extends AbstractDataColumn implements
     }
 
     public Object getValueAt(WBSNode node) {
-        Integer nodeValue = node.getIntegerAttribute(ATTR_NAME);
+        Integer nodeValue = getTypeIdAt(node);
         if (nodeValue != null)
             return proxyModel.getNameForProxy(nodeValue);
         else
             return null;
+    }
+
+    static Integer getTypeIdAt(WBSNode node) {
+        return node.getIntegerAttribute(ATTR_NAME);
     }
 
     public boolean isCellEditable(WBSNode node) {
@@ -81,12 +85,15 @@ public class ProxyEstTypeColumn extends AbstractDataColumn implements
         if (name == null || name.trim().length() == 0) {
             // the user has deleted the value in the cell.
             node.removeAttribute(ATTR_NAME);
+            ProxyEstBucketColumn.clearValueAt(node);
 
         } else {
-            // look up the milestone with the given name.
+            // look up the proxy category with the given name.
             Integer id = proxyModel.getIdForProxy(name);
-            if (id != null)
+            if (id != null) {
                 node.setAttribute(ATTR_NAME, id);
+                ProxyEstBucketColumn.clearValueAt(node);
+            }
         }
     }
 
@@ -107,7 +114,6 @@ public class ProxyEstTypeColumn extends AbstractDataColumn implements
 
 
     private class ProxyTypeCellEditor extends AutocompletingDataTableCellEditor {
-
 
         @Override
         public Component getTableCellEditorComponent(JTable table,

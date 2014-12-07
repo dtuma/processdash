@@ -47,6 +47,8 @@ import teamdash.wbs.WorkflowWBSModel;
 public class PhaseColumn extends AbstractDataColumn
     implements CalculatedDataColumn, CustomEditedColumn
 {
+    public static String COLUMN_ID = "Phase";
+
     private WBSModel wbsModel;
     private WorkflowWBSModel workflows;
     private Set allowedTypes;
@@ -56,7 +58,8 @@ public class PhaseColumn extends AbstractDataColumn
             WorkflowWBSModel workflows) {
         this.wbsModel = dataModel.getWBSModel();
         this.workflows = workflows;
-        this.columnID = this.columnName = "Phase";
+        this.columnID = COLUMN_ID;
+        this.columnName = resources.getString("Phase.Name");
         this.preferredWidth = 100;
         buildEditor(teamProcess);
     }
