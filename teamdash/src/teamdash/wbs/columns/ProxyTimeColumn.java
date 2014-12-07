@@ -26,6 +26,7 @@ package teamdash.wbs.columns;
 import java.awt.Component;
 
 import javax.swing.JTable;
+import javax.swing.SwingConstants;
 import javax.swing.table.TableCellRenderer;
 
 import teamdash.wbs.CalculatedDataColumn;
@@ -43,7 +44,15 @@ public class ProxyTimeColumn extends AbstractNumericColumn implements
 
     private static final String RATE_CALC_ATTR_NAME = "_Rate_Calc " + ATTR_NAME;
 
+    private static final String EXTRAPOLATED_ATTR_NAME = "_Extrapolated "
+            + ATTR_NAME;
+
     private static final String COLUMN_ID = ATTR_NAME;
+
+    /** Tooltip to display for extrapolated values */
+    private static final String EXTRAPOLATED_TOOLTIP = resources
+            .getString("Proxy_Time.Extrapolated_Tooltip");
+
 
 
     private ProxyDataModel dataModel;
@@ -82,6 +91,11 @@ public class ProxyTimeColumn extends AbstractNumericColumn implements
         value = node.getNumericAttribute(RATE_CALC_ATTR_NAME);
         if (value > 0)
             return new NumericDataValue(value);
+
+        value = node.getNumericAttribute(EXTRAPOLATED_ATTR_NAME);
+        if (value > 0)
+            return new NumericDataValue(value, true, false,
+                    EXTRAPOLATED_TOOLTIP);
 
         return null;
     }
@@ -145,12 +159,16 @@ public class ProxyTimeColumn extends AbstractNumericColumn implements
             }
         }
 
-        // TODO: fill in missing cells with an extrapolation
+        // fill in missing cells with an extrapolation
+        ProxySizeColumn.extrapolateMissingValues(this, buckets,
+            EXTRAPOLATED_ATTR_NAME);
 
         // finally, calculate effective rates for applicable buckets
         if (proxyHasSizeMetric) {
             for (WBSNode bucket : buckets) {
                 double time = bucket.getNumericAttribute(ATTR_NAME);
+                if (!(time > 0))
+                    time = bucket.getNumericAttribute(EXTRAPOLATED_ATTR_NAME);
                 double size = parseNum(sizeColumn.getValueAt(bucket));
                 if (time > 0 && size > 0) {
                     double rate = size / time;
@@ -170,6 +188,10 @@ public class ProxyTimeColumn extends AbstractNumericColumn implements
 
     private class ProxyTimeRenderer extends ItalicNumericCellRenderer {
 
+        ProxyTimeRenderer() {
+            super(EXTRAPOLATED_TOOLTIP);
+        }
+
         @Override
         public Component getTableCellRendererComponent(JTable table,
                 Object value, boolean isSelected, boolean hasFocus, int row,
@@ -177,8 +199,16 @@ public class ProxyTimeColumn extends AbstractNumericColumn implements
 
             Component result = super.getTableCellRendererComponent(table,
                 value, isSelected, hasFocus, row, column);
-
+            setHorizontalAlignment(getAlignment((NumericDataValue) value));
             return result;
+        }
+
+        private int getAlignment(NumericDataValue value) {
+            if (value != null
+                    && EXTRAPOLATED_TOOLTIP.equals(value.errorMessage))
+                return SwingConstants.RIGHT;
+            else
+                return SwingConstants.CENTER;
         }
 
     }

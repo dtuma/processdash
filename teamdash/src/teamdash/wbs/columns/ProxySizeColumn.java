@@ -37,7 +37,7 @@ import javax.swing.table.TableCellRenderer;
 import teamdash.wbs.AutocompletingDataTableCellEditor;
 import teamdash.wbs.CalculatedDataColumn;
 import teamdash.wbs.CustomRenderedColumn;
-import teamdash.wbs.DataTableCellNumericRenderer;
+import teamdash.wbs.ItalicNumericCellRenderer;
 import teamdash.wbs.NumericDataValue;
 import teamdash.wbs.ProxyDataModel;
 import teamdash.wbs.ProxyWBSModel;
@@ -50,6 +50,10 @@ public class ProxySizeColumn extends AbstractNumericColumn implements
     /** Attribute to store the numeric size estimate for a bucket */
     private static final String ATTR_NAME = "Proxy Size";
 
+    /** Attribute to store extrapolated size values for a bucket */
+    private static final String EXTRAPOLATED_ATTR_NAME = "_Extrapolated "
+            + ATTR_NAME;
+
     /** Attribute to store the size metric for a proxy category */
     private static final String METRIC_ATTR_NAME = "Proxy Size Metric";
 
@@ -58,6 +62,10 @@ public class ProxySizeColumn extends AbstractNumericColumn implements
     public static final String FORCED_ATTR_NAME = "Force Enable Proxy Sizes";
 
     static final String COLUMN_ID = ATTR_NAME;
+
+    /** Tooltip to display for extrapolated values */
+    private static final String EXTRAPOLATED_TOOLTIP = resources
+            .getString("Proxy_Size.Extrapolated_Tooltip");
 
     /** Text/tooltip to display on the proxy category row if no size metric has
      * been entered, but sizes have been "forcefully" enabled */
@@ -111,8 +119,17 @@ public class ProxySizeColumn extends AbstractNumericColumn implements
     public static NumericDataValue getSizeValueAt(WBSNode bucket) {
         if (!hasSizeMetric(bucket) || !ProxyWBSModel.isBucket(bucket))
             return null;
+
         double value = bucket.getNumericAttribute(ATTR_NAME);
-        return (value > 0 ? new NumericDataValue(value) : null);
+        if (value > 0)
+            return new NumericDataValue(value);
+
+        value = bucket.getNumericAttribute(EXTRAPOLATED_ATTR_NAME);
+        if (value > 0)
+            return new NumericDataValue(value, true, false,
+                    EXTRAPOLATED_TOOLTIP);
+
+        return null;
     }
 
     public void setValueAt(Object aValue, WBSNode node) {
@@ -215,9 +232,19 @@ public class ProxySizeColumn extends AbstractNumericColumn implements
     public void storeDependentColumn(String ID, int columnNumber) {}
 
     public boolean recalculate() {
+        WBSNode[] proxies = proxyModel.getChildren(proxyModel.getRoot());
+        for (WBSNode proxy : proxies) {
+            if (hasSizeMetric(proxy))
+                recalcProxy(proxy);
+        }
         return true;
     }
 
+
+    private void recalcProxy(WBSNode proxy) {
+        WBSNode[] buckets = proxyModel.getChildren(proxy);
+        extrapolateMissingValues(this, buckets, EXTRAPOLATED_ATTR_NAME);
+    }
 
     public TableCellEditor getCellEditorForRow(int row) {
         WBSNode node = proxyModel.getNodeForRow(row);
@@ -235,7 +262,11 @@ public class ProxySizeColumn extends AbstractNumericColumn implements
      * This displays numbers regularly, but left-formats the size metric cell,
      * which is textual instead of numeric.
      */
-    private class ProxySizeRenderer extends DataTableCellNumericRenderer {
+    private class ProxySizeRenderer extends ItalicNumericCellRenderer {
+
+        public ProxySizeRenderer() {
+            super(EXTRAPOLATED_TOOLTIP);
+        }
 
         @Override
         public Component getTableCellRendererComponent(JTable table,
@@ -243,9 +274,18 @@ public class ProxySizeColumn extends AbstractNumericColumn implements
                 int column) {
             Component result = super.getTableCellRendererComponent(table,
                 value, isSelected, hasFocus, row, column);
-            setHorizontalAlignment(value instanceof SizeMetricValue
-                    ? SwingConstants.LEFT : SwingConstants.RIGHT);
+            setHorizontalAlignment(getAlignment((NumericDataValue) value));
             return result;
+        }
+
+        private int getAlignment(NumericDataValue value) {
+            if (value instanceof SizeMetricValue)
+                return SwingConstants.LEFT;
+            else if (value != null
+                    && EXTRAPOLATED_TOOLTIP.equals(value.errorMessage))
+                return SwingConstants.RIGHT;
+            else
+                return SwingConstants.CENTER;
         }
     }
 
@@ -272,5 +312,110 @@ public class ProxySizeColumn extends AbstractNumericColumn implements
         }
 
     }
+
+
+    /**
+     * Look at the values for a set of buckets, and fill in missing values with
+     * a log-normal extrapolation.
+     */
+    static void extrapolateMissingValues(AbstractNumericColumn col,
+            WBSNode[] buckets, String extrapolatedAttr) {
+        // retrieve the current value for each bucket.
+        int numValuesFound = 0;
+        double[] values = new double[buckets.length];
+        for (int i = buckets.length; i-- > 0;) {
+            WBSNode b = buckets[i];
+            b.setAttribute(extrapolatedAttr, null);
+            NumericDataValue v = (NumericDataValue) col.getValueAt(b);
+            if (v != null && v.value > 0) {
+                values[i] = v.value;
+                numValuesFound++;
+            }
+        }
+
+        // if no buckets have values, or if all buckets have values, exit.
+        if (numValuesFound == 0 || numValuesFound == buckets.length) {
+            return;
+        }
+
+        // if we have only one value, extrapolate around it using a standard
+        // scaling factor
+        else if (numValuesFound == 1) {
+            int pos = findFirstValue(values, 0);
+            extrapolateDown(buckets, values, extrapolatedAttr, pos,
+                DEFAULT_SCALING_FACTOR);
+            extrapolateUp(buckets, values, extrapolatedAttr, pos,
+                DEFAULT_SCALING_FACTOR);
+        }
+
+        // if we have two or more values, extrapolate between and around them
+        else if (numValuesFound > 1) {
+            // find the first pair of values, and extrapolate between them
+            int low = findFirstValue(values, 0);
+            int high = findFirstValue(values, low + 1);
+            double factor = extrapolateBetween(buckets, values,
+                extrapolatedAttr, low, high);
+
+            // use the same factor to extrapolate down below that first pair
+            extrapolateDown(buckets, values, extrapolatedAttr, low, factor);
+
+            // find additional pairs and extrapolate between them too
+            while (true) {
+                low = high;
+                high = findFirstValue(values, low + 1);
+                if (high == -1)
+                    break;
+                factor = extrapolateBetween(buckets, values, extrapolatedAttr,
+                    low, high);
+            }
+
+            // extrapolate up from the last pair
+            extrapolateUp(buckets, values, extrapolatedAttr, low, factor);
+        }
+    }
+
+    private static int findFirstValue(double[] values, int pos) {
+        while (pos < values.length) {
+            if (values[pos] > 0)
+                return pos;
+            else
+                pos++;
+        }
+        return -1;
+    }
+
+    private static void extrapolateDown(WBSNode[] buckets, double[] values,
+            String attrName, int pos, double factor) {
+        double value = values[pos];
+        while (pos-- > 0) {
+            value /= factor;
+            buckets[pos].setNumericAttribute(attrName, value);
+        }
+    }
+
+    private static void extrapolateUp(WBSNode[] buckets, double[] values,
+            String attrName, int pos, double factor) {
+        double value = values[pos];
+        while (++pos < buckets.length) {
+            value *= factor;
+            buckets[pos].setNumericAttribute(attrName, value);
+        }
+    }
+
+    private static double extrapolateBetween(WBSNode[] buckets,
+            double[] values, String attrName, int low, int high) {
+        int width = high - low;
+        double ratio = values[high] / values[low];
+        double factor = Math.exp(Math.log(ratio) / width);
+        int pos = low;
+        double value = values[low];
+        while (++pos < high) {
+            value *= factor;
+            buckets[pos].setNumericAttribute(attrName, value);
+        }
+        return factor;
+    }
+
+    private static final double DEFAULT_SCALING_FACTOR = 2.5;
 
 }
