@@ -28,6 +28,7 @@ import static teamdash.wbs.WorkflowModel.WORKFLOW_SOURCE_IDS_ATTR;
 import java.awt.Component;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -239,8 +240,13 @@ public class ProxyEstBucketColumn extends AbstractDataColumn implements
             if (buckets.length == 0) {
                 getComboBox().addItem(noTypeMessage);
             } else {
-                for (WBSNode bucket : buckets)
-                    getComboBox().addItem(bucket.getName());
+                HashSet namesSeen = new HashSet();
+                namesSeen.add("");
+                for (WBSNode bucket : buckets) {
+                    String bucketName = bucket.getName();
+                    if (namesSeen.add(bucketName))
+                        getComboBox().addItem(bucketName);
+                }
             }
 
             // now defer to the parent for the rest of the work.
