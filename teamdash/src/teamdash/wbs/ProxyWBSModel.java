@@ -35,7 +35,7 @@ import org.w3c.dom.Element;
 
 public class ProxyWBSModel extends WBSModel {
 
-    public static final String PROXY_LIST_TYPE = "Estimation Tables";
+    public static final String PROXY_LIST_TYPE = "Proxy Estimation Tables";
 
     public static final String PROXY_TYPE = "Estimation Table";
 
@@ -188,8 +188,17 @@ public class ProxyWBSModel extends WBSModel {
         return true;
     }
 
-    private static final String[] DEFAULT_BUCKET_NAMES = { "VS", "S", "M", "L",
-            "VL" };
+    private static final String[] DEFAULT_BUCKET_NAMES = getDefaultBucketNames();
+
+    private static String[] getDefaultBucketNames() {
+        String sizes;
+        try {
+            sizes = ProxyEditor.resources.getString("Default_Sizes");
+        } catch (Exception e) {
+            sizes = "VS,S,M,L,VL";
+        }
+        return sizes.split("[, ]+");
+    }
 
     public boolean containsProxyRow(int... rows) {
         if (rows != null)

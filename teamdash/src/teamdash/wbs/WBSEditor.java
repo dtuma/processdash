@@ -2323,8 +2323,8 @@ public class WBSEditor implements WindowListener, SaveListener,
 
     private class ProxyEditorAction extends AbstractAction {
         public ProxyEditorAction() {
-            super("Edit Estimation Tables");
-            putValue(MNEMONIC_KEY, new Integer('T'));
+            super(resources.getString("Proxies.Menu"));
+            putValue(MNEMONIC_KEY, new Integer('P'));
         }
 
         public void actionPerformed(ActionEvent e) {

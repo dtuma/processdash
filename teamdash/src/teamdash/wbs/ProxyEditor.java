@@ -125,11 +125,12 @@ public class ProxyEditor implements MergeConflictHyperlinkHandler {
 
         addToolbarButton(undoList.getUndoAction());
         addToolbarButton(undoList.getRedoAction());
-        addToolbarButton(tweakAction(table.CUT_ACTION, "Cut Tables", null));
-        addToolbarButton(tweakAction(table.COPY_ACTION, "Copy Tables",
-            IconFactory.getCopyProxyIcon()));
-        addToolbarButton(tweakAction(table.PASTE_ACTION, "Paste Tables",
-            IconFactory.getPasteProxyIcon()));
+        addToolbarButton(tweakAction(table.CUT_ACTION,
+            resources.getString("Cut"), null));
+        addToolbarButton(tweakAction(table.COPY_ACTION,
+            resources.getString("Copy"), IconFactory.getCopyProxyIcon()));
+        addToolbarButton(tweakAction(table.PASTE_ACTION,
+            resources.getString("Paste"), IconFactory.getPasteProxyIcon()));
         addToolbarButton(table.EXPAND_ACTION);
         addToolbarButton(table.COLLAPSE_ACTION);
         addToolbarButton(table.MOVEUP_ACTION);
