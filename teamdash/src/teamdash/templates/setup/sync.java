@@ -32,6 +32,7 @@ import java.io.PrintWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.SimpleDateFormat;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -48,8 +49,8 @@ import net.sourceforge.processdash.data.SimpleData;
 import net.sourceforge.processdash.data.StringData;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.hier.DashHierarchy;
-import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.hier.HierarchyAlterer.HierarchyAlterationException;
+import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.net.http.TinyCGIException;
 import net.sourceforge.processdash.process.ui.TriggerURI;
 import net.sourceforge.processdash.tool.bridge.client.TeamServerSelector;
@@ -60,6 +61,7 @@ import net.sourceforge.processdash.util.HTMLUtils;
 import net.sourceforge.processdash.util.StringUtils;
 import net.sourceforge.processdash.util.ThreadThrottler;
 import net.sourceforge.processdash.util.XMLUtils;
+
 import teamdash.FilenameMapper;
 
 /** CGI script which synchonizes a dashboard hierarchy with a WBS description.
@@ -374,7 +376,7 @@ public class sync extends TinyCGIBase {
             teamDirectory = new File(teamDirectoryLocation);
 
             if (!teamDirectory.isDirectory())
-                signalError(TEAM_DIR_MISSING);
+                signalError(TEAM_DIR_UNAVAILABLE, teamDirectoryLocation);
 
             URL serverURL = TeamServerSelector.getServerURL(teamDirectory);
 
@@ -398,7 +400,7 @@ public class sync extends TinyCGIBase {
                 File wbsFile = new File(teamDirectoryLocation, HIER_FILENAME);
 
                 if (!wbsFile.exists())
-                    signalError(WBS_FILE_MISSING + "&wbsFile", wbsFile.toString());
+                    signalError(WBS_FILE_MISSING);
                 if (!wbsFile.canRead())
                     signalError(WBS_FILE_INACCESSIBLE + "&wbsFile", wbsFile.toString());
 
@@ -415,16 +417,18 @@ public class sync extends TinyCGIBase {
     }
 
     private URL getWBSLocationFromUrlDataElement(DataRepository data,
-            String urlDataName) throws MalformedURLException {
+            String urlDataName) throws MalformedURLException, TinyCGIException {
         // Check to see if we have a URL stored in the data repository.
         // If not, we can't proceed.
         SimpleData d = data.getSimpleValue(urlDataName);
         if (d == null)
             return null;
+        String lastServerUrlStr = d.format().trim();
+        if (lastServerUrlStr.length() == 0)
+            return null;
 
         // If a filename remapper is operating and it instructs us to use a
         // different location for this URL, respect its directions.
-        String lastServerUrlStr = d.format();
         String remapped = FilenameMapper.remap(lastServerUrlStr);
         if (remapped != null && !remapped.equals(lastServerUrlStr)) {
             File dir = new File(remapped);
@@ -443,7 +447,7 @@ public class sync extends TinyCGIBase {
             serverUrl = TeamServerSelector.testServerURL(lastServerUrlStr);
         }
         if (serverUrl == null)
-            return null;
+            signalError(SERVER_UNAVAILABLE, lastServerUrlStr);
 
         // Has the server URL changed since our last sync?  If so, write the
         // new URL into the data repository.
@@ -997,6 +1001,17 @@ public class sync extends TinyCGIBase {
     /** Redirect to an error page.
      */
     private void showErrorPage(String reason, String value) throws IOException {
+        if (reason.contains(WBS_FILE_MISSING)) {
+            // if the team data area was found but the WBS file does not exist,
+            // this generally means that the team hasn't opened the WBS Editor
+            // and performed any planning. In the past, a special message was
+            // displayed for this case; but in the interest of simplicity there
+            // is no need to confuse the user with this detail. Just let them
+            // know that no changes are needed at this time.
+            printChanges(Collections.EMPTY_LIST);
+            return;
+        }
+
         out.write("<html><head>");
         StringBuffer uri = new StringBuffer("syncError.shtm?").append(reason);
         if (value != null)
@@ -1035,7 +1050,9 @@ public class sync extends TinyCGIBase {
 
     private static final String NOT_TEAM_PROJECT = "notTeamProject";
     private static final String TEAM_DIR_MISSING = "teamDirMissing";
-    private static final String WBS_FILE_MISSING = "wbsFileMissing";
+    private static final String TEAM_DIR_UNAVAILABLE = "teamDirUnavailable&teamDir";
+    private static final String SERVER_UNAVAILABLE = "serverUnavailable&serverUrl";
+    static final String WBS_FILE_MISSING = "wbsFileMissing";
     private static final String WBS_FILE_INACCESSIBLE = "wbsFileInaccessible";
     private static final String INITIALS_MISSING = "initialsMissing";
     private static final String EMPTY_TEAM = "emptyTeam";

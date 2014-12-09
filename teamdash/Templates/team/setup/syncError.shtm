@@ -21,26 +21,41 @@ This synchronization tool cannot proceed because the Hierarchy Editor
 is currently open.  Please close the Hierarchy Editor, then 
 <a href="sync.class?<!--#echo _UNIQUE_ -->">click here</a> to try again.
 
+<!--#elif serverUnavailable -->
+
+To synchronize your hierarchy with a team project, the dashboard must contact
+the server located at
+<pre><!--#echo serverUrl --></pre>
+
+Unfortunately, the server could not be reached.  Please check your network
+connection and try again.  If the problem persists, contact the server
+administrator.
+
+<!--#elif teamDirUnavailable -->
+
+To synchronize your hierarchy with a team project, the dashboard must read
+project data files from the directory
+<pre><!--#echo teamDir --></pre>
+
+Unfortunately, that directory could not be found.  Please check your network
+connection and try again.  If the problem persists, contact your team leader
+for help.
+
 <!--#elif teamDirMissing -->
 
 To synchronize your hierarchy with a team project, the dashboard must
 know the directory of the team project.  Before you can synchronize
 your hierarchy, you must first enter this value on the
 
-<!--#elif wbsFileMissing || wbsFileInaccessible -->
+<!--#elif wbsFileInaccessible -->
 
 To synchronize your hierarchy with a team project, the dashboard must
 read a description of the team work breakdown structure.  The dashboard
 attempted to read this description from the file 
 <pre><!--#echo wbsFile --></pre>
 
-  <!--#if wbsFileMissing -->
-     but the file does not exist.  Check with your team leader to ensure
-     that team planning is complete, then try again.
-  <!--#else-->
-     but cannot read the file.  Ensure that you have permission to read the
-     file, then try again.
-  <!--#endif-->
+but the file could not be read.  Ensure that you have permission to read the
+file, then try again.
 
 <!--#elif emptyTeam -->
 
@@ -73,6 +88,8 @@ must first enter your initials on the
 <!--#if teamDirMissing || initialsMissing -->
   <!--#if isTeam -->
     <a href="../team_project_parameters.shtm">project parameters page</a>.
+  <!--#elif isMaster -->
+    <a href="../master_project_parameters.shtm">project parameters page</a>.
   <!--#else-->
     <a href="../indiv_project_parameters.shtm">project parameters page</a>.
   <!--#endif-->

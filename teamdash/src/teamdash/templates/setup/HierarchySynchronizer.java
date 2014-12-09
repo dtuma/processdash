@@ -27,6 +27,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.Writer;
+import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
 import java.text.SimpleDateFormat;
@@ -84,6 +85,7 @@ import net.sourceforge.processdash.hier.HierarchyNoteManager;
 import net.sourceforge.processdash.hier.PropertyKey;
 import net.sourceforge.processdash.log.defects.Defect;
 import net.sourceforge.processdash.log.defects.DefectAnalyzer;
+import net.sourceforge.processdash.net.http.TinyCGIException;
 import net.sourceforge.processdash.templates.DashPackage;
 import net.sourceforge.processdash.util.DateUtils;
 import net.sourceforge.processdash.util.StringUtils;
@@ -353,9 +355,10 @@ public class HierarchySynchronizer {
     }
 
     private void openWBS(URL wbsLocation) throws IOException {
+        URLConnection conn = null;
         InputStream in = null;
         try {
-            URLConnection conn = wbsLocation.openConnection();
+            conn = wbsLocation.openConnection();
             in = new BufferedInputStream(conn.getInputStream());
             Document doc = XMLUtils.parse(in);
             projectXML = doc.getDocumentElement();
@@ -381,6 +384,11 @@ public class HierarchySynchronizer {
             projectClosed = XMLUtils.hasValue(projClosedAttr);
 
         } catch (Exception e) {
+            if (in == null && conn instanceof HttpURLConnection) {
+                HttpURLConnection hConn = (HttpURLConnection) conn;
+                if (hConn.getResponseCode() == HttpURLConnection.HTTP_NOT_FOUND)
+                    throw new TinyCGIException(500, sync.WBS_FILE_MISSING);
+            }
             throw new IOException
                 ("The dashboard could not read the file containing the work " +
                  "breakdown structure for this team project.  The file may "+
