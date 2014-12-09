@@ -74,6 +74,9 @@ public class ProxySizeColumn extends AbstractNumericColumn implements
     private static final String MISSING_METRIC_TOOLTIP = resources
             .getString("Proxy_Size.Metric_Missing.Tooltip");
 
+    /** Tooltip to display for unrecognized size metrics */
+    private static final String BAD_METRIC_TOOLTIP = resources
+            .getString("Proxy_Size.Bad_Metric_Tooltip");
 
 
     private ProxyDataModel dataModel;
@@ -304,6 +307,8 @@ public class ProxySizeColumn extends AbstractNumericColumn implements
             this.display = (value == null ? "" : value.toString());
             if (MISSING_METRIC_MSG.equals(value))
                 this.errorMessage = MISSING_METRIC_TOOLTIP;
+            else if (!sizeMetrics.contains(this.display))
+                this.errorMessage = BAD_METRIC_TOOLTIP;
         }
 
         @Override

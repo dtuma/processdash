@@ -25,6 +25,7 @@ package teamdash.wbs;
 
 import java.awt.BorderLayout;
 import java.awt.Insets;
+import java.awt.event.ActionEvent;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -38,9 +39,14 @@ import javax.swing.event.ChangeListener;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 
+import net.sourceforge.processdash.i18n.Resources;
+
 import teamdash.merge.ui.MergeConflictHyperlinkHandler;
 
 public class ProxyEditor implements MergeConflictHyperlinkHandler {
+
+    /** The team project that these proxies belong to. */
+    TeamProject teamProject;
 
     /** The data model for the proxy tables */
     ProxyDataModel proxyModel;
@@ -57,7 +63,12 @@ public class ProxyEditor implements MergeConflictHyperlinkHandler {
     /** A toolbar for editing the milestones */
     JToolBar toolBar;
 
+    static final Resources resources = Resources
+            .getDashBundle("WBSEditor.Proxies");
+
+
     public ProxyEditor(TeamProject teamProject, ProxyDataModel proxyModel) {
+        this.teamProject = teamProject;
         this.proxyModel = proxyModel;
         this.proxyModel.setEditingEnabled(teamProject.isReadOnly() == false);
 
@@ -66,8 +77,8 @@ public class ProxyEditor implements MergeConflictHyperlinkHandler {
 
         buildToolbar();
 
-        frame = new JFrame(teamProject.getProjectName()
-                + " - Estimation Tables");
+        frame = new JFrame(resources.format("Window_Title_FMT",
+            teamProject.getProjectName()));
         frame.getContentPane().add(new JScrollPane(table));
         frame.getContentPane().add(toolBar, BorderLayout.NORTH);
         frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -126,7 +137,10 @@ public class ProxyEditor implements MergeConflictHyperlinkHandler {
         addToolbarButton(table.DELETE_ACTION);
         toolBar.addSeparator();
 
-        // TODO: Import / Export
+        if (teamProject.isReadOnly())
+            IMPORT.setEnabled(false);
+        addToolbarButton(IMPORT);
+        addToolbarButton(EXPORT);
     }
 
     private Action tweakAction(AbstractAction a, String name, Icon icon) {
@@ -159,6 +173,41 @@ public class ProxyEditor implements MergeConflictHyperlinkHandler {
     public void removeChangeListener(ChangeListener l) {
         undoList.removeChangeListener(l);
     }
+
+    private class ExportAction extends AbstractAction {
+        public ExportAction() {
+            super(resources.getString("Export_Tooltip"), //
+                    IconFactory.getExportProxiesIcon());
+        }
+        public void actionPerformed(ActionEvent e) {
+            try {
+                new ProxyLibraryEditor(teamProject, frame, true);
+            } catch (ProxyLibraryEditor.UserCancelledException uce) {
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        }
+    }
+    final Action EXPORT = new ExportAction();
+
+
+
+    private class ImportAction extends AbstractAction {
+        public ImportAction() {
+            super(resources.getString("Import_Tooltip"), //
+                    IconFactory.getImportProxiesIcon());
+        }
+        public void actionPerformed(ActionEvent e) {
+            try {
+                new ProxyLibraryEditor(teamProject, frame, false);
+                undoList.madeChange("Imported proxies");
+            } catch (ProxyLibraryEditor.UserCancelledException uce) {
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        }
+    }
+    final Action IMPORT = new ImportAction();
 
     private class UndoableEventRepeater implements TableModelListener {
 

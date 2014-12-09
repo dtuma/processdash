@@ -296,8 +296,8 @@ public class WorkflowEditor implements MergeConflictHyperlinkHandler {
 
     private class ExportAction extends AbstractAction {
         public ExportAction() {
-            super("Export...", IconFactory.getExportIcon());
-            super.putValue(SHORT_DESCRIPTION, "Export Workflows");
+            super(resources.getString("Export_Tooltip"), //
+                    IconFactory.getExportWorkflowsIcon());
         }
         public void actionPerformed(ActionEvent e) {
             try {
@@ -314,8 +314,8 @@ public class WorkflowEditor implements MergeConflictHyperlinkHandler {
 
     private class ImportAction extends AbstractAction {
         public ImportAction() {
-            super("Import...", IconFactory.getImportIcon());
-            super.putValue(SHORT_DESCRIPTION, "Import Workflows");
+            super(resources.getString("Import_Tooltip"), //
+                    IconFactory.getImportWorkflowsIcon());
         }
         public void actionPerformed(ActionEvent e) {
             try {

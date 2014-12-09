@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Tuma Solutions, LLC
+// Copyright (C) 2002-2014 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -37,37 +37,42 @@ import org.w3c.dom.Element;
 import teamdash.XMLUtils;
 
 
-public class WorkflowLibrary {
+public abstract class WBSLibrary {
 
-    private static final String WORKFLOW_LIBRARY_TAG = "workflowLibrary";
     private static final String PROCESS_NAME_ATTR = "processName";
     private static final String PROCESS_VERSION_ATTR = "processVersion";
 
     private File file;
     private String processName;
     private String processVersion;
-    private WorkflowWBSModel workflows;
+    private WBSModel wbs;
 
 
 
-    public WorkflowLibrary(File f) throws IOException {
+    public WBSLibrary(File f) throws IOException {
         this.file = f;
         load();
     }
 
-    public WorkflowLibrary(File f, TeamProcess process) throws IOException {
+    public WBSLibrary(File f, TeamProcess process) throws IOException {
         if (f.exists())
             throw new IOException("File already exists.");
 
         this.file = f;
         this.processName = process.getProcessName();
         this.processVersion = process.getProcessVersion();
-        this.workflows = new WorkflowWBSModel("Archived Workflows");
+        this.wbs = createEmptyWbs();
         // The constructor for WBSModel will create a 'default' WBS which we
         // don't want.  Delete those contents, leaving only the root.
-        WBSNode[] children = this.workflows.getDescendants(this.workflows.getRoot());
-        this.workflows.deleteNodes(Arrays.asList(children));
+        WBSNode[] children = this.wbs.getDescendants(this.wbs.getRoot());
+        this.wbs.deleteNodes(Arrays.asList(children));
     }
+
+    protected abstract String getRootTag();
+
+    protected abstract WBSModel createEmptyWbs();
+
+    protected abstract WBSModel loadFromXml(Element xml);
 
     public String getProcessName() {
         return processName;
@@ -77,12 +82,12 @@ public class WorkflowLibrary {
         return processVersion;
     }
 
-    public WorkflowWBSModel getWorkflows() {
-        return workflows;
+    public WBSModel getWbs() {
+        return wbs;
     }
 
     public boolean isValid() {
-        return (processName != null && processVersion != null && workflows != null);
+        return (processName != null && processVersion != null && wbs != null);
     }
 
     public boolean compatible(TeamProcess process) {
@@ -95,17 +100,17 @@ public class WorkflowLibrary {
         try {
             Document doc = XMLUtils.parse(new FileInputStream(file));
             Element xml = doc.getDocumentElement();
-            if (WORKFLOW_LIBRARY_TAG.equals(xml.getTagName())) {
+            if (getRootTag().equals(xml.getTagName())) {
                 processName = xml.getAttribute(PROCESS_NAME_ATTR);
                 processVersion = xml.getAttribute(PROCESS_VERSION_ATTR);
                 Element wbsElement = (Element) xml.getElementsByTagName
                     (WBSModel.WBS_MODEL_TAG).item(0);
-                workflows = new WorkflowWBSModel(wbsElement);
+                wbs = loadFromXml(wbsElement);
             }
         } catch (IOException ioe) {
             throw ioe;
         } catch (Exception e) {
-            IOException ioe = new IOException("Unable to load workflow library.");
+            IOException ioe = new IOException("Unable to load library.");
             ioe.initCause(e);
             throw ioe;
         }
@@ -114,16 +119,16 @@ public class WorkflowLibrary {
     public void save() throws IOException {
         try {
             RobustFileWriter out = new RobustFileWriter(file, "UTF-8");
-            out.write("<" + WORKFLOW_LIBRARY_TAG + " ");
+            out.write("<" + getRootTag() + " ");
             out.write(PROCESS_NAME_ATTR + "='" + XMLUtils.escapeAttribute(processName) + "' ");
             out.write(PROCESS_VERSION_ATTR + "='" + XMLUtils.escapeAttribute(processVersion) + "'>\n");
-            workflows.getAsXML(out);
-            out.write("</" + WORKFLOW_LIBRARY_TAG + ">");
+            wbs.getAsXML(out);
+            out.write("</" + getRootTag() + ">");
             out.close();
         } catch (IOException ioe) {
             throw ioe;
         } catch (Exception e) {
-            IOException ioe = new IOException("Unable to save workflow library.");
+            IOException ioe = new IOException("Unable to save library.");
             ioe.initCause(e);
             throw ioe;
         }
@@ -131,6 +136,60 @@ public class WorkflowLibrary {
 
     public String getFileName() {
         return file.getName();
+    }
+
+    public static class Workflows extends WBSLibrary {
+
+        public Workflows(File f) throws IOException {
+            super(f);
+        }
+
+        public Workflows(File f, TeamProcess process) throws IOException {
+            super(f, process);
+        }
+
+        @Override
+        protected String getRootTag() {
+            return "workflowLibrary";
+        }
+
+        @Override
+        protected WBSModel createEmptyWbs() {
+            return new WorkflowWBSModel("Archived Workflows");
+        }
+
+        @Override
+        protected WBSModel loadFromXml(Element xml) {
+            return new WorkflowWBSModel(xml);
+        }
+
+    }
+
+    public static class Proxies extends WBSLibrary {
+
+        public Proxies(File f) throws IOException {
+            super(f);
+        }
+
+        public Proxies(File f, TeamProcess process) throws IOException {
+            super(f, process);
+        }
+
+        @Override
+        protected String getRootTag() {
+            return "proxyLibrary";
+        }
+
+        @Override
+        protected WBSModel createEmptyWbs() {
+            return new ProxyWBSModel("Archived Estimation Tables");
+        }
+
+        @Override
+        protected WBSModel loadFromXml(Element xml) {
+            return new ProxyWBSModel(xml);
+        }
+
     }
 
 }

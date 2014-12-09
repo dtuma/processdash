@@ -276,23 +276,45 @@ public class IconFactory {
     }
     private static Icon DUPLICATE_TAB_ICON = null;
 
-    public static Icon getImportIcon() {
-        if (IMPORT_ICON == null) {
-            IMPORT_ICON = new ConcatenatedIcon(getCommonWorkflowsIcon(),
-                    getLeftArrowIcon(), getOpenIcon());
+    public static Icon getImportWorkflowsIcon() {
+        if (IMPORT_WORKFLOWS_ICON == null) {
+            IMPORT_WORKFLOWS_ICON = new ConcatenatedIcon(getWorkflowIcon(),
+                    new EmptyIcon(2, 1), getLeftArrowIcon(),
+                    new EmptyIcon(1, 1), getOpenIcon());
         }
-        return IMPORT_ICON;
+        return IMPORT_WORKFLOWS_ICON;
     }
-    private static Icon IMPORT_ICON = null;
+    private static Icon IMPORT_WORKFLOWS_ICON = null;
 
-    public static Icon getExportIcon() {
-        if (EXPORT_ICON == null) {
-            EXPORT_ICON = new ConcatenatedIcon(getCommonWorkflowsIcon(),
-                    getRightArrowIcon(), getOpenIcon());
+    public static Icon getExportWorkflowsIcon() {
+        if (EXPORT_WORKFLOWS_ICON == null) {
+            EXPORT_WORKFLOWS_ICON = new ConcatenatedIcon(getWorkflowIcon(),
+                    new EmptyIcon(2, 1), getRightArrowIcon(),
+                    new EmptyIcon(1, 1), getOpenIcon());
         }
-        return EXPORT_ICON;
+        return EXPORT_WORKFLOWS_ICON;
     }
-    private static Icon EXPORT_ICON = null;
+    private static Icon EXPORT_WORKFLOWS_ICON = null;
+
+    public static Icon getImportProxiesIcon() {
+        if (IMPORT_PROXIES_ICON == null) {
+            IMPORT_PROXIES_ICON = new ConcatenatedIcon(getProxyTableIcon(),
+                    new EmptyIcon(2, 1), getLeftArrowIcon(),
+                    new EmptyIcon(1, 1), getOpenIcon());
+        }
+        return IMPORT_PROXIES_ICON;
+    }
+    private static Icon IMPORT_PROXIES_ICON = null;
+
+    public static Icon getExportProxiesIcon() {
+        if (EXPORT_PROXIES_ICON == null) {
+            EXPORT_PROXIES_ICON = new ConcatenatedIcon(getProxyTableIcon(),
+                    new EmptyIcon(2, 1), getRightArrowIcon(),
+                    new EmptyIcon(1, 1), getOpenIcon());
+        }
+        return EXPORT_PROXIES_ICON;
+    }
+    private static Icon EXPORT_PROXIES_ICON = null;
 
     public static Icon getOpenIcon() {
         if (OPEN_ICON == null) OPEN_ICON = loadIconResource("open.png");

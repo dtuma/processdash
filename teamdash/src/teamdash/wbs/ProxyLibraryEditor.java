@@ -31,16 +31,14 @@ import javax.swing.JFrame;
 
 import net.sourceforge.processdash.i18n.Resources;
 
-import teamdash.wbs.columns.WorkflowOptionalColumn;
-
-public class WorkflowLibraryEditor extends AbstractLibraryEditor {
+public class ProxyLibraryEditor extends AbstractLibraryEditor {
 
     private static final Resources RESOURCES = Resources
-            .getDashBundle("WBSEditor.Workflow_Library");
+            .getDashBundle("WBSEditor.Proxy_Library");
 
-    private static final String FILENAME_EXTENSION = ".wfxml";
+    private static final String FILENAME_EXTENSION = ".estxml";
 
-    public WorkflowLibraryEditor(TeamProject teamProject, JFrame parent,
+    public ProxyLibraryEditor(TeamProject teamProject, JFrame parent,
             boolean export) throws UserCancelledException {
         super(teamProject, parent, export, RESOURCES, FILENAME_EXTENSION);
     }
@@ -48,37 +46,31 @@ public class WorkflowLibraryEditor extends AbstractLibraryEditor {
     @Override
     protected void openModels() {
         TeamProcess process = teamProject.getTeamProcess();
-        libraryModel =  new WorkflowModel(library, process);
+        libraryModel =  new ProxyDataModel((ProxyWBSModel) library, process);
 
-        projectWbs = new WorkflowWBSModel();
-        projectWbs.copyFrom(teamProject.getWorkflows());
-        projectModel = new WorkflowModel(this.projectWbs, process);
+        projectWbs = new ProxyWBSModel();
+        projectWbs.copyFrom(teamProject.getProxies());
+        projectModel = new ProxyDataModel((ProxyWBSModel) this.projectWbs, process);
     }
 
     @Override
     protected WBSJTable buildJTable(DataTableModel model) {
-        WBSJTable table = WorkflowEditor.createWorkflowJTable(
-            (WorkflowModel) model, teamProject.getTeamProcess());
-        for (int i = table.getColumnCount(); i-- > 0; ) {
-            if (model.getColumn(i) instanceof WorkflowOptionalColumn)
-                table.removeColumn(table.getColumnModel().getColumn(i));
-        }
-        return table;
+        return new ProxyJTable((ProxyDataModel) model);
     }
 
     @Override
     protected WBSLibrary openLibraryFile(File file) throws IOException {
-        return new WBSLibrary.Workflows(file);
+        return new WBSLibrary.Proxies(file);
     }
 
     @Override
     protected WBSLibrary openNewLibrary(File file) throws IOException {
-        return new WBSLibrary.Workflows(file, teamProject.getTeamProcess());
+        return new WBSLibrary.Proxies(file, teamProject.getTeamProcess());
     }
 
     @Override
     public boolean doImport() {
-        teamProject.getWorkflows().copyFrom(projectWbs);
+        teamProject.getProxies().copyFrom(projectWbs);
         return true;
     }
 

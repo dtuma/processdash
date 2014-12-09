@@ -23,15 +23,8 @@
 
 package teamdash.wbs;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import javax.swing.event.TableModelEvent;
 
@@ -59,113 +52,6 @@ public class WorkflowWBSModel extends WBSModel {
     /* Nodes at indentation level 1 are defined workflows. */
     public boolean isNodeTypeEditable(WBSNode node) {
         return (!node.isReadOnly() && node.getIndentLevel() > 1);
-    }
-
-    /** Get the names of the workflows containing the given rows */
-    public List getWorkflowsForRows(int[] rows) {
-        LinkedList result = new UniqueLinkedList();
-
-        List nodes = getNodesForRows(rows, true);
-        for (Iterator i = nodes.iterator(); i.hasNext();) {
-            WBSNode node = (WBSNode) i.next();
-            WBSNode workflowNode = getWorkflowParent(node);
-            if (workflowNode != null)
-                result.add(workflowNode.getName());
-        }
-
-        return result;
-    }
-
-    private WBSNode getWorkflowParent(WBSNode node) {
-        if (node == null)
-            return null;
-        else if (node.getIndentLevel() == 1)
-            return node;
-        else
-            return getWorkflowParent(getParent(node));
-    }
-
-    public List getNodesForWorkflows(Collection selectedWorkflowNames) {
-        LinkedList result = new LinkedList();
-
-        if (selectedWorkflowNames != null && !selectedWorkflowNames.isEmpty()) {
-            int numRows = getRowCount();
-            for (int r = 1;   r < numRows;   r++) {
-                WBSNode node = getNodeForRow(r);
-                if (node.getIndentLevel() == 1
-                        && selectedWorkflowNames.contains(node.getName())) {
-                    result.add(node);
-                    result.addAll(Arrays.asList(getDescendants(node)));
-                }
-            }
-        }
-
-        return result;
-    }
-
-    public void mergeWorkflow(WorkflowWBSModel source, String workflowName, boolean notify) {
-        Set nameSet = Collections.singleton(workflowName);
-        List<WBSNode> currentWorkflowContents = getNodesForWorkflows(nameSet);
-        List<WBSNode> newWorkflowContents = source.getNodesForWorkflows(nameSet);
-
-        if (newWorkflowContents == null || newWorkflowContents.isEmpty())
-            return;
-        newWorkflowContents = WBSNode.cloneNodeList(newWorkflowContents);
-
-        int insertBeforeRow = Integer.MAX_VALUE;
-        if (currentWorkflowContents != null && !currentWorkflowContents.isEmpty()) {
-            WBSNode currentTopNode = currentWorkflowContents.get(0);
-            insertBeforeRow = getRowForNode(currentTopNode);
-
-            // make a map of current node IDs for each workflow step
-            Map<String, Integer> idMap = new HashMap();
-            for (int i = currentWorkflowContents.size(); i-- > 1;) {
-                WBSNode step = currentWorkflowContents.get(i);
-                idMap.put(getStepFullName(step, false), step.getUniqueID());
-            }
-
-            // delete the current workflow nodes from the model
-            deleteNodes(currentWorkflowContents, false);
-
-            // arrange for the top-level node to retain the same unique ID as
-            // the node it is replacing in the current workflow model.
-            WBSNode newTopNode = newWorkflowContents.get(0);
-            newTopNode.setUniqueID(currentTopNode.getUniqueID());
-
-            // arrange for the incoming workflow steps to have the same unique
-            // IDs as the similarly named steps they are replacing in the
-            // current workflow model.
-            for (int i = newWorkflowContents.size(); i-- > 1;) {
-                WBSNode step = newWorkflowContents.get(i);
-                String stepName = source.getStepFullName(step, false);
-                Integer stepID = idMap.get(stepName);
-                step.setUniqueID(stepID == null ? -1 : stepID);
-            }
-        }
-
-        insertNodes(newWorkflowContents, insertBeforeRow, notify);
-    }
-
-    public void mergeWorkflows(WorkflowWBSModel source, Collection workflowNames) {
-        for (Iterator i = workflowNames.iterator(); i.hasNext();) {
-            String workflowName = (String) i.next();
-            mergeWorkflow(source, workflowName, false);
-        }
-
-        fireTableDataChanged();
-    }
-
-    public List getWorkflowNames() {
-        LinkedList result = new UniqueLinkedList();
-
-        int numRows = getRowCount();
-        for (int r = 1;   r < numRows;   r++) {
-            WBSNode node = getNodeForRow(r);
-            if (node.getIndentLevel() == 1)
-                result.add(node.getName());
-        }
-
-        return result;
     }
 
     public Map<Integer, WBSNode> getWorkflowNodeMap() {
@@ -245,16 +131,6 @@ public class WorkflowWBSModel extends WBSModel {
             } else {
                 result.insert(0, "/").insert(0, workflowNode.getName());
             }
-        }
-    }
-
-
-    private static class UniqueLinkedList extends LinkedList {
-        public boolean add(Object o) {
-            if (contains(o))
-                return false;
-            else
-                return super.add(o);
         }
     }
 

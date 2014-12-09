@@ -28,11 +28,14 @@ import java.io.IOException;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -853,6 +856,104 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
             if (pos != -1) result.add(pos);
         }
         return result.getAsArray();
+    }
+
+    public List<String> getBaseNamesForRows(int[] rows) {
+        LinkedHashSet<String> result = new LinkedHashSet();
+
+        List<WBSNode> nodes = getNodesForRows(rows, true);
+        for (WBSNode node : nodes) {
+            WBSNode baseNode = getBaseParent(node);
+            if (baseNode != null)
+                result.add(baseNode.getName());
+        }
+        return new ArrayList<String>(result);
+    }
+
+    private WBSNode getBaseParent(WBSNode node) {
+        if (node == null)
+            return null;
+        else if (node.getIndentLevel() == 1)
+            return node;
+        else
+            return getBaseParent(getParent(node));
+    }
+
+    public List getNodesForBaseNames(Collection baseNames) {
+        LinkedList result = new LinkedList();
+
+        if (baseNames != null && !baseNames.isEmpty()) {
+            int numRows = getRowCount();
+            for (int r = 1; r < numRows; r++) {
+                WBSNode node = getNodeForRow(r);
+                if (node.getIndentLevel() == 1
+                        && baseNames.contains(node.getName())) {
+                    result.add(node);
+                    result.addAll(Arrays.asList(getDescendants(node)));
+                }
+            }
+        }
+
+        return result;
+    }
+
+    public String getNameWithinBase(WBSNode node) {
+        if (node == null || node.getIndentLevel() < 2)
+            return null;
+        else if (node.getIndentLevel() == 2)
+            return node.getName();
+        else
+            return getNameWithinBase(getParent(node)) + "/" + node.getName();
+    }
+
+    public void replaceBaseItems(WBSModel source, Collection<String> baseNames) {
+        for (String oneName : baseNames)
+            replaceBaseItem(source, oneName, false);
+
+        fireTableDataChanged();
+    }
+
+    protected void replaceBaseItem(WBSModel source, String baseName,
+            boolean notify) {
+        Set nameSet = Collections.singleton(baseName);
+        List<WBSNode> currentContents = getNodesForBaseNames(nameSet);
+        List<WBSNode> newContents = source.getNodesForBaseNames(nameSet);
+
+        if (newContents == null || newContents.isEmpty())
+            return;
+        newContents = WBSNode.cloneNodeList(newContents, this);
+
+        int insertBeforeRow = Integer.MAX_VALUE;
+        if (currentContents != null && !currentContents.isEmpty()) {
+            WBSNode currentTopNode = currentContents.get(0);
+            insertBeforeRow = getRowForNode(currentTopNode);
+
+            // make a map of current node IDs for each item
+            Map<String, Integer> idMap = new HashMap();
+            for (int i = currentContents.size(); i-- > 1;) {
+                WBSNode node = currentContents.get(i);
+                idMap.put(getNameWithinBase(node), node.getUniqueID());
+            }
+
+            // delete the current nodes from the model
+            deleteNodes(currentContents, false);
+
+            // arrange for the top-level node to retain the same unique ID as
+            // the node it is replacing in the current model.
+            WBSNode newTopNode = newContents.get(0);
+            newTopNode.setUniqueID(currentTopNode.getUniqueID());
+
+            // arrange for the incoming nodes to have the same unique
+            // IDs as the similarly named nodes they are replacing.
+            for (int i = newContents.size(); i-- > 1;) {
+                WBSNode node = newContents.get(i);
+                String nodeName = source.getNameWithinBase(node);
+                Integer stepID = idMap.get(nodeName);
+                node.setUniqueID(stepID == null ? -1 : stepID);
+            }
+        }
+
+        insertNodes(newContents, insertBeforeRow, notify);
     }
 
     public int getInsertAfterPos(int row) {

@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Tuma Solutions, LLC
+// Copyright (C) 2002-2014 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -36,24 +36,24 @@ import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 
 
-public class WorkflowSelectionModel extends DefaultListSelectionModel implements TableModelListener, PropertyChangeListener {
+public class WBSNameSelectionModel extends DefaultListSelectionModel implements
+        TableModelListener, PropertyChangeListener {
 
     WBSJTable sourceTable;
-    WorkflowWBSModel sourceModel;
+    WBSModel sourceModel;
 
-
-
-    PropertyEditor selectedWorkflowNamesManager;
-    List selectedWorkflowNames;
+    PropertyEditor selectedNamesManager;
+    List selectedNames;
     private boolean isMakingChange = false;
 
-    public WorkflowSelectionModel(WBSJTable sourceTable, PropertyEditor e) {
+    public WBSNameSelectionModel(WBSJTable sourceTable, PropertyEditor e) {
         this.sourceTable = sourceTable;
-        this.selectedWorkflowNamesManager = e;
-        this.selectedWorkflowNamesManager.addPropertyChangeListener(this);
+        this.selectedNamesManager = e;
+        this.selectedNamesManager.addPropertyChangeListener(this);
 
-        WorkflowModel sourceTableModel = (WorkflowModel) sourceTable.getModel();
-        sourceModel = (WorkflowWBSModel) sourceTableModel.getWBSModel();
+        DataTableModel sourceTableModel = (DataTableModel) sourceTable
+                .getModel();
+        sourceModel = sourceTableModel.getWBSModel();
         sourceModel.addTableModelListener(this);
     }
 
@@ -61,34 +61,34 @@ public class WorkflowSelectionModel extends DefaultListSelectionModel implements
     public void tableChanged(TableModelEvent e) {
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
-                refreshSelectionFromWorkflows();
+                refreshSelectionFromNames();
             }});
     }
 
 
     public void propertyChange(PropertyChangeEvent evt) {
-        refreshSelectionFromWorkflows();
+        refreshSelectionFromNames();
     }
 
 
-    private void refreshWorkflowsFromSelection() {
+    private void refreshNamesFromSelection() {
         if (!isMakingChange) {
             int[] rows = sourceTable.getSelectedRows();
-            List newSelectedWorkflowNames = sourceModel.getWorkflowsForRows(rows);
+            List newSelectedNames = sourceModel.getBaseNamesForRows(rows);
 
-            if (!newSelectedWorkflowNames.equals(selectedWorkflowNames))
-                selectedWorkflowNamesManager.setValue(newSelectedWorkflowNames);
+            if (!newSelectedNames.equals(selectedNames))
+                selectedNamesManager.setValue(newSelectedNames);
 
-            refreshSelectionFromWorkflows();
+            refreshSelectionFromNames();
         }
     }
 
 
-    private void refreshSelectionFromWorkflows() {
+    private void refreshSelectionFromNames() {
         isMakingChange = true;
-        selectedWorkflowNames = (List) selectedWorkflowNamesManager.getValue();
-        List workflowNodes = sourceModel.getNodesForWorkflows(selectedWorkflowNames);
-        int[] rows = sourceModel.getRowsForNodes(workflowNodes);
+        selectedNames = (List) selectedNamesManager.getValue();
+        List nodesToSelect = sourceModel.getNodesForBaseNames(selectedNames);
+        int[] rows = sourceModel.getRowsForNodes(nodesToSelect);
         Arrays.sort(rows);
 
         int anchor = super.getAnchorSelectionIndex();
@@ -107,27 +107,27 @@ public class WorkflowSelectionModel extends DefaultListSelectionModel implements
 
     public void addSelectionInterval(int index0, int index1) {
         super.addSelectionInterval(index0, index1);
-        refreshWorkflowsFromSelection();
+        refreshNamesFromSelection();
     }
     public void clearSelection() {
         super.clearSelection();
-        refreshWorkflowsFromSelection();
+        refreshNamesFromSelection();
     }
     public void removeSelectionInterval(int index0, int index1) {
         super.removeSelectionInterval(index0, index1);
-        refreshWorkflowsFromSelection();
+        refreshNamesFromSelection();
     }
     public void setAnchorSelectionIndex(int anchorIndex) {
         super.setAnchorSelectionIndex(anchorIndex);
-        refreshWorkflowsFromSelection();
+        refreshNamesFromSelection();
     }
     public void setLeadSelectionIndex(int leadIndex) {
         super.setLeadSelectionIndex(leadIndex);
-        refreshWorkflowsFromSelection();
+        refreshNamesFromSelection();
     }
     public void setSelectionInterval(int index0, int index1) {
         super.setSelectionInterval(index0, index1);
-        refreshWorkflowsFromSelection();
+        refreshNamesFromSelection();
     }
 
 
