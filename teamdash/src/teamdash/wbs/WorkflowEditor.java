@@ -127,14 +127,11 @@ public class WorkflowEditor implements MergeConflictHyperlinkHandler {
 
 
     public static WBSJTable createWorkflowJTable(WorkflowModel workflowModel, TeamProcess process) {
-        // create the WBSJTable, then set its model to the workflow data model.
-        WBSJTable table = new WBSJTable(workflowModel.getWBSModel(),
+        // create the WBSJTable for the workflow data model.
+        WBSJTable table = new WBSJTable(workflowModel,
                 getWorkflowIcons(process.getIconMap()),
                 tweakIconMenu(process.getNodeTypeMenu()));
-        table.setModel(workflowModel);
-        // don't allow reordering, since the text displayed in several of the
-        // columns is meant to be read from left to right.
-        table.getTableHeader().setReorderingAllowed(false);
+
         // install the default editor for table data.
         table.setDefaultEditor(Object.class, new WorkflowCellEditor());
 

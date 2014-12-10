@@ -36,6 +36,7 @@ import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.ClipboardOwner;
 import java.awt.datatransfer.Transferable;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
@@ -143,6 +144,20 @@ public class WBSJTable extends JTable {
         getSelectionModel().addListSelectionListener(SELECTION_LISTENER);
         addMouseMotionListener(MOTION_LISTENER);
         MacGUIUtils.tweakTable(this);
+    }
+    /** Create a WBSJTable to display a WBS along with additional data columns,
+     * as provided by a data table model. */
+    public WBSJTable(DataTableModel model, Map iconMap, JMenu iconMenu) {
+        // create the table normally
+        this(model.getWBSModel(), iconMap, iconMenu);
+        // change the table model, so we will display additional columns
+        setModel(model);
+        // the WBS node should always stay in column 0. Enforce this by
+        // disabling the reordering of table columns
+        getTableHeader().setReorderingAllowed(false);
+        // arrange for WBS node editing to begin when the user presses the
+        // left arrow key while on column 0
+        new MoveLeftOrStartEditing().install();
     }
 
 
@@ -1552,6 +1567,36 @@ public class WBSJTable extends JTable {
         }
     }
     final MoveDownAction MOVEDOWN_ACTION = new MoveDownAction();
+
+
+    /**
+     * Handle a "left arrow" keystroke in a WBS data table. This will move left
+     * one cell unless we are already in column 0; then it will start editing of
+     * the WBS node.
+     */
+    private class MoveLeftOrStartEditing extends AbstractAction {
+
+        private Action startEditingAction;
+
+        private ActionListener originalMoveLeftAction;
+
+        void install() {
+            KeyStroke leftKeyStroke = KeyStroke.getKeyStroke("LEFT");
+            originalMoveLeftAction = getActionForKeyStroke(leftKeyStroke);
+            startEditingAction = getActionMap().get("startEditing");
+
+            getInputMap().put(leftKeyStroke, "moveLeftOrStartEditing");
+            getActionMap().put("moveLeftOrStartEditing", this);
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            if (getSelectedColumn() == 0)
+                startEditingAction.actionPerformed(e);
+            else
+                originalMoveLeftAction.actionPerformed(e);
+        }
+
+    }
 
 
     final WBSFindAction FIND_ACTION = new WBSFindAction(this);

@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2012 Tuma Solutions, LLC
+// Copyright (C) 2002-2014 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -114,13 +114,9 @@ public class MilestonesEditor implements MergeConflictHyperlinkHandler {
 
 
     private WBSJTable createMilestonesJTable() {
-        // create the WBSJTable, then set its model to the milestones data model.
-        WBSJTable table = new WBSJTable(milestonesModel.getWBSModel(),
-                makeIconMap(), makeNodeTypeMenu());
-        table.setModel(milestonesModel);
-        // don't allow reordering, since the text displayed in several of the
-        // columns is meant to be read from left to right.
-        table.getTableHeader().setReorderingAllowed(false);
+        // create the WBSJTable for the milestones data model.
+        WBSJTable table = new WBSJTable(milestonesModel, makeIconMap(),
+                makeNodeTypeMenu());
         // the next line is necessary; WBSJTable sets this property and we need
         // it turned off.  Otherwise, date cell editor changes get canceled.
         table.putClientProperty("terminateEditOnFocusLost", null);

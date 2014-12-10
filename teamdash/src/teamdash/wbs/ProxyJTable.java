@@ -40,8 +40,7 @@ import teamdash.wbs.columns.ProxySizeColumn;
 public class ProxyJTable extends WBSJTable {
 
     public ProxyJTable(ProxyDataModel model) {
-        super(model.getWBSModel(), new HashMap(), new JMenu());
-        setModel(model);
+        super(model, new HashMap(), new JMenu());
 
         buildIconMap();
         customizeColumns();
@@ -67,7 +66,6 @@ public class ProxyJTable extends WBSJTable {
     }
 
     private void tweakBehaviors() {
-        getTableHeader().setReorderingAllowed(false);
         // do not allow indentation; users should not be able to turn a
         // proxy into a bucket, or vice-versa
         setIndentationDisabled(true);
