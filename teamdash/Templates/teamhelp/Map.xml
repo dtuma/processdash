@@ -32,6 +32,8 @@
   <mapID target="TeamLaunchUse" url="Topics/LaunchUse.html" />
   <mapID target="TeamEditMembers" url="Topics/EditTeamMemberList.html" />
   <mapID target="TeamPlanStrategy" url="Topics/PlanProjectStrategy.html" />
+  <mapID target="TeamPlanStrategy.proxies" url="Topics/PlanProjectStrategy.html#proxies" />
+  <mapID target="TeamPlanStrategy.milestones" url="Topics/PlanProjectStrategy.html#milestones" />
   <mapID target="TeamPlanProcess" url="Topics/EditWorkflows.html" />
   <mapID target="TeamPlanSupport" url="Topics/PlanSupportTasks.html" />
   <mapID target="TeamPlanTasks" url="Topics/CreateBalancedPlan.html" />
