@@ -68,7 +68,7 @@ implements CalculatedDataColumn, CustomEditedColumn {
         this.wbsModel = dataModel.getWBSModel();
         this.teamProcess = teamProcess;
         this.sizeMetrics = teamProcess.getSizeMetrics();
-        this.columnName = "Units";
+        this.columnName = resources.getString("Task_Size_Units.Name");
         this.columnID = COLUMN_ID;
         this.preferredWidth = 80;
         this.dependentColumns = new String[] { SizeTypeColumn.COLUMN_ID };
@@ -179,6 +179,6 @@ implements CalculatedDataColumn, CustomEditedColumn {
     /** This is the attribute we will use to store our data on WBS nodes */
     private static final String ATTR_NAME = "Task Size Units";
     /** This is the ID we will give our column */
-    static final String COLUMN_ID = ATTR_NAME;
+    public static final String COLUMN_ID = ATTR_NAME;
 
 }

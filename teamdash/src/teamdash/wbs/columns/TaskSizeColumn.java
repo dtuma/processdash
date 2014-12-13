@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2012 Tuma Solutions, LLC
+// Copyright (C) 2002-2014 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -36,11 +36,14 @@ import teamdash.wbs.WrappedValue;
 public class TaskSizeColumn extends SizeAliasColumn implements
         CustomRenderedColumn {
 
+    public static final String COLUMN_ID = "Task Size";
+
     private int unitsColumn = -1;
 
     public TaskSizeColumn(DataTableModel dataModel, TeamProcess teamProcess) {
-        super(dataModel, "Task Size", "N&C-", teamProcess.getSizeMetrics(),
+        super(dataModel, COLUMN_ID, "N&C-", teamProcess.getSizeMetrics(),
                 teamProcess.getWorkProductSizeMap());
+        this.columnName = resources.getString("Task_Size.Name");
 
         int len = this.dependentColumns.length;
         String [] dependentCols = new String[len+1];
@@ -147,7 +150,7 @@ public class TaskSizeColumn extends SizeAliasColumn implements
     private static final String ATTR_NAME = EditableSizeColumn.ATTR_NAME;
 
     private static final String INHERITED_SIZE_MESSAGE =
-        "Inherited from enclosing component";
+        resources.getString("Task_Size.Inherited_Tooltip");
     private static final TableCellRenderer TASK_SIZE_RENDERER =
         new ItalicNumericCellRenderer(INHERITED_SIZE_MESSAGE);
 
