@@ -129,6 +129,7 @@ import teamdash.wbs.columns.CustomColumnManager;
 import teamdash.wbs.columns.ErrorNotesColumn;
 import teamdash.wbs.columns.PercentCompleteColumn;
 import teamdash.wbs.columns.PercentSpentColumn;
+import teamdash.wbs.columns.PhaseColumn;
 import teamdash.wbs.columns.PlanTimeWatcher;
 import teamdash.wbs.columns.PlanTimeWatcher.PlanTimeDiscrepancyEvent;
 import teamdash.wbs.columns.PlanTimeWatcher.PlanTimeDiscrepancyListener;
@@ -136,6 +137,8 @@ import teamdash.wbs.columns.ProxyEstBucketColumn;
 import teamdash.wbs.columns.ProxyEstTypeColumn;
 import teamdash.wbs.columns.SizeAccountingColumnSet;
 import teamdash.wbs.columns.SizeActualDataColumn;
+import teamdash.wbs.columns.TaskSizeColumn;
+import teamdash.wbs.columns.TaskSizeUnitsColumn;
 import teamdash.wbs.columns.TeamActualTimeColumn;
 import teamdash.wbs.columns.TeamCompletionDateColumn;
 import teamdash.wbs.columns.TeamTimeColumn;
@@ -341,18 +344,21 @@ public class WBSEditor implements WindowListener, SaveListener,
                      new String[] { "Team", "", "Unassigned" });
 
         tabPanel.addTab("Task Time",
-                new String[] { "Phase", "Task Size", "Task Size Units", "Rate",
-                        ifMode(MODE_PLAIN, "Hrs/Indiv"),
-                        ifMode(MODE_PLAIN, "# People"),
+                new String[] {
+                        PhaseColumn.COLUMN_ID,
+                        TaskSizeColumn.COLUMN_ID,
+                        TaskSizeUnitsColumn.COLUMN_ID,
+                        TeamTimeColumn.RATE_COL_ID,
+                        ifMode(MODE_PLAIN, TeamTimeColumn.TIME_PER_PERSON_COL_ID),
+                        ifMode(MODE_PLAIN, TeamTimeColumn.NUM_PEOPLE_COL_ID),
                         (isMode(MODE_MASTER) ? "TimeNoErr" : "Time"),
-                        ifNotMode(MODE_MASTER, "Assigned To"),
+                        ifNotMode(MODE_MASTER, TeamTimeColumn.RESOURCES_COL_ID),
                         (showActualData ? TeamCompletionDateColumn.COLUMN_ID : null),
                         (showActualData ? PercentCompleteColumn.COLUMN_ID : null),
                         (showActualData ? PercentSpentColumn.COLUMN_ID : null),
                         (showActualData ? TeamActualTimeColumn.COLUMN_ID : null) },
-                new String[] { null, "Task Size", "Units", "Rate",
-                        "Hrs/Indiv", "# People", "Time", "Assigned To",
-                        "Completed", "%C", "%S", "Actual Time" });
+            new String[] { null, null, null, null, null, null, null,
+                    null, "Completed", "%C", "%S", "Actual Time" });
 
         tabPanel.addTab("Task Details",
                 new String[] { "Milestone", "Labels",

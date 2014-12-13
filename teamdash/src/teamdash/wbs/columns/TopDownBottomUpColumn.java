@@ -313,7 +313,7 @@ public class TopDownBottomUpColumn extends AbstractNumericColumn
             multiplyValue(node, ratio);
         } else {
             WBSNode delegate = getSingleLeafForNode(node, oldValue != 0);
-            if (delegate != null) {
+            if (delegate != null && delegate != node) {
                 userChangingValue(delegate, newValue);
                 delegate.setNumericAttribute(topDownAttrName, newValue);
             }
