@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Tuma Solutions, LLC
+// Copyright (C) 2002-2014 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -30,6 +30,7 @@ public class ErrorValue extends WrappedValue {
 
     public static final int ERROR = 0;
     public static final int WARNING = 1;
+    public static final int INFO = 2;
 
     /** The error message */
     public String error;

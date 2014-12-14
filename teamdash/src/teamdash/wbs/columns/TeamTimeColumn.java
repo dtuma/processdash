@@ -136,19 +136,25 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
 
         boolean needsAssigning = false;
         boolean needsEstimating = false;
-        LeafTaskData leafData = getLeafTaskData(node);
-        if (leafData != null) { // a leaf task
-            needsAssigning = !leafData.isConnected();
+        LeafNodeData leafData = getLeafNodeData(node);
+        if (leafData instanceof LeafTaskData) { // a leaf task
+            needsAssigning = !leafData.isFullyAssigned();
             needsEstimating = (result.value == 0);
-        } else if (wbsModel.isLeaf(node)) { // a leaf node which isn't a task
-            if (safe(result.value) != 0) {
+
+        } else if (leafData != null) { // a leaf component
+            if (leafData.isFullyAssigned()) {
+                result.errorMessage = resources.format(
+                    "Team_Time.Need_Tasks2_Tooltip_FMT", //
+                    node.getType().toLowerCase());
+                result.errorColor = Color.blue;
+            } else if (safe(result.value) != 0) {
                 result.errorMessage = resources.format(
                     "Team_Time.Need_Tasks_Tooltip_FMT", //
                     node.getType().toLowerCase());
                 result.errorColor = Color.blue;
             }
 
-        } else { // not a leaf task
+        } else { // not a leaf node
             needsAssigning = !equal(result.value, sumIndivTimes(node));
             needsEstimating = (result.value == 0);
         }
@@ -456,6 +462,7 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
         }
 
         abstract boolean isTypeMismatch();
+        abstract boolean isFullyAssigned();
         abstract void userSetTeamTime(double value);
         abstract void userSetAssignedTo(Object newValue);
         abstract void recalc();
@@ -558,8 +565,8 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
             teamTime = sumIndivTimes() + unassignedTime;
         }
 
-
-        public boolean isConnected() {
+        @Override
+        public boolean isFullyAssigned() {
             return (numPeople == actualNumPeople);
         }
 
@@ -772,6 +779,11 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
 
         boolean isTypeMismatch() {
             return isTask(node);
+        }
+
+        @Override
+        public boolean isFullyAssigned() {
+            return actualNumPeople > 0;
         }
 
         @Override
@@ -1177,8 +1189,9 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
         }
     }
     public static final String RESOURCES_COL_ID = "Assigned To";
-    private static Object UNASSIGNED = new ErrorValue
-        ("???", resources.getString("Team_Time.Need_Assignment_Tooltip"));
+    private static Object UNASSIGNED = new ErrorValue("???",
+            resources.getString("Team_Time.Need_Assignment_Tooltip"),
+            ErrorValue.INFO);
     private static Pattern TIME_SETTING_PATTERN =
         Pattern.compile("([a-zA-Z]+)[^a-zA-Z0-9\\.]*([0-9\\.]+)?");
     private static final boolean ANNOTATE_ASSIGNMENT_VALUE = true;

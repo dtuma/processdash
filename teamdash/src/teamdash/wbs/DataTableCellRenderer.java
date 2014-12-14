@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Tuma Solutions, LLC
+// Copyright (C) 2002-2014 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -99,6 +99,7 @@ public class DataTableCellRenderer extends DefaultTableCellRenderer {
         switch (errorValue.severity) {
         case ErrorValue.ERROR: return Color.red;
         case ErrorValue.WARNING: return Color.orange;
+        case ErrorValue.INFO: return Color.blue;
         }
         return Color.black;
     }
