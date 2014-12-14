@@ -177,7 +177,10 @@ public class WBSNode implements Cloneable {
     }
     /** Set an attribute of type <code>Object</code> */
     public void setAttribute(String attrName, Object value) {
-        attributes.put(attrName, value);
+        if (value == null)
+            attributes.remove(attrName);
+        else
+            attributes.put(attrName, value);
     }
     /** Remove an attribute and return its previous value */
     public Object removeAttribute(String attrName) {

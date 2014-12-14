@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2012 Tuma Solutions, LLC
+// Copyright (C) 2002-2014 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -81,6 +81,24 @@ public class TeamMemberTimeColumn extends TopDownBottomUpColumn
     public Object getValueAt(WBSNode node) {
         NumericDataValue value = (NumericDataValue) super.getValueAt(node);
         return new TeamMemberTime(value, teamMember.getColor());
+    }
+
+    @Override
+    protected boolean attemptToRepairTopDownBottomUpMismatch(WBSNode node,
+            double topDownValue, double bottomUpValue, WBSNode[] children,
+            int numToInclude) {
+        // when a leaf node is assigned to individuals and is later subdivided,
+        // this almost always results in a top-down-bottom-up mismatch. Users
+        // rarely see or fix these mismatches, because they are only visible on
+        // the rarely-used planned time tab. To alleviate this problem, this
+        // method silently clears erroneous top-down estimates on components,
+        // and on tasks once bottom-up estimates have been entered.
+        if (TeamTimeColumn.isTask(node) == false || bottomUpValue > 0) {
+            node.removeAttribute(topDownAttrName);
+            return true;
+        } else {
+            return false;
+        }
     }
 
     @Override

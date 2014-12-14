@@ -278,6 +278,10 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
         }
     }
 
+    public String getAutoZeroUserString(WBSNode node) {
+        return resourcesColumn.getAutoZeroUserString(node);
+    }
+
 
 
 
@@ -490,21 +494,30 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
             if (autoZeroInitials == null)
                 return;
 
-            // if an auto zero user has been registered, look for someone
-            // with those initials in our list of individuals
-            IndivTime targetIndiv = null;
-            for (IndivTime oneIndiv : individualTimes) {
-                if (oneIndiv.isAssigned())
-                    return;
-                else if (autoZeroInitials.equalsIgnoreCase(oneIndiv.initials))
-                    targetIndiv = oneIndiv;
+            // if someone is already assigned to this task, don't make any
+            // new task assignments.
+            if (countPeople(individualTimes) > 0)
+                return;
+
+            // find out how many people should be assigned to this task, and
+            // extract up to that many initials from the auto-zero setting
+            Map times = new HashMap();
+            int ordinal = 1;
+            int numNeeded = Math.max(1,
+                (int) safe(node.getNumericAttribute(NUM_PEOPLE_ATTR)));
+            Matcher m = TIME_SETTING_PATTERN.matcher(autoZeroInitials);
+            while (numNeeded-- > 0 && m.find()) {
+                // record an "assigned with zero" instruction for this person
+                String initials = m.group(1).toLowerCase();
+                times.put(initials, 0);
+                times.put(initials + ORDINAL_SUFFIX, ordinal++);
             }
 
-            // if we found a matching individual, set them as an "assigned
-            // but zero" user.
-            if (targetIndiv != null)
-                targetIndiv.setTime(Collections.singletonMap(autoZeroInitials
-                        .toLowerCase(), 0));
+            // if we found any matching individuals, set them as "assigned
+            // but zero" users.
+            if (!times.isEmpty())
+                for (IndivTime oneIndiv : individualTimes)
+                    oneIndiv.setTime(times);
         }
 
         void figureTimePerPerson() {
@@ -711,6 +724,7 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
             if (aValue instanceof String) {
                 double defaultTime = timePerPerson;
                 double multiplier = 1;
+                double ordinal = 1;
                 Matcher m = TIME_SETTING_PATTERN.matcher((String) aValue);
                 while (m.find()) {
                     String initials = m.group(1);
@@ -721,6 +735,7 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
                             multiplier = defaultTime / timeVal;
                     } else {
                         foundData = true;
+                        initials = initials.toLowerCase();
                         Object timeToStore;
                         if (value == null)
                             timeToStore = defaultTime;
@@ -728,7 +743,8 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
                             timeToStore = value;
                         else
                             timeToStore = timeVal * multiplier;
-                        times.put(initials.toLowerCase(), timeToStore);
+                        times.put(initials, timeToStore);
+                        times.put(initials + ORDINAL_SUFFIX, ordinal++);
                     }
                 }
             }
@@ -787,6 +803,7 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
                 double defaultTime = -2;
                 Set<String> defaultIndivs = new HashSet();
                 double totalExplicitTime = 0;
+                int ordinal = 1;
 
                 Matcher m = TIME_SETTING_PATTERN.matcher((String) newValue);
                 while (m.find()) {
@@ -798,12 +815,14 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
                             defaultTime = timeVal;
                     } else {
                         foundData = true;
+                        initials = initials.toLowerCase();
                         if (value == null || equal(defaultTime, timeVal)) {
-                            defaultIndivs.add(initials.toLowerCase());
+                            defaultIndivs.add(initials);
                         } else {
-                            times.put(initials.toLowerCase(), value);
+                            times.put(initials, value);
                             totalExplicitTime += timeVal;
                         }
+                        times.put(initials + ORDINAL_SUFFIX, ordinal++);
                     }
                 }
 
@@ -853,6 +872,8 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
         String initials;
         String zeroAttrName;
         boolean zeroButAssigned;
+        String ordinalAttrName;
+        int ordinal;
         boolean completed;
 
         public IndivTime(WBSNode node, int column, String initials) {
@@ -862,6 +883,8 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
             this.initials = initials;
             this.zeroAttrName = getMemberAssignedZeroAttrName(this.initials);
             this.zeroButAssigned = (node.getAttribute(zeroAttrName) != null);
+            this.ordinalAttrName = getMemberAssignedOrdinalAttrName(initials);
+            this.ordinal = (int) safe(node.getNumericAttribute(ordinalAttrName));
 
             String completedAttrName = TeamCompletionDateColumn
                     .getMemberNodeDataAttrName(this.initials);
@@ -914,6 +937,9 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
             this.time = safe(parse(timeVal));
             this.zeroButAssigned = (time == 0 && times.containsKey(ilc));
             node.setAttribute(zeroAttrName, zeroButAssigned ? "t" : null);
+            this.ordinal = times.size() < 3 ? 0 //
+                    : (int) safe(parse(times.get(ilc + ORDINAL_SUFFIX)));
+            node.setAttribute(ordinalAttrName, ordinal == 0 ? null : ordinal);
             dataModel.setValueAt(new Double(time), node, column);
         }
         public void replanInProgressTime() {
@@ -936,6 +962,16 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
                         plannedTimeRemaining));
                 }
             }
+        }
+        boolean sortBefore(IndivTime that) {
+            if (that == null)
+                return true;
+            else if (this.time > that.time)
+                return true;
+            else if (this.time < that.time)
+                return false;
+            else
+                return this.ordinal < that.ordinal;
         }
     }
 
@@ -1075,6 +1111,15 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
         public boolean recalculate() { return true; }
         public void storeDependentColumn(String ID, int columnNumber) {}
 
+        private String getAutoZeroUserString(WBSNode node) {
+            LeafNodeData leafData = getLeafNodeData(node);
+            if (leafData == null || leafData.actualNumPeople == 0)
+                return null;
+            else
+                return getValueForTimes(leafData.individualTimes,
+                    leafData.timePerPerson).toString();
+        }
+
         private Object getValueForTimes(IndivTime[] times,
                                         double defaultTime)
         {
@@ -1089,7 +1134,7 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
                 needsDisplay[i] = times[i].isAssigned();
 
             while (true) {
-                int i = findPosOfLargestTime(times, needsDisplay);
+                int i = findPosOfSortFirstTime(times, needsDisplay);
                 if (i == -1)
                     break;
 
@@ -1114,17 +1159,15 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
                 return result.toString().substring(2);
         }
 
-        private int findPosOfLargestTime(IndivTime[] times,
+        private int findPosOfSortFirstTime(IndivTime[] times,
                 boolean[] needsDisplay) {
-            int maxPos = -1;
-            double maxTime = -1;
+            int resultPos = -1;
+            IndivTime bestSoFar = null;
             for (int i = 0; i < times.length; i++) {
-                if (needsDisplay[i] && times[i].time > maxTime) {
-                    maxPos = i;
-                    maxTime = times[i].time;
-                }
+                if (needsDisplay[i] && times[i].sortBefore(bestSoFar))
+                    bestSoFar = times[resultPos = i];
             }
-            return maxPos;
+            return resultPos;
         }
 
         public void setValueAt(Object aValue, WBSNode node) {
@@ -1188,7 +1231,7 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
         return (wbsModel.isLeaf(node) && isTask(node));
     }
 
-    private static boolean isTask(WBSNode node) {
+    static boolean isTask(WBSNode node) {
         return node != null && node.getType().endsWith("Task");
     }
 
@@ -1212,6 +1255,20 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
 
     private static final Map<String, String> MEMBER_ASSIGNED_ZERO_ATTR_NAMES =
         new ConcurrentHashMap<String, String>();
+
+    private static String getMemberAssignedOrdinalAttrName(String initials) {
+        String result = MEMBER_ASSIGNED_ORDINAL_ATTR_NAMES.get(initials);
+        if (result == null) {
+            result = initials.replace('_', '-') + ORDINAL_SUFFIX;
+            result = result.intern();
+            MEMBER_ASSIGNED_ORDINAL_ATTR_NAMES.put(initials, result);
+        }
+        return result;
+    }
+
+    private static final Map<String, String> MEMBER_ASSIGNED_ORDINAL_ATTR_NAMES =
+        new ConcurrentHashMap<String, String>();
+    private static final String ORDINAL_SUFFIX = "-Assignment Ordinal";
 
 
     private static final String DATA_ATTR_NAME = "Time_Data";

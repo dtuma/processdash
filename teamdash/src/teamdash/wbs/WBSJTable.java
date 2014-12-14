@@ -81,6 +81,8 @@ public class WBSJTable extends JTable {
 
     /** The wbs model to display */
     WBSModel wbsModel;
+    /** An associated data model, if applicable */
+    DataTableModel dataModel;
     /** Our custom cell renderer */
     WBSNodeRenderer renderer;
     /** Our custom cell editor */
@@ -151,7 +153,7 @@ public class WBSJTable extends JTable {
         // create the table normally
         this(model.getWBSModel(), iconMap, iconMenu);
         // change the table model, so we will display additional columns
-        setModel(model);
+        setModel(dataModel = model);
         // the WBS node should always stay in column 0. Enforce this by
         // disabling the reordering of table columns
         getTableHeader().setReorderingAllowed(false);
@@ -524,6 +526,18 @@ public class WBSJTable extends JTable {
         }
 
         return nodeIDs;
+    }
+
+    private String getAutoZeroUserString(int row) {
+        if (dataModel == null)
+            return null;
+        int pos = dataModel.findColumn(TeamTimeColumn.COLUMN_ID);
+        if (pos == -1)
+            return null;
+
+        TeamTimeColumn ttc = (TeamTimeColumn) dataModel.getColumn(pos);
+        WBSNode node = wbsModel.getNodeForRow(row);
+        return ttc.getAutoZeroUserString(node);
     }
 
     /**
@@ -1303,10 +1317,13 @@ public class WBSJTable extends JTable {
             Arrays.sort(rows);
             for (int i = rows.length; i-- > 0; ) {
                 Map extraAttrs = null;
-                if (optimizeForIndiv != null)
+                String autoZeroUser = getAutoZeroUserString(rows[i]);
+                if (autoZeroUser == null)
+                    autoZeroUser = optimizeForIndiv;
+                if (autoZeroUser != null)
                     extraAttrs = Collections.singletonMap(
                         TeamTimeColumn.AUTO_ZERO_USER_ATTR_TRANSIENT,
-                        optimizeForIndiv);
+                        autoZeroUser);
                 List<WBSNode> inserted = WorkflowUtil.insertWorkflow(wbsModel,
                     rows[i], workflowName, workflows,
                     WorkflowModel.WORKFLOW_ATTRS, extraAttrs);

@@ -634,6 +634,7 @@ public class WBSTabPanel extends JLayeredPane
         // create the WBS table to display the hierarchy
         wbsTable = new WBSJTable(wbs, iconMap, iconMenu, workflows, idSource);
         wbsTable.checkForActualDataOnDelete = true;
+        wbsTable.dataModel = data;
         // create the table to display hierarchy data
         dataTable = new DataJTable(data);
         // link the tables together so they have the same scrolling behavior,
