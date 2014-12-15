@@ -131,6 +131,8 @@ public class TopDownBottomUpColumn extends AbstractNumericColumn
 
             // look up the old value of this node.
             double oldValue = NumericDataValue.parse(getValueAt(node));
+            if (newValue == oldValue)
+                return;
 
             // if this node has children, try multiplying all their values
             // by an appropriate ratio to keep the top-down and bottom-up
@@ -162,6 +164,7 @@ public class TopDownBottomUpColumn extends AbstractNumericColumn
         if (numToInclude == 0) {
             // this is a leaf. The bottom up value equals the top-down value.
             if (Double.isNaN(topDownValue)) topDownValue = 0;
+            else if (topDownValue == 0) node.removeAttribute(topDownAttrName);
             node.setNumericAttribute(bottomUpAttrName, topDownValue);
             node.setAttribute(inheritedAttrName, null);
             result = topDownValue;
