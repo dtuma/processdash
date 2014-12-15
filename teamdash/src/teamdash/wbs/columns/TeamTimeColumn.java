@@ -142,12 +142,7 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
             needsEstimating = (result.value == 0);
 
         } else if (leafData != null) { // a leaf component
-            if (leafData.isFullyAssigned()) {
-                result.errorMessage = resources.format(
-                    "Team_Time.Need_Tasks2_Tooltip_FMT", //
-                    node.getType().toLowerCase());
-                result.errorColor = Color.blue;
-            } else if (safe(result.value) != 0) {
+            if (safe(result.value) != 0) {
                 result.errorMessage = resources.format(
                     "Team_Time.Need_Tasks_Tooltip_FMT", //
                     node.getType().toLowerCase());
@@ -1112,10 +1107,16 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
 
         public Object getValueAt(WBSNode node) {
             LeafNodeData leafData = getLeafNodeData(node);
-            if (leafData != null)
-                return getValueForTimes(leafData.individualTimes,
-                                        leafData.timePerPerson);
-            else
+            if (leafData != null) {
+                Object result = getValueForTimes(leafData.individualTimes,
+                    leafData.timePerPerson);
+                if (leafData instanceof LeafComponentData
+                        && result != UNASSIGNED)
+                    result = new ErrorValue(result, resources.format(
+                        "Assigned_To.Need_Tasks_Tooltip_FMT", //
+                        node.getType().toLowerCase()), ErrorValue.INFO);
+                return result;
+            } else
                 return new ReadOnlyValue
                     (getValueForTimes(getIndivTimes(node), -1));
         }
