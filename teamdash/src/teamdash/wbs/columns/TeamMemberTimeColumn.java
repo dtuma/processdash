@@ -91,9 +91,9 @@ public class TeamMemberTimeColumn extends TopDownBottomUpColumn
         // this almost always results in a top-down-bottom-up mismatch. Users
         // rarely see or fix these mismatches, because they are only visible on
         // the rarely-used planned time tab. To alleviate this problem, this
-        // method silently clears erroneous top-down estimates on components,
-        // and on tasks once bottom-up estimates have been entered.
-        if (TeamTimeColumn.isTask(node) == false || bottomUpValue > 0) {
+        // method silently clears erroneous top-down estimates once bottom-up
+        // estimates have been entered.
+        if (bottomUpValue > 0) {
             node.removeAttribute(topDownAttrName);
             return true;
         } else {

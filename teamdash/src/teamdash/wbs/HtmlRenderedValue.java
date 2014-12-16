@@ -1,4 +1,4 @@
-// Copyright (C) 2010 Tuma Solutions, LLC
+// Copyright (C) 2010-2014 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -27,8 +27,15 @@ public class HtmlRenderedValue extends WrappedValue {
 
     public String html;
 
+    public String tooltip;
+
     public HtmlRenderedValue(Object value, String html) {
+        this(value, html, null);
+    }
+
+    public HtmlRenderedValue(Object value, String html, String tooltip) {
         this.value = value;
+        this.tooltip = tooltip;
         if (html.startsWith("<html>"))
             this.html = html;
         else

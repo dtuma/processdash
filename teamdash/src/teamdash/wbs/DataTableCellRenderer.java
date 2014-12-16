@@ -53,6 +53,7 @@ public class DataTableCellRenderer extends DefaultTableCellRenderer {
         ErrorValue errorValue = null;
         boolean readOnly = false;
         String html = null;
+        String tooltip = null;
 
         // unwrap ErrorValue objects and ReadOnlyValue objects
         while (value instanceof WrappedValue) {
@@ -60,8 +61,11 @@ public class DataTableCellRenderer extends DefaultTableCellRenderer {
                 errorValue = (ErrorValue) value;
             else if (value instanceof ReadOnlyValue)
                 readOnly = true;
-            else if (value instanceof HtmlRenderedValue)
-                html = ((HtmlRenderedValue) value).html;
+            else if (value instanceof HtmlRenderedValue) {
+                HtmlRenderedValue hValue = (HtmlRenderedValue) value;
+                html = hValue.html;
+                tooltip = hValue.tooltip;
+            }
             value = ((WrappedValue) value).value;
         }
 
@@ -81,7 +85,7 @@ public class DataTableCellRenderer extends DefaultTableCellRenderer {
         if (result instanceof JComponent)
             // set or remove a descriptive tooltip
             ((JComponent) result).setToolTipText
-                (errorValue == null ? null : errorValue.error);
+                (errorValue == null ? tooltip : errorValue.error);
 
         return result;
     }

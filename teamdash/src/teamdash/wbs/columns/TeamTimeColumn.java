@@ -134,39 +134,44 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
         if (result == null || result.errorMessage != null || ignoreErrors)
             return result;
 
-        boolean needsAssigning = false;
-        boolean needsEstimating = false;
-        LeafNodeData leafData = getLeafNodeData(node);
-        if (leafData instanceof LeafTaskData) { // a leaf task
-            needsAssigning = !leafData.isFullyAssigned();
-            needsEstimating = (result.value == 0);
-
-        } else if (leafData != null) { // a leaf component
-            if (safe(result.value) != 0) {
-                result.errorMessage = resources.format(
-                    "Team_Time.Need_Tasks_Tooltip_FMT", //
-                    node.getType().toLowerCase());
-                result.errorColor = Color.blue;
-            }
-
-        } else { // not a leaf node
-            needsAssigning = !equal(result.value, sumIndivTimes(node));
-            needsEstimating = (result.value == 0);
-        }
-
-        if (needsEstimating) {
-            result.errorMessage = resources
-                    .getString("Team_Time.Need_Estimate_Tooltip");
-            result.errorColor = Color.blue;
-        } else if (needsAssigning) {
-            result.errorMessage = resources
-                    .getString("Team_Time.Need_Assignment_Tooltip");
-            result.errorColor = Color.blue;
-        }
-
+        result.errorColor = Color.blue;
+        result.errorMessage = getInfoTooltip(node, result);
         return result;
     }
 
+    private String getInfoTooltip(WBSNode node, NumericDataValue result) {
+        if (result.value == 0)
+            return NEED_ESTIMATE_TOOLTIP;
+
+        LeafNodeData leafData = getLeafNodeData(node);
+        if (leafData instanceof LeafTaskData) { // a leaf task
+            if (!leafData.isFullyAssigned())
+                return NEED_ASSIGNMENT_TOOLTIP;
+
+        } else if (leafData != null) { // a leaf component
+            if (result.value > 0)
+                return resources.format("Team_Time.Need_Tasks_Tooltip_FMT",
+                    node.getType().toLowerCase());
+
+        } else { // not a leaf node
+            IndivTime[] indivTimes = getIndivTimes(node);
+            for (IndivTime i : indivTimes) {
+                if (i.hasError) {
+                    result.errorColor = Color.red;
+                    return RESOURCES_TIME_MISMATCH;
+                }
+            }
+            if (!equal(result.value, sumIndivTimes(indivTimes)))
+                return NEED_ASSIGNMENT_TOOLTIP;
+        }
+
+        return null;
+    }
+
+    private static final String NEED_ESTIMATE_TOOLTIP = resources
+            .getString("Team_Time.Need_Estimate_Tooltip");
+    private static final String NEED_ASSIGNMENT_TOOLTIP = resources
+            .getString("Team_Time.Need_Assignment_Tooltip");
 
 
 
@@ -297,11 +302,6 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
     }
 
 
-
-    /** Add up the task times for each individual at the given node */
-    private double sumIndivTimes(WBSNode node) {
-        return sumIndivTimes(getIndivTimes(node));
-    }
 
     /** Add up the task times for each IndivTime object in the given array. */
     private double sumIndivTimes(IndivTime[] individualTimes) {
@@ -881,17 +881,21 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
         boolean zeroButAssigned;
         String ordinalAttrName;
         int ordinal;
+        boolean hasError;
         boolean completed;
 
         public IndivTime(WBSNode node, int column, String initials) {
             this.node = node;
             this.column = column;
-            this.time = safe(parse(dataModel.getValueAt(node, column)));
+            Object value = dataModel.getValueAt(node, column);
+            this.time = safe(parse(value));
             this.initials = initials;
             this.zeroAttrName = getMemberAssignedZeroAttrName(this.initials);
             this.zeroButAssigned = (node.getAttribute(zeroAttrName) != null);
             this.ordinalAttrName = getMemberAssignedOrdinalAttrName(initials);
             this.ordinal = (int) safe(node.getNumericAttribute(ordinalAttrName));
+            this.hasError = value instanceof NumericDataValue
+                    && ((NumericDataValue) value).errorMessage != null;
 
             String completedAttrName = TeamCompletionDateColumn
                     .getMemberNodeDataAttrName(this.initials);
@@ -922,9 +926,13 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
                                              boolean html) {
             if (html && completed)
                 buf.append("<strike>");
+            if (html && hasError)
+                buf.append("<b style='color:red'>");
             buf.append(initials);
             if (!equal(time, defaultTime))
                 buf.append("(").append(NumericDataValue.format(time)).append(")");
+            if (html && hasError)
+                buf.append("</b>");
             if (html && completed)
                 buf.append("</strike>");
             return buf;
@@ -1136,6 +1144,7 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
         private Object getValueForTimes(IndivTime[] times,
                                         double defaultTime)
         {
+            String tooltip = null;
             StringBuffer result = new StringBuffer();
             StringBuffer annotatedResult = new StringBuffer();
             StringBuffer htmlResult = new StringBuffer();
@@ -1151,6 +1160,8 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
                 if (i == -1)
                     break;
 
+                if (times[i].hasError)
+                    tooltip = RESOURCES_TIME_MISMATCH;
                 times[i].appendTimeString(result.append(", "), defaultTime,
                     false);
                 times[i].appendTimeString(htmlResult.append(",&nbsp;"),
@@ -1167,7 +1178,7 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
                     new AnnotatedValue(
                         result.toString().substring(2),
                         annotatedResult.toString()),
-                    htmlResult.substring(7));
+                    htmlResult.substring(7), tooltip);
             else
                 return result.toString().substring(2);
         }
@@ -1193,6 +1204,8 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
     private static Object UNASSIGNED = new ErrorValue("???",
             resources.getString("Team_Time.Need_Assignment_Tooltip"),
             ErrorValue.INFO);
+    private static final String RESOURCES_TIME_MISMATCH = resources
+            .getString("Assigned_To.TDBU_Mismatch");
     private static Pattern TIME_SETTING_PATTERN =
         Pattern.compile("([a-zA-Z]+)[^a-zA-Z0-9\\.]*([0-9\\.]+)?");
     private static final boolean ANNOTATE_ASSIGNMENT_VALUE = true;
