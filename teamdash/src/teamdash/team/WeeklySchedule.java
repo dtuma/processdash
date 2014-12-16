@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2012 Tuma Solutions, LLC
+// Copyright (C) 2002-2014 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -399,6 +399,10 @@ public class WeeklySchedule implements EffortCalendar {
 
     public int dateToWeekValue(Date d) {
         return dateToWeekValue(zeroDay, d);
+    }
+
+    public double dateToDoubleWeekValue(Date d) {
+        return dateToDoubleWeekValue(zeroDay, d);
     }
 
     public static int dateToWeekValue(Date zero, Date d) {

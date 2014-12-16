@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Tuma Solutions, LLC
+// Copyright (C) 2002-2014 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -227,10 +227,10 @@ public class TeamProjectBottomUp extends TeamProject {
                 teamEndTime = Math.max(teamEndTime, memberEndDate.getTime());
         }
         Date teamEndDate = new Date(teamEndTime);
-        int teamEndWeek = newMember.getSchedule().dateToWeekValue(teamEndDate);
-        newMember.getSchedule().setHoursPerWeek(0.01);
-        newMember.getSchedule().setWeekData(teamEndWeek,
-            new Double(Integer.MAX_VALUE));
+        double teamDuration = newMember.getSchedule().dateToDoubleWeekValue(
+            teamEndDate) - newMember.getSchedule().getStartWeek();
+        newMember.getSchedule().setHoursPerWeek(
+            totalSubprojectTime / teamDuration);
     }
 
     private void addWBSItems(WBSModel newWbs, String shortName,
