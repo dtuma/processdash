@@ -162,8 +162,11 @@ public class DashboardBackupFactory {
             m.add("team2.xml");
             m.add("wbs.xml");
             m.add("workflow.xml");
+            m.add("proxies.xml");
+            m.add("milestones.xml");
             m.add("tabs.xml");
-            m.add("changeHistory.xml");
+            m.add("changehistory.xml");
+            m.add("user-settings.ini");
             this.includedNames = Collections.unmodifiableSet(m);
         }
 
