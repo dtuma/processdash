@@ -186,8 +186,15 @@ public class WBSNode implements Cloneable {
     public Object removeAttribute(String attrName) {
         return attributes.remove(attrName);
     }
+    /** Remove a number of attributes that match a given pattern */
+    public void removeAttributes(PatternList matchingPattern) {
+        Iterator<String> attrNames = attributes.keySet().iterator();
+        while (attrNames.hasNext())
+            if (matchingPattern.matches(attrNames.next()))
+                attrNames.remove();
+    }
     /** Get a list of the attributes on this node */
-    public Set listAttributeNames() {
+    public Set<String> listAttributeNames() {
         return Collections.unmodifiableSet(attributes.keySet());
     }
 

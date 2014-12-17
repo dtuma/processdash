@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Tuma Solutions, LLC
+// Copyright (C) 2002-2014 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -28,6 +28,8 @@ import java.util.Iterator;
 import java.util.List;
 
 import net.sourceforge.processdash.tool.bridge.client.ImportDirectory;
+import net.sourceforge.processdash.util.PatternList;
+
 import teamdash.wbs.columns.MilestoneCommitDateColumn;
 import teamdash.wbs.columns.TaskDependencyColumn;
 import teamdash.wbs.columns.TeamTimeColumn;
@@ -192,13 +194,12 @@ public class MasterWBSUtil {
     }
 
     private static class SubprojectNodeTweaker implements WBSNodeVisitor, WBSNodeMerger {
-        String shortName;
 
-        String projectInitials;
+        String shortName;
 
         String projectID;
 
-        List memberInitials;
+        String subprojectTimeAttr;
 
         boolean useShortNamesInRollup;
 
@@ -207,8 +208,7 @@ public class MasterWBSUtil {
                 boolean useShortNamesInRollup) {
             this.shortName = shortName;
             this.projectID = projectID;
-            this.projectInitials = projectInitials;
-            this.memberInitials = memberInitials;
+            this.subprojectTimeAttr = projectInitials + MEMBER_TIME_SUFFIX;
             this.useShortNamesInRollup = useShortNamesInRollup;
         }
 
@@ -223,22 +223,9 @@ public class MasterWBSUtil {
 
             String nodeID = projectID + ":" + node.getUniqueID();
             node.setAttribute(PROJECT_NODE_ID, nodeID);
-            node.setAttribute("Time (Top Down)", null);
-            node.setAttribute(TeamTimeColumn.NUM_PEOPLE_ATTR, null);
-
-            double assignedTime = 0;
-            for (Iterator i = memberInitials.iterator(); i.hasNext();) {
-                String initials = (String) i.next();
-                double memberTime = node.getNumericAttribute(initials
-                        + "-Time (Top Down)");
-                if (memberTime > 0) {
-                    assignedTime += memberTime;
-                    node.setAttribute(initials+ "-Time (Top Down)", null);
-                }
-            }
-            if (assignedTime > 0)
-                node.setNumericAttribute(projectInitials + "-Time (Top Down)",
-                        assignedTime);
+            Object teamTime = node.getAttribute("Time (Top Down)");
+            node.removeAttributes(DISCARD_ATTR_PAT);
+            node.setAttribute(subprojectTimeAttr, teamTime);
         }
 
         public void mergeNodes(WBSNode src, WBSNode dest) {
@@ -255,6 +242,12 @@ public class MasterWBSUtil {
                 listMergeAttr(src, dest, TaskDependencyColumn.ID_LIST_ATTR);
             }
         }
+
+        private static final String MEMBER_TIME_SUFFIX = "-Time (Top Down)";
+        private static final PatternList DISCARD_ATTR_PAT = new PatternList()
+                .addLiteralEquals(TeamTimeColumn.NUM_PEOPLE_ATTR)
+                .addLiteralEquals(TeamTimeColumn.TPP_ATTR)
+                .addLiteralEndsWith(MEMBER_TIME_SUFFIX);
 
     }
 
