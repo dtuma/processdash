@@ -144,4 +144,17 @@ public interface PDashQuery extends Map<String, Object> {
      */
     public String getLastHql();
 
+
+    /**
+     * Return the raw SQL that was executed as a result of the previous query.
+     * <p>
+     * Queries performed through this object are passed to Hibernate, which
+     * transforms the HQL into raw SQL. After a query has been performed, that
+     * raw SQL can be retrieved via this method.
+     * 
+     * @return the raw SQL that was executed as a result of the previous query.
+     * @since 2.1.3
+     */
+    public String getLastSql();
+
 }

@@ -1,4 +1,4 @@
-// Copyright (C) 2013 Tuma Solutions, LLC
+// Copyright (C) 2013-2014 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -28,5 +28,7 @@ import java.util.List;
 public interface QueryRunner {
 
     public List queryHql(String query, Object... args);
+
+    public String getLastSql();
 
 }

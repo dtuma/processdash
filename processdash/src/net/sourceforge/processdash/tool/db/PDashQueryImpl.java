@@ -65,6 +65,8 @@ public class PDashQueryImpl extends MockMap<String, Object> implements
             return null;
         if ("lastHql".equals(key))
             return lastQuery;
+        if ("lastSql".equals(key))
+            return getLastSql();
 
         String query = key.toString();
         if (query.indexOf('?') == -1)
@@ -75,6 +77,17 @@ public class PDashQueryImpl extends MockMap<String, Object> implements
 
     public String getLastHql() {
         return lastQuery;
+    }
+
+    public String getLastSql() {
+        try {
+            return databasePlugin.getObject(QueryRunner.class).getLastSql();
+        } catch (Throwable t) {
+            // if the user has an older version of the database plugin, it
+            // will not support the getLastSql method, and an error will be
+            // thrown. Catch the error and return null.
+            return null;
+        }
     }
 
     public List query(String baseQuery, Object... baseArgs) {
