@@ -57,6 +57,7 @@ import java.util.Properties;
 import java.util.Random;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.Vector;
 import java.util.prefs.Preferences;
 
 import javax.swing.AbstractAction;
@@ -64,11 +65,14 @@ import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.ButtonGroup;
+import javax.swing.ComboBoxModel;
 import javax.swing.JCheckBox;
 import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
@@ -77,16 +81,20 @@ import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JRadioButton;
 import javax.swing.JRadioButtonMenuItem;
+import javax.swing.JScrollPane;
+import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
-import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import javax.swing.event.ListDataListener;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
+
+import org.jdesktop.swingx.autocomplete.AutoCompleteDecorator;
 
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.tool.bridge.client.BridgedWorkingDirectory;
@@ -96,8 +104,11 @@ import net.sourceforge.processdash.tool.bridge.client.WorkingDirectory;
 import net.sourceforge.processdash.tool.bridge.client.WorkingDirectoryFactory;
 import net.sourceforge.processdash.tool.bridge.impl.HttpAuthenticator;
 import net.sourceforge.processdash.tool.export.mgr.ExternalLocationMapper;
+import net.sourceforge.processdash.ui.lib.BoxUtils;
 import net.sourceforge.processdash.ui.lib.ExceptionDialog;
 import net.sourceforge.processdash.ui.lib.GuiPrefs;
+import net.sourceforge.processdash.ui.lib.JOptionPaneActionHandler;
+import net.sourceforge.processdash.ui.lib.JOptionPaneClickHandler;
 import net.sourceforge.processdash.ui.lib.JOptionPaneTweaker;
 import net.sourceforge.processdash.ui.lib.LargeFontsHelper;
 import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
@@ -1009,7 +1020,13 @@ public class WBSEditor implements WindowListener, SaveListener,
             result.add(new ShowCommitDatesMenuItem());
             result.add(new ShowMilestoneMarksMenuItem());
             result.add(new ShowMilestoneColorsMenuItem());
-            new BalanceMilestoneMenuBuilder(result, milestones);
+
+            JMenuItem balanceHeader = new JMenuItem(
+                    resources.getString("Milestones.Balance.Menu"),
+                    KeyEvent.VK_B);
+            result.add(balanceHeader);
+            result.add(new BalanceThroughMilestoneMenuItem(milestones,
+                    balanceHeader));
         }
         return result;
     }
@@ -2392,80 +2409,112 @@ public class WBSEditor implements WindowListener, SaveListener,
         }
     }
 
-    private class BalanceMilestoneMenuBuilder implements TableModelListener,
-            ActionListener {
-        private JMenu menu;
-        private int initialMenuLength;
-        private WBSModel milestonesWbs;
+    private class BalanceThroughMilestoneMenuItem extends JMenuItem implements
+            TableModelListener, ActionListener {
+
+        private MilestonesWBSModel milestonesWbs;
+        private Font plain, italic;
         private int selectedMilestoneID;
-        private ButtonGroup group;
-        private Border indentBorder;
 
-        public BalanceMilestoneMenuBuilder(JMenu menu, WBSModel milestones) {
-            this.menu = menu;
-            menu.add(new JMenuItem("Balance Work Through:"));
-            this.initialMenuLength = menu.getItemCount();
-            this.milestonesWbs = milestones;
-            this.selectedMilestoneID = -1;
-            rebuildMenu();
+        public BalanceThroughMilestoneMenuItem(WBSModel milestones,
+                JMenuItem header) {
+            this.milestonesWbs = (MilestonesWBSModel) milestones;
+            this.plain = getFont();
+            this.italic = plain.deriveFont(Font.ITALIC + Font.BOLD);
+            setBorder(BorderFactory.createCompoundBorder(getBorder(),
+                new EmptyBorder(0, 15, 0, 0)));
+            setSelectedMilestone(-1);
             milestones.addTableModelListener(this);
+            header.addActionListener(this);
+            this.addActionListener(this);
 
-        }
-
-        private void rebuildMenu() {
-            WBSNode[] milestones =
-                milestonesWbs.getChildren(milestonesWbs.getRoot());
-
-            synchronized (menu) {
-                while (menu.getItemCount() > initialMenuLength)
-                    menu.remove(initialMenuLength);
-
-                group = new ButtonGroup();
-                addMenuItem("( Entire WBS )", -1);
-                for (WBSNode milestone : milestones) {
-                    String name = milestone.getName();
-                    int uniqueID = milestone.getUniqueID();
-                    if (name != null && name.trim().length() > 0)
-                        addMenuItem(name, uniqueID);
+            guiPrefs.load("milestones.balanceThrough", new ComboBoxModel() {
+                public Object getSelectedItem() {
+                    return Integer.toString(selectedMilestoneID);
                 }
-            }
+                public void setSelectedItem(Object item) {
+                    try {
+                        setSelectedMilestone(item == null ? -1 //
+                                : Integer.parseInt(item.toString()));
+                    } catch (Exception e) {}
+                }
+                public int getSize() { return 1; }
+                public Object getElementAt(int index) { return null; }
+                public void addListDataListener(ListDataListener l) {}
+                public void removeListDataListener(ListDataListener l) {}
+            });
         }
-
-        private void addMenuItem(String name, int uniqueID) {
-            JMenuItem menuItem = new JRadioButtonMenuItem(name);
-            menuItem.setActionCommand(Integer.toString(uniqueID));
-            group.add(menuItem);
-            if (uniqueID == selectedMilestoneID || uniqueID == -1)
-                menuItem.setSelected(true);
-
-            if (indentBorder == null)
-                indentBorder = BorderFactory.createCompoundBorder(
-                    menuItem.getBorder(), new EmptyBorder(0, 15, 0, 0));
-            menuItem.setBorder(indentBorder);
-
-            if (uniqueID == -1)
-                menuItem.setFont(menuItem.getFont().deriveFont(
-                    Font.ITALIC + Font.BOLD));
-
-            menuItem.addActionListener(this);
-            menu.add(menuItem);
-        }
-
 
         public void tableChanged(TableModelEvent e) {
-            rebuildMenu();
+            setSelectedMilestone(selectedMilestoneID);
         }
 
         public void actionPerformed(ActionEvent e) {
-            try {
-                String newSelection = e.getActionCommand();
-                selectedMilestoneID = Integer.parseInt(newSelection);
-                teamTimePanel.setBalanceThroughMilestone(selectedMilestoneID);
-                if (showTeamTimePanelMenuItem != null)
-                    showTeamTimePanelMenuItem.setSelected(true);
-            } catch (Exception ex) {}
+            // create user interface components that the user can use to
+            // select a new milestone, using autocompletion
+            JTextField text = new JTextField();
+            new JOptionPaneActionHandler().install(text);
+
+            Vector options = new Vector();
+            options.add(BALANCE_ENTIRE_WBS);
+            options.addAll(milestonesWbs.getMilestoneNames());
+            JList optionList = new JList(options);
+            installKeystrokeForWindow(optionList, "UP", "DOWN", "PAGE_UP",
+                "PAGE_DOWN");
+            new JOptionPaneClickHandler().install(optionList);
+            JScrollPane sp = new JScrollPane(optionList,
+                    JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
+                    JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+
+            AutoCompleteDecorator.decorate(optionList, text);
+
+            Object[] message = new Object[] {
+                    resources.getString("Milestones.Balance.Window_Prompt"),
+                    BoxUtils.vbox(text, sp),
+                    resources.getStrings("Milestones.Balance.Window_Footer"),
+                    new JOptionPaneTweaker.GrabFocus(text) };
+            String title = resources
+                    .getString("Milestones.Balance.Window_Title");
+
+            // display the options to the user and let them make a selection
+            int userChoice = JOptionPane.showConfirmDialog(frame, message,
+                title, JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+            if (userChoice != JOptionPane.OK_OPTION)
+                return;
+
+            // apply the milestone the user selected, and show the team time
+            // panel if it is not already visible.
+            Integer id = milestonesWbs.getMilestoneIdMap().get(text.getText());
+            setSelectedMilestone(id == null ? -1 : id);
+            if (showTeamTimePanelMenuItem != null)
+                showTeamTimePanelMenuItem.setSelected(true);
         }
+
+        private void installKeystrokeForWindow(JComponent c, String... keys) {
+            for (String oneKey : keys) {
+                KeyStroke keyStroke = KeyStroke.getKeyStroke(oneKey);
+                Object action = c.getInputMap().get(keyStroke);
+                c.getInputMap(WHEN_IN_FOCUSED_WINDOW).put(keyStroke, action);
+            }
+        }
+
+        private void setSelectedMilestone(int id) {
+            String milestoneName = milestonesWbs.getMilestoneNameMap().get(id);
+            if (milestoneName != null) {
+                setFont(plain);
+            } else {
+                id = -1;
+                milestoneName = BALANCE_ENTIRE_WBS;
+                setFont(italic);
+            }
+            setText(milestoneName);
+            this.selectedMilestoneID = id;
+            teamTimePanel.setBalanceThroughMilestone(selectedMilestoneID);
+        }
+
     }
+    private static final String BALANCE_ENTIRE_WBS = resources
+            .getString("Milestones.Balance.Entire_WBS");
 
 
 
