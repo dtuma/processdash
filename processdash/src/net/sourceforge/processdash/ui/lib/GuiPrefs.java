@@ -33,7 +33,9 @@ import java.util.Map;
 import java.util.prefs.Preferences;
 
 import javax.swing.ButtonModel;
+import javax.swing.ComboBoxModel;
 import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
 import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTable;
@@ -260,6 +262,66 @@ public class GuiPrefs {
      */
     public boolean load(JCheckBox checkBox) {
         return load("checkbox", checkBox);
+    }
+
+
+    /**
+     * Register a {@link ComboBoxModel} so its value will be saved when the
+     * {@link #saveAll()} method is called, and restore any state that was saved
+     * for this model in the past.
+     * 
+     * @param comboBoxId
+     *            a unique ID for this combo box model; if a {@link GuiPrefs}
+     *            object is managing state for several combo box models, each
+     *            one should have a different id.
+     * @param comboBoxModel
+     *            the combo box model to register
+     * @return true if any user customizations were loaded, false if none were
+     *         found
+     * @since 2.1.3
+     */
+    public boolean load(String comboBoxId, ComboBoxModel comboBoxModel) {
+        return load(new RegisteredComboBoxModel(comboBoxId, comboBoxModel));
+    }
+
+
+    /**
+     * Register a {@link JComboBox} so its value will be saved when the
+     * {@link #saveAll()} method is called, and restore any state that was saved
+     * for this combo box in the past.
+     * 
+     * @param comboBoxId
+     *            a unique ID for this combo box; if a {@link GuiPrefs} object
+     *            is managing state for several combo boxes, each one should
+     *            have a different id.
+     * @param comboBox
+     *            the combo box to register
+     * @return true if any user customizations were loaded, false if none were
+     *         found
+     * @since 2.1.3
+     */
+    public boolean load(String comboBoxId, JComboBox comboBox) {
+        return load(comboBoxId, comboBox.getModel());
+    }
+
+
+    /**
+     * Register a {@link JComboBox} so its value will be saved when the
+     * {@link #saveAll()} method is called, and restore any state that was saved
+     * for this combo box in the past.
+     * 
+     * This variant can be used if a particular {@link GuiPrefs} object is only
+     * managing state for one combo box. The combo box will be registered with
+     * the generic id "combobox".
+     * 
+     * @param comboBox
+     *            the combo box to register
+     * @return true if any user customizations were loaded, false if none were
+     *         found
+     * @since 2.1.3
+     */
+    public boolean load(JComboBox comboBox) {
+        return load("combobox", comboBox.getModel());
     }
 
 
@@ -515,6 +577,7 @@ public class GuiPrefs {
     private class RegisteredButtonModel extends RegisteredItem {
         ButtonModel buttonModel;
         boolean orig;
+
         public RegisteredButtonModel(String id, ButtonModel buttonModel) {
             super(id);
             this.buttonModel = buttonModel;
@@ -542,6 +605,43 @@ public class GuiPrefs {
             putInt("selected", buttonModel.isSelected() ? 1 : 0);
         }
     }
+
+
+    private class RegisteredComboBoxModel extends RegisteredItem {
+        ComboBoxModel comboBoxModel;
+        Object orig;
+
+        public RegisteredComboBoxModel(String id, ComboBoxModel comboBoxModel) {
+            super(id);
+            this.comboBoxModel = comboBoxModel;
+            this.orig = comboBoxModel.getSelectedItem();
+        }
+
+        @Override
+        boolean load() {
+            String pref = getString("value");
+            if (pref == null) {
+                return false;
+            } else {
+                comboBoxModel.setSelectedItem(pref.equals("<<null>>") ? null
+                        : pref);
+                return true;
+            }
+        }
+
+        @Override
+        void reset() {
+            comboBoxModel.setSelectedItem(orig);
+        }
+
+        @Override
+        void save() {
+            Object value = comboBoxModel.getSelectedItem();
+            putString("value", value == null ? "<<null>>" : value.toString());
+        }
+
+    }
+
 
     private class RegisteredSplitPane extends RegisteredItem {
         JSplitPane splitPane;
