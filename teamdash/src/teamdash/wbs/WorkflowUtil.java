@@ -26,11 +26,10 @@ package teamdash.wbs;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import net.sourceforge.processdash.util.PatternList;
@@ -152,11 +151,11 @@ public class WorkflowUtil {
         String destLabels = appendNotesAndLabelsForWorkflowRoot(srcNode,
             destNode);
 
-        // make a list of the names of the children of destNode.
+        // make a map (indexed by name) of the children of destNode.
         WBSNode[] destChildren = destWbs.getChildren(destNode);
-        Set destChildNames = new HashSet();
-        for (int i = 0;   i < destChildren.length;   i++)
-            destChildNames.add(destChildren[i].getName());
+        Map<String, WBSNode> destChildrenByName = new HashMap();
+        for (int i = destChildren.length; i-- > 0;)
+            destChildrenByName.put(destChildren[i].getName(), destChildren[i]);
 
         // iterate over each child of srcNode.
         AtomicBoolean sawProbe = new AtomicBoolean();
@@ -164,9 +163,16 @@ public class WorkflowUtil {
         for (int i = 0;   i < srcChildren.length;   i++) {
             WBSNode srcChild = srcChildren[i];
             // we don't want to clobber any nodes that already exist in
-            // the destination, so we'll skip any children whose names
-            // already appear underneath destNode
-            if (destChildNames.contains(srcChild.getName())) continue;
+            // the destination, so if we find nodes with matching names, leave
+            // them in place. But do sync their type attributes to record (and
+            // potentially correct) their attachment to the workflow node.
+            WBSNode destChild = destChildrenByName.get(srcChild.getName());
+            if (destChild != null) {
+                destChild.setType(srcChild.getType());
+                destChild.setAttribute(WFLOW_SRC_IDS,
+                    Integer.toString(srcChild.getUniqueID()));
+                continue;
+            }
 
             // add the child to our insertion list.
             appendWorkflowNode(nodesToInsert, srcChild, indentDelta,
