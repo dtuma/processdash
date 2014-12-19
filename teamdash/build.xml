@@ -309,6 +309,9 @@ The author(s) may be contacted at:
       <root classname="net.sourceforge.processdash.ui.lib.ExceptionDialog"/>
       <root classname="net.sourceforge.processdash.ui.lib.GuiPrefs"/>
       <root classname="net.sourceforge.processdash.ui.lib.JDateTimeChooserCellEditor"/>
+      <root classname="net.sourceforge.processdash.ui.lib.JOptionPaneActionHandler"/>
+      <root classname="net.sourceforge.processdash.ui.lib.JOptionPaneClickHandler"/>
+      <root classname="net.sourceforge.processdash.ui.lib.JOptionPaneTweaker"/>
       <root classname="net.sourceforge.processdash.ui.lib.LargeFontsHelper"/>
       <root classname="net.sourceforge.processdash.ui.lib.PaddedIcon"/>
       <root classname="net.sourceforge.processdash.ui.lib.SwingWorker"/>
@@ -342,7 +345,7 @@ The author(s) may be contacted at:
                 dashClassesMsg = dashClassesMsg + "\n    " + dashClassesList[i];
             }
         }
-        if (classCount > 105) {
+        if (classCount > 107) {
             project.setProperty("dashClasses.overflowCount", classCount);
             project.setProperty("dashClasses.overflowing", dashClassesMsg);
         }
