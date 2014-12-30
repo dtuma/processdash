@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2012 Tuma Solutions, LLC
+// Copyright (C) 2002-2014 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -65,17 +65,19 @@ public class AutocompletingDataTableCellEditor extends ComboBoxCellEditor {
     public AutocompletingDataTableCellEditor(JComboBox combo) {
         super(combo);
         this.comboBox = combo;
-        this.comboBox.setEditable(true);
-        AutoCompleteDecorator.decorate(comboBox);
+        if (!(combo instanceof AssignedToComboBox)) {
+            this.comboBox.setEditable(true);
+            AutoCompleteDecorator.decorate(comboBox);
+        }
 
-        this.setupEditor = new Timer(100, new ActionListener() {
+        this.setupEditor = new Timer(10, new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 setupEditor();
             }
         });
         this.setupEditor.setRepeats(false);
 
-        this.dispatchKeyEvent = new Timer(30, new ActionListener() {
+        this.dispatchKeyEvent = new Timer(10, new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 dispatchKeyEvent();
             }

@@ -24,23 +24,32 @@
 package teamdash.wbs.columns;
 
 import java.awt.Color;
+import java.awt.Component;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.swing.JTable;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 
 import teamdash.team.TeamMember;
 import teamdash.wbs.AnnotatedValue;
+import teamdash.wbs.AssignedToComboBox;
+import teamdash.wbs.AssignedToDocument;
+import teamdash.wbs.AutocompletingDataTableCellEditor;
 import teamdash.wbs.CalculatedDataColumn;
+import teamdash.wbs.CustomEditedColumn;
 import teamdash.wbs.CustomRenderedColumn;
 import teamdash.wbs.DataTableModel;
 import teamdash.wbs.ErrorValue;
@@ -122,6 +131,7 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
         teamMemberInitials = new String[newCols.size()];
         for (int i = 0; i < teamMemberInitials.length; i++)
             teamMemberInitials[i] = dataModel.getColumnName(newCols.get(i));
+        assignedToEditor.setInitials(Arrays.asList(teamMemberInitials));
     }
 
 
@@ -1100,7 +1110,7 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
 
     /** A column representing the initials of people assigned to a task. */
     private class ResourcesColumn extends AbstractDataColumn
-            implements CalculatedDataColumn
+            implements CalculatedDataColumn, CustomEditedColumn
     {
         public ResourcesColumn() {
             this.columnID = RESOURCES_COL_ID;
@@ -1162,12 +1172,15 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
 
                 if (times[i].hasError)
                     tooltip = RESOURCES_TIME_MISMATCH;
-                times[i].appendTimeString(result.append(", "), defaultTime,
-                    false);
-                times[i].appendTimeString(htmlResult.append(",&nbsp;"),
+                times[i].appendTimeString(
+                    result.append(AssignedToDocument.SEPARATOR_SPACE),
+                    defaultTime, false);
+                times[i].appendTimeString(
+                    htmlResult.append(AssignedToDocument.SEPARATOR + "&nbsp;"),
                     defaultTime, true);
-                times[i].appendTimeString(annotatedResult.append(", "), -1,
-                    false);
+                times[i].appendTimeString(
+                    annotatedResult.append(AssignedToDocument.SEPARATOR_SPACE),
+                    -1, false);
                 needsDisplay[i] = false;
             }
 
@@ -1199,17 +1212,67 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
             if (leafData != null)
                 leafData.userSetAssignedTo(aValue);
         }
+
+        public TableCellEditor getCellEditor() {
+            return assignedToEditor;
+        }
     }
     public static final String RESOURCES_COL_ID = "Assigned To";
-    private static Object UNASSIGNED = new ErrorValue("???",
+    private static String UNASSIGNED_TEXT = "???";
+    private static Object UNASSIGNED = new ErrorValue(UNASSIGNED_TEXT,
             resources.getString("Team_Time.Need_Assignment_Tooltip"),
             ErrorValue.INFO);
     private static final String RESOURCES_TIME_MISMATCH = resources
             .getString("Assigned_To.TDBU_Mismatch");
-    private static Pattern TIME_SETTING_PATTERN =
-        Pattern.compile("([a-zA-Z]+)[^a-zA-Z0-9\\.]*([0-9\\.]+)?");
+    private static Pattern TIME_SETTING_PATTERN = Pattern.compile( //
+            "([a-zA-Z]+)[^a-zA-Z0-9.,;]*([0-9.][0-9.,]*)?");
     private static final boolean ANNOTATE_ASSIGNMENT_VALUE = true;
     private static final String DEFAULT_TIME_MARKER = "DefaultTimePerPerson";
+
+    private class AssignedToCellEditor extends AutocompletingDataTableCellEditor {
+        private AssignedToComboBox comboBox;
+        public AssignedToCellEditor() {
+            super(new AssignedToComboBox(true));
+            this.comboBox = (AssignedToComboBox) getComboBox();
+        }
+        void setInitials(List<String> initials) {
+            comboBox.setInitialsList(initials);
+        }
+        @Override
+        public Component getTableCellEditorComponent(JTable table,
+                Object value, boolean isSelected, int row, int column) {
+            // call super() so the editor setup timer will be restarted
+            super.getTableCellEditorComponent(table, null, isSelected, row,
+                column);
+
+            // tweak the text we will be displaying
+            String text = (String) value;
+            if (text == null || text.equals(UNASSIGNED_TEXT))
+                text = "";
+            else if (!text.endsWith(")"))
+                text = text + " ";
+
+            // tweak editing behaviors based on the node in question
+            WBSNode node = wbsModel.getNodeForRow(row);
+            LeafNodeData leafData = getLeafNodeData(node);
+            String defaultTime;
+            if (leafData instanceof LeafTaskData) {
+                defaultTime = NumericDataValue.format(leafData.timePerPerson);
+            } else {
+                defaultTime = "0";
+            }
+
+            // initialize the combo box contents and return it
+            comboBox.setFullText(text);
+            comboBox.setDefaultTime(defaultTime);
+            return comboBox;
+        }
+        @Override
+        public Object getCellEditorValue() {
+            return comboBox.getFullText();
+        }
+    }
+    private AssignedToCellEditor assignedToEditor = new AssignedToCellEditor();
 
 
 
