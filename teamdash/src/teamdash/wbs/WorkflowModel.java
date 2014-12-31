@@ -37,6 +37,7 @@ import teamdash.wbs.columns.WorkflowNotesColumn;
 import teamdash.wbs.columns.WorkflowNumPeopleColumn;
 import teamdash.wbs.columns.WorkflowPercentageColumn;
 import teamdash.wbs.columns.WorkflowRateColumn;
+import teamdash.wbs.columns.WorkflowResourcesColumn;
 import teamdash.wbs.columns.WorkflowScriptColumn;
 import teamdash.wbs.columns.WorkflowSizeUnitsColumn;
 
@@ -46,8 +47,9 @@ import teamdash.wbs.columns.WorkflowSizeUnitsColumn;
 public class WorkflowModel extends DataTableModel {
 
 
-    public WorkflowModel(WBSModel workflows, TeamProcess teamProcess) {
-        super(workflows, null, teamProcess, null, null, null, null, null);
+    public WorkflowModel(WBSModel workflows, TeamProcess teamProcess,
+            TeamMemberList teamList) {
+        super(workflows, teamList, teamProcess, null, null, null, null, null);
     }
 
     /** override and create only the columns we're interested in.
@@ -66,6 +68,7 @@ public class WorkflowModel extends DataTableModel {
         addDataColumn(new WorkflowRateColumn(this));
         addDataColumn(new WorkflowSizeUnitsColumn(this, teamProcess));
         addDataColumn(new WorkflowNumPeopleColumn(wbsModel));
+        addDataColumn(new WorkflowResourcesColumn(this, teamList));
         addDataColumn(new WorkflowLabelColumn(this));
         addDataColumn(new WorkflowNotesColumn());
 

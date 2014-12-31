@@ -67,7 +67,7 @@ public class TeamProjectMergeTester {
                     process, p.getWorkflows(), p.getProxies(),
                     p.getMilestones(), new TaskDependencySourceSimple(p),
                     "Owner");
-            workflows = new WorkflowModel(p.getWorkflows(), process);
+            workflows = new WorkflowModel(p.getWorkflows(), process, null);
             proxies = new ProxyDataModel(p.getProxies(), process);
             milestones = new MilestonesDataModel(p.getMilestones());
         }

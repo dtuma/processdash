@@ -71,6 +71,11 @@ public class AssignedToDocument extends PlainDocument {
     private boolean strictMatching;
 
     /**
+     * Flag indicating whether numbers can be entered in this document
+     */
+    private boolean numbersAllowed;
+
+    /**
      * The default time to list for an individual, if we need to insert a number
      * as a placeholder
      */
@@ -101,6 +106,14 @@ public class AssignedToDocument extends PlainDocument {
      */
     public boolean isStrictMatching() {
         return strictMatching;
+    }
+
+    public boolean isNumbersAllowed() {
+        return numbersAllowed;
+    }
+
+    public void setNumbersAllowed(boolean numbersAllowed) {
+        this.numbersAllowed = numbersAllowed;
     }
 
     public void setFullText(String value) {
@@ -385,6 +398,10 @@ public class AssignedToDocument extends PlainDocument {
             return;
         }
 
+        // should the user be forbidden from entering numbers?
+        if (numbersAllowed == false)
+            badInput();
+
         // if the cursor is currently on initials, edit a number instead; either
         // one that already follows these initials, or a newly inserted number
         if (w.isLetters()) {
@@ -461,7 +478,7 @@ public class AssignedToDocument extends PlainDocument {
         } else if (ch == '(') {
             // If the user isn't currently in a word of letters, abort.
             Word w = getWord(offset);
-            if (w == null || w.isNumber())
+            if (w == null || w.isNumber() || !numbersAllowed)
                 badInput();
 
             Word next = w.next;
@@ -632,7 +649,7 @@ public class AssignedToDocument extends PlainDocument {
     }
 
     public void setTargetInitials(int pos, String word, boolean append) {
-        if (selecting || word == null || word.length() == 0)
+        if (selecting || word == null || !WORD_PAT.matcher(word).matches())
             return;
 
         Word w = getWord(pos);

@@ -102,6 +102,10 @@ public class AssignedToComboBox extends JComboBox {
         setFullText(fullText);
     }
 
+    public void setNumbersAllowed(boolean numbersAllowed) {
+        document.setNumbersAllowed(numbersAllowed);
+    }
+
     public String getFullText() {
         return textComponent.getText();
     }

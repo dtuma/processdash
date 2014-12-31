@@ -32,6 +32,7 @@ import javax.swing.JFrame;
 import net.sourceforge.processdash.i18n.Resources;
 
 import teamdash.wbs.columns.WorkflowOptionalColumn;
+import teamdash.wbs.columns.WorkflowResourcesColumn;
 
 public class WorkflowLibraryEditor extends AbstractLibraryEditor {
 
@@ -48,11 +49,11 @@ public class WorkflowLibraryEditor extends AbstractLibraryEditor {
     @Override
     protected void openModels() {
         TeamProcess process = teamProject.getTeamProcess();
-        libraryModel =  new WorkflowModel(library, process);
+        libraryModel =  new WorkflowModel(library, process, null);
 
         projectWbs = new WorkflowWBSModel();
         projectWbs.copyFrom(teamProject.getWorkflows());
-        projectModel = new WorkflowModel(this.projectWbs, process);
+        projectModel = new WorkflowModel(this.projectWbs, process, null);
     }
 
     @Override
@@ -60,7 +61,9 @@ public class WorkflowLibraryEditor extends AbstractLibraryEditor {
         WBSJTable table = WorkflowEditor.createWorkflowJTable(
             (WorkflowModel) model, teamProject.getTeamProcess());
         for (int i = table.getColumnCount(); i-- > 0; ) {
-            if (model.getColumn(i) instanceof WorkflowOptionalColumn)
+            DataColumn column = model.getColumn(i);
+            if (column instanceof WorkflowOptionalColumn
+                    || column instanceof WorkflowResourcesColumn)
                 table.removeColumn(table.getColumnModel().getColumn(i));
         }
         return table;

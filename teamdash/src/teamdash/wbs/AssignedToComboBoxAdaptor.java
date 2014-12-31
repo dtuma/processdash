@@ -72,9 +72,11 @@ public class AssignedToComboBoxAdaptor implements ActionListener {
 
     public boolean listContainsSelectedItem() {
         Object selectedItem = getSelectedItem();
-        for (int i = getItemCount(); i-- > 0;) {
-            if (getItem(i).equals(selectedItem))
-                return true;
+        if (selectedItem != null) {
+            for (int i = getItemCount(); i-- > 0;) {
+                if (selectedItem.equals(getItem(i)))
+                    return true;
+            }
         }
         return false;
     }

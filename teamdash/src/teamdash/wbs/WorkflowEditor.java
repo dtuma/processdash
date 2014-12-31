@@ -80,8 +80,8 @@ public class WorkflowEditor implements MergeConflictHyperlinkHandler {
 
     public WorkflowEditor(TeamProject teamProject) {
         this.teamProject = teamProject;
-        this.workflowModel = new WorkflowModel
-            (teamProject.getWorkflows(), teamProject.getTeamProcess());
+        this.workflowModel = new WorkflowModel(teamProject.getWorkflows(),
+                teamProject.getTeamProcess(), teamProject.getTeamMemberList());
         this.workflowModel.setEditingEnabled(teamProject.isReadOnly() == false);
         table = createWorkflowJTable
             (workflowModel, teamProject.getTeamProcess());
@@ -98,7 +98,7 @@ public class WorkflowEditor implements MergeConflictHyperlinkHandler {
         frame.getContentPane().add(columnSelector.install(new JScrollPane(table)));
         frame.getContentPane().add(toolBar, BorderLayout.NORTH);
         frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        frame.setSize(600 + optColumnWidth, 400);
+        frame.setSize(800 + optColumnWidth, 400);
         frame.setVisible(true);
     }
 
