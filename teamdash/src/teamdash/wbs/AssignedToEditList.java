@@ -29,7 +29,7 @@ public class AssignedToEditList extends ArrayList<AssignedToEditList.Change> {
 
     public static class Change {
 
-        String origInitials, origTime, newInitials, newTime;
+        public String origInitials, origTime, newInitials, newTime;
 
         public boolean isAdd() {
             return origInitials == null;
@@ -40,7 +40,8 @@ public class AssignedToEditList extends ArrayList<AssignedToEditList.Change> {
         }
 
         public boolean isInitialsChange() {
-            return !eq(origInitials, newInitials);
+            return origInitials != null && newInitials != null
+                    && !origInitials.equals(newInitials);
         }
 
         public boolean isTimeChange() {
@@ -48,12 +49,33 @@ public class AssignedToEditList extends ArrayList<AssignedToEditList.Change> {
         }
 
         public boolean isChange() {
-            return isInitialsChange() || isTimeChange();
+            return !isAdd() && !isDelete() && !isNoop();
         }
 
         public boolean isNoop() {
-            return !isChange();
+            return eq(origInitials, newInitials) && eq(origTime, newTime);
         }
+
+        public double getTimeRatio(double defaultTime) {
+            if (eq(origTime, newTime))
+                return 1.0;
+            double origVal = getTimeOrDefault(origTime, defaultTime);
+            double newVal = getTimeOrDefault(newTime, defaultTime);
+            return newVal / origVal;
+        }
+
+        private double getTimeOrDefault(String time, double defaultTime) {
+            return (time == null ? defaultTime : NumericDataValue.parse(time));
+        }
+
+    }
+
+
+    public boolean isNoop() {
+        for (Change c : this)
+            if (!c.isNoop())
+                return false;
+        return true;
     }
 
     @Override
@@ -70,7 +92,7 @@ public class AssignedToEditList extends ArrayList<AssignedToEditList.Change> {
                     result.append("(").append(change.newTime).append(")");
             }
         }
-        return result.substring(2);
+        return result.length() == 0 ? "" : result.substring(2);
     }
 
     private static boolean eq(String a, String b) {

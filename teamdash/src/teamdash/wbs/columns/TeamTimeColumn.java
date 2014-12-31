@@ -25,6 +25,7 @@ package teamdash.wbs.columns;
 
 import java.awt.Color;
 import java.awt.Component;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -47,6 +48,8 @@ import teamdash.team.TeamMember;
 import teamdash.wbs.AnnotatedValue;
 import teamdash.wbs.AssignedToComboBox;
 import teamdash.wbs.AssignedToDocument;
+import teamdash.wbs.AssignedToEditList;
+import teamdash.wbs.AssignedToEditList.Change;
 import teamdash.wbs.AutocompletingDataTableCellEditor;
 import teamdash.wbs.CalculatedDataColumn;
 import teamdash.wbs.CustomEditedColumn;
@@ -57,7 +60,6 @@ import teamdash.wbs.HtmlRenderedValue;
 import teamdash.wbs.IntList;
 import teamdash.wbs.ItalicNumericCellRenderer;
 import teamdash.wbs.NumericDataValue;
-import teamdash.wbs.ReadOnlyValue;
 import teamdash.wbs.WBSModel;
 import teamdash.wbs.WBSNode;
 import teamdash.wbs.WorkflowModel;
@@ -466,6 +468,43 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
             individualTimes = getIndivTimes(node);
         }
 
+        protected void setTimes(AssignedToEditList edits) {
+            Map<String, Double> newTimes = new HashMap();
+
+            // Look for people who are assigned to this task and who are
+            // mentioned in a change. Copy their times into the new time map.
+            for (Change change : edits) {
+                IndivTime origIndiv = getIndiv(change.origInitials);
+                if (origIndiv != null && origIndiv.isAssigned()
+                        && (change.isNoop() || change.isChange())) {
+                    double time = origIndiv.time;
+                    time *= change.getTimeRatio(timePerPerson);
+
+                    Double timeToSum = newTimes.get(change.newInitials);
+                    if (timeToSum != null)
+                        time += timeToSum;
+
+                    newTimes.put(change.newInitials, time);
+                }
+            }
+
+            // let subclasses decide how to handle added team member initials.
+            maybeAddMembers(edits, newTimes);
+
+            for (IndivTime indiv : individualTimes)
+                indiv.setTime(newTimes);
+        }
+
+        protected IndivTime getIndiv(String initials) {
+            if (initials != null)
+                for (IndivTime indiv : individualTimes)
+                    if (indiv.initials.equals(initials))
+                        return indiv;
+            return null;
+        }
+
+        void maybeAddMembers(AssignedToEditList edits, Map times) {}
+
         abstract boolean isTypeMismatch();
         abstract boolean isFullyAssigned();
         abstract void userSetTeamTime(double value);
@@ -772,6 +811,22 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
             for (int i = individualTimes.length;   i-- > 0; )
                 individualTimes[i].replanInProgressTime();
         }
+
+        void maybeAddMembers(AssignedToEditList edits, Map times) {
+            int numMembersNeeded = numPeople - actualNumPeople;
+            if (numMembersNeeded > 0) {
+                for (Change c : edits) {
+                    if (c.isAdd()) {
+                        IndivTime indiv = getIndiv(c.newInitials);
+                        if (indiv != null && !indiv.isAssigned()) {
+                            times.put(c.newInitials, timePerPerson);
+                            if (--numMembersNeeded == 0)
+                                break;
+                        }
+                    }
+                }
+            }
+        }
     }
 
     private class LeafComponentData extends LeafNodeData {
@@ -906,6 +961,8 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
             this.ordinal = (int) safe(node.getNumericAttribute(ordinalAttrName));
             this.hasError = value instanceof NumericDataValue
                     && ((NumericDataValue) value).errorMessage != null;
+            if (time == 0 && ((NumericDataValue) value).isInvisible == false)
+                this.zeroButAssigned = true;
 
             String completedAttrName = TeamCompletionDateColumn
                     .getMemberNodeDataAttrName(this.initials);
@@ -940,7 +997,7 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
                 buf.append("<b style='color:red'>");
             buf.append(initials);
             if (!equal(time, defaultTime))
-                buf.append("(").append(NumericDataValue.format(time)).append(")");
+                buf.append("(").append(formatTime(time)).append(")");
             if (html && hasError)
                 buf.append("</b>");
             if (html && completed)
@@ -954,7 +1011,7 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
                 // if the user was editing the value in the "Assigned To"
                 // column, but they did not alter the textual representation
                 // of the time for this individual, make no changes.
-                String oldTimeVal = NumericDataValue.format(this.time);
+                String oldTimeVal = formatTime(this.time);
                 if (timeVal.equals(oldTimeVal))
                     return;
             }
@@ -1000,6 +1057,30 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
         }
     }
 
+    /**
+     * This code is copied from NumericDataValue.format, but disables grouping
+     * separators for locales that don't use commas. Otherwise, the nonstandard
+     * grouping separators can confuse our time parsing logic.
+     */
+    private static String formatTime(double time) {
+        if (Double.isNaN(time) || Double.isInfinite(time))
+            return "";
+        else if (time > 1)
+            return TIME_FMT[0].format(time);
+        else if (time > 0.1)
+            return TIME_FMT[1].format(time);
+        else
+            return TIME_FMT[2].format(time);
+    }
+    private static final NumberFormat[] TIME_FMT = new NumberFormat[3];
+    static {
+        for (int i = 0; i < 3; i++) {
+            TIME_FMT[i] = NumberFormat.getNumberInstance();
+            TIME_FMT[i].setMaximumFractionDigits(i+1);
+            if (TIME_FMT[i].format(9999).indexOf(',') == -1)
+                TIME_FMT[i].setGroupingUsed(false);
+        }
+    }
 
 
     /** Base class for columns related to Team Time. */
@@ -1119,8 +1200,7 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
         }
 
         public boolean isCellEditable(WBSNode node) {
-            // default behavior: only leaf nodes are editable.
-            return wbsModel.isLeaf(node);
+            return true;
         }
 
         public Object getValueAt(WBSNode node) {
@@ -1134,9 +1214,9 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
                         "Assigned_To.Need_Tasks_Tooltip_FMT", //
                         node.getType().toLowerCase()), ErrorValue.INFO);
                 return result;
-            } else
-                return new ReadOnlyValue
-                    (getValueForTimes(getIndivTimes(node), -1));
+            } else {
+                return getValueForTimes(getIndivTimes(node), -1);
+            }
         }
 
         public boolean recalculate() { return true; }
@@ -1209,8 +1289,23 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
 
         public void setValueAt(Object aValue, WBSNode node) {
             LeafNodeData leafData = getLeafNodeData(node);
-            if (leafData != null)
-                leafData.userSetAssignedTo(aValue);
+            if (leafData != null) {
+                leafData.userSetAssignedTo(aValue == null ? null //
+                        : aValue.toString());
+
+            } else if (aValue instanceof AssignedToEditList) {
+                clearIndividualTopDownBottomUpMismatches(node);
+                AssignedToEditList edits = (AssignedToEditList) aValue;
+                if (!edits.isNoop()) {
+                    for (WBSNode child : wbsModel.getDescendants(node)) {
+                        leafData = getLeafNodeData(child);
+                        if (leafData != null)
+                            leafData.setTimes(edits);
+                        else
+                            clearIndividualTopDownBottomUpMismatches(child);
+                    }
+                }
+            }
         }
 
         public TableCellEditor getCellEditor() {
@@ -1225,7 +1320,7 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
     private static final String RESOURCES_TIME_MISMATCH = resources
             .getString("Assigned_To.TDBU_Mismatch");
     private static Pattern TIME_SETTING_PATTERN = Pattern.compile( //
-            "([a-zA-Z]+)[^a-zA-Z0-9.,;]*([0-9.][0-9.,]*)?");
+            "([a-zA-Z]+)[^a-zA-Z0-9.,;-]*(-?[0-9.][0-9.,]*)?");
     private static final boolean ANNOTATE_ASSIGNMENT_VALUE = true;
     private static final String DEFAULT_TIME_MARKER = "DefaultTimePerPerson";
 
@@ -1265,11 +1360,12 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
             // initialize the combo box contents and return it
             comboBox.setFullText(text);
             comboBox.setDefaultTime(defaultTime);
+            comboBox.startTrackingChanges();
             return comboBox;
         }
         @Override
         public Object getCellEditorValue() {
-            return comboBox.getFullText();
+            return comboBox.getTrackedChanges();
         }
     }
     private AssignedToCellEditor assignedToEditor = new AssignedToCellEditor();
