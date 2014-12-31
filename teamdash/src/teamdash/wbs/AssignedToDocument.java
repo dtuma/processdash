@@ -55,6 +55,11 @@ public class AssignedToDocument extends PlainDocument {
     private boolean selecting = false;
 
     /**
+     * Flag indicating that the last edit was the insertion of a separator char
+     */
+    private boolean justInsertedSeparator = false;
+
+    /**
      * The adaptor that is used to find and select items.
      */
     private AssignedToComboBoxAdaptor adaptor;
@@ -146,6 +151,7 @@ public class AssignedToDocument extends PlainDocument {
         try {
             int end = offs + len;
             boolean deletedWord = false;
+            justInsertedSeparator = false;
 
             // iterate over the words, finding ones the user wants to remove
             List<Word> words = getWords();
@@ -249,6 +255,7 @@ public class AssignedToDocument extends PlainDocument {
             } else {
                 badInput();
             }
+            justInsertedSeparator = (ch == SEPARATOR_CHAR);
         } catch (BadInputException bie) {
         }
     }
@@ -416,6 +423,9 @@ public class AssignedToDocument extends PlainDocument {
             List<Word> words = getWords();
             if (words.isEmpty())
                 badInput();
+            if (justInsertedSeparator)
+                // separator followed by space should not cause a double-move
+                return;
             for (Word w : words) {
                 if (w.beg > offset) {
                     adaptor.markWord(w);
