@@ -53,12 +53,16 @@ public class TeamMemberTimeColumn extends TopDownBottomUpColumn
 
     private TeamMember teamMember;
 
+    private String assignWithZeroAttr, assignWithZeroInheritedAttr;
+
     public TeamMemberTimeColumn(DataTableModel dataModel,
                                 TeamMember teamMember) {
         super(dataModel,
               teamMember.getInitials(),
               getColumnID(teamMember));
         this.teamMember = teamMember;
+        this.assignWithZeroAttr = getMemberAssignedZeroAttrName(teamMember);
+        this.assignWithZeroInheritedAttr = "_" + assignWithZeroAttr;
         setConflictAttributeName(topDownAttrName);
     }
 
@@ -80,7 +84,28 @@ public class TeamMemberTimeColumn extends TopDownBottomUpColumn
      * with an associated color. */
     public Object getValueAt(WBSNode node) {
         NumericDataValue value = (NumericDataValue) super.getValueAt(node);
+        value.isInvisible = (value.value == 0 && value.errorMessage == null //
+                && isAssignedWithZero(node) == false);
         return new TeamMemberTime(value, teamMember.getColor());
+    }
+
+    @Override
+    protected double recalc(WBSNode node) {
+        node.removeAttribute(assignWithZeroInheritedAttr);
+        double result = super.recalc(node);
+        if (result > 0) {
+            node.removeAttribute(assignWithZeroAttr);
+        } else {
+            WBSNode parent = wbsModel.getParent(node);
+            if (parent != null && isAssignedWithZero(node))
+                parent.setAttribute(assignWithZeroInheritedAttr, "t");
+        }
+        return result;
+    }
+
+    private boolean isAssignedWithZero(WBSNode node) {
+        return node.getAttribute(assignWithZeroAttr) != null
+                || node.getAttribute(assignWithZeroInheritedAttr) != null;
     }
 
     @Override
