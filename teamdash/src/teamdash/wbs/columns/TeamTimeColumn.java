@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2014 Tuma Solutions, LLC
+// Copyright (C) 2002-2015 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -380,7 +380,8 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
         saveRoleAssignments(node, assignments);
     }
 
-    private void updateRoleAssignments(AssignedToEditList edits, WBSNode node) {
+    private static void updateRoleAssignments(AssignedToEditList edits,
+            WBSNode node) {
         Map<String, String> assignments = getRoleAssignments(node);
         if (assignments == null)
             return;
@@ -396,7 +397,7 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
         saveRoleAssignments(node, assignments);
     }
 
-    private Map<String, String> getRoleAssignments(WBSNode node) {
+    private static Map<String, String> getRoleAssignments(WBSNode node) {
         String attr = (String) node.getAttribute(ROLE_ASSIGNMENTS_ATTR);
         if (attr == null)
             return null;
@@ -408,7 +409,7 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
         return result;
     }
 
-    private void saveRoleAssignments(WBSNode node,
+    private static void saveRoleAssignments(WBSNode node,
             Map<String, String> assignments) {
         if (assignments == null) {
             node.removeAttribute(ROLE_ASSIGNMENTS_ATTR);
@@ -426,6 +427,20 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
 
     private static final Pattern ROLE_ASSIGNMENT_PAT = Pattern.compile( //
             "(" + ROLE_BEG + "\\p{L}+" + ROLE_END + ")=(\\p{L}+)");
+
+    public static void changeInitials(WBSModel wbsModel,
+            Map<String, String> initialsToChange) {
+        AssignedToEditList initialsChanges = new AssignedToEditList();
+        for (Entry<String, String> e : initialsToChange.entrySet()) {
+            Change change = new Change();
+            change.origInitials = e.getKey();
+            change.newInitials = e.getValue();
+            initialsChanges.add(change);
+        }
+        updateRoleAssignments(initialsChanges, wbsModel.getRoot());
+        for (WBSNode node : wbsModel.getDescendants(wbsModel.getRoot()))
+            updateRoleAssignments(initialsChanges, node);
+    }
 
 
 

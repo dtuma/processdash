@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2014 Tuma Solutions, LLC
+// Copyright (C) 2002-2015 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -355,7 +355,8 @@ public class DataTableModel extends AbstractTableModel {
         addDataColumn(new WBSNodeColumn(wbsModel));
         SizeTypeColumn.createSizeColumns(this, teamProcess);
         addDataColumn(new PhaseColumn(this, teamProcess, workflows));
-        memberColumnManager = new TeamMemberColumnManager(this, teamList);
+        memberColumnManager = new TeamMemberColumnManager(this, workflows,
+                teamList);
         addDataColumn(new TaskSizeColumn(this, teamProcess));
         addDataColumn(new TaskSizeUnitsColumn(this, teamProcess));
         addDataColumn(new TeamTimeColumn(this));

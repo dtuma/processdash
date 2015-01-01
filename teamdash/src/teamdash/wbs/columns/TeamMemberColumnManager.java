@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2012 Tuma Solutions, LLC
+// Copyright (C) 2002-2015 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -41,6 +41,7 @@ import teamdash.team.TeamMemberList;
 import teamdash.wbs.DataColumn;
 import teamdash.wbs.DataTableColumn;
 import teamdash.wbs.DataTableModel;
+import teamdash.wbs.WorkflowWBSModel;
 
 /** Creates and manages time columns for each team member.
  * 
@@ -57,6 +58,8 @@ public class TeamMemberColumnManager
 
     /** The DataTableModel to create columns for */
     private DataTableModel dataModel;
+    /** The workflows in this team project */
+    private WorkflowWBSModel workflows;
     /** The list of team members */
     private TeamMemberList teamList;
     /** The list of TeamMemberTimeColumn objects for each team member */
@@ -72,8 +75,9 @@ public class TeamMemberColumnManager
 
 
     public TeamMemberColumnManager(DataTableModel dataModel,
-                                   TeamMemberList teamList) {
+            WorkflowWBSModel workflows, TeamMemberList teamList) {
         this.dataModel = dataModel;
+        this.workflows = workflows;
         this.teamList = teamList;
         this.planTimeColumnList = new ArrayList<TeamMemberTimeColumn>();
         this.actualTimeColumnList = new ArrayList<TeamMemberActualTimeColumn>();
@@ -223,8 +227,11 @@ public class TeamMemberColumnManager
 
         // process any pending changes to the initials of team members
         if (initialsToChange != null) {
+            TeamTimeColumn.changeInitials(dataModel.getWBSModel(),
+                initialsToChange);
             TeamMemberTimeColumn.changeInitials(dataModel.getWBSModel(),
                 initialsToChange);
+            WorkflowResourcesColumn.changeInitials(workflows, initialsToChange);
             initialsToChange = null;
         }
 

@@ -1,4 +1,4 @@
-// Copyright (C) 2014 Tuma Solutions, LLC
+// Copyright (C) 2014-2015 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -28,6 +28,7 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.regex.Matcher;
@@ -114,6 +115,37 @@ public class WorkflowResourcesColumn extends AbstractDataColumn implements
             dataModel.setValueAt(Integer.toString(numPeople), node, col);
         }
     }
+
+    public static void changeInitials(WBSModel workflows,
+            Map<String, String> changesToInitials) {
+        boolean workflowsWereChanged = false;
+        for (WBSNode node : workflows.getDescendants(workflows.getRoot())) {
+            String attr = (String) node.getAttribute(ATTR_NAME);
+            if (attr == null)
+                continue;
+
+            StringBuilder newAttrVal = new StringBuilder();
+            boolean nodeWasChanged = false;
+            Matcher m = TOKEN_PAT.matcher(attr);
+            while (m.find()) {
+                String token = m.group();
+                newAttrVal.append(AssignedToDocument.SEPARATOR_SPACE);
+                String replacement = changesToInitials.get(token);
+                if (replacement == null) {
+                    newAttrVal.append(token);
+                } else {
+                    newAttrVal.append(replacement);
+                    nodeWasChanged = workflowsWereChanged = true;
+                }
+            }
+            if (nodeWasChanged)
+                node.setAttribute(ATTR_NAME, newAttrVal.substring(2));
+        }
+        if (workflowsWereChanged)
+            workflows.fireTableDataChanged();
+    }
+
+
 
     private Set<String> getTeamInitials() {
         Set<String> result = new LinkedHashSet<String>();
@@ -225,5 +257,8 @@ public class WorkflowResourcesColumn extends AbstractDataColumn implements
     public static final String ROLE_END = "\u00BB";
 
     private static final Pattern WORD_PAT = Pattern.compile("\\p{L}+");
+
+    private static final Pattern TOKEN_PAT = Pattern.compile( //
+            ROLE_BEG + "?\\p{L}+" + ROLE_END + "?");
 
 }

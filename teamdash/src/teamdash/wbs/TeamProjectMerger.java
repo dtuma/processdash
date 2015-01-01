@@ -1,4 +1,4 @@
-// Copyright (C) 2012-2014 Tuma Solutions, LLC
+// Copyright (C) 2012-2015 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -35,6 +35,8 @@ import teamdash.merge.ui.MergeConflictNotification;
 import teamdash.team.TeamMemberList;
 import teamdash.team.TeamMemberListMerger;
 import teamdash.wbs.columns.TeamMemberTimeColumn;
+import teamdash.wbs.columns.TeamTimeColumn;
+import teamdash.wbs.columns.WorkflowResourcesColumn;
 
 public class TeamProjectMerger {
 
@@ -94,19 +96,25 @@ public class TeamProjectMerger {
         conflicts.addAll(teamMerger.getConflictNotifications());
 
         // the team member merge may have caused initials to change in the
-        // main and incoming projects. Apply those changes to the WBS.
-        changeInitials(main.getWBS(),
+        // main and incoming projects. Apply those changes to the WBS and
+        // to the workflows.
+        changeInitials(main.getWBS(), main.getWorkflows(),
             teamMerger.getChangesNeededToMainInitials());
-        changeInitials(incoming.getWBS(),
+        changeInitials(incoming.getWBS(), incoming.getWorkflows(),
             teamMerger.getChangesNeededToIncomingInitials());
 
         return teamMerger.getMerged();
     }
 
     private void changeInitials(WBSModel wbsModel,
+            WorkflowWBSModel workflowModel,
             Map<String, String> changesToInitials) {
-        if (changesToInitials != null && !changesToInitials.isEmpty())
+        if (changesToInitials != null && !changesToInitials.isEmpty()) {
+            TeamTimeColumn.changeInitials(wbsModel, changesToInitials);
             TeamMemberTimeColumn.changeInitials(wbsModel, changesToInitials);
+            WorkflowResourcesColumn.changeInitials(workflowModel,
+                changesToInitials);
+        }
     }
 
     private WorkflowWBSModel mergeWorkflows() {
