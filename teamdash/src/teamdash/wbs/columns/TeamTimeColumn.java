@@ -39,6 +39,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
@@ -341,6 +342,9 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
                 node = parent;
         }
 
+        // store these new role assignments on the parent node
+        storeRoleAssignments(edits, node);
+
         // tell the decendants of that parent to apply these role assignments.
         for (WBSNode child : wbsModel.getDescendants(node)) {
             LeafTaskData leafTaskData = getLeafTaskData(child);
@@ -366,6 +370,62 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
         return true;
     }
 
+    private void storeRoleAssignments(AssignedToEditList newRoleAssignments,
+            WBSNode node) {
+        Map<String, String> assignments = getRoleAssignments(node);
+        if (assignments == null)
+            assignments = new HashMap();
+        for (Change change : newRoleAssignments)
+            assignments.put(change.origInitials, change.newInitials);
+        saveRoleAssignments(node, assignments);
+    }
+
+    private void updateRoleAssignments(AssignedToEditList edits, WBSNode node) {
+        Map<String, String> assignments = getRoleAssignments(node);
+        if (assignments == null)
+            return;
+
+        for (Entry<String, String> e : assignments.entrySet()) {
+            for (Change change : edits) {
+                if (e.getValue().equalsIgnoreCase(change.origInitials)) {
+                    e.setValue(change.newInitials);
+                    break;
+                }
+            }
+        }
+        saveRoleAssignments(node, assignments);
+    }
+
+    private Map<String, String> getRoleAssignments(WBSNode node) {
+        String attr = (String) node.getAttribute(ROLE_ASSIGNMENTS_ATTR);
+        if (attr == null)
+            return null;
+
+        Map<String, String> result = new HashMap();
+        Matcher m = ROLE_ASSIGNMENT_PAT.matcher(attr);
+        while (m.find())
+            result.put(m.group(1), m.group(2));
+        return result;
+    }
+
+    private void saveRoleAssignments(WBSNode node,
+            Map<String, String> assignments) {
+        if (assignments == null) {
+            node.removeAttribute(ROLE_ASSIGNMENTS_ATTR);
+        } else {
+            StringBuilder result = new StringBuilder();
+            for (Entry<String, String> e : assignments.entrySet()) {
+                if (e.getValue() != null)
+                    result.append(",").append(e.getKey()).append("=")
+                            .append(e.getValue());
+            }
+            node.setAttribute(ROLE_ASSIGNMENTS_ATTR,
+                result.length() == 0 ? null : result.substring(1));
+        }
+    }
+
+    private static final Pattern ROLE_ASSIGNMENT_PAT = Pattern.compile( //
+            "(" + ROLE_BEG + "\\p{L}+" + ROLE_END + ")=(\\p{L}+)");
 
 
 
@@ -1444,12 +1504,14 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
                 clearIndividualTopDownBottomUpMismatches(node);
                 AssignedToEditList edits = (AssignedToEditList) aValue;
                 if (!edits.isNoop()) {
+                    updateRoleAssignments(edits, node);
                     for (WBSNode child : wbsModel.getDescendants(node)) {
                         leafData = getLeafNodeData(child);
                         if (leafData != null)
                             leafData.setTimes(edits);
                         else
                             clearIndividualTopDownBottomUpMismatches(child);
+                        updateRoleAssignments(edits, child);
                     }
                 }
             }
@@ -1472,6 +1534,7 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
     private static final boolean ANNOTATE_ASSIGNMENT_VALUE = true;
     private static final String DEFAULT_TIME_MARKER = "DefaultTimePerPerson";
     private static final String PERFORMED_BY_ATTR = WorkflowResourcesColumn.ATTR_NAME;
+    public static final String ROLE_ASSIGNMENTS_ATTR = "Workflow Role Assignments";
     private static final String PERFORMED_BY_PROCESSED_FLAG = "_Processed "
             + PERFORMED_BY_ATTR;
 
