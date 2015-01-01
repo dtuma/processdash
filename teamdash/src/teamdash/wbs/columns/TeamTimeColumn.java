@@ -23,6 +23,11 @@
 
 package teamdash.wbs.columns;
 
+import static teamdash.wbs.AssignedToDocument.SEPARATOR;
+import static teamdash.wbs.AssignedToDocument.SEPARATOR_SPACE;
+import static teamdash.wbs.columns.WorkflowResourcesColumn.ROLE_BEG;
+import static teamdash.wbs.columns.WorkflowResourcesColumn.ROLE_END;
+
 import java.awt.Color;
 import java.awt.Component;
 import java.text.NumberFormat;
@@ -31,6 +36,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -43,6 +49,8 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
+
+import net.sourceforge.processdash.util.StringUtils;
 
 import teamdash.team.TeamMember;
 import teamdash.wbs.AnnotatedValue;
@@ -300,6 +308,64 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
         return resourcesColumn.getAutoZeroUserString(node);
     }
 
+    private void applyWorkflowRoleEdits(AssignedToEditList edits, WBSNode node) {
+        // scan the list of edits, looking for role-related changes.
+        for (Iterator i = edits.iterator(); i.hasNext();) {
+            Change change = (Change) i.next();
+            String origInitials = change.origInitials;
+            boolean isRoleAssignment = false;
+            if (origInitials != null && origInitials.startsWith(ROLE_BEG)) {
+                if (change.isDelete()) {
+                    deleteRole(node, origInitials);
+                } else if (change.isInitialsChange()) {
+                    isRoleAssignment = true;
+                    deleteRole(node, origInitials);
+                }
+            }
+            if (!isRoleAssignment)
+                i.remove();
+        }
+
+        // the loop above will discard all changes except role assignments. If
+        // no role assignments were found, we're done.
+        if (edits.isEmpty())
+            return;
+
+        // find the parent node which bounds this workflow instantiation.
+        while (true) {
+            WBSNode parent = wbsModel.getParent(node);
+            if (parent == null || parent.getAttribute(
+                    WorkflowModel.WORKFLOW_SOURCE_IDS_ATTR) == null)
+                break;
+            else
+                node = parent;
+        }
+
+        // tell the decendants of that parent to apply these role assignments.
+        for (WBSNode child : wbsModel.getDescendants(node)) {
+            LeafTaskData leafTaskData = getLeafTaskData(child);
+            if (leafTaskData != null)
+                leafTaskData.applyWorkflowRoleAssignments(edits);
+        }
+    }
+
+    private boolean deleteRole(WBSNode node, String roleToDelete) {
+        String currentRoles = (String) node.getAttribute(PERFORMED_BY_ATTR);
+        if (currentRoles == null)
+            return false;
+
+        String textToDelete = SEPARATOR_SPACE + roleToDelete;
+        String newRoles = StringUtils.findAndReplace(currentRoles,
+            textToDelete, "");
+        if (currentRoles.equals(newRoles))
+            return false;
+
+        if (newRoles.trim().length() == 0)
+            newRoles = null;
+        node.setAttribute(PERFORMED_BY_ATTR, newRoles);
+        return true;
+    }
+
 
 
 
@@ -498,12 +564,16 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
         protected IndivTime getIndiv(String initials) {
             if (initials != null)
                 for (IndivTime indiv : individualTimes)
-                    if (indiv.initials.equals(initials))
+                    if (indiv.initials.equalsIgnoreCase(initials))
                         return indiv;
             return null;
         }
 
         void maybeAddMembers(AssignedToEditList edits, Map times) {}
+
+        protected String getRoles() {
+            return null;
+        }
 
         abstract boolean isTypeMismatch();
         abstract boolean isFullyAssigned();
@@ -535,13 +605,14 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
         }
 
         private void maybeSetAutoZeroUser() {
-            // check to see if an auto zero user has been set using either
-            // a persistent or transient attribute
+            // check to see if an auto zero user has been set using either a
+            // persistent or transient attribute or a workflow assignment
             String autoZeroInitials = (String) node.removeAttribute(
                     AUTO_ZERO_USER_ATTR_PERSISTENT);
             if (autoZeroInitials == null)
                 autoZeroInitials = (String) node.removeAttribute(
                     AUTO_ZERO_USER_ATTR_TRANSIENT);
+            autoZeroInitials = getWorkflowExplicitUsers(autoZeroInitials);
             if (autoZeroInitials == null)
                 return;
 
@@ -569,6 +640,46 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
             if (!times.isEmpty())
                 for (IndivTime oneIndiv : individualTimes)
                     oneIndiv.setTime(times);
+        }
+
+        /**
+         * If a just-applied workflow contained assignments to real people
+         * (rather than only abstract roles), return the initials of those
+         * people. If the workflow contains role assignments but no plain
+         * individuals, return the empty string. Otherwise, return the fallback
+         * value.
+         * 
+         * As a side effect, clean up the value of the "performed by" attribute
+         * so it can be used by other logic.
+         */
+        private String getWorkflowExplicitUsers(String fallbackValue) {
+            if (node.getAttribute(PERFORMED_BY_PROCESSED_FLAG) != null)
+                return fallbackValue;
+
+            String performedBy = (String) node.getAttribute(PERFORMED_BY_ATTR);
+            if (performedBy == null)
+                return fallbackValue;
+
+            StringBuilder people = new StringBuilder();
+            StringBuilder roles = new StringBuilder();
+            Matcher m = TIME_SETTING_PATTERN.matcher(performedBy);
+            while (m.find()) {
+                String word = m.group(1);
+                if (getIndiv(word) != null)
+                    people.append(word).append(" ");
+                else
+                    roles.append(SEPARATOR_SPACE).append(ROLE_BEG).append(word)
+                            .append(ROLE_END);
+            }
+            node.setAttribute(PERFORMED_BY_ATTR, roles.length() == 0 ? null
+                    : roles.toString());
+            node.setAttribute(PERFORMED_BY_PROCESSED_FLAG, "t");
+            return people.toString();
+        }
+
+        @Override
+        protected String getRoles() {
+            return (String) node.getAttribute(PERFORMED_BY_ATTR);
         }
 
         void figureTimePerPerson() {
@@ -600,7 +711,18 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
             actualNumPeople = countPeople(individualTimes);
 
             numPeople = Math.max(numPeople, 1);
-            numPeople = Math.max(numPeople, actualNumPeople);
+            numPeople = Math.max(numPeople, actualNumPeople + countRoles());
+        }
+
+        private int countRoles() {
+            int count = 0;
+            String roles = (String) node.getAttribute(PERFORMED_BY_ATTR);
+            if (roles != null) {
+                for (int i = roles.length(); i-- > 0; )
+                    if (roles.charAt(i) == AssignedToDocument.SEPARATOR_CHAR)
+                        count++;
+            }
+            return count;
         }
 
         void figureTeamTime() {
@@ -824,6 +946,19 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
                                 break;
                         }
                     }
+                }
+            }
+        }
+
+        void applyWorkflowRoleAssignments(AssignedToEditList edits) {
+            for (Change change : edits) {
+                String roleName = change.origInitials;
+                String initials = change.newInitials;
+                if (deleteRole(node, roleName)) {
+                    IndivTime indiv = getIndiv(initials);
+                    if (indiv != null)
+                        indiv.setTime(Collections.singletonMap(initials,
+                            indiv.time + timePerPerson));
                 }
             }
         }
@@ -1207,7 +1342,7 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
             LeafNodeData leafData = getLeafNodeData(node);
             if (leafData != null) {
                 Object result = getValueForTimes(leafData.individualTimes,
-                    leafData.timePerPerson);
+                    leafData.timePerPerson, leafData.getRoles());
                 if (leafData instanceof LeafComponentData
                         && result != UNASSIGNED)
                     result = new ErrorValue(result, resources.format(
@@ -1215,7 +1350,7 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
                         node.getType().toLowerCase()), ErrorValue.INFO);
                 return result;
             } else {
-                return getValueForTimes(getIndivTimes(node), -1);
+                return getValueForTimes(getIndivTimes(node), -1, null);
             }
         }
 
@@ -1228,11 +1363,11 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
                 return null;
             else
                 return getValueForTimes(leafData.individualTimes,
-                    leafData.timePerPerson).toString();
+                    leafData.timePerPerson, null).toString();
         }
 
-        private Object getValueForTimes(IndivTime[] times,
-                                        double defaultTime)
+        private Object getValueForTimes(IndivTime[] times, double defaultTime,
+                String roles)
         {
             String tooltip = null;
             StringBuffer result = new StringBuffer();
@@ -1253,15 +1388,25 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
                 if (times[i].hasError)
                     tooltip = RESOURCES_TIME_MISMATCH;
                 times[i].appendTimeString(
-                    result.append(AssignedToDocument.SEPARATOR_SPACE),
-                    defaultTime, false);
+                    result.append(SEPARATOR_SPACE), defaultTime, false);
                 times[i].appendTimeString(
-                    htmlResult.append(AssignedToDocument.SEPARATOR + "&nbsp;"),
-                    defaultTime, true);
+                    htmlResult.append(SEPARATOR + "&nbsp;"), defaultTime, true);
                 times[i].appendTimeString(
-                    annotatedResult.append(AssignedToDocument.SEPARATOR_SPACE),
-                    -1, false);
+                    annotatedResult.append(SEPARATOR_SPACE), -1, false);
                 needsDisplay[i] = false;
+            }
+
+            if (roles != null && roles.length() > 0) {
+                result.append(roles);
+
+                String htmlRoles = StringUtils.findAndReplace(
+                    roles.substring(2), " ", "&nbsp;");
+                htmlResult.append(SEPARATOR)
+                        .append("&nbsp;<b style='color:blue'>")
+                        .append(htmlRoles).append("</b>");
+
+                if (tooltip == null)
+                    tooltip = UNASSIGNED_TOOLTIP;
             }
 
             if (result.length() == 0)
@@ -1292,6 +1437,8 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
             if (leafData != null) {
                 leafData.userSetAssignedTo(aValue == null ? null //
                         : aValue.toString());
+                if (aValue instanceof AssignedToEditList)
+                    applyWorkflowRoleEdits((AssignedToEditList) aValue, node);
 
             } else if (aValue instanceof AssignedToEditList) {
                 clearIndividualTopDownBottomUpMismatches(node);
@@ -1314,15 +1461,19 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
     }
     public static final String RESOURCES_COL_ID = "Assigned To";
     private static String UNASSIGNED_TEXT = "???";
+    private static final String UNASSIGNED_TOOLTIP = resources
+            .getString("Team_Time.Need_Assignment_Tooltip");
     private static Object UNASSIGNED = new ErrorValue(UNASSIGNED_TEXT,
-            resources.getString("Team_Time.Need_Assignment_Tooltip"),
-            ErrorValue.INFO);
+            UNASSIGNED_TOOLTIP, ErrorValue.INFO);
     private static final String RESOURCES_TIME_MISMATCH = resources
             .getString("Assigned_To.TDBU_Mismatch");
     private static Pattern TIME_SETTING_PATTERN = Pattern.compile( //
             "([a-zA-Z]+)[^a-zA-Z0-9.,;-]*(-?[0-9.][0-9.,]*)?");
     private static final boolean ANNOTATE_ASSIGNMENT_VALUE = true;
     private static final String DEFAULT_TIME_MARKER = "DefaultTimePerPerson";
+    private static final String PERFORMED_BY_ATTR = WorkflowResourcesColumn.ATTR_NAME;
+    private static final String PERFORMED_BY_PROCESSED_FLAG = "_Processed "
+            + PERFORMED_BY_ATTR;
 
     private class AssignedToCellEditor extends AutocompletingDataTableCellEditor {
         private AssignedToComboBox comboBox;

@@ -56,7 +56,7 @@ public class WorkflowResourcesColumn extends AbstractDataColumn implements
 
     public static final String COLUMN_ID = "Performed By";
 
-    private static final String ATTR_NAME = "Workflow Performed By";
+    public static final String ATTR_NAME = "Workflow Performed By";
 
     private DataTableModel dataModel;
 
@@ -75,7 +75,8 @@ public class WorkflowResourcesColumn extends AbstractDataColumn implements
     }
 
     public boolean isCellEditable(WBSNode node) {
-        return node.getIndentLevel() > 1 && wbsModel.isLeaf(node);
+        return node.getIndentLevel() > 1
+                && TeamTimeColumn.isLeafTask(wbsModel, node);
     }
 
     public Object getValueAt(WBSNode node) {
@@ -183,9 +184,18 @@ public class WorkflowResourcesColumn extends AbstractDataColumn implements
                 column);
 
             // initialize the combo box contents and return it
-            comboBox.setFullText(value == null ? "" : value + " ");
+            comboBox.setFullText(getTextToEdit((String) value));
             comboBox.setInitialsList(getCompletionOptions());
             return comboBox;
+        }
+
+        private String getTextToEdit(String value) {
+            if (value == null)
+                return "";
+
+            value = value.replace(';', AssignedToDocument.SEPARATOR_CHAR);
+            value = value.replace(',', AssignedToDocument.SEPARATOR_CHAR);
+            return value + " ";
         }
 
         private List<String> getCompletionOptions() {
@@ -210,9 +220,9 @@ public class WorkflowResourcesColumn extends AbstractDataColumn implements
     private PerformedByEditor performedByEditor = new PerformedByEditor();
 
 
-    private static final String ROLE_BEG = "\u00AB";
+    public static final String ROLE_BEG = "\u00AB";
 
-    private static final String ROLE_END = "\u00BB";
+    public static final String ROLE_END = "\u00BB";
 
     private static final Pattern WORD_PAT = Pattern.compile("\\p{L}+");
 

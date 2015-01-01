@@ -73,7 +73,7 @@ public class AssignedToDocument extends PlainDocument {
     /**
      * Flag indicating whether numbers can be entered in this document
      */
-    private boolean numbersAllowed;
+    private boolean numbersAllowed = true;
 
     /**
      * The default time to list for an individual, if we need to insert a number
