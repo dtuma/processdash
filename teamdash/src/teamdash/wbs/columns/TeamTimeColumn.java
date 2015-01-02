@@ -41,6 +41,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -53,6 +54,8 @@ import javax.swing.table.TableCellRenderer;
 
 import net.sourceforge.processdash.util.StringUtils;
 
+import teamdash.merge.AttributeMerger;
+import teamdash.merge.ContentMerger.ErrorReporter;
 import teamdash.team.TeamMember;
 import teamdash.wbs.AnnotatedValue;
 import teamdash.wbs.AssignedToComboBox;
@@ -441,6 +444,43 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
         for (WBSNode node : wbsModel.getDescendants(wbsModel.getRoot()))
             updateRoleAssignments(initialsChanges, node);
     }
+
+    private static class RolePlaceholderMerger implements
+            AttributeMerger<Integer, String> {
+        public String mergeAttribute(Integer nodeID, String attrName,
+                String base, String main, String incoming,
+                ErrorReporter<Integer> err) {
+            // get the list of roles in each branch.
+            Set baseRoles = getRoles(base);
+            Set mainRoles = getRoles(main);
+            Set incomingRoles = getRoles(incoming);
+
+            // create a copy of the base which performs all deletions
+            Set result = new TreeSet(baseRoles);
+            result.retainAll(mainRoles);
+            result.retainAll(incomingRoles);
+
+            // determine which items have been added, and include them too
+            Set additions = new HashSet(mainRoles);
+            additions.addAll(incomingRoles);
+            additions.removeAll(baseRoles);
+            result.addAll(additions);
+
+            // concatenate the items to produce a result
+            return (result.isEmpty() ? null : StringUtils.join(result, ""));
+        }
+
+        private Set getRoles(String attr) {
+            if (attr == null || attr.length() == 0)
+                return Collections.EMPTY_SET;
+            Set result = new HashSet();
+            Matcher m = TIME_SETTING_PATTERN.matcher(attr);
+            while (m.find())
+                result.add(SEPARATOR_SPACE + ROLE_BEG + m.group(1) + ROLE_END);
+            return result;
+        }
+    }
+    public static final AttributeMerger ROLE_PLACEHOLDER_MERGER = new RolePlaceholderMerger();
 
 
 

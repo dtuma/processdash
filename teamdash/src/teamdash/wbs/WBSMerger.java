@@ -40,6 +40,8 @@ import teamdash.merge.ui.MergeConflictNotification.ModelType;
 import teamdash.wbs.columns.AbstractNotesColumn;
 import teamdash.wbs.columns.ErrorNotesColumn;
 import teamdash.wbs.columns.NotesColumn;
+import teamdash.wbs.columns.TeamTimeColumn;
+import teamdash.wbs.columns.WorkflowResourcesColumn;
 
 public class WBSMerger extends AbstractWBSModelMerger<WBSModel> {
 
@@ -53,6 +55,8 @@ public class WBSMerger extends AbstractWBSModelMerger<WBSModel> {
         contentMerger.addHandler(
             new PatternList().addLiteralEndsWith(" (Top Down)"),
             TOP_DOWN_BOTTOM_UP_MERGER);
+        contentMerger.addHandler(WorkflowResourcesColumn.ATTR_NAME,
+            TeamTimeColumn.ROLE_PLACEHOLDER_MERGER);
         addNoteAttrHandler(NotesColumn.VALUE_ATTR);
         addNoteAttrHandler(ErrorNotesColumn.VALUE_ATTR);
         run();
