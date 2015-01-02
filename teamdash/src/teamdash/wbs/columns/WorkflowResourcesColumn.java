@@ -180,14 +180,18 @@ public class WorkflowResourcesColumn extends AbstractDataColumn implements
 
 
     private static class ComboBoxRenderer extends DefaultListCellRenderer {
+        private String newRoleMessage = ROLE_BEG
+                + resources.getString("Workflow_Performed_By.New_Role")
+                + ROLE_END;
         private JSeparator separator = new JSeparator();
-
         private int numRoles;
 
         @Override
         public Component getListCellRendererComponent(JList list, Object value,
                 int index, boolean isSelected, boolean cellHasFocus) {
-            if (value == null)
+            if ("?".equals(value))
+                value = newRoleMessage;
+            else if ("-".equals(value))
                 return separator;
             else if (index < numRoles)
                 value = ROLE_BEG + value + ROLE_END;
@@ -233,12 +237,12 @@ public class WorkflowResourcesColumn extends AbstractDataColumn implements
         private List<String> getCompletionOptions() {
             Set<String> teamInitials = getTeamInitials();
             Set<String> roles = getRoleNamesInUse(teamInitials);
+            comboBoxRenderer.numRoles = roles.size();
 
             List<String> result = new LinkedList();
             result.addAll(roles);
-            result.add(resources.getString("Workflow_Performed_By.New_Role"));
-            comboBoxRenderer.numRoles = result.size();
-            result.add(null);
+            result.add("?");
+            result.add("-");
             result.addAll(teamInitials);
             return result;
         }
