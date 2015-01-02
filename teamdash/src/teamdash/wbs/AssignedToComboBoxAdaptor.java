@@ -2,7 +2,7 @@
  * Copyright 2004 Sun Microsystems, Inc., 4150 Network Circle,
  * Santa Clara, California 95054, U.S.A. All rights reserved.
  * 
- * Modifications Copyright (C) 2014 Tuma Solutions, LLC
+ * Modifications Copyright (C) 2014-2015 Tuma Solutions, LLC
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -108,6 +108,8 @@ public class AssignedToComboBoxAdaptor implements ActionListener {
             markText(w.beg, w.end);
             if (w.isNumber())
                 comboBox.hidePopup();
+            else if (comboBox.isDisplayable() && !comboBox.isPopupVisible())
+                comboBox.showPopup();
         }
     }
 
