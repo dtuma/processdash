@@ -52,10 +52,13 @@ import javax.swing.event.ChangeListener;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 
+import net.sourceforge.processdash.util.PatternList;
 import net.sourceforge.processdash.util.StringUtils;
 
+import teamdash.merge.AttributeMergeWarning;
 import teamdash.merge.AttributeMerger;
 import teamdash.merge.ContentMerger.ErrorReporter;
+import teamdash.merge.MergeWarning.Severity;
 import teamdash.team.TeamMember;
 import teamdash.wbs.AnnotatedValue;
 import teamdash.wbs.AssignedToComboBox;
@@ -375,61 +378,45 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
 
     private void storeRoleAssignments(AssignedToEditList newRoleAssignments,
             WBSNode node) {
-        Map<String, String> assignments = getRoleAssignments(node);
-        if (assignments == null)
-            assignments = new HashMap();
-        for (Change change : newRoleAssignments)
-            assignments.put(change.origInitials, change.newInitials);
-        saveRoleAssignments(node, assignments);
+        String knownRoles = (String) node.getAttribute(KNOWN_ROLES_ATTR);
+        for (Change change : newRoleAssignments) {
+            // add this role name to the list of roles that are known to be
+            // stored on this node
+            String roleName = change.origInitials;
+            if (knownRoles == null)
+                knownRoles = roleName;
+            else if (!knownRoles.contains(roleName))
+                knownRoles = knownRoles + "," + roleName;
+            // store the actual role assignment in a separate attribute.
+            node.setAttribute(ROLE_ASSIGNMENT_PREFIX + roleName,
+                change.newInitials);
+        }
+        node.setAttribute(KNOWN_ROLES_ATTR, knownRoles);
     }
 
     private static void updateRoleAssignments(AssignedToEditList edits,
             WBSNode node) {
-        Map<String, String> assignments = getRoleAssignments(node);
-        if (assignments == null)
+        String knownRoles = (String) node.getAttribute(KNOWN_ROLES_ATTR);
+        if (knownRoles == null)
             return;
 
-        for (Entry<String, String> e : assignments.entrySet()) {
-            for (Change change : edits) {
-                if (e.getValue().equalsIgnoreCase(change.origInitials)) {
-                    e.setValue(change.newInitials);
-                    break;
+        // iterate over each role that is known to be stored on this node
+        for (String roleName : knownRoles.split(",")) {
+            // retrieve the person who used to be assigned to this role.
+            String attrName = ROLE_ASSIGNMENT_PREFIX + roleName;
+            String oldAssignment = (String) node.getAttribute(attrName);
+            if (oldAssignment != null) {
+                // if that person's work has been reassigned to someone else,
+                // update the role assignment accordingly.
+                for (Change change : edits) {
+                    if (oldAssignment.equalsIgnoreCase(change.origInitials)) {
+                        node.setAttribute(attrName, change.newInitials);
+                        break;
+                    }
                 }
             }
         }
-        saveRoleAssignments(node, assignments);
     }
-
-    private static Map<String, String> getRoleAssignments(WBSNode node) {
-        String attr = (String) node.getAttribute(ROLE_ASSIGNMENTS_ATTR);
-        if (attr == null)
-            return null;
-
-        Map<String, String> result = new HashMap();
-        Matcher m = ROLE_ASSIGNMENT_PAT.matcher(attr);
-        while (m.find())
-            result.put(m.group(1), m.group(2));
-        return result;
-    }
-
-    private static void saveRoleAssignments(WBSNode node,
-            Map<String, String> assignments) {
-        if (assignments == null) {
-            node.removeAttribute(ROLE_ASSIGNMENTS_ATTR);
-        } else {
-            StringBuilder result = new StringBuilder();
-            for (Entry<String, String> e : assignments.entrySet()) {
-                if (e.getValue() != null)
-                    result.append(",").append(e.getKey()).append("=")
-                            .append(e.getValue());
-            }
-            node.setAttribute(ROLE_ASSIGNMENTS_ATTR,
-                result.length() == 0 ? null : result.substring(1));
-        }
-    }
-
-    private static final Pattern ROLE_ASSIGNMENT_PAT = Pattern.compile( //
-            "(" + ROLE_BEG + "\\p{L}+" + ROLE_END + ")=(\\p{L}+)");
 
     public static void changeInitials(WBSModel wbsModel,
             Map<String, String> initialsToChange) {
@@ -481,6 +468,44 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
         }
     }
     public static final AttributeMerger ROLE_PLACEHOLDER_MERGER = new RolePlaceholderMerger();
+
+    private static class KnownRolesMerger implements
+            AttributeMerger<Integer, String> {
+        public String mergeAttribute(Integer nodeID, String attrName,
+                String base, String main, String incoming,
+                ErrorReporter<Integer> err) {
+            if (main == null)
+                return incoming;
+            else if (incoming == null)
+                return main;
+
+            Set<String> roles = new HashSet();
+            roles.addAll(Arrays.asList(main.split(",")));
+            roles.addAll(Arrays.asList(incoming.split(",")));
+            roles.remove("");
+            return StringUtils.join(roles, ",");
+        }
+    }
+    public static final AttributeMerger KNOWN_ROLES_MERGER = new KnownRolesMerger();
+
+    private static class AssignedRoleMerger implements
+            AttributeMerger<Integer, String> {
+        public String mergeAttribute(Integer nodeID, String attrName,
+                String base, String main, String incoming,
+                ErrorReporter<Integer> err) {
+            if (main == null)
+                return incoming;
+            else if (incoming == null)
+                return main;
+
+            String roleName = attrName.substring(ROLE_ASSIGNMENT_PREFIX.length());
+            err.addMergeWarning(new AttributeMergeWarning<Integer>(
+                    Severity.CONFLICT, "Attribute.Assigned_To", nodeID,
+                    attrName, roleName, main, incoming));
+            return main;
+        }
+    }
+    public static AttributeMerger ASSIGNED_ROLE_MERGER = new AssignedRoleMerger();
 
 
 
@@ -1447,6 +1472,12 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
             this.columnID = RESOURCES_COL_ID;
             this.columnName = resources.getString("Assigned_To.Name");
             this.preferredWidth = 200;
+            this.conflictAttributeNamePattern = new PatternList()
+                    .addLiteralStartsWith(ROLE_ASSIGNMENT_PREFIX);
+        }
+
+        public Object getConflictDisplayValue(String value, WBSNode node) {
+            return value;
         }
 
         public boolean isCellEditable(WBSNode node) {
@@ -1589,7 +1620,8 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
     private static final boolean ANNOTATE_ASSIGNMENT_VALUE = true;
     private static final String DEFAULT_TIME_MARKER = "DefaultTimePerPerson";
     private static final String PERFORMED_BY_ATTR = WorkflowResourcesColumn.ATTR_NAME;
-    public static final String ROLE_ASSIGNMENTS_ATTR = "Workflow Role Assignments";
+    public static final String KNOWN_ROLES_ATTR = "Workflow Roles List";
+    public static final String ROLE_ASSIGNMENT_PREFIX = "Workflow Role Assignment ";
     private static final String PERFORMED_BY_PROCESSED_FLAG = "_Processed "
             + PERFORMED_BY_ATTR;
 

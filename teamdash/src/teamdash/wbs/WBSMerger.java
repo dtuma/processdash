@@ -57,6 +57,11 @@ public class WBSMerger extends AbstractWBSModelMerger<WBSModel> {
             TOP_DOWN_BOTTOM_UP_MERGER);
         contentMerger.addHandler(WorkflowResourcesColumn.ATTR_NAME,
             TeamTimeColumn.ROLE_PLACEHOLDER_MERGER);
+        contentMerger.addHandler(TeamTimeColumn.KNOWN_ROLES_ATTR,
+            TeamTimeColumn.KNOWN_ROLES_MERGER);
+        contentMerger.addHandler(new PatternList()
+                .addLiteralStartsWith(TeamTimeColumn.ROLE_ASSIGNMENT_PREFIX),
+            TeamTimeColumn.ASSIGNED_ROLE_MERGER);
         addNoteAttrHandler(NotesColumn.VALUE_ATTR);
         addNoteAttrHandler(ErrorNotesColumn.VALUE_ATTR);
         run();
