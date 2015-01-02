@@ -1,4 +1,4 @@
-// Copyright (C) 2007 Tuma Solutions, LLC
+// Copyright (C) 2007-2015 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -24,9 +24,11 @@
 package net.sourceforge.processdash.ui.lib;
 
 import java.awt.Component;
+import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.Date;
+import java.util.EventObject;
 
 import javax.swing.AbstractCellEditor;
 import javax.swing.JTable;
@@ -46,6 +48,7 @@ public class JDateTimeChooserCellEditor extends AbstractCellEditor
 
     private JDateChooser dateChooser;
     private boolean changingInternally;
+    private int clickCountToStart;
 
     public JDateTimeChooserCellEditor(String format) {
         this(format, true);
@@ -55,11 +58,28 @@ public class JDateTimeChooserCellEditor extends AbstractCellEditor
         dateChooser = new JDateChooser(null, null, format,
             new JTextFieldDateTimeEditor());
         changingInternally = false;
+        clickCountToStart = 1;
 
         dateChooser.getDateEditor().getUiComponent().setBorder(null);
 
         if (autoSave)
             dateChooser.addPropertyChangeListener(new AutoSaver());
+    }
+
+    public int getClickCountToStart() {
+        return clickCountToStart;
+    }
+
+    public void setClickCountToStart(int clickCountToStart) {
+        this.clickCountToStart = clickCountToStart;
+    }
+
+    @Override
+    public boolean isCellEditable(EventObject e) {
+        if (e instanceof MouseEvent)
+            return ((MouseEvent) e).getClickCount() >= clickCountToStart;
+        else
+            return true;
     }
 
     public Component getTableCellEditorComponent(JTable table,

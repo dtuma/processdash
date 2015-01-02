@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2014 Tuma Solutions, LLC
+// Copyright (C) 2001-2015 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -43,6 +43,7 @@ import java.awt.datatransfer.ClipboardOwner;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.Transferable;
+import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
@@ -1525,7 +1526,9 @@ public class TaskScheduleDialog implements EVTask.Listener,
 
             public boolean canImport(JComponent comp, DataFlavor[] flavors) {
                 for (int i = 0; i < flavors.length; i++) {
-                    if (flavors[i] == DataFlavor.stringFlavor)
+                    if (DataFlavor.stringFlavor.equals(flavors[i]) && isFlatView())
+                        return true;
+                    else if (EV_TASK_FLAVOR.equals(flavors[i]) && !isFlatView())
                         return true;
                 }
                 return false;
@@ -1545,9 +1548,13 @@ public class TaskScheduleDialog implements EVTask.Listener,
             }
 
             protected Transferable createTransferable(JComponent c) {
-                if (!isFlatView())
-                    return null;
+                if (isFlatView())
+                    return createFlatViewTransferrable();
+                else
+                    return createTreeViewTransferrable();
+            }
 
+            private Transferable createFlatViewTransferrable() {
                 int[] rows = treeTable.getSelectedRows();
                 if (rows == null || rows.length == 0
                         || (rows.length == 1 && rows[0] == 0))
@@ -1567,14 +1574,28 @@ public class TaskScheduleDialog implements EVTask.Listener,
                 return new StringSelection(data.toString());
             }
 
+            private Transferable createTreeViewTransferrable() {
+                int[] rows = treeTable.getSelectedRows();
+                if (rows == null || rows.length == 0)
+                    return null;
+
+                EVTask task = (EVTask) getValueAt(rows[0],
+                    EVTaskList.EVTASK_NODE_COLUMN);
+                return new TaskSelection(task);
+            }
+
             public void lostOwnership(Clipboard clipboard, Transferable t) {
                 setCutList(null);
             }
 
             public boolean importData(JComponent comp, Transferable t) {
-                if (!isFlatView())
-                    return false;
+                if (isFlatView())
+                    return importDataFlatView(t);
+                else
+                    return importDataTreeView(t);
+            }
 
+            private boolean importDataFlatView(Transferable t) {
                 int insertionRow = treeTable.getSelectedRow();
                 if (insertionRow == -1) return false;
                 if (insertionRow == 0) insertionRow = 1;
@@ -1598,6 +1619,90 @@ public class TaskScheduleDialog implements EVTask.Listener,
                 return true;
             }
 
+            private boolean importDataTreeView(Transferable t) {
+                int[] rows = treeTable.getSelectedRows();
+                int col = treeTable.getSelectedColumn();
+                if (rows == null || rows.length == 0 || col == -1)
+                    return false;
+
+                Object value;
+                try {
+                    EVTask task = (EVTask) t.getTransferData(EV_TASK_FLAVOR);
+                    int modelCol = convertColumnIndexToModel(col);
+                    value = model.getValueAt(task, modelCol);
+                } catch (Exception e) {
+                    return false;
+                }
+
+                boolean madeChange = false;
+                for (int row : rows) {
+                    if (isCellEditable(row, col)) {
+                        setValueAt(value, row, col);
+                        madeChange = true;
+                    }
+                }
+                return madeChange;
+            }
+
+        }
+
+        private class TaskSelection implements Transferable {
+
+            private EVTask task;
+
+            protected TaskSelection(EVTask task) {
+                this.task = task;
+            }
+
+            public DataFlavor[] getTransferDataFlavors() {
+                return new DataFlavor[] { EV_TASK_FLAVOR,
+                        DataFlavor.stringFlavor };
+            }
+
+            public boolean isDataFlavorSupported(DataFlavor flavor) {
+                return flavor.equals(EV_TASK_FLAVOR)
+                        || flavor.equals(DataFlavor.stringFlavor);
+            }
+
+            public Object getTransferData(DataFlavor flavor)
+                    throws UnsupportedFlavorException {
+                if (flavor.equals(EV_TASK_FLAVOR)) {
+                    return task;
+
+                } else if (flavor.equals(DataFlavor.stringFlavor)) {
+                    String newLine = System.getProperty("line.separator");
+                    StringBuilder data = new StringBuilder();
+                    for (int i = 0; i < getColumnCount(); i++) {
+                        TableColumn col = getColumnModel().getColumn(i);
+                        int pos = convertColumnIndexToModel(i);
+                        if (col.getPreferredWidth() == 0
+                                || pos == EVTaskList.NOTES_COLUMN
+                                || pos == EVTaskList.DEPENDENCIES_COLUMN)
+                            // skip hidden and special columns
+                            continue;
+
+                        String val = getStringForCol(pos);
+                        if (val != null)
+                            data.append(model.getColumnName(pos)).append(":\t")
+                                    .append(val).append(newLine);
+                    }
+                    return data.toString();
+                }
+
+                throw new UnsupportedFlavorException(flavor);
+            }
+
+            private String getStringForCol(int col) {
+                if (col == EVTaskList.TASK_COLUMN && task.getFlag() == null)
+                    col = EVTaskList.TASK_FULLNAME_COLUMN;
+                Object val = model.getValueAt(task, col);
+                if (val == null || "".equals(val))
+                    return null;
+                else if (val instanceof Date)
+                    return EVSchedule.formatDate((Date) val);
+                else
+                    return val.toString();
+            }
         }
 
         public void treeStructureWillChange(TreeModelEvent e) {
@@ -1621,6 +1726,9 @@ public class TaskScheduleDialog implements EVTask.Listener,
 
         public void treeNodesRemoved(TreeModelEvent e) { }
     }
+
+    private static final DataFlavor EV_TASK_FLAVOR = new DataFlavor(
+            EVTask.class, "EV Task Data");
 
     class TaskJTreeTableCellRenderer
         extends javax.swing.tree.DefaultTreeCellRenderer {
@@ -3153,8 +3261,10 @@ public class TaskScheduleDialog implements EVTask.Listener,
     }
 
     protected void configureEditor(JTable table) {
-        table.setDefaultEditor(Date.class, new JDateTimeChooserCellEditor(
-                DATE_FORMAT));
+        JDateTimeChooserCellEditor editor = new JDateTimeChooserCellEditor(
+                DATE_FORMAT);
+        editor.setClickCountToStart(2);
+        table.setDefaultEditor(Date.class, editor);
     }
 
     public void saveBaseline() {
