@@ -108,8 +108,6 @@ public class AssignedToComboBoxAdaptor implements ActionListener {
             markText(w.beg, w.end);
             if (w.isNumber())
                 comboBox.hidePopup();
-            else if (comboBox.isDisplayable() && !comboBox.isPopupVisible())
-                comboBox.showPopup();
         }
     }
 

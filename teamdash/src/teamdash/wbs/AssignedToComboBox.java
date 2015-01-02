@@ -155,8 +155,12 @@ public class AssignedToComboBox extends JComboBox {
         public void run() {
             int caretPos = textComponent.getCaretPosition();
             int textLen = textComponent.getText().length();
-            if (caretPos != textLen)
+            if (caretPos != textLen) {
                 adaptor.markCurrentWord();
+                Word word = document.getWord(caretPos);
+                if (word != null && word.isLetters())
+                    showPopup();
+            }
         }
     }
 
