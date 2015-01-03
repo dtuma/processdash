@@ -362,15 +362,22 @@ public class ConfigureButton extends JMenuBar implements ActionListener, Hierarc
     }
 
     public void startDefectLog() {
+        startDefectLog(null);
+    }
+
+    public void startDefectLog(PropertyKey phase) {
         if (parent.getProperties() != null) {
+            if (phase == null)
+                phase = parent.getCurrentPhase();
+
             if (defect_frame != null) {
-                defect_frame.setSelectedPhase(parent.getCurrentPhase());
+                defect_frame.setSelectedPhase(phase);
                 defect_frame.showIt();
-            } else
-                defect_frame = new DefectLogEditor(parent,
-                                                this,
-                                                parent.getProperties());
+            } else {
+                defect_frame = new DefectLogEditor(parent, this,
+                    parent.getProperties(), phase);
                 parent.addApplicationEventListener(defect_frame);
+            }
         }
     }
 

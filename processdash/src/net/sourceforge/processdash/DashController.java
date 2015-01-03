@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2014 Tuma Solutions, LLC
+// Copyright (C) 2001-2015 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -160,6 +160,15 @@ public class DashController {
     private static void showTimeLogEditorImpl(String path) {
         PropertyKey key = dash.props.findExistingKey(path);
         dash.configure_button.startTimeLog(key);
+    }
+
+    public static void showDefectLogEditor(final String path) {
+        SwingUtilities.invokeLater(new Runnable() {
+            public void run() { showDefectLogEditorImpl(path); }});
+    }
+    private static void showDefectLogEditorImpl(String path) {
+        PropertyKey key = dash.props.findExistingKey(path);
+        dash.configure_button.startDefectLog(key);
     }
 
     public static void showTaskSchedule(final String path) {

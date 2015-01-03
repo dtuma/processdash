@@ -1,4 +1,4 @@
-// Copyright (C) 1999-2012 Tuma Solutions, LLC
+// Copyright (C) 1999-2015 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -135,7 +135,8 @@ public class DefectLogEditor extends Component implements
                                   // constructor
     public DefectLogEditor(ProcessDashboard dash,
                         ConfigureButton button,
-                        DashHierarchy props) {
+                        DashHierarchy props,
+                        PropertyKey currentPhase) {
         dashboard        = dash;
         JPanel   panel   = new JPanel(true);
 
@@ -169,7 +170,7 @@ public class DefectLogEditor extends Component implements
             }
         });
 
-        setSelectedPhase(dash.getCurrentPhase());
+        setSelectedPhase(currentPhase);
         loadCustomDimensions();
         splitPane.setDividerLocation(dividerLocation);
 
