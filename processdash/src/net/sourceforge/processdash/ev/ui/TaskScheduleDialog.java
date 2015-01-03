@@ -78,6 +78,7 @@ import java.util.prefs.Preferences;
 import javax.swing.AbstractAction;
 import javax.swing.AbstractButton;
 import javax.swing.AbstractCellEditor;
+import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.ButtonModel;
@@ -98,6 +99,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
+import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTable;
@@ -137,6 +139,7 @@ import com.xduke.xswing.DataTipManager;
 
 import net.sourceforge.processdash.ApplicationEventListener;
 import net.sourceforge.processdash.ApplicationEventSource;
+import net.sourceforge.processdash.DashController;
 import net.sourceforge.processdash.DashboardContext;
 import net.sourceforge.processdash.Settings;
 import net.sourceforge.processdash.data.ListData;
@@ -227,7 +230,8 @@ public class TaskScheduleDialog implements EVTask.Listener,
             insertPeriodAction, deletePeriodAction, chartAction, reportAction,
             closeAction, saveAction, errorAction, filteredChartAction,
             saveBaselineAction, collaborateAction, filteredReportAction,
-            weekReportAction, scheduleOptionsAction, expandAllAction;
+            weekReportAction, scheduleOptionsAction, expandAllAction,
+            showTimeLogAction, showDefectLogAction, copyTaskInfoAction;
     private List<TSAction> altReportActions;
 
     protected boolean disableTaskPruning;
@@ -703,6 +707,7 @@ public class TaskScheduleDialog implements EVTask.Listener,
             editMenu.add(deleteTaskAction);
             editMenu.add(moveUpAction);
             editMenu.add(moveDownAction);
+            editMenu.add(copyTaskInfoAction);
             if (!isRollup()) {
                 editMenu.addSeparator();
                 editMenu.add(addPeriodAction);
@@ -723,6 +728,11 @@ public class TaskScheduleDialog implements EVTask.Listener,
             viewMenu.add(t);
         viewMenu.add(filteredReportAction);
         viewMenu.add(errorAction);
+        if (Settings.isPersonalMode()) {
+            viewMenu.addSeparator();
+            viewMenu.add(showTimeLogAction);
+            viewMenu.add(showDefectLogAction);
+        }
         viewMenu.addSeparator();
         viewMenu.add(JTableColumnVisibilityAction.getForTable(treeTable));
         viewMenu.add(new TSAction("Column_Chooser.Reset_Columns") {
@@ -944,6 +954,64 @@ public class TaskScheduleDialog implements EVTask.Listener,
         }
     }
 
+    abstract class TSSelectedTaskAction extends TSAction {
+        public TSSelectedTaskAction(String resKey) {
+            super(resKey);
+        }
+        public void actionPerformed(ActionEvent e) {
+            int selRow = treeTable.getSelectedRow();
+            if (selRow == -1)
+                return;
+            EVTask task = (EVTask) treeTable.getValueAt(selRow,
+                EVTaskList.EVTASK_NODE_COLUMN);
+            if (task != null)
+                actionPerformed(task);
+        }
+        protected void actionPerformed(EVTask task) {
+            String path = task.getFlag() != null ? "" : task.getFullName();
+            actionPerformed(path);
+        }
+        protected void actionPerformed(String path) {}
+    }
+
+    class ShowTimeLogAction extends TSSelectedTaskAction {
+        public ShowTimeLogAction() {
+            super("Buttons.Show_Time_Log");
+        }
+        protected void actionPerformed(String path) {
+            DashController.showTimeLogEditor(path);
+        }
+    }
+
+    class ShowDefectLogAction extends TSSelectedTaskAction {
+        public ShowDefectLogAction() {
+            super("Buttons.Show_Defect_Log");
+        }
+        protected void actionPerformed(String path) {
+            DashController.showDefectLogEditor(path);
+        }
+    }
+
+    class CopyTaskInfoAction extends TSAction {
+        public boolean running;
+        public CopyTaskInfoAction() {
+            super("Buttons.Copy_Task_Info");
+            setEnabled(false);
+        }
+        public void actionPerformed(ActionEvent e) {
+            Action copyAction = treeTable.getActionMap().get("copy");
+            if (copyAction != null) {
+                try {
+                    running = true;
+                    e.setSource(treeTable);
+                    copyAction.actionPerformed(e);
+                } finally {
+                    running = false;
+                }
+            }
+        }
+    }
+
     class ShowAltReportAction extends TSAction {
         String uri;
         public ShowAltReportAction(Element xml) {
@@ -1026,6 +1094,7 @@ public class TaskScheduleDialog implements EVTask.Listener,
             ToolTipManager.sharedInstance().registerComponent(getTree());
             new ToolTipTimingCustomizer().install(this);
             setTransferHandler(new TransferSupport());
+            setComponentPopupMenu(makePopupMenu());
             setAutoscrolls(true);
 
             if (!isRollup()) {
@@ -1034,6 +1103,40 @@ public class TaskScheduleDialog implements EVTask.Listener,
                 MilestoneMouseoverHandler mmh = new MilestoneMouseoverHandler();
                 addMouseListener(mmh);
                 addMouseMotionListener(mmh);
+            }
+        }
+
+        private JPopupMenu makePopupMenu() {
+            JPopupMenu result = new JPopupMenu();
+            if (Settings.isPersonalMode()) {
+                result.add(showTimeLogAction = new ShowTimeLogAction());
+                result.add(showDefectLogAction = new ShowDefectLogAction());
+            }
+            result.add(copyTaskInfoAction = new CopyTaskInfoAction());
+            return result;
+        }
+
+        @Override
+        public Point getPopupLocation(MouseEvent event) {
+            Point point = (event == null ? null : event.getPoint());
+            int row = (point == null ? -1 : rowAtPoint(point));
+            if (row != -1)
+                // select the clicked-on row, so actions can work against it
+                setRowSelectionInterval(row, row);
+
+            JPopupMenu popupMenu = getComponentPopupMenu();
+            if (row != -1 && point != null && popupMenu != null) {
+                // position the popup menu so it is horizontally centered on
+                // the mouse location, and vertically positioned immediately
+                // underneath the clicked cell. This location provides us the
+                // best chance of avoiding the display of data tips, which would
+                // otherwise obscure the popup menu in an ugly way.
+                Dimension d = popupMenu.getPreferredSize();
+                int x = (int) Math.max(0, point.getX() - d.getWidth() / 2);
+                int y = (int) getCellRect(row, 0, false).getMaxY();
+                return new Point(x, y);
+            } else {
+                return super.getPopupLocation(event);
             }
         }
 
@@ -1548,7 +1651,8 @@ public class TaskScheduleDialog implements EVTask.Listener,
             }
 
             protected Transferable createTransferable(JComponent c) {
-                if (isFlatView())
+                if (isFlatView()
+                        && !((CopyTaskInfoAction) copyTaskInfoAction).running)
                     return createFlatViewTransferrable();
                 else
                     return createTreeViewTransferrable();
@@ -2866,6 +2970,7 @@ public class TaskScheduleDialog implements EVTask.Listener,
         expandAllAction  .setEnabled(false);
         filteredChartAction.setEnabled(false);
         filteredReportAction.setEnabled(false);
+        copyTaskInfoAction.setEnabled(firstRowNum >= 0);
     }
 
     private void enableTaskButtonsMergedView() {
@@ -2880,6 +2985,7 @@ public class TaskScheduleDialog implements EVTask.Listener,
         boolean canFilter = firstRowNum > 0 && firstRowNum == lastRowNum;
         filteredChartAction.setEnabled(canFilter);
         filteredReportAction.setEnabled(canFilter);
+        copyTaskInfoAction.setEnabled(firstRowNum >= 0);
     }
 
 
@@ -2924,6 +3030,7 @@ public class TaskScheduleDialog implements EVTask.Listener,
         boolean canFilter = firstRowNum > 0 && firstRowNum == lastRowNum;
         filteredChartAction.setEnabled(canFilter);
         filteredReportAction.setEnabled(canFilter);
+        copyTaskInfoAction.setEnabled(firstRowNum >= 0);
     }
 
     protected void toggleFlatView() {
