@@ -132,6 +132,23 @@ allocated to the "Integration Test" task.  Three people are assigned,
 and the time will be spread across them equally, so each one will
 spend 1.6 hours.</p></li>
 
+<li style='margin-top:9pt'>The Performed By column allows you to
+indicate who is responsible for each task in the workflow.  You can
+enter the names of various arbitrary roles, like "author,"
+"inspector," "tester," etc.  Each role name must be a single word,
+made up only of letters.  If you have multiple people in a particular
+role, give each a unique suffix, such as "reviewerA" and "reviewerB."
+When you apply the workflow to a component in the WBS, these role
+names will be displayed as placeholders like &#x00AB;author&#x00BB;.
+You can click on the placeholders to assign all of the matching tasks
+to a specific person.
+
+<p>Occasionally, a workflow may include a task (such as a sign-off)
+that is always performed by a certain team member.  You can enter that
+team member's initials in the Performed By column, and when you apply
+this workflow in the WBS, the task will automatically be assigned to
+them.</p></li>
+
 </ul>
 
 <p>The columns described above are used by most teams, so they are
@@ -205,8 +222,8 @@ Code Review, Compile, Test) in places where you have added a PSP Task.
 However, you <u>do</u> need to add tasks for Design Inspection and Code
 Inspection.  These tasks should immediately follow the PSP Task in your
 workflow.  When you follow this pattern, the inspection tasks will
-automatically be inserted into the correct order between the phases of the PSP
-Task in the individual's "Flat View" task list.</p></li>
+automatically be inserted into the correct chronological order between the
+phases of the PSP Task in the individual's "Flat View" task list.</p></li>
 
 <li>Alternatively, you can add a "<b>Personal PROBE Task</b>" to your workflow
 definition.  The PROBE item creates a single task in an individual's personal
