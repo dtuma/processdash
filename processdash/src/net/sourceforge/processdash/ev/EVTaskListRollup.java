@@ -44,6 +44,8 @@ import net.sourceforge.processdash.data.StringData;
 import net.sourceforge.processdash.data.repository.DataNameFilter;
 import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.ev.ui.chart.ConfidenceIntervalMemberCompletionDateChartData;
+import net.sourceforge.processdash.ev.ui.chart.DirectTimeMemberTrendChartData;
+import net.sourceforge.processdash.ev.ui.chart.EarnedValueMemberTrendChartData;
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.net.cache.ObjectCache;
 
@@ -310,6 +312,16 @@ public class EVTaskListRollup extends EVTaskList {
 
     public XYDataset getTeamMemberCompletionDateData() {
         return new ConfidenceIntervalMemberCompletionDateChartData(
+                new EVTaskChartEventAdapter(), this);
+    }
+
+    public XYDataset getTeamMemberDirectTimeTrendData() {
+        return new DirectTimeMemberTrendChartData(
+                new EVTaskChartEventAdapter(), this);
+    }
+
+    public XYDataset getTeamMemberEarnedValueTrendData() {
+        return new EarnedValueMemberTrendChartData(
                 new EVTaskChartEventAdapter(), this);
     }
 

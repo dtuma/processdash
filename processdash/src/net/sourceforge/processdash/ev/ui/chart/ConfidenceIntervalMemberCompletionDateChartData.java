@@ -24,8 +24,6 @@
 package net.sourceforge.processdash.ev.ui.chart;
 
 import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
 
 import org.jfree.data.DomainInfo;
 import org.jfree.data.Range;
@@ -53,11 +51,10 @@ public class ConfidenceIntervalMemberCompletionDateChartData extends
         clearSeries();
         lowerBound = upperBound = null;
 
-        Set<String> ambiguousNames = getRepeatedPersonNames();
-
+        MemberChartNameHelper nameHelper = new MemberChartNameHelper(rollup);
         for (int i = 0; i < rollup.getSubScheduleCount(); i++) {
             EVTaskList tl = rollup.getSubSchedule(i);
-            String seriesName = getSeriesName(tl, ambiguousNames);
+            String seriesName = nameHelper.get(tl);
 
             // by default, attempt to add a series based on the forecast date
             // confidence interval
@@ -100,40 +97,6 @@ public class ConfidenceIntervalMemberCompletionDateChartData extends
         } else {
             return false;
         }
-    }
-
-    private String getSeriesName(EVTaskList tl, Set<String> namesToAvoid) {
-        String name = tl.getDisplayName();
-        String personName = extractPersonName(name);
-        if (personName != null && !namesToAvoid.contains(personName))
-            return personName;
-        else
-            return name;
-    }
-
-    private Set<String> getRepeatedPersonNames() {
-        Set<String> namesSeen = new HashSet<String>();
-        Set<String> repeatedNames = new HashSet<String>();
-        for (int i = 0; i < rollup.getSubScheduleCount(); i++) {
-            EVTaskList tl = rollup.getSubSchedule(i);
-            String personName = extractPersonName(tl.getDisplayName());
-            if (namesSeen.contains(personName))
-                repeatedNames.add(personName);
-            else
-                namesSeen.add(personName);
-        }
-        return repeatedNames;
-    }
-
-    private String extractPersonName(String taskListName) {
-        if (!taskListName.endsWith(")"))
-            return null;
-
-        int parenPos = taskListName.lastIndexOf('(');
-        if (parenPos == -1)
-            return null;
-
-        return taskListName.substring(parenPos + 1, taskListName.length() - 1);
     }
 
     public Range getDomainBounds(boolean includeInterval) {

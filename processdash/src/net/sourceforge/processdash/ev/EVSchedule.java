@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2014 Tuma Solutions, LLC
+// Copyright (C) 2001-2015 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -2005,6 +2005,7 @@ public class EVSchedule implements TableModel {
             implements RangeInfo {
         double mult = 1.0;
         double range;
+        protected String seriesKey;
         public abstract double getPlanValue(Period p);
         public abstract double getActualValue(Period p);
         public Number getY(int itemIndex) {
@@ -2043,12 +2044,18 @@ public class EVSchedule implements TableModel {
         public double getRangeUpperBound(boolean includeInterval) {
             return range;
         }
+        @Override public String getSeriesKey() {
+            return (seriesKey != null ? seriesKey : super.getSeriesKey());
+        }
     }
     private class PlanTrendChartSeries extends ActualChartSeries {
         public String getSeriesKey()  { return "Plan"; }
         public Number getY(int itemIndex) {
             return Integer.valueOf(0);
         }
+    }
+    public XYChartSeries getPlanTrendChartSeries() {
+        return new PlanTrendChartSeries();
     }
 
 
@@ -2063,6 +2070,13 @@ public class EVSchedule implements TableModel {
             return p.cumPlanValue;
         }
     };
+    public XYChartSeries getActualValueTrendChartSeries(String name, double mult) {
+        ActualValueTrendChartSeries result = new ActualValueTrendChartSeries();
+        result.seriesKey = name;
+        result.mult = mult;
+        result.recalc();
+        return result;
+    }
     protected class ValueTrendChartData extends XYChartData {
         ActualTrendChartSeries actual;
         public ValueTrendChartData(ChartEventAdapter eventAdapter) {
@@ -2093,6 +2107,12 @@ public class EVSchedule implements TableModel {
             return p.cumPlanDirectTime;
         }
     };
+    public XYChartSeries getActualTimeTrendChartSeries(String name) {
+        ActualTimeTrendChartSeries result = new ActualTimeTrendChartSeries();
+        result.seriesKey = name;
+        result.recalc();
+        return result;
+    }
     protected class TimeTrendChartData extends XYChartData {
         ActualTimeTrendChartSeries actual;
         public TimeTrendChartData(ChartEventAdapter eventAdapter) {
