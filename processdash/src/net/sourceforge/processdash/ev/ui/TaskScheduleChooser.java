@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2013 Tuma Solutions, LLC
+// Copyright (C) 2001-2015 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -117,7 +117,7 @@ public class TaskScheduleChooser
         String taskName = getTemplateName
             (dash, resources.getString("New_Schedule_Window.Title"),
              resources.getString("New_Schedule_Window.Prompt"),
-             isPersonalMode);
+             null, isPersonalMode);
 
         if (!isPersonalMode && taskName != null)
             taskName = ROLLUP_PREFIX + taskName;
@@ -129,6 +129,7 @@ public class TaskScheduleChooser
     private static final String CANCEL = resources.getString("Cancel");
     protected String getTemplateName(Object parent,
                                      String title, String prompt,
+                                     String initialTaskName,
                                      boolean showRollupOptions) {
 
         String taskName = "";
@@ -144,7 +145,8 @@ public class TaskScheduleChooser
                 rollupOption, new JLabel("      "), OK, CANCEL };
         } else
             options = new Object[] { OK, CANCEL };
-        JTextField inputField = new JTextField();
+        JTextField inputField = new JTextField(initialTaskName);
+        inputField.selectAll();
         new JOptionPaneActionHandler(OK).install(inputField);
 
         Component parentComponent = null;
@@ -405,7 +407,7 @@ public class TaskScheduleChooser
         String newName = getTemplateName
             (dialog, resources.getString("Rename_Window.Title"),
              resources.format("Rename_Window.Prompt_FMT", taskListName),
-             false);
+             taskListName, false);
 
         if (newName != null) {
             EVTaskList taskList = EVTaskList.openExisting
