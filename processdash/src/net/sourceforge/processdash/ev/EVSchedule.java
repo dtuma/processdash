@@ -2131,6 +2131,59 @@ public class EVSchedule implements TableModel {
 
 
     /**
+     * XYDataSource for charting the CPI trend
+     */
+    private class ActualCPITrendChartSeries extends ActualChartSeries implements
+            RangeInfo {
+        double logRange;
+        public Number getY(int itemIndex) {
+            Period p = get(itemIndex);
+            return (p.cumEarnedValue > 0 && p.cumActualCost > 0
+                    ? p.cumEarnedValue / p.cumActualCost : 1);
+        }
+        public void recalc() {
+            double maxLog = 0;
+            for (int i = getItemCount(); i-- > 0;) {
+                double oneVal = getY(i).doubleValue();
+                double oneLog = Math.abs(Math.log(oneVal));
+                maxLog = Math.max(maxLog, oneLog);
+            }
+            logRange = (maxLog == 0 ? 0.5 : maxLog);
+        }
+        public Range getRangeBounds(boolean includeInterval) {
+            return new Range(getRangeLowerBound(includeInterval),
+                    getRangeUpperBound(includeInterval));
+        }
+        public double getRangeLowerBound(boolean includeInterval) {
+            return Math.exp(-logRange);
+        }
+        public double getRangeUpperBound(boolean includeInterval) {
+            return Math.exp(logRange);
+        }
+    }
+    private class PlanCPITrendChartSeries extends PlanTrendChartSeries {
+        public Number getY(int itemIndex) {
+            return Integer.valueOf(1);
+        }
+    }
+    protected class CPITrendChartData extends XYChartData {
+        ActualCPITrendChartSeries actual;
+        public CPITrendChartData(ChartEventAdapter eventAdapter) {
+            super(eventAdapter);
+            series.add(new PlanCPITrendChartSeries());
+            series.add(actual = new ActualCPITrendChartSeries());
+        }
+        @Override
+        public void recalc() {
+            actual.recalc();
+        }
+    }
+    public XYDataset getCPITrendChartData() {
+        return new CPITrendChartData(new EVScheduleChartEventAdapter());
+    }
+
+
+    /**
      * XYDatasource for charting planned-vs-actual time on completed periods
      */
     private abstract class CompletedPeriodsXYChartSeries implements XYChartSeries {
