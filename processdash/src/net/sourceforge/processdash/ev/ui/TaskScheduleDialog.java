@@ -587,6 +587,8 @@ public class TaskScheduleDialog implements EVTask.Listener,
                            Box.createVerticalStrut(2)), BorderLayout.CENTER);
         box.add(Box.createHorizontalGlue());
 
+        JPopupMenu popupMenu = treeTable.getComponentPopupMenu();
+
         /*
         if (isRollup) {
             recalcButton = new JButton("Refresh");
@@ -615,6 +617,8 @@ public class TaskScheduleDialog implements EVTask.Listener,
             public void actionPerformed(ActionEvent e) {
                 showFilteredChart(); }};
         filteredChartAction.setEnabled(false);
+        addRenamedPopupMenuItem(popupMenu, filteredChartAction,
+            "Buttons.View_Filtered_Chart");
         chartAction = new TSAction("Buttons.Chart") {
             public void actionPerformed(ActionEvent e) {
                 showChart(); }};
@@ -629,6 +633,8 @@ public class TaskScheduleDialog implements EVTask.Listener,
             public void actionPerformed(ActionEvent e) {
                 showFilteredHTML(); }};
         filteredReportAction.setEnabled(false);
+        addRenamedPopupMenuItem(popupMenu, filteredReportAction,
+            "Buttons.View_Filtered_Report");
         reportAction = new TSAction("Buttons.Report") {
             public void actionPerformed(ActionEvent e) {
                 showHTML(); }};
@@ -655,6 +661,11 @@ public class TaskScheduleDialog implements EVTask.Listener,
         result.setMaximumSize(size);
 
         return result;
+    }
+    private void addRenamedPopupMenuItem(JPopupMenu m, Action a, String resKey) {
+        JMenuItem menuItem = new JMenuItem(a);
+        menuItem.setText(resources.getString(resKey));
+        m.insert(menuItem, m.getComponentCount() - 1);
     }
 
     private List<TSAction> buildAltReportActions() {
