@@ -1,4 +1,4 @@
-// Copyright (C) 2014 Tuma Solutions, LLC
+// Copyright (C) 2014-2015 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -23,17 +23,28 @@
 
 package net.sourceforge.processdash.ui.web.reports;
 
+import java.awt.Color;
+
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.StandardChartTheme;
+import org.jfree.chart.plot.DefaultDrawingSupplier;
 import org.jfree.chart.renderer.category.BarRenderer;
 import org.jfree.chart.renderer.xy.XYBarRenderer;
 
 public class DashboardChartDefaults {
 
     public static void initialize() {
+        // install the legacy theme for chart colors
         ChartFactory.setChartTheme(StandardChartTheme.createLegacyTheme());
+        // turn off shadows on bar charts by default
         BarRenderer.setDefaultShadowsVisible(false);
         XYBarRenderer.setDefaultShadowsVisible(false);
+        // the standard set of colors includes yellow, which is nearly
+        // impossible to see on a white background. Replace those yellows with
+        // variations on orange.
+        DefaultDrawingSupplier.DEFAULT_PAINT_SEQUENCE[3] = Color.orange;
+        DefaultDrawingSupplier.DEFAULT_PAINT_SEQUENCE[18] = new Color(215, 170, 0);
+        DefaultDrawingSupplier.DEFAULT_PAINT_SEQUENCE[31] = new Color(255, 200, 128);
     }
 
 }
