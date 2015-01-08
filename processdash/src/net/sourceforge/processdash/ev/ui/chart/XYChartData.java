@@ -1,4 +1,4 @@
-// Copyright (C) 2008-2014 Tuma Solutions, LLC
+// Copyright (C) 2008-2015 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -94,7 +94,7 @@ public abstract class XYChartData extends AbstractXYDataset
         return series.get(seriesIndex).getY(itemIndex); }
 
     public Range getRangeBounds(boolean includeInterval) {
-        Range result = DatasetUtilities.iterateXYRangeBounds(this);
+        Range result = DatasetUtilities.iterateRangeBounds(this);
         for (XYChartSeries s : series) {
             if (s instanceof RangeInfo) {
                 RangeInfo ri = (RangeInfo) s;

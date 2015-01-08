@@ -45,6 +45,7 @@ import javax.swing.table.TableModel;
 import org.jfree.data.Range;
 import org.jfree.data.RangeInfo;
 import org.jfree.data.xy.XYDataset;
+import org.jfree.data.xy.XYZDataset;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -56,6 +57,7 @@ import net.sourceforge.processdash.ev.ui.chart.ConfidenceIntervalCompletionDateC
 import net.sourceforge.processdash.ev.ui.chart.ConfidenceIntervalTotalCostChartData;
 import net.sourceforge.processdash.ev.ui.chart.XYChartData;
 import net.sourceforge.processdash.ev.ui.chart.XYChartSeries;
+import net.sourceforge.processdash.ev.ui.chart.XYZChartSeries;
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.util.DateAdjuster;
 import net.sourceforge.processdash.util.FormatUtil;
@@ -2277,19 +2279,19 @@ public class EVSchedule implements TableModel {
     }
     private class CompletedPeriodChartData extends XYChartData {
 
-        private CompletedPeriodsXYChartSeries series;
+        private CompletedPeriodsXYChartSeries oneSeries;
 
         public CompletedPeriodChartData(ChartEventAdapter eventAdapter,
                                    CompletedPeriodsXYChartSeries series) {
             super(eventAdapter);
-            this.series = series;
+            this.oneSeries = series;
         }
 
         @Override
         public void recalc() {
             clearSeries();
-            this.series.recalc();
-            maybeAddSeries(series);
+            this.oneSeries.recalc();
+            maybeAddSeries(oneSeries);
         }
 
     }
@@ -2301,4 +2303,67 @@ public class EVSchedule implements TableModel {
         return new CompletedPeriodChartData(new EVScheduleChartEventAdapter(),
                 new CompletedPeriodsDirectTimeVarianceXYChartSeries("Completed_Period"));
     }
+
+
+    /**
+     * XYZDatasource for charting direct time and EV ratios
+     */
+    private class TimeRatioTrackingChartSeries extends
+            CompletedPeriodsXYChartSeries implements XYZChartSeries {
+        public TimeRatioTrackingChartSeries(String seriesKey) {
+            super(seriesKey);
+        }
+        @Override public Number getX(int itemIndex) {
+            // actual/plan for completed tasks
+            Period period = completedPeriods.get(itemIndex);
+            return period.cumActualCost / period.cumEarnedValue;
+        }
+        public Number getY(int itemIndex) {
+            // actual/plan for direct time
+            Period period = completedPeriods.get(itemIndex);
+            return period.cumActualDirectTime / period.cumPlanDirectTime;
+        }
+        public Number getZ(int itemIndex) {
+            return super.getX(itemIndex);
+        }
+        public void recalc() {
+            completedPeriods.clear();
+            if (getEffectiveDate() == null)
+                return;
+
+            for (Object o : periods) {
+                Period p = (Period) o;
+
+                if ((p.getEndDate().before(getEffectiveDate())
+                        || p.getEndDate().equals(getEffectiveDate()))) {
+                    if (p.cumEarnedValue > 0 && p.cumPlanDirectTime > 0)
+                        completedPeriods.add(p);
+                }
+            }
+        }
+    }
+    private class TimeRatioTrackingChartData extends CompletedPeriodChartData
+            implements XYZDataset {
+        private TimeRatioTrackingChartData() {
+            super(new EVScheduleChartEventAdapter(),
+                    new TimeRatioTrackingChartSeries(
+                            resources.getString("Schedule.Time_Ratio_Label")));
+        }
+        public Number getZ(int seriesNum, int itemNum) {
+            return ((XYZChartSeries) series.get(seriesNum)).getZ(itemNum);
+        }
+        public double getZValue(int seriesNum, int itemNum) {
+            return getZ(seriesNum, itemNum).doubleValue();
+        }
+    }
+    public XYChartSeries getTimeRatioTrackingChartSeries(String name) {
+        TimeRatioTrackingChartSeries result = new TimeRatioTrackingChartSeries(
+                name);
+        result.recalc();
+        return result;
+    }
+    public XYChartData getTimeRatioTrackingChartData() {
+        return new TimeRatioTrackingChartData();
+    }
+
 }

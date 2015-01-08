@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2014 Tuma Solutions, LLC
+// Copyright (C) 2002-2015 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -46,6 +46,7 @@ import net.sourceforge.processdash.data.repository.DataRepository;
 import net.sourceforge.processdash.ev.ui.chart.ConfidenceIntervalMemberCompletionDateChartData;
 import net.sourceforge.processdash.ev.ui.chart.DirectTimeMemberTrendChartData;
 import net.sourceforge.processdash.ev.ui.chart.EarnedValueMemberTrendChartData;
+import net.sourceforge.processdash.ev.ui.chart.TimeRatioMemberTrackingChartData;
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.net.cache.ObjectCache;
 
@@ -322,6 +323,11 @@ public class EVTaskListRollup extends EVTaskList {
 
     public XYDataset getTeamMemberEarnedValueTrendData() {
         return new EarnedValueMemberTrendChartData(
+                new EVTaskChartEventAdapter(), this);
+    }
+
+    public XYDataset getTeamMemberTimeRatioTrackingChartData() {
+        return new TimeRatioMemberTrackingChartData(
                 new EVTaskChartEventAdapter(), this);
     }
 
