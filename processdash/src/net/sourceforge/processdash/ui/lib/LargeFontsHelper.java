@@ -1,4 +1,4 @@
-// Copyright (C) 2012 Tuma Solutions, LLC
+// Copyright (C) 2012-2015 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -43,6 +43,13 @@ public class LargeFontsHelper {
     }
 
     private static boolean isEnabled(String prefName) {
+        try {
+            if (Boolean.getBoolean(LargeFontsHelper.class.getName()
+                    + ".enabled"))
+                return true;
+        } catch (Exception e) {
+        }
+
         int slashPos = prefName.lastIndexOf('/');
         String node = prefName.substring(0, slashPos);
         String key = prefName.substring(slashPos + 1);
