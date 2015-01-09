@@ -1762,6 +1762,7 @@ public class EVSchedule implements TableModel {
     private abstract class ActualChartSeries implements XYChartSeries {
         public String getSeriesKey()  { return "Actual"; }
         public int getItemCount() {
+            if (effectiveDate == null) return 0;
             int result = getRowCount()+1;
             if (effectivePeriod < result) result = effectivePeriod+1;
             return result;
@@ -1769,7 +1770,7 @@ public class EVSchedule implements TableModel {
         public Number getX(int itemIndex) {
             Date d;
             if (itemIndex < effectivePeriod)
-                d = get(itemIndex).endDate;
+                d = get(itemIndex).getEndDate();
             else
                 d = effectiveDate;
             return new Long(d.getTime());
@@ -2029,6 +2030,7 @@ public class EVSchedule implements TableModel {
         }
         public void recalc() {
             int i = getItemCount() - 1;
+            if (i < 0) return;
             Period p = get(i);
             double max = Math.abs(getPlanValue(p)) * mult * 0.25;
             while (i >= 0) {

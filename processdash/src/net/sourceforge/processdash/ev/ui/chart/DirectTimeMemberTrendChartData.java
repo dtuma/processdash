@@ -48,7 +48,7 @@ public class DirectTimeMemberTrendChartData extends XYChartData {
             EVTaskList tl = rollup.getSubSchedule(i);
             EVSchedule subschedule = tl.getSchedule();
             String seriesName = nameHelper.get(tl);
-            series.add(subschedule.getActualTimeTrendChartSeries(seriesName));
+            maybeAddSeries(subschedule.getActualTimeTrendChartSeries(seriesName));
         }
     }
 

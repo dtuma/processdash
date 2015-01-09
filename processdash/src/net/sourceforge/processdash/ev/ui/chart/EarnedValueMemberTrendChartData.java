@@ -49,8 +49,8 @@ public class EarnedValueMemberTrendChartData extends XYChartData {
             EVTaskList tl = rollup.getSubSchedule(i);
             EVSchedule subschedule = tl.getSchedule();
             String seriesName = nameHelper.get(tl);
-            series.add(subschedule.getActualValueTrendChartSeries(seriesName,
-                mult));
+            maybeAddSeries(subschedule.getActualValueTrendChartSeries(
+                seriesName, mult));
         }
     }
 
