@@ -1,4 +1,4 @@
-// Copyright (C) 2000-2008 Tuma Solutions, LLC
+// Copyright (C) 2000-2015 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -24,6 +24,7 @@
 
 package net.sourceforge.processdash.log.ui;
 
+import java.awt.Color;
 import java.awt.Insets;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
@@ -40,6 +41,7 @@ import javax.swing.Icon;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JToggleButton;
+import javax.swing.plaf.metal.MetalToggleButtonUI;
 
 import net.sourceforge.processdash.ApplicationEventListener;
 import net.sourceforge.processdash.InternalSettings;
@@ -167,8 +169,15 @@ public class PauseButton extends DropDownButton implements ActionListener,
             setLeftWidget(pauseButton);
 
             playButton = getButton();
-            if (!MacGUIUtils.isMacOSX())
+            if (!MacGUIUtils.isMacOSX()) {
                 playButton.setMargin(new Insets(0,0,0,0));
+                playButton.setUI(new MetalToggleButtonUI() {
+                    Color select = new Color(150, 255, 150);
+                    @Override protected Color getSelectColor() {
+                        return select;
+                    }
+                });
+            }
             playButton.setIcon(DashboardIconFactory.getPlayBlackIcon());
             playButton.setSelectedIcon(DashboardIconFactory.getPlayGlowingIcon());
             playButton.setDisabledIcon(DashboardIconFactory.getPlayDisabledIcon());

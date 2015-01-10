@@ -69,6 +69,7 @@ import java.util.prefs.Preferences;
 
 import javax.swing.Action;
 import javax.swing.ButtonGroup;
+import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JMenuBar;
@@ -532,6 +533,7 @@ public class ProcessDashboard extends JFrame implements WindowListener,
         configure_button = new ConfigureButton(this);
         PCSH.enableHelpKey(this, "QuickOverview");
         pt.click("Created configure button");
+        configureStandardIconSize();
         pause_button = new PauseButton(timeLog.getTimeLoggingModel());
         pt.click("Created play/pause button");
 
@@ -927,6 +929,16 @@ public class ProcessDashboard extends JFrame implements WindowListener,
             logger.log(Level.SEVERE, "Unable to start the database plugin", e);
         }
         return false;
+    }
+
+    private void configureStandardIconSize() {
+        double height = configure_button.getPreferredSize().getHeight();
+        JButton dummy = new JButton();
+        if (!MacGUIUtils.isMacOSX())
+            dummy.setMargin(new Insets(0,0,0,0));
+        Insets buttonInsets = dummy.getBorder().getBorderInsets(dummy);
+        height = height - buttonInsets.top - buttonInsets.bottom;
+        DashboardIconFactory.setStandardIconSize((int) height);
     }
 
     private void buildPersonalUI(ProfTimer pt) {

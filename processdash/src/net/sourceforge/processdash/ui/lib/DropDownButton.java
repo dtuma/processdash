@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2011 Tuma Solutions, LLC
+// Copyright (C) 2001-2015 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -120,7 +120,7 @@ public class DropDownButton extends JPanel {
     private void configureNormalGUI() {
         setLayout(new NormalDropDownButtonLayout());
 
-        mainButton.setBorder(new RightChoppedBorder(mainButton.getBorder(), 2));
+        mainButton.setBorder(new RightChoppedBorder(mainButton.getBorder(), 1));
     }
 
     private void configureMacGUI() {
@@ -188,7 +188,7 @@ public class DropDownButton extends JPanel {
                 mainButton.putClientProperty(MAC_SEGMENT_POSITION, MAC_MIDDLE_SEGMENT);
             } else {
                 leftWidget.setBorder(new RightChoppedBorder(leftWidget
-                        .getBorder(), 2));
+                        .getBorder(), 1));
             }
         } else {
             if (MacGUIUtils.isMacOSX()) {

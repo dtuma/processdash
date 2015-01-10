@@ -1,4 +1,4 @@
-// Copyright (C) 2007-2008 Tuma Solutions, LLC
+// Copyright (C) 2007-2015 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -41,6 +41,10 @@ public class PaintUtils {
         if (c > 1.0)
             return 1.0f;
         return (float) c;
+    }
+
+    public static Color makeTransparent(Color c, int alpha) {
+        return new Color(c.getRed(), c.getGreen(), c.getBlue(), alpha);
     }
 
     public static Color[] getGlassGradient(int size, Color mid, Color light) {
