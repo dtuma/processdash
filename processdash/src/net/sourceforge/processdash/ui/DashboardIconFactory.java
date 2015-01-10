@@ -23,16 +23,24 @@
 
 package net.sourceforge.processdash.ui;
 
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.MediaTracker;
 import java.awt.Polygon;
 import java.awt.Rectangle;
 import java.awt.Shape;
+import java.awt.Stroke;
 import java.awt.Toolkit;
 import java.awt.Window;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Area;
+import java.awt.geom.Ellipse2D;
+import java.awt.geom.Path2D;
+import java.awt.geom.Rectangle2D;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -144,6 +152,10 @@ public class DashboardIconFactory {
     private static int STD_ICON_HEIGHT = 17;
     private static int STD_ICON_PAD = 1;
     public static void setStandardIconSize(int height) {
+        if (height < 17)
+            height = 17; // enforce minimum size
+        else if (height % 2 == 0)
+            height--; // ensure height is odd for clean center lines
         STD_ICON_HEIGHT = height;
         STD_ICON_PAD = height / 9;
     }
@@ -209,15 +221,13 @@ public class DashboardIconFactory {
     }
 
     public static Icon getDefectIcon() {
-        Icon result = loadNamedIcon("bbug", null);
-        if (result == null) result = new DefectIcon();
-        return result;
+        return new DefectIcon(STD_ICON_HEIGHT, Color.DARK_GRAY, //
+                new Color(0, 98, 49), new Color(0, 49, 156));
     }
 
     public static Icon getDisabledDefectIcon() {
-        Icon result = loadNamedIcon("defect-dis", null);
-        if (result == null) result = new DisabledDefectIcon();
-        return result;
+        return new DefectIcon(STD_ICON_HEIGHT, new Color(170, 170, 170), //
+                new Color(200, 200, 200), new Color(170, 170, 170));
     }
 
     public static Icon getScriptIcon() {
@@ -505,96 +515,85 @@ public class DashboardIconFactory {
 
     }
 
-    private static class DefectIcon implements Icon {
+    private static class DefectIcon extends BufferedIcon {
 
-        private Color blue = new Color(0, 49, 156);
-        private Color green = new Color(0, 98, 49);
+        private int width, height, pad;
+        private Color outline, fill, contrast;
 
-        public int getIconHeight() {
-            return 13;
+        public DefectIcon(int height, Color outline, Color fill, Color contrast) {
+            this.height = height;
+            this.width = (int) Math.round(height * 1.58);
+            this.pad = height / 5;
+            this.outline = outline;
+            this.fill = fill;
+            this.contrast = contrast;
+            renderIcon(width, height);
         }
 
-        public int getIconWidth() {
-            return 23;
-        }
+        protected void doPaint(Graphics g) {
+            Graphics2D g2 = (Graphics2D) g;
+            Shape origClip = g2.getClip();
+            Stroke origStroke = g2.getStroke();
 
-        public void paintIcon(Component c, Graphics g, int x, int y) {
-            // fill body with blue
-            g.setColor(blue);
-            g.fillRect(x+4, y+4, 17, 5);
-            g.drawLine(x+9, y+3, x+17, y+3);
-            g.drawLine(x+9, y+9, x+17, y+9);
+            int w = width;
+            int h = height;
+            int pad2 = 2 * pad;
+            int yMid = h / 2;
 
-            // add green stripes
-            g.setColor(green);
-            paintStripe(g, x+6, y+3, 7, 1);
-            paintStripe(g, x+11, y+3, 7, 1);
-            paintStripe(g, x+16, y+4, 5, 0);
+            Shape torso = new Ellipse2D.Double(pad + 3, pad, w - pad - 4, h
+                    - pad2 - 1);
+            Shape head = new Ellipse2D.Double(pad - 1, yMid - pad, pad2, pad2);
 
-            // trace body with black
-            g.setColor(Color.black);
-            g.drawLine(x+3, y+5, x+3, y+7);
-            paintBodySide(g, x, y, 1);
-            paintBodySide(g, x, y+12, -1);
-            g.drawLine(x+21, y+5, x+21, y+7);
-        }
+            Area outsideTorso = new Area(new Rectangle2D.Double(0, 0, w, h));
+            outsideTorso.subtract(new Area(torso));
+            Area outsideHead = new Area(new Rectangle2D.Double(0, 0, w, h));
+            outsideHead.subtract(new Area(head));
+            Area body = new Area(torso);
+            body.add(new Area(head));
+            Area outsideBody = new Area(outsideTorso);
+            outsideBody.subtract(new Area(head));
 
-        private void paintStripe(Graphics g, int x, int y, int h, int offs) {
-            int xx, yy;
-            for (int i = 0;   i < h;   i++) {
-                yy = y + i;
-                xx = x + ((i + offs) & 1);
-                g.drawLine(xx, yy, xx+2, yy);
+            g2.setClip(outsideBody);
+            g2.setColor(outline);
+            // antennae
+            g2.drawArc(-1 - pad, yMid - pad - 1, pad2 + 2, pad2 + 2, -90, 180);
+            // front legs
+            g2.drawArc(pad2 + 1, 0, h - 1, h - 1, 90, 180);
+            // middle legs
+            g2.drawArc(w / 2 + 1, 0, h - 1, h - 1, 90, 180);
+            // back legs
+            g2.drawArc(w - h / 2 + pad, 2, h - 6, h - 5, 90, 180);
+
+            if (fill != null) {
+                g2.setClip(origClip);
+                g2.setColor(fill);
+                g2.fill(body.createTransformedArea(AffineTransform
+                        .getTranslateInstance(0.5, 0.5)));
+
+                // zigzags
+                g2.setClip(torso);
+                g2.setColor(contrast);
+                g2.setStroke(new BasicStroke(pad * 0.7f));
+                for (int num = 0, i = w - pad2; num++ < 3; i -= pad2) {
+                    Path2D.Double stripe = new Path2D.Double();
+                    int hhh = (h - pad2) / 4;
+                    stripe.moveTo(i + hhh, yMid - 2 * hhh);
+                    stripe.lineTo(i, yMid - hhh);
+                    stripe.lineTo(i + hhh, yMid);
+                    stripe.lineTo(i, yMid + hhh);
+                    stripe.lineTo(i + hhh, yMid + 2 * hhh);
+                    g2.draw(stripe);
+                }
             }
-        }
 
-        protected void paintBodySide(Graphics g, int x, int y, int d) {
-            // paint antennae
-            g.drawLine(x, y+3*d, x+1, y+3*d);
-            g.drawLine(x+2, y+4*d, x+2, y+4*d);
+            g2.setColor(outline);
+            g2.setStroke(origStroke);
+            g2.setClip(outsideHead);
+            g2.draw(torso);
+            g2.setClip(outsideTorso);
+            g2.draw(head);
 
-            // paint edge of body
-            g.drawLine(x+4, y+4*d, x+4, y+4*d);
-            g.drawLine(x+5, y+3*d, x+7, y+3*d);
-            g.drawLine(x+8, y+2*d, x+16, y+2*d);
-            g.drawLine(x+17, y+3*d, x+19, y+3*d);
-            g.drawLine(x+20, y+4*d, x+20, y+4*d);
-
-            // paint legs
-            paintLeg(g, x+6,  y+d, 3, d);
-            paintLeg(g, x+12, y+d, 4, d);
-            paintLeg(g, x+18, y+2*d, 4, d);
-        }
-
-        protected void paintLeg(Graphics g, int x, int y, int len, int d) {
-            g.drawLine(x-1, y+d, x, y);
-            g.drawLine(x+1, y-d, x+len, y-d);
-        }
-    }
-
-
-    private static class DisabledDefectIcon extends DefectIcon {
-
-        public int getIconHeight() {
-            return 13;
-        }
-
-        public int getIconWidth() {
-            return 24;
-        }
-
-        public void paintIcon(Component c, Graphics g, int x, int y) {
-            g.setColor(Color.white);
-            paintBody(g, x+1, y+1);
-            g.setColor(Color.gray);
-            paintBody(g, x, y);
-        }
-
-        private void paintBody(Graphics g, int x, int y) {
-            g.drawLine(x+3, y+5, x+3, y+6);
-            paintBodySide(g, x, y, 1);
-            paintBodySide(g, x, y+11, -1);
-            g.drawLine(x+21, y+5, x+21, y+6);
+            g2.setClip(origClip);
         }
 
     }
