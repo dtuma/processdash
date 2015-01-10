@@ -194,6 +194,10 @@ public class DashboardIconFactory {
         return new PlayIcon(Color.black, Color.green);
     }
 
+    public static Icon getHourglassIcon() {
+        return loadAndScaleIcon("hourglass", true);
+    }
+
     public static Icon getCheckIcon() {
         Icon result = loadNamedIcon("check", null);
         if (result == null) result = new CheckIcon(true);
@@ -254,6 +258,21 @@ public class DashboardIconFactory {
     private static Icon restartRequiredIcon = null;
     public static Icon getRestartRequiredIcon() {
         return restartRequiredIcon = loadNamedIcon("restartIcon", restartRequiredIcon);
+    }
+
+    private static Icon loadAndScaleIcon(String name, boolean pad) {
+        ImageIcon big = (ImageIcon) loadNamedIcon(name, null);
+        Image bigImage = big.getImage();
+        int newHeight = STD_ICON_HEIGHT - (pad ? 2 * STD_ICON_PAD : 0);
+        int newWidth = (int) Math.round((double) big.getIconWidth() * newHeight
+                / big.getIconHeight());
+        Image smallImage = bigImage.getScaledInstance(newWidth, newHeight,
+            Image.SCALE_AREA_AVERAGING);
+        Icon smallIcon = new ImageIcon(smallImage);
+        if (pad)
+            smallIcon = new PaddedIcon(smallIcon, STD_ICON_PAD, STD_ICON_PAD,
+                    STD_ICON_PAD, STD_ICON_PAD);
+        return smallIcon;
     }
 
     private static Icon loadNamedIcon(String name, Icon current) {

@@ -1,4 +1,4 @@
-// Copyright (C) 2007 Tuma Solutions, LLC
+// Copyright (C) 2007-2015 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -42,7 +42,7 @@ import java.util.TreeMap;
 import java.util.Vector;
 
 import javax.swing.BorderFactory;
-import javax.swing.ImageIcon;
+import javax.swing.Icon;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -147,9 +147,9 @@ public class PercentSpentIndicator extends JPanel implements DataListener,
         levelIndicator.setPaintBarRect(false);
         add(levelIndicator, LEVEL_INDICATOR_KEY);
 
-        JLabel icon = new JLabel(new ImageIcon(getClass().getResource(
-                "hourglass.png")));
-        add(icon, MISSING_ESTIMATE_KEY);
+        Icon hourglassIcon = DashboardIconFactory.getHourglassIcon();
+        JLabel label = new JLabel(hourglassIcon);
+        add(label, MISSING_ESTIMATE_KEY);
 
         if (!Settings.isReadOnly()) {
             addMouseListener(new MouseAdapter() {
@@ -161,8 +161,11 @@ public class PercentSpentIndicator extends JPanel implements DataListener,
 
         setBorder(BorderFactory.createLineBorder(UIManager
                 .getColor("controlDkShadow")));
-        setMinimumSize(new Dimension(11, 21));
-        setPreferredSize(new Dimension(11, 21));
+
+        Dimension d = new Dimension(hourglassIcon.getIconWidth() + 4,
+                hourglassIcon.getIconHeight() + 6);
+        setMinimumSize(d);
+        setPreferredSize(d);
 
         new ToolTipTimingCustomizer(750, 60000).install(this);
     }
