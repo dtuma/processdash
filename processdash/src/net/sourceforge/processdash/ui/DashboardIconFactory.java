@@ -221,15 +221,8 @@ public class DashboardIconFactory {
     }
 
     public static Icon getScriptIcon() {
-        Icon result = loadNamedIcon("script", null);
-        if (result == null) result = new ScriptIcon();
-        return result;
-    }
-
-    public static Icon getDisabledScriptIcon() {
-        Icon result = loadNamedIcon("script-dis", null);
-        if (result == null) result = new DisabledScriptIcon();
-        return result;
+        String name = (STD_ICON_HEIGHT > 18 ? "script19" : "script");
+        return loadNamedIcon(name, null);
     }
 
     public static Icon getTaskOverflowIcon() {
@@ -602,57 +595,6 @@ public class DashboardIconFactory {
             paintBodySide(g, x, y, 1);
             paintBodySide(g, x, y+11, -1);
             g.drawLine(x+21, y+5, x+21, y+6);
-        }
-
-    }
-
-    private static class ScriptIcon implements Icon {
-
-        public int getIconHeight() {
-            return 13;
-        }
-
-        public int getIconWidth() {
-            return 10;
-        }
-
-        public void paintIcon(Component c, Graphics g, int x, int y) {
-            g.setColor(Color.white);
-            g.fillRect(x+1, y+1, 9, 12);
-            g.setColor(Color.black);
-            g.drawRect(x, y, 9, 12);
-            for (int i = 1;   i < 6;   i++)
-                g.drawLine(x+2, y+2*i, x+7, y+2*i);
-        }
-
-    }
-
-    private static class DisabledScriptIcon implements Icon {
-
-        private Color lightGray = new Color(229, 229, 229);
-
-        public int getIconHeight() {
-            return 13;
-        }
-
-        public int getIconWidth() {
-            return 11;
-        }
-
-        public void paintIcon(Component c, Graphics g, int x, int y) {
-            g.setColor(Color.white);
-            paintPage(g, x+1, y+1);
-            g.setColor(Color.gray);
-            paintPage(g, x, y);
-            g.setColor(lightGray);
-            g.fillRect(x+3, y+5, 6, 2);
-        }
-        private void paintPage(Graphics g, int x, int y) {
-            g.drawRect(x, y, 9, 11);
-            g.drawLine(x+2, y+2, x+7, y+2);
-            g.drawLine(x+2, y+4, x+7, y+4);
-            g.drawLine(x+2, y+7, x+7, y+7);
-            g.drawLine(x+2, y+9, x+7, y+9);
         }
 
     }
