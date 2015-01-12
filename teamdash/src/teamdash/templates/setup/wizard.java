@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2014 Tuma Solutions, LLC
+// Copyright (C) 2002-2015 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -1189,6 +1189,10 @@ public class wizard extends TinyCGIBase implements TeamDataConstants {
     }
 
     private void handleRelaunchWelcomePage() {
+        // don't proceed if we are running in read-only mode.
+        if (Settings.isReadOnly())
+            throw new WizardError(RELAUNCH_INVALID_URL).param("readOnly");
+
         // look at the current path. It it doesn't name a team project, abort.
         String projectPath = getPrefix();
         String templateID = getTemplateID(projectPath);
