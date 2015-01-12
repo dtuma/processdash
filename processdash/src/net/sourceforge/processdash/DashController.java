@@ -78,6 +78,7 @@ public class DashController {
         try {
             addrs.add("127.0.0.1");
             addrs.add("::1");
+            addrs.add("0:0:0:0:0:0:0:1%0");
             addLocalAddresses(addrs, "localhost");
             addLocalAddresses(addrs, InetAddress.getLocalHost().getHostName());
         } catch (IOException ioe) {}
