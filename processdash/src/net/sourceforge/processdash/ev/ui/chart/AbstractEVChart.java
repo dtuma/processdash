@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2014 Tuma Solutions, LLC
+// Copyright (C) 2003-2015 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -191,7 +191,7 @@ public abstract class AbstractEVChart<D extends Dataset, P extends Plot>
     static {
         SERIES_PAINTS.put("Baseline", new Color(159, 141, 114));
         SERIES_PAINTS.put("Plan", Color.red);
-        SERIES_PAINTS.put("Replan", Color.red);
+        SERIES_PAINTS.put("Replan", Color.pink);
         SERIES_PAINTS.put("Actual", Color.blue);
         SERIES_PAINTS.put("Total_Cost", Color.red);
         SERIES_PAINTS.put("Forecast", Color.green);

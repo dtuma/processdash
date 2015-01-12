@@ -44,6 +44,11 @@
         type="checkbox"></td>
     <td><!--#echo var=Hide_Plan_HTML encoding=none --></td></tr>
 
+<tr><td valign="top"><input name="hideReplanLine"
+        <!--#if [settings//hideReplanLine] -->checked<!--#endif-->
+        type="checkbox"></td>
+    <td><!--#echo var=Hide_Replan_HTML encoding=none --></td></tr>
+
 <tr><td valign="top"><input name="hideForecastLine"
         <!--#if [settings//hideForecastLine] -->checked<!--#endif-->
         type="checkbox"></td>

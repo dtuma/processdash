@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Tuma Solutions, LLC
+// Copyright (C) 2002-2015 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -309,7 +309,7 @@ public class EVMetricsRollup extends EVMetrics {
                 Date upi() { return optimizedForecastDateUPI(); } } );
         result.add(1, new DateMetricFormatter("Optimized_Plan_Date") {
                 Date val() { return optimizedPlanDate(); } } );
-        result.add(2, new DateMetricFormatter("Optimized_Replan_Date") {
+        result.add(3, new DateMetricFormatter("Optimized_Replan_Date") {
             Date val() { return optimizedReplanDate(); } } );
         return result;
     }

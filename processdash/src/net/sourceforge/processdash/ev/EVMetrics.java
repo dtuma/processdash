@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2013 Tuma Solutions, LLC
+// Copyright (C) 2001-2015 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -427,6 +427,9 @@ public class EVMetrics implements TableModel {
     public double improvementRatio() {
         return (toCompletePerformanceIndex() / costPerformanceIndex()) - 1.0;
     }
+    public double replanCost() {
+        return totalPlan() - costVariance();
+    }
     public double independentForecastCost() {
         return totalPlan() / costPerformanceIndex();
     }
@@ -723,6 +726,8 @@ public class EVMetrics implements TableModel {
                 Date val() { return planDate(); } } );
         result.add(new DateMetricFormatter("Replan_Date") {
                 Date val() { return replanDate(); } } );
+        result.add(new CostMetricFormatter("Replan_Cost") {
+                double val() { return replanCost(); } } );
         result.add(new CostMetricFormatter("Cost_Variance") {
                 double val() { return costVariance(); } } );
         result.add(new AbsMetricFormatter("Cost_Variance_Percent") {

@@ -27,19 +27,27 @@ to indicate that you are closer to your goal of completing the project.
 When you finish all of the work in this task list, the blue line will reach
 100%.</li>
 
-<li>Once you begin collecting data, the dashboard may be able to calculate
-an adjusted date when the work is most likely to finish, assuming that you
-make progress in the future at a rate similar to the past.  This will be
-displayed on the chart as a green <b>"Forecast"</b> line.  Sometimes, the
-dashboard is also able to <a href="TaskScheduleRanges.html">calculate a
-range</a> of dates that place an upper and lower bound on the completion
-date forecast with a 70% error margin.  If so, a green cone will depict
-this range of dates.</li>
+<li>If your actual progress is ahead or behind the original plan, the dashboard
+may be able to <a href="TaskScheduleDates.html#replanDate">calculate</a> an
+adjusted date when the work is most likely to finish, taking the current
+schedule slip into account but assuming that remaining work will fall in line
+with the original plan.  This will be displayed on the chart as a pink
+<b>"Replan"</b> line.</li>
 
-<li>When you roll up data for a team, the dashboard will also calculate an
-<b>"Optimized"</b> completion date.  This is the date that the project
-would be forecast to complete, if the workload were rebalanced perfectly so
-everyone finishes at the same time.</li>
+<li>Once you begin collecting data, the dashboard may be able to
+<a href="TaskScheduleDates.html#forecastDate">calculate</a> an adjusted date
+when the work is most likely to finish, assuming that you make progress in the
+future at a rate similar to the past.  This will be displayed on the chart as
+a green <b>"Forecast"</b> line.  Sometimes, the dashboard is also able to 
+<a href="TaskScheduleRanges.html">calculate a range</a> of dates that place an
+upper and lower bound on the completion date forecast with a 70% error margin.
+If so, a green cone will depict this range of dates.</li>
+
+<li>When you roll up data for a team, the dashboard will also 
+<a href="TaskScheduleDates.html#optForecastDate">calculate</a> an
+<b>"Optimized"</b> completion date.  This is the date that the project would
+be forecast to complete, if the workload were rebalanced perfectly so everyone
+finishes at the same time.</li>
 
 <li>If you have saved a baseline for this schedule, a brown
 <b>"Baseline"</b> line will appear.  This shows what the "Plan" line
@@ -61,10 +69,11 @@ make this problem clear.  Otherwise, you could be behind because tasks are
 taking longer than expected.  The <a href="EV-cumCombinedChart.html">Earned
 Value vs. Cost</a> chart will highlight that problem.</p>
 
-<p>Next, the Forecast line can be a helpful tool for strategic planning.
-But be wary about using the Forecast line during the first few weeks of
-your schedule.  When limited actual data is availble, the forecast date may
-be unstable, changing dramatically each time a task is marked complete.
+<p>Next, the Replan and Forecast lines can be helpful tools for strategic
+planning.  But be wary about using the Forecast line during the first few
+weeks of your schedule.  When limited actual data is available, the forecast
+date may be unstable, changing dramatically each time a task is marked
+complete.  During those initial weeks, it is better to watch the Replan line.
 Once you have collected a few weeks' worth of data, the Forecast line will
 be much more useful.  If the forecast line is consistently predicting a
 date that will not allow you to meet your commitments, you may need to

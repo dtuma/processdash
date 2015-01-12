@@ -1,4 +1,4 @@
-// Copyright (C) 2001-2014 Tuma Solutions, LLC
+// Copyright (C) 2001-2015 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -128,6 +128,7 @@ public class EVReport extends CGIChartBase {
     private static final String CUSTOMIZE_PARAM = "customize";
     static final String CUSTOMIZE_HIDE_BASELINE = "hideBaseline";
     static final String CUSTOMIZE_HIDE_PLAN_LINE = "hidePlanLine";
+    static final String CUSTOMIZE_HIDE_REPLAN_LINE = "hideReplanLine";
     static final String CUSTOMIZE_HIDE_FORECAST_LINE = "hideForecastLine";
     static final String CUSTOMIZE_HIDE_NAMES = "hideAssignedTo";
     static final String CUSTOMIZE_LABEL_FILTER =
@@ -777,6 +778,7 @@ public class EVReport extends CGIChartBase {
         if (parameters.containsKey("OK")) {
             settings.store(CUSTOMIZE_HIDE_BASELINE, true);
             settings.store(CUSTOMIZE_HIDE_PLAN_LINE, true);
+            settings.store(CUSTOMIZE_HIDE_REPLAN_LINE, true);
             settings.store(CUSTOMIZE_HIDE_FORECAST_LINE, true);
             settings.store(CUSTOMIZE_HIDE_NAMES, true);
             settings.store(CUSTOMIZE_LABEL_FILTER, false);
@@ -841,10 +843,11 @@ public class EVReport extends CGIChartBase {
         printScheduleErrors(out, m.getErrors());
 
         boolean hidePlan = settings.getBool(CUSTOMIZE_HIDE_PLAN_LINE);
+        boolean hideReplan = settings.getBool(CUSTOMIZE_HIDE_REPLAN_LINE);
         boolean hideForecast = settings.getBool(CUSTOMIZE_HIDE_FORECAST_LINE);
         out.print("<table name='STATS'>");
         for (int i = 0;   i < m.getRowCount();   i++)
-            writeMetric(m, i, hidePlan, hideForecast);
+            writeMetric(m, i, hidePlan, hideReplan, hideForecast);
         out.print("</table>");
 
         out.print("<h2><a name='" + namespace + "tasks'></a>"
@@ -1165,10 +1168,10 @@ public class EVReport extends CGIChartBase {
 
 
     protected void writeMetric(EVMetrics m, int i, boolean hidePlan,
-            boolean hideForecast) {
+            boolean hideReplan, boolean hideForecast) {
         String metricID = (String) m.getValueAt(i, EVMetrics.METRIC_ID);
-        if (hidePlan && (metricID.indexOf("Plan_") != -1
-                || metricID.indexOf("Replan_") != -1)) return;
+        if (hidePlan && (metricID.indexOf("Plan_") != -1)) return;
+        if (hideReplan && (metricID.indexOf("Replan_") != -1)) return;
         if (hideForecast && metricID.indexOf("Forecast_") != -1) return;
 
         String name = (String) m.getValueAt(i, EVMetrics.NAME);
@@ -1343,6 +1346,7 @@ public class EVReport extends CGIChartBase {
             boolean showTimingIcons) {
         TableModel table = taskList.getSimpleTableModel(filter);
         boolean hidePlan = settings.getBool(CUSTOMIZE_HIDE_PLAN_LINE);
+        boolean hideReplan = settings.getBool(CUSTOMIZE_HIDE_REPLAN_LINE);
         boolean hideForecast = settings.getBool(CUSTOMIZE_HIDE_FORECAST_LINE);
         boolean hideNames = settings.getBool(CUSTOMIZE_HIDE_NAMES);
         customizeTableWriter(writer, table, EVTaskList.toolTips);
@@ -1354,10 +1358,10 @@ public class EVReport extends CGIChartBase {
                 .exportingToExcel(), hideNames, taskList.getNodeTypeSpecs());
         if (!(taskList instanceof EVTaskListRollup) || hideNames)
             writer.setSkipColumn(EVTaskList.ASSIGNED_TO_COLUMN, true);
-        if (hidePlan) {
+        if (hidePlan)
             writer.setSkipColumn(EVTaskList.PLAN_DATE_COLUMN, true);
+        if (hideReplan)
             writer.setSkipColumn(EVTaskList.REPLAN_DATE_COLUMN, true);
-        }
         if (hideForecast)
             writer.setSkipColumn(EVTaskList.FORECAST_DATE_COLUMN, true);
         return table;
@@ -1425,10 +1429,12 @@ public class EVReport extends CGIChartBase {
 
         // possibly hide lines on the chart, at user request.
         boolean hidePlan = settings.getBool(CUSTOMIZE_HIDE_PLAN_LINE);
+        boolean hideReplan = settings.getBool(CUSTOMIZE_HIDE_REPLAN_LINE);
         boolean hideForecast = settings.getBool(CUSTOMIZE_HIDE_FORECAST_LINE);
-        if (hidePlan || hideForecast)
+        if (hidePlan || hideReplan || hideForecast)
             xydata = new XYDatasetFilter(xydata)
                 .setSeriesHidden("Plan", hidePlan)
+                .setSeriesHidden("Replan", hideReplan)
                 .setSeriesHidden("Forecast", hideForecast)
                 .setSeriesHidden("Optimized_Forecast", hideForecast);
 
@@ -1446,10 +1452,12 @@ public class EVReport extends CGIChartBase {
 
         // possibly hide lines on the chart, at user request.
         boolean hidePlan = settings.getBool(CUSTOMIZE_HIDE_PLAN_LINE);
+        boolean hideReplan = settings.getBool(CUSTOMIZE_HIDE_REPLAN_LINE);
         boolean hideForecast = settings.getBool(CUSTOMIZE_HIDE_FORECAST_LINE);
-        if (hidePlan || hideForecast)
+        if (hidePlan || hideReplan || hideForecast)
             xydata = new XYDatasetFilter(xydata)
                 .setSeriesHidden("Plan", hidePlan)
+                .setSeriesHidden("Replan", hideReplan)
                 .setSeriesHidden("Forecast", hideForecast)
                 .setSeriesHidden("Optimized_Forecast", hideForecast);
 

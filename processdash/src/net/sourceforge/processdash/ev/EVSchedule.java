@@ -1834,6 +1834,17 @@ public class EVSchedule implements TableModel {
         }
     }
 
+    protected class ReplanChartSeries extends ForecastChartSeries {
+        @Override
+        public String getSeriesKey() {
+            return "Replan";
+        }
+        @Override
+        protected Date getForecastDate() {
+            return metrics.replanDate();
+        }
+    }
+
     protected class EVScheduleChartEventAdapter extends ChartEventAdapter
             implements TableModelListener {
 
@@ -1864,10 +1875,11 @@ public class EVSchedule implements TableModel {
             super(eventAdapter);
             plan = new PlanTimeSeries();
             actual = new ActualTimeSeries();
+            replan = new ReplanChartSeries();
             forecast = new ForecastChartSeries();
         }
         XYChartSeries plan, actual;
-        ForecastChartSeries forecast;
+        ForecastChartSeries replan, forecast;
         @Override
         public void recalc() {
             clearSeries();
@@ -1890,6 +1902,10 @@ public class EVSchedule implements TableModel {
                 (metrics.independentForecastCostLPI());
             forecast.forecastYValHigh = makeTime
                 (metrics.independentForecastCostUPI());
+            replan.currentYVal = forecast.currentYVal;
+            replan.forecastYVal = makeTime(metrics.replanCost());
+            replan.recalc();
+            maybeAddSeries(replan);
             forecast.recalc();
             maybeAddSeries(forecast);
         }
@@ -1924,6 +1940,7 @@ public class EVSchedule implements TableModel {
             double mult = 100.0 / totalPlan();
             plan = new PlanValueSeries(mult);
             actual = new ActualValueSeries(mult);
+            replan = new ReplanChartSeries();
             forecast = new ForecastChartSeries() {
                     @Override
                     protected Date getForecastDateLPI() {
@@ -1933,7 +1950,7 @@ public class EVSchedule implements TableModel {
                         return metrics.independentForecastDateUPI(); }
                 };
         }
-        ForecastChartSeries forecast;
+        ForecastChartSeries replan, forecast;
         PlanValueSeries plan;
         ActualValueSeries actual;
         @Override
@@ -1956,9 +1973,11 @@ public class EVSchedule implements TableModel {
             }
         }
         protected void recalcForecast(Double currentYVal, Double forecastYVal) {
-            forecast.currentYVal = currentYVal;
-            forecast.forecastYVal = forecastYVal;
+            replan.currentYVal = forecast.currentYVal = currentYVal;
+            replan.forecastYVal = forecast.forecastYVal = forecastYVal;
+            replan.recalc();
             forecast.recalc();
+            maybeAddSeries(replan);
             maybeAddSeries(forecast);
         }
     }
