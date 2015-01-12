@@ -38,6 +38,7 @@ import net.sourceforge.processdash.ProcessDashboard;
 import net.sourceforge.processdash.hier.DashHierarchy;
 import net.sourceforge.processdash.hier.Filter;
 import net.sourceforge.processdash.hier.PropertyKey;
+import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.log.defects.DefectLogID;
 import net.sourceforge.processdash.ui.DashboardIconFactory;
 import net.sourceforge.processdash.ui.help.PCSH;
@@ -52,6 +53,7 @@ public class DefectButton extends JButton implements ActionListener,
     List forbiddenPaths;
     String defectLogFileName = null;
     PropertyKey defectPath = null;
+    String tooltip, disabledTooltip;
 
     public DefectButton(ProcessDashboard dash) {
         super();
@@ -66,10 +68,14 @@ public class DefectButton extends JButton implements ActionListener,
         }
         setIcon(enabled_icon);
         setDisabledIcon(disabled_icon);
+        Resources r = Resources.getDashBundle("ProcessDashboard.DefectButton");
+        tooltip = r.getString("Tooltip");
+        disabledTooltip = r.getString("Disabled_Tooltip");
 
         parent = dash;
         forbiddenPaths = dash.getBrokenDataPaths();
         setEnabled(false);
+        setToolTipText(disabledTooltip);
         setFocusPainted(false);
         addActionListener(this);
         dash.getActiveTaskModel().addPropertyChangeListener(this);
@@ -97,7 +103,9 @@ public class DefectButton extends JButton implements ActionListener,
             defectLogFileName = defectLog.filename;
             defectPath = defectLog.path;
         }
-        setEnabled(shouldAllowDefectLogging());
+        boolean enabled = shouldAllowDefectLogging();
+        setEnabled(enabled);
+        setToolTipText(enabled ? tooltip : disabledTooltip);
     }
 
     public void actionPerformed(ActionEvent e) {

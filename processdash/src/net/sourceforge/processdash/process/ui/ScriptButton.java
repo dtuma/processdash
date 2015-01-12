@@ -65,8 +65,8 @@ public class ScriptButton extends DropDownButton implements
         PropertyChangeListener, DashHierarchy.Listener,
         ScriptEnumeratorListener {
 
-    private static final String MORE_TEXT = Resources.getGlobalBundle()
-              .getDlgString("More");
+    private static final Resources resources = Resources.getDashBundle(
+            "ProcessDashboard.ScriptButton");
 
     private static final String DROP_DOWN_BEHAVIOR_PREF = Settings.PREFS_PREFIX
               + "scriptButton.clickOpensDefault";
@@ -88,10 +88,11 @@ public class ScriptButton extends DropDownButton implements
         setMainButtonMargin(new Insets (1,2,1,2));
         enabled_icon = DashboardIconFactory.getScriptIcon();
         getButton().setIcon(padIcon(enabled_icon));
+        getButton().setToolTipText(resources.getString("Tooltip"));
         getButton().setFocusPainted(false);
         parent = dash;
 
-        moreItem = new JMenuItem(MORE_TEXT);
+        moreItem = new JMenuItem(resources.getString("More_Menu"));
         moreItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 new ScriptBrowser(ScriptButton.this.parent, true); } } );
@@ -156,7 +157,7 @@ public class ScriptButton extends DropDownButton implements
                 destMenu.add(new ScriptMenuItem(script));
 
             } else if (item instanceof List) {
-                JMenu submenu = new JMenu(MORE_TEXT);
+                JMenu submenu = new JMenu(resources.getDlgString("More"));
                 destMenu.add(submenu);
                 addMenuItems(submenu, showSeparatorLabels, (List) item);
 
