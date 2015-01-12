@@ -616,11 +616,12 @@ public class TimeLogEditor extends Object implements TreeSelectionListener,
         addButton.setEnabled(true);
 
         int newRow = tableModel.getRowCount() - 1;
+        int col = table.convertColumnIndexToView(TimeLogTableModel.COL_ELAPSED);
         table.setRowSelectionInterval(newRow, newRow);
-        table.scrollRectToVisible(table.getCellRect(newRow,
-            TimeLogTableModel.COL_ELAPSED, true));
-        table.editCellAt(newRow, TimeLogTableModel.COL_ELAPSED);
-        table.requestFocusInWindow();
+        table.setColumnSelectionInterval(col, col);
+        table.scrollRectToVisible(table.getCellRect(newRow, col, true));
+        table.editCellAt(newRow, col);
+        table.getEditorComponent().requestFocusInWindow();
     }
 
     public void deleteSelectedRow() {
@@ -1091,7 +1092,8 @@ public class TimeLogEditor extends Object implements TreeSelectionListener,
             return result;
         }
 
-        private boolean shouldSelectAll(int column) {
+        private boolean shouldSelectAll(int viewColumn) {
+            int column = convertColumnIndexToModel(viewColumn);
             return (column == TimeLogTableModel.COL_ELAPSED
                     || column == TimeLogTableModel.COL_INTERRUPT);
         }
