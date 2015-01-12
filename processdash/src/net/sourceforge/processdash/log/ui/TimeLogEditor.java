@@ -1,4 +1,4 @@
-// Copyright (C) 1999-2013 Tuma Solutions, LLC
+// Copyright (C) 1999-2015 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -617,6 +617,8 @@ public class TimeLogEditor extends Object implements TreeSelectionListener,
 
         int newRow = tableModel.getRowCount() - 1;
         table.setRowSelectionInterval(newRow, newRow);
+        table.scrollRectToVisible(table.getCellRect(newRow,
+            TimeLogTableModel.COL_ELAPSED, true));
         table.editCellAt(newRow, TimeLogTableModel.COL_ELAPSED);
         table.requestFocusInWindow();
     }
