@@ -9,6 +9,10 @@ grant signedBy "processdash-full-permissions" {
 	permission java.security.AllPermission;
 };
 
+grant signedBy "processdash-full-permissions-2005" {
+	permission java.security.AllPermission;
+};
+
 grant signedBy "tuma-solutions" {
 	permission java.security.AllPermission;
 };
