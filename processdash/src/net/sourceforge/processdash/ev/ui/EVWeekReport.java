@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2014 Tuma Solutions, LLC
+// Copyright (C) 2002-2015 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -858,13 +858,13 @@ public class EVWeekReport extends TinyCGIBase {
 
     private static final String TIME_LOG_QUERY = "select "
             + "f.planItem.identifier, " //
-            + "f.dataBlock.person.name, " //
+            + "f.dataBlock.person.encryptedName, " //
             + "sum(f.deltaMin) " //
             + "from TimeLogFact f " //
             + "where f.versionInfo.current = 1 "
             + "and f.planItem.project.key in (?) "
             + "and f.startDateDim.key between ? and ? "
-            + "group by f.planItem.identifier, f.dataBlock.person.name";
+            + "group by f.planItem.identifier, f.dataBlock.person.encryptedName";
 
     private double getActualTimeForTask(TableModel tasks, int i,
             Map<String, Map<String, Double>> actualTime) {
