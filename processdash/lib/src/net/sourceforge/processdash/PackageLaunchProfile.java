@@ -1,4 +1,4 @@
-// Copyright (C) 2009 Tuma Solutions, LLC
+// Copyright (C) 2009-2015 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -60,6 +60,8 @@ public class PackageLaunchProfile extends Task {
 
     private String requireserver;
 
+    private File launcherjar;
+
     private File destfile;
 
     private String signingprefix;
@@ -80,6 +82,11 @@ public class PackageLaunchProfile extends Task {
 
     public void setRequireserver(String requireserver) {
         this.requireserver = requireserver;
+    }
+
+    public void setLauncherjar(File launcherjar) {
+        if (launcherjar == null || !launcherjar.getName().equals("none"))
+            this.launcherjar = launcherjar;
     }
 
     public void setDestfile(File destfile) {
@@ -120,12 +127,14 @@ public class PackageLaunchProfile extends Task {
             throw new BuildException("profileid not specified");
         if (!hasValue(profileversion))
             throw new BuildException("profileversion not specified");
+        if (launcherjar != null && !launcherjar.isFile())
+            throw new BuildException("launcherjar '" + launcherjar + "' not found");
         if (destfile == null)
             throw new BuildException("destfile not specified");
     }
 
     private boolean hasValue(String s) {
-        return (s != null && s.length() != 0);
+        return (s != null && s.length() != 0 && !s.contains("${"));
     }
 
 
@@ -210,22 +219,28 @@ public class PackageLaunchProfile extends Task {
 
         ZipOutputStream out = new ZipOutputStream(new BufferedOutputStream(
                 new FileOutputStream(destfile)));
+        storeFileInZip(out, RESOURCE_JAR_FILENAME, tmpFile);
+        if (launcherjar != null)
+            storeFileInZip(out, LAUNCHER_JAR_FILENAME, launcherjar);
+        out.finish();
+        out.close();
+    }
 
-        ZipEntry e = new ZipEntry(RESOURCE_JAR_FILENAME);
+    private void storeFileInZip(ZipOutputStream out, String name, File file)
+            throws IOException {
+        ZipEntry e = new ZipEntry(name);
         e.setMethod(ZipEntry.STORED);
-        e.setSize(tmpFile.length());
-        e.setCompressedSize(tmpFile.length());
-        e.setCrc(calcChecksum(tmpFile, new CRC32()));
+        e.setSize(file.length());
+        e.setCompressedSize(file.length());
+        e.setCrc(calcChecksum(file, new CRC32()));
         out.putNextEntry(e);
 
-        InputStream in = new BufferedInputStream(new FileInputStream(tmpFile));
+        InputStream in = new BufferedInputStream(new FileInputStream(file));
         int c;
         while ((c = in.read()) != -1)
             out.write(c);
         in.close();
         out.closeEntry();
-        out.finish();
-        out.close();
     }
 
 
@@ -283,5 +298,7 @@ public class PackageLaunchProfile extends Task {
             + "Requires-Server";
 
     private static final String RESOURCE_JAR_FILENAME = "pdash-launch-resources.jar";
+
+    private static final String LAUNCHER_JAR_FILENAME = "pdash-jnlp-launcher.jar";
 
 }
