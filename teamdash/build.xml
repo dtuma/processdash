@@ -1,7 +1,7 @@
 <!--
 
 Team Functionality Add-ons for the Process Dashboard
-Copyright (C) 2002-2014 Tuma Solutions, LLC
+Copyright (C) 2002-2015 Tuma Solutions, LLC
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -528,9 +528,11 @@ class dependency has been added in a dashboard class?)
       <equals arg1="${launchProfile.skipConsent}" arg2="true"/>
     </condition>
     <property name="licenseFile" value="noSuchFile"/>
+    <property name="jnlpLauncher.jar" value="none"/>
     <packageLaunchProfile profilename="${launchProfile.name}"
 	  profileid="${launchProfile.id}"
 	  profileversion="${launchProfile.version}"
+          launcherjar="${jnlpLauncher.jar}"
 	  signingprefix="profileSign"
 	  destfile="${processdash.dist}/${launchProfile.filename}">
       <fileset dir="${processdash.dist}"
