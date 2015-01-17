@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2014 Tuma Solutions, LLC
+// Copyright (C) 2002-2015 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -34,6 +34,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.w3c.dom.Element;
@@ -292,7 +293,7 @@ public class WBSNode implements Cloneable {
         out.write("'");         // don't close tag yet
 
         // write out a tag for each attribute.
-        Iterator i = attributes.entrySet().iterator();
+        Iterator i = new TreeMap(attributes).entrySet().iterator();
         Map.Entry e;
         Object v;
         String name, value;
