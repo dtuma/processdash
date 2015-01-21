@@ -430,7 +430,7 @@ class dependency has been added in a dashboard class?)
       <zipfileset src="${xmlpull.jar}"/>
       <zipfileset src="${jcalendar.jar}"/>
       <zipfileset src="${jna.jar}"/>
-      <zipfileset src="${keyring.jar}"/>
+      <zipfileset src="${keyring.jar}" excludes="META-INF/**" />
 
       <!-- include certain metadata files -->
       <zipfileset dir="lib" includes="l10n-ignore.txt" prefix="meta-inf"/>
