@@ -686,11 +686,12 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
                     double time = origIndiv.time;
                     time *= change.getTimeRatio(timePerPerson);
 
-                    Double timeToSum = newTimes.get(change.newInitials);
+                    String newInitials = change.newInitials.toLowerCase();
+                    Double timeToSum = newTimes.get(newInitials);
                     if (timeToSum != null)
                         time += timeToSum;
 
-                    newTimes.put(change.newInitials, time);
+                    newTimes.put(newInitials, time);
                 }
             }
 
@@ -1081,7 +1082,8 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
                     if (c.isAdd()) {
                         IndivTime indiv = getIndiv(c.newInitials);
                         if (indiv != null && !indiv.isAssigned()) {
-                            times.put(c.newInitials, timePerPerson);
+                            times.put(c.newInitials.toLowerCase(),
+                                timePerPerson);
                             if (--numMembersNeeded == 0)
                                 break;
                         }
@@ -1097,8 +1099,8 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
                 if (deleteRole(node, roleName)) {
                     IndivTime indiv = getIndiv(initials);
                     if (indiv != null)
-                        indiv.setTime(Collections.singletonMap(initials,
-                            indiv.time + timePerPerson));
+                        indiv.setTime(Collections.singletonMap(
+                            initials.toLowerCase(), indiv.time + timePerPerson));
                 }
             }
         }
