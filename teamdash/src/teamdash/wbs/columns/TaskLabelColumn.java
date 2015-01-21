@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2013 Tuma Solutions, LLC
+// Copyright (C) 2002-2015 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -24,8 +24,10 @@
 package teamdash.wbs.columns;
 
 import java.awt.Component;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -173,6 +175,16 @@ public class TaskLabelColumn extends AbstractDataColumn implements
             return " ";
         else
             return StringUtils.join(labels, ", ");
+    }
+
+    public static String subtractLabels(String a, String b) {
+        if (a == null) return null;
+        if (b == null) return a;
+        List<String> labels = new ArrayList(Arrays.asList( //
+                a.split(NON_LABEL_CHARS_REGEXP)));
+        labels.removeAll(Arrays.asList(b.split(NON_LABEL_CHARS_REGEXP)));
+        labels.remove("");
+        return (labels.isEmpty() ? null : StringUtils.join(labels, ", "));
     }
 
     public static String convertToLabel(String text) {

@@ -183,6 +183,18 @@ public class WBSNode implements Cloneable {
         else
             attributes.put(attrName, value);
     }
+    /** Store a number of attributes on this node */
+    public void setAttributes(Map<String, Object> attrs,
+            boolean overwriteExisting) {
+        if (attrs != null && !attrs.isEmpty()) {
+            for (Map.Entry<String, Object> e : attrs.entrySet()) {
+                String attrName = e.getKey();
+                Object attrValue = e.getValue();
+                if (overwriteExisting || attributes.get(attrName) == null)
+                    setAttribute(attrName, attrValue);
+            }
+        }
+    }
     /** Remove an attribute and return its previous value */
     public Object removeAttribute(String attrName) {
         return attributes.remove(attrName);

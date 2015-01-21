@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2014 Tuma Solutions, LLC
+// Copyright (C) 2002-2015 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -225,6 +225,10 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
 
     protected int getIndexOfNode(Object node) {
         return wbsNodes.indexOf(node);
+    }
+
+    protected WBSNode getNodeForPos(int pos) {
+        return wbsNodes.get(pos);
     }
 
     /** Return a collection of the nodes in this model, indexed by unique ID.
@@ -1110,6 +1114,11 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
         return deletionOccurred;
     }
 
+    void deleteNodesImpl(List<WBSNode> nodesToDelete) {
+        for (WBSNode node : nodesToDelete)
+            wbsNodes.remove(node);
+    }
+
     public int[] insertNodes(List nodesToInsert, int beforeRow) {
         return insertNodes(nodesToInsert, beforeRow, true);
     }
@@ -1160,6 +1169,23 @@ public class WBSModel extends AbstractTableModel implements SnapshotSource {
 
     void insertNodesAtImpl(List nodesToInsert, int beforePos) {
         wbsNodes.addAll(beforePos, prepareNodesForInsertion(nodesToInsert));
+    }
+
+    void moveNodesImpl(int startPos, int len, int destPos) {
+        if (len == 0)
+            return; // nothing to move
+        if (startPos <= destPos && destPos <= startPos + len)
+            return; // moving nodes into their current location
+
+        // extract the nodes from the list
+        List srcNodes = wbsNodes.subList(startPos, startPos + len);
+        List nodesToMove = new ArrayList(srcNodes);
+        srcNodes.clear();
+
+        // insert them into the new location
+        if (startPos < destPos)
+            destPos -= len;
+        wbsNodes.addAll(destPos, nodesToMove);
     }
 
     /**

@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2014 Tuma Solutions, LLC
+// Copyright (C) 2002-2015 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -316,9 +316,20 @@ public class TopDownBottomUpColumn extends AbstractNumericColumn
             multiplyValue(node, ratio);
         } else {
             WBSNode delegate = getSingleLeafForNode(node, oldValue != 0);
-            if (delegate != null && delegate != node) {
-                userChangingValue(delegate, newValue);
-                delegate.setNumericAttribute(topDownAttrName, newValue);
+            if (delegate != null) {
+                // We have found a single leaf where the change should be made.
+                // Go ahead and set its bottom up value. (This will eventually
+                // be set by the recalculation logic, but this line allows the
+                // getValueAt to return as a non-error value in the meantime.)
+                delegate.setNumericAttribute(bottomUpAttrName, newValue);
+                if (delegate != node) {
+                    // if the delegate is different from the target node, make
+                    // the change on the delegate. (If they are the same, these
+                    // lines are unnecessary because they will be performed by
+                    // the setValueAt logic after this method returns.)
+                    userChangingValue(delegate, newValue);
+                    delegate.setNumericAttribute(topDownAttrName, newValue);
+                }
             }
         }
     }
