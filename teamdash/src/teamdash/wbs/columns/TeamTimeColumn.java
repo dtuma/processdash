@@ -25,6 +25,7 @@ package teamdash.wbs.columns;
 
 import static teamdash.wbs.AssignedToDocument.SEPARATOR;
 import static teamdash.wbs.AssignedToDocument.SEPARATOR_SPACE;
+import static teamdash.wbs.WorkflowModel.WORKFLOW_SOURCE_IDS_ATTR;
 import static teamdash.wbs.columns.WorkflowResourcesColumn.ROLE_BEG;
 import static teamdash.wbs.columns.WorkflowResourcesColumn.ROLE_END;
 
@@ -753,7 +754,7 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
             if (autoZeroInitials == null)
                 autoZeroInitials = (String) node.removeAttribute(
                     AUTO_ZERO_USER_ATTR_TRANSIENT);
-            autoZeroInitials = getWorkflowExplicitUsers(autoZeroInitials);
+            autoZeroInitials = getWorkflowAssignedUsers(autoZeroInitials);
             if (autoZeroInitials == null)
                 return;
 
@@ -786,14 +787,16 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
         /**
          * If a just-applied workflow contained assignments to real people
          * (rather than only abstract roles), return the initials of those
-         * people. If the workflow contains role assignments but no plain
-         * individuals, return the empty string. Otherwise, return the fallback
-         * value.
+         * people. If the workflow contains roles and a parent node knows of
+         * prior assignments for those roles, include those individuals in the
+         * result too. If the workflow contains only roles which have not yet
+         * been assigned, return the empty string. Otherwise, return the
+         * fallback value.
          * 
          * As a side effect, clean up the value of the "performed by" attribute
          * so it can be used by other logic.
          */
-        private String getWorkflowExplicitUsers(String fallbackValue) {
+        private String getWorkflowAssignedUsers(String fallbackValue) {
             if (node.getAttribute(PERFORMED_BY_PROCESSED_FLAG) != null)
                 return fallbackValue;
 
@@ -806,16 +809,44 @@ public class TeamTimeColumn extends TopDownBottomUpColumn implements ChangeListe
             Matcher m = TIME_SETTING_PATTERN.matcher(performedBy);
             while (m.find()) {
                 String word = m.group(1);
-                if (getIndiv(word) != null)
+                if (getIndiv(word) != null) {
                     people.append(word).append(" ");
-                else
-                    roles.append(SEPARATOR_SPACE).append(ROLE_BEG).append(word)
-                            .append(ROLE_END);
+                } else {
+                    String person = getPersonAssignedToRole(word);
+                    if (person != null)
+                        people.append(person).append(" ");
+                    else
+                        roles.append(SEPARATOR_SPACE).append(ROLE_BEG)
+                                .append(word).append(ROLE_END);
+                }
             }
             node.setAttribute(PERFORMED_BY_ATTR, roles.length() == 0 ? null
                     : roles.toString());
             node.setAttribute(PERFORMED_BY_PROCESSED_FLAG, "t");
             return people.toString();
+        }
+
+        private String getPersonAssignedToRole(String roleName) {
+            String roleToken = ROLE_BEG + roleName + ROLE_END;
+            WBSNode n = node;
+            while (true) {
+                // walk up the tree, looking at parents and grandparents. Abort
+                // if we find a node that is non-workflow-related
+                n = wbsModel.getParent(n);
+                if (n == null || n.getAttribute(WORKFLOW_SOURCE_IDS_ATTR) == null)
+                    return null;
+                // retrieve the list of known roles for this node
+                String knownRoles = (String) n.getAttribute(KNOWN_ROLES_ATTR);
+                if (knownRoles == null)
+                    continue;
+                // if the list of known roles contains the given role name,
+                // look up the corresponding assignment and return it.
+                if (Arrays.asList(knownRoles.split(",")).contains(roleToken)) {
+                    String attrName = ROLE_ASSIGNMENT_PREFIX + roleToken;
+                    String assignment = (String) n.getAttribute(attrName);
+                    return assignment;
+                }
+            }
         }
 
         @Override
