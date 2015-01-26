@@ -1,4 +1,4 @@
-// Copyright (C) 2008 Tuma Solutions, LLC
+// Copyright (C) 2008-2015 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -47,6 +47,11 @@ public class CheckboxList extends JTable {
         setIntercellSpacing(new Dimension(0, 1));
         getColumnModel().getColumn(0).setMaxWidth(30);
         rendererMap = new HashMap<TableCellRenderer, TableCellRenderer>();
+    }
+
+    /** @since 2.1.6 */
+    public void setItems(Object[] listData) {
+        ((CheckmarkTableModel) getModel()).replaceData(listData);
     }
 
     public void setChecked(int row, boolean checked) {
@@ -120,8 +125,13 @@ public class CheckboxList extends JTable {
         private boolean[] checked;
 
         public CheckmarkTableModel(Object[] data) {
+            replaceData(data);
+        }
+
+        public void replaceData(Object[] data) {
             this.data = data;
             this.checked = new boolean[data.length];
+            fireTableDataChanged();
         }
 
         @Override
