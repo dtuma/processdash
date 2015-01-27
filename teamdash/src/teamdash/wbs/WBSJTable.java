@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2014 Tuma Solutions, LLC
+// Copyright (C) 2002-2015 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -26,9 +26,13 @@ package teamdash.wbs;
 
 import static teamdash.wbs.WorkflowModel.WORKFLOW_SOURCE_IDS_ATTR;
 
+import java.awt.CardLayout;
 import java.awt.Color;
 import java.awt.Cursor;
+import java.awt.Dimension;
 import java.awt.Event;
+import java.awt.Font;
+import java.awt.Frame;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Window;
@@ -50,23 +54,40 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import javax.swing.AbstractAction;
+import javax.swing.AbstractButton;
 import javax.swing.Action;
 import javax.swing.ActionMap;
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.ButtonGroup;
 import javax.swing.Icon;
 import javax.swing.InputMap;
 import javax.swing.JComponent;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JRadioButton;
+import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.KeyStroke;
 import javax.swing.ListSelectionModel;
+import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
+import javax.swing.border.EmptyBorder;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeModel;
 
+import net.sourceforge.processdash.i18n.Resources;
+import net.sourceforge.processdash.ui.lib.CheckboxTree;
+import net.sourceforge.processdash.ui.lib.CheckboxTree.CheckboxNodeRenderer;
 import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
 
 import teamdash.ActionCategoryComparator;
@@ -108,6 +129,9 @@ public class WBSJTable extends JTable {
     /** The initials of a team member for whom editing operations should
      *  be optimized */
     private String optimizeForIndiv = null;
+
+    private static final Resources resources = WBSEditor.resources;
+
 
     /** Create a JTable to display a WBS. Construct a default icon menu. */
     public WBSJTable(WBSModel model, Map iconMap) {
@@ -299,6 +323,11 @@ public class WBSJTable extends JTable {
             PROMOTE_ACTION, DEMOTE_ACTION, EXPAND_ACTION, COLLAPSE_ACTION,
             EXPAND_ALL_ACTION, MOVEUP_ACTION, MOVEDOWN_ACTION,
             INSERT_ACTION, INSERT_AFTER_ACTION, DELETE_ACTION };
+    }
+
+    /** Return a list of workflow-related actions */
+    public Action[] getWorkflowActions(WBSModel workflows) {
+        return new Action[] { new ReapplyWorkflowAction(workflows) };
     }
 
     /** Return an action capable of inserting a workflow */
@@ -528,7 +557,16 @@ public class WBSJTable extends JTable {
         return nodeIDs;
     }
 
-    private String getAutoZeroUserString(int row) {
+    private Map getInsertWorkflowExtraAttrs(WBSNode node) {
+        String autoZeroUser = getAutoZeroUserString(node);
+        if (autoZeroUser == null)
+            autoZeroUser = optimizeForIndiv;
+
+        return (autoZeroUser == null ? null : Collections.singletonMap(
+            TeamTimeColumn.AUTO_ZERO_USER_ATTR_TRANSIENT, autoZeroUser));
+    }
+
+    private String getAutoZeroUserString(WBSNode node) {
         if (dataModel == null)
             return null;
         int pos = dataModel.findColumn(TeamTimeColumn.COLUMN_ID);
@@ -536,7 +574,6 @@ public class WBSJTable extends JTable {
             return null;
 
         TeamTimeColumn ttc = (TeamTimeColumn) dataModel.getColumn(pos);
-        WBSNode node = wbsModel.getNodeForRow(row);
         return ttc.getAutoZeroUserString(node);
     }
 
@@ -1316,17 +1353,11 @@ public class WBSJTable extends JTable {
             List insertedNodes = new ArrayList();
             Arrays.sort(rows);
             for (int i = rows.length; i-- > 0; ) {
-                Map extraAttrs = null;
-                String autoZeroUser = getAutoZeroUserString(rows[i]);
-                if (autoZeroUser == null)
-                    autoZeroUser = optimizeForIndiv;
-                if (autoZeroUser != null)
-                    extraAttrs = Collections.singletonMap(
-                        TeamTimeColumn.AUTO_ZERO_USER_ATTR_TRANSIENT,
-                        autoZeroUser);
+                WBSNode node = wbsModel.getNodeForRow(rows[i]);
                 List<WBSNode> inserted = WorkflowUtil.insertWorkflow(wbsModel,
-                    rows[i], workflowName, workflows,
-                    WorkflowModel.WORKFLOW_ATTRS, extraAttrs);
+                    node, workflowName, workflows,
+                    WorkflowModel.WORKFLOW_ATTRS,
+                    getInsertWorkflowExtraAttrs(node), true);
                 if (inserted != null)
                     insertedNodes.addAll(inserted);
             }
@@ -1346,6 +1377,186 @@ public class WBSJTable extends JTable {
         }
     }
     private InsertWorkflowAction INSERT_WORKFLOW_ACTION = null;
+
+
+    private class ReapplyWorkflowAction extends AbstractAction {
+
+        private WorkflowWBSModel workflows;
+        private AbstractButton useSelection, useEntireWbs;
+        private DefaultTreeModel workflowTreeModel;
+        private DefaultMutableTreeNode workflowTreeRoot;
+        private CheckboxTree workflowTree;
+        private JPanel listPanel;
+        private CardLayout listPanelLayout;
+        private JOptionPane pane;
+        private JDialog dialog;
+
+        public ReapplyWorkflowAction(WBSModel workflows) {
+            super(resources.getString("Workflow.Reapply.Menu"));
+            putValue(WBS_ACTION_CATEGORY, WBS_ACTION_CATEGORY_WORKFLOW);
+            putValue(MNEMONIC_KEY, new Integer('R'));
+            this.workflows = (WorkflowWBSModel) workflows;
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            if (dialog == null)
+                buildDialog();
+            Object src = e.getSource();
+            if (src == useSelection || src == useEntireWbs) {
+                refreshWorkflowEnactments();
+            } else {
+                stopCellEditing();
+                prepareAndShowDialog();
+            }
+        }
+
+        private void buildDialog() {
+            ButtonGroup g = new ButtonGroup();
+            useSelection = makeRadioButton(g, "Scope_Selection", KeyEvent.VK_S);
+            useEntireWbs = makeRadioButton(g, "Scope_WBS", KeyEvent.VK_W);
+
+            workflowTreeRoot = new DefaultMutableTreeNode();
+            workflowTreeModel = new DefaultTreeModel(workflowTreeRoot);
+            workflowTree = new CheckboxTree(workflowTreeModel);
+            CheckboxNodeRenderer r = (CheckboxNodeRenderer) workflowTree
+                    .getCellRenderer();
+            r.changeOpenIcon(IconFactory.getWorkflowIcon());
+            r.changeClosedIcon(IconFactory.getWorkflowIcon());
+            r.changeLeafIcon(IconFactory.getEmptyIcon(10, 1));
+
+            listPanel = new JPanel(listPanelLayout = new CardLayout());
+            JLabel noneLabel = new JLabel(res("No_Workflows_Found"),
+                    SwingConstants.CENTER);
+            noneLabel.setFont(noneLabel.getFont().deriveFont(Font.ITALIC));
+            listPanel.add(noneLabel, "none");
+            listPanel.add(workflowTree, "data");
+            JScrollPane sp = new JScrollPane(listPanel);
+            sp.setPreferredSize(new Dimension(300, 100));
+
+            Object content = new Object[] { //
+                    res("Scope_Prompt"), useSelection, useEntireWbs, //
+                    Box.createVerticalStrut(2), //
+                    res("Workflows_List_Prompt"), sp };
+
+            Frame f = (Frame) SwingUtilities.getWindowAncestor(WBSJTable.this);
+            pane = new JOptionPane(content, JOptionPane.PLAIN_MESSAGE,
+                    JOptionPane.OK_CANCEL_OPTION);
+            dialog = pane.createDialog(f, res("Window_Title"));
+            dialog.setModal(true);
+            dialog.setResizable(true);
+            dialog.pack();
+            dialog.setLocationRelativeTo(f);
+        }
+
+        private JRadioButton makeRadioButton(ButtonGroup g, String resKey, int m) {
+            JRadioButton result = new JRadioButton(res(resKey));
+            result.setToolTipText(res(resKey + "_Tooltip"));
+            result.setMnemonic(m);
+            result.setBorder(BorderFactory.createCompoundBorder(
+                result.getBorder(), new EmptyBorder(0, 15, 0, 0)));
+            g.add(result);
+            result.addActionListener(this);
+            return result;
+        }
+
+        private String res(String key) {
+            return resources.getString("Workflow.Reapply." + key);
+        }
+
+        private void prepareAndShowDialog() {
+            // update the radio buttons based on whether table rows are selected
+            if (getSelectedRow() == -1) {
+                useSelection.setEnabled(false);
+                useEntireWbs.setSelected(true);
+            } else {
+                useSelection.setEnabled(true);
+                useSelection.setSelected(true);
+            }
+
+            // recalculate the list of enactments in the selection/WBS
+            refreshWorkflowEnactments();
+
+            // display the dialog and wait for a user response
+            dialog.setVisible(true);
+
+            // if the user clicked OK, apply the changes
+            if (pane.getValue() == (Integer) JOptionPane.OK_OPTION)
+                applyChanges();
+        }
+
+        private void refreshWorkflowEnactments() {
+            // identify the appropriate scope, and scan for workflow enactments
+            List<WBSNode> nodes;
+            if (useEntireWbs.isSelected()) {
+                nodes = Collections.singletonList(wbsModel.getRoot());
+            } else {
+                int[] selectedRows = getSelectedRows();
+                Arrays.sort(selectedRows);
+                nodes = wbsModel.getNodesForRows(selectedRows, false);
+            }
+            Map<String, Set<WBSNode>> enactments = WorkflowUtil
+                    .getWorkflowEnactmentRoots(wbsModel, nodes, workflows);
+
+            // rebuild the tree based on the new list of enactments
+            workflowTreeRoot.removeAllChildren();
+            if (enactments.isEmpty()) {
+                listPanelLayout.show(listPanel, "none");
+                workflowTreeModel.nodeStructureChanged(workflowTreeRoot);
+
+            } else {
+                for (Entry<String, Set<WBSNode>> en : enactments.entrySet()) {
+                    String workflowName = en.getKey();
+                    DefaultMutableTreeNode workflowNode = //
+                            new DefaultMutableTreeNode(workflowName);
+                    workflowTreeRoot.add(workflowNode);
+                    for (WBSNode node : en.getValue()) {
+                        Enactment e = new Enactment(workflowName, node);
+                        workflowNode.add(new DefaultMutableTreeNode(e));
+                    }
+                }
+                workflowTreeModel.nodeStructureChanged(workflowTreeRoot);
+                for (int i = workflowTree.getRowCount(); i-- > 0;)
+                    workflowTree.collapseRow(i);
+                if (enactments.size() == 1)
+                    workflowTree.expandRow(0);
+                listPanelLayout.show(listPanel, "data");
+            }
+        }
+
+        private class Enactment {
+            public String workflowName;
+            public WBSNode wbsNode;
+            public String display;
+            protected Enactment(String workflow, WBSNode node) {
+                this.workflowName = workflow;
+                this.wbsNode = node;
+                this.display = wbsModel.getFullName(node);
+            }
+            public String toString() { return display; }
+        }
+
+        private void applyChanges() {
+            Set<WBSNode> affectedNodes = new HashSet();
+            for (Object obj : workflowTree.getCheckedNodes()) {
+                DefaultMutableTreeNode treeNode = (DefaultMutableTreeNode) obj;
+                if (treeNode.getUserObject() instanceof Enactment) {
+                    Enactment e = (Enactment) treeNode.getUserObject();
+                    System.out.println("Reapplying " + e.workflowName + " to "
+                            + e.display);
+                    affectedNodes.add(e.wbsNode);
+                    affectedNodes.addAll(WorkflowUtil.insertWorkflow(wbsModel,
+                        e.wbsNode, e.workflowName, workflows,
+                        WorkflowModel.WORKFLOW_ATTRS,
+                        getInsertWorkflowExtraAttrs(e.wbsNode), false));
+                }
+            }
+
+            if (!affectedNodes.isEmpty()) {
+                selectRows(wbsModel.getRowsForNodes(new ArrayList(affectedNodes)));
+                UndoList.madeChange(WBSJTable.this, "Reapply workflow");
+            }
+        }
+    }
 
 
     private class MergeMasterWBSAction extends AbstractAction implements

@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2014 Tuma Solutions, LLC
+// Copyright (C) 2002-2015 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -340,6 +340,11 @@ public class WBSTabPanel extends JLayeredPane
         return result.toArray(new Action[0]);
     }
 
+
+    /** Return a list of workflow-related actions */
+    public Action[] getWorkflowActions(WBSModel workflows) {
+        return wbsTable.getWorkflowActions(workflows);
+    }
 
     /** Get an action capable of inserting a workflow into the work breakdown
      *  structure */

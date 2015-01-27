@@ -30,10 +30,12 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import net.sourceforge.processdash.util.PatternList;
@@ -54,8 +56,8 @@ public class WorkflowUtil {
      * 
      * @param destWbs
      *            the WBS to modify
-     * @param destRow
-     *            the row where the workflow should be applied
+     * @param destNode
+     *            the node where the workflow should be applied
      * @param workflowName
      *            the name of the workflow to apply
      * @param workflows
@@ -66,14 +68,16 @@ public class WorkflowUtil {
      * @param extraDefaultAttrs
      *            a list of attribute values that should be added to the newly
      *            created nodes
+     * @param expandTargetNode true if the target node should be expanded, to
+     *            ensure the display of the newly inserted tasks
      * @return a list of the nodes that were inserted into the WBS; can be null
      *         or empty
      */
-    public static List<WBSNode> insertWorkflow(WBSModel destWbs, int destRow,
-            String workflowName, WBSModel workflows, PatternList attrsToKeep,
-            Map extraDefaultAttrs) {
-        // locate the destination node for insertion.
-        WBSNode destNode = destWbs.getNodeForRow(destRow);
+    public static List<WBSNode> insertWorkflow(WBSModel destWbs,
+            WBSNode destNode, String workflowName, WBSModel workflows,
+            PatternList attrsToKeep, Map extraDefaultAttrs,
+            boolean expandTargetNode) {
+        // check the destination node for insertion.
         if (destNode == null) return null;
 
         // locate the workflow to be inserted.
@@ -112,8 +116,10 @@ public class WorkflowUtil {
         // application, but whose source workflow step no longer exists
         purgeDeletedWorkflowSteps(destWbs, destNode, workflows);
 
-        // make certain some of the inserted nodes are visible.
-        destNode.setExpanded(true);
+        // make the inserted nodes visible if requested.
+        if (expandTargetNode)
+            destNode.setExpanded(true);
+        // recalculate the rows and the data in the WBS
         destWbs.recalcRows(false, false);
         destWbs.fireTableDataChanged();
 
@@ -483,6 +489,68 @@ public class WorkflowUtil {
             return Collections.singletonList(attr);
         else
             return Arrays.asList(attr.split(","));
+    }
+
+
+    /**
+     * Scan a WBS for all of the workflow enactments that appear in certain
+     * branches of the tree
+     * 
+     * @param wbs
+     *            the WBS to scan
+     * @param nodes
+     *            a set of nodes of interest in that WBS. These nodes, and their
+     *            descendants, will be scanned for workflow enactments. The
+     *            nodes MUST be presented in WBS-order.
+     * @param workflows
+     *            the set of defined workflows in this project
+     * @return a map whose keys are workflow names, and whose values are
+     *         collections of nodes that happen to be roots where the given
+     *         workflow was applied.
+     */
+    public static Map<String, Set<WBSNode>> getWorkflowEnactmentRoots(
+            final WBSModel wbs, List<WBSNode> nodes, WorkflowWBSModel workflows) {
+        // gather up a set of all of the distinct nodes we should examine
+        HashSet<WBSNode> nodesToCheck = new LinkedHashSet<WBSNode>();
+        for (WBSNode node : nodes) {
+            nodesToCheck.add(node);
+            nodesToCheck.addAll(Arrays.asList(wbs.getDescendants(node)));
+        }
+
+        // find workflow enactment roots in the given node collection
+        Map<String, Set<WBSNode>> result = new TreeMap<String, Set<WBSNode>>();
+        Map<Integer, WBSNode> workflowMap = workflows.getNodeMap();
+        for (WBSNode node : nodesToCheck) {
+            for (String srcId : getWorkflowSourceIDs(node)) {
+                WBSNode srcNode = workflowMap.get(Integer.valueOf(srcId));
+                if (srcNode != null && srcNode.getIndentLevel() == 2) {
+                    WBSNode targetNode = wbs.getParent(node);
+                    WBSNode srcWorkflow = workflows.getParent(srcNode);
+                    String workflowName = srcWorkflow.getName();
+                    Set<WBSNode> enactments = result.get(workflowName);
+                    if (enactments == null) {
+                        enactments = new LinkedHashSet();
+                        enactments.add(targetNode);
+                        result.put(workflowName, enactments);
+                    } else if (!containsAncestor(wbs, targetNode, enactments)) {
+                        enactments.add(targetNode);
+                    }
+                }
+            }
+        }
+        return result;
+    }
+
+    private static boolean containsAncestor(WBSModel wbs, WBSNode node,
+            Set<WBSNode> targetSet) {
+        while (true) {
+            if (node == null)
+                return false;
+            else if (targetSet.contains(node))
+                return true;
+            else
+                node = wbs.getParent(node);
+        }
     }
 
 

@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2014 Tuma Solutions, LLC
+// Copyright (C) 2002-2015 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -204,7 +204,7 @@ public class WBSEditor implements WindowListener, SaveListener,
     private static final int MODE_MASTER = 4;
     private static final int MODE_BOTTOM_UP = 8;
 
-    private static Resources resources = Resources.getDashBundle("WBSEditor");
+    static Resources resources = Resources.getDashBundle("WBSEditor");
     private static Preferences preferences = Preferences.userNodeForPackage(WBSEditor.class);
     private static final String EXPANDED_NODES_KEY_SUFFIX = "_EXPANDEDNODES";
     private static final String EXPANDED_NODES_DELIMITER = Character.toString('\u0001');
@@ -936,8 +936,9 @@ public class WBSEditor implements WindowListener, SaveListener,
         result.add(buildEditMenu(tabPanel.getEditingActions()));
         result.add(buildTabMenu(tabPanel.getTabActions()));
         if (!isMode(MODE_BOTTOM_UP))
-            result.add(buildWorkflowMenu
-                (workflows, tabPanel.getInsertWorkflowAction(workflows)));
+            result.add(buildWorkflowMenu(workflows,
+                tabPanel.getWorkflowActions(workflows),
+                tabPanel.getInsertWorkflowAction(workflows)));
         result.add(buildMilestonesMenu(milestones));
         if (isMode(MODE_HAS_MASTER)
                 && "true".equals(teamProject.getUserSetting("showMasterMenu")))
@@ -1000,13 +1001,17 @@ public class WBSEditor implements WindowListener, SaveListener,
 
         return result;
     }
-    private JMenu buildWorkflowMenu(WBSModel workflows,
-                                    Action insertWorkflowAction) {
+
+    private JMenu buildWorkflowMenu(WBSModel workflows, Action[] workflowActions,
+            Action insertWorkflowAction) {
         JMenu result = new JMenu("Workflow");
         result.setMnemonic('W');
         result.add(new WorkflowEditorAction());
         result.add(new ProxyEditorAction());
         // result.add(new DefineWorkflowAction());
+        result.addSeparator();
+        for (Action a : workflowActions)
+            result.add(a);
         result.addSeparator();
         new WorkflowMenuBuilder(result, workflows, insertWorkflowAction);
         return result;
