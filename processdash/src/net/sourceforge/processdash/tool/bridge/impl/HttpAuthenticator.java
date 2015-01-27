@@ -1,4 +1,4 @@
-// Copyright (C) 2014 Tuma Solutions, LLC
+// Copyright (C) 2014-2015 Tuma Solutions, LLC
 // Process Dashboard - Data Automation Tool for high-maturity processes
 //
 // This program is free software; you can redistribute it and/or
@@ -216,8 +216,8 @@ public class HttpAuthenticator extends Authenticator {
     private void determineCurrentState() {
         if (isRetry() == false) {
             // if this operation is not a retry, reset to initial state.
-            lastUrl = null;
-            lastTimestamp = -1;
+            lastUrl = getEffectiveURL();
+            lastTimestamp = System.currentTimeMillis();
             lastUsername = prefs.get(prefsKey(LAST_USERNAME), null);
             state = State.Initial;
         }
