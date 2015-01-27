@@ -27,6 +27,8 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Frame;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
 import java.net.Authenticator;
 import java.net.PasswordAuthentication;
 import java.util.prefs.Preferences;
@@ -140,6 +142,13 @@ public class HttpAuthenticator extends Authenticator {
         // create user interface components to prompt for username and password
         JTextField username = new JTextField(2);
         JPasswordField password = new JPasswordField(2);
+        FocusAdapter selectAll = new FocusAdapter() {
+            public void focusGained(FocusEvent e) {
+                if (e.getComponent() instanceof JTextField) {
+                    ((JTextField) e.getComponent()).selectAll();
+                }}};
+        username.addFocusListener(selectAll);
+        password.addFocusListener(selectAll);
         JComponent focus = username;
         if (StringUtils.hasValue(lastUsername)) {
             username.setText(lastUsername);
