@@ -54,12 +54,12 @@ import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
  */
 public class CheckboxTree extends JTree {
 
-    protected Set unselectedNodes;
+    protected Set uncheckedNodes;
     protected CheckboxNodeRenderer renderer;
 
     public CheckboxTree(TreeModel model) {
         super(model);
-        unselectedNodes = new HashSet();
+        uncheckedNodes = new HashSet();
         setCellRenderer(renderer = new CheckboxNodeRenderer());
         addClickListener();
         expandRow (0);
@@ -68,28 +68,28 @@ public class CheckboxTree extends JTree {
         setRootVisible(false);
     }
 
-    public List<TreeNode> getSelectedNodes() {
+    public List<TreeNode> getCheckedNodes() {
         List<TreeNode> result = new ArrayList<TreeNode>();
-        getSelectedNodes(getModel().getRoot(), result, false);
+        getCheckedNodes(getModel().getRoot(), result, false);
         return result;
     }
 
-    public List<TreeNode> getSelectedNodesBrief() {
+    public List<TreeNode> getCheckedNodesBrief() {
         List<TreeNode> result = new ArrayList<TreeNode>();
-        getSelectedNodes(getModel().getRoot(), result, true);
+        getCheckedNodes(getModel().getRoot(), result, true);
         return result;
     }
 
 
-    protected void getSelectedNodes(Object object, List l, boolean brief) {
+    protected void getCheckedNodes(Object object, List l, boolean brief) {
         TreeNode node = (TreeNode) object;
-        if (!unselectedNodes.contains(node)) {
+        if (!uncheckedNodes.contains(node)) {
             l.add(node);
             if (brief)
                 return;
         }
         for (int i = node.getChildCount();   i-- > 0; )
-            getSelectedNodes(node.getChildAt(i), l, brief);
+            getCheckedNodes(node.getChildAt(i), l, brief);
     }
 
     private void addClickListener() {
@@ -120,39 +120,39 @@ public class CheckboxTree extends JTree {
         if (!i.isInCheckBox(x - bounds.x, y - bounds.y))
             return false;
 
-        toggleSelection(treePath);
+        toggleCheck(treePath);
         return true;
     }
 
-    protected void toggleSelection(TreePath selPath) {
+    protected void toggleCheck(TreePath selPath) {
         TreeNode node = (TreeNode) selPath.getLastPathComponent();
 
-        // toggle current selection status.
-        boolean isSelected = unselectedNodes.contains(node);
-        setSelectionStatusRecursive(node, isSelected);
-        if (!isSelected) {
+        // toggle current checked status.
+        boolean isChecked = uncheckedNodes.contains(node);
+        setCheckedStatusRecursive(node, isChecked);
+        if (!isChecked) {
             while (true) {
                 node = node.getParent();
                 if (node == null) break;
-                setSelectionStatus(node, false);
+                setCheckedStatus(node, false);
             }
         }
         fireListSelectionEvent(false);
     }
 
-    protected void setSelectionStatus(TreeNode node, boolean selected) {
-        if (selected)
-            unselectedNodes.remove(node);
+    protected void setCheckedStatus(TreeNode node, boolean checked) {
+        if (checked)
+            uncheckedNodes.remove(node);
         else
-            unselectedNodes.add(node);
+            uncheckedNodes.add(node);
         fireNodeChanged(node);
         fireListSelectionEvent(true);
     }
 
-    protected void setSelectionStatusRecursive(TreeNode node, boolean selected) {
-        setSelectionStatus(node, selected);
+    protected void setCheckedStatusRecursive(TreeNode node, boolean checked) {
+        setCheckedStatus(node, checked);
         for (int i = node.getChildCount();   i-- > 0; )
-            setSelectionStatusRecursive(node.getChildAt(i), selected);
+            setCheckedStatusRecursive(node.getChildAt(i), checked);
     }
 
     protected void fireNodeChanged(TreeNode node) {
@@ -209,7 +209,7 @@ public class CheckboxTree extends JTree {
             super.getTreeCellRendererComponent
                 (tree, value, sel, expanded, leaf, row, hasFocus);
 
-            cb.setSelected(!unselectedNodes.contains(value));
+            cb.setSelected(!uncheckedNodes.contains(value));
 
             return this;
         }
