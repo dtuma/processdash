@@ -2321,7 +2321,8 @@ public class WBSEditor implements WindowListener, SaveListener,
                 workflows.getChildren(workflows.getRoot());
             for (int i = 0;   i < workflowItems.length;   i++) {
                 String workflowName = workflowItems[i].getName();
-                if (!newList.contains(workflowName))
+                if (!newList.contains(workflowName)
+                        && workflowName.trim().length() > 0)
                     newList.add(workflowName);
             }
 
@@ -2330,13 +2331,27 @@ public class WBSEditor implements WindowListener, SaveListener,
 
                 while (menu.getItemCount() > initialMenuLength)
                     menu.remove(initialMenuLength);
+
+                JMenu destMenu = menu;
+                int menuCapacity = MAX_WORKFLOW_MENU_ITEM_COUNT;
+
                 Iterator i = newList.iterator();
                 while (i.hasNext()) {
+                    if (menuCapacity == 0) {
+                        JMenu moreSubmenu = new JMenu(
+                                resources.getString("More") + "...");
+                        destMenu.insert(moreSubmenu,
+                            destMenu == menu ? initialMenuLength : 0);
+                        destMenu = moreSubmenu;
+                        menuCapacity = MAX_WORKFLOW_MENU_ITEM_COUNT;
+                    }
+
                     String workflowItemName = (String) i.next();
                     JMenuItem menuItem = new JMenuItem(insertWorkflowAction);
                     menuItem.setActionCommand(workflowItemName);
                     menuItem.setText(workflowItemName);
-                    menu.add(menuItem);
+                    destMenu.add(menuItem);
+                    menuCapacity--;
                 }
 
                 itemList = newList;
@@ -2347,6 +2362,7 @@ public class WBSEditor implements WindowListener, SaveListener,
             rebuildMenu();
         }
     }
+    private static final int MAX_WORKFLOW_MENU_ITEM_COUNT = 20;
 
 
     private class ProxyEditorAction extends AbstractAction {
