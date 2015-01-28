@@ -109,6 +109,7 @@ public class WBSNode implements Cloneable {
     /** Get the name of this node.
      * @return The name of this node.  */
     public String getName() { return name; }
+    public String toString() { return name; }
 
     /** Set the name of this node.
      * @param newName the new name for this node.  */
