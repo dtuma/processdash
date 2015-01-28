@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -46,8 +47,11 @@ import teamdash.wbs.columns.NotesColumn;
 import teamdash.wbs.columns.TaskLabelColumn;
 import teamdash.wbs.columns.TaskSizeUnitsColumn;
 import teamdash.wbs.columns.TeamActualTimeColumn;
+import teamdash.wbs.columns.TeamTimeColumn;
 import teamdash.wbs.columns.WorkflowLabelColumn;
 import teamdash.wbs.columns.WorkflowNotesColumn;
+import teamdash.wbs.columns.WorkflowPercentageColumn;
+import teamdash.wbs.columns.WorkflowSizeUnitsColumn;
 
 public class WorkflowUtil {
 
@@ -81,13 +85,7 @@ public class WorkflowUtil {
         if (destNode == null) return null;
 
         // locate the workflow to be inserted.
-        WBSNode[] workflowItems = workflows.getChildren(workflows.getRoot());
-        WBSNode srcNode = null;
-        for (int i = 0;   i < workflowItems.length;   i++)
-            if (workflowName.equals(workflowItems[i].getName())) {
-                srcNode = workflowItems[i];
-                break;
-            }
+        WBSNode srcNode = findWorkflowByName(workflows, workflowName);
         if (srcNode == null) return null;
 
         // alter the notes and labels on the destNode if necessary
@@ -130,6 +128,14 @@ public class WorkflowUtil {
             if (hasWorkflowSourceID(n, srcWorkflowIDs))
                 finalDestNodes.add(n);
         return finalDestNodes;
+    }
+
+    protected static WBSNode findWorkflowByName(WBSModel workflows,
+            String workflowName) {
+        for (WBSNode workflowNode : workflows.getChildren(workflows.getRoot()))
+            if (workflowNode.getName().equals(workflowName))
+                return workflowNode;
+        return null;
     }
 
     private static int getWorkflowInsertionPos(WBSModel destWbs,
@@ -490,6 +496,200 @@ public class WorkflowUtil {
         else
             return Arrays.asList(attr.split(","));
     }
+
+
+    /**
+     * Redistribute time across a set of workflow tasks based on the rates and
+     * percentages that are currently defined in the workflow.
+     * 
+     * @param dataModel
+     *            the data model to modify
+     * @param destWbs
+     *            the wbs associated with this data model
+     * @param destNode
+     *            the node to which the workflow was applied
+     * @param destChildren
+     *            the children of that node that were created by the application
+     *            of the workflow
+     * @param workflowName
+     *            the name of a workflow that was previously used to create
+     *            those nodes
+     * @param workflows
+     *            the set of defined workflows in this project
+     */
+    public static void reapplyRatesAndPercentages(DataTableModel dataModel,
+            WBSModel destWbs, WBSNode destNode, List<WBSNode> destChildren,
+            String workflowName, WBSModel workflows) {
+
+        // gather up the nodes in this workflow definition.
+        WBSNode workflowRoot = findWorkflowByName(workflows, workflowName);
+        if (workflowRoot == null) return;
+        Map<String, WBSNode> workflowNodes = new HashMap();
+        for (WBSNode node : workflows.getDescendants(workflowRoot))
+            workflowNodes.put(Integer.toString(node.getUniqueID()), node);
+
+        // find the leaf nodes in our destChildren set, and sort them into a
+        // Map according to the workflow step they belong to.
+        Map<WBSNode, Set<WBSNode>> nodesToTweak = new HashMap();
+        boolean sawRate = false;
+        for (WBSNode oneChild : destChildren) {
+            if (destWbs.isLeaf(oneChild)) {
+                for (String id : getWorkflowSourceIDs(oneChild)) {
+                    WBSNode workflowNode = workflowNodes.get(id);
+                    if (workflowNode != null) {
+                        if (workflowNode.getNumericAttribute(RATE_ATTR) > 0)
+                            sawRate = true;
+                        Set<WBSNode> steps = nodesToTweak.get(workflowNode);
+                        if (steps == null) {
+                            steps = new HashSet();
+                            nodesToTweak.put(workflowNode, steps);
+                        }
+                        steps.add(oneChild);
+                        break;
+                    }
+                }
+            }
+        }
+
+        // redistribute the times accordingly
+        if (sawRate)
+            reapplyRates(dataModel, nodesToTweak);
+        else
+            reapplyPercentages(dataModel, destWbs, destNode, destChildren,
+                nodesToTweak);
+    }
+
+    // when a workflow uses rates, reapply those rates to the tasks.
+    private static void reapplyRates(DataTableModel dataModel,
+            Map<WBSNode, Set<WBSNode>> nodesToTweak) {
+        int unitsCol = dataModel.findColumn(TaskSizeUnitsColumn.COLUMN_ID);
+        int rateCol = dataModel.findColumn(TeamTimeColumn.RATE_COL_ID);
+        for (Entry<WBSNode, Set<WBSNode>> e : nodesToTweak.entrySet()) {
+            WBSNode workflowNode = e.getKey();
+            Object units = workflowNode.getAttribute(UNITS_ATTR);
+            double rate = workflowNode.getNumericAttribute(RATE_ATTR);
+            if (rate > 0) {
+                for (WBSNode destNode : e.getValue()) {
+                    dataModel.setValueAt(units, destNode, unitsCol);
+                    dataModel.setValueAt(rate, destNode, rateCol);
+                }
+            }
+        }
+    }
+    private static final String UNITS_ATTR = WorkflowSizeUnitsColumn.ATTR_NAME;
+    private static final String RATE_ATTR = TeamTimeColumn.RATE_ATTR;
+
+
+
+    // for a percentage-driven workflow, redistribute task time based on %-s
+    private static void reapplyPercentages(DataTableModel dataModel,
+            WBSModel destWbs, WBSNode destNode, List<WBSNode> destChildren,
+            Map<WBSNode, Set<WBSNode>> nodesToTweak) {
+        // determine the total amount of time we should redistribute.
+        int timeCol = dataModel.findColumn(TeamTimeColumn.COLUMN_ID);
+        double totalTime = getTotalTimeToRedistribute(dataModel, timeCol,
+            destWbs, destNode, destChildren);
+        if (totalTime == 0)
+            return;
+
+        // sum up the total workflow percentage that we're distributing across
+        double totalPct = 0;
+        for (WBSNode workflowNode : nodesToTweak.keySet())
+            totalPct += WorkflowPercentageColumn
+                    .getExplicitValueForNode(workflowNode);
+        if (totalPct < 1)
+            return;
+
+        // distribute the time across the workflow phases
+        Set<WBSNode> nonLeafTasks = new HashSet<WBSNode>(destChildren);
+        for (Entry<WBSNode, Set<WBSNode>> e : nodesToTweak.entrySet()) {
+            WBSNode workflowStep = e.getKey();
+            Set<WBSNode> leafTasksForStep = e.getValue();
+            double thisStepPct = WorkflowPercentageColumn
+                    .getExplicitValueForNode(workflowStep);
+            double thisStepTime = totalTime * thisStepPct / totalPct;
+            distributeTimeOverTasks(dataModel, timeCol, thisStepTime,
+                new ArrayList(leafTasksForStep));
+            nonLeafTasks.removeAll(leafTasksForStep);
+        }
+
+        // clear any top-down-bottom-up mismatches on the non-leaf tasks.
+        for (WBSNode nonLeaf : nonLeafTasks)
+            dataModel.setValueAt("", nonLeaf, timeCol);
+    }
+
+    private static double getTotalTimeToRedistribute(DataTableModel dataModel,
+            int timeCol, WBSModel destWbs, WBSNode destNode,
+            List<WBSNode> destChildren) {
+        // sum up the top-down time values stored on the dest children.
+        String topDownTimeAttr = TeamTimeColumn.getNodeDataAttrName();
+        double result = 0;
+        for (WBSNode oneChild : destChildren)
+            result += parse(oneChild.getAttribute(topDownTimeAttr));
+        if (result > 0)
+            return result;
+
+        // No time is stored on the children. This could occur if the workflow
+        // was originally applied with no percentages; the top-level node would
+        // have a time estimate with a TDBU error, and the children would all
+        // be zero. Get the total time for the top-level node, subtract out the
+        // time for non-workflow tasks, and return the difference.
+        double totalTime = parse(dataModel.getValueAt(destNode, timeCol));
+        if (totalTime > 0) {
+            for (WBSNode node : destWbs.getDescendants(destNode)) {
+                if (!destChildren.contains(node))
+                    totalTime -= parse(node.getAttribute(topDownTimeAttr));
+            }
+        }
+        return (totalTime > 0 ? totalTime : 0);
+    }
+
+    private static void distributeTimeOverTasks(DataTableModel dataModel,
+            int timeCol, double timeToSpread, List<WBSNode> tasks) {
+        if (tasks.size() == 1 || timeToSpread == 0) {
+            // only one task, or no time to distribute? Assign time directly
+            for (WBSNode task : tasks)
+                dataModel.setValueAt(timeToSpread, task, timeCol);
+
+        } else {
+            // we have a number of tasks mapping to this workflow step. Sum
+            // up the time allocated to these steps so far.
+            double[] oldTimes = new double[tasks.size()];
+            double totalOldTime = 0;
+            boolean sawZero = false;
+            for (int i = oldTimes.length; i-- > 0; ) {
+                WBSNode task = tasks.get(i);
+                oldTimes[i] = parse(dataModel.getValueAt(task, timeCol));
+                if (oldTimes[i] == 0)
+                    sawZero = true;
+                else
+                    totalOldTime += oldTimes[i];
+            }
+
+            if (sawZero || totalOldTime == 0) {
+                // if any of the tasks had zero planned time, spread the step
+                // time equally across all of our tasks.
+                double equalTime = timeToSpread / tasks.size();
+                for (WBSNode task : tasks)
+                    dataModel.setValueAt(equalTime, task, timeCol);
+
+            } else {
+                // if all of the tasks had nonzero planned times, use those
+                // times as weights to spread out the step time.
+                for (int i = oldTimes.length; i-- > 0; ) {
+                    WBSNode task = tasks.get(i);
+                    double newTaskTime = oldTimes[i] * timeToSpread / totalOldTime;
+                    dataModel.setValueAt(newTaskTime, task, timeCol);
+                }
+            }
+        }
+    }
+
+    private static double parse(Object num) {
+        double result = NumericDataValue.parse(num);
+        return (result > 0 ? result : 0);
+    }
+
 
 
     /**

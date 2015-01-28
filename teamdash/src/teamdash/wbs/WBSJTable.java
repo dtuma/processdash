@@ -66,6 +66,7 @@ import javax.swing.Box;
 import javax.swing.ButtonGroup;
 import javax.swing.Icon;
 import javax.swing.InputMap;
+import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
@@ -86,6 +87,7 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 
 import net.sourceforge.processdash.i18n.Resources;
+import net.sourceforge.processdash.ui.lib.BoxUtils;
 import net.sourceforge.processdash.ui.lib.CheckboxTree;
 import net.sourceforge.processdash.ui.lib.CheckboxTree.CheckboxNodeRenderer;
 import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
@@ -1383,6 +1385,7 @@ public class WBSJTable extends JTable {
 
         private WorkflowWBSModel workflows;
         private AbstractButton useSelection, useEntireWbs;
+        private JCheckBox updateTimes;
         private DefaultTreeModel workflowTreeModel;
         private DefaultMutableTreeNode workflowTreeRoot;
         private CheckboxTree workflowTree;
@@ -1415,6 +1418,15 @@ public class WBSJTable extends JTable {
             useSelection = makeRadioButton(g, "Scope_Selection", KeyEvent.VK_S);
             useEntireWbs = makeRadioButton(g, "Scope_WBS", KeyEvent.VK_W);
 
+            JCheckBox updateTasks = makeCheckBox("Change_Tasks");
+            Box updateTasksRow = BoxUtils.hbox(updateTasks, updateTasks.getText());
+            updateTasksRow.setToolTipText(updateTasks.getToolTipText());
+            updateTasks.setEnabled(false);
+            updateTasks.setText(null);
+
+            updateTimes = makeCheckBox("Change_Times");
+            updateTimes.setMnemonic(KeyEvent.VK_P);
+
             workflowTreeRoot = new DefaultMutableTreeNode();
             workflowTreeModel = new DefaultTreeModel(workflowTreeRoot);
             workflowTree = new CheckboxTree(workflowTreeModel);
@@ -1436,6 +1448,8 @@ public class WBSJTable extends JTable {
             Object content = new Object[] { //
                     res("Scope_Prompt"), useSelection, useEntireWbs, //
                     Box.createVerticalStrut(2), //
+                    res("Change_Prompt"), updateTasksRow, updateTimes, //
+                    Box.createVerticalStrut(2), //
                     res("Workflows_List_Prompt"), sp };
 
             Frame f = (Frame) SwingUtilities.getWindowAncestor(WBSJTable.this);
@@ -1452,11 +1466,22 @@ public class WBSJTable extends JTable {
             JRadioButton result = new JRadioButton(res(resKey));
             result.setToolTipText(res(resKey + "_Tooltip"));
             result.setMnemonic(m);
-            result.setBorder(BorderFactory.createCompoundBorder(
-                result.getBorder(), new EmptyBorder(0, 15, 0, 0)));
+            indent(result);
             g.add(result);
             result.addActionListener(this);
             return result;
+        }
+
+        private JCheckBox makeCheckBox(String resKey) {
+            JCheckBox result = new JCheckBox(res(resKey), true);
+            result.setToolTipText(res(resKey + "_Tooltip"));
+            indent(result);
+            return result;
+        }
+
+        private void indent(JComponent comp) {
+            comp.setBorder(BorderFactory.createCompoundBorder(comp.getBorder(),
+                new EmptyBorder(0, 15, 0, 0)));
         }
 
         private String res(String key) {
@@ -1477,6 +1502,7 @@ public class WBSJTable extends JTable {
             refreshWorkflowEnactments();
 
             // display the dialog and wait for a user response
+            pane.selectInitialValue();
             dialog.setVisible(true);
 
             // if the user clicked OK, apply the changes
@@ -1543,11 +1569,21 @@ public class WBSJTable extends JTable {
                     Enactment e = (Enactment) treeNode.getUserObject();
                     System.out.println("Reapplying " + e.workflowName + " to "
                             + e.display);
-                    affectedNodes.add(e.wbsNode);
-                    affectedNodes.addAll(WorkflowUtil.insertWorkflow(wbsModel,
-                        e.wbsNode, e.workflowName, workflows,
+
+                    // update the tasks in the WBS based on the workflow
+                    List<WBSNode> workflowSteps = WorkflowUtil.insertWorkflow(
+                        wbsModel, e.wbsNode, e.workflowName, workflows,
                         WorkflowModel.WORKFLOW_ATTRS,
-                        getInsertWorkflowExtraAttrs(e.wbsNode), false));
+                        getInsertWorkflowExtraAttrs(e.wbsNode), false);
+                    affectedNodes.add(e.wbsNode);
+                    affectedNodes.addAll(workflowSteps);
+
+                    // if requested, reapply the rates and percentages to produce
+                    // adjusted time estimates for each task
+                    if (updateTimes.isSelected())
+                        WorkflowUtil.reapplyRatesAndPercentages(dataModel,
+                            wbsModel, e.wbsNode, workflowSteps, e.workflowName,
+                            workflows);
                 }
             }
 
