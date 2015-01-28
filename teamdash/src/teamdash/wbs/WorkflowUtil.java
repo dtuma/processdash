@@ -724,11 +724,15 @@ public class WorkflowUtil {
             for (String srcId : getWorkflowSourceIDs(node)) {
                 WBSNode srcNode = workflowMap.get(Integer.valueOf(srcId));
                 if (srcNode != null && srcNode.getIndentLevel() == 2) {
-                    WBSNode targetNode = wbs.getParent(node);
                     WBSNode srcWorkflow = workflows.getParent(srcNode);
                     String workflowName = srcWorkflow.getName();
                     Set<WBSNode> enactments = result.get(workflowName);
-                    if (enactments == null) {
+
+                    WBSNode targetNode = getEnactmentRoot(wbs, node, workflows,
+                        workflowMap, srcWorkflow);
+                    if (targetNode == null) {
+                        ;
+                    } else if (enactments == null) {
                         enactments = new LinkedHashSet();
                         enactments.add(targetNode);
                         result.put(workflowName, enactments);
@@ -739,6 +743,28 @@ public class WorkflowUtil {
             }
         }
         return result;
+    }
+
+    private static WBSNode getEnactmentRoot(WBSModel wbs, WBSNode node,
+            WBSModel workflows, Map<Integer, WBSNode> workflowMap,
+            WBSNode targetWorkflow) {
+        boolean hasSameWorkflowParent;
+        do {
+            hasSameWorkflowParent = false;
+            node = wbs.getParent(node);
+            for (String srcId : getWorkflowSourceIDs(node)) {
+                WBSNode srcNode = workflowMap.get(Integer.valueOf(srcId));
+                if (srcNode != null && srcNode.getIndentLevel() > 1) {
+                    while (srcNode != null && srcNode.getIndentLevel() > 1)
+                        srcNode = workflows.getParent(srcNode);
+                    if (srcNode == targetWorkflow) {
+                        hasSameWorkflowParent = true;
+                        break;
+                    }
+                }
+            }
+        } while (hasSameWorkflowParent);
+        return node;
     }
 
     private static boolean containsAncestor(WBSModel wbs, WBSNode node,
