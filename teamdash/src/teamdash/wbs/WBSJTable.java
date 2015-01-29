@@ -342,7 +342,8 @@ public class WBSJTable extends JTable {
     public Action[] getWorkflowActions(WBSModel workflows) {
         Action apply = new SelectAndApplyWorkflowAction(workflows);
         Action reapply = new ReapplyWorkflowAction(workflows);
-        return new Action[] { apply, reapply };
+        return new Action[] { new ApplyOrReapplyWorkflowAction(workflows,
+                apply, reapply) };
     }
 
     /** Return an action capable of inserting a workflow */
@@ -1381,6 +1382,7 @@ public class WBSJTable extends JTable {
                 int[] newRowsToSelect = wbsModel.getRowsForNodes(insertedNodes);
                 Arrays.sort(newRowsToSelect);
                 selectRows(newRowsToSelect);
+                WBSJTable.this.requestFocusInWindow();
                 UndoList.madeChange(WBSJTable.this, "Insert workflow");
             }
         }
@@ -1400,6 +1402,7 @@ public class WBSJTable extends JTable {
 
         private WBSModel workflows;
         private Action insertAction;
+        private String lastWorkflow;
 
         public SelectAndApplyWorkflowAction(WBSModel workflows) {
             super(resources.getString("Workflow.Apply.Menu"));
@@ -1435,6 +1438,7 @@ public class WBSJTable extends JTable {
                     JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 
             AutoCompleteDecorator.decorate(optionList, text);
+            text.setText(lastWorkflow);
 
             Object[] message = new Object[] {
                     resources.getString("Workflow.Apply.Window_Prompt"),
@@ -1449,8 +1453,9 @@ public class WBSJTable extends JTable {
             if (userChoice != JOptionPane.OK_OPTION)
                 return;
 
+            lastWorkflow = text.getText();
             insertAction.actionPerformed(new ActionEvent(this,
-                    ActionEvent.ACTION_PERFORMED, text.getText()));
+                    ActionEvent.ACTION_PERFORMED, lastWorkflow));
         }
 
         private void installKeystrokeForWindow(JComponent c, String... keys) {
@@ -1687,12 +1692,70 @@ public class WBSJTable extends JTable {
 
             if (!affectedNodes.isEmpty()) {
                 selectRows(wbsModel.getRowsForNodes(new ArrayList(affectedNodes)));
+                WBSJTable.this.requestFocusInWindow();
                 UndoList.madeChange(WBSJTable.this, "Reapply workflow");
             }
         }
 
         public void recalculateEnablement(int[] selectedRows) {
             setEnabled(!disableEditing && !isFiltered());
+        }
+    }
+
+
+    /** Dynamically apply or reapply workflows, based on the current selection */
+    private class ApplyOrReapplyWorkflowAction extends AbstractAction implements
+            PropertyChangeListener {
+
+        private WorkflowWBSModel workflows;
+        private Action applyAction, reapplyAction;
+
+        public ApplyOrReapplyWorkflowAction(WBSModel workflows,
+                Action applyAction, Action reapplyAction) {
+            super(resources.getString("Workflow.Apply_Or_Reapply.Menu"));
+            putValue(WBS_ACTION_CATEGORY, WBS_ACTION_CATEGORY_WORKFLOW);
+            putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_W, //
+                MacGUIUtils.getCtrlModifier()));
+            this.workflows = (WorkflowWBSModel) workflows;
+            this.applyAction = applyAction;
+            this.reapplyAction = reapplyAction;
+            applyAction.addPropertyChangeListener(this);
+            reapplyAction.addPropertyChangeListener(this);
+            propertyChange(null);
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            // determine the right action to perform, and delegate the event
+            Action action = getAppropriateAction();
+            if (action.isEnabled())
+                action.actionPerformed(e);
+        }
+
+        private Action getAppropriateAction() {
+            // if nothing is selected (-1) or if the root row is selected (0),
+            // trigger the reapply action.
+            if (getSelectedRow() < 1 || !applyAction.isEnabled())
+                return reapplyAction;
+
+            // look at the current selection to see if it implies any contained
+            // or enclosing workflow enactment roots.
+            int[] rows = getSelectedRows();
+            Arrays.sort(rows);
+            List<WBSNode> selectedNodes = wbsModel.getNodesForRows(rows, false);
+            Map<String, Set<WBSNode>> enactments = WorkflowUtil
+                    .getWorkflowEnactmentRoots(wbsModel, selectedNodes,
+                        workflows);
+
+            // if no enactments were found, reapply would have nothing to do.
+            if (enactments.isEmpty())
+                return applyAction;
+            else
+                // if enactments were found, trigger the reapply action.
+                return reapplyAction;
+        }
+
+        public void propertyChange(PropertyChangeEvent evt) {
+            setEnabled(applyAction.isEnabled() || reapplyAction.isEnabled());
         }
     }
 
