@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2014 Tuma Solutions, LLC
+// Copyright (C) 2002-2015 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -32,9 +32,11 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
@@ -81,6 +83,8 @@ public class WBSSynchronizer {
 
     private boolean sizeDataIncomplete = false;
 
+    private Set<String> reloadedMemberNames;
+
     private Map<String, SyncHandler> handlers;
 
 
@@ -93,6 +97,9 @@ public class WBSSynchronizer {
 
     private static final String EFFECTIVE_DATE_SUFFIX =
         "@Actual_Data_Effective_Date";
+
+    public static final String SYNC_IN_PROGRESS_ATTR =
+        "_Reverse_Sync_In_Progress";
 
     public static final String EFFECTIVE_DATE_ATTR =
         "Team" + EFFECTIVE_DATE_SUFFIX;
@@ -110,6 +117,7 @@ public class WBSSynchronizer {
         this.teamProject = teamProject;
         this.dataModel = dataModel;
         this.explicitDumpData = explicitDumpData;
+        this.reloadedMemberNames = new HashSet<String>();
         this.handlers = createSyncHandlers();
     }
 
@@ -128,25 +136,45 @@ public class WBSSynchronizer {
         Element directDumpData = getDirectDumpData();
         Map<String, File> exportFiles = getExportFiles();
         Map<Integer, WBSNode> nodeMap = teamProject.getWBS().getNodeMap();
+        WBSNode wbsRoot = teamProject.getWBS().getRoot();
+        wbsRoot.setAttribute(SYNC_IN_PROGRESS_ATTR, Boolean.TRUE);
 
         for (Iterator i = teamProject.getTeamMemberList().getTeamMembers()
                 .iterator(); i.hasNext();) {
             TeamMember m = (TeamMember) i.next();
             Element dump = getUserDumpData(m, exportFiles, directDumpData);
             syncTeamMember(m, dump, nodeMap);
+            if (dump == directDumpData)
+                reloadedMemberNames.remove(m.getName());
         }
 
         if (createMissingTeamMembers)
             addMissingTeamMembers(exportFiles);
 
-        teamProject.getWBS().getRoot().setAttribute(EFFECTIVE_DATE_ATTR,
-            effectiveDate);
+        wbsRoot.setAttribute(EFFECTIVE_DATE_ATTR, effectiveDate);
+        wbsRoot.removeAttribute(SYNC_IN_PROGRESS_ATTR);
 
         int col = dataModel.findColumn(TeamActualTimeColumn.COLUMN_ID);
         dataModel.columnChanged(dataModel.getColumn(col));
 
         if (needsWbsEvent)
             teamProject.getWBS().fireTableRowsUpdated(0, 0);
+    }
+
+
+    public boolean rerun() {
+        // discard previously loaded actual data, then rerun the reverse
+        // synchronization operation
+        for (WBSNode node : teamProject.getWBS().getWbsNodes())
+            node.discardTransientAttributes(true);
+        run();
+
+        // if the run() event did not trigger a recalc, we should
+        if (!needsWbsEvent)
+            teamProject.getWBS().fireTableRowsUpdated(0, 0);
+
+        // return true if at least one team member changed.
+        return !reloadedMemberNames.isEmpty();
     }
 
 
@@ -171,6 +199,17 @@ public class WBSSynchronizer {
      */
     public boolean getFoundActualSizeData() {
         return foundActualSizeData && !sizeDataIncomplete;
+    }
+
+    /**
+     * Return the names of team members whose data changed during {@link #run()}
+     * or {@link #rerun()} operations that have been performed since the last
+     * call to this method.
+     */
+    public Set<String> getReloadedMemberNames() {
+        Set<String> result = reloadedMemberNames;
+        reloadedMemberNames = new HashSet<String>();
+        return result;
     }
 
     /**
@@ -268,6 +307,7 @@ public class WBSSynchronizer {
             return getUserDumpData(f);
     }
 
+    @SuppressWarnings("resource")
     private Element getUserDumpData(File f) {
         FileInputStream fileInputStream = null;
         try {
@@ -408,9 +448,20 @@ public class WBSSynchronizer {
         if (VersionUtils.compareVersions(dumpVersion, MIN_SIZEDATA_VERSION) < 0)
             sizeDataIncomplete = true;
 
+        // get the effective date of this person, and save to the WBS root
         Date indivEffDate = XMLUtils.getXMLDate(dumpData, TIMESTAMP_ATTR);
-        teamProject.getWBS().getRoot().setAttribute(
-            getIndivEffectiveDateAttrName(m.getInitials()), indivEffDate);
+        WBSNode wbsRoot = teamProject.getWBS().getRoot();
+        String effDateAttr = getIndivEffectiveDateAttrName(m.getInitials());
+        Date oldEffDate = (Date) wbsRoot.getAttribute(effDateAttr);
+        wbsRoot.setAttribute(effDateAttr, indivEffDate);
+
+        // if the effective date for this person has moved forward, add them
+        // to a list of individuals with reloaded data.
+        if (oldEffDate != null && indivEffDate != null
+                && oldEffDate.before(indivEffDate))
+            reloadedMemberNames.add(m.getName());
+
+        // track the newest effective date for the entire team so far
         if (indivEffDate != null && indivEffDate.after(effectiveDate))
             effectiveDate = indivEffDate;
 

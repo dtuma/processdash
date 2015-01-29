@@ -1,4 +1,4 @@
-// Copyright (C) 2010 Tuma Solutions, LLC
+// Copyright (C) 2010-2015 Tuma Solutions, LLC
 // Team Functionality Add-ons for the Process Dashboard
 //
 // This program is free software; you can redistribute it and/or
@@ -36,6 +36,7 @@ import teamdash.wbs.DataTableModel;
 import teamdash.wbs.IntList;
 import teamdash.wbs.NumericDataValue;
 import teamdash.wbs.WBSNode;
+import teamdash.wbs.WBSSynchronizer;
 
 /**
  * This specialized column monitors changes in the total planned time for
@@ -138,6 +139,8 @@ public class PlanTimeWatcher extends AbstractDataColumn implements
 
         List<String> result = null;
         WBSNode rootNode = dataModel.getWBSModel().getRoot();
+        if (rootNode.getAttribute(WBSSynchronizer.SYNC_IN_PROGRESS_ATTR) != null)
+            return null;
 
         for (int i = teamMemberColumns.size(); i-- > 0;) {
             int oneColumn = teamMemberColumns.get(i);

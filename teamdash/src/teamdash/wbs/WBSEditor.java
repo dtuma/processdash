@@ -1079,13 +1079,19 @@ public class WBSEditor implements WindowListener, SaveListener,
         return result;
     }
 
-    synchronized boolean mergeExternalChanges() throws IOException {
+    synchronized boolean mergeExternalChanges(boolean forceReverseSync)
+            throws IOException {
         if (mergeCoordinator == null || holdingStartupLock)
             return false;
 
         TeamProjectMerger merger = mergeCoordinator.doMerge();
-        if (merger == null)
-            return false; // no merge needed
+        if (merger == null) {
+            // no merge needed. check for new reverse sync data.
+            if (reverseSynchronizer != null && forceReverseSync)
+                return reverseSynchronizer.rerun();
+            else
+                return false;
+        }
 
         replaceDataFrom(merger.getMerged());
         mergeConflictDialog.addNotifications(merger
@@ -1410,7 +1416,7 @@ public class WBSEditor implements WindowListener, SaveListener,
             return true;
 
         // merge in any changes that have been saved by other individuals.
-        mergeExternalChanges();
+        mergeExternalChanges(true);
 
         // ensure that we have a lock for editing the data.
         if (simultaneousEditing && !holdingStartupLock) {
@@ -1423,7 +1429,7 @@ public class WBSEditor implements WindowListener, SaveListener,
             // Doublecheck to see if someone else saved changes while we were
             // waiting for our simultaneous editing write lock.
             if (simultaneousEditing)
-                mergeExternalChanges();
+                mergeExternalChanges(false);
 
             if (teamProject.save() == false)
                 return false;
@@ -1573,12 +1579,16 @@ public class WBSEditor implements WindowListener, SaveListener,
     }
 
     private String[] getUserNamesForMergedChanges() {
-        if (mergeCoordinator == null)
-            return null;
-
         Set<String> names = new TreeSet<String>();
-        for (Entry change : mergeCoordinator.getMergedChanges(true))
-            names.add(change.getUser());
+        if (mergeCoordinator != null) {
+            for (Entry change : mergeCoordinator.getMergedChanges(true))
+                names.add(change.getUser());
+        }
+        if (reverseSynchronizer != null) {
+            Set<String> reloaded = reverseSynchronizer.getReloadedMemberNames();
+            if (names.isEmpty())
+                names.addAll(reloaded);
+        }
         if (names.isEmpty())
             return null;
 
@@ -2172,7 +2182,7 @@ public class WBSEditor implements WindowListener, SaveListener,
             long start = System.currentTimeMillis();
             try {
                 // do the work.
-                dataWasMerged = mergeExternalChanges();
+                dataWasMerged = mergeExternalChanges(false);
             } catch (Exception e) {
                 mergeException = e;
             }
