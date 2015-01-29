@@ -45,6 +45,8 @@ import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -54,6 +56,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Vector;
 import java.util.Map.Entry;
 import java.util.Set;
 
@@ -70,12 +73,14 @@ import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JMenu;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
@@ -86,11 +91,17 @@ import javax.swing.event.ListSelectionListener;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 
+import org.jdesktop.swingx.autocomplete.AutoCompleteDecorator;
+
 import net.sourceforge.processdash.i18n.Resources;
 import net.sourceforge.processdash.ui.lib.BoxUtils;
 import net.sourceforge.processdash.ui.lib.CheckboxTree;
+import net.sourceforge.processdash.ui.lib.JOptionPaneActionHandler;
+import net.sourceforge.processdash.ui.lib.JOptionPaneClickHandler;
+import net.sourceforge.processdash.ui.lib.JOptionPaneTweaker;
 import net.sourceforge.processdash.ui.lib.CheckboxTree.CheckboxNodeRenderer;
 import net.sourceforge.processdash.ui.macosx.MacGUIUtils;
+import net.sourceforge.processdash.util.HTMLUtils;
 
 import teamdash.ActionCategoryComparator;
 import teamdash.wbs.columns.TeamActualTimeColumn;
@@ -329,7 +340,9 @@ public class WBSJTable extends JTable {
 
     /** Return a list of workflow-related actions */
     public Action[] getWorkflowActions(WBSModel workflows) {
-        return new Action[] { new ReapplyWorkflowAction(workflows) };
+        Action apply = new SelectAndApplyWorkflowAction(workflows);
+        Action reapply = new ReapplyWorkflowAction(workflows);
+        return new Action[] { apply, reapply };
     }
 
     /** Return an action capable of inserting a workflow */
@@ -1381,7 +1394,83 @@ public class WBSJTable extends JTable {
     private InsertWorkflowAction INSERT_WORKFLOW_ACTION = null;
 
 
-    private class ReapplyWorkflowAction extends AbstractAction {
+    /** Let the user select a workflow to apply, using autocompletion */
+    private class SelectAndApplyWorkflowAction extends AbstractAction implements
+            PropertyChangeListener {
+
+        private WBSModel workflows;
+        private Action insertAction;
+
+        public SelectAndApplyWorkflowAction(WBSModel workflows) {
+            super(resources.getString("Workflow.Apply.Menu"));
+            putValue(WBS_ACTION_CATEGORY, WBS_ACTION_CATEGORY_WORKFLOW);
+            setEnabled(false);
+            this.workflows = workflows;
+            this.insertAction = getInsertWorkflowAction(workflows);
+            insertAction.addPropertyChangeListener(this);
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            // abort if workflow insertion is not currently allowed
+            if (insertAction.isEnabled() == false)
+                return;
+
+            // create user interface components that the user can use to
+            // select a workflow, using autocompletion
+            JTextField text = new JTextField();
+            new JOptionPaneActionHandler().install(text);
+
+            Vector options = new Vector();
+            for (WBSNode wkflw : workflows.getChildren(workflows.getRoot())) {
+                String name = wkflw.getName();
+                if (name.trim().length() > 0 && !options.contains(name))
+                    options.add(name);
+            }
+            JList optionList = new JList(options);
+            installKeystrokeForWindow(optionList, "UP", "DOWN", "PAGE_UP",
+                "PAGE_DOWN");
+            new JOptionPaneClickHandler().install(optionList);
+            JScrollPane sp = new JScrollPane(optionList,
+                    JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
+                    JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+
+            AutoCompleteDecorator.decorate(optionList, text);
+
+            Object[] message = new Object[] {
+                    resources.getString("Workflow.Apply.Window_Prompt"),
+                    BoxUtils.vbox(text, sp),
+                    new JOptionPaneTweaker.GrabFocus(text) };
+            String title = resources.getString("Workflow.Apply.Window_Title");
+
+            // display the options to the user and let them make a selection
+            int userChoice = JOptionPane.showConfirmDialog(
+                SwingUtilities.getWindowAncestor(WBSJTable.this), message,
+                title, JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+            if (userChoice != JOptionPane.OK_OPTION)
+                return;
+
+            insertAction.actionPerformed(new ActionEvent(this,
+                    ActionEvent.ACTION_PERFORMED, text.getText()));
+        }
+
+        private void installKeystrokeForWindow(JComponent c, String... keys) {
+            for (String oneKey : keys) {
+                KeyStroke keyStroke = KeyStroke.getKeyStroke(oneKey);
+                Object action = c.getInputMap().get(keyStroke);
+                c.getInputMap(WHEN_IN_FOCUSED_WINDOW).put(keyStroke, action);
+            }
+        }
+
+        public void propertyChange(PropertyChangeEvent evt) {
+            setEnabled(insertAction.isEnabled());
+        }
+
+    }
+
+
+    /** Let the user reapply workflows to one or more existing enactments */
+    private class ReapplyWorkflowAction extends AbstractAction implements
+            EnablementCalculation {
 
         private WorkflowWBSModel workflows;
         private AbstractButton useSelection, useEntireWbs;
@@ -1399,6 +1488,8 @@ public class WBSJTable extends JTable {
             putValue(WBS_ACTION_CATEGORY, WBS_ACTION_CATEGORY_WORKFLOW);
             putValue(MNEMONIC_KEY, new Integer('R'));
             this.workflows = (WorkflowWBSModel) workflows;
+            recalculateEnablement(null);
+            enablementCalculations.add(this);
         }
 
         public void actionPerformed(ActionEvent e) {
@@ -1464,7 +1555,7 @@ public class WBSJTable extends JTable {
 
         private JRadioButton makeRadioButton(ButtonGroup g, String resKey, int m) {
             JRadioButton result = new JRadioButton(res(resKey));
-            result.setToolTipText(res(resKey + "_Tooltip"));
+            setToolTip(result, resKey);
             result.setMnemonic(m);
             indent(result);
             g.add(result);
@@ -1474,9 +1565,16 @@ public class WBSJTable extends JTable {
 
         private JCheckBox makeCheckBox(String resKey) {
             JCheckBox result = new JCheckBox(res(resKey), true);
-            result.setToolTipText(res(resKey + "_Tooltip"));
+            setToolTip(result, resKey);
             indent(result);
             return result;
+        }
+
+        private void setToolTip(JComponent comp, String resKey) {
+            String tipText = res(resKey + "_Tooltip");
+            String tipHtml = "<html><div style='width:200px'>"
+                    + HTMLUtils.escapeEntities(tipText) + "</div></html>";
+            comp.setToolTipText(tipHtml);
         }
 
         private void indent(JComponent comp) {
@@ -1591,6 +1689,10 @@ public class WBSJTable extends JTable {
                 selectRows(wbsModel.getRowsForNodes(new ArrayList(affectedNodes)));
                 UndoList.madeChange(WBSJTable.this, "Reapply workflow");
             }
+        }
+
+        public void recalculateEnablement(int[] selectedRows) {
+            setEnabled(!disableEditing && !isFiltered());
         }
     }
 
